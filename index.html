@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ravel</title>
+    <link rel="stylesheet" href="/lovejs/style.css">
+    <style>
+      * { margin: 0; padding: 0; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: #060a10; }
+      #player { width: 100vw; height: 100vh; display: block; }
+      #player canvas { display: block; width: 100% !important; height: 100% !important; }
+    </style>
+  </head>
+  <body>
+    <div id="player">
+      <script src="/lovejs/player.js?g=/game.love&v=11.5&n=1"></script>
+    </div>
+    <script>
+      window.addEventListener('load', function() {
+        window.dispatchEvent(new Event('resize'));
+      });
+    </script>
+  </body>
+</html>

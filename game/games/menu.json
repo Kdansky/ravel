@@ -1,0 +1,40 @@
+{
+  "title": "Ravel",
+  "zones": [
+    { "key": "menu", "type": "hand", "pos": [0.10, 0.25, 0.90, 0.80],
+      "contents": ["play_demo", "play_castle", "play_kingdom", "play_tower"] }
+  ],
+  "templates": [
+    {
+      "key":     "play_demo",
+      "text":    "The Wandering Road",
+      "asset":   "world.jpg",
+      "tooltip": "A short story of choices and consequence. Draw cards and survive the journey.",
+      "on_play": ["load_game:demo.json"]
+    },
+    {
+      "key":     "play_castle",
+      "text":    "Castle Lord",
+      "asset":   "village.png",
+      "tooltip": "Build a castle and weather the challenges that come your way.",
+      "on_play": ["load_game:castle.json"]
+    },
+    {
+      "key":     "play_kingdom",
+      "text":    "Coronation",
+      "asset":   "ruins.jpg",
+      "tooltip": "Forge a realm from drafted choices, then let the trials test what you built.",
+      "on_play": ["load_game:kingdom.json"]
+    },
+    {
+      "key":     "play_tower",
+      "text":    "The Drowned Tower",
+      "asset":   "storm.png",
+      "tooltip": "A classical adventure told in pages. Choose blind, turn the page, live with it.",
+      "on_play": ["load_game:tower.json"]
+    }
+  ],
+  "phases": [
+    { "key": "waiting", "type": "player_input" }
+  ]
+}

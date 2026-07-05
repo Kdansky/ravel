@@ -1,0 +1,137 @@
+{
+  "title": "The Wandering Road",
+  "zones": [
+    { "key": "road",  "type": "deck", "pos": [0.04, 0.08, 0.20, 0.55], "tags": ["shuffle"],
+      "contents": ["shelter:2", "storm:2", "stranger:2", "bandits:2", "village:1", "ruins:1", "crossroads:1"] },
+    { "key": "hand",  "type": "hand", "pos": [0.04, 0.62, 0.96, 0.96] },
+    { "key": "past",  "type": "pile", "pos": [0.80, 0.08, 0.96, 0.55] },
+    { "key": "offer", "type": "hand", "pos": [0.32, 0.30, 0.68, 0.72], "tags": ["hidden"] },
+    { "key": "paths", "type": "deck", "pos": [0.42, -0.40, 0.58, -0.08], "tags": ["hidden"],
+      "contents": ["mountain_pass", "forest_trail", "old_bridge"] },
+    { "key": "fate_victory", "type": "deck", "pos": [0.42, -0.40, 0.58, -0.08], "tags": ["hidden"],
+      "contents": ["journeys_end"] },
+    { "key": "fate_defeat",  "type": "deck", "pos": [0.42, -0.40, 0.58, -0.08], "tags": ["hidden"],
+      "contents": ["perished"] }
+  ],
+  "templates": [
+    {
+      "key": "shelter",
+      "text": "Find Shelter",
+      "asset": "shelter.png",
+      "tooltip": "You find an abandoned cottage and rest inside. Recover 1 health.",
+      "on_play": ["gain_stat:hp:1", "move_to:past", "draw_from:road:hand:1"]
+    },
+    {
+      "key": "storm",
+      "text": "Storm",
+      "asset": "storm.png",
+      "tooltip": "A sudden storm rolls in. You lose 1 health pushing through.",
+      "on_play": ["lose_stat:hp:1", "move_to:past", "draw_from:road:hand:1"]
+    },
+    {
+      "key": "stranger",
+      "text": "Stranger",
+      "asset": "stranger.png",
+      "tooltip": "A kind traveler shares their food with you. Gain 1 health.",
+      "on_play": ["gain_stat:hp:1", "move_to:past", "draw_from:road:hand:1"]
+    },
+    {
+      "key": "bandits",
+      "text": "Bandits",
+      "asset": "bandits.png",
+      "tooltip": "Ambushed on the road. You escape, but not unscathed. Lose 2 health.",
+      "on_play": ["lose_stat:hp:2", "move_to:past", "draw_from:road:hand:1"]
+    },
+    {
+      "key": "village",
+      "text": "Village",
+      "asset": "village.png",
+      "tooltip": "A warm welcome in a friendly village. Rest well and gain 2 health.",
+      "on_play": ["gain_stat:hp:2", "move_to:past", "draw_from:road:hand:1"]
+    },
+    {
+      "key": "ruins",
+      "text": "Ancient Ruins",
+      "asset": "ruins.jpg",
+      "tooltip": "Crumbling walls hide old dangers. Lose 1 health picking through the rubble.",
+      "on_play": ["lose_stat:hp:1", "move_to:past", "draw_from:road:hand:1"]
+    },
+    {
+      "key": "crossroads",
+      "text": "Crossroads",
+      "asset": "world.jpg",
+      "tooltip": "The road forks. Choose your path.",
+      "on_play": ["move_to:past", "push_phase:path_choice"]
+    },
+    {
+      "key": "mountain_pass",
+      "text": "Mountain Pass",
+      "asset": "ruins.jpg",
+      "tooltip": "Steep and cold, but short. Lose 1 health.",
+      "on_play": ["lose_stat:hp:1", "move_to:past", "draw_from:road:hand:1"]
+    },
+    {
+      "key": "forest_trail",
+      "text": "Forest Trail",
+      "asset": "shelter.png",
+      "tooltip": "The long way around, but nothing troubles you.",
+      "on_play": ["move_to:past", "draw_from:road:hand:1"]
+    },
+    {
+      "key": "old_bridge",
+      "text": "Old Bridge",
+      "asset": "village.png",
+      "tooltip": "It creaks but holds, and you rest on the far bank. Gain 1 health.",
+      "on_play": ["gain_stat:hp:1", "move_to:past", "draw_from:road:hand:1"]
+    },
+    {
+      "key": "journeys_end",
+      "text": "Journey's End",
+      "asset": "village.png",
+      "tooltip": "You survived the wandering road. Click to return to the menu."
+    },
+    {
+      "key": "perished",
+      "text": "You Perished",
+      "asset": "storm.png",
+      "tooltip": "The road has claimed you. Click to return to the menu."
+    }
+  ],
+  "stats": [
+    { "key": "hp", "min": 0, "max": 10, "label": "Health" }
+  ],
+  "phases": [
+    {
+      "key": "setup",
+      "type": "automatic",
+      "actions": ["draw_from:road:hand:1"]
+    },
+    {
+      "key": "journey",
+      "type": "player_input",
+      "label": "The Journey"
+    },
+    {
+      "key": "path_choice", "type": "overlay", "label": "Choose your path",
+      "deck": "paths", "zone": "offer", "draw": 3,
+      "on_pick": ["add_to:hand", "return_to:offer:paths", "pop_phase"]
+    },
+    {
+      "key": "victory", "type": "overlay", "label": "Journey's End",
+      "deck": "fate_victory", "zone": "offer", "draw": 1,
+      "on_pick": ["load_game:menu.json"]
+    },
+    {
+      "key": "defeat", "type": "overlay", "label": "You Perished",
+      "deck": "fate_defeat", "zone": "offer", "draw": 1,
+      "on_pick": ["load_game:menu.json"]
+    }
+  ],
+  "end_conditions": [
+    { "stat": "hp", "equals": 0,               "then": ["push_phase:defeat"] },
+    { "zone_empty": ["road", "hand"],          "then": ["push_phase:victory"] }
+  ],
+  "setup": {
+    "player": { "hp": 5 }
+  }
+}

@@ -1,0 +1,316 @@
+# Authoring Games for Ravel
+
+A game is one JSON file in `game/games/`, plus optional images in `game/games/assets/`.
+No code. This document walks through building a game, then lists everything the
+engine understands. `DESIGN.md` explains *why* things are shaped this way;
+`ARCHITECTURE.md` explains the engine internals.
+
+Quick loop while authoring: `luajit play.lua mygame.json 42` (CLI, seeded), or run
+the GUI and just save the JSON — templates hot-reload into the running game.
+A validator checks the whole file on load (and on reload) and prints what's
+broken in plain language — typo'd fields and sections, missing references,
+conflicts — with "did you mean" suggestions; the game plays on regardless.
+`luajit check.lua mygame.json` runs the same checks without starting a game.
+
+---
+
+## 1. Walkthrough: a minimal game
+
+```json
+{
+  "title": "My Game",
+
+  "stats": [
+    { "key": "hp", "label": "Health", "min": 0, "max": 10 }
+  ],
+
+  "setup": { "player": { "hp": 5 } },
+
+  "zones": [
+    { "key": "deck", "type": "deck", "pos": [0.05, 0.10, 0.25, 0.60],
+      "tags": ["shuffle"], "contents": ["sword:3", "trap:2"] },
+    { "key": "hand", "type": "hand", "pos": [0.05, 0.65, 0.95, 0.98] }
+  ],
+
+  "templates": [
+    { "key": "sword", "text": "Sword", "tooltip": "Gain 1 health.",
+      "on_play": ["gain_stat:hp:1", "draw_from:deck:hand:1"] },
+    { "key": "trap",  "text": "Trap",  "tooltip": "Lose 2 health.",
+      "on_play": ["lose_stat:hp:2", "draw_from:deck:hand:1"] }
+  ],
+
+  "phases": [
+    { "key": "setup",   "type": "automatic", "actions": ["draw_from:deck:hand:1"] },
+    { "key": "playing", "type": "player_input", "label": "Playing" }
+  ],
+
+  "end_conditions": [
+    { "stat": "hp", "equals": 0, "then": ["push_phase:defeat"] }
+  ]
+}
+```
+
+The recipe, in order:
+
+1. **Stats** — the numbers of your game. Declared stats show in the HUD (add
+   `"hidden": true` to keep one internal). Starting values go in `setup.player`.
+2. **Zones** — where cards live. `pos` is window fractions `[x1, y1, x2, y2]`;
+   positions off-screen (negative y) make cards fly in from outside. Decks own
+   their starting cards via `contents`.
+3. **Templates** — one entry per card *kind*. Instances are created from these;
+   editing a template live changes every instance.
+4. **Phases** — the turn structure. The first phase starts the game; `automatic`
+   phases run and advance immediately.
+5. **End conditions** — how the game ends. Endings are just overlay phases that
+   deal a "fate card" whose `on_pick` loads the menu.
+
+The menu itself is a game (`menu.json`); add a card with
+`"on_play": ["load_game:mygame.json"]` to make yours reachable.
+
+---
+
+## 2. Common patterns
+
+**Ending screens.** A hidden deck holding one ending card + an overlay phase:
+
+```json
+{ "key": "fate_win", "type": "deck", "pos": [0.42, -0.4, 0.58, -0.08],
+  "tags": ["hidden"], "contents": ["victory_card"] }
+
+{ "key": "victory", "type": "overlay", "label": "Victory",
+  "deck": "fate_win", "zone": "offer", "draw": 1,
+  "on_pick": ["load_game:menu.json"] }
+```
+
+**Turn cycle with forced plays** (Castle Lord): `draw_and_play` phases in list
+order; playing one card discards the hand and advances; the list wraps to the
+first non-automatic phase, which ends the round. Always give these a `pass_card`.
+
+**Free-play draft hands** (Coronation): a `player_input` phase with `deck`,
+`draw` and a `pass_card` deals a hand you play freely from; a Done/router token
+with `"needs": { "plays": 1 }` and `["destroy_self", "next_phase"]` ends the hand.
+
+**Sub-card choices**: options live in a hidden internal deck; the parent card
+pushes an overlay over it; `on_pick` sends the pick to hand and returns the rest.
+Option cards can carry their own `cost` (a priced transformation).
+
+**Classical CYOA** (The Drowned Tower): pages are cards with a `story` field;
+choice cards `reveal:` them. A revealed page fills the screen; clicking it runs
+the page's own `on_pick` — typically `destroy:hand` then `fill:hand:...` with
+the next choices, so the story chains without any phase plumbing. Secret
+conditional branches are `resolve_challenge` choices whose `on_pass`/`on_fail`
+reveal different pages; shuffle-decided secrets are `reveal_top:` over a hidden
+deck; the inventory is just a board — keepsakes carry a tag whose home is that
+board, so `gain:rusty_key` puts them there, and `card:<key>` tests for them;
+endings are pages whose `on_pick` is `load_game:menu.json`.
+Put `"irreversible": true` on the point of no return. Note that a choice card's
+consequences are invisible until played — the tooltip tells the player exactly
+as much as you write into it.
+
+**Draft one of three from a real deck** (Architect):
+`on_pick: ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck", "pop_phase"]`.
+
+**Challenges/trials**: `on_play: ["move_to:graveyard", "resolve_challenge"]` with
+`requires` / `on_pass` / `on_fail` on the card. Make passes cost tribute and
+fails damage the board, or threats stop mattering.
+
+**Stat-driven structure** (tiers, acts, loops): `next` routing on phases — see
+the reference below. Progress trackers are just stats that cards raise in their
+own `on_play`.
+
+**Synergies**: `count:<tag>` amounts (`gain_stat:gold:count:economic`),
+`needs`/`requires` on counts, computed tags for thresholds, `on_turn` engines,
+and exhaust-limited `on_activate` bursts.
+
+---
+
+## 3. Reference
+
+### Top-level fields
+
+| Field | Meaning |
+|---|---|
+| `title` | Shown in the HUD |
+| `seed` | Optional fixed RNG seed (reproducible shuffles) |
+| `stats` | Ordered stat declarations (HUD order) |
+| `computed_tags` | Derived per-card tags (see below) |
+| `tags` | Tag behaviour — a tag can give its cards a home zone (see below) |
+| `templates` | Card definitions (`cards` also accepted) |
+| `zones` | Zone definitions, in declaration order |
+| `phases` | Phase definitions; first entry starts the game |
+| `end_conditions` | Outcome checks, first match wins, once per game |
+| `setup.player` | Starting player stats |
+
+### Stats
+
+`{ "key", "label", "min", "max", "hidden" }`. Declared stats display with a
+built-in icon (`gold` coin, `hp` heart, `defense` shield, `morale` banner,
+`food` apple, others a diamond). Stat changes clamp to `min`/`max`; a card
+stat with a `<key>_max` companion clamps to `[0, max]`. **Reserved:** `round`
+(starts 1, +1 per round boundary) and `plays` (per-hand play counter) are
+engine-managed — declare them only to display them.
+
+### Zones
+
+| Field | Meaning |
+|---|---|
+| `key`, `label` | Identity and optional on-screen label |
+| `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots) |
+| `pos` | `[x1, y1, x2, y2]` window fractions |
+| `grid` | `[cols, rows]` for grid zones |
+| `contents` | Starting cards: `"key"` or `"key:count"` strings |
+| `on_click` | Actions run when the zone is clicked |
+| `tags` | See below |
+
+Zone tags: `shuffle` (on contents creation and refill), `refill_when_empty`
+(recreate `contents` when emptied), `face_up` / `face_down` (override facing),
+`no_peek` (no tooltip/browse), `hidden` (not drawn; offer zones, fate decks).
+
+Cards entering a grid without slot targeting auto-occupy the first free slot.
+
+### Card templates
+
+| Field | Meaning |
+|---|---|
+| `key` | Unique identifier |
+| `text`, `tooltip`, `asset`, `color` | Presentation (asset optional; color `[r,g,b]`) |
+| `story` | Long-form prose, shown on the reveal page panel and in the detail view |
+| `tags` | Free vocabulary for targeting/counting; engine-known: `token` (vanishes instead of joining the discard; swept before new pass cards deal) |
+| `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `on_turn`) |
+| `cost` | Spent on play; gates and dims when unaffordable |
+| `activate_cost` | Spent on activation |
+| `needs` | Non-consuming gate (shared condition subjects); escape hatch: playable anyway if nothing else in the zone is |
+| `requires` | Checked by `resolve_challenge` → `on_pass` / `on_fail` |
+| `target` | `{ "type": "card"\|"slot", "min", "max" (or "count"), "tags": [...], "zones": [...] }` — click-to-target with the arrow |
+| `on_play` | Actions when played (ctx: this card + chosen targets) |
+| `on_activate` | Actions when clicked on the board; **exhausts** the card until the round wraps |
+| `on_turn` | Actions each round boundary while on a grid (and not ruined) |
+| `on_pass`, `on_fail` | Challenge outcomes |
+| `on_pick` | Actions when this card is picked from the built-in reveal overlay (pages) |
+| `irreversible` | Playing or picking this card clears the undo stack — the choice is final |
+| `auto_play`, `to_zone`, `to_slot` | Start in play (e.g. the throne) |
+
+### Phases
+
+| Field | Meaning |
+|---|---|
+| `key`, `label` | Identity, HUD label |
+| `type` | `automatic`, `player_input`, `draw_and_play`, `overlay` |
+| `actions` | Run on entry (automatic phases) |
+| `deck`, `draw`, `zone` | Deal `draw` cards from `deck` into `zone` (default `hand`) on fresh entry |
+| `pass_card` | Card key or array, dealt with every hand — forced plays always have an out |
+| `on_pick` | Overlay only: actions run with the picked card |
+| `next` | Routing table (below) |
+
+Types: `automatic` runs its actions once and advances (if the actions opened
+an overlay — a revealed page, say — it waits and advances when the overlay
+closes); `player_input` lets you play freely; `draw_and_play` forces one play,
+then discards the hand and advances; `overlay` dims the screen, deals into its
+zone, and resolves via `on_pick` — overlays are push-only (never in the
+sequence) and lock all other actions.
+
+The engine provides a built-in overlay phase `reveal` over a built-in hidden
+zone `reveal`, used by the reveal actions. It renders cards as full-text story
+pages (title, `story` prose, click to continue), runs the picked card's own
+`on_pick`, and destroys the read page unless its actions moved it somewhere.
+
+Routing: `"next": [ { <condition>, "then": "phase_key", "ends_round": true }, ... ]`.
+First matching entry wins; a condition-less entry always matches; no `next`
+means list order with an implicit round-ending wrap. `ends_round` is the only
+thing that ticks the round: round counter +1, exhausted cards ready, `on_turn`
+runs.
+
+### Conditions (one vocabulary everywhere)
+
+Used by `next`, `end_conditions`, `requires`, `needs`. Subjects: a stat key,
+`count:<tag>` (cards on grid zones with that tag), or `card:<key>` (instances
+of that specific template on grid zones — "does the player have the rusty key?").
+
+- Object form: `{ "stat": "progress", "at_least": 12 }` (`equals` / `at_least` / `at_most`, numbers only) or `{ "zone_empty": ["road", "hand"] }`.
+- Map form (`requires`, `needs`): `{ "might": 8, "count:farm": 3, "card:pearl": 1 }` — each subject must total at least n.
+
+`end_conditions` fire once per game (first match), wait for open overlays, and
+run their `then` actions — usually `push_phase:` to an ending overlay.
+
+### Computed tags
+
+Per-card derived tags from that card's own stats:
+
+```json
+"computed_tags": { "damaged": { "stat": "hp", "less_than_stat": "hp_max" },
+                   "ruined":  { "stat": "hp", "equals": "0" } }
+```
+
+Comparators: `less_than`, `less_than_stat`, `at_least`, `equals`. Usable
+anywhere card tags are (targeting, `count:`).
+
+### Tags with behaviour
+
+A game can give tags meaning of their own — types, essentially:
+
+```json
+"tags": { "item": { "zone": "inventory" }, "unit": { "zone": "battlefield" } }
+```
+
+A tag's `zone` is the home of every card carrying it, and placement then
+works by type instead of by naming zones in every action:
+
+- `move_to` without a zone sends the played card home (`"on_play": ["move_to"]`).
+- `gain:card:n` creates cards directly in their home zone (no home: the hand).
+- `auto_play` cards without a `to_zone` start in their home zone.
+
+A game with a single board stays simple: cards without a home fall back to
+it. With two or more boards (an inventory *and* a battlefield, say), every
+card that enters play must know where it goes — the validator flags cards
+whose tags don't say, and reports the conflict when a card's tags disagree.
+
+### Actions
+
+Colon-separated strings; unknown ops log and skip. Every numeric slot accepts
+a number, `count:<tag>` **or** `card:<key>`.
+
+| Action | Effect |
+|---|---|
+| `fill:zone:card:n` | Create n instances of card in zone |
+| `shuffle:zone` | Shuffle |
+| `draw_from:from:to:n` | Move n cards off the top |
+| `return_to:from:to` | Move all cards (bounded; safe with refilling zones) |
+| `move_to:zone` | Move the acting card (uses a slot target when given); without a zone, its home tag decides |
+| `gain:card:n` | Create n instances of a card in its home zone (or the hand) |
+| `add_to:zone` | Move the acting card (overlay picks) |
+| `move_target_to:zone` | Move each targeted card |
+| `gain_stat:stat:n` / `lose_stat:stat:n` | Change the stat holder's total (clamped, logged, floats) |
+| `spend_stat:stat:n` | Alias of lose (costs) |
+| `set_stat:stat:n` | Set directly (dev/authoring tool; silent) |
+| `gain_target_stat:stat:n` / `lose_target_stat:stat:n` | Change stats on targeted cards |
+| `damage_random:tag:stat:n` | Random on-board card with tag loses n stat |
+| `attach_to_target` | Attach the acting card under the first target |
+| `resolve_challenge` | Check the card's `requires`, run `on_pass`/`on_fail` |
+| `reveal:card` | Conjure the card into the page overlay; its `on_pick` continues |
+| `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
+| `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
+| `destroy:zone` / `destroy_self` | Remove cards from play entirely |
+| `load_game:file` | Switch games (menu items, endings) |
+
+### Engine behaviors you get for free
+
+Undo (Z / button, 50 steps, includes the event log — cleared by `irreversible`
+cards), the built-in story-page overlay, the corner event log (L
+expands), tooltips and detail views (right-click / long-press), zone browsing
+on face-up piles, cost/needs dimming, targeting arrow with eligibility
+highlighting, exhaust greying, floating stat deltas, card flight/impact
+effects, touch controls, window-scaled UI, seeded runs
+(`luajit play.lua game.json 42`, `RAVEL_SEED`, or `"seed"` in the file), CLI
+play, the TCP debug API (`RAVEL_DEBUG=1`), live template editing
+(`edit`/`dump`/`reload` + GUI hot-reload), and whole-file validation on load,
+reload and via `luajit check.lua mygame.json` — unknown fields and sections,
+bad shapes, broken references and conflicts, with did-you-mean suggestions.
+
+### Hardcoded conventions
+
+`menu.json` boots the engine. Zone keys `hand` (default deal/pick target),
+`graveyard` (draw_and_play discard), `board` (default `auto_play` target) are
+load-bearing names, and `reveal` names both the built-in page zone and overlay
+phase (a game may declare its own to override them). Clicking a face-up card
+plays it; clicking a grid card activates it; decks aren't clickable (give them
+`on_click` if needed).

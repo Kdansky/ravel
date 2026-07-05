@@ -1,0 +1,10 @@
+services:
+  ravel:
+    image: ravel-dev
+    pull_policy: build
+    build:
+      context: .
+    ports:
+      - "9009:8080"
+    volumes:
+      - ./game:/workspace/game
