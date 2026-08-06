@@ -17,6 +17,7 @@ local flow        = require("flow")
 local log         = require("log")
 local json        = require("json")
 local validate    = require("validate")
+local predicate   = require("predicate")
 
 local passed, failed = 0, 0
 local function check(name, cond)
@@ -70,7 +71,8 @@ check("json round trip",
 -- === menu ===
 flow.init("menu.json")
 check("menu loads", declaration.G.title == "Ravel")
-check("menu shows four games", zone_count("menu") == 4)
+check("menu deals every game it lists",
+	zone_count("menu") == #declaration.G.zone_defs.menu.contents)
 check("menu phase is waiting", phase.current().key == "waiting")
 
 -- === demo: basics ===
@@ -189,6 +191,33 @@ check("morale +1 and gold -2",
 	entity.sum_stat("morale") == morale0 + 1 and entity.sum_stat("gold") == 1)
 check("activation exhausts the throne", throne.exhausted == true)
 check("exhausted cards cannot activate again", flow.activate(throne.id) == false)
+
+-- === castle: abilities that take targets ===
+local tdef = declaration.G.card_defs.throne_room
+tdef.activate_target = { type = "card", count = 1, tags = { "building" }, zones = { "board" } }
+tdef.on_activate     = { "gain_target_stat:defense:1" }
+entity.get(throne.id).exhausted = nil
+eval("set_stat:gold:9")
+check("an ability with a target refuses none", flow.activate(throne.id, {}) == false)
+check("an ability with a target refuses too many",
+	flow.activate(throne.id, { throne.id, throne.id }) == false)
+local defense0 = entity.get(throne.id).stats.defense or 0
+check("an ability with the right target count fires", flow.activate(throne.id, { throne.id }))
+check("the ability reached its target",
+	entity.get(throne.id).stats.defense == defense0 + 1)
+
+-- A repeatable ability (the "pass the time" pattern) opts out of exhausting.
+tdef.exhausts = false
+entity.get(throne.id).exhausted = nil
+check("exhausts:false leaves the card ready",
+	flow.activate(throne.id, { throne.id }) and not entity.get(throne.id).exhausted)
+check("a repeatable ability fires again at once",
+	flow.activate(throne.id, { throne.id }))
+
+tdef.exhausts        = nil
+tdef.activate_target = nil
+tdef.on_activate     = { "gain_stat:morale:1" }
+entity.get(throne.id).exhausted = nil
 
 -- === castle: play cost gating ===
 eval("set_stat:gold:0")
@@ -353,8 +382,23 @@ check("reload restores template from disk",
 	fdef2.cost.gold == 1 and fdef2.tags_set.building and fdef2.tooltip ~= "Test tooltip")
 check("reload re-stamps changed instances", inst.stats.hp == 3)
 
+-- === web asset URLs: the charset allowlist that guards the JS bridge ===
+check("a plain https image URL is accepted",
+	cards.url_is_safe("https://i.imgur.com/0vnj0kx.jpeg"))
+check("a URL with a quote is refused (would break out of the JS string)",
+	not cards.url_is_safe('https://evil.example.com/x".onerror=alert;//'))
+check("a URL with a backslash is refused",
+	cards.url_is_safe("https://evil.example.com/x\\") == false)
+check("a URL with a raw newline is refused",
+	cards.url_is_safe("https://evil.example.com/x\ny") == false)
+check("a non-string asset is refused, not a crash",
+	cards.url_is_safe(nil) == false and cards.url_is_safe(42) == false)
+check("a non-http(s) scheme is refused",
+	cards.url_is_safe("javascript:alert(1)") == false)
+
 -- === content validation ===
-for _, f in ipairs({ "menu.json", "demo.json", "castle.json", "kingdom.json", "tower.json" }) do
+for _, f in ipairs({ "menu.json", "demo.json", "castle.json", "kingdom.json",
+	"tower.json", "road.json", "starter_cyoa.json", "vigil.json" }) do
 	local problems = validate.check(declaration.parse(f))
 	check(f .. " validates clean", #problems == 0)
 	for _, p in ipairs(problems) do print("  " .. f .. ": " .. p) end
@@ -438,8 +482,83 @@ for _, cid in ipairs(trial_cards) do flow.play_card(cid, {}) end
 check("rest unlocks after both trials", flow.can_play(rest_id) == true)
 local round0 = entity.sum_stat("round")
 flow.play_card(rest_id, {})
-check("rest loops back through the gate", phase.current().key == "trial2")
+check("rest marches into the wartime market", phase.current().key == "wartime_market")
 check("each trial pair is a round", entity.sum_stat("round") == round0 + 1)
+check("the wartime market deals supplies", zone_count("hand") == 4)
+flow.play_card(hand_router("march_on"), {})
+check("marching on returns to the trials", phase.current().key == "trial2")
+
+-- === named effects fire through the presentation hook ===
+local fired = {}
+actions.on_effect = function(name) fired[#fired + 1] = name end
+flow.init("road.json", 9)
+flow.pick(zones.find("reveal").cards[1])
+eval("fill:hand:outrider:1")
+flow.play_card(find_card("outrider", "hand").id, {})
+flow.activate(find_card("outrider", "battlefield").id)
+actions.on_effect = nil
+check("activations fire their named effect", fired[#fired] == "sabre_hit")
+
+local fxmod = require("fx")
+local agree = true
+for b in pairs(fxmod.bases()) do
+	if not validate.EFFECT_BASES[b] then agree = false end
+end
+for b in pairs(validate.EFFECT_BASES) do
+	if not fxmod.bases()[b] then agree = false end
+end
+check("validator and fx agree on the base effects", agree)
+
+-- === endings announce themselves ===
+flow.init("kingdom.json", 5)
+check("no outcome while the game runs", flow.outcome() == nil)
+check("the summary reports the visible stats", #flow.summary() >= 5)
+eval("set_stat:progress:24")
+check("the coronation is a victory", flow.outcome() == "victory")
+flow.init("kingdom.json", 5)
+eval("set_stat:stability:0")
+check("the collapse is a defeat", flow.outcome() == "defeat")
+flow.init("tower.json", 3)
+flow.pick(zones.find("reveal").cards[1])
+eval("lose_stat:hp:99")
+check("story pages carry outcomes too", flow.outcome() == "defeat")
+
+-- === phases end and discard like MTG turns ===
+flow.init("kingdom.json", 5)
+flow.play_card(find_card("warlord", "hand").id, {})
+eval("fill:hand:laborers:1")
+flow.play_card(find_card("laborers", "hand").id, {})
+local grave0 = zone_count("graveyard")
+flow.play_card(hand_router("to_market"), {})
+check("leaving a phase discards the unplayed hand", zone_count("graveyard") > grave0)
+check("the next visit deals only the fresh hand", zone_count("hand") == 7)
+
+declaration.G.phase_by_key.market_visit.ends_after = 1
+local r_ea = entity.sum_stat("round")
+local first_ea
+for _, cid in ipairs(zones.find("hand").cards) do
+	local d = cards.def(entity.get(cid))
+	if not (d.tags_set and d.tags_set.token) and flow.can_play(cid) then first_ea = cid; break end
+end
+flow.play_card(first_ea, {})
+check("ends_after advances the phase by itself", entity.sum_stat("round") == r_ea + 1)
+check("the phase it advanced into dealt fresh", zone_count("hand") == 7)
+
+-- === kingdom: failed trials persist as crises ===
+flow.init("kingdom.json", 5)
+flow.play_card(find_card("warlord", "hand").id, {})
+eval("set_stat:might:0")
+eval("fill:hand:war_host:1")
+flow.play_card(find_card("war_host", "hand").id, {})
+check("a failed trial squats on the board as a crisis", find_card("war_host", "board") ~= nil)
+local stab1 = entity.sum_stat("stability")
+flow.play_card(hand_router("to_market"), {})
+check("an unanswered crisis drains stability each round",
+	entity.sum_stat("stability") == stab1 - 1)
+local crisis = find_card("war_host", "board")
+eval("set_stat:might:9")
+flow.activate(crisis.id)
+check("answering the crisis clears it from the board", find_card("war_host", "board") == nil)
 
 -- === kingdom: the three endings ===
 eval("set_stat:stability:0")
@@ -533,6 +652,103 @@ actions.execute("move_to", { card_id = find_card("c_search", "hand").id, targets
 flow.settle()
 check("bare move_to falls back to the only board", find_card("c_search", "board") ~= nil)
 
+-- === sacrifice costs: board cards as currency ===
+flow.init("tower.json", 3)
+flow.pick(zones.find("reveal").cards[1])
+cards.edit("c_flee", "cost", '{"sacrifice:keepsake": 1}')
+eval("fill:hand:c_flee:1")
+local flee = find_card("c_flee", "hand")
+check("a sacrifice cost gates without the board card", flow.can_play(flee.id) == false)
+eval("gain:pearl:1")
+check("the sacrifice cost opens with it on the board", flow.can_play(flee.id) == true)
+flow.play_card(flee.id, {})
+check("paying destroyed the sacrificed card", zone_count("board") == 0)
+local logged = false
+for _, l in ipairs(log.tail(8)) do
+	if l:find("Sacrificed The Pearl", 1, true) then logged = true end
+end
+check("the sacrifice is logged", logged)
+check("the play still resolved its reveal", phase.is_overlay())
+check("sacrifice costs read as text", cards.cost_text({ ["sacrifice:farm"] = 2 }) == "sacrifice 2 farm")
+
+-- === flow is the single legality gate ===
+flow.init("castle.json")
+eval("fill:hand:watchtower:1")
+local wt2 = find_card("watchtower", "hand")
+check("play with missing targets is refused", flow.play_card(wt2.id, {}) == false)
+check("the refused card stayed in hand", entity.get(wt2.id).zone_id == zones.find_id("hand"))
+flow.play_card(wt2.id, { empty_slot() })
+check("the same play with a slot target works", find_card("watchtower", "board") ~= nil)
+
+-- === grid capacity: full boards refuse new arrivals ===
+flow.init("tower.json", 3)
+flow.pick(zones.find("reveal").cards[1])
+eval("gain:pearl:8")
+check("gain stops at the board's capacity", zone_count("board") == 5)
+local held = find_card("c_search", "hand")
+check("a move onto a full board is refused",
+	zones.move_card(held.id, zones.find_id("board")) == false)
+check("the refused card stayed put", entity.get(held.id).zone_id == zones.find_id("hand"))
+
+-- === the long road: two boards, tag homes, threats and marches ===
+local function battlefield_threat()
+	for e in entity.each("card") do
+		local d = cards.def(e)
+		if e.zone_id == zones.find_id("battlefield") and d.tags_set and d.tags_set.threat then
+			return e
+		end
+	end
+end
+
+flow.init("road.json", 9)
+check("the road opens on its title page", phase.is_overlay() and top_page() == "p_depart")
+flow.pick(zones.find("reveal").cards[1])
+check("dawn dealt a threat onto the battlefield", battlefield_threat() ~= nil)
+check("camp offers a draft plus both marches", zone_count("hand") == 5)
+
+eval("fill:hand:outrider:1")
+flow.play_card(find_card("outrider", "hand").id, {})
+check("units muster on the battlefield by tag", find_card("outrider", "battlefield") ~= nil)
+eval("fill:hand:torch:1")
+flow.play_card(find_card("torch", "hand").id, {})
+check("items stow in the wagons by tag", find_card("torch", "inventory") ~= nil)
+
+local th  = battlefield_threat()
+local hp0 = th.stats.hp
+flow.activate(find_card("outrider", "battlefield").id)
+check("units wound threats once per day", th.stats.hp < hp0)
+eval("damage_random:threat:hp:9")
+check("a dead threat is slain, not gone", th.stats.hp == 0 and th.zone_id ~= nil)
+
+eval("fill:hand:scavenge:1")
+flow.play_card(find_card("scavenge", "hand").id, { th.id })
+check("scavenging clears the corpse for supplies",
+	entity.get(th.id).zone_id == zones.find_id("graveyard"))
+
+local d0, s0 = entity.sum_stat("distance"), entity.sum_stat("supplies")
+local m0 = entity.sum_stat("morale")
+flow.play_card(hand_router("march"), {})
+check("marching trades a supply for a mile",
+	entity.sum_stat("distance") == d0 + 1 and entity.sum_stat("supplies") == s0 - 1)
+check("a threat never drains on the day it arrives", entity.sum_stat("morale") == m0)
+check("the road loops back to camp", phase.current().key == "camp")
+check("a new day has dawned", entity.sum_stat("round") == 2)
+check("camp discards yesterday's leftovers", zone_count("hand") == 5)
+
+local far0 = zone_count("road_far")
+eval("set_stat:distance:7")
+flow.play_card(hand_router("hard_march"), {})
+check("past six miles the far road deals the threats", zone_count("road_far") == far0 - 1)
+
+eval("fill:hand:burn_the_wagons:1")
+flow.play_card(find_card("burn_the_wagons", "hand").id, {})
+check("burning the wagons sacrificed the unit", find_card("outrider", "battlefield") == nil)
+
+eval("set_stat:distance:12")
+check("twelve miles ends the run at home", phase.is_overlay() and top_page() == "e_home")
+flow.pick(zones.find("reveal").cards[1])
+check("the road returns to the menu", declaration.G.title == "Ravel")
+
 -- === validator: conflicts, ambiguity, and friendly messages ===
 local function has_problem(list, needle)
 	for _, p in ipairs(list) do
@@ -555,9 +771,22 @@ vg.card_defs.pearl.tags_set = { keepsake = true, relic = true }
 vp = validate.check(vg)
 check("tags that disagree about a card's home are flagged", has_problem(vp, "disagree"))
 
-local bad_file = "game/games/tmp_bad_test.json"
-local bf = io.open(bad_file, "w")
-bf:write([[{
+-- Write a temp game file, parse and validate it, and always clean up —
+-- even when the parse itself blows up.
+local function with_fixture(content)
+	local path = "game/games/tmp_fixture_test.json"
+	local f = assert(io.open(path, "w"))
+	f:write(content)
+	f:close()
+	local ok, result = pcall(function()
+		return validate.check(declaration.parse("tmp_fixture_test.json"))
+	end)
+	os.remove(path)
+	if not ok then error(result, 2) end
+	return result
+end
+
+local bp = with_fixture([[{
   "title": "Broken",
   "templats": [],
   "stats": [ { "key": "gold" }, { "key": "gold" } ],
@@ -574,9 +803,6 @@ bf:write([[{
   ],
   "phases": [ { "key": "start", "type": "playerinput" } ]
 }]])
-bf:close()
-local bp = validate.check(declaration.parse("tmp_bad_test.json"))
-os.remove(bad_file)
 check("a typo'd section name is reported", has_problem(bp, "templats"))
 check("duplicate keys are reported as conflicts", has_problem(bp, "share the key 'dagger'") and has_problem(bp, "share the key 'gold'"))
 check("an unknown card field suggests the right one", has_problem(bp, "did you mean 'on_play'"))
@@ -626,8 +852,16 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "draw_from:vault:hand:1" } end },
 	{ "a gain of a missing card", "names the card 'excalibur'",
 		function(g) g.card_defs.c_flee.on_play = { "gain:excalibur:1" } end },
-	{ "a push_phase to a missing phase", "push_phase to 'finale'",
+	{ "a push_phase to a missing phase", "points at phase 'finale'",
 		function(g) g.card_defs.c_flee.on_play = { "push_phase:finale" } end },
+	{ "a load_game path-traversal attempt", "no folders or '..' are allowed",
+		function(g) g.card_defs.c_flee.on_play = { "load_game:../../../etc/passwd" } end },
+	{ "a load_game target that doesn't exist", "doesn't exist",
+		function(g) g.card_defs.c_flee.on_play = { "load_game:no_such_game.json" } end },
+	{ "a damage tag no card carries", "looks for the tag 'wyrms'",
+		function(g) g.card_defs.c_flee.on_play = { "damage_random:wyrms:hp:1" } end },
+	{ "an action missing its argument", "'reveal' is missing its card argument",
+		function(g) g.card_defs.c_flee.on_play = { "reveal" } end },
 	{ "a target stat no card carries", "no card carries that stat",
 		function(g) g.card_defs.c_flee.on_play = { "gain_target_stat:armor:1" } end },
 	{ "an unknown tag in an action amount", "counts the tag 'dragons'",
@@ -726,6 +960,46 @@ local CASES = {
 		function(g) g.setup.playr = {} end },
 	{ "a non-number starting value", "the starting value of 'hp'",
 		function(g) g.setup.player.hp = "six" end },
+	-- persona-audit additions
+	{ "a negative cost", "'gold' is negative",
+		function(g) g.card_defs.c_flee.cost = { gold = -5 } end },
+	{ "a sacrifice of an uncarried tag", "sacrifices the tag 'dragons'",
+		function(g) g.card_defs.c_flee.cost = { ["sacrifice:dragons"] = 1 } end },
+	{ "a sacrifice outside a cost", "belongs in cost or activate_cost",
+		function(g) g.card_defs.c_flee.needs = { ["sacrifice:keepsake"] = 1 } end },
+	{ "a missing image file", "is not in games/assets",
+		function(g) g.card_defs.c_flee.asset = "no_such_file.png" end },
+	{ "a web asset URL with characters that could break out of generated JS",
+		"characters that aren't valid in a URL",
+		function(g) g.card_defs.c_flee.asset = 'https://evil.example.com/x".onerror=alert;//' end },
+	{ "a zone squatting on the UI corner", "lower-left corner",
+		function(g) g.zone_defs.hand.pos = { 0.00, 0.60, 0.97, 0.97 } end },
+	{ "a non-number ends_after", "ends_after should be a number",
+		function(g) g.phase_by_key.story.ends_after = "two" end },
+	{ "ends_after on an automatic phase", "only phases where cards are played",
+		function(g) g.phase_by_key.intro.ends_after = 1 end },
+	{ "discard_hand on an overlay", "overlays pop back — it never fires",
+		function(g) g.phase_by_key.reveal.discard_hand = true end },
+	{ "a misspelled outcome", "outcome should be 'victory' or 'defeat'",
+		function(g) g.card_defs.e_pearl.outcome = "vctory" end },
+	{ "an unknown base effect", "is not a base effect",
+		function(g) g.effect_defs.oops = { base = "sparkles" } end },
+	{ "an effect the game never defines", "defines no such effect",
+		function(g) g.card_defs.c_flee.on_play = { "effect:big_boom" } end },
+	{ "a non-number effect size", "size should be a number",
+		function(g) g.effect_defs.bell_toll.size = "big" end },
+	{ "contents beyond the board's capacity", "only has 5 slots",
+		function(g) g.zone_defs.board.contents = { "pearl:9" } end },
+	{ "an automatic phase that can stall", "when none matches, the game stalls",
+		function(g) g.phase_by_key.intro.next = { { stat = "hp", at_least = 99, ["then"] = "story" } } end },
+	{ "half of the reveal pair replaced", "define both or neither",
+		function(g) g.zone_defs.reveal.injected = nil end },
+	{ "an uncarried tag near a carried one", "did you mean 'keepsake'",
+		function(g) g.tag_defs.keepsakes = { zone = "board" } end },
+	{ "an activate_target with no ability", "no ability for it to target",
+		function(g) g.card_defs.c_flee.activate_target = { type = "card", count = 1 } end },
+	{ "a non-boolean exhausts", "exhausts should be true or false",
+		function(g) g.card_defs.c_flee.exhausts = "no" end },
 }
 for _, c in ipairs(CASES) do
 	local g = declaration.parse("tower.json")
@@ -733,10 +1007,84 @@ for _, c in ipairs(CASES) do
 	check("validator flags " .. c[1], has_problem(validate.check(g), c[2]))
 end
 
+-- The validator derives its checks from each op's declared shape: every
+-- handler must declare one, or new actions silently skip validation.
+local unspecced = {}
+for op in pairs(actions.ops()) do
+	if not actions.spec(op) then unspecced[#unspecced + 1] = op end
+end
+check("every action declares its argument shape", #unspecced == 0)
+for _, op in ipairs(unspecced) do print("  missing spec: " .. op) end
+
+-- === security: content from other people must never crash the engine ===
+-- Games are meant to be authored by people other than the engine's own
+-- developer. The validator only warns about a malformed field — content
+-- keeps running regardless — so the runtime itself must survive every one
+-- of these without an uncaught Lua error, not just report them.
+
+-- predicate.met / predicate.meets_all: previously `v >= cond.at_least` (etc)
+-- raised "attempt to compare number with X" the instant a routing
+-- condition, end_condition, or requires/needs map held a non-number.
+check("a non-number at_least fails closed instead of crashing",
+	predicate.met({ stat = "hp", at_least = "lots" }) == false)
+check("a non-number at_most fails closed instead of crashing",
+	predicate.met({ stat = "hp", at_most = {} }) == false)
+check("a non-number equals fails closed instead of crashing",
+	predicate.met({ stat = "hp", equals = "zero" }) == false)
+check("a condition with no stat/zone_empty is just false",
+	predicate.met({}) == false)
+check("a zone_empty that isn't a list fails closed",
+	predicate.met({ zone_empty = "hand" }) == false)
+check("meets_all with a non-number requirement fails closed",
+	predicate.meets_all({ hp = "plenty" }) == false)
+check("meets_all tolerates a non-table argument",
+	predicate.meets_all("garbage") == true)
+check("total tolerates a non-string subject",
+	predicate.total(42) == 0 and predicate.total(nil) == 0)
+
+-- Stat values are coerced to numbers at the point they're written (card
+-- creation, setup.player), so a malformed content value can never reach
+-- gain_stat/lose_stat arithmetic as a string and crash there instead.
+do
+	local g = declaration.parse("tower.json")
+	g.card_defs.pearl.card_stats = { charge = "lots" }
+	declaration.G = g
+	local e = cards.create("pearl", zones.find_id("hand"))
+	check("a non-number card_stats value is coerced, not stored raw",
+		type(e.stats.charge) == "number")
+end
+
+-- load_game path traversal / bogus targets: refused by the handler itself,
+-- and a failed load_game (bad file, bad JSON) must recover to the menu
+-- rather than crash or strand the player in a half-reset state.
+flow.init("tower.json", 3)
+flow.pick(zones.find("reveal").cards[1])
+eval("effect:nope")   -- an unknown effect name must not raise either
+eval("load_game:../../../etc/passwd")
+check("path-traversal load_game is refused and the game keeps running",
+	declaration.G.title == "The Drowned Tower")
+eval("load_game:this_game_does_not_exist.json")
+check("a load_game to a missing file recovers to the menu, not a crash",
+	declaration.G.title == "Ravel")
+
+-- A pathologically deep JSON payload can blow the parser's (recursive
+-- descent) C stack. pcall catches that cleanly, and the load_game path
+-- above already runs through a pcall boundary — prove that chain holds
+-- for this specific shape of attack, not just for a missing file.
+flow.init("tower.json", 3)
+flow.pick(zones.find("reveal").cards[1])
+local deep_path = "game/games/tmp_deep_nest.json"
+local df = assert(io.open(deep_path, "w"))
+df:write(string.rep("[", 200000) .. string.rep("]", 200000))
+df:close()
+eval("load_game:tmp_deep_nest.json")
+os.remove(deep_path)
+check("a stack-overflow JSON payload recovers to the menu, not a crash",
+	declaration.G.title == "Ravel")
+
 -- Parse-level messages need real files: entries with no key, duplicate
 -- zone/phase keys, and a section written as an object instead of a list.
-local bf2 = io.open("game/games/tmp_bad_keys.json", "w")
-bf2:write([[{
+local kp = with_fixture([[{
   "templates": [ { "text": "No Key" } ],
   "zones": [
     { "type": "hand", "pos": [0, 0, 1, 1] },
@@ -750,9 +1098,6 @@ bf2:write([[{
     { "key": "p", "type": "player_input" }
   ]
 }]])
-bf2:close()
-local kp = validate.check(declaration.parse("tmp_bad_keys.json"))
-os.remove("game/games/tmp_bad_keys.json")
 check("entries without keys are reported for every kind",
 	has_problem(kp, "a template has no") and has_problem(kp, "a zone has no")
 	and has_problem(kp, "a stat has no") and has_problem(kp, "a phase has no"))
@@ -760,13 +1105,110 @@ check("duplicate zone and phase keys are conflicts",
 	has_problem(kp, "two zones share the key 'dup'")
 	and has_problem(kp, "two phases share the key 'p'"))
 
-local bf3 = io.open("game/games/tmp_bad_shape.json", "w")
-bf3:write('{ "templates": { "key": "x" } }')
-bf3:close()
-local sp = validate.check(declaration.parse("tmp_bad_shape.json"))
-os.remove("game/games/tmp_bad_shape.json")
+local sp = with_fixture('{ "templates": { "key": "x" } }')
 check("a section that isn't a list is explained",
 	has_problem(sp, "the 'templates' section should be a list"))
+
+-- === random terminator: every game ends at the menu ===
+-- All currently legal moves, as closures. Shared by the terminator and the
+-- undo fuzz below.
+local function legal_moves()
+	local moves = {}
+	local cur = phase.current()
+	if cur and cur.type == "overlay" then
+		local oz = zones.find(cur.zone or "hand")
+		for _, cid in ipairs(oz and oz.cards or {}) do
+			moves[#moves + 1] = function() flow.pick(cid) end
+		end
+		return moves
+	end
+	local h = zones.find("hand")
+	for _, cid in ipairs(h and h.cards or {}) do
+		if flow.can_play(cid) then
+			local spec = cards.def(entity.get(cid)).target
+			moves[#moves + 1] = function()
+				local targets = {}
+				if spec then
+					targeting.start(cid, spec)
+					for k = 1, math.min(spec.min or spec.count or 0, #targeting.eligible) do
+						targets[k] = targeting.eligible[k]
+					end
+					targeting.clear()
+				end
+				flow.play_card(cid, targets)
+			end
+		end
+	end
+	for e in entity.each("card") do
+		local z   = entity.get(e.zone_id)
+		local def = cards.def(e)
+		if z and z.zone_type == "grid" and def and def.on_activate
+			and not e.exhausted and cards.can_afford(def.activate_cost) then
+			local id = e.id
+			moves[#moves + 1] = function() flow.activate(id) end
+		end
+	end
+	return moves
+end
+
+-- Random legal moves (with a little undo fuzzing) must reach the menu
+-- within a step budget: this catches softlocks nothing else will.
+local function random_playthrough(file, seed)
+	flow.init(file, seed)
+	math.randomseed(seed * 7919)
+	for step = 1, 400 do
+		if declaration.G.title == "Ravel" then return true end
+		local moves = legal_moves()
+		if #moves == 0 then return false, "no legal moves at step " .. step end
+		if flow.can_undo() and math.random() < 0.04 then
+			flow.undo()
+		else
+			moves[math.random(#moves)]()
+		end
+	end
+	return false, "step budget exhausted"
+end
+
+for _, file in ipairs({ "demo.json", "castle.json", "kingdom.json",
+	"tower.json", "road.json", "starter_cyoa.json" }) do
+	for _, seed in ipairs({ 1, 2, 3 }) do
+		local ok, why = random_playthrough(file, seed)
+		check(file .. " seed " .. seed .. " terminates at the menu", ok)
+		if not ok then print("  " .. file .. " seed " .. seed .. ": " .. tostring(why)) end
+	end
+end
+
+-- === undo invariant: a random run fully rewinds to its opening state ===
+local function fingerprint()
+	local parts = {}
+	for e in entity.each() do
+		local bits = { tostring(e.id), e.kind or "", e.def_key or "",
+			tostring(e.zone_id), tostring(e.slot_id), tostring(e.exhausted) }
+		local keys = {}
+		for k in pairs(e.stats or {}) do keys[#keys + 1] = k end
+		table.sort(keys)
+		for _, k in ipairs(keys) do bits[#bits + 1] = k .. "=" .. tostring(e.stats[k]) end
+		if e.cards then bits[#bits + 1] = "cards:" .. table.concat(e.cards, ",") end
+		if e.kind == "slot" then bits[#bits + 1] = "occ:" .. tostring(e.occupant) end
+		parts[#parts + 1] = table.concat(bits, "|")
+	end
+	local cur = phase.current()
+	parts[#parts + 1] = "phase:" .. (cur and cur.key or "-") .. " log:" .. log.count()
+	return table.concat(parts, "\n")
+end
+
+flow.init("kingdom.json", 11)
+math.randomseed(11)
+local fp0, steps = fingerprint(), 0
+for _ = 1, 12 do
+	local moves = legal_moves()
+	if #moves == 0 then break end
+	moves[math.random(#moves)]()
+	steps = steps + 1
+end
+check("the fuzz run actually moved", steps > 0)
+for _ = 1, steps do flow.undo() end
+check("undo rewinds a random run to its opening state", fingerprint() == fp0)
 
 print(string.format("%d passed, %d failed", passed, failed))
 os.exit(failed == 0 and 0 or 1)

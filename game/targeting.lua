@@ -5,6 +5,7 @@ local M = {}
 
 M.card_id  = nil
 M.kind     = nil   -- "slot" or "card"
+M.intent   = nil   -- "play" or "activate": what confirming these targets does
 M.spec     = nil   -- { min, max, tags, zone_set }
 M.targets  = {}
 M.eligible = {}
@@ -31,7 +32,7 @@ function M.active()
 	return M.card_id ~= nil
 end
 
-function M.start(card_id, spec)
+function M.start(card_id, spec, intent)
 	local min      = spec.min or spec.count or 0
 	local max      = spec.max or spec.count or 0
 	local kind     = spec.type or "card"
@@ -42,6 +43,7 @@ function M.start(card_id, spec)
 	end
 	M.card_id  = card_id
 	M.kind     = kind
+	M.intent   = intent or "play"
 	M.spec     = { min = min, max = max, tags = spec.tags or {}, zone_set = zone_set }
 	M.targets  = {}
 	if kind == "slot" then
@@ -84,6 +86,7 @@ end
 function M.clear()
 	M.card_id  = nil
 	M.kind     = nil
+	M.intent   = nil
 	M.spec     = nil
 	M.targets  = {}
 	M.eligible = {}

@@ -8,9 +8,26 @@
 
 local actions = require("actions")
 
+-- Mirrors cards.lua's url_is_safe: the same RFC 3986 charset allowlist, so
+-- an author sees this at load time instead of only in the console when the
+-- fetch is refused. Kept as a local copy rather than a dependency on cards
+-- (validate stays a standalone checker of the parsed def table).
+local URL_SAFE_PATTERN = "^https?://[%w%-%._~:/?#%[%]@!$&'()*+,;=%%]+$"
+local function url_is_safe(url)
+	return type(url) == "string" and #url > 0 and #url < 2000
+		and url:match(URL_SAFE_PATTERN) ~= nil
+end
+
 local M = {}
 
 local RESERVED = { round = true, plays = true }
+
+-- The fx base-effect vocabulary. The test suite asserts this stays in step
+-- with fx.bases() — validate must not require the presentation layer.
+M.EFFECT_BASES = {
+	damage = true, bleed = true, power_up = true, sparkle = true,
+	stars = true, heal = true, smoke = true, explosion = true,
+}
 
 -- Fields the engine reads on each kind of entry (including the derived ones
 -- declaration.parse adds). Anything else is almost certainly a typo.
@@ -18,21 +35,24 @@ local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	color = true, tags = true, card_stats = true, cost = true,
 	activate_cost = true, needs = true, requires = true, target = true,
+	activate_target = true, exhausts = true,
 	on_play = true, on_activate = true, on_turn = true, on_pass = true,
 	on_fail = true, on_pick = true, auto_play = true, to_zone = true,
-	to_slot = true, irreversible = true, tags_set = true,
+	to_slot = true, irreversible = true, outcome = true, tags_set = true,
 }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
+	injected = true,
 }
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
 	draw = true, zone = true, pass_card = true, on_pick = true, next = true,
-	page = true,
+	ends_after = true, discard_hand = true, page = true, injected = true,
 }
 local STAT_FIELDS     = { key = true, label = true, min = true, max = true, hidden = true }
 local TAG_FIELDS      = { zone = true }
+local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true }
 local ROUTE_FIELDS    = { stat = true, zone_empty = true, equals = true, at_least = true,
 	at_most = true, ["then"] = true, ends_round = true }
@@ -85,12 +105,14 @@ function M.check(G)
 	local tag_defs = G.tag_defs or {}
 
 	-- Known universes.
-	local known_tags = {}
+	local carried_tags = {}
 	for _, def in pairs(G.card_defs) do
 		if type(def.tags) == "table" then
-			for _, t in ipairs(def.tags) do known_tags[t] = true end
+			for _, t in ipairs(def.tags) do carried_tags[t] = true end
 		end
 	end
+	local known_tags = {}
+	for t in pairs(carried_tags) do known_tags[t] = true end
 	for t in pairs(G.computed_tags) do known_tags[t] = true end
 	for t in pairs(tag_defs) do known_tags[t] = true end
 
@@ -138,14 +160,22 @@ function M.check(G)
 		end
 	end
 
-	local function check_map(where, map, allow_counts)
+	local function check_map(where, map, allow_counts, allow_sacrifice)
 		if map == nil then return end
 		if type(map) ~= "table" then
 			warn('%s: should be written like { "gold": 2 }', where)
 			return
 		end
 		for key, v in pairs(map) do
-			if allow_counts then
+			local sac = tostring(key):match("^sacrifice:(.+)$")
+			if sac then
+				if not allow_sacrifice then
+					warn("%s: 'sacrifice:' belongs in cost or activate_cost, not here", where)
+				elseif not known_tags[sac] then
+					warn("%s: sacrifices the tag '%s', but no card has it%s",
+						where, sac, suggest(sac, known_tags))
+				end
+			elseif allow_counts then
 				subject_ok(where, key)
 			elseif not stat_ok(key) then
 				warn("%s: uses the stat '%s', but it is never declared or set up%s",
@@ -153,6 +183,9 @@ function M.check(G)
 			end
 			if type(v) ~= "number" then
 				warn("%s: the value of '%s' should be a number", where, tostring(key))
+			elseif v < 0 then
+				warn("%s: '%s' is negative — costs and requirements must be zero or more",
+					where, tostring(key))
 			end
 		end
 	end
@@ -204,55 +237,67 @@ function M.check(G)
 		end
 	end
 
-	-- Action strings: op exists, referenced keys exist, count:/card: known.
-	local ZONE_ARGS = {
-		fill = { 2 }, shuffle = { 2 }, destroy = { 2 }, move_to = { 2 },
-		add_to = { 2 }, move_target_to = { 2 }, draw_from = { 2, 3 },
-		return_to = { 2, 3 }, reveal_top = { 2 },
-	}
+	-- Action strings. The per-argument reference checks are derived from each
+	-- op's declared shape (actions.spec), so the validator can't drift from
+	-- the handlers.
 	local known_ops = actions.ops()
 	local function check_action(where, str)
 		local p = {}
 		for w in str:gmatch("[^:]+") do p[#p + 1] = w end
-		local op = p[1]
-		if not actions.known(op) then
+		local op   = p[1]
+		local spec = actions.spec(op)
+		if not actions.known(op) or not spec then
 			warn("%s: '%s' is not an action the engine knows%s", where, tostring(op), suggest(op, known_ops))
 			return
 		end
-		for _, i in ipairs(ZONE_ARGS[op] or {}) do
-			if p[i] and not G.zone_defs[p[i]] then
+		local i = 1
+		for word in spec:gmatch("%S+") do
+			i = i + 1
+			local t, optional = word:match("^(%w+)(%??)$")
+			local a = p[i]
+			if a == nil then
+				if optional == "" and t ~= "n" and t ~= "any" then
+					warn("%s: '%s' is missing its %s argument", where, op, t == "cardstat" and "stat" or t)
+				end
+				break
+			end
+			if t == "zone" and not G.zone_defs[a] then
 				warn("%s: '%s' points at zone '%s', but no zone has that key%s",
-					where, op, p[i], suggest(p[i], G.zone_defs))
-			end
-		end
-		if (op == "fill" or op == "gain" or op == "reveal") then
-			local ci = op == "fill" and 3 or 2
-			if not G.card_defs[p[ci] or ""] then
+					where, op, a, suggest(a, G.zone_defs))
+			elseif t == "card" and not G.card_defs[a] then
 				warn("%s: '%s' names the card '%s', but no template has that key%s",
-					where, op, tostring(p[ci]), suggest(p[ci], G.card_defs))
+					where, op, a, suggest(a, G.card_defs))
+			elseif t == "stat" and not stat_ok(a) then
+				warn("%s: %s of '%s', but that stat is never declared or set up%s",
+					where, op, a, suggest(a, all_stats))
+			elseif t == "cardstat" and not (card_stats[a] or stat_ok(a)) then
+				warn("%s: %s of '%s', but no card carries that stat", where, op, a)
+			elseif t == "phase" and not G.phase_by_key[a] then
+				warn("%s: '%s' points at phase '%s', but no phase has that key%s",
+					where, op, a, suggest(a, G.phase_by_key))
+			elseif t == "tag" and not known_tags[a] then
+				warn("%s: '%s' looks for the tag '%s', but no card has it%s",
+					where, op, a, suggest(a, known_tags))
+			elseif t == "effect" and not (G.effect_defs or {})[a] then
+				warn("%s: '%s' plays the effect '%s', but the game defines no such effect%s",
+					where, op, a, suggest(a, G.effect_defs))
+			elseif t == "gamefile" then
+				if not tostring(a):match("^[%w_%-]+%.json$") then
+					warn("%s: '%s' names '%s', which isn't a plain name.json — no folders or '..' are allowed (and it will be refused when it runs)",
+						where, op, tostring(a))
+				elseif not love.filesystem.read("games/" .. a) then
+					warn("%s: '%s' points at '%s', but that file doesn't exist", where, op, a)
+				end
 			end
 		end
-		if op == "push_phase" and not G.phase_by_key[p[2] or ""] then
-			warn("%s: push_phase to '%s', but no phase has that key%s",
-				where, tostring(p[2]), suggest(p[2], G.phase_by_key))
-		end
-		if (op == "gain_stat" or op == "lose_stat" or op == "spend_stat" or op == "set_stat")
-			and p[2] and not stat_ok(p[2]) then
-			warn("%s: %s of '%s', but that stat is never declared or set up%s",
-				where, op, p[2], suggest(p[2], all_stats))
-		end
-		if (op == "gain_target_stat" or op == "lose_target_stat")
-			and p[2] and not (card_stats[p[2]] or stat_ok(p[2])) then
-			warn("%s: %s of '%s', but no card carries that stat", where, op, p[2])
-		end
-		for i, w in ipairs(p) do
-			if w == "count" and p[i + 1] and not known_tags[p[i + 1]] then
+		for j, w in ipairs(p) do
+			if w == "count" and p[j + 1] and not known_tags[p[j + 1]] then
 				warn("%s: counts the tag '%s', but no card has it%s",
-					where, p[i + 1], suggest(p[i + 1], known_tags))
+					where, p[j + 1], suggest(p[j + 1], known_tags))
 			end
-			if w == "card" and i > 1 and p[i + 1] and not G.card_defs[p[i + 1]] then
+			if w == "card" and j > 1 and p[j + 1] and not G.card_defs[p[j + 1]] then
 				warn("%s: checks for the card '%s', but no template has that key%s",
-					where, p[i + 1], suggest(p[i + 1], G.card_defs))
+					where, p[j + 1], suggest(p[j + 1], G.card_defs))
 			end
 		end
 		if op == "return_to" and p[2] and G.zone_defs[p[2]]
@@ -302,13 +347,30 @@ function M.check(G)
 			if G.computed_tags[tag] then
 				warn("%s: is defined under both 'tags' and 'computed_tags' — computed tags can't carry behaviour", where)
 			end
-			local carried = false
-			for _, def in pairs(G.card_defs) do
-				if def.tags_set and def.tags_set[tag] then carried = true break end
+			if not carried_tags[tag] then
+				warn("%s: has behaviour defined, but no card carries this tag%s",
+					where, suggest(tag, carried_tags))
 			end
-			if not carried then
-				warn("%s: has behaviour defined, but no card carries this tag", where)
+		end
+	end
+
+	-- Effects.
+	for name, def in pairs(G.effect_defs or {}) do
+		local where = "effect '" .. tostring(name) .. "'"
+		if type(def) ~= "table" then
+			warn('%s: should be written like { "base": "sparkle", "size": 1.5 }', where)
+		else
+			check_fields(where, def, EFFECT_FIELDS)
+			if not M.EFFECT_BASES[def.base or ""] then
+				warn("%s: '%s' is not a base effect%s", where, tostring(def.base),
+					suggest(def.base, M.EFFECT_BASES))
 			end
+			for _, k in ipairs({ "size", "speed", "count" }) do
+				if def[k] ~= nil and type(def[k]) ~= "number" then
+					warn("%s: %s should be a number", where, k)
+				end
+			end
+			check_numbers(where, "color", def.color, 3)
 		end
 	end
 
@@ -330,11 +392,23 @@ function M.check(G)
 	for key, def in pairs(G.card_defs) do
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
+		if def.asset and tostring(def.asset):match("^https?://") then
+			if not url_is_safe(def.asset) then
+				warn("%s: its image URL contains characters that aren't valid in a URL — it will be refused at load time",
+					where)
+			end
+		elseif def.asset and not love.filesystem.read("games/assets/" .. tostring(def.asset)) then
+			warn("%s: its image '%s' is not in games/assets", where, tostring(def.asset))
+		end
+		if def.outcome and def.outcome ~= "victory" and def.outcome ~= "defeat" then
+			warn("%s: outcome should be 'victory' or 'defeat', not '%s'%s",
+				where, tostring(def.outcome), suggest(def.outcome, { victory = true, defeat = true }))
+		end
 		if def.tags ~= nil and type(def.tags) ~= "table" then
 			warn('%s: tags should be a list like ["item", "weapon"]', where)
 		end
-		check_map(where .. " cost", def.cost)
-		check_map(where .. " activate_cost", def.activate_cost)
+		check_map(where .. " cost", def.cost, false, true)
+		check_map(where .. " activate_cost", def.activate_cost, false, true)
 		check_map(where .. " needs", def.needs, true)
 		check_map(where .. " requires", def.requires, true)
 		-- card_stats declare new per-card stats, so only their values are checked.
@@ -357,21 +431,33 @@ function M.check(G)
 		check_list(where .. " on_fail", def.on_fail)
 		check_list(where .. " on_pick", def.on_pick)
 
-		if type(def.target) == "table" then
-			check_fields(where .. " target", def.target, TARGET_FIELDS)
-			if def.target.type and def.target.type ~= "card" and def.target.type ~= "slot" then
-				warn("%s target: type should be 'card' or 'slot', not '%s'", where, tostring(def.target.type))
-			end
-			for _, t in ipairs(type(def.target.tags) == "table" and def.target.tags or {}) do
-				if not known_tags[t] then
-					warn("%s target: looks for the tag '%s', but no card has it%s", where, t, suggest(t, known_tags))
+		-- "target" gates playing the card, "activate_target" its board ability;
+		-- same shape, same checks.
+		for _, field in ipairs({ "target", "activate_target" }) do
+			local spec = def[field]
+			if type(spec) == "table" then
+				check_fields(where .. " " .. field, spec, TARGET_FIELDS)
+				if spec.type and spec.type ~= "card" and spec.type ~= "slot" then
+					warn("%s %s: type should be 'card' or 'slot', not '%s'", where, field, tostring(spec.type))
+				end
+				for _, t in ipairs(type(spec.tags) == "table" and spec.tags or {}) do
+					if not known_tags[t] then
+						warn("%s %s: looks for the tag '%s', but no card has it%s", where, field, t, suggest(t, known_tags))
+					end
+				end
+				for _, zk in ipairs(type(spec.zones) == "table" and spec.zones or {}) do
+					if not G.zone_defs[zk] then
+						warn("%s %s: searches zone '%s', but no zone has that key%s", where, field, zk, suggest(zk, G.zone_defs))
+					end
 				end
 			end
-			for _, zk in ipairs(type(def.target.zones) == "table" and def.target.zones or {}) do
-				if not G.zone_defs[zk] then
-					warn("%s target: searches zone '%s', but no zone has that key%s", where, zk, suggest(zk, G.zone_defs))
-				end
-			end
+		end
+
+		if def.activate_target and not def.on_activate then
+			warn("%s: has an activate_target but no on_activate — there is no ability for it to target", where)
+		end
+		if def.exhausts ~= nil and type(def.exhausts) ~= "boolean" then
+			warn("%s: exhausts should be true or false, not '%s'", where, tostring(def.exhausts))
 		end
 
 		-- Placement: where does this card go? Its tags may disagree (a
@@ -424,11 +510,30 @@ function M.check(G)
 				where, tostring(def.type), suggest(def.type, ZONE_TYPES))
 		end
 		check_numbers(where, "pos", def.pos, 4)
+		-- The lower-left corner belongs to the undo button and event log.
+		if type(def.pos) == "table" and #def.pos == 4
+			and type(def.pos[1]) == "number" and type(def.pos[4]) == "number"
+			and not (def.tags_set and def.tags_set.hidden)
+			and def.pos[1] < 0.17 and def.pos[4] > 0.82 then
+			warn("%s: covers the lower-left corner where the undo button and event log live — start it at x 0.19 or higher", where)
+		end
 		if def.type == "grid" then
 			if def.grid == nil then
 				warn('%s: a board needs "grid": [columns, rows]', where)
 			else
 				check_numbers(where, "grid", def.grid, 2)
+			end
+			if type(def.grid) == "table" and type(def.grid[1]) == "number"
+				and type(def.grid[2]) == "number" and type(def.contents) == "table" then
+				local cap, total = def.grid[1] * def.grid[2], 0
+				for _, entry in ipairs(def.contents) do
+					local _, n = tostring(entry):match("^([^:]+):?(%d*)$")
+					total = total + (tonumber(n) or 1)
+				end
+				if total > cap then
+					warn("%s: starts with %d cards but the board only has %d slots — the extras are dropped",
+						where, total, cap)
+				end
 			end
 		end
 		for _, entry in ipairs(type(def.contents) == "table" and def.contents or {}) do
@@ -465,6 +570,16 @@ function M.check(G)
 		if pd.draw ~= nil and type(pd.draw) ~= "number" then
 			warn("%s: draw should be a number", where)
 		end
+		if pd.ends_after ~= nil then
+			if type(pd.ends_after) ~= "number" then
+				warn("%s: ends_after should be a number of plays", where)
+			elseif pd.type ~= "player_input" and pd.type ~= "draw_and_play" then
+				warn("%s: has ends_after, but only phases where cards are played count plays", where)
+			end
+		end
+		if pd.discard_hand and pd.type == "overlay" then
+			warn("%s: has discard_hand, but overlays pop back — it never fires", where)
+		end
 		local pcs = type(pd.pass_card) == "table" and pd.pass_card or { pd.pass_card }
 		for _, pk in ipairs(pcs) do
 			if not G.card_defs[pk] then
@@ -488,6 +603,15 @@ function M.check(G)
 			elseif pd.type == "overlay" then
 				warn("%s: has routing, but overlays pop back — the routing never runs", where)
 			else
+				if pd.type == "automatic" then
+					local fallback = false
+					for _, r in ipairs(pd.next) do
+						if r.stat == nil and r.zone_empty == nil then fallback = true end
+					end
+					if not fallback then
+						warn("%s: is automatic but every route has a condition — when none matches, the game stalls", where)
+					end
+				end
 				local saw_unconditional = false
 				for i, r in ipairs(pd.next) do
 					local rwhere = where .. " next[" .. i .. "]"
@@ -510,6 +634,16 @@ function M.check(G)
 				end
 			end
 		end
+	end
+
+	-- The built-in reveal pair works together: replacing only half of it
+	-- leaves the other half pointing at the wrong shape.
+	local zr, pr = G.zone_defs.reveal, G.phase_by_key.reveal
+	if zr and pr and (zr.injected or false) ~= (pr.injected or false) then
+		local own     = zr.injected and "phase" or "zone"
+		local missing = zr.injected and "zone" or "phase"
+		warn("this game defines its own 'reveal' %s but not the matching 'reveal' %s — define both or neither",
+			own, missing)
 	end
 
 	-- End conditions.

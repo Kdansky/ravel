@@ -1,6 +1,10 @@
 {
   "title": "Castle Lord",
 
+  "effects": {
+    "festival_lights": { "base": "sparkle", "count": 1.6 }
+  },
+
   "stats": [
     { "key": "round",   "label": "Round" },
     { "key": "gold",    "label": "Gold",    "min": 0, "max": 999 },
@@ -18,7 +22,7 @@
     {
       "key":        "throne_room",
       "text":       "Throne Room",
-      "asset":      "world.jpg",
+      "asset":      "castle_hill.jpg",
       "tooltip":    "Your seat of power. Taxes bring 1 gold each round. Pay 2 gold to inspire your people (+1 morale).",
       "card_stats": { "hp": 20, "hp_max": 20, "gold": 20, "morale": 5, "defense": 0, "food": 0 },
       "tags":       ["building", "hero"],
@@ -32,7 +36,7 @@
     {
       "key":     "watchtower",
       "text":    "Watchtower",
-      "asset":   "village.png",
+      "asset":   "fortress_walls.jpg",
       "tooltip": "A guard post on the walls. Adds 2 defense.",
       "cost":    { "gold": 2 },
       "card_stats": { "hp": 4, "hp_max": 4 },
@@ -43,7 +47,7 @@
     {
       "key":     "farm",
       "text":    "Farm",
-      "asset":   "shelter.png",
+      "asset":   "farmhouse_fields.jpg",
       "tooltip": "Feeds your people: +1 food each round.",
       "cost":    { "gold": 1 },
       "card_stats": { "hp": 3, "hp_max": 3 },
@@ -55,7 +59,7 @@
     {
       "key":     "market",
       "text":    "Market",
-      "asset":   "stranger.png",
+      "asset":   "market_square.jpg",
       "tooltip": "Trade routes bring +1 gold each round.",
       "cost":    { "gold": 2 },
       "card_stats": { "hp": 3, "hp_max": 3 },
@@ -67,7 +71,7 @@
     {
       "key":     "repair",
       "text":    "Repair Crew",
-      "asset":   "shelter.png",
+      "asset":   "blacksmith_forge.jpg",
       "tooltip": "Restore 2 HP to a damaged building.",
       "cost":    { "gold": 1 },
       "tags":    ["one_shot"],
@@ -77,7 +81,7 @@
     {
       "key":     "mercenaries",
       "text":    "Mercenaries",
-      "asset":   "bandits.png",
+      "asset":   "army_camp.jpg",
       "tooltip": "Hired swords. +3 defense.",
       "cost":    { "gold": 2 },
       "tags":    ["one_shot"],
@@ -103,7 +107,7 @@
     {
       "key":     "royal_decree",
       "text":    "Royal Decree",
-      "asset":   "world.jpg",
+      "asset":   "crown_royal.jpg",
       "tooltip": "The court awaits your word. Choose one of three edicts.",
       "cost":    { "gold": 2 },
       "tags":    ["one_shot"],
@@ -112,16 +116,16 @@
     {
       "key":     "festival",
       "text":    "Festival",
-      "asset":   "village.png",
+      "asset":   "tavern_meal.jpg",
       "tooltip": "A feast for the whole town costs 2 gold. Gain 2 morale.",
       "cost":    { "gold": 2 },
       "tags":    ["one_shot", "edict"],
-      "on_play": ["gain_stat:morale:2", "move_to:edicts"]
+      "on_play": ["effect:festival_lights", "gain_stat:morale:2", "move_to:edicts"]
     },
     {
       "key":     "conscription",
       "text":    "Conscription",
-      "asset":   "bandits.png",
+      "asset":   "marching_column.jpg",
       "tooltip": "Every able hand takes up arms. Gain 3 defense.",
       "tags":    ["one_shot", "edict"],
       "on_play": ["gain_stat:defense:3", "move_to:edicts"]
@@ -129,7 +133,7 @@
     {
       "key":     "tax_levy",
       "text":    "Tax Levy",
-      "asset":   "ruins.jpg",
+      "asset":   "money_lender.jpg",
       "tooltip": "The coffers fill, the people grumble. Gain 3 gold.",
       "tags":    ["one_shot", "edict"],
       "on_play": ["gain_stat:gold:3", "move_to:edicts"]
@@ -137,7 +141,7 @@
     {
       "key":      "bandit_raid",
       "text":     "Bandit Raid",
-      "asset":    "bandits.png",
+      "asset":    "cavalry_raid.jpg",
       "tooltip":  "Raiders attack! Need 3 defense or lose 2 morale.",
       "tags":     ["challenge"],
       "requires": { "defense": 3 },
@@ -148,7 +152,7 @@
     {
       "key":      "drought",
       "text":     "Drought",
-      "asset":    "storm.png",
+      "asset":    "blighted_tree.jpg",
       "tooltip":  "Crops wither. Need 3 food or lose 1 morale.",
       "tags":     ["challenge"],
       "requires": { "food": 3 },
@@ -159,7 +163,7 @@
     {
       "key":      "merchant",
       "text":     "Wandering Merchant",
-      "asset":    "ruins.jpg",
+      "asset":    "gold_coins.jpg",
       "tooltip":  "A merchant arrives. Have 2 gold and earn 2 more.",
       "tags":     ["challenge"],
       "requires": { "gold": 2 },
@@ -170,7 +174,7 @@
     {
       "key":      "siege",
       "text":     "Siege",
-      "asset":    "ruins.jpg",
+      "asset":    "siege_cannon.jpg",
       "tooltip":  "Enemy forces lay siege. Need 5 defense or a building takes 2 damage.",
       "tags":     ["challenge"],
       "requires": { "defense": 5 },
@@ -180,21 +184,23 @@
     },
     {
       "key":     "triumph",
+      "outcome": "victory",
       "text":    "Triumph",
-      "asset":   "world.jpg",
+      "asset":   "banners_procession.jpg",
       "tooltip": "Your people rejoice — the castle stands proud. Click to return to the menu."
     },
     {
       "key":     "the_fall",
+      "outcome": "defeat",
       "text":    "The Castle Falls",
-      "asset":   "ruins.jpg",
+      "asset":   "abbey_ruins.jpg",
       "tooltip": "Morale is broken and the halls stand empty. Click to return to the menu."
     }
   ],
 
   "zones": [
     { "key": "board",          "type": "grid", "pos": [0.00, 0.00, 0.75, 0.70], "grid": [5, 5] },
-    { "key": "hand",           "type": "hand", "pos": [0.00, 0.72, 0.75, 0.99] },
+    { "key": "hand",           "type": "hand", "pos": [0.19, 0.72, 0.75, 0.99] },
     { "key": "build_deck",     "label": "Build Deck",     "type": "deck", "pos": [0.77, 0.19, 0.99, 0.37],
       "tags": ["shuffle", "refill_when_empty"],
       "contents": ["watchtower:3", "farm:3", "market:2", "repair:2", "mercenaries:2", "architect:2", "royal_decree:1"] },

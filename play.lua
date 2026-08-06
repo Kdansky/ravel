@@ -56,6 +56,14 @@ local function show()
 	print("")
 	print("== " .. G.title .. " ==  phase: " .. (cur and (cur.label or cur.key) or "-"))
 
+	local outcome = flow.outcome()
+	if outcome then
+		print("")
+		print("========  " .. outcome:upper() .. "  ========")
+		local summary = table.concat(flow.summary(), "   ")
+		if summary ~= "" then print("  " .. summary) end
+	end
+
 	local stats = {}
 	for _, key in ipairs(G.stat_defs_list) do
 		local def = G.stat_defs[key]
@@ -174,7 +182,13 @@ local function activate_slot(idx)
 		if z.zone_type == "grid" and z.slots[idx] then
 			local occ = entity.get(z.slots[idx]).occupant
 			if not occ then print("Slot " .. idx .. " is empty."); return end
-			if not flow.activate(occ) then print("No ability, or can't afford it.") end
+			local targets = {}
+			local spec    = cards.def(entity.get(occ)).activate_target
+			if spec and (spec.count or spec.max or 0) > 0 and flow.can_activate(occ) then
+				targets = prompt_targets(entity.get(occ), spec)
+				if not targets then return end
+			end
+			if not flow.activate(occ, targets) then print("No ability, or can't afford it.") end
 			return
 		end
 	end
@@ -219,6 +233,7 @@ local function echo_log()
 	log_seen = log.count()
 end
 
+actions.on_effect = function(name) print("  * " .. name .. " *") end
 flow.default_seed = tonumber(arg[2] or "")
 flow.init(arg[1] or "menu.json")
 echo_log()

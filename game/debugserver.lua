@@ -95,7 +95,9 @@ end
 
 COMMANDS["activate"] = function(args)
 	local cid = resolve(args[1])
-	local ok  = cid and flow.activate(cid) or false
+	local targets = {}
+	for i = 2, #args do targets[#targets + 1] = resolve(args[i]) end
+	local ok = cid and flow.activate(cid, targets) or false
 	local s = summary(); s.ok = ok; return s
 end
 

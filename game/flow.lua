@@ -10,6 +10,7 @@ local phase       = require("phase")
 local actions     = require("actions")
 local targeting   = require("targeting")
 local predicate   = require("predicate")
+local tags        = require("tags")
 local validate    = require("validate")
 local log         = require("log")
 
@@ -111,6 +112,31 @@ local function deal(ph)
 	end
 end
 
+-- Discard a phase's remaining hand: unplayed cards go to the graveyard when
+-- one exists (destroyed otherwise); tokens always just vanish. Fired by the
+-- phase.on_leave hook for phases marked discard_hand.
+local function discard_hand(ph)
+	local hand = zones.find(ph.zone or "hand")
+	if not hand then return end
+	local grave = zones.find_id("graveyard")
+	local n = 0
+	while #hand.cards > 0 do
+		local cid  = hand.cards[#hand.cards]
+		local cdef = cards.def(entity.get(cid))
+		if cdef and cdef.tags_set and cdef.tags_set.token then
+			zones.destroy_card(cid)
+		else
+			if grave then zones.move_top(hand.id, grave) else zones.destroy_card(cid) end
+			n = n + 1
+		end
+	end
+	if n > 0 then log.add("Discarded " .. n .. " unplayed") end
+end
+
+phase.on_leave = function(pd)
+	if pd.discard_hand then discard_hand(pd) end
+end
+
 -- A full round completed: each card on a grid zone runs its on_turn actions.
 -- Cards at 0 hp are ruined and don't act.
 local function run_on_turn()
@@ -138,12 +164,38 @@ function M.settle()
 		end
 
 		local fname = actions.take_load()
-		if fname then M.init(fname); return end
+		if fname then
+			-- fname is untrusted content (routed here from the load_game
+			-- action). M.init wipes all state before it even reads the
+			-- file, so a failure partway through (missing file, bad JSON,
+			-- any malformed field an individual handler didn't already
+			-- guard against) must not crash the process or strand the
+			-- player in a half-wiped state — fall back to the menu, which
+			-- ships with the engine and is always valid.
+			local ok, err = pcall(M.init, fname)
+			if not ok then
+				print("load_game failed for '" .. tostring(fname) .. "': " .. tostring(err))
+				if fname ~= "menu.json" then pcall(M.init, "menu.json") end
+			end
+			return
+		end
 
 		-- Outcomes wait until any open overlay (a pending choice) is closed.
 		if phase.is_overlay() or not fire_end_condition() then
 			local cur = phase.current()
-			if cur and cur.type == "automatic" then
+			if phase.take_wrapped() then
+				-- A round completed: advance the counter, ready exhausted
+				-- cards, then let board cards produce — all before the new
+				-- round's phases run or deal anything (a threat dealt at
+				-- dawn must not drain the day it arrives).
+				local pl = player()
+				if pl then
+					pl.stats.round = (pl.stats.round or 1) + 1
+					log.add("— Round " .. pl.stats.round .. " —")
+				end
+				for e in entity.each("card") do e.exhausted = nil end
+				run_on_turn()
+			elseif cur and cur.type == "automatic" then
 				if phase.take_fresh() then
 					actions.run(cur.actions, {})
 				end
@@ -152,16 +204,6 @@ function M.settle()
 				if not actions.pending_load and phase.current() == cur then
 					phase.next()
 				end
-			elseif phase.take_wrapped() then
-				-- A round completed: advance the counter, ready exhausted
-				-- cards, then let board cards produce.
-				local pl = player()
-				if pl then
-					pl.stats.round = (pl.stats.round or 1) + 1
-					log.add("— Round " .. pl.stats.round .. " —")
-				end
-				for e in entity.each("card") do e.exhausted = nil end
-				run_on_turn()
 			elseif cur and phase.take_fresh() then
 				-- Fresh entry starts a new hand: the per-phase play counter
 				-- resets here (and only here — resuming after a pop doesn't).
@@ -200,7 +242,9 @@ function M.init(filename, seed)
 	end
 
 	local pl = { kind = "player", stats = { round = 1, plays = 0 } }
-	for k, v in pairs(G.setup.player or {}) do pl.stats[k] = v end
+	-- setup.player is untrusted content: coerce to numbers so later stat
+	-- arithmetic can never be handed a string/table and crash.
+	for k, v in pairs(G.setup.player or {}) do pl.stats[k] = tonumber(v) or 0 end
 	entity.register(pl)
 
 	-- Cards that start in play (e.g. the throne room), placed onto their zone/slot.
@@ -222,9 +266,23 @@ function M.init(filename, seed)
 	M.settle()
 end
 
+-- Pay a cost: stats are spent, "sacrifice:<tag>" entries destroy board
+-- cards carrying the tag (oldest first — affordability was already checked).
 local function pay(cost)
 	for stat, n in pairs(cost or {}) do
-		actions.execute("spend_stat:" .. stat .. ":" .. n, {})
+		local tag = stat:match("^sacrifice:(.+)$")
+		if tag then
+			for _ = 1, n do
+				local ids = tags.find_targets({ tag }, { grid = true })
+				if #ids == 0 then break end
+				local victim = entity.get(ids[1])
+				local vdef   = cards.def(victim)
+				log.add("Sacrificed " .. (vdef and vdef.text or victim.def_key))
+				zones.destroy_card(victim.id)
+			end
+		else
+			actions.execute("spend_stat:" .. stat .. ":" .. n, {})
+		end
 	end
 end
 
@@ -256,6 +314,15 @@ function M.play_card(card_id, targets)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
 	if not def or not M.can_play(card_id) then return false end
+	-- Flow is the single legality gate: target counts are enforced here, not
+	-- only in the input layers, so scripts and the debug API can't skip them.
+	if def.target then
+		local n = #(targets or {})
+		if n < (def.target.min or def.target.count or 0)
+			or n > (def.target.max or def.target.count or 0) then
+			return false
+		end
+	end
 	checkpoint()
 	log.add("Played " .. (def.text or c.def_key))
 	local pl = player()
@@ -268,46 +335,52 @@ function M.play_card(card_id, targets)
 		log.add("— no turning back —")
 	end
 
+	-- A phase with a play limit ends itself once it's reached (MTG-style:
+	-- the phase's own rule, not the card's). Discarding is the on_leave
+	-- hook's job, so card-driven next_phase gets the same treatment.
 	local cur = phase.current()
-	if not actions.pending_load and cur == before and cur and cur.type == "draw_and_play" then
-		local hand  = zones.find(cur.zone or "hand")
-		local grave = zones.find_id("graveyard")
-		if hand and grave then
-			-- Unplayed cards are discarded; tokens (pass cards) just vanish.
-			local n = 0
-			while #hand.cards > 0 do
-				local cid  = hand.cards[#hand.cards]
-				local cdef = cards.def(entity.get(cid))
-				if cdef and cdef.tags_set and cdef.tags_set.token then
-					zones.destroy_card(cid)
-				else
-					zones.move_top(hand.id, grave)
-					n = n + 1
-				end
-			end
-			if n > 0 then log.add("Discarded " .. n .. " unplayed") end
-		end
+	if not actions.pending_load and cur == before and cur and cur.ends_after
+		and pl and (pl.stats.plays or 0) >= cur.ends_after then
 		phase.next()
 	end
 	M.settle()
 	return true
 end
 
--- Activate a board card's ability. Activation exhausts the card until the
--- round wraps and readies it again.
-function M.activate(card_id)
-	if phase.is_overlay() then return false end   -- a pending choice locks other actions
+-- A board card offers its ability when it has one, is ready, and its
+-- activation cost is affordable. Split out so the input layers can decide
+-- whether to open targeting before committing to the activation.
+function M.can_activate(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	if not def or not def.on_activate or c.exhausted
-		or not cards.can_afford(def.activate_cost) then
-		return false
+	return def ~= nil and def.on_activate ~= nil and not c.exhausted
+		and cards.can_afford(def.activate_cost)
+end
+
+-- Activate a board card's ability. Activation exhausts the card until the
+-- round wraps and readies it again — unless the card declares
+-- "exhausts": false, which is how a permanently available button (a "pass the
+-- time" card) is expressed.
+function M.activate(card_id, targets)
+	if phase.is_overlay() then return false end   -- a pending choice locks other actions
+	if not M.can_activate(card_id) then return false end
+	local c   = entity.get(card_id)
+	local def = cards.def(c)
+	-- Flow is the single legality gate, exactly as in play_card: target counts
+	-- are enforced here, not only in the input layers, so scripts and the
+	-- debug API can't skip them.
+	if def.activate_target then
+		local n = #(targets or {})
+		if n < (def.activate_target.min or def.activate_target.count or 0)
+			or n > (def.activate_target.max or def.activate_target.count or 0) then
+			return false
+		end
 	end
 	checkpoint()
 	log.add("Activated " .. (def.text or c.def_key))
 	pay(def.activate_cost)
-	c.exhausted = true
-	actions.run(def.on_activate, { card_id = card_id, targets = {} })
+	if def.exhausts ~= false then c.exhausted = true end
+	actions.run(def.on_activate, { card_id = card_id, targets = targets or {} })
 	M.settle()
 	return true
 end
@@ -340,6 +413,32 @@ function M.pick(card_id)
 	end
 	M.settle()
 	return true
+end
+
+-- The outcome announced by the open ending screen: "victory" or "defeat"
+-- from the offered card's def, nil while the game is still live. Purely
+-- derived, so undo needs no extra state.
+function M.outcome()
+	local cur = phase.current()
+	if not cur or cur.type ~= "overlay" then return nil end
+	local z = zones.find(cur.zone or "hand")
+	for _, cid in ipairs(z and z.cards or {}) do
+		local def = cards.def(entity.get(cid))
+		if def and def.outcome then return def.outcome end
+	end
+end
+
+-- One entry per visible stat, for the end-of-run summary.
+function M.summary()
+	local G   = declaration.G
+	local out = {}
+	for _, key in ipairs(G.stat_defs_list or {}) do
+		local def = G.stat_defs[key]
+		if not (def and def.hidden) then
+			out[#out + 1] = (def and def.label or key) .. " " .. entity.sum_stat(key)
+		end
+	end
+	return out
 end
 
 function M.zone_click(zone_id)

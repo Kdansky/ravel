@@ -1,0 +1,249 @@
+{
+  "title": "The Long Vigil",
+
+  "stats": [
+    { "key": "round",   "label": "Day" },
+    { "key": "time",    "label": "Time",    "min": 0, "max": 9 },
+    { "key": "health",  "label": "Health",  "min": 0, "max": 10 },
+    { "key": "funds",   "label": "Funds",   "min": 0, "max": 99 },
+    { "key": "insight", "label": "Insight", "min": 0, "max": 99 },
+    { "key": "dread",   "label": "Dread",   "min": 0, "max": 10 },
+    { "key": "ritual",  "label": "Rite",    "min": 0, "max": 3 }
+  ],
+
+  "tags": {
+    "lore":     { "zone": "holdings" },
+    "follower": { "zone": "holdings" },
+    "verb":     { "zone": "table" }
+  },
+
+  "setup": {
+    "player": { "time": 3, "health": 10, "funds": 4, "insight": 0, "dread": 0, "ritual": 0 }
+  },
+
+  "templates": [
+    {
+      "key":         "pass_night",
+      "text":        "Let the Night Fall",
+      "asset":       "moonlit_night.jpg",
+      "tooltip":     "End the day. Your strength fades by one, your followers tithe, and the hours return to you.",
+      "tags":        ["verb"],
+      "auto_play":   true,
+      "to_zone":     "table",
+      "to_slot":     1,
+      "exhausts":    false,
+      "on_activate": ["next_phase"]
+    },
+    {
+      "key":           "work",
+      "text":          "Work",
+      "asset":         "blacksmith_forge.jpg",
+      "tooltip":       "An honest day at the forge. Costs 1 time, earns 2 funds. Once per day.",
+      "tags":          ["verb"],
+      "auto_play":     true,
+      "to_zone":       "table",
+      "to_slot":       2,
+      "activate_cost": { "time": 1 },
+      "on_activate":   ["gain_stat:funds:2"]
+    },
+    {
+      "key":           "rest",
+      "text":          "Rest",
+      "asset":         "shelter.png",
+      "tooltip":       "Sleep, and do not dream. Costs 1 time, restores 3 health. It does nothing for what you already know. Once per day.",
+      "tags":          ["verb"],
+      "auto_play":     true,
+      "to_zone":       "table",
+      "to_slot":       3,
+      "activate_cost": { "time": 1 },
+      "on_activate":   ["gain_stat:health:3"]
+    },
+    {
+      "key":           "carouse",
+      "text":          "Carouse",
+      "asset":         "brawl_men.jpg",
+      "tooltip":       "Drink with people who have never read anything. Costs 1 time and 2 funds, settles 3 dread. Once per day.",
+      "tags":          ["verb"],
+      "auto_play":     true,
+      "to_zone":       "table",
+      "to_slot":       8,
+      "activate_cost": { "time": 1, "funds": 2 },
+      "on_activate":   ["lose_stat:dread:3"]
+    },
+    {
+      "key":             "study",
+      "text":            "Study",
+      "asset":           "alchemist_study.jpg",
+      "tooltip":         "Read a tome to the end and burn what is left. Costs 1 time and one tome, yields 2 insight. Once per day.",
+      "tags":            ["verb"],
+      "auto_play":       true,
+      "to_zone":         "table",
+      "to_slot":         4,
+      "activate_cost":   { "time": 1 },
+      "activate_target": { "type": "card", "count": 1, "tags": ["lore"], "zones": ["holdings"] },
+      "on_activate":     ["gain_stat:insight:2", "move_target_to:discard"]
+    },
+    {
+      "key":           "commune",
+      "text":          "Commune",
+      "asset":         "tavern_meal.jpg",
+      "tooltip":       "Buy a stranger a meal and speak of the work. Costs 1 time and 3 funds, gains a follower. Once per day.",
+      "tags":          ["verb"],
+      "auto_play":     true,
+      "to_zone":       "table",
+      "to_slot":       5,
+      "activate_cost": { "time": 1, "funds": 3 },
+      "on_activate":   ["gain:follower:1"]
+    },
+    {
+      "key":           "dream",
+      "text":          "Dream",
+      "asset":         "dark_stair.jpg",
+      "tooltip":       "Pay the dream-seller and go down the stair. Costs 1 time, 1 fund and 1 dread — the stair always takes that. What you find below is not yours to choose. Once per day.",
+      "tags":          ["verb"],
+      "auto_play":     true,
+      "to_zone":       "table",
+      "to_slot":       6,
+      "activate_cost": { "time": 1, "funds": 1 },
+      "on_activate":   ["gain_stat:dread:1", "reveal_top:fate"]
+    },
+    {
+      "key":           "the_rite",
+      "text":          "The Rite",
+      "asset":         "chapel_altar.jpg",
+      "tooltip":       "Perform one third of the work. Costs 2 time, 5 insight, and one follower, who does not come back. Three rites and the vigil ends.",
+      "tags":          ["verb"],
+      "auto_play":     true,
+      "to_zone":       "table",
+      "to_slot":       7,
+      "activate_cost": { "time": 2, "insight": 5, "sacrifice:follower": 1 },
+      "on_activate":   ["gain_stat:ritual:1"]
+    },
+
+    {
+      "key":     "tome",
+      "text":    "Tome",
+      "asset":   "candle_night.jpg",
+      "tooltip": "Somebody wrote this down so they would not have to remember it. Study consumes it.",
+      "tags":    ["lore"]
+    },
+    {
+      "key":     "follower",
+      "text":    "Follower",
+      "asset":   "merchant_portrait.jpg",
+      "tooltip": "They tithe 1 fund each night. They believe the vigil ends well for everyone.",
+      "tags":    ["follower"],
+      "on_turn": ["gain_stat:funds:1"]
+    },
+
+    {
+      "key":     "a_page",
+      "text":    "A Loose Page",
+      "asset":   "old_bell.jpg",
+      "tooltip": "Torn from something larger, and legible. It becomes a tome.",
+      "on_pick": ["gain:tome:1"]
+    },
+    {
+      "key":     "a_whisper",
+      "text":    "A Whisper",
+      "asset":   "torch_night.jpg",
+      "tooltip": "One word, in a voice you know. +1 insight, +1 dread.",
+      "on_pick": ["gain_stat:insight:1", "gain_stat:dread:1"]
+    },
+    {
+      "key":     "a_patron",
+      "text":    "A Patron",
+      "asset":   "gold_coins.jpg",
+      "tooltip": "Someone wealthy is interested in your work. +4 funds.",
+      "on_pick": ["gain_stat:funds:4"]
+    },
+    {
+      "key":     "a_nightmare",
+      "text":    "A Nightmare",
+      "asset":   "wolves_winter.jpg",
+      "tooltip": "You are followed through the snow and you do not wake until it catches you. -2 health, +2 dread.",
+      "on_pick": ["lose_stat:health:2", "gain_stat:dread:2"]
+    },
+    {
+      "key":     "a_revelation",
+      "text":    "A Revelation",
+      "asset":   "eclipse_sun.jpg",
+      "tooltip": "For a moment the whole shape of it is plain. +3 insight.",
+      "on_pick": ["gain_stat:insight:3"]
+    },
+    {
+      "key":     "an_omen",
+      "text":    "An Omen",
+      "asset":   "blighted_tree.jpg",
+      "tooltip": "The tree by the gate is dead on one side only. +2 dread, and a tome you did not buy.",
+      "on_pick": ["gain_stat:dread:2", "gain:tome:1"]
+    },
+
+    {
+      "key":     "ascended",
+      "outcome": "victory",
+      "text":    "The Vigil Ends",
+      "asset":   "starry_tower.jpg",
+      "tooltip": "Three rites, and the door opens from the other side. Click to return to the menu."
+    },
+    {
+      "key":     "perished",
+      "outcome": "defeat",
+      "text":    "You Do Not Wake",
+      "asset":   "graveyard_mist.jpg",
+      "tooltip": "The body gives out before the work is done. Click to return to the menu."
+    },
+    {
+      "key":     "unmade",
+      "outcome": "defeat",
+      "text":    "Nothing Left to Frighten",
+      "asset":   "swamp_mire.jpg",
+      "tooltip": "The dread finishes what the dreams began. Click to return to the menu."
+    },
+    {
+      "key":     "too_late",
+      "outcome": "defeat",
+      "text":    "The Hour Passes",
+      "asset":   "old_door.jpg",
+      "tooltip": "The conjunction holds for fourteen nights and not one more. You were close. Click to return to the menu."
+    }
+  ],
+
+  "zones": [
+    { "key": "table",    "label": "The Work", "type": "grid", "pos": [0.02, 0.03, 0.78, 0.49], "grid": [4, 2] },
+    { "key": "holdings", "label": "Holdings", "type": "grid", "pos": [0.19, 0.53, 0.78, 0.97], "grid": [4, 2],
+      "contents": ["tome:2"] },
+    { "key": "discard",  "label": "Spent",    "type": "pile", "pos": [0.81, 0.55, 0.99, 0.97] },
+
+    { "key": "fate", "type": "deck", "tags": ["shuffle", "refill_when_empty", "hidden"],
+      "contents": ["a_page:3", "a_whisper:2", "a_patron:2", "a_nightmare:2", "a_revelation:1", "an_omen:2"] },
+
+    { "key": "offer",      "type": "hand", "pos": [0.15, 0.32, 0.85, 0.70], "tags": ["hidden"] },
+    { "key": "fate_win",   "type": "deck", "tags": ["hidden"], "contents": ["ascended"] },
+    { "key": "fate_dead",  "type": "deck", "tags": ["hidden"], "contents": ["perished"] },
+    { "key": "fate_mad",   "type": "deck", "tags": ["hidden"], "contents": ["unmade"] },
+    { "key": "fate_late",  "type": "deck", "tags": ["hidden"], "contents": ["too_late"] }
+  ],
+
+  "phases": [
+    { "key": "day",   "type": "player_input", "label": "Day" },
+    { "key": "night", "type": "automatic",    "label": "Night",
+      "actions": ["set_stat:time:3", "lose_stat:health:1"] },
+
+    { "key": "ascension", "type": "overlay", "label": "Ascension",
+      "deck": "fate_win",  "zone": "offer", "draw": 1, "on_pick": ["load_game:menu.json"] },
+    { "key": "death",     "type": "overlay", "label": "Death",
+      "deck": "fate_dead", "zone": "offer", "draw": 1, "on_pick": ["load_game:menu.json"] },
+    { "key": "madness",   "type": "overlay", "label": "Madness",
+      "deck": "fate_mad",  "zone": "offer", "draw": 1, "on_pick": ["load_game:menu.json"] },
+    { "key": "too_slow",  "type": "overlay", "label": "The Hour Passes",
+      "deck": "fate_late", "zone": "offer", "draw": 1, "on_pick": ["load_game:menu.json"] }
+  ],
+
+  "end_conditions": [
+    { "stat": "ritual", "at_least":  3, "then": ["push_phase:ascension"] },
+    { "stat": "health", "at_most":   0, "then": ["push_phase:death"] },
+    { "stat": "dread",  "at_least": 10, "then": ["push_phase:madness"] },
+    { "stat": "round",  "at_least": 15, "then": ["push_phase:too_slow"] }
+  ]
+}

@@ -119,6 +119,18 @@ for _ = 1, 8 do frame(0.016) end
 flow.pick(zones.find("reveal").cards[1])
 for _ = 1, 8 do frame(0.016) end
 
+-- every base effect animates and draws
+for _, base in ipairs({ "damage", "bleed", "power_up", "sparkle", "stars", "heal", "smoke", "explosion" }) do
+	fx.play({ base = base, size = 1.2, speed = 0.9, count = 1.4, color = { 0.9, 0.6, 0.4 } }, 480, 270)
+end
+for _ = 1, 25 do frame(0.033) end
+
+-- ending banner: defeat page fires the flourish, confetti animates
+eval("lose_stat:hp:99")
+for _ = 1, 20 do frame(0.033) end
+fx.celebrate("victory")
+for _ = 1, 20 do frame(0.033) end
+
 -- direct bursts and floating deltas
 fx.hit(300, 200)
 fx.impact(400, 300, 1)

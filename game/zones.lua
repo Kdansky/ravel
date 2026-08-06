@@ -54,7 +54,10 @@ end
 function M.refill(z)
 	for _, entry in ipairs(z.contents or {}) do
 		local key, n = entry:match("^([^:]+):?(%d*)$")
-		for _ = 1, tonumber(n) or 1 do M.auto_slot(cards.create(key, z.id).id) end
+		for _ = 1, tonumber(n) or 1 do
+			if not M.has_room(z) then break end
+			M.auto_slot(cards.create(key, z.id).id)
+		end
 	end
 	if z.tags.shuffle then M.shuffle(z.id) end
 end
@@ -74,9 +77,23 @@ function M.move_top(from_id, to_id)
 	return M.move_card(from.cards[#from.cards], to_id)
 end
 
+-- True when a card can take a place in the zone: grids are bounded by their
+-- free slots, every other zone type is unbounded.
+function M.has_room(z)
+	if not z or z.zone_type ~= "grid" then return true end
+	for _, sid in ipairs(z.slots) do
+		local s = entity.get(sid)
+		if s and not s.occupant then return true end
+	end
+	return false
+end
+
 function M.move_card(card_id, to_id)
-	local c = entity.get(card_id)
-	if not c then return false end
+	local c  = entity.get(card_id)
+	local to = entity.get(to_id)
+	-- A full board refuses new arrivals (checked before any mutation, so a
+	-- refused move leaves the card exactly where it was).
+	if not c or not to or not M.has_room(to) then return false end
 
 	-- Clear slot occupancy when card leaves its slot.
 	if c.slot_id then
@@ -95,8 +112,6 @@ function M.move_card(card_id, to_id)
 		end
 	end
 
-	local to = entity.get(to_id)
-	if not to then return false end
 	table.insert(to.cards, card_id)
 	c.zone_id = to_id
 	M.auto_slot(card_id)

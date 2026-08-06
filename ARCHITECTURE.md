@@ -71,18 +71,41 @@ Treat it as disposable.
    `zone_click`, `undo`, `init` — each checkpoints first, then acts, then
    `settle()`s. Never mutate game state from presentation code.
 3. **`settle` is the only driver.** It loops: pending `load_game` → end
-   conditions (deferred while an overlay is open) → automatic phases → round
-   boundaries (counter, ready, `on_turn`) → dealing fresh phases. It carries a
+   conditions (deferred while an overlay is open) → round boundaries
+   (counter, ready, `on_turn` — always before the new round's phases act) →
+   automatic phases → dealing fresh phases. It carries a
    64-transition budget; on breach it warns and halts. Anything that needs to
    happen "after an action" belongs here, not sprinkled at call sites.
 4. **Logic is headless.** Modules below the presentation line may touch
    `love.filesystem.read` and `love.graphics.getDimensions` only (the shim
    surface). If a logic module needs anything visual, it exposes a hook
    (`flow.on_reset`, `actions.on_stat_change`, `anim.on_land`) that the
-   presentation layer assigns.
-5. **Content errors warn, never crash.** Unknown ops log and skip; the
-   validator reports problems at load; loops are budgeted. A typo in JSON must
-   never kill a running game.
+   presentation layer assigns. `cards.image` is the one deliberate exception:
+   it touches `love.graphics.newImage` directly (and, for `http(s)://` asset
+   URLs, `love.js.eval`/luasocket) because it is itself presentation-only —
+   nothing in flow's state graph depends on whether an image loaded — and
+   every call is behind checks that no-op cleanly under the headless shim.
+5. **Content errors warn, never crash — and content is untrusted.** Games are
+   meant to be authored by people other than whoever is running the engine,
+   so every JSON field a game can set is adversarial input, not just
+   typo-prone input. Unknown ops log and skip; the validator reports
+   problems at load (but never blocks them — warnings don't stop content
+   from running, so the *runtime* must be safe on its own); loops are
+   budgeted. Concretely: `json.lua` is a hand-rolled recursive-descent
+   parser, never `load`/`loadstring` over untrusted text; stat-bearing
+   values (`card_stats`, `setup.player`) are coerced with `tonumber(v) or 0`
+   at the point they're written, so a malformed value can never reach
+   arithmetic as a string and throw; `predicate.met`/`meets_all` coerce and
+   type-check before every comparison and fail closed (false) rather than
+   erroring on a malformed condition; `load_game:` and local `asset` paths
+   are restricted to a bare filename (no `..`, no path separators — see
+   `safe_game_filename` in actions.lua and the matching check in
+   `cards.image`); and the one content-triggered call into `declaration.load`
+   (in `flow.settle`, servicing the `load_game` action) is `pcall`-wrapped
+   with a fallback to `menu.json`, so a file that's missing, isn't valid
+   JSON, or blows the parser's recursion depth recovers instead of crashing
+   the process. A typo — or a deliberately hostile file — must never kill a
+   running game.
 6. **One condition vocabulary.** Anything conditional goes through
    `predicate.lua` (subjects: stats, `count:<tag>`, `card:<key>`). Do not
    invent a new comparison dialect; extend the evaluator. Same for numeric

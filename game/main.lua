@@ -44,6 +44,7 @@ end
 
 local function confirm_targeting()
 	local cid, targs, kind = targeting.card_id, targeting.targets, targeting.kind
+	local activating = targeting.intent == "activate"
 	-- Capture hit locations now: resolving the play may move things around.
 	local hits = {}
 	if kind == "card" then
@@ -55,8 +56,27 @@ local function confirm_targeting()
 		end
 	end
 	cancel_targeting()
-	if flow.play_card(cid, targs) then
+	local ok
+	if activating then ok = flow.activate(cid, targs) else ok = flow.play_card(cid, targs) end
+	if ok then
 		for _, h in ipairs(hits) do fx.hit(h.x, h.y) end
+	end
+end
+
+-- Start targeting for a card's spec, or act at once when the spec asks for
+-- nothing (or nothing is eligible and none is required). Shared by playing
+-- from hand and activating an ability on the board.
+local function begin_action(cid, spec, intent)
+	if spec and (spec.count or spec.max or 0) > 0 then
+		render.set_selected(cid)
+		targeting.start(cid, spec, intent)
+		if #targeting.eligible == 0 then
+			if targeting.can_confirm() then confirm_targeting() else cancel_targeting() end
+		end
+	elseif intent == "activate" then
+		flow.activate(cid, {})
+	else
+		flow.play_card(cid, {})
 	end
 end
 
@@ -127,22 +147,14 @@ local function primary_action(x, y)
 		local z   = entity.get(c.zone_id)
 
 		if z and z.zone_type == "grid" then
-			flow.activate(cid)
+			if flow.can_activate(cid) then
+				begin_action(cid, def.activate_target, "activate")
+			end
 			return
 		end
 
 		if not flow.can_play(cid) then return end
-
-		local spec = def.target
-		if spec and (spec.count or spec.max or 0) > 0 then
-			render.set_selected(cid)
-			targeting.start(cid, spec)
-			if #targeting.eligible == 0 then
-				if targeting.can_confirm() then confirm_targeting() else cancel_targeting() end
-			end
-		else
-			flow.play_card(cid, {})
-		end
+		begin_action(cid, def.target, "play")
 		return
 	end
 
@@ -161,14 +173,31 @@ function love.load()
 		render.set_detail(nil)
 	end
 	-- Stat changes float up from where they happened (card, or the HUD row).
+	-- A card losing hp also takes a small damage burst, for free.
 	actions.on_stat_change = function(e, key, delta)
 		local txt = (delta > 0 and "+" or "") .. delta .. " " .. key
 		local col = delta > 0 and { 0.45, 0.95, 0.50 } or { 1.00, 0.45, 0.35 }
 		if e.kind == "card" and e.place and e.place.w > 0 then
 			fx.float(e.place.x + e.place.w * 0.5, e.place.y, txt, col)
+			if key == "hp" and delta < 0 then
+				fx.play({ base = "damage", size = 0.7 },
+					e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5)
+			end
 		else
 			local x, y = render.stat_pos(key)
 			fx.float(x, y, txt, col)
+		end
+	end
+
+	-- Named card effects land on the acting card (or mid-screen without one).
+	actions.on_effect = function(name, ctx)
+		local def = declaration.G.effect_defs[name]
+		if not def then return end
+		local e = ctx and ctx.card_id and entity.get(ctx.card_id)
+		if e and e.place and e.place.w > 0 then
+			fx.play(def, e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5)
+		else
+			fx.play(def, love.graphics.getWidth() * 0.5, love.graphics.getHeight() * 0.5)
 		end
 	end
 	if os.getenv("RAVEL_DEBUG") then debugserver.start() end

@@ -11,6 +11,7 @@ local M = {}
 
 M.pending_load   = nil   -- set by load_game, consumed by flow after the action list
 M.on_stat_change = nil   -- optional hook(entity, key, delta) for visual feedback
+M.on_effect      = nil   -- optional hook(name, ctx): presentation plays the named effect
 
 function M.take_load()
 	local f = M.pending_load
@@ -18,11 +19,28 @@ function M.take_load()
 	return f
 end
 
+-- Content errors surface in the event log (the GUI has no console) and on
+-- stdout, then the action is skipped: a typo must never kill a running game.
+local function content_error(msg)
+	log.add("! " .. msg)
+	print(msg)
+end
+
 -- Parse "op:p1:p2:..." into { "op", "p1", "p2", ... }
 local function parse(str)
 	local parts = {}
 	for p in str:gmatch("[^:]+") do parts[#parts + 1] = p end
 	return parts
+end
+
+-- A load_game target must be a plain <name>.json directly under games/ —
+-- no path separators, no "..", no drive letters. This field is untrusted
+-- content (games are meant to be authored by other people); without this,
+-- a crafted card could point at an arbitrary path readable by the engine.
+-- Enforced here, not just suggested by the validator, since validator
+-- warnings don't stop content from running.
+local function safe_game_filename(name)
+	return type(name) == "string" and name:match("^[%w_%-]+%.json$") ~= nil
 end
 
 -- Every numeric slot accepts a number, "count:<tag>" (board cards with that
@@ -71,10 +89,18 @@ local HANDLERS = {}
 
 HANDLERS["fill"] = function(p)
 	-- fill:zone:card_key:n
-	local zone_id = zones.find_id(p[2])
-	assert(zone_id, "fill: unknown zone " .. tostring(p[2]))
+	local zone = zones.find(p[2] or "")
+	if not zone then
+		content_error("fill: unknown zone " .. tostring(p[2]))
+		return
+	end
+	if not declaration.G.card_defs[p[3] or ""] then
+		content_error("fill: unknown card " .. tostring(p[3]))
+		return
+	end
 	for _ = 1, amount(p, 4, 1) do
-		zones.auto_slot(cards.create(p[3], zone_id).id)
+		if not zones.has_room(zone) then break end
+		zones.auto_slot(cards.create(p[3], zone.id).id)
 	end
 end
 
@@ -133,13 +159,14 @@ end
 HANDLERS["gain"] = function(p)
 	local def = declaration.G.card_defs[p[2] or ""]
 	if not def then
-		print("gain: unknown card " .. tostring(p[2]))
+		content_error("gain: unknown card " .. tostring(p[2]))
 		return
 	end
-	local zone_id = zones.find_id(cards.home_zone(def) or "hand")
-	if not zone_id then return end
+	local zone = zones.find(cards.home_zone(def) or "hand")
+	if not zone then return end
 	for _ = 1, amount(p, 3, 1) do
-		zones.auto_slot(cards.create(def.key, zone_id).id)
+		if not zones.has_room(zone) then break end
+		zones.auto_slot(cards.create(def.key, zone.id).id)
 	end
 end
 
@@ -179,6 +206,11 @@ HANDLERS["pop_phase"] = function()
 end
 
 HANDLERS["load_game"] = function(p)
+	if not safe_game_filename(p[2]) then
+		content_error("load_game: refused '" .. tostring(p[2])
+			.. "' (must be a plain name.json, no path)")
+		return
+	end
 	-- Deferred: consumed by flow.settle after the action list completes.
 	M.pending_load = p[2]
 end
@@ -202,7 +234,7 @@ HANDLERS["reveal"] = function(p)
 	local def     = declaration.G.card_defs[p[2] or ""]
 	local zone_id = zones.find_id("reveal")
 	if not def or not zone_id then
-		print("reveal: unknown card " .. tostring(p[2]))
+		content_error("reveal: unknown card " .. tostring(p[2]))
 		return
 	end
 	cards.create(def.key, zone_id)
@@ -217,6 +249,14 @@ HANDLERS["reveal_top"] = function(p)
 	if from and to_id and #from.cards > 0 then
 		zones.move_top(from.id, to_id)
 		phase.push("reveal")
+	end
+end
+
+-- effect:name  — play a named visual effect (defined under "effects" in the
+-- game file) on the acting card. Pure presentation: headless runs skip it.
+HANDLERS["effect"] = function(p, ctx)
+	if M.on_effect and declaration.G.effect_defs[p[2] or ""] then
+		M.on_effect(p[2], ctx)
 	end
 end
 
@@ -288,6 +328,42 @@ HANDLERS["attach_to_target"] = function(p, ctx)
 	parent.attached[#parent.attached + 1] = child.id
 end
 
+-- Argument shape of every op: one word per colon-separated argument after
+-- the op name. The validator derives its reference checks from this table,
+-- so a new handler gets validation by declaring its shape here (the test
+-- suite asserts no handler is missing).
+-- Types: zone, card, stat, cardstat (a stat carried by cards), phase, tag,
+-- n (amount: number, count:<tag> or card:<key>), any. A trailing "?" marks
+-- the argument optional.
+local SPEC = {
+	fill              = "zone card n",
+	shuffle           = "zone",
+	draw_from         = "zone zone n",
+	return_to         = "zone zone",
+	move_to           = "zone?",
+	add_to            = "zone",
+	move_target_to    = "zone",
+	gain_stat         = "stat n",
+	lose_stat         = "stat n",
+	spend_stat        = "stat n",
+	set_stat          = "stat n",
+	gain_target_stat  = "cardstat n",
+	lose_target_stat  = "cardstat n",
+	damage_random     = "tag cardstat n",
+	attach_to_target  = "",
+	resolve_challenge = "",
+	next_phase        = "",
+	push_phase        = "phase",
+	pop_phase         = "",
+	load_game         = "gamefile",
+	destroy           = "zone",
+	destroy_self      = "",
+	reveal            = "card",
+	reveal_top        = "zone",
+	gain              = "card n",
+	effect            = "effect",
+}
+
 -- True if the op exists; used by the load-time validator.
 function M.known(op)
 	return HANDLERS[op] ~= nil
@@ -300,13 +376,18 @@ function M.ops()
 	return t
 end
 
+-- The declared argument shape of an op (see SPEC above).
+function M.spec(op)
+	return SPEC[op]
+end
+
 function M.execute(str, ctx)
 	local p = parse(str)
 	local h = HANDLERS[p[1]]
 	if h then
 		h(p, ctx)
 	else
-		print("Unknown action: " .. str)
+		content_error("Unknown action: " .. str)
 	end
 end
 

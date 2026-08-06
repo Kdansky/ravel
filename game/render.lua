@@ -48,15 +48,17 @@ end
 
 -- UI scale: the layout is proportional to the window, so type and chrome
 -- must be too. 960×540 is the design size.
-local S          = 1
-local font_main  = nil
-local font_small = nil
+local S           = 1
+local font_main   = nil
+local font_small  = nil
+local font_banner = nil
 
 function M.rescale()
 	local W, H = love.graphics.getDimensions()
 	S = math.max(0.75, math.min(3, math.min(W / 960, H / 540)))
-	font_main  = love.graphics.newFont(math.floor(15 * S + 0.5))
-	font_small = love.graphics.newFont(math.max(9, math.floor(10 * S + 0.5)))
+	font_main   = love.graphics.newFont(math.floor(13 * S + 0.5))
+	font_small  = love.graphics.newFont(math.max(8, math.floor(9 * S + 0.5)))
+	font_banner = love.graphics.newFont(math.floor(32 * S + 0.5))
 	love.graphics.setFont(font_main)
 	fx.set_scale(S)
 end
@@ -131,6 +133,7 @@ end
 local selected_id = nil
 local detail_id   = nil   -- card or zone shown in the full-screen detail overlay
 local can_undo    = false
+local celebrated  = false -- the ending flourish fires once per ending screen
 local buttons     = {}    -- name → rect, rebuilt every frame for hit-testing
 local stat_hud    = {}    -- stat key → {x, y}, where the HUD drew it last frame
 
@@ -747,7 +750,7 @@ local function draw_targeting_hint()
 			spec.min, spec.max, n_sel, #targeting.eligible)
 	end
 	love.graphics.push("all")
-	love.graphics.setColor(0.00, 0.00, 0.00, 0.70)
+	love.graphics.setColor(0.00, 0.00, 0.00, 0.82)
 	love.graphics.rectangle("fill", 0, H - bar_h, W, bar_h)
 	love.graphics.setColor(0.75, 0.92, 1.00)
 	love.graphics.print(msg, 12 * S, H - bar_h + 7 * S)
@@ -784,12 +787,12 @@ function M.toggle_log()
 end
 
 local function draw_log()
-	local lines = log.tail(log_expanded and 24 or 6)
+	local lines = log.tail(log_expanded and 24 or 3)
 	if #lines == 0 then return end
 	local sf = get_small_font()
 	local fh = sf:getHeight()
 	local H  = love.graphics.getHeight()
-	local w  = (log_expanded and 320 or 220) * S
+	local w  = (log_expanded and 320 or 170) * S
 	local h  = #lines * (fh + 2 * S) + 8 * S
 
 	local bottom = 10 * S
@@ -803,10 +806,10 @@ local function draw_log()
 
 	love.graphics.push("all")
 	love.graphics.setFont(sf)
-	love.graphics.setColor(0, 0, 0, log_expanded and 0.78 or 0.35)
+	love.graphics.setColor(0, 0, 0, log_expanded and 0.88 or 0.65)
 	love.graphics.rectangle("fill", x, y, w, h, 3 * S, 3 * S)
 	for i, line in ipairs(lines) do
-		local a = log_expanded and 0.95 or (0.35 + 0.60 * (i / #lines))
+		local a = log_expanded and 0.95 or (0.55 + 0.40 * (i / #lines))
 		love.graphics.setColor(0.75, 0.85, 1.00, a)
 		love.graphics.print(truncate(sf, line, w - 22 * S),
 			x + 4 * S, y + 4 * S + (i - 1) * (fh + 2 * S))
@@ -1017,6 +1020,8 @@ function M.draw()
 
 	-- Overlay phase: dim everything, then draw its offer zone (and any cards
 	-- still flying into it) on top of the dim.
+	local outcome = phase.is_overlay() and flow.outcome() or nil
+	if not outcome then celebrated = false end
 	if phase.is_overlay() then
 		local W, H = love.graphics.getDimensions()
 		love.graphics.push("all")
@@ -1039,10 +1044,34 @@ function M.draw()
 				if vpl then draw_flying_card(vpl, entity.get(cid)) end
 			end
 		end
+
+		-- An ending screen announces itself: banner, run summary, flourish.
+		if outcome then
+			if not celebrated then
+				fx.celebrate(outcome)
+				celebrated = true
+			end
+			local btxt = outcome == "victory" and "Victory" or "Defeat"
+			local col  = outcome == "victory" and { 1.00, 0.84, 0.30 } or { 0.95, 0.32, 0.26 }
+			love.graphics.push("all")
+			love.graphics.setFont(font_banner)
+			love.graphics.setColor(0, 0, 0, 0.80)
+			love.graphics.printf(btxt, 0, 10 * S + 2 * S, W, "center")
+			love.graphics.setColor(unpack(col))
+			love.graphics.printf(btxt, 0, 10 * S, W, "center")
+			local summary = table.concat(flow.summary(), "    ·    ")
+			if summary ~= "" then
+				love.graphics.setFont(font_main)
+				love.graphics.setColor(0.85, 0.90, 1.00, 0.95)
+				love.graphics.printf(summary, 0, 10 * S + font_banner:getHeight() + 4 * S, W, "center")
+			end
+			love.graphics.pop()
+		end
 	end
 
 	love.graphics.pop()
 
+	fx.draw_celebration()
 	draw_targeting_arrow()
 	draw_targeting_hint()
 	draw_log()

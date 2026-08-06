@@ -3,7 +3,7 @@
   "zones": [
     { "key": "road",  "type": "deck", "pos": [0.04, 0.08, 0.20, 0.55], "tags": ["shuffle"],
       "contents": ["shelter:2", "storm:2", "stranger:2", "bandits:2", "village:1", "ruins:1", "crossroads:1"] },
-    { "key": "hand",  "type": "hand", "pos": [0.04, 0.62, 0.96, 0.96] },
+    { "key": "hand",  "type": "hand", "pos": [0.19, 0.62, 0.96, 0.96] },
     { "key": "past",  "type": "pile", "pos": [0.80, 0.08, 0.96, 0.55] },
     { "key": "offer", "type": "hand", "pos": [0.32, 0.30, 0.68, 0.72], "tags": ["hidden"] },
     { "key": "paths", "type": "deck", "pos": [0.42, -0.40, 0.58, -0.08], "tags": ["hidden"],
@@ -80,18 +80,20 @@
     {
       "key": "old_bridge",
       "text": "Old Bridge",
-      "asset": "village.png",
+      "asset": "stone_bridge.jpg",
       "tooltip": "It creaks but holds, and you rest on the far bank. Gain 1 health.",
       "on_play": ["gain_stat:hp:1", "move_to:past", "draw_from:road:hand:1"]
     },
     {
       "key": "journeys_end",
+      "outcome": "victory",
       "text": "Journey's End",
       "asset": "village.png",
       "tooltip": "You survived the wandering road. Click to return to the menu."
     },
     {
       "key": "perished",
+      "outcome": "defeat",
       "text": "You Perished",
       "asset": "storm.png",
       "tooltip": "The road has claimed you. Click to return to the menu."

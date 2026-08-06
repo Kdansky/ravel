@@ -2,6 +2,8 @@ local predicate = require("predicate")
 
 local M = {}
 
+M.on_leave = nil   -- hook(def) fired when a phase transitions away (flow discards its hand)
+
 -- Stack frames are { def = phase_def, fresh = bool }. `fresh` is true until the
 -- phase's entry work (dealing cards) has run, so resuming after a pop doesn't re-deal.
 local stack   = {}
@@ -58,13 +60,14 @@ function M.next()
 			if unconditional or predicate.met(r) then
 				local pd = G.phase_by_key[r["then"]]
 				if pd then
+					if M.on_leave then M.on_leave(cur) end
 					if r.ends_round then wrapped = true end
 					stack[#stack] = { def = pd, fresh = true }
 				end
 				return
 			end
 		end
-		return   -- no route matched: stay put (validator warns about this shape)
+		return   -- no route matched: stay put (the validator flags automatic phases that can stall here)
 	end
 
 	local nxt
@@ -77,7 +80,10 @@ function M.next()
 			if G.phase_by_key[key].type ~= "automatic" then nxt = key; break end
 		end
 	end
-	if nxt then stack[#stack] = { def = G.phase_by_key[nxt], fresh = true } end
+	if nxt then
+		if M.on_leave then M.on_leave(cur) end
+		stack[#stack] = { def = G.phase_by_key[nxt], fresh = true }
+	end
 end
 
 function M.is_overlay()

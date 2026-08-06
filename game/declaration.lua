@@ -4,6 +4,13 @@ local M = {}
 M.G        = {}   -- current game definition; templates may be edited live (see cards.edit)
 M.filename = nil  -- source file of the current game, for template reloads
 
+-- Template-ish fields swapped wholesale by cards.reload. Zones and phases
+-- are structural and need a full game load.
+M.TEMPLATE_FIELDS = {
+	"card_defs", "computed_tags", "stat_defs", "stat_defs_list",
+	"tag_defs", "effect_defs", "parse_problems",
+}
+
 local function tag_set(arr)
 	local s = {}
 	if type(arr) ~= "table" then return s end
@@ -16,7 +23,7 @@ end
 local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true,
 	templates = true, cards = true, zones = true, phases = true,
-	end_conditions = true, setup = true, tags = true,
+	end_conditions = true, setup = true, tags = true, effects = true,
 }
 
 -- Parse a game file into a definition table without touching current state.
@@ -43,6 +50,7 @@ function M.parse(filename)
 		end_conditions = parsed.end_conditions or {},
 		setup          = parsed.setup or {},
 		tag_defs       = parsed.tags or {},  -- tag behaviour: { "item": { "zone": "inventory" } }
+		effect_defs    = parsed.effects or {},  -- named effects on the fx base vocabulary
 		parse_problems = {},
 	}
 	local pp = G.parse_problems
@@ -81,6 +89,17 @@ function M.parse(filename)
 		end
 	end
 
+	-- Zones may omit pos: every type has a sensible default spot, so a first
+	-- game needs no layout numbers at all (tune later). Hidden zones default
+	-- off-screen, which also gives dealt cards their fly-in.
+	local DEFAULT_POS = {
+		hand   = { 0.19, 0.62, 0.97, 0.97 },
+		grid   = { 0.03, 0.05, 0.60, 0.55 },
+		deck   = { 0.75, 0.05, 0.95, 0.40 },
+		pile   = { 0.75, 0.45, 0.95, 0.80 },
+		hidden = { 0.42, -0.40, 0.58, -0.08 },
+	}
+
 	for _, zd in ipairs(entries(parsed.zones, "zones")) do
 		if type(zd) ~= "table" or not zd.key then
 			pp[#pp + 1] = "a zone has no \"key\" — every zone needs a unique one"
@@ -92,6 +111,10 @@ function M.parse(filename)
 				G.zone_list[#G.zone_list + 1] = zd.key
 			end
 			zd.tags_set = tag_set(zd.tags)
+			if not zd.pos then
+				zd.pos = zd.tags_set.hidden and DEFAULT_POS.hidden
+					or DEFAULT_POS[zd.type] or DEFAULT_POS.pile
+			end
 			G.zone_defs[zd.key] = zd
 		end
 	end
@@ -121,6 +144,11 @@ function M.parse(filename)
 			elseif pd.type ~= "overlay" then
 				G.phase_list[#G.phase_list + 1] = pd.key
 			end
+			-- draw_and_play is shorthand: play once, discard the rest, advance.
+			if pd.type == "draw_and_play" then
+				if pd.ends_after == nil then pd.ends_after = 1 end
+				if pd.discard_hand == nil then pd.discard_hand = true end
+			end
 			G.phase_by_key[pd.key] = pd
 		end
 	end
@@ -129,13 +157,14 @@ function M.parse(filename)
 	-- hidden zone and push this overlay. A game may claim either key to
 	-- override the presentation.
 	if not G.zone_defs.reveal then
-		G.zone_defs.reveal = { key = "reveal", type = "hand",
+		G.zone_defs.reveal = { key = "reveal", type = "hand", injected = true,
 			pos = { 0.22, 0.14, 0.78, 0.88 },
 			tags_set = { hidden = true, page = true, no_peek = true } }
 		G.zone_list[#G.zone_list + 1] = "reveal"
 	end
 	if not G.phase_by_key.reveal then
-		G.phase_by_key.reveal = { key = "reveal", type = "overlay", zone = "reveal", page = true }
+		G.phase_by_key.reveal = { key = "reveal", type = "overlay", zone = "reveal",
+			page = true, injected = true }
 	end
 
 	return G

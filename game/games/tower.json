@@ -9,10 +9,14 @@
 
   "tags": { "keepsake": { "zone": "board" } },
 
+  "effects": {
+    "bell_toll": { "base": "stars", "color": [0.95, 0.85, 0.40], "size": 1.6, "speed": 0.7 }
+  },
+
   "zones": [
     { "key": "board", "label": "Keepsakes", "type": "grid", "grid": [5, 1],
       "pos": [0.03, 0.05, 0.60, 0.36] },
-    { "key": "hand", "type": "hand", "pos": [0.03, 0.60, 0.97, 0.97] },
+    { "key": "hand", "type": "hand", "pos": [0.19, 0.60, 0.97, 0.97] },
     { "key": "chest_deck", "type": "deck", "pos": [0.42, -0.50, 0.58, -0.10],
       "tags": ["hidden", "shuffle"],
       "contents": ["p_chest_pearl", "p_chest_mimic"] }
@@ -57,10 +61,12 @@
       "on_pick": ["lose_stat:hp:2", "destroy:hand", "fill:hand:c_bell:1", "fill:hand:c_flee:1"] },
 
     { "key": "e_pearl", "text": "The Answering Note",
+      "outcome": "victory",
       "story": "You set the pearl against the green bronze and strike. The bell swallows the pearl's cold note and returns it tenfold, a sound like a knot coming undone, and the lake lets the tower go. Water walks itself out of the hall like a guest that has overstayed. You leave over wet stone, into a morning that smells, for the first time in years, of nothing at all.",
       "on_pick": ["load_game:menu.json"] },
 
     { "key": "e_bell", "text": "Something Answers",
+      "outcome": "defeat",
       "story": "The bell's bare voice goes down into the water, and something very far below answers it. You do not stay to translate. Up, out, over the sill, and you swim until the shingle scrapes your knees. Behind you the tower closes over its secret like a fist. The lake keeps what it holds.",
       "on_pick": ["load_game:menu.json"] },
 
@@ -68,15 +74,23 @@
       "story": "You climb back to the light and leave the bell to its long patience. The ferryman, against all custom, is waiting. He does not ask what you saw, and you do not tell him. Some doors are better left below.",
       "on_pick": ["load_game:menu.json"] },
 
+    { "key": "e_flee_pearl", "text": "The Unstruck Note",
+      "outcome": "victory",
+      "story": "You leave the bell unstruck and carry the pearl out into the ordinary light. It sits on your mantel for the rest of your life, humming very faintly on still nights, in a pitch you feel rather than hear — a note the drowned tower is still waiting for. You never go back. You never quite stop listening, either.",
+      "on_pick": ["load_game:menu.json"] },
+
     { "key": "e_collapse", "text": "The Book Is Shut",
+      "outcome": "defeat",
       "story": "Your legs go, and the cold closes over your head like a book being shut. The last thing you hear is the bell, ringing very softly, welcoming you down.",
       "on_pick": ["load_game:menu.json"] },
 
     { "key": "c_search", "text": "Search the shore",
+      "asset": "shore_wrack.jpg",
       "tooltip": "Comb the wrack line before the light fails.",
       "on_play": ["reveal:p_beach"] },
 
     { "key": "c_door", "text": "Try the door",
+      "asset": "old_door.jpg",
       "tooltip": "Iron-bound and swollen shut. Locked?",
       "requires": { "card:rusty_key": 1 },
       "on_play": ["resolve_challenge"],
@@ -84,14 +98,17 @@
       "on_fail": ["reveal:p_door_locked"] },
 
     { "key": "c_climb", "text": "Climb to the gallery",
+      "asset": "tower_wall.jpg",
       "tooltip": "The wall is slick and the sill is high. It will cost you.",
       "on_play": ["lose_stat:hp:2", "reveal:p_gallery"] },
 
     { "key": "c_chest", "text": "Open the sea-chest",
+      "asset": "gold_coins.jpg",
       "tooltip": "Unlocked. Which is never a good sign.",
       "on_play": ["reveal_top:chest_deck"] },
 
     { "key": "c_descend", "text": "Take the drowned stair",
+      "asset": "dark_stair.jpg",
       "tooltip": "The steps vanish into cold black water.",
       "requires": { "card:lantern": 1 },
       "on_play": ["resolve_challenge"],
@@ -99,22 +116,30 @@
       "on_fail": ["reveal:p_stair_dark"] },
 
     { "key": "c_bell", "text": "Strike the drowned bell",
+      "asset": "old_bell.jpg",
       "tooltip": "Green with age. The tower was built around it. No going back after this.",
       "irreversible": true,
       "requires": { "card:pearl": 1 },
-      "on_play": ["resolve_challenge"],
+      "on_play": ["effect:bell_toll", "resolve_challenge"],
       "on_pass": ["reveal:e_pearl"],
       "on_fail": ["reveal:e_bell"] },
 
     { "key": "c_flee", "text": "Leave this place",
+      "asset": "row_boat.jpg",
       "tooltip": "The lake was here first. Let it keep what it holds.",
-      "on_play": ["reveal:e_flee"] },
+      "requires": { "card:pearl": 1 },
+      "on_play": ["resolve_challenge"],
+      "on_pass": ["reveal:e_flee_pearl"],
+      "on_fail": ["reveal:e_flee"] },
 
     { "key": "rusty_key", "text": "Rusty Key", "tags": ["keepsake"],
+      "asset": "iron_key.jpg",
       "tooltip": "Cold iron, lake-eaten. It wants a lock." },
     { "key": "lantern", "text": "Stub Lantern", "tags": ["keepsake"],
+      "asset": "lantern_light.jpg",
       "tooltip": "A thumb of candle behind salt-glass, somehow dry." },
     { "key": "pearl", "text": "The Pearl", "tags": ["keepsake"],
+      "asset": "pearl_shell.jpg",
       "tooltip": "Cold as the lake, and just as patient." }
   ],
 
