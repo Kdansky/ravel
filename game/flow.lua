@@ -248,7 +248,12 @@ function M.init(filename, seed)
 	entity.register(pl)
 
 	-- Cards that start in play (e.g. the throne room), placed onto their zone/slot.
-	for _, def in pairs(G.card_defs) do
+	-- Walked in file order, never with pairs: entity IDs are handed out in
+	-- creation order, and Lua's hash order is not stable across interpreters
+	-- (or, in 5.4, across processes). Setup has to build the same board every
+	-- time for seeds to reproduce and for replays to line up.
+	for _, key in ipairs(G.card_list) do
+		local def = G.card_defs[key]
 		if def.auto_play then
 			local to = zones.find(def.to_zone or cards.home_zone(def) or "board")
 			if to then

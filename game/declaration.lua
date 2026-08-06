@@ -7,7 +7,7 @@ M.filename = nil  -- source file of the current game, for template reloads
 -- Template-ish fields swapped wholesale by cards.reload. Zones and phases
 -- are structural and need a full game load.
 M.TEMPLATE_FIELDS = {
-	"card_defs", "computed_tags", "stat_defs", "stat_defs_list",
+	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list",
 	"tag_defs", "effect_defs", "parse_problems",
 }
 
@@ -40,6 +40,7 @@ function M.parse(filename)
 		title          = parsed.title or "Ravel",
 		seed           = parsed.seed,       -- optional: fixed RNG seed for the game
 		card_defs      = {},
+		card_list      = {},       -- ordered array of card keys (file order, for deterministic setup)
 		zone_defs      = {},
 		zone_list      = {},       -- ordered array of zone keys (preserves JSON order)
 		stat_defs      = {},
@@ -83,6 +84,8 @@ function M.parse(filename)
 			if G.card_defs[cd.key] then
 				pp[#pp + 1] = "two templates share the key '" .. cd.key
 					.. "' — the second silently replaces the first"
+			else
+				G.card_list[#G.card_list + 1] = cd.key
 			end
 			cd.tags_set = tag_set(cd.tags)
 			G.card_defs[cd.key] = cd

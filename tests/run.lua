@@ -1218,5 +1218,88 @@ check("the fuzz run actually moved", steps > 0)
 for _ = 1, steps do flow.undo() end
 check("undo rewinds a random run to its opening state", fingerprint() == fp0)
 
+-- === golden traces ===
+-- Reworking the stat machinery must not change what actually happens in a
+-- game. These play a fixed seeded script and compare the entire event log to a
+-- committed transcript. The log records every stat change together with the
+-- entity it landed on, which is exactly what a scoping change could get wrong,
+-- so a silent behaviour shift shows up as a diff instead of as nothing.
+-- Regenerate deliberately: RAVEL_GOLDEN=write luajit tests/run.lua
+local function scripted_play(file, seed, steps)
+	flow.init(file, seed)
+	for _ = 1, steps do
+		if flow.outcome() then break end
+		local cur = phase.current()
+		if not cur then break end
+		local acted = false
+		if cur.type == "overlay" then
+			local z = zones.find(cur.zone or "hand")
+			if z and #z.cards > 0 then acted = flow.pick(z.cards[1]) end
+		else
+			local hand = zones.find(cur.zone or "hand")
+			for _, cid in ipairs(hand and hand.cards or {}) do
+				local def  = cards.def(entity.get(cid))
+				local spec = def and def.target
+				local want = spec and (spec.min or spec.count or 0) or 0
+				local targets = {}
+				if want > 0 then
+					targeting.start(cid, spec)
+					for i = 1, want do targets[i] = targeting.eligible[i] end
+					targeting.clear()
+				end
+				if #targets == want and flow.play_card(cid, targets) then
+					acted = true
+					break
+				end
+			end
+		end
+		if not acted then break end
+	end
+	return table.concat(log.tail(100000), "\n") .. "\n"
+end
+
+-- The transcripts are recorded under LuaJIT, LÖVE's interpreter. They cannot be
+-- shared with PUC Lua: math.random is a different generator there (Tausworthe
+-- vs xoshiro256**), so one seed gives two different shuffles and the very first
+-- card drawn already diverges. The engine's own logic is interpreter-agnostic —
+-- only the deck order is not — so the rest of the suite still runs everywhere.
+-- Making seeds reproduce across interpreters needs the engine to carry its own
+-- PRNG rather than borrow the host's; see ideas/02 (move-based multiplayer
+-- depends on it).
+local golden_ok = type(jit) == "table"
+if not golden_ok then
+	print("  (golden traces skipped: PUC Lua's math.random differs from LuaJIT's)")
+end
+
+for _, g in ipairs({ { "castle.json", 7, 120 }, { "kingdom.json", 5, 120 } }) do
+	local text = golden_ok and scripted_play(g[1], g[2], g[3]) or ""
+	local path = "tests/golden/" .. g[1]:gsub("%.json$", "") .. ".log"
+	if not golden_ok then
+		-- nothing to compare against
+	elseif os.getenv("RAVEL_GOLDEN") == "write" then
+		local out = assert(io.open(path, "w"))
+		out:write(text)
+		out:close()
+		print("wrote " .. path .. " (" .. select(2, text:gsub("\n", "")) .. " lines)")
+	else
+		local f    = io.open(path, "r")
+		local want = f and f:read("*a")
+		if f then f:close() end
+		check(g[1] .. " plays exactly as recorded", want == text)
+		if want and want ~= text then
+			local a, b = {}, {}
+			for l in want:gmatch("[^\n]*") do a[#a + 1] = l end
+			for l in text:gmatch("[^\n]*") do b[#b + 1] = l end
+			for i = 1, math.max(#a, #b) do
+				if a[i] ~= b[i] then
+					print(("  first difference at line %d:\n    was: %s\n    now: %s")
+						:format(i, tostring(a[i]), tostring(b[i])))
+					break
+				end
+			end
+		end
+	end
+end
+
 print(string.format("%d passed, %d failed", passed, failed))
 os.exit(failed == 0 and 0 or 1)
