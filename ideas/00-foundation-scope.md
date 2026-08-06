@@ -119,10 +119,62 @@ Two rules keep the name space honest, **both already enforced by the validator**
 - `self` and `all` are reserved; neither can be expressed as a tag. `player` is
   deliberately *not* reserved — it is ordinary content, which is the whole point.
 
-Open question, still to settle: when a scope names a tag carried by several
-cards (`hp@follower` with three followers), does the bare form sum them or
-refuse? Current leaning is to sum, and keep `sum:`/`max:` for when the intent
-matters.
+### Quantifiers: which member of the set, and how many
+
+A scope naming a tag usually matches *several* cards, and "three followers have
+hp" does not say what happens to them. Three genuinely different intents, needed
+for **both costs and effects**:
+
+```
+hp@each.follower      -- every follower, individually
+hp@any.follower       -- the set as a pool; the engine satisfies it however it can
+hp@random.follower    -- one member, chosen by the seeded RNG
+hp@target             -- the cards the player already chose for this card
+hp@follower           -- bare: same as any (and the same as today's global total)
+```
+
+`.` separates the quantifier because **`:` cannot** — `actions.parse`
+(`game/actions.lua:30`) splits action strings on colons, so `hp@each:follower`
+would arrive as two arguments. Neither `.` nor `@` appears in any of the 63
+zone and tag names across the shipped games, so both are free.
+
+| Quantifier | Affordable when | Paying a cost | Applying an effect |
+|---|---|---|---|
+| `any` (default) | total over the set ≥ n | drain members in id order until n is paid | lands on the first member |
+| `each` | set non-empty **and** every member ≥ n | every member pays n (total n × count) | applies to every member |
+| `random` | as `any` | as `any` | lands on one member, seeded |
+| `target` | every chosen target ≥ n | every target pays n | applies to every target |
+
+**`each` over an empty set fails — it is not vacuously true.** Otherwise
+`"cost": { "hp@each.follower": 1 }` would be *free* when you have no followers,
+which is exactly backwards. `sacrifice:` already works this way.
+
+**`target` needs no new interaction.** The card's existing `target` /
+`activate_target` spec already asks the player to choose; the cost and the
+effect just refer to what they chose. "Choose which follower takes the hit" is
+`activate_target: { tags: ["follower"], count: 1 }` plus
+`lose_stat:hp@target:1` — no cost-time prompt to invent.
+
+**Determinism holds.** `any` drains in entity-id order (oldest first, matching
+`sacrifice:`); `random` uses the seeded RNG. Both reproduce from a seed.
+
+### This deletes three actions
+
+Once scopes carry quantifiers, three bespoke verbs are just special cases:
+
+```
+damage_random:beast:hp:2   →  lose_stat:hp@random.beast:2
+gain_target_stat:hp:2      →  gain_stat:hp@target:2
+lose_target_stat:hp:2      →  lose_stat:hp@target:2
+```
+
+Worth doing as a follow-up commit, not the same one — keep the old verbs as
+aliases until the shipped games migrate, then delete them. The net effect is a
+*smaller* action vocabulary than before the feature, which is the sign the
+abstraction is the right one.
+
+`sacrifice:<tag>` stays as it is for now: it spends whole cards rather than a
+stat, which is a different axis, and it already means "any n, oldest first".
 
 ### The party case falls out
 
