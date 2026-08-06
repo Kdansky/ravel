@@ -195,7 +195,7 @@ check("exhausted cards cannot activate again", flow.activate(throne.id) == false
 -- === castle: abilities that take targets ===
 local tdef = declaration.G.card_defs.throne_room
 tdef.activate_target = { type = "card", count = 1, tags = { "building" }, zones = { "board" } }
-tdef.on_activate     = { "gain_target_stat:defense:1" }
+tdef.on_activate     = { "gain_stat:defense@target:1" }
 entity.get(throne.id).exhausted = nil
 eval("set_stat:gold:9")
 check("an ability with a target refuses none", flow.activate(throne.id, {}) == false)
@@ -239,20 +239,20 @@ check("turn ended into build2", phase.current().key == "build2")
 check("hand redealt with 3 plus the pass card", zone_count("hand") == 4)
 
 -- === castle: stat clamping on cards (overheal fix) ===
-actions.execute("lose_target_stat:hp:2", { targets = { farm.id } })
+actions.execute("lose_stat:hp@target:2", { targets = { farm.id } })
 check("farm damaged to 1 hp", farm.stats.hp == 1)
-actions.execute("gain_target_stat:hp:9", { targets = { farm.id } })
+actions.execute("gain_stat:hp@target:9", { targets = { farm.id } })
 check("healing clamps at hp_max", farm.stats.hp == 3)
 
 -- === castle: computed-tag targeting ===
-actions.execute("lose_target_stat:hp:1", { targets = { farm.id } })
+actions.execute("lose_stat:hp@target:1", { targets = { farm.id } })
 eval("fill:hand:repair:1")
 local rep = find_card("repair", "hand")
 targeting.start(rep.id, cards.def(rep).target)
 check("damaged farm eligible for repair", targeting.is_eligible(farm.id))
 check("undamaged throne not eligible", not targeting.is_eligible(throne.id))
 targeting.clear()
-actions.execute("gain_target_stat:hp:1", { targets = { farm.id } })
+actions.execute("gain_stat:hp@target:1", { targets = { farm.id } })
 
 -- === castle: draft overlay via architect ===
 eval("set_stat:gold:5")
@@ -332,9 +332,9 @@ local bd = zones.find("build_deck")
 eval("draw_from:build_deck:graveyard:" .. #bd.cards)
 check("emptied build deck refills from contents", #bd.cards == 15)
 
--- === castle: damage_random ===
+-- === castle: a random board card takes the hit ===
 local hp_before_dmg = board_hp()
-eval("damage_random:building:hp:2")
+eval("lose_stat:hp@random.building:2")
 check("a random building took 2 damage", board_hp() == hp_before_dmg - 2)
 
 -- === castle: end conditions ===
@@ -717,7 +717,7 @@ local th  = battlefield_threat()
 local hp0 = th.stats.hp
 flow.activate(find_card("outrider", "battlefield").id)
 check("units wound threats once per day", th.stats.hp < hp0)
-eval("damage_random:threat:hp:9")
+eval("lose_stat:hp@random.threat:9")
 check("a dead threat is slain, not gone", th.stats.hp == 0 and th.zone_id ~= nil)
 
 eval("fill:hand:scavenge:1")
@@ -858,12 +858,8 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "load_game:../../../etc/passwd" } end },
 	{ "a load_game target that doesn't exist", "doesn't exist",
 		function(g) g.card_defs.c_flee.on_play = { "load_game:no_such_game.json" } end },
-	{ "a damage tag no card carries", "looks for the tag 'wyrms'",
-		function(g) g.card_defs.c_flee.on_play = { "damage_random:wyrms:hp:1" } end },
 	{ "an action missing its argument", "'reveal' is missing its card argument",
 		function(g) g.card_defs.c_flee.on_play = { "reveal" } end },
-	{ "a target stat no card carries", "no card carries that stat",
-		function(g) g.card_defs.c_flee.on_play = { "gain_target_stat:armor:1" } end },
 	{ "an unknown tag in an action amount", "counts the tag 'dragons'",
 		function(g) g.card_defs.c_flee.on_play = { "gain_stat:hp:count:dragons" } end },
 	{ "a missing card in an action amount", "checks for the card 'excalibur'",

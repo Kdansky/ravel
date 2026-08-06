@@ -351,19 +351,6 @@ HANDLERS["return_to"] = function(p)
 	end
 end
 
--- These three are now special cases of the scope grammar, kept as aliases so
--- shipped games keep working:
---   gain_target_stat:hp:2   ==  gain_stat:hp@target:2
---   lose_target_stat:hp:2   ==  lose_stat:hp@target:2
---   damage_random:beast:hp:2 == lose_stat:hp@random.beast:2
-HANDLERS["gain_target_stat"] = function(p, ctx)
-	apply_stat(p[2] .. "@target", amount(p, 3), ctx)
-end
-
-HANDLERS["lose_target_stat"] = function(p, ctx)
-	apply_stat(p[2] .. "@target", -amount(p, 3), ctx)
-end
-
 -- move_target_to:zone  — move each targeted card to zone.
 HANDLERS["move_target_to"] = function(p, ctx)
 	local to_id = zones.find_id(p[2])
@@ -371,11 +358,6 @@ HANDLERS["move_target_to"] = function(p, ctx)
 	for _, tid in ipairs(ctx and ctx.targets or {}) do
 		zones.move_card(tid, to_id)
 	end
-end
-
--- damage_random:tag:stat:n  — a random on-board card with the tag loses n.
-HANDLERS["damage_random"] = function(p, ctx)
-	apply_stat(tostring(p[3]) .. "@random." .. tostring(p[2]), -amount(p, 4, 1), ctx)
 end
 
 -- attach_to_target  — attach ctx.card_id as a child of ctx.targets[1].
@@ -394,9 +376,9 @@ end
 -- the op name. The validator derives its reference checks from this table,
 -- so a new handler gets validation by declaring its shape here (the test
 -- suite asserts no handler is missing).
--- Types: zone, card, stat, cardstat (a stat carried by cards), phase, tag,
--- n (amount: number, count:<tag> or card:<key>), any. A trailing "?" marks
--- the argument optional.
+-- Types: zone, card, stat (a full subject, so it may carry a scope),
+-- phase, effect, gamefile, n (amount: number, count:<tag> or card:<key>),
+-- any. A trailing "?" marks the argument optional.
 local SPEC = {
 	fill              = "zone card n",
 	shuffle           = "zone",
@@ -409,9 +391,6 @@ local SPEC = {
 	lose_stat         = "stat n",
 	spend_stat        = "stat n",
 	set_stat          = "stat n",
-	gain_target_stat  = "cardstat n",
-	lose_target_stat  = "cardstat n",
-	damage_random     = "tag cardstat n",
 	attach_to_target  = "",
 	resolve_challenge = "",
 	next_phase        = "",

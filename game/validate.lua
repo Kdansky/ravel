@@ -317,7 +317,7 @@ function M.check(G)
 			local a = p[i]
 			if a == nil then
 				if optional == "" and t ~= "n" and t ~= "any" then
-					warn("%s: '%s' is missing its %s argument", where, op, t == "cardstat" and "stat" or t)
+					warn("%s: '%s' is missing its %s argument", where, op, t)
 				end
 				break
 			end
@@ -327,17 +327,13 @@ function M.check(G)
 			elseif t == "card" and not G.card_defs[a] then
 				warn("%s: '%s' names the card '%s', but no template has that key%s",
 					where, op, a, suggest(a, G.card_defs))
-			elseif t == "stat" and not stat_ok(a) then
-				warn("%s: %s of '%s', but that stat is never declared or set up%s",
-					where, op, a, suggest(a, all_stats))
-			elseif t == "cardstat" and not (card_stats[a] or stat_ok(a)) then
-				warn("%s: %s of '%s', but no card carries that stat", where, op, a)
+			elseif t == "stat" then
+				-- An action's stat argument is a full subject: it may carry a
+				-- scope, and a scoped one may read a stat only cards have.
+				subject_ok(where .. ": " .. op, a)
 			elseif t == "phase" and not G.phase_by_key[a] then
 				warn("%s: '%s' points at phase '%s', but no phase has that key%s",
 					where, op, a, suggest(a, G.phase_by_key))
-			elseif t == "tag" and not known_tags[a] then
-				warn("%s: '%s' looks for the tag '%s', but no card has it%s",
-					where, op, a, suggest(a, known_tags))
 			elseif t == "effect" and not (G.effect_defs or {})[a] then
 				warn("%s: '%s' plays the effect '%s', but the game defines no such effect%s",
 					where, op, a, suggest(a, G.effect_defs))

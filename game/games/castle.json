@@ -76,7 +76,7 @@
       "cost":    { "gold": 1 },
       "tags":    ["one_shot"],
       "target":  { "type": "card", "min": 0, "max": 1, "tags": ["building", "damaged"], "zones": ["board"] },
-      "on_play": ["gain_target_stat:hp:2", "move_to:graveyard"]
+      "on_play": ["gain_stat:hp@target:2", "move_to:graveyard"]
     },
     {
       "key":     "mercenaries",
@@ -179,7 +179,7 @@
       "tags":     ["challenge"],
       "requires": { "defense": 5 },
       "on_pass":  [],
-      "on_fail":  ["damage_random:building:hp:2"],
+      "on_fail":  ["lose_stat:hp@random.building:2"],
       "on_play":  ["move_to:graveyard", "resolve_challenge"]
     },
     {

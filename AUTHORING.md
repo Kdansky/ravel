@@ -426,7 +426,7 @@ cards arrive in `on_activate` as targets:
 { "key": "workbench", "auto_play": true, "to_zone": "table",
   "activate_cost": { "focus": 1 },
   "activate_target": { "type": "card", "count": 1, "tags": ["material"], "zones": ["table"] },
-  "on_activate": ["lose_target_stat:hp:1", "gain_stat:progress:2"] }
+  "on_activate": ["lose_stat:hp@target:1", "gain_stat:progress:2"] }
 ```
 
 ### Effects
@@ -467,8 +467,7 @@ a number, `count:<tag>` **or** `card:<key>`.
 | `gain_stat:stat:n` / `lose_stat:stat:n` | Change the stat holder's total (clamped, logged, floats) |
 | `spend_stat:stat:n` | Alias of lose (costs) |
 | `set_stat:stat:n` | Set directly (dev/authoring tool; silent) |
-| `gain_target_stat:stat:n` / `lose_target_stat:stat:n` | Change stats on targeted cards |
-| `damage_random:tag:stat:n` | Random on-board card with tag loses n stat |
+| `gain_stat:<subject>:n` / `lose_stat:<subject>:n` | Change a stat. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |
 | `attach_to_target` | Attach the acting card under the first target |
 | `resolve_challenge` | Check the card's `requires`, run `on_pass`/`on_fail` |
 | `effect:name` | Play a named visual effect on the acting card (headless: skipped) |
