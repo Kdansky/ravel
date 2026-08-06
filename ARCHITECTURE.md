@@ -82,7 +82,8 @@ Treat it as disposable.
    (`flow.on_reset`, `actions.on_stat_change`, `anim.on_land`) that the
    presentation layer assigns. `cards.image` is the one deliberate exception:
    it touches `love.graphics.newImage` directly (and, for `http(s)://` asset
-   URLs, `love.js.eval`/luasocket) because it is itself presentation-only —
+   URLs, `love.js.eval` or a `love.thread` worker over luasocket) because it
+   is itself presentation-only —
    nothing in flow's state graph depends on whether an image loaded — and
    every call is behind checks that no-op cleanly under the headless shim.
 5. **Content errors warn, never crash — and content is untrusted.** Games are

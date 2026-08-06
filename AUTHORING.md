@@ -259,7 +259,7 @@ and the browser build has no direct network access, so it instead asks the
 page itself to `fetch()` the URL (using the player's own browser session —
 cookies, cache, CORS) and hands the decoded bytes back; a host that doesn't
 send permissive CORS headers will fail there exactly as a plain `<img>` tag
-would. A URL asset shows blank for a frame or two while it loads (and
+would. The fetch never blocks the game: on desktop it runs on a worker thread and on the browser it is an async `fetch()`, so an unreachable host costs nothing but a card without art. A URL asset shows blank for a frame or two while it loads (and
 permanently, if the fetch fails) rather than being validated at load time —
 there is nothing to check until the request actually runs.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |

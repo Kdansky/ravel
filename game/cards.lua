@@ -175,10 +175,16 @@ local function js_escape(s)
 	return s
 end
 
+local id_cache = {}
+
 local function url_id(url)
+	local cached = id_cache[url]
+	if cached then return cached end
 	local h = 5381
 	for i = 1, #url do h = (h * 33 + url:byte(i)) % 4294967296 end
-	return string.format("%08x", h)
+	cached = string.format("%08x", h)
+	id_cache[url] = cached
+	return cached
 end
 
 -- Build an Image directly from a byte string, no disk involved.
@@ -189,30 +195,65 @@ local function image_from_bytes(bytes)
 	return ok2 and img or nil
 end
 
--- Desktop: a blocking request over luasocket (http://) or LÖVE 12's https
--- module (https://). Always resolves — Image on success, false on failure —
--- since there is nothing async to poll for.
-local function fetch_desktop(url)
-	local body
-	if url:match("^https://") then
-		local ok, https = pcall(require, "https")
-		if ok then
-			local code, b = https.request(url)
-			if code == 200 then body = b end
-		end
-	else
-		local ok, http = pcall(require, "socket.http")
-		if ok then
-			http.TIMEOUT = 5
-			local b, code = http.request(url)
-			if code == 200 then body = b end
-		end
+-- Desktop: the request runs on a worker thread, because it used to run inside
+-- love.draw — a card with a slow host froze the frame for as long as the
+-- socket took (and LÖVE 12's https module takes no timeout at all). LÖVE
+-- threads get their own Lua state, so the worker requires what it needs and
+-- hands back raw bytes; only the main thread may build an Image.
+local FETCH_SOURCE = [[
+local url, channel = ...
+require("love.thread")
+local body
+if url:match("^https://") then
+	local ok, https = pcall(require, "https")   -- LÖVE 12 only
+	if ok then
+		local code, b = https.request(url)
+		if code == 200 then body = b end
 	end
-	if not body then
+else
+	local ok, http = pcall(require, "socket.http")
+	if ok then
+		http.TIMEOUT = 10
+		local b, code = http.request(url)
+		if code == 200 then body = b end
+	end
+end
+love.thread.getChannel(channel):push(body or false)
+]]
+
+-- Returns nil while the fetch is in flight (ask again next frame), an Image on
+-- success, false on failure — the same contract the browser path uses, so
+-- M.image treats both platforms identically.
+local function fetch_desktop(url, id)
+	local job = pending[id]
+	if not job then
+		if not (love.thread and love.thread.newThread) then return false end
+		local ok, thread = pcall(love.thread.newThread, FETCH_SOURCE)
+		if not ok then return false end
+		job = { thread = thread, channel = "ravel_asset_" .. id }
+		pending[id] = job
+		pcall(thread.start, thread, url, job.channel)
+		return nil
+	end
+
+	local result = love.thread.getChannel(job.channel):pop()
+	if result == nil then
+		-- A worker that died would otherwise leave the card pending forever.
+		local err = job.thread.getError and job.thread:getError()
+		if err then
+			pending[id] = nil
+			print("asset fetch failed: " .. url .. " (" .. tostring(err) .. ")")
+			return false
+		end
+		return nil
+	end
+
+	pending[id] = nil
+	if result == false then
 		print("asset download failed: " .. url)
 		return false
 	end
-	return image_from_bytes(body) or false
+	return image_from_bytes(result) or false
 end
 
 -- Browser: kick off a real fetch() in the page (once per URL), then poll a
@@ -284,7 +325,7 @@ function M.image(def_key)
 		end
 		local img = (love.js and love.js.eval)
 			and fetch_browser(asset, url_id(asset))
-			or fetch_desktop(asset)
+			or fetch_desktop(asset, url_id(asset))
 		if img == nil then return nil end   -- still fetching
 		img_cache[def_key] = img
 		return img or nil
