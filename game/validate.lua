@@ -6,7 +6,8 @@
 -- called out explicitly. The test suite asserts that shipped games validate
 -- clean.
 
-local actions = require("actions")
+local actions   = require("actions")
+local predicate = require("predicate")   -- parse_subject only: pure, no game state
 
 -- Mirrors cards.lua's url_is_safe: the same RFC 3986 charset allowlist, so
 -- an author sees this at load time instead of only in the console when the
@@ -177,22 +178,45 @@ function M.check(G)
 		return all_stats[key] ~= nil
 	end
 
-	-- A condition subject: stat, count:<tag> or card:<key>.
-	local function subject_ok(where, key)
-		local tag = tostring(key):match("^count:(.+)$")
-		local ck  = tostring(key):match("^card:(.+)$")
-		if tag then
-			if not known_tags[tag] then
-				warn("%s: counts the tag '%s', but no card has it%s", where, tag, suggest(tag, known_tags))
+	-- Everything a scope may name, for checking and for suggestions.
+	local scope_names = { self = true, target = true, all = true }
+	for k in pairs(G.zone_defs) do scope_names[k] = true end
+	for k in pairs(known_tags) do scope_names[k] = true end
+
+	-- A subject: [<fn>:]<stat|tag|card>[@[<quant>.]<scope>]. allow_fn is false
+	-- for costs, where count:/card:/sum:/max: have nothing to spend.
+	local function subject_ok(where, key, allow_fn)
+		if allow_fn == nil then allow_fn = true end
+		local p = predicate.parse_subject(key)
+		if not p then
+			warn("%s: '%s' is not something the engine can measure", where, tostring(key))
+			return
+		end
+		if p.scope and not scope_names[p.scope] then
+			warn("%s: '@%s' is neither a zone nor a tag%s",
+				where, p.scope, suggest(p.scope, scope_names))
+		end
+		if p.fn and not allow_fn then
+			warn("%s: '%s:' measures something rather than spending it, so it cannot be a cost",
+				where, p.fn)
+			return
+		end
+		if p.fn == "count" then
+			if not known_tags[p.arg] then
+				warn("%s: counts the tag '%s', but no card has it%s", where, p.arg, suggest(p.arg, known_tags))
 			end
-		elseif ck then
-			if not G.card_defs[ck] then
+		elseif p.fn == "card" then
+			if not G.card_defs[p.arg] then
 				warn("%s: checks for the card '%s', but no template has that key%s",
-					where, ck, suggest(ck, G.card_defs))
+					where, p.arg, suggest(p.arg, G.card_defs))
 			end
-		elseif not stat_ok(key) then
-			warn("%s: uses the stat '%s', but it is never declared or set up%s",
-				where, tostring(key), suggest(key, all_stats))
+		elseif not stat_ok(p.arg) then
+			-- A scoped subject reads a stat off the cards it names, so a stat
+			-- only ever carried by cards is legitimate there.
+			if not (p.scope and card_stats[p.arg]) then
+				warn("%s: uses the stat '%s', but it is never declared or set up%s",
+					where, tostring(p.arg), suggest(p.arg, all_stats))
+			end
 		end
 	end
 
@@ -213,9 +237,9 @@ function M.check(G)
 				end
 			elseif allow_counts then
 				subject_ok(where, key)
-			elseif not stat_ok(key) then
-				warn("%s: uses the stat '%s', but it is never declared or set up%s",
-					where, tostring(key), suggest(key, all_stats))
+			else
+				-- A cost: subjects may carry a scope, but not a measuring fn.
+				subject_ok(where, key, false)
 			end
 			if type(v) ~= "number" then
 				warn("%s: the value of '%s' should be a number", where, tostring(key))

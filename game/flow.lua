@@ -271,10 +271,17 @@ function M.init(filename, seed)
 	M.settle()
 end
 
--- Pay a cost: stats are spent, "sacrifice:<tag>" entries destroy board
--- cards carrying the tag (oldest first — affordability was already checked).
-local function pay(cost)
-	for stat, n in pairs(cost or {}) do
+-- Pay a cost: stats are spent through their subject (so a scope and
+-- quantifier are honoured), "sacrifice:<tag>" entries destroy board cards
+-- carrying the tag (oldest first — affordability was already checked).
+-- Keys are walked in sorted order, never pairs: clamping makes payment order
+-- observable, and a seeded replay has to pay identically.
+local function pay(cost, ctx)
+	local subjects = {}
+	for k in pairs(cost or {}) do subjects[#subjects + 1] = k end
+	table.sort(subjects)
+	for _, stat in ipairs(subjects) do
+		local n   = cost[stat]
 		local tag = stat:match("^sacrifice:(.+)$")
 		if tag then
 			for _ = 1, n do
@@ -286,7 +293,7 @@ local function pay(cost)
 				zones.destroy_card(victim.id)
 			end
 		else
-			actions.execute("spend_stat:" .. stat .. ":" .. n, {})
+			actions.spend(stat, tonumber(n) or 0, ctx)
 		end
 	end
 end
@@ -297,8 +304,9 @@ end
 function M.can_play(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	if not def or not cards.can_afford(def.cost) then return false end
-	if predicate.meets_all(def.needs) then return true end
+	local ctx = { card_id = card_id, targets = {} }
+	if not def or not cards.can_afford(def.cost, ctx) then return false end
+	if predicate.meets_all(def.needs, ctx) then return true end
 	local z = entity.get(c.zone_id)
 	for _, cid in ipairs(z and z.cards or {}) do
 		if cid ~= card_id then
@@ -328,13 +336,16 @@ function M.play_card(card_id, targets)
 			return false
 		end
 	end
+	local ctx = { card_id = card_id, targets = targets or {} }
+	-- A cost the targets pay could not be judged before they were chosen.
+	if not cards.can_afford(def.cost, ctx) then return false end
 	checkpoint()
 	log.add("Played " .. (def.text or c.def_key))
 	local pl = player()
 	if pl then pl.stats.plays = (pl.stats.plays or 0) + 1 end
-	pay(def.cost)
+	pay(def.cost, ctx)
 	local before = phase.current()
-	actions.run(def.on_play, { card_id = card_id, targets = targets or {} })
+	actions.run(def.on_play, ctx)
 	if def.irreversible then
 		history = {}
 		log.add("— no turning back —")
@@ -359,7 +370,7 @@ function M.can_activate(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
 	return def ~= nil and def.on_activate ~= nil and not c.exhausted
-		and cards.can_afford(def.activate_cost)
+		and cards.can_afford(def.activate_cost, { card_id = card_id, targets = {} })
 end
 
 -- Activate a board card's ability. Activation exhausts the card until the
@@ -381,11 +392,13 @@ function M.activate(card_id, targets)
 			return false
 		end
 	end
+	local ctx = { card_id = card_id, targets = targets or {} }
+	if not cards.can_afford(def.activate_cost, ctx) then return false end
 	checkpoint()
 	log.add("Activated " .. (def.text or c.def_key))
-	pay(def.activate_cost)
+	pay(def.activate_cost, ctx)
 	if def.exhausts ~= false then c.exhausted = true end
-	actions.run(def.on_activate, { card_id = card_id, targets = targets or {} })
+	actions.run(def.on_activate, ctx)
 	M.settle()
 	return true
 end

@@ -1008,6 +1008,12 @@ local CASES = {
 		function(g) g.tag_defs.self = { zone = "board" } end },
 	{ "a zone claiming a reserved scope name", "reserves for conditions",
 		function(g) g.zone_defs.all = { key = "all", type = "hand" } end },
+	{ "a scope that names nothing", "neither a zone nor a tag",
+		function(g) g.card_defs.c_flee.needs = { ["hp@nowhere"] = 1 } end },
+	{ "a scope with a typo suggests the right one", "did you mean 'keepsake'",
+		function(g) g.card_defs.c_flee.needs = { ["hp@keepsakes"] = 1 } end },
+	{ "a measuring fn used as a cost", "cannot be a cost",
+		function(g) g.card_defs.c_flee.cost = { ["count:keepsake"] = 1 } end },
 }
 for _, c in ipairs(CASES) do
 	local g = declaration.parse("tower.json")
@@ -1217,6 +1223,86 @@ end
 check("the fuzz run actually moved", steps > 0)
 for _ = 1, steps do flow.undo() end
 check("undo rewinds a random run to its opening state", fingerprint() == fp0)
+
+-- === scoped subjects: quantifiers ===
+-- castle's farm carries "economic"; the throne carries "building" but not
+-- "economic", which is what makes the two scopes distinguishable here.
+flow.init("castle.json", 7)
+eval("fill:board:farm:3")
+local board_id  = zones.find_id("board")
+local function scope_hp(pred)
+	local s = 0
+	for e in entity.each("card") do
+		if e.zone_id == board_id and pred(e) then s = s + (e.stats.hp or 0) end
+	end
+	return s
+end
+local econ_hp = scope_hp(function(e) return e.def_key == "farm" end)
+check("three farms are on the board",         predicate.total("card:farm@board") == 3)
+check("a pooled tag scope sums its members",  predicate.total("hp@economic") == econ_hp)
+check("max: reads the largest, not the sum",  predicate.total("max:hp@economic") == 3)
+check("count: can be scoped to a zone",       predicate.total("count:economic@board") == 3)
+check("a bare tag count is unchanged",        predicate.total("count:economic") == 3)
+check("a wider tag catches the throne too",
+	predicate.total("hp@building") == econ_hp + entity.get(find_card("throne_room").id).stats.hp)
+check("each: every farm has 3 hp",     predicate.met({ stat = "hp@each.economic", at_least = 3 }))
+check("each: not every farm has 4 hp", predicate.met({ stat = "hp@each.economic", at_least = 4 }) == false)
+check("any: the pool reaches 9",       predicate.met({ stat = "hp@any.economic", at_least = 9 }))
+
+-- A tag reaches cards in play, never a hand: "@economic" is not "every farm I own".
+eval("fill:hand:farm:1")
+check("a tag scope ignores cards in hand", predicate.total("hp@economic") == econ_hp)
+
+eval("lose_stat:hp@each.economic:1")
+check("each: the effect reached all three", predicate.total("hp@economic") == econ_hp - 3)
+eval("lose_stat:hp@any.economic:1")
+check("any: the effect reached exactly one", predicate.total("hp@economic") == econ_hp - 4)
+
+-- The rule that stops a cost being free precisely when it cannot be paid.
+check("each over an empty scope is false",
+	predicate.met({ stat = "hp@each.wyrm", at_least = 1 }) == false)
+check("each over an empty scope is unaffordable",
+	cards.can_afford({ ["hp@each.wyrm"] = 1 }) == false)
+check("each is affordable only if every member can pay",
+	cards.can_afford({ ["hp@each.economic"] = 1 })
+	and cards.can_afford({ ["hp@each.economic"] = 3 }) == false)
+
+local pooled_before = predicate.total("hp@economic")
+actions.spend("hp@any.economic", 4, {})
+check("a pooled spend takes exactly what it needs",
+	predicate.total("hp@economic") == pooled_before - 4)
+
+local throne = find_card("throne_room")
+check("self reaches the acting card",
+	predicate.total("hp@self", { card_id = throne.id }) == throne.stats.hp)
+local two = {}
+for e in entity.each("card") do
+	if e.def_key == "farm" and e.zone_id == board_id and #two < 2 then two[#two + 1] = e end
+end
+check("target reaches the chosen cards",
+	predicate.total("hp@target", { targets = { two[1].id, two[2].id } })
+	== two[1].stats.hp + two[2].stats.hp)
+
+-- === subject grammar ===
+-- Pure parsing, no game loaded: the one place the scope syntax is decided.
+local function subj(s)
+	local p = predicate.parse_subject(s)
+	if not p then return "nil" end
+	return table.concat({ p.fn or "-", p.arg or "-", p.quant or "-", p.scope or "-" }, "/")
+end
+check("a bare stat has no scope",            subj("gold") == "-/gold/-/-")
+check("a tag scope defaults to any",         subj("hp@follower") == "-/hp/any/follower")
+check("an explicit each quantifier",         subj("hp@each.follower") == "-/hp/each/follower")
+check("an explicit random quantifier",       subj("hp@random.follower") == "-/hp/random/follower")
+check("targets default to each, not any",    subj("hp@target") == "-/hp/each/target")
+check("self is a scope, not a quantifier",   subj("hp@self") == "-/hp/any/self")
+check("fn forms take a scope too",           subj("count:farm@board") == "count/farm/any/board")
+check("sum over a zone",                     subj("sum:defense@board") == "sum/defense/any/board")
+check("card: is still a fn",                 subj("card:king") == "card/king/-/-")
+check("an unknown fn is part of the name",   subj("wibble:farm") == "-/wibble:farm/-/-")
+check("an unknown quantifier is the scope",  subj("hp@some.tag") == "-/hp/any/some.tag")
+check("a non-string subject is nil",         subj(nil) == "nil")
+check("an empty subject is nil",             subj("@board") == "nil")
 
 -- === golden traces ===
 -- Reworking the stat machinery must not change what actually happens in a

@@ -85,6 +85,66 @@ local function change_stat(e, key, delta)
 	end
 end
 
+-- Entities in a subject's scope that actually carry its stat. Filtering here
+-- matters: change_stat would happily invent the stat on a card that never had
+-- one, so "every beast loses hp" must not give hp to something that has none.
+local function bearers(p, ctx)
+	local out = {}
+	for _, e in ipairs(predicate.entities_in_scope(p.scope, ctx)) do
+		if e.stats and e.stats[p.arg] ~= nil then out[#out + 1] = e end
+	end
+	return out
+end
+
+-- Apply a delta to whatever a subject names, honouring its quantifier:
+-- each/target/self reach every member, random picks one with the seeded RNG,
+-- and the pooled default lands on the first. A subject with no scope keeps the
+-- old behaviour exactly — whoever holds the stat.
+local function apply_stat(subject, delta, ctx)
+	local p = predicate.parse_subject(subject)
+	if not p then return end
+	if not p.scope then
+		change_stat(stat_holder(p.arg), p.arg, delta)
+		return
+	end
+	local ents = bearers(p, ctx)
+	if #ents == 0 then return end
+	if p.quant == "each" then
+		for _, e in ipairs(ents) do change_stat(e, p.arg, delta) end
+	elseif p.quant == "random" then
+		change_stat(ents[math.random(#ents)], p.arg, delta)
+	else
+		change_stat(ents[1], p.arg, delta)
+	end
+end
+
+-- Spend n of a subject. "each" takes n from every member; the pooled default
+-- drains members in id order until n is covered — deterministic, so a seeded
+-- replay pays the same cards in the same order.
+function M.spend(subject, n, ctx)
+	local p = predicate.parse_subject(subject)
+	if not p then return end
+	if not p.scope then
+		change_stat(stat_holder(p.arg), p.arg, -n)
+		return
+	end
+	local ents = bearers(p, ctx)
+	if p.quant == "each" then
+		for _, e in ipairs(ents) do change_stat(e, p.arg, -n) end
+		return
+	end
+	table.sort(ents, function(a, b) return a.id < b.id end)
+	local left = n
+	for _, e in ipairs(ents) do
+		if left <= 0 then break end
+		local take = math.min(tonumber(e.stats[p.arg]) or 0, left)
+		if take > 0 then
+			change_stat(e, p.arg, -take)
+			left = left - take
+		end
+	end
+end
+
 local HANDLERS = {}
 
 HANDLERS["fill"] = function(p)
@@ -178,19 +238,27 @@ HANDLERS["add_to"] = function(p, ctx)
 	end
 end
 
-HANDLERS["gain_stat"] = function(p)
-	change_stat(stat_holder(p[2]), p[2], amount(p, 3))
+HANDLERS["gain_stat"] = function(p, ctx)
+	apply_stat(p[2], amount(p, 3), ctx)
 end
 
-HANDLERS["lose_stat"] = function(p)
-	change_stat(stat_holder(p[2]), p[2], -amount(p, 3))
+HANDLERS["lose_stat"] = function(p, ctx)
+	apply_stat(p[2], -amount(p, 3), ctx)
 end
 
 HANDLERS["spend_stat"] = HANDLERS["lose_stat"]
 
-HANDLERS["set_stat"] = function(p)
-	local e = stat_holder(p[2])
-	if e then e.stats[p[2]] = amount(p, 3) end
+HANDLERS["set_stat"] = function(p, ctx)
+	local sp = predicate.parse_subject(p[2])
+	if not sp then return end
+	if not sp.scope then
+		local e = stat_holder(sp.arg)
+		if e then e.stats[sp.arg] = amount(p, 3) end
+		return
+	end
+	for _, e in ipairs(predicate.entities_in_scope(sp.scope, ctx)) do
+		if e.stats and e.stats[sp.arg] ~= nil then e.stats[sp.arg] = amount(p, 3) end
+	end
 end
 
 HANDLERS["next_phase"] = function()
@@ -283,18 +351,17 @@ HANDLERS["return_to"] = function(p)
 	end
 end
 
--- gain_target_stat:stat:n  — add n to stat on each targeted card entity.
+-- These three are now special cases of the scope grammar, kept as aliases so
+-- shipped games keep working:
+--   gain_target_stat:hp:2   ==  gain_stat:hp@target:2
+--   lose_target_stat:hp:2   ==  lose_stat:hp@target:2
+--   damage_random:beast:hp:2 == lose_stat:hp@random.beast:2
 HANDLERS["gain_target_stat"] = function(p, ctx)
-	for _, tid in ipairs(ctx and ctx.targets or {}) do
-		change_stat(entity.get(tid), p[2], amount(p, 3))
-	end
+	apply_stat(p[2] .. "@target", amount(p, 3), ctx)
 end
 
--- lose_target_stat:stat:n  — subtract n from stat on each targeted card entity.
 HANDLERS["lose_target_stat"] = function(p, ctx)
-	for _, tid in ipairs(ctx and ctx.targets or {}) do
-		change_stat(entity.get(tid), p[2], -amount(p, 3))
-	end
+	apply_stat(p[2] .. "@target", -amount(p, 3), ctx)
 end
 
 -- move_target_to:zone  — move each targeted card to zone.
@@ -306,14 +373,9 @@ HANDLERS["move_target_to"] = function(p, ctx)
 	end
 end
 
--- damage_random:tag:stat:n  — a random on-board card with the tag loses n of stat.
-HANDLERS["damage_random"] = function(p)
-	local res = {}
-	for _, id in ipairs(tags.find_targets({ p[2] }, { grid = true })) do
-		local e = entity.get(id)
-		if e.stats[p[3]] then res[#res + 1] = e end
-	end
-	if #res > 0 then change_stat(res[math.random(#res)], p[3], -amount(p, 4, 1)) end
+-- damage_random:tag:stat:n  — a random on-board card with the tag loses n.
+HANDLERS["damage_random"] = function(p, ctx)
+	apply_stat(tostring(p[3]) .. "@random." .. tostring(p[2]), -amount(p, 4, 1), ctx)
 end
 
 -- attach_to_target  — attach ctx.card_id as a child of ctx.targets[1].

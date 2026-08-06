@@ -331,6 +331,42 @@ of that specific template on grid zones — "does the player have the rusty key?
 `end_conditions` fire once per game (first match), wait for open overlays, and
 run their `then` actions — usually `push_phase:` to an ending overlay.
 
+**Scopes: which cards a subject is about.** Add `@<name>`, where the name is a
+zone key, a tag, or one of `self` / `target` / `all`. Without one, a subject
+means what it always did — the total across everything.
+
+```
+insight@player       the stat on cards carrying the "player" tag
+hp@each.follower     every follower, individually
+hp@random.follower   one follower, chosen by the seeded shuffle
+hp@self              the acting card
+hp@target            the cards the player chose for this card
+sum:defense@board    a stat summed over one zone
+max:rank@tableau     the largest value in one zone
+count:farm@board     count, narrowed to a zone
+```
+
+A **tag** scope means cards *in play* — on grid zones — exactly like
+`count:<tag>`. A card in hand is not on the board; name the zone (`@hand`) when
+that is what you want. Zone and tag names may never collide, and the validator
+refuses a file where they do.
+
+**Quantifiers** say which member, and they work identically in conditions,
+costs and effects:
+
+| | Condition holds when | As a cost | As an effect |
+|---|---|---|---|
+| `any` (default) | the pool reaches n | drains members until n is paid | lands on the first member |
+| `each` | **every** member reaches n | every member pays n | applies to every member |
+| `random` | as `any` | as `any` | lands on one member |
+| `@target` | every chosen target reaches n | every target pays n | applies to every target |
+
+`each` over an empty scope is **false**, never vacuously true — otherwise
+`{ "hp@each.follower": 1 }` would be free exactly when you have no followers.
+
+Costs may carry a scope but not a measuring function: `count:` and `sum:` count
+things rather than spend them, so they belong in `needs`, not `cost`.
+
 ### Computed tags
 
 Per-card derived tags from that card's own stats:

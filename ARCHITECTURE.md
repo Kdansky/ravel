@@ -107,9 +107,12 @@ Treat it as disposable.
    the process. A typo — or a deliberately hostile file — must never kill a
    running game.
 6. **One condition vocabulary.** Anything conditional goes through
-   `predicate.lua` (subjects: stats, `count:<tag>`, `card:<key>`). Do not
-   invent a new comparison dialect; extend the evaluator. Same for numeric
-   arguments: the single `amount()` resolver in actions.
+   `predicate.lua`. A subject is `[<fn>:]<arg>[@[<quant>.]<scope>]` —
+   `predicate.parse_subject` is the only place that grammar is decided, and
+   `predicate.entities_in_scope` the only place a scope becomes entities, so
+   conditions, costs and effects can never disagree about who `@player` is.
+   Do not invent a new comparison dialect; extend the evaluator. Same for
+   numeric arguments: the single `amount()` resolver in actions.
 7. **When in doubt, decks and cards.** New mechanics should be expressible as
    zones, cards, actions and phases before they become engine special cases
    (sub-card choices, endings, pass cards and story pages are all just cards —

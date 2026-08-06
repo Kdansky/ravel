@@ -69,15 +69,30 @@ function M.home_zone(def)
 	end
 end
 
--- True if total stats cover a cost table like { gold = 2 }. nil cost = free.
--- "sacrifice:<tag>" entries are paid in board cards instead of stats.
-function M.can_afford(cost)
-	for stat, n in pairs(cost or {}) do
-		local tag = stat:match("^sacrifice:(.+)$")
+-- True if a cost table like { gold = 2 } can be paid. nil cost = free.
+-- "sacrifice:<tag>" entries are paid in board cards instead of stats; every
+-- other key is a subject, so it may carry a scope and quantifier
+-- ({ "hp@each.follower": 1 } — each follower must have one to give).
+function M.can_afford(cost, ctx)
+	-- Lazy require: predicate reaches zones, which reaches this module, so a
+	-- top-level require would close a cycle. Everything is loaded by call time.
+	local predicate = require("predicate")
+	for subject, n in pairs(cost or {}) do
+		local tag = type(subject) == "string" and subject:match("^sacrifice:(.+)$")
 		if tag then
-			if #tags.find_targets({ tag }, { grid = true }) < n then return false end
-		elseif entity.sum_stat(stat) < n then
-			return false
+			if #tags.find_targets({ tag }, { grid = true }) < (tonumber(n) or 0) then
+				return false
+			end
+		else
+			local p = predicate.parse_subject(subject)
+			-- A cost paid by the player's chosen targets cannot be judged
+			-- before they have chosen. Treat it as payable for the purpose of
+			-- dimming a card, and let the real check run once targets exist.
+			local unknown_targets = p and p.scope == "target"
+				and #((ctx or {}).targets or {}) == 0
+			if not unknown_targets and not predicate.meets_all({ [subject] = n }, ctx) then
+				return false
+			end
 		end
 	end
 	return true
