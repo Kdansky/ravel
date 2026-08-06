@@ -170,7 +170,9 @@ The parent card is just `"on_play": ["move_to:graveyard", "push_phase:decree"]`,
 
 `"needs": { "plays": 1 }` is the non-consuming gate: nothing is spent, the card is simply unplayable (dimmed) until the condition holds. Subjects follow the shared vocabulary, so `"needs": { "count:soldier": 2 }` gates on the board. The engine maintains a `plays` stat on the player — reset to 0 whenever a phase is freshly entered (not when resumed after an overlay), +1 per card played — which is how "play at least one card per hand" is expressed. Escape hatch: a needs-gated card becomes playable when nothing else in its zone is, so a mandatory play can never soft-lock a hand. `round` and `plays` are reserved engine stats; declare them only to display them.
 
-Activating a board card **exhausts** it — greyed out, unusable — until the round wraps and readies every card again. One activation per card per round, as is proper.
+Activating a board card **exhausts** it — greyed out, unusable — until the round wraps and readies every card again. One activation per card per round, as is proper. A card that should stay clickable declares `"exhausts": false`.
+
+Exhaustion is a **card behaviour, not a stat**. It is tempting to make readiness an ordinary numeric stat so it falls out of the cost machinery for free, but stats are numbers with magnitudes that can be gained, spent and compared; readiness is binary and belongs to the engine's standard card vocabulary, as it does in most card games. Binary card states stay engine behaviours; do not encode them as 0/1 stats.
 
 Cards entering a grid zone without slot targeting take the first free slot automatically — friction-free placement for drafts, precise placement when a `target` spec says so.
 

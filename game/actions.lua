@@ -106,16 +106,11 @@ local function apply_stat(subject, delta, ctx)
 	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, delta) end
 end
 
--- Spend n of a subject. A pooled spend drains members in id order until n is
--- covered — deterministic, so a seeded replay pays the same cards in the same
--- order. "each" (and the unscoped form) takes the full amount from everyone.
-function M.spend(subject, n, ctx)
-	local p = predicate.parse_subject(subject)
-	if not p then return end
-	if not (p.scope and p.quant ~= "each") then
-		for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, -n) end
-		return
-	end
+-- Take n from a pool, in id order until it is covered — deterministic, so a
+-- seeded replay pays the same cards in the same order. Choosing who pays and
+-- splitting an amount across them are different problems, which is why this is
+-- kept out of `designated` rather than folded into it.
+local function drain(p, n, ctx)
 	local ents = predicate.bearers(p, ctx)
 	table.sort(ents, function(a, b) return a.id < b.id end)
 	local left = n
@@ -127,6 +122,15 @@ function M.spend(subject, n, ctx)
 			left = left - take
 		end
 	end
+end
+
+-- Spend n of a subject: pooled scopes drain, "each" (and the unscoped form)
+-- takes the full amount from everyone designated.
+function M.spend(subject, n, ctx)
+	local p = predicate.parse_subject(subject)
+	if not p then return end
+	if p.scope and p.quant ~= "each" then return drain(p, n, ctx) end
+	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, -n) end
 end
 
 local HANDLERS = {}
@@ -143,8 +147,7 @@ HANDLERS["fill"] = function(p)
 		return
 	end
 	for _ = 1, amount(p, 4, 1) do
-		if not zones.has_room(zone) then break end
-		zones.auto_slot(cards.create(p[3], zone.id).id)
+		if not zones.add(zone, p[3]) then break end
 	end
 end
 
@@ -209,8 +212,7 @@ HANDLERS["gain"] = function(p)
 	local zone = zones.find(cards.home_zone(def) or "hand")
 	if not zone then return end
 	for _ = 1, amount(p, 3, 1) do
-		if not zones.has_room(zone) then break end
-		zones.auto_slot(cards.create(def.key, zone.id).id)
+		if not zones.add(zone, def.key) then break end
 	end
 end
 

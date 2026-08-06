@@ -50,14 +50,23 @@ function M.create(def)
 	return e
 end
 
+-- Create a card into a zone and give it a slot, or return nil when a grid is
+-- full. move_card guards arrivals, but creation bypasses it entirely, so the
+-- capacity bound lives here rather than being restated at every creation site.
+function M.add(z, def_key)
+	if not z or not M.has_room(z) then return nil end
+	local e = cards.create(def_key, z.id)
+	M.auto_slot(e.id)
+	return e
+end
+
 -- Create the zone's declared contents ("card_key" or "card_key:count" strings),
 -- shuffled if the zone is tagged. Also runs when a refill_when_empty zone empties.
 function M.refill(z)
 	for _, entry in ipairs(z.contents or {}) do
 		local key, n = entry:match("^([^:]+):?(%d*)$")
 		for _ = 1, tonumber(n) or 1 do
-			if not M.has_room(z) then break end
-			M.auto_slot(cards.create(key, z.id).id)
+			if not M.add(z, key) then break end
 		end
 	end
 	if z.tags.shuffle then M.shuffle(z.id) end
@@ -184,6 +193,24 @@ function M.shuffle(zone_id)
 	end
 end
 
+-- The pixel rect of cell `idx` in a grid zone, 1-based and row-major. Shared
+-- with the renderer, which needs the same cell for a card that has no slot.
+function M.cell_rect(z, idx)
+	local g    = z.grid or { 4, 3 }
+	local cols = g[1]
+	local pad  = 4
+	local cw   = z.place.w / cols
+	local ch   = z.place.h / (g[2] or 3)
+	local col  = (idx - 1) % cols
+	local row  = math.floor((idx - 1) / cols)
+	return {
+		x = z.place.x + col * cw + pad,
+		y = z.place.y + row * ch + pad,
+		w = cw - pad * 2,
+		h = ch - pad * 2,
+	}
+end
+
 -- Recompute pixel rects for all zones and their slots.
 function M.resize()
 	local W, H = love.graphics.getDimensions()
@@ -196,22 +223,9 @@ function M.resize()
 			h = (p[4] - p[2]) * H,
 		}
 		if z.zone_type == "grid" and z.grid and next(z.slots) then
-			local cols = z.grid[1]
-			local cw   = z.place.w / cols
-			local ch   = z.place.h / z.grid[2]
-			local pad  = 4
 			for idx, slot_id in pairs(z.slots) do
 				local slot = entity.get(slot_id)
-				if slot then
-					local col = (idx - 1) % cols
-					local row = math.floor((idx - 1) / cols)
-					slot.place = {
-						x = z.place.x + col * cw + pad,
-						y = z.place.y + row * ch + pad,
-						w = cw - pad * 2,
-						h = ch - pad * 2,
-					}
-				end
+				if slot then slot.place = M.cell_rect(z, idx) end
 			end
 		end
 	end

@@ -194,15 +194,7 @@ local function card_places(zone_e)
 			if slot then
 				places[i] = fit_card(slot.place, zone_e.fit)
 			else
-				local g    = zone_e.grid or { 4, 3 }
-				local cols = g[1]
-				local pad  = 4
-				local cw   = p.w / cols
-				local ch   = p.h / (g[2] or 3)
-				local col  = (i - 1) % cols
-				local row  = math.floor((i - 1) / cols)
-				places[i]  = fit_card({ x = p.x + col * cw + pad, y = p.y + row * ch + pad,
-					w = cw - pad * 2, h = ch - pad * 2 }, zone_e.fit)
+				places[i] = fit_card(zones.cell_rect(zone_e, i), zone_e.fit)
 			end
 		end
 		return places
