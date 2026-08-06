@@ -1000,6 +1000,8 @@ local CASES = {
 		function(g) g.card_defs.c_flee.activate_target = { type = "card", count = 1 } end },
 	{ "a non-boolean exhausts", "exhausts should be true or false",
 		function(g) g.card_defs.c_flee.exhausts = "no" end },
+	{ "an unknown zone fit", "fit should be 'card' or 'fill'",
+		function(g) g.zone_defs.board.fit = "stretch" end },
 }
 for _, c in ipairs(CASES) do
 	local g = declaration.parse("tower.json")

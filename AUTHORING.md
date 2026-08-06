@@ -227,6 +227,7 @@ engine-managed — declare them only to display them.
 | `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots) |
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]` for grid zones |
+| `fit` | Grid zones: `"card"` (default) keeps card proportions inside each cell, leaving breathing room; `"fill"` stretches cards to fill the cell, for board-game tiles |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
 | `on_click` | Actions run when the zone is clicked |
 | `tags` | See below |
@@ -271,7 +272,7 @@ there is nothing to check until the request actually runs.
 | `target` | `{ "type": "card"\|"slot", "min", "max" (or "count"), "tags": [...], "zones": [...] }` — click-to-target with the arrow |
 | `activate_target` | Same shape, for `on_activate`: clicking the board card opens targeting before the ability runs |
 | `on_play` | Actions when played (ctx: this card + chosen targets) |
-| `on_activate` | Actions when clicked on the board; **exhausts** the card until the round wraps |
+| `on_activate` | Actions when clicked on the board; **exhausts** the card until the round wraps. A board card shows three states: ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable) |
 | `exhausts` | `false` keeps the card ready after activating — a permanently clickable button ("pass the time") |
 | `on_turn` | Actions each round boundary while on a grid (and not ruined) |
 | `on_pass`, `on_fail` | Challenge outcomes |

@@ -41,7 +41,7 @@ local CARD_FIELDS = {
 	to_slot = true, irreversible = true, outcome = true, tags_set = true,
 }
 local ZONE_FIELDS = {
-	key = true, label = true, type = true, pos = true, grid = true,
+	key = true, label = true, type = true, pos = true, grid = true, fit = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
 	injected = true,
 }
@@ -510,6 +510,9 @@ function M.check(G)
 				where, tostring(def.type), suggest(def.type, ZONE_TYPES))
 		end
 		check_numbers(where, "pos", def.pos, 4)
+		if def.fit ~= nil and def.fit ~= "card" and def.fit ~= "fill" then
+			warn("%s: fit should be 'card' or 'fill', not '%s'", where, tostring(def.fit))
+		end
 		-- The lower-left corner belongs to the undo button and event log.
 		if type(def.pos) == "table" and #def.pos == 4
 			and type(def.pos[1]) == "number" and type(def.pos[4]) == "number"

@@ -154,6 +154,17 @@ function M.stat_pos(key)
 end
 
 -- Compute per-card pixel rects within a zone.
+-- A card keeps its proportions inside whatever box it is given, centred, so a
+-- grid cell wider than a card leaves breathing room instead of stretching the
+-- art into a banner. Board games that want their cells filled edge to edge as
+-- tiles (a 5x5 castle) declare "fit": "fill" on the zone.
+local function fit_card(box, mode)
+	if mode == "fill" then return box end
+	local w, h = box.w, box.w * CARD_RATIO
+	if h > box.h then h = box.h; w = h / CARD_RATIO end
+	return { x = box.x + (box.w - w) * 0.5, y = box.y + (box.h - h) * 0.5, w = w, h = h }
+end
+
 local function card_places(zone_e)
 	local p  = zone_e.place
 	local n  = #zone_e.cards
@@ -188,7 +199,7 @@ local function card_places(zone_e)
 			local c    = entity.get(card_id)
 			local slot = c and c.slot_id and entity.get(c.slot_id)
 			if slot then
-				places[i] = slot.place
+				places[i] = fit_card(slot.place, zone_e.fit)
 			else
 				local g    = zone_e.grid or { 4, 3 }
 				local cols = g[1]
@@ -197,7 +208,8 @@ local function card_places(zone_e)
 				local ch   = p.h / (g[2] or 3)
 				local col  = (i - 1) % cols
 				local row  = math.floor((i - 1) / cols)
-				places[i]  = { x = p.x + col * cw + pad, y = p.y + row * ch + pad, w = cw - pad * 2, h = ch - pad * 2 }
+				places[i]  = fit_card({ x = p.x + col * cw + pad, y = p.y + row * ch + pad,
+					w = cw - pad * 2, h = ch - pad * 2 }, zone_e.fit)
 			end
 		end
 		return places
@@ -283,7 +295,19 @@ local function draw_card_face(pl, card_e, show_text)
 	local img   = cards.image(card_e.def_key)
 	local z     = entity.get(card_e.zone_id)
 	local title = def and def.text or card_e.def_key
-	local unaffordable = z and z.zone_type == "hand" and not flow.can_play(card_e.id)
+
+	-- Three states, and the two unusable ones must be told apart: a spent
+	-- ability reads "exhausted" (wait for the round), an unpayable one reads
+	-- "can't yet" (change something). Board abilities carry the whole
+	-- interface in verb-driven games, so silence is not an option.
+	local dim, dim_label
+	if card_e.exhausted then
+		dim, dim_label = true, "exhausted"
+	elseif z and z.zone_type == "hand" then
+		dim = not flow.can_play(card_e.id)
+	elseif z and z.zone_type == "grid" and def and def.on_activate then
+		dim, dim_label = not flow.can_activate(card_e.id), "can't yet"
+	end
 
 	love.graphics.push("all")
 	love.graphics.setColor(unpack(color))
@@ -346,15 +370,14 @@ local function draw_card_face(pl, card_e, show_text)
 		draw_cost_badge(pl, def.cost)
 	end
 
-	-- Unaffordable in hand, or exhausted on the board: greyed out.
-	if unaffordable or card_e.exhausted then
+	if dim then
 		love.graphics.setColor(0, 0, 0, 0.55)
 		love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
-		if card_e.exhausted then
+		if dim_label then
 			local sf = get_small_font()
 			love.graphics.setFont(sf)
 			love.graphics.setColor(0.70, 0.75, 0.85, 0.90)
-			love.graphics.printf("exhausted", pl.x, pl.y + pl.h * 0.5 - sf:getHeight() * 0.5,
+			love.graphics.printf(dim_label, pl.x, pl.y + pl.h * 0.5 - sf:getHeight() * 0.5,
 				pl.w, "center")
 		end
 	end
@@ -486,7 +509,9 @@ local function draw_grid_empty(zone_e)
 	for _, slot_id in pairs(zone_e.slots) do
 		local slot = entity.get(slot_id)
 		if slot and not slot.occupant then
-			local p = slot.place
+			-- Match the card footprint, so an empty slot reads as the same
+			-- shape as the card that would fill it.
+			local p = fit_card(slot.place, zone_e.fit)
 			if targeting.active() and targeting.is_eligible(slot_id) then
 				love.graphics.setColor(C.eligible[1], C.eligible[2], C.eligible[3],
 					0.10 + 0.14 * pulse(5))

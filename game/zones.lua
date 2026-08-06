@@ -20,6 +20,7 @@ function M.create(def)
 		zone_type = def.type or "pile",
 		tags      = def.tags_set or {},
 		grid      = def.grid,
+		fit       = def.fit,
 		cards     = {},
 		slots     = {},   -- slot_idx → slot entity ID (grid zones only)
 		contents  = def.contents,
