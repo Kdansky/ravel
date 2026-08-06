@@ -9,15 +9,10 @@
 local actions   = require("actions")
 local predicate = require("predicate")   -- parse_subject only: pure, no game state
 
--- Mirrors cards.lua's url_is_safe: the same RFC 3986 charset allowlist, so
--- an author sees this at load time instead of only in the console when the
--- fetch is refused. Kept as a local copy rather than a dependency on cards
--- (validate stays a standalone checker of the parsed def table).
-local URL_SAFE_PATTERN = "^https?://[%w%-%._~:/?#%[%]@!$&'()*+,;=%%]+$"
-local function url_is_safe(url)
-	return type(url) == "string" and #url > 0 and #url < 2000
-		and url:match(URL_SAFE_PATTERN) ~= nil
-end
+-- The same allowlist the loader enforces, so an author sees the problem at
+-- load time instead of only in the console when the fetch is refused. Shared
+-- rather than copied: a security rule kept in two files is the one that drifts.
+local url_is_safe = require("cards").url_is_safe
 
 local M = {}
 
@@ -28,8 +23,7 @@ local RESERVED = { round = true, plays = true }
 -- as a tag, which is why they are the only two the engine claims. "player" is
 -- deliberately NOT reserved — it is an ordinary tag that content puts on one
 -- card, which is what makes finding that card trivial.
-local RESERVED_SCOPES     = { self = true, all = true }
-local RESERVED_SCOPE_LIST = "self, all"
+local RESERVED_SCOPES = { "self", "all" }
 
 -- The fx base-effect vocabulary. The test suite asserts this stays in step
 -- with fx.bases() — validate must not require the presentation layer.
@@ -140,17 +134,14 @@ function M.check(G)
 			.. "could mean either, so rename one of them", name)
 	end
 
-	local claimed = {}
-	for name in pairs(known_tags) do
-		if RESERVED_SCOPES[name] then claimed[#claimed + 1] = "tag '" .. name .. "'" end
-	end
-	for name in pairs(G.zone_defs) do
-		if RESERVED_SCOPES[name] then claimed[#claimed + 1] = "zone '" .. name .. "'" end
-	end
-	table.sort(claimed)
-	for _, what in ipairs(claimed) do
-		warn("%s uses a name the engine reserves for conditions (%s) — rename it",
-			what, RESERVED_SCOPE_LIST)
+	-- Walk the two reserved names, not every tag and zone: deterministic order
+	-- without sorting, and the list is stated once.
+	for _, name in ipairs(RESERVED_SCOPES) do
+		local what = known_tags[name] and "tag" or G.zone_defs[name] and "zone"
+		if what then
+			warn("%s '%s' uses a name the engine reserves for conditions (%s) — rename it",
+				what, name, table.concat(RESERVED_SCOPES, ", "))
+		end
 	end
 
 	local player_stats = {}
@@ -179,7 +170,8 @@ function M.check(G)
 	end
 
 	-- Everything a scope may name, for checking and for suggestions.
-	local scope_names = { self = true, target = true, all = true }
+	local scope_names = { target = true }
+	for _, k in ipairs(RESERVED_SCOPES) do scope_names[k] = true end
 	for k in pairs(G.zone_defs) do scope_names[k] = true end
 	for k in pairs(known_tags) do scope_names[k] = true end
 
@@ -220,7 +212,7 @@ function M.check(G)
 		end
 	end
 
-	local function check_map(where, map, allow_counts, allow_sacrifice)
+	local function check_map(where, map, is_cost)
 		if map == nil then return end
 		if type(map) ~= "table" then
 			warn('%s: should be written like { "gold": 2 }', where)
@@ -229,17 +221,15 @@ function M.check(G)
 		for key, v in pairs(map) do
 			local sac = tostring(key):match("^sacrifice:(.+)$")
 			if sac then
-				if not allow_sacrifice then
+				if not is_cost then
 					warn("%s: 'sacrifice:' belongs in cost or activate_cost, not here", where)
 				elseif not known_tags[sac] then
 					warn("%s: sacrifices the tag '%s', but no card has it%s",
 						where, sac, suggest(sac, known_tags))
 				end
-			elseif allow_counts then
-				subject_ok(where, key)
 			else
-				-- A cost: subjects may carry a scope, but not a measuring fn.
-				subject_ok(where, key, false)
+				-- A cost's subjects may carry a scope, but not a measuring fn.
+				subject_ok(where, key, not is_cost)
 			end
 			if type(v) ~= "number" then
 				warn("%s: the value of '%s' should be a number", where, tostring(key))
@@ -306,7 +296,7 @@ function M.check(G)
 		for w in str:gmatch("[^:]+") do p[#p + 1] = w end
 		local op   = p[1]
 		local spec = actions.spec(op)
-		if not actions.known(op) or not spec then
+		if not spec then
 			warn("%s: '%s' is not an action the engine knows%s", where, tostring(op), suggest(op, known_ops))
 			return
 		end
@@ -463,10 +453,10 @@ function M.check(G)
 		if def.tags ~= nil and type(def.tags) ~= "table" then
 			warn('%s: tags should be a list like ["item", "weapon"]', where)
 		end
-		check_map(where .. " cost", def.cost, false, true)
-		check_map(where .. " activate_cost", def.activate_cost, false, true)
-		check_map(where .. " needs", def.needs, true)
-		check_map(where .. " requires", def.requires, true)
+		check_map(where .. " cost", def.cost, true)
+		check_map(where .. " activate_cost", def.activate_cost, true)
+		check_map(where .. " needs", def.needs)
+		check_map(where .. " requires", def.requires)
 		-- card_stats declare new per-card stats, so only their values are checked.
 		if def.card_stats ~= nil then
 			if type(def.card_stats) ~= "table" then

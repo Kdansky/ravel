@@ -271,6 +271,27 @@ function M.init(filename, seed)
 	M.settle()
 end
 
+-- True if a cost table like { gold = 2 } can be paid. nil cost = free.
+-- "sacrifice:<tag>" entries are paid in board cards instead of stats; every
+-- other key is a subject, so it may carry a scope and quantifier
+-- ({ "hp@each.follower": 1 } — each follower must have one to give).
+-- Lives here rather than in cards because it reads the live entity graph and
+-- every caller is a legality gate, and because payment is right below it.
+function M.can_afford(cost, ctx)
+	for subject, n in pairs(cost or {}) do
+		local tag = type(subject) == "string" and subject:match("^sacrifice:(.+)$")
+		if tag then
+			if #tags.find_targets({ tag }, { grid = true }) < (tonumber(n) or 0) then
+				return false
+			end
+		elseif not predicate.awaits_targets(subject, ctx)
+			and not predicate.meets_all({ [subject] = n }, ctx) then
+			return false
+		end
+	end
+	return true
+end
+
 -- Pay a cost: stats are spent through their subject (so a scope and
 -- quantifier are honoured), "sacrifice:<tag>" entries destroy board cards
 -- carrying the tag (oldest first — affordability was already checked).
@@ -298,30 +319,31 @@ local function pay(cost, ctx)
 	end
 end
 
+local function playable(def, ctx)
+	return def ~= nil and M.can_afford(def.cost, ctx) and predicate.meets_all(def.needs, ctx)
+end
+
 -- A card is playable when its cost is affordable and its needs are met.
 -- Escape hatch: a needs-gated card becomes playable when nothing else in its
--- zone is, so a mandatory play can never soft-lock a hand.
+-- zone is, so a mandatory play can never soft-lock a hand. The gates leave
+-- ctx.targets unset: nothing has been chosen yet, and a cost the targets would
+-- pay cannot be judged until they are.
 function M.can_play(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	local ctx = { card_id = card_id, targets = {} }
-	if not def or not cards.can_afford(def.cost, ctx) then return false end
-	if predicate.meets_all(def.needs, ctx) then return true end
+	if not def or not M.can_afford(def.cost, { card_id = card_id }) then return false end
+	if predicate.meets_all(def.needs, { card_id = card_id }) then return true end
 	local z = entity.get(c.zone_id)
 	for _, cid in ipairs(z and z.cards or {}) do
-		if cid ~= card_id then
-			local od = cards.def(entity.get(cid))
-			if od and cards.can_afford(od.cost) and predicate.meets_all(od.needs) then
-				return false
-			end
+		if cid ~= card_id and playable(cards.def(entity.get(cid)), { card_id = cid }) then
+			return false
 		end
 	end
 	return true
 end
 
--- Play a card: pay its cost and run on_play. In a draw_and_play phase, playing
--- one card ends the turn (discard hand, advance) — unless the play changed the
--- phase stack (pushed an overlay) or queued a game load.
+-- Play a card: pay its cost and run on_play. A phase with a play limit then
+-- ends itself; discarding its hand is the on_leave hook's job.
 function M.play_card(card_id, targets)
 	if phase.is_overlay() then return false end   -- a pending choice locks other actions
 	local c   = entity.get(card_id)
@@ -329,16 +351,11 @@ function M.play_card(card_id, targets)
 	if not def or not M.can_play(card_id) then return false end
 	-- Flow is the single legality gate: target counts are enforced here, not
 	-- only in the input layers, so scripts and the debug API can't skip them.
-	if def.target then
-		local n = #(targets or {})
-		if n < (def.target.min or def.target.count or 0)
-			or n > (def.target.max or def.target.count or 0) then
-			return false
-		end
-	end
+	local lo, hi = targeting.bounds(def.target)
+	if #(targets or {}) < lo or #(targets or {}) > hi then return false end
 	local ctx = { card_id = card_id, targets = targets or {} }
 	-- A cost the targets pay could not be judged before they were chosen.
-	if not cards.can_afford(def.cost, ctx) then return false end
+	if not M.can_afford(def.cost, ctx) then return false end
 	checkpoint()
 	log.add("Played " .. (def.text or c.def_key))
 	local pl = player()
@@ -370,7 +387,7 @@ function M.can_activate(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
 	return def ~= nil and def.on_activate ~= nil and not c.exhausted
-		and cards.can_afford(def.activate_cost, { card_id = card_id, targets = {} })
+		and M.can_afford(def.activate_cost, { card_id = card_id })
 end
 
 -- Activate a board card's ability. Activation exhausts the card until the
@@ -385,15 +402,10 @@ function M.activate(card_id, targets)
 	-- Flow is the single legality gate, exactly as in play_card: target counts
 	-- are enforced here, not only in the input layers, so scripts and the
 	-- debug API can't skip them.
-	if def.activate_target then
-		local n = #(targets or {})
-		if n < (def.activate_target.min or def.activate_target.count or 0)
-			or n > (def.activate_target.max or def.activate_target.count or 0) then
-			return false
-		end
-	end
+	local lo, hi = targeting.bounds(def.activate_target)
+	if #(targets or {}) < lo or #(targets or {}) > hi then return false end
 	local ctx = { card_id = card_id, targets = targets or {} }
-	if not cards.can_afford(def.activate_cost, ctx) then return false end
+	if not M.can_afford(def.activate_cost, ctx) then return false end
 	checkpoint()
 	log.add("Activated " .. (def.text or c.def_key))
 	pay(def.activate_cost, ctx)

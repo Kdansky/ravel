@@ -1,7 +1,6 @@
 -- The one condition vocabulary, shared by phase routing, end conditions,
--- challenge requires and card needs. Subjects are stat keys,
--- "count:<tag>" (cards on grid zones with that tag), or
--- "card:<key>" (instances of that template on grid zones).
+-- challenge requires, card needs and cost keys. The subject grammar it all
+-- runs on is documented below.
 
 local entity = require("entity")
 local zones  = require("zones")
@@ -50,12 +49,13 @@ function M.parse_subject(s)
 	return { fn = fn, arg = arg, quant = quant, scope = scope }
 end
 
--- All three functions below read attacker-suppliable content (routing
--- conditions, end_conditions, requires/needs maps) and must never let a
+-- Everything below reads attacker-suppliable content (routing conditions,
+-- end_conditions, requires/needs maps, cost keys) and must never let a
 -- malformed value (wrong type, missing) reach a raw Lua comparison or
 -- arithmetic op — that throws an uncaught error and kills the process.
--- Every subject/threshold is coerced or type-checked before use; anything
+-- Every subject and threshold is coerced or type-checked before use; anything
 -- that doesn't check out fails the condition rather than crashing.
+
 -- Turn a scope name into the entities it means. The single place that decides,
 -- so reads, costs and effects can never disagree about who "@player" is.
 function M.entities_in_scope(scope, ctx)
@@ -90,34 +90,46 @@ function M.entities_in_scope(scope, ctx)
 	return out
 end
 
--- The stat values a subject names, one per entity in its scope that carries it.
-function M.values(p, ctx)
+-- Entities in a subject's scope that actually carry its stat. Filtering here
+-- matters: a change would otherwise invent the stat on a card that never had
+-- one, so "every beast loses hp" cannot give hp to something without it.
+-- Pass `ents` when the caller has already resolved the scope.
+function M.bearers(p, ctx, ents)
 	local out = {}
-	for _, e in ipairs(M.entities_in_scope(p.scope, ctx)) do
-		local v = e.stats and e.stats[p.arg]
-		if v ~= nil then out[#out + 1] = tonumber(v) or 0 end
+	for _, e in ipairs(ents or M.entities_in_scope(p.scope, ctx)) do
+		if e.stats and e.stats[p.arg] ~= nil then out[#out + 1] = e end
 	end
 	return out
+end
+
+-- True when a subject is scoped to targets the player has not chosen yet, so
+-- it cannot be judged. ctx.targets nil means "not asked yet" (the gates that
+-- dim a card run before targeting); an empty list means "chose none".
+function M.awaits_targets(subject, ctx)
+	local p = M.parse_subject(subject)
+	return p ~= nil and p.scope == "target" and (ctx == nil or ctx.targets == nil)
 end
 
 function M.total(subject, ctx)
 	local p = M.parse_subject(subject)
 	if not p then return 0 end
 
+	-- No scope: the meanings that shipped, kept so existing files don't move —
+	-- the counting forms mean "in play", a bare stat means everything.
+	-- sum:/max: have no legacy reading, so they fall through to the general
+	-- path rather than silently summing.
 	if not p.scope then
-		-- No scope: exactly the behaviour that shipped, so every existing
-		-- game file keeps its meaning untouched.
 		if p.fn == "count" then
 			return #tags.find_targets({ p.arg }, { grid = true })
 		elseif p.fn == "card" then
 			local n = 0
-			for e in entity.each("card") do
-				local z = e.def_key == p.arg and entity.get(e.zone_id)
-				if z and z.zone_type == "grid" then n = n + 1 end
+			for _, id in ipairs(tags.find_targets({}, { grid = true })) do
+				if entity.get(id).def_key == p.arg then n = n + 1 end
 			end
 			return n
+		elseif p.fn == nil then
+			return entity.sum_stat(p.arg)
 		end
-		return entity.sum_stat(p.arg)
 	end
 
 	local ents = M.entities_in_scope(p.scope, ctx)
@@ -131,15 +143,13 @@ function M.total(subject, ctx)
 		return n
 	end
 
-	local vals = M.values(p, ctx)
-	if p.fn == "max" then
-		local m = 0
-		for _, v in ipairs(vals) do if v > m then m = v end end
-		return m
+	local sum, best = 0, 0
+	for _, e in ipairs(M.bearers(p, ctx, ents)) do
+		local v = tonumber(e.stats[p.arg]) or 0
+		sum = sum + v
+		if v > best then best = v end
 	end
-	local s = 0
-	for _, v in ipairs(vals) do s = s + v end
-	return s
+	return p.fn == "max" and best or sum
 end
 
 local function compare(v, cond)
@@ -147,25 +157,6 @@ local function compare(v, cond)
 	if cond.at_least ~= nil then local n = tonumber(cond.at_least); return n ~= nil and v >= n end
 	if cond.at_most  ~= nil then local n = tonumber(cond.at_most);  return n ~= nil and v <= n end
 	return false
-end
-
--- True when a subject carrying "each" holds for every member of its scope.
--- An empty scope fails: "each follower has 1 hp" must not be satisfied by
--- owning no followers, or a cost becomes free exactly when it cannot be paid.
-local function each_holds(p, ctx, test)
-	local ents = M.entities_in_scope(p.scope, ctx)
-	if #ents == 0 then return false end
-	for _, e in ipairs(ents) do
-		if not test(tonumber((e.stats or {})[p.arg]) or 0) then return false end
-	end
-	return true
-end
-
--- A subject asks about a set; "each" asks of every member, anything else asks
--- of the pool. fn forms (count:/card:/sum:/max:) are already aggregates, so
--- they always read the pool.
-local function distributive(p)
-	return p and p.quant == "each" and p.fn == nil
 end
 
 -- { "stat": "hp", "equals": 0 } with equals / at_least / at_most,
@@ -180,26 +171,27 @@ function M.met(cond, ctx)
 		end
 		return true
 	end
+	-- "each" asks of every member; anything else asks of the pool. The fn
+	-- forms are aggregates already, so they always read the pool. An empty
+	-- scope fails rather than passing vacuously, or a cost would be free
+	-- exactly when nothing can pay it.
 	local p = M.parse_subject(cond.stat)
-	if distributive(p) then
-		return each_holds(p, ctx, function(v) return compare(v, cond) end)
+	if p and p.quant == "each" and p.fn == nil then
+		local ents = M.entities_in_scope(p.scope, ctx)
+		if #ents == 0 then return false end
+		for _, e in ipairs(ents) do
+			if not compare(tonumber((e.stats or {})[p.arg]) or 0, cond) then return false end
+		end
+		return true
 	end
 	return compare(M.total(cond.stat, ctx), cond)
 end
 
--- Map form { subject = n, ... }: every subject must reach n — pooled by
--- default, or held by every member when the subject says "each".
+-- Map form { subject = n, ... }: each entry is "this subject, at least n".
 function M.meets_all(map, ctx)
 	if type(map) ~= "table" then return true end
 	for subject, n in pairs(map) do
-		local need = tonumber(n)
-		if need == nil then return false end
-		local p = M.parse_subject(subject)
-		if distributive(p) then
-			if not each_holds(p, ctx, function(v) return v >= need end) then return false end
-		elseif M.total(subject, ctx) < need then
-			return false
-		end
+		if not M.met({ stat = subject, at_least = tonumber(n) }, ctx) then return false end
 	end
 	return true
 end

@@ -29,12 +29,12 @@ main ─ input routing, love callbacks, hot-reload watch
 render ─ drawing, layout, UI scale, buttons     tooltip   debugserver
 anim ─ flight tweens    fx ─ particles/shake/floats
 ────────────────────────────────────────────────────────────── presentation
-flow ─ THE game driver: init/settle/play/activate/pick/undo
+flow ─ THE game driver: init/settle/play/activate/pick/undo, costs
 validate ─ whole-file checks: schema, references, conflicts
 actions ─ the op vocabulary (HANDLERS table)
 phase ─ phase stack, routing, round/fresh flags
 zones ─ zone membership, slots, moving/destroying cards
-cards ─ template helpers, affordability, live editing, image cache
+cards ─ template helpers, live editing, image cache
 predicate ─ the one condition evaluator      targeting ─ eligibility state
 declaration ─ JSON → game definition (G) + built-in reveal zone/phase
 entity ─ the flat array     log ─ event record     json ─ decode/encode
@@ -125,7 +125,7 @@ Treat it as disposable.
 love.mousepressed/released (main)          ── hit-test via card.place
   → flow.play_card(id, targets)
       checkpoint (entities+phases+fired+log mark)
-      can_play? (cost via cards.can_afford, needs via predicate, escape hatch)
+      can_play? (cost via flow.can_afford, needs via predicate, escape hatch)
       log "Played X", plays+1, pay cost
       actions.run(def.on_play, ctx)         ── mutates entities, maybe phases
       draw_and_play? discard hand (tokens vanish), phase.next

@@ -3,7 +3,6 @@ local declaration = require("declaration")
 local zones       = require("zones")
 local cards       = require("cards")
 local phase       = require("phase")
-local tags        = require("tags")
 local predicate   = require("predicate")
 local log         = require("log")
 
@@ -85,54 +84,39 @@ local function change_stat(e, key, delta)
 	end
 end
 
--- Entities in a subject's scope that actually carry its stat. Filtering here
--- matters: change_stat would happily invent the stat on a card that never had
--- one, so "every beast loses hp" must not give hp to something that has none.
-local function bearers(p, ctx)
-	local out = {}
-	for _, e in ipairs(predicate.entities_in_scope(p.scope, ctx)) do
-		if e.stats and e.stats[p.arg] ~= nil then out[#out + 1] = e end
+-- Who a subject designates for a change. The one place the quantifier is
+-- turned into a list, so gaining, setting and spending can never disagree
+-- about who "@random.beast" means: each reaches every member, random picks one
+-- with the seeded RNG, the pooled default takes the first. Without a scope
+-- it is whoever holds the stat, which is what a bare subject has always meant.
+local function designated(p, ctx)
+	if not p.scope then
+		local e = stat_holder(p.arg)
+		return e and { e } or {}
 	end
-	return out
+	local ents = predicate.bearers(p, ctx)
+	if #ents == 0 or p.quant == "each" then return ents end
+	if p.quant == "random" then return { ents[math.random(#ents)] } end
+	return { ents[1] }
 end
 
--- Apply a delta to whatever a subject names, honouring its quantifier:
--- each/target/self reach every member, random picks one with the seeded RNG,
--- and the pooled default lands on the first. A subject with no scope keeps the
--- old behaviour exactly — whoever holds the stat.
 local function apply_stat(subject, delta, ctx)
 	local p = predicate.parse_subject(subject)
 	if not p then return end
-	if not p.scope then
-		change_stat(stat_holder(p.arg), p.arg, delta)
-		return
-	end
-	local ents = bearers(p, ctx)
-	if #ents == 0 then return end
-	if p.quant == "each" then
-		for _, e in ipairs(ents) do change_stat(e, p.arg, delta) end
-	elseif p.quant == "random" then
-		change_stat(ents[math.random(#ents)], p.arg, delta)
-	else
-		change_stat(ents[1], p.arg, delta)
-	end
+	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, delta) end
 end
 
--- Spend n of a subject. "each" takes n from every member; the pooled default
--- drains members in id order until n is covered — deterministic, so a seeded
--- replay pays the same cards in the same order.
+-- Spend n of a subject. A pooled spend drains members in id order until n is
+-- covered — deterministic, so a seeded replay pays the same cards in the same
+-- order. "each" (and the unscoped form) takes the full amount from everyone.
 function M.spend(subject, n, ctx)
 	local p = predicate.parse_subject(subject)
 	if not p then return end
-	if not p.scope then
-		change_stat(stat_holder(p.arg), p.arg, -n)
+	if not (p.scope and p.quant ~= "each") then
+		for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, -n) end
 		return
 	end
-	local ents = bearers(p, ctx)
-	if p.quant == "each" then
-		for _, e in ipairs(ents) do change_stat(e, p.arg, -n) end
-		return
-	end
+	local ents = predicate.bearers(p, ctx)
 	table.sort(ents, function(a, b) return a.id < b.id end)
 	local left = n
 	for _, e in ipairs(ents) do
@@ -251,14 +235,8 @@ HANDLERS["spend_stat"] = HANDLERS["lose_stat"]
 HANDLERS["set_stat"] = function(p, ctx)
 	local sp = predicate.parse_subject(p[2])
 	if not sp then return end
-	if not sp.scope then
-		local e = stat_holder(sp.arg)
-		if e then e.stats[sp.arg] = amount(p, 3) end
-		return
-	end
-	for _, e in ipairs(predicate.entities_in_scope(sp.scope, ctx)) do
-		if e.stats and e.stats[sp.arg] ~= nil then e.stats[sp.arg] = amount(p, 3) end
-	end
+	local v = amount(p, 3)
+	for _, e in ipairs(designated(sp, ctx)) do e.stats[sp.arg] = v end
 end
 
 HANDLERS["next_phase"] = function()
@@ -404,11 +382,6 @@ local SPEC = {
 	gain              = "card n",
 	effect            = "effect",
 }
-
--- True if the op exists; used by the load-time validator.
-function M.known(op)
-	return HANDLERS[op] ~= nil
-end
 
 -- The full op vocabulary, for the validator's suggestions.
 function M.ops()

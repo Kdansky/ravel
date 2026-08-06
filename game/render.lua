@@ -181,16 +181,9 @@ local function card_places(zone_e)
 	end
 
 	if zt == "deck" or zt == "pile" then
-		local pad     = 3 * S
-		local avail_w = p.w - pad * 2
-		local avail_h = p.h - pad * 2
-		local cw, ch  = avail_w, avail_w * CARD_RATIO
-		if ch > avail_h then ch = avail_h; cw = ch / CARD_RATIO end
-		return { {
-			x = p.x + (p.w - cw) * 0.5,
-			y = p.y + (p.h - ch) * 0.5,
-			w = cw, h = ch,
-		} }
+		local pad = 3 * S
+		return { fit_card({ x = p.x + pad, y = p.y + pad,
+			w = p.w - pad * 2, h = p.h - pad * 2 }) }
 	end
 
 	if zt == "grid" then
@@ -1045,7 +1038,7 @@ function M.draw()
 
 	-- Overlay phase: dim everything, then draw its offer zone (and any cards
 	-- still flying into it) on top of the dim.
-	local outcome = phase.is_overlay() and flow.outcome() or nil
+	local outcome = flow.outcome()
 	if not outcome then celebrated = false end
 	if phase.is_overlay() then
 		local W, H = love.graphics.getDimensions()

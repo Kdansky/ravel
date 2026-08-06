@@ -37,6 +37,10 @@ local function card_at(x, y)
 	return result
 end
 
+-- What confirming a targeting session does, by intent. flow.activate returns
+-- false on refusal, so this cannot be an and/or chain.
+local RESOLVE = { play = flow.play_card, activate = flow.activate }
+
 local function cancel_targeting()
 	targeting.clear()
 	render.set_selected(nil)
@@ -44,7 +48,7 @@ end
 
 local function confirm_targeting()
 	local cid, targs, kind = targeting.card_id, targeting.targets, targeting.kind
-	local activating = targeting.intent == "activate"
+	local resolve = RESOLVE[targeting.intent] or flow.play_card
 	-- Capture hit locations now: resolving the play may move things around.
 	local hits = {}
 	if kind == "card" then
@@ -56,9 +60,7 @@ local function confirm_targeting()
 		end
 	end
 	cancel_targeting()
-	local ok
-	if activating then ok = flow.activate(cid, targs) else ok = flow.play_card(cid, targs) end
-	if ok then
+	if resolve(cid, targs) then
 		for _, h in ipairs(hits) do fx.hit(h.x, h.y) end
 	end
 end
@@ -67,16 +69,14 @@ end
 -- nothing (or nothing is eligible and none is required). Shared by playing
 -- from hand and activating an ability on the board.
 local function begin_action(cid, spec, intent)
-	if spec and (spec.count or spec.max or 0) > 0 then
+	if select(2, targeting.bounds(spec)) > 0 then
 		render.set_selected(cid)
 		targeting.start(cid, spec, intent)
 		if #targeting.eligible == 0 then
 			if targeting.can_confirm() then confirm_targeting() else cancel_targeting() end
 		end
-	elseif intent == "activate" then
-		flow.activate(cid, {})
 	else
-		flow.play_card(cid, {})
+		RESOLVE[intent](cid, {})
 	end
 end
 

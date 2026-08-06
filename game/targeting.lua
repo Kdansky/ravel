@@ -28,13 +28,20 @@ local function find_empty_slots(zone_set)
 	return res
 end
 
+-- How many targets a spec asks for. "count" is shorthand for both bounds.
+-- The one definition: flow gates on it, the input layers decide whether to
+-- open targeting at all, and targeting.start sizes itself from it.
+function M.bounds(spec)
+	if type(spec) ~= "table" then return 0, 0 end
+	return spec.min or spec.count or 0, spec.max or spec.count or 0
+end
+
 function M.active()
 	return M.card_id ~= nil
 end
 
 function M.start(card_id, spec, intent)
-	local min      = spec.min or spec.count or 0
-	local max      = spec.max or spec.count or 0
+	local min, max = M.bounds(spec)
 	local kind     = spec.type or "card"
 	local zone_set = nil
 	if spec.zones then

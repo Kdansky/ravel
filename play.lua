@@ -162,7 +162,7 @@ local function play_index(n)
 	local c   = entity.get(cid)
 	local def = cards.def(c)
 	if not flow.can_play(cid) then
-		local why = not cards.can_afford(def.cost)
+		local why = not flow.can_afford(def.cost)
 			and ("costs " .. cards.cost_text(def.cost))
 			or ("needs " .. cards.cost_text(def.needs))
 		print("Can't play " .. (def.text or c.def_key) .. " (" .. why .. ").")
@@ -170,7 +170,7 @@ local function play_index(n)
 	end
 	local targets = {}
 	local spec = def.target
-	if spec and (spec.count or spec.max or 0) > 0 then
+	if select(2, targeting.bounds(spec)) > 0 then
 		targets = prompt_targets(c, spec)
 		if not targets then return end
 	end
@@ -184,7 +184,7 @@ local function activate_slot(idx)
 			if not occ then print("Slot " .. idx .. " is empty."); return end
 			local targets = {}
 			local spec    = cards.def(entity.get(occ)).activate_target
-			if spec and (spec.count or spec.max or 0) > 0 and flow.can_activate(occ) then
+			if select(2, targeting.bounds(spec)) > 0 and flow.can_activate(occ) then
 				targets = prompt_targets(entity.get(occ), spec)
 				if not targets then return end
 			end

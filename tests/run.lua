@@ -1153,7 +1153,7 @@ local function legal_moves()
 		local z   = entity.get(e.zone_id)
 		local def = cards.def(e)
 		if z and z.zone_type == "grid" and def and def.on_activate
-			and not e.exhausted and cards.can_afford(def.activate_cost) then
+			and not e.exhausted and flow.can_afford(def.activate_cost) then
 			local id = e.id
 			moves[#moves + 1] = function() flow.activate(id) end
 		end
@@ -1258,15 +1258,22 @@ check("any: the effect reached exactly one", predicate.total("hp@economic") == e
 check("each over an empty scope is false",
 	predicate.met({ stat = "hp@each.wyrm", at_least = 1 }) == false)
 check("each over an empty scope is unaffordable",
-	cards.can_afford({ ["hp@each.wyrm"] = 1 }) == false)
+	flow.can_afford({ ["hp@each.wyrm"] = 1 }) == false)
 check("each is affordable only if every member can pay",
-	cards.can_afford({ ["hp@each.economic"] = 1 })
-	and cards.can_afford({ ["hp@each.economic"] = 3 }) == false)
+	flow.can_afford({ ["hp@each.economic"] = 1 })
+	and flow.can_afford({ ["hp@each.economic"] = 3 }) == false)
 
 local pooled_before = predicate.total("hp@economic")
 actions.spend("hp@any.economic", 4, {})
 check("a pooled spend takes exactly what it needs",
 	predicate.total("hp@economic") == pooled_before - 4)
+
+-- ctx.targets nil means "not chosen yet" (the gates that dim a card), an empty
+-- list means "chose none". Only the first is unjudgeable.
+check("a target-paid cost is unjudged before targeting",
+	flow.can_afford({ ["hp@target"] = 1 }, { card_id = 1 }))
+check("a target-paid cost is refused once nothing is chosen",
+	flow.can_afford({ ["hp@target"] = 1 }, { card_id = 1, targets = {} }) == false)
 
 local throne = find_card("throne_room")
 check("self reaches the acting card",
