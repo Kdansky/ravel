@@ -1002,6 +1002,12 @@ local CASES = {
 		function(g) g.card_defs.c_flee.exhausts = "no" end },
 	{ "an unknown zone fit", "fit should be 'card' or 'fill'",
 		function(g) g.zone_defs.board.fit = "stretch" end },
+	{ "a tag and a zone sharing a name", "both a zone and a tag",
+		function(g) g.tag_defs.board = { zone = "board" } end },
+	{ "a tag claiming a reserved scope name", "reserves for conditions",
+		function(g) g.tag_defs.self = { zone = "board" } end },
+	{ "a zone claiming a reserved scope name", "reserves for conditions",
+		function(g) g.zone_defs.all = { key = "all", type = "hand" } end },
 }
 for _, c in ipairs(CASES) do
 	local g = declaration.parse("tower.json")

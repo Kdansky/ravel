@@ -92,25 +92,37 @@ whereas `kind = "player"` was a thing with its own rules everywhere it appeared.
 ### Subjects resolve to an entity set
 
 One vocabulary (invariant 6), extended with an optional scope suffix in the
-colon-and-`@` style actions already use:
+colon-and-`@` style actions already use. **The scope is a plain name — a zone
+key or a tag** — which is simpler than the seat-based `@me`/`@opponent` this
+document originally proposed, and it makes the common case trivial: a tag
+carried by exactly one card *is* a unique reference to that card.
 
 ```
-gold                  -- the acting player's card          (was: sum over everything)
-gold@self             -- the acting card itself
-gold@opponent         -- the other seat's player card
-sum:defense@board     -- sum a stat over a zone
+insight@player        -- the one card tagged "player"
+hp@self               -- the acting card itself
+sum:defense@board     -- sum a stat over every card in a zone
 max:rank@tableau_3    -- highest value in a zone
-count:farm@board      -- unchanged in meaning, now explicit about where
+count:lore@holdings   -- unchanged in meaning, now explicit about where
+gold                  -- no scope: unchanged global total, so old files still work
 ```
 
 `predicate.parse_subject` is one pure function; `predicate.entities_in_scope` is
-the single place that decides what `@me` means. `predicate.total`,
+the single place that turns a name into a set of entities. `predicate.total`,
 `actions.amount` (`game/actions.lua:49`) and cost payment all route through
 them, so reads and writes finally resolve to the *same entity*.
 
-Resolution rule for the bare form: **the player card of the seat that owns the
-acting card's zone**, falling back to the sole player card when a game has one.
-Single-player games never encounter the concept.
+Two rules keep the name space honest, **both already enforced by the validator**
+(shipped ahead of the resolver, so every game is conflict-free before it lands):
+
+- A tag and a zone may never share a name — a scope that could mean either is
+  refused at load, not resolved by a precedence rule nobody would remember.
+- `self` and `all` are reserved; neither can be expressed as a tag. `player` is
+  deliberately *not* reserved — it is ordinary content, which is the whole point.
+
+Open question, still to settle: when a scope names a tag carried by several
+cards (`hp@follower` with three followers), does the bare form sum them or
+refuse? Current leaning is to sum, and keep `sum:`/`max:` for when the intent
+matters.
 
 ### The party case falls out
 

@@ -351,6 +351,13 @@ A game can give tags meaning of their own — types, essentially:
 "tags": { "item": { "zone": "inventory" }, "unit": { "zone": "battlefield" } }
 ```
 
+**Zones and tags share one namespace.** A condition that points at a name
+means either the zone or the cards carrying that tag, so the two may never
+collide — the validator refuses a file where they do, rather than picking a
+winner by a precedence rule you would have to remember. `self` and `all` are
+reserved for the engine. (`player` is not reserved: it is an ordinary tag you
+put on one card, which is exactly what makes that card easy to find.)
+
 A tag's `zone` is the home of every card carrying it, and placement then
 works by type instead of by naming zones in every action:
 

@@ -22,6 +22,14 @@ local M = {}
 
 local RESERVED = { round = true, plays = true }
 
+-- Names conditions answer for themselves, so a zone or tag may not take one.
+-- "self" is the acting card and "all" is everything; neither can be expressed
+-- as a tag, which is why they are the only two the engine claims. "player" is
+-- deliberately NOT reserved — it is an ordinary tag that content puts on one
+-- card, which is what makes finding that card trivial.
+local RESERVED_SCOPES     = { self = true, all = true }
+local RESERVED_SCOPE_LIST = "self, all"
+
 -- The fx base-effect vocabulary. The test suite asserts this stays in step
 -- with fx.bases() — validate must not require the presentation layer.
 M.EFFECT_BASES = {
@@ -115,6 +123,34 @@ function M.check(G)
 	for t in pairs(carried_tags) do known_tags[t] = true end
 	for t in pairs(G.computed_tags) do known_tags[t] = true end
 	for t in pairs(tag_defs) do known_tags[t] = true end
+
+	-- Zones and tags share one namespace: a condition that points at "@holdings"
+	-- means either the zone or the cards carrying that tag, and it must not
+	-- have to guess. Caught here, at authoring time, rather than resolved by a
+	-- precedence rule nobody would remember. RESERVED_SCOPES are the names the
+	-- engine answers for itself, so content may not claim them either.
+	local conflicts = {}
+	for name in pairs(known_tags) do
+		if G.zone_defs[name] then conflicts[#conflicts + 1] = name end
+	end
+	table.sort(conflicts)
+	for _, name in ipairs(conflicts) do
+		warn("'%s' is the name of both a zone and a tag — a condition pointing at it "
+			.. "could mean either, so rename one of them", name)
+	end
+
+	local claimed = {}
+	for name in pairs(known_tags) do
+		if RESERVED_SCOPES[name] then claimed[#claimed + 1] = "tag '" .. name .. "'" end
+	end
+	for name in pairs(G.zone_defs) do
+		if RESERVED_SCOPES[name] then claimed[#claimed + 1] = "zone '" .. name .. "'" end
+	end
+	table.sort(claimed)
+	for _, what in ipairs(claimed) do
+		warn("%s uses a name the engine reserves for conditions (%s) — rename it",
+			what, RESERVED_SCOPE_LIST)
+	end
 
 	local player_stats = {}
 	for k in pairs((G.setup or {}).player or {}) do player_stats[k] = true end
