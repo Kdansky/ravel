@@ -1,6 +1,7 @@
 local entity      = require("entity")
 local cards       = require("cards")
 local declaration = require("declaration")
+local rng         = require("rng")
 
 local M = {}
 local key_map  = {}  -- zone key → entity ID (shared zones)
@@ -250,11 +251,7 @@ end
 function M.shuffle(zone_id)
 	local z = entity.get(zone_id)
 	if not z then return end
-	local c = z.cards
-	for i = #c, 2, -1 do
-		local j = math.random(i)
-		c[i], c[j] = c[j], c[i]
-	end
+	rng.shuffle(z.cards)
 end
 
 -- The pixel rect of cell `idx` in a grid zone, 1-based and row-major. Shared

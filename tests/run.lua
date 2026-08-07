@@ -1661,6 +1661,83 @@ for _, mod in ipairs({ "predicate", "actions", "flow", "zones", "phase", "entity
 	check(mod .. " does not require art", src:find('require%("art"%)') == nil)
 end
 
+-- === the engine's own RNG ===
+-- The point of rng.lua is that a seed means one sequence everywhere, so the
+-- test that matters is against a published reference rather than against
+-- itself. This is std::minstd_rand: the C++ standard requires that seeding
+-- with 1 and drawing 10000 values yields 399268537.
+do
+	local rng = require("rng")
+	rng.seed(1)
+	local x
+	for _ = 1, 10000 do x = rng.next() end
+	check("minstd_rand matches the published test vector", x == 399268537)
+
+	rng.seed(42)
+	local first = {}
+	for i = 1, 8 do first[i] = rng.int(6) end
+	rng.seed(42)
+	local again = true
+	for i = 1, 8 do again = again and rng.int(6) == first[i] end
+	check("the same seed replays the same rolls", again)
+
+	for _, n in ipairs({ 1, 2, 6, 52 }) do
+		local ok = true
+		for _ = 1, 200 do
+			local v = rng.int(n)
+			ok = ok and v >= 1 and v <= n and v == math.floor(v)
+		end
+		check("rng.int stays in 1.." .. n, ok)
+	end
+
+	-- One integer of state, which is what lets undo and the wire format carry
+	-- it without knowing anything about generators.
+	rng.seed(99)
+	rng.int(6); rng.int(6)
+	local mark, after = rng.state(), { rng.int(100), rng.int(100), rng.int(100) }
+	rng.set_state(mark)
+	check("restoring the state replays the same draws",
+		rng.int(100) == after[1] and rng.int(100) == after[2] and rng.int(100) == after[3])
+
+	local deck = {}
+	for i = 1, 52 do deck[i] = i end
+	rng.seed(5)
+	rng.shuffle(deck)
+	local seen, all = {}, true
+	for _, v in ipairs(deck) do seen[v] = true end
+	for i = 1, 52 do all = all and seen[i] end
+	check("shuffle is a permutation", all and #deck == 52)
+
+	-- The reason this module exists at all: no math.random below the
+	-- presentation line, where fx.lua's particle jitter deliberately keeps it.
+	for _, mod in ipairs({ "zones", "actions", "flow", "predicate", "targeting" }) do
+		local src = assert(io.open("game/" .. mod .. ".lua")):read("*a")
+		check(mod .. " does not use the host RNG", src:find("math%.random%a*%s*%(") == nil)
+	end
+end
+
+-- An undo across a shuffle has to replay that shuffle, not a different one:
+-- the generator's position is state like any other, so it rides in the
+-- checkpoint. Without that, undo-then-redo quietly deals a different hand.
+do
+	local rng = require("rng")
+	flow.init("castle.json", 11)
+	local hand = zones.find("hand")
+	flow.play_card(hand.cards[1], {})
+	local after = rng.state()
+	zones.shuffle(zones.find_id("build_deck"))
+	local shuffled = table.concat(zones.find("build_deck").cards, ",")
+	flow.undo()
+	check("undo restores the RNG position", rng.state() == after)
+
+	-- Re-fetch: undo replaced every entity table (invariant 1). Replaying the
+	-- same deck from the same position has to deal the same order.
+	flow.play_card(zones.find("hand").cards[1], {})
+	zones.shuffle(zones.find_id("build_deck"))
+	check("the replayed shuffle is the same shuffle",
+		table.concat(zones.find("build_deck").cards, ",") == shuffled)
+end
+
 -- === golden traces ===
 -- Reworking the stat machinery must not change what actually happens in a
 -- game. These play a fixed seeded script and compare the entire event log to a
@@ -1701,25 +1778,14 @@ local function scripted_play(file, seed, steps)
 	return table.concat(log.tail(100000), "\n") .. "\n"
 end
 
--- The transcripts are recorded under LuaJIT, LÖVE's interpreter. They cannot be
--- shared with PUC Lua: math.random is a different generator there (Tausworthe
--- vs xoshiro256**), so one seed gives two different shuffles and the very first
--- card drawn already diverges. The engine's own logic is interpreter-agnostic —
--- only the deck order is not — so the rest of the suite still runs everywhere.
--- Making seeds reproduce across interpreters needs the engine to carry its own
--- PRNG rather than borrow the host's; see ideas/02 (move-based multiplayer
--- depends on it).
-local golden_ok = type(jit) == "table"
-if not golden_ok then
-	print("  (golden traces skipped: PUC Lua's math.random differs from LuaJIT's)")
-end
-
+-- These used to be recorded under LuaJIT and skipped everywhere else, because
+-- math.random was the host's and no two hosts agreed. rng.lua ended that: one
+-- seed is now one sequence on every interpreter, so the strongest test in the
+-- suite — "does this file still play exactly as recorded" — runs for everyone.
 for _, g in ipairs({ { "castle.json", 7, 120 }, { "kingdom.json", 5, 120 } }) do
-	local text = golden_ok and scripted_play(g[1], g[2], g[3]) or ""
+	local text = scripted_play(g[1], g[2], g[3])
 	local path = "tests/golden/" .. g[1]:gsub("%.json$", "") .. ".log"
-	if not golden_ok then
-		-- nothing to compare against
-	elseif os.getenv("RAVEL_GOLDEN") == "write" then
+	if os.getenv("RAVEL_GOLDEN") == "write" then
 		local out = assert(io.open(path, "w"))
 		out:write(text)
 		out:close()

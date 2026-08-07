@@ -9,6 +9,7 @@ local cards       = require("cards")
 local phase       = require("phase")
 local actions     = require("actions")
 local targeting   = require("targeting")
+local rng         = require("rng")
 local predicate   = require("predicate")
 local tags        = require("tags")
 local validate    = require("validate")
@@ -99,6 +100,7 @@ local function checkpoint()
 		phases   = phase.snapshot(),
 		fired    = fired_flags(),
 		log_mark = log.count(),
+		rng      = rng.state(),
 	}
 	if #history > MAX_HISTORY then table.remove(history, 1) end
 end
@@ -107,11 +109,20 @@ function M.can_undo()
 	return #history > 0
 end
 
+-- Drop the undo stack without touching state. Handing over already does this
+-- (rotate_seat, above); net.lua needs it too, because a state that arrived
+-- from another client makes every local checkpoint describe a game that
+-- client never played.
+function M.forget_history()
+	history = {}
+end
+
 function M.undo()
 	local h = table.remove(history)
 	if not h then return false end
 	entity.restore(h.ents)
 	phase.restore(h.phases)
+	rng.set_state(h.rng)
 	for i, cond in ipairs(declaration.G.end_conditions) do cond.fired = h.fired[i] end
 	log.truncate(h.log_mark)
 	targeting.clear()
@@ -293,10 +304,13 @@ function M.init(filename, seed)
 
 	local G = declaration.load(filename)
 
-	-- Seed precedence: explicit argument > CLI/env default > the game doc.
-	-- Seeded before zone contents are created, so shuffles are reproducible.
-	local s = seed or M.default_seed or G.seed
-	if s then math.randomseed(s) end
+	-- Seed precedence: explicit argument > CLI/env default > the game doc, and
+	-- the clock when a game asks for none — which is what the startup call to
+	-- math.randomseed used to provide. Seeded before zone contents are created,
+	-- so shuffles are reproducible. The generator is the engine's own (rng.lua):
+	-- a seed has to mean the same sequence on every interpreter, or a replay, a
+	-- golden trace and a networked opponent all disagree about the deck.
+	rng.seed(seed or M.default_seed or G.seed or os.time())
 
 	for _, key in ipairs(G.zone_list) do zones.create(G.zone_defs[key]) end
 

@@ -5,6 +5,7 @@ local cards       = require("cards")
 local phase       = require("phase")
 local predicate   = require("predicate")
 local log         = require("log")
+local rng         = require("rng")
 
 local M = {}
 
@@ -115,7 +116,7 @@ end
 local function designated(p, ctx)
 	local ents = predicate.bearers(p, ctx)
 	if #ents == 0 or p.quant == "each" then return ents end
-	if p.quant == "random" then return { ents[math.random(#ents)] } end
+	if p.quant == "random" then return { ents[rng.int(#ents)] } end
 	return { ents[1] }
 end
 
@@ -308,7 +309,7 @@ HANDLERS["destroy"] = function(p, ctx)
 	end
 	table.sort(doomed)
 	if sc.quant == "random" and #doomed > 0 then
-		doomed = { doomed[math.random(#doomed)] }
+		doomed = { doomed[rng.int(#doomed)] }
 	end
 	for _, id in ipairs(doomed) do zones.destroy_card(id) end
 end
