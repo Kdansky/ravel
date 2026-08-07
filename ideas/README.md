@@ -130,9 +130,13 @@ Eight commits, each one green, each one revertable on its own.
 
 ### Tier 3 — after the foundation
 
-- **Lost Cities** (01, Knizia) — a real published two-player game with near-zero
-  new engine code. The cheapest possible load test of the new stat model.
-- **Hot-seat** (02 stage A) — mostly falls out of the above.
+- **Hot-seat + Lost Cities** (02 stage A with 01's Knizia target) — **one task,
+  not two.** Both entries above used to claim the other one carried the cost:
+  01 said the foundation gave you two players, 02 said hot-seat was 90% the
+  foundation. Neither is true — the foundation's shipped design dropped seats
+  on purpose, so a scope names a zone or a tag and never a player. Lost Cities
+  is still the right target *because* it names seats as its one missing
+  capability, and its scoring really is near-zero new code.
 - Then fan out into the wave-1 worktrees below: board geometry, zone recipes,
   copy/paste transfer.
 

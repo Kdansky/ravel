@@ -4,7 +4,7 @@
 > boardgame rule set and just turn it into a json, and then have the board game
 > be simulated?* — `IDEAS.md`
 
-**Status:** not started · **Blocked on:** [00-foundation-scope](00-foundation-scope.md) · **Size:** large, but strictly staged
+**Status:** not started · **Blocked on:** [02 stage A](02-multiplayer.md#stage-a--hot-seat) for every two-player target · **Size:** large, but strictly staged
 
 ---
 
@@ -162,11 +162,21 @@ one narrow addition:
 "end_conditions": [ { "score": "sum:value@expedition_red", "at_least": 20, "then": [...] } ]
 ```
 
-Pick **Lost Cities** as the target: two players (foundation gives you that), one
-scoring rule per expedition, no spatial component at all. It is the cheapest
-possible proof that the engine handles a real published game, and it is a good
-one to do *immediately after* the foundation lands, before the spatial work —
-it validates the scope work under load with almost no new code.
+Pick **Lost Cities** as the target: one scoring rule per expedition, no spatial
+component at all. It is the cheapest possible proof that the engine handles a
+real published game, and it validates the scope work under load with almost no
+new *scoring* code.
+
+**It is two-player, and the foundation does not give you that.** This document
+originally said it did, on the strength of [00](00-foundation-scope.md)'s first
+draft, which had seat-based `@me` / `@opponent` scopes. That draft superseded
+itself: a scope became a plain zone key or tag, deliberately, and nothing that
+shipped models a seat. Concretely, today `flow.play_card` never checks the
+active phase's zone (either player could play from either hand) and `plays`
+always lands on the first `player`-tagged card whoever is playing. So Lost
+Cities *names the missing capability*, exactly as this document's own framing
+demands, and that capability is seats — build it with
+[02 stage A](02-multiplayer.md#stage-a--hot-seat), not before it.
 
 **Milestone: Lost Cities, two players hot-seat, correct scoring.**
 
@@ -208,7 +218,8 @@ game engine that got this wrong:
 
 ## Suggested order
 
-1. **Lost Cities** — proves the foundation, ~no new engine code. (days)
+1. **Lost Cities + hot-seat** — one task, not two: the game names seats as its
+   missing capability. Scoring is ~no new engine code. (see [02 stage A](02-multiplayer.md#stage-a--hot-seat))
 2. **Checkers** — board movement + capture. (small)
 3. **Chess, capture-the-king** — `geometry.lua`. (medium)
 4. **Klondike** — ordered stacks + `accepts` + run moves. (medium)
