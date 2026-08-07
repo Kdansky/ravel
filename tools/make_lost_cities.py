@@ -11,12 +11,16 @@ Everything structural lives here in one readable place; the output is data.
 
 import json, os
 
+# The fourth entry is the placeholder-art palette name. Note that the art is
+# *decoration that happens to agree* with the rules — the engine reads
+# card_stats.value and the "<colour>_dest" tags, never the picture. A card is
+# never red because it is drawn red.
 COLOURS = [
-    ("red",    "Red",    [0.85, 0.25, 0.25]),
-    ("green",  "Green",  [0.30, 0.70, 0.35]),
-    ("blue",   "Blue",   [0.30, 0.50, 0.90]),
-    ("white",  "White",  [0.85, 0.85, 0.80]),
-    ("yellow", "Yellow", [0.90, 0.75, 0.25]),
+    ("red",    "Red",    [0.85, 0.25, 0.25], "crimson"),
+    ("green",  "Green",  [0.30, 0.70, 0.35], "green"),
+    ("blue",   "Blue",   [0.30, 0.50, 0.90], "blue"),
+    ("white",  "White",  [0.85, 0.85, 0.80], "silver"),
+    ("yellow", "Yellow", [0.90, 0.75, 0.25], "gold"),
 ]
 VALUES = list(range(2, 11))
 WAGERS = 3
@@ -41,29 +45,34 @@ def templates():
     # A destination marker sits in every expedition and every discard pile, so
     # "where does this card go" is an ordinary card target even when the place
     # is empty. Markers never move and are never counted as expedition cards.
-    for i, (c, label, col) in enumerate(COLOURS):
+    for i, (c, label, col, art) in enumerate(COLOURS):
         # The route marker is the expedition's legality: it accepts only a card
         # worth at least what is already there, which is exactly the ascending
         # rule (wagers are worth 0, so they fit only before any number). It is
         # also tagged "wager", which makes count:wager the multiplier 1 + wagers
         # without the engine needing to add one.
         out.append({"key": c + "_route", "text": label + " route", "color": col,
+                    "asset": "polygon:6:" + art,
                     "tooltip": "Advance the " + label.lower() + " expedition. Cards must ascend.",
                     "tags": ["marker", "wager", c + "_dest"],
                     "accepts": {"value@target": {"at_least": "max:value@mine." + c}},
                     "auto_play": True, "to_zone": c})
         # The discard takes anything, which is what having no "accepts" means.
         out.append({"key": c + "_tip", "text": label + " discard", "color": col,
+                    "asset": "cross:" + art,
                     "tooltip": "Discard a " + label.lower() + " card.",
                     "tags": ["marker", c + "_dest"],
                     "auto_play": True, "to_zone": c + "_discard"})
 
-    for i, (c, label, col) in enumerate(COLOURS):
+    for i, (c, label, col, art) in enumerate(COLOURS):
         # A card may only be played onto a lower one. Wagers count as zero, so
         # they must come before every number — which the same rule already says.
         def card(key, text, value, tooltip, extra_tags=()):
             return {
                 "key": key, "text": text, "color": col,
+                # Stripes count the value, so a card reads at a glance without
+                # a single image file; wagers get a star instead.
+                "asset": ("star:5:" + art) if value == 0 else ("stripes:%d:%s" % (value, art)),
                 "tooltip": tooltip,
                 "tags": ["expedition", *extra_tags],
                 "card_stats": {"value": value},
@@ -85,7 +94,7 @@ def templates():
     # Scoring runs once per expedition at the end, as an ordinary card each
     # seat plays through: (sum - 20) x wagers, distributed so it needs no
     # nested arithmetic, plus the 20-card bonus for a long expedition.
-    for c, label, col in COLOURS:
+    for c, label, col, art in COLOURS:
         out.append({
             "key": c + "_score", "text": "Score " + label, "color": col,
             "tooltip": "Total the " + label.lower() + " expedition.",
@@ -118,8 +127,8 @@ def templates():
 def zones():
     out = [{"key": "deck", "label": "Expedition Deck", "type": "deck",
             "pos": [0.80, 0.30, 0.97, 0.52], "tags": ["shuffle"],
-            "contents": ["%s_w%d" % (c, w) for c, _, _ in COLOURS for w in range(1, WAGERS + 1)]
-                        + ["%s_%d" % (c, v) for c, _, _ in COLOURS for v in VALUES]},
+            "contents": ["%s_w%d" % (c, w) for c, _, _, _ in COLOURS for w in range(1, WAGERS + 1)]
+                        + ["%s_%d" % (c, v) for c, _, _, _ in COLOURS for v in VALUES]},
            {"key": "hand", "type": "hand", "per_seat": True,
             "pos": [[0.02, 0.75, 0.78, 0.87], [0.02, 0.88, 0.78, 0.99]]},
            {"key": "tally", "label": "Tally", "type": "hand",
@@ -129,7 +138,7 @@ def zones():
            # lives here, so a hand card cannot be dumped instead.
            {"key": "draw_choice", "label": "Draw", "type": "hand",
             "pos": [0.80, 0.55, 0.97, 0.72]}]
-    for i, (c, label, _) in enumerate(COLOURS):
+    for i, (c, label, _, _) in enumerate(COLOURS):
         out.append({"key": c, "label": label, "type": "grid", "per_seat": True,
                     "grid": [1, 12], "fit": "fill", "pos": EXPEDITION_POS[i]})
         out.append({"key": c + "_discard", "label": label + " discard", "type": "pile",
@@ -138,7 +147,7 @@ def zones():
     return out
 
 
-SCORING_CARDS = [c + suffix for suffix in ("_score", "_bonus") for c, _, _ in COLOURS]
+SCORING_CARDS = [c + suffix for suffix in ("_score", "_bonus") for c, _, _, _ in COLOURS]
 
 
 def phases():

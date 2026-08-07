@@ -1,6 +1,7 @@
 local entity      = require("entity")
 local declaration = require("declaration")
 local json        = require("json")
+local art         = require("art")
 
 local M = {}
 
@@ -316,7 +317,11 @@ function M.image(def_key)
 	if img_cache[def_key] ~= nil then return img_cache[def_key] or nil end
 	local def = declaration.G.card_defs[def_key]
 	local asset = def and def.asset
+	-- A game may opt every card without art into a generated placeholder, so a
+	-- brand-new file has visual differentiation from its first save.
+	if not asset and declaration.G.placeholder_art then asset = "auto" end
 	if not asset then img_cache[def_key] = false; return nil end
+	if asset == "auto" then asset = art.auto(def_key) end
 	if tostring(asset):match("^https?://") then
 		if not M.url_is_safe(asset) then
 			print("asset URL refused (contains characters not valid in a URL): " .. tostring(asset))
@@ -332,9 +337,16 @@ function M.image(def_key)
 	end
 	-- A local asset is untrusted content too: require a bare filename (no
 	-- path separators or "..") so it can only ever name a file directly in
-	-- games/assets, never traverse elsewhere.
+	-- games/assets, never traverse elsewhere. Filenames carry an extension and
+	-- shape specs never do, so the two can't be confused.
 	if not tostring(asset):match("^[%w_%-]+%.[%w]+$") then
-		print("asset refused (must be a plain filename): " .. tostring(asset))
+		local drawn = art.render(asset)
+		if drawn then img_cache[def_key] = drawn; return drawn end
+		if art.parse(asset) == nil and asset:find(":") then
+			print("asset refused (not a shape the engine knows): " .. tostring(asset))
+		elseif not asset:find(":") then
+			print("asset refused (must be a plain filename or a shape): " .. tostring(asset))
+		end
 		img_cache[def_key] = false
 		return nil
 	end

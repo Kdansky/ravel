@@ -28,6 +28,7 @@ above it.
 main ─ input routing, love callbacks, hot-reload watch
 render ─ drawing, layout, UI scale, buttons     tooltip   debugserver
 anim ─ flight tweens    fx ─ particles/shake/floats
+art ─ procedural placeholder shapes (its pure `parse` is shared with validate)
 ────────────────────────────────────────────────────────────── presentation
 flow ─ THE game driver: init/settle/play/activate/pick/undo, costs, legality
 validate ─ whole-file checks: schema, references, conflicts

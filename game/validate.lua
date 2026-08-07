@@ -13,6 +13,9 @@ local predicate = require("predicate")   -- parse_subject only: pure, no game st
 -- load time instead of only in the console when the fetch is refused. Shared
 -- rather than copied: a security rule kept in two files is the one that drifts.
 local url_is_safe = require("cards").url_is_safe
+-- art.parse is pure (no love, no state) for exactly this: a typo in a shape
+-- spec is caught at load time rather than as a blank card at play time.
+local art         = require("art")
 
 local M = {}
 
@@ -496,6 +499,15 @@ function M.check(G)
 			if not url_is_safe(def.asset) then
 				warn("%s: its image URL contains characters that aren't valid in a URL — it will be refused at load time",
 					where)
+			end
+		elseif def.asset == "auto" then
+			-- generated from the key; nothing to check
+		elseif def.asset and tostring(def.asset):find(":") then
+			if not art.parse(def.asset) then
+				local shape = tostring(def.asset):match("^([^:]+)")
+				warn("%s: its art '%s' isn't a shape the engine can draw%s — the form is <shape>[:<n>]:<colour>[:<colour>]",
+					where, tostring(def.asset),
+					art.shapes()[shape] and "" or suggest(shape, art.shapes()))
 			end
 		elseif def.asset and not love.filesystem.read("games/assets/" .. tostring(def.asset)) then
 			warn("%s: its image '%s' is not in games/assets", where, tostring(def.asset))

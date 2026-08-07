@@ -362,6 +362,7 @@
         0.25,
         0.25
       ],
+      "asset": "polygon:6:crimson",
       "tooltip": "Advance the red expedition. Cards must ascend.",
       "tags": [
         "marker",
@@ -384,6 +385,7 @@
         0.25,
         0.25
       ],
+      "asset": "cross:crimson",
       "tooltip": "Discard a red card.",
       "tags": [
         "marker",
@@ -400,6 +402,7 @@
         0.7,
         0.35
       ],
+      "asset": "polygon:6:green",
       "tooltip": "Advance the green expedition. Cards must ascend.",
       "tags": [
         "marker",
@@ -422,6 +425,7 @@
         0.7,
         0.35
       ],
+      "asset": "cross:green",
       "tooltip": "Discard a green card.",
       "tags": [
         "marker",
@@ -438,6 +442,7 @@
         0.5,
         0.9
       ],
+      "asset": "polygon:6:blue",
       "tooltip": "Advance the blue expedition. Cards must ascend.",
       "tags": [
         "marker",
@@ -460,6 +465,7 @@
         0.5,
         0.9
       ],
+      "asset": "cross:blue",
       "tooltip": "Discard a blue card.",
       "tags": [
         "marker",
@@ -476,6 +482,7 @@
         0.85,
         0.8
       ],
+      "asset": "polygon:6:silver",
       "tooltip": "Advance the white expedition. Cards must ascend.",
       "tags": [
         "marker",
@@ -498,6 +505,7 @@
         0.85,
         0.8
       ],
+      "asset": "cross:silver",
       "tooltip": "Discard a white card.",
       "tags": [
         "marker",
@@ -514,6 +522,7 @@
         0.75,
         0.25
       ],
+      "asset": "polygon:6:gold",
       "tooltip": "Advance the yellow expedition. Cards must ascend.",
       "tags": [
         "marker",
@@ -536,6 +545,7 @@
         0.75,
         0.25
       ],
+      "asset": "cross:gold",
       "tooltip": "Discard a yellow card.",
       "tags": [
         "marker",
@@ -552,6 +562,7 @@
         0.25,
         0.25
       ],
+      "asset": "star:5:crimson",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -583,6 +594,7 @@
         0.25,
         0.25
       ],
+      "asset": "star:5:crimson",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -614,6 +626,7 @@
         0.25,
         0.25
       ],
+      "asset": "star:5:crimson",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -645,6 +658,7 @@
         0.25,
         0.25
       ],
+      "asset": "stripes:2:crimson",
       "tooltip": "Advance the red expedition to 2.",
       "tags": [
         "expedition"
@@ -675,6 +689,7 @@
         0.25,
         0.25
       ],
+      "asset": "stripes:3:crimson",
       "tooltip": "Advance the red expedition to 3.",
       "tags": [
         "expedition"
@@ -705,6 +720,7 @@
         0.25,
         0.25
       ],
+      "asset": "stripes:4:crimson",
       "tooltip": "Advance the red expedition to 4.",
       "tags": [
         "expedition"
@@ -735,6 +751,7 @@
         0.25,
         0.25
       ],
+      "asset": "stripes:5:crimson",
       "tooltip": "Advance the red expedition to 5.",
       "tags": [
         "expedition"
@@ -765,6 +782,7 @@
         0.25,
         0.25
       ],
+      "asset": "stripes:6:crimson",
       "tooltip": "Advance the red expedition to 6.",
       "tags": [
         "expedition"
@@ -795,6 +813,7 @@
         0.25,
         0.25
       ],
+      "asset": "stripes:7:crimson",
       "tooltip": "Advance the red expedition to 7.",
       "tags": [
         "expedition"
@@ -825,6 +844,7 @@
         0.25,
         0.25
       ],
+      "asset": "stripes:8:crimson",
       "tooltip": "Advance the red expedition to 8.",
       "tags": [
         "expedition"
@@ -855,6 +875,7 @@
         0.25,
         0.25
       ],
+      "asset": "stripes:9:crimson",
       "tooltip": "Advance the red expedition to 9.",
       "tags": [
         "expedition"
@@ -885,6 +906,7 @@
         0.25,
         0.25
       ],
+      "asset": "stripes:10:crimson",
       "tooltip": "Advance the red expedition to 10.",
       "tags": [
         "expedition"
@@ -915,6 +937,7 @@
         0.7,
         0.35
       ],
+      "asset": "star:5:green",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -946,6 +969,7 @@
         0.7,
         0.35
       ],
+      "asset": "star:5:green",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -977,6 +1001,7 @@
         0.7,
         0.35
       ],
+      "asset": "star:5:green",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -1008,6 +1033,7 @@
         0.7,
         0.35
       ],
+      "asset": "stripes:2:green",
       "tooltip": "Advance the green expedition to 2.",
       "tags": [
         "expedition"
@@ -1038,6 +1064,7 @@
         0.7,
         0.35
       ],
+      "asset": "stripes:3:green",
       "tooltip": "Advance the green expedition to 3.",
       "tags": [
         "expedition"
@@ -1068,6 +1095,7 @@
         0.7,
         0.35
       ],
+      "asset": "stripes:4:green",
       "tooltip": "Advance the green expedition to 4.",
       "tags": [
         "expedition"
@@ -1098,6 +1126,7 @@
         0.7,
         0.35
       ],
+      "asset": "stripes:5:green",
       "tooltip": "Advance the green expedition to 5.",
       "tags": [
         "expedition"
@@ -1128,6 +1157,7 @@
         0.7,
         0.35
       ],
+      "asset": "stripes:6:green",
       "tooltip": "Advance the green expedition to 6.",
       "tags": [
         "expedition"
@@ -1158,6 +1188,7 @@
         0.7,
         0.35
       ],
+      "asset": "stripes:7:green",
       "tooltip": "Advance the green expedition to 7.",
       "tags": [
         "expedition"
@@ -1188,6 +1219,7 @@
         0.7,
         0.35
       ],
+      "asset": "stripes:8:green",
       "tooltip": "Advance the green expedition to 8.",
       "tags": [
         "expedition"
@@ -1218,6 +1250,7 @@
         0.7,
         0.35
       ],
+      "asset": "stripes:9:green",
       "tooltip": "Advance the green expedition to 9.",
       "tags": [
         "expedition"
@@ -1248,6 +1281,7 @@
         0.7,
         0.35
       ],
+      "asset": "stripes:10:green",
       "tooltip": "Advance the green expedition to 10.",
       "tags": [
         "expedition"
@@ -1278,6 +1312,7 @@
         0.5,
         0.9
       ],
+      "asset": "star:5:blue",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -1309,6 +1344,7 @@
         0.5,
         0.9
       ],
+      "asset": "star:5:blue",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -1340,6 +1376,7 @@
         0.5,
         0.9
       ],
+      "asset": "star:5:blue",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -1371,6 +1408,7 @@
         0.5,
         0.9
       ],
+      "asset": "stripes:2:blue",
       "tooltip": "Advance the blue expedition to 2.",
       "tags": [
         "expedition"
@@ -1401,6 +1439,7 @@
         0.5,
         0.9
       ],
+      "asset": "stripes:3:blue",
       "tooltip": "Advance the blue expedition to 3.",
       "tags": [
         "expedition"
@@ -1431,6 +1470,7 @@
         0.5,
         0.9
       ],
+      "asset": "stripes:4:blue",
       "tooltip": "Advance the blue expedition to 4.",
       "tags": [
         "expedition"
@@ -1461,6 +1501,7 @@
         0.5,
         0.9
       ],
+      "asset": "stripes:5:blue",
       "tooltip": "Advance the blue expedition to 5.",
       "tags": [
         "expedition"
@@ -1491,6 +1532,7 @@
         0.5,
         0.9
       ],
+      "asset": "stripes:6:blue",
       "tooltip": "Advance the blue expedition to 6.",
       "tags": [
         "expedition"
@@ -1521,6 +1563,7 @@
         0.5,
         0.9
       ],
+      "asset": "stripes:7:blue",
       "tooltip": "Advance the blue expedition to 7.",
       "tags": [
         "expedition"
@@ -1551,6 +1594,7 @@
         0.5,
         0.9
       ],
+      "asset": "stripes:8:blue",
       "tooltip": "Advance the blue expedition to 8.",
       "tags": [
         "expedition"
@@ -1581,6 +1625,7 @@
         0.5,
         0.9
       ],
+      "asset": "stripes:9:blue",
       "tooltip": "Advance the blue expedition to 9.",
       "tags": [
         "expedition"
@@ -1611,6 +1656,7 @@
         0.5,
         0.9
       ],
+      "asset": "stripes:10:blue",
       "tooltip": "Advance the blue expedition to 10.",
       "tags": [
         "expedition"
@@ -1641,6 +1687,7 @@
         0.85,
         0.8
       ],
+      "asset": "star:5:silver",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -1672,6 +1719,7 @@
         0.85,
         0.8
       ],
+      "asset": "star:5:silver",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -1703,6 +1751,7 @@
         0.85,
         0.8
       ],
+      "asset": "star:5:silver",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -1734,6 +1783,7 @@
         0.85,
         0.8
       ],
+      "asset": "stripes:2:silver",
       "tooltip": "Advance the white expedition to 2.",
       "tags": [
         "expedition"
@@ -1764,6 +1814,7 @@
         0.85,
         0.8
       ],
+      "asset": "stripes:3:silver",
       "tooltip": "Advance the white expedition to 3.",
       "tags": [
         "expedition"
@@ -1794,6 +1845,7 @@
         0.85,
         0.8
       ],
+      "asset": "stripes:4:silver",
       "tooltip": "Advance the white expedition to 4.",
       "tags": [
         "expedition"
@@ -1824,6 +1876,7 @@
         0.85,
         0.8
       ],
+      "asset": "stripes:5:silver",
       "tooltip": "Advance the white expedition to 5.",
       "tags": [
         "expedition"
@@ -1854,6 +1907,7 @@
         0.85,
         0.8
       ],
+      "asset": "stripes:6:silver",
       "tooltip": "Advance the white expedition to 6.",
       "tags": [
         "expedition"
@@ -1884,6 +1938,7 @@
         0.85,
         0.8
       ],
+      "asset": "stripes:7:silver",
       "tooltip": "Advance the white expedition to 7.",
       "tags": [
         "expedition"
@@ -1914,6 +1969,7 @@
         0.85,
         0.8
       ],
+      "asset": "stripes:8:silver",
       "tooltip": "Advance the white expedition to 8.",
       "tags": [
         "expedition"
@@ -1944,6 +2000,7 @@
         0.85,
         0.8
       ],
+      "asset": "stripes:9:silver",
       "tooltip": "Advance the white expedition to 9.",
       "tags": [
         "expedition"
@@ -1974,6 +2031,7 @@
         0.85,
         0.8
       ],
+      "asset": "stripes:10:silver",
       "tooltip": "Advance the white expedition to 10.",
       "tags": [
         "expedition"
@@ -2004,6 +2062,7 @@
         0.75,
         0.25
       ],
+      "asset": "star:5:gold",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -2035,6 +2094,7 @@
         0.75,
         0.25
       ],
+      "asset": "star:5:gold",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -2066,6 +2126,7 @@
         0.75,
         0.25
       ],
+      "asset": "star:5:gold",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
       "tags": [
         "expedition",
@@ -2097,6 +2158,7 @@
         0.75,
         0.25
       ],
+      "asset": "stripes:2:gold",
       "tooltip": "Advance the yellow expedition to 2.",
       "tags": [
         "expedition"
@@ -2127,6 +2189,7 @@
         0.75,
         0.25
       ],
+      "asset": "stripes:3:gold",
       "tooltip": "Advance the yellow expedition to 3.",
       "tags": [
         "expedition"
@@ -2157,6 +2220,7 @@
         0.75,
         0.25
       ],
+      "asset": "stripes:4:gold",
       "tooltip": "Advance the yellow expedition to 4.",
       "tags": [
         "expedition"
@@ -2187,6 +2251,7 @@
         0.75,
         0.25
       ],
+      "asset": "stripes:5:gold",
       "tooltip": "Advance the yellow expedition to 5.",
       "tags": [
         "expedition"
@@ -2217,6 +2282,7 @@
         0.75,
         0.25
       ],
+      "asset": "stripes:6:gold",
       "tooltip": "Advance the yellow expedition to 6.",
       "tags": [
         "expedition"
@@ -2247,6 +2313,7 @@
         0.75,
         0.25
       ],
+      "asset": "stripes:7:gold",
       "tooltip": "Advance the yellow expedition to 7.",
       "tags": [
         "expedition"
@@ -2277,6 +2344,7 @@
         0.75,
         0.25
       ],
+      "asset": "stripes:8:gold",
       "tooltip": "Advance the yellow expedition to 8.",
       "tags": [
         "expedition"
@@ -2307,6 +2375,7 @@
         0.75,
         0.25
       ],
+      "asset": "stripes:9:gold",
       "tooltip": "Advance the yellow expedition to 9.",
       "tags": [
         "expedition"
@@ -2337,6 +2406,7 @@
         0.75,
         0.25
       ],
+      "asset": "stripes:10:gold",
       "tooltip": "Advance the yellow expedition to 10.",
       "tags": [
         "expedition"

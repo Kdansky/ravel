@@ -229,11 +229,43 @@ colours and a value range, and is the model for any deck-of-cards game.
 
 ### Art without assets
 
-`asset` is optional. A card with none renders as its `color` (`[r, g, b]`) with
-the title and text on it, which is enough to play and to tell cards apart —
-give each category a colour and the table reads at a glance. Procedural
-placeholder shapes are designed but **not yet built** (`ideas/03`), so until
-then colour is the whole toolkit.
+**No game needs an image file.** `asset` may name a shape instead, drawn
+procedurally: `<shape>[:<n>]:<colour>[:<colour>]`.
+
+```json
+"asset": "circle:teal"           "asset": "polygon:5:green"
+"asset": "star:6:gold:navy"      "asset": "stripes:7:crimson"
+"asset": "checker:8:black:white" "asset": "auto"
+```
+
+| Shapes | |
+|---|---|
+| no count | `circle`, `square`, `triangle`, `diamond`, `cross` |
+| counted | `polygon:3–12`, `star:3–12`, `stripes:2–16`, `checker:2–16`, `dots:1–8` |
+
+Colours are `#rrggbb` or a palette name: `black white grey slate ash silver
+red crimson maroon pink orange amber gold yellow sand tan brown olive green
+forest teal cyan blue navy indigo violet purple magenta`. A second colour is
+the background; with only one, the background is a dark wash of the first, so a
+one-colour spec looks deliberate. Counts outside a shape's range are clamped.
+
+**`"asset": "auto"`** derives a shape, a count and a hue from the card *key*.
+Same card, same art, every run and every machine — no authoring at all, and no
+RNG draw, so it cannot shift a seeded shuffle. Set `"placeholder_art": true` at
+the top level to make `auto` the default for every card with no `asset`, which
+is the one-line way to give a brand-new game visual differentiation.
+
+`lost_cities.json` is the worked example: sixty cards, no image files. Its
+number cards are `stripes:<value>:<colour>`, so a card's value is legible as a
+stripe count, and its wagers are stars.
+
+**Art is style, never a rule.** It is tempting, once a card is drawn
+`crimson`, for a rule to ask "is this card red". It must not, and it cannot —
+nothing below the presentation line can even see the asset field. Colour the
+rules care about is a tag or a stat (`"tags": ["red"]`,
+`"card_stats": { "rank": 7 }`); the picture merely agrees with it. Lost Cities'
+red 7 is red because of its `red_dest` target and its `value`, and would play
+identically drawn in grey.
 
 ### Before you call it done
 
@@ -330,6 +362,7 @@ up the lantern or the pearl). The oldest matching card is taken.
 | `phases` | Phase definitions; first entry starts the game |
 | `end_conditions` | Outcome checks, first match wins, once per game |
 | `setup.player` | Starting player stats — becomes the injected player card |
+| `placeholder_art` | `true` gives every card without an `asset` generated art from its key |
 
 ### Stats
 
@@ -371,7 +404,7 @@ early (the validator warns when starting `contents` already exceed capacity).
 | Field | Meaning |
 |---|---|
 | `key` | Unique identifier |
-| `text`, `tooltip`, `asset`, `color` | Presentation (asset optional; color `[r,g,b]`) |
+| `text`, `tooltip`, `asset`, `color` | Presentation. `asset` is optional and may be a filename, an `http(s)://` URL, a procedural shape spec, or `"auto"` (see *Art without assets*); `color` is `[r, g, b]` |
 
 A local `asset` must be a bare filename (`sword.png`, not `../sword.png` or
 a path) — this is enforced, not just a convention, since games can be

@@ -18,6 +18,14 @@ love.graphics = setmetatable({
 	getHeight     = function() return 540 end,
 	getFont       = function() return font end,
 	newFont       = function() return font end,
+	-- Enough of a canvas/image to let art.lua actually draw: every shape then
+	-- runs its real geometry through the stubbed primitives, which is where a
+	-- bad polygon or a nil count would blow up.
+	newCanvas     = function() return { newImageData = function() return {} end } end,
+	newImage      = function()
+		return { getDimensions = function() return 256, 256 end,
+			getWidth = function() return 256 end, getHeight = function() return 256 end }
+	end,
 }, { __index = function() return noop end })
 love.mouse = { getPosition = function() return 480, 270 end }
 love.timer = { getTime = function() return os.clock() end }
@@ -139,4 +147,24 @@ fx.float(gx, gy, "+2 gold", { 0.4, 1, 0.5 })
 fx.float(480, 260, "-1 morale", { 1, 0.4, 0.35 })
 for _ = 1, 30 do frame(0.016) end
 
-print("render smoke ok: " .. frames .. " frames drawn")
+-- Every shape through its real geometry. The primitives are stubs, but the
+-- arithmetic that feeds them is not: a bad polygon, a zero count or a nil
+-- colour blows up here rather than as a blank card in a running game.
+local art = require("art")
+local drawn = 0
+for _, spec in ipairs({
+	"circle:teal", "square:#ff8000", "triangle:crimson", "diamond:gold",
+	"cross:red:white", "polygon:3:green", "polygon:12:navy", "star:5:amber",
+	"star:3:violet", "stripes:2:slate", "stripes:16:sand", "checker:2:black:white",
+	"checker:16:olive", "dots:1:pink", "dots:8:cyan",
+}) do
+	assert(art.render(spec), "art.render returned nothing for " .. spec)
+	drawn = drawn + 1
+end
+for _, key in ipairs({ "watchtower", "farm", "a", "", "the_longest_card_key_here" }) do
+	assert(art.render(art.auto(key)), "auto art failed for '" .. key .. "'")
+	drawn = drawn + 1
+end
+assert(art.render("hexagram:red") == nil, "an unknown shape must draw nothing")
+
+print("render smoke ok: " .. frames .. " frames drawn, " .. drawn .. " placeholders")

@@ -9,7 +9,7 @@ in, and what to refuse to build.
 | [00](00-foundation-scope.md) | **Stats live on cards** | — | small–medium | **shipped** |
 | [01](01-boardgames.md) | Any board game as JSON | — | large, staged | **Lost Cities shipped.** Next: checkers, chess, Klondike, triggers |
 | [02](02-multiplayer.md) | More than one player | 05 for stage B | small ×3 | **Stage A (hot-seat) shipped**, bar its HUD polish. B and C not started |
-| [03](03-placeholder-art.md) | Procedural placeholder art | — | small | not started — still the only fully isolated track |
+| [03](03-placeholder-art.md) | Procedural placeholder art | — | small | **shipped** |
 | [04](04-simulation-games.md) | Cultist Simulator, turn-based | — | medium | not started — unblocked, and smaller than written |
 | [05](05-determinism.md) | The engine owns its randomness | — | small | not started — blocks 02B, and already costs the test suite |
 
@@ -53,17 +53,12 @@ Ordered by "cheap and unblocks things" first:
    isolated, exact pass/fail test, and it is already costing the suite: both
    golden traces are skipped outside LuaJIT because a seed does not reproduce
    across interpreters. Blocks [02](02-multiplayer.md) stage B entirely.
-2. **[03](03-placeholder-art.md) — placeholder art.** Still the only track with
-   no dependencies on anything, and now the last thing standing between the
-   engine and "generate a whole game from a rulebook with no art assets" (see
-   `AUTHORING.md` §3, which documents that procedure and has to say "colour is
-   the whole toolkit" until this lands).
-3. **[02](02-multiplayer.md) stage A's remaining polish** — a nameplate, hidden
+2. **[02](02-multiplayer.md) stage A's remaining polish** — a nameplate, hidden
    hands, a pass-the-device overlay. Presentation only; the rules are done.
-4. **[01](01-boardgames.md) — checkers**, the next rung. Two thirds of its gap
+3. **[01](01-boardgames.md) — checkers**, the next rung. Two thirds of its gap
    already arrived for other reasons; what is left is letting `place_in_slot`
    capture an occupant.
-5. **[04](04-simulation-games.md) — a Cultist Simulator prototype in JSON
+4. **[04](04-simulation-games.md) — a Cultist Simulator prototype in JSON
    only.** Still free: everything the temporal model needs exists, and it
    answers "is turn-based CS fun" for the price of a game file, before anyone
    writes `check_recipes`.

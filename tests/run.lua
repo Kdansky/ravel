@@ -828,6 +828,8 @@ local CASES = {
 		function(g) g.end_conditions[2] = { zone_empty = "hand", ["then"] = {} } end },
 	{ "a zone_empty watching a missing zone", "watches zone 'vault'",
 		function(g) g.end_conditions[2] = { zone_empty = { "vault" }, ["then"] = {} } end },
+	{ "an art spec the engine can't draw", "isn't a shape the engine can draw",
+		function(g) g.card_defs.c_flee.asset = "hexagram:red" end },
 	{ "a comparison against a bare word", "is a bare word",
 		function(g) g.end_conditions[2] = { stat = "hp", at_least = "lots", ["then"] = {} } end },
 	{ "a condition with no comparison", "no comparison",
@@ -1614,6 +1616,50 @@ check("an unknown fn is part of the name",   subj("wibble:farm") == "-/wibble:fa
 check("an unknown quantifier is the scope",  subj("hp@some.tag") == "-/hp/any/some.tag")
 check("a non-string subject is nil",         subj(nil) == "nil")
 check("an empty subject is nil",             subj("@board") == "nil")
+
+-- === placeholder art ===
+-- Parsing is pure — no love, no state — which is why the validator can check a
+-- spec at load time and why this runs headless. Drawing is covered by
+-- tests/render_smoke.lua.
+local art = require("art")
+local function spec(s)
+	local p = art.parse(s)
+	if not p then return "nil" end
+	return string.format("%s/%s/%02x%02x%02x", p.shape, tostring(p.n),
+		math.floor(p.fg[1] * 255 + 0.5), math.floor(p.fg[2] * 255 + 0.5),
+		math.floor(p.fg[3] * 255 + 0.5))
+end
+check("a shape and a named colour",      spec("circle:teal"):match("^circle/nil/") ~= nil)
+check("a counted shape",                 spec("polygon:5:green"):match("^polygon/5/") ~= nil)
+check("a hex colour is taken literally", spec("square:#ff8000") == "square/nil/ff8000")
+check("a count is clamped to the shape", art.parse("polygon:99:red").n == 12
+	and art.parse("polygon:1:red").n == 3)
+check("a shape with no count ignores one", art.parse("circle:4:red").n == nil)
+check("an unknown shape is not art",     spec("hexagram:red") == "nil")
+check("an unknown colour is not art",    spec("circle:puce") == "nil")
+check("a missing colour is not art",     spec("circle") == "nil")
+check("trailing junk is a typo",         spec("circle:red:navy:extra") == "nil")
+check("a filename is never a shape",     spec("castle_hill.jpg") == "nil")
+check("a non-string is not art",         spec(nil) == "nil" and spec(42) == "nil")
+check("one colour still gets a backdrop",
+	art.parse("circle:teal").bg ~= nil and art.parse("circle:teal").bg[1] < 0.3)
+
+-- auto must be stable: same key, same art, on every machine and every run,
+-- and it must never consume an RNG draw or it would shift the shuffle.
+math.randomseed(1)
+local a1 = art.auto("watchtower")
+math.randomseed(999)
+local a2 = art.auto("watchtower")
+check("auto art is derived from the key, not the RNG", a1 == a2)
+check("auto art parses as a real spec", art.parse(a1) ~= nil)
+check("different keys get different art", art.auto("watchtower") ~= art.auto("farm"))
+
+-- The trap this feature exists to avoid: art must never be reachable from the
+-- rules. Nothing below the presentation line may require it.
+for _, mod in ipairs({ "predicate", "actions", "flow", "zones", "phase", "entity", "tags" }) do
+	local src = assert(io.open("game/" .. mod .. ".lua")):read("*a")
+	check(mod .. " does not require art", src:find('require%("art"%)') == nil)
+end
 
 -- === golden traces ===
 -- Reworking the stat machinery must not change what actually happens in a

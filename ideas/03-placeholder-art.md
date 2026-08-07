@@ -4,7 +4,7 @@
 > jpg, but can just do something like "polygon:5 ; green" and have that work
 > reasonably well for prototyping.* — `IDEAS.md`
 
-**Status:** not started · **Blocked on:** nothing · **Size:** small (~200 LOC, one new module)
+**Status:** shipped · **Size:** small (~200 LOC, one new module)
 
 The only idea in the file with **zero dependencies on anything else**. It can be
 built today, in parallel with everything, by someone who never touches
