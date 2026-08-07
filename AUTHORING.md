@@ -208,16 +208,20 @@ up the lantern or the pearl). The oldest matching card is taken.
 | `zones` | Zone definitions, in declaration order |
 | `phases` | Phase definitions; first entry starts the game |
 | `end_conditions` | Outcome checks, first match wins, once per game |
-| `setup.player` | Starting player stats |
+| `setup.player` | Starting player stats — becomes the injected player card |
 
 ### Stats
 
-`{ "key", "label", "min", "max", "hidden" }`. Declared stats display with a
+`{ "key", "label", "min", "max", "hidden", "subject" }`. Declared stats display with a
 built-in icon (`gold` coin, `hp` heart, `defense` shield, `morale` banner,
 `food` apple, others a diamond). Stat changes clamp to `min`/`max`; a card
 stat with a `<key>_max` companion clamps to `[0, max]`. **Reserved:** `round`
 (starts 1, +1 per round boundary) and `plays` (per-hand play counter) are
 engine-managed — declare them only to display them.
+
+`subject` overrides what the HUD row *reads* while the key still names what
+cards spend: a stat produced by cards can display as their total,
+`{ "key": "might", "subject": "sum:might@party" }`.
 
 ### Zones
 
@@ -333,7 +337,7 @@ run their `then` actions — usually `push_phase:` to an ending overlay.
 
 **Scopes: which cards a subject is about.** Add `@<name>`, where the name is a
 zone key, a tag, or one of `self` / `target` / `all`. Without one, a subject
-means what it always did — the total across everything.
+means **your own cards** — see *The player is a card* below.
 
 ```
 insight@player       the stat on cards carrying the "player" tag
@@ -366,6 +370,35 @@ costs and effects:
 
 Costs may carry a scope but not a measuring function: `count:` and `sum:` count
 things rather than spend them, so they belong in `needs`, not `cost`.
+
+### The player is a card
+
+There is no player object. `setup.player` becomes an invisible card tagged
+`player`, and a subject with no scope means that card — so `"cost": { "gold": 2 }`
+and `{ "stat": "gold", "at_least": 5 }` are guaranteed to be talking about the
+same coins. Nothing else changes for a game that never thinks about it.
+
+Tag a template `player` and it becomes the player instead, with no stat bag
+injected. `castle.json` does this with its throne room: the hero is a real card
+on the board, so it can be looked at, damaged, targeted and destroyed like any
+other, and its stats are the player's stats.
+
+```json
+{ "key": "throne_room", "tags": ["building", "hero", "player"],
+  "card_stats": { "hp": 20, "gold": 20, "morale": 5 },
+  "auto_play": true, "to_zone": "board", "to_slot": 13 }
+```
+
+A **party** is the same idea repeated: N cards in a zone, each tagged `player`,
+each with its own `card_stats`. Per-character stats, targeting, death and
+revival are all ordinary card behaviour — `sum:might@party` asks what the party
+has between them, `"activate_cost": { "mana@self": 1 }` makes a character pay
+from her own pool. Note that with several player cards a *bare* subject means
+all of them at once; name a scope when you mean one.
+
+`round` lives on a second injected card, not on the player: it belongs to the
+game, so a hero who dies does not take the calendar with them.
+
 
 ### Computed tags
 

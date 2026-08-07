@@ -22,8 +22,17 @@ M.default_seed  = nil   -- applied to every game load (CLI arg / RAVEL_SEED env)
 local history     = {}
 local MAX_HISTORY = 50
 
+-- The engine's own two cards. The player card is found by tag, so a game can
+-- promote its hero to be it (castle's throne room) instead of carrying an
+-- invisible one; the system card is found by key, because it is never content.
 local function player()
-	for e in entity.each("player") do return e end
+	return predicate.entities_in_scope("player")[1]
+end
+
+local function system_card()
+	for e in entity.each("card") do
+		if e.def_key == "system" and e.zone_id then return e end
+	end
 end
 
 local function fired_flags()
@@ -188,10 +197,10 @@ function M.settle()
 				-- cards, then let board cards produce — all before the new
 				-- round's phases run or deal anything (a threat dealt at
 				-- dawn must not drain the day it arrives).
-				local pl = player()
-				if pl then
-					pl.stats.round = (pl.stats.round or 1) + 1
-					log.add("— Round " .. pl.stats.round .. " —")
+				local sys = system_card()
+				if sys then
+					sys.stats.round = (sys.stats.round or 1) + 1
+					log.add("— Round " .. sys.stats.round .. " —")
 				end
 				for e in entity.each("card") do e.exhausted = nil end
 				run_on_turn()
@@ -241,13 +250,8 @@ function M.init(filename, seed)
 		log.add("! " .. problem)
 	end
 
-	local pl = { kind = "player", stats = { round = 1, plays = 0 } }
-	-- setup.player is untrusted content: coerce to numbers so later stat
-	-- arithmetic can never be handed a string/table and crash.
-	for k, v in pairs(G.setup.player or {}) do pl.stats[k] = tonumber(v) or 0 end
-	entity.register(pl)
-
-	-- Cards that start in play (e.g. the throne room), placed onto their zone/slot.
+	-- Cards that start in play (the player card, the system card, a throne
+	-- room), placed onto their zone/slot.
 	-- Walked in file order, never with pairs: entity IDs are handed out in
 	-- creation order, and Lua's hash order is not stable across interpreters
 	-- (or, in 5.4, across processes). Setup has to build the same board every
@@ -465,7 +469,7 @@ function M.summary()
 	for _, key in ipairs(G.stat_defs_list or {}) do
 		local def = G.stat_defs[key]
 		if not (def and def.hidden) then
-			out[#out + 1] = (def and def.label or key) .. " " .. entity.sum_stat(key)
+			out[#out + 1] = (def and def.label or key) .. " " .. predicate.total(def and def.subject or key)
 		end
 	end
 	return out

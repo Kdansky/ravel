@@ -15,6 +15,7 @@ local actions     = require("actions")
 local targeting   = require("targeting")
 local flow        = require("flow")
 local log         = require("log")
+local predicate   = require("predicate")
 local validate    = require("validate")
 
 local function wrap(text, width)
@@ -68,13 +69,13 @@ local function show()
 	for _, key in ipairs(G.stat_defs_list) do
 		local def = G.stat_defs[key]
 		if not (def and def.hidden) then
-			stats[#stats + 1] = (def.label or key) .. ": " .. entity.sum_stat(key)
+			stats[#stats + 1] = (def.label or key) .. ": " .. predicate.total(def.subject or key)
 		end
 	end
 	if #stats > 0 then print(table.concat(stats, "   ")) end
 
 	for z in entity.each("zone") do
-		if z.zone_type == "grid" then
+		if z.zone_type == "grid" and not z.tags.hidden then
 			print((z.label or "Board") .. " ('a <slot>' activates, ~ = exhausted):")
 			local row = {}
 			for idx, slot_id in ipairs(z.slots) do

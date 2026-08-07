@@ -45,8 +45,8 @@ Support: `headless.lua` (the love shim), `play.lua` (CLI frontend over flow),
 
 ## What lives where
 
-**State** is exactly: the entity array inside `entity.lua` (player, zones,
-slots, cards), the phase stack (`phase`), end-condition fired flags (on `G`),
+**State** is exactly: the entity array inside `entity.lua` (zones, slots,
+cards — there is no player entity; the player is a card), the phase stack (`phase`), end-condition fired flags (on `G`),
 and the event log. All four are captured by flow's checkpoint and restored by undo —
 **if you add stateful storage anywhere else, you must join the snapshot
 protocol in `flow.checkpoint`/`flow.undo` or undo will silently break.**
@@ -56,6 +56,25 @@ protocol in `flow.checkpoint`/`flow.undo` or undo will silently break.**
 `computed_tags`, `end_conditions`. Instances hold only `def_key` plus
 per-instance state (`stats`, `zone_id`, `slot_id`, `exhausted`, `place`).
 Undo does not revert template edits — that's a feature (tune, then replay).
+
+**The player is a card.** There are three entity kinds — `zone`, `slot`,
+`card` — and the player is not one of them. `declaration.parse` injects two
+cards into a hidden `system` grid zone, the same way it injects the built-in
+`reveal` zone and phase, and a game may claim either key to override them:
+
+- the **player card** (tag `player`), holding `setup.player`'s stats and
+  `plays`. Injected only when no template already carries the `player` tag, so
+  a game that wants a visible hero just tags it (castle's throne room) and gets
+  stats, targeting, rendering, tooltips and undo for free.
+- the **system card** (key `system`), holding `round` — which belongs to the
+  game, not to a seat: two players must not get two calendars, and a hero who
+  dies must not take one with them.
+
+A subject with no scope resolves to exactly these — every card tagged `player`
+plus the system zone — so a bare read and a bare write land on the same card.
+That is the whole point: `entity.sum_stat` (read everything) and `stat_holder`
+(write to the first holder) used to disagree, and only an unwritten
+one-holder-per-stat invariant kept them in step.
 
 **Presentation cache**: `card.place` (pixel rect) lives on entities for
 hit-testing and as the animation target, but it is written by
@@ -156,9 +175,10 @@ warning), document it. If it affects playability, surface it in
 test that proves it still fires, so a check that silently dies turns the
 suite red.
 
-**New engine-managed state**: prefer a stat on the player entity (`round`,
-`plays` precedent) — snapshots, undo, display, and predicates come free.
-Otherwise, join the snapshot protocol (invariant 3 above).
+**New engine-managed state**: prefer a stat on one of the two injected cards
+(`plays` on the player card, `round` on the system card) — snapshots, undo,
+display, and predicates come free. Otherwise, join the snapshot protocol
+(invariant 3 above).
 
 **A new game**: one JSON file + a menu card. See AUTHORING.md.
 

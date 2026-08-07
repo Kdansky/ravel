@@ -80,29 +80,29 @@ flow.play_card(find_card("play_demo").id, {})
 check("menu card loads demo", declaration.G.title == "The Wandering Road")
 check("demo starts with 1 hand card", zone_count("hand") == 1)
 check("road holds the other 10 cards", zone_count("road") == 10)
-check("player starts at 5 hp", entity.sum_stat("hp") == 5)
+check("player starts at 5 hp", predicate.total("hp") == 5)
 
 eval("fill:hand:storm:1")
 local storm = find_card("storm", "hand")
-local hp0   = entity.sum_stat("hp")
+local hp0   = predicate.total("hp")
 flow.play_card(storm.id, {})
-check("demo card applies its effect", entity.sum_stat("hp") == hp0 - 1)
+check("demo card applies its effect", predicate.total("hp") == hp0 - 1)
 check("played card goes to past", zone_count("past") == 1)
 check("a new card was drawn", zone_count("hand") == 2)
 
 eval("set_stat:hp:10")
 eval("gain_stat:hp:3")
-check("hp clamps at declared max", entity.sum_stat("hp") == 10)
+check("hp clamps at declared max", predicate.total("hp") == 10)
 
 -- === demo: undo (state and log together) ===
-local hp_before   = entity.sum_stat("hp")
+local hp_before   = predicate.total("hp")
 local hand_before = zones.find("hand").cards[1]
 local log_before  = log.count()
 flow.play_card(hand_before, {})
 check("plays write log lines", log.count() > log_before)
 check("undo works", flow.undo())
 check("undo restores hp and hand",
-	entity.sum_stat("hp") == hp_before and zones.find("hand").cards[1] == hand_before)
+	predicate.total("hp") == hp_before and zones.find("hand").cards[1] == hand_before)
 check("undo erases the undone log lines", log.count() == log_before)
 
 -- === demo: defeat ===
@@ -160,8 +160,8 @@ check("castle starts in build1", phase.current().key == "build1")
 check("hand dealt 3 plus the pass card", zone_count("hand") == 4)
 check("throne auto-played to board", find_card("throne_room", "board") ~= nil)
 check("throne sits in its slot", entity.get(find_card("throne_room").slot_id).slot_idx == 13)
-check("starting gold is 20", entity.sum_stat("gold") == 20)
-check("round counter starts at 1", entity.sum_stat("round") == 1)
+check("starting gold is 20", predicate.total("gold") == 20)
+check("round counter starts at 1", predicate.total("round") == 1)
 check("build deck has 15 minus 3 dealt", zone_count("build_deck") == 12)
 for _, key in ipairs(G.phase_list) do
 	check("overlay phase not in sequence: " .. key, G.phase_by_key[key].type ~= "overlay")
@@ -185,10 +185,10 @@ local throne = find_card("throne_room")
 eval("set_stat:gold:0")
 check("cannot inspire without gold", flow.activate(throne.id) == false)
 eval("set_stat:gold:3")
-local morale0 = entity.sum_stat("morale")
+local morale0 = predicate.total("morale")
 check("inspire succeeds with gold", flow.activate(throne.id))
 check("morale +1 and gold -2",
-	entity.sum_stat("morale") == morale0 + 1 and entity.sum_stat("gold") == 1)
+	predicate.total("morale") == morale0 + 1 and predicate.total("gold") == 1)
 check("activation exhausts the throne", throne.exhausted == true)
 check("exhausted cards cannot activate again", flow.activate(throne.id) == false)
 
@@ -230,11 +230,11 @@ eval("set_stat:gold:5")
 eval("fill:hand:farm:1")
 local farm  = find_card("farm", "hand")
 local slot  = empty_slot()
-local gold0 = entity.sum_stat("gold")
+local gold0 = predicate.total("gold")
 flow.play_card(farm.id, { slot })
 check("farm placed on board", farm.zone_id == zones.find_id("board"))
 check("farm occupies the chosen slot", entity.get(slot).occupant == farm.id)
-check("farm cost 1 gold", entity.sum_stat("gold") == gold0 - 1)
+check("farm cost 1 gold", predicate.total("gold") == gold0 - 1)
 check("turn ended into build2", phase.current().key == "build2")
 check("hand redealt with 3 plus the pass card", zone_count("hand") == 4)
 
@@ -277,13 +277,13 @@ flow.play_card(find_card("royal_decree", "hand").id, {})
 check("decree opens the edict overlay", phase.current().key == "decree")
 check("three edicts offered from their deck",
 	zone_count("offer") == 3 and zone_count("edicts") == 0)
-check("decree cost was paid", entity.sum_stat("gold") == 7)
+check("decree cost was paid", predicate.total("gold") == 7)
 
 flow.undo()
 check("undo backs out of the whole choice",
 	phase.current().key == "build2" and zone_count("offer") == 0
 	and zone_count("edicts") == 3
-	and find_card("royal_decree", "hand") ~= nil and entity.sum_stat("gold") == 9)
+	and find_card("royal_decree", "hand") ~= nil and predicate.total("gold") == 9)
 
 flow.play_card(find_card("royal_decree", "hand").id, {})
 local pick
@@ -296,9 +296,9 @@ check("unpicked edicts return to their deck",
 	zone_count("edicts") == 2 and zone_count("offer") == 0)
 check("choice resumes build2", phase.current().key == "build2")
 
-local gold1 = entity.sum_stat("gold")
+local gold1 = predicate.total("gold")
 flow.play_card(pick, {})
-check("tax levy grants 3 gold", entity.sum_stat("gold") == gold1 + 3)
+check("tax levy grants 3 gold", predicate.total("gold") == gold1 + 3)
 check("played edict recycles into its deck", zone_count("edicts") == 3)
 check("playing the edict ended the turn", phase.current().key == "challenge")
 
@@ -319,11 +319,11 @@ for _, cid in ipairs(zones.find("hand").cards) do
 	local k = entity.get(cid).def_key
 	if k ~= "merchant" and k ~= "pass" then challenge_card = cid end
 end
-local gold_before = entity.sum_stat("gold")
+local gold_before = predicate.total("gold")
 flow.play_card(challenge_card, {})
 check("round wrapped back to build1", phase.current().key == "build1")
-check("on_turn gold income applied", entity.sum_stat("gold") == gold_before + expected_income)
-check("round counter advanced", entity.sum_stat("round") == 2)
+check("on_turn gold income applied", predicate.total("gold") == gold_before + expected_income)
+check("round counter advanced", predicate.total("round") == 2)
 -- re-fetch by ID: undo replaced the entity tables, old references are stale
 check("the new round readies exhausted cards", entity.get(throne.id).exhausted == nil)
 
@@ -414,10 +414,10 @@ check("kingdom loads at the origin", phase.current().key == "origin")
 check("all three origins offered plus decline", zone_count("hand") == 4)
 
 flow.play_card(find_card("warlord", "hand").id, {})
-check("origin grants its stats", entity.sum_stat("might") == 3 and entity.sum_stat("progress") == 3)
+check("origin grants its stats", predicate.total("might") == 3 and predicate.total("progress") == 3)
 check("origin auto-slotted onto the board", find_card("warlord", "board").slot_id ~= nil)
 check("routing entered the market", phase.current().key == "market_visit")
-check("ends_round advanced the round", entity.sum_stat("round") == 2)
+check("ends_round advanced the round", predicate.total("round") == 2)
 check("market hand: 4 cards plus 3 routers", zone_count("hand") == 7)
 
 local function hand_router(key)
@@ -450,10 +450,10 @@ for e in entity.each("card") do
 		farms = farms + 1
 	end
 end
-local food0 = entity.sum_stat("food")
+local food0 = predicate.total("food")
 eval("gain_stat:food:count:farm")
 check("count amounts resolve board tags",
-	farms >= 2 and entity.sum_stat("food") == food0 + farms)
+	farms >= 2 and predicate.total("food") == food0 + farms)
 
 eval("fill:hand:rally_banner:1")
 check("count-needs gate blocks below threshold",
@@ -480,10 +480,10 @@ for _, cid in ipairs(zones.find("hand").cards) do
 end
 for _, cid in ipairs(trial_cards) do flow.play_card(cid, {}) end
 check("rest unlocks after both trials", flow.can_play(rest_id) == true)
-local round0 = entity.sum_stat("round")
+local round0 = predicate.total("round")
 flow.play_card(rest_id, {})
 check("rest marches into the wartime market", phase.current().key == "wartime_market")
-check("each trial pair is a round", entity.sum_stat("round") == round0 + 1)
+check("each trial pair is a round", predicate.total("round") == round0 + 1)
 check("the wartime market deals supplies", zone_count("hand") == 4)
 flow.play_card(hand_router("march_on"), {})
 check("marching on returns to the trials", phase.current().key == "trial2")
@@ -534,14 +534,14 @@ check("leaving a phase discards the unplayed hand", zone_count("graveyard") > gr
 check("the next visit deals only the fresh hand", zone_count("hand") == 7)
 
 declaration.G.phase_by_key.market_visit.ends_after = 1
-local r_ea = entity.sum_stat("round")
+local r_ea = predicate.total("round")
 local first_ea
 for _, cid in ipairs(zones.find("hand").cards) do
 	local d = cards.def(entity.get(cid))
 	if not (d.tags_set and d.tags_set.token) and flow.can_play(cid) then first_ea = cid; break end
 end
 flow.play_card(first_ea, {})
-check("ends_after advances the phase by itself", entity.sum_stat("round") == r_ea + 1)
+check("ends_after advances the phase by itself", predicate.total("round") == r_ea + 1)
 check("the phase it advanced into dealt fresh", zone_count("hand") == 7)
 
 -- === kingdom: failed trials persist as crises ===
@@ -551,10 +551,10 @@ eval("set_stat:might:0")
 eval("fill:hand:war_host:1")
 flow.play_card(find_card("war_host", "hand").id, {})
 check("a failed trial squats on the board as a crisis", find_card("war_host", "board") ~= nil)
-local stab1 = entity.sum_stat("stability")
+local stab1 = predicate.total("stability")
 flow.play_card(hand_router("to_market"), {})
 check("an unanswered crisis drains stability each round",
-	entity.sum_stat("stability") == stab1 - 1)
+	predicate.total("stability") == stab1 - 1)
 local crisis = find_card("war_host", "board")
 eval("set_stat:might:9")
 flow.activate(crisis.id)
@@ -606,9 +606,9 @@ check("the beach puts keepsakes on the board", zone_count("board") == 2)
 check("keepsakes occupy board slots", find_card("rusty_key", "board").slot_id ~= nil)
 check("the beach trims the choices", zone_count("hand") == 2)
 
-local hp_lantern = entity.sum_stat("hp")
+local hp_lantern = predicate.total("hp")
 eval("gain_stat:hp:card:lantern")
-check("card amounts resolve template presence", entity.sum_stat("hp") == hp_lantern + 1)
+check("card amounts resolve template presence", predicate.total("hp") == hp_lantern + 1)
 
 flow.play_card(find_card("c_door", "hand").id, {})
 check("the door with the key reveals the hall", top_page() == "p_hall")
@@ -725,14 +725,14 @@ flow.play_card(find_card("scavenge", "hand").id, { th.id })
 check("scavenging clears the corpse for supplies",
 	entity.get(th.id).zone_id == zones.find_id("graveyard"))
 
-local d0, s0 = entity.sum_stat("distance"), entity.sum_stat("supplies")
-local m0 = entity.sum_stat("morale")
+local d0, s0 = predicate.total("distance"), predicate.total("supplies")
+local m0 = predicate.total("morale")
 flow.play_card(hand_router("march"), {})
 check("marching trades a supply for a mile",
-	entity.sum_stat("distance") == d0 + 1 and entity.sum_stat("supplies") == s0 - 1)
-check("a threat never drains on the day it arrives", entity.sum_stat("morale") == m0)
+	predicate.total("distance") == d0 + 1 and predicate.total("supplies") == s0 - 1)
+check("a threat never drains on the day it arrives", predicate.total("morale") == m0)
 check("the road loops back to camp", phase.current().key == "camp")
-check("a new day has dawned", entity.sum_stat("round") == 2)
+check("a new day has dawned", predicate.total("round") == 2)
 check("camp discards yesterday's leftovers", zone_count("hand") == 5)
 
 local far0 = zone_count("road_far")
@@ -1285,6 +1285,103 @@ end
 check("target reaches the chosen cards",
 	predicate.total("hp@target", { targets = { two[1].id, two[2].id } })
 	== two[1].stats.hp + two[2].stats.hp)
+
+-- === the player is a card ===
+-- There is no player entity. A game that says nothing gets an invisible card
+-- injected from setup.player; one that wants a visible hero tags it. Either
+-- way a bare subject and a bare write land on the same card.
+flow.init("demo.json", 1)
+local kinds = {}
+for e in entity.each() do kinds[e.kind] = true end
+check("entity kinds are zone, slot and card — nothing else",
+	kinds.zone and kinds.slot and kinds.card and kinds.player == nil)
+
+local you = find_card("player")
+check("setup.player became a card in the hidden system zone",
+	you ~= nil and entity.get(you.zone_id).key == "system")
+check("a bare read resolves to that card", predicate.total("hp") == you.stats.hp)
+local hp_you = you.stats.hp
+eval("lose_stat:hp:1")
+check("a bare write lands on the same card it reads from",
+	you.stats.hp == hp_you - 1 and predicate.total("hp") == hp_you - 1)
+
+-- The round belongs to the game, not to whoever is holding it: two seats must
+-- not get two calendars, and a hero who dies must not take one with them.
+local sys = find_card("system")
+check("the round counter sits on the system card, not on the player",
+	sys ~= nil and sys.stats.round == 1 and you.stats.round == nil)
+check("a bare read still reaches it", predicate.total("round") == 1)
+
+-- castle declares its own player, so nothing is injected for it.
+flow.init("castle.json", 7)
+check("a game that tags its hero gets no injected stat bag",
+	find_card("player") == nil and predicate.total("card:player") == 0)
+check("the hero is the player card",
+	predicate.total("gold@player") == entity.get(find_card("throne_room").id).stats.gold)
+
+-- === a party of players ===
+-- The test of whether "the player is a card" is the right model: four
+-- characters with their own stats, needing no new engine concept at all.
+local function play_fixture(content, seed)
+	local path = "game/games/tmp_play_test.json"
+	local f = assert(io.open(path, "w"))
+	f:write(content)
+	f:close()
+	local ok, err = pcall(flow.init, "tmp_play_test.json", seed)
+	os.remove(path)
+	if not ok then error(err, 2) end
+end
+
+play_fixture([[{
+  "title": "The Company",
+  "stats": [
+    { "key": "might", "label": "Might", "subject": "sum:might@party" },
+    { "key": "mana",  "label": "Mana" }
+  ],
+  "zones": [
+    { "key": "party", "type": "grid", "pos": [0.0, 0.0, 0.8, 0.5], "grid": [4, 1] },
+    { "key": "hand",  "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
+  ],
+  "phases": [ { "key": "adventuring", "type": "player_input", "label": "Adventuring" } ],
+  "templates": [
+    { "key": "ranger", "text": "Ranger", "tags": ["player", "ranger"],
+      "card_stats": { "hp": 6, "might": 3 }, "auto_play": true, "to_zone": "party" },
+    { "key": "cleric", "text": "Cleric", "tags": ["player", "cleric"],
+      "card_stats": { "hp": 5, "might": 2 }, "auto_play": true, "to_zone": "party" },
+    { "key": "dwarf",  "text": "Dwarf",  "tags": ["player", "dwarf"],
+      "card_stats": { "hp": 8, "might": 4 }, "auto_play": true, "to_zone": "party" },
+    { "key": "mage",   "text": "Mage",   "tags": ["player", "mage"],
+      "card_stats": { "hp": 4, "might": 1, "mana": 3 },
+      "auto_play": true, "to_zone": "party",
+      "activate_cost": { "mana@self": 1 },
+      "on_activate":   ["gain_stat:might@self:1"] }
+  ]
+}]], 1)
+
+check("a party fixture validates clean", #validate.check(declaration.G) == 0)
+check("four characters, no injected stat bag",
+	zone_count("party") == 4 and find_card("player") == nil)
+check("the party's might is an aggregate over the zone",
+	predicate.total("sum:might@party") == 10)
+check("each character is addressable on its own",
+	predicate.total("might@ranger") == 3 and predicate.total("might@mage") == 1)
+-- Honest about the hot-seat gap: several cards tagged "player" means a bare
+-- subject is the whole company. Telling them apart by seat is idea 02's job.
+check("a bare subject is every player card at once", predicate.total("might") == 10)
+
+local mage = find_card("mage")
+check("a character pays from her own mana",
+	flow.can_afford({ ["mana@self"] = 1 }, { card_id = mage.id }))
+check("one who has none cannot",
+	flow.can_afford({ ["mana@self"] = 1 }, { card_id = find_card("dwarf").id }) == false)
+flow.activate(mage.id, {})
+check("the cost came out of her own pool, and the gain went to her",
+	mage.stats.mana == 2 and mage.stats.might == 2
+	and predicate.total("sum:might@party") == 11)
+
+zones.destroy_card(find_card("dwarf").id)
+check("a character who dies takes her might with her",
+	predicate.total("sum:might@party") == 7)
 
 -- === subject grammar ===
 -- Pure parsing, no game loaded: the one place the scope syntax is decided.

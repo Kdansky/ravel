@@ -8,6 +8,7 @@ local anim        = require("anim")
 local fx          = require("fx")
 local log         = require("log")
 local flow        = require("flow")
+local predicate   = require("predicate")
 
 local M = {}
 
@@ -634,7 +635,7 @@ local function draw_stats()
 		local def = G.stat_defs[key]
 		if not (def and def.hidden) then
 			local label = def and (def.label or key) or key
-			local txt   = label .. ": " .. tostring(entity.sum_stat(key))
+			local txt   = label .. ": " .. tostring(predicate.total(def and def.subject or key))
 			local tw    = mf:getWidth(txt)
 			local row_x = x - tw - fh - 4 * S
 			draw_stat_icon(key, row_x + fh * 0.5, y + fh * 0.5, fh * 0.85)

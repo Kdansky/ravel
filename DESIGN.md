@@ -20,6 +20,8 @@ card.zone = some_zone_table
 
 Snapshotting state = copying the array. Undo = push snapshot before each action, pop to revert. No graph traversal, no pointer invalidation. Cross-references in JSON are resolved to IDs at load time by `declaration.lua`.
 
+**There are three entity kinds — `zone`, `slot`, `card` — and the player is a card.** A player has stats, can be looked at, targeted, damaged and destroyed; every one of those already works for cards, and a fourth kind meant re-implementing all of it. When a game declares no template tagged `player`, the engine injects one from `setup.player` into a hidden `system` zone, alongside a second injected card holding `round` (which belongs to the game, not to a seat). A game that wants a visible hero simply tags a board card `player`. This is *when in doubt, decks and cards* applied to the one thing in the engine that wasn't.
+
 ---
 
 ## Templates and Instances, Live Editing
@@ -83,7 +85,9 @@ Every numeric slot accepts a number or `count:<tag>` — the number of cards on 
 
 ## Conditions Are One Vocabulary
 
-`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, challenge `requires` and card `needs` all share it. Subjects are stat keys or `count:<tag>`; comparisons are `equals` / `at_least` / `at_most` (numbers only) or `zone_empty`. Map forms like `"requires": { "might": 8, "count:farm": 3 }` mean "each subject totals at least n".
+`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, challenge `requires` and card `needs` all share it, and so do costs and the stat arguments of actions. A subject is `[<fn>:]<arg>[@[<quant>.]<scope>]`: `gold`, `count:farm`, `sum:defense@board`, `hp@each.follower`, `hp@self`, `hp@target`. Comparisons are `equals` / `at_least` / `at_most` (numbers only) or `zone_empty`. Map forms like `"requires": { "might": 8, "count:farm": 3 }` mean "each subject totals at least n".
+
+A scope names a **zone or a tag** — never a seat, so there is no separate targeting dialect to learn — and a subject with no scope means the player's own cards. `predicate.parse_subject` is the only place the grammar is decided and `predicate.entities_in_scope` the only place a scope becomes entities, so a read, a cost and an effect can never disagree about who they mean.
 
 ---
 
@@ -141,7 +145,7 @@ Phase types: `automatic` (runs `actions`, advances immediately), `player_input`,
 
 A `draw_and_play` phase must declare a `"pass_card"`: that card is created into the hand with every deal, so a forced play always has an out — no hand can deadlock the game. The pass card is an ordinary template tagged `token` (tokens are destroyed instead of discarded when the hand is swept) with `"on_play": ["destroy_self"]`.
 
-The engine keeps a **round counter** as a `round` stat on the player entity: it starts at 1 and increments every time the phase list wraps. Because it is a stat, games can display it (declare a `round` stat), gate challenges on it (`requires`), or end on it (`end_conditions`) — and undo restores it like everything else. The wrap also **readies** all exhausted cards.
+The engine keeps a **round counter** as a `round` stat on the injected system card: it starts at 1 and increments every time the phase list wraps. Because it is a stat, games can display it (declare a `round` stat), gate challenges on it (`requires`), or end on it (`end_conditions`) — and undo restores it like everything else. The wrap also **readies** all exhausted cards.
 
 Overlay phases grey out the background, deal `draw` cards from `deck` into `zone`, and run `on_pick` (with the clicked card as context) when the player picks one. They are push-only: they never appear in the phase sequence, only via `push_phase`. Resuming a phase after a pop does not re-deal it.
 
@@ -166,9 +170,9 @@ The parent card is just `"on_play": ["move_to:graveyard", "push_phase:decree"]`,
 
 ## Costs
 
-`"cost": { "gold": 2 }` on a card gates playing it: unaffordable cards render dimmed and don't respond to clicks; the cost is deducted on play. `"activate_cost"` does the same for `on_activate`. Affordability checks the stat total across all entities.
+`"cost": { "gold": 2 }` on a card gates playing it: unaffordable cards render dimmed and don't respond to clicks; the cost is deducted on play. `"activate_cost"` does the same for `on_activate`. Affordability reads the same subject the payment spends, so it checks whatever the subject's scope names — the player's own cards by default.
 
-`"needs": { "plays": 1 }` is the non-consuming gate: nothing is spent, the card is simply unplayable (dimmed) until the condition holds. Subjects follow the shared vocabulary, so `"needs": { "count:soldier": 2 }` gates on the board. The engine maintains a `plays` stat on the player — reset to 0 whenever a phase is freshly entered (not when resumed after an overlay), +1 per card played — which is how "play at least one card per hand" is expressed. Escape hatch: a needs-gated card becomes playable when nothing else in its zone is, so a mandatory play can never soft-lock a hand. `round` and `plays` are reserved engine stats; declare them only to display them.
+`"needs": { "plays": 1 }` is the non-consuming gate: nothing is spent, the card is simply unplayable (dimmed) until the condition holds. Subjects follow the shared vocabulary, so `"needs": { "count:soldier": 2 }` gates on the board. The engine maintains a `plays` stat on the player card — reset to 0 whenever a phase is freshly entered (not when resumed after an overlay), +1 per card played — which is how "play at least one card per hand" is expressed. Escape hatch: a needs-gated card becomes playable when nothing else in its zone is, so a mandatory play can never soft-lock a hand. `round` and `plays` are reserved engine stats; declare them only to display them.
 
 Activating a board card **exhausts** it — greyed out, unusable — until the round wraps and readies every card again. One activation per card per round, as is proper. A card that should stay clickable declares `"exhausts": false`.
 

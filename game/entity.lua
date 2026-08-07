@@ -26,15 +26,6 @@ local function each(kind)
 	end
 end
 
--- Total of a stat across every entity (the player plus cards in play).
-local function sum_stat(key)
-	local total = 0
-	for _, e in ipairs(ALL) do
-		if e.stats and e.stats[key] then total = total + e.stats[key] end
-	end
-	return total
-end
-
 local function reset()
 	ALL = {}
 end
@@ -58,7 +49,6 @@ return {
 	register  = register,
 	get       = get,
 	each      = each,
-	sum_stat  = sum_stat,
 	reset     = reset,
 	snapshot  = snapshot,
 	restore   = restore,

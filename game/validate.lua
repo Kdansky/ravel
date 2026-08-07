@@ -42,6 +42,7 @@ local CARD_FIELDS = {
 	on_play = true, on_activate = true, on_turn = true, on_pass = true,
 	on_fail = true, on_pick = true, auto_play = true, to_zone = true,
 	to_slot = true, irreversible = true, outcome = true, tags_set = true,
+	injected = true,
 }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, fit = true,
@@ -53,7 +54,7 @@ local PHASE_FIELDS = {
 	draw = true, zone = true, pass_card = true, on_pick = true, next = true,
 	ends_after = true, discard_hand = true, page = true, injected = true,
 }
-local STAT_FIELDS     = { key = true, label = true, min = true, max = true, hidden = true }
+local STAT_FIELDS     = { key = true, label = true, min = true, max = true, hidden = true, subject = true }
 local TAG_FIELDS      = { zone = true }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true }
@@ -159,9 +160,13 @@ function M.check(G)
 	for k in pairs(RESERVED) do all_stats[k] = true end
 	for k in pairs(player_stats) do all_stats[k] = true end
 
+	-- Boards a card could be moved onto: hidden grids (the engine's own) are
+	-- not among them, exactly as actions.sole_grid decides at runtime.
 	local grids = {}
 	for key, zd in pairs(G.zone_defs) do
-		if zd.type == "grid" then grids[#grids + 1] = key end
+		if zd.type == "grid" and not (zd.tags_set and zd.tags_set.hidden) then
+			grids[#grids + 1] = key
+		end
 	end
 	table.sort(grids)
 
@@ -374,6 +379,9 @@ function M.check(G)
 		if RESERVED[key] and (def.min or def.max) then
 			warn("%s: is managed by the engine; its min/max are ignored", where)
 		end
+		-- A stat may display something wider than itself ("sum:defense@board"):
+		-- the HUD reads the subject, the stat key still names what is spent.
+		if def.subject ~= nil then subject_ok(where, def.subject) end
 		if type(def.min) == "number" and type(def.max) == "number" and def.min > def.max then
 			warn("%s: min (%s) is greater than max (%s)", where, def.min, def.max)
 		end

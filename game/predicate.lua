@@ -60,7 +60,20 @@ end
 -- so reads, costs and effects can never disagree about who "@player" is.
 function M.entities_in_scope(scope, ctx)
 	local out = {}
-	if scope == nil or scope == "all" then
+	if scope == nil then
+		-- No scope means "mine": the cards this player's stats live on, plus
+		-- the engine's own card behind them. A bare subject has always meant
+		-- the player's total; it now names the cards that hold it, so a read
+		-- and a write can no longer disagree about which one that is.
+		local seen = {}
+		for _, id in ipairs(tags.find_targets({ "player" }, { grid = true })) do
+			seen[id]     = true
+			out[#out + 1] = entity.get(id)
+		end
+		for _, id in ipairs((zones.find("system") or {}).cards or {}) do
+			if not seen[id] then out[#out + 1] = entity.get(id) end
+		end
+	elseif scope == "all" then
 		for e in entity.each() do out[#out + 1] = e end
 	elseif scope == "self" then
 		local e = ctx and ctx.card_id and entity.get(ctx.card_id)
@@ -114,10 +127,9 @@ function M.total(subject, ctx)
 	local p = M.parse_subject(subject)
 	if not p then return 0 end
 
-	-- No scope: the meanings that shipped, kept so existing files don't move —
-	-- the counting forms mean "in play", a bare stat means everything.
-	-- sum:/max: have no legacy reading, so they fall through to the general
-	-- path rather than silently summing.
+	-- The counting forms keep their shipped meaning without a scope: "in play",
+	-- which is wider than the player's own cards. A bare stat falls through to
+	-- the default scope below.
 	if not p.scope then
 		if p.fn == "count" then
 			return #tags.find_targets({ p.arg }, { grid = true })
@@ -127,8 +139,6 @@ function M.total(subject, ctx)
 				if entity.get(id).def_key == p.arg then n = n + 1 end
 			end
 			return n
-		elseif p.fn == nil then
-			return entity.sum_stat(p.arg)
 		end
 	end
 

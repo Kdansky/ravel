@@ -16,6 +16,7 @@ local actions     = require("actions")
 local flow        = require("flow")
 local log         = require("log")
 local json        = require("json")
+local predicate   = require("predicate")
 
 local M = {}
 
@@ -57,7 +58,8 @@ local function summary()
 	local cur   = phase.current()
 	local stats = {}
 	for _, key in ipairs(declaration.G.stat_defs_list) do
-		stats[key] = entity.sum_stat(key)
+		local def  = declaration.G.stat_defs[key]
+		stats[key] = predicate.total(def and def.subject or key)
 	end
 	local zone_counts = {}
 	for z in entity.each("zone") do zone_counts[z.key] = #z.cards end

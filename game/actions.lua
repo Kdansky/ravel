@@ -52,13 +52,6 @@ local function amount(p, i, default)
 	return tonumber(p[i]) or default or 0
 end
 
--- Find the first entity that holds this stat (has a non-nil value for it).
-local function stat_holder(key)
-	for e in entity.each() do
-		if e.stats and e.stats[key] ~= nil then return e end
-	end
-end
-
 -- Change a stat on an entity, clamped to the stat's declared min/max and,
 -- when a "<key>_max" companion stat exists, to [0, <key>_max].
 local function change_stat(e, key, delta)
@@ -87,13 +80,8 @@ end
 -- Who a subject designates for a change. The one place the quantifier is
 -- turned into a list, so gaining, setting and spending can never disagree
 -- about who "@random.beast" means: each reaches every member, random picks one
--- with the seeded RNG, the pooled default takes the first. Without a scope
--- it is whoever holds the stat, which is what a bare subject has always meant.
+-- with the seeded RNG, the pooled default takes the first.
 local function designated(p, ctx)
-	if not p.scope then
-		local e = stat_holder(p.arg)
-		return e and { e } or {}
-	end
 	local ents = predicate.bearers(p, ctx)
 	if #ents == 0 or p.quant == "each" then return ents end
 	if p.quant == "random" then return { ents[math.random(#ents)] } end
@@ -166,12 +154,13 @@ HANDLERS["draw_from"] = function(p)
 	end
 end
 
--- The only grid zone, when there is exactly one — the fallback destination
--- for cards without a home tag in single-board games.
+-- The only board, when there is exactly one — the fallback destination for
+-- cards without a home tag in single-board games. Hidden grids (the engine's
+-- own) are not boards: a card can't be moved onto one nobody can see.
 local function sole_grid()
 	local found
 	for z in entity.each("zone") do
-		if z.zone_type == "grid" then
+		if z.zone_type == "grid" and not z.tags.hidden then
 			if found then return nil end
 			found = z.key
 		end

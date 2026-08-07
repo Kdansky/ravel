@@ -156,6 +156,49 @@ function M.parse(filename)
 		end
 	end
 
+	-- The engine's own two cards live here, out of sight and out of reach of
+	-- anything that sweeps a zone. A game may claim the key to put them
+	-- somewhere else.
+	if not G.zone_defs.system then
+		G.zone_defs.system = { key = "system", type = "grid", grid = { 2, 1 },
+			injected = true, pos = DEFAULT_POS.hidden,
+			tags_set = { hidden = true } }
+		G.zone_list[#G.zone_list + 1] = "system"
+	end
+
+	-- The player is a card. A game that wants a visible one tags it (castle's
+	-- throne room) and gets stats, targeting, rendering and undo for free;
+	-- otherwise the engine injects an invisible stat bag from setup.player, so
+	-- games that never think about it change by zero bytes.
+	local has_player = false
+	for _, key in ipairs(G.card_list) do
+		if G.card_defs[key].tags_set.player then has_player = true; break end
+	end
+	if not has_player then
+		-- setup.player is untrusted content: coerce to numbers so later stat
+		-- arithmetic can never be handed a string/table and crash.
+		local stats = {}
+		for k, v in pairs(type(G.setup.player) == "table" and G.setup.player or {}) do
+			stats[k] = tonumber(v) or 0
+		end
+		-- The engine owns these two, wherever a game tried to put them: a
+		-- second bearer of either would be counted twice and advanced once.
+		stats.plays, stats.round = 0, nil
+		G.card_defs.player = { key = "player", text = "You", injected = true,
+			tags = { "player" }, tags_set = { player = true },
+			card_stats = stats, auto_play = true, to_zone = "system" }
+		table.insert(G.card_list, 1, "player")
+	end
+
+	-- The round belongs to the game, not to a player: two seats must not get
+	-- two calendars, and a hero who dies must not take one with them.
+	if not G.card_defs.system then
+		G.card_defs.system = { key = "system", injected = true,
+			tags = {}, tags_set = {},
+			card_stats = { round = 1 }, auto_play = true, to_zone = "system" }
+		table.insert(G.card_list, 1, "system")
+	end
+
 	-- Built-in "turn the page": the reveal actions conjure cards into this
 	-- hidden zone and push this overlay. A game may claim either key to
 	-- override the presentation.

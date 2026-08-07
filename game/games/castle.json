@@ -25,7 +25,7 @@
       "asset":      "castle_hill.jpg",
       "tooltip":    "Your seat of power. Taxes bring 1 gold each round. Pay 2 gold to inspire your people (+1 morale).",
       "card_stats": { "hp": 20, "hp_max": 20, "gold": 20, "morale": 5, "defense": 0, "food": 0 },
-      "tags":       ["building", "hero"],
+      "tags":       ["building", "hero", "player"],
       "auto_play":  true,
       "to_zone":    "board",
       "to_slot":    13,
