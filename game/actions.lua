@@ -205,6 +205,16 @@ HANDLERS["move_to"] = function(p, ctx)
 	-- back to the only board; the validator flags the ambiguous cases.
 	if not ctx or not ctx.card_id then return end
 	local dest = p[2]
+	-- move_to:target — the card goes where the player chose. It is the only way
+	-- one card can offer two destinations ("advance the expedition, or discard
+	-- it"), and it is the same verb: "target" is already a scope word.
+	if dest == "target" then
+		local t = ctx.targets and ctx.targets[1] and entity.get(ctx.targets[1])
+		if not t then return end
+		if t.kind == "slot" then zones.place_in_slot(ctx.card_id, t.id)
+		elseif t.zone_id then zones.move_card(ctx.card_id, t.zone_id) end
+		return
+	end
 	if not dest then
 		local c   = entity.get(ctx.card_id)
 		local def = c and declaration.G.card_defs[c.def_key]

@@ -342,7 +342,7 @@ function M.check(G)
 				-- key to check is the last word. An unknown owner word simply
 				-- stays part of the name and is caught as an unknown zone.
 				local sc = predicate.parse_scope(a)
-				if not (sc and G.zone_defs[sc.name]) then
+				if not (sc and (G.zone_defs[sc.name] or sc.name == "target")) then
 					warn("%s: '%s' points at zone '%s', but no zone has that key%s",
 						where, op, a, suggest(sc and sc.name or a, G.zone_defs))
 				end
@@ -378,13 +378,8 @@ function M.check(G)
 			if (w == "sum" or w == "max") and p[j + 1] then
 				subject_ok(where .. ": " .. tostring(op), p[j + 1])
 			end
-			if w == "count" and p[j + 1] and not known_tags[p[j + 1]] then
-				warn("%s: counts the tag '%s', but no card has it%s",
-					where, p[j + 1], suggest(p[j + 1], known_tags))
-			end
-			if w == "card" and j > 1 and p[j + 1] and not G.card_defs[p[j + 1]] then
-				warn("%s: checks for the card '%s', but no template has that key%s",
-					where, p[j + 1], suggest(p[j + 1], G.card_defs))
+			if (w == "count" or w == "card") and p[j + 1] and not (w == "card" and j == 1) then
+				subject_ok(where .. ": " .. tostring(op), w .. ":" .. p[j + 1])
 			end
 		end
 		if op == "return_to" and p[2] and G.zone_defs[p[2]]

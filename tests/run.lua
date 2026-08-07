@@ -1418,7 +1418,10 @@ play_fixture([==[{
     { "key": "north", "text": "North", "tags": ["player", "north_side"], "card_stats": { "gold": 5 } },
     { "key": "south", "text": "South", "tags": ["player", "south_side"], "card_stats": { "gold": 2 } },
     { "key": "wolf",  "text": "Wolf",  "tags": ["creature"], "card_stats": { "hp": 3 } },
-    { "key": "statue","text": "Statue","tags": ["creature"], "card_stats": { "hp": 9 } }
+    { "key": "statue","text": "Statue","tags": ["creature"], "card_stats": { "hp": 9 } },
+    { "key": "banner","text": "Banner","tags": ["gear"],
+      "target": { "type": "card", "tags": ["creature"], "count": 1, "zones": ["arena", "commons"] },
+      "on_play": ["move_to:target"] }
   ]
 }]==], 1)
 
@@ -1490,6 +1493,26 @@ check("mine and enemy swapped with it",
 	and predicate.total("count:creature@mine.creature") == 0)
 check("now south may play what north could not", flow.can_play(yours.id))
 check("undo history did not cross the handover", flow.can_undo() == false)
+
+-- A target spec that names zones means yours, exactly as a destination does,
+-- so it never offers the other seat's copy of one. move_to:target then puts
+-- the acting card where the player pointed — the only way one card can offer
+-- two destinations, which is what "advance or discard" needs.
+eval("fill:arena:wolf:1")          -- south's arena now, the seat having rotated
+eval("fill:commons:statue:1")
+local banner = cards.create("banner", zones.find_id("hand"))
+targeting.start(banner.id, cards.def(banner).target, "play")
+local offered = {}
+for _, id in ipairs(targeting.eligible) do
+	offered[entity.get(entity.get(id).zone_id).key] = true
+end
+check("a zone-named spec offers mine and the shared one, never the other seat's",
+	offered.arena and offered.commons and #targeting.eligible == 2)
+local south_wolf = zones.find("arena").cards[1]
+targeting.clear()
+flow.play_card(banner.id, { south_wolf })
+check("move_to:target put the card where the player pointed",
+	entity.get(banner.id).zone_id == zones.find_id("arena"))
 
 -- === comparisons and products ===
 -- Two gaps a real published game found: a gate that compares downwards, and a
