@@ -6,7 +6,7 @@ in, and what to refuse to build.
 
 | # | Idea | Blocked on | Size | Notes |
 |---|---|---|---|---|
-| [00](00-foundation-scope.md) | **Stats live on cards** | — | small–medium | Not in `IDEAS.md`. The shared prerequisite. |
+| [00](00-foundation-scope.md) | **Stats live on cards** | — | small–medium | **Shipped.** Not in `IDEAS.md`. The shared prerequisite. |
 | [01](01-boardgames.md) | Any board game as JSON | 00 | large, staged | Chess/checkers/solitaire/Knizia/Hearthstone |
 | [02](02-multiplayer.md) | More than one player | 00 (stage A only) | small ×3 | Hot-seat → copy/paste → networked |
 | [03](03-placeholder-art.md) | Procedural placeholder art | — | small | Startable today, fully isolated |
@@ -38,14 +38,17 @@ concept at all. Build it first, alone, on `main`.
 
 Two smaller findings worth acting on regardless of which idea you pursue:
 
-- **`pairs()` over `card_defs` in `flow.init` (`game/flow.lua:251`) breaks
-  reproducibility.** Entity IDs are assigned in creation order, and `pairs()`
+- ~~**`pairs()` over `card_defs` in `flow.init` breaks reproducibility.**~~
+  *Fixed:* `G.card_list` is walked in file order.
+  <details><summary>original</summary> Entity IDs are assigned in creation order, and `pairs()`
   order is not portable across Lua builds or (in 5.4) across processes. Two
   machines can load the same file and give the same card different IDs. That's a
   latent bug in a codebase that advertises seeded reproducibility, and it is a
   hard blocker for [move-based multiplayer](02-multiplayer.md#stage-b--play-by-post-copypaste).
   Fix: add an ordered `G.card_list`, as already exists for zones, stats and phases.
-- **A ruined watchtower defends Castle Lord forever.** `on_play` adds +2 to a
+  </details>
+- ~~**A ruined watchtower defends Castle Lord forever.**~~ *Fixed:* defense is
+  `card_stats` on the tower, read as `sum:defense@standing`. Original: `on_play` adds +2 to a
   global `defense` total and nothing removes it when the building is reduced to
   0 hp (`game/games/castle.json:45`, and the unused `ruined` computed tag at
   line 18). A symptom of the same root cause — it stops being *writable* once
@@ -86,11 +89,14 @@ at all. Do those first, because they might change what you build.
   Touches nothing else, blocked by nothing, needed by everything eventually.
   This is the worktree track that runs from day one.
 
-### Tier 2 — the one real refactor
+### Tier 2 — the one real refactor — **done**
 
 **Stats live on cards** (00). This is the only scary item on the list, and the
 way to make it not scary is to land it as a sequence of individually-green
-commits, each provable against a golden file.
+commits, each provable against a golden file. It went the way the plan below
+says: the kingdom golden moved only by gaining a `You ` prefix on the player's
+own stat lines, the castle golden only by losing the seven `Throne Room +2
+defense` lines that were the bug.
 
 **Build the golden file first.** The event log is already an exact, textual
 record of observable behaviour — `change_stat` logs every stat change *with the

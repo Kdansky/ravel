@@ -220,8 +220,8 @@ stat with a `<key>_max` companion clamps to `[0, max]`. **Reserved:** `round`
 engine-managed — declare them only to display them.
 
 `subject` overrides what the HUD row *reads* while the key still names what
-cards spend: a stat produced by cards can display as their total,
-`{ "key": "might", "subject": "sum:might@party" }`.
+cards spend: castle's defense lives on the buildings that provide it and shows
+as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 
 ### Zones
 
@@ -399,18 +399,25 @@ all of them at once; name a scope when you mean one.
 `round` lives on a second injected card, not on the player: it belongs to the
 game, so a hero who dies does not take the calendar with them.
 
+**Aggregates beat running totals.** If a number is produced by cards, store it
+on those cards and read it with `sum:`. Castle's defense used to be a global
+counter a watchtower added 2 to on play — and a watchtower reduced to rubble
+went on defending the castle forever, because nothing ever subtracted it again.
+As `card_stats` plus `sum:defense@standing` (with `standing` a computed tag for
+`hp` at least 1), that bug is not expressible.
 
 ### Computed tags
 
 Per-card derived tags from that card's own stats:
 
 ```json
-"computed_tags": { "damaged": { "stat": "hp", "less_than_stat": "hp_max" },
-                   "ruined":  { "stat": "hp", "equals": "0" } }
+"computed_tags": { "damaged":  { "stat": "hp", "less_than_stat": "hp_max" },
+                   "standing": { "stat": "hp", "at_least": 1 } }
 ```
 
 Comparators: `less_than`, `less_than_stat`, `at_least`, `equals`. Usable
-anywhere card tags are (targeting, `count:`).
+anywhere card tags are (targeting, `count:`, and as a scope — castle reads
+`sum:defense@standing` so rubble stops defending).
 
 ### Tags with behaviour
 

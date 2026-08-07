@@ -1,6 +1,6 @@
 # Foundation: Stats Live on Cards
 
-**Status:** not started · **Blocks:** 01, 02, 04 · **Size:** small–medium (~300 LOC, three files)
+**Status:** shipped · **Blocks:** 01, 02, 04 · **Size:** small–medium (~300 LOC, three files)
 
 Not one of the ideas in `IDEAS.md`. It is the prerequisite all four of them
 turned out to share, and the shape it should take is: **delete the player
@@ -247,7 +247,24 @@ possible to write, rather than being fixed once.
 
 ## Done when
 
-- No `kind = "player"` remains in the codebase.
-- `luajit tests/run.lua` green, including a two-seat fixture where `gold` and
-  `gold@opponent` differ, and a four-character party fixture using `sum:@party`.
-- A ruined watchtower stops defending the castle.
+- No `kind = "player"` remains in the codebase. ✔
+- `luajit tests/run.lua` green, including a party fixture using `sum:@party`
+  where each character is separately addressable. ✔ (`gold@opponent` in the
+  original wording is superseded by this document's own design: a scope names a
+  zone or a tag, never a seat. Telling seats apart is [02](02-multiplayer.md)'s
+  job, and the fixture asserts what the engine does today — a bare subject
+  covers *every* player card at once.)
+- A ruined watchtower stops defending the castle. ✔
+
+### What shipped that this document did not call for
+
+- **`subject` on a stat definition.** Once castle's defense lives on the
+  buildings, the HUD row for it has to read the aggregate rather than the key:
+  `{ "key": "defense", "subject": "sum:defense@standing" }`. The stat key still
+  names what is spent; only the display widens.
+- **`standing` replaces castle's dead `ruined` computed tag.** The vocabulary
+  has no negation, so "buildings that still stand" is the tag worth having —
+  and it is what makes rubble stop defending.
+- **Hidden grids are not boards.** `move_to` with no zone, and the validator's
+  matching check, skip hidden grid zones; otherwise the injected `system` zone
+  would count as a second board in every single-board game.

@@ -9,13 +9,14 @@
     { "key": "round",   "label": "Round" },
     { "key": "gold",    "label": "Gold",    "min": 0, "max": 999 },
     { "key": "morale",  "label": "Morale",  "min": 0, "max":  10 },
-    { "key": "defense", "label": "Defense", "min": 0, "max": 999 },
+    { "key": "defense", "label": "Defense", "min": 0, "max": 999,
+      "subject": "sum:defense@standing" },
     { "key": "food",    "label": "Food",    "min": 0, "max": 999 }
   ],
 
   "computed_tags": {
-    "damaged": { "stat": "hp", "less_than_stat": "hp_max" },
-    "ruined":  { "stat": "hp", "equals": "0" }
+    "damaged":  { "stat": "hp", "less_than_stat": "hp_max" },
+    "standing": { "stat": "hp", "at_least": 1 }
   },
 
   "templates": [
@@ -37,12 +38,12 @@
       "key":     "watchtower",
       "text":    "Watchtower",
       "asset":   "fortress_walls.jpg",
-      "tooltip": "A guard post on the walls. Adds 2 defense.",
+      "tooltip": "A guard post on the walls. Adds 2 defense while it stands.",
       "cost":    { "gold": 2 },
-      "card_stats": { "hp": 4, "hp_max": 4 },
+      "card_stats": { "hp": 4, "hp_max": 4, "defense": 2 },
       "tags":    ["building", "military"],
       "target":  { "type": "slot", "min": 1, "max": 1, "zones": ["board"] },
-      "on_play": ["move_to:board", "gain_stat:defense:2"]
+      "on_play": ["move_to:board"]
     },
     {
       "key":     "farm",
@@ -144,7 +145,7 @@
       "asset":    "cavalry_raid.jpg",
       "tooltip":  "Raiders attack! Need 3 defense or lose 2 morale.",
       "tags":     ["challenge"],
-      "requires": { "defense": 3 },
+      "requires": { "sum:defense@standing": 3 },
       "on_pass":  [],
       "on_fail":  ["lose_stat:morale:2"],
       "on_play":  ["move_to:graveyard", "resolve_challenge"]
@@ -177,7 +178,7 @@
       "asset":    "siege_cannon.jpg",
       "tooltip":  "Enemy forces lay siege. Need 5 defense or a building takes 2 damage.",
       "tags":     ["challenge"],
-      "requires": { "defense": 5 },
+      "requires": { "sum:defense@standing": 5 },
       "on_pass":  [],
       "on_fail":  ["lose_stat:hp@random.building:2"],
       "on_play":  ["move_to:graveyard", "resolve_challenge"]

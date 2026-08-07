@@ -1319,6 +1319,19 @@ check("a game that tags its hero gets no injected stat bag",
 check("the hero is the player card",
 	predicate.total("gold@player") == entity.get(find_card("throne_room").id).stats.gold)
 
+-- The bug the whole model exists to make unwriteable: defense used to be a
+-- global running total, so a watchtower reduced to rubble defended the castle
+-- forever. It is a stat on the tower now, read by an aggregate over the
+-- buildings still standing.
+local base_defense = predicate.total("sum:defense@standing")
+eval("fill:board:watchtower:1")
+local tower = find_card("watchtower", "board")
+check("a watchtower defends the castle",
+	predicate.total("sum:defense@standing") == base_defense + 2)
+tower.stats.hp = 0
+check("a ruined watchtower stops defending",
+	predicate.total("sum:defense@standing") == base_defense)
+
 -- === a party of players ===
 -- The test of whether "the player is a card" is the right model: four
 -- characters with their own stats, needing no new engine concept at all.
