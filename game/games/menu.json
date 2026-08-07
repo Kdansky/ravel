@@ -1,54 +1,94 @@
 {
   "title": "Ravel",
   "zones": [
-    { "key": "menu", "type": "hand", "pos": [0.10, 0.25, 0.90, 0.80],
-      "contents": ["play_demo", "play_castle", "play_kingdom", "play_tower", "play_road", "play_vigil"] }
+    {
+      "key": "menu",
+      "type": "hand",
+      "pos": [
+        0.1,
+        0.25,
+        0.9,
+        0.8
+      ],
+      "contents": [
+        "play_demo",
+        "play_castle",
+        "play_kingdom",
+        "play_tower",
+        "play_road",
+        "play_lost_cities",
+        "play_vigil"
+      ]
+    }
   ],
   "templates": [
     {
-      "key":     "play_demo",
-      "text":    "The Wandering Road",
-      "asset":   "world.jpg",
+      "key": "play_demo",
+      "text": "The Wandering Road",
+      "asset": "world.jpg",
       "tooltip": "A short story of choices and consequence. Draw cards and survive the journey.",
-      "on_play": ["load_game:demo.json"]
+      "on_play": [
+        "load_game:demo.json"
+      ]
     },
     {
-      "key":     "play_castle",
-      "text":    "Castle Lord",
-      "asset":   "castle_hill.jpg",
+      "key": "play_castle",
+      "text": "Castle Lord",
+      "asset": "castle_hill.jpg",
       "tooltip": "Build a castle and weather the challenges that come your way.",
-      "on_play": ["load_game:castle.json"]
+      "on_play": [
+        "load_game:castle.json"
+      ]
     },
     {
-      "key":     "play_kingdom",
-      "text":    "Coronation",
-      "asset":   "crown_royal.jpg",
+      "key": "play_kingdom",
+      "text": "Coronation",
+      "asset": "crown_royal.jpg",
       "tooltip": "Forge a realm from drafted choices, then let the trials test what you built.",
-      "on_play": ["load_game:kingdom.json"]
+      "on_play": [
+        "load_game:kingdom.json"
+      ]
     },
     {
-      "key":     "play_tower",
-      "text":    "The Drowned Tower",
-      "asset":   "lighthouse_lake.jpg",
+      "key": "play_tower",
+      "text": "The Drowned Tower",
+      "asset": "lighthouse_lake.jpg",
       "tooltip": "A classical adventure told in pages. Choose blind, turn the page, live with it.",
-      "on_play": ["load_game:tower.json"]
+      "on_play": [
+        "load_game:tower.json"
+      ]
     },
     {
-      "key":     "play_road",
-      "text":    "The Long Road",
-      "asset":   "caravan_winter.jpg",
+      "key": "play_road",
+      "text": "The Long Road",
+      "asset": "caravan_winter.jpg",
       "tooltip": "March a caravan across bad country: units on the road, items in the wagons, twelve miles to safety.",
-      "on_play": ["load_game:road.json"]
+      "on_play": [
+        "load_game:road.json"
+      ]
     },
     {
-      "key":     "play_vigil",
-      "text":    "The Long Vigil",
-      "asset":   "witches_sabbath.jpg",
+      "key": "play_lost_cities",
+      "text": "Lost Cities",
+      "tooltip": "Knizia's two-player expedition game, hot-seat. Advance five expeditions or cut your losses — each one you start costs 20 to fund.",
+      "on_play": [
+        "load_game:lost_cities.json"
+      ]
+    },
+    {
+      "key": "play_vigil",
+      "text": "The Long Vigil",
+      "asset": "witches_sabbath.jpg",
       "tooltip": "Fourteen nights to finish the work. Click the verbs on the table: work, study, dream, and pay what dreaming costs.",
-      "on_play": ["load_game:vigil.json"]
+      "on_play": [
+        "load_game:vigil.json"
+      ]
     }
   ],
   "phases": [
-    { "key": "waiting", "type": "player_input" }
+    {
+      "key": "waiting",
+      "type": "player_input"
+    }
   ]
 }

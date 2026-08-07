@@ -42,7 +42,7 @@ local CARD_FIELDS = {
 	on_play = true, on_activate = true, on_turn = true, on_pass = true,
 	on_fail = true, on_pick = true, auto_play = true, to_zone = true,
 	to_slot = true, irreversible = true, outcome = true, tags_set = true,
-	injected = true,
+	injected = true, accepts = true,
 }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, fit = true,
@@ -219,6 +219,25 @@ function M.check(G)
 		end
 	end
 
+	-- A comparison is measured against a number or another subject. A subject
+	-- has to look like one — name a scope or a measuring fn — because a bare
+	-- word would otherwise read as an unknown stat worth zero and quietly pass,
+	-- which is the whole reason the runtime refuses it too.
+	local function bound_ok(where, v)
+		if v == nil or type(v) == "number" then return end
+		if type(v) ~= "string" then
+			warn("%s should be a number or a subject like \"value@target\"", where)
+			return
+		end
+		local p = predicate.parse_subject(v)
+		if not (p and (p.scope or p.fn)) then
+			warn("%s: '%s' is a bare word, so it would read as a stat worth nothing — write a number, or say which cards you mean (\"value@target\", \"max:value@mine.red\")",
+				where, v)
+			return
+		end
+		subject_ok(where, v)
+	end
+
 	local function check_map(where, map, is_cost)
 		if map == nil then return end
 		if type(map) ~= "table" then
@@ -252,9 +271,7 @@ function M.check(G)
 						where, tostring(key))
 				end
 				for _, cmp in ipairs({ "equals", "at_least", "at_most" }) do
-					if v[cmp] ~= nil and type(v[cmp]) ~= "number" then
-						warn("%s: '%s' %s should be a number", where, tostring(key), cmp)
-					end
+					bound_ok(where .. ": '" .. tostring(key) .. "' " .. cmp, v[cmp])
 				end
 			elseif type(v) ~= "number" then
 				warn("%s: the value of '%s' should be %s", where, tostring(key),
@@ -280,9 +297,7 @@ function M.check(G)
 		elseif cond.stat then
 			subject_ok(where, cond.stat)
 			for _, cmp in ipairs({ "equals", "at_least", "at_most" }) do
-				if cond[cmp] ~= nil and type(cond[cmp]) ~= "number" then
-					warn("%s: %s should be a number", where, cmp)
-				end
+				bound_ok(where .. ": " .. cmp, cond[cmp])
 			end
 			if cond.equals == nil and cond.at_least == nil and cond.at_most == nil then
 				warn("%s: names a stat but no comparison (equals / at_least / at_most)", where)
@@ -496,6 +511,9 @@ function M.check(G)
 		check_map(where .. " activate_cost", def.activate_cost, true)
 		check_map(where .. " needs", def.needs)
 		check_map(where .. " requires", def.requires)
+		-- "accepts" is asked of this card about the one arriving, so @self is
+		-- this card and @target the newcomer.
+		check_map(where .. " accepts", def.accepts)
 		-- card_stats declare new per-card stats, so only their values are checked.
 		if def.card_stats ~= nil then
 			if type(def.card_stats) ~= "table" then

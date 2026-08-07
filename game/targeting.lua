@@ -1,6 +1,8 @@
-local entity    = require("entity")
-local tags      = require("tags")
-local zones     = require("zones")
+local entity      = require("entity")
+local tags        = require("tags")
+local zones       = require("zones")
+local predicate   = require("predicate")
+local declaration = require("declaration")
 
 local M = {}
 
@@ -41,25 +43,18 @@ function M.active()
 	return M.card_id ~= nil
 end
 
-function M.start(card_id, spec, intent)
-	local min, max = M.bounds(spec)
+-- Who this card could legally be played onto. Pure: no session state, so flow
+-- can ask the same question independently and refuse a target no interface
+-- ever offered. Targeting is advisory; this is the legality.
+function M.candidates(card_id, spec)
 	local kind     = spec.type or "card"
 	local zone_set = nil
 	if spec.zones then
 		zone_set = {}
 		for _, zk in ipairs(spec.zones) do zone_set[zk] = true end
 	end
-	M.card_id  = card_id
-	M.kind     = kind
-	M.intent   = intent or "play"
-	M.spec     = { min = min, max = max, tags = spec.tags or {}, zone_set = zone_set,
-		owner = spec.owner }
-	M.targets  = {}
-	if kind == "slot" then
-		M.eligible = find_empty_slots(zone_set)
-	else
-		M.eligible = tags.find_targets(M.spec.tags, zone_set)
-	end
+	local out = kind == "slot" and find_empty_slots(zone_set)
+		or tags.find_targets(spec.tags or {}, zone_set)
 	-- "Choose an enemy creature" is the same word the scopes use, so the
 	-- player-chooses case needs no syntax of its own. Naming zones implies one
 	-- too: "zones": ["red", "red_discard"] means *my* red expedition and the
@@ -68,7 +63,7 @@ function M.start(card_id, spec, intent)
 	local owner = spec.owner or (zone_set and "not_enemy")
 	if owner then
 		local active, kept = zones.active_seat(), {}
-		for _, id in ipairs(M.eligible) do
+		for _, id in ipairs(out) do
 			local e = entity.get(id)
 			local z = e and (e.kind == "slot" and entity.get(e.zone_id)
 				or e.zone_id and entity.get(e.zone_id))
@@ -79,8 +74,35 @@ function M.start(card_id, spec, intent)
 				or (owner == "enemy"     and seat ~= nil and seat ~= active)
 			if ok then kept[#kept + 1] = id end
 		end
-		M.eligible = kept
+		out = kept
 	end
+
+	-- Legality that depends on both cards at once lives on the destination:
+	-- "accepts" is asked of each candidate with itself as @self and the
+	-- arriving card as @target, so a pile can say what it takes without every
+	-- card in the game having to know about every pile. A candidate with no
+	-- accepts takes anything, which is what every game before this assumed.
+	local kept = {}
+	for _, id in ipairs(out) do
+		local e   = entity.get(id)
+		local def = e and e.kind == "card" and declaration.G.card_defs[e.def_key]
+		if not (def and def.accepts) then
+			kept[#kept + 1] = id
+		elseif predicate.meets_all(def.accepts, { card_id = id, targets = { card_id } }) then
+			kept[#kept + 1] = id
+		end
+	end
+	return kept
+end
+
+function M.start(card_id, spec, intent)
+	local min, max = M.bounds(spec)
+	M.card_id  = card_id
+	M.kind     = spec.type or "card"
+	M.intent   = intent or "play"
+	M.spec     = { min = min, max = max, tags = spec.tags or {} }
+	M.targets  = {}
+	M.eligible = M.candidates(card_id, spec)
 end
 
 function M.is_eligible(id)

@@ -828,8 +828,8 @@ local CASES = {
 		function(g) g.end_conditions[2] = { zone_empty = "hand", ["then"] = {} } end },
 	{ "a zone_empty watching a missing zone", "watches zone 'vault'",
 		function(g) g.end_conditions[2] = { zone_empty = { "vault" }, ["then"] = {} } end },
-	{ "a comparison that isn't a number", "at_least should be a number",
-		function(g) g.end_conditions[2] = { stat = "hp", at_least = "3", ["then"] = {} } end },
+	{ "a comparison against a bare word", "is a bare word",
+		function(g) g.end_conditions[2] = { stat = "hp", at_least = "lots", ["then"] = {} } end },
 	{ "a condition with no comparison", "no comparison",
 		function(g) g.end_conditions[2] = { stat = "hp", ["then"] = {} } end },
 	{ "an end condition with no then", "has no 'then'",
@@ -1537,6 +1537,62 @@ eval("set_stat:gold:3:x:2")
 check("plain numbers multiply too", throne.stats.gold == 6)
 eval("gain_stat:gold:sum:defense@standing")
 check("a sum: term needs no product to be an amount", throne.stats.gold == 10)
+
+-- === lost cities ===
+-- A real published two-player game. Its rule — a card may advance an
+-- expedition only if it is worth at least what is already there, but may
+-- always be discarded — is legality that depends on both cards at once, which
+-- is what "accepts" on the destination exists for.
+flow.init("lost_cities.json", 11)
+
+local function has(list, id)
+	for _, v in ipairs(list) do if v == id then return true end end
+	return false
+end
+local function marker_in(zone_key, owner)
+	local z = zones.find(zone_key, owner)
+	for _, id in ipairs(z.cards) do
+		if entity.get(id).def_key:match("_route$") or entity.get(id).def_key:match("_tip$") then
+			return id
+		end
+	end
+end
+local function drawn(key)
+	eval("fill:hand:" .. key .. ":1")
+	local c = find_card(key, "hand")
+	return c, targeting.candidates(c.id, cards.def(c).target)
+end
+
+local my_red   = zones.find("red")
+local red_route, red_tip = marker_in("red"), marker_in("red_discard")
+check("both seats got their own route marker, not one between them",
+	#zones.all_with_key("red") == 2 and marker_in("red", "enemy") ~= red_route)
+check("setup dealt eight cards to each seat",
+	#zones.find("hand", "mine").cards == 8 and #zones.find("hand", "enemy").cards == 8)
+
+local c7, k7 = drawn("red_7")
+check("an empty expedition accepts anything", has(k7, red_route) and has(k7, red_tip))
+check("and never the other seat's expedition", has(k7, marker_in("red", "enemy")) == false)
+flow.play_card(c7.id, { red_route })
+check("the card advanced the expedition", #my_red.cards == 2)
+
+local c5, k5 = drawn("red_5")
+check("a lower card is refused by the expedition", has(k5, red_route) == false)
+check("but may always be discarded", has(k5, red_tip))
+check("flow refuses an illegal target even when handed one directly",
+	flow.play_card(c5.id, { red_route }) == false)
+
+local cw = drawn("red_w1")
+local _, kw = cw, select(2, drawn("red_w2"))
+check("a wager cannot follow a number", has(kw, red_route) == false)
+
+-- The scoring arithmetic, end to end: the route marker is tagged "wager", so
+-- count:wager is the multiplier 1 + wagers without the engine adding one.
+local score0 = predicate.total("score@mine.player")
+eval("gain_stat:score@mine.player:sum:value@mine.red:x:count:wager@mine.red")
+eval("lose_stat:score@mine.player:20:x:count:wager@mine.red")
+check("an expedition scores (sum - 20) x wagers",
+	predicate.total("score@mine.player") == score0 - 13)
 
 -- === subject grammar ===
 -- Pure parsing, no game loaded: the one place the scope syntax is decided.

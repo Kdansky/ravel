@@ -41,6 +41,18 @@ local function reachable(c)
 	return not (z and z.seat) or z.seat == zones.active_seat()
 end
 
+-- You play out of the phase's own zone — but only where the phase says which
+-- one. A phase that names no zone keeps the freedom every shipped game was
+-- written against (the menu plays out of a zone called "menu", and has no hand
+-- at all). A phase that declares one means it, which is what lets a draw step
+-- be a draw step instead of a chance to empty your hand.
+local function in_play_zone(c)
+	local cur = phase.current()
+	if not cur or not cur.zone then return true end
+	local z = zones.find(cur.zone)
+	return z ~= nil and c ~= nil and c.zone_id == z.id
+end
+
 local function system_card()
 	for e in entity.each("card") do
 		if e.def_key == "system" and e.zone_id then return e end
@@ -58,6 +70,21 @@ local function rotate_seat()
 	history = {}
 	local def = declaration.G.card_defs[seats[sys.stats.turn]]
 	log.add("— " .. ((def and def.text) or seats[sys.stats.turn]) .. " to play —")
+end
+
+-- Which targets the rules allow, re-derived rather than trusted. Counts were
+-- always enforced here; identity never was, so a script or the debug API could
+-- name any card as a target of anything. targeting.eligible is what a player
+-- was *offered* — this is what the rules permit, and now that a destination
+-- can refuse a card ("accepts") the difference matters.
+local function targets_legal(card_id, spec, targets)
+	if #(targets or {}) == 0 then return true end
+	local ok = {}
+	for _, id in ipairs(targeting.candidates(card_id, spec or {})) do ok[id] = true end
+	for _, id in ipairs(targets) do
+		if not ok[id] then return false end
+	end
+	return true
 end
 
 local function fired_flags()
@@ -287,8 +314,11 @@ function M.init(filename, seed)
 	for _, key in ipairs(G.card_list) do
 		local def = G.card_defs[key]
 		if def.auto_play then
-			local to = zones.find(def.to_zone or cards.home_zone(def) or "board")
-			if to then
+			-- Into every instance of the zone, which is one for a shared zone
+			-- and one per seat otherwise: a per-seat board wants its marker in
+			-- each seat's copy, not a single one in whoever happens to be first.
+			local zkey = def.to_zone or cards.home_zone(def) or "board"
+			for _, to in ipairs(zones.all_with_key(zkey)) do
 				local e = cards.create(def.key, to.id)
 				local slot_id = def.to_slot and to.slots[def.to_slot]
 				if slot_id then zones.place_in_slot(e.id, slot_id) else zones.auto_slot(e.id) end
@@ -363,7 +393,7 @@ end
 function M.can_play(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	if not def or not reachable(c) then return false end
+	if not def or not reachable(c) or not in_play_zone(c) then return false end
 	if not M.can_afford(def.cost, { card_id = card_id }) then return false end
 	if predicate.meets_all(def.needs, { card_id = card_id }) then return true end
 	local z = entity.get(c.zone_id)
@@ -386,6 +416,7 @@ function M.play_card(card_id, targets)
 	-- only in the input layers, so scripts and the debug API can't skip them.
 	local lo, hi = targeting.bounds(def.target)
 	if #(targets or {}) < lo or #(targets or {}) > hi then return false end
+	if not targets_legal(card_id, def.target, targets) then return false end
 	local ctx = { card_id = card_id, targets = targets or {} }
 	-- A cost the targets pay could not be judged before they were chosen.
 	if not M.can_afford(def.cost, ctx) then return false end
@@ -437,6 +468,7 @@ function M.activate(card_id, targets)
 	-- debug API can't skip them.
 	local lo, hi = targeting.bounds(def.activate_target)
 	if #(targets or {}) < lo or #(targets or {}) > hi then return false end
+	if not targets_legal(card_id, def.activate_target, targets) then return false end
 	local ctx = { card_id = card_id, targets = targets or {} }
 	if not M.can_afford(def.activate_cost, ctx) then return false end
 	checkpoint()

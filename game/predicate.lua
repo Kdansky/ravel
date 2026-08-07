@@ -204,10 +204,28 @@ function M.total(subject, ctx)
 	return p.fn == "max" and best or sum
 end
 
-local function compare(v, cond)
-	if cond.equals   ~= nil then local n = tonumber(cond.equals);   return n ~= nil and v == n end
-	if cond.at_least ~= nil then local n = tonumber(cond.at_least); return n ~= nil and v >= n end
-	if cond.at_most  ~= nil then local n = tonumber(cond.at_most);  return n ~= nil and v <= n end
+-- What a comparison is measured against: a number, or another subject. JSON
+-- and Lua both carry either happily, so the type decides at run time — which
+-- is what lets a card compare itself to what it is being played onto
+-- ({ "at_least": "max:value@mine.red" }) instead of only to a constant.
+--
+-- A subject here must *look* like one — it has to name a scope or a measuring
+-- fn. A bare word is a typo, not a reading of zero: without that rule every
+-- misspelling would quietly compare against 0 and pass, which is precisely the
+-- silent-wrong-answer this file's fail-closed discipline exists to prevent.
+local function bound(x, ctx)
+	local n = tonumber(x)
+	if n then return n end
+	if type(x) ~= "string" then return nil end
+	local p = M.parse_subject(x)
+	if not (p and (p.scope or p.fn)) then return nil end
+	return M.total(x, ctx)
+end
+
+local function compare(v, cond, ctx)
+	if cond.equals   ~= nil then local n = bound(cond.equals, ctx);   return n ~= nil and v == n end
+	if cond.at_least ~= nil then local n = bound(cond.at_least, ctx); return n ~= nil and v >= n end
+	if cond.at_most  ~= nil then local n = bound(cond.at_most, ctx);  return n ~= nil and v <= n end
 	return false
 end
 
@@ -232,11 +250,11 @@ function M.met(cond, ctx)
 		local ents = M.entities_in_scope(p.scope, ctx, p.owner)
 		if #ents == 0 then return false end
 		for _, e in ipairs(ents) do
-			if not compare(tonumber((e.stats or {})[p.arg]) or 0, cond) then return false end
+			if not compare(tonumber((e.stats or {})[p.arg]) or 0, cond, ctx) then return false end
 		end
 		return true
 	end
-	return compare(M.total(cond.stat, ctx), cond)
+	return compare(M.total(cond.stat, ctx), cond, ctx)
 end
 
 -- Map form { subject = n, ... }: each entry is "this subject, at least n" —
