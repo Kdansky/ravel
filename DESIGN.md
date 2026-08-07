@@ -20,6 +20,8 @@ card.zone = some_zone_table
 
 Snapshotting state = copying the array. Undo = push snapshot before each action, pop to revert. No graph traversal, no pointer invalidation. Cross-references in JSON are resolved to IDs at load time by `declaration.lua`.
 
+**A seat is a card too.** Several cards tagged `player` are several seats, named by their own keys; a zone declaring `per_seat` is instanced once per seat, and a card's owner is the seat of the zone it sits in — so ownership needs no per-card controller field and no new state to snapshot. An unqualified zone key means the active seat's copy, because a destination must resolve to exactly one zone even though a *set* may be wide. Whose turn it is is a `turn` stat on the system card, advanced by phases declaring `"seat": "next"`.
+
 **There are three entity kinds — `zone`, `slot`, `card` — and the player is a card.** A player has stats, can be looked at, targeted, damaged and destroyed; every one of those already works for cards, and a fourth kind meant re-implementing all of it. When a game declares no template tagged `player`, the engine injects one from `setup.player` into a hidden `system` zone, alongside a second injected card holding `round` (which belongs to the game, not to a seat). A game that wants a visible hero simply tags a board card `player`. This is *when in doubt, decks and cards* applied to the one thing in the engine that wasn't.
 
 ---
@@ -57,12 +59,15 @@ Presentation rules:
 
 ## JSON Schema Rules
 
-The JSON format must be writable by non-programmers. Two allowed value forms only:
+The JSON format must be writable by non-programmers. Three allowed value forms:
 
 1. **Key/value objects** — `{ "key": "value", "min": 0 }`
 2. **Arrays of strings** — `["shuffle", "instanced"]`
+3. **A comparison object as a map value** — `{ "max:value@mine.red": { "at_most": 6 } }`
 
-No nested arrays-of-arrays. No code-like expressions. No s-expressions or lisp-style command trees.
+No s-expressions, no command trees, no arbitrary expressions. Nested arrays are allowed in exactly one place — a `per_seat` zone's `pos`, which is one rect per seat — and that is a list of coordinates, not structure.
+
+**Form 3 is a deliberate bend, recorded rather than assumed.** The rule started as "no code-like expressions", to stop a complexity explosion before anything needed one. Two things eventually did: asking a condition the *other* way (`at_most`), and measuring against another subject rather than a constant. Both are ordinary requirements for real card games, and neither is expressible in a flat `key: number` map. The bend is bounded — a comparison has exactly three possible keys and no nesting — and the reason it stays honest is that a bound must still look like a subject, so nothing silently becomes an expression by accident.
 
 ---
 
@@ -85,9 +90,13 @@ Every numeric slot accepts a number or `count:<tag>` — the number of cards on 
 
 ## Conditions Are One Vocabulary
 
-`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, challenge `requires` and card `needs` all share it, and so do costs and the stat arguments of actions. A subject is `[<fn>:]<arg>[@[<quant>.]<scope>]`: `gold`, `count:farm`, `sum:defense@board`, `hp@each.follower`, `hp@self`, `hp@target`. Comparisons are `equals` / `at_least` / `at_most` (numbers only) or `zone_empty`. Map forms like `"requires": { "might": 8, "count:farm": 3 }` mean "each subject totals at least n".
+`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, challenge `requires` and card `needs` all share it, and so do costs and the stat arguments of actions. A subject is `[<fn>:]<arg>[@<scope expression>]`: `gold`, `count:farm`, `sum:defense@board`, `hp@each.follower`, `hp@each.enemy.creature`, `hp@self`, `hp@target`. Comparisons are `equals` / `at_least` / `at_most` — against a number or another subject — or `zone_empty`. Map forms like `"requires": { "might": 8, "count:farm": 3 }` mean "each subject totals at least n".
 
-A scope names a **zone or a tag** — never a seat, so there is no separate targeting dialect to learn — and a subject with no scope means the player's own cards. `predicate.parse_subject` is the only place the grammar is decided and `predicate.entities_in_scope` the only place a scope becomes entities, so a read, a cost and an effect can never disagree about who they mean.
+The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>`. The name is always a zone or a tag, never a seat — whose cards is a separate word (`mine` / `enemy` / `anyone`), so ownership composes with everything instead of doubling the vocabulary. A subject with no scope means the player's own cards. `predicate.parse_subject` is the only place the grammar is decided and `predicate.entities_in_scope` the only place a scope becomes entities, so a read, a cost and an effect can never disagree about who they mean.
+
+**A comparison may be measured against another subject, not only a constant.** This deliberately bends the no-expressions rule below: putting your own stat inside a condition is a genuine requirement (`{"value@target": {"at_least": "max:value@mine.red"}}`), and JSON and Lua both carry either type happily, so the type decides at run time. The rule the bend keeps: a subject used as a bound must *look* like one — name a scope or a measuring fn — so a bare word still fails closed instead of quietly reading as zero.
+
+**Legality between two cards lives on the destination.** `accepts` is a condition map asked of each candidate target, with itself as `@self` and the arriving card as `@target`. Putting it there rather than on the acting card is what lets it name its own zone; a destination with no `accepts` takes anything, which is what every game before it assumed.
 
 ---
 

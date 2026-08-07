@@ -29,19 +29,22 @@ main ─ input routing, love callbacks, hot-reload watch
 render ─ drawing, layout, UI scale, buttons     tooltip   debugserver
 anim ─ flight tweens    fx ─ particles/shake/floats
 ────────────────────────────────────────────────────────────── presentation
-flow ─ THE game driver: init/settle/play/activate/pick/undo, costs
+flow ─ THE game driver: init/settle/play/activate/pick/undo, costs, legality
 validate ─ whole-file checks: schema, references, conflicts
 actions ─ the op vocabulary (HANDLERS table)
 phase ─ phase stack, routing, round/fresh flags
-zones ─ zone membership, slots, moving/destroying cards
+targeting ─ who may be targeted (candidates), plus the live selection
+predicate ─ the one condition evaluator: subjects, scopes, comparisons
+zones ─ zone membership, seats, slots, moving/destroying cards
 cards ─ template helpers, live editing, image cache
-predicate ─ the one condition evaluator      targeting ─ eligibility state
-declaration ─ JSON → game definition (G) + built-in reveal zone/phase
+declaration ─ JSON → G, plus the injected system zone, player/system cards, seats
 entity ─ the flat array     log ─ event record     json ─ decode/encode
 ```
 
 Support: `headless.lua` (the love shim), `play.lua` (CLI frontend over flow),
-`tests/run.lua` (logic suite), `tests/render_smoke.lua` (draw-path crash test).
+`check.lua` (validate a file without running it), `tests/run.lua` (logic
+suite), `tests/render_smoke.lua` (draw-path crash test), `tools/` (game-file
+generators — output belongs in `game/games/`, the generator is the source).
 
 ## What lives where
 
@@ -76,6 +79,16 @@ That is the whole point: `entity.sum_stat` (read everything) and `stat_holder`
 (write to the first holder) used to disagree, and only an unwritten
 one-holder-per-stat invariant kept them in step.
 
+**Seats are those cards.** Every card tagged `player` is a seat, in
+`G.seat_list` order (file order), named by its own key. A zone def with
+`per_seat` is built once per seat, each instance carrying `seat`; `zones.find`
+resolves a bare key against the active seat, which it derives from the system
+card's `turn` rather than caching — so undo restores whose turn it is along
+with everything else. A card's owner is the seat of its zone, which is why
+ownership costs no per-card state; a seat card is its own seat wherever it
+sits. One seat is the ordinary case and pays for none of this: `active_seat`
+returns on its first line and every owner word names the same cards.
+
 **Presentation cache**: `card.place` (pixel rect) lives on entities for
 hit-testing and as the animation target, but it is written by
 `render.sync_places` every frame (plus a fly-from prestamp in `flow.deal`).
@@ -86,9 +99,14 @@ Treat it as disposable.
 1. **IDs, never pointers.** Entities reference each other by array index.
    Undo replaces every entity table with snapshot copies — a held Lua table
    reference across an undo is stale. Re-fetch via `entity.get(id)`.
-2. **All mutation goes through flow.** `play_card`, `activate`, `pick`,
-   `zone_click`, `undo`, `init` — each checkpoints first, then acts, then
-   `settle()`s. Never mutate game state from presentation code.
+2. **All mutation goes through flow, and so does all legality.** `play_card`,
+   `activate`, `pick`, `zone_click`, `undo`, `init` — each checkpoints first,
+   then acts, then `settle()`s. Never mutate game state from presentation code.
+   Flow **re-derives** what is legal rather than trusting what it is handed:
+   target counts, target identity (`targeting.candidates`, a pure function it
+   calls itself), the phase's declared zone, and the acting seat. `targeting`
+   holds what a player was *offered*; flow decides what the rules allow, so a
+   script or the debug API is bound by exactly the same checks the GUI is.
 3. **`settle` is the only driver.** It loops: pending `load_game` → end
    conditions (deferred while an overlay is open) → round boundaries
    (counter, ready, `on_turn` — always before the new round's phases act) →
@@ -127,7 +145,8 @@ Treat it as disposable.
    the process. A typo — or a deliberately hostile file — must never kill a
    running game.
 6. **One condition vocabulary.** Anything conditional goes through
-   `predicate.lua`. A subject is `[<fn>:]<arg>[@[<quant>.]<scope>]` —
+   `predicate.lua`. A subject is `[<fn>:]<arg>[@<scope expression>]`, where a
+   scope expression is `[<quant>.][<owner>.]<zone-or-tag>` —
    `predicate.parse_subject` is the only place that grammar is decided, and
    `predicate.entities_in_scope` the only place a scope becomes entities, so
    conditions, costs and effects can never disagree about who `@player` is.
@@ -161,8 +180,15 @@ three interfaces.
 ## Extending the engine
 
 **A new action**: add a `HANDLERS["op"]` in actions.lua (use `amount()` for
-numbers, `log.add` for player-visible effects), add any reference checks to
-`validate.lua`, document it in AUTHORING.md. Nothing else to touch.
+numbers, `zone_id()` for zone arguments so they accept a scope expression,
+`log.add` for player-visible effects), declare its argument shape in `SPEC`
+(the validator derives its checks from that table), document it in
+AUTHORING.md. Nothing else to touch.
+
+**A new kind of legality**: put it where flow can re-derive it, not only where
+the GUI can show it — `targeting.candidates` is pure for exactly this reason.
+Prefer expressing it in the condition vocabulary (`accepts` is a `predicate`
+map, not a new dialect) over a bespoke check.
 
 **A new card/phase/zone field**: parse nothing — defs are carried whole from
 JSON. Read it where it matters, add it to the validator's known-field tables
@@ -180,7 +206,10 @@ suite red.
 display, and predicates come free. Otherwise, join the snapshot protocol
 (invariant 3 above).
 
-**A new game**: one JSON file + a menu card. See AUTHORING.md.
+**A new game**: one JSON file + a menu card. See AUTHORING.md — §3 is the
+procedure for translating a published rulebook. Past ~20 templates, generate
+the JSON from a checked-in script (`tools/make_lost_cities.py`) and treat the
+file as output.
 
 ## Testing strategy
 

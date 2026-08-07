@@ -4,7 +4,7 @@
 > boardgame rule set and just turn it into a json, and then have the board game
 > be simulated?* — `IDEAS.md`
 
-**Status:** not started · **Blocked on:** [02 stage A](02-multiplayer.md#stage-a--hot-seat) for every two-player target · **Size:** large, but strictly staged
+**Status:** in progress — **Lost Cities shipped** · **Size:** large, but strictly staged
 
 ---
 
@@ -31,33 +31,32 @@ the signal to generalise.
 
 ## Capability ladder
 
-| Target | Names the missing capability | Engine has today |
+| Target | Names the missing capability | State |
 |---|---|---|
-| **Checkers** | Move a piece already on the board; capture; chained moves | Cards only move by being *played from hand* |
-| **Chess** | Per-piece movement geometry; blocking; check | No spatial vocabulary at all |
-| **Klondike** | Ordered stacks; card-to-card drop legality; move a run | Zones are unordered lists with `move_top` |
-| **Knizia (Lost Cities / Ra)** | Scoring functions over sets | `count:<tag>` only counts |
-| **Hearthstone** | Triggered abilities; buffs; two players | `on_turn` is the only trigger |
+| **Knizia (Lost Cities)** | Two seats; scoring functions; drop legality | **done** — seats, `sum:`/`max:`/products, `accepts` |
+| **Checkers** | Move a piece already on the board; capture; chained moves | *partly* — activation takes targets and `move_to:target` moves the acting card; capture still needs `place_in_slot` to allow an occupied slot |
+| **Chess** | Per-piece movement geometry; blocking; check | not started — no spatial vocabulary at all |
+| **Klondike** | Ordered stacks; move a run | *partly* — `accepts` is built (it was Lost Cities that asked); zones are still unordered lists with `move_top` |
+| **Hearthstone** | Triggered abilities; buffs | not started — `on_turn` is the only trigger |
 
 ---
 
 ## Gap 1 — Pieces that move (checkers)
 
-The engine's only path from board to board is `flow.play_card`. A card already
-in a grid zone can be *activated* (`flow.activate`, `game/flow.lua:352`) but
-activation takes **no targets** and runs `on_activate` with an empty target
-list. So "select my knight, then select a square" cannot be expressed.
+**Two thirds of this is already built** — this section was written against an
+older engine and both halves it asked for arrived for other reasons.
 
-**Change:**
+- ~~`flow.activate(card_id, targets)`~~ — **done** (`13b27b7`, before any of
+  this ladder). Activation honours `activate_target` and flow enforces the
+  count, so "select my knight, then select a square" *is* expressible.
+- ~~A `move_self_to_target` action~~ — **done**, as `move_to:target`: the
+  acting card moves into the chosen target's zone or slot. Lost Cities asked
+  for it ("advance the expedition, or discard it"), which is the discipline
+  working — no new verb, and `target` was already a scope word.
 
-- `flow.activate(card_id, targets)` — mirror `play_card`'s target handling:
-  honour `def.target` (min/max/type/zones), enforce the count in flow so the
-  CLI, debug server and GUI all agree (`game/flow.lua:319` is the pattern).
-- New action `move_self_to_target` — the acting card moves into
-  `ctx.targets[1]` when that target is a slot. `move_to` (`game/actions.lua:135`)
-  already does slot placement for the play path; this is the same body reached
-  from activation.
-- `zones.place_in_slot` (`game/zones.lua:161`) **refuses occupied slots**.
+**What is genuinely left:**
+
+- `zones.place_in_slot` **refuses occupied slots**.
   Capture needs an opt-in: `place_in_slot(card_id, slot_id, on_occupied)` where
   `on_occupied` is `"refuse"` (default, unchanged), `"destroy"`, or a zone key
   to move the occupant to (a captured-pieces tray).
@@ -126,9 +125,10 @@ and all of what it lacks.
 
 - **Order matters.** `zone.cards` is an array, so order exists, but only
   `move_top` (`game/zones.lua:74`) respects it and nothing renders a fan.
-- **Drop legality is relational**: a card may land on another card only if it is
-  one rank lower and the opposite colour. This is the `accepts` relation from
-  the foundation doc — its first real customer.
+- ~~**Drop legality is relational**~~ — **done.** `accepts` on the destination
+  is built: `{ "rank@target": { "equals": 8 } }` plus a `black` tag in the
+  target spec is the whole of "a red 7 goes on a black 8". Klondike expected to
+  be its first customer; Lost Cities got there first and paid for it.
 - **Move a run**: dragging the 9♠ off a tableau takes the 8♥ and 7♠ with it.
   New action `move_stack_to_target`: the acting card *and every card above it in
   its zone* move together.
@@ -149,36 +149,33 @@ generator in — it is also the answer for any future deck-of-cards game.
 
 ## Gap 4 — Scoring functions (Knizia)
 
-A Knizia numbers game is 80% scoring rules. `count:<tag>` cannot express "the
-highest expedition value", "3 points per set of three", "−20 if you started an
-expedition and scored under 20".
+**Shipped** (`b606810`) — `game/games/lost_cities.json`, generated by
+`tools/make_lost_cities.py`.
 
-The foundation doc's `sum:` and `max:` cover most of it. The remaining shape is
-*set scoring* — "n points per complete set of k distinct tags". Resist inventing
-an operator: express it as a computed tag plus a card that reads it, or accept
-one narrow addition:
+A Knizia numbers game is 80% scoring rules, and `count:<tag>` alone could
+express none of them. What it took:
 
-```json
-"end_conditions": [ { "score": "sum:value@expedition_red", "at_least": 20, "then": [...] } ]
-```
+- `sum:` and `max:` from the foundation, plus **products** (`:x:`) — because
+  an expedition scores `(sum − 20) × wagers` and repeated addition cannot
+  stand in for a multiplication. It distributes into two ordinary actions
+  rather than needing a nested expression.
+- **Comparisons the other way and against another subject** — the winner is
+  `{ "stat": "score@north_side", "at_least": "score@south_side" }`.
+- **Seats**, which this document originally claimed the foundation already
+  gave you. It did not: 00's *first* draft had seat-based `@me`/`@opponent`
+  scopes and superseded itself, so nothing shipped modelled a seat at all.
+  Lost Cities named that gap, which is this document's own framing working.
+- **`accepts`**, for the ascending rule (see gap 3 above).
 
-Pick **Lost Cities** as the target: one scoring rule per expedition, no spatial
-component at all. It is the cheapest possible proof that the engine handles a
-real published game, and it validates the scope work under load with almost no
-new *scoring* code.
+Two content tricks worth stealing: the route marker is tagged `wager` so
+`count:wager` *is* the multiplier `1 + wagers` with no arithmetic, and a
+destination marker in each expedition gives the empty case something to target.
 
-**It is two-player, and the foundation does not give you that.** This document
-originally said it did, on the strength of [00](00-foundation-scope.md)'s first
-draft, which had seat-based `@me` / `@opponent` scopes. That draft superseded
-itself: a scope became a plain zone key or tag, deliberately, and nothing that
-shipped models a seat. Concretely, today `flow.play_card` never checks the
-active phase's zone (either player could play from either hand) and `plays`
-always lands on the first `player`-tagged card whoever is playing. So Lost
-Cities *names the missing capability*, exactly as this document's own framing
-demands, and that capability is seats — build it with
-[02 stage A](02-multiplayer.md#stage-a--hot-seat), not before it.
+*Set scoring* — "n points per complete set of k distinct tags" — is still not
+directly expressible, and still should not get its own operator. Express it as
+a computed tag plus a card that reads it.
 
-**Milestone: Lost Cities, two players hot-seat, correct scoring.**
+**Milestone: Lost Cities, two players hot-seat, correct scoring. — done.**
 
 ## Gap 5 — Triggers (Hearthstone-class)
 
@@ -218,11 +215,12 @@ game engine that got this wrong:
 
 ## Suggested order
 
-1. **Lost Cities + hot-seat** — one task, not two: the game names seats as its
-   missing capability. Scoring is ~no new engine code. (see [02 stage A](02-multiplayer.md#stage-a--hot-seat))
+1. ~~**Lost Cities + hot-seat**~~ — **done.** It named seats, `accepts`,
+   products and subject-valued comparisons, and every one of those landed as
+   vocabulary rather than as a special case.
 2. **Checkers** — board movement + capture. (small)
 3. **Chess, capture-the-king** — `geometry.lua`. (medium)
-4. **Klondike** — ordered stacks + `accepts` + run moves. (medium)
+4. **Klondike** — ordered stacks + run moves (`accepts` already done). (medium)
 5. **Chess, legal** — move generation, check, checkmate. (medium)
 6. **Hearthstone-like** — triggers. (large)
 

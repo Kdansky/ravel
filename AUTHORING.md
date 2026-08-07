@@ -2,9 +2,18 @@
 
 A game is one JSON file in `game/games/`, plus optional images in
 `game/games/assets/` (sources and licenses are recorded in
-`assets/CREDITS.md` — keep it that way when adding art). No code. This document walks through building a game, then lists everything the
-engine understands. `DESIGN.md` explains *why* things are shaped this way;
-`ARCHITECTURE.md` explains the engine internals.
+`assets/CREDITS.md` — keep it that way when adding art). No code.
+
+This document is meant to be complete: two walkthroughs, a procedure for
+**translating a published rulebook into a game file** (§3), the patterns worth
+copying (§4), and a full reference for every field the engine reads (§5). If
+something is not here, the engine does not read it. `DESIGN.md` explains *why*
+things are shaped this way; `ARCHITECTURE.md` explains the engine internals.
+
+The shipped games are the worked examples: `starter_cyoa.json` (a skeleton
+built to copy), `castle.json` (turn cycle, challenges, a hero card),
+`kingdom.json` (drafts, routing, long game), `lost_cities.json` (two players,
+per-seat zones, placement legality, scoring).
 
 Quick loop while authoring: `luajit play.lua mygame.json 42` (CLI, seeded), or run
 the GUI and just save the JSON — templates hot-reload into the running game.
@@ -125,7 +134,119 @@ deck, and endings are pages whose `on_pick` is `load_game:menu.json` plus
 type has a sensible default spot. Register your game with a card in
 `menu.json`, or it is only reachable from the CLI.
 
-## 3. Common patterns
+## 3. From a rulebook to a game file
+
+This section is the one to follow when translating a published game — it is
+written to be worked through in order, by a person or an agent, with the
+rulebook open alongside.
+
+### The procedure
+
+1. **Count the seats.** One player: skip ahead, everything else stays as
+   written. Two or more: declare one card per seat, tagged `player`, each with
+   the stats that rulebook calls "your" something (score, gold, life).
+2. **Inventory the components** and turn each into a zone. A draw deck is a
+   `deck` with `contents`; a hand is a `hand` zone (`per_seat` when there are
+   seats); a personal tableau is a `grid` (`per_seat`); a shared board, market
+   row or discard pile is the same without `per_seat`.
+3. **Inventory the card types** and write one template each. Numbers printed on
+   a card become `card_stats`; categories printed on it (suit, colour, faction)
+   become `tags`. If the deck runs past ~20 distinct cards, write a generator
+   script instead of the JSON — see *Big decks* below.
+4. **Write the turn as phases**, one per step the rulebook describes ("play a
+   card, then draw one" is two phases). Put `"seat": "next"` on the first phase
+   of a turn so entering it hands over. Give each phase a `zone`, which is both
+   where it deals and what may be played from it.
+5. **Turn each choice into a card with a destination.** "Play a card to your
+   tableau, or discard it" is one `target` spec listing both places plus
+   `on_play: ["move_to:target"]`. A choice with no card attached ("pass",
+   "draw from the deck") is a `pass_card` token whose `on_play` does the thing
+   and calls `next_phase`.
+6. **Turn placement restrictions into `accepts`** on the destination, never
+   into `needs` on the card — `needs` would make the card unplayable entirely,
+   including the ways it *is* still legal.
+7. **Costs and prerequisites**: what is spent is `cost`; what merely has to be
+   true is `needs`.
+8. **End of game**: a condition on a stat goes in `end_conditions`; "when the
+   deck runs out" is a route — `{ "zone_empty": ["deck"], "then": "scoring" }`
+   on the last phase of the turn.
+9. **Scoring** is a phase whose `pass_card` list is one card per scoring rule,
+   each gated by `needs` so it only appears when it applies, each ending in
+   `destroy_self`. Give the phase its own `zone` so leftover hand cards are not
+   still playable while tallying.
+
+### Rulebook phrase → engine construct
+
+| The rulebook says | You write |
+|---|---|
+| "Shuffle the deck" | a `deck` zone tagged `shuffle` with `contents` |
+| "Deal each player 8 cards" | an `automatic` setup phase: `draw_from:deck:mine.hand:8`, `draw_from:deck:enemy.hand:8` |
+| "On your turn, do X then Y" | two phases, the first tagged `"seat": "next"` |
+| "Play a card from your hand" | phase `"zone": "hand"`, `"ends_after": 1` |
+| "…to your own area" | a `per_seat` grid zone; `move_to:<zone>` resolves to yours |
+| "…or discard it instead" | a second destination in the same `target` spec |
+| "Cards must be played in ascending order" | `accepts` on the destination |
+| "Costs 2 gold" | `"cost": { "gold": 2 }` |
+| "Only if you control a farm" | `"needs": { "count:farm": 1 }` |
+| "Draw from the deck or a discard pile" | `on_click` on each pile: `draw_from:<pile>:hand:1`, `next_phase` |
+| "Discard a card of your choice" | an `overlay` phase over the hand with `on_pick` |
+| "Destroy all enemy creatures" | `destroy:each.enemy.creature` |
+| "Choose an enemy creature" | `"target": { "tags": ["creature"], "owner": "enemy", "count": 1 }` |
+| "Roll / draw randomly" | `shuffle` then `reveal_top:<zone>` |
+| "The game ends when the deck is empty" | a route on `{ "zone_empty": ["deck"] }` |
+| "Score 3 points per set" | a scoring card: `gain_stat:score:3:x:count:<tag>` |
+| "(sum − 20) × multiplier" | two actions: `gain_stat:score:sum:…:x:…` then `lose_stat:score:20:x:…` |
+| "Whoever has more points wins" | a route: `{ "stat": "score@north_side", "at_least": "score@south_side" }` |
+| "Players each have a different power" | different `player`-tagged templates |
+
+### Rules that do not fit — stop and say so
+
+The engine is turn-based, one screen, no hidden information between seats and
+no continuous effects. If the rulebook needs any of the following, it cannot be
+expressed today and guessing will produce a game that looks right and plays
+wrong:
+
+- **Simultaneous or real-time action** — everything is strictly one action at a
+  time, in phase order.
+- **Negotiation, trading, bluffing between players** — there is no channel.
+- **Hidden information between seats.** Hot-seat hides nothing: both hands are
+  in the same state on the same screen. Fine at one keyboard, not a secret.
+- **Triggered abilities** — "when a creature dies, …". `on_turn` (each round
+  boundary) is the only automatic hook; anything else has to be a card the
+  player is made to play.
+- **Continuous effects / auras** — "all your beasts have +1 while this is in
+  play". Model it as a stat change applied once, or leave it out.
+- **Arithmetic beyond a product** — amounts multiply, but there is no division,
+  no subtraction inside one amount, and no parentheses. Distribute it into
+  separate actions, as the scoring row above does.
+
+### Big decks
+
+Past a couple of dozen templates, hand-written JSON stops being reviewable and
+starts drifting. Write a generator, check it in, and treat the JSON as output —
+`tools/make_lost_cities.py` builds all sixty Lost Cities cards from five
+colours and a value range, and is the model for any deck-of-cards game.
+
+### Art without assets
+
+`asset` is optional. A card with none renders as its `color` (`[r, g, b]`) with
+the title and text on it, which is enough to play and to tell cards apart —
+give each category a colour and the table reads at a glance. Procedural
+placeholder shapes are designed but **not yet built** (`ideas/03`), so until
+then colour is the whole toolkit.
+
+### Before you call it done
+
+- `luajit check.lua mygame.json` — must be silent. Every message is a real
+  problem, and most name the fix.
+- `luajit play.lua mygame.json 42` — play a few turns at a fixed seed.
+- Add a card to `menu.json` (template plus an entry in the `menu` zone's
+  `contents`) or the game is only reachable from the CLI.
+- Write a scripted test in `tests/run.lua`: a fixed seed, a few forced moves,
+  and assertions on the end state. Ten lines, and it is the only thing that
+  will notice when an engine change breaks your game.
+
+## 4. Common patterns
 
 **Ending screens.** Give the ending card an `outcome` and the engine adds the
 pizzazz: a Victory/Defeat banner, a summary of the run's visible stats, and
@@ -192,7 +313,7 @@ up the lantern or the pearl). The oldest matching card is taken.
 
 ---
 
-## 4. Reference
+## 5. Reference
 
 ### Top-level fields
 
@@ -234,6 +355,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `fit` | Grid zones: `"card"` (default) keeps card proportions inside each cell, leaving breathing room; `"fill"` stretches cards to fill the cell, for board-game tiles |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
 | `on_click` | Actions run when the zone is clicked |
+| `per_seat` | `true` makes one copy of this zone per seat (see *Two or more players*). `pos` then takes one rect **per seat**: `[[…], […]]` |
 | `tags` | See below |
 
 Zone tags: `shuffle` (on contents creation and refill), `refill_when_empty`
@@ -273,7 +395,8 @@ there is nothing to check until the request actually runs.
 | `activate_cost` | Spent on activation (sacrifices allowed here too) |
 | `needs` | Non-consuming gate (shared condition subjects); escape hatch: playable anyway if nothing else in the zone is |
 | `requires` | Checked by `resolve_challenge` → `on_pass` / `on_fail` |
-| `target` | `{ "type": "card"\|"slot", "min", "max" (or "count"), "tags": [...], "zones": [...] }` — click-to-target with the arrow |
+| `target` | Click-to-target with the arrow. Fields: `type` (`"card"` or `"slot"`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`) |
+| `accepts` | Condition map deciding whether **this** card may be targeted by the card being played (see *Legality between two cards*) |
 | `activate_target` | Same shape, for `on_activate`: clicking the board card opens targeting before the ability runs |
 | `on_play` | Actions when played (ctx: this card + chosen targets) |
 | `on_activate` | Actions when clicked on the board; **exhausts** the card until the round wraps. A board card shows three states: ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable) |
@@ -292,11 +415,13 @@ there is nothing to check until the request actually runs.
 | `key`, `label` | Identity, HUD label |
 | `type` | `automatic`, `player_input`, `draw_and_play`, `overlay` |
 | `actions` | Run on entry (automatic phases) |
-| `deck`, `draw`, `zone` | Deal `draw` cards from `deck` into `zone` (default `hand`) on fresh entry |
+| `deck`, `draw`, `zone` | Deal `draw` cards from `deck` into `zone` (default `hand`) on fresh entry. **Naming `zone` also bounds what may be played**: only cards in it. A phase that names none lets any reachable card be played, which is what the menu relies on |
 | `pass_card` | Card key or array, dealt with every hand — forced plays always have an out |
 | `ends_after` | The phase advances itself after this many plays |
+| `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*) |
 | `discard_hand` | Leaving the phase discards its unplayed hand (tokens vanish) |
 | `on_pick` | Overlay only: actions run with the picked card |
+| `page` | Overlay only: render its cards as full-screen story pages (title, `story` prose, click to continue) and run the *picked card's own* `on_pick` instead of the phase's. The built-in `reveal` overlay sets this |
 | `next` | Routing table (below) |
 
 Types: `automatic` runs its actions once and advances (if the actions opened
@@ -329,15 +454,31 @@ Used by `next`, `end_conditions`, `requires`, `needs`. Subjects: a stat key,
 `count:<tag>` (cards on grid zones with that tag), or `card:<key>` (instances
 of that specific template on grid zones — "does the player have the rusty key?").
 
-- Object form: `{ "stat": "progress", "at_least": 12 }` (`equals` / `at_least` / `at_most`, numbers only) or `{ "zone_empty": ["road", "hand"] }`.
-- Map form (`requires`, `needs`): `{ "might": 8, "count:farm": 3, "card:pearl": 1 }` — each subject must total at least n.
+- Object form: `{ "stat": "progress", "at_least": 12 }` (`equals` / `at_least` / `at_most`) or `{ "zone_empty": ["road", "hand"] }`.
+- Map form (`requires`, `needs`, `accepts`): `{ "might": 8, "count:farm": 3 }` — a bare number means **at least** n, much the commonest thing to ask.
+- To ask the other way, the value is a comparison instead:
+  `{ "max:value@mine.red": { "at_most": 6 } }`.
+
+**A comparison may be measured against another subject, not just a constant.**
+The type decides at run time — a number is a number, a string is measured:
+
+```json
+{ "stat": "score@north_side", "at_least": "score@south_side" }
+{ "value@target": { "at_least": "max:value@mine.red" } }
+```
+
+A subject used this way must *look* like one — it has to name a scope (`@…`)
+or a measuring fn (`sum:`, `max:`, `count:`, `card:`). A bare word is treated
+as a typo and fails the comparison closed, rather than quietly reading as an
+unknown stat worth nothing.
 
 `end_conditions` fire once per game (first match), wait for open overlays, and
 run their `then` actions — usually `push_phase:` to an ending overlay.
 
-**Scopes: which cards a subject is about.** Add `@<name>`, where the name is a
-zone key, a tag, or one of `self` / `target` / `all`. Without one, a subject
-means **your own cards** — see *The player is a card* below.
+**Scopes: which cards a subject is about.** The part after `@` is a *scope
+expression*: `[<quant>.][<owner>.]<zone-or-tag>`, where the name is a zone key,
+a tag, or one of `self` / `target` / `all`. Without any scope, a subject means
+**your own cards** — see *The player is a card* below.
 
 ```
 insight@player       the stat on cards carrying the "player" tag
@@ -354,6 +495,26 @@ A **tag** scope means cards *in play* — on grid zones — exactly like
 `count:<tag>`. A card in hand is not on the board; name the zone (`@hand`) when
 that is what you want. Zone and tag names may never collide, and the validator
 refuses a file where they do.
+
+**Owner words** say whose cards, and compose with everything else:
+
+```
+hp@each.enemy.creature   every creature an opponent owns
+sum:value@mine.red       my red expedition's total
+count:beast@anyone.board every seat's beasts, said out loud
+```
+
+| Word | Means |
+|---|---|
+| `mine` | owned by the seat whose turn it is |
+| `enemy` | owned by any other seat |
+| `anyone` | no filter — identical to writing no owner word, but says so deliberately |
+
+A card's owner is **the seat of the zone it sits in**. A card in a shared zone
+(a common deck, a market row) belongs to nobody, so `mine` and `enemy` both
+pass it over and only `anyone` — or no word at all — reaches it. In a
+one-player game every word names the same cards and `enemy` names none, so
+none of this is visible until a second seat exists.
 
 **Quantifiers** say which member, and they work identically in conditions,
 costs and effects:
@@ -405,6 +566,104 @@ counter a watchtower added 2 to on play — and a watchtower reduced to rubble
 went on defending the castle forever, because nothing ever subtracted it again.
 As `card_stats` plus `sum:defense@standing` (with `standing` a computed tag for
 `hp` at least 1), that bug is not expressible.
+
+### Two or more players
+
+A **seat is a card tagged `player`**, named by its own key. Declaring two is
+all it takes; each carries its own stats, and neither can touch the other's.
+
+```json
+{ "key": "north", "text": "North", "tags": ["player", "north_side"],
+  "card_stats": { "score": 0 } },
+{ "key": "south", "text": "South", "tags": ["player", "south_side"],
+  "card_stats": { "score": 0 } }
+```
+
+A seat with no `to_zone` is auto-played into the hidden `system` zone — an
+invisible stat holder. Give it one (`"to_zone": "board"`) when the seat should
+be a visible hero on the table.
+
+**Zones that belong to a seat** declare `per_seat`, and are then created once
+per seat with one rect each:
+
+```json
+{ "key": "hand",  "type": "hand", "per_seat": true,
+  "pos": [[0.02, 0.75, 0.78, 0.87], [0.02, 0.88, 0.78, 0.99]] },
+{ "key": "arena", "type": "grid", "grid": [5, 1], "per_seat": true,
+  "pos": [[0.02, 0.05, 0.60, 0.30], [0.02, 0.32, 0.60, 0.57]] }
+```
+
+An unqualified zone key means **the active seat's** copy — `move_to:arena`
+puts the card in your own arena, `draw_from:deck:hand:1` deals into your own
+hand. Say `enemy.arena` for the other. A `per_seat` zone also receives its own
+copy of every `auto_play` card, so a marker declared once appears in each
+seat's copy.
+
+**Turn order is the phase list.** A phase declaring `"seat": "next"` hands over
+on entry, so alternation is just two phases:
+
+```json
+{ "key": "north_play", "type": "player_input", "zone": "hand",
+  "seat": "next", "ends_after": 1 },
+{ "key": "north_draw", "type": "player_input", "zone": "draw_choice",
+  "pass_card": "draw_deck" }
+```
+
+Handing over **clears the undo history** — undoing across it would either show
+a player something they never saw or rewrite a decision that was not theirs.
+
+Three rules the engine enforces so no interface has to: a card in another
+seat's zone cannot be played; a card outside the phase's declared `zone` cannot
+be played; and a target the rules did not allow is refused even if a script
+passes it directly.
+
+Everything above is invisible in a one-player game: there is exactly one seat,
+every owner word means the same cards, and no handover ever happens.
+
+### Legality between two cards
+
+Some rules are about **the card being played and the place it lands** — "a card
+may go on a higher one", "onto a card of the opposite colour". Neither `needs`
+(which asks about game-wide state) nor a computed tag (which asks about one
+card alone) can express that, because it takes two cards at once.
+
+`accepts` lives on the **destination** and is asked of each candidate, with
+itself as `@self` and the arriving card as `@target`:
+
+```json
+{ "key": "red_route", "tags": ["marker", "red_dest"],
+  "auto_play": true, "to_zone": "red",
+  "accepts": { "value@target": { "at_least": "max:value@mine.red" } } }
+```
+
+That single line is the whole of Lost Cities' expedition rule: a card must be
+worth at least what is already there. A destination with **no** `accepts` takes
+anything — which is how the same game's discard pile stays always legal:
+
+```json
+{ "key": "red_tip", "tags": ["marker", "red_dest"],
+  "auto_play": true, "to_zone": "red_discard" }
+```
+
+The card being played just names both destinations and goes where it is
+pointed:
+
+```json
+{ "key": "red_7", "card_stats": { "value": 7 },
+  "target": { "type": "card", "tags": ["red_dest"], "count": 1,
+              "zones": ["red", "red_discard"] },
+  "on_play": ["move_to:target"] }
+```
+
+Putting the rule on the destination rather than on the card is what lets it
+name its own zone: the red route marker knows it lives in `red`, so it needs no
+way to say "wherever I happen to be". A marker card in an otherwise empty zone
+also gives the empty case something to target.
+
+**Targeting takes the owner words too**, so "choose an enemy creature" needs no
+syntax of its own: `{ "type": "card", "tags": ["creature"], "owner": "enemy",
+"count": 1 }`. And a spec that lists `zones` means *yours* — it never offers
+another seat's copy of a per-seat zone unless an owner word says so.
 
 ### Computed tags
 
@@ -491,8 +750,20 @@ a card losing hp gets a small damage burst automatically.
 
 ### Actions
 
-Colon-separated strings; unknown ops log and skip. Every numeric slot accepts
-a number, `count:<tag>` **or** `card:<key>`.
+Colon-separated strings; unknown ops log and skip.
+
+**Numeric slots** take a number, or a measuring fn over a subject —
+`count:<tag>`, `card:<key>`, `sum:<subject>`, `max:<subject>` — optionally
+multiplied by a second such term with `:x:`, left to right:
+
+```
+gain_stat:gold:count:economic                        one per economic card
+gain_stat:score:sum:value@mine.red:x:count:wager@mine.red
+lose_stat:score:20:x:count:wager@mine.red            the same product, distributed
+```
+
+**Zone slots** take a scope expression too, so `arena` is the active seat's and
+`enemy.arena` the other's.
 
 | Action | Effect |
 |---|---|
@@ -501,6 +772,7 @@ a number, `count:<tag>` **or** `card:<key>`.
 | `draw_from:from:to:n` | Move n cards off the top |
 | `return_to:from:to` | Move all cards (bounded; safe with refilling zones) |
 | `move_to:zone` | Move the acting card (uses a slot target when given); without a zone, its home tag decides |
+| `move_to:target` | Move the acting card into the **chosen target's** zone — how one card offers two destinations ("advance the expedition, or discard it") |
 | `gain:card:n` | Create n instances of a card in its home zone (or the hand) |
 | `add_to:zone` | Move the acting card (overlay picks) |
 | `move_target_to:zone` | Move each targeted card |
@@ -514,7 +786,7 @@ a number, `count:<tag>` **or** `card:<key>`.
 | `reveal:card` | Conjure the card into the page overlay; its `on_pick` continues |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
 | `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
-| `destroy:zone` / `destroy_self` | Remove cards from play entirely |
+| `destroy:<scope>` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A card cannot be partly destroyed, so only `random.` narrows — to one victim |
 | `load_game:file` | Switch games (menu items, endings). `file` must be a bare `name.json` — no path, no `..` — and is refused otherwise |
 
 ### Engine behaviors you get for free
@@ -535,7 +807,15 @@ bad shapes, broken references and conflicts, with did-you-mean suggestions.
 
 `menu.json` boots the engine. Zone keys `hand` (default deal/pick target),
 `graveyard` (draw_and_play discard), `board` (default `auto_play` target) are
-load-bearing names, and `reveal` names both the built-in page zone and overlay
-phase (a game may declare its own to override them). Clicking a face-up card
-plays it; clicking a grid card activates it; decks aren't clickable (give them
-`on_click` if needed).
+load-bearing names; `reveal` names both the built-in page zone and overlay
+phase, and `system` the hidden zone holding the engine's own two cards (a game
+may declare any of them to override). The tag `player` marks a seat, and the
+card key `system` the round counter. Clicking a face-up card plays it; clicking
+a grid card activates it; decks aren't clickable (give them `on_click` if
+needed).
+
+Reserved words that a zone or tag may never be named: `self` and `all` (the
+engine answers for them in scopes), plus the quantifiers `any` / `each` /
+`random` and the owner words `mine` / `enemy` / `anyone`, which are read as
+prefixes in a scope expression rather than as names. `player` is deliberately
+*not* reserved — it is an ordinary tag you put on a card.

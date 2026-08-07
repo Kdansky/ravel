@@ -4,7 +4,7 @@
 > says "transfer to other player" which returns a (compressed) json, and a
 > "receive move" button.* — `IDEAS.md`
 
-**Status:** not started · **Stage A unblocked** ([00](00-foundation-scope.md) shipped) · **Size:** A small–medium, B small, C medium
+**Status:** **Stage A shipped** · B and C not started · **Size:** A small–medium, B small, C medium
 
 Three stages. Each one is independently shippable and each one is genuinely
 useful on its own, which is unusual and worth exploiting — do not treat this as
@@ -12,9 +12,30 @@ one project.
 
 ---
 
-## Stage A — Hot-seat
+## Stage A — Hot-seat — **shipped** (`4b1a96f`)
 
-**This was written as "90% the foundation doc". It isn't.** That assumed
+Everything below describes what was built. Its "Done when" is met: a two-seat
+fixture in `tests/run.lua` runs a full turn cycle with each seat's stats
+differing and neither able to play from the other's hand, and
+[Lost Cities](01-boardgames.md#gap-4--scoring-functions-knizia) is playable by
+two people on one keyboard.
+
+Three things the design did not anticipate, worth knowing before stage B:
+
+- **`turn` starts at 0**, not 1. A phase declaring `"seat": "next"` rotates on
+  entry, so starting at 1 made the game begin on seat *two*. Zero means
+  "nobody yet" and reads as the first seat.
+- **A seat card is its own seat.** Seat cards live in the shared hidden zone,
+  so the owner words could not reach them by zone. One line, and it states
+  something true: the player card *is* the player.
+- **Two legality holes** turned up on the way, both older than this stage:
+  target *identity* was never checked (any card id could be passed as a target
+  of anything), and a card could be played out of any zone. Flow now
+  re-derives both.
+
+---
+
+**This was originally written as "90% the foundation doc". It wasn't.** That assumed
 [00](00-foundation-scope.md)'s first draft, where a scope was a seat (`@me`,
 `@opponent`). The shipped design made a scope a plain zone key or tag and
 dropped seats entirely — a better decision, but it leaves the whole of seats
@@ -27,14 +48,10 @@ notion of which seat is active, or of a zone belonging to one.
 
 What remains:
 
-- **Seats, and zones that belong to one.** The design is below — it is the bulk
-  of this stage.
-- **Turn rotation in phases.** A phase declares `"seat": "next"`; entering it
-  rotates the active seat. Two-player alternation is then just the phase list,
-  exactly as `IDEAS.md` sketches it.
-- **A play gate.** `flow.play_card` has no zone check at all today, so nothing
-  stops a player playing out of the other player's hand. It must refuse a card
-  whose zone belongs to an inactive seat.
+- ~~**Seats, and zones that belong to one.**~~ Built as designed below.
+- ~~**Turn rotation in phases.**~~ `"seat": "next"` rotates on entry.
+- ~~**A play gate.**~~ Flow refuses a card in an inactive seat's zone, and a
+  card outside the phase's declared zone.
 - **Whose turn is it** — a HUD element. `render.lua`'s stat bar
   (`draw_stats`, `game/render.lua:608`) grows a player nameplate; the inactive
   player's stats render dimmed.
@@ -45,16 +62,11 @@ What remains:
 - **A pass-the-device screen.** No engine work: it is an overlay phase with one
   card that says "Hand the laptop to Blue" and `on_pick: ["pop_phase"]`.
   Invariant 7 pays out again.
-- **Undo becomes an information leak.** Today undo is capped at 50 steps
-  (`game/flow.lua:23`). With two players, undoing past a reveal shows one player
-  something they shouldn't have seen, and undoing past a turn boundary rewrites
-  the other player's decisions. **Clear the history at every turn handover** —
-  one line in the rotation, and it also makes stage B's replay model sound.
+- ~~**Undo becomes an information leak.**~~ Built: the history is cleared at
+  every handover, which also makes stage B's replay model sound.
 
-**Done when:** a two-player fixture game runs a full turn cycle in
-`tests/run.lua`, with each seat's stats differing and neither able to play from
-the other's hand, and Lost Cities (see [01-boardgames](01-boardgames.md)) is
-playable by two people on one keyboard.
+So what is left of stage A is **presentation only** — a nameplate, hidden
+hands, a pass-the-device screen. The rules are done.
 
 ### Seats, and whose zone a name means
 
@@ -71,10 +83,12 @@ alongside them rather than inside them.
 
 #### A seat is a card, and a zone can belong to one
 
-A seat is a player card with a name tag — `"tags": ["player", "north"]` — so
-`gold@north` already works today. Seat order is `card_list` order, and the
-active seat is a `turn` stat on the injected system card, which
-[00](00-foundation-scope.md) reserved for exactly this.
+A seat is a card tagged `player`, **named by its own key**. Seat order is
+`card_list` order, and the active seat is a `turn` stat on the injected system
+card, which [00](00-foundation-scope.md) reserved for exactly this. (Give the
+card an extra tag — `["player", "north_side"]` — when you also want to address
+that seat's stats by name, as `score@north_side`; the owner words reach it
+either way, because a seat card is its own seat.)
 
 A zone declares that it exists once per seat:
 

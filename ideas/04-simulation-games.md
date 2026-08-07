@@ -5,7 +5,7 @@
 > whatever works for Book of Hours (maybe split a day into 10 turns, 6 day, 4
 > night?))* — `IDEAS.md`
 
-**Status:** not started · **Blocked on:** [00-foundation-scope](00-foundation-scope.md) · **Size:** medium — smaller than it looks
+**Status:** not started · **Unblocked** — [00](00-foundation-scope.md) shipped, and it is smaller now than when this was written · **Size:** medium
 
 Labelled "hard mode" in the ideas file. Having read the engine, I think it is
 the *closest* of the four to already working, because ravel's core model —
@@ -83,11 +83,11 @@ wrong:
    fires — authors control priority by ordering, exactly like phase `next`
    routing already works (`game/phase.lua:57`). No scoring, no specificity
    algorithm. A catch-all recipe with empty `requires` goes last.
-2. **`requires` is scoped to the zone.** `{"forge": 2}` inside a zone's recipe
-   means "the cards in *this zone* total forge ≥ 2" — that is the foundation
-   doc's `@<zone>` scope, and this feature cannot be built before it. Reusing
-   `predicate.meets_all` unchanged is the whole point: no second condition
-   dialect (invariant 6).
+2. **`requires` is scoped to the zone.** `{"forge@work": 2}` means "the cards
+   in *this zone* total forge ≥ 2" — the `@<zone>` scope, **which now exists**,
+   along with `sum:`/`max:`, comparisons in either direction, and bounds that
+   are themselves subjects. Reusing `predicate.meets_all` unchanged is the
+   whole point: no second condition dialect (invariant 6).
 3. **Running verbs are cards, not engine state.** When a recipe starts, create a
    card into the zone carrying `card_stats: {timer: 4}` and an `on_turn` of
    `["lose_stat:timer:1"]`, plus a computed tag `{"done": {"stat": "timer",
@@ -103,9 +103,10 @@ wrong:
 - `zones.check_recipes(zone_id)` — called from `settle`, after any card enters
   or leaves a zone that declares recipes. Finds the first matching recipe,
   creates the in-progress card, and moves the consumed inputs out.
-- One action, `consume:<subject>:<n>` — destroy n cards matching a scoped
-  subject. (`destroy` (`game/actions.lua:219`) empties a whole zone; this is the
-  selective form, and it is useful well beyond this idea.)
+- ~~One action, `consume:<subject>:<n>`~~ — **already exists.** `destroy`
+  generalised from "empty a zone" to a scope expression, so
+  `destroy:each.mine.fuel` is the selective form this asked for, and
+  `destroy:random.mine.fuel` takes exactly one. No new verb needed.
 - Recipe fields in `validate.lua`'s known-field tables, plus checks that
   `then` ops exist and `requires` subjects are real.
 
