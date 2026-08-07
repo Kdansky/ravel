@@ -195,8 +195,32 @@ function M.parse(filename)
 	if not G.card_defs.system then
 		G.card_defs.system = { key = "system", injected = true,
 			tags = {}, tags_set = {},
-			card_stats = { round = 1 }, auto_play = true, to_zone = "system" }
+			card_stats = { round = 1, turn = 0 }, auto_play = true, to_zone = "system" }
 		table.insert(G.card_list, 1, "system")
+	end
+
+	-- Seats, in file order: every card carrying the "player" tag, named by its
+	-- own key. Computed after the injection above so a game that declares none
+	-- still has exactly one. One seat is the ordinary case and costs nothing —
+	-- per_seat zones instance once and every owner word means the same cards.
+	G.seat_list, G.seat_set = {}, {}
+	for _, key in ipairs(G.card_list) do
+		local cd = G.card_defs[key]
+		if cd.tags_set.player then
+			G.seat_list[#G.seat_list + 1] = key
+			G.seat_set[key] = true
+			-- A seat has to exist before it can act, and one that says nothing
+			-- about where it sits is a stat bag — it goes where the injected
+			-- one goes rather than onto a board it never asked for. Declaring
+			-- a seat is then just tagging a card, which is the point.
+			if cd.auto_play == nil then cd.auto_play = true end
+			local homed = false
+			for _, t in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
+				local td = G.tag_defs[t]
+				if type(td) == "table" and td.zone then homed = true end
+			end
+			if not (cd.to_zone or homed) then cd.to_zone = "system" end
+		end
 	end
 
 	-- Built-in "turn the page": the reveal actions conjure cards into this

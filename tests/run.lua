@@ -1396,6 +1396,101 @@ zones.destroy_card(find_card("dwarf").id)
 check("a character who dies takes her might with her",
 	predicate.total("sum:might@party") == 7)
 
+-- === two seats ===
+-- A zone can belong to a seat, and an unqualified key means the active seat's.
+-- Ownership is a third axis beside scope and quantifier: every combination of
+-- the three is meaningful, which is the test that it belongs beside them.
+play_fixture([==[{
+  "title": "The Duel",
+  "stats": [ { "key": "gold", "label": "Gold" } ],
+  "zones": [
+    { "key": "arena", "type": "grid", "grid": [3, 1], "per_seat": true,
+      "pos": [[0.02, 0.05, 0.60, 0.30], [0.02, 0.32, 0.60, 0.57]] },
+    { "key": "hand", "type": "hand", "per_seat": true,
+      "pos": [[0.19, 0.62, 0.97, 0.78], [0.19, 0.80, 0.97, 0.97]] },
+    { "key": "commons", "type": "grid", "pos": [0.62, 0.05, 0.98, 0.30], "grid": [2, 1] }
+  ],
+  "phases": [
+    { "key": "north_turn", "type": "player_input", "label": "North", "seat": "next" },
+    { "key": "south_turn", "type": "player_input", "label": "South", "seat": "next" }
+  ],
+  "templates": [
+    { "key": "north", "text": "North", "tags": ["player", "north_side"], "card_stats": { "gold": 5 } },
+    { "key": "south", "text": "South", "tags": ["player", "south_side"], "card_stats": { "gold": 2 } },
+    { "key": "wolf",  "text": "Wolf",  "tags": ["creature"], "card_stats": { "hp": 3 } },
+    { "key": "statue","text": "Statue","tags": ["creature"], "card_stats": { "hp": 9 } }
+  ]
+}]==], 1)
+
+check("a two-seat fixture validates clean", #validate.check(declaration.G) == 0)
+check("both seats exist, neither on a board",
+	find_card("north") ~= nil and find_card("south") ~= nil
+	and entity.get(find_card("north").zone_id).key == "system")
+-- A seat is addressable two ways: by an ordinary tag it carries, and by the
+-- owner words — which reach it even though it sits in a shared zone, because a
+-- seat card is its own seat.
+check("each seat keeps its own stats",
+	predicate.total("gold@north_side") == 5 and predicate.total("gold@south_side") == 2)
+check("the owner words reach the seat cards themselves",
+	predicate.total("gold@mine.player") == 5 and predicate.total("gold@enemy.player") == 2)
+
+-- The per-seat zone is instanced, and a bare key means the active seat's.
+local north_arena = zones.find("arena")
+check("north is on the clock", zones.active_seat() == "north")
+check("a per_seat zone is one entity per seat", #zones.all_with_key("arena") == 2)
+eval("fill:arena:wolf:1")
+eval("fill:enemy.arena:wolf:2")
+eval("fill:commons:statue:1")
+check("a bare key filled the active seat's arena", #north_arena.cards == 1)
+check("an owner word filled the other one", #zones.find("arena", "enemy").cards == 2)
+
+-- The three owner words over the same tag.
+check("mine sees only my creatures", predicate.total("count:creature@mine.creature") == 1)
+check("enemy sees only theirs",      predicate.total("count:creature@enemy.creature") == 2)
+-- "anyone" filters by nothing, exactly as writing no owner word does. It earns
+-- its place by saying so out loud on a card that means everyone's, not as a
+-- different set from the bare form.
+check("anyone is the bare form, said explicitly",
+	predicate.total("count:creature@anyone.creature") == 4
+	and predicate.total("count:creature@creature") == 4)
+check("and both include the unowned statue in the shared zone",
+	predicate.total("count:creature@mine.creature")
+	+ predicate.total("count:creature@enemy.creature") == 3)
+check("hp sums follow the same words",
+	predicate.total("hp@mine.creature") == 3 and predicate.total("hp@enemy.creature") == 6)
+
+-- Ownership composes with the quantifier rather than replacing it.
+eval("lose_stat:hp@each.enemy.creature:1")
+check("each.enemy reached both of theirs and none of mine",
+	predicate.total("hp@enemy.creature") == 4 and predicate.total("hp@mine.creature") == 3)
+
+-- destroy: takes a scope expression now, and a bare zone key is one.
+eval("destroy:each.enemy.creature")
+check("a board wipe spared my own",
+	#zones.find("arena", "enemy").cards == 0 and #north_arena.cards == 1)
+eval("destroy:commons")
+check("destroy:<zone> still means what it always did", zone_count("commons") == 0)
+
+-- The play gate: a card in the other seat's zone is not yours to play.
+local mine  = cards.create("wolf", zones.find_id("hand"))
+local yours = cards.create("wolf", zones.find_id("hand", "enemy"))
+check("I can play from my own hand", flow.can_play(mine.id))
+check("I cannot play out of the other seat's hand", flow.can_play(yours.id) == false)
+
+-- Handover: the seat rotates, the bare key follows it, and undo does not
+-- survive the handover.
+flow.play_card(mine.id, {})
+check("undo is available within a turn", flow.can_undo())
+phase.next()
+flow.settle()
+check("the seat rotated", zones.active_seat() == "south")
+check("the bare key now means the other arena", zones.find("arena").id ~= north_arena.id)
+check("mine and enemy swapped with it",
+	predicate.total("count:creature@enemy.creature") == 1
+	and predicate.total("count:creature@mine.creature") == 0)
+check("now south may play what north could not", flow.can_play(yours.id))
+check("undo history did not cross the handover", flow.can_undo() == false)
+
 -- === subject grammar ===
 -- Pure parsing, no game loaded: the one place the scope syntax is decided.
 local function subj(s)

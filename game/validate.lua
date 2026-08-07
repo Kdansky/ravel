@@ -47,17 +47,19 @@ local CARD_FIELDS = {
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, fit = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
-	injected = true,
+	injected = true, per_seat = true,
 }
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
 	draw = true, zone = true, pass_card = true, on_pick = true, next = true,
 	ends_after = true, discard_hand = true, page = true, injected = true,
+	seat = true,
 }
 local STAT_FIELDS     = { key = true, label = true, min = true, max = true, hidden = true, subject = true }
 local TAG_FIELDS      = { zone = true }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
-local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true }
+local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
+	owner = true }
 local ROUTE_FIELDS    = { stat = true, zone_empty = true, equals = true, at_least = true,
 	at_most = true, ["then"] = true, ends_round = true }
 local END_FIELDS      = { stat = true, zone_empty = true, equals = true, at_least = true,
@@ -316,9 +318,21 @@ function M.check(G)
 				end
 				break
 			end
-			if t == "zone" and not G.zone_defs[a] then
-				warn("%s: '%s' points at zone '%s', but no zone has that key%s",
-					where, op, a, suggest(a, G.zone_defs))
+			if t == "zone" then
+				-- A zone argument may say whose it is ("enemy.arena"), so the
+				-- key to check is the last word. An unknown owner word simply
+				-- stays part of the name and is caught as an unknown zone.
+				local sc = predicate.parse_scope(a)
+				if not (sc and G.zone_defs[sc.name]) then
+					warn("%s: '%s' points at zone '%s', but no zone has that key%s",
+						where, op, a, suggest(sc and sc.name or a, G.zone_defs))
+				end
+			elseif t == "scope" then
+				local sc = predicate.parse_scope(a)
+				if not (sc and scope_names[sc.name]) then
+					warn("%s: '%s' names '%s', which is neither a zone nor a tag%s",
+						where, op, a, suggest(sc and sc.name or a, scope_names))
+				end
 			elseif t == "card" and not G.card_defs[a] then
 				warn("%s: '%s' names the card '%s', but no template has that key%s",
 					where, op, a, suggest(a, G.card_defs))
@@ -563,7 +577,21 @@ function M.check(G)
 			warn("%s: '%s' is not a zone type (deck, pile, hand or grid)%s",
 				where, tostring(def.type), suggest(def.type, ZONE_TYPES))
 		end
-		check_numbers(where, "pos", def.pos, 4)
+		if def.per_seat then
+			local seats = #(G.seat_list or {})
+			if seats > 1 then
+				if type(def.pos) ~= "table" or #def.pos ~= seats then
+					warn("%s: exists once per seat, so pos should be a list of %d rects — one per seat, or they draw on top of each other",
+						where, seats)
+				else
+					for i, r in ipairs(def.pos) do
+						check_numbers(where, "pos[" .. i .. "]", r, 4)
+					end
+				end
+			end
+		else
+			check_numbers(where, "pos", def.pos, 4)
+		end
 		if def.fit ~= nil and def.fit ~= "card" and def.fit ~= "fill" then
 			warn("%s: fit should be 'card' or 'fill', not '%s'", where, tostring(def.fit))
 		end

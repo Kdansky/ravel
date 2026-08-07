@@ -22,17 +22,42 @@ M.default_seed  = nil   -- applied to every game load (CLI arg / RAVEL_SEED env)
 local history     = {}
 local MAX_HISTORY = 50
 
--- The engine's own two cards. The player card is found by tag, so a game can
--- promote its hero to be it (castle's throne room) instead of carrying an
--- invisible one; the system card is found by key, because it is never content.
+-- The engine's own two cards. Seats are named by their player card's key, so
+-- the acting seat's card is the one whose def_key the active seat names — a
+-- game can promote its hero to be it (castle's throne room) instead of
+-- carrying an invisible one. The system card is found by key too, because it
+-- is never content.
 local function player()
-	return predicate.entities_in_scope("player")[1]
+	local seat = zones.active_seat()
+	for e in entity.each("card") do
+		if e.def_key == seat and e.zone_id then return e end
+	end
+end
+
+-- A card in another seat's zone is not yours to play, whatever an interface
+-- lets you click. Cards in shared zones belong to nobody and stay reachable.
+local function reachable(c)
+	local z = c and c.zone_id and entity.get(c.zone_id)
+	return not (z and z.seat) or z.seat == zones.active_seat()
 end
 
 local function system_card()
 	for e in entity.each("card") do
 		if e.def_key == "system" and e.zone_id then return e end
 	end
+end
+
+-- Handing over. The undo history goes with the seat that had it: undoing
+-- across a handover would either show a player something they were never
+-- meant to see, or rewrite a decision that was not theirs.
+local function rotate_seat()
+	local seats = declaration.G.seat_list or {}
+	local sys   = system_card()
+	if #seats < 2 or not sys then return end
+	sys.stats.turn = (sys.stats.turn or 1) % #seats + 1
+	history = {}
+	local def = declaration.G.card_defs[seats[sys.stats.turn]]
+	log.add("— " .. ((def and def.text) or seats[sys.stats.turn]) .. " to play —")
 end
 
 local function fired_flags()
@@ -214,8 +239,11 @@ function M.settle()
 					phase.next()
 				end
 			elseif cur and phase.take_fresh() then
-				-- Fresh entry starts a new hand: the per-phase play counter
-				-- resets here (and only here — resuming after a pop doesn't).
+				-- Fresh entry starts a new hand: the seat changes first, so the
+				-- counter that resets and the hand that is dealt are the new
+				-- player's. The per-phase play counter resets here and only
+				-- here — resuming after a pop doesn't.
+				if cur.seat == "next" then rotate_seat() end
 				local pl = player()
 				if pl then pl.stats.plays = 0 end
 				deal(cur)
@@ -335,7 +363,8 @@ end
 function M.can_play(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	if not def or not M.can_afford(def.cost, { card_id = card_id }) then return false end
+	if not def or not reachable(c) then return false end
+	if not M.can_afford(def.cost, { card_id = card_id }) then return false end
 	if predicate.meets_all(def.needs, { card_id = card_id }) then return true end
 	local z = entity.get(c.zone_id)
 	for _, cid in ipairs(z and z.cards or {}) do
@@ -390,7 +419,7 @@ end
 function M.can_activate(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	return def ~= nil and def.on_activate ~= nil and not c.exhausted
+	return def ~= nil and def.on_activate ~= nil and not c.exhausted and reachable(c)
 		and M.can_afford(def.activate_cost, { card_id = card_id })
 end
 

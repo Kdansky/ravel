@@ -1,21 +1,40 @@
-local entity = require("entity")
-local cards  = require("cards")
+local entity      = require("entity")
+local cards       = require("cards")
+local declaration = require("declaration")
 
 local M = {}
-local key_map = {}  -- zone key → entity ID
+local key_map  = {}  -- zone key → entity ID (shared zones)
+local seat_map = {}  -- zone key → seat name → entity ID (per_seat zones)
 
 function M.reset()
-	key_map = {}
+	key_map, seat_map = {}, {}
 end
 
 function M.contains(p, x, y)
 	return x >= p.x and x <= p.x + p.w and y >= p.y and y <= p.y + p.h
 end
 
-function M.create(def)
+-- The seat an unqualified zone key means. Derived from the system card's
+-- "turn" rather than cached, so undo restores it along with everything else.
+-- One-seat games — every shipped game — never look past the first line.
+function M.active_seat()
+	local seats = declaration.G.seat_list or {}
+	if #seats < 2 then return seats[1] end
+	for e in entity.each("card") do
+		if e.def_key == "system" and e.zone_id then
+			-- turn 0 is "nobody has taken one yet", which reads as the first
+			-- seat: a game that never hands over still has somebody playing.
+			return seats[e.stats.turn or 0] or seats[1]
+		end
+	end
+	return seats[1]
+end
+
+local function build(def, seat, pos)
 	local e = {
 		kind      = "zone",
 		key       = def.key,
+		seat      = seat,   -- nil for a shared zone: its cards have no owner
 		label     = def.label,
 		zone_type = def.type or "pile",
 		tags      = def.tags_set or {},
@@ -24,12 +43,17 @@ function M.create(def)
 		cards     = {},
 		slots     = {},   -- slot_idx → slot entity ID (grid zones only)
 		contents  = def.contents,
-		pos       = def.pos,
+		pos       = pos,
 		place     = { x = 0, y = 0, w = 0, h = 0 },
 		on_click  = def.on_click or {},
 	}
 	entity.register(e)
-	key_map[e.key] = e.id
+	if seat then
+		seat_map[e.key] = seat_map[e.key] or {}
+		seat_map[e.key][seat] = e.id
+	else
+		key_map[e.key] = e.id
+	end
 
 	if e.zone_type == "grid" and e.grid then
 		local cols, rows = e.grid[1], e.grid[2]
@@ -48,6 +72,23 @@ function M.create(def)
 
 	M.refill(e)
 	return e
+end
+
+-- A per_seat zone exists once per seat, each instance with its own rect from
+-- the def's list of positions. Everything downstream sees ordinary zones that
+-- happen to carry a seat, so only the lookup below has to know the difference.
+function M.create(def)
+	if not def.per_seat then return build(def, nil, def.pos) end
+	-- One rect per seat: "pos" is a list of rects here, not the single rect a
+	-- shared zone declares. Two seats sharing one rect would draw on top of
+	-- each other, so the author names both — the validator insists.
+	local many = type(def.pos) == "table" and type(def.pos[1]) == "table"
+	local first
+	for i, seat in ipairs(declaration.G.seat_list or {}) do
+		local e = build(def, seat, many and def.pos[i] or def.pos)
+		first = first or e
+	end
+	return first
 end
 
 -- Create a card into a zone and give it a slot, or return nil when a grid is
@@ -72,13 +113,36 @@ function M.refill(z)
 	if z.tags.shuffle then M.shuffle(z.id) end
 end
 
-function M.find_id(key)
-	return key_map[key]
+-- A zone key, optionally qualified by whose it is: "arena" is the active
+-- seat's, "enemy.arena" the other's. A destination has to resolve to exactly
+-- one zone — a set can be wide, a place to put a card cannot — so "anyone"
+-- and "enemy" pick the first matching seat rather than all of them.
+function M.find_id(key, owner)
+	local seats = seat_map[key]
+	if not seats then return key_map[key] end
+	local active = M.active_seat()
+	if owner == nil or owner == "mine" then return seats[active] end
+	for _, seat in ipairs(declaration.G.seat_list or {}) do
+		if owner == "anyone" or seat ~= active then
+			if seats[seat] then return seats[seat] end
+		end
+	end
 end
 
-function M.find(key)
-	local id = key_map[key]
+function M.find(key, owner)
+	local id = M.find_id(key, owner)
 	return id and entity.get(id)
+end
+
+-- Every instance of a zone key, in seat order. Shared zones have exactly one.
+function M.all_with_key(key)
+	local out = {}
+	if key_map[key] then out[1] = entity.get(key_map[key]) end
+	for _, seat in ipairs(declaration.G.seat_list or {}) do
+		local id = seat_map[key] and seat_map[key][seat]
+		if id then out[#out + 1] = entity.get(id) end
+	end
+	return out
 end
 
 function M.move_top(from_id, to_id)

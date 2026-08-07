@@ -1,5 +1,6 @@
-local entity = require("entity")
-local tags   = require("tags")
+local entity    = require("entity")
+local tags      = require("tags")
+local zones     = require("zones")
 
 local M = {}
 
@@ -51,12 +52,28 @@ function M.start(card_id, spec, intent)
 	M.card_id  = card_id
 	M.kind     = kind
 	M.intent   = intent or "play"
-	M.spec     = { min = min, max = max, tags = spec.tags or {}, zone_set = zone_set }
+	M.spec     = { min = min, max = max, tags = spec.tags or {}, zone_set = zone_set,
+		owner = spec.owner }
 	M.targets  = {}
 	if kind == "slot" then
 		M.eligible = find_empty_slots(zone_set)
 	else
 		M.eligible = tags.find_targets(M.spec.tags, zone_set)
+	end
+	-- "Choose an enemy creature" is the same word the scopes use, so the
+	-- player-chooses case needs no syntax of its own.
+	if spec.owner then
+		local active, kept = zones.active_seat(), {}
+		for _, id in ipairs(M.eligible) do
+			local e = entity.get(id)
+			local z = e and e.zone_id and entity.get(e.zone_id)
+			local seat = z and z.seat
+			local ok = spec.owner == "anyone"
+				or (spec.owner == "mine"  and seat ~= nil and seat == active)
+				or (spec.owner == "enemy" and seat ~= nil and seat ~= active)
+			if ok then kept[#kept + 1] = id end
+		end
+		M.eligible = kept
 	end
 end
 

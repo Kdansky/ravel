@@ -42,6 +42,19 @@ local function safe_game_filename(name)
 	return type(name) == "string" and name:match("^[%w_%-]+%.json$") ~= nil
 end
 
+-- A zone argument is a scope expression too, so "arena" is the active seat's
+-- and "enemy.arena" is the other's. A destination must resolve to exactly one
+-- zone, which is why this returns an id rather than a set.
+local function zone_id(arg)
+	local sc = predicate.parse_scope(arg or "")
+	return sc and zones.find_id(sc.name, sc.owner)
+end
+
+local function zone_of(arg)
+	local id = zone_id(arg)
+	return id and entity.get(id)
+end
+
 -- Every numeric slot accepts a number, "count:<tag>" (board cards with that
 -- tag) or "card:<key>" (board instances of that template), e.g.
 -- "gain_stat:gold:count:economic". One rule everywhere.
@@ -125,7 +138,7 @@ local HANDLERS = {}
 
 HANDLERS["fill"] = function(p)
 	-- fill:zone:card_key:n
-	local zone = zones.find(p[2] or "")
+	local zone = zone_of(p[2] or "")
 	if not zone then
 		content_error("fill: unknown zone " .. tostring(p[2]))
 		return
@@ -140,14 +153,14 @@ HANDLERS["fill"] = function(p)
 end
 
 HANDLERS["shuffle"] = function(p)
-	local zone_id = zones.find_id(p[2])
-	if zone_id then zones.shuffle(zone_id) end
+	local zid = zone_id(p[2])
+	if zid then zones.shuffle(zid) end
 end
 
 HANDLERS["draw_from"] = function(p)
 	-- draw_from:from:to:n  (n defaults to 1)
-	local from_id = zones.find_id(p[2])
-	local to_id   = zones.find_id(p[3] or "hand")
+	local from_id = zone_id(p[2])
+	local to_id   = zone_id(p[3] or "hand")
 	if not from_id or not to_id then return end
 	for _ = 1, amount(p, 4, 1) do
 		if not zones.move_top(from_id, to_id) then break end
@@ -179,7 +192,7 @@ HANDLERS["move_to"] = function(p, ctx)
 		local def = c and declaration.G.card_defs[c.def_key]
 		dest = (def and cards.home_zone(def)) or sole_grid()
 	end
-	local to_id = dest and zones.find_id(dest)
+	local to_id = dest and zone_id(dest)
 	if not to_id then return end
 	local t1  = ctx.targets and ctx.targets[1]
 	local tgt = t1 and entity.get(t1)
@@ -207,7 +220,7 @@ end
 
 HANDLERS["add_to"] = function(p, ctx)
 	-- add_to:zone  —  same as move_to but never slot-targeted (overlay on_pick context)
-	local to_id = zones.find_id(p[2])
+	local to_id = zone_id(p[2])
 	if to_id and ctx and ctx.card_id then
 		zones.move_card(ctx.card_id, to_id)
 	end
@@ -252,11 +265,24 @@ HANDLERS["load_game"] = function(p)
 	M.pending_load = p[2]
 end
 
--- destroy:zone  — remove every card in the zone from play.
-HANDLERS["destroy"] = function(p)
-	local z = zones.find(p[2])
-	if not z then return end
-	while #z.cards > 0 do zones.destroy_card(z.cards[#z.cards]) end
+-- destroy:<scope>  — remove every card the scope names from play. A bare zone
+-- key is a scope, so "destroy:hand" means exactly what it always did, and
+-- "destroy:each.enemy.creature" needs no second verb. A card cannot be partly
+-- destroyed, so the pooled quantifiers coincide here: only "random." narrows,
+-- to one victim. Ids are collected before anything is removed — destroying
+-- while walking a zone's own card list is how you skip half of it.
+HANDLERS["destroy"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	if not sc then return end
+	local doomed = {}
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		if e.kind == "card" and e.zone_id then doomed[#doomed + 1] = e.id end
+	end
+	table.sort(doomed)
+	if sc.quant == "random" and #doomed > 0 then
+		doomed = { doomed[math.random(#doomed)] }
+	end
+	for _, id in ipairs(doomed) do zones.destroy_card(id) end
 end
 
 -- destroy_self  — remove the acting card from play (pass cards, tokens).
@@ -281,7 +307,7 @@ end
 -- reveal_top:zone  — turn over the top card of a (usually hidden, shuffled)
 -- deck into the page overlay: a secret outcome decided by the shuffle.
 HANDLERS["reveal_top"] = function(p)
-	local from  = zones.find(p[2] or "")
+	local from  = zone_of(p[2] or "")
 	local to_id = zones.find_id("reveal")
 	if from and to_id and #from.cards > 0 then
 		zones.move_top(from.id, to_id)
@@ -312,8 +338,8 @@ end
 -- to_zone. Bounded by the starting count: a refill_when_empty source would
 -- otherwise refill mid-drain and loop forever.
 HANDLERS["return_to"] = function(p)
-	local from = zones.find(p[2])
-	local to_id = zones.find_id(p[3])
+	local from = zone_of(p[2])
+	local to_id = zone_id(p[3])
 	if not from or not to_id then return end
 	for _ = 1, #from.cards do
 		if not zones.move_top(from.id, to_id) then break end
@@ -322,7 +348,7 @@ end
 
 -- move_target_to:zone  — move each targeted card to zone.
 HANDLERS["move_target_to"] = function(p, ctx)
-	local to_id = zones.find_id(p[2])
+	local to_id = zone_id(p[2])
 	if not to_id then return end
 	for _, tid in ipairs(ctx and ctx.targets or {}) do
 		zones.move_card(tid, to_id)
@@ -366,7 +392,7 @@ local SPEC = {
 	push_phase        = "phase",
 	pop_phase         = "",
 	load_game         = "gamefile",
-	destroy           = "zone",
+	destroy           = "scope",
 	destroy_self      = "",
 	reveal            = "card",
 	reveal_top        = "zone",

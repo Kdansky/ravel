@@ -2,27 +2,55 @@
 -- challenge requires, card needs and cost keys. The subject grammar it all
 -- runs on is documented below.
 
-local entity = require("entity")
-local zones  = require("zones")
-local tags   = require("tags")
+local entity      = require("entity")
+local zones       = require("zones")
+local tags        = require("tags")
+local declaration = require("declaration")
 
 local M = {}
 
--- Subject grammar:  [<fn>:]<arg>[@[<quant>.]<scope>]
+-- Subject grammar:  [<fn>:]<arg>[@<scope expression>]
+-- Scope expression:  [<quant>.][<owner>.]<zone-or-tag>
 --
---   gold                 a stat, summed over everything (unchanged)
---   insight@player       the stat on cards carrying the "player" tag
---   hp@each.follower     every follower, individually
---   hp@random.follower   one follower, chosen by the seeded RNG
---   hp@self              the acting card
---   hp@target            the cards the player chose for this card
---   count:farm@board     the fn forms take a scope too
+--   gold                    a stat on the player's own cards
+--   insight@player          the stat on cards carrying the "player" tag
+--   hp@each.follower        every follower, individually
+--   hp@random.follower      one follower, chosen by the seeded RNG
+--   hp@each.enemy.creature  every creature an opponent owns
+--   hp@self                 the acting card
+--   hp@target               the cards the player chose for this card
+--   count:farm@board        the fn forms take a scope too
 --
--- The quantifier is separated by "." because ":" cannot be: action strings are
+-- The words are separated by "." because ":" cannot be: action strings are
 -- split on colons (actions.lua), so "hp@each:follower" would arrive as two
--- arguments. Parsing is pure — no game state — so it is testable on its own.
+-- arguments.
 local FNS    = { count = true, card = true, sum = true, max = true }
 local QUANTS = { any = true, each = true, random = true }
+local OWNERS = { mine = true, enemy = true, anyone = true }
+
+-- A scope expression: [<quant>.][<owner>.]<zone-or-tag>. It is the part after
+-- "@" in a subject, and it also stands alone as an action's zone argument, so
+-- "destroy:each.enemy.creature" and "hp@each.enemy.creature" read the same.
+-- Leading words are taken while they are known, in either order; whatever is
+-- left is the name, so a tag really called "each" is still reachable as the
+-- last word. Pure — no game state — so it is testable on its own.
+function M.parse_scope(s)
+	if type(s) ~= "string" or s == "" then return nil end
+	local quant, owner, rest = nil, nil, s
+	for _ = 1, 2 do
+		local word, tail = rest:match("^([%w_]+)%.(.+)$")
+		if not word then break end
+		if QUANTS[word] and not quant then quant, rest = word, tail
+		elseif OWNERS[word] and not owner then owner, rest = word, tail
+		else break end
+	end
+	if rest == "" then return nil end
+	-- Choosing two targets means both of them; a tag that happens to match
+	-- several cards means the pool. Different defaults because they are
+	-- different intents, not an inconsistency.
+	return { quant = quant or (rest == "target" and "each" or "any"),
+		owner = owner, name = rest }
+end
 
 function M.parse_subject(s)
 	if type(s) ~= "string" then return nil end
@@ -33,20 +61,9 @@ function M.parse_subject(s)
 	local fn, arg = left:match("^([%w_]+):(.+)$")
 	if not (fn and FNS[fn]) then fn, arg = nil, left end
 
-	local quant, scope
-	if right and right ~= "" then
-		local q, rest = right:match("^([%w_]+)%.(.+)$")
-		if q and QUANTS[q] then
-			quant, scope = q, rest
-		else
-			scope = right
-		end
-		-- Choosing two targets means both of them; choosing a tag that happens
-		-- to match several cards means the pool. Different defaults because
-		-- they are different intents, not an inconsistency.
-		quant = quant or (scope == "target" and "each" or "any")
-	end
-	return { fn = fn, arg = arg, quant = quant, scope = scope }
+	local sc = right and right ~= "" and M.parse_scope(right) or nil
+	return { fn = fn, arg = arg,
+		quant = sc and sc.quant, owner = sc and sc.owner, scope = sc and sc.name }
 end
 
 -- Everything below reads attacker-suppliable content (routing conditions,
@@ -56,9 +73,24 @@ end
 -- Every subject and threshold is coerced or type-checked before use; anything
 -- that doesn't check out fails the condition rather than crashing.
 
--- Turn a scope name into the entities it means. The single place that decides,
--- so reads, costs and effects can never disagree about who "@player" is.
-function M.entities_in_scope(scope, ctx)
+-- Whose card this is: the seat of the zone it sits in. A card in a shared zone
+-- has no owner, which is why an unqualified scope filters by nothing — "mine"
+-- would otherwise have to mean "mine or unowned", and that special case is
+-- exactly what this vocabulary exists to avoid.
+local function owned_by(e, owner, active)
+	if owner == nil or owner == "anyone" then return true end
+	local z = e.zone_id and entity.get(e.zone_id)
+	local seat = z and z.seat
+	if declaration.G.seat_set and declaration.G.seat_set[e.def_key] then
+		seat = e.def_key
+	end
+	if owner == "mine" then return seat ~= nil and seat == active end
+	return seat ~= nil and seat ~= active
+end
+
+-- Turn a scope into the entities it means. The single place that decides, so
+-- reads, costs and effects can never disagree about who "@player" is.
+function M.entities_in_scope(scope, ctx, owner)
 	local out = {}
 	if scope == nil then
 		-- No scope means "mine": the cards this player's stats live on, plus
@@ -84,11 +116,16 @@ function M.entities_in_scope(scope, ctx)
 			if e then out[#out + 1] = e end
 		end
 	else
-		local z = zones.find(scope)
-		if z then
-			for _, id in ipairs(z.cards) do
-				local e = entity.get(id)
-				if e then out[#out + 1] = e end
+		-- A zone key reaches every instance of it — both arenas, not just the
+		-- active seat's. Narrowing to one is what the owner word is for, and a
+		-- set may be wide where a destination may not.
+		local instances = zones.all_with_key(scope)
+		if #instances > 0 then
+			for _, z in ipairs(instances) do
+				for _, id in ipairs(z.cards) do
+					local e = entity.get(id)
+					if e then out[#out + 1] = e end
+				end
 			end
 		else
 			-- A tag means the cards in play carrying it — grid zones only,
@@ -100,7 +137,12 @@ function M.entities_in_scope(scope, ctx)
 			end
 		end
 	end
-	return out
+	if owner == nil then return out end
+	local active, kept = zones.active_seat(), {}
+	for _, e in ipairs(out) do
+		if owned_by(e, owner, active) then kept[#kept + 1] = e end
+	end
+	return kept
 end
 
 -- Entities in a subject's scope that actually carry its stat. Filtering here
@@ -109,7 +151,7 @@ end
 -- Pass `ents` when the caller has already resolved the scope.
 function M.bearers(p, ctx, ents)
 	local out = {}
-	for _, e in ipairs(ents or M.entities_in_scope(p.scope, ctx)) do
+	for _, e in ipairs(ents or M.entities_in_scope(p.scope, ctx, p.owner)) do
 		if e.stats and e.stats[p.arg] ~= nil then out[#out + 1] = e end
 	end
 	return out
@@ -142,7 +184,7 @@ function M.total(subject, ctx)
 		end
 	end
 
-	local ents = M.entities_in_scope(p.scope, ctx)
+	local ents = M.entities_in_scope(p.scope, ctx, p.owner)
 	if p.fn == "count" then
 		local n = 0
 		for _, e in ipairs(ents) do if tags.entity_has(e, p.arg) then n = n + 1 end end
@@ -187,7 +229,7 @@ function M.met(cond, ctx)
 	-- exactly when nothing can pay it.
 	local p = M.parse_subject(cond.stat)
 	if p and p.quant == "each" and p.fn == nil then
-		local ents = M.entities_in_scope(p.scope, ctx)
+		local ents = M.entities_in_scope(p.scope, ctx, p.owner)
 		if #ents == 0 then return false end
 		for _, e in ipairs(ents) do
 			if not compare(tonumber((e.stats or {})[p.arg]) or 0, cond) then return false end
