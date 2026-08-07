@@ -239,11 +239,22 @@ function M.met(cond, ctx)
 	return compare(M.total(cond.stat, ctx), cond)
 end
 
--- Map form { subject = n, ... }: each entry is "this subject, at least n".
+-- Map form { subject = n, ... }: each entry is "this subject, at least n" —
+-- much the commonest thing to ask, so a bare number keeps meaning exactly
+-- that. When you need the other direction, the value is a comparison instead:
+-- { "max:value@mine.red": { "at_most": 6 } } is how a card says it may only be
+-- played on a lower one.
 function M.meets_all(map, ctx)
 	if type(map) ~= "table" then return true end
 	for subject, n in pairs(map) do
-		if not M.met({ stat = subject, at_least = tonumber(n) }, ctx) then return false end
+		local cond
+		if type(n) == "table" then
+			cond = { stat = subject, equals = n.equals,
+				at_least = n.at_least, at_most = n.at_most }
+		else
+			cond = { stat = subject, at_least = tonumber(n) }
+		end
+		if not M.met(cond, ctx) then return false end
 	end
 	return true
 end

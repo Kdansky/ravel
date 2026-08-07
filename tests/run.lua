@@ -1491,6 +1491,30 @@ check("mine and enemy swapped with it",
 check("now south may play what north could not", flow.can_play(yours.id))
 check("undo history did not cross the handover", flow.can_undo() == false)
 
+-- === comparisons and products ===
+-- Two gaps a real published game found: a gate that compares downwards, and a
+-- multiplication that repeated addition cannot stand in for.
+flow.init("castle.json", 7)
+eval("fill:board:watchtower:2")
+check("a bare number in a map still means at_least",
+	predicate.meets_all({ ["sum:defense@standing"] = 4 })
+	and predicate.meets_all({ ["sum:defense@standing"] = 5 }) == false)
+check("a comparison map can ask the other way",
+	predicate.meets_all({ ["sum:defense@standing"] = { at_most = 4 } })
+	and predicate.meets_all({ ["sum:defense@standing"] = { at_most = 3 } }) == false)
+check("and can ask for exactly", predicate.meets_all({ ["max:hp@building"] = { equals = 20 } }))
+check("a malformed comparison fails closed, it does not crash",
+	predicate.meets_all({ gold = { at_most = "lots" } }) == false)
+
+local throne = find_card("throne_room")
+throne.stats.gold = 0
+eval("gain_stat:gold:sum:defense@standing:x:count:military")
+check("a product multiplies two measured terms", throne.stats.gold == 8)
+eval("set_stat:gold:3:x:2")
+check("plain numbers multiply too", throne.stats.gold == 6)
+eval("gain_stat:gold:sum:defense@standing")
+check("a sum: term needs no product to be an amount", throne.stats.gold == 10)
+
 -- === subject grammar ===
 -- Pure parsing, no game loaded: the one place the scope syntax is decided.
 local function subj(s)

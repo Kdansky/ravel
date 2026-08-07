@@ -238,8 +238,27 @@ function M.check(G)
 				-- A cost's subjects may carry a scope, but not a measuring fn.
 				subject_ok(where, key, not is_cost)
 			end
-			if type(v) ~= "number" then
-				warn("%s: the value of '%s' should be a number", where, tostring(key))
+			-- A gate may compare either way ({ "at_most": 6 }); a cost is spent,
+			-- so it can only ever be a number.
+			if type(v) == "table" and not is_cost then
+				for k in pairs(v) do
+					if k ~= "equals" and k ~= "at_least" and k ~= "at_most" then
+						warn("%s: '%s' has a field '%s' the engine doesn't read — a comparison is equals, at_least or at_most",
+							where, tostring(key), tostring(k))
+					end
+				end
+				if v.equals == nil and v.at_least == nil and v.at_most == nil then
+					warn("%s: '%s' compares against nothing (equals / at_least / at_most)",
+						where, tostring(key))
+				end
+				for _, cmp in ipairs({ "equals", "at_least", "at_most" }) do
+					if v[cmp] ~= nil and type(v[cmp]) ~= "number" then
+						warn("%s: '%s' %s should be a number", where, tostring(key), cmp)
+					end
+				end
+			elseif type(v) ~= "number" then
+				warn("%s: the value of '%s' should be %s", where, tostring(key),
+					is_cost and "a number" or 'a number or a comparison like { "at_most": 6 }')
 			elseif v < 0 then
 				warn("%s: '%s' is negative — costs and requirements must be zero or more",
 					where, tostring(key))
@@ -356,6 +375,9 @@ function M.check(G)
 			end
 		end
 		for j, w in ipairs(p) do
+			if (w == "sum" or w == "max") and p[j + 1] then
+				subject_ok(where .. ": " .. tostring(op), p[j + 1])
+			end
 			if w == "count" and p[j + 1] and not known_tags[p[j + 1]] then
 				warn("%s: counts the tag '%s', but no card has it%s",
 					where, p[j + 1], suggest(p[j + 1], known_tags))

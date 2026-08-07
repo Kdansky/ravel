@@ -55,14 +55,32 @@ local function zone_of(arg)
 	return id and entity.get(id)
 end
 
--- Every numeric slot accepts a number, "count:<tag>" (board cards with that
--- tag) or "card:<key>" (board instances of that template), e.g.
+-- Every numeric slot accepts a number or a measuring fn over a subject —
+-- "count:<tag>", "card:<key>", "sum:<subject>", "max:<subject>" — e.g.
 -- "gain_stat:gold:count:economic". One rule everywhere.
-local function amount(p, i, default)
-	if p[i] == "count" or p[i] == "card" then
-		return predicate.total(p[i] .. ":" .. tostring(p[i + 1]))
+local FN_TERMS = { count = true, card = true, sum = true, max = true }
+
+local function term(p, i, default, ctx)
+	if FN_TERMS[p[i] or ""] then
+		return predicate.total(p[i] .. ":" .. tostring(p[i + 1]), ctx), i + 2
 	end
-	return tonumber(p[i]) or default or 0
+	return tonumber(p[i]) or default or 0, i + 1
+end
+
+-- A slot may also be a product: "<term>:x:<term>", left to right. One operator
+-- and no parentheses, so there is no precedence to remember — and a product is
+-- the one thing repeated addition cannot stand in for. Lost Cities scores an
+-- expedition as (sum - 20) x wagers, written as the two actions
+-- "gain_stat:score:sum:value@mine.red:x:count:wager" and
+-- "lose_stat:score:20:x:count:wager", which is the same arithmetic distributed.
+local function amount(p, i, default, ctx)
+	local v, j = term(p, i, default, ctx)
+	while p[j] == "x" do
+		local w
+		w, j = term(p, j + 1, 1, ctx)
+		v = v * w
+	end
+	return v
 end
 
 -- Change a stat on an entity, clamped to the stat's declared min/max and,
@@ -227,11 +245,11 @@ HANDLERS["add_to"] = function(p, ctx)
 end
 
 HANDLERS["gain_stat"] = function(p, ctx)
-	apply_stat(p[2], amount(p, 3), ctx)
+	apply_stat(p[2], amount(p, 3, 0, ctx), ctx)
 end
 
 HANDLERS["lose_stat"] = function(p, ctx)
-	apply_stat(p[2], -amount(p, 3), ctx)
+	apply_stat(p[2], -amount(p, 3, 0, ctx), ctx)
 end
 
 HANDLERS["spend_stat"] = HANDLERS["lose_stat"]
@@ -239,7 +257,7 @@ HANDLERS["spend_stat"] = HANDLERS["lose_stat"]
 HANDLERS["set_stat"] = function(p, ctx)
 	local sp = predicate.parse_subject(p[2])
 	if not sp then return end
-	local v = amount(p, 3)
+	local v = amount(p, 3, 0, ctx)
 	for _, e in ipairs(designated(sp, ctx)) do e.stats[sp.arg] = v end
 end
 
