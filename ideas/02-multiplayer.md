@@ -4,7 +4,9 @@
 > says "transfer to other player" which returns a (compressed) json, and a
 > "receive move" button.* — `IDEAS.md`
 
-**Status:** **Stage A shipped** · B and C not started · **Size:** A small–medium, B small, C medium
+**Status:** **A, B and C shipped.** A's HUD polish (nameplate, hidden hands,
+pass-the-device) is all that remains, and it is presentation only.
+**Size:** A small–medium, B small, C medium — B and C came in together
 
 Three stages. Each one is independently shippable and each one is genuinely
 useful on its own, which is unusual and worth exploiting — do not treat this as
@@ -183,124 +185,162 @@ the signal the shape is right.
 
 ---
 
-## Stage B — Play-by-post (copy/paste)
+## Stage B — Play-by-post — **shipped** (`781a624`)
+## Stage C — Networked — **shipped for two browser tabs** (`781a624`)
 
-This is the highest value-per-line feature in the whole ideas file. No server,
-no accounts, no hosting bill, no latency assumptions, and it works over Discord,
-email, SMS or a piece of paper. It should be built early.
+They arrived together, because the thing that made C hard turned out not to be
+the network. Three files, all additive: `net.lua` (protocol), `netlink.lua`
+(transports), `netpanel.lua` (the browser's controls). The engine needed one
+new function — `flow.forget_history` — and `main.lua` three lines. Delete the
+three files and the game is exactly what it was.
 
-The engine is unusually well set up for it: state is a flat serializable array
-(DESIGN.md's first directive), the RNG is seedable with defined precedence, and
-the debug server already dumps full state as JSON (`game/debugserver.lua`).
+### What we shipped, against what was planned
 
-### Two transports, and you want both
+The plan recommended **moves with a state hash appended**. We shipped **state
+with a fingerprint**, and the reasoning inverted along the way:
 
-**Ship the whole state.** Serialize the entity array + phase stack + fired flags
-+ log, compress, base64. Robust — it cannot desync, because there is nothing to
-re-derive. Downsides: the blob is large (a few KB compressed for a mid-size
-game, which is fine for Discord), and it hands the receiving player the entire
-hidden state. For hot-seat-by-mail between friends, that is acceptable; say so
-out loud rather than pretending otherwise.
+- A move is only small if the far machine can re-derive the result. [05](05-determinism.md)
+  made that possible, but "possible" is not "cannot fail" — a move-based
+  protocol desyncs on any behaviour difference, and then you are debugging two
+  machines through one symptom.
+- A **delta between two states** is nearly as small as a move (**273 bytes** for
+  a Lost Cities turn, against **25 KB** for the state it describes) and cannot
+  desync, because there is nothing to re-derive. It is a diff, not a
+  re-simulation.
+- The fingerprint moved from "appended, checked after" to **"named by the patch,
+  checked before"**. A delta says which state it was computed against; a
+  receiver whose own state hashes to something else refuses it and asks for a
+  full copy. Drift repairs itself in one round trip instead of being detected
+  after the damage.
 
-**Ship the moves.** A move is tiny: `{"t":"play","card":17,"targets":[4]}` — a
-handful of bytes, human-inspectable, and it makes a game log that can be
-replayed, forked and debugged. Requires determinism.
-
-**Recommendation: ship moves, with a state hash appended.** The receiver applies
-the move, hashes its own resulting state, compares to the sender's hash, and on
-mismatch offers "request full state". Best of both, and the hash is ~15 lines.
-
-### Determinism: one real problem to fix first
-
-The engine is deterministic given a seed, with one exception I found while
-reading it:
-
-**`pairs()` iteration order is not portable** — *fixed in `23267e3`; kept here
-because the reasoning still applies to any new `pairs()` loop.* Lua 5.4
-randomizes string hash seeds per process; LuaJIT and PUC-Lua differ from each
-other regardless. Any `pairs()` loop whose *order* affects state will desync two
-machines running identical inputs. The one that mattered:
-
-```lua
--- game/flow.lua:251
-for _, def in pairs(G.card_defs) do
-    if def.auto_play then ... cards.create(def.key, to.id) ... end
-end
-```
-
-Entity IDs are assigned by creation order (`game/entity.lua:7`), so two machines
-can build the same game with **different IDs for the same cards** — and moves
-reference cards by ID. It also shifts RNG consumption if any `on_play` rolls.
-
-Fix: iterate a sorted key list, or better, iterate the ordered card list in file
-order. `declaration.parse` already keeps ordered lists for zones, stats and
-phases (`G.zone_list`, `G.stat_defs_list`, `G.phase_list`) — `card_defs` just
-never needed one. Add `G.card_list` and use it here. Audit the other `pairs()`
-loops the same way (`pay` in `game/flow.lua:271` iterates a cost table — order
-only matters when clamping interacts, but make it sorted anyway; `cards.reload`
-and `can_afford` are read-only and fine).
-
-This fix was worth doing **regardless of multiplayer** — it was a latent
-reproducibility bug in a codebase that advertises reproducibility. `G.card_list`
-now exists and `flow.init` walks it; `pay` sorts its cost keys.
-
-The RNG note under stage C is the remaining half of this problem, and it is
-larger: LuaJIT and PUC-Lua ship *different generators*, so a seed does not even
-reproduce across interpreters, let alone across `pairs()`. `tests/run.lua` skips
-the golden traces outside LuaJIT for exactly this reason. Move-based play needs
-the engine to carry its own PRNG rather than borrow the host's.
+The other change: the plan's 25 KB first message is usually unnecessary. Both
+players start the same file with the same seed — which now means the same deck
+on both machines — and every message including the first is a delta. The whole
+handshake is a **34-character invite**: `RAVEL1I:lost_cities.json:4242`.
 
 ### Format
 
-One line, pasteable anywhere, self-identifying:
-
 ```
-RAVEL1:<game>:<turn>:<base64(deflate(payload))>
+RAVEL1:<game>:<seq>:<kind><enc>:<base64>
+  kind  F full state · D delta · R "I am lost, send a full state"
+  enc   j base64(json) · z base64(deflate(json))
 ```
 
-`love.data.compress`/`love.data.encode` provide deflate and base64 on desktop
-and in love.js. Under the headless shim they don't exist — so the transfer
-module must degrade to uncompressed JSON when `love.data` is absent, the same
-way `cards.image` no-ops headless (invariant 4). That also keeps it testable in
-`tests/run.lua`: encode → decode → assert identical state.
+Game and clock are plain text in the header, so a human can read them in a chat
+window and a receiver can drop a stale message without inflating it.
+Whitespace is stripped before parsing, so a chat client that hard-wraps the
+line does no damage. Base64 is hand-rolled in `net.lua` rather than taken from
+`love.data`, because the format has to be **identical on every host**: a CLI
+player must be able to paste a string a browser player produced, and
+`love.data` does not exist under the headless shim. Deflate is announced in the
+header rather than assumed, for the same reason.
 
-### Surface
+### Getting data out of a browser
 
-- **GUI:** two buttons in the turn-handover overlay — "Copy move" (to clipboard,
-  `love.system.setClipboardText`) and "Paste move". In love.js, clipboard access
-  needs the `love.js.eval` bridge that `cards.lua` already established for
-  asset fetching.
-- **CLI:** `send` prints the blob, `recv <blob>` applies it. Free, and it makes
-  the whole feature testable from a terminal before any UI exists.
-- **Debug server:** same two commands, so a script can play both sides.
+This was the open question, and the answer is: no server, no rebuild, and **not
+by the route `cards.lua` guesses at**. There is no `love.js.eval` in the
+2dengine runtime this repo serves — the `love.js` table exists but has no
+`eval` — which means **`cards.lua`'s browser asset path has never worked**. It
+fails silently, because every call is `pcall`-guarded and a failure looks like a
+missing image. Worth fixing separately.
 
-**Done when:** two `play.lua` processes complete a game of Lost Cities by
-pasting strings between terminals, and a test round-trips a move.
+What does work is 2dengine's actual documented bridge, spelled out in
+`player.js`:
 
----
+- it overrides `window.open`, so `love.system.openURL("javascript:…")` is
+  `eval`'d and the result parked in `window._output`;
+- it overrides `window.prompt` to hand back `window._output`, and emscripten
+  implements **stdin** by calling `window.prompt` — so `io.read("*l")` returns
+  whatever the last snippet evaluated to.
 
-## Stage C — Networked
+That is a synchronous, repeatable, two-way bridge. `BroadcastChannel` across it
+is two tabs of the same page talking with no server and no signalling, which is
+exactly the scope the question asked for.
 
-Only after B. Once moves are a transportable string, the network is a dumb pipe
-and nothing about the game logic changes.
+Two constraints are load-bearing, both measured rather than guessed:
 
-Requirement: Currently jit vs lua5.4 uses different RNG implementations, which might need consideration for doing network stuff, since clients easily go out of sync.
+- **Inbound is quadratic.** Emscripten's tty returns stdin one byte at a time
+  via `Array.shift()`. A 40 KB reply costs **41 ms** as one string and **2.2 ms**
+  in 8 KB chunks. So outbound is one call and inbound is always chunked.
+- **Never return `null` from a snippet.** A null reply reaches Lua as
+  end-of-file, and a closed stdin never reopens. Every snippet is wrapped so it
+  always yields a string.
 
-- **Transport, desktop:** luasocket is already a dependency path in `cards.lua`.
-- **Transport, browser:** love.js has no sockets, but `cards.lua`'s
-  `fetch_browser` proves the `love.js.eval` bridge works for real network I/O.
-  A WebSocket or a polling `fetch` against a relay goes through the same door.
-- **Relay:** the smallest thing that works is a room-keyed blob store —
-  `POST /room/<id>` and `GET /room/<id>?since=<n>`. Under 100 lines, and the
-  repo already ships nginx + Docker (`nginx.conf`, `docker-compose.yml`), so it
-  has somewhere to live. No accounts, no lobby, no matchmaking: the URL *is* the
-  invite, exactly as `IDEAS.md` suggests.
-- **What changes about hidden information:** nothing, until you want it to.
-  Full-state or full-move sync means each client can see everything. Real hidden
-  information requires an authoritative server that filters state per player —
-  a different architecture and a much bigger project. **Decide explicitly that
-  ravel's networked play is trust-based between friends**, or accept the server.
-  Do not drift into the question by accident.
+And one that is not about the bridge at all: the platform check must come
+**first**. On a desktop LÖVE, `openURL` launches a real web browser and
+`io.read` blocks on a real stdin, so probing for the bridge by trying it would
+hang the game and open a window. Only the emscripten build reports
+`love.system.getOS() == "Web"`.
+
+### Transports
+
+`net.lua` knows only `send`/`recv`. `netlink.lua` has:
+
+| | |
+|---|---|
+| `loopback` | two ends in one process, for tests |
+| `folder` | one file per side in a shared directory — two terminals, or **any folder that syncs itself between two machines** (Syncthing, Dropbox, a mounted share). A cross-machine transport with no server and no code. |
+| `browser` | `BroadcastChannel` between two tabs |
+
+Copy/paste needs no transport at all: `net.export` / `net.import`, and the chat
+window is the wire.
+
+### Surfaces
+
+- **CLI:** `n host`, `n join`, `n seat`, `n send`, `n recv`, `n folder`.
+- **Browser:** an HTML panel drawn over the canvas by `netpanel.lua`. The
+  renderer needed no changes at all, which is the point — and a textarea you
+  can paste 25 KB into is a thing the browser already has and LÖVE does not.
+- **Seats** gate at `flow`, and now also at `flow.can_play`, so an opponent's
+  turn *looks* like waiting: the renderer dims a card it cannot play instead of
+  accepting a click and refusing it at the end.
+
+### Verified
+
+- Two OS processes played **101 alternating moves** of Lost Cities through a
+  shared folder and finished on the same fingerprint.
+- Two headless Chromium tabs link with one click each, move in **both**
+  directions, carry a game load across, and refuse to move out of turn.
+- 40 assertions in `tests/run.lua`, including that a delta is refused against a
+  state it does not fit, across a game change, and that junk leaves the game
+  untouched.
+
+### What is deliberately not built
+
+- **Hidden information.** Both players hold the whole state. Real hidden
+  information needs an authoritative server filtering per player — a different
+  architecture and a much bigger project. This is trust-based play between
+  friends, and stage A's hidden-hand rendering is presentation only.
+- **Cross-machine browser play.** Two tabs share an origin; two machines do not.
+  The honest options are ranked in the note below.
+- **A relay.** Still refused, still correct to refuse.
+
+### Cross-machine, ranked
+
+1. **Copy/paste through whatever chat you already use.** Works today, works
+   everywhere, needs nothing. A turn is 273 bytes; Discord's limit is 2000
+   characters. This is the answer for "play with a friend in another city".
+2. **A synced folder.** `netlink.folder` already does it. Zero further code.
+3. **WebRTC with manual signalling** — the "two browsers just talk" ideal. It
+   is genuinely possible: paste an offer, paste an answer back, and the data
+   channel is peer-to-peer. Two caveats to decide before building it: it needs
+   a public STUN server (free, third-party, but not *nothing*), and symmetric
+   NAT needs a TURN relay, which is the server we refused. So it works for many
+   home connections and silently fails for some — worse than copy/paste, which
+   never fails.
+4. **Discord or Telegram as the wire.** Both are a relay you did not have to
+   run, which is not the same as no relay. Telegram's bot API allows CORS and
+   would work from the browser, but the bot token would have to ship in the
+   client, where anyone holding it controls the bot. Fine between friends,
+   dishonest to call serverless.
+
+### What is left
+
+- Hidden hands and a nameplate — stage A's remaining presentation polish,
+  unchanged by any of this.
+- A "your opponent moved" cue louder than the log line.
+- Reconnect: a tab that reloads mid-game starts at the menu and needs one
+  paste, or one click of Link, to catch up.
 
 ---
 

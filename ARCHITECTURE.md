@@ -40,7 +40,13 @@ zones ─ zone membership, seats, slots, moving/destroying cards
 cards ─ template helpers, live editing, image cache
 declaration ─ JSON → G, plus the injected system zone, player/system cards, seats
 entity ─ the flat array     log ─ event record     json ─ decode/encode
+rng ─ the engine's own PRNG (never the host's, below this line)
 ```
+
+Optional and additive, required by nothing: `net` (state transfer for
+networked play), `netlink` (transports), `netpanel` (its browser controls).
+They sit beside the engine rather than in it — see
+[ideas/02](ideas/02-multiplayer.md).
 
 Support: `headless.lua` (the love shim), `play.lua` (CLI frontend over flow),
 `check.lua` (validate a file without running it), `tests/run.lua` (logic
@@ -51,7 +57,7 @@ generators — output belongs in `game/games/`, the generator is the source).
 
 **State** is exactly: the entity array inside `entity.lua` (zones, slots,
 cards — there is no player entity; the player is a card), the phase stack (`phase`), end-condition fired flags (on `G`),
-and the event log. All four are captured by flow's checkpoint and restored by undo —
+the event log, and the RNG position (`rng.state()`, one integer). All five are captured by flow's checkpoint and restored by undo —
 **if you add stateful storage anywhere else, you must join the snapshot
 protocol in `flow.checkpoint`/`flow.undo` or undo will silently break.**
 
@@ -120,7 +126,9 @@ Treat it as disposable.
    (`flow.on_reset`, `actions.on_stat_change`, `anim.on_land`) that the
    presentation layer assigns. `cards.image` is the one deliberate exception:
    it touches `love.graphics.newImage` directly (and, for `http(s)://` asset
-   URLs, `love.js.eval` or a `love.thread` worker over luasocket) because it
+   URLs, a `love.thread` worker over luasocket — its browser branch calls
+   `love.js.eval`, which **does not exist** in the runtime this repo serves,
+   so that path has never done anything; see Deployment) because it
    is itself presentation-only —
    nothing in flow's state graph depends on whether an image loaded — and
    every call is behind checks that no-op cleanly under the headless shim.
@@ -158,6 +166,15 @@ Treat it as disposable.
    (sub-card choices, endings, pass cards and story pages are all just cards —
    the CYOA layer is one built-in overlay plus two actions over ordinary
    templates).
+8. **Randomness is the engine's, never the host's.** `math.random` is a
+   different generator in LuaJIT and in PUC Lua, so one seed used to mean a
+   different deck on each — which made a replay, a golden trace and a
+   networked opponent all interpreter-specific. Everything below the
+   presentation line uses `rng.lua` (Lehmer/MINSTD, one integer of state,
+   checked against `std::minstd_rand`'s published vector). `fx.lua` keeps
+   `math.random` deliberately: particle jitter is presentation, must not be
+   reproducible, and must not consume draws the rules depend on. A test greps
+   for the line being crossed.
 
 ## Life of a click
 
@@ -219,8 +236,12 @@ file as output.
   state, count-based assertions over exact-order ones, re-fetch entities by ID
   after undo. All shipped games must validate clean (asserted).
 - `luajit tests/render_smoke.lua` — stubs `love.graphics` and drives every
-  draw path (flight, arrow, overlays, log, detail views). Catches crashes,
-  not pixels.
+  draw path (flight, arrow, overlays, log, detail views) for every shipped
+  game. Catches crashes, not pixels. Two stubs are assertions rather than
+  no-ops (`setScissor` rejects a negative size); a catch-all noop answers a
+  malformed draw as happily as a good one, which is how a crash in the browser
+  build survived a green suite. **Add a game here when you add a game** —
+  layouts differ far more than draw code does.
 - `RAVEL_DEBUG=1` + `nc` — poke a live GUI process; `echo state | nc` dumps
   full entity state as JSON.
 - Balance questions: write a scratch script over `headless.lua` + `flow` and
@@ -233,4 +254,15 @@ file as output.
 love.js (browser, SharedArrayBuffer headers via nginx). Browser constraints:
 no sockets (debug server no-ops), no file watching (hot-reload no-ops), LuaJIT
 semantics (`luajit` is the reference interpreter; the suite also runs under
-Lua 5.1/5.4+ to keep the code portable).
+Lua 5.1/5.4+ to keep the code portable, and since `rng.lua` it produces the
+same golden traces there).
+
+There *is* a way to reach JavaScript, and it is not the `love.js.eval` that
+`cards.lua` assumes — that does not exist in the 2dengine runtime, so the
+browser asset path silently does nothing. `player.js` overrides `window.open`
+(so `love.system.openURL("javascript:…")` is eval'd) and `window.prompt`
+(which is what emscripten's stdin calls, so `io.read` returns the result).
+`netlink.lua` documents the two traps: inbound reads are quadratic unless
+chunked, and a snippet returning `null` closes stdin permanently. Check
+`love.system.getOS() == "Web"` before touching any of it — on desktop,
+`openURL` opens a real browser and `io.read` blocks.

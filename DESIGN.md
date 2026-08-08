@@ -226,7 +226,9 @@ Comparisons: `equals`, `at_least`, `at_most` on a stat total, or `zone_empty` (a
 
 ## Reproducibility
 
-The RNG can be seeded per game load, with precedence: explicit seed > CLI/env default > game doc. A game file may declare `"seed": 12345`; the CLI takes `luajit play.lua castle.json 42`; the GUI honors a `RAVEL_SEED` env var; the debug server takes `load castle.json 42`. Seeding happens before deck contents are created, so shuffles reproduce exactly.
+The RNG can be seeded per game load, with precedence: explicit seed > CLI/env default > game doc, and the clock when a game asks for none. A game file may declare `"seed": 12345`; the CLI takes `luajit play.lua castle.json 42`; the GUI honors a `RAVEL_SEED` env var; the debug server takes `load castle.json 42`. Seeding happens before deck contents are created, so shuffles reproduce exactly.
+
+The generator is the engine's own (`rng.lua`), not the host's. This is the difference between "reproduces" and "reproduces *here*": `math.random` is a Tausworthe generator in LuaJIT and xoshiro256\*\* in PUC Lua 5.4, so a seed used to name a different deck on each, and the golden traces could only ever run under one of them. A seed now means one sequence on every interpreter — which is also the whole reason two networked players can be handed the same game by exchanging a filename and a number.
 
 ---
 

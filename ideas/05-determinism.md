@@ -1,7 +1,36 @@
 # Idea 05 — The Engine Should Own Its Randomness
 
-**Status:** not started · **Blocks:** [02 stage B and C](02-multiplayer.md) ·
-**Size:** small (~80 LOC, one module, three call sites)
+**Status:** **shipped** (`5d4091d`) · **Was blocking:** [02 stage B and C](02-multiplayer.md) ·
+**Size:** small (~80 LOC, one module, three call sites) — which is what it cost
+
+## What was built
+
+`game/rng.lua`: Lehmer / MINSTD, `x = 48271 * x mod (2^31 - 1)`. The choice
+turned on the "published test vector" requirement below — this is exactly what
+C++ standardised as `std::minstd_rand`, so the test asserts the standard's own
+number (seed 1, 10000 draws, 399268537) rather than asserting that the
+generator agrees with itself. Integer-only; the widest intermediate is
+`48271 * (2^31 - 2) ≈ 2^46.6`, exact both in a double and in a 64-bit integer,
+so 5.1, LuaJIT and 5.4 produce one sequence with no bit operations.
+
+All three call sites moved (`zones.shuffle`, `designated`'s `random`
+quantifier, `destroy`'s `random.`), `flow.init` seeds it, and `fx.lua` kept
+`math.random` on purpose. The generator's state is one integer, so it joined
+`flow.checkpoint` in two lines and rides in net.lua's state transfer for free.
+
+**Both "done when" conditions hold.** `luajit tests/run.lua` and
+`lua5.4 tests/run.lua` produce identical golden transcripts and the skip is
+deleted; no `math.random` call remains below the presentation line (a test
+greps for it); undo across a shuffle replays that shuffle.
+
+One thing the plan did not say: with no seed anywhere, `flow.init` now falls
+back to `os.time()`. It used to inherit whatever `math.randomseed(os.time())`
+had been called at startup, and dropping that would have made every unseeded
+game identical.
+
+---
+
+*The original write-up follows.*
 
 Not from `IDEAS.md`. It was a footnote inside [02](02-multiplayer.md) — noticed
 while writing the transfer format, then again while recording the golden

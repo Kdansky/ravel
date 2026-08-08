@@ -831,10 +831,41 @@ on face-up piles, cost/needs dimming, targeting arrow with eligibility
 highlighting, exhaust greying, floating stat deltas, card flight/impact
 effects, touch controls, window-scaled UI, seeded runs
 (`luajit play.lua game.json 42`, `RAVEL_SEED`, or `"seed"` in the file), CLI
-play, the TCP debug API (`RAVEL_DEBUG=1`), live template editing
+play, networked play over any of three transports (see below), the TCP debug
+API (`RAVEL_DEBUG=1`), live template editing
 (`edit`/`dump`/`reload` + GUI hot-reload), and whole-file validation on load,
 reload and via `luajit check.lua mygame.json` — unknown fields and sections,
 bad shapes, broken references and conflicts, with did-you-mean suggestions.
+
+### Playing over a network
+
+Any game with two seats is already playable between two people on different
+machines, and no game file needs a single line changed for it. What the engine
+transfers is the whole game state — so what a game has to do to be networkable
+is exactly what it had to do to be hot-seatable: tag two cards `player`, and
+give the turn-taking phases `"seat": "next"`.
+
+Three ways to connect, all of them without a server:
+
+- **Two browser tabs.** Click *Link tabs* in each. They find each other over the
+  page's own broadcast channel; the URL is the only thing they share.
+- **Copy and paste.** One player runs `n host mygame.json 4242` in the CLI (or
+  the browser's *Copy state*) and sends the other the 34-character invite it
+  prints. From then on each turn is a ~300-byte string that fits in a Discord
+  message. Both sides start from the same seed, which is why the messages stay
+  that small.
+- **A shared folder.** `n folder <dir> <me> <them>` in the CLI writes one file
+  per side. Point it at anything that syncs — Syncthing, a mounted share — and
+  it is a cross-machine game with nothing else to install.
+
+Claim a seat (*play as: north* in the panel, `n seat north` in the CLI) and the
+engine stops you moving on your opponent's turn: their cards read as unplayable
+rather than accepting a click and refusing it.
+
+**Both players can see everything**, hidden zones included. Hiding a hand from
+the person you are playing against needs a referee the engine does not have, so
+this is play between people who trust each other, and shipping a game that
+depends on a secret hand is worth thinking about first.
 
 ### Hardcoded conventions
 
