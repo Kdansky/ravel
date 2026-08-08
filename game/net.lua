@@ -59,6 +59,12 @@ M.on_status = nil   -- hook(text) — connection news worth showing a human
 -- about, and the automatic request can itself go unanswered.
 M.desync = nil
 
+-- When we last heard anything at all from the far end. Linking a transport
+-- always "succeeds" — a broadcast channel with nobody else on it is a perfectly
+-- healthy channel — so this is the only thing that can tell a connected player
+-- from a player talking to an empty room.
+M.last_heard = nil
+
 local link      = nil   -- the active transport, see "Transports" below
 local seq       = 0     -- Lamport clock: max(mine, theirs) + 1 on every publish
 local baseline  = nil   -- the last state both sides are believed to share
@@ -233,6 +239,8 @@ end
 -- RAVEL1:<label>:<game>:<seq>:<kind><enc>:<payload>
 --   label init · t<round>p<seat> · resync — what this message *is*, in words
 --   kind  F full state · D delta · R "I am lost, send me a full state"
+--         H "I am here" — carries nothing, and exists because a transport that
+--           connects successfully to nobody looks exactly like one that works
 --   enc   x base64(lzss(json)) · j base64(json), when lzss found nothing
 --
 -- The header is deliberately plain text and deliberately first. Someone reading
@@ -312,7 +320,7 @@ local function unpack_msg(text)
 	local kind, enc = mode:sub(1, 1), mode:sub(2, 2)
 	local out = { kind = kind, label = label, game = game, enc = enc,
 		seq = tonumber(msg_seq) or 0 }
-	if kind == "R" then return out end
+	if kind == "R" or kind == "H" then return out end
 
 	local raw = netpack.decode(body)
 	if not raw then return nil, "corrupt base64" end
@@ -529,6 +537,7 @@ end
 function M.link(transport)
 	if link and link.close then pcall(link.close) end
 	link = transport
+	M.last_heard = nil
 	-- The baseline deliberately survives: two players who both ran net.begin
 	-- already share a state, and throwing that away would make the first
 	-- message a full state for no reason. A peer who did *not* start there
@@ -542,6 +551,7 @@ end
 function M.unlink()
 	if link and link.close then pcall(link.close) end
 	link, baseline, baseline_hash = nil, nil, nil
+	M.last_heard = nil
 	say("offline")
 end
 
@@ -614,12 +624,20 @@ end
 function M.poll()
 	if not link or not link.recv then return false end
 	local applied = false
+	-- Whether this poll is the first time we have heard anything at all. The
+	-- peer that links second is heard by the peer that linked first, and hears
+	-- nothing back — so first contact is answered with a hello, once, which is
+	-- what stops "connected to nobody" and "connected" looking identical.
+	local first_contact = M.last_heard == nil
 	for _ = 1, 32 do
 		local ok, text = pcall(link.recv)
 		if not ok or not text or text == "" then break end
+		M.last_heard = os.time()
 		local msg, err = unpack_msg(text)
 		if not msg then
 			say("ignored a message: " .. tostring(err))
+		elseif msg.kind == "H" then
+			-- Presence only. M.last_heard above is the entire point of it.
 		elseif msg.kind == "R" then
 			say("peer asked for a full state")
 			M.publish(true)
@@ -641,6 +659,10 @@ function M.poll()
 			end
 		end
 	end
+	-- Deliberately a hello and not a state: we may have just *refused* what they
+	-- sent (a different game file, say), and answering that by overwriting them
+	-- with our own position would turn a clear error into a silent one.
+	if first_contact and M.last_heard then transmit(pack("H", nil, "hello")) end
 	return applied
 end
 

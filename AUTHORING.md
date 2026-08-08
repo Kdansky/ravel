@@ -847,8 +847,11 @@ give the turn-taking phases `"seat": "next"`.
 
 Three ways to connect, all of them without a server:
 
-- **Two browser tabs.** Click *Link tabs* in each. They find each other over the
-  page's own broadcast channel; the URL is the only thing they share.
+- **Two tabs of the same browser.** Click *Link tabs (same browser)* in each.
+  They find each other over the page's own broadcast channel — which is scoped
+  to **one browser profile**. Two tabs or two windows of the same browser work;
+  Firefox next to Chrome does not, and neither does a private window next to a
+  normal one. Use the internet invite for those.
 - **Two computers, over the internet.** Click *Invite over the internet*, send
   your opponent the ~1300-character blob it puts in the box, paste their reply
   back, and the two browsers are talking directly — no server, no port

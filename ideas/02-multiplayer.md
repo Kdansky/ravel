@@ -221,8 +221,9 @@ handshake is a **34-character invite**: `RAVEL1I:lost_cities.json:4242`.
 ### Format
 
 ```
-RAVEL1:<game>:<seq>:<kind><enc>:<base64>
-  kind  F full state · D delta · R "I am lost, send a full state"
+RAVEL1:<label>:<game>:<seq>:<kind><enc>:<base64>
+  label init · t<round>p<seat> · resync · hello
+  kind  F full state · D delta · R "send a full state" · H "I am here"
   enc   x base64(lzss(json)) · j base64(json), when lzss found nothing
 ```
 
@@ -332,7 +333,8 @@ hang the game and open a window. Only the emscripten build reports
 |---|---|
 | `loopback` | two ends in one process, for tests |
 | `folder` | one file per side in a shared directory — two terminals, or **any folder that syncs itself between two machines** (Syncthing, Dropbox, a mounted share). A cross-machine transport with no server and no code. |
-| `browser` | `BroadcastChannel` between two tabs |
+| `browser` | `BroadcastChannel` between two tabs — **of one browser profile**. Not across browsers, and not across a private window and a normal one. |
+| `webrtc` | two computers, peer to peer, signalled by copy/paste |
 
 Copy/paste needs no transport at all: `net.export` / `net.import`, and the chat
 window is the wire.
@@ -465,6 +467,29 @@ full state, and moves cross in both directions.
 
 Browser only. Desktop LÖVE has no WebRTC, and for two desktops the folder
 transport or copy/paste already covers it.
+
+### Two ways for this to look broken, both now fixed
+
+Both were found by a person trying to use it, not by a test, and both are the
+same shape: **something that fails silently looks exactly like something that
+works.**
+
+**Attaching a transport always succeeds.** A broadcast channel with nobody else
+on it is a perfectly healthy broadcast channel, so clicking *Link tabs* in two
+*different browsers* reported `browser:ravel — room ravel, 0 waiting` on both
+sides and connected nothing, with no error, forever. Three changes: the button
+now says *Link tabs (same browser)*, `net.last_heard` records whether the far
+end has ever said anything, and after four seconds of silence the panel says so
+and names the button that does cross browsers.
+
+**And the peer that links second heard nothing back.** The first peer publishes
+on link and the second one hears it; the second publishes and the first hears
+that — but whoever linked first has no reason to speak again, so the *second*
+player sat looking at silence even though the connection was fine. Hence a
+fourth message kind, `H`, carrying nothing: first contact is answered with a
+hello, exactly once. Deliberately a hello and not a state, because we may have
+just *refused* what they sent, and answering that by overwriting them with our
+own position would turn a clear error into a silent one.
 
 ### What is left
 

@@ -2002,6 +2002,54 @@ do
 	net.import(sent)
 	check("what arrived is the state that was played", net.fingerprint() ~= base)
 
+	-- Hello. A transport that connects to nobody looks exactly like one that
+	-- works, so the peer heard from second announces itself back.
+	do
+		local ha, hb = netlink.loopback()
+		net.begin("castle.json", 3)
+		check("nothing heard before anything is linked", net.last_heard == nil)
+		net.link(ha)
+		while hb.recv() do end
+		-- Their side speaks first; ours must answer so they know we are here.
+		net.begin("castle.json", 3)
+		net.link(ha)
+		while hb.recv() do end
+		local theirs = (function()
+			net.begin("castle.json", 3)
+			local t = net.export(true)
+			net.begin("castle.json", 3)
+			net.link(ha)
+			while hb.recv() do end
+			return t
+		end)()
+		hb.send(theirs)              -- arrives on our end
+		net.poll()
+		check("hearing anything is recorded", net.last_heard ~= nil)
+		local replies = {}
+		while true do local r = hb.recv(); if not r then break end; replies[#replies + 1] = r end
+		local said_hello = false
+		for _, r in ipairs(replies) do if r:find("^RAVEL1:hello:") then said_hello = true end end
+		check("first contact is answered with a hello", said_hello,
+			table.concat(replies, " | "):sub(1, 60))
+
+		-- ...exactly once, or two clients would greet each other forever.
+		hb.send(theirs)
+		net.poll()
+		local again = false
+		while true do
+			local r = hb.recv(); if not r then break end
+			if r:find("^RAVEL1:hello:") then again = true end
+		end
+		check("and only once", not again)
+
+		-- A hello carries nothing and must never disturb the game.
+		local before = net.state_hash()
+		hb.send("RAVEL1:hello:castle.json:99:Hj:")
+		net.poll()
+		check("a hello changes nothing", net.state_hash() == before)
+		net.unlink()
+	end
+
 	-- Out of sync, and the button that fixes it.
 	do
 		local la, lb = netlink.loopback()

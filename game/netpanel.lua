@@ -12,6 +12,7 @@ local netlink = require("netlink")
 local M = {}
 
 local up, last_status, last_seats = false, nil, nil
+local linked_at = nil   -- when the current transport was attached
 
 -- Keystrokes typed into the panel must not also reach the game: LÖVE listens on
 -- the window, and "z" is undo. Stopping propagation at the panel keeps the two
@@ -38,8 +39,10 @@ local PANEL = [[
 	d.id = "ravel-net";
 	d.innerHTML =
 		'<h4 style="cursor:pointer" id="rv-t">▾ Ravel · net</h4><div class="body">' +
-		'<div><button id="rv-link">Link tabs</button>' +
-		'<button id="rv-p2p">Invite over the internet</button>' +
+		'<div><button id="rv-link" title="Only reaches other tabs of THIS browser">' +
+		'Link tabs (same browser)</button>' +
+		'<button id="rv-p2p" title="Another browser, or another computer">' +
+		'Invite over the internet</button>' +
 		'<button id="rv-off">Off</button></div>' +
 		'<input id="rv-room" value="ravel" spellcheck="false">' +
 		'<div id="rv-seats"></div>' +
@@ -115,20 +118,19 @@ function M.note(text)
 		.. netlink.js_string(text) .. ';return "ok"'))
 end
 
--- Out of sync is not news, it is a condition: it stays on screen until a whole
--- state clears it, and it names the button that fixes it.
-local last_bad = false
+-- Trouble is not news, it is a condition: it stays on screen until it stops
+-- being true. The caller supplies the whole sentence, because the two things
+-- that land here — out of sync, and nobody listening — need different words and
+-- point at different buttons.
+local last_bad = nil
 
-local function set_desync(reason)
-	local showing = reason ~= nil
-	if showing == last_bad and not showing then return end
-	last_bad = showing
+local function set_trouble(html)
+	if html == last_bad then return end
+	last_bad = html
 	netlink.eval(netlink.guarded(
 		'var e=document.getElementById("rv-bad");if(!e)return "no";'
-		.. 'e.style.display=' .. netlink.js_string(showing and "block" or "none") .. ';'
-		.. 'e.innerHTML=' .. netlink.js_string(showing
-			and ("<b>Out of sync.</b> " .. tostring(reason) .. " Press Resync to ask them for the whole game.")
-			or "") .. ';return "ok"'))
+		.. 'e.style.display=' .. netlink.js_string(html and "block" or "none") .. ';'
+		.. 'e.innerHTML=' .. netlink.js_string(html or "") .. ';return "ok"'))
 end
 
 local function set_status(text)
@@ -168,7 +170,21 @@ function M.refresh(force)
 		last_status = s
 		set_status(s)
 	end
-	set_desync(net.desync)
+	-- Attaching a transport always succeeds, so silence is the only evidence
+	-- that nobody is listening — and silence is exactly what a player reads as
+	-- "it is connected". Say it out loud after a few seconds, and name the
+	-- button that actually crosses browsers.
+	local trouble = net.desync
+		and ("<b>Out of sync.</b> " .. net.desync .. " Press <b>Resync</b> to ask them for the whole game.")
+		or nil
+	local lonely = nil
+	if net.linked() and not net.last_heard and linked_at
+		and os.time() - linked_at >= 4 then
+		lonely = "Nobody has answered. <b>Link tabs</b> only reaches other tabs of "
+			.. "<i>this</i> browser — for a different browser, or another computer, "
+			.. "use <b>Invite over the internet</b>."
+	end
+	set_trouble(trouble or lonely)
 end
 
 local HANDLERS = {}
@@ -177,12 +193,13 @@ HANDLERS["link"] = function(room)
 	local t, err = netlink.browser(room ~= "" and room or "ravel")
 	if not t then M.note("could not link: " .. tostring(err)); return end
 	net.link(t)
+	linked_at = os.time()
 	-- Announce ourselves, so a tab that links second is not invisible until it
 	-- moves. Whoever is behind will ask for a full state on its own.
 	net.publish(true)
 end
 
-HANDLERS["unlink"] = function() net.unlink() end
+HANDLERS["unlink"] = function() net.unlink(); linked_at = nil end
 
 HANDLERS["resync"] = function()
 	local ok, err = net.request_resync()
@@ -284,8 +301,7 @@ function M.update()
 	if not up then return end
 	pump_handshake()
 	for _ = 1, 8 do
-		local cmd = netlink.eval(netlink.guarded(
-			'var c=(window.__ravel||{}).cmds;return (c&&c.length)?String(c.shift()):""'))
+		local cmd = netlink.call("__rvc")
 		if not cmd or cmd == "" then break end
 		local name, rest = cmd:match("^(%S+)%s*(.*)$")
 		local fn = name and HANDLERS[name]

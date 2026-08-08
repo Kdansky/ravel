@@ -85,6 +85,36 @@ end
 
 local CHUNK = 8192
 
+-- Every eval is a fresh parse: the browser cannot cache a string it has not
+-- seen before, so a 200-character snippet evaluated sixty times a second is
+-- sixty compiles a second. The hot paths — "is anything waiting", "give me the
+-- next command" — are installed once as named functions and then called with a
+-- few characters. They do their own try/catch and always return a string, which
+-- is the contract eval depends on (a null reply closes stdin for good).
+local HELPERS = [==[
+	var W = window;
+	W.__rvn = function () {   // how much is waiting, both transports
+		try {
+			var a = ((W.__ravel || {}).inbox || []).length;
+			var b = ((W.__ravelRTC || {}).inbox || []).length;
+			return String(a + b);
+		} catch (e) { return "0" }
+	};
+	W.__rvc = function () {   // the next panel command, or ""
+		try {
+			var c = (W.__ravel || {}).cmds;
+			return (c && c.length) ? String(c.shift()) : "";
+		} catch (e) { return "" }
+	};
+	W.__rvs = function () {   // the peer-to-peer channel's state
+		try {
+			var R = W.__ravelRTC || {};
+			return (R.pc ? R.pc.connectionState : "none") + "/" + (R.ch ? R.ch.readyState : "no channel");
+		} catch (e) { return "?" }
+	};
+	return "ok";
+]==]
+
 local function js_string(s)
 	return '"' .. tostring(s):gsub("\\", "\\\\"):gsub('"', '\\"')
 		:gsub("\n", "\\n"):gsub("\r", "\\r") .. '"'
@@ -128,6 +158,20 @@ end
 -- True when this process can reach the page at all. Costs one round trip and is
 -- the only thing that should ever be used to decide whether to offer networking:
 -- the desktop build has openURL too, and there it opens a web browser.
+-- Calling one of the installed helpers above. Short enough that the parse is
+-- free, which is the whole point of installing them.
+local function call(name)
+	return eval(name .. "()")
+end
+
+local helpers_up = false
+
+local function install_helpers()
+	if helpers_up then return true end
+	helpers_up = eval(guarded(HELPERS)) == "ok"
+	return helpers_up
+end
+
 -- The platform check comes first and is not optional. On a desktop LÖVE,
 -- openURL launches a real web browser and io.read blocks on a real stdin — so
 -- probing for the bridge by trying it would hang the game and open a window.
@@ -135,7 +179,8 @@ end
 function M.browser_available()
 	if not (love and love.system and love.system.getOS and love.system.openURL) then return false end
 	if love.system.getOS() ~= "Web" then return false end
-	return eval(guarded('return "ravel-bridge"')) == "ravel-bridge"
+	if eval(guarded('return "ravel-bridge"')) ~= "ravel-bridge" then return false end
+	return install_helpers()
 end
 
 -- Two tabs of the same page, no server and no signalling: BroadcastChannel is
@@ -170,13 +215,11 @@ function M.browser(room)
 			eval(guarded('window.__ravel.ch.postMessage(' .. js_string(text) .. ');return "ok"'))
 		end,
 		recv = function()
-			local n = eval(guarded('return String((window.__ravel.inbox||[]).length)'))
-			if not n or (tonumber(n) or 0) == 0 then return nil end
+			if (tonumber(call("__rvn")) or 0) == 0 then return nil end
 			return (eval_long('window.__ravel.inbox.shift()'))
 		end,
 		status = function()
-			local n = eval(guarded('return String((window.__ravel.inbox||[]).length)'))
-			return "room " .. room .. ", " .. tostring(n or "?") .. " waiting"
+			return "room " .. room .. ", " .. tostring(call("__rvn") or "?") .. " waiting"
 		end,
 		close = function()
 			eval(guarded('if(window.__ravel&&window.__ravel.ch)window.__ravel.ch.close();'
@@ -295,15 +338,10 @@ function M.rtc()
 				.. 'R.ch.send(' .. js_string(text) .. ');return "ok"'))
 		end,
 		recv = function()
-			local n = eval(guarded('return String(((window.__ravelRTC||{}).inbox||[]).length)'))
-			if not n or (tonumber(n) or 0) == 0 then return nil end
+			if (tonumber(call("__rvn")) or 0) == 0 then return nil end
 			return (eval_long('window.__ravelRTC.inbox.shift()'))
 		end,
-		status = function()
-			return eval(guarded('var R=window.__ravelRTC||{};'
-				.. 'return (R.pc?R.pc.connectionState:"none")+"/"'
-				.. '+(R.ch?R.ch.readyState:"no channel")')) or "?"
-		end,
+		status = function() return call("__rvs") or "?" end,
 		close = function()
 			eval(guarded('var R=window.__ravelRTC;if(R&&R.pc)R.pc.close();'
 				.. 'window.__ravelRTC={};return "ok"'))
@@ -313,6 +351,7 @@ end
 
 -- Exposed because the control panel needs the same door, and because a person
 -- debugging this at 1am will want to poke the page by hand.
+M.call      = call
 M.eval      = eval
 M.eval_long = eval_long
 M.guarded   = guarded

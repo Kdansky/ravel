@@ -251,6 +251,9 @@ local function net_command(rest)
 		print("net: " .. net.status() .. "   seat: " .. tostring(net.seat or "any")
 			.. "   state: " .. net.state_hash() .. "   " .. net.marker())
 		if net.desync then print("  OUT OF SYNC: " .. net.desync .. "  ('n resync' to fix)") end
+		if net.linked() and not net.last_heard then
+			print("  nothing heard from the other side yet.")
+		end
 	elseif sub == "help" then
 		print(NET_HELP)
 	elseif sub == "host" then

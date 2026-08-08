@@ -80,10 +80,12 @@ local KINDS = {
 	F = "full state — everything, applied wholesale",
 	D = "delta — the difference from one named state to another",
 	R = "resync request — 'I am lost, send me everything'",
+	H = "hello — presence only, carries nothing",
 }
 local LABELS = {
 	init   = "a whole state, which is what a player needs to start",
 	resync = "a request, carrying nothing",
+	hello  = "proof somebody is listening, carrying nothing",
 }
 
 print(("RAVEL1 packet, %d characters"):format(#text))
@@ -95,7 +97,7 @@ print(("  game      %s"):format(game))
 print(("  seq       %s"):format(seq))
 print(("  kind      %s  %s"):format(kind, KINDS[kind] or "unknown"))
 
-if kind == "R" then
+if kind == "R" or kind == "H" then
 	print("  (no payload)")
 	os.exit(0)
 end

@@ -289,11 +289,21 @@ local function watch_game_file(dt)
 	watched, watched_mtime = path, mtime
 end
 
+-- Networking is polled, not pushed, and every poll is a round trip into the
+-- page. Sixty a second is sixty JavaScript compiles a second for a turn-based
+-- game that cannot tell 100ms from 16ms — this was most of the browser build's
+-- idle CPU.
+local NET_HZ, net_clock = 10, 0
+
 function love.update(dt)
 	-- Before sync_places: an applied remote state arrives with blank rects, and
 	-- the renderer is what fills them in.
-	net.update()
-	netpanel.update()
+	net_clock = net_clock + dt
+	if net_clock >= 1 / NET_HZ then
+		net_clock = 0
+		net.update()
+		netpanel.update()
+	end
 	anim.update(dt)
 	fx.update(dt)
 	render.sync_places()
@@ -324,4 +334,58 @@ end
 function love.draw()
 	render.draw()
 	tooltip.draw()
+end
+
+-- LÖVE's stock main loop with one addition: a frame cap. Nothing else caps
+-- this. Desktop vsync depends on the driver and the compositor honouring it and
+-- plenty do not; in the browser requestAnimationFrame follows the display, so a
+-- 120 Hz monitor gets 120 frames of a turn-based card game that has no use for
+-- more than 60. Either way the machine spends a core drawing frames nobody
+-- asked for.
+--
+-- Events are pumped on every tick regardless, so input never waits on the cap.
+-- Only update and draw are skipped, and the two platforms skip differently:
+-- desktop hands the time back to the OS, while the browser simply returns,
+-- because love.timer.sleep there blocks the page's only thread rather than
+-- yielding it — the cure would be worse than the disease.
+local FRAME = 1 / 60
+
+function love.run()
+	if love.load then love.load(arg) end
+	if love.timer then love.timer.step() end
+
+	local sleepable = not (love.system and love.system.getOS
+		and love.system.getOS() == "Web")
+	local next_frame = 0
+
+	return function()
+		if love.event then
+			love.event.pump()
+			for name, a, b, c, d, e, f in love.event.poll() do
+				if name == "quit" and not (love.quit and love.quit()) then
+					return a or 0
+				end
+				love.handlers[name](a, b, c, d, e, f)
+			end
+		end
+
+		local now = love.timer and love.timer.getTime() or 0
+		if now < next_frame then
+			if sleepable then love.timer.sleep(math.min(next_frame - now, FRAME)) end
+			return
+		end
+		-- Clamped to now, so a stall (a dragged window, a background tab) does
+		-- not leave a debt of frames to be caught up on all at once.
+		next_frame = math.max(next_frame + FRAME, now)
+
+		local dt = love.timer and love.timer.step() or 0
+		if love.update then love.update(dt) end
+
+		if love.graphics and love.graphics.isActive() then
+			love.graphics.origin()
+			love.graphics.clear(love.graphics.getBackgroundColor())
+			love.draw()
+			love.graphics.present()
+		end
+	end
 end
