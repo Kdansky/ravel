@@ -98,7 +98,7 @@ local function status_text()
 	if net.seat then bits[#bits + 1] = "you are " .. net.seat end
 	local seats = net.seats()
 	if #seats > 1 then bits[#bits + 1] = "turn: " .. tostring(require("zones").active_seat()) end
-	bits[#bits + 1] = "state " .. net.fingerprint()
+	bits[#bits + 1] = "state " .. net.state_hash()
 	return table.concat(bits, " · ")
 end
 

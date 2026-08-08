@@ -223,17 +223,69 @@ handshake is a **34-character invite**: `RAVEL1I:lost_cities.json:4242`.
 ```
 RAVEL1:<game>:<seq>:<kind><enc>:<base64>
   kind  F full state · D delta · R "I am lost, send a full state"
-  enc   j base64(json) · z base64(deflate(json))
+  enc   x base64(lzss(json)) · j base64(json), when lzss found nothing
 ```
 
 Game and clock are plain text in the header, so a human can read them in a chat
-window and a receiver can drop a stale message without inflating it.
-Whitespace is stripped before parsing, so a chat client that hard-wraps the
-line does no damage. Base64 is hand-rolled in `net.lua` rather than taken from
-`love.data`, because the format has to be **identical on every host**: a CLI
-player must be able to paste a string a browser player produced, and
-`love.data` does not exist under the headless shim. Deflate is announced in the
-header rather than assumed, for the same reason.
+window and a receiver can drop a stale message without unpacking it; the header
+is written from the payload and cross-checked against it on arrival, so it is
+meaningful rather than decorative. Whitespace is stripped before parsing, so a
+chat client that hard-wraps the line does no damage.
+
+Both layers are hand-rolled in `netpack.lua` rather than taken from `love.data`,
+and the reason is the same for each: the format has to be **identical on every
+host**. A CLI player must be able to paste a string a browser player produced,
+and `love.data` — which has both deflate and base64 — does not exist under the
+headless shim. A format only half the clients can read is not a format.
+
+The compressor is LZSS, deliberately not deflate. A Lua deflate with its Huffman
+stage is several hundred lines and a long time spent not trusting it; LZSS is
+the half that does nearly all the work here, because a game state is the same
+twenty key names over and over and every one is a long match. Measured on a Lost
+Cities state: **19131 → 4353 bytes, 4.4×, in 2 ms**, against deflate's 6.5× —
+68% of the ratio for 80 portable lines, which is the right trade when the
+alternative is two formats. A message is only compressed if it actually came out
+shorter; the header says which, so a short delta with nothing to repeat is not
+punished with base64's 33%.
+
+| | before | after |
+|---|---|---|
+| full state (Lost Cities) | 25537 | **5881** |
+| one turn (delta) | 273 | **293** |
+
+The delta grew slightly, because it now carries the three hashes below. That is
+a good trade at 7%.
+
+### Three hashes, three questions
+
+Every message carries all three, and they fail differently on purpose:
+
+- **`gh` — the game file.** *Are we even playing the same game?* Two people with
+  different versions of `lost_cities.json` produce states that diff perfectly
+  cleanly and mean entirely different things, which is the worst kind of bug:
+  silent and much later. A mismatch is refused at the door with a message naming
+  both hashes, and is the one refusal that does **not** trigger a resync request,
+  because no amount of resending fixes two different files.
+- **`prev` — the state this message follows.** *Did we start from the same
+  place?* A delta that does not fit is refused rather than applied to the wrong
+  thing, and the sender is asked for a whole state. Absent only on a cold full
+  state, which follows nothing.
+- **`post` — the state this message produces.** *Did we end up in the same
+  place?* Checked after applying, so a divergence surfaces the moment it happens
+  instead of as a rejected delta several turns later. If the two clients ever
+  disagree here the cause is an engine version skew rather than drift, so it is
+  reported once and the protocol falls back to whole states, which always apply.
+
+The state's hash is kept beside the state rather than recomputed: the browser
+panel reads it every frame, and hashing 19 KB of JSON sixty times a second to
+draw one line of text is not a trade worth making. The wrappers that publish are
+also the ones that invalidate it — they are the only things that see every
+mutation. (They now do so even when offline; skipping it while unlinked left a
+stale hash for whoever linked later, which the tests caught.)
+
+djb2, not a cryptographic hash. This catches two people holding different
+things, not somebody constructing a collision — cheating is out of scope by
+design.
 
 ### Getting data out of a browser
 

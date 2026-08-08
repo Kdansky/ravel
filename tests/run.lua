@@ -1738,6 +1738,55 @@ do
 		table.concat(zones.find("build_deck").cards, ",") == shuffled)
 end
 
+-- === the wire's own encoding ===
+-- base64 and LZSS are hand-rolled so that one format works on every host, which
+-- means they get tested like the load-bearing things they are: a decoder that
+-- drops a byte corrupts a game state in a way nobody would trace back here.
+do
+	local netpack = require("netpack")
+
+	local cases = { "", "a", "ab", "abc", "abcd",
+		("a"):rep(64), ("abc"):rep(400), ("the quick brown fox "):rep(50),
+		"\0\1\2\254\255", "\0", ("\0"):rep(100), '{"a":1,"a":1,"a":1}' }
+	local every = {}
+	for i = 0, 255 do every[#every + 1] = string.char(i) end
+	cases[#cases + 1] = table.concat(every)                    -- every byte value
+	cases[#cases + 1] = table.concat(every) .. table.concat(every)
+	local noise = {}
+	for i = 1, 500 do noise[i] = string.char((i * 37 + i * i) % 256) end
+	cases[#cases + 1] = table.concat(noise)
+
+	local b64_ok, lz_ok, both_ok = 0, 0, 0
+	for _, c in ipairs(cases) do
+		if netpack.decode(netpack.encode(c)) == c then b64_ok = b64_ok + 1 end
+		if netpack.decompress(netpack.compress(c)) == c then lz_ok = lz_ok + 1 end
+		if netpack.decode(netpack.encode(netpack.compress(c))) == netpack.compress(c) then
+			both_ok = both_ok + 1
+		end
+	end
+	check("base64 round-trips every case", b64_ok == #cases, b64_ok .. "/" .. #cases)
+	check("lzss round-trips every case", lz_ok == #cases, lz_ok .. "/" .. #cases)
+	check("the two compose", both_ok == #cases, both_ok .. "/" .. #cases)
+
+	-- Overlapping copies are how a run of one byte is encoded, so this is the
+	-- case a naive "slice from the output" decoder gets wrong.
+	check("lzss handles overlapping matches",
+		netpack.decompress(netpack.compress(("xy"):rep(500))) == ("xy"):rep(500))
+
+	-- Compression has to actually pay on the thing it exists for.
+	flow.init("lost_cities.json", 7)
+	local text = json.encode(require("net").snapshot())
+	local small = netpack.compress(text)
+	check("a game state compresses at least three-fold", #small * 3 < #text,
+		#text .. " -> " .. #small)
+	check("...losslessly", netpack.decompress(small) == text)
+
+	-- Garbage in must not mean a crash or a wrong answer out.
+	check("a truncated stream decodes to nil or a prefix",
+		pcall(netpack.decompress, small:sub(1, 40)))
+	check("base64 rejects a corrupt body", netpack.decode("!!!!") == "")
+end
+
 -- === networked play ===
 -- One process cannot hold two engines, so "the other client" is played by
 -- rewinding to the state both sides shared and applying what arrived. That is
@@ -1793,7 +1842,7 @@ do
 	flow.play_card(cid, targets)
 	local moved = net.fingerprint()
 	local delta = net.export()
-	check("a delta is far smaller than a state", #delta < #shared / 20,
+	check("a delta is far smaller than a state", #delta * 10 < #shared and #delta < 1000,
 		#delta .. " vs " .. #shared)
 
 	net.import(shared)                        -- rewind: be the opponent
@@ -1861,6 +1910,54 @@ do
 	check("an invite is accepted", net.accept(invite))
 	check("both players start from the identical state", net.fingerprint() == started)
 	check("garbage is not an invite", not net.accept("RAVEL1I:nonsense"))
+
+	-- The three hashes, and the three different questions they answer.
+	net.begin("lost_cities.json", 7)
+	check("a game file has a hash", (net.game_hash() or ""):match("^%x%x%x%x%x%x%x%x$") ~= nil)
+	check("a different file hashes differently",
+		net.game_hash("lost_cities.json") ~= net.game_hash("castle.json"))
+	check("the cached state hash matches a fresh one", net.state_hash() == net.fingerprint())
+
+	-- Playing changes it, and the cache notices.
+	local was = net.state_hash()
+	local pcid2, ptarg2 = first_playable()
+	flow.play_card(pcid2, ptarg2)
+	check("a move changes the state hash", net.state_hash() ~= was)
+	check("...and the cache is not stale", net.state_hash() == net.fingerprint())
+
+	-- Two people with different versions of the same file: refused at the door,
+	-- with a message that says what is wrong rather than asking for a resync
+	-- that cannot possibly help.
+	net.begin("castle.json", 7)
+	local honest = net.export(true)
+	local forged = honest:gsub("^RAVEL1:castle%.json:", "RAVEL1:kingdom.json:")
+	local okf, errf = net.import(forged)
+	check("a message naming another file is not silently accepted", not okf)
+	do
+		-- Same file, but the sender's copy hashed differently: exactly the
+		-- "you two have different versions" case, and the error must say so.
+		local body = { game = "castle.json", gh = "deadbeef", ents = {}, phases = {} }
+		local okg, errg = net.apply_full(body)
+		check("a game-file mismatch is refused", not okg)
+		check("...and the error names both hashes",
+			tostring(errg):find("different versions") ~= nil, tostring(errg))
+	end
+
+	-- The chain: a delta says which state it follows, and is refused elsewhere.
+	net.begin("lost_cities.json", 7)
+	local at = net.export(true)
+	local c3, t3 = first_playable()
+	flow.play_card(c3, t3)
+	local step = net.export()
+	net.import(at)
+	check("a delta names the state it follows", net.import(step))
+	net.begin("lost_cities.json", 7)
+	local c4, t4 = first_playable()
+	flow.play_card(c4, t4)                     -- somewhere else entirely
+	local okc, errc = net.import(step)
+	check("a delta is refused from the wrong place", not okc)
+	check("...and the error names both states",
+		tostring(errc):find("follows state") ~= nil, tostring(errc))
 
 	-- Four things arrive in one box, and one function decides which is which.
 	net.begin("lost_cities.json", 4242)

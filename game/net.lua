@@ -22,6 +22,7 @@ local log         = require("log")
 local json        = require("json")
 local rng         = require("rng")
 local targeting   = require("targeting")
+local netpack     = require("netpack")
 
 local M = {}
 
@@ -30,15 +31,10 @@ M.seat      = nil   -- the seat this client may play as; nil = play any seat
 M.on_apply  = nil   -- hook(snap) — presentation clears its caches after remote state lands
 M.on_status = nil   -- hook(text) — connection news worth showing a human
 
--- Deflate is worth roughly 5x on this payload and exists in LÖVE and in the
--- browser, but not under the headless shim, so it is announced in the header
--- rather than assumed. A CLI player trading pastes with a browser player turns
--- it off; two browsers never think about it.
-M.compress = (love and love.data and love.data.compress) ~= nil
-
 local link      = nil   -- the active transport, see "Transports" below
 local seq       = 0     -- Lamport clock: max(mine, theirs) + 1 on every publish
 local baseline  = nil   -- the last state both sides are believed to share
+local baseline_hash = nil   -- ...and its fingerprint, kept rather than recomputed
 local pending_full = false
 
 local counter = 0
@@ -50,49 +46,6 @@ M.client_id = new_client_id()
 
 local function say(text)
 	if M.on_status then M.on_status(text) end
-end
-
----------------------------------------------------------------- base64
-
--- Pure Lua, because the wire format has to be identical on every host: love.data
--- exists in the browser and in LÖVE but not under the headless shim, and a CLI
--- player must be able to paste a string a browser player produced. Base64 also
--- makes a payload safe to embed in a JS string literal and to survive a chat
--- client, which is the whole reason the format looks like this.
-
-local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-local B64R = {}
-for i = 1, 64 do B64R[B64:sub(i, i)] = i - 1 end
-
-local function b64encode(s)
-	local out, n = {}, 0
-	for i = 1, #s, 3 do
-		local a, b, c = s:byte(i, i + 2)
-		local v = a * 65536 + (b or 0) * 256 + (c or 0)
-		local e1, e2 = math.floor(v / 262144) % 64, math.floor(v / 4096) % 64
-		local e3, e4 = math.floor(v / 64) % 64, v % 64
-		n = n + 1
-		out[n] = B64:sub(e1 + 1, e1 + 1) .. B64:sub(e2 + 1, e2 + 1)
-			.. (b and B64:sub(e3 + 1, e3 + 1) or "=")
-			.. (c and B64:sub(e4 + 1, e4 + 1) or "=")
-	end
-	return table.concat(out)
-end
-
-local function b64decode(s)
-	s = s:gsub("[^A-Za-z0-9+/=]", "")   -- chat clients wrap lines; drop the damage
-	local out, n = {}, 0
-	for i = 1, #s, 4 do
-		local d1, d2 = B64R[s:sub(i, i)], B64R[s:sub(i + 1, i + 1)]
-		if not (d1 and d2) then return nil end
-		local d3, d4 = B64R[s:sub(i + 2, i + 2)], B64R[s:sub(i + 3, i + 3)]
-		local v = d1 * 262144 + d2 * 4096 + (d3 or 0) * 64 + (d4 or 0)
-		n = n + 1
-		out[n] = string.char(math.floor(v / 65536) % 256)
-			.. (d3 and string.char(math.floor(v / 256) % 256) or "")
-			.. (d4 and string.char(v % 256) or "")
-	end
-	return table.concat(out)
 end
 
 ---------------------------------------------------------------- state
@@ -126,17 +79,57 @@ function M.snapshot()
 	}
 end
 
--- A fingerprint of a state, and the whole of the delta protocol's safety. A
--- patch names the fingerprint it was computed against; a receiver whose own
--- state hashes to something else refuses it and asks for a full copy instead of
--- applying a diff to the wrong thing. json.encode sorts map keys, so the same
--- state hashes the same on both clients. djb2 over the canonical text.
-function M.fingerprint(snap)
-	snap = snap or M.snapshot()
-	local text = json.encode({ snap.ents, snap.phases, snap.rng, snap.fired })
+-- djb2. Not a cryptographic hash and not trying to be: this catches two people
+-- holding different things, not somebody constructing a collision. Cheating is
+-- out of scope by design (see the header).
+local function djb2(text)
 	local h = 5381
 	for i = 1, #text do h = (h * 33 + text:byte(i)) % 4294967296 end
 	return string.format("%08x", h)
+end
+
+-- A fingerprint of a state, and the whole of the delta protocol's safety. A
+-- patch names the fingerprint it was computed against and the one it should
+-- produce; a receiver whose own state hashes to something else refuses it and
+-- asks for a full copy instead of applying a diff to the wrong thing.
+-- json.encode sorts map keys, so the same state hashes the same on both
+-- clients.
+function M.fingerprint(snap)
+	snap = snap or M.snapshot()
+	return djb2(json.encode({ snap.ents, snap.phases, snap.rng, snap.fired }))
+end
+
+-- The hash of a game *file*, which answers a different question: not "are we in
+-- the same position" but "are we even playing the same game". Two people with
+-- different versions of lost_cities.json produce states that diff cleanly and
+-- mean different things, and that is the failure worth catching at the door
+-- rather than three moves later. Cached per filename — the file does not change
+-- under a running game, and re-reading it per message would be silly.
+local file_hashes = {}
+
+function M.game_hash(filename)
+	filename = filename or declaration.filename
+	if not filename then return nil end
+	if file_hashes[filename] == nil then
+		local text = love.filesystem.read("games/" .. filename)
+		file_hashes[filename] = text and djb2(text) or false
+	end
+	return file_hashes[filename] or nil
+end
+
+-- The current state's hash, kept beside the state rather than recomputed on
+-- demand: the browser panel asks for it every frame, and hashing 19 KB of JSON
+-- sixty times a second to draw one line of text is not a trade worth making.
+-- Invalidated by the same wrappers that publish, which see every mutation.
+local cached_hash = nil
+
+function M.state_hash()
+	cached_hash = cached_hash or M.fingerprint()
+	return cached_hash
+end
+
+local function forget_hash()
+	cached_hash = nil
 end
 
 ---------------------------------------------------------------- deltas
@@ -197,7 +190,6 @@ end
 local function make_delta(from, to)
 	return {
 		game    = to.game,
-		base    = M.fingerprint(from),
 		phases  = to.phases,
 		wrapped = to.wrapped,
 		fired   = to.fired,
@@ -212,19 +204,47 @@ end
 
 -- RAVEL1:<game>:<seq>:<kind><enc>:<payload>
 --   kind  F full state · D delta · R "I am lost, send me a full state"
---   enc   j base64(json) · z base64(deflate(json))
+--   enc   x base64(lzss(json)) · j base64(json), when lzss found nothing
 -- Game and clock ride in the header as plain text so a human can read them in a
--- chat window and a receiver can drop a stale message without inflating it.
+-- chat window and a receiver can drop a stale message without unpacking it.
+--
+-- Every message carries three hashes, and they answer three different questions:
+--
+--   gh    the game *file* — "are we even playing the same game?"  A mismatch is
+--         fatal and says so: no amount of resyncing fixes two different files.
+--   prev  the state this message follows — "did we start from the same place?"
+--         A delta that does not fit is refused rather than applied to the wrong
+--         thing. Absent only on a cold full state, which follows nothing.
+--   post  the state this message produces — "did we end up in the same place?"
+--         Checked after applying, so a divergence is caught the moment it
+--         happens instead of surfacing as a rejected delta several turns later.
+
+local function envelope(body, from_hash, to_hash)
+	body.gh   = M.game_hash(body.game)
+	body.prev = from_hash
+	body.post = to_hash
+	return body
+end
+
+-- The snapshot is shallow-copied before the envelope goes on it, so the table
+-- kept as `baseline` stays a state and never quietly becomes a message.
+local function as_message(snap)
+	local m = {}
+	for k, v in pairs(snap) do m[k] = v end
+	return m
+end
 
 local function pack(kind, body)
 	local text = body and json.encode(body) or ""
 	local enc  = "j"
-	if M.compress and #text > 0 then
-		local ok, z = pcall(love.data.compress, "string", "deflate", text, 9)
-		if ok and type(z) == "string" then text, enc = z, "z" end
+	if #text > 0 then
+		-- A three-line delta sometimes has nothing to repeat, and base64 charges
+		-- its 33% either way, so send whichever actually came out shorter.
+		local z = netpack.compress(text)
+		if #z < #text then text, enc = z, "x" end
 	end
 	return table.concat({ M.PROTOCOL, (body and body.game) or declaration.filename or "?",
-		tostring(seq), kind .. enc, b64encode(text) }, ":")
+		tostring(seq), kind .. enc, netpack.encode(text) }, ":")
 end
 
 local function unpack_msg(text)
@@ -241,15 +261,11 @@ local function unpack_msg(text)
 	local out = { kind = kind, game = game, seq = tonumber(msg_seq) or 0 }
 	if kind == "R" then return out end
 
-	local raw = b64decode(body)
+	local raw = netpack.decode(body)
 	if not raw then return nil, "corrupt base64" end
-	if enc == "z" then
-		if not (love and love.data and love.data.decompress) then
-			return nil, "message is compressed and this build has no love.data"
-		end
-		local ok, plain = pcall(love.data.decompress, "string", "deflate", raw)
-		if not ok then return nil, "cannot inflate payload" end
-		raw = plain
+	if enc == "x" then
+		raw = netpack.decompress(raw)
+		if not raw then return nil, "corrupt payload" end
 	elseif enc ~= "j" then
 		return nil, "unknown encoding '" .. tostring(enc) .. "'"
 	end
@@ -258,6 +274,12 @@ local function unpack_msg(text)
 	if not ok or type(snap) ~= "table" then return nil, "payload is not JSON" end
 	if type(snap.ents) ~= "table" or type(snap.phases) ~= "table" then
 		return nil, "payload is not a game state"
+	end
+	-- The header is written from the body, so the two disagreeing means the
+	-- message was damaged or edited in transit. Cheap to check, and it keeps the
+	-- header meaningful rather than decorative.
+	if snap.game and game ~= "" and snap.game ~= game then
+		return nil, "header says " .. game .. " but the payload says " .. tostring(snap.game)
 	end
 	out.body = snap
 	return out
@@ -315,9 +337,54 @@ local function ensure_game(name)
 	return true
 end
 
+-- The first check, and the only one that is fatal. Two people holding different
+-- versions of a game file produce states that diff perfectly cleanly and mean
+-- entirely different things, so this refuses at the door and says why rather
+-- than asking for a resync that cannot help.
+local function same_game(body)
+	if not body.gh then return true end          -- older sender, nothing to check
+	local mine = M.game_hash(body.game)
+	if not mine then
+		return false, "you do not have " .. tostring(body.game)
+	end
+	if mine ~= body.gh then
+		return false, ("different versions of %s — theirs %s, yours %s. You both need the same file.")
+			:format(tostring(body.game), body.gh, mine)
+	end
+	return true
+end
+
+-- Some refusals are worth retrying with a whole state and some are not. A delta
+-- that does not fit is the first kind; a game file that does not match is the
+-- second, and asking for a resync there just sends the same wrong thing again.
+local function fatal(err)
+	return tostring(err):find("different versions of ") == 1
+		or tostring(err):find("you do not have ") == 1
+end
+
+-- When the two engines disagree about what a state hashes to, every delta is
+-- going to be rejected forever. Rather than loop on resync requests, say so
+-- once and fall back to whole states, which always apply.
+M.divergent = false
+
+local function check_landing(body)
+	forget_hash()
+	if not body.post then return end
+	local got = M.state_hash()
+	if got == body.post then return end
+	if not M.divergent then
+		M.divergent = true
+		say(("the two clients disagree about state (theirs %s, mine %s) — sending whole "
+			.. "states from now on; a different engine version is the usual cause")
+			:format(body.post, got))
+	end
+end
+
 function M.apply_full(snap)
 	if type(snap) ~= "table" then return false, "nothing to apply" end
-	local ok, err = ensure_game(snap.game)
+	local ok, err = same_game(snap)
+	if not ok then return false, err end
+	ok, err = ensure_game(snap.game)
 	if not ok then return false, err end
 
 	local ents = snap.ents
@@ -328,13 +395,16 @@ function M.apply_full(snap)
 	for _, line in ipairs(snap.log or {}) do
 		if type(line) == "string" then log.add(line) end
 	end
-	baseline = M.snapshot()
+	check_landing(snap)
+	baseline, baseline_hash = M.snapshot(), M.state_hash()
 	if M.on_apply then M.on_apply(snap) end
 	return true
 end
 
 function M.apply_delta(patch)
 	if type(patch) ~= "table" then return false, "nothing to apply" end
+	local ok, err = same_game(patch)
+	if not ok then return false, err end
 	-- Deliberately not ensure_game: loading the file would replace the very
 	-- state this patch is a difference *from*, and the patch would then be
 	-- rejected against the thing that replaced it. A delta only ever describes
@@ -344,8 +414,8 @@ function M.apply_delta(patch)
 	end
 
 	local here = M.snapshot()
-	if patch.base and patch.base ~= M.fingerprint(here) then
-		return false, "delta does not fit this state"
+	if patch.prev and patch.prev ~= M.fingerprint(here) then
+		return false, "delta follows state " .. patch.prev .. ", we are at " .. M.fingerprint(here)
 	end
 
 	local ents = here.ents
@@ -369,7 +439,8 @@ function M.apply_delta(patch)
 	for _, line in ipairs(lg.add or {}) do
 		if type(line) == "string" then log.add(line) end
 	end
-	baseline = M.snapshot()
+	check_landing(patch)
+	baseline, baseline_hash = M.snapshot(), M.state_hash()
 	if M.on_apply then M.on_apply(patch) end
 	return true
 end
@@ -413,7 +484,7 @@ end
 
 function M.unlink()
 	if link and link.close then pcall(link.close) end
-	link, baseline = nil, nil
+	link, baseline, baseline_hash = nil, nil, nil
 	say("offline")
 end
 
@@ -443,15 +514,26 @@ end
 function M.publish(force_full)
 	if not link then return false end
 	seq = seq + 1
-	local cur = M.snapshot()
-	local text
-	if usable_baseline(cur) and not force_full and not pending_full then
-		text = pack("D", make_delta(baseline, cur))
-	else
-		text = pack("F", cur)
-	end
-	baseline, pending_full = cur, false
+	local text = M.compose(force_full)
 	return transmit(text)
+end
+
+-- Builds the next message and moves the baseline forward. Shared by publish and
+-- export, because a string pasted into Discord and a string pushed down a data
+-- channel are the same string.
+function M.compose(force_full)
+	local cur  = M.snapshot()
+	local to   = M.fingerprint(cur)
+	local from = baseline_hash
+	local text
+	if usable_baseline(cur) and not force_full and not pending_full and not M.divergent then
+		text = pack("D", envelope(make_delta(baseline, cur), from, to))
+	else
+		text = pack("F", envelope(as_message(cur), from, to))
+	end
+	baseline, baseline_hash, pending_full = cur, to, false
+	cached_hash = to
+	return text
 end
 
 -- Pull whatever has arrived and apply it. Self-sent and stale messages are
@@ -480,9 +562,10 @@ function M.poll()
 				applied = true
 			else
 				say("could not apply: " .. tostring(aerr))
-				-- A delta we cannot fit means the two sides drifted. Ask for a
-				-- whole state rather than guessing.
-				if msg.kind == "D" then transmit(pack("R", nil)) end
+				-- A delta we cannot fit means the two sides drifted, and a whole
+				-- state fixes it. A mismatched game file is not drift and no
+				-- amount of resending helps, so that one is only reported.
+				if msg.kind == "D" and not fatal(aerr) then transmit(pack("R", nil)) end
 			end
 		end
 	end
@@ -533,6 +616,9 @@ function M.begin(file, seed)
 	local ok, err = pcall(flow.init, file, seed)
 	if not ok then return false, tostring(err) end
 	seq, baseline, pending_full = 0, M.snapshot(), false
+	M.divergent = false
+	forget_hash()
+	baseline_hash = M.state_hash()
 	say("started " .. tostring(file) .. " at seed " .. tostring(seed))
 	return true
 end
@@ -553,15 +639,7 @@ end
 -- the difference between a few hundred bytes and a few tens of kilobytes.
 function M.export(force_full)
 	seq = seq + 1
-	local cur = M.snapshot()
-	local text
-	if usable_baseline(cur) and not force_full then
-		text = pack("D", make_delta(baseline, cur))
-	else
-		text = pack("F", cur)
-	end
-	baseline = cur
-	return text
+	return M.compose(force_full)
 end
 
 function M.import(text)
@@ -585,13 +663,17 @@ end
 for _, name in ipairs({ "play_card", "activate", "pick", "zone_click", "undo" }) do
 	local inner = flow[name]
 	flow[name] = function(...)
-		if not (link or M.seat) then return inner(...) end
-		if not M.may_act() then
+		if (link or M.seat) and not M.may_act() then
 			say("not your turn — " .. tostring(zones.active_seat()) .. " to play")
 			return false
 		end
 		local result = inner(...)
-		if result ~= false then M.publish() end
+		-- Unconditionally, even when nobody is connected: these wrappers are the
+		-- only things that see every mutation, so they are the only place the
+		-- cached hash can be invalidated from. Skipping it while offline left a
+		-- stale hash for whoever linked later.
+		forget_hash()
+		if result ~= false then M.publish() end   -- silent when offline
 		return result
 	end
 end
