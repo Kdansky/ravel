@@ -6,6 +6,7 @@ local phase       = require("phase")
 local targeting   = require("targeting")
 local actions     = require("actions")
 local flow        = require("flow")
+local rng         = require("rng")
 -- Required before RESOLVE below captures flow.play_card: net wraps flow's
 -- mutators at require time so a networked seat cannot move out of turn, and a
 -- wrapper installed after the capture would never be reached from the GUI. It
@@ -169,7 +170,8 @@ local function primary_action(x, y)
 end
 
 function love.load()
-	math.randomseed(os.time())
+	math.randomseed(os.time())        -- fx.lua's particle jitter
+	rng.seed(os.time())               -- and the game's own, once per process
 	love.graphics.setDefaultFilter("linear", "linear")
 	render.rescale()
 	flow.on_reset = function()

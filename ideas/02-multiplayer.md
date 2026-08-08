@@ -357,14 +357,51 @@ window is the wire.
   state it does not fit, across a game change, and that junk leaves the game
   untouched.
 
+### Cheating is not handled, and that is an architecture decision
+
+Worth stating at length, because it is the thing most likely to be assumed
+solved. **Two separate things are missing, and neither is a hole to be plugged.**
+
+1. **Both players hold the entire state**, hidden zones included. A hand is
+   hidden by the renderer, not by the protocol — stage A's hidden-hand work is
+   presentation and always was.
+2. **A client applies whatever state arrives.** The three hashes check that a
+   message *follows* the state we agreed on; they do not check that the new
+   state is *reachable* from it by a legal move. A modified client can hand you
+   any position it likes and this will accept it quite happily — and the
+   fingerprints will agree afterwards, because by then both sides hold the same
+   lie.
+
+The hashes exist to catch **accidents**: a stale paste, two different versions
+of a game file, an engine that serialises differently. They are djb2, not a
+cryptographic hash, precisely because collision resistance would be pointless
+armour on a door that is standing open.
+
+**What a fix would require**, so nobody mistakes it for an afternoon: an
+authoritative referee — a server, or one client designated as one — that
+
+- receives **moves** rather than states (possible now that
+  [05](05-determinism.md) makes a seed mean one sequence everywhere, and not
+  before),
+- **validates** each move against the rules before applying it,
+- **owns** the resulting state rather than negotiating it,
+- and sends each player **only the part they may see**, or hidden information
+  leaks regardless of everything above.
+
+Three of those four are new work. The engine has no notion of a state filtered
+per player, and no notion of validating a move it did not originate. The one
+piece that carries over is real, though: `flow` already re-derives legality for
+local input rather than trusting what an interface hands it (ARCHITECTURE
+invariant 2), which is exactly the check a referee would run — it would simply
+run it on somebody else's move.
+
+That is a different project, and a much larger one. Until it exists this is play
+between people who trust each other. **Do not put it in front of strangers.**
+
 ### What is deliberately not built
 
-- **Hidden information.** Both players hold the whole state. Real hidden
-  information needs an authoritative server filtering per player — a different
-  architecture and a much bigger project. This is trust-based play between
-  friends, and stage A's hidden-hand rendering is presentation only.
-- **Cross-machine browser play.** Two tabs share an origin; two machines do not.
-  The honest options are ranked in the note below.
+- **Cross-machine browser play without WebRTC.** Two tabs share an origin; two
+  machines do not. The honest options are ranked in the note below.
 - **A relay.** Still refused, still correct to refuse.
 
 ### Cross-machine, ranked

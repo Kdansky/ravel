@@ -50,9 +50,11 @@ They sit beside the engine rather than in it — see
 [ideas/02](ideas/02-multiplayer.md).
 
 Support: `headless.lua` (the love shim), `play.lua` (CLI frontend over flow),
-`check.lua` (validate a file without running it), `tests/run.lua` (logic
-suite), `tests/render_smoke.lua` (draw-path crash test), `tools/` (game-file
-generators — output belongs in `game/games/`, the generator is the source).
+`check.lua` (validate a file without running it), `packet.lua` (turn a network
+packet back into readable text — `luajit packet.lua '<blob>'`), `tests/run.lua`
+(logic suite), `tests/render_smoke.lua` (draw-path crash test), `tools/`
+(game-file generators — output belongs in `game/games/`, the generator is the
+source).
 
 ## What lives where
 

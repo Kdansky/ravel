@@ -9,9 +9,31 @@
 -- message after it is the difference from the state both sides last agreed on,
 -- which is a few hundred bytes: small enough to paste into a chat window.
 --
--- The trust model, stated out loud: both players hold the full state, hidden
--- information included, and nothing here defends against a modified client.
--- This is play between friends and is not anything else.
+-- ============================================================================
+-- CHEATING IS NOT HANDLED, AND CANNOT BE WITHOUT A DIFFERENT ARCHITECTURE.
+-- ============================================================================
+--
+-- Two separate things are missing, and neither is a hole to be plugged:
+--
+--   1. Both players hold the entire state, hidden zones included. A hand is
+--      hidden by the renderer, not by the protocol.
+--   2. A client applies whatever state arrives. The hashes below check that a
+--      message *follows* the state we agreed on — they do not check that the
+--      new state is *reachable* from it by a legal move. A modified client can
+--      hand you any position it likes and this will accept it.
+--
+-- What a fix requires, so nobody mistakes it for an afternoon's work: an
+-- authoritative referee — a server, or one client designated as one — that
+-- receives *moves* rather than states, validates each against the rules, owns
+-- the resulting state, and sends every player only the part they are allowed to
+-- see. Three of those four are new. The engine has no notion of a state filtered
+-- per player, and no notion of validating a move it did not originate; flow
+-- re-derives legality for local input (ARCHITECTURE invariant 2) and that is the
+-- one piece which would carry over. A move-based protocol at least became
+-- possible when rng.lua made a seed mean one sequence everywhere.
+--
+-- Until then this is play between people who trust each other, and it is not
+-- anything else. Do not put it in front of strangers.
 
 local declaration = require("declaration")
 local entity      = require("entity")
@@ -30,6 +52,12 @@ M.PROTOCOL  = "RAVEL1"
 M.seat      = nil   -- the seat this client may play as; nil = play any seat
 M.on_apply  = nil   -- hook(snap) — presentation clears its caches after remote state lands
 M.on_status = nil   -- hook(text) — connection news worth showing a human
+
+-- Set when the two sides stop agreeing, and left set until a whole state fixes
+-- it. Interfaces show it and offer M.request_resync; it is deliberately sticky,
+-- because a desync that repaired itself silently is a desync nobody learns
+-- about, and the automatic request can itself go unanswered.
+M.desync = nil
 
 local link      = nil   -- the active transport, see "Transports" below
 local seq       = 0     -- Lamport clock: max(mine, theirs) + 1 on every publish
@@ -202,11 +230,19 @@ end
 
 ---------------------------------------------------------------- wire format
 
--- RAVEL1:<game>:<seq>:<kind><enc>:<payload>
+-- RAVEL1:<label>:<game>:<seq>:<kind><enc>:<payload>
+--   label init · t<round>p<seat> · resync — what this message *is*, in words
 --   kind  F full state · D delta · R "I am lost, send me a full state"
 --   enc   x base64(lzss(json)) · j base64(json), when lzss found nothing
--- Game and clock ride in the header as plain text so a human can read them in a
--- chat window and a receiver can drop a stale message without unpacking it.
+--
+-- The header is deliberately plain text and deliberately first. Someone reading
+-- a chat log, or a bug report with a blob pasted into it, can see that this is
+-- turn 3 of player 1 in lost_cities.json without decoding anything — and the
+-- receiver can drop a stale message without unpacking it either. `luajit
+-- packet.lua '<blob>'` turns the rest into readable text.
+--
+-- The label is descriptive, never load-bearing: nothing branches on it, so a
+-- sender that got it wrong is a cosmetic bug rather than a protocol one.
 --
 -- Every message carries three hashes, and they answer three different questions:
 --
@@ -234,7 +270,22 @@ local function as_message(snap)
 	return m
 end
 
-local function pack(kind, body)
+-- Where the game has got to, in four characters. Reads off the system card,
+-- which is where the engine keeps the round counter and whose turn it is.
+function M.marker()
+	local round, turn = 0, 0
+	for e in entity.each("card") do
+		if e.def_key == "system" and e.zone_id then
+			round = math.floor(tonumber(e.stats.round) or 0)
+			turn  = math.floor(tonumber(e.stats.turn) or 0)
+			break
+		end
+	end
+	if #(declaration.G.seat_list or {}) < 2 then return "t" .. round end
+	return ("t%dp%d"):format(round, turn)
+end
+
+local function pack(kind, body, label)
 	local text = body and json.encode(body) or ""
 	local enc  = "j"
 	if #text > 0 then
@@ -243,7 +294,8 @@ local function pack(kind, body)
 		local z = netpack.compress(text)
 		if #z < #text then text, enc = z, "x" end
 	end
-	return table.concat({ M.PROTOCOL, (body and body.game) or declaration.filename or "?",
+	return table.concat({ M.PROTOCOL, label or M.marker(),
+		(body and body.game) or declaration.filename or "?",
 		tostring(seq), kind .. enc, netpack.encode(text) }, ":")
 end
 
@@ -254,11 +306,12 @@ local function unpack_msg(text)
 	-- hard-wraps a long line, or a paste that picked up a stray newline, is to
 	-- take the whitespace out before reading anything.
 	text = text:gsub("%s+", "")
-	local game, msg_seq, mode, body =
-		text:match(M.PROTOCOL .. ":([^:]*):([^:]*):(%a%a):([A-Za-z0-9+/=]*)")
+	local label, game, msg_seq, mode, body =
+		text:match(M.PROTOCOL .. ":([^:]*):([^:]*):([^:]*):(%a%a):([A-Za-z0-9+/=]*)")
 	if not game then return nil, "not a " .. M.PROTOCOL .. " message" end
 	local kind, enc = mode:sub(1, 1), mode:sub(2, 2)
-	local out = { kind = kind, game = game, seq = tonumber(msg_seq) or 0 }
+	local out = { kind = kind, label = label, game = game, enc = enc,
+		seq = tonumber(msg_seq) or 0 }
 	if kind == "R" then return out end
 
 	local raw = netpack.decode(body)
@@ -372,11 +425,12 @@ local function check_landing(body)
 	if not body.post then return end
 	local got = M.state_hash()
 	if got == body.post then return end
+	M.desync = ("applied their message and landed somewhere else (theirs %s, mine %s)")
+		:format(body.post, got)
 	if not M.divergent then
 		M.divergent = true
-		say(("the two clients disagree about state (theirs %s, mine %s) — sending whole "
-			.. "states from now on; a different engine version is the usual cause")
-			:format(body.post, got))
+		say(M.desync .. " — sending whole states from now on; a different engine "
+			.. "version is the usual cause")
 	end
 end
 
@@ -396,6 +450,7 @@ function M.apply_full(snap)
 		if type(line) == "string" then log.add(line) end
 	end
 	check_landing(snap)
+	if not M.divergent then M.desync = nil end   -- a whole state is the cure
 	baseline, baseline_hash = M.snapshot(), M.state_hash()
 	if M.on_apply then M.on_apply(snap) end
 	return true
@@ -415,7 +470,9 @@ function M.apply_delta(patch)
 
 	local here = M.snapshot()
 	if patch.prev and patch.prev ~= M.fingerprint(here) then
-		return false, "delta follows state " .. patch.prev .. ", we are at " .. M.fingerprint(here)
+		M.desync = "their move follows state " .. patch.prev
+			.. ", we are at " .. M.fingerprint(here)
+		return false, M.desync
 	end
 
 	local ents = here.ents
@@ -526,14 +583,29 @@ function M.compose(force_full)
 	local to   = M.fingerprint(cur)
 	local from = baseline_hash
 	local text
+	-- The label says what kind of message this is, in words, before anything is
+	-- decoded: a whole state sets the receiver up from scratch, so it reads
+	-- "init"; a delta is one turn, so it reads "t3p1".
 	if usable_baseline(cur) and not force_full and not pending_full and not M.divergent then
-		text = pack("D", envelope(make_delta(baseline, cur), from, to))
+		text = pack("D", envelope(make_delta(baseline, cur), from, to), M.marker())
 	else
-		text = pack("F", envelope(as_message(cur), from, to))
+		text = pack("F", envelope(as_message(cur), from, to), "init")
 	end
 	baseline, baseline_hash, pending_full = cur, to, false
 	cached_hash = to
 	return text
+end
+
+-- "Ask them for everything." The automatic version fires when a delta does not
+-- fit; this is the one a player presses when the two screens plainly disagree
+-- and nothing has repaired itself — a message can be lost, and a lost message
+-- means the automatic request was lost too.
+function M.request_resync()
+	if not link then return false, "not connected" end
+	seq = seq + 1
+	pending_full = true    -- whatever we send next must be whole, too
+	say("asked them for a full state")
+	return transmit(pack("R", nil, "resync"))
 end
 
 -- Pull whatever has arrived and apply it. Self-sent and stale messages are
@@ -565,7 +637,7 @@ function M.poll()
 				-- A delta we cannot fit means the two sides drifted, and a whole
 				-- state fixes it. A mismatched game file is not drift and no
 				-- amount of resending helps, so that one is only reported.
-				if msg.kind == "D" and not fatal(aerr) then transmit(pack("R", nil)) end
+				if msg.kind == "D" and not fatal(aerr) then transmit(pack("R", nil, "resync")) end
 			end
 		end
 	end
@@ -616,7 +688,7 @@ function M.begin(file, seed)
 	local ok, err = pcall(flow.init, file, seed)
 	if not ok then return false, tostring(err) end
 	seq, baseline, pending_full = 0, M.snapshot(), false
-	M.divergent = false
+	M.divergent, M.desync = false, nil
 	forget_hash()
 	baseline_hash = M.state_hash()
 	say("started " .. tostring(file) .. " at seed " .. tostring(seed))

@@ -40,6 +40,7 @@ love.mouse = { getPosition = function() return 480, 270 end }
 love.timer = { getTime = function() return os.clock() end }
 
 math.randomseed(11)
+require("rng").seed(11)   -- the engine's generator, so unseeded loads reproduce
 
 local entity    = require("entity")
 local zones     = require("zones")

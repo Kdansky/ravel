@@ -5,6 +5,7 @@
 require("headless")
 
 math.randomseed(7)
+require("rng").seed(7)   -- the engine's generator, so unseeded loads reproduce
 
 local declaration = require("declaration")
 local entity      = require("entity")
@@ -1930,9 +1931,24 @@ do
 	-- that cannot possibly help.
 	net.begin("castle.json", 7)
 	local honest = net.export(true)
-	local forged = honest:gsub("^RAVEL1:castle%.json:", "RAVEL1:kingdom.json:")
+	local forged = honest:gsub("^(RAVEL1:[^:]*:)castle%.json:", "%1kingdom.json:")
+	check("the test actually forged something", forged ~= honest)
 	local okf, errf = net.import(forged)
-	check("a message naming another file is not silently accepted", not okf)
+	check("a header that disagrees with its payload is refused", not okf)
+	check("...and says so", tostring(errf):find("header says") ~= nil, tostring(errf))
+
+	-- The label is what a person reads in a chat window before decoding anything.
+	check("a whole state is labelled init", honest:find("^RAVEL1:init:castle%.json:") ~= nil,
+		honest:sub(1, 40))
+	net.begin("lost_cities.json", 7)
+	local shared2 = net.export(true)
+	local lc, lt = first_playable()
+	flow.play_card(lc, lt)
+	local labelled = net.export()
+	check("a later message is labelled with the turn",
+		labelled:find("^RAVEL1:t%d+p%d+:lost_cities%.json:") ~= nil, labelled:sub(1, 40))
+	check("a one-seat game leaves the player out of the label",
+		(function() net.begin("castle.json", 7); return net.marker():find("^t%d+$") ~= nil end)())
 	do
 		-- Same file, but the sender's copy hashed differently: exactly the
 		-- "you two have different versions" case, and the error must say so.
@@ -1985,6 +2001,53 @@ do
 	net.unlink()
 	net.import(sent)
 	check("what arrived is the state that was played", net.fingerprint() ~= base)
+
+	-- Out of sync, and the button that fixes it.
+	do
+		local la, lb = netlink.loopback()
+		net.begin("lost_cities.json", 7)
+		net.link(la)
+		check("a fresh game is not out of sync", net.desync == nil)
+
+		-- Build a move from somewhere else entirely, then hand it over.
+		local elsewhere
+		net.begin("lost_cities.json", 21)
+		local xc, xt = first_playable()
+		flow.play_card(xc, xt)
+		elsewhere = net.export()
+
+		net.begin("lost_cities.json", 7)
+		net.link(la)
+		local okd = net.import(elsewhere)
+		check("a move from another game is refused", not okd)
+		check("...and that is recorded as being out of sync", net.desync ~= nil, net.desync)
+
+		-- The manual button: it puts a resync request on the wire, labelled so.
+		check("resync needs a connection", (function()
+			net.unlink(); return not net.request_resync()
+		end)())
+		net.link(la)
+		while lb.recv() do end            -- earlier moves are still queued
+		check("resync is sent", net.request_resync())
+		local asked = lb.recv()
+		check("the request is labelled resync",
+			type(asked) == "string" and asked:find("^RAVEL1:resync:") ~= nil, tostring(asked))
+		check("the request carries a resync kind",
+			type(asked) == "string" and asked:find(":R%a:") ~= nil)
+
+		-- And a whole state is the cure.
+		net.begin("lost_cities.json", 7)
+		net.link(la)
+		net.import(elsewhere)
+		check("still out of sync before the fix", net.desync ~= nil)
+		net.begin("lost_cities.json", 21)
+		local whole = net.export(true)
+		net.begin("lost_cities.json", 7)
+		net.desync = "pretend we never recovered"
+		check("a whole state applies", net.import(whole))
+		check("...and clears the out-of-sync flag", net.desync == nil)
+		net.unlink()
+	end
 
 	net.seat = nil
 	net.unlink()

@@ -232,6 +232,14 @@ The generator is the engine's own (`rng.lua`), not the host's. This is the diffe
 
 ---
 
+## Trust
+
+Networked play is **trust-based, by design and not by omission**. Both players hold the entire state, hidden zones included — a hand is hidden by the renderer, not by the protocol — and a client applies whatever state arrives, checking only that it follows the state both sides agreed on, never that it is reachable from it by a legal move. The hashes in every message exist to catch accidents: a stale paste, two different versions of a game file, an engine that serialises differently.
+
+Changing that is not a patch. It needs an authoritative referee that takes moves rather than states, validates each one, owns the result, and shows each player only their part — a different architecture, and a much larger project than the transport it would replace. `ideas/02-multiplayer.md` sets out what it would cost. Until it exists, play with people you trust.
+
+---
+
 ## Menu as a Game
 
 The startup screen is `menu.json`, a valid game loaded like any other. Menu items are cards with `on_play: ["load_game:filename.json"]`. The engine has no special menu code. Loading a game resets state and reinitialises from the new JSON.

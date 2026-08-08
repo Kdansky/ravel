@@ -4,7 +4,6 @@
 --   luajit play.lua castle.json 42  (with a fixed RNG seed)
 
 require("headless")
-math.randomseed(os.time())
 
 local declaration = require("declaration")
 local entity      = require("entity")
@@ -17,6 +16,7 @@ local flow        = require("flow")
 local log         = require("log")
 local predicate   = require("predicate")
 local validate    = require("validate")
+local rng         = require("rng")
 -- Optional: the networking prototype is additive, and play.lua keeps working
 -- with both files deleted.
 local ok_net, net = pcall(require, "net")
@@ -238,6 +238,7 @@ local NET_HELP = [[
   n recv <string>       apply a state they pasted to you
   n folder <dir> <me> <them>   trade through files in a shared directory
   n poll                check the folder now (also happens after every move)
+  n resync              ask them to send the whole game (use when out of sync)
   n off                 disconnect]]
 
 -- One dispatcher, because networking is one experiment and should be one thing
@@ -248,7 +249,8 @@ local function net_command(rest)
 
 	if sub == "" then
 		print("net: " .. net.status() .. "   seat: " .. tostring(net.seat or "any")
-			.. "   state: " .. net.fingerprint())
+			.. "   state: " .. net.state_hash() .. "   " .. net.marker())
+		if net.desync then print("  OUT OF SYNC: " .. net.desync .. "  ('n resync' to fix)") end
 	elseif sub == "help" then
 		print(NET_HELP)
 	elseif sub == "host" then
@@ -284,6 +286,9 @@ local function net_command(rest)
 		if not dir then print("usage: n folder <dir> <me> <them>"); return end
 		net.link(netlink.folder(dir, me, them))
 		print(net.status())
+	elseif sub == "resync" then
+		local ok, err = net.request_resync()
+		print(ok and "asked them for the whole game." or ("cannot: " .. tostring(err)))
 	elseif sub == "poll" then
 		print(net.poll() and "applied their move." or "nothing new.")
 	elseif sub == "off" then
@@ -302,6 +307,9 @@ local function echo_log()
 	end
 	log_seen = log.count()
 end
+
+math.randomseed(os.time())   -- presentation only; the game uses rng.lua
+rng.seed(os.time())
 
 actions.on_effect = function(name) print("  * " .. name .. " *") end
 flow.default_seed = tonumber(arg[2] or "")
@@ -359,6 +367,10 @@ while true do
 	-- A linked transport is checked after every command, so an opponent's move
 	-- lands without anyone having to ask for it.
 	if net and net.linked() and net.poll() then print("  | (their move arrived)") end
+	if net and net.desync then
+		print("  !! OUT OF SYNC: " .. net.desync)
+		print("  !! 'n resync' asks them for the whole game.")
+	end
 	echo_log()
 	show()
 end

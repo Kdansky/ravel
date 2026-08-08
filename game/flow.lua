@@ -304,13 +304,17 @@ function M.init(filename, seed)
 
 	local G = declaration.load(filename)
 
-	-- Seed precedence: explicit argument > CLI/env default > the game doc, and
-	-- the clock when a game asks for none — which is what the startup call to
-	-- math.randomseed used to provide. Seeded before zone contents are created,
-	-- so shuffles are reproducible. The generator is the engine's own (rng.lua):
-	-- a seed has to mean the same sequence on every interpreter, or a replay, a
-	-- golden trace and a networked opponent all disagree about the deck.
-	rng.seed(seed or M.default_seed or G.seed or os.time())
+	-- Seed precedence: explicit argument > CLI/env default > the game doc. With
+	-- none of those the generator is left exactly where it is, so whatever the
+	-- process seeded at startup still governs — a caller that wants a
+	-- reproducible run seeds once and gets it, which is what tests/run.lua does
+	-- and what reseeding from the clock here quietly took away. Seeded before
+	-- zone contents are created, so shuffles reproduce. The generator is the
+	-- engine's own (rng.lua): a seed has to mean the same sequence on every
+	-- interpreter, or a replay, a golden trace and a networked opponent all
+	-- disagree about the deck.
+	local s = seed or M.default_seed or G.seed
+	if s then rng.seed(s) end
 
 	for _, key in ipairs(G.zone_list) do zones.create(G.zone_defs[key]) end
 

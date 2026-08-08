@@ -872,10 +872,12 @@ Claim a seat (*play as: north* in the panel, `n seat north` in the CLI) and the
 engine stops you moving on your opponent's turn: their cards read as unplayable
 rather than accepting a click and refusing it.
 
-**Both players can see everything**, hidden zones included. Hiding a hand from
-the person you are playing against needs a referee the engine does not have, so
-this is play between people who trust each other, and shipping a game that
-depends on a secret hand is worth thinking about first.
+**Both players can see everything**, hidden zones included, and either of them
+could hand the other any position at all — nothing checks that an arriving state
+was reached by a legal move. Both would need a referee the engine does not have
+(`ideas/02-multiplayer.md` says what that would cost). So: play with people you
+trust, and think twice before shipping a game whose whole tension is a secret
+hand.
 
 ### Hardcoded conventions
 

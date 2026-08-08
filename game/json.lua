@@ -215,6 +215,19 @@ local function is_array(t)
   return n == #t
 end
 
+-- Sorting map keys makes the output canonical, which is load-bearing well
+-- beyond readable diffs: net.lua hashes this text to decide whether two
+-- machines hold the same game, so "same table" has to mean "same bytes".
+-- Comparing tostring alone is not a total order — a numeric 1 and a string "1"
+-- tie, and a tie makes table.sort's result depend on input order in 5.1 and
+-- raise "invalid order function" in 5.4 — so type breaks it first.
+local function key_before(a, b)
+  local ta, tb = type(a), type(b)
+  if ta ~= tb then return ta < tb end
+  if ta == "number" then return a < b end
+  return tostring(a) < tostring(b)
+end
+
 -- Map keys are sorted so output is deterministic (stable diffs, testable dumps).
 -- With `indent` set, output is pretty-printed at that nesting depth.
 local function encode_value(v, indent)
@@ -246,7 +259,7 @@ local function encode_value(v, indent)
     end
     local keys = {}
     for k in pairs(v) do keys[#keys + 1] = k end
-    table.sort(keys, function(a, b) return tostring(a) < tostring(b) end)
+    table.sort(keys, key_before)
     for _, k in ipairs(keys) do
       parts[#parts + 1] = pad_in .. encode_string(tostring(k)) .. ":" .. sp .. encode_value(v[k], inner)
     end

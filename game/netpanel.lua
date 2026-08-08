@@ -44,11 +44,13 @@ local PANEL = [[
 		'<input id="rv-room" value="ravel" spellcheck="false">' +
 		'<div id="rv-seats"></div>' +
 		'<div><button id="rv-copy">Copy state</button>' +
-		'<button id="rv-load">Paste &amp; apply</button></div>' +
+		'<button id="rv-load">Paste &amp; apply</button>' +
+		'<button id="rv-sync">Resync</button></div>' +
 		'<textarea id="rv-box" rows="3" spellcheck="false" ' +
 		'placeholder="paste an opponent&apos;s state here"></textarea>' +
 		'<div class="s" id="rv-status">offline</div>' +
-		'<div class="s" id="rv-msg" style="color:#c8a45e"></div></div>';
+		'<div class="s" id="rv-msg" style="color:#c8a45e"></div>' +
+		'<div class="s bad" id="rv-bad" style="display:none"></div></div>';
 	document.body.appendChild(d);
 
 	var W = window;
@@ -68,6 +70,7 @@ local PANEL = [[
 	document.getElementById("rv-p2p").onclick   = function () { push("p2p"); };
 	document.getElementById("rv-off").onclick   = function () { push("unlink"); };
 	document.getElementById("rv-copy").onclick  = function () { push("copy"); };
+	document.getElementById("rv-sync").onclick  = function () { push("resync"); };
 	document.getElementById("rv-load").onclick  = function () {
 		W.__ravel.pasted = document.getElementById("rv-box").value || "";
 		push("paste");
@@ -112,6 +115,22 @@ function M.note(text)
 		.. netlink.js_string(text) .. ';return "ok"'))
 end
 
+-- Out of sync is not news, it is a condition: it stays on screen until a whole
+-- state clears it, and it names the button that fixes it.
+local last_bad = false
+
+local function set_desync(reason)
+	local showing = reason ~= nil
+	if showing == last_bad and not showing then return end
+	last_bad = showing
+	netlink.eval(netlink.guarded(
+		'var e=document.getElementById("rv-bad");if(!e)return "no";'
+		.. 'e.style.display=' .. netlink.js_string(showing and "block" or "none") .. ';'
+		.. 'e.innerHTML=' .. netlink.js_string(showing
+			and ("<b>Out of sync.</b> " .. tostring(reason) .. " Press Resync to ask them for the whole game.")
+			or "") .. ';return "ok"'))
+end
+
 local function set_status(text)
 	netlink.eval(netlink.guarded(
 		'var e=document.getElementById("rv-status");if(e)e.textContent='
@@ -149,6 +168,7 @@ function M.refresh(force)
 		last_status = s
 		set_status(s)
 	end
+	set_desync(net.desync)
 end
 
 local HANDLERS = {}
@@ -163,6 +183,11 @@ HANDLERS["link"] = function(room)
 end
 
 HANDLERS["unlink"] = function() net.unlink() end
+
+HANDLERS["resync"] = function()
+	local ok, err = net.request_resync()
+	M.note(ok and "asked them for the whole game." or ("cannot: " .. tostring(err)))
+end
 
 HANDLERS["seat"] = function(name)
 	net.seat = (name ~= "" and name) or nil
