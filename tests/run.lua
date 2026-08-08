@@ -1738,6 +1738,149 @@ do
 		table.concat(zones.find("build_deck").cards, ",") == shuffled)
 end
 
+-- === networked play ===
+-- One process cannot hold two engines, so "the other client" is played by
+-- rewinding to the state both sides shared and applying what arrived. That is
+-- exactly what the far machine does, minus the wire.
+do
+	local net = require("net")
+
+	local function first_playable()
+		local cur = phase.current()
+		local z   = cur and zones.find(cur.zone or "hand")
+		for _, cid in ipairs(z and z.cards or {}) do
+			if flow.can_play(cid) then
+				local spec = cards.def(entity.get(cid)).target
+				local want = spec and (spec.min or spec.count or 0) or 0
+				local targets = {}
+				if want > 0 then
+					targeting.start(cid, spec)
+					for i = 1, want do targets[i] = targeting.eligible[i] end
+					targeting.clear()
+				end
+				if #targets >= want then return cid, targets end
+			end
+		end
+	end
+
+	-- A whole state, out and back. The log carries em dashes, so this is also
+	-- the check that multi-byte text survives base64 and JSON intact — a
+	-- transport that drops a byte would show up here and nowhere friendlier.
+	local function log_text() return table.concat(log.tail(1e9), "\n") end
+	for _, file in ipairs({ "lost_cities.json", "castle.json", "kingdom.json" }) do
+		net.begin(file, 7)
+		local want = net.fingerprint()
+		local full = net.export(true)
+		flow.init("menu.json")
+		local ok, err = net.import(full)
+		check(file .. " survives encode/decode/apply", ok, err)
+		check(file .. " lands on the same state", net.fingerprint() == want)
+	end
+
+	net.begin("lost_cities.json", 7)
+	local said = log_text()
+	check("the fixture's log has multi-byte text", said:find("—") ~= nil)
+	local msg0 = net.export(true)
+	flow.init("menu.json")
+	net.import(msg0)
+	check("multi-byte log text survives the wire", log_text() == said)
+
+	-- A move, as a delta against the state both sides last shared.
+	net.begin("lost_cities.json", 7)
+	local shared = net.export(true)          -- what the opponent is holding
+	local cid, targets = first_playable()
+	check("the fixture has a playable card", cid ~= nil)
+	flow.play_card(cid, targets)
+	local moved = net.fingerprint()
+	local delta = net.export()
+	check("a delta is far smaller than a state", #delta < #shared / 20,
+		#delta .. " vs " .. #shared)
+
+	net.import(shared)                        -- rewind: be the opponent
+	local ok, err = net.import(delta)
+	check("a delta applies on the shared state", ok, err)
+	check("a delta reproduces the sender's state exactly", net.fingerprint() == moved)
+
+	-- ...and refuses to apply anywhere else, which is the whole safety story.
+	net.begin("lost_cities.json", 99)
+	check("a delta is refused against a state it does not fit", not net.import(delta))
+	net.begin("castle.json", 7)
+	check("a delta is refused across a game change", not net.import(delta))
+
+	-- A chat client may wrap the line; the format has to survive that, and has
+	-- to reject everything else without disturbing the game.
+	net.begin("castle.json", 7)
+	local before = net.fingerprint()
+	local wrapped = net.export(true):gsub("(.....................)", "%1\n")
+	net.begin("menu.json", 7)
+	check("a line-wrapped paste still decodes", net.import(wrapped))
+	for _, junk in ipairs({ "", "hello", "RAVEL1:x:1:Fj:!!!not base64!!!",
+		"RAVEL1:x:1:Fj:" .. ("QUJD"), "RAVEL1:x:1:Zz:QUJD" }) do
+		local fp = net.fingerprint()
+		local okj = net.import(junk)
+		check("junk is refused: " .. junk:sub(1, 22), not okj)
+		check("...and the game is untouched", net.fingerprint() == fp)
+	end
+	net.import(wrapped)
+	check("the wrapped paste carried the real state", net.fingerprint() == before)
+
+	-- The generator's position travels with the state, or the two sides deal
+	-- different cards from the same deck the moment either one shuffles.
+	local rng = require("rng")
+	net.begin("castle.json", 3)
+	rng.int(1000); rng.int(1000)
+	local pos = rng.state()
+	local msg = net.export(true)
+	rng.seed(1)
+	net.import(msg)
+	check("the RNG position travels with the state", rng.state() == pos)
+
+	-- Seat gating. flow is what enforces it, so ask flow.
+	net.begin("lost_cities.json", 7)
+	check("with no seat claimed, anyone may act", net.may_act())
+	net.seat = zones.active_seat()
+	check("the active seat may act", net.may_act())
+	local mine, my_targets = first_playable()
+	check("...and can play", mine ~= nil and flow.play_card(mine, my_targets))
+	net.seat = "south"
+	net.begin("lost_cities.json", 7)
+	net.seat = "south"                        -- north is up first
+	check("the inactive seat may not act", not net.may_act())
+	local theirs = zones.find("hand")
+	check("the inactive seat's cards read as unplayable",
+		theirs and #theirs.cards > 0 and not flow.can_play(theirs.cards[1]))
+	check("...and flow refuses the play outright", not flow.play_card(theirs.cards[1], {}))
+	net.seat = nil
+
+	-- The invite: the whole handshake for a copy/paste game.
+	net.begin("lost_cities.json", 4242)
+	local invite = net.invite(4242)
+	local started = net.fingerprint()
+	check("an invite is short enough to type", #invite < 40, invite)
+	net.begin("castle.json", 1)
+	check("an invite is accepted", net.accept(invite))
+	check("both players start from the identical state", net.fingerprint() == started)
+	check("garbage is not an invite", not net.accept("RAVEL1I:nonsense"))
+
+	-- A transport is only send/recv, and net does not care which one it has.
+	local netlink = require("netlink")
+	local a, b = netlink.loopback()
+	net.begin("castle.json", 5)
+	net.link(a)
+	local base = net.fingerprint()
+	local pcid, ptargets = first_playable()
+	flow.play_card(pcid, ptargets)            -- the wrapper publishes for us
+	local sent = b.recv()
+	check("a move publishes itself over the transport", type(sent) == "string")
+	net.unlink()
+	net.import(sent)
+	check("what arrived is the state that was played", net.fingerprint() ~= base)
+
+	net.seat = nil
+	net.unlink()
+	check("networking leaves nothing behind", not net.linked() and net.seat == nil)
+end
+
 -- === golden traces ===
 -- Reworking the stat machinery must not change what actually happens in a
 -- game. These play a fixed seeded script and compare the entire event log to a

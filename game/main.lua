@@ -6,6 +6,12 @@ local phase       = require("phase")
 local targeting   = require("targeting")
 local actions     = require("actions")
 local flow        = require("flow")
+-- Required before RESOLVE below captures flow.play_card: net wraps flow's
+-- mutators at require time so a networked seat cannot move out of turn, and a
+-- wrapper installed after the capture would never be reached from the GUI. It
+-- is inert until a transport is linked.
+local net         = require("net")
+local netpanel    = require("netpanel")
 local render      = require("render")
 local tooltip     = require("tooltip")
 local anim        = require("anim")
@@ -203,6 +209,9 @@ function love.load()
 	if os.getenv("RAVEL_DEBUG") then debugserver.start() end
 	flow.default_seed = tonumber(os.getenv("RAVEL_SEED") or "")
 	flow.init("menu.json")
+	-- Only the browser build has a page to draw controls on; everywhere else
+	-- this returns false and networking stays available through the module.
+	netpanel.setup()
 end
 
 function love.resize()
@@ -279,6 +288,10 @@ local function watch_game_file(dt)
 end
 
 function love.update(dt)
+	-- Before sync_places: an applied remote state arrives with blank rects, and
+	-- the renderer is what fills them in.
+	net.update()
+	netpanel.update()
 	anim.update(dt)
 	fx.update(dt)
 	render.sync_places()

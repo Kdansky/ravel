@@ -17,6 +17,10 @@ local flow        = require("flow")
 local log         = require("log")
 local predicate   = require("predicate")
 local validate    = require("validate")
+-- Optional: the networking prototype is additive, and play.lua keeps working
+-- with both files deleted.
+local ok_net, net = pcall(require, "net")
+local netlink     = ok_net and require("netlink") or nil
 
 local function wrap(text, width)
 	local out, line = {}, ""
@@ -222,7 +226,72 @@ local HELP = [[
   dump <card>  print a template as JSON (paste back into the game file)
   reload       re-read templates from the game file, keep playing
   load <file>  load a game json
+  n ...        networked play (n help)
   q            quit]]
+
+local NET_HELP = [[
+  n                     connection status
+  n host <file> [seed]  start a game and print the invite to send your opponent
+  n join <invite>       start the same game from an invite string
+  n seat <name|off>     play only this seat (n seat with no name lists them)
+  n send                print the state to paste to your opponent
+  n recv <string>       apply a state they pasted to you
+  n folder <dir> <me> <them>   trade through files in a shared directory
+  n poll                check the folder now (also happens after every move)
+  n off                 disconnect]]
+
+-- One dispatcher, because networking is one experiment and should be one thing
+-- to delete. Everything it can do is also reachable from the module directly.
+local function net_command(rest)
+	if not net then print("networking is not installed"); return end
+	local sub, args = rest:match("^(%S*)%s*(.*)$")
+
+	if sub == "" then
+		print("net: " .. net.status() .. "   seat: " .. tostring(net.seat or "any")
+			.. "   state: " .. net.fingerprint())
+	elseif sub == "help" then
+		print(NET_HELP)
+	elseif sub == "host" then
+		local file, seed = args:match("^(%S+)%s*(%-?%d*)$")
+		seed = tonumber(seed) or os.time() % 100000
+		local ok, err = net.begin(file or "lost_cities.json", seed)
+		if ok then
+			print("send this to your opponent:")
+			print("  " .. net.invite(seed))
+		else
+			print(err)
+		end
+	elseif sub == "join" then
+		local ok, err = net.accept(args)
+		print(ok and "joined." or tostring(err))
+	elseif sub == "seat" then
+		if args == "" then
+			print("seats: " .. table.concat(net.seats(), ", "))
+		elseif args == "off" then
+			net.seat = nil
+			print("playing any seat")
+		else
+			net.seat = args
+			print("playing as " .. args)
+		end
+	elseif sub == "send" then
+		print(net.export())
+	elseif sub == "recv" then
+		local ok, err = net.import(args)
+		print(ok and "applied." or ("rejected: " .. tostring(err)))
+	elseif sub == "folder" then
+		local dir, me, them = args:match("^(%S+)%s+(%S+)%s+(%S+)$")
+		if not dir then print("usage: n folder <dir> <me> <them>"); return end
+		net.link(netlink.folder(dir, me, them))
+		print(net.status())
+	elseif sub == "poll" then
+		print(net.poll() and "applied their move." or "nothing new.")
+	elseif sub == "off" then
+		net.unlink()
+	else
+		print("? (n help)")
+	end
+end
 
 -- Echo log lines written since the last command: the play-by-play record.
 local log_seen = 0
@@ -280,11 +349,16 @@ while true do
 	elseif cmd == "load" then
 		local ok, err = pcall(flow.init, rest)
 		if not ok then print(err); flow.init("menu.json") end
+	elseif cmd == "n" then
+		net_command(rest)
 	elseif cmd == "h" then
 		print(HELP)
 	else
 		print("? (h for help)")
 	end
+	-- A linked transport is checked after every command, so an opponent's move
+	-- lands without anyone having to ask for it.
+	if net and net.linked() and net.poll() then print("  | (their move arrived)") end
 	echo_log()
 	show()
 end
