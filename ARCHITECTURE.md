@@ -200,6 +200,12 @@ three interfaces.
 
 ## Extending the engine
 
+**An optional layer with its own vocabulary**: declare the words in actions.lua
+(`SPEC` + a `HANDLERS` entry that calls a hook) and let the layer assign the
+hook on require — that is how the `net_*` ops work. The validator then checks
+them like anything else, and the words survive as silent no-ops if the layer is
+deleted.
+
 **A new action**: add a `HANDLERS["op"]` in actions.lua (use `amount()` for
 numbers, `zone_id()` for zone arguments so they accept a scope expression,
 `log.add` for player-visible effects), declare its argument shape in `SPEC`

@@ -2014,6 +2014,42 @@ do
 	check("...and the error names both states",
 		tostring(errc):find("follows state") ~= nil, tostring(errc))
 
+	-- Networking as cards. The engine knows the words; net.lua supplies the
+	-- meaning, and a build without it leaves them as silent no-ops.
+	do
+		local acts = require("actions")
+		for _, op in ipairs({ "net_invite", "net_join", "net_panel", "net_seat", "net_offline" }) do
+			check(op .. " is an action the engine knows", acts.spec(op) ~= nil)
+		end
+
+		net.begin("lost_cities.json", 7)
+		local asked = {}
+		net.on_ui = function(what) asked[#asked + 1] = what end
+
+		eval("net_invite")
+		eval("net_join")
+		check("a card can ask for the invite UI", asked[1] == "invite" and asked[2] == "join",
+			table.concat(asked, ","))
+
+		-- Sitting down is local, and needs no UI at all.
+		eval("net_seat:south")
+		check("a card can claim a seat", net.seat == "south")
+		eval("net_seat:any")
+		check("...and give it up", net.seat == nil)
+
+		-- Without a UI hook the ops must be harmless, not fatal: that is the
+		-- headless and desktop case, and the case where net.lua is deleted.
+		net.on_ui = nil
+		local before = net.state_hash()
+		check("with no UI, asking for one does not error", pcall(eval, "net_invite"))
+		check("...and changes nothing", net.state_hash() == before)
+
+		-- And the menu actually uses them, which is the point of the exercise.
+		local menu = love.filesystem.read("games/menu.json")
+		check("the menu offers networking as cards",
+			menu:find("net_invite") ~= nil and menu:find("net_seat") ~= nil)
+	end
+
 	-- Four things arrive in one box, and one function decides which is which.
 	net.begin("lost_cities.json", 4242)
 	check("a state is recognised", net.kind_of(net.export(true)) == "state")

@@ -540,6 +540,60 @@ path reaches it first, which here meant the whole browser panel silently stopped
 updating. `tests/run.lua` now greps every module for it; it runs in a second and
 found nothing else.
 
+### Networking as cards
+
+Invariant 7 — *when in doubt, decks and cards* — reaching the last corner of the
+engine that still had a bespoke UI policy. The panel used to ask "does this game
+have two seats, so should I offer an invite?", which is a question about
+**content**, answered in the **presentation layer**. Now a game says so itself.
+
+The split, which is the part worth getting right: **the engine knows the words,
+the networking layer supplies the meaning.** `actions.lua` declares
+`net_invite`, `net_join`, `net_panel`, `net_seat` and `net_offline` in the same
+`SPEC` table as everything else, so the validator checks a game file naming them
+exactly as it checks `draw_from` — and each is a no-op that calls
+`actions.on_net` if anything assigned it. `net.lua` assigns it on require. Delete
+net.lua and the words survive as silent no-ops, which is the right behaviour for
+a build with no networking in it, and better than a validator warning.
+
+None of these change game state. The engine already had that shape —
+`actions.on_effect` does exactly this for particle effects — and it is why they
+are safe to play while nothing is connected, which is precisely when you need
+them.
+
+What this buys, concretely: `menu.json` now carries *Lost Cities · online*
+(`load_game`, `net_seat:north`, `net_invite` — one card, three words) and *Join a
+friend* (`net_join`). Castle Lord shows no networking UI at all, because nothing
+asks for one. Three seats, a spectator invite, or a card that seats you
+specifically are arguments to these ops rather than branches in a panel.
+
+**What could not move into cards**: the paste box. A 1.3 KB blob has to land
+somewhere, LÖVE has no text input here, and SDL's emscripten clipboard is an
+internal buffer rather than the browser's. So the HTML panel stays — what
+changed is that it is *summoned* rather than always present.
+
+**Still owed**: the panel also appears on its own when the loaded game has two or
+more seats, because otherwise a player who was *sent* an invite has nowhere to
+paste it. That is one predicate rather than the prompt-and-grey policy it
+replaced, and it goes away when the menu grows a real first-run screen (New
+Game / Join / Load) — at which point the join card is the only route needed.
+
+### Two bugs found by trying to use it
+
+**Any card title containing a non-ASCII character rendered blank, and took the
+rest of its zone with it.** `truncate` removed a byte and then walked back over
+UTF-8 continuation bytes (0x80–0xBF) — but a lead byte is 0xC2 or higher, so it
+stopped one short and left the lead dangling. LÖVE answers invalid UTF-8 by
+drawing nothing *and abandoning the rest of the draw*, so "Lost Cities · online"
+deleted itself and every card after it. It now drops whole characters, and
+`render_smoke`'s `printf` stub validates UTF-8 instead of swallowing it — the
+same trick as the `setScissor` check, and it found this on the first run.
+
+**A local function called before its declaration.** Lua resolves the name as a
+global, gets nil, and fails at runtime on whichever path reaches it first —
+here, the entire browser panel silently stopped updating. `tests/run.lua` greps
+every module for it now.
+
 ### What is left
 
 - Hidden hands and a nameplate — stage A's remaining presentation polish,

@@ -10,6 +10,7 @@ local rng         = require("rng")
 local M = {}
 
 M.pending_load   = nil   -- set by load_game, consumed by flow after the action list
+M.on_net         = nil   -- optional hook(what, arg): the networking layer's UI, if one is loaded
 M.on_stat_change = nil   -- optional hook(entity, key, delta) for visual feedback
 M.on_effect      = nil   -- optional hook(name, ctx): presentation plays the named effect
 
@@ -403,6 +404,31 @@ end
 -- Types: zone, card, stat (a full subject, so it may carry a scope),
 -- phase, effect, gamefile, n (amount: number, count:<tag> or card:<key>),
 -- any. A trailing "?" marks the argument optional.
+-- Networking, as something a card can do. The engine knows the *words* — so
+-- the validator does too, and a game file naming them is checked like any other
+-- — while the behaviour behind them lives entirely in net.lua and arrives only
+-- if that module is loaded. Without it these are silent no-ops, which is the
+-- right answer for a build with no networking in it.
+--
+-- This is invariant 7 reaching the last corner that still had a bespoke UI
+-- policy. The panel used to ask "does this game have two seats, so should I
+-- offer an invite?" — a question about content, answered in the presentation
+-- layer. Now a two-player game deals a card that says "play this with a
+-- friend", a solitaire game deals none, and nothing has to guess. Three seats,
+-- a spectator, or a card that sits you in a particular chair are arguments to
+-- these ops rather than branches in a panel.
+local function net_ui(what)
+	return function(p)
+		if M.on_net then M.on_net(what, p[2]) end
+	end
+end
+
+HANDLERS["net_invite"]  = net_ui("invite")
+HANDLERS["net_join"]    = net_ui("join")
+HANDLERS["net_panel"]   = net_ui("panel")
+HANDLERS["net_seat"]    = net_ui("seat")
+HANDLERS["net_offline"] = net_ui("offline")
+
 local SPEC = {
 	fill              = "zone card n",
 	shuffle           = "zone",
@@ -416,6 +442,11 @@ local SPEC = {
 	spend_stat        = "stat n",
 	set_stat          = "stat n",
 	attach_to_target  = "",
+	net_invite        = "",
+	net_join          = "",
+	net_panel         = "",
+	net_seat          = "any",
+	net_offline       = "",
 	resolve_challenge = "",
 	next_phase        = "",
 	push_phase        = "phase",
@@ -440,6 +471,7 @@ end
 function M.spec(op)
 	return SPEC[op]
 end
+
 
 function M.execute(str, ctx)
 	local p = parse(str)

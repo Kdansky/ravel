@@ -45,6 +45,7 @@ local json        = require("json")
 local rng         = require("rng")
 local targeting   = require("targeting")
 local netpack     = require("netpack")
+local actions     = require("actions")
 
 local M = {}
 
@@ -817,6 +818,46 @@ function M.import(text)
 	else ok, aerr = M.apply_full(msg.body) end
 	if ok then seq = math.max(seq, msg.seq) end
 	return ok, aerr
+end
+
+---------------------------------------------------------------- as cards
+--
+-- Networking is a thing a card does. That is invariant 7 — *when in doubt,
+-- decks and cards* — applied to the last corner of the engine that still had a
+-- bespoke UI policy: the panel used to ask "does this game have two seats, and
+-- should I therefore offer an invite?", which is a question about content
+-- answered in the presentation layer. Now a two-player game deals a card that
+-- says "play this with a friend", a solitaire game deals no such card, and
+-- nothing anywhere has to guess.
+--
+-- It also generalises for free. Three seats, a spectator invite, or a card that
+-- sits you in a particular chair are all different arguments to the same ops
+-- rather than different branches in a panel.
+--
+-- These are the one kind of action that changes no game state: they ask the
+-- presentation layer to show something. The engine already has that shape —
+-- actions.on_effect does exactly this for particle effects — and it is why the
+-- op is safe to play while nothing is connected, which is precisely when you
+-- need it.
+
+M.on_ui = nil   -- hook(what) — the presentation layer opens its networking UI
+
+-- actions.lua declares the words; this supplies the meaning. Assigning the hook
+-- on require is what makes the net_* ops do anything, and not requiring this
+-- file is what makes them silent.
+actions.on_net = function(what, arg)
+	if what == "seat" then
+		-- Which chair you are sitting in. Local, not game state: it says who
+		-- *you* are, not what is true of the game, so it is never published.
+		M.seat = (arg and arg ~= "" and arg ~= "any") and arg or nil
+		say(M.seat and ("you are " .. M.seat) or "playing any seat")
+	elseif what == "offline" then
+		M.unlink()
+	elseif M.on_ui then
+		M.on_ui(what)
+	else
+		say("this build has no networking UI (try the CLI's 'n' commands)")
+	end
 end
 
 ---------------------------------------------------------------- flow wrapping

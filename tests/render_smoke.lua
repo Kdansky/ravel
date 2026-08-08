@@ -35,6 +35,27 @@ love.graphics = setmetatable({
 		assert(not (w and h) or (w >= 0 and h >= 0),
 			("setScissor with a negative size: %s,%s %sx%s"):format(x, y, w, h))
 	end,
+	-- Also a check rather than a stub. LÖVE answers malformed UTF-8 by drawing
+	-- nothing and abandoning the rest of the zone, so a title truncated through
+	-- the middle of a character silently deletes cards from the screen. That is
+	-- invisible to a test that only asks whether drawing crashed.
+	printf = function(text)
+		local s, i = tostring(text), 1
+		while i <= #s do
+			local b, n = s:byte(i), 0
+			if b < 0x80 then n = 1
+			elseif b >= 0xF0 then n = 4
+			elseif b >= 0xE0 then n = 3
+			elseif b >= 0xC0 then n = 2
+			else error("printf: stray continuation byte in " .. string.format("%q", s)) end
+			for k = 1, n - 1 do
+				local c = s:byte(i + k)
+				assert(c and c >= 0x80 and c <= 0xBF,
+					"printf: truncated UTF-8 in " .. string.format("%q", s))
+			end
+			i = i + n
+		end
+	end,
 }, { __index = function() return noop end })
 love.mouse = { getPosition = function() return 480, 270 end }
 love.timer = { getTime = function() return os.clock() end }
@@ -136,6 +157,18 @@ flow.play_card(hand_card("c_search").id, {})
 for _ = 1, 8 do frame(0.016) end
 flow.pick(zones.find("reveal").cards[1])
 for _ = 1, 8 do frame(0.016) end
+
+-- Titles that do not fit, in a font that has to cut them. A card whose name
+-- carries any non-ASCII character — an accent, a dash, a middle dot — used to
+-- truncate into invalid UTF-8 and vanish, along with everything after it.
+flow.init("menu.json")
+render.rescale()
+for _, title in ipairs({ "Lost Cities · online", "Café des Étoiles très très long",
+	"日本語のとても長いタイトル", "Ærøskøbing—Højbro Plads", "plain ascii but extremely long indeed" }) do
+	cards.edit("play_castle", "text", title)
+	for _ = 1, 2 do frame(0.016) end
+end
+cards.edit("play_castle", "text", "Castle Lord")
 
 -- Tall narrow grids: an expedition column is five cells deep, so each cell is
 -- shorter than the text band a card reserves. Every shipped game gets a draw

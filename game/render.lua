@@ -74,14 +74,23 @@ local function get_small_font()
 end
 
 -- Cut text to fit a width, appending "..." (multibyte-safe trim).
+-- Drop the last *character*, not the last byte. The old version removed a byte
+-- and then walked back over UTF-8 continuation bytes (0x80–0xBF) — but a lead
+-- byte is 0xC2 or higher, so it stopped one short and left the lead dangling.
+-- The result is invalid UTF-8, and LÖVE's printf answers that by drawing
+-- nothing *and abandoning the rest of the zone*: one card titled "Lost Cities ·
+-- online" blanked itself and took every card after it off the screen.
+local function drop_char(s)
+	local i = #s
+	while i > 1 and s:byte(i) >= 0x80 and s:byte(i) <= 0xBF do i = i - 1 end
+	return s:sub(1, i - 1)
+end
+
 local function truncate(font, text, w)
 	text = tostring(text)
 	if font:getWidth(text) <= w then return text end
 	while #text > 1 and font:getWidth(text .. "...") > w do
-		text = text:sub(1, -2)
-		while #text > 0 and text:byte(-1) >= 0x80 and text:byte(-1) <= 0xBF do
-			text = text:sub(1, -2)
-		end
+		text = drop_char(text)
 	end
 	return text .. "..."
 end

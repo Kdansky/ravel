@@ -875,6 +875,30 @@ Three ways to connect, all of them without a server:
 The browser accepts all four kinds of string in the one box, and works out
 which it is: a state, an invite, a peer-to-peer offer or its answer.
 
+### Offering it from your own game
+
+Networking is something a **card** does, so a game decides whether to mention it
+at all. Five actions, checked by the validator like any other:
+
+| | |
+|---|---|
+| `net_invite` | build an invite to send someone |
+| `net_join` | open the box to paste one into |
+| `net_seat:<seat>` | sit in a particular chair (`net_seat:any` to give it up) |
+| `net_panel` | just show the networking controls |
+| `net_offline` | disconnect |
+
+The menu's own entry is one card:
+
+```json
+{ "key": "play_lost_cities_net", "text": "Lost Cities · online",
+  "on_play": ["load_game:lost_cities.json", "net_seat:north", "net_invite"] }
+```
+
+None of them changes game state — they ask the interface to show something — so
+they are safe to play before anything is connected, which is when you need them.
+A game that never names them never grows a networking widget.
+
 Claim a seat (*play as: north* in the panel, `n seat north` in the CLI) and the
 engine stops you moving on your opponent's turn: their cards read as unplayable
 rather than accepting a click and refusing it.

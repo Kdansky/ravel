@@ -12,7 +12,7 @@ local netlink = require("netlink")
 local M = {}
 
 local up, last_status, last_seats = false, nil, nil
-local last_invitable = nil
+local shown = false
 local linked_at = nil   -- when the current transport was attached
 
 -- Keystrokes typed into the panel must not also reach the game: LÖVE listens on
@@ -38,6 +38,7 @@ local PANEL = [[
 
 	var d = document.createElement("div");
 	d.id = "ravel-net";
+	d.style.display = "none";   // a card opens this; see net.lua's net_* actions
 	d.innerHTML =
 		'<h4 style="cursor:pointer" id="rv-t">▾ Ravel · net</h4><div class="body">' +
 		'<div><button id="rv-link" title="Only reaches other tabs of THIS browser">' +
@@ -89,6 +90,7 @@ function M.setup()
 	up = (r == "ok" or r == "again")
 	if up then
 		net.on_status = function(text) M.note(text) end
+		net.on_ui     = function(what) M.open(what) end
 		M.refresh(true)
 	end
 	return up
@@ -96,6 +98,30 @@ end
 
 function M.available()
 	return up
+end
+
+-- What a net_* action asks for. The panel is not on screen until one of them
+-- runs, so a solitaire game never grows a networking widget it has no use for.
+--
+-- The request goes into the same queue the buttons push to, rather than calling
+-- a handler directly: the handlers are declared below this point, and reaching
+-- backwards for one is how a local silently becomes a nil global. It also means
+-- a card and a click take exactly the same path.
+function M.open(what)
+	if not up then return false end
+	if not shown then
+		shown = true
+		netlink.eval(netlink.guarded(
+			'var d=document.getElementById("ravel-net");if(d)d.style.display="block";return "ok"'))
+		M.refresh(true)
+	end
+	local cmd = (what == "invite" and "p2p") or (what == "join" and "focusbox") or nil
+	if cmd then
+		netlink.eval(netlink.guarded(
+			'var N=window.__ravel;if(N&&N.cmds)N.cmds.push(' .. netlink.js_string(cmd)
+			.. ');return "ok"'))
+	end
+	return true
 end
 
 -- One short line of truth, refreshed only when it changes: every eval is a
@@ -174,14 +200,15 @@ function M.refresh(force)
 		last_seats = seats
 		rebuild_seats()
 	end
-	-- Only when it changes: refresh runs ten times a second and every eval is a
-	-- round trip into the page.
-	local can = invitable()
-	if can ~= last_invitable then
-		last_invitable = can
+	-- Shown when a card asks for it — and also, until the menu grows a "join"
+	-- card, when the game you are in has somebody to play against. Otherwise a
+	-- player who was *sent* an invite has nowhere to paste it. This is one
+	-- predicate rather than the prompt-and-grey policy it replaced, and every
+	-- solitaire game still shows nothing at all.
+	if not shown and invitable() then
+		shown = true
 		netlink.eval(netlink.guarded(
-			'var b=document.getElementById("rv-p2p");if(b)b.style.opacity='
-			.. (can and '"1"' or '"0.45"') .. ';return "ok"'))
+			'var d=document.getElementById("ravel-net");if(d)d.style.display="block";return "ok"'))
 	end
 	local s = status_text()
 	if s ~= last_status then
@@ -195,13 +222,6 @@ function M.refresh(force)
 	local trouble = net.desync
 		and ("<b>Out of sync.</b> " .. net.desync .. " Press <b>Resync</b> to ask them for the whole game.")
 		or nil
-	local offer = nil
-	if not net.linked() and invitable() and netlink.rtc_start then
-		offer = "<b>" .. tostring(require("declaration").G.title or "This game")
-			.. "</b> is for " .. #net.seats()
-			.. " players. Press <b>Invite over the internet</b> to play it with someone —"
-			.. " they do not need the game, it travels with the invite."
-	end
 	local lonely = nil
 	if net.linked() and not net.last_heard and linked_at
 		and os.time() - linked_at >= 4 then
@@ -209,7 +229,7 @@ function M.refresh(force)
 			.. "<i>this</i> browser — for a different browser, or another computer, "
 			.. "use <b>Invite over the internet</b>."
 	end
-	set_trouble(trouble or lonely or offer)
+	set_trouble(trouble or lonely)
 end
 
 local HANDLERS = {}
@@ -225,6 +245,12 @@ HANDLERS["link"] = function(room)
 end
 
 HANDLERS["unlink"] = function() net.unlink(); linked_at = nil end
+
+HANDLERS["focusbox"] = function()
+	netlink.eval(netlink.guarded(
+		'var b=document.getElementById("rv-box");if(b)b.focus();return "ok"'))
+	M.note("Paste the invite your opponent sent you, then press Paste & apply.")
+end
 
 HANDLERS["resync"] = function()
 	local ok, err = net.request_resync()
