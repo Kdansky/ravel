@@ -263,6 +263,8 @@ browser asset path silently does nothing. `player.js` overrides `window.open`
 (so `love.system.openURL("javascript:…")` is eval'd) and `window.prompt`
 (which is what emscripten's stdin calls, so `io.read` returns the result).
 `netlink.lua` documents the two traps: inbound reads are quadratic unless
-chunked, and a snippet returning `null` closes stdin permanently. Check
+chunked, and a snippet returning `null` closes stdin permanently. Everything a
+page can do is reachable this way — `netlink`'s peer-to-peer transport drives
+`RTCPeerConnection` through the same door. Check
 `love.system.getOS() == "Web"` before touching any of it — on desktop,
 `openURL` opens a real browser and `io.read` blocks.

@@ -39,6 +39,7 @@ local PANEL = [[
 	d.innerHTML =
 		'<h4 style="cursor:pointer" id="rv-t">▾ Ravel · net</h4><div class="body">' +
 		'<div><button id="rv-link">Link tabs</button>' +
+		'<button id="rv-p2p">Invite over the internet</button>' +
 		'<button id="rv-off">Off</button></div>' +
 		'<input id="rv-room" value="ravel" spellcheck="false">' +
 		'<div id="rv-seats"></div>' +
@@ -64,6 +65,7 @@ local PANEL = [[
 	document.getElementById("rv-link").onclick = function () {
 		push("link " + (document.getElementById("rv-room").value || "ravel"));
 	};
+	document.getElementById("rv-p2p").onclick   = function () { push("p2p"); };
 	document.getElementById("rv-off").onclick   = function () { push("unlink"); };
 	document.getElementById("rv-copy").onclick  = function () { push("copy"); };
 	document.getElementById("rv-load").onclick  = function () {
@@ -177,11 +179,77 @@ HANDLERS["copy"] = function()
 	M.note("copied to the box below — press Ctrl+C (" .. #text .. " bytes)")
 end
 
+-- Peer to peer, signalled by the same box everything else goes through. The
+-- handshake is two blobs carried by a human: this side makes one, the other
+-- side answers it, and after that nothing is ever pasted again.
+local awaiting = nil   -- "answer" while the host waits for the reply blob
+
+local function show(text)
+	netlink.eval(netlink.guarded(
+		'var b=document.getElementById("rv-box");if(b){b.value='
+		.. netlink.js_string(text) .. ';b.focus();b.select();}return "ok"'))
+end
+
+-- ICE gathering takes a second or two, so the blob is collected across frames
+-- rather than waited for: blocking the game to wait on a network round trip is
+-- exactly what the rest of this file avoids.
+local pending_role = nil
+
+local function pump_handshake()
+	if not pending_role then return end
+	local blob, err = netlink.rtc_blob()
+	if blob == false then
+		pending_role = nil
+		M.note("peer-to-peer failed: " .. tostring(err))
+		return
+	end
+	if not blob then return end
+	local kind = pending_role == "host" and "offer" or "answer"
+	pending_role = nil
+	show(net.wrap_sdp(kind, blob))
+	if kind == "offer" then
+		awaiting = "answer"
+		M.note("Ctrl+C and send this to your opponent, then paste their reply here.")
+	else
+		net.link(netlink.rtc())
+		M.note("Ctrl+C and send this back. You are connected once they paste it.")
+	end
+end
+
+HANDLERS["p2p"] = function()
+	if not netlink.rtc_start("host") then M.note("this browser has no WebRTC"); return end
+	pending_role, awaiting = "host", nil
+	M.note("building an invite…")
+end
+
 HANDLERS["paste"] = function()
 	local text = netlink.eval_long('(window.__ravel.pasted||"")')
 	if not text or text == "" then M.note("nothing pasted"); return end
-	local ok, err = net.import(text)
-	M.note(ok and "applied their state." or ("rejected: " .. tostring(err)))
+	local kind = net.kind_of(text)
+
+	if kind == "offer" then
+		if not netlink.rtc_start("guest", net.unwrap_sdp(text)) then
+			M.note("this browser has no WebRTC")
+		else
+			pending_role = "guest"
+			M.note("answering…")
+		end
+	elseif kind == "answer" then
+		if awaiting ~= "answer" then M.note("no invite of ours is waiting for an answer"); return end
+		awaiting = nil
+		if netlink.rtc_finish(net.unwrap_sdp(text)) then
+			net.link(netlink.rtc())
+			net.publish(true)
+			M.note("connected.")
+		else
+			M.note("that answer was refused")
+		end
+	elseif kind == "invite" then
+		M.note(net.accept(text) and "started the same game." or "that invite is not valid")
+	else
+		local ok, err = net.import(text)
+		M.note(ok and "applied their state." or ("rejected: " .. tostring(err)))
+	end
 	last_status = nil
 end
 
@@ -189,6 +257,7 @@ end
 -- 6 microseconds, so polling every frame costs nothing worth optimising.
 function M.update()
 	if not up then return end
+	pump_handshake()
 	for _ = 1, 8 do
 		local cmd = netlink.eval(netlink.guarded(
 			'var c=(window.__ravel||{}).cmds;return (c&&c.length)?String(c.shift()):""'))

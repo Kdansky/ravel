@@ -1862,6 +1862,19 @@ do
 	check("both players start from the identical state", net.fingerprint() == started)
 	check("garbage is not an invite", not net.accept("RAVEL1I:nonsense"))
 
+	-- Four things arrive in one box, and one function decides which is which.
+	net.begin("lost_cities.json", 4242)
+	check("a state is recognised", net.kind_of(net.export(true)) == "state")
+	check("an invite is recognised", net.kind_of(net.invite(4242)) == "invite")
+	check("an offer is recognised", net.kind_of(net.wrap_sdp("offer", "c2Rw")) == "offer")
+	check("an answer is recognised", net.kind_of(net.wrap_sdp("answer", "c2Rw")) == "answer")
+	check("nothing else is", net.kind_of("hello") == nil and net.kind_of(nil) == nil)
+	check("an offer survives its envelope", net.unwrap_sdp(net.wrap_sdp("offer", "c2Rw")) == "c2Rw")
+	check("a wrapped blob tolerates line wrapping",
+		net.unwrap_sdp(net.wrap_sdp("answer", "c2Rw"):gsub("1A", "1A\n")) == "c2Rw")
+	-- The signalling envelope is not a state, and must not be treated as one.
+	check("a signalling blob is refused by import", not net.import(net.wrap_sdp("offer", "c2Rw")))
+
 	-- A transport is only send/recv, and net does not care which one it has.
 	local netlink = require("netlink")
 	local a, b = netlink.loopback()

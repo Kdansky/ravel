@@ -186,7 +186,7 @@ the signal the shape is right.
 ---
 
 ## Stage B — Play-by-post — **shipped** (`781a624`)
-## Stage C — Networked — **shipped for two browser tabs** (`781a624`)
+## Stage C — Networked — **shipped**: two tabs (`781a624`), two computers (`WEBRTC`)
 
 They arrived together, because the thing that made C hard turned out not to be
 the network. Three files, all additive: `net.lua` (protocol), `netlink.lua`
@@ -321,18 +321,61 @@ window is the wire.
    everywhere, needs nothing. A turn is 273 bytes; Discord's limit is 2000
    characters. This is the answer for "play with a friend in another city".
 2. **A synced folder.** `netlink.folder` already does it. Zero further code.
-3. **WebRTC with manual signalling** — the "two browsers just talk" ideal. It
-   is genuinely possible: paste an offer, paste an answer back, and the data
-   channel is peer-to-peer. Two caveats to decide before building it: it needs
-   a public STUN server (free, third-party, but not *nothing*), and symmetric
-   NAT needs a TURN relay, which is the server we refused. So it works for many
-   home connections and silently fails for some — worse than copy/paste, which
-   never fails.
+3. **WebRTC, signalled by copy/paste** — **shipped**, see below.
 4. **Discord or Telegram as the wire.** Both are a relay you did not have to
    run, which is not the same as no relay. Telegram's bot API allows CORS and
    would work from the browser, but the bot token would have to ship in the
    client, where anyone holding it controls the bot. Fine between friends,
    dishonest to call serverless.
+
+### Peer to peer, over the internet — shipped
+
+The "two browsers just talk to each other" ideal, and the thing that made it
+cheap is that **the signalling channel already existed**. WebRTC's reputation
+for needing a server is really a reputation for needing signalling, and a chat
+window is signalling — so the paste box that carries game states carries the
+handshake too, and there is no signalling server anywhere.
+
+The whole handshake is two blobs carried by a human:
+
+```
+A clicks "Invite over the internet" → RAVEL1O:…   (1332 chars, measured)
+B pastes it, gets back              → RAVEL1A:…   (960 chars, measured)
+A pastes that                       → connected
+```
+
+Both fit in a single Discord message. After the second blob nothing is ever
+pasted again: it is a live peer-to-peer link, and every move crosses it by
+itself.
+
+Four things can now arrive in the same box — a state, a delta, an invite, an
+offer, an answer — so `net.kind_of` is the one place that decides which is
+which, and the panel and the CLI route on its answer rather than each growing
+an opinion about the grammar.
+
+**No port forwarding is needed.** That was the original worry and it is simply
+not a thing: ICE has each side discover its own public address and the two meet
+in the middle.
+
+Three caveats, none of them fixable here:
+
+- **STUN is a third party.** `netlink.stun` is a list you can change or empty
+  (empty works on a LAN). It carries no game data and sees an IP and a port.
+- **Symmetric NAT defeats hole-punching** — common on mobile networks and some
+  ISPs. The usual answer is a TURN relay, which is the server this project
+  declined. There is no fix, only the fallback: copy/paste, which never fails.
+- **The offer blob contains your IP addresses**, local and public. That is what
+  it is *for*. Sending it to a friend in a DM is fine; pasting it into a public
+  channel tells the room where you live. Worth saying out loud, because the
+  blob looks like opaque base64 and gives no hint that it is not.
+
+Verified with **two separate browser processes** — not two tabs, so no shared
+origin and no broadcast channel could possibly be doing the work — connected
+only by blobs carried between them: the channel opens, a game load crosses as a
+full state, and moves cross in both directions.
+
+Browser only. Desktop LÖVE has no WebRTC, and for two desktops the folder
+transport or copy/paste already covers it.
 
 ### What is left
 

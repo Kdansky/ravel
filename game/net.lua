@@ -504,6 +504,31 @@ function M.invite(seed)
 	return table.concat({ M.PROTOCOL .. "I", declaration.filename or "?", tostring(seed) }, ":")
 end
 
+-- Four things can arrive in the same box, so one function decides which is
+-- which and the interfaces route on the answer. The alternative is the panel
+-- and the CLI each growing their own opinion about the grammar.
+--
+--   RAVEL1:…    a state or a delta        RAVEL1I:…   an invite
+--   RAVEL1O:…   a peer-to-peer offer      RAVEL1A:…   its answer
+function M.kind_of(text)
+	text = tostring(text or ""):gsub("%s+", "")
+	for suffix, kind in pairs({ I = "invite", O = "offer", A = "answer" }) do
+		if text:find("^" .. M.PROTOCOL .. suffix .. ":") then return kind end
+	end
+	if text:find("^" .. M.PROTOCOL .. ":") then return "state" end
+	return nil
+end
+
+-- The signalling blobs travel in the same envelope, so a player only ever has
+-- one box to paste into and never has to know which of the four they hold.
+function M.wrap_sdp(kind, blob)
+	return M.PROTOCOL .. (kind == "offer" and "O" or "A") .. ":" .. blob
+end
+
+function M.unwrap_sdp(text)
+	return (tostring(text or ""):gsub("%s+", ""):match("^" .. M.PROTOCOL .. "[OA]:(.+)$"))
+end
+
 function M.begin(file, seed)
 	local ok, err = pcall(flow.init, file, seed)
 	if not ok then return false, tostring(err) end

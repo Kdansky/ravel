@@ -849,6 +849,13 @@ Three ways to connect, all of them without a server:
 
 - **Two browser tabs.** Click *Link tabs* in each. They find each other over the
   page's own broadcast channel; the URL is the only thing they share.
+- **Two computers, over the internet.** Click *Invite over the internet*, send
+  your opponent the ~1300-character blob it puts in the box, paste their reply
+  back, and the two browsers are talking directly — no server, no port
+  forwarding, and nothing to paste for the rest of the game. It fails on some
+  mobile and carrier-NAT connections, where copy/paste is the fallback. The
+  blob contains your IP address, which is what it is for: send it in a DM, not
+  to a public channel.
 - **Copy and paste.** One player runs `n host mygame.json 4242` in the CLI (or
   the browser's *Copy state*) and sends the other the 34-character invite it
   prints. From then on each turn is a ~300-byte string that fits in a Discord
@@ -857,6 +864,9 @@ Three ways to connect, all of them without a server:
 - **A shared folder.** `n folder <dir> <me> <them>` in the CLI writes one file
   per side. Point it at anything that syncs — Syncthing, a mounted share — and
   it is a cross-machine game with nothing else to install.
+
+The browser accepts all four kinds of string in the one box, and works out
+which it is: a state, an invite, a peer-to-peer offer or its answer.
 
 Claim a seat (*play as: north* in the panel, `n seat north` in the CLI) and the
 engine stops you moving on your opponent's turn: their cards read as unplayable

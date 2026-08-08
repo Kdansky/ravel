@@ -185,6 +185,132 @@ function M.browser(room)
 	}
 end
 
+---------------------------------------------------------------- webrtc
+
+-- Two computers, over the internet, with nothing in the middle — and with the
+-- signalling done by the copy/paste channel that already exists. That is the
+-- whole trick: WebRTC's reputation for needing a server is really a reputation
+-- for needing *signalling*, and a chat window is signalling.
+--
+-- One blob each way, 956 characters measured, so each fits in a single Discord
+-- message. After the second blob lands the data channel is open and nothing
+-- else is ever pasted: it is a live peer-to-peer link.
+--
+-- Two honest caveats:
+--
+--   * ICE needs to learn each side's public address, which is what a STUN
+--     server is for. It carries no game data and sees only an IP and a port,
+--     but it is a third party, so it is a list you can change or empty. Empty
+--     works on a LAN.
+--   * Symmetric NAT — common on mobile networks and some ISPs — defeats
+--     hole-punching, and the usual answer is a TURN relay, which is exactly the
+--     server this project declined. There is no fix here, only a fallback: the
+--     copy/paste transport, which never fails.
+--
+-- No port forwarding is needed. That is what ICE is for.
+
+M.stun = {
+	"stun:stun.l.google.com:19302",
+	"stun:stun.cloudflare.com:3478",
+}
+
+local function ice_json()
+	local urls = {}
+	for _, s in ipairs(M.stun) do urls[#urls + 1] = js_string(s) end
+	return "[{urls:[" .. table.concat(urls, ",") .. "]}]"
+end
+
+-- role "host" builds the offer; "guest" answers one. Returns at once — ICE
+-- gathering takes a second or two, so the blob is collected by rtc_blob below.
+function M.rtc_start(role, remote)
+	local code = ([[
+		var W = window, R = W.__ravelRTC = W.__ravelRTC || {};
+		if (R.pc) { try { R.pc.close(); } catch (e) {} }
+		R.inbox = []; R.sdp = null; R.err = null; R.role = %s;
+		var pc = new RTCPeerConnection({ iceServers: %s });
+		R.pc = pc;
+		var wire = function (ch) {
+			R.ch = ch;
+			ch.onmessage = function (e) { if (typeof e.data === "string") R.inbox.push(e.data); };
+		};
+		if (R.role === "host") wire(pc.createDataChannel("ravel"));
+		else pc.ondatachannel = function (e) { wire(e.channel); };
+
+		// Non-trickle: one blob has to contain everything, because the person
+		// carrying it is going to paste it exactly once. Whatever candidates
+		// exist after five seconds beat waiting forever for a straggler.
+		var gathered = function () {
+			return new Promise(function (res) {
+				if (pc.iceGatheringState === "complete") return res();
+				var done = false, fin = function () { if (!done) { done = true; res(); } };
+				pc.onicegatheringstatechange = function () {
+					if (pc.iceGatheringState === "complete") fin();
+				};
+				setTimeout(fin, 5000);
+			});
+		};
+
+		var go = R.role === "host"
+			? pc.createOffer().then(function (o) { return pc.setLocalDescription(o); })
+			: pc.setRemoteDescription({ type: "offer", sdp: atob(%s) })
+				.then(function () { return pc.createAnswer(); })
+				.then(function (a) { return pc.setLocalDescription(a); });
+
+		go.then(gathered)
+			.then(function () { R.sdp = btoa(pc.localDescription.sdp); })
+			.catch(function (e) { R.err = String(e && e.message || e); });
+		return "ok";
+	]]):format(js_string(role), ice_json(), js_string(remote or ""))
+	return eval(guarded(code)) == "ok"
+end
+
+-- nil while ICE is still gathering; the local blob when it is done; false plus
+-- a reason if the browser refused.
+function M.rtc_blob()
+	local r = eval(guarded(
+		'var R=window.__ravelRTC||{};'
+		.. 'if(R.err)return "!"+R.err; return R.sdp?"#":""'))
+	if not r or r == "" then return nil end
+	if r:sub(1, 1) == "!" then return false, r:sub(2) end
+	return eval_long('window.__ravelRTC.sdp')
+end
+
+-- The host, applying the answer that came back. setRemoteDescription is async,
+-- so a refusal lands in R.err a moment later rather than in this return value —
+-- the status line is what tells the truth about whether the channel opened.
+function M.rtc_finish(remote)
+	local r = eval(guarded(
+		'var R=window.__ravelRTC;if(!R||!R.pc)return "none";'
+		.. 'R.pc.setRemoteDescription({type:"answer",sdp:atob(' .. js_string(remote) .. ')})'
+		.. '.catch(function(e){R.err=String(e&&e.message||e)});return "ok"'))
+	return r == "ok"
+end
+
+function M.rtc()
+	return {
+		name = "webrtc",
+		send = function(text)
+			eval(guarded('var R=window.__ravelRTC;'
+				.. 'if(!R||!R.ch||R.ch.readyState!=="open")return "shut";'
+				.. 'R.ch.send(' .. js_string(text) .. ');return "ok"'))
+		end,
+		recv = function()
+			local n = eval(guarded('return String(((window.__ravelRTC||{}).inbox||[]).length)'))
+			if not n or (tonumber(n) or 0) == 0 then return nil end
+			return (eval_long('window.__ravelRTC.inbox.shift()'))
+		end,
+		status = function()
+			return eval(guarded('var R=window.__ravelRTC||{};'
+				.. 'return (R.pc?R.pc.connectionState:"none")+"/"'
+				.. '+(R.ch?R.ch.readyState:"no channel")')) or "?"
+		end,
+		close = function()
+			eval(guarded('var R=window.__ravelRTC;if(R&&R.pc)R.pc.close();'
+				.. 'window.__ravelRTC={};return "ok"'))
+		end,
+	}
+end
+
 -- Exposed because the control panel needs the same door, and because a person
 -- debugging this at 1am will want to poke the page by hand.
 M.eval      = eval
