@@ -123,3 +123,25 @@ Same trap, smaller: don't let `def.color` (already used by `draw_card_face`,
 - A game file with no `assets/` directory at all looks good enough to playtest.
 - `luajit tests/render_smoke.lua` covers every shape.
 - The existing games are pixel-identical (they all specify real assets).
+
+---
+
+## Shipped later: the readback is gone
+
+`art.render` used to finish with `newImage(canvas:newImageData())`. That bought
+nothing — a Canvas is already a drawable texture, and `getDimensions` is the
+only thing anyone asks of one — while costing a full GPU readback per card
+(256×256 RGBA each, so about 22 MB of it for a game the size of Lost Cities,
+every one of them stalling the pipeline).
+
+It also broke the feature in Brave. `newImageData` is a *pixel read*, and pixel
+reads are exactly what browser fingerprinting protection perturbs: Brave adds
+noise to canvas and WebGL reads by default, so every generated card came back
+speckled while the JPEGs — never read back — were perfect. The report was "the
+generated graphics are broken but the pictures are fine", which is that
+distinction exactly.
+
+Drawing the canvas directly never reads a pixel, so there is nothing left to
+farble, and it is faster besides. Worth remembering as a general rule for this
+codebase: **a readback is a fingerprinting surface, and in a browser that means
+it is a correctness surface.**

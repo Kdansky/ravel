@@ -173,9 +173,20 @@ local function paint(p)
 	end
 end
 
--- An Image, or nil for anything that isn't a spec or any platform that can't
--- draw one. Every love call is inside the pcall, so the headless shim (which
--- has no newCanvas) simply gets nil — the same contract cards.image honours.
+-- A drawable texture, or nil for anything that isn't a spec or any platform
+-- that can't draw one. Every love call is inside the pcall, so the headless
+-- shim (which has no newCanvas) simply gets nil — the same contract
+-- cards.image honours.
+--
+-- The canvas is returned as-is. It used to round-trip through
+-- `newImage(canvas:newImageData())`, which bought nothing — a Canvas is
+-- already a texture, and getDimensions/draw are all anyone asks of it — while
+-- costing a full GPU readback per card. Worse, `newImageData` is a *pixel
+-- read*, which is exactly the call browser fingerprinting protection perturbs:
+-- Brave adds noise to canvas and WebGL reads by default, so every generated
+-- card came back speckled while the JPEGs, which are never read back, were
+-- perfect. Drawing the canvas directly never reads a pixel, so there is
+-- nothing left to farble.
 function M.render(spec)
 	local p = M.parse(spec)
 	if not p then return nil end
@@ -186,7 +197,7 @@ function M.render(spec)
 		paint(p)
 		love.graphics.setCanvas()
 		love.graphics.pop()
-		return love.graphics.newImage(canvas:newImageData())
+		return canvas
 	end)
 	if not ok then pcall(love.graphics.setCanvas) end
 	return ok and img or nil

@@ -21,7 +21,13 @@ love.graphics = setmetatable({
 	-- Enough of a canvas/image to let art.lua actually draw: every shape then
 	-- runs its real geometry through the stubbed primitives, which is where a
 	-- bad polygon or a nil count would blow up.
-	newCanvas     = function() return { newImageData = function() return {} end } end,
+	-- A canvas is what art.lua hands back now, so the stub has to be a texture:
+	-- everything downstream only ever asks it for its dimensions.
+	newCanvas     = function()
+		return { getDimensions = function() return 256, 256 end,
+			getWidth = function() return 256 end, getHeight = function() return 256 end,
+			newImageData = function() return {} end }
+	end,
 	newImage      = function()
 		return { getDimensions = function() return 256, 256 end,
 			getWidth = function() return 256 end, getHeight = function() return 256 end }
