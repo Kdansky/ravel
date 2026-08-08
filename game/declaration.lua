@@ -31,8 +31,19 @@ local KNOWN_SECTIONS = {
 -- Structural problems (typo'd sections, duplicate or missing keys) are
 -- collected in G.parse_problems for the validator to report — a broken entry
 -- is skipped, never fatal.
+-- Game files handed to us at runtime rather than read from disk. A networked
+-- opponent can send the whole game along with the position, so somebody who has
+-- never seen a file can be dealt into it — which is the difference between
+-- "install this first" and "click here". Checked before the filesystem so a
+-- shared game wins over a stale local copy of the same name.
+M.provided = {}
+
+function M.provide(filename, text)
+	M.provided[filename] = text
+end
+
 function M.parse(filename)
-	local data = love.filesystem.read("games/" .. filename)
+	local data = M.provided[filename] or love.filesystem.read("games/" .. filename)
 	assert(data, "Cannot read game file: " .. filename)
 	local ok, parsed = pcall(json.decode, data)
 	assert(ok, "Bad JSON in " .. filename .. ": " .. tostring(parsed))

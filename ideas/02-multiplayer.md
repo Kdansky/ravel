@@ -491,6 +491,55 @@ hello, exactly once. Deliberately a hello and not a state, because we may have
 just *refused* what they sent, and answering that by overwriting them with our
 own position would turn a clear error into a silent one.
 
+### The invite carries the game
+
+The shape changed after a play session, and for the better. The invite now
+lives **inside a game**, not on the menu: a two-seat game loads, the panel says
+so and points at the button, and the blob you send carries everything needed to
+join — including, if the other person needs it, **the game file itself**.
+
+So "play this with me" no longer means "first install my game". They click a
+link, paste a blob, and they are playing a game they have never seen. That is
+the difference between sharing a game and distributing one.
+
+Mechanically: a new pair of message kinds. `Q` asks for the game, `G` carries
+it. A receiver that refuses a state because it does not have that file asks
+once, and the sender replies with the file and then the position — the rules,
+then the game. It is not folded into the invite because the invite has to stay
+pasteable: Lost Cities is 53 KB of JSON, 12.5 KB compressed, against 1.3 KB for
+the handshake. Once connected, size stops mattering.
+
+What does *not* travel is anything the file only points at. A game whose cards
+name local image files renders as text on the far side; one using
+`placeholder_art` looks identical, because that art is generated rather than
+fetched. `declaration.provide` is the whole engine-side cost — a game handed to
+us at runtime is checked before the filesystem, so a shared game beats a stale
+local copy of the same name.
+
+### Three more things a play session found
+
+**Connecting did not sync.** `setRemoteDescription` returns long before ICE has
+finished, so the host's opening state was handed to a data channel still in
+state `connecting` and dropped on the floor. Both sides then sat there looking
+connected and quietly disagreeing, and the first move — a delta against a state
+the other end never had — was refused. Outbound is now queued in JS and flushed
+on `onopen`. The test that should have caught this compared two fingerprints
+that were trivially equal because both clients were sitting on the same menu;
+it now connects inside a game, where they differ.
+
+**The folder transport lost messages.** One file per side, last write wins,
+which was fine while every message was a state or a delta — a newer one simply
+supersedes an older one. It stopped being fine the moment messages meant
+different things: a `hello` overwrote a `send me the game`, and both sides
+waited politely forever. It appends one message per line now. A transport may
+not lose messages, whatever the protocol above it happens to tolerate today.
+
+**A local function called before its declaration.** Lua does not complain — the
+name resolves as a global, is nil, and the call fails at runtime on whichever
+path reaches it first, which here meant the whole browser panel silently stopped
+updating. `tests/run.lua` now greps every module for it; it runs in a second and
+found nothing else.
+
 ### What is left
 
 - Hidden hands and a nameplate — stage A's remaining presentation polish,

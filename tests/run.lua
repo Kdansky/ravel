@@ -1013,6 +1013,9 @@ local CASES = {
 		function(g) g.card_defs.c_flee.needs = { ["hp@keepsakes"] = 1 } end },
 	{ "a measuring fn used as a cost", "cannot be a cost",
 		function(g) g.card_defs.c_flee.cost = { ["count:keepsake"] = 1 } end },
+	{ "two zones drawn on top of each other", "overlaps zone",
+		function(g) g.zone_defs.board.pos = { 0.2, 0.2, 0.9, 0.9 }
+			g.zone_defs.hand.pos = { 0.3, 0.3, 0.8, 0.8 } end },
 }
 for _, c in ipairs(CASES) do
 	local g = declaration.parse("tower.json")
@@ -1739,6 +1742,42 @@ do
 		table.concat(zones.find("build_deck").cards, ",") == shuffled)
 end
 
+-- === calling a local before it is declared ===
+-- Lua does not complain: the name simply resolves as a global, is nil, and the
+-- call fails at runtime, on whatever path happens to reach it first. That cost
+-- a browser round trip to find once (netpanel's refresh calling an invitable()
+-- declared fifty lines below it), which is fifty times longer than this check
+-- takes to run.
+do
+	local names = {}
+	local ls = io.popen("ls game/*.lua")
+	for l in ls:lines() do names[#names + 1] = l end
+	ls:close()
+	check("there are modules to scan", #names > 10)
+
+	local bad = {}
+	for _, path in ipairs(names) do
+		local lines = {}
+		for l in io.lines(path) do lines[#lines + 1] = l end
+		local declared = {}
+		for i, l in ipairs(lines) do
+			local n = l:match("^%s*local%s+function%s+([%w_]+)%s*%(")
+			if n and not declared[n] then declared[n] = i end
+		end
+		for name, decl in pairs(declared) do
+			for i = 1, decl - 1 do
+				local l = lines[i]:gsub("%-%-.*$", "")   -- calls in comments are prose
+				-- A bare call, not a field or method access on something else.
+				if l:find("[^%w_%.:]" .. name .. "%s*%(") or l:find("^" .. name .. "%s*%(") then
+					bad[#bad + 1] = ("%s:%d calls %s(), declared at %d"):format(path, i, name, decl)
+				end
+			end
+		end
+	end
+	check("no local function is called before it is declared",
+		#bad == 0, table.concat(bad, "; "))
+end
+
 -- === the wire's own encoding ===
 -- base64 and LZSS are hand-rolled so that one format works on every host, which
 -- means they get tested like the load-bearing things they are: a decoder that
@@ -2001,6 +2040,33 @@ do
 	net.unlink()
 	net.import(sent)
 	check("what arrived is the state that was played", net.fingerprint() ~= base)
+
+	-- Sharing the game itself, so somebody who has never seen the file can be
+	-- dealt into it. The position is meaningless without the rules.
+	do
+		local decl = require("declaration")
+		local text = love.filesystem.read("games/castle.json")
+		check("a game we do have hashes", net.game_hash("castle.json") ~= nil)
+		check("a game we do not have does not", net.game_hash("no_such_game.json") == nil)
+
+		-- Handed the text, we can play it without it ever being on disk.
+		check("an unknown game can be accepted", net.accept_game("gift.json", text))
+		check("...and then hashes like the sender's",
+			net.game_hash("gift.json") == net.game_hash("castle.json"))
+		check("...and loads", (net.begin("gift.json", 4)))
+		check("...as the real thing", declaration.G.title == "Castle Lord",
+			tostring(declaration.G.title))
+
+		-- A state for a game we do not have names that, so the receiver knows to
+		-- ask rather than to give up.
+		decl.provided["gift.json"] = nil
+		net.begin("castle.json", 4)
+		local orphan = { game = "still_missing.json", gh = "12345678", ents = {}, phases = {} }
+		local okm, errm = net.apply_full(orphan)
+		check("a state for a game we lack is refused", not okm)
+		check("...saying which game", tostring(errm):find("you do not have still_missing") ~= nil,
+			tostring(errm))
+	end
 
 	-- Hello. A transport that connects to nobody looks exactly like one that
 	-- works, so the peer heard from second announces itself back.

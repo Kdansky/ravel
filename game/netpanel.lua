@@ -12,6 +12,7 @@ local netlink = require("netlink")
 local M = {}
 
 local up, last_status, last_seats = false, nil, nil
+local last_invitable = nil
 local linked_at = nil   -- when the current transport was attached
 
 -- Keystrokes typed into the panel must not also reach the game: LÖVE listens on
@@ -158,12 +159,29 @@ local function rebuild_seats()
 		.. 'b.onclick=function(){window.__ravel.cmds.push("seat "+b.dataset.s)}});return "ok"'))
 end
 
+-- The invite is offered where it means something: inside a game, for two or
+-- more players. On the menu there is nothing to invite anybody *to*, and a
+-- one-seat game has nobody to invite — the button was previously happy to build
+-- a connection to a screen with nothing on it.
+local function invitable()
+	return #net.seats() > 1
+end
+
 function M.refresh(force)
 	if not up then return end
 	local seats = table.concat(net.seats(), ",")
 	if force or seats ~= last_seats then
 		last_seats = seats
 		rebuild_seats()
+	end
+	-- Only when it changes: refresh runs ten times a second and every eval is a
+	-- round trip into the page.
+	local can = invitable()
+	if can ~= last_invitable then
+		last_invitable = can
+		netlink.eval(netlink.guarded(
+			'var b=document.getElementById("rv-p2p");if(b)b.style.opacity='
+			.. (can and '"1"' or '"0.45"') .. ';return "ok"'))
 	end
 	local s = status_text()
 	if s ~= last_status then
@@ -177,6 +195,13 @@ function M.refresh(force)
 	local trouble = net.desync
 		and ("<b>Out of sync.</b> " .. net.desync .. " Press <b>Resync</b> to ask them for the whole game.")
 		or nil
+	local offer = nil
+	if not net.linked() and invitable() and netlink.rtc_start then
+		offer = "<b>" .. tostring(require("declaration").G.title or "This game")
+			.. "</b> is for " .. #net.seats()
+			.. " players. Press <b>Invite over the internet</b> to play it with someone —"
+			.. " they do not need the game, it travels with the invite."
+	end
 	local lonely = nil
 	if net.linked() and not net.last_heard and linked_at
 		and os.time() - linked_at >= 4 then
@@ -184,7 +209,7 @@ function M.refresh(force)
 			.. "<i>this</i> browser — for a different browser, or another computer, "
 			.. "use <b>Invite over the internet</b>."
 	end
-	set_trouble(trouble or lonely)
+	set_trouble(trouble or lonely or offer)
 end
 
 local HANDLERS = {}
@@ -251,7 +276,8 @@ local function pump_handshake()
 	show(net.wrap_sdp(kind, blob))
 	if kind == "offer" then
 		awaiting = "answer"
-		M.note("Ctrl+C and send this to your opponent, then paste their reply here.")
+		M.note("Ctrl+C and send this to your opponent, then paste their reply here. "
+			.. "They do not need the game — it travels with the connection.")
 	else
 		net.link(netlink.rtc())
 		M.note("Ctrl+C and send this back. You are connected once they paste it.")
@@ -259,6 +285,10 @@ local function pump_handshake()
 end
 
 HANDLERS["p2p"] = function()
+	if not invitable() then
+		M.note("Load a two-player game first — the invite carries the game with it.")
+		return
+	end
 	if not netlink.rtc_start("host") then M.note("this browser has no WebRTC"); return end
 	pending_role, awaiting = "host", nil
 	M.note("building an invite…")

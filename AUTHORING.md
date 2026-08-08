@@ -852,13 +852,17 @@ Three ways to connect, all of them without a server:
   to **one browser profile**. Two tabs or two windows of the same browser work;
   Firefox next to Chrome does not, and neither does a private window next to a
   normal one. Use the internet invite for those.
-- **Two computers, over the internet.** Click *Invite over the internet*, send
-  your opponent the ~1300-character blob it puts in the box, paste their reply
-  back, and the two browsers are talking directly — no server, no port
-  forwarding, and nothing to paste for the rest of the game. It fails on some
-  mobile and carrier-NAT connections, where copy/paste is the fallback. The
-  blob contains your IP address, which is what it is for: send it in a DM, not
-  to a public channel.
+- **Two computers, over the internet.** Load a two-player game, click *Invite
+  over the internet*, send your opponent the ~1300-character blob it puts in the
+  box, paste their reply back, and the two browsers are talking directly — no
+  server, no port forwarding, and nothing to paste for the rest of the game.
+  **Your opponent does not need the game**: if they do not have the file, it is
+  sent over the connection and they play a game they have never seen. What does
+  not travel is anything the file only points at — a game naming local image
+  files renders as text on their side, while `placeholder_art` looks identical
+  because it is generated. It fails on some mobile and carrier-NAT connections,
+  where copy/paste is the fallback. The blob contains your IP address, which is
+  what it is for: send it in a DM, not to a public channel.
 - **Copy and paste.** One player runs `n host mygame.json 4242` in the CLI (or
   the browser's *Copy state*) and sends the other the 34-character invite it
   prints. From then on each turn is a ~300-byte string that fits in a Discord

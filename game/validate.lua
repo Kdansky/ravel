@@ -683,6 +683,50 @@ function M.check(G)
 		check_list(where .. " on_click", def.on_click)
 	end
 
+	-- Two zones in the same place. A zone paints its background whether or not
+	-- it holds anything, so an empty one covers whatever it is drawn over, and
+	-- the cards underneath cannot be clicked either. Lost Cities shipped for a
+	-- while with its tally zone lying across both players' hands, which looks
+	-- like a rendering bug and is really a layout one. Reported once per pair,
+	-- and only when the overlap is big enough to be a mistake rather than a
+	-- shared edge.
+	do
+		local rects = {}
+		for _, key in ipairs(G.zone_list) do
+			local def = G.zone_defs[key]
+			if def and not (def.tags_set and def.tags_set.hidden) and type(def.pos) == "table" then
+				local list = def.per_seat and def.pos or { def.pos }
+				-- A per_seat zone declaring one rect shares it between seats,
+				-- which the check above already warns about; skip it here so one
+				-- mistake is not reported twice.
+				if type(list[1]) == "table" then
+					for i, r in ipairs(list) do
+						-- All four, not just the first: a rect is content, so it
+						-- may be any shape at all, and the arithmetic below has
+						-- to be unreachable for a malformed one.
+						local numeric = type(r) == "table" and #r == 4
+						for k = 1, 4 do numeric = numeric and type(r[k]) == "number" end
+						if numeric then
+							rects[#rects + 1] = { key = key .. (def.per_seat and ("[" .. i .. "]") or ""), r = r }
+						end
+					end
+				end
+			end
+		end
+		for i = 1, #rects do
+			for j = i + 1, #rects do
+				local a, b = rects[i].r, rects[j].r
+				local ox = math.min(a[3], b[3]) - math.max(a[1], b[1])
+				local oy = math.min(a[4], b[4]) - math.max(a[2], b[2])
+				if ox > 0.01 and oy > 0.01 then
+					warn("zone '%s' overlaps zone '%s' by %d%% x %d%% of the screen — "
+						.. "an empty zone still paints over what is under it",
+						rects[i].key, rects[j].key, math.floor(ox * 100 + 0.5), math.floor(oy * 100 + 0.5))
+				end
+			end
+		end
+	end
+
 	-- Phases and routing.
 	for key, pd in pairs(G.phase_by_key) do
 		local where = "phase '" .. key .. "'"

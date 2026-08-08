@@ -131,8 +131,12 @@ def zones():
                         + ["%s_%d" % (c, v) for c, _, _, _ in COLOURS for v in VALUES]},
            {"key": "hand", "type": "hand", "per_seat": True,
             "pos": [[0.02, 0.75, 0.78, 0.87], [0.02, 0.88, 0.78, 0.99]]},
+           # Under the draw column, not across the hands. It used to span
+           # [0.20, 0.75, 0.97, 0.99], which is most of both players' hands —
+           # a zone's background is drawn whether or not it holds anything, so
+           # an empty tally sat on top of the cards you were trying to play.
            {"key": "tally", "label": "Tally", "type": "hand",
-            "pos": [0.20, 0.75, 0.97, 0.99]},
+            "pos": [0.80, 0.75, 0.97, 0.99]},
            # Declaring a phase's zone also bounds what may be played from it,
            # which is how the draw step stays a draw step: only the token below
            # lives here, so a hand card cannot be dumped instead.

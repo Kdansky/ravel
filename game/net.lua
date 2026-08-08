@@ -145,10 +145,27 @@ function M.game_hash(filename)
 	filename = filename or declaration.filename
 	if not filename then return nil end
 	if file_hashes[filename] == nil then
-		local text = love.filesystem.read("games/" .. filename)
+		local text = M.game_text(filename)
 		file_hashes[filename] = text and djb2(text) or false
 	end
 	return file_hashes[filename] or nil
+end
+
+-- The file's text, wherever it came from. A game an opponent sent us is as real
+-- as one on disk, and has to hash the same on both sides.
+function M.game_text(filename)
+	filename = filename or declaration.filename
+	if not filename then return nil end
+	return declaration.provided[filename] or love.filesystem.read("games/" .. filename)
+end
+
+-- Registering a shared game invalidates its cached hash, which was "false"
+-- (meaning "we do not have this") a moment ago.
+function M.accept_game(filename, text)
+	if type(filename) ~= "string" or type(text) ~= "string" then return false end
+	declaration.provide(filename, text)
+	file_hashes[filename] = nil
+	return true
 end
 
 -- The current state's hash, kept beside the state rather than recomputed on
@@ -241,6 +258,7 @@ end
 --   kind  F full state · D delta · R "I am lost, send me a full state"
 --         H "I am here" — carries nothing, and exists because a transport that
 --           connects successfully to nobody looks exactly like one that works
+--         Q "I do not have that game, send it" · G the game file itself
 --   enc   x base64(lzss(json)) · j base64(json), when lzss found nothing
 --
 -- The header is deliberately plain text and deliberately first. Someone reading
@@ -320,7 +338,7 @@ local function unpack_msg(text)
 	local kind, enc = mode:sub(1, 1), mode:sub(2, 2)
 	local out = { kind = kind, label = label, game = game, enc = enc,
 		seq = tonumber(msg_seq) or 0 }
-	if kind == "R" or kind == "H" then return out end
+	if kind == "R" or kind == "H" or kind == "Q" then return out end
 
 	local raw = netpack.decode(body)
 	if not raw then return nil, "corrupt base64" end
@@ -333,6 +351,13 @@ local function unpack_msg(text)
 
 	local ok, snap = pcall(json.decode, raw)
 	if not ok or type(snap) ~= "table" then return nil, "payload is not JSON" end
+	if kind == "G" then
+		if type(snap.text) ~= "string" or type(snap.game) ~= "string" then
+			return nil, "payload is not a game file"
+		end
+		out.body = snap
+		return out
+	end
 	if type(snap.ents) ~= "table" or type(snap.phases) ~= "table" then
 		return nil, "payload is not a game state"
 	end
@@ -418,6 +443,10 @@ end
 -- Some refusals are worth retrying with a whole state and some are not. A delta
 -- that does not fit is the first kind; a game file that does not match is the
 -- second, and asking for a resync there just sends the same wrong thing again.
+local function missing_game(err)
+	return tostring(err):find("you do not have ") == 1
+end
+
 local function fatal(err)
 	return tostring(err):find("different versions of ") == 1
 		or tostring(err):find("you do not have ") == 1
@@ -610,6 +639,36 @@ end
 -- fit; this is the one a player presses when the two screens plainly disagree
 -- and nothing has repaired itself — a message can be lost, and a lost message
 -- means the automatic request was lost too.
+-- Sharing the game itself. An opponent who has never seen the file can still be
+-- dealt into it: the position is meaningless without the rules, so the rules
+-- travel too. 12.5 KB on the wire for Lost Cities, sent once and only when
+-- asked, which is why it is not folded into the invite — that has to stay small
+-- enough to paste into a chat message.
+--
+-- What does *not* travel is anything the file only points at. A game whose cards
+-- name local image files will render as text on the far side; one using
+-- "placeholder_art" looks identical, because that art is generated rather than
+-- fetched.
+function M.share_game()
+	if not link then return false end
+	local name = declaration.filename
+	local text = M.game_text(name)
+	if not text then return false end
+	seq = seq + 1
+	transmit(pack("G", { game = name, text = text }, "game"))
+	return M.publish(true)   -- the rules, then the position
+end
+
+local asked_for = nil   -- the game we have already begged for, so we ask once
+
+function M.request_game(name)
+	if not link or asked_for == name then return false end
+	asked_for = name
+	seq = seq + 1
+	say("asking them for " .. tostring(name))
+	return transmit(pack("Q", nil, "need-game"))
+end
+
 function M.request_resync()
 	if not link then return false, "not connected" end
 	seq = seq + 1
@@ -638,6 +697,14 @@ function M.poll()
 			say("ignored a message: " .. tostring(err))
 		elseif msg.kind == "H" then
 			-- Presence only. M.last_heard above is the entire point of it.
+		elseif msg.kind == "Q" then
+			say("they do not have this game — sending it")
+			M.share_game()
+		elseif msg.kind == "G" then
+			if M.accept_game(msg.body.game, msg.body.text) then
+				say("received the game " .. msg.body.game .. " (" .. #msg.body.text .. " bytes)")
+				asked_for = nil
+			end
 		elseif msg.kind == "R" then
 			say("peer asked for a full state")
 			M.publish(true)
@@ -652,10 +719,15 @@ function M.poll()
 				applied = true
 			else
 				say("could not apply: " .. tostring(aerr))
-				-- A delta we cannot fit means the two sides drifted, and a whole
-				-- state fixes it. A mismatched game file is not drift and no
-				-- amount of resending helps, so that one is only reported.
-				if msg.kind == "D" and not fatal(aerr) then transmit(pack("R", nil, "resync")) end
+				-- Three different repairs. A delta that does not fit means the
+				-- two sides drifted, and a whole state fixes it. A game we do
+				-- not have is a thing to ask for. Two different *versions* of
+				-- one file is the only genuinely fatal case, because whose copy
+				-- is right is not ours to decide.
+				if missing_game(aerr) then M.request_game(msg.game)
+				elseif msg.kind == "D" and not fatal(aerr) then
+					transmit(pack("R", nil, "resync"))
+				end
 			end
 		end
 	end

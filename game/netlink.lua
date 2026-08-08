@@ -32,33 +32,47 @@ end
 
 ---------------------------------------------------------------- folder
 
--- One file per side, last write wins. That is exactly the right shape for a
--- protocol that ships whole states and deltas keyed to a fingerprint: there is
--- no queue to preserve, only "the newest thing my opponent said". Point both
--- players at a synced folder (Syncthing, Dropbox, a mounted share) and it is a
+-- One file per side, appended to, one message per line. Point both players at a
+-- folder that syncs itself (Syncthing, a mounted share) and it is a
 -- cross-machine transport with no server and no code.
+--
+-- It began as last-write-wins on a single file, which was fine while every
+-- message was a state or a delta — a newer one simply supersedes an older one.
+-- It stopped being fine the moment messages started meaning different things:
+-- a "hello" overwrote a "send me the game you are playing", and both sides then
+-- waited politely forever. A transport may not lose messages, whatever the
+-- protocol above it happens to tolerate today.
+--
+-- Newline-delimited is safe because a message never contains one: the header is
+-- bare text and the payload is base64.
 function M.folder(dir, me, them)
 	dir = (dir or "."):gsub("/$", "")
-	local mine, seen = dir .. "/" .. (them or "b") .. ".ravel", nil
-	local out = dir .. "/" .. (me or "a") .. ".ravel"
+	local inbox = dir .. "/" .. (them or "b") .. ".ravel"
+	local out   = dir .. "/" .. (me or "a") .. ".ravel"
+	local taken = 0   -- lines of theirs already handed upward
+
 	return {
 		name = "folder:" .. (me or "a"),
 		send = function(text)
-			local f = io.open(out, "w")
+			local f = io.open(out, "a")
 			if not f then return end
-			f:write(text)
+			f:write(text, "\n")
 			f:close()
 		end,
 		recv = function()
-			local f = io.open(mine, "r")
+			local f = io.open(inbox, "r")
 			if not f then return nil end
-			local text = f:read("*a")
+			local n, line = 0, nil
+			for l in f:lines() do
+				n = n + 1
+				if n > taken then line = l; break end
+			end
 			f:close()
-			if text == seen or text == "" then return nil end
-			seen = text
-			return text
+			if not line then return nil end
+			taken = taken + 1
+			return line
 		end,
-		status = function() return "watching " .. mine end,
+		status = function() return "watching " .. inbox .. ", " .. taken .. " read" end,
 	}
 end
 
@@ -272,9 +286,23 @@ function M.rtc_start(role, remote)
 		R.inbox = []; R.sdp = null; R.err = null; R.role = %s;
 		var pc = new RTCPeerConnection({ iceServers: %s });
 		R.pc = pc;
+		// Outbound is queued until the channel opens. setRemoteDescription
+		// returns long before ICE has finished, so the host's opening state —
+		// the one that makes both sides agree in the first place — was being
+		// handed to a channel in state "connecting" and dropped on the floor.
+		// The two players then sat there looking connected and disagreeing.
+		R.out = [];
+		var flush = function () {
+			while (R.ch && R.ch.readyState === "open" && R.out.length) {
+				R.ch.send(R.out.shift());
+			}
+		};
+		R.flush = flush;
 		var wire = function (ch) {
 			R.ch = ch;
 			ch.onmessage = function (e) { if (typeof e.data === "string") R.inbox.push(e.data); };
+			ch.onopen = flush;
+			if (ch.readyState === "open") flush();   // guest may be handed one already open
 		};
 		if (R.role === "host") wire(pc.createDataChannel("ravel"));
 		else pc.ondatachannel = function (e) { wire(e.channel); };
@@ -333,15 +361,22 @@ function M.rtc()
 	return {
 		name = "webrtc",
 		send = function(text)
-			eval(guarded('var R=window.__ravelRTC;'
-				.. 'if(!R||!R.ch||R.ch.readyState!=="open")return "shut";'
-				.. 'R.ch.send(' .. js_string(text) .. ');return "ok"'))
+			return eval(guarded('var R=window.__ravelRTC;'
+				.. 'if(!R||!R.ch)return "none";'
+				.. 'R.out.push(' .. js_string(text) .. ');'
+				.. 'R.flush();'
+				.. 'return R.out.length ? "queued" : "ok"'))
 		end,
 		recv = function()
 			if (tonumber(call("__rvn")) or 0) == 0 then return nil end
 			return (eval_long('window.__ravelRTC.inbox.shift()'))
 		end,
-		status = function() return call("__rvs") or "?" end,
+		status = function()
+			local s2 = call("__rvs") or "?"
+			local q = eval(guarded('return String(((window.__ravelRTC||{}).out||[]).length)'))
+			if (tonumber(q) or 0) > 0 then s2 = s2 .. ", " .. q .. " waiting to send" end
+			return s2
+		end,
 		close = function()
 			eval(guarded('var R=window.__ravelRTC;if(R&&R.pc)R.pc.close();'
 				.. 'window.__ravelRTC={};return "ok"'))
