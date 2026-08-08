@@ -221,10 +221,15 @@ local function card_places(zone_e)
 		card_w = (p.w - pad * 2 - (n - 1) * gap) / n
 		card_h = card_w * CARD_RATIO
 	end
+	-- Centred, not left-aligned. A row that fills its zone looks the same
+	-- either way; a row that does not — two choices on a menu built for eight —
+	-- looks deliberate one way and abandoned the other.
+	local row  = n * card_w + (n - 1) * gap
+	local left = p.x + (p.w - row) / 2
 	local places = {}
 	for i = 1, n do
 		places[i] = {
-			x = p.x + pad + (i - 1) * (card_w + gap),
+			x = left + (i - 1) * (card_w + gap),
 			y = p.y + (p.h - card_h) / 2,
 			w = card_w,
 			h = card_h,

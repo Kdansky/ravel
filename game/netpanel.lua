@@ -200,16 +200,6 @@ function M.refresh(force)
 		last_seats = seats
 		rebuild_seats()
 	end
-	-- Shown when a card asks for it — and also, until the menu grows a "join"
-	-- card, when the game you are in has somebody to play against. Otherwise a
-	-- player who was *sent* an invite has nowhere to paste it. This is one
-	-- predicate rather than the prompt-and-grey policy it replaced, and every
-	-- solitaire game still shows nothing at all.
-	if not shown and invitable() then
-		shown = true
-		netlink.eval(netlink.guarded(
-			'var d=document.getElementById("ravel-net");if(d)d.style.display="block";return "ok"'))
-	end
 	local s = status_text()
 	if s ~= last_status then
 		last_status = s

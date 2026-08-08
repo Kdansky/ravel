@@ -37,6 +37,27 @@ local function find_card(def_key, zone_key)
 	end
 end
 
+-- Lost Cities opens by asking how you want to play — an overlay of two cards,
+-- which is how a game says "this one can be played with a friend" without the
+-- engine guessing. Tests that care about the game itself answer "both sides,
+-- here" and get on with it.
+local function dismiss_mode()
+	if phase.is_overlay() and phase.current().key == "mode" then
+		flow.pick(zones.find("mode").cards[1])
+	end
+end
+
+-- The menu is two levels now — New game, then the list — so a test that only
+-- wants to start a game should not have to know that. Scoped to the zone
+-- because a destroyed card is still an entity, and an unscoped find would keep
+-- matching the screen we just left.
+local function menu_play(def_key)
+	if not find_card(def_key, "menu") then
+		flow.play_card(find_card("m_new", "menu").id, {})
+	end
+	flow.play_card(find_card(def_key, "menu").id, {})
+end
+
 local function zone_count(key)
 	local z = zones.find(key)
 	return z and #z.cards or -1
@@ -77,7 +98,20 @@ check("menu deals every game it lists",
 check("menu phase is waiting", phase.current().key == "waiting")
 
 -- === demo: basics ===
-flow.play_card(find_card("play_demo").id, {})
+-- The menu is two levels now: the first screen offers New game / Join, and the
+-- game list is built by playing "New game". That is ordinary card behaviour —
+-- destroy the zone's contents, fill it with different cards — so navigating it
+-- is just playing cards.
+-- Scoped to the zone throughout: a destroyed card is still an entity, so an
+-- unscoped find would keep matching the screen we just left.
+flow.play_card(find_card("m_new", "menu").id, {})
+check("New game reveals the game list", find_card("play_demo", "menu") ~= nil)
+check("...and a way back", find_card("m_back", "menu") ~= nil)
+flow.play_card(find_card("m_back", "menu").id, {})
+check("Back returns to the first screen",
+	find_card("m_new", "menu") ~= nil and find_card("play_demo", "menu") == nil)
+flow.play_card(find_card("m_new", "menu").id, {})
+flow.play_card(find_card("play_demo", "menu").id, {})
 check("menu card loads demo", declaration.G.title == "The Wandering Road")
 check("demo starts with 1 hand card", zone_count("hand") == 1)
 check("road holds the other 10 cards", zone_count("road") == 10)
@@ -114,7 +148,7 @@ flow.pick(zones.find("offer").cards[1])
 check("picking the fate card returns to menu", declaration.G.title == "Ravel")
 
 -- === demo: victory (picking through any crossroads choice on the way) ===
-flow.play_card(find_card("play_demo").id, {})
+menu_play("play_demo")
 for _ = 1, 30 do
 	local key = phase.current().key
 	if key == "victory" or key == "defeat" then break end
@@ -1550,58 +1584,63 @@ check("a sum: term needs no product to be an amount", throne.stats.gold == 10)
 -- always be discarded — is legality that depends on both cards at once, which
 -- is what "accepts" on the destination exists for.
 flow.init("lost_cities.json", 11)
+dismiss_mode()
 
-local function has(list, id)
-	for _, v in ipairs(list) do if v == id then return true end end
-	return false
-end
-local function marker_in(zone_key, owner)
-	local z = zones.find(zone_key, owner)
-	for _, id in ipairs(z.cards) do
-		if entity.get(id).def_key:match("_route$") or entity.get(id).def_key:match("_tip$") then
-			return id
+do   -- scoped: Lua 5.4 allows only 200 live locals in the main chunk,
+     -- and these are all Lost Cities' own
+	local function has(list, id)
+		for _, v in ipairs(list) do if v == id then return true end end
+		return false
+	end
+	local function marker_in(zone_key, owner)
+		local z = zones.find(zone_key, owner)
+		for _, id in ipairs(z.cards) do
+			if entity.get(id).def_key:match("_route$") or entity.get(id).def_key:match("_tip$") then
+				return id
+			end
 		end
 	end
+	local function drawn(key)
+		eval("fill:hand:" .. key .. ":1")
+		local c = find_card(key, "hand")
+		return c, targeting.candidates(c.id, cards.def(c).target)
+	end
+
+	local my_red   = zones.find("red")
+	local red_route, red_tip = marker_in("red"), marker_in("red_discard")
+	check("both seats got their own route marker, not one between them",
+		#zones.all_with_key("red") == 2 and marker_in("red", "enemy") ~= red_route)
+	check("setup dealt eight cards to each seat",
+		#zones.find("hand", "mine").cards == 8 and #zones.find("hand", "enemy").cards == 8)
+
+	local c7, k7 = drawn("red_7")
+	check("an empty expedition accepts anything", has(k7, red_route) and has(k7, red_tip))
+	check("and never the other seat's expedition", has(k7, marker_in("red", "enemy")) == false)
+	flow.play_card(c7.id, { red_route })
+	check("the card advanced the expedition", #my_red.cards == 2)
+
+	local c5, k5 = drawn("red_5")
+	check("a lower card is refused by the expedition", has(k5, red_route) == false)
+	check("but may always be discarded", has(k5, red_tip))
+	check("flow refuses an illegal target even when handed one directly",
+		flow.play_card(c5.id, { red_route }) == false)
+
+	local cw = drawn("red_w1")
+	local _, kw = cw, select(2, drawn("red_w2"))
+	check("a wager cannot follow a number", has(kw, red_route) == false)
+
+	-- The scoring arithmetic, end to end: the route marker is tagged "wager", so
+	-- count:wager is the multiplier 1 + wagers without the engine adding one.
+	local score0 = predicate.total("score@mine.player")
+	eval("gain_stat:score@mine.player:sum:value@mine.red:x:count:wager@mine.red")
+	eval("lose_stat:score@mine.player:20:x:count:wager@mine.red")
+	check("an expedition scores (sum - 20) x wagers",
+		predicate.total("score@mine.player") == score0 - 13)
+
+	-- === subject grammar ===
+	-- Pure parsing, no game loaded: the one place the scope syntax is decided.
 end
-local function drawn(key)
-	eval("fill:hand:" .. key .. ":1")
-	local c = find_card(key, "hand")
-	return c, targeting.candidates(c.id, cards.def(c).target)
-end
 
-local my_red   = zones.find("red")
-local red_route, red_tip = marker_in("red"), marker_in("red_discard")
-check("both seats got their own route marker, not one between them",
-	#zones.all_with_key("red") == 2 and marker_in("red", "enemy") ~= red_route)
-check("setup dealt eight cards to each seat",
-	#zones.find("hand", "mine").cards == 8 and #zones.find("hand", "enemy").cards == 8)
-
-local c7, k7 = drawn("red_7")
-check("an empty expedition accepts anything", has(k7, red_route) and has(k7, red_tip))
-check("and never the other seat's expedition", has(k7, marker_in("red", "enemy")) == false)
-flow.play_card(c7.id, { red_route })
-check("the card advanced the expedition", #my_red.cards == 2)
-
-local c5, k5 = drawn("red_5")
-check("a lower card is refused by the expedition", has(k5, red_route) == false)
-check("but may always be discarded", has(k5, red_tip))
-check("flow refuses an illegal target even when handed one directly",
-	flow.play_card(c5.id, { red_route }) == false)
-
-local cw = drawn("red_w1")
-local _, kw = cw, select(2, drawn("red_w2"))
-check("a wager cannot follow a number", has(kw, red_route) == false)
-
--- The scoring arithmetic, end to end: the route marker is tagged "wager", so
--- count:wager is the multiplier 1 + wagers without the engine adding one.
-local score0 = predicate.total("score@mine.player")
-eval("gain_stat:score@mine.player:sum:value@mine.red:x:count:wager@mine.red")
-eval("lose_stat:score@mine.player:20:x:count:wager@mine.red")
-check("an expedition scores (sum - 20) x wagers",
-	predicate.total("score@mine.player") == score0 - 13)
-
--- === subject grammar ===
--- Pure parsing, no game loaded: the one place the scope syntax is decided.
 local function subj(s)
 	local p = predicate.parse_subject(s)
 	if not p then return "nil" end
@@ -1815,6 +1854,7 @@ do
 
 	-- Compression has to actually pay on the thing it exists for.
 	flow.init("lost_cities.json", 7)
+	dismiss_mode()
 	local text = json.encode(require("net").snapshot())
 	local small = netpack.compress(text)
 	check("a game state compresses at least three-fold", #small * 3 < #text,
@@ -1867,6 +1907,7 @@ do
 	end
 
 	net.begin("lost_cities.json", 7)
+	dismiss_mode()
 	local said = log_text()
 	check("the fixture's log has multi-byte text", said:find("—") ~= nil)
 	local msg0 = net.export(true)
@@ -1876,6 +1917,7 @@ do
 
 	-- A move, as a delta against the state both sides last shared.
 	net.begin("lost_cities.json", 7)
+	dismiss_mode()
 	local shared = net.export(true)          -- what the opponent is holding
 	local cid, targets = first_playable()
 	check("the fixture has a playable card", cid ~= nil)
@@ -1892,6 +1934,7 @@ do
 
 	-- ...and refuses to apply anywhere else, which is the whole safety story.
 	net.begin("lost_cities.json", 99)
+	dismiss_mode()
 	check("a delta is refused against a state it does not fit", not net.import(delta))
 	net.begin("castle.json", 7)
 	check("a delta is refused across a game change", not net.import(delta))
@@ -1926,6 +1969,7 @@ do
 
 	-- Seat gating. flow is what enforces it, so ask flow.
 	net.begin("lost_cities.json", 7)
+	dismiss_mode()
 	check("with no seat claimed, anyone may act", net.may_act())
 	net.seat = zones.active_seat()
 	check("the active seat may act", net.may_act())
@@ -1933,6 +1977,7 @@ do
 	check("...and can play", mine ~= nil and flow.play_card(mine, my_targets))
 	net.seat = "south"
 	net.begin("lost_cities.json", 7)
+	dismiss_mode()
 	net.seat = "south"                        -- north is up first
 	check("the inactive seat may not act", not net.may_act())
 	local theirs = zones.find("hand")
@@ -1942,6 +1987,8 @@ do
 	net.seat = nil
 
 	-- The invite: the whole handshake for a copy/paste game.
+	-- Deliberately not dismissed: an invite puts both players at the game's
+	-- actual opening, mode question and all, which is the state they must share.
 	net.begin("lost_cities.json", 4242)
 	local invite = net.invite(4242)
 	local started = net.fingerprint()
@@ -1953,6 +2000,7 @@ do
 
 	-- The three hashes, and the three different questions they answer.
 	net.begin("lost_cities.json", 7)
+	dismiss_mode()
 	check("a game file has a hash", (net.game_hash() or ""):match("^%x%x%x%x%x%x%x%x$") ~= nil)
 	check("a different file hashes differently",
 		net.game_hash("lost_cities.json") ~= net.game_hash("castle.json"))
@@ -1980,6 +2028,7 @@ do
 	check("a whole state is labelled init", honest:find("^RAVEL1:init:castle%.json:") ~= nil,
 		honest:sub(1, 40))
 	net.begin("lost_cities.json", 7)
+	dismiss_mode()
 	local shared2 = net.export(true)
 	local lc, lt = first_playable()
 	flow.play_card(lc, lt)
@@ -2000,6 +2049,7 @@ do
 
 	-- The chain: a delta says which state it follows, and is refused elsewhere.
 	net.begin("lost_cities.json", 7)
+	dismiss_mode()
 	local at = net.export(true)
 	local c3, t3 = first_playable()
 	flow.play_card(c3, t3)
@@ -2007,6 +2057,7 @@ do
 	net.import(at)
 	check("a delta names the state it follows", net.import(step))
 	net.begin("lost_cities.json", 7)
+	dismiss_mode()
 	local c4, t4 = first_playable()
 	flow.play_card(c4, t4)                     -- somewhere else entirely
 	local okc, errc = net.import(step)
@@ -2023,6 +2074,7 @@ do
 		end
 
 		net.begin("lost_cities.json", 7)
+		dismiss_mode()
 		local asked = {}
 		net.on_ui = function(what) asked[#asked + 1] = what end
 
@@ -2046,12 +2098,15 @@ do
 
 		-- And the menu actually uses them, which is the point of the exercise.
 		local menu = love.filesystem.read("games/menu.json")
-		check("the menu offers networking as cards",
-			menu:find("net_invite") ~= nil and menu:find("net_seat") ~= nil)
+		check("the menu offers joining as a card", menu:find("net_join") ~= nil)
+		local lc = love.filesystem.read("games/lost_cities.json")
+		check("and the two-player game offers hosting as one",
+			lc:find("net_invite") ~= nil and lc:find("net_seat") ~= nil)
 	end
 
 	-- Four things arrive in one box, and one function decides which is which.
 	net.begin("lost_cities.json", 4242)
+	dismiss_mode()
 	check("a state is recognised", net.kind_of(net.export(true)) == "state")
 	check("an invite is recognised", net.kind_of(net.invite(4242)) == "invite")
 	check("an offer is recognised", net.kind_of(net.wrap_sdp("offer", "c2Rw")) == "offer")
@@ -2156,17 +2211,20 @@ do
 	do
 		local la, lb = netlink.loopback()
 		net.begin("lost_cities.json", 7)
+		dismiss_mode()
 		net.link(la)
 		check("a fresh game is not out of sync", net.desync == nil)
 
 		-- Build a move from somewhere else entirely, then hand it over.
 		local elsewhere
 		net.begin("lost_cities.json", 21)
+		dismiss_mode()
 		local xc, xt = first_playable()
 		flow.play_card(xc, xt)
 		elsewhere = net.export()
 
 		net.begin("lost_cities.json", 7)
+		dismiss_mode()
 		net.link(la)
 		local okd = net.import(elsewhere)
 		check("a move from another game is refused", not okd)
@@ -2187,12 +2245,15 @@ do
 
 		-- And a whole state is the cure.
 		net.begin("lost_cities.json", 7)
+		dismiss_mode()
 		net.link(la)
 		net.import(elsewhere)
 		check("still out of sync before the fix", net.desync ~= nil)
 		net.begin("lost_cities.json", 21)
+		dismiss_mode()
 		local whole = net.export(true)
 		net.begin("lost_cities.json", 7)
+		dismiss_mode()
 		net.desync = "pretend we never recovered"
 		check("a whole state applies", net.import(whole))
 		check("...and clears the out-of-sync flag", net.desync == nil)

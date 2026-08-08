@@ -109,6 +109,20 @@
       ]
     },
     {
+      "key": "mode",
+      "type": "hand",
+      "pos": [
+        0.3,
+        0.24,
+        0.7,
+        0.76
+      ],
+      "tags": [
+        "hidden",
+        "no_peek"
+      ]
+    },
+    {
       "key": "tally",
       "label": "Tally",
       "type": "hand",
@@ -2645,6 +2659,30 @@
       ]
     },
     {
+      "key": "mode_local",
+      "text": "Both sides, here",
+      "tooltip": "Hot-seat: take both players' turns on this machine.",
+      "tags": [
+        "token"
+      ],
+      "on_pick": [
+        "destroy:mode"
+      ]
+    },
+    {
+      "key": "mode_online",
+      "text": "With a friend, online",
+      "tooltip": "Sit as North and invite someone to play South. They do not need this game \u2014 it travels with the invite.",
+      "tags": [
+        "token"
+      ],
+      "on_pick": [
+        "destroy:mode",
+        "net_seat:north",
+        "net_invite"
+      ]
+    },
+    {
       "key": "done_scoring",
       "text": "Done",
       "tooltip": "Finish tallying.",
@@ -2692,7 +2730,10 @@
       "type": "automatic",
       "actions": [
         "draw_from:deck:mine.hand:8",
-        "draw_from:deck:enemy.hand:8"
+        "draw_from:deck:enemy.hand:8",
+        "fill:mode:mode_local:1",
+        "fill:mode:mode_online:1",
+        "push_phase:mode"
       ]
     },
     {
@@ -2835,6 +2876,12 @@
       "actions": [
         "reveal:south_wins"
       ]
+    },
+    {
+      "key": "mode",
+      "type": "overlay",
+      "zone": "mode",
+      "page": true
     }
   ],
   "end_conditions": []

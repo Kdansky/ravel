@@ -572,11 +572,46 @@ somewhere, LÖVE has no text input here, and SDL's emscripten clipboard is an
 internal buffer rather than the browser's. So the HTML panel stays — what
 changed is that it is *summoned* rather than always present.
 
-**Still owed**: the panel also appears on its own when the loaded game has two or
-more seats, because otherwise a player who was *sent* an invite has nowhere to
-paste it. That is one predicate rather than the prompt-and-grey policy it
-replaced, and it goes away when the menu grows a real first-run screen (New
-Game / Join / Load) — at which point the join card is the only route needed.
+**Nothing is owed any more.** The panel is opened by a card and by nothing else:
+the menu's *Join a friend* for the player who was sent an invite, and Lost
+Cities' own *With a friend, online* for the one sending it. A solitaire game
+never shows a networking widget, and no code anywhere asks whether it should.
+
+### The menu became a menu, and Lost Cities asks
+
+Two changes that belong together, because the first was only possible once the
+second existed.
+
+**One entry per game.** `menu.json` used to carry *Lost Cities* and *Lost Cities
+· online* side by side — a duplicate that would have grown a twin for every
+future two-player game. The choice moved into Lost Cities itself, where it
+belongs: the game opens by asking **Both sides, here** or **With a friend,
+online**, and the second answer is `["destroy:mode", "net_seat:north",
+"net_invite"]`. Three words of content, no engine involvement.
+
+That overlay is worth describing, because the obvious route is the wrong one.
+The built-in `reveal` pair is page-mode **at the zone**, so every card fills the
+whole panel and two choices would stack — and overriding half of it is refused
+by the validator, correctly, while overriding both puts `reveal` into the phase
+rotation. So Lost Cities declares its own pair instead: a hidden `mode` zone
+(costing no board space, ignored by the overlap check, still drawn by an overlay
+phase over the dim) and a `mode` phase carrying `page: true`. **The page flag on
+the phase is what makes each card's own `on_pick` run**; the page tag on the
+zone is only layout. They are separate, and that separation is the whole trick.
+
+The phase sits last in the list, where nothing falls through to it: `north_end`
+and `south_end` both push an overlay of their own and so never advance.
+
+**A real first screen.** The menu is two levels now — *New game* / *Join a
+friend*, then the list of games with a *Back*. Both levels are the same zone,
+refilled by the card you pressed: `["destroy:menu", "fill:menu:play_demo:1", …]`.
+No new engine feature, no second zone to keep from overlapping the first.
+
+Two supporting fixes fell out of it: hand rows are **centred** rather than
+left-aligned (a row that fills its zone looks the same either way; two cards in
+a zone built for eight look deliberate one way and abandoned the other), and
+`tests/run.lua` needed a `do … end` because Lua 5.4 allows only 200 live locals
+in the main chunk and the suite had reached it.
 
 ### Two bugs found by trying to use it
 

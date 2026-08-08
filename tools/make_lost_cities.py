@@ -114,6 +114,14 @@ def templates():
             "on_play": ["gain_stat:score@mine.player:20", "destroy_self"],
         })
 
+    out.append({"key": "mode_local", "text": "Both sides, here",
+                "tooltip": "Hot-seat: take both players' turns on this machine.",
+                "tags": ["token"], "on_pick": ["destroy:mode"]})
+    out.append({"key": "mode_online", "text": "With a friend, online",
+                "tooltip": "Sit as North and invite someone to play South. They do not "
+                           "need this game — it travels with the invite.",
+                "tags": ["token"],
+                "on_pick": ["destroy:mode", "net_seat:north", "net_invite"]})
     out.append({"key": "done_scoring", "text": "Done", "tooltip": "Finish tallying.",
                 "tags": ["token"], "on_play": ["destroy_self", "next_phase"]})
     for seat, other in (("north", "South"), ("south", "North")):
@@ -135,6 +143,15 @@ def zones():
            # [0.20, 0.75, 0.97, 0.99], which is most of both players' hands —
            # a zone's background is drawn whether or not it holds anything, so
            # an empty tally sat on top of the cards you were trying to play.
+           # The opening question, as an overlay of its own. Hidden, so it costs
+           # no board space and the layout check ignores it, but an overlay
+           # phase draws its zone over the dim regardless. Deliberately *not*
+           # the built-in "reveal" pair: that one is page-mode at the zone, so
+           # every card fills the whole panel and two choices would stack.
+           # Here the page flag lives on the phase instead — which is what makes
+           # each card's own on_pick run — while the zone lays them side by side.
+           {"key": "mode", "type": "hand", "pos": [0.30, 0.24, 0.70, 0.76],
+            "tags": ["hidden", "no_peek"]},
            {"key": "tally", "label": "Tally", "type": "hand",
             "pos": [0.80, 0.75, 0.97, 0.99]},
            # Declaring a phase's zone also bounds what may be played from it,
@@ -158,7 +175,9 @@ def phases():
     # Setup deals both hands once and is never returned to: the turn loop is a
     # cycle of its own, closed by south_draw routing back to north_play.
     out = [{"key": "setup", "type": "automatic",
-            "actions": ["draw_from:deck:mine.hand:8", "draw_from:deck:enemy.hand:8"]}]
+            "actions": ["draw_from:deck:mine.hand:8", "draw_from:deck:enemy.hand:8",
+                        "fill:mode:mode_local:1", "fill:mode:mode_online:1",
+                        "push_phase:mode"]}]
 
     # A turn is play-then-draw. "seat": "next" hands over on entering the play
     # phase, so the draw that follows belongs to the same player. Drawing from a
@@ -198,6 +217,9 @@ def phases():
     for seat in ("north", "south"):
         out.append({"key": seat + "_end", "type": "automatic",
                     "actions": ["reveal:" + seat + "_wins"]})
+    # Last, so nothing reaches it by falling off the end of the list: it is
+    # only ever pushed, and popped by answering it.
+    out.append({"key": "mode", "type": "overlay", "zone": "mode", "page": True})
     return out
 
 

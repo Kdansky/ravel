@@ -5,21 +5,14 @@
    "key": "menu",
    "type": "hand",
    "pos": [
-    0.1,
-    0.25,
-    0.9,
-    0.8
+    0.07,
+    0.24,
+    0.93,
+    0.82
    ],
    "contents": [
-    "play_demo",
-    "play_castle",
-    "play_kingdom",
-    "play_tower",
-    "play_road",
-    "play_lost_cities",
-    "play_lost_cities_net",
-    "play_vigil",
-    "join_game"
+    "m_new",
+    "m_join"
    ]
   }
  ],
@@ -72,10 +65,11 @@
   {
    "key": "play_lost_cities",
    "text": "Lost Cities",
-   "tooltip": "Knizia's two-player expedition game, hot-seat. Advance five expeditions or cut your losses \u2014 each one you start costs 20 to fund.",
+   "tooltip": "Knizia's two-player expedition game. Advance five expeditions or cut your losses \u2014 each one you start costs 20 to fund. Play both sides here, or invite a friend once it opens.",
    "on_play": [
     "load_game:lost_cities.json"
-   ]
+   ],
+   "asset": "lost_cities_cover.jpg"
   },
   {
    "key": "play_vigil",
@@ -87,21 +81,46 @@
    ]
   },
   {
-   "key": "play_lost_cities_net",
-   "text": "Lost Cities \u00b7 online",
-   "tooltip": "Play the two-player game against a friend over the internet. They do not need the game \u2014 it travels with the invite.",
+   "key": "m_new",
+   "text": "New game",
+   "tooltip": "Choose something to play.",
+   "tags": [
+    "token"
+   ],
    "on_play": [
-    "load_game:lost_cities.json",
-    "net_seat:north",
-    "net_invite"
+    "destroy:menu",
+    "fill:menu:play_demo:1",
+    "fill:menu:play_castle:1",
+    "fill:menu:play_kingdom:1",
+    "fill:menu:play_tower:1",
+    "fill:menu:play_road:1",
+    "fill:menu:play_lost_cities:1",
+    "fill:menu:play_vigil:1",
+    "fill:menu:m_back:1"
    ]
   },
   {
-   "key": "join_game",
+   "key": "m_join",
    "text": "Join a friend",
-   "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works for a game you do not have.",
+   "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works even for a game you do not have.",
+   "tags": [
+    "token"
+   ],
    "on_play": [
     "net_join"
+   ]
+  },
+  {
+   "key": "m_back",
+   "text": "Back",
+   "tooltip": "Return to the first screen.",
+   "tags": [
+    "token"
+   ],
+   "on_play": [
+    "destroy:menu",
+    "fill:menu:m_new:1",
+    "fill:menu:m_join:1"
    ]
   }
  ],
