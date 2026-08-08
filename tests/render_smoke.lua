@@ -26,6 +26,15 @@ love.graphics = setmetatable({
 		return { getDimensions = function() return 256, 256 end,
 			getWidth = function() return 256 end, getHeight = function() return 256 end }
 	end,
+	-- Not a stub but a check. Real LÖVE throws on a negative scissor, and a
+	-- catch-all noop swallowed exactly that: a card shorter than the text band
+	-- the layout reserves for it computed a negative image height and crashed
+	-- the browser build on a game the suite otherwise called healthy. Anything
+	-- that draws with a negative size is a bug, so say so here.
+	setScissor = function(x, y, w, h)
+		assert(not (w and h) or (w >= 0 and h >= 0),
+			("setScissor with a negative size: %s,%s %sx%s"):format(x, y, w, h))
+	end,
 }, { __index = function() return noop end })
 love.mouse = { getPosition = function() return 480, 270 end }
 love.timer = { getTime = function() return os.clock() end }
@@ -127,7 +136,18 @@ for _ = 1, 8 do frame(0.016) end
 flow.pick(zones.find("reveal").cards[1])
 for _ = 1, 8 do frame(0.016) end
 
+-- Tall narrow grids: an expedition column is five cells deep, so each cell is
+-- shorter than the text band a card reserves. Every shipped game gets a draw
+-- here for the same reason — layouts differ far more than draw code does.
+for _, g in ipairs({ "lost_cities.json", "kingdom.json", "road.json", "vigil.json", "menu.json" }) do
+	flow.init(g, 4)
+	render.rescale()
+	for _ = 1, 4 do frame(0.016) end
+end
+
 -- every base effect animates and draws
+flow.init("castle.json", 7)
+render.rescale()
 for _, base in ipairs({ "damage", "bleed", "power_up", "sparkle", "stars", "heal", "smoke", "explosion" }) do
 	fx.play({ base = base, size = 1.2, speed = 0.9, count = 1.4, color = { 0.9, 0.6, 0.4 } }, 480, 270)
 end

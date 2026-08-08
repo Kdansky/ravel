@@ -299,16 +299,22 @@ local function draw_card_face(pl, card_e, show_text)
 	love.graphics.setColor(unpack(color))
 	love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
 
-	if img then
-		local text_h
-		if show_text then
-			-- Allocate ~42% of card height for name + description.
-			text_h = math.max(42 * S, math.floor(pl.h * 0.42))
-		else
-			text_h = math.max(18 * S, math.floor(pl.h * 0.26))
-		end
-		local img_h  = pl.h - text_h
-		local iw, _  = img:getDimensions()
+	local text_h
+	if show_text then
+		-- Allocate ~42% of card height for name + description.
+		text_h = math.max(42 * S, math.floor(pl.h * 0.42))
+	else
+		text_h = math.max(18 * S, math.floor(pl.h * 0.26))
+	end
+	-- Those minimums are taller than a cell in a tall, narrow grid — Lost
+	-- Cities' expeditions are five rows deep — and the leftover was going to
+	-- setScissor as a negative height, which LÖVE refuses. A card with no room
+	-- for a picture is all text, which is what a card that small has to be.
+	text_h = math.min(text_h, pl.h)
+	local img_h = pl.h - text_h
+
+	if img and img_h > 0 then
+		local iw, _ = img:getDimensions()
 
 		-- Clip the image to the rounded card shape (stencil) and its band (scissor).
 		love.graphics.stencil(function()
