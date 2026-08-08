@@ -47,7 +47,7 @@ Optional and additive, required by nothing: `net` (state transfer for
 networked play), `netpack` (its base64 and LZSS), `netlink` (transports),
 `netpanel` (its browser controls).
 They sit beside the engine rather than in it — see
-[ideas/02](ideas/02-multiplayer.md).
+[ideas/DONE](ideas/DONE.md).
 
 Support: `headless.lua` (the love shim), `play.lua` (CLI frontend over flow),
 `check.lua` (validate a file without running it), `packet.lua` (turn a network

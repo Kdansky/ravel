@@ -5,7 +5,7 @@
 > whatever works for Book of Hours (maybe split a day into 10 turns, 6 day, 4
 > night?))* — `IDEAS.md`
 
-**Status:** not started · **Unblocked** — [00](00-foundation-scope.md) shipped, and it is smaller now than when this was written · **Size:** medium
+**Status:** not started · **Unblocked** — [stats on cards](DONE.md) shipped, and it is smaller now than when this was written · **Size:** medium
 
 Labelled "hard mode" in the ideas file. Having read the engine, I think it is
 the *closest* of the four to already working, because ravel's core model —

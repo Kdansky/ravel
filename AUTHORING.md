@@ -906,7 +906,7 @@ rather than accepting a click and refusing it.
 **Both players can see everything**, hidden zones included, and either of them
 could hand the other any position at all — nothing checks that an arriving state
 was reached by a legal move. Both would need a referee the engine does not have
-(`ideas/02-multiplayer.md` says what that would cost). So: play with people you
+(`ideas/DONE.md` says what that would cost). So: play with people you
 trust, and think twice before shipping a game whose whole tension is a secret
 hand.
 
