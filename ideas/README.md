@@ -16,6 +16,9 @@ about how it might go.
 | [DONE](DONE.md) | **Everything already built** | — | stats on cards · seats and hot-seat · the engine's own RNG · procedural art · Lost Cities · networked play |
 | [01](01-boardgames.md) | Any board game as JSON | large, staged | **Lost Cities shipped.** Next: checkers, chess, Klondike, triggers |
 | [04](04-simulation-games.md) | Cultist Simulator, turn-based | medium | not started — unblocked, and smaller than written |
+| [05](05-assets-and-repo.md) | Assets, and what the repo carries | small | not started — placeholder fallback, `asset` prefixes, art out of git |
+| [06](06-schema-and-types.md) | Saying what things are | medium | not started — zone qualities as tags, lists everywhere, guards at the door |
+| [07](07-presentation.md) | Presentation and its gestures | medium-large | not started — the text/contrast pass, clicking the deck, multi-ability choice |
 
 ---
 
@@ -28,24 +31,30 @@ board, and what it cannot yet promise is that your opponent is honest.
 
 ## What to do next
 
-Ordered by "cheap and unblocks things" first:
+Ordered by urgency × difficulty × what it unblocks — cheap things that let other
+things happen come first.
 
-1. **Hidden hands, a nameplate, and a pass-the-device overlay.** The last of
-   multiplayer stage A, and all presentation — the rules are done. It matters
-   more now that two people watch the same state from different machines.
-2. **[01](01-boardgames.md) — checkers**, the next rung on the board-game
-   ladder. Two thirds of its gap already arrived for other reasons; what is left
-   is letting `place_in_slot` capture an occupant.
-3. **[04](04-simulation-games.md) — a Cultist Simulator prototype in JSON
-   only.** Still free: everything the temporal model needs exists, and it
-   answers "is turn-based CS fun" for the price of a game file, before anyone
-   writes `check_recipes`.
-4. **`cards.lua`'s browser asset path is dead code.** It calls `love.js.eval`,
-   which does not exist in the runtime this repo serves, and fails silently
-   because every call is `pcall`-guarded. `netlink.lua` has a bridge that works;
-   pointing `cards.image` at it is small, but it would make an engine module
-   depend on the optional networking layer, so it wants a decision about where
-   that bridge should live.
+| # | Item | Urgency | Difficulty | Why here |
+|---|---|---|---|---|
+| 1 | [05](05-assets-and-repo.md) gap 1 — **placeholder when a picture is missing** | high | low | one branch in `cards.image`; the *only* thing blocking item 2 |
+| 2 | [05](05-assets-and-repo.md) gap 3 — **art out of git, JSON stays** | high | low | wanted now. Note the premise correction: the JSON is already tracked, the art is what has to go |
+| 3 | [07](07-presentation.md) gap 1 — **the text, contrast and tooltip pass** | high | medium-high | the thing players actually hit. Mostly judgement, not code |
+| 4 | **Hidden hands, a nameplate, a pass-the-device overlay** | high | medium | the last of multiplayer stage A. [07](07-presentation.md) gap 2 needs the same "can this player see this card" predicate, so build it once |
+| 5 | [07](07-presentation.md) gap 2 — **click the deck to draw** | medium | low + item 4 | deletes the ugliest card on the Lost Cities board; rules already allow it |
+| 6 | [05](05-assets-and-repo.md) gap 2 — **`asset` scheme prefixes** | medium | low | removes run-time guessing; wide but shallow edit |
+| 7 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `activate` already proved the shape. Cheaper now than after more games exist |
+| 8 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
+| 9 | [01](01-boardgames.md) — **checkers** | low | small | next rung on the board-game ladder; what is left is letting `place_in_slot` capture an occupant |
+| 10 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
+| 11 | [07](07-presentation.md) gap 3 — **multi-ability chooser** | low | medium | no shipped game needs it. Build it with the first card that has two abilities |
+
+Still true and still unowned: **`cards.lua`'s browser asset path is dead code.**
+It calls `love.js.eval`, which does not exist in the runtime this repo serves,
+and fails silently because every call is `pcall`-guarded. `netlink.lua` has a
+bridge that works; pointing `cards.image` at it is small, but it would make an
+engine module depend on the optional networking layer, so it wants a decision
+about where that bridge should live. Fold it into item 6 — that is the pass that
+touches asset resolution anyway.
 
 A syntax pass over the JSON is worth doing at some point but **not yet** —
 `needs`/`requires`/`accepts` are three names for one shape, `{"subject":
