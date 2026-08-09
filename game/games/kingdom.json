@@ -254,7 +254,7 @@
   ],
 
   "zones": [
-    { "key": "board", "type": "grid", "pos": [0.00, 0.00, 0.75, 0.70], "grid": [5, 5], "fit": "fill" },
+    { "key": "board", "type": "grid", "pos": [0.00, 0.00, 0.75, 0.70], "grid": [5, 5], "fit": "fill", "tags": ["activate"] },
     { "key": "hand",  "type": "hand", "pos": [0.19, 0.72, 0.75, 0.99] },
     { "key": "origins", "type": "deck", "pos": [0.42, -0.40, 0.58, -0.08], "tags": ["hidden", "shuffle"],
       "contents": ["merchant_prince", "warlord", "archmage"] },

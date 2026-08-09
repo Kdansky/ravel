@@ -6,22 +6,31 @@
       "key": "score",
       "label": "Your score",
       "subject": "score@mine.player"
-    },
-    {
-      "key": "round",
-      "label": "Round"
     }
   ],
+  "tags": {
+    "takeable": {
+      "on_activate": [
+        "move_to:hand",
+        "next_phase"
+      ],
+      "phases": [
+        "draw"
+      ],
+      "exhausts": false,
+      "tooltip": "Take this card into your hand."
+    }
+  },
   "zones": [
     {
       "key": "deck",
       "label": "Expedition Deck",
       "type": "deck",
       "pos": [
-        0.8,
-        0.3,
-        0.97,
-        0.52
+        0.815,
+        0.365,
+        0.975,
+        0.505
       ],
       "tags": [
         "shuffle"
@@ -95,16 +104,16 @@
       "per_seat": true,
       "pos": [
         [
-          0.02,
-          0.75,
-          0.78,
-          0.87
+          0.06,
+          0.015,
+          0.798,
+          0.135
         ],
         [
-          0.02,
-          0.88,
-          0.78,
-          0.99
+          0.06,
+          0.735,
+          0.798,
+          0.855
         ]
       ]
     },
@@ -123,25 +132,13 @@
       ]
     },
     {
-      "key": "tally",
-      "label": "Tally",
+      "key": "choice",
       "type": "hand",
       "pos": [
-        0.8,
-        0.75,
+        0.19,
+        0.875,
         0.97,
-        0.99
-      ]
-    },
-    {
-      "key": "draw_choice",
-      "label": "Draw",
-      "type": "hand",
-      "pos": [
-        0.8,
-        0.55,
-        0.97,
-        0.72
+        0.995
       ]
     },
     {
@@ -156,32 +153,39 @@
       "fit": "fill",
       "pos": [
         [
-          0.02,
-          0.04,
-          0.15,
-          0.24
+          0.06,
+          0.155,
+          0.19,
+          0.345
         ],
         [
-          0.02,
-          0.52,
-          0.15,
-          0.72
+          0.06,
+          0.525,
+          0.19,
+          0.715
         ]
-      ]
+      ],
+      "accepts": {
+        "value@target": {
+          "at_least": "max:value@mine.red"
+        }
+      }
     },
     {
       "key": "red_discard",
       "label": "Red discard",
       "type": "pile",
       "pos": [
-        0.02,
-        0.27,
-        0.15,
-        0.49
+        0.06,
+        0.365,
+        0.19,
+        0.505
       ],
-      "on_click": [
-        "draw_from:red_discard:hand:1",
-        "next_phase"
+      "tags": [
+        "activate"
+      ],
+      "applies": [
+        "takeable"
       ]
     },
     {
@@ -196,32 +200,39 @@
       "fit": "fill",
       "pos": [
         [
-          0.172,
-          0.04,
-          0.302,
-          0.24
+          0.212,
+          0.155,
+          0.34199999999999997,
+          0.345
         ],
         [
-          0.172,
-          0.52,
-          0.302,
-          0.72
+          0.212,
+          0.525,
+          0.34199999999999997,
+          0.715
         ]
-      ]
+      ],
+      "accepts": {
+        "value@target": {
+          "at_least": "max:value@mine.green"
+        }
+      }
     },
     {
       "key": "green_discard",
       "label": "Green discard",
       "type": "pile",
       "pos": [
-        0.172,
-        0.27,
-        0.302,
-        0.49
+        0.212,
+        0.365,
+        0.34199999999999997,
+        0.505
       ],
-      "on_click": [
-        "draw_from:green_discard:hand:1",
-        "next_phase"
+      "tags": [
+        "activate"
+      ],
+      "applies": [
+        "takeable"
       ]
     },
     {
@@ -236,32 +247,39 @@
       "fit": "fill",
       "pos": [
         [
-          0.324,
-          0.04,
-          0.45399999999999996,
-          0.24
+          0.364,
+          0.155,
+          0.494,
+          0.345
         ],
         [
-          0.324,
-          0.52,
-          0.45399999999999996,
-          0.72
+          0.364,
+          0.525,
+          0.494,
+          0.715
         ]
-      ]
+      ],
+      "accepts": {
+        "value@target": {
+          "at_least": "max:value@mine.blue"
+        }
+      }
     },
     {
       "key": "blue_discard",
       "label": "Blue discard",
       "type": "pile",
       "pos": [
-        0.324,
-        0.27,
-        0.45399999999999996,
-        0.49
+        0.364,
+        0.365,
+        0.494,
+        0.505
       ],
-      "on_click": [
-        "draw_from:blue_discard:hand:1",
-        "next_phase"
+      "tags": [
+        "activate"
+      ],
+      "applies": [
+        "takeable"
       ]
     },
     {
@@ -276,32 +294,39 @@
       "fit": "fill",
       "pos": [
         [
-          0.476,
-          0.04,
-          0.606,
-          0.24
+          0.516,
+          0.155,
+          0.6459999999999999,
+          0.345
         ],
         [
-          0.476,
-          0.52,
-          0.606,
-          0.72
+          0.516,
+          0.525,
+          0.6459999999999999,
+          0.715
         ]
-      ]
+      ],
+      "accepts": {
+        "value@target": {
+          "at_least": "max:value@mine.white"
+        }
+      }
     },
     {
       "key": "white_discard",
       "label": "White discard",
       "type": "pile",
       "pos": [
-        0.476,
-        0.27,
-        0.606,
-        0.49
+        0.516,
+        0.365,
+        0.6459999999999999,
+        0.505
       ],
-      "on_click": [
-        "draw_from:white_discard:hand:1",
-        "next_phase"
+      "tags": [
+        "activate"
+      ],
+      "applies": [
+        "takeable"
       ]
     },
     {
@@ -316,32 +341,39 @@
       "fit": "fill",
       "pos": [
         [
-          0.628,
-          0.04,
-          0.758,
-          0.24
+          0.6679999999999999,
+          0.155,
+          0.798,
+          0.345
         ],
         [
-          0.628,
-          0.52,
-          0.758,
-          0.72
+          0.6679999999999999,
+          0.525,
+          0.798,
+          0.715
         ]
-      ]
+      ],
+      "accepts": {
+        "value@target": {
+          "at_least": "max:value@mine.yellow"
+        }
+      }
     },
     {
       "key": "yellow_discard",
       "label": "Yellow discard",
       "type": "pile",
       "pos": [
-        0.628,
-        0.27,
-        0.758,
-        0.49
+        0.6679999999999999,
+        0.365,
+        0.798,
+        0.505
       ],
-      "on_click": [
-        "draw_from:yellow_discard:hand:1",
-        "next_phase"
+      "tags": [
+        "activate"
+      ],
+      "applies": [
+        "takeable"
       ]
     }
   ],
@@ -354,7 +386,8 @@
         "north_side"
       ],
       "card_stats": {
-        "score": 0
+        "score": 0,
+        "tallied": 0
       }
     },
     {
@@ -365,208 +398,9 @@
         "south_side"
       ],
       "card_stats": {
-        "score": 0
+        "score": 0,
+        "tallied": 0
       }
-    },
-    {
-      "key": "red_route",
-      "text": "Red route",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
-      "asset": "polygon:6:crimson",
-      "tooltip": "Advance the red expedition. Cards must ascend.",
-      "tags": [
-        "marker",
-        "wager",
-        "red_dest"
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.red"
-        }
-      },
-      "auto_play": true,
-      "to_zone": "red"
-    },
-    {
-      "key": "red_tip",
-      "text": "Red discard",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
-      "asset": "cross:crimson",
-      "tooltip": "Discard a red card.",
-      "tags": [
-        "marker",
-        "red_dest"
-      ],
-      "auto_play": true,
-      "to_zone": "red_discard"
-    },
-    {
-      "key": "green_route",
-      "text": "Green route",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
-      "asset": "polygon:6:green",
-      "tooltip": "Advance the green expedition. Cards must ascend.",
-      "tags": [
-        "marker",
-        "wager",
-        "green_dest"
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.green"
-        }
-      },
-      "auto_play": true,
-      "to_zone": "green"
-    },
-    {
-      "key": "green_tip",
-      "text": "Green discard",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
-      "asset": "cross:green",
-      "tooltip": "Discard a green card.",
-      "tags": [
-        "marker",
-        "green_dest"
-      ],
-      "auto_play": true,
-      "to_zone": "green_discard"
-    },
-    {
-      "key": "blue_route",
-      "text": "Blue route",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
-      "asset": "polygon:6:blue",
-      "tooltip": "Advance the blue expedition. Cards must ascend.",
-      "tags": [
-        "marker",
-        "wager",
-        "blue_dest"
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.blue"
-        }
-      },
-      "auto_play": true,
-      "to_zone": "blue"
-    },
-    {
-      "key": "blue_tip",
-      "text": "Blue discard",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
-      "asset": "cross:blue",
-      "tooltip": "Discard a blue card.",
-      "tags": [
-        "marker",
-        "blue_dest"
-      ],
-      "auto_play": true,
-      "to_zone": "blue_discard"
-    },
-    {
-      "key": "white_route",
-      "text": "White route",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
-      "asset": "polygon:6:silver",
-      "tooltip": "Advance the white expedition. Cards must ascend.",
-      "tags": [
-        "marker",
-        "wager",
-        "white_dest"
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.white"
-        }
-      },
-      "auto_play": true,
-      "to_zone": "white"
-    },
-    {
-      "key": "white_tip",
-      "text": "White discard",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
-      "asset": "cross:silver",
-      "tooltip": "Discard a white card.",
-      "tags": [
-        "marker",
-        "white_dest"
-      ],
-      "auto_play": true,
-      "to_zone": "white_discard"
-    },
-    {
-      "key": "yellow_route",
-      "text": "Yellow route",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
-      "asset": "polygon:6:gold",
-      "tooltip": "Advance the yellow expedition. Cards must ascend.",
-      "tags": [
-        "marker",
-        "wager",
-        "yellow_dest"
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.yellow"
-        }
-      },
-      "auto_play": true,
-      "to_zone": "yellow"
-    },
-    {
-      "key": "yellow_tip",
-      "text": "Yellow discard",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
-      "asset": "cross:gold",
-      "tooltip": "Discard a yellow card.",
-      "tags": [
-        "marker",
-        "yellow_dest"
-      ],
-      "auto_play": true,
-      "to_zone": "yellow_discard"
     },
     {
       "key": "red_w1",
@@ -586,10 +420,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -618,10 +449,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -650,10 +478,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -681,10 +506,7 @@
         "value": 2
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -712,10 +534,7 @@
         "value": 3
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -743,10 +562,7 @@
         "value": 4
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -774,10 +590,7 @@
         "value": 5
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -805,10 +618,7 @@
         "value": 6
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -836,10 +646,7 @@
         "value": 7
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -867,10 +674,7 @@
         "value": 8
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -898,10 +702,7 @@
         "value": 9
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -929,10 +730,7 @@
         "value": 10
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "red_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "red",
@@ -961,10 +759,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -993,10 +788,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1025,10 +817,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1056,10 +845,7 @@
         "value": 2
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1087,10 +873,7 @@
         "value": 3
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1118,10 +901,7 @@
         "value": 4
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1149,10 +929,7 @@
         "value": 5
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1180,10 +957,7 @@
         "value": 6
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1211,10 +985,7 @@
         "value": 7
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1242,10 +1013,7 @@
         "value": 8
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1273,10 +1041,7 @@
         "value": 9
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1304,10 +1069,7 @@
         "value": 10
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "green_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "green",
@@ -1336,10 +1098,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1368,10 +1127,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1400,10 +1156,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1431,10 +1184,7 @@
         "value": 2
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1462,10 +1212,7 @@
         "value": 3
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1493,10 +1240,7 @@
         "value": 4
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1524,10 +1268,7 @@
         "value": 5
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1555,10 +1296,7 @@
         "value": 6
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1586,10 +1324,7 @@
         "value": 7
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1617,10 +1352,7 @@
         "value": 8
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1648,10 +1380,7 @@
         "value": 9
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1679,10 +1408,7 @@
         "value": 10
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "blue_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "blue",
@@ -1711,10 +1437,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -1743,10 +1466,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -1775,10 +1495,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -1806,10 +1523,7 @@
         "value": 2
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -1837,10 +1551,7 @@
         "value": 3
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -1868,10 +1579,7 @@
         "value": 4
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -1899,10 +1607,7 @@
         "value": 5
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -1930,10 +1635,7 @@
         "value": 6
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -1961,10 +1663,7 @@
         "value": 7
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -1992,10 +1691,7 @@
         "value": 8
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -2023,10 +1719,7 @@
         "value": 9
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -2054,10 +1747,7 @@
         "value": 10
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "white_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "white",
@@ -2086,10 +1776,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2118,10 +1805,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2150,10 +1834,7 @@
         "value": 0
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2181,10 +1862,7 @@
         "value": 2
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2212,10 +1890,7 @@
         "value": 3
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2243,10 +1918,7 @@
         "value": 4
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2274,10 +1946,7 @@
         "value": 5
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2305,10 +1974,7 @@
         "value": 6
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2336,10 +2002,7 @@
         "value": 7
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2367,10 +2030,7 @@
         "value": 8
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2398,10 +2058,7 @@
         "value": 9
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2429,10 +2086,7 @@
         "value": 10
       },
       "target": {
-        "type": "card",
-        "tags": [
-          "yellow_dest"
-        ],
+        "type": "zone",
         "count": 1,
         "zones": [
           "yellow",
@@ -2460,6 +2114,8 @@
         "count:expedition@mine.red": 1
       },
       "on_play": [
+        "gain_stat:score@mine.player:sum:value@mine.red",
+        "lose_stat:score@mine.player:20",
         "gain_stat:score@mine.player:sum:value@mine.red:x:count:wager@mine.red",
         "lose_stat:score@mine.player:20:x:count:wager@mine.red",
         "destroy_self"
@@ -2503,6 +2159,8 @@
         "count:expedition@mine.green": 1
       },
       "on_play": [
+        "gain_stat:score@mine.player:sum:value@mine.green",
+        "lose_stat:score@mine.player:20",
         "gain_stat:score@mine.player:sum:value@mine.green:x:count:wager@mine.green",
         "lose_stat:score@mine.player:20:x:count:wager@mine.green",
         "destroy_self"
@@ -2546,6 +2204,8 @@
         "count:expedition@mine.blue": 1
       },
       "on_play": [
+        "gain_stat:score@mine.player:sum:value@mine.blue",
+        "lose_stat:score@mine.player:20",
         "gain_stat:score@mine.player:sum:value@mine.blue:x:count:wager@mine.blue",
         "lose_stat:score@mine.player:20:x:count:wager@mine.blue",
         "destroy_self"
@@ -2589,6 +2249,8 @@
         "count:expedition@mine.white": 1
       },
       "on_play": [
+        "gain_stat:score@mine.player:sum:value@mine.white",
+        "lose_stat:score@mine.player:20",
         "gain_stat:score@mine.player:sum:value@mine.white:x:count:wager@mine.white",
         "lose_stat:score@mine.player:20:x:count:wager@mine.white",
         "destroy_self"
@@ -2632,6 +2294,8 @@
         "count:expedition@mine.yellow": 1
       },
       "on_play": [
+        "gain_stat:score@mine.player:sum:value@mine.yellow",
+        "lose_stat:score@mine.player:20",
         "gain_stat:score@mine.player:sum:value@mine.yellow:x:count:wager@mine.yellow",
         "lose_stat:score@mine.player:20:x:count:wager@mine.yellow",
         "destroy_self"
@@ -2690,6 +2354,7 @@
         "token"
       ],
       "on_play": [
+        "gain_stat:tallied@mine.player:1",
         "destroy_self",
         "next_phase"
       ]
@@ -2737,73 +2402,44 @@
       ]
     },
     {
-      "key": "north_play",
+      "key": "play",
       "type": "player_input",
       "zone": "hand",
-      "label": "North \u2014 play or discard",
+      "label": "Play or discard",
       "seat": "next",
       "ends_after": 1,
       "next": [
         {
-          "then": "north_draw"
+          "then": "draw"
         }
       ]
     },
     {
-      "key": "north_draw",
+      "key": "draw",
       "type": "player_input",
-      "label": "North \u2014 draw from the deck or a discard",
-      "zone": "draw_choice",
+      "zone": "choice",
+      "label": "Draw from the deck, or take the top of a discard",
       "pass_card": "draw_deck",
+      "discard_hand": true,
       "next": [
         {
           "zone_empty": [
             "deck"
           ],
-          "then": "tally_one"
+          "then": "tally"
         },
         {
-          "then": "south_play"
+          "then": "play"
         }
       ]
     },
     {
-      "key": "south_play",
-      "type": "player_input",
-      "zone": "hand",
-      "label": "South \u2014 play or discard",
-      "seat": "next",
-      "ends_after": 1,
-      "next": [
-        {
-          "then": "south_draw"
-        }
-      ]
-    },
-    {
-      "key": "south_draw",
-      "type": "player_input",
-      "label": "South \u2014 draw from the deck or a discard",
-      "zone": "draw_choice",
-      "pass_card": "draw_deck",
-      "next": [
-        {
-          "zone_empty": [
-            "deck"
-          ],
-          "then": "tally_one"
-        },
-        {
-          "then": "north_play"
-        }
-      ]
-    },
-    {
-      "key": "tally_one",
+      "key": "tally",
       "type": "player_input",
       "label": "Tally",
       "seat": "next",
-      "zone": "tally",
+      "zone": "choice",
+      "discard_hand": true,
       "pass_card": [
         "red_score",
         "green_score",
@@ -2819,32 +2455,12 @@
       ],
       "next": [
         {
-          "then": "tally_two"
-        }
-      ]
-    },
-    {
-      "key": "tally_two",
-      "type": "player_input",
-      "label": "Tally",
-      "seat": "next",
-      "zone": "tally",
-      "pass_card": [
-        "red_score",
-        "green_score",
-        "blue_score",
-        "white_score",
-        "yellow_score",
-        "red_bonus",
-        "green_bonus",
-        "blue_bonus",
-        "white_bonus",
-        "yellow_bonus",
-        "done_scoring"
-      ],
-      "next": [
-        {
+          "stat": "tallied@player",
+          "at_least": 2,
           "then": "ending"
+        },
+        {
+          "then": "tally"
         }
       ]
     },

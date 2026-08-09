@@ -2,6 +2,7 @@ local entity      = require("entity")
 local declaration = require("declaration")
 local cards       = require("cards")
 local render      = require("render")
+local flow        = require("flow")
 
 local M = {}
 
@@ -32,7 +33,15 @@ function M.draw()
 	if not pl then return end
 
 	local img  = cards.image(c.def_key)
+	-- A card's own words first, then whatever its zone says about lying there
+	-- ("Take this card into your hand"). Without the second line a granted
+	-- ability is invisible: nothing on the card mentions it and nothing in the
+	-- rulebook is a card.
 	local text = def.tooltip or ""
+	local zone_text = cards.zone_grant(c, "tooltip")
+	if zone_text and zone_text ~= def.tooltip then
+		text = text ~= "" and (text .. "\n" .. zone_text) or zone_text
+	end
 
 	if def.cost and next(def.cost) then
 		if text ~= "" then text = text .. "\n" end
@@ -62,15 +71,20 @@ function M.draw()
 		end
 	end
 
-	-- Activatable ability hint.
-	if def.on_activate then
+	-- Activatable ability hint. Reads the granted ability, so one a zone hands
+	-- out announces itself, and says when it is out of season rather than
+	-- leaving a dead click to explain itself.
+	if cards.behaviour(c, "on_activate") then
 		if text ~= "" then text = text .. "\n" end
 		if c.exhausted then
 			text = text .. "[Exhausted — readies next round]"
+		elseif not flow.can_activate(c.id) then
+			text = text .. "[Not available in this phase]"
 		else
 			text = text .. "[Click to activate]"
-			if def.activate_cost and next(def.activate_cost) then
-				text = text .. " (" .. cards.cost_text(def.activate_cost) .. ")"
+			local ac = cards.behaviour(c, "activate_cost")
+			if ac and next(ac) then
+				text = text .. " (" .. cards.cost_text(ac) .. ")"
 			end
 		end
 	end

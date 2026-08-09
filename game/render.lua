@@ -300,13 +300,16 @@ local function draw_card_face(pl, card_e, show_text)
 	-- ability reads "exhausted" (wait for the round), an unpayable one reads
 	-- "can't yet" (change something). Board abilities carry the whole
 	-- interface in verb-driven games, so silence is not an option.
+	-- An ability the card's *zone* grants it counts: the top of a discard pile
+	-- you may take from has to say so, or the only discoverable thing about it
+	-- is that clicking sometimes does nothing.
 	local dim, dim_label
 	if card_e.exhausted then
 		dim, dim_label = true, "exhausted"
 	elseif z and z.zone_type == "hand" then
 		dim = not flow.can_play(card_e.id)
-	elseif z and z.zone_type == "grid" and def and def.on_activate then
-		dim, dim_label = not flow.can_activate(card_e.id), "can't yet"
+	elseif z and z.tags.activate and cards.behaviour(card_e, "on_activate") then
+		dim, dim_label = not flow.can_activate(card_e.id), "not now"
 	end
 
 	love.graphics.push("all")
@@ -344,6 +347,11 @@ local function draw_card_face(pl, card_e, show_text)
 		love.graphics.setColor(unpack(color))
 		love.graphics.rectangle("fill", pl.x, pl.y + img_h, pl.w, text_h)
 
+		-- Nothing a card says may leave the card. Text wraps to as many lines as
+		-- it needs, so a card too small for its description used to spill the
+		-- overflow onto whatever lay below it — which, once a hand sits along
+		-- the top edge, is the board.
+		love.graphics.setScissor(pl.x, pl.y, pl.w, pl.h)
 		if show_text then
 			local mf     = love.graphics.getFont()
 			local name_h = mf:getHeight() + 4 * S
@@ -351,12 +359,16 @@ local function draw_card_face(pl, card_e, show_text)
 			love.graphics.printf(
 				truncate(mf, title, pl.w - 6 * S),
 				pl.x + 3 * S, pl.y + img_h + 2 * S, pl.w - 6 * S, "center")
-			-- Description below name in a smaller font.
-			love.graphics.setFont(get_small_font())
-			love.graphics.setColor(unpack(C.card_body))
-			love.graphics.printf(
-				def and def.tooltip or "",
-				pl.x + 4 * S, pl.y + img_h + name_h + 2 * S, pl.w - 8 * S, "left")
+			-- Description below name in a smaller font, and only where a line of
+			-- it actually fits: a clipped word is worse than no word.
+			local sf = get_small_font()
+			if text_h - name_h >= sf:getHeight() then
+				love.graphics.setFont(sf)
+				love.graphics.setColor(unpack(C.card_body))
+				love.graphics.printf(
+					def and def.tooltip or "",
+					pl.x + 4 * S, pl.y + img_h + name_h + 2 * S, pl.w - 8 * S, "left")
+			end
 		else
 			local mf = love.graphics.getFont()
 			love.graphics.setColor(unpack(C.card_text))
@@ -364,6 +376,7 @@ local function draw_card_face(pl, card_e, show_text)
 				truncate(mf, title, pl.w - 6 * S),
 				pl.x + 3 * S, pl.y + img_h + (text_h - mf:getHeight()) * 0.5, pl.w - 6 * S, "center")
 		end
+		love.graphics.setScissor()
 	else
 		local mf = love.graphics.getFont()
 		love.graphics.setColor(unpack(C.card_text))
@@ -540,10 +553,21 @@ local function draw_zone(zone_e)
 	local zt = zone_e.zone_type
 
 	love.graphics.push("all")
-	love.graphics.setColor(unpack(C.zone_fill))
-	love.graphics.rectangle("fill", p.x, p.y, p.w, p.h, 7 * S, 7 * S)
-	love.graphics.setColor(unpack(C.zone_border))
-	love.graphics.setLineWidth(S)
+	-- A zone can be a target in its own right, and eligibility never rides on
+	-- hue alone: border colour, a pulsing fill, and the same blue every other
+	-- eligible thing wears.
+	if targeting.active() and targeting.is_eligible(zone_e.id) then
+		love.graphics.setColor(C.eligible[1], C.eligible[2], C.eligible[3],
+			0.10 + 0.14 * pulse(5))
+		love.graphics.rectangle("fill", p.x, p.y, p.w, p.h, 7 * S, 7 * S)
+		love.graphics.setColor(C.eligible[1], C.eligible[2], C.eligible[3], 0.90)
+		love.graphics.setLineWidth(2 * S)
+	else
+		love.graphics.setColor(unpack(C.zone_fill))
+		love.graphics.rectangle("fill", p.x, p.y, p.w, p.h, 7 * S, 7 * S)
+		love.graphics.setColor(unpack(C.zone_border))
+		love.graphics.setLineWidth(S)
+	end
 	love.graphics.rectangle("line", p.x, p.y, p.w, p.h, 7 * S, 7 * S)
 	love.graphics.pop()
 

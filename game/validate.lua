@@ -45,12 +45,12 @@ local CARD_FIELDS = {
 	on_play = true, on_activate = true, on_turn = true, on_pass = true,
 	on_fail = true, on_pick = true, auto_play = true, to_zone = true,
 	to_slot = true, irreversible = true, outcome = true, tags_set = true,
-	injected = true, accepts = true,
+	injected = true, accepts = true, phases = true,
 }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, fit = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
-	injected = true, per_seat = true,
+	injected = true, per_seat = true, applies = true, accepts = true,
 }
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
@@ -59,7 +59,11 @@ local PHASE_FIELDS = {
 	seat = true,
 }
 local STAT_FIELDS     = { key = true, label = true, min = true, max = true, hidden = true, subject = true }
-local TAG_FIELDS      = { zone = true }
+-- A tag def is a mixin: it may carry a home zone, and the card behaviour a zone
+-- hands to whatever sits in it ("applies"). Kept to the fields a granted rule
+-- can honestly mean — nothing that would have to be re-derived as state moves.
+local TAG_FIELDS      = { zone = true, on_activate = true, activate_target = true,
+	activate_cost = true, exhausts = true, phases = true, tooltip = true }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
 	owner = true }
@@ -114,10 +118,20 @@ function M.check(G)
 	local tag_defs = G.tag_defs or {}
 
 	-- Known universes.
-	local carried_tags = {}
+	-- Tags written on a card, kept separate from the ones a zone hands out: a
+	-- zone granting a tag proves the tag is *used*, never that it is defined,
+	-- so the two questions need two sets or "applies" vouches for itself.
+	local card_tags = {}
 	for _, def in pairs(G.card_defs) do
 		if type(def.tags) == "table" then
-			for _, t in ipairs(def.tags) do carried_tags[t] = true end
+			for _, t in ipairs(def.tags) do card_tags[t] = true end
+		end
+	end
+	local carried_tags = {}
+	for t in pairs(card_tags) do carried_tags[t] = true end
+	for _, zd in pairs(G.zone_defs) do
+		for _, t in ipairs(type(zd.applies) == "table" and zd.applies or {}) do
+			carried_tags[t] = true
 		end
 	end
 	local known_tags = {}
@@ -421,6 +435,29 @@ function M.check(G)
 		end
 	end
 
+	-- "phases": which phases a card (or a tag granting it one) may be used in.
+	-- Overlays are excluded on purpose: they lock every other action while they
+	-- are open, so naming one is a rule that can never come true.
+	local function check_phases(where, list)
+		if list == nil then return end
+		local keys = type(list) == "string" and { list } or list
+		if type(keys) ~= "table" then
+			warn('%s: phases should be a phase key or a list of them', where)
+			return
+		end
+		for _, key in ipairs(keys) do
+			local pd = type(key) == "string" and G.phase_by_key[key]
+			if not pd then
+				warn("%s: is limited to phase '%s', but no phase has that key%s",
+					where, tostring(key), suggest(key, G.phase_by_key))
+			elseif pd.type == "overlay" then
+				warn("%s: is limited to phase '%s', which is an overlay — an open "
+					.. "overlay locks every other action, so it could never be used there",
+					where, tostring(key))
+			end
+		end
+	end
+
 	-- Stats.
 	for key, def in pairs(G.stat_defs) do
 		local where = "stat '" .. key .. "'"
@@ -447,12 +484,53 @@ function M.check(G)
 				warn("%s: sends cards to zone '%s', but no zone has that key%s",
 					where, tostring(td.zone), suggest(td.zone, G.zone_defs))
 			end
+			check_list(where .. " on_activate", td.on_activate)
+			check_phases(where, td.phases)
+			-- A tag hands behaviour to the cards carrying it, so a card that
+			-- also declares the same field is two answers to one question.
+			-- Reported rather than resolved: there is no precedence rule to
+			-- fall back on, and inventing one hides the mistake.
+			for field in pairs(td) do
+				if field ~= "zone" then
+					for _, ck in ipairs(G.card_list) do
+						local cd = G.card_defs[ck]
+						if cd.tags_set and cd.tags_set[tag] and cd[field] ~= nil then
+							warn("%s: defines '%s', but the card '%s' carries the tag and defines it too "
+								.. "— one of them has to give", where, field, ck)
+						end
+					end
+				end
+			end
 			if G.computed_tags[tag] then
 				warn("%s: is defined under both 'tags' and 'computed_tags' — computed tags can't carry behaviour", where)
 			end
 			if not carried_tags[tag] then
 				warn("%s: has behaviour defined, but no card carries this tag%s",
 					where, suggest(tag, carried_tags))
+			end
+		end
+	end
+
+	-- Abilities need somewhere to be used. Activation is the zone's to allow,
+	-- so a game full of on_activate cards and no zone tagged "activate" has
+	-- written abilities nobody can ever reach — silently, which is the worst
+	-- way for it to be wrong.
+	do
+		local can_use = false
+		for _, zd in pairs(G.zone_defs) do
+			if zd.tags_set and zd.tags_set.activate then can_use = true end
+		end
+		if not can_use then
+			local who
+			for _, key in ipairs(G.card_list) do
+				if G.card_defs[key].on_activate then who = key; break end
+			end
+			for tag, td in pairs(tag_defs) do
+				if type(td) == "table" and td.on_activate then who = who or ("tag '" .. tag .. "'") end
+			end
+			if who then
+				warn("'%s' has an ability, but no zone is tagged \"activate\" — "
+					.. "abilities are only usable in a zone that allows them", who)
 			end
 		end
 	end
@@ -526,6 +604,7 @@ function M.check(G)
 		-- "accepts" is asked of this card about the one arriving, so @self is
 		-- this card and @target the newcomer.
 		check_map(where .. " accepts", def.accepts)
+		check_phases(where, def.phases)
 		-- card_stats declare new per-card stats, so only their values are checked.
 		if def.card_stats ~= nil then
 			if type(def.card_stats) ~= "table" then
@@ -552,8 +631,17 @@ function M.check(G)
 			local spec = def[field]
 			if type(spec) == "table" then
 				check_fields(where .. " " .. field, spec, TARGET_FIELDS)
-				if spec.type and spec.type ~= "card" and spec.type ~= "slot" then
-					warn("%s %s: type should be 'card' or 'slot', not '%s'", where, field, tostring(spec.type))
+				if spec.type and spec.type ~= "card" and spec.type ~= "slot"
+					and spec.type ~= "zone" then
+					warn("%s %s: type should be 'card', 'slot' or 'zone', not '%s'", where, field, tostring(spec.type))
+				end
+				if spec.type == "zone" then
+					if not spec.zones then
+						warn("%s %s: targets a zone but names none — list them in \"zones\"", where, field)
+					end
+					if spec.tags then
+						warn("%s %s: targets a zone, so \"tags\" is not read (zones are named, not tagged)", where, field)
+					end
 				end
 				for _, t in ipairs(type(spec.tags) == "table" and spec.tags or {}) do
 					if not known_tags[t] then
@@ -681,6 +769,22 @@ function M.check(G)
 			warn('%s: contents should be a list like ["sword:3", "trap"]', where)
 		end
 		check_list(where .. " on_click", def.on_click)
+		check_map(where .. " accepts", def.accepts)
+		if def.applies ~= nil then
+			if type(def.applies) ~= "table" then
+				warn('%s: applies should be a list of tag names like ["takeable"]', where)
+			else
+				for _, tag in ipairs(def.applies) do
+					if G.computed_tags[tag] then
+						warn("%s: hands out '%s', which is a computed tag — those are "
+							.. "derived from a card's own stats and cannot be granted", where, tostring(tag))
+					elseif not tag_defs[tag] and not card_tags[tag] then
+						warn("%s: hands out '%s', which nothing defines or reads%s",
+							where, tostring(tag), suggest(tag, known_tags))
+					end
+				end
+			end
+		end
 	end
 
 	-- Two zones in the same place. A zone paints its background whether or not

@@ -214,6 +214,7 @@ HANDLERS["move_to"] = function(p, ctx)
 		local t = ctx.targets and ctx.targets[1] and entity.get(ctx.targets[1])
 		if not t then return end
 		if t.kind == "slot" then zones.place_in_slot(ctx.card_id, t.id)
+		elseif t.kind == "zone" then zones.move_card(ctx.card_id, t.id)
 		elseif t.zone_id then zones.move_card(ctx.card_id, t.zone_id) end
 		return
 	end

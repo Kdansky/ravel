@@ -24,6 +24,9 @@
    "tooltip": "A short story of choices and consequence. Draw cards and survive the journey.",
    "on_play": [
     "load_game:demo.json"
+   ],
+   "tags": [
+    "immutable"
    ]
   },
   {
@@ -33,6 +36,9 @@
    "tooltip": "Build a castle and weather the challenges that come your way.",
    "on_play": [
     "load_game:castle.json"
+   ],
+   "tags": [
+    "immutable"
    ]
   },
   {
@@ -42,6 +48,9 @@
    "tooltip": "Forge a realm from drafted choices, then let the trials test what you built.",
    "on_play": [
     "load_game:kingdom.json"
+   ],
+   "tags": [
+    "immutable"
    ]
   },
   {
@@ -51,6 +60,9 @@
    "tooltip": "A classical adventure told in pages. Choose blind, turn the page, live with it.",
    "on_play": [
     "load_game:tower.json"
+   ],
+   "tags": [
+    "immutable"
    ]
   },
   {
@@ -60,6 +72,9 @@
    "tooltip": "March a caravan across bad country: units on the road, items in the wagons, twelve miles to safety.",
    "on_play": [
     "load_game:road.json"
+   ],
+   "tags": [
+    "immutable"
    ]
   },
   {
@@ -69,7 +84,10 @@
    "on_play": [
     "load_game:lost_cities.json"
    ],
-   "asset": "lost_cities_cover.jpg"
+   "asset": "lost_cities_cover.jpg",
+   "tags": [
+    "immutable"
+   ]
   },
   {
    "key": "play_vigil",
@@ -78,6 +96,9 @@
    "tooltip": "Fourteen nights to finish the work. Click the verbs on the table: work, study, dream, and pay what dreaming costs.",
    "on_play": [
     "load_game:vigil.json"
+   ],
+   "tags": [
+    "immutable"
    ]
   },
   {
@@ -85,7 +106,8 @@
    "text": "New game",
    "tooltip": "Choose something to play.",
    "tags": [
-    "token"
+    "token",
+    "immutable"
    ],
    "on_play": [
     "destroy:menu",
@@ -104,7 +126,8 @@
    "text": "Join a friend",
    "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works even for a game you do not have.",
    "tags": [
-    "token"
+    "token",
+    "immutable"
    ],
    "on_play": [
     "net_join"
@@ -115,7 +138,8 @@
    "text": "Back",
    "tooltip": "Return to the first screen.",
    "tags": [
-    "token"
+    "token",
+    "immutable"
    ],
    "on_play": [
     "destroy:menu",

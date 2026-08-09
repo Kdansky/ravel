@@ -3,12 +3,20 @@ local declaration = require("declaration")
 
 local M = {}
 
--- True if entity e has the given tag (direct def tag or computed tag from G).
+-- True if entity e has the given tag: one it was defined with, one the zone it
+-- sits in grants ("applies"), or a computed one derived from its stats.
+-- Where a card *is* can therefore decide what it is — bounded on purpose to a
+-- fixed list declared on the zone, so this stays one lookup and never becomes
+-- the recomputation problem that auras are.
 function M.entity_has(e, tag)
     local G = declaration.G
     if e.kind == "card" then
         local def = G.card_defs[e.def_key]
         if def and def.tags_set and def.tags_set[tag] then return true end
+        local z = e.zone_id and entity.get(e.zone_id)
+        for _, granted in ipairs(z and z.applies or {}) do
+            if granted == tag then return true end
+        end
     end
     local cd = G.computed_tags and G.computed_tags[tag]
     if not cd then return false end

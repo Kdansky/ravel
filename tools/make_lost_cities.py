@@ -25,14 +25,27 @@ COLOURS = [
 VALUES = list(range(2, 11))
 WAGERS = 3
 
-# Two rows of expeditions, one per seat, with the shared discards between them.
+# Seated across the table from each other: North's hand along the top edge,
+# South's along the bottom, and the board between them — each player's own
+# expeditions on their side of the shared discards. Five colour columns of
+# 0.13 on a 0.152 stride, all left-aligned on 0.06 so hands, board and tray
+# share one centre line.
+COL = lambda i: (0.06 + i * 0.152, 0.19 + i * 0.152)
+
 EXPEDITION_POS = {  # colour index -> [north rect, south rect]
-    i: [[0.02 + i * 0.152, 0.04, 0.15 + i * 0.152, 0.24],
-        [0.02 + i * 0.152, 0.52, 0.15 + i * 0.152, 0.72]]
+    i: [[COL(i)[0], 0.155, COL(i)[1], 0.345],
+        [COL(i)[0], 0.525, COL(i)[1], 0.715]]
     for i in range(len(COLOURS))
 }
-DISCARD_POS = {i: [0.02 + i * 0.152, 0.27, 0.15 + i * 0.152, 0.49]
+DISCARD_POS = {i: [COL(i)[0], 0.365, COL(i)[1], 0.505]
                for i in range(len(COLOURS))}
+HAND_POS    = [[0.06, 0.015, 0.798, 0.135],    # north, top edge
+               [0.06, 0.735, 0.798, 0.855]]    # south, above the tray
+# The tray sits below South's hand and starts at x 0.19: the lower-left corner
+# belongs to the undo button and the event log, which are drawn over
+# everything and would otherwise sit on top of the cards.
+CHOICE_POS  = [0.19, 0.875, 0.97, 0.995]
+DECK_POS    = [0.815, 0.365, 0.975, 0.505]     # beside the discards it feeds
 
 
 def templates():
@@ -40,29 +53,15 @@ def templates():
     # The two seats. Each holds its own score; nothing else distinguishes them.
     for key, text in (("north", "North"), ("south", "South")):
         out.append({"key": key, "text": text, "tags": ["player", key + "_side"],
-                    "card_stats": {"score": 0}})
+                    "card_stats": {"score": 0, "tallied": 0}})
 
-    # A destination marker sits in every expedition and every discard pile, so
-    # "where does this card go" is an ordinary card target even when the place
-    # is empty. Markers never move and are never counted as expedition cards.
-    for i, (c, label, col, art) in enumerate(COLOURS):
-        # The route marker is the expedition's legality: it accepts only a card
-        # worth at least what is already there, which is exactly the ascending
-        # rule (wagers are worth 0, so they fit only before any number). It is
-        # also tagged "wager", which makes count:wager the multiplier 1 + wagers
-        # without the engine needing to add one.
-        out.append({"key": c + "_route", "text": label + " route", "color": col,
-                    "asset": "polygon:6:" + art,
-                    "tooltip": "Advance the " + label.lower() + " expedition. Cards must ascend.",
-                    "tags": ["marker", "wager", c + "_dest"],
-                    "accepts": {"value@target": {"at_least": "max:value@mine." + c}},
-                    "auto_play": True, "to_zone": c})
-        # The discard takes anything, which is what having no "accepts" means.
-        out.append({"key": c + "_tip", "text": label + " discard", "color": col,
-                    "asset": "cross:" + art,
-                    "tooltip": "Discard a " + label.lower() + " card.",
-                    "tags": ["marker", c + "_dest"],
-                    "auto_play": True, "to_zone": c + "_discard"})
+    # There are no destination markers. Playing a card points at a *place* — the
+    # expedition or the discard — and a place is a zone, so the zone is the
+    # target. Standing a marker card in each one to be pointed at instead is
+    # what the first version did, and it failed the moment anything covered the
+    # marker: a pile draws and hit-tests only its top card, so after the first
+    # discard the marker was eligible forever and reachable never, and that
+    # colour could not be discarded to again for the rest of the game.
 
     for i, (c, label, col, art) in enumerate(COLOURS):
         # A card may only be played onto a lower one. Wagers count as zero, so
@@ -76,8 +75,10 @@ def templates():
                 "tooltip": tooltip,
                 "tags": ["expedition", *extra_tags],
                 "card_stats": {"value": value},
-                "target": {"type": "card", "tags": [c + "_dest"], "count": 1,
-                           "zones": [c, c + "_discard"]},
+                # Two places it may go, and the player picks one. The
+                # expedition refuses a card worth less than what is already
+                # there; the discard refuses nothing.
+                "target": {"type": "zone", "count": 1, "zones": [c, c + "_discard"]},
                 "on_play": ["move_to:target"],
             }
 
@@ -100,7 +101,14 @@ def templates():
             "tooltip": "Total the " + label.lower() + " expedition.",
             "tags": ["scoring", "token"],
             "needs": {("count:expedition@mine." + c): 1},
+            # (sum - 20) x (1 + wagers), distributed as (sum - 20) plus
+            # (sum - 20) x wagers, because a product cannot add one inside
+            # itself. The route marker used to carry the "wager" tag so that
+            # count:wager *was* 1 + wagers; there is no marker any more, so the
+            # one is written out instead of smuggled in.
             "on_play": [
+                "gain_stat:score@mine.player:sum:value@mine." + c,
+                "lose_stat:score@mine.player:20",
                 "gain_stat:score@mine.player:sum:value@mine." + c + ":x:count:wager@mine." + c,
                 "lose_stat:score@mine.player:20:x:count:wager@mine." + c,
                 "destroy_self",
@@ -123,7 +131,8 @@ def templates():
                 "tags": ["token"],
                 "on_pick": ["destroy:mode", "net_seat:north", "net_invite"]})
     out.append({"key": "done_scoring", "text": "Done", "tooltip": "Finish tallying.",
-                "tags": ["token"], "on_play": ["destroy_self", "next_phase"]})
+                "tags": ["token"],
+                "on_play": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"]})
     for seat, other in (("north", "South"), ("south", "North")):
         out.append({"key": seat + "_wins", "text": seat.title() + " wins",
                     "story": seat.title() + " comes home with the better haul. "
@@ -134,15 +143,10 @@ def templates():
 
 def zones():
     out = [{"key": "deck", "label": "Expedition Deck", "type": "deck",
-            "pos": [0.80, 0.30, 0.97, 0.52], "tags": ["shuffle"],
+            "pos": DECK_POS, "tags": ["shuffle"],
             "contents": ["%s_w%d" % (c, w) for c, _, _, _ in COLOURS for w in range(1, WAGERS + 1)]
                         + ["%s_%d" % (c, v) for c, _, _, _ in COLOURS for v in VALUES]},
-           {"key": "hand", "type": "hand", "per_seat": True,
-            "pos": [[0.02, 0.75, 0.78, 0.87], [0.02, 0.88, 0.78, 0.99]]},
-           # Under the draw column, not across the hands. It used to span
-           # [0.20, 0.75, 0.97, 0.99], which is most of both players' hands —
-           # a zone's background is drawn whether or not it holds anything, so
-           # an empty tally sat on top of the cards you were trying to play.
+           {"key": "hand", "type": "hand", "per_seat": True, "pos": HAND_POS},
            # The opening question, as an overlay of its own. Hidden, so it costs
            # no board space and the layout check ignores it, but an overlay
            # phase draws its zone over the dim regardless. Deliberately *not*
@@ -152,23 +156,60 @@ def zones():
            # each card's own on_pick run — while the zone lays them side by side.
            {"key": "mode", "type": "hand", "pos": [0.30, 0.24, 0.70, 0.76],
             "tags": ["hidden", "no_peek"]},
-           {"key": "tally", "label": "Tally", "type": "hand",
-            "pos": [0.80, 0.75, 0.97, 0.99]},
+           # Where every choice that is not a card in your hand is made: the six
+           # ways to draw, and later the eleven scoring cards. One zone, because
+           # the two steps are never live at once, and a wide one, because a hand
+           # lays its cards out in a single row and shrinks them to fit — the
+           # tally used to be a 163px column and drew its eleven cards 10px wide,
+           # smaller than the text on them. The room comes from the hands, which
+           # have eight cards to its eleven and were never using it.
+           #
            # Declaring a phase's zone also bounds what may be played from it,
-           # which is how the draw step stays a draw step: only the token below
-           # lives here, so a hand card cannot be dumped instead.
-           {"key": "draw_choice", "label": "Draw", "type": "hand",
-            "pos": [0.80, 0.55, 0.97, 0.72]}]
+           # which is the whole reason the draw options live here rather than on
+           # the discard piles: a draw step stays a draw step because your hand
+           # is not in this zone, and a play step stays a play step because these
+           # tokens are not in your hand. No engine gate is needed for either.
+           {"key": "choice", "type": "hand", "pos": CHOICE_POS}]
     for i, (c, label, _, _) in enumerate(COLOURS):
+        # Thirteen, not twelve: an expedition can hold all three wagers and all
+        # nine numbers, and the route marker that gives them somewhere to land
+        # takes a slot of its own. A full board refuses arrivals silently, so
+        # one slot short meant the last card of a completed expedition stayed
+        # in hand while the turn was spent on it.
+        # The expedition's own legality, asked of it when a card is aimed here:
+        # worth at least what is already on it, which is the ascending rule.
+        # Wagers are worth 0, so the same line puts them before every number.
         out.append({"key": c, "label": label, "type": "grid", "per_seat": True,
-                    "grid": [1, 12], "fit": "fill", "pos": EXPEDITION_POS[i]})
+                    "grid": [1, 12], "fit": "fill", "pos": EXPEDITION_POS[i],
+                    "accepts": {"value@target": {"at_least": "max:value@mine." + c}}})
+        # A pile takes anything, which is what having no "accepts" means, and
+        # hands "takeable" to whatever lands on it — so its top card can be
+        # picked up during the draw step without any card knowing about piles.
+        # "activate" is the zone's own say-so that abilities work here. A pile
+        # is not automatically a place you may take from — an MTG graveyard is
+        # the same shape and must not be — so the zone declares it.
         out.append({"key": c + "_discard", "label": label + " discard", "type": "pile",
-                    "pos": DISCARD_POS[i],
-                    "on_click": ["draw_from:" + c + "_discard:hand:1", "next_phase"]})
+                    "pos": DISCARD_POS[i], "tags": ["activate"], "applies": ["takeable"]})
     return out
 
 
 SCORING_CARDS = [c + suffix for suffix in ("_score", "_bonus") for c, _, _, _ in COLOURS]
+
+
+# The one rule the discard piles hand to their contents. A tag is a mixin: the
+# pile says "whatever lies on me can be taken", the engine reaches only the top
+# of a stack, and "phases" keeps it to the draw step — which is the whole reason
+# a card-side phase restriction had to exist before a pickup could be safe.
+# exhausts is false because Lost Cities never wraps a round, so a card exhausted
+# once would never ready again and could never be taken from a pile twice.
+TAG_DEFS = {
+    "takeable": {
+        "on_activate": ["move_to:hand", "next_phase"],
+        "phases": ["draw"],
+        "exhausts": False,
+        "tooltip": "Take this card into your hand.",
+    },
+}
 
 
 def phases():
@@ -179,34 +220,30 @@ def phases():
                         "fill:mode:mode_local:1", "fill:mode:mode_online:1",
                         "push_phase:mode"]}]
 
-    # A turn is play-then-draw. "seat": "next" hands over on entering the play
-    # phase, so the draw that follows belongs to the same player. Drawing from a
-    # discard is that pile's own click, which advances the phase itself; the
-    # deck is the fallback offered in hand.
-    for seat in ("north", "south"):
-        out += [
-            {"key": seat + "_play", "type": "player_input", "zone": "hand",
-             "label": seat.title() + " — play or discard", "seat": "next", "ends_after": 1},
-            {"key": seat + "_draw", "type": "player_input",
-             "label": seat.title() + " — draw from the deck or a discard",
-             "zone": "draw_choice", "pass_card": "draw_deck"},
-        ]
-
-    # The expedition deck running out ends the game, mid-round or not.
-    out[1]["next"] = [{"then": "north_draw"}]
-    out[2]["next"] = [{"zone_empty": ["deck"], "then": "tally_one"}, {"then": "south_play"}]
-    out[3]["next"] = [{"then": "south_draw"}]
-    out[4]["next"] = [{"zone_empty": ["deck"], "then": "tally_one"}, {"then": "north_play"}]
-
-    # Each seat tallies its own expeditions; the scoring cards gate themselves
-    # on having started one, and remove themselves as they are played.
-    # Both seats tally, in the order the handover happens to give them; the
-    # cards gate themselves on having started the expedition they total.
-    for i, key in enumerate(("tally_one", "tally_two")):
-        out.append({"key": key, "type": "player_input", "label": "Tally",
-                    "seat": "next", "zone": "tally",
-                    "pass_card": SCORING_CARDS + ["done_scoring"],
-                    "next": [{"then": "tally_two" if i == 0 else "ending"}]})
+    # A turn is play-then-draw, and there is exactly one of each. Both seats
+    # share them: "seat": "next" hands over on entering the play phase, so the
+    # draw that follows belongs to the same player and the loop closes on
+    # itself. Naming them north_play/south_play instead would double every rule
+    # that ever wants to mention a phase — the "takeable" tag would have to list
+    # two draw steps, and a third seat would make it three.
+    out += [
+        {"key": "play", "type": "player_input", "zone": "hand",
+         "label": "Play or discard", "seat": "next", "ends_after": 1,
+         "next": [{"then": "draw"}]},
+        # The expedition deck running out ends the game, mid-round or not.
+        {"key": "draw", "type": "player_input", "zone": "choice",
+         "label": "Draw from the deck, or take the top of a discard",
+         "pass_card": "draw_deck", "discard_hand": True,
+         "next": [{"zone_empty": ["deck"], "then": "tally"}, {"then": "play"}]},
+        # One tally phase, entered once per seat. It counts itself: each seat
+        # marks its own card as it finishes, and the sum across both is how the
+        # routing knows the second one is done.
+        {"key": "tally", "type": "player_input", "label": "Tally",
+         "seat": "next", "zone": "choice", "discard_hand": True,
+         "pass_card": SCORING_CARDS + ["done_scoring"],
+         "next": [{"stat": "tallied@player", "at_least": 2, "then": "ending"},
+                  {"then": "tally"}]},
+    ]
 
     # The winner is decided by comparing one seat's score against the other's —
     # a comparison whose bound is a subject rather than a number.
@@ -233,8 +270,11 @@ def build():
     return {
         "title": "Lost Cities",
         "seed": 11,
-        "stats": [{"key": "score", "label": "Your score", "subject": "score@mine.player"},
-                  {"key": "round", "label": "Round"}],
+        # No "round": the turn loop is a routing cycle and nothing declares
+        # ends_round, so the counter never moves. A stat that always reads 1 is
+        # noise in the HUD, not information.
+        "stats": [{"key": "score", "label": "Your score", "subject": "score@mine.player"}],
+        "tags": TAG_DEFS,
         "zones": z,
         "templates": tpl,
         "phases": phases(),

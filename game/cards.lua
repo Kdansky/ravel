@@ -59,6 +59,34 @@ function M.def(card_entity)
 	return declaration.G.card_defs[card_entity.def_key]
 end
 
+-- Only what the zone a card lies in hands it, through "applies". Prose wants
+-- this on its own: "advance the expedition" and "take this into your hand"
+-- describe different acts, and the tooltip shows both.
+function M.zone_grant(card_entity, field)
+	local z = card_entity.zone_id and entity.get(card_entity.zone_id)
+	for _, tag in ipairs(z and z.applies or {}) do
+		local td = declaration.G.tag_defs[tag]
+		if td and td[field] ~= nil then return td[field] end
+	end
+end
+
+-- What a card does *here*. Where a card is decides what it can do, so the zone
+-- answers first and the card's own definition answers when the zone says
+-- nothing: a creature lying in a graveyard that grants "return to hand" offers
+-- that, not the tap ability it had on the board. There is no card-wins rule
+-- behind it — a card and its zone defining the same behaviour is an authoring
+-- conflict, which the validator reports rather than silently picking a winner.
+--
+-- Deliberately not folded into def(): that is a bare table lookup on the
+-- per-frame path for render, targeting, costs and tooltips, and it must stay
+-- one. Only the handful of sites that ask "can this be used" come through here.
+function M.behaviour(card_entity, field)
+	local granted = M.zone_grant(card_entity, field)
+	if granted ~= nil then return granted end
+	local def = M.def(card_entity)
+	return def and def[field]
+end
+
 -- The zone a card's tags call home: the first of its tags whose tag
 -- definition names a zone. nil when no tag does.
 function M.home_zone(def)
@@ -88,6 +116,12 @@ end
 function M.edit(def_key, field, raw)
 	local def = declaration.G.card_defs[def_key]
 	if not def then return false, "unknown card: " .. tostring(def_key) end
+	-- Scenery is not content. The menu is a game like any other, which means the
+	-- live-edit tools point straight at it; "immutable" is how a card says it is
+	-- part of the furniture and must not be rewritten under the player.
+	if def.tags_set and def.tags_set.immutable then
+		return false, "immutable card: " .. tostring(def_key)
+	end
 	local ok, value = pcall(json.decode, raw)
 	if not ok then value = raw end
 	def[field] = value

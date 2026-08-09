@@ -125,6 +125,7 @@ Zones declare behaviour through an open-ended string tag set. The engine checks 
 | `face_down` | Pile shows card backs (piles/hands default to faces) |
 | `no_peek` | No tooltip and no browsing, even when face-up |
 | `hidden` | Not drawn; used for overlay offer zones and fate decks |
+| `activate` | Cards here may use their abilities. Not inferred from the zone's shape: a board and a Lost Cities discard both allow it, a hand and an MTG graveyard both do not, and neither pair shares a type |
 
 Decks are finite by default; drawing removes the card.
 
@@ -249,6 +250,47 @@ The startup screen is `menu.json`, a valid game loaded like any other. Menu item
 ## Card Selection
 
 Clicking any face-up card always selects it. This is hardcoded engine behaviour, not a JSON-configurable action. No game definition needs to declare a "select" action. Right-click opens a detail view of a card, or browses a face-up zone's contents (e.g. the discard pile).
+
+**A zone's `on_click` is not a move, and must not be used as one.** It fires in every phase and answers to nothing but the overlay lock. A click that means "take the top of that pile" is an *ability on the card*, granted by the pile — see *Stacks*, *Tags Are Mixins* and *When a Card May Be Used* below.
+
+---
+
+## Stacks Are Reached From the Top
+
+A `deck` or a `pile` draws one card and hit-tests one card, so the rules say the same: the top card of a stack is playable, activatable and targetable, and nothing under it is. Anything else is a disagreement between what the player is shown and what the engine allows, and it can point either way. Lost Cities had it pointing both ways at once — a destination marker at the bottom of each discard pile stayed *eligible* for the whole game while the first card discarded on top of it made the marker *unreachable*, so a colour could be discarded to exactly once and never again; meanwhile a script or a network peer could name any card buried in the pile.
+
+**A place to put a card is a zone, not a marker card standing in one.** `"target": { "type": "zone", "zones": ["red", "red_discard"] }` offers the expedition and the discard, and the player points at a place. `accepts` therefore belongs on the zone as naturally as on a card — the expedition's ascending rule is one line on the expedition — and destinations stop needing a stand-in card that anything can cover up.
+
+---
+
+## Tags Are Mixins, and a Zone May Grant Them
+
+A tag definition may carry card behaviour (`on_activate`, `activate_target`, `activate_cost`, `exhausts`, `phases`, `tooltip`), and a zone may hand tags to whatever sits in it:
+
+```json
+"tags":  { "takeable": { "on_activate": ["move_to:hand", "next_phase"], "phases": ["draw"] } }
+"zones": [ { "key": "red_discard", "type": "pile", "applies": ["takeable"] } ]
+```
+
+That is the whole of "you may take the top card of a discard pile": the pile says what lying on it means, and no card in the game knows piles exist. Graveyard recursion, a deckbuilder's market row and Klondike's movable runs are the same sentence.
+
+**Where a card is decides what it can do.** The zone answers first and the card's own definition answers where the zone is silent — a creature lying in a graveyard that grants "return to hand" offers that, not the tap ability it had on the board. There is deliberately **no card-wins precedence rule**: an earlier draft had one so a marker card could opt out of an ability its pile handed everybody, and that was a workaround for content the engine no longer needs. A card and its zone defining the same behaviour is an authoring conflict now, reported by the validator rather than silently resolved. Prose is the exception and not a conflict: a card's own tooltip and its zone's describe different acts, so the tooltip shows both.
+
+This is aura-shaped, and gap 5 of `ideas/01-boardgames.md` defers auras for good reason; what keeps this the cheap corner is that the grant is *static*: a fixed list declared on the zone, resolved by one lookup, never recomputed as state moves.
+
+---
+
+## When a Card May Be Used
+
+`"phases": ["draw"]` on a card — or on a tag granting it — limits it to those phases. Naming none means any phase, which is what every card written before it assumed. This is MTG's sorcery speed, and it is the rule that makes a grantable ability safe: an ability is used *where the card lies*, so `in_play_zone` cannot bound it (the pile is not the phase's zone and never will be), and without a phase restriction "take the top of that pile" would fire during your play step for a free card and a skipped turn.
+
+**Phase keys must not name a seat.** Both players share one `play` and one `draw`; `"seat": "next"` on entry is what makes the turn theirs. A phase list that says `north_play`/`south_play` doubles every rule that ever mentions a phase, and triples it at three seats.
+
+---
+
+## Immutable
+
+`immutable` is a hardcoded tag meaning *scenery*: it cannot be targeted and its template cannot be edited, ever. The menu is a game like any other, so the live-edit tools and every targeting spec point straight at it; this is how the interface says it is furniture rather than a game object.
 
 ---
 

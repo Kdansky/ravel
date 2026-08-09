@@ -54,6 +54,44 @@ local function in_play_zone(c)
 	return z ~= nil and c ~= nil and c.zone_id == z.id
 end
 
+-- A stack is reached from the top, and only from the top. Decks and piles draw
+-- one card and hit-test one card, so the rules have to say the same thing or
+-- the two disagree in both directions at once: Lost Cities offered its discard
+-- marker as a legal target long after it was buried under a card no click
+-- could see past, and a script or a network peer could name anything in the
+-- pile. This is the rule the renderer has always followed.
+local STACKED = { deck = true, pile = true }
+local function on_top(c)
+	local z = c and c.zone_id and entity.get(c.zone_id)
+	if not z or not STACKED[z.zone_type] then return true end
+	return z.cards[#z.cards] == c.id
+end
+
+-- When a card may be used at all. A card — or a tag its zone grants it —
+-- names the phases it works in, which is how "cast only during your main
+-- phase" is said, and how a discard pile can be pickable during the draw step
+-- and inert for the rest of the turn. Naming none means any phase, which is
+-- what every card ever written for this engine assumed.
+--
+-- Phase *keys*, not seat-qualified ones: both players share a phase, because a
+-- rule that had to be written once per seat would be written twice and drift.
+local function phase_ok(def_phases)
+	if def_phases == nil then return true end
+	local cur = phase.current()
+	if not cur then return false end
+	if type(def_phases) == "string" then return def_phases == cur.key end
+	for _, key in ipairs(type(def_phases) == "table" and def_phases or {}) do
+		if key == cur.key then return true end
+	end
+	return false
+end
+
+-- An ability with nothing in it is no ability, so an empty action list never
+-- makes a card look usable and then do nothing when clicked.
+local function has_ability(list)
+	return type(list) == "table" and #list > 0
+end
+
 local function system_card()
 	for e in entity.each("card") do
 		if e.def_key == "system" and e.zone_id then return e end
@@ -411,7 +449,8 @@ end
 function M.can_play(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	if not def or not reachable(c) or not in_play_zone(c) then return false end
+	if not def or not reachable(c) or not in_play_zone(c) or not on_top(c) then return false end
+	if not phase_ok(cards.behaviour(c, "phases")) then return false end
 	if not M.can_afford(def.cost, { card_id = card_id }) then return false end
 	if predicate.meets_all(def.needs, { card_id = card_id }) then return true end
 	local z = entity.get(c.zone_id)
@@ -465,11 +504,23 @@ end
 -- A board card offers its ability when it has one, is ready, and its
 -- activation cost is affordable. Split out so the input layers can decide
 -- whether to open targeting before committing to the activation.
+-- Note what this does *not* ask: in_play_zone. An ability is used where the
+-- card lies, which is the whole point of a discard pile you can take from — the
+-- pile is not the phase's zone and never will be. The phase restriction above
+-- is what bounds it instead, which is why that rule had to exist before this
+-- one could be safe.
 function M.can_activate(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	return def ~= nil and def.on_activate ~= nil and not c.exhausted and reachable(c)
-		and M.can_afford(def.activate_cost, { card_id = card_id })
+	if not def or c.exhausted or not reachable(c) or not on_top(c) then return false end
+	-- Whether abilities work here is the zone's to say, not something to infer
+	-- from its shape: a board and a Lost Cities discard both allow it, a hand
+	-- and an MTG graveyard both do not, and neither pair shares a zone type.
+	local z = entity.get(c.zone_id)
+	if not (z and z.tags.activate) then return false end
+	if not has_ability(cards.behaviour(c, "on_activate")) then return false end
+	if not phase_ok(cards.behaviour(c, "phases")) then return false end
+	return M.can_afford(def.activate_cost, { card_id = card_id })
 end
 
 -- Activate a board card's ability. Activation exhausts the card until the
@@ -492,8 +543,8 @@ function M.activate(card_id, targets)
 	checkpoint()
 	log.add("Activated " .. (def.text or c.def_key))
 	pay(def.activate_cost, ctx)
-	if def.exhausts ~= false then c.exhausted = true end
-	actions.run(def.on_activate, ctx)
+	if cards.behaviour(c, "exhausts") ~= false then c.exhausted = true end
+	actions.run(cards.behaviour(c, "on_activate"), ctx)
 	M.settle()
 	return true
 end
@@ -554,7 +605,13 @@ function M.summary()
 	return out
 end
 
+-- A zone click is a player action, so a pending choice locks it exactly as it
+-- locks playing and activating. Note that nothing else gates it: an on_click
+-- fires in any phase, which is why "take the top of that pile" belongs on a
+-- card in the phase's own zone (where in_play_zone already bounds it) rather
+-- than on the pile. Lost Cities learned that the expensive way.
 function M.zone_click(zone_id)
+	if phase.is_overlay() then return false end
 	local z = entity.get(zone_id)
 	if not z or #z.on_click == 0 then return false end
 	checkpoint()

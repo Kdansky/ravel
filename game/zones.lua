@@ -47,6 +47,7 @@ local function build(def, seat, pos)
 		pos       = pos,
 		place     = { x = 0, y = 0, w = 0, h = 0 },
 		on_click  = def.on_click or {},
+		applies   = def.applies,   -- tags this zone grants to whatever sits in it
 	}
 	entity.register(e)
 	if seat then
@@ -292,10 +293,14 @@ function M.resize()
 	end
 end
 
+-- The zone under a point. Hidden zones are skipped: they are never drawn, so
+-- nothing the player can see is there to click. The engine's own "reveal" panel
+-- is hidden and covers most of the screen, so without this it answers for the
+-- whole board and every zone underneath becomes unclickable.
 function M.zone_at(x, y)
 	local result = nil
 	for z in entity.each("zone") do
-		if M.contains(z.place, x, y) then result = z.id end
+		if not z.tags.hidden and M.contains(z.place, x, y) then result = z.id end
 	end
 	return result
 end

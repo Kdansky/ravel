@@ -139,6 +139,12 @@ local function primary_action(x, y)
 	-- During targeting: add eligible targets; click source card to cancel.
 	if targeting.active() then
 		local clicked = card_at(x, y) or slot_at(x, y)
+		-- Pointing at a place, not a thing: the card lying in the zone is not
+		-- what "discard it" means, so a zone-typed spec reads the zone under the
+		-- cursor. Cards still answer first, so clicking the source cancels.
+		if targeting.kind == "zone" and clicked ~= targeting.card_id then
+			clicked = zones.zone_at(x, y) or clicked
+		end
 		if clicked == targeting.card_id then
 			cancel_targeting()
 		elseif clicked and targeting.add(clicked) and targeting.is_full() then
@@ -153,9 +159,12 @@ local function primary_action(x, y)
 		local def = cards.def(c)
 		local z   = entity.get(c.zone_id)
 
-		if z and z.zone_type == "grid" then
+		-- A zone tagged "activate" is where abilities are used; anywhere else,
+		-- clicking a card plays it. The zone says which, so a board, a discard
+		-- you may take from and a hand need no special cases here.
+		if z and z.tags.activate then
 			if flow.can_activate(cid) then
-				begin_action(cid, def.activate_target, "activate")
+				begin_action(cid, cards.behaviour(c, "activate_target"), "activate")
 			end
 			return
 		end

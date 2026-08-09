@@ -934,8 +934,17 @@ local CASES = {
 		function(g) g.card_defs.c_flee.card_stats = 3 end },
 	{ "a non-number card stat", "the value of 'hp' should be a number",
 		function(g) g.card_defs.c_flee.card_stats = { hp = "3" } end },
-	{ "a target of an unknown type", "type should be 'card' or 'slot'",
-		function(g) g.card_defs.c_flee.target = { type = "zone", max = 1 } end },
+	{ "a target of an unknown type", "type should be 'card', 'slot' or 'zone'",
+		function(g) g.card_defs.c_flee.target = { type = "hand", max = 1 } end },
+	{ "a zone target naming no zones", "targets a zone but names none",
+		function(g) g.card_defs.c_flee.target = { type = "zone", count = 1 } end },
+	{ "a zone target filtering by tag", "zones are named, not tagged",
+		function(g) g.card_defs.c_flee.target =
+			{ type = "zone", count = 1, zones = { "board" }, tags = { "keepsake" } } end },
+	{ "a card limited to a phase that does not exist", "no phase has that key",
+		function(g) g.card_defs.c_flee.phases = { "nowhere" } end },
+	{ "a zone handing out a tag nothing defines", "which nothing defines or reads",
+		function(g) g.zone_defs.board.applies = { "flurble" } end },
 	{ "a target looking for a missing tag", "looks for the tag 'dragons'",
 		function(g) g.card_defs.c_flee.target = { type = "card", max = 1, tags = { "dragons" } } end },
 	{ "a target searching a missing zone", "searches zone 'vault'",
@@ -1392,7 +1401,8 @@ play_fixture([[{
     { "key": "mana",  "label": "Mana" }
   ],
   "zones": [
-    { "key": "party", "type": "grid", "pos": [0.0, 0.0, 0.8, 0.5], "grid": [4, 1] },
+    { "key": "party", "type": "grid", "pos": [0.0, 0.0, 0.8, 0.5], "grid": [4, 1],
+      "tags": ["activate"] },
     { "key": "hand",  "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
   "phases": [ { "key": "adventuring", "type": "player_input", "label": "Adventuring" } ],
@@ -1592,50 +1602,162 @@ do   -- scoped: Lua 5.4 allows only 200 live locals in the main chunk,
 		for _, v in ipairs(list) do if v == id then return true end end
 		return false
 	end
-	local function marker_in(zone_key, owner)
-		local z = zones.find(zone_key, owner)
-		for _, id in ipairs(z.cards) do
-			if entity.get(id).def_key:match("_route$") or entity.get(id).def_key:match("_tip$") then
-				return id
-			end
-		end
-	end
 	local function drawn(key)
 		eval("fill:hand:" .. key .. ":1")
 		local c = find_card(key, "hand")
 		return c, targeting.candidates(c.id, cards.def(c).target)
 	end
 
+	-- A place to put a card is a zone, not a marker card standing in one.
 	local my_red   = zones.find("red")
-	local red_route, red_tip = marker_in("red"), marker_in("red_discard")
-	check("both seats got their own route marker, not one between them",
-		#zones.all_with_key("red") == 2 and marker_in("red", "enemy") ~= red_route)
+	local red_pile = zones.find("red_discard")
+	check("both seats got their own expedition, not one between them",
+		#zones.all_with_key("red") == 2 and zones.find("red", "enemy").id ~= my_red.id)
 	check("setup dealt eight cards to each seat",
 		#zones.find("hand", "mine").cards == 8 and #zones.find("hand", "enemy").cards == 8)
+	check("nothing is standing in the expedition to be pointed at",
+		#my_red.cards == 0 and #red_pile.cards == 0)
 
 	local c7, k7 = drawn("red_7")
-	check("an empty expedition accepts anything", has(k7, red_route) and has(k7, red_tip))
-	check("and never the other seat's expedition", has(k7, marker_in("red", "enemy")) == false)
-	flow.play_card(c7.id, { red_route })
-	check("the card advanced the expedition", #my_red.cards == 2)
+	check("an empty expedition accepts anything", has(k7, my_red.id) and has(k7, red_pile.id))
+	check("and never the other seat's expedition",
+		has(k7, zones.find("red", "enemy").id) == false)
+	flow.play_card(c7.id, { my_red.id })
+	check("the card advanced the expedition", #my_red.cards == 1)
 
 	local c5, k5 = drawn("red_5")
-	check("a lower card is refused by the expedition", has(k5, red_route) == false)
-	check("but may always be discarded", has(k5, red_tip))
+	check("a lower card is refused by the expedition", has(k5, my_red.id) == false)
+	check("but may always be discarded", has(k5, red_pile.id))
 	check("flow refuses an illegal target even when handed one directly",
-		flow.play_card(c5.id, { red_route }) == false)
+		flow.play_card(c5.id, { my_red.id }) == false)
 
 	local cw = drawn("red_w1")
 	local _, kw = cw, select(2, drawn("red_w2"))
-	check("a wager cannot follow a number", has(kw, red_route) == false)
+	check("a wager cannot follow a number", has(kw, my_red.id) == false)
 
-	-- The scoring arithmetic, end to end: the route marker is tagged "wager", so
-	-- count:wager is the multiplier 1 + wagers without the engine adding one.
+	check("a full expedition holds all three wagers and all nine numbers",
+		#my_red.slots == 12)
+
+	-- The scoring arithmetic, end to end: (sum - 20) x (1 + wagers), written as
+	-- (sum - 20) plus (sum - 20) x wagers because a product cannot add one
+	-- inside itself. Red holds a single 7 here, and no wagers.
 	local score0 = predicate.total("score@mine.player")
+	eval("gain_stat:score@mine.player:sum:value@mine.red")
+	eval("lose_stat:score@mine.player:20")
 	eval("gain_stat:score@mine.player:sum:value@mine.red:x:count:wager@mine.red")
 	eval("lose_stat:score@mine.player:20:x:count:wager@mine.red")
-	check("an expedition scores (sum - 20) x wagers",
+	check("an expedition scores (sum - 20) x (1 + wagers)",
 		predicate.total("score@mine.player") == score0 - 13)
+end
+
+-- Taking from a discard is the pile's top card offering an ability, granted by
+-- the pile through "applies" and confined to the draw step by "phases". Every
+-- check below is a bug that shipped in an earlier shape: the pile's on_click
+-- ran in any phase (so the play step could be spent on a second draw), an empty
+-- pile handed over the marker that said where discards go, and once anything
+-- covered that marker the colour could never be discarded to again.
+do
+	local function hand_size() return #zones.find("hand", "mine").cards end
+	local function pile(key) return zones.find(key) end
+	local function top_of(key)
+		local z = pile(key)
+		return z.cards[#z.cards]
+	end
+
+	flow.init("lost_cities.json", 11)
+	dismiss_mode()
+	check("both seats share one play step and one draw step",
+		phase.current().key == "play" and declaration.G.phase_by_key.north_play == nil)
+	check("the draw option is not on the table during the play step",
+		#zones.find("choice").cards == 0)
+
+	-- Discard one card, which is what carries us into the draw step.
+	local c = entity.get(zones.find("hand", "mine").cards[1])
+	local dest
+	for _, id in ipairs(targeting.candidates(c.id, cards.def(c).target)) do
+		if entity.get(id).key:match("_discard$") then dest = id end
+	end
+	local pile_key = entity.get(dest).key
+	flow.play_card(c.id, { dest })
+	check("discarding puts the card on the pile and reaches the draw step",
+		phase.current().key == "draw" and #pile(pile_key).cards == 1)
+
+	local empty = pile_key == "red_discard" and "green_discard" or "red_discard"
+	check("an empty pile has no top card to take", top_of(empty) == nil)
+	check("the pile you just discarded to offers its top card",
+		flow.can_activate(top_of(pile_key)) == true)
+	check("a hand card cannot be played during the draw step",
+		flow.can_play(zones.find("hand", "mine").cards[1]) == false)
+
+	local before = hand_size()
+	flow.activate(top_of(pile_key), {})
+	check("taking the top of a pile draws it and hands over",
+		hand_size() == before + 1 and #pile(pile_key).cards == 0
+		and phase.current().key == "play")
+	check("and the draw option is swept off the table", #zones.find("choice").cards == 0)
+
+	-- The bug the stack rule exists for: discard twice to the same colour.
+	-- Whichever card in hand is the right colour for that pile.
+	local function discard_once()
+		for _, cid in ipairs(zones.find("hand", "mine").cards) do
+			local card = entity.get(cid)
+			for _, id in ipairs(targeting.candidates(cid, cards.def(card).target)) do
+				if entity.get(id).key == pile_key then
+					return flow.play_card(cid, { id })
+				end
+			end
+		end
+		return false
+	end
+	local first = discard_once()
+	flow.play_card(zones.find("choice").cards[1], {})   -- draw from the deck, hand over
+	check("a pile with a card on it is still a legal place to discard",
+		first and discard_once() and #pile(pile_key).cards == 2)
+	check("and the card underneath the top one cannot be taken",
+		flow.can_activate(pile(pile_key).cards[1]) == false)
+
+	-- The pile's ability is the pile's, not the card's: the same card in a hand
+	-- has none, and no card may be taken outside the draw step.
+	flow.play_card(zones.find("choice").cards[1], {})   -- draw, back to a play step
+	check("the top of a pile is inert during the play step",
+		phase.current().key == "play" and flow.can_activate(top_of(pile_key)) == false)
+
+	-- Presentation reads the granted ability too, or the only discoverable fact
+	-- about a pickup is that clicking sometimes does nothing.
+	local top = entity.get(top_of(pile_key))
+	-- Where a card is decides what it can do: the zone answers first, and the
+	-- card's own definition answers only where the zone is silent.
+	local in_hand = entity.get(zones.find("hand", "mine").cards[1])
+	check("the zone it lies in decides its behaviour",
+		cards.behaviour(top, "on_activate") ~= nil
+		and cards.behaviour(top, "tooltip") == "Take this card into your hand.")
+	check("and the card answers for itself where the zone says nothing",
+		cards.behaviour(top, "target") == cards.def(top).target
+		and cards.behaviour(in_hand, "on_activate") == nil
+		and cards.behaviour(in_hand, "tooltip") == cards.def(in_hand).tooltip)
+	check("the zone's grant is separately readable, so prose can show both",
+		cards.zone_grant(top, "tooltip") == "Take this card into your hand."
+		and cards.zone_grant(in_hand, "tooltip") == nil)
+end
+
+-- "immutable" is scenery: the interface is a game like any other, so the
+-- live-edit tools and every targeting spec point straight at it unless
+-- something says not to.
+do
+	flow.init("menu.json")
+	local ok, why = cards.edit("play_castle", "text", '"HACKED"')
+	check("an immutable card refuses a template edit",
+		ok == false and tostring(why):find("immutable") ~= nil
+		and declaration.G.card_defs.play_castle.text == "Castle Lord")
+	local menu = zones.find("menu")
+	check("and nothing can target it",
+		#menu.cards > 0
+		and #targeting.candidates(menu.cards[1], { type = "card", count = 1, zones = { "menu" } }) == 0)
+
+	flow.init("castle.json", 7)
+	check("an ordinary card is still editable in place",
+		cards.edit("farm", "text", '"Renamed"') == true
+		and declaration.G.card_defs.farm.text == "Renamed")
 
 	-- === subject grammar ===
 	-- Pure parsing, no game loaded: the one place the scope syntax is decided.
@@ -1924,7 +2046,12 @@ do
 	flow.play_card(cid, targets)
 	local moved = net.fingerprint()
 	local delta = net.export()
-	check("a delta is far smaller than a state", #delta * 10 < #shared and #delta < 1000,
+	-- The absolute bound is the one that matters; the ratio is here to catch a
+	-- delta that has quietly become a whole state. It was 20x when a Lost
+	-- Cities turn moved one card, and is ~8x now that finishing a play deals
+	-- the six draw options into the choice zone — six creations the opponent
+	-- has to hear about. Still 714 bytes against 6 KB.
+	check("a delta is far smaller than a state", #delta * 5 < #shared and #delta < 1000,
 		#delta .. " vs " .. #shared)
 
 	net.import(shared)                        -- rewind: be the opponent

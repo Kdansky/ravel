@@ -188,7 +188,9 @@ rulebook open alongside.
 | "Cards must be played in ascending order" | `accepts` on the destination |
 | "Costs 2 gold" | `"cost": { "gold": 2 }` |
 | "Only if you control a farm" | `"needs": { "count:farm": 1 }` |
-| "Draw from the deck or a discard pile" | `on_click` on each pile: `draw_from:<pile>:hand:1`, `next_phase` |
+| "Draw from the deck or a discard pile" | a token in the draw phase's `zone` for the deck; for the piles, `"applies": ["takeable"]` on each and one tag def carrying `on_activate` + `phases` |
+| "Only during your main phase" | `"phases": ["main"]` on the card, or on a tag it carries |
+| "Put it on the discard pile" | `"target": { "type": "zone", "zones": ["discard"] }` — point at the place, not at a card lying in it |
 | "Discard a card of your choice" | an `overlay` phase over the hand with `on_pick` |
 | "Destroy all enemy creatures" | `destroy:each.enemy.creature` |
 | "Choose an enemy creature" | `"target": { "tags": ["creature"], "owner": "enemy", "count": 1 }` |
@@ -355,7 +357,7 @@ up the lantern or the pearl). The oldest matching card is taken.
 | `seed` | Optional fixed RNG seed (reproducible shuffles) |
 | `stats` | Ordered stat declarations (HUD order) |
 | `computed_tags` | Derived per-card tags (see below) |
-| `tags` | Tag behaviour — a tag can give its cards a home zone (see below) |
+| `tags` | Tag behaviour — a tag is a mixin: it can give its cards a home `zone`, and can carry `on_activate` / `activate_target` / `activate_cost` / `exhausts` / `phases` / `tooltip`, which a zone may then hand to its contents with `applies` (see below) |
 | `effects` | Named visual effects on the base vocabulary (see below) |
 | `templates` | Card definitions (`cards` also accepted) |
 | `zones` | Zone definitions, in declaration order |
@@ -382,18 +384,22 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | Field | Meaning |
 |---|---|
 | `key`, `label` | Identity and optional on-screen label |
-| `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots) |
+| `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots). **Stacks are reached from the top**: only the top card of a deck or pile can be played, activated or targeted |
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]` for grid zones |
 | `fit` | Grid zones: `"card"` (default) keeps card proportions inside each cell, leaving breathing room; `"fill"` stretches cards to fill the cell, for board-game tiles |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
-| `on_click` | Actions run when the zone is clicked |
+| `on_click` | Actions run when the zone is clicked. **Not phase-scoped** — it fires in every phase. To make a *card* usable at one point in a turn, grant it an ability with `applies` and limit it with `phases` |
+| `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
+| `accepts` | Condition map deciding whether a card being played may be sent **here** — the zone answers for itself, as a card does |
 | `per_seat` | `true` makes one copy of this zone per seat (see *Two or more players*). `pos` then takes one rect **per seat**: `[[…], […]]` |
 | `tags` | See below |
 
 Zone tags: `shuffle` (on contents creation and refill), `refill_when_empty`
 (recreate `contents` when emptied), `face_up` / `face_down` (override facing),
-`no_peek` (no tooltip/browse), `hidden` (not drawn; offer zones, fate decks).
+`no_peek` (no tooltip/browse), `hidden` (not drawn; offer zones, fate decks),
+`activate` (cards here may use `on_activate` — without it an ability is
+unreachable wherever the card sits, so every board needs it).
 
 Cards entering a grid without slot targeting auto-occupy the first free slot.
 A full board refuses new arrivals: moves fail quietly and `fill`/`gain` stop
@@ -428,8 +434,9 @@ there is nothing to check until the request actually runs.
 | `activate_cost` | Spent on activation (sacrifices allowed here too) |
 | `needs` | Non-consuming gate (shared condition subjects); escape hatch: playable anyway if nothing else in the zone is |
 | `requires` | Checked by `resolve_challenge` → `on_pass` / `on_fail` |
-| `target` | Click-to-target with the arrow. Fields: `type` (`"card"` or `"slot"`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`) |
-| `accepts` | Condition map deciding whether **this** card may be targeted by the card being played (see *Legality between two cards*) |
+| `target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`) |
+| `accepts` | Condition map deciding whether **this** card may be targeted by the card being played (see *Legality between two cards*). Zones take it too |
+| `phases` | Phase key or list: the card works only in those phases. Naming none means any. This is "cast only during your main phase" |
 | `activate_target` | Same shape, for `on_activate`: clicking the board card opens targeting before the ability runs |
 | `on_play` | Actions when played (ctx: this card + chosen targets) |
 | `on_activate` | Actions when clicked on the board; **exhausts** the card until the round wraps. A board card shows three states: ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable) |
@@ -917,9 +924,11 @@ hand.
 load-bearing names; `reveal` names both the built-in page zone and overlay
 phase, and `system` the hidden zone holding the engine's own two cards (a game
 may declare any of them to override). The tag `player` marks a seat, and the
-card key `system` the round counter. Clicking a face-up card plays it; clicking
-a grid card activates it; decks aren't clickable (give them `on_click` if
-needed).
+card key `system` the round counter. The tag `immutable` means scenery: nothing
+may target such a card and its template can never be edited — put it on menu
+entries and anything else that is interface rather than game. Clicking a face-up
+card plays it; clicking a grid card, or the top of a pile, activates it; decks
+aren't clickable (give them `on_click` if needed).
 
 Reserved words that a zone or tag may never be named: `self` and `all` (the
 engine answers for them in scopes), plus the quantifiers `any` / `each` /

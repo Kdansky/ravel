@@ -10,7 +10,7 @@
   "tags": { "keepsake": { "zone": "board" } },
 
   "zones": [
-    { "key": "board", "label": "Keepsakes", "type": "grid", "grid": [5, 1] },
+    { "key": "board", "label": "Keepsakes", "type": "grid", "grid": [5, 1], "tags": ["activate"] },
     { "key": "hand", "type": "hand" },
     { "key": "secret_deck", "type": "deck", "tags": ["hidden", "shuffle"],
       "contents": ["p_good_luck", "p_bad_luck"] }
