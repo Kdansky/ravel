@@ -1,7 +1,21 @@
 # 12 — A card is a list of moments
 
-**Status:** not started · **Size:** large, and almost all of it is migration ·
-**Depends on:** [11](11-styles-as-tags.md) for `color`
+**Status:** in progress — `challenge` shipped (`251b48f`) · **Size:** large, and
+almost all of it is migration · **Depends on:** [11](11-styles-as-tags.md) for
+`color`
+
+**One moment per commit.** The mechanism is a single table in
+`declaration.parse` mapping authored block fields to the flat names the engine
+already reads, so no read site downstream changes and each moment moves on its
+own. An entry joins that table only when its moment migrates: a block the parser
+accepts while the validator rejects it is worse than no block.
+
+**No migration aids, and no old syntax.** Every game is in this repository, so
+there is nothing to be compatible with. The flat name is *refused* once its
+moment has moved — otherwise it keeps working by accident, the engine reading
+`def.requires` whichever way it arrived, and an accidental alias is the thing
+being removed. That check is driven by the same table, so there is no second
+list to keep in step.
 
 > *cost, activate_cost, target, activate_target, and so on. I think cards should
 > have two subdocuments: activation / play, and then have duplicate structures in
@@ -135,23 +149,22 @@ simpler and closer to the documented intent.
 they regenerate; the other eight are rewritten by a script.
 
 **The golden traces are the proof.** A faithful migration changes no behaviour,
-so every recorded transcript must come out byte-identical. That is a much
-stronger check than reading the diff, and it is the reason to do this as one
-mechanical pass rather than card by card.
+so every recorded transcript must come out byte-identical — and `castle.log` and
+`kingdom.log` cover the two densest games, which is why this can be done a moment
+at a time and still be checked.
 
-Order:
+Order, one commit each:
 
-1. `declaration.parse` reads the new shape and nothing else. A clean break — the
-   same call [05](05-assets-and-repo.md) made about asset prefixes, for the same
-   reason: every game is in this repository, and a compatibility path keeps the
-   old vocabulary alive, which is what is being removed.
-2. `validate.FIELDS` gains `play`, `activate`, `challenge`, `receive`, `turn`,
-   `pick`, `start`; `SCHEMA.json` mirrors them. **The schema test is what makes
-   this migration safe** — it fails the moment the document and the engine
-   disagree about a single field, which is exactly what a rename this wide gets
-   wrong.
-3. Migrate the eight hand-written games with a script, regenerate the two.
-4. `cards.behaviour` resolves blocks; tag defs adopt the same shape.
+1. ~~`declaration.parse` reads the new shape and nothing else~~ — **done**, and
+   the clean break held: the flat name is an error, not a fallback.
+2. ~~`challenge`~~ — **done.** 22 cards across five games.
+3. `receive` (`accepts`, on cards *and* zones), then `play`, then `activate`,
+   then `turn` / `pick` / `start`. Each adds one line to `MOMENTS`, one entry to
+   `validate.FIELDS` and one block to `SCHEMA.json` — which the schema test then
+   holds to the engine in both directions, and which is what makes a rename this
+   wide safe to do piecemeal.
+4. `cards.behaviour` resolves blocks; tag defs already flatten through the same
+   table, so their vocabulary cannot drift from a card's.
 5. Golden traces must be unchanged. If they are not, the migration is wrong —
    not the traces.
 

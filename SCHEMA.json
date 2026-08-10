@@ -1,5 +1,5 @@
 {
-  "_about": "Every field a game file may contain, laid out as a game file, with a sentence where each value would be. Keys starting with an underscore are not sections — they describe vocabularies that are not shapes. Read AUTHORING.md to learn how to build a game; read this to check what may appear where. tests/integration/schema.lua asserts this file and the validator know the same fields, so if they disagree one of them is a bug.",
+  "_about": "Every field a game file may contain, laid out as a game file, with a sentence where each value would be. Keys starting with an underscore are not sections: they describe vocabularies that are not shapes. A nested block is a moment — it says when the thing inside it happens, so one word can mean one thing (needs is a gate wherever it appears, and the block says what it gates). Fields still sitting flat on a card are moments that have not moved yet, which makes this file the honest record of how far that has got. tests/integration/schema.lua asserts this file and the validator know the same fields in both directions, so if they disagree one of them is a bug.",
   "title": "string shown in the HUD. Defaults to Ravel.",
   "seed": "number fixing the RNG so shuffles and every random choice replay identically. Omit for a different game each run.",
   "placeholder_art": "true gives every card with no asset a generated picture derived from its key, so a new file has visual differentiation from the first save.",
@@ -40,23 +40,8 @@
       "cost": {
         "<stat key or sacrifice:tag>": "number paid when the card is played. It gates the card and dims it when unaffordable. A scope is allowed, a measuring fn is not: counting things is asking, not spending, so count: and sum: belong in needs."
       },
-      "activate_cost": {
-        "<stat key or sacrifice:tag>": "number paid when the card is activated on the board, same rules as cost"
-      },
       "needs": {
         "<subject>": "a condition that gates the card without consuming anything. A bare number means at least n; a map like {at_most: 6} asks the other way. See _conditions."
-      },
-      "challenge": {
-        "needs": "a condition deciding pass from fail, read by the resolve_challenge action. Same shape as any other needs; what differs is the moment it is asked.",
-        "pass": [
-          "action strings run when the condition holds"
-        ],
-        "fail": [
-          "action strings run when it does not"
-        ]
-      },
-      "accepts": {
-        "<subject>": "a condition deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."
       },
       "target": {
         "type": "card, slot or zone: what the player points at",
@@ -75,20 +60,36 @@
           "pattern names limiting the squares offered, written for you when the card declares moves"
         ]
       },
+      "phases": [
+        "phase key or list of them: the card works only there. Naming none means any phase."
+      ],
+      "on_play": [
+        "action strings run when the card is played. See _actions."
+      ],
+      "irreversible": "true clears the undo stack when the card is played or picked: the choice is final",
+      "activate_cost": {
+        "<stat key or sacrifice:tag>": "number paid when the card is activated on the board, same rules as cost"
+      },
       "activate_target": "the same shape as target, for the ability rather than the play",
       "moves": [
         "how a piece moves on a grid: pattern names, or objects carrying their own patterns plus fill and needs. Declaring this writes the activate_target for you."
       ],
-      "phases": [
-        "phase key or list of them: the card works only there. Naming none means any phase."
-      ],
       "exhausts": "false keeps the card ready after activating, which is what a permanent button wants. Default true: one use per round.",
-      "on_play": [
-        "action strings run when the card is played. See _actions."
-      ],
       "on_activate": [
         "action strings run when the card is clicked on the board"
       ],
+      "challenge": {
+        "needs": "a condition deciding pass from fail, read by the resolve_challenge action. Same shape as any other needs; what differs is the moment it is asked.",
+        "pass": [
+          "action strings run when the condition holds"
+        ],
+        "fail": [
+          "action strings run when it does not"
+        ]
+      },
+      "accepts": {
+        "<subject>": "a condition deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."
+      },
       "on_turn": [
         "action strings run at each round boundary while the card is on a grid and not ruined"
       ],
@@ -98,7 +99,6 @@
       "auto_play": "true starts the card already in play, for thrones, boards and buttons",
       "to_zone": "zone key an auto_play card starts in. Without one, its home tag decides, then the only board.",
       "to_slot": "1-based cell index an auto_play card starts on, row-major",
-      "irreversible": "true clears the undo stack when the card is played or picked: the choice is final",
       "outcome": "victory or defeat on an ending card, which gives a banner, a run summary and a flourish"
     }
   ],

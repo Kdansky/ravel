@@ -380,7 +380,7 @@ file to check what may appear where.
 | `effects` | Named visual effects on the base vocabulary (see below) |
 | `patterns` | Named direction sets for grid movement (see *Pieces that move*) |
 | `assets` | Named pictures, and the only place a picture carries options (see *Named assets*) |
-| `cards` | Card definitions. Called `templates` until it was cut: one name only, and a file still using the old one is told so |
+| `cards` | Card definitions — one entry per card *kind* |
 | `zones` | Zone definitions, in declaration order |
 | `phases` | Phase definitions; first entry starts the game |
 | `end_conditions` | Outcome checks, first match wins, once per game |

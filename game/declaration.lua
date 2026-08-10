@@ -13,66 +13,45 @@ M.TEMPLATE_FIELDS = {
 
 -- A card is written as a list of moments, and read as a flat def.
 --
--- The file says when a thing happens by where it sits: "play" carries the cost,
--- the gate, the targeting and the action of playing; "activate" carries the same
--- vocabulary for the board ability. That kills three pairs of near-duplicates
--- (cost/activate_cost, target/activate_target, on_play/on_activate), which were
--- one idea spelled as a naming convention nothing documented.
+-- A moment is a block naming when something happens, holding the vocabulary of
+-- that moment: "challenge" carries the condition a trial asks and the two action
+-- lists it chooses between. Position is what disambiguates, so one word can mean
+-- one thing — `needs` is a gate wherever it appears, and the block says what it
+-- gates.
 --
--- Two words got clearer by moving rather than by being renamed. "requires" and
--- "needs" described the same thing at different moments and neither said so, so
--- there is one word — needs — and the block says what it gates: play.needs gates
--- the play, challenge.needs decides pass from fail. "accepts" sat on a
--- destination and asked about an arriving card, which a bare field has nowhere
--- to say; receive.needs reads in the right direction.
+-- The engine keeps flat names. This table maps one to the other, so every read
+-- site downstream is untouched by a change to what an author writes, and the
+-- golden traces are what prove a move was faithful. Turning a document into
+-- engine data is what this file is for.
 --
--- The engine keeps the flat names. Everything downstream reads def.on_play and
--- def.activate_cost as it always did, so this is a change to what an author
--- writes and to nothing else — which is why the golden traces are the proof it
--- was faithful. Splitting the document into engine data is what this file is
--- for (ARCHITECTURE's boundary rule), and it costs one table.
---
--- `phases` is the exception worth naming: it was one field gating both playing
--- and activating, so a zone granting an ability's phases also gated *playing*
--- the card. Two entries, so the two can differ and that bug cannot recur.
+-- Entries arrive here as each moment migrates, and not before: a block the
+-- parser accepted while the validator rejected it would be worse than no block.
 local MOMENTS = {
-	play      = { cost = "cost", needs = "needs", target = "target", action = "on_play",
-		phases = "phases", irreversible = "irreversible" },
-	activate  = { cost = "activate_cost", target = "activate_target", action = "on_activate",
-		phases = "activate_phases", exhausts = "exhausts", moves = "moves" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
-	receive   = { needs = "accepts" },
-	turn      = { action = "on_turn" },
-	pick      = { action = "on_pick", irreversible = "irreversible" },
-	start     = { zone = "to_zone", slot = "to_slot" },
 }
 M.MOMENTS = MOMENTS
-
--- Flat names that have already moved into a block. An author who writes the old
--- one gets told where it went, rather than a card that silently does nothing.
--- This grows one entry per moment as each is migrated; a name is only retired
--- once every shipped game has stopped writing it.
-local RETIRED = {
-	requires = "challenge.needs", on_pass = "challenge.pass", on_fail = "challenge.fail",
-}
 
 -- Flatten the moment blocks onto the def, in place. The authored blocks stay
 -- where they are: ctrl+hover shows an author their own JSON, not our version of
 -- it, and cards.dump has to round-trip back into the file.
+--
+-- The internal name is refused as an authored one. Without that the flat form
+-- keeps working by accident — the engine reads def.requires either way — and an
+-- accidental alias is exactly what moving the field was meant to remove. Checked
+-- before anything is written, and driven by MOMENTS so there is no second list
+-- to keep in step.
 local function flatten_moments(def, pp, what)
-	for flat, moved in pairs(RETIRED) do
-		if def[flat] ~= nil and pp then
-			pp[#pp + 1] = ("%s writes \"%s\", which is \"%s\" now — a card says when a thing happens by which block it is in")
-				:format(what, flat, moved)
-		end
-	end
 	for moment, fields in pairs(MOMENTS) do
+		for authored, internal in pairs(fields) do
+			if def[internal] ~= nil and pp then
+				pp[#pp + 1] = ('%s writes "%s", which is not a field: it is "%s" inside the "%s" block')
+					:format(what, internal, authored, moment)
+			end
+		end
 		local block = def[moment]
 		if type(block) == "table" then
 			for authored, internal in pairs(fields) do
-				if block[authored] ~= nil and def[internal] == nil then
-					def[internal] = block[authored]
-				end
+				if block[authored] ~= nil then def[internal] = block[authored] end
 			end
 			-- Presence is the flag: a card with a "start" block starts in play,
 			-- so auto_play stops being a boolean somebody can forget beside it.
@@ -177,7 +156,7 @@ local function normalise_moves(moves)
 		if type(rule) == "string" then
 			out[#out + 1] = { patterns = { rule }, fill = "open" }
 		elseif type(rule) == "table" then
-			local names = rule.patterns or rule.pattern
+			local names = rule.patterns
 			out[#out + 1] = {
 				patterns = type(names) == "table" and names or { names },
 				fill     = rule.fill or "open",
@@ -282,13 +261,6 @@ function M.parse(filename)
 		end
 	end
 
-	-- "templates" was a second name for this section, and the `or` that read one
-	-- of them silently dropped every card in the other. One name now: the engine
-	-- has always called them cards internally, and DESIGN.md's own directive is
-	-- "when in doubt, decks and cards".
-	if parsed.templates then
-		pp[#pp + 1] = 'this file has a "templates" section — it is called "cards" now, and nothing in "templates" is read'
-	end
 	for _, cd in ipairs(entries(parsed.cards, "cards")) do
 		if type(cd) ~= "table" or not cd.key then
 			pp[#pp + 1] = "a card has no \"key\" — every card needs a unique one"
