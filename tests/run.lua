@@ -903,7 +903,7 @@ local bp = with_fixture([[{
     { "key": "board", "type": "gird", "pos": [0, 0, 1, 1], "grid": [3, 1] },
     { "key": "hand", "type": "hand", "pos": [0, 0, 1, 1] }
   ],
-  "templates": [
+  "cards": [
     { "key": "sword", "onplay": ["destroy_self"], "cost": { "gold": "2" },
       "on_play": ["gain_stat:gld:1"] },
     { "key": "axe", "on_activate": "gain_stat:gold:1" },
@@ -990,7 +990,7 @@ check("a stack-overflow JSON payload recovers to the menu, not a crash",
 -- Parse-level messages need real files: entries with no key, duplicate
 -- zone/phase keys, and a section written as an object instead of a list.
 local kp = with_fixture([[{
-  "templates": [ { "text": "No Key" } ],
+  "cards": [ { "text": "No Key" } ],
   "zones": [
     { "type": "hand", "pos": [0, 0, 1, 1] },
     { "key": "dup", "type": "hand", "pos": [0, 0, 1, 1] },
@@ -1004,15 +1004,15 @@ local kp = with_fixture([[{
   ]
 }]])
 check("entries without keys are reported for every kind",
-	has_problem(kp, "a template has no") and has_problem(kp, "a zone has no")
+	has_problem(kp, "a card has no") and has_problem(kp, "a zone has no")
 	and has_problem(kp, "a stat has no") and has_problem(kp, "a phase has no"))
 check("duplicate zone and phase keys are conflicts",
 	has_problem(kp, "two zones share the key 'dup'")
 	and has_problem(kp, "two phases share the key 'p'"))
 
-local sp = with_fixture('{ "templates": { "key": "x" } }')
+local sp = with_fixture('{ "cards": { "key": "x" } }')
 check("a section that isn't a list is explained",
-	has_problem(sp, "the 'templates' section should be a list"))
+	has_problem(sp, "the 'cards' section should be a list"))
 
 -- === random terminator: every game ends at the menu ===
 -- All currently legal moves, as closures. Shared by the terminator and the
@@ -1252,7 +1252,7 @@ play_fixture([[{
     { "key": "hand",  "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
   "phases": [ { "key": "adventuring", "type": "player_input", "label": "Adventuring" } ],
-  "templates": [
+  "cards": [
     { "key": "ranger", "text": "Ranger", "tags": ["player", "ranger"],
       "card_stats": { "hp": 6, "might": 3 }, "auto_play": true, "to_zone": "party" },
     { "key": "cleric", "text": "Cleric", "tags": ["player", "cleric"],
@@ -1310,7 +1310,7 @@ play_fixture([==[{
     { "key": "north_turn", "type": "player_input", "label": "North", "seat": "next" },
     { "key": "south_turn", "type": "player_input", "label": "South", "seat": "next" }
   ],
-  "templates": [
+  "cards": [
     { "key": "north", "text": "North", "tags": ["player", "north_side"], "card_stats": { "gold": 5 } },
     { "key": "south", "text": "South", "tags": ["player", "south_side"], "card_stats": { "gold": 2 } },
     { "key": "wolf",  "text": "Wolf",  "tags": ["creature"], "card_stats": { "hp": 3 } },
@@ -1424,7 +1424,7 @@ play_fixture([==[{
     { "key": "hand",  "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
   "phases": [ { "key": "battle", "type": "player_input", "label": "Battle" } ],
-  "templates": [
+  "cards": [
     { "key": "white", "text": "White", "tags": ["player"] },
     { "key": "black", "text": "Black", "tags": ["player"] },
     { "key": "w_rook", "text": "White Rook", "tags": ["white", "piece"],
@@ -1517,7 +1517,7 @@ play_fixture([==[{
     { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
   "phases": [ { "key": "turn", "type": "player_input", "label": "Turn" } ],
-  "templates": [
+  "cards": [
     { "key": "p1", "text": "Empire One",   "tags": ["player"] },
     { "key": "p2", "text": "Empire Two",   "tags": ["player"] },
     { "key": "p3", "text": "Empire Three", "tags": ["player"] },

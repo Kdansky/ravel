@@ -47,7 +47,7 @@
       "pos": [0.82, 0.32, 1.00, 0.60] }
   ],
 
-  "templates": [
+  "cards": [
 
     { "key": "p_depart", "text": "The Long Road",
       "story": "The city burned a week ago; whatever it was to you, it is smoke now. What is left of your caravan points itself at the mountains, twelve miles of bad country between you and the winter halls of your kin. Every dawn the road sends something new to meet you. Every dusk you choose: spend the bread, or spend the heart.",

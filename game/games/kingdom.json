@@ -28,7 +28,7 @@
     "crisis_smoke":  { "base": "smoke", "size": 1.3 }
   },
 
-  "templates": [
+  "cards": [
 
     { "key": "merchant_prince", "text": "Merchant Prince", "asset": "merchant_portrait.jpg",
       "tooltip": "Born to ledgers and caravans. +6 gold.",

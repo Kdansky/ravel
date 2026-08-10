@@ -13,7 +13,7 @@
     { "key": "fate_defeat",  "type": "deck", "pos": [0.42, -0.40, 0.58, -0.08], "tags": ["hidden"],
       "contents": ["perished"] }
   ],
-  "templates": [
+  "cards": [
     {
       "key": "shelter",
       "text": "Find Shelter",

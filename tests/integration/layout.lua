@@ -93,7 +93,7 @@ local function fixture(zone)
 	f:write(([[{
 		"title": "Layout",
 		"zones": [%s],
-		"templates": [{ "key": "hero", "text": "Hero" }],
+		"cards": [{ "key": "hero", "text": "Hero" }],
 		"phases": [{ "key": "play", "type": "player_input" }]
 	}]]):format(zone))
 	f:close()

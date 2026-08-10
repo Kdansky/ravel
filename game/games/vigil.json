@@ -21,7 +21,7 @@
     "player": { "time": 3, "health": 10, "funds": 4, "insight": 0, "dread": 0, "ritual": 0 }
   },
 
-  "templates": [
+  "cards": [
     {
       "key":         "pass_night",
       "text":        "Nightfall",

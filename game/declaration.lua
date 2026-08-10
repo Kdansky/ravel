@@ -24,7 +24,7 @@ end
 -- and a test compares them so a new section cannot arrive undocumented.
 local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true,
-	templates = true, cards = true, zones = true, phases = true,
+	cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true,
 	placeholder_art = true, patterns = true, assets = true,
 }
@@ -204,19 +204,19 @@ function M.parse(filename)
 		end
 	end
 
-	-- "cards" is a second name for "templates" and the `or` picks one, so a file
-	-- carrying both lost every card in the second — silently, and with the
-	-- validator calling the file clean. Say so rather than quietly halving a game.
-	if parsed.templates and parsed.cards then
-		pp[#pp + 1] = 'this file has both a "templates" and a "cards" section, which are two names for one thing'
-			.. " — only \"templates\" is read, so everything under \"cards\" is ignored. Merge them."
+	-- "templates" was a second name for this section, and the `or` that read one
+	-- of them silently dropped every card in the other. One name now: the engine
+	-- has always called them cards internally, and DESIGN.md's own directive is
+	-- "when in doubt, decks and cards".
+	if parsed.templates then
+		pp[#pp + 1] = 'this file has a "templates" section — it is called "cards" now, and nothing in "templates" is read'
 	end
-	for _, cd in ipairs(entries(parsed.templates or parsed.cards, "templates")) do
+	for _, cd in ipairs(entries(parsed.cards, "cards")) do
 		if type(cd) ~= "table" or not cd.key then
-			pp[#pp + 1] = "a template has no \"key\" — every card needs a unique one"
+			pp[#pp + 1] = "a card has no \"key\" — every card needs a unique one"
 		else
 			if G.card_defs[cd.key] then
-				pp[#pp + 1] = "two templates share the key '" .. cd.key
+				pp[#pp + 1] = "two cards share the key '" .. cd.key
 					.. "' — the second silently replaces the first"
 			else
 				G.card_list[#G.card_list + 1] = cd.key

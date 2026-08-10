@@ -276,7 +276,7 @@ def build():
         "stats": [{"key": "score", "label": "Your score", "subject": "score@mine.player"}],
         "tags": TAG_DEFS,
         "zones": z,
-        "templates": tpl,
+        "cards": tpl,
         "phases": phases(),
         "end_conditions": [],
     }

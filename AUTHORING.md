@@ -52,7 +52,7 @@ copies it, so a dump can go straight back into the game file.
     { "key": "hand", "type": "hand", "pos": [0.05, 0.65, 0.95, 0.98] }
   ],
 
-  "templates": [
+  "cards": [
     { "key": "sword", "text": "Sword", "tooltip": "Gain 1 health.",
       "on_play": ["gain_stat:hp:1", "draw_from:deck:hand:1"] },
     { "key": "trap",  "text": "Trap",  "tooltip": "Lose 2 health.",
@@ -77,8 +77,9 @@ The recipe, in order:
 2. **Zones** — where cards live. `pos` is window fractions `[x1, y1, x2, y2]`;
    positions off-screen (negative y) make cards fly in from outside. Decks own
    their starting cards via `contents`.
-3. **Templates** — one entry per card *kind*. Instances are created from these;
-   editing a template live changes every instance.
+3. **Cards** — one entry per card *kind*. Instances are created from these;
+   editing one live changes every instance, which is why the engine calls them
+   templates internally even though the section is `cards`.
 4. **Phases** — the turn structure. The first phase starts the game; `automatic`
    phases run and advance immediately.
 5. **End conditions** — how the game ends. Endings are just overlay phases that
@@ -105,7 +106,7 @@ from this two-page story:
     { "key": "story", "type": "player_input", "label": "The Cellar" }
   ],
   "zones": [ { "key": "hand", "type": "hand" } ],
-  "templates": [
+  "cards": [
     { "key": "p_door", "text": "The Cellar Door",
       "story": "It was locked all your childhood. Tonight it stands open.",
       "on_pick": ["fill:hand:c_down:1", "fill:hand:c_away:1"] },
@@ -379,7 +380,7 @@ file to check what may appear where.
 | `effects` | Named visual effects on the base vocabulary (see below) |
 | `patterns` | Named direction sets for grid movement (see *Pieces that move*) |
 | `assets` | Named pictures, and the only place a picture carries options (see *Named assets*) |
-| `templates` | Card definitions (`cards` also accepted) |
+| `cards` | Card definitions. Called `templates` until it was cut: one name only, and a file still using the old one is told so |
 | `zones` | Zone definitions, in declaration order |
 | `phases` | Phase definitions; first entry starts the game |
 | `end_conditions` | Outcome checks, first match wins, once per game |

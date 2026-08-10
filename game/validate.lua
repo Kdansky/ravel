@@ -101,7 +101,7 @@ local PHASE_TYPES     = { automatic = true, player_input = true, draw_and_play =
 -- The same tables, reachable. Named for the JSON section each belongs to, since
 -- that is how the schema document is organised and how an author meets them.
 M.FIELDS = {
-	templates     = CARD_FIELDS,
+	cards         = CARD_FIELDS,
 	zones         = ZONE_FIELDS,
 	phases        = PHASE_FIELDS,
 	stats         = STAT_FIELDS,

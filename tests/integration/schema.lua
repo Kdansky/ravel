@@ -112,7 +112,7 @@ end
 -- The two shapes that live inside another section rather than beside one.
 function M.test_schema_describes_the_nested_shapes(check)
 	local doc = schema()
-	local card = exemplar(doc.templates)
+	local card = exemplar(doc.cards)
 	local phase = exemplar(doc.phases)
 
 	for field in pairs(validate.FIELDS.target) do

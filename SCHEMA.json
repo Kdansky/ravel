@@ -1,10 +1,8 @@
 {
   "_about": "Every field a game file may contain, laid out as a game file, with a sentence where each value would be. Keys starting with an underscore are not sections — they describe vocabularies that are not shapes. Read AUTHORING.md to learn how to build a game; read this to check what may appear where. tests/integration/schema.lua asserts this file and the validator know the same fields, so if they disagree one of them is a bug.",
-
   "title": "string shown in the HUD. Defaults to Ravel.",
   "seed": "number fixing the RNG so shuffles and every random choice replay identically. Omit for a different game each run.",
   "placeholder_art": "true gives every card with no asset a generated picture derived from its key, so a new file has visual differentiation from the first save.",
-
   "stats": [
     {
       "key": "name cards spend and conditions read. round and plays are reserved: the engine manages them, declare them only to show them.",
@@ -15,7 +13,6 @@
       "subject": "a subject expression the HUD row displays instead of the plain total, while the key still names what cards spend: sum:defense@standing shows the buildings still standing."
     }
   ],
-
   "computed_tags": {
     "<your name for it>": {
       "stat": "the stat on the card that decides it, read from that card alone",
@@ -25,8 +22,7 @@
       "equals": "number: the tag holds while the stat is exactly it"
     }
   },
-
-  "templates": [
+  "cards": [
     {
       "key": "unique name. Cards, actions, conditions and scopes all reference it, and it may never collide with a zone key or a tag.",
       "text": "the card title, drawn on its face",
@@ -34,7 +30,9 @@
       "story": "long prose for the full-screen page overlay and the detail view",
       "asset": "a picture: a name in the assets table, a bare filename in games/assets, an http(s) URL, a shape spec like star:5:amber, or auto for a generated one. A name is anything with no source in it, which is what tells the five apart.",
       "color": "[r, g, b] each 0 to 1, the plate behind the art",
-      "tags": ["a list of words. Free vocabulary for targeting and counting, except where the engine knows one: see _engine_tags below."],
+      "tags": [
+        "a list of words. Free vocabulary for targeting and counting, except where the engine knows one: see _engine_tags below."
+      ],
       "card_stats": {
         "<stat key>": "number stamped on each instance when it is created. An hp with an hp_max companion draws a badge, and 0 hp is ruined."
       },
@@ -58,22 +56,44 @@
         "min": "number of targets that must be chosen",
         "max": "number that may be chosen",
         "count": "number setting min and max at once",
-        "tags": ["every tag a candidate must carry; computed tags count"],
-        "zones": ["only look in these zones. A per-seat key means yours unless an owner word says otherwise."],
+        "tags": [
+          "every tag a candidate must carry; computed tags count"
+        ],
+        "zones": [
+          "only look in these zones. A per-seat key means yours unless an owner word says otherwise."
+        ],
         "owner": "mine, enemy or anyone",
         "fill": "slots only: what may already be standing there. empty (default), enemy, open (empty or enemy), any.",
-        "moves": ["pattern names limiting the squares offered, written for you when the card declares moves"]
+        "moves": [
+          "pattern names limiting the squares offered, written for you when the card declares moves"
+        ]
       },
       "activate_target": "the same shape as target, for the ability rather than the play",
-      "moves": ["how a piece moves on a grid: pattern names, or objects carrying their own patterns plus fill and needs. Declaring this writes the activate_target for you."],
-      "phases": ["phase key or list of them: the card works only there. Naming none means any phase."],
+      "moves": [
+        "how a piece moves on a grid: pattern names, or objects carrying their own patterns plus fill and needs. Declaring this writes the activate_target for you."
+      ],
+      "phases": [
+        "phase key or list of them: the card works only there. Naming none means any phase."
+      ],
       "exhausts": "false keeps the card ready after activating, which is what a permanent button wants. Default true: one use per round.",
-      "on_play": ["action strings run when the card is played. See _actions."],
-      "on_activate": ["action strings run when the card is clicked on the board"],
-      "on_turn": ["action strings run at each round boundary while the card is on a grid and not ruined"],
-      "on_pass": ["action strings run when resolve_challenge finds requires met"],
-      "on_fail": ["action strings run when it does not"],
-      "on_pick": ["action strings run when the card is picked from the page overlay"],
+      "on_play": [
+        "action strings run when the card is played. See _actions."
+      ],
+      "on_activate": [
+        "action strings run when the card is clicked on the board"
+      ],
+      "on_turn": [
+        "action strings run at each round boundary while the card is on a grid and not ruined"
+      ],
+      "on_pass": [
+        "action strings run when resolve_challenge finds requires met"
+      ],
+      "on_fail": [
+        "action strings run when it does not"
+      ],
+      "on_pick": [
+        "action strings run when the card is picked from the page overlay"
+      ],
       "auto_play": "true starts the card already in play, for thrones, boards and buttons",
       "to_zone": "zone key an auto_play card starts in. Without one, its home tag decides, then the only board.",
       "to_slot": "1-based cell index an auto_play card starts on, row-major",
@@ -81,40 +101,48 @@
       "outcome": "victory or defeat on an ending card, which gives a banner, a run summary and a flourish"
     }
   ],
-
-  "cards": ["accepted as a second name for templates. Nothing distinguishes them and a file should pick one."],
-
   "zones": [
     {
-      "key": "unique name, which may never collide with a card tag. Some names are load-bearing: hand, graveyard, board, reveal and system have engine meanings a game may override by declaring them.",
+      "key": "unique name, which may never collide with a card key or any tag. Some names are load-bearing: hand, graveyard, board, reveal and system have engine meanings a game may override by declaring them.",
       "label": "string drawn on the zone",
       "type": "deck (face-down stack), pile (face-up stack), hand (a row showing card text), or grid (a board of addressable cells). A stack is reached from the top: only its top card can be played, activated or targeted.",
       "pos": "[x1, y1, x2, y2] as fractions of the window. Per-seat zones take one such list per seat instead, which is the only place a nested array is allowed outside a pattern's vectors. Each type has a default spot; hidden zones default off-screen, which is what gives dealt cards their fly-in.",
       "grid": "[cols, rows] for a grid zone",
       "fit": "grid zones: card (default) keeps card proportions inside each cell, fill stretches cards to the whole cell for board tiles",
       "ratio": "the shape the zone keeps whatever the window is: a number, width over height, or the word grid to read it from the cell count. The zone takes the largest rect of that shape inside what pos allotted, centred.",
-      "contents": ["starting cards, each key or key:count"],
+      "contents": [
+        "starting cards, each key or key:count"
+      ],
       "per_seat": "true makes one copy of this zone per seat, and pos then takes one rect per seat",
-      "applies": ["tags this zone hands to whatever lies in it, behaviour included. This is how a pile grants an ability no card knows about."],
+      "applies": [
+        "tags this zone hands to whatever lies in it, behaviour included. This is how a pile grants an ability no card knows about."
+      ],
       "accepts": {
         "<subject>": "a condition deciding whether a card being played may be sent here. Same shape as a card's accepts, asked of the zone."
       },
-      "on_click": ["action strings run when the zone is clicked. Not phase-scoped: it fires in every phase, so it is not a move. An ability on a card, granted with applies, is what a move wants to be."],
+      "on_click": [
+        "action strings run when the zone is clicked. Not phase-scoped: it fires in every phase, so it is not a move. An ability on a card, granted with applies, is what a move wants to be."
+      ],
       "asset": "a picture behind the whole zone, stretched to its rect. Same five forms as a card's asset.",
-      "checker": ["two colours alternated across a grid's squares, palette names or #rrggbb, the top-left square taking the first"],
+      "checker": [
+        "two colours alternated across a grid's squares, palette names or #rrggbb, the top-left square taking the first"
+      ],
       "paint": {
         "<absolute pattern name>": "a colour or a picture for the squares that pattern names, which is how terrain, goal rows and home rows are painted"
       },
-      "tags": ["a list of words; the engine knows several for zones. See _engine_tags."]
+      "tags": [
+        "a list of words; the engine knows several for zones. See _engine_tags."
+      ]
     }
   ],
-
   "phases": [
     {
       "key": "unique name. A phase key must never name a seat: both players share one play phase, and seat: next is what makes the turn theirs.",
       "label": "string for the HUD",
       "type": "automatic (run actions once and advance), player_input (play freely), draw_and_play (player_input with ends_after 1 and discard_hand), or overlay (dim the screen, deal, resolve by on_pick; push-only and locks everything else)",
-      "actions": ["action strings run on entry, for automatic phases"],
+      "actions": [
+        "action strings run on entry, for automatic phases"
+      ],
       "deck": "zone key to deal from on fresh entry",
       "draw": "number of cards dealt on fresh entry",
       "zone": "where they are dealt, default hand. Naming it also bounds what may be played to the cards in it; a phase naming none lets any reachable card be played, which is what the menu relies on.",
@@ -123,11 +151,15 @@
       "seat": "next hands over to the following seat on entry, which is the whole of turn-taking",
       "discard_hand": "true discards the unplayed hand when the phase is left, so unpicked options do not pile up",
       "page": "overlay only: render its cards as full-screen story pages and run the picked card's own on_pick rather than the phase's",
-      "on_pick": ["overlay only: action strings run with the picked card"],
+      "on_pick": [
+        "overlay only: action strings run with the picked card"
+      ],
       "next": [
         {
           "stat": "a subject, with equals, at_least or at_most beside it: the condition deciding whether this route is taken",
-          "zone_empty": ["zone keys that must all be empty for this route to be taken"],
+          "zone_empty": [
+            "zone keys that must all be empty for this route to be taken"
+          ],
           "equals": "number the subject must equal",
           "at_least": "number the subject must reach",
           "at_most": "number the subject must not exceed",
@@ -137,39 +169,43 @@
       ]
     }
   ],
-
   "end_conditions": [
     {
       "stat": "a subject, with a comparator beside it, deciding whether the game is over",
-      "zone_empty": ["zone keys that must all be empty"],
+      "zone_empty": [
+        "zone keys that must all be empty"
+      ],
       "equals": "number the subject must equal",
       "at_least": "number the subject must reach",
       "at_most": "number the subject must not exceed",
-      "then": ["action strings run when it fires, usually push_phase to an ending overlay"],
+      "then": [
+        "action strings run when it fires, usually push_phase to an ending overlay"
+      ],
       "fired": "engine bookkeeping: each condition fires once per game, first match wins, and open overlays are waited for"
     }
   ],
-
   "setup": {
     "player": {
       "<stat key>": "number the injected player card starts with. A game that declares its own card tagged player does not need this."
     }
   },
-
   "tags": {
     "<your tag name>": {
       "zone": "the home zone of every card carrying this tag, so move_to with no zone, gain and auto_play all know where the card goes without naming it",
-      "on_activate": ["action strings this tag gives its cards, which is what a zone hands out with applies"],
+      "on_activate": [
+        "action strings this tag gives its cards, which is what a zone hands out with applies"
+      ],
       "activate_target": "a target spec for that ability, same shape as a card's",
       "activate_cost": {
         "<stat key>": "number paid for that ability"
       },
       "exhausts": "false keeps a card ready after using this ability",
-      "phases": ["phase keys the ability works in"],
+      "phases": [
+        "phase keys the ability works in"
+      ],
       "tooltip": "prose describing what lying here lets a card do. A card's own tooltip is shown as well, because they describe different acts."
     }
   },
-
   "effects": {
     "<your effect name>": {
       "base": "one of damage, bleed, power_up, sparkle, stars, heal, smoke, explosion",
@@ -179,22 +215,25 @@
       "color": "[r, g, b] each 0 to 1, defaulting per base"
     }
   },
-
   "patterns": {
     "<your pattern name>": {
-      "vectors": [["[dx, dy] pairs. Read as directions applied up to range times, unless the class says absolute, when they are squares. x is the column; y is forward for whoever is moving, so one pawn serves both colours."]],
-      "class": ["how the vectors are walked: step (once, the default), ray (repeat until stopped), ray:n (up to n times), phasing (nothing on the way stops it), mirrored (negate each axis independently, so one vector stands for its whole family), absolute (the pairs are squares, not directions, and the walking words mean nothing beside it)"],
+      "vectors": [
+        [
+          "[dx, dy] pairs. Read as directions applied up to range times, unless the class says absolute, when they are squares. x is the column; y is forward for whoever is moving, so one pawn serves both colours."
+        ]
+      ],
+      "class": [
+        "how the vectors are walked: step (once, the default), ray (repeat until stopped), ray:n (up to n times), phasing (nothing on the way stops it), mirrored (negate each axis independently, so one vector stands for its whole family), absolute (the pairs are squares, not directions, and the walking words mean nothing beside it)"
+      ],
       "zone": "the board an absolute pattern names squares on. Relative patterns need none: they are anchored on the moving card."
     }
   },
-
   "assets": {
     "<your picture name>": {
       "src": "the picture itself: a bare filename in games/assets, an http(s) URL, or a shape spec. Everything a card can spell out inline is legal here.",
       "max": "number, 1 to 4092: the longest edge in pixels the browser hands over. Bigger pictures are scaled to it. Anything spelled out inline instead of named gets 1024."
     }
   },
-
   "_conditions": {
     "_what": "One vocabulary, used by needs, requires, accepts, a phase's next entries and end_conditions. A subject is a stat key, count:<tag>, card:<key>, sum:<subject> or max:<subject>, optionally carrying a scope after an @.",
     "_map_form": "{ <subject>: <number> } means at least n, which is much the commonest thing to ask.",
@@ -206,7 +245,6 @@
     "_owners": "mine (the seat whose turn it is), enemy (any other seat), anyone (no filter, said deliberately). A card's owner is the seat of the zone it sits in, or the seat whose key it carries as a tag.",
     "_quantifiers": "any (default: the pool reaches n), each (every member does, and an empty scope is false rather than vacuously true), random (as any, but one member is chosen by the seeded shuffle)."
   },
-
   "_actions": {
     "_what": "Colon-separated strings, run from on_play, on_activate, on_turn, on_pass, on_fail, on_pick, a zone's on_click, a phase's actions, and an end condition's then. An unknown op logs and is skipped. A numeric slot takes a number or a measuring fn, optionally multiplied by a second with :x:. A zone slot takes a scope expression too.",
     "fill": "fill:<zone>:<card>:<n> — create n instances of a card in a zone",
@@ -239,7 +277,6 @@
     "net_panel": "net_panel — show the networking controls",
     "net_offline": "net_offline — disconnect"
   },
-
   "_engine_tags": {
     "_what": "Tags are the game's own vocabulary and an unknown one is not an error. These are the words the engine itself reads. A full reference with what each changes is still owed — see ideas/06-schema-and-types.md gap 4.",
     "_on_cards": "player (this card is a seat), token (vanishes instead of joining the discard), immutable (scenery: nothing may target it and its template can never be edited), invisible_title_text (draw no title, so the picture is the whole card), transparent_background (no plate behind the art)",

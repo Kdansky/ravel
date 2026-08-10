@@ -19,7 +19,7 @@
     "standing": { "stat": "hp", "at_least": 1 }
   },
 
-  "templates": [
+  "cards": [
     {
       "key":        "throne_room",
       "text":       "Throne Room",

@@ -172,7 +172,7 @@ marks something worth writing down.
 
 | # | Finding | Verdict |
 |---|---|---|
-| 1 | **`templates` and `cards` are two names for one section, and a file with both loses one.** `declaration.lua:207` reads `parsed.templates or parsed.cards`, so every card under `cards` was dropped — and `check.lua` called the file clean. | **Fixed in this pass.** It now warns. The deeper wart stands: two names, no difference, and a file should pick one |
+| 1 | **`templates` and `cards` are two names for one section, and a file with both loses one.** `declaration.lua:207` reads `parsed.templates or parsed.cards`, so every card under `cards` was dropped — and `check.lua` called the file clean. | **Fixed, then removed.** The section is `cards` now — the engine always called them that internally, and DESIGN.md's own directive is "when in doubt, decks and cards". A file still saying `templates` is told so |
 | 2 | **`patterns` never checked its field names.** Every other section runs `check_fields`; this one did not, so `"vector": [[1,0]]` loaded as a pattern with no vectors and a piece that mysteriously could not move. | **Fixed in this pass** — `PATTERN_FIELDS` and the missing call |
 | 3 | **`needs`, `requires` and `accepts` are one shape under three names.** Identical condition maps. They differ only in *when* they are asked: gate on play, checked by `resolve_challenge`, asked of a destination. | Wart. Renaming is a wide edit for a real gain in explainability |
 | 4 | **A routing entry's `stat` field does not mean a stat.** `predicate.met` hands it to `parse_subject`, so `count:farm@board` and `sum:value@mine.red` are all legal there. The name is simply wrong. | Wart, and the cheapest to fix: accept `subject` as a second spelling, deprecate `stat` |

@@ -16,7 +16,7 @@
       "contents": ["p_good_luck", "p_bad_luck"] }
   ],
 
-  "templates": [
+  "cards": [
     { "key": "p_start", "text": "TODO: Opening Page Title",
       "story": "TODO: your opening paragraph. The player reads this, clicks to continue, and receives the choices below in hand.",
       "on_pick": ["fill:hand:c_look:1", "fill:hand:c_leave:1"] },

@@ -255,7 +255,7 @@ def build():
             {"stat": "card:w_king_e", "equals": 0, "then": ["load_game:menu.json"]},
             {"stat": "card:b_king_e", "equals": 0, "then": ["load_game:menu.json"]},
         ],
-        "templates": templates,
+        "cards": templates,
     }
 
 

@@ -22,7 +22,7 @@
       "contents": ["p_chest_pearl", "p_chest_mimic"] }
   ],
 
-  "templates": [
+  "cards": [
     { "key": "p_shore", "text": "The Black Shingle",
       "story": "The ferryman will not wait. He leaves you on the black shingle as the light goes, and rows back toward the living shore without once turning his head. Out in the lake the drowned tower stands hip-deep in its own reflection: an iron-bound door crusted shut at the waterline, and high above it a gallery window, gaping like a pulled tooth.",
       "on_pick": ["fill:hand:c_search:1", "fill:hand:c_door:1", "fill:hand:c_climb:1"] },
