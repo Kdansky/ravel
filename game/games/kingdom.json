@@ -1,6 +1,10 @@
 {
   "title": "Coronation",
 
+  "assets": {
+    "archmage_tower": { "src": "https://i.imgur.com/0vnj0kx.jpeg", "max": 4092 }
+  },
+
   "stats": [
     { "key": "round",       "label": "Round" },
     { "key": "progress",    "label": "Progress",  "min": 0 },
@@ -34,7 +38,7 @@
       "tooltip": "Crowned on a battlefield. +3 might.",
       "tags": ["holding", "origin", "military", "soldier"], "card_stats": { "hp": 5, "hp_max": 5 },
       "on_play": ["move_to:board", "gain_stat:progress:3", "gain_stat:might:3"] },
-    { "key": "archmage", "text": "Archmage", "asset": "https://i.imgur.com/0vnj0kx.jpeg",
+    { "key": "archmage", "text": "Archmage", "asset": "archmage_tower",
       "tooltip": "The tower chose you. +2 mana now, +1 each round.",
       "tags": ["holding", "origin", "mystic"], "card_stats": { "hp": 3, "hp_max": 3 },
       "on_play": ["move_to:board", "gain_stat:progress:3", "gain_stat:mana:2"],

@@ -372,6 +372,7 @@ up the lantern or the pearl). The oldest matching card is taken.
 | `tags` | Tag behaviour — a tag is a mixin: it can give its cards a home `zone`, and can carry `on_activate` / `activate_target` / `activate_cost` / `exhausts` / `phases` / `tooltip`, which a zone may then hand to its contents with `applies` (see below) |
 | `effects` | Named visual effects on the base vocabulary (see below) |
 | `patterns` | Named direction sets for grid movement (see *Pieces that move*) |
+| `assets` | Named pictures, and the only place a picture carries options (see *Named assets*) |
 | `templates` | Card definitions (`cards` also accepted) |
 | `zones` | Zone definitions, in declaration order |
 | `phases` | Phase definitions; first entry starts the game |
@@ -435,6 +436,35 @@ A local `asset` must be a bare filename (`sword.png`, not `../sword.png` or
 a path) — this is enforced, not just a convention, since games can be
 authored by people other than whoever is hosting the engine.
 
+### Named assets
+
+A card or zone's `asset` may spell its picture out — a filename, an `http(s)`
+URL, a shape spec — or **name an entry in the top-level `assets` table**, which
+is the only place a picture carries options:
+
+```json
+"assets": {
+  "banner":         "banners_procession.jpg",
+  "archmage_tower": { "src": "https://i.imgur.com/0vnj0kx.jpeg", "max": 4092 }
+}
+```
+
+The bare form is a source on its own; the object form adds options. Today there
+is one, `max` — the longest edge in pixels, 1 to 4092, which caps how large the
+browser hands the picture over (see the size note below). Anything spelled out
+inline instead gets 1024.
+
+Two reasons to name one rather than inline it:
+
+- **Options.** A photograph that must stay sharp in the detail view asks for a
+  bigger `max`; everything else should not pay for it.
+- **Sharing.** The name is the cache key, so twenty cards drawn from one
+  picture are one download and one texture. Inline sources are cached per card.
+
+A name is anything without a source in it — no extension, no `:`, no scheme —
+so the two forms can never be confused, and a name that matches no entry is a
+validation error with a suggestion rather than a card that silently draws blank.
+
 `asset` is normally a filename in `game/games/assets/`. It may instead be a
 full `http://` or `https://` URL, e.g. `"asset": "https://i.imgur.com/0vnj0kx.jpeg"`.
 A URL image is fetched at runtime and kept only in memory (never written to
@@ -446,6 +476,22 @@ send permissive CORS headers will fail there exactly as a plain `<img>` tag
 would. The fetch never blocks the game: on desktop it runs on a worker thread and on the browser it is an async `fetch()`, so an unreachable host costs nothing but a card without art. A URL asset shows blank for a frame or two while it loads (and
 permanently, if the fetch fails) rather than being validated at load time —
 there is nothing to check until the request actually runs.
+
+In the browser the picture is decoded by the page before the engine sees it,
+and is handed over untouched if it is a JPEG or PNG no larger than **4092
+pixels on its long edge**. Anything bigger is scaled to that, and anything in
+another format is re-encoded — which means **the format stops mattering**:
+LÖVE reads what stb_image reads, the browser reads far more, so a remote WebP,
+AVIF or progressive JPEG works. Point a remote asset at whatever your host
+serves.
+
+The ceiling is about memory, not looks. Pixels are what the browser build's
+heap pays for — 4092 square is 67 MB of RGBA — and that heap does not grow.
+`index.html` puts a floor under it (256 MB); raise that before raising this.
+
+Repeat visits are free: the fetch is an ordinary browser request, so a host
+sending `Cache-Control` (imgur sends a year) is answered from the browser's own
+disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `tags` | Free vocabulary for targeting/counting; engine-known: `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it), `invisible_title_text` (draw no title; the picture is the whole card, and the band it would have used goes to the art), `transparent_background` (no plate behind the art, so a transparent PNG shows the board through it — and dimming tints the art rather than laying a dark rectangle over the square) |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `on_turn`) |

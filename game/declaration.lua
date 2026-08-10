@@ -8,7 +8,7 @@ M.filename = nil  -- source file of the current game, for template reloads
 -- are structural and need a full game load.
 M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list",
-	"tag_defs", "effect_defs", "pattern_defs", "parse_problems",
+	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
 }
 
 local function tag_set(arr)
@@ -24,7 +24,7 @@ local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true,
 	templates = true, cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true,
-	placeholder_art = true, patterns = true,
+	placeholder_art = true, patterns = true, assets = true,
 }
 
 -- A movement pattern: direction vectors, plus class words saying how they are
@@ -153,6 +153,7 @@ function M.parse(filename)
 		setup          = parsed.setup or {},
 		tag_defs       = parsed.tags or {},  -- tag behaviour: { "item": { "zone": "inventory" } }
 		pattern_defs   = {},       -- named direction sets, for movement and neighbourhood
+		asset_defs     = {},       -- named pictures: name -> { src, max }
 		effect_defs    = parsed.effects or {},  -- named effects on the fx base vocabulary
 		parse_problems = {},
 	}
@@ -185,6 +186,19 @@ function M.parse(filename)
 	G.raw_patterns = type(parsed.patterns) == "table" and parsed.patterns or {}
 	for name, def in pairs(G.raw_patterns) do
 		G.pattern_defs[name] = normalise_pattern(def)
+	end
+
+	-- Named pictures. A card's `asset` says what to draw and can spell a source
+	-- out inline; naming one here instead is what buys options (`max`), and what
+	-- lets twenty cards share one download and one texture, since the name is
+	-- also the cache key. The bare form is a source on its own, because that is
+	-- the common case and an object for it would be ceremony.
+	G.raw_assets = type(parsed.assets) == "table" and parsed.assets or {}
+	for name, def in pairs(G.raw_assets) do
+		local src = type(def) == "table" and def.src or def
+		if type(src) == "string" then
+			G.asset_defs[name] = { src = src, max = tonumber(type(def) == "table" and def.max) }
+		end
 	end
 
 	for _, cd in ipairs(entries(parsed.templates or parsed.cards, "templates")) do

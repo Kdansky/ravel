@@ -240,12 +240,34 @@ local function url_id(url)
 	return cached
 end
 
--- Build an Image directly from a byte string, no disk involved.
+-- Build an Image directly from a byte string, no disk involved. Returns the
+-- Image, or nil and what went wrong: the failures used to arrive as one silent
+-- nil, and in the browser they mean very different things.
+--
+-- ByteData first, and love.filesystem only as a fallback: love.js's normalize
+-- shim wraps love.filesystem.newFileData and answers nil where desktop LÖVE
+-- answers a FileData, which is how a perfectly good 2 MB JPEG arrived intact
+-- and became "no image" in the browser and nowhere else. love.data is not
+-- wrapped, and newImage takes any Data.
 local function image_from_bytes(bytes)
-	local ok, fd = pcall(love.filesystem.newFileData, bytes, "asset")
-	if not ok then return nil end
-	local ok2, img = pcall(love.graphics.newImage, fd)
-	return ok2 and img or nil
+	local head = (bytes:sub(1, 4):gsub(".", function(c) return string.format("%02X ", c:byte()) end))
+	local data, why
+	if love.data and love.data.newByteData then
+		local ok, d = pcall(love.data.newByteData, bytes)
+		data, why = ok and d or nil, (not ok) and tostring(d) or "newByteData answered nil"
+	end
+	if not data then
+		local ok, d = pcall(love.filesystem.newFileData, bytes, "asset")
+		data = ok and d or nil
+		why = (not ok) and tostring(d) or why or "newFileData answered nil"
+	end
+	if not data then return nil, "no Data could be made from the bytes: " .. tostring(why) end
+	local ok2, img = pcall(love.graphics.newImage, data)
+	if not ok2 then
+		return nil, ("newImage refused it (%s), first bytes %s, lua heap %d KB")
+			:format(tostring(img), head, collectgarbage("count"))
+	end
+	return img
 end
 
 -- Desktop: the request runs on a worker thread, because it used to run inside
@@ -306,7 +328,12 @@ local function fetch_desktop(url, id)
 		print("asset download failed: " .. url)
 		return false
 	end
-	return image_from_bytes(result) or false
+	local img, why = image_from_bytes(result)
+	if not img then
+		print(("asset unusable: %s, %d bytes, %s"):format(url, #result, tostring(why)))
+		return false
+	end
+	return img
 end
 
 -- Browser: kick off a real fetch() in the page (once per URL), then poll a
@@ -322,7 +349,25 @@ end
 -- public image host answers with — i.imgur.com included. Every off-site
 -- asset the engine was ever pointed at died of that, as a bare "NetworkError"
 -- with no hint that the request had been the wrong shape all along.
-local function fetch_browser(url, id)
+--
+-- The browser decodes the picture before Lua sees it, and hands back either the
+-- original bytes or a re-encode. It re-encodes for two reasons only:
+--
+--   too big     4092 on the long edge is the ceiling, because pixels are what
+--               the heap pays for: 4092 square is 67 MB of RGBA, and the
+--               browser build's heap does not grow (index.html puts a floor
+--               under it — read the note there before raising this).
+--   wrong kind  LÖVE reads what stb_image reads. The browser reads far more, so
+--               anything else comes back as PNG or JPEG and a remote WebP or
+--               AVIF simply works.
+--
+-- A JPEG or PNG that already fits crosses untouched, because re-encoding a
+-- picture the author chose is a quality loss for nothing.
+--
+-- Fetching to a blob first is what keeps the canvas untainted — an <img>
+-- pointed straight at another origin poisons toDataURL, which is the usual way
+-- this trick fails.
+local function fetch_browser(url, id, max)
 	if not pending[id] then
 		pending[id] = { at = 0 }
 		local kickoff = string.format([[(function(){
@@ -330,18 +375,50 @@ local function fetch_browser(url, id)
 			var id = "%s";
 			if (window.__ravelAssets[id]) return "dup";
 			window.__ravelAssets[id] = { status: "pending" };
-			fetch("%s", { credentials: "same-origin" })
-				.then(function(r){ if (!r.ok) throw new Error("http " + r.status); return r.blob(); })
-				.then(function(blob){ return new Promise(function(res, rej){
+			var MAX = %d;
+			var asIs = function(blob){
+				return new Promise(function(res, rej){
 					var fr = new FileReader();
 					fr.onload = function(){ res(fr.result); };
 					fr.onerror = function(){ rej(fr.error); };
 					fr.readAsDataURL(blob);
-				}); })
+				});
+			};
+			var shrink = function(src, type){
+				var s = Math.min(1, MAX / Math.max(src.width, src.height));
+				var c = document.createElement("canvas");
+				c.width = Math.max(1, Math.round(src.width * s));
+				c.height = Math.max(1, Math.round(src.height * s));
+				c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+				return c.toDataURL(type === "image/jpeg" ? "image/jpeg" : "image/png", 0.85);
+			};
+			var native = function(t){ return t === "image/jpeg" || t === "image/png"; };
+			var handle = function(bm, blob){
+				if (native(blob.type) && Math.max(bm.width, bm.height) <= MAX) return asIs(blob);
+				return shrink(bm, blob.type);
+			};
+			var decode = function(blob){
+				if (window.createImageBitmap) {
+					return createImageBitmap(blob).then(function(bm){ return handle(bm, blob); });
+				}
+				return new Promise(function(res, rej){
+					var u = URL.createObjectURL(blob), im = new Image();
+					im.onload = function(){
+						var d = handle(im, blob);
+						URL.revokeObjectURL(u);
+						res(d);
+					};
+					im.onerror = function(){ URL.revokeObjectURL(u); rej(new Error("the browser could not decode it")); };
+					im.src = u;
+				});
+			};
+			fetch("%s", { credentials: "same-origin" })
+				.then(function(r){ if (!r.ok) throw new Error("http " + r.status); return r.blob(); })
+				.then(decode)
 				.then(function(durl){ window.__ravelAssets[id] = { status: "ok", data: durl }; })
 				.catch(function(e){ window.__ravelAssets[id] = { status: "error", message: String(e && e.message || e) }; });
 			return "started";
-		})()]], id, js_escape(url))
+		})()]], id, max, js_escape(url))
 		pcall(love.js.eval, kickoff)
 	end
 
@@ -364,11 +441,30 @@ local function fetch_browser(url, id)
 		print("asset download failed: " .. url .. " (" .. result:sub(7) .. ")")
 		return false
 	end
+	-- Everything below this line used to fail by returning nil or false without
+	-- a word, so a picture that never appeared looked exactly like a picture
+	-- still on its way. The bytes have crossed by now; say what became of them.
+	print(("asset arrived: %s (%d bytes across the bridge)"):format(url, #result))
 	local b64 = result:match("^data:[^,]*,(.*)$")
-	if not (b64 and love.data and love.data.decode) then return false end
+	if not b64 then
+		print("asset unusable: not a data URL, starts " .. string.format("%q", result:sub(1, 40)))
+		return false
+	end
+	if not (love.data and love.data.decode) then
+		print("asset unusable: this build has no love.data.decode")
+		return false
+	end
 	local ok2, bytes = pcall(love.data.decode, "string", "base64", b64)
-	if not ok2 then return false end
-	return image_from_bytes(bytes) or false
+	if not ok2 then
+		print("asset unusable: base64 would not decode (" .. tostring(bytes) .. ")")
+		return false
+	end
+	local img, why = image_from_bytes(bytes)
+	if not img then
+		print(("asset unusable: %d bytes decoded, %s"):format(#bytes, tostring(why)))
+		return false
+	end
+	return img
 end
 
 -- Load (and cache) the asset image for a card def, returns nil if missing
@@ -380,7 +476,19 @@ end
 -- zone wants a picture on its board by the same rules, with the same allowlist
 -- and the same refusals. Callers own the cache key, so a zone named like a card
 -- cannot collide with it.
+-- A name with no source in it — no extension, no scheme, no shape colon — is a
+-- key into the game's `assets` table, which is the only place that carries
+-- options. Resolving here rather than at every call site also makes the name
+-- the cache key, so twenty cards drawn from one picture cost one download and
+-- one texture.
+local DEFAULT_MAX = 1024
+
 function M.asset_image(asset, key)
+	local named = asset and declaration.G.asset_defs and declaration.G.asset_defs[asset]
+	local max = DEFAULT_MAX
+	if named then
+		key, asset, max = "asset:" .. asset, named.src, named.max or DEFAULT_MAX
+	end
 	if img_cache[key] ~= nil then return img_cache[key] or nil end
 	if not asset then img_cache[key] = false; return nil end
 	local def_key = key
@@ -396,9 +504,12 @@ function M.asset_image(asset, key)
 		-- browser's job in `pending` and asked for its nonexistent thread
 		-- channel. Every web asset in the browser build crashed on the first
 		-- frame it was drawn.
-		local id = url_id(asset)
+		-- The size is part of the identity: the same URL asked for at two sizes
+		-- is two different pictures, and one id would hand the second asker the
+		-- first one's answer.
+		local id = url_id(asset .. "|" .. max)
 		local img
-		if love.js and love.js.eval then img = fetch_browser(asset, id)
+		if love.js and love.js.eval then img = fetch_browser(asset, id, max)
 		else img = fetch_desktop(asset, id) end
 		if img == nil then return nil end   -- still fetching
 		img_cache[def_key] = img

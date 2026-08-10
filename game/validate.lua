@@ -595,6 +595,41 @@ function M.check(G)
 	-- normalised one, because a mistyped class word or a vector that isn't a
 	-- pair is silently dropped by the normaliser and would otherwise show up
 	-- only as a piece that mysteriously cannot move.
+	-- The assets table: named pictures, and the only place a picture carries
+	-- options. Everything a card's `asset` can spell out inline is legal as a
+	-- `src` here too, so the source is checked by the same rules.
+	local ASSET_FIELDS = { src = true, max = true }
+	for name, def in pairs(type(G.raw_assets) == "table" and G.raw_assets or {}) do
+		local where = "asset '" .. tostring(name) .. "'"
+		local src = type(def) == "table" and def.src or def
+		if type(def) == "table" then
+			check_fields(where, def, ASSET_FIELDS)
+			if def.src == nil then
+				warn('%s: needs a "src" — the filename, URL or shape it draws', where)
+			end
+			if def.max ~= nil and (tonumber(def.max) == nil or tonumber(def.max) < 1 or tonumber(def.max) > 4092) then
+				warn("%s: max is the longest edge in pixels, between 1 and 4092 — %s is not", where, tostring(def.max))
+			end
+		end
+		if type(src) ~= "string" then
+			warn("%s: should be a source, or an object with one", where)
+		elseif src:match("^https?://") then
+			if not url_is_safe(src) then
+				warn("%s: its URL contains characters that aren't valid in a URL — it will be refused at load time", where)
+			end
+		elseif src:find(":") then
+			if not art.parse(src) then
+				warn("%s: '%s' isn't a shape the engine can draw", where, src)
+			end
+		elseif src:find("%.") then
+			if not love.filesystem.read("games/assets/" .. src) then
+				warn("%s: '%s' is not in games/assets", where, src)
+			end
+		else
+			warn("%s: '%s' names no picture — a filename, an http(s) URL or a shape", where, src)
+		end
+	end
+
 	local raw_patterns = type(G.raw_patterns) == "table" and G.raw_patterns or {}
 	for name, def in pairs(raw_patterns) do
 		local where = "pattern '" .. tostring(name) .. "'"
@@ -665,7 +700,9 @@ function M.check(G)
 		if def.moves and not def.on_activate then
 			warn("%s: says how it moves but has no on_activate — nothing happens when the square is chosen (usually \"move_to:target\")", where)
 		end
-		if def.asset and tostring(def.asset):match("^https?://") then
+		if def.asset and G.asset_defs and G.asset_defs[def.asset] then
+			-- Named in the assets table, which is checked once on its own below.
+		elseif def.asset and tostring(def.asset):match("^https?://") then
 			if not url_is_safe(def.asset) then
 				warn("%s: its image URL contains characters that aren't valid in a URL — it will be refused at load time",
 					where)
@@ -679,6 +716,9 @@ function M.check(G)
 					where, tostring(def.asset),
 					art.shapes()[shape] and "" or suggest(shape, art.shapes()))
 			end
+		elseif def.asset and not tostring(def.asset):find("%.") then
+			warn("%s: nothing is named '%s' in the assets section%s", where, tostring(def.asset),
+				suggest(tostring(def.asset), G.asset_defs or {}))
 		elseif def.asset and not love.filesystem.read("games/assets/" .. tostring(def.asset)) then
 			warn("%s: its image '%s' is not in games/assets", where, tostring(def.asset))
 		end

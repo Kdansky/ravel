@@ -13,6 +13,46 @@
     </style>
   </head>
   <body>
+    <script>
+      // Everything JS hands back to Lua crosses this one byte at a time:
+      // love.js.eval runs the program, stashes its value in window._output, and
+      // Lua's io.read() pulls it through Module.stdin. Emscripten's default
+      // keeps the pending string in a plain array and Array.shift()s it per
+      // byte, which is quadratic — fine for a clipboard line, ruinous for the
+      // 3 MB base64 of a remote image, where it is billions of element moves
+      // and a hung tab. Same contract, an index instead of a shift.
+      window.Module = window.Module || {};
+
+      // player.js sizes the wasm heap as min(4 * game.love + 20MB, deviceMemory),
+      // and Firefox reports no deviceMemory, so that is 33 MB here — for a game
+      // whose own package is 3 MB. It cannot grow: this build has no
+      // ALLOW_MEMORY_GROWTH. A single 2256x4000 photo is 36 MB of RGBA, so any
+      // real picture failed to decode with the heap exhausted and nothing said.
+      // The wasm module accepts up to 2 GB, so put a floor under whatever
+      // player.js works out. 256 MB is 4096 pages, and holds a 4K image with the
+      // game still in it.
+      (function() {
+        var asked = 0;
+        Object.defineProperty(window.Module, 'INITIAL_MEMORY', {
+          configurable: true,
+          get: function() { return Math.max(asked, 256 * 1024 * 1024); },
+          set: function(v) { asked = v; }
+        });
+      })();
+
+      window.Module.stdin = (function() {
+        var buf = null, at = 0;
+        return function() {
+          if (!buf || at >= buf.length) {
+            var s = (typeof window.prompt === 'function') ? window.prompt('Input: ') : null;
+            if (s === null || s === undefined) { buf = null; return null; }
+            buf = new TextEncoder().encode(s + '\n');
+            at = 0;
+          }
+          return buf[at++];
+        };
+      })();
+    </script>
     <div id="player">
       <script src="/lovejs/player.js?g=/game.love&v=11.5&n=1"></script>
     </div>
