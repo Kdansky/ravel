@@ -22,6 +22,7 @@ about how it might go.
 | [08](08-grid-movement-notation.md) | How a piece says where it may go | medium | **chess plays, castling included.** `patterns` (relative and absolute), capture, piece ownership, patterns as scopes. Left: the scope anchor word, check/checkmate, promotion, en passant |
 | [09](09-composition.md) | One game out of several files | small + one trap | not started — `include`, and a base file of shared patterns |
 | [10](10-schema-document.md) | A game file that describes itself | medium | not started — `SCHEMA.json`, a shape mirror with a sentence per field, kept honest by a two-way test |
+| [11](11-styles-as-tags.md) | Styles are tags too | medium-large | not started — a `styles` section referenced by tag, absorbing `fit`, `ratio`, `checker`, `paint` and two card tags. Dynamic styles fall out of computed tags for free |
 
 ---
 
@@ -50,6 +51,7 @@ things happen come first.
 | ~~6~~ | ~~[07](07-presentation.md) gap 4 — **a zone tag for board chrome**~~ | — | — | **shipped** — `invisible_slot_outlines`, which *is* rightly a tag. Eligibility still draws, or the board is unplayable |
 | 7 | [06](06-schema-and-types.md) gap 4 — **every engine-known tag in one table** | medium | low | the most-asked authoring question, and the table is what a typo check would later read |
 | 7½ | [10](10-schema-document.md) — **`SCHEMA.json`, one sentence per field** | medium | medium, mostly transcription | do it beside item 7; both are "say what the engine already knows". Its output is not the file but the **list of warts** writing it exposes, which is what the deferred syntax pass below is waiting for |
+| 8½ | [11](11-styles-as-tags.md) — **styles named by tag** | medium | medium-large | the correction to items 5 and 6: presentation belongs in one named, shared section like `assets`, not as another field per zone. It *deletes* `fit`, `ratio`, `checker` and `paint`, and computed tags then give conditional rendering with no code. Do it after [10](10-schema-document.md) — writing a sentence per field is the cheapest way to find every field this should absorb |
 | 8 | [07](07-presentation.md) gap 2 — **click the deck to draw** | medium | low + item 4 | deletes the ugliest card on the Lost Cities board; rules already allow it |
 | 9 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | small, with one trap | the trap is the network: it ships *a file*, so includes must flatten before they are sent or hashed. Cheap if designed in, expensive if found later |
 | 10 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `activate` already proved the shape. Cheaper now than after more games exist |

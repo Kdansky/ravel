@@ -144,7 +144,9 @@ game. Build it with the first card that has two abilities, not before.
 
 *Shipped as the zone tag `invisible_slot_outlines`. The reasoning below is what
 picked that name over a general `invisible`, and the eligibility rule at the end
-is the part that keeps the board playable.*
+is the part that keeps the board playable. [11](11-styles-as-tags.md) later
+renames it `no_square_lines` and moves it into `styles` — being a tag already, it
+needs nothing else.*
 
 `draw_grid_empty` (`render.lua:645`) outlines every unoccupied slot. On a board
 with no art that outline **is** the board, and it is the right default. On a
@@ -206,6 +208,13 @@ beside the first.
 `keep_ratio`, but a remote picture arrives after the layout has run, so it needs
 a re-layout when the image lands — which is a per-frame check for something no
 game asks for yet. Build it with the first zone that wants it.
+
+> **Superseded by [11](11-styles-as-tags.md).** The field is right about the
+> shape and wrong about the place: a specialised rendering field on the zone is
+> what `assets` already refused to be. `ratio` becomes a property of a named
+> style, and the zone says a word. It stays until that pass, because removing it
+> now leaves the chessboard a rhombus for no gain, and one user in one generated
+> file is the cheapest migration there is.
 
 `zones.resize` (`zones.lua:342`) multiplies a zone's fractional `pos` by the
 window size, straight through. A chessboard given `[0.25, 0.05, 0.75, 0.95]` is
