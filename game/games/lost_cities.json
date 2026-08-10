@@ -10,14 +10,11 @@
   ],
   "tags": {
     "takeable": {
-      "on_activate": [
-        "move_to:hand",
-        "next_phase"
-      ],
-      "phases": [
-        "draw"
-      ],
-      "exhausts": false,
+      "activate": {
+        "action": ["move_to:hand", "next_phase"],
+        "exhausts": false,
+        "phases": ["draw"]
+      },
       "tooltip": "Take this card into your hand."
     }
   },
@@ -26,15 +23,8 @@
       "key": "deck",
       "label": "Expedition Deck",
       "type": "deck",
-      "pos": [
-        0.815,
-        0.365,
-        0.975,
-        0.505
-      ],
-      "tags": [
-        "shuffle"
-      ],
+      "pos": [0.815, 0.365, 0.975, 0.505],
+      "tags": ["shuffle"],
       "contents": [
         "red_w1",
         "red_w2",
@@ -102,72 +92,32 @@
       "key": "hand",
       "type": "hand",
       "per_seat": true,
-      "pos": [
-        [
-          0.06,
-          0.015,
-          0.798,
-          0.135
-        ],
-        [
-          0.06,
-          0.735,
-          0.798,
-          0.855
-        ]
-      ]
+      "pos": [[0.06, 0.015, 0.798, 0.135], [0.06, 0.735, 0.798, 0.855]]
     },
     {
       "key": "mode",
       "type": "hand",
-      "pos": [
-        0.3,
-        0.24,
-        0.7,
-        0.76
-      ],
-      "tags": [
-        "hidden",
-        "no_peek"
-      ]
+      "pos": [0.3, 0.24, 0.7, 0.76],
+      "tags": ["hidden", "no_peek"]
     },
     {
       "key": "choice",
       "type": "hand",
-      "pos": [
-        0.19,
-        0.875,
-        0.97,
-        0.995
-      ]
+      "pos": [0.19, 0.875, 0.97, 0.995]
     },
     {
       "key": "red",
       "label": "Red",
       "type": "grid",
       "per_seat": true,
-      "grid": [
-        1,
-        12
-      ],
+      "grid": [1, 12],
       "fit": "fill",
-      "pos": [
-        [
-          0.06,
-          0.155,
-          0.19,
-          0.345
-        ],
-        [
-          0.06,
-          0.525,
-          0.19,
-          0.715
-        ]
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.red"
+      "pos": [[0.06, 0.155, 0.19, 0.345], [0.06, 0.525, 0.19, 0.715]],
+      "receive": {
+        "needs": {
+          "value@target": {
+            "at_least": "max:value@mine.red"
+          }
         }
       }
     },
@@ -175,46 +125,23 @@
       "key": "red_discard",
       "label": "Red discard",
       "type": "pile",
-      "pos": [
-        0.06,
-        0.365,
-        0.19,
-        0.505
-      ],
-      "tags": [
-        "activate"
-      ],
-      "applies": [
-        "takeable"
-      ]
+      "pos": [0.06, 0.365, 0.19, 0.505],
+      "tags": ["activate"],
+      "applies": ["takeable"]
     },
     {
       "key": "green",
       "label": "Green",
       "type": "grid",
       "per_seat": true,
-      "grid": [
-        1,
-        12
-      ],
+      "grid": [1, 12],
       "fit": "fill",
-      "pos": [
-        [
-          0.212,
-          0.155,
-          0.34199999999999997,
-          0.345
-        ],
-        [
-          0.212,
-          0.525,
-          0.34199999999999997,
-          0.715
-        ]
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.green"
+      "pos": [[0.212, 0.155, 0.34199999999999997, 0.345], [0.212, 0.525, 0.34199999999999997, 0.715]],
+      "receive": {
+        "needs": {
+          "value@target": {
+            "at_least": "max:value@mine.green"
+          }
         }
       }
     },
@@ -222,46 +149,23 @@
       "key": "green_discard",
       "label": "Green discard",
       "type": "pile",
-      "pos": [
-        0.212,
-        0.365,
-        0.34199999999999997,
-        0.505
-      ],
-      "tags": [
-        "activate"
-      ],
-      "applies": [
-        "takeable"
-      ]
+      "pos": [0.212, 0.365, 0.34199999999999997, 0.505],
+      "tags": ["activate"],
+      "applies": ["takeable"]
     },
     {
       "key": "blue",
       "label": "Blue",
       "type": "grid",
       "per_seat": true,
-      "grid": [
-        1,
-        12
-      ],
+      "grid": [1, 12],
       "fit": "fill",
-      "pos": [
-        [
-          0.364,
-          0.155,
-          0.494,
-          0.345
-        ],
-        [
-          0.364,
-          0.525,
-          0.494,
-          0.715
-        ]
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.blue"
+      "pos": [[0.364, 0.155, 0.494, 0.345], [0.364, 0.525, 0.494, 0.715]],
+      "receive": {
+        "needs": {
+          "value@target": {
+            "at_least": "max:value@mine.blue"
+          }
         }
       }
     },
@@ -269,46 +173,23 @@
       "key": "blue_discard",
       "label": "Blue discard",
       "type": "pile",
-      "pos": [
-        0.364,
-        0.365,
-        0.494,
-        0.505
-      ],
-      "tags": [
-        "activate"
-      ],
-      "applies": [
-        "takeable"
-      ]
+      "pos": [0.364, 0.365, 0.494, 0.505],
+      "tags": ["activate"],
+      "applies": ["takeable"]
     },
     {
       "key": "white",
       "label": "White",
       "type": "grid",
       "per_seat": true,
-      "grid": [
-        1,
-        12
-      ],
+      "grid": [1, 12],
       "fit": "fill",
-      "pos": [
-        [
-          0.516,
-          0.155,
-          0.6459999999999999,
-          0.345
-        ],
-        [
-          0.516,
-          0.525,
-          0.6459999999999999,
-          0.715
-        ]
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.white"
+      "pos": [[0.516, 0.155, 0.6459999999999999, 0.345], [0.516, 0.525, 0.6459999999999999, 0.715]],
+      "receive": {
+        "needs": {
+          "value@target": {
+            "at_least": "max:value@mine.white"
+          }
         }
       }
     },
@@ -316,46 +197,23 @@
       "key": "white_discard",
       "label": "White discard",
       "type": "pile",
-      "pos": [
-        0.516,
-        0.365,
-        0.6459999999999999,
-        0.505
-      ],
-      "tags": [
-        "activate"
-      ],
-      "applies": [
-        "takeable"
-      ]
+      "pos": [0.516, 0.365, 0.6459999999999999, 0.505],
+      "tags": ["activate"],
+      "applies": ["takeable"]
     },
     {
       "key": "yellow",
       "label": "Yellow",
       "type": "grid",
       "per_seat": true,
-      "grid": [
-        1,
-        12
-      ],
+      "grid": [1, 12],
       "fit": "fill",
-      "pos": [
-        [
-          0.6679999999999999,
-          0.155,
-          0.798,
-          0.345
-        ],
-        [
-          0.6679999999999999,
-          0.525,
-          0.798,
-          0.715
-        ]
-      ],
-      "accepts": {
-        "value@target": {
-          "at_least": "max:value@mine.yellow"
+      "pos": [[0.6679999999999999, 0.155, 0.798, 0.345], [0.6679999999999999, 0.525, 0.798, 0.715]],
+      "receive": {
+        "needs": {
+          "value@target": {
+            "at_least": "max:value@mine.yellow"
+          }
         }
       }
     },
@@ -363,28 +221,16 @@
       "key": "yellow_discard",
       "label": "Yellow discard",
       "type": "pile",
-      "pos": [
-        0.6679999999999999,
-        0.365,
-        0.798,
-        0.505
-      ],
-      "tags": [
-        "activate"
-      ],
-      "applies": [
-        "takeable"
-      ]
+      "pos": [0.6679999999999999, 0.365, 0.798, 0.505],
+      "tags": ["activate"],
+      "applies": ["takeable"]
     }
   ],
   "cards": [
     {
       "key": "north",
       "text": "North",
-      "tags": [
-        "player",
-        "north_side"
-      ],
+      "tags": ["player", "north_side"],
       "card_stats": {
         "score": 0,
         "tallied": 0
@@ -393,10 +239,7 @@
     {
       "key": "south",
       "text": "South",
-      "tags": [
-        "player",
-        "south_side"
-      ],
+      "tags": ["player", "south_side"],
       "card_stats": {
         "score": 0,
         "tallied": 0
@@ -405,1988 +248,1354 @@
     {
       "key": "red_w1",
       "text": "Red wager",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "star:5:crimson",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_w2",
       "text": "Red wager",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "star:5:crimson",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_w3",
       "text": "Red wager",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "star:5:crimson",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_2",
       "text": "Red 2",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "stripes:2:crimson",
       "tooltip": "Advance the red expedition to 2.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 2
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_3",
       "text": "Red 3",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "stripes:3:crimson",
       "tooltip": "Advance the red expedition to 3.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 3
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_4",
       "text": "Red 4",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "stripes:4:crimson",
       "tooltip": "Advance the red expedition to 4.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 4
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_5",
       "text": "Red 5",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "stripes:5:crimson",
       "tooltip": "Advance the red expedition to 5.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 5
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_6",
       "text": "Red 6",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "stripes:6:crimson",
       "tooltip": "Advance the red expedition to 6.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 6
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_7",
       "text": "Red 7",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "stripes:7:crimson",
       "tooltip": "Advance the red expedition to 7.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 7
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_8",
       "text": "Red 8",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "stripes:8:crimson",
       "tooltip": "Advance the red expedition to 8.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 8
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_9",
       "text": "Red 9",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "stripes:9:crimson",
       "tooltip": "Advance the red expedition to 9.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 9
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_10",
       "text": "Red 10",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "asset": "stripes:10:crimson",
       "tooltip": "Advance the red expedition to 10.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 10
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "red",
-          "red_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["red", "red_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_w1",
       "text": "Green wager",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "star:5:green",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_w2",
       "text": "Green wager",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "star:5:green",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_w3",
       "text": "Green wager",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "star:5:green",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_2",
       "text": "Green 2",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "stripes:2:green",
       "tooltip": "Advance the green expedition to 2.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 2
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_3",
       "text": "Green 3",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "stripes:3:green",
       "tooltip": "Advance the green expedition to 3.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 3
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_4",
       "text": "Green 4",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "stripes:4:green",
       "tooltip": "Advance the green expedition to 4.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 4
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_5",
       "text": "Green 5",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "stripes:5:green",
       "tooltip": "Advance the green expedition to 5.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 5
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_6",
       "text": "Green 6",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "stripes:6:green",
       "tooltip": "Advance the green expedition to 6.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 6
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_7",
       "text": "Green 7",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "stripes:7:green",
       "tooltip": "Advance the green expedition to 7.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 7
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_8",
       "text": "Green 8",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "stripes:8:green",
       "tooltip": "Advance the green expedition to 8.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 8
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_9",
       "text": "Green 9",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "stripes:9:green",
       "tooltip": "Advance the green expedition to 9.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 9
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "green_10",
       "text": "Green 10",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "asset": "stripes:10:green",
       "tooltip": "Advance the green expedition to 10.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 10
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "green",
-          "green_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["green", "green_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_w1",
       "text": "Blue wager",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "star:5:blue",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_w2",
       "text": "Blue wager",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "star:5:blue",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_w3",
       "text": "Blue wager",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "star:5:blue",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_2",
       "text": "Blue 2",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "stripes:2:blue",
       "tooltip": "Advance the blue expedition to 2.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 2
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_3",
       "text": "Blue 3",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "stripes:3:blue",
       "tooltip": "Advance the blue expedition to 3.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 3
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_4",
       "text": "Blue 4",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "stripes:4:blue",
       "tooltip": "Advance the blue expedition to 4.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 4
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_5",
       "text": "Blue 5",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "stripes:5:blue",
       "tooltip": "Advance the blue expedition to 5.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 5
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_6",
       "text": "Blue 6",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "stripes:6:blue",
       "tooltip": "Advance the blue expedition to 6.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 6
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_7",
       "text": "Blue 7",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "stripes:7:blue",
       "tooltip": "Advance the blue expedition to 7.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 7
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_8",
       "text": "Blue 8",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "stripes:8:blue",
       "tooltip": "Advance the blue expedition to 8.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 8
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_9",
       "text": "Blue 9",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "stripes:9:blue",
       "tooltip": "Advance the blue expedition to 9.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 9
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "blue_10",
       "text": "Blue 10",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "asset": "stripes:10:blue",
       "tooltip": "Advance the blue expedition to 10.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 10
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "blue",
-          "blue_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["blue", "blue_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_w1",
       "text": "White wager",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "star:5:silver",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_w2",
       "text": "White wager",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "star:5:silver",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_w3",
       "text": "White wager",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "star:5:silver",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_2",
       "text": "White 2",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "stripes:2:silver",
       "tooltip": "Advance the white expedition to 2.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 2
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_3",
       "text": "White 3",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "stripes:3:silver",
       "tooltip": "Advance the white expedition to 3.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 3
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_4",
       "text": "White 4",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "stripes:4:silver",
       "tooltip": "Advance the white expedition to 4.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 4
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_5",
       "text": "White 5",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "stripes:5:silver",
       "tooltip": "Advance the white expedition to 5.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 5
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_6",
       "text": "White 6",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "stripes:6:silver",
       "tooltip": "Advance the white expedition to 6.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 6
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_7",
       "text": "White 7",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "stripes:7:silver",
       "tooltip": "Advance the white expedition to 7.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 7
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_8",
       "text": "White 8",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "stripes:8:silver",
       "tooltip": "Advance the white expedition to 8.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 8
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_9",
       "text": "White 9",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "stripes:9:silver",
       "tooltip": "Advance the white expedition to 9.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 9
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "white_10",
       "text": "White 10",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "asset": "stripes:10:silver",
       "tooltip": "Advance the white expedition to 10.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 10
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "white",
-          "white_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["white", "white_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_w1",
       "text": "Yellow wager",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "star:5:gold",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_w2",
       "text": "Yellow wager",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "star:5:gold",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_w3",
       "text": "Yellow wager",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "star:5:gold",
       "tooltip": "Doubles this expedition's score, for better or worse. Must be played before any number.",
-      "tags": [
-        "expedition",
-        "wager"
-      ],
+      "tags": ["expedition", "wager"],
       "card_stats": {
         "value": 0
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_2",
       "text": "Yellow 2",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "stripes:2:gold",
       "tooltip": "Advance the yellow expedition to 2.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 2
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_3",
       "text": "Yellow 3",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "stripes:3:gold",
       "tooltip": "Advance the yellow expedition to 3.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 3
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_4",
       "text": "Yellow 4",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "stripes:4:gold",
       "tooltip": "Advance the yellow expedition to 4.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 4
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_5",
       "text": "Yellow 5",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "stripes:5:gold",
       "tooltip": "Advance the yellow expedition to 5.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 5
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_6",
       "text": "Yellow 6",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "stripes:6:gold",
       "tooltip": "Advance the yellow expedition to 6.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 6
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_7",
       "text": "Yellow 7",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "stripes:7:gold",
       "tooltip": "Advance the yellow expedition to 7.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 7
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_8",
       "text": "Yellow 8",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "stripes:8:gold",
       "tooltip": "Advance the yellow expedition to 8.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 8
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_9",
       "text": "Yellow 9",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "stripes:9:gold",
       "tooltip": "Advance the yellow expedition to 9.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 9
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "yellow_10",
       "text": "Yellow 10",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "asset": "stripes:10:gold",
       "tooltip": "Advance the yellow expedition to 10.",
-      "tags": [
-        "expedition"
-      ],
+      "tags": ["expedition"],
       "card_stats": {
         "value": 10
       },
-      "target": {
-        "type": "zone",
-        "count": 1,
-        "zones": [
-          "yellow",
-          "yellow_discard"
-        ]
-      },
-      "on_play": [
-        "move_to:target"
-      ]
+      "play": {
+        "target": {
+          "type": "zone",
+          "count": 1,
+          "zones": ["yellow", "yellow_discard"]
+        },
+        "action": ["move_to:target"]
+      }
     },
     {
       "key": "red_score",
       "text": "Score Red",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "tooltip": "Total the red expedition.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.red": 1
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:sum:value@mine.red",
-        "lose_stat:score@mine.player:20",
-        "gain_stat:score@mine.player:sum:value@mine.red:x:count:wager@mine.red",
-        "lose_stat:score@mine.player:20:x:count:wager@mine.red",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.red": 1
+        },
+        "action": [
+          "gain_stat:score@mine.player:sum:value@mine.red",
+          "lose_stat:score@mine.player:20",
+          "gain_stat:score@mine.player:sum:value@mine.red:x:count:wager@mine.red",
+          "lose_stat:score@mine.player:20:x:count:wager@mine.red",
+          "destroy_self"
+        ]
+      }
     },
     {
       "key": "red_bonus",
       "text": "Red bonus",
-      "color": [
-        0.85,
-        0.25,
-        0.25
-      ],
+      "color": [0.85, 0.25, 0.25],
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.red": 8
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:20",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.red": 8
+        },
+        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+      }
     },
     {
       "key": "green_score",
       "text": "Score Green",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "tooltip": "Total the green expedition.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.green": 1
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:sum:value@mine.green",
-        "lose_stat:score@mine.player:20",
-        "gain_stat:score@mine.player:sum:value@mine.green:x:count:wager@mine.green",
-        "lose_stat:score@mine.player:20:x:count:wager@mine.green",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.green": 1
+        },
+        "action": [
+          "gain_stat:score@mine.player:sum:value@mine.green",
+          "lose_stat:score@mine.player:20",
+          "gain_stat:score@mine.player:sum:value@mine.green:x:count:wager@mine.green",
+          "lose_stat:score@mine.player:20:x:count:wager@mine.green",
+          "destroy_self"
+        ]
+      }
     },
     {
       "key": "green_bonus",
       "text": "Green bonus",
-      "color": [
-        0.3,
-        0.7,
-        0.35
-      ],
+      "color": [0.3, 0.7, 0.35],
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.green": 8
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:20",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.green": 8
+        },
+        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+      }
     },
     {
       "key": "blue_score",
       "text": "Score Blue",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "tooltip": "Total the blue expedition.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.blue": 1
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:sum:value@mine.blue",
-        "lose_stat:score@mine.player:20",
-        "gain_stat:score@mine.player:sum:value@mine.blue:x:count:wager@mine.blue",
-        "lose_stat:score@mine.player:20:x:count:wager@mine.blue",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.blue": 1
+        },
+        "action": [
+          "gain_stat:score@mine.player:sum:value@mine.blue",
+          "lose_stat:score@mine.player:20",
+          "gain_stat:score@mine.player:sum:value@mine.blue:x:count:wager@mine.blue",
+          "lose_stat:score@mine.player:20:x:count:wager@mine.blue",
+          "destroy_self"
+        ]
+      }
     },
     {
       "key": "blue_bonus",
       "text": "Blue bonus",
-      "color": [
-        0.3,
-        0.5,
-        0.9
-      ],
+      "color": [0.3, 0.5, 0.9],
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.blue": 8
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:20",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.blue": 8
+        },
+        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+      }
     },
     {
       "key": "white_score",
       "text": "Score White",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "tooltip": "Total the white expedition.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.white": 1
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:sum:value@mine.white",
-        "lose_stat:score@mine.player:20",
-        "gain_stat:score@mine.player:sum:value@mine.white:x:count:wager@mine.white",
-        "lose_stat:score@mine.player:20:x:count:wager@mine.white",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.white": 1
+        },
+        "action": [
+          "gain_stat:score@mine.player:sum:value@mine.white",
+          "lose_stat:score@mine.player:20",
+          "gain_stat:score@mine.player:sum:value@mine.white:x:count:wager@mine.white",
+          "lose_stat:score@mine.player:20:x:count:wager@mine.white",
+          "destroy_self"
+        ]
+      }
     },
     {
       "key": "white_bonus",
       "text": "White bonus",
-      "color": [
-        0.85,
-        0.85,
-        0.8
-      ],
+      "color": [0.85, 0.85, 0.8],
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.white": 8
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:20",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.white": 8
+        },
+        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+      }
     },
     {
       "key": "yellow_score",
       "text": "Score Yellow",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "tooltip": "Total the yellow expedition.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.yellow": 1
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:sum:value@mine.yellow",
-        "lose_stat:score@mine.player:20",
-        "gain_stat:score@mine.player:sum:value@mine.yellow:x:count:wager@mine.yellow",
-        "lose_stat:score@mine.player:20:x:count:wager@mine.yellow",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.yellow": 1
+        },
+        "action": [
+          "gain_stat:score@mine.player:sum:value@mine.yellow",
+          "lose_stat:score@mine.player:20",
+          "gain_stat:score@mine.player:sum:value@mine.yellow:x:count:wager@mine.yellow",
+          "lose_stat:score@mine.player:20:x:count:wager@mine.yellow",
+          "destroy_self"
+        ]
+      }
     },
     {
       "key": "yellow_bonus",
       "text": "Yellow bonus",
-      "color": [
-        0.9,
-        0.75,
-        0.25
-      ],
+      "color": [0.9, 0.75, 0.25],
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
-      "tags": [
-        "scoring",
-        "token"
-      ],
-      "needs": {
-        "count:expedition@mine.yellow": 8
-      },
-      "on_play": [
-        "gain_stat:score@mine.player:20",
-        "destroy_self"
-      ]
+      "tags": ["scoring", "token"],
+      "play": {
+        "needs": {
+          "count:expedition@mine.yellow": 8
+        },
+        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+      }
     },
     {
       "key": "mode_local",
       "text": "Both sides, here",
       "tooltip": "Hot-seat: take both players' turns on this machine.",
-      "tags": [
-        "token"
-      ],
-      "on_pick": [
-        "destroy:mode"
-      ]
+      "tags": ["token"],
+      "pick": {
+        "action": ["destroy:mode"]
+      }
     },
     {
       "key": "mode_online",
       "text": "With a friend, online",
-      "tooltip": "Sit as North and invite someone to play South. They do not need this game \u2014 it travels with the invite.",
-      "tags": [
-        "token"
-      ],
-      "on_pick": [
-        "destroy:mode",
-        "net_seat:north",
-        "net_invite"
-      ]
+      "tooltip": "Sit as North and invite someone to play South. They do not need this game — it travels with the invite.",
+      "tags": ["token"],
+      "pick": {
+        "action": ["destroy:mode", "net_seat:north", "net_invite"]
+      }
     },
     {
       "key": "done_scoring",
       "text": "Done",
       "tooltip": "Finish tallying.",
-      "tags": [
-        "token"
-      ],
-      "on_play": [
-        "gain_stat:tallied@mine.player:1",
-        "destroy_self",
-        "next_phase"
-      ]
+      "tags": ["token"],
+      "play": {
+        "action": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"]
+      }
     },
     {
       "key": "north_wins",
       "text": "North wins",
       "story": "North comes home with the better haul. South should have hedged.",
-      "on_pick": [
-        "load_game:menu.json"
-      ]
+      "pick": {
+        "action": ["load_game:menu.json"]
+      }
     },
     {
       "key": "south_wins",
       "text": "South wins",
       "story": "South comes home with the better haul. North should have hedged.",
-      "on_pick": [
-        "load_game:menu.json"
-      ]
+      "pick": {
+        "action": ["load_game:menu.json"]
+      }
     },
     {
       "key": "draw_deck",
       "text": "Draw from the deck",
       "tooltip": "Take the top card of the expedition deck.",
-      "tags": [
-        "token"
-      ],
-      "on_play": [
-        "draw_from:deck:hand:1",
-        "destroy_self",
-        "next_phase"
-      ]
+      "tags": ["token"],
+      "play": {
+        "action": ["draw_from:deck:hand:1", "destroy_self", "next_phase"]
+      }
     }
   ],
   "phases": [
@@ -2423,9 +1632,7 @@
       "discard_hand": true,
       "next": [
         {
-          "zone_empty": [
-            "deck"
-          ],
+          "zone_empty": ["deck"],
           "then": "tally"
         },
         {
@@ -2482,16 +1689,12 @@
     {
       "key": "north_end",
       "type": "automatic",
-      "actions": [
-        "reveal:north_wins"
-      ]
+      "actions": ["reveal:north_wins"]
     },
     {
       "key": "south_end",
       "type": "automatic",
-      "actions": [
-        "reveal:south_wins"
-      ]
+      "actions": ["reveal:south_wins"]
     },
     {
       "key": "mode",

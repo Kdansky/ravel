@@ -898,19 +898,74 @@ end
 local bp = with_fixture([[{
   "title": "Broken",
   "templats": [],
-  "stats": [ { "key": "gold" }, { "key": "gold" } ],
+  "stats": [
+    {
+      "key": "gold"
+    },
+    {
+      "key": "gold"
+    }
+  ],
   "zones": [
-    { "key": "board", "type": "gird", "pos": [0, 0, 1, 1], "grid": [3, 1] },
-    { "key": "hand", "type": "hand", "pos": [0, 0, 1, 1] }
+    {
+      "key": "board",
+      "type": "gird",
+      "pos": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "grid": [
+        3,
+        1
+      ]
+    },
+    {
+      "key": "hand",
+      "type": "hand",
+      "pos": [
+        0,
+        0,
+        1,
+        1
+      ]
+    }
   ],
   "cards": [
-    { "key": "sword", "onplay": ["destroy_self"], "cost": { "gold": "2" },
-      "on_play": ["gain_stat:gld:1"] },
-    { "key": "axe", "on_activate": "gain_stat:gold:1" },
-    { "key": "dagger" },
-    { "key": "dagger" }
+    {
+      "key": "sword",
+      "onplay": [
+        "destroy_self"
+      ],
+      "play": {
+        "cost": {
+          "gold": "2"
+        },
+        "action": [
+          "gain_stat:gld:1"
+        ]
+      }
+    },
+    {
+      "key": "axe",
+      "activate": {
+        "action": "gain_stat:gold:1"
+      }
+    },
+    {
+      "key": "dagger"
+    },
+    {
+      "key": "dagger"
+    }
   ],
-  "phases": [ { "key": "start", "type": "playerinput" } ]
+  "phases": [
+    {
+      "key": "start",
+      "type": "playerinput"
+    }
+  ]
 }]])
 check("a typo'd section name is reported", has_problem(bp, "templats"))
 check("duplicate keys are reported as conflicts", has_problem(bp, "share the key 'dagger'") and has_problem(bp, "share the key 'gold'"))
@@ -990,17 +1045,59 @@ check("a stack-overflow JSON payload recovers to the menu, not a crash",
 -- Parse-level messages need real files: entries with no key, duplicate
 -- zone/phase keys, and a section written as an object instead of a list.
 local kp = with_fixture([[{
-  "cards": [ { "text": "No Key" } ],
-  "zones": [
-    { "type": "hand", "pos": [0, 0, 1, 1] },
-    { "key": "dup", "type": "hand", "pos": [0, 0, 1, 1] },
-    { "key": "dup", "type": "hand", "pos": [0, 0, 1, 1] }
+  "cards": [
+    {
+      "text": "No Key"
+    }
   ],
-  "stats": [ { "label": "No Key" } ],
+  "zones": [
+    {
+      "type": "hand",
+      "pos": [
+        0,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "key": "dup",
+      "type": "hand",
+      "pos": [
+        0,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "key": "dup",
+      "type": "hand",
+      "pos": [
+        0,
+        0,
+        1,
+        1
+      ]
+    }
+  ],
+  "stats": [
+    {
+      "label": "No Key"
+    }
+  ],
   "phases": [
-    { "type": "automatic" },
-    { "key": "p", "type": "player_input" },
-    { "key": "p", "type": "player_input" }
+    {
+      "type": "automatic"
+    },
+    {
+      "key": "p",
+      "type": "player_input"
+    },
+    {
+      "key": "p",
+      "type": "player_input"
+    }
   ]
 }]])
 check("entries without keys are reported for every kind",
@@ -1243,27 +1340,122 @@ end
 play_fixture([[{
   "title": "The Company",
   "stats": [
-    { "key": "might", "label": "Might", "subject": "sum:might@party" },
-    { "key": "mana",  "label": "Mana" }
+    {
+      "key": "might",
+      "label": "Might",
+      "subject": "sum:might@party"
+    },
+    {
+      "key": "mana",
+      "label": "Mana"
+    }
   ],
   "zones": [
-    { "key": "party", "type": "grid", "pos": [0.0, 0.0, 0.8, 0.5], "grid": [4, 1],
-      "tags": ["activate"] },
-    { "key": "hand",  "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
+    {
+      "key": "party",
+      "type": "grid",
+      "pos": [
+        0.0,
+        0.0,
+        0.8,
+        0.5
+      ],
+      "grid": [
+        4,
+        1
+      ],
+      "tags": [
+        "activate"
+      ]
+    },
+    {
+      "key": "hand",
+      "type": "hand",
+      "pos": [
+        0.19,
+        0.62,
+        0.97,
+        0.97
+      ]
+    }
   ],
-  "phases": [ { "key": "adventuring", "type": "player_input", "label": "Adventuring" } ],
+  "phases": [
+    {
+      "key": "adventuring",
+      "type": "player_input",
+      "label": "Adventuring"
+    }
+  ],
   "cards": [
-    { "key": "ranger", "text": "Ranger", "tags": ["player", "ranger"],
-      "card_stats": { "hp": 6, "might": 3 }, "auto_play": true, "to_zone": "party" },
-    { "key": "cleric", "text": "Cleric", "tags": ["player", "cleric"],
-      "card_stats": { "hp": 5, "might": 2 }, "auto_play": true, "to_zone": "party" },
-    { "key": "dwarf",  "text": "Dwarf",  "tags": ["player", "dwarf"],
-      "card_stats": { "hp": 8, "might": 4 }, "auto_play": true, "to_zone": "party" },
-    { "key": "mage",   "text": "Mage",   "tags": ["player", "mage"],
-      "card_stats": { "hp": 4, "might": 1, "mana": 3 },
-      "auto_play": true, "to_zone": "party",
-      "activate_cost": { "mana@self": 1 },
-      "on_activate":   ["gain_stat:might@self:1"] }
+    {
+      "key": "ranger",
+      "text": "Ranger",
+      "tags": [
+        "player",
+        "ranger"
+      ],
+      "card_stats": {
+        "hp": 6,
+        "might": 3
+      },
+      "start": {
+        "zone": "party"
+      }
+    },
+    {
+      "key": "cleric",
+      "text": "Cleric",
+      "tags": [
+        "player",
+        "cleric"
+      ],
+      "card_stats": {
+        "hp": 5,
+        "might": 2
+      },
+      "start": {
+        "zone": "party"
+      }
+    },
+    {
+      "key": "dwarf",
+      "text": "Dwarf",
+      "tags": [
+        "player",
+        "dwarf"
+      ],
+      "card_stats": {
+        "hp": 8,
+        "might": 4
+      },
+      "start": {
+        "zone": "party"
+      }
+    },
+    {
+      "key": "mage",
+      "text": "Mage",
+      "tags": [
+        "player",
+        "mage"
+      ],
+      "card_stats": {
+        "hp": 4,
+        "might": 1,
+        "mana": 3
+      },
+      "activate": {
+        "cost": {
+          "mana@self": 1
+        },
+        "action": [
+          "gain_stat:might@self:1"
+        ]
+      },
+      "start": {
+        "zone": "party"
+      }
+    }
   ]
 }]], 1)
 
@@ -1298,26 +1490,150 @@ check("a character who dies takes her might with her",
 -- the three is meaningful, which is the test that it belongs beside them.
 play_fixture([==[{
   "title": "The Duel",
-  "stats": [ { "key": "gold", "label": "Gold" } ],
+  "stats": [
+    {
+      "key": "gold",
+      "label": "Gold"
+    }
+  ],
   "zones": [
-    { "key": "arena", "type": "grid", "grid": [3, 1], "per_seat": true,
-      "pos": [[0.02, 0.05, 0.60, 0.30], [0.02, 0.32, 0.60, 0.57]] },
-    { "key": "hand", "type": "hand", "per_seat": true,
-      "pos": [[0.19, 0.62, 0.97, 0.78], [0.19, 0.80, 0.97, 0.97]] },
-    { "key": "commons", "type": "grid", "pos": [0.62, 0.05, 0.98, 0.30], "grid": [2, 1] }
+    {
+      "key": "arena",
+      "type": "grid",
+      "grid": [
+        3,
+        1
+      ],
+      "per_seat": true,
+      "pos": [
+        [
+          0.02,
+          0.05,
+          0.6,
+          0.3
+        ],
+        [
+          0.02,
+          0.32,
+          0.6,
+          0.57
+        ]
+      ]
+    },
+    {
+      "key": "hand",
+      "type": "hand",
+      "per_seat": true,
+      "pos": [
+        [
+          0.19,
+          0.62,
+          0.97,
+          0.78
+        ],
+        [
+          0.19,
+          0.8,
+          0.97,
+          0.97
+        ]
+      ]
+    },
+    {
+      "key": "commons",
+      "type": "grid",
+      "pos": [
+        0.62,
+        0.05,
+        0.98,
+        0.3
+      ],
+      "grid": [
+        2,
+        1
+      ]
+    }
   ],
   "phases": [
-    { "key": "north_turn", "type": "player_input", "label": "North", "seat": "next" },
-    { "key": "south_turn", "type": "player_input", "label": "South", "seat": "next" }
+    {
+      "key": "north_turn",
+      "type": "player_input",
+      "label": "North",
+      "seat": "next"
+    },
+    {
+      "key": "south_turn",
+      "type": "player_input",
+      "label": "South",
+      "seat": "next"
+    }
   ],
   "cards": [
-    { "key": "north", "text": "North", "tags": ["player", "north_side"], "card_stats": { "gold": 5 } },
-    { "key": "south", "text": "South", "tags": ["player", "south_side"], "card_stats": { "gold": 2 } },
-    { "key": "wolf",  "text": "Wolf",  "tags": ["creature"], "card_stats": { "hp": 3 } },
-    { "key": "statue","text": "Statue","tags": ["creature"], "card_stats": { "hp": 9 } },
-    { "key": "banner","text": "Banner","tags": ["gear"],
-      "target": { "type": "card", "tags": ["creature"], "count": 1, "zones": ["arena", "commons"] },
-      "on_play": ["move_to:target"] }
+    {
+      "key": "north",
+      "text": "North",
+      "tags": [
+        "player",
+        "north_side"
+      ],
+      "card_stats": {
+        "gold": 5
+      }
+    },
+    {
+      "key": "south",
+      "text": "South",
+      "tags": [
+        "player",
+        "south_side"
+      ],
+      "card_stats": {
+        "gold": 2
+      }
+    },
+    {
+      "key": "wolf",
+      "text": "Wolf",
+      "tags": [
+        "creature"
+      ],
+      "card_stats": {
+        "hp": 3
+      }
+    },
+    {
+      "key": "statue",
+      "text": "Statue",
+      "tags": [
+        "creature"
+      ],
+      "card_stats": {
+        "hp": 9
+      }
+    },
+    {
+      "key": "banner",
+      "text": "Banner",
+      "tags": [
+        "gear"
+      ],
+      "play": {
+        "target": {
+          "type": "card",
+          "tags": [
+            "creature"
+          ],
+          "count": 1,
+          "zones": [
+            "arena",
+            "commons"
+          ]
+        },
+        "action": [
+          "move_to:target"
+        ]
+      }
+    }
   ]
 }]==], 1)
 
@@ -1418,27 +1734,140 @@ check("move_to:target put the card where the player pointed",
 play_fixture([==[{
   "title": "Skirmish",
   "zones": [
-    { "key": "board", "type": "grid", "grid": [3, 3], "pos": [0.02, 0.05, 0.60, 0.60],
-      "tags": ["activate"] },
-    { "key": "taken", "type": "pile", "pos": [0.62, 0.05, 0.98, 0.40] },
-    { "key": "hand",  "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
+    {
+      "key": "board",
+      "type": "grid",
+      "grid": [
+        3,
+        3
+      ],
+      "pos": [
+        0.02,
+        0.05,
+        0.6,
+        0.6
+      ],
+      "tags": [
+        "activate"
+      ]
+    },
+    {
+      "key": "taken",
+      "type": "pile",
+      "pos": [
+        0.62,
+        0.05,
+        0.98,
+        0.4
+      ]
+    },
+    {
+      "key": "hand",
+      "type": "hand",
+      "pos": [
+        0.19,
+        0.62,
+        0.97,
+        0.97
+      ]
+    }
   ],
-  "phases": [ { "key": "battle", "type": "player_input", "label": "Battle" } ],
+  "phases": [
+    {
+      "key": "battle",
+      "type": "player_input",
+      "label": "Battle"
+    }
+  ],
   "cards": [
-    { "key": "player_white", "text": "White", "tags": ["player"], "owns": "white" },
-    { "key": "player_black", "text": "Black", "tags": ["player"], "owns": "black" },
-    { "key": "w_rook", "text": "White Rook", "tags": ["white", "piece"],
-      "auto_play": true, "to_zone": "board",
-      "activate_target": { "type": "slot", "zones": ["board"], "fill": "open", "count": 1 },
-      "on_activate": ["move_to:target:taken"] },
-    { "key": "w_ghost", "text": "White Ghost", "tags": ["white", "piece"],
-      "auto_play": true, "to_zone": "board",
-      "activate_target": { "type": "slot", "zones": ["board"], "fill": "open", "count": 1 },
-      "on_activate": ["move_to:target"] },
-    { "key": "b_pawn", "text": "Black Pawn", "tags": ["black", "piece"],
-      "auto_play": true, "to_zone": "board",
-      "activate_target": { "type": "slot", "zones": ["board"], "fill": "empty", "count": 1 },
-      "on_activate": ["move_to:target"] }
+    {
+      "key": "player_white",
+      "text": "White",
+      "tags": [
+        "player"
+      ],
+      "owns": "white"
+    },
+    {
+      "key": "player_black",
+      "text": "Black",
+      "tags": [
+        "player"
+      ],
+      "owns": "black"
+    },
+    {
+      "key": "w_rook",
+      "text": "White Rook",
+      "tags": [
+        "white",
+        "piece"
+      ],
+      "activate": {
+        "target": {
+          "type": "slot",
+          "zones": [
+            "board"
+          ],
+          "fill": "open",
+          "count": 1
+        },
+        "action": [
+          "move_to:target:taken"
+        ]
+      },
+      "start": {
+        "zone": "board"
+      }
+    },
+    {
+      "key": "w_ghost",
+      "text": "White Ghost",
+      "tags": [
+        "white",
+        "piece"
+      ],
+      "activate": {
+        "target": {
+          "type": "slot",
+          "zones": [
+            "board"
+          ],
+          "fill": "open",
+          "count": 1
+        },
+        "action": [
+          "move_to:target"
+        ]
+      },
+      "start": {
+        "zone": "board"
+      }
+    },
+    {
+      "key": "b_pawn",
+      "text": "Black Pawn",
+      "tags": [
+        "black",
+        "piece"
+      ],
+      "activate": {
+        "target": {
+          "type": "slot",
+          "zones": [
+            "board"
+          ],
+          "fill": "empty",
+          "count": 1
+        },
+        "action": [
+          "move_to:target"
+        ]
+      },
+      "start": {
+        "zone": "board"
+      }
+    }
   ]
 }]==], 3)
 
@@ -1511,24 +1940,143 @@ check("the vacated square is genuinely the attacker's now",
 play_fixture([==[{
   "title": "Four Empires",
   "zones": [
-    { "key": "system", "type": "grid", "grid": [2, 1], "per_seat": true, "tags": ["activate"],
-      "pos": [[0.02, 0.05, 0.30, 0.30], [0.32, 0.05, 0.60, 0.30],
-              [0.02, 0.32, 0.30, 0.57], [0.32, 0.32, 0.60, 0.57]] },
-    { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
+    {
+      "key": "system",
+      "type": "grid",
+      "grid": [
+        2,
+        1
+      ],
+      "per_seat": true,
+      "tags": [
+        "activate"
+      ],
+      "pos": [
+        [
+          0.02,
+          0.05,
+          0.3,
+          0.3
+        ],
+        [
+          0.32,
+          0.05,
+          0.6,
+          0.3
+        ],
+        [
+          0.02,
+          0.32,
+          0.3,
+          0.57
+        ],
+        [
+          0.32,
+          0.32,
+          0.6,
+          0.57
+        ]
+      ]
+    },
+    {
+      "key": "hand",
+      "type": "hand",
+      "pos": [
+        0.19,
+        0.62,
+        0.97,
+        0.97
+      ]
+    }
   ],
-  "phases": [ { "key": "turn", "type": "player_input", "label": "Turn" } ],
+  "phases": [
+    {
+      "key": "turn",
+      "type": "player_input",
+      "label": "Turn"
+    }
+  ],
   "cards": [
-    { "key": "p1", "text": "Empire One",   "tags": ["player"], "owns": "one" },
-    { "key": "p2", "text": "Empire Two",   "tags": ["player"], "owns": "two" },
-    { "key": "p3", "text": "Empire Three", "tags": ["player"], "owns": "three" },
-    { "key": "p4", "text": "Empire Four",  "tags": ["player"], "owns": "four" },
-    { "key": "colony",  "text": "Colony",  "tags": ["three", "planet"] },
-    { "key": "capital", "text": "Capital", "tags": ["two", "planet"] },
-    { "key": "outpost", "text": "Outpost", "tags": ["four", "planet"] },
-    { "key": "cruiser", "text": "Cruiser", "tags": ["one", "ship"],
-      "activate_target": { "type": "card", "zones": ["system"], "tags": ["planet"],
-                           "owner": "enemy", "count": 1 },
-      "on_activate": ["destroy:target"] }
+    {
+      "key": "p1",
+      "text": "Empire One",
+      "tags": [
+        "player"
+      ],
+      "owns": "one"
+    },
+    {
+      "key": "p2",
+      "text": "Empire Two",
+      "tags": [
+        "player"
+      ],
+      "owns": "two"
+    },
+    {
+      "key": "p3",
+      "text": "Empire Three",
+      "tags": [
+        "player"
+      ],
+      "owns": "three"
+    },
+    {
+      "key": "p4",
+      "text": "Empire Four",
+      "tags": [
+        "player"
+      ],
+      "owns": "four"
+    },
+    {
+      "key": "colony",
+      "text": "Colony",
+      "tags": [
+        "three",
+        "planet"
+      ]
+    },
+    {
+      "key": "capital",
+      "text": "Capital",
+      "tags": [
+        "two",
+        "planet"
+      ]
+    },
+    {
+      "key": "outpost",
+      "text": "Outpost",
+      "tags": [
+        "four",
+        "planet"
+      ]
+    },
+    {
+      "key": "cruiser",
+      "text": "Cruiser",
+      "tags": [
+        "one",
+        "ship"
+      ],
+      "activate": {
+        "target": {
+          "type": "card",
+          "zones": [
+            "system"
+          ],
+          "tags": [
+            "planet"
+          ],
+          "owner": "enemy",
+          "count": 1
+        },
+        "action": [
+          "destroy:target"
+        ]
+      }
+    }
   ]
 }]==], 5)
 

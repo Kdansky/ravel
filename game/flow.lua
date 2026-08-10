@@ -528,7 +528,7 @@ function M.can_activate(card_id)
 	local z = entity.get(c.zone_id)
 	if not (z and z.tags.activate) then return false end
 	if not has_ability(cards.behaviour(c, "on_activate")) then return false end
-	if not phase_ok(cards.behaviour(c, "phases")) then return false end
+	if not phase_ok(cards.behaviour(c, "activate_phases")) then return false end
 	return M.can_afford(def.activate_cost, { card_id = card_id })
 end
 
@@ -580,7 +580,7 @@ function M.pick(card_id)
 	else
 		actions.run(cur.on_pick, { card_id = card_id, targets = {} })
 	end
-	if def and def.irreversible then
+	if def and def.pick_irreversible then
 		history = {}
 		log.add("— no turning back —")
 	end

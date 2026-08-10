@@ -27,7 +27,15 @@ M.TEMPLATE_FIELDS = {
 -- Entries arrive here as each moment migrates, and not before: a block the
 -- parser accepted while the validator rejected it would be worse than no block.
 local MOMENTS = {
+	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
+		action = "on_play", irreversible = "irreversible" },
+	activate  = { cost = "activate_cost", target = "activate_target", phases = "activate_phases",
+		action = "on_activate", exhausts = "exhausts", moves = "moves" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
+	receive   = { needs = "accepts" },
+	turn      = { action = "on_turn" },
+	pick      = { action = "on_pick", irreversible = "pick_irreversible" },
+	start     = { zone = "to_zone", slot = "to_slot" },
 }
 M.MOMENTS = MOMENTS
 
@@ -53,6 +61,9 @@ local function flatten_moments(def, pp, what)
 			for authored, internal in pairs(fields) do
 				if block[authored] ~= nil then def[internal] = block[authored] end
 			end
+			-- Presence is the flag: a card with a "start" block starts in play, so
+			-- there is no separate boolean to forget beside it.
+			if moment == "start" then def.auto_play = true end
 			-- Presence is the flag: a card with a "start" block starts in play,
 			-- so auto_play stops being a boolean somebody can forget beside it.
 			if moment == "start" then def.auto_play = true end
@@ -307,6 +318,7 @@ function M.parse(filename)
 			else
 				G.zone_list[#G.zone_list + 1] = zd.key
 			end
+			flatten_moments(zd, pp, "zone '" .. zd.key .. "'")
 			zd.tags_set = tag_set(zd.tags)
 			if not zd.pos then
 				zd.pos = zd.tags_set.hidden and DEFAULT_POS.hidden

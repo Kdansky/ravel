@@ -57,11 +57,7 @@
     "wagon_blaze": {
       "base": "explosion",
       "size": 1.5,
-      "color": [
-        1.0,
-        0.6,
-        0.2
-      ]
+      "color": [1.0, 0.6, 0.2]
     }
   },
   "zones": [
@@ -69,102 +65,45 @@
       "key": "battlefield",
       "label": "The Road",
       "type": "grid",
-      "grid": [
-        4,
-        2
-      ],
-      "pos": [
-        0.0,
-        0.0,
-        0.6,
-        0.56
-      ],
-      "tags": [
-        "activate"
-      ]
+      "grid": [4, 2],
+      "pos": [0.0, 0.0, 0.6, 0.56],
+      "tags": ["activate"]
     },
     {
       "key": "inventory",
       "label": "Wagons",
       "type": "grid",
-      "grid": [
-        4,
-        1
-      ],
-      "pos": [
-        0.0,
-        0.58,
-        0.6,
-        0.8
-      ],
-      "tags": [
-        "activate"
-      ]
+      "grid": [4, 1],
+      "pos": [0.0, 0.58, 0.6, 0.8],
+      "tags": ["activate"]
     },
     {
       "key": "hand",
       "type": "hand",
-      "pos": [
-        0.19,
-        0.82,
-        1.0,
-        0.99
-      ]
+      "pos": [0.19, 0.82, 1.0, 0.99]
     },
     {
       "key": "road_near",
       "label": "The Near Road",
       "type": "deck",
-      "pos": [
-        0.62,
-        0.02,
-        0.8,
-        0.3
-      ],
-      "tags": [
-        "shuffle",
-        "refill_when_empty"
-      ],
-      "contents": [
-        "wolves:3",
-        "mire:2",
-        "night_things:2"
-      ]
+      "pos": [0.62, 0.02, 0.8, 0.3],
+      "tags": ["shuffle", "refill_when_empty"],
+      "contents": ["wolves:3", "mire:2", "night_things:2"]
     },
     {
       "key": "road_far",
       "label": "The Far Road",
       "type": "deck",
-      "pos": [
-        0.82,
-        0.02,
-        1.0,
-        0.3
-      ],
-      "tags": [
-        "shuffle",
-        "refill_when_empty"
-      ],
-      "contents": [
-        "ash_knights:2",
-        "dark_ford:2",
-        "toll_bridge:2"
-      ]
+      "pos": [0.82, 0.02, 1.0, 0.3],
+      "tags": ["shuffle", "refill_when_empty"],
+      "contents": ["ash_knights:2", "dark_ford:2", "toll_bridge:2"]
     },
     {
       "key": "camp_deck",
       "label": "Camp",
       "type": "deck",
-      "pos": [
-        0.62,
-        0.32,
-        0.8,
-        0.6
-      ],
-      "tags": [
-        "shuffle",
-        "refill_when_empty"
-      ],
+      "pos": [0.62, 0.32, 0.8, 0.6],
+      "tags": ["shuffle", "refill_when_empty"],
       "contents": [
         "outrider:3",
         "pikemen:2",
@@ -183,12 +122,7 @@
       "key": "graveyard",
       "label": "Left Behind",
       "type": "pile",
-      "pos": [
-        0.82,
-        0.32,
-        1.0,
-        0.6
-      ]
+      "pos": [0.82, 0.32, 1.0, 0.6]
     }
   ],
   "cards": [
@@ -196,318 +130,247 @@
       "key": "p_depart",
       "text": "The Long Road",
       "story": "The city burned a week ago; whatever it was to you, it is smoke now. What is left of your caravan points itself at the mountains, twelve miles of bad country between you and the winter halls of your kin. Every dawn the road sends something new to meet you. Every dusk you choose: spend the bread, or spend the heart.",
-      "on_pick": []
+      "pick": {
+        "action": []
+      }
     },
     {
       "key": "march",
       "text": "March",
-      "color": [
-        0.12,
-        0.16,
-        0.13
-      ],
+      "color": [0.12, 0.16, 0.13],
       "tooltip": "Break camp and cover a mile. Costs 1 supply.",
-      "tags": [
-        "token"
-      ],
-      "cost": {
-        "supplies": 1
-      },
-      "on_play": [
-        "gain_stat:distance:1",
-        "destroy_self",
-        "next_phase"
-      ]
+      "tags": ["token"],
+      "play": {
+        "cost": {
+          "supplies": 1
+        },
+        "action": ["gain_stat:distance:1", "destroy_self", "next_phase"]
+      }
     },
     {
       "key": "hard_march",
       "text": "Hungry March",
-      "color": [
-        0.16,
-        0.12,
-        0.12
-      ],
+      "color": [0.16, 0.12, 0.12],
       "tooltip": "March on empty bellies: a mile for 1 morale.",
-      "tags": [
-        "token"
-      ],
-      "on_play": [
-        "lose_stat:morale:1",
-        "gain_stat:distance:1",
-        "destroy_self",
-        "next_phase"
-      ]
+      "tags": ["token"],
+      "play": {
+        "action": ["lose_stat:morale:1", "gain_stat:distance:1", "destroy_self", "next_phase"]
+      }
     },
     {
       "key": "outrider",
       "text": "Outrider",
       "asset": "horseman_dusk.jpg",
       "tooltip": "Sabres at dusk: strikes a threat for 2, once per day.",
-      "tags": [
-        "unit"
-      ],
+      "tags": ["unit"],
       "card_stats": {
         "hp": 2,
         "hp_max": 2
       },
-      "on_play": [
-        "move_to"
-      ],
-      "on_activate": [
-        "effect:sabre_hit",
-        "lose_stat:hp@random.threat:2"
-      ]
+      "play": {
+        "action": ["move_to"]
+      },
+      "activate": {
+        "action": ["effect:sabre_hit", "lose_stat:hp@random.threat:2"]
+      }
     },
     {
       "key": "pikemen",
       "text": "Pikemen",
       "asset": "pikemen_spears.jpg",
       "tooltip": "A wall that walks: strikes a threat for 1, once per day.",
-      "tags": [
-        "unit"
-      ],
+      "tags": ["unit"],
       "card_stats": {
         "hp": 4,
         "hp_max": 4
       },
-      "on_play": [
-        "move_to"
-      ],
-      "on_activate": [
-        "effect:sabre_hit",
-        "lose_stat:hp@random.threat:1"
-      ]
+      "play": {
+        "action": ["move_to"]
+      },
+      "activate": {
+        "action": ["effect:sabre_hit", "lose_stat:hp@random.threat:1"]
+      }
     },
     {
       "key": "huntsman",
       "text": "Huntsman",
       "asset": "hunter_forest.jpg",
       "tooltip": "Knows what the land hides: +1 supply, once per day.",
-      "tags": [
-        "unit"
-      ],
+      "tags": ["unit"],
       "card_stats": {
         "hp": 2,
         "hp_max": 2
       },
-      "on_play": [
-        "move_to"
-      ],
-      "on_activate": [
-        "gain_stat:supplies:1"
-      ]
+      "play": {
+        "action": ["move_to"]
+      },
+      "activate": {
+        "action": ["gain_stat:supplies:1"]
+      }
     },
     {
       "key": "torch",
       "text": "Pitch Torch",
       "asset": "torch_night.jpg",
       "tooltip": "Some things on the road fear fire. Keep it dry.",
-      "tags": [
-        "item"
-      ],
-      "on_play": [
-        "move_to"
-      ]
+      "tags": ["item"],
+      "play": {
+        "action": ["move_to"]
+      }
     },
     {
       "key": "waybread",
       "text": "Waybread",
       "asset": "bread_still.jpg",
       "tooltip": "Use it up: +2 supplies, then it is gone.",
-      "tags": [
-        "item"
-      ],
-      "on_play": [
-        "move_to"
-      ],
-      "on_activate": [
-        "gain_stat:supplies:2",
-        "destroy_self"
-      ]
+      "tags": ["item"],
+      "play": {
+        "action": ["move_to"]
+      },
+      "activate": {
+        "action": ["gain_stat:supplies:2", "destroy_self"]
+      }
     },
     {
       "key": "lucky_shoe",
       "text": "Lucky Horseshoe",
       "asset": "blacksmith_forge.jpg",
       "tooltip": "Nobody believes in it. +1 morale every day anyway.",
-      "tags": [
-        "item"
-      ],
-      "on_play": [
-        "move_to"
-      ],
-      "on_turn": [
-        "gain_stat:morale:1"
-      ]
+      "tags": ["item"],
+      "play": {
+        "action": ["move_to"]
+      },
+      "turn": {
+        "action": ["gain_stat:morale:1"]
+      }
     },
     {
       "key": "second_wind",
       "text": "Second Wind",
-      "color": [
-        0.12,
-        0.16,
-        0.13
-      ],
+      "color": [0.12, 0.16, 0.13],
       "asset": "tavern_meal.jpg",
       "tooltip": "A hot meal and an old song. +2 morale.",
-      "cost": {
-        "supplies": 1
-      },
-      "on_play": [
-        "effect:hearth_glow",
-        "gain_stat:morale:2",
-        "move_to:graveyard"
-      ]
+      "play": {
+        "cost": {
+          "supplies": 1
+        },
+        "action": ["effect:hearth_glow", "gain_stat:morale:2", "move_to:graveyard"]
+      }
     },
     {
       "key": "forced_march",
       "text": "Forced March",
-      "color": [
-        0.16,
-        0.12,
-        0.12
-      ],
+      "color": [0.16, 0.12, 0.12],
       "asset": "marching_column.jpg",
       "tooltip": "Two miles before moonrise, and everyone hates you. Costs 1 morale.",
-      "cost": {
-        "morale": 1
-      },
-      "on_play": [
-        "gain_stat:distance:2",
-        "move_to:graveyard"
-      ]
+      "play": {
+        "cost": {
+          "morale": 1
+        },
+        "action": ["gain_stat:distance:2", "move_to:graveyard"]
+      }
     },
     {
       "key": "scavenge",
       "text": "Scavenge the Field",
-      "color": [
-        0.13,
-        0.13,
-        0.16
-      ],
+      "color": [0.13, 0.13, 0.16],
       "asset": "battle_aftermath.jpg",
       "tooltip": "Strip a slain threat: clear it from the road, +2 supplies.",
-      "target": {
-        "type": "card",
-        "min": 1,
-        "max": 1,
-        "tags": [
-          "slain"
-        ],
-        "zones": [
-          "battlefield"
-        ]
-      },
-      "on_play": [
-        "move_target_to:graveyard",
-        "gain_stat:supplies:2",
-        "move_to:graveyard"
-      ]
+      "play": {
+        "target": {
+          "type": "card",
+          "min": 1,
+          "max": 1,
+          "tags": ["slain"],
+          "zones": ["battlefield"]
+        },
+        "action": ["move_target_to:graveyard", "gain_stat:supplies:2", "move_to:graveyard"]
+      }
     },
     {
       "key": "campfire_songs",
       "text": "Campfire Songs",
-      "color": [
-        0.12,
-        0.16,
-        0.13
-      ],
+      "color": [0.12, 0.16, 0.13],
       "asset": "campfire_night.jpg",
       "tooltip": "The old verses: +1 morale for every unit still standing.",
-      "on_play": [
-        "gain_stat:morale:count:unit",
-        "move_to:graveyard"
-      ]
+      "play": {
+        "action": ["gain_stat:morale:count:unit", "move_to:graveyard"]
+      }
     },
     {
       "key": "burn_the_wagons",
       "text": "Burn the Wagons",
       "asset": "wagon_fire.jpg",
       "tooltip": "Lighter, faster, colder. Sacrifice a unit to cover 3 miles at a stroke.",
-      "cost": {
-        "sacrifice:unit": 1
-      },
-      "on_play": [
-        "effect:wagon_blaze",
-        "gain_stat:distance:3",
-        "gain_stat:morale:1",
-        "move_to:graveyard"
-      ]
+      "play": {
+        "cost": {
+          "sacrifice:unit": 1
+        },
+        "action": ["effect:wagon_blaze", "gain_stat:distance:3", "gain_stat:morale:1", "move_to:graveyard"]
+      }
     },
     {
       "key": "wolves",
       "text": "Wolf Pack",
       "asset": "wolves_winter.jpg",
       "tooltip": "They pace the column after dark. -1 morale each day it lives.",
-      "tags": [
-        "threat"
-      ],
+      "tags": ["threat"],
       "card_stats": {
         "hp": 2,
         "hp_max": 2
       },
-      "on_turn": [
-        "effect:wolf_bite",
-        "lose_stat:morale:1"
-      ]
+      "turn": {
+        "action": ["effect:wolf_bite", "lose_stat:morale:1"]
+      }
     },
     {
       "key": "mire",
       "text": "The Mire",
       "asset": "swamp_mire.jpg",
       "tooltip": "The road drowns and the wagons sink. -1 supply each day it lasts.",
-      "tags": [
-        "threat"
-      ],
+      "tags": ["threat"],
       "card_stats": {
         "hp": 2,
         "hp_max": 2
       },
-      "on_turn": [
-        "lose_stat:supplies:1"
-      ]
+      "turn": {
+        "action": ["lose_stat:supplies:1"]
+      }
     },
     {
       "key": "night_things",
       "text": "Night-Things",
       "asset": "dark_forest.jpg",
       "tooltip": "Never quite seen, never quite gone. -1 morale each day.",
-      "tags": [
-        "threat"
-      ],
+      "tags": ["threat"],
       "card_stats": {
         "hp": 3,
         "hp_max": 3
       },
-      "on_turn": [
-        "lose_stat:morale:1"
-      ]
+      "turn": {
+        "action": ["lose_stat:morale:1"]
+      }
     },
     {
       "key": "ash_knights",
       "text": "Ash Knights",
       "asset": "dark_riders.jpg",
       "tooltip": "Riders in burnt colors. -1 morale and -1 supply each day they shadow you.",
-      "tags": [
-        "threat"
-      ],
+      "tags": ["threat"],
       "card_stats": {
         "hp": 4,
         "hp_max": 4
       },
-      "on_turn": [
-        "lose_stat:morale:1",
-        "lose_stat:supplies:1"
-      ]
+      "turn": {
+        "action": ["lose_stat:morale:1", "lose_stat:supplies:1"]
+      }
     },
     {
       "key": "dark_ford",
       "text": "The Dark Ford",
       "asset": "river_ford.jpg",
       "tooltip": "The water wants a light. Answer it with a torch in the wagons, or cut a way through.",
-      "tags": [
-        "threat"
-      ],
+      "tags": ["threat"],
       "card_stats": {
         "hp": 3,
         "hp_max": 3
@@ -516,30 +379,22 @@
         "needs": {
           "card:torch": 1
         },
-        "pass": [
-          "move_to:graveyard",
-          "gain_stat:distance:1",
-          "gain_stat:morale:1"
-        ],
-        "fail": [
-          "lose_stat:morale:2"
-        ]
+        "pass": ["move_to:graveyard", "gain_stat:distance:1", "gain_stat:morale:1"],
+        "fail": ["lose_stat:morale:2"]
       },
-      "on_activate": [
-        "resolve_challenge"
-      ],
-      "on_turn": [
-        "lose_stat:morale:1"
-      ]
+      "activate": {
+        "action": ["resolve_challenge"]
+      },
+      "turn": {
+        "action": ["lose_stat:morale:1"]
+      }
     },
     {
       "key": "toll_bridge",
       "text": "The Toll Bridge",
       "asset": "stone_bridge.jpg",
       "tooltip": "The keeper counts your sacks. Answer with 3 supplies in hand (2 are taken), or cut a way through.",
-      "tags": [
-        "threat"
-      ],
+      "tags": ["threat"],
       "card_stats": {
         "hp": 3,
         "hp_max": 3
@@ -548,63 +403,53 @@
         "needs": {
           "supplies": 3
         },
-        "pass": [
-          "move_to:graveyard",
-          "lose_stat:supplies:2",
-          "gain_stat:distance:2"
-        ],
-        "fail": [
-          "lose_stat:morale:1"
-        ]
+        "pass": ["move_to:graveyard", "lose_stat:supplies:2", "gain_stat:distance:2"],
+        "fail": ["lose_stat:morale:1"]
       },
-      "on_activate": [
-        "resolve_challenge"
-      ],
-      "on_turn": [
-        "lose_stat:morale:1"
-      ]
+      "activate": {
+        "action": ["resolve_challenge"]
+      },
+      "turn": {
+        "action": ["lose_stat:morale:1"]
+      }
     },
     {
       "key": "e_home",
       "text": "The Winter Halls",
       "outcome": "victory",
       "story": "The pass opens and there they are: lamplit windows cut into the mountain's shoulder, woodsmoke standing straight up into the cold. Someone on the wall starts ringing the little bell they ring for kin. Whatever you spent on the road — bread, blood, the wagons themselves — the column walks in singing.",
-      "on_pick": [
-        "load_game:menu.json"
-      ]
+      "pick": {
+        "action": ["load_game:menu.json"]
+      }
     },
     {
       "key": "e_broken",
       "text": "The Column Breaks",
       "outcome": "defeat",
       "story": "It isn't one thing. It's the wolves and the rain and the third night without bread, and then one morning the road is full of people quietly walking in different directions. You shout until your voice goes. The mountains keep their winter to themselves.",
-      "on_pick": [
-        "load_game:menu.json"
-      ]
+      "pick": {
+        "action": ["load_game:menu.json"]
+      }
     },
     {
       "key": "e_winter",
       "text": "Snowed In",
       "story": "The first real snow comes down like a door closing. You dig in where the road stands, burn what you can spare and some of what you can't, and learn the long arithmetic of waiting. In spring, the survivors finish the last miles in silence. The halls take you in; the road keeps its share.",
-      "on_pick": [
-        "load_game:menu.json"
-      ]
+      "pick": {
+        "action": ["load_game:menu.json"]
+      }
     }
   ],
   "phases": [
     {
       "key": "depart",
       "type": "automatic",
-      "actions": [
-        "reveal:p_depart"
-      ]
+      "actions": ["reveal:p_depart"]
     },
     {
       "key": "dawn_near",
       "type": "automatic",
-      "actions": [
-        "draw_from:road_near:battlefield:1"
-      ],
+      "actions": ["draw_from:road_near:battlefield:1"],
       "next": [
         {
           "then": "camp"
@@ -614,9 +459,7 @@
     {
       "key": "dawn_far",
       "type": "automatic",
-      "actions": [
-        "draw_from:road_far:battlefield:1"
-      ],
+      "actions": ["draw_from:road_far:battlefield:1"],
       "next": [
         {
           "then": "camp"
@@ -629,10 +472,7 @@
       "label": "Making Camp",
       "deck": "camp_deck",
       "draw": 3,
-      "pass_card": [
-        "march",
-        "hard_march"
-      ],
+      "pass_card": ["march", "hard_march"],
       "discard_hand": true,
       "next": [
         {
@@ -652,23 +492,17 @@
     {
       "stat": "morale",
       "at_most": 0,
-      "then": [
-        "reveal:e_broken"
-      ]
+      "then": ["reveal:e_broken"]
     },
     {
       "stat": "distance",
       "at_least": 12,
-      "then": [
-        "reveal:e_home"
-      ]
+      "then": ["reveal:e_home"]
     },
     {
       "stat": "round",
       "at_least": 16,
-      "then": [
-        "reveal:e_winter"
-      ]
+      "then": ["reveal:e_winter"]
     }
   ]
 }

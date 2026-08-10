@@ -14,6 +14,13 @@ local declaration = require("declaration")
 local validate = require("validate")
 local actions = require("actions")
 
+-- Shapes reached through another section rather than declared beside one.
+local NESTED = {
+	target = true, route = true,
+	play = true, activate = true, challenge = true, receive = true,
+	turn = true, pick = true, start = true,
+}
+
 local M = {}
 
 local function schema()
@@ -91,9 +98,9 @@ function M.test_schema_describes_every_field_the_engine_reads(check)
 	for section, fields in pairs(validate.FIELDS) do
 		local entry = exemplar(doc[section])
 		if entry == nil then
-			-- Shapes that live inside another section rather than beside one.
-			check("the document has an entry for " .. section,
-				section == "target" or section == "route" or section == "challenge")
+			-- Shapes that live inside another section rather than beside one:
+			-- a card's moments, a target spec, a routing entry. Checked below.
+			check("the document has an entry for " .. section, NESTED[section] == true)
 		else
 			for field in pairs(fields) do
 				if not validate.DERIVED[field] then
@@ -115,20 +122,26 @@ function M.test_schema_describes_the_nested_shapes(check)
 	local card = exemplar(doc.cards)
 	local phase = exemplar(doc.phases)
 
+	-- The target spec is spelled out under play; activate.target says it is the
+	-- same shape rather than repeating twenty lines of it.
 	for field in pairs(validate.FIELDS.target) do
-		check("target." .. field .. " is described", card.target[field] ~= nil)
+		check("play.target." .. field .. " is described", card.play.target[field] ~= nil)
 	end
-	for field in pairs(card.target) do
-		check("target." .. field .. " is a field the engine reads",
+	for field in pairs(card.play.target) do
+		check("play.target." .. field .. " is a field the engine reads",
 			validate.FIELDS.target[field] ~= nil)
 	end
 
-	for field in pairs(validate.FIELDS.challenge) do
-		check("challenge." .. field .. " is described", card.challenge[field] ~= nil)
-	end
-	for field in pairs(card.challenge) do
-		check("challenge." .. field .. " is a field the engine reads",
-			validate.FIELDS.challenge[field] ~= nil)
+	-- A card's moments: each block against its own field table, both ways.
+	for _, moment in ipairs({ "play", "activate", "challenge", "receive", "turn", "pick", "start" }) do
+		local block, fields = card[moment], validate.FIELDS[moment]
+		check("the document has a " .. moment .. " block", type(block) == "table")
+		for field in pairs(fields) do
+			check(moment .. "." .. field .. " is described", block and block[field] ~= nil)
+		end
+		for field in pairs(block or {}) do
+			check(moment .. "." .. field .. " is a field the engine reads", fields[field] ~= nil)
+		end
 	end
 
 	local route = exemplar(phase.next)

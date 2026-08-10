@@ -37,47 +37,54 @@
       "card_stats": {
         "<stat key>": "number stamped on each instance when it is created. An hp with an hp_max companion draws a badge, and 0 hp is ruined."
       },
-      "cost": {
-        "<stat key or sacrifice:tag>": "number paid when the card is played. It gates the card and dims it when unaffordable. A scope is allowed, a measuring fn is not: counting things is asking, not spending, so count: and sum: belong in needs."
-      },
-      "needs": {
-        "<subject>": "a condition that gates the card without consuming anything. A bare number means at least n; a map like {at_most: 6} asks the other way. See _conditions."
-      },
-      "target": {
-        "type": "card, slot or zone: what the player points at",
-        "min": "number of targets that must be chosen",
-        "max": "number that may be chosen",
-        "count": "number setting min and max at once",
-        "tags": [
-          "every tag a candidate must carry; computed tags count"
+      "play": {
+        "cost": {
+          "<stat key or sacrifice:tag>": "number paid when the card is played. It gates the card and dims it when unaffordable. A scope is allowed, a measuring fn is not: counting things is asking, not spending, so count: and sum: belong in needs."
+        },
+        "needs": {
+          "<subject>": "a condition that gates the card without consuming anything. A bare number means at least n; a map like {at_most: 6} asks the other way. See _conditions."
+        },
+        "target": {
+          "type": "card, slot or zone: what the player points at",
+          "min": "number of targets that must be chosen",
+          "max": "number that may be chosen",
+          "count": "number setting min and max at once",
+          "tags": [
+            "every tag a candidate must carry; computed tags count"
+          ],
+          "zones": [
+            "only look in these zones. A per-seat key means yours unless an owner word says otherwise."
+          ],
+          "owner": "mine, enemy or anyone",
+          "fill": "slots only: what may already be standing there. empty (default), enemy, open (empty or enemy), any.",
+          "moves": [
+            "pattern names limiting the squares offered, written for you when the card declares moves"
+          ]
+        },
+        "phases": [
+          "phase key or list: this card may be played only in those. Naming none means any phase."
         ],
-        "zones": [
-          "only look in these zones. A per-seat key means yours unless an owner word says otherwise."
+        "action": [
+          "action strings run when the card is played. See _actions."
         ],
-        "owner": "mine, enemy or anyone",
-        "fill": "slots only: what may already be standing there. empty (default), enemy, open (empty or enemy), any.",
+        "irreversible": "true clears the undo stack when the card is played: the choice is final"
+      },
+      "activate": {
+        "cost": {
+          "<stat key or sacrifice:tag>": "number paid when the card is activated on the board, same rules as cost"
+        },
+        "target": "the same shape as play.target, for the board ability rather than the play",
+        "phases": [
+          "phase key or list: the ability works only in those. Separate from play.phases, so a card can be playable in one phase and activatable in another."
+        ],
+        "action": [
+          "action strings run when the card is clicked on the board. Activating exhausts the card until the round wraps, unless exhausts says otherwise."
+        ],
+        "exhausts": "false keeps the card ready after activating, which is what a permanent button wants. Default true: one use per round.",
         "moves": [
-          "pattern names limiting the squares offered, written for you when the card declares moves"
+          "how a piece moves on a grid: pattern names, or objects carrying their own patterns plus fill and needs. Declaring this writes the activate_target for you."
         ]
       },
-      "phases": [
-        "phase key or list of them: the card works only there. Naming none means any phase."
-      ],
-      "on_play": [
-        "action strings run when the card is played. See _actions."
-      ],
-      "irreversible": "true clears the undo stack when the card is played or picked: the choice is final",
-      "activate_cost": {
-        "<stat key or sacrifice:tag>": "number paid when the card is activated on the board, same rules as cost"
-      },
-      "activate_target": "the same shape as target, for the ability rather than the play",
-      "moves": [
-        "how a piece moves on a grid: pattern names, or objects carrying their own patterns plus fill and needs. Declaring this writes the activate_target for you."
-      ],
-      "exhausts": "false keeps the card ready after activating, which is what a permanent button wants. Default true: one use per round.",
-      "on_activate": [
-        "action strings run when the card is clicked on the board"
-      ],
       "challenge": {
         "needs": "a condition deciding pass from fail, read by the resolve_challenge action. Same shape as any other needs; what differs is the moment it is asked.",
         "pass": [
@@ -87,18 +94,26 @@
           "action strings run when it does not"
         ]
       },
-      "accepts": {
-        "<subject>": "a condition deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."
+      "receive": {
+        "needs": {
+          "<subject>": "a condition deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."
+        }
       },
-      "on_turn": [
-        "action strings run at each round boundary while the card is on a grid and not ruined"
-      ],
-      "on_pick": [
-        "action strings run when the card is picked from the page overlay"
-      ],
-      "auto_play": "true starts the card already in play, for thrones, boards and buttons",
-      "to_zone": "zone key an auto_play card starts in. Without one, its home tag decides, then the only board.",
-      "to_slot": "1-based cell index an auto_play card starts on, row-major",
+      "turn": {
+        "action": [
+          "action strings run at each round boundary while the card is on a grid and not ruined"
+        ]
+      },
+      "pick": {
+        "action": [
+          "action strings run when the card is picked from the page overlay"
+        ],
+        "irreversible": "true clears the undo stack when this page is picked"
+      },
+      "start": {
+        "zone": "zone key this card starts in, already in play — for thrones, boards and buttons. Without one, its home tag decides, then the only board.",
+        "slot": "1-based cell index it starts on, row-major. Grid zones only."
+      },
       "outcome": "victory or defeat on an ending card, which gives a banner, a run summary and a flourish"
     }
   ],
@@ -118,8 +133,10 @@
       "applies": [
         "tags this zone hands to whatever lies in it, behaviour included. This is how a pile grants an ability no card knows about."
       ],
-      "accepts": {
-        "<subject>": "a condition deciding whether a card being played may be sent here. Same shape as a card's accepts, asked of the zone."
+      "receive": {
+        "needs": {
+          "<subject>": "a condition deciding whether a card being played may be sent here. Same shape as a card's accepts, asked of the zone."
+        }
       },
       "on_click": [
         "action strings run when the zone is clicked. Not phase-scoped: it fires in every phase, so it is not a move. An ability on a card, granted with applies, is what a move wants to be."
@@ -193,17 +210,22 @@
   "tags": {
     "<your tag name>": {
       "zone": "the home zone of every card carrying this tag, so move_to with no zone, gain and auto_play all know where the card goes without naming it",
-      "on_activate": [
-        "action strings this tag gives its cards, which is what a zone hands out with applies"
-      ],
-      "activate_target": "a target spec for that ability, same shape as a card's",
-      "activate_cost": {
-        "<stat key>": "number paid for that ability"
+      "activate": {
+        "action": [
+          "action strings this tag gives its cards, which is what a zone hands out with applies"
+        ],
+        "target": "a target spec for that ability, the same shape as a card's play.target",
+        "cost": {
+          "<stat key>": "number paid for that ability"
+        },
+        "phases": [
+          "phase keys the ability works in"
+        ],
+        "exhausts": "false keeps a card ready after using this ability",
+        "moves": [
+          "pattern names, if the ability is a move"
+        ]
       },
-      "exhausts": "false keeps a card ready after using this ability",
-      "phases": [
-        "phase keys the ability works in"
-      ],
       "tooltip": "prose describing what lying here lets a card do. A card's own tooltip is shown as well, because they describe different acts."
     }
   },

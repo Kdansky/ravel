@@ -42,22 +42,34 @@ M.EFFECT_BASES = {
 -- prose and the two must not drift: a schema that documents a field the engine
 -- dropped is worse than none, since it looks machine-made and is believed.
 -- tests/integration/schema.lua compares them both ways.
+-- What a card is, then the moments it has. Everything a moment carries is
+-- reached through its block; the flat names beside them are what the parser
+-- derives, and writing one is an error rather than a second spelling.
 local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
-	color = true, tags = true, card_stats = true, cost = true,
-	activate_cost = true, needs = true, requires = true, target = true,
-	challenge = true,
-	activate_target = true, exhausts = true,
-	on_play = true, on_activate = true, on_turn = true, on_pass = true,
-	on_fail = true, on_pick = true, auto_play = true, to_zone = true,
-	to_slot = true, irreversible = true, outcome = true, tags_set = true,
-	injected = true, accepts = true, phases = true, owns = true,
-	moves = true, move_rules = true,
+	color = true, tags = true, card_stats = true, owns = true, outcome = true,
+	play = true, activate = true, challenge = true, receive = true,
+	turn = true, pick = true, start = true,
+	-- derived by declaration.parse from the blocks above
+	cost = true, needs = true, target = true, phases = true, on_play = true,
+	irreversible = true, activate_cost = true, activate_target = true,
+	activate_phases = true, on_activate = true, exhausts = true, moves = true,
+	move_rules = true, requires = true, on_pass = true, on_fail = true,
+	accepts = true, on_turn = true, on_pick = true, pick_irreversible = true,
+	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 }
+local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
+	action = true, irreversible = true }
+local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
+	exhausts = true, moves = true }
+local RECEIVE_FIELDS   = { needs = true }
+local TURN_FIELDS      = { action = true }
+local PICK_FIELDS      = { action = true, irreversible = true }
+local START_FIELDS     = { zone = true, slot = true }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, fit = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
-	injected = true, per_seat = true, applies = true, accepts = true,
+	injected = true, per_seat = true, applies = true, accepts = true, receive = true,
 	checker = true, asset = true, paint = true, ratio = true,
 }
 local PHASE_FIELDS = {
@@ -70,8 +82,13 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, hidd
 -- A tag def is a mixin: it may carry a home zone, and the card behaviour a zone
 -- hands to whatever sits in it ("applies"). Kept to the fields a granted rule
 -- can honestly mean — nothing that would have to be re-derived as state moves.
-local TAG_FIELDS      = { zone = true, on_activate = true, activate_target = true,
-	activate_cost = true, exhausts = true, phases = true, tooltip = true }
+-- A tag def is a card mixin, so it speaks a card's moments. What a tag can
+-- honestly grant is an ability and a home — nothing that would have to be
+-- re-derived as state moves — so `activate` is the only block it takes.
+local TAG_FIELDS      = { zone = true, tooltip = true, activate = true,
+	-- derived from the block, as on a card
+	on_activate = true, activate_target = true, activate_cost = true,
+	activate_phases = true, exhausts = true, moves = true }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
 	owner = true, fill = true, moves = true }
@@ -118,15 +135,26 @@ M.FIELDS = {
 	end_conditions = END_FIELDS,
 	target        = TARGET_FIELDS,
 	route         = ROUTE_FIELDS,
+	play          = PLAY_FIELDS,
+	activate      = ACTIVATE_FIELDS,
 	challenge     = CHALLENGE_FIELDS,
+	receive       = RECEIVE_FIELDS,
+	turn          = TURN_FIELDS,
+	pick          = PICK_FIELDS,
+	start         = START_FIELDS,
 }
 
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
 -- entry the engine hands around and are not things an author ever writes, so
 -- the schema document must not describe them.
 M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
-	-- flattened out of a card's moment blocks by declaration.parse
-	requires = true, on_pass = true, on_fail = true }
+	-- flattened out of the moment blocks by declaration.parse, never authored
+	cost = true, needs = true, target = true, phases = true, on_play = true,
+	irreversible = true, activate_cost = true, activate_target = true,
+	activate_phases = true, on_activate = true, exhausts = true, moves = true,
+	requires = true, on_pass = true, on_fail = true, accepts = true,
+	on_turn = true, on_pick = true, pick_irreversible = true,
+	auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
 -- "did you mean" suggestions.
@@ -722,8 +750,14 @@ function M.check(G)
 	for key, def in pairs(G.card_defs) do
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
+		for moment, fields in pairs({ play = PLAY_FIELDS, activate = ACTIVATE_FIELDS,
+			receive = RECEIVE_FIELDS, turn = TURN_FIELDS, pick = PICK_FIELDS,
+			start = START_FIELDS, challenge = CHALLENGE_FIELDS }) do
+			if type(def[moment]) == "table" then
+				check_fields(where .. " " .. moment, def[moment], fields)
+			end
+		end
 		if type(def.challenge) == "table" then
-			check_fields(where .. " challenge", def.challenge, CHALLENGE_FIELDS)
 			if def.challenge.needs == nil then
 				warn('%s: a challenge with no "needs" has nothing to decide — it always passes', where)
 			end

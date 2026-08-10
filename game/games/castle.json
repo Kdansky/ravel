@@ -61,340 +61,266 @@
         "defense": 0,
         "food": 0
       },
-      "tags": [
-        "building",
-        "hero",
-        "player"
-      ],
-      "auto_play": true,
-      "to_zone": "board",
-      "to_slot": 13,
-      "on_turn": [
-        "gain_stat:gold:1"
-      ],
-      "activate_cost": {
-        "gold": 2
+      "tags": ["building", "hero", "player"],
+      "activate": {
+        "cost": {
+          "gold": 2
+        },
+        "action": ["gain_stat:morale:1"]
       },
-      "on_activate": [
-        "gain_stat:morale:1"
-      ]
+      "turn": {
+        "action": ["gain_stat:gold:1"]
+      },
+      "start": {
+        "zone": "board",
+        "slot": 13
+      }
     },
     {
       "key": "watchtower",
       "text": "Watchtower",
       "asset": "fortress_walls.jpg",
       "tooltip": "A guard post on the walls. Adds 2 defense while it stands.",
-      "cost": {
-        "gold": 2
+      "play": {
+        "cost": {
+          "gold": 2
+        },
+        "target": {
+          "type": "slot",
+          "min": 1,
+          "max": 1,
+          "zones": ["board"]
+        },
+        "action": ["move_to:board"]
       },
       "card_stats": {
         "hp": 4,
         "hp_max": 4,
         "defense": 2
       },
-      "tags": [
-        "building",
-        "military"
-      ],
-      "target": {
-        "type": "slot",
-        "min": 1,
-        "max": 1,
-        "zones": [
-          "board"
-        ]
-      },
-      "on_play": [
-        "move_to:board"
-      ]
+      "tags": ["building", "military"]
     },
     {
       "key": "farm",
       "text": "Farm",
       "asset": "farmhouse_fields.jpg",
       "tooltip": "Feeds your people: +1 food each round.",
-      "cost": {
-        "gold": 1
+      "play": {
+        "cost": {
+          "gold": 1
+        },
+        "target": {
+          "type": "slot",
+          "min": 1,
+          "max": 1,
+          "zones": ["board"]
+        },
+        "action": ["move_to:board"]
+      },
+      "turn": {
+        "action": ["gain_stat:food:1"]
       },
       "card_stats": {
         "hp": 3,
         "hp_max": 3
       },
-      "tags": [
-        "building",
-        "economic"
-      ],
-      "target": {
-        "type": "slot",
-        "min": 1,
-        "max": 1,
-        "zones": [
-          "board"
-        ]
-      },
-      "on_play": [
-        "move_to:board"
-      ],
-      "on_turn": [
-        "gain_stat:food:1"
-      ]
+      "tags": ["building", "economic"]
     },
     {
       "key": "market",
       "text": "Market",
       "asset": "market_square.jpg",
       "tooltip": "Trade routes bring +1 gold each round.",
-      "cost": {
-        "gold": 2
+      "play": {
+        "cost": {
+          "gold": 2
+        },
+        "target": {
+          "type": "slot",
+          "min": 1,
+          "max": 1,
+          "zones": ["board"]
+        },
+        "action": ["move_to:board"]
+      },
+      "turn": {
+        "action": ["gain_stat:gold:1"]
       },
       "card_stats": {
         "hp": 3,
         "hp_max": 3
       },
-      "tags": [
-        "building",
-        "economic"
-      ],
-      "target": {
-        "type": "slot",
-        "min": 1,
-        "max": 1,
-        "zones": [
-          "board"
-        ]
-      },
-      "on_play": [
-        "move_to:board"
-      ],
-      "on_turn": [
-        "gain_stat:gold:1"
-      ]
+      "tags": ["building", "economic"]
     },
     {
       "key": "repair",
       "text": "Repair Crew",
       "asset": "blacksmith_forge.jpg",
       "tooltip": "Restore 2 HP to a damaged building.",
-      "cost": {
-        "gold": 1
+      "play": {
+        "cost": {
+          "gold": 1
+        },
+        "target": {
+          "type": "card",
+          "min": 0,
+          "max": 1,
+          "tags": ["building", "damaged"],
+          "zones": ["board"]
+        },
+        "action": ["gain_stat:hp@target:2", "move_to:graveyard"]
       },
-      "tags": [
-        "one_shot"
-      ],
-      "target": {
-        "type": "card",
-        "min": 0,
-        "max": 1,
-        "tags": [
-          "building",
-          "damaged"
-        ],
-        "zones": [
-          "board"
-        ]
-      },
-      "on_play": [
-        "gain_stat:hp@target:2",
-        "move_to:graveyard"
-      ]
+      "tags": ["one_shot"]
     },
     {
       "key": "mercenaries",
       "text": "Mercenaries",
       "asset": "army_camp.jpg",
       "tooltip": "Hired swords. +3 defense.",
-      "cost": {
-        "gold": 2
+      "play": {
+        "cost": {
+          "gold": 2
+        },
+        "action": ["gain_stat:defense:3", "move_to:graveyard"]
       },
-      "tags": [
-        "one_shot"
-      ],
-      "on_play": [
-        "gain_stat:defense:3",
-        "move_to:graveyard"
-      ]
+      "tags": ["one_shot"]
     },
     {
       "key": "architect",
       "text": "Architect",
       "asset": "stranger.png",
       "tooltip": "Commission a building: pick 1 of 3 from the build deck.",
-      "cost": {
-        "gold": 1
+      "play": {
+        "cost": {
+          "gold": 1
+        },
+        "action": ["move_to:graveyard", "push_phase:draft"]
       },
-      "tags": [
-        "one_shot"
-      ],
-      "on_play": [
-        "move_to:graveyard",
-        "push_phase:draft"
-      ]
+      "tags": ["one_shot"]
     },
     {
       "key": "pass",
       "text": "Pass",
       "tooltip": "Bide your time. Nothing happens this phase.",
-      "color": [
-        0.1,
-        0.14,
-        0.22
-      ],
-      "tags": [
-        "token"
-      ],
-      "on_play": [
-        "destroy_self"
-      ]
+      "color": [0.1, 0.14, 0.22],
+      "tags": ["token"],
+      "play": {
+        "action": ["destroy_self"]
+      }
     },
     {
       "key": "royal_decree",
       "text": "Royal Decree",
       "asset": "crown_royal.jpg",
       "tooltip": "The court awaits your word. Choose one of three edicts.",
-      "cost": {
-        "gold": 2
+      "play": {
+        "cost": {
+          "gold": 2
+        },
+        "action": ["move_to:graveyard", "push_phase:decree"]
       },
-      "tags": [
-        "one_shot"
-      ],
-      "on_play": [
-        "move_to:graveyard",
-        "push_phase:decree"
-      ]
+      "tags": ["one_shot"]
     },
     {
       "key": "festival",
       "text": "Festival",
       "asset": "tavern_meal.jpg",
       "tooltip": "A feast for the whole town costs 2 gold. Gain 2 morale.",
-      "cost": {
-        "gold": 2
+      "play": {
+        "cost": {
+          "gold": 2
+        },
+        "action": ["effect:festival_lights", "gain_stat:morale:2", "move_to:edicts"]
       },
-      "tags": [
-        "one_shot",
-        "edict"
-      ],
-      "on_play": [
-        "effect:festival_lights",
-        "gain_stat:morale:2",
-        "move_to:edicts"
-      ]
+      "tags": ["one_shot", "edict"]
     },
     {
       "key": "conscription",
       "text": "Conscription",
       "asset": "marching_column.jpg",
       "tooltip": "Every able hand takes up arms. Gain 3 defense.",
-      "tags": [
-        "one_shot",
-        "edict"
-      ],
-      "on_play": [
-        "gain_stat:defense:3",
-        "move_to:edicts"
-      ]
+      "tags": ["one_shot", "edict"],
+      "play": {
+        "action": ["gain_stat:defense:3", "move_to:edicts"]
+      }
     },
     {
       "key": "tax_levy",
       "text": "Tax Levy",
       "asset": "money_lender.jpg",
       "tooltip": "The coffers fill, the people grumble. Gain 3 gold.",
-      "tags": [
-        "one_shot",
-        "edict"
-      ],
-      "on_play": [
-        "gain_stat:gold:3",
-        "move_to:edicts"
-      ]
+      "tags": ["one_shot", "edict"],
+      "play": {
+        "action": ["gain_stat:gold:3", "move_to:edicts"]
+      }
     },
     {
       "key": "bandit_raid",
       "text": "Bandit Raid",
       "asset": "cavalry_raid.jpg",
       "tooltip": "Raiders attack! Need 3 defense or lose 2 morale.",
-      "tags": [
-        "challenge"
-      ],
+      "tags": ["challenge"],
       "challenge": {
         "needs": {
           "sum:defense@standing": 3
         },
         "pass": [],
-        "fail": [
-          "lose_stat:morale:2"
-        ]
+        "fail": ["lose_stat:morale:2"]
       },
-      "on_play": [
-        "move_to:graveyard",
-        "resolve_challenge"
-      ]
+      "play": {
+        "action": ["move_to:graveyard", "resolve_challenge"]
+      }
     },
     {
       "key": "drought",
       "text": "Drought",
       "asset": "blighted_tree.jpg",
       "tooltip": "Crops wither. Need 3 food or lose 1 morale.",
-      "tags": [
-        "challenge"
-      ],
+      "tags": ["challenge"],
       "challenge": {
         "needs": {
           "food": 3
         },
         "pass": [],
-        "fail": [
-          "lose_stat:morale:1"
-        ]
+        "fail": ["lose_stat:morale:1"]
       },
-      "on_play": [
-        "move_to:graveyard",
-        "resolve_challenge"
-      ]
+      "play": {
+        "action": ["move_to:graveyard", "resolve_challenge"]
+      }
     },
     {
       "key": "merchant",
       "text": "Wandering Merchant",
       "asset": "gold_coins.jpg",
       "tooltip": "A merchant arrives. Have 2 gold and earn 2 more.",
-      "tags": [
-        "challenge"
-      ],
+      "tags": ["challenge"],
       "challenge": {
         "needs": {
           "gold": 2
         },
-        "pass": [
-          "gain_stat:gold:2"
-        ],
+        "pass": ["gain_stat:gold:2"],
         "fail": []
       },
-      "on_play": [
-        "move_to:graveyard",
-        "resolve_challenge"
-      ]
+      "play": {
+        "action": ["move_to:graveyard", "resolve_challenge"]
+      }
     },
     {
       "key": "siege",
       "text": "Siege",
       "asset": "siege_cannon.jpg",
       "tooltip": "Enemy forces lay siege. Need 5 defense or a building takes 2 damage.",
-      "tags": [
-        "challenge"
-      ],
+      "tags": ["challenge"],
       "challenge": {
         "needs": {
           "sum:defense@standing": 5
         },
         "pass": [],
-        "fail": [
-          "lose_stat:hp@random.building:2"
-        ]
+        "fail": ["lose_stat:hp@random.building:2"]
       },
-      "on_play": [
-        "move_to:graveyard",
-        "resolve_challenge"
-      ]
+      "play": {
+        "action": ["move_to:graveyard", "resolve_challenge"]
+      }
     },
     {
       "key": "triumph",
@@ -415,45 +341,22 @@
     {
       "key": "board",
       "type": "grid",
-      "pos": [
-        0.0,
-        0.0,
-        0.75,
-        0.7
-      ],
-      "grid": [
-        5,
-        5
-      ],
+      "pos": [0.0, 0.0, 0.75, 0.7],
+      "grid": [5, 5],
       "fit": "fill",
-      "tags": [
-        "activate"
-      ]
+      "tags": ["activate"]
     },
     {
       "key": "hand",
       "type": "hand",
-      "pos": [
-        0.19,
-        0.72,
-        0.75,
-        0.99
-      ]
+      "pos": [0.19, 0.72, 0.75, 0.99]
     },
     {
       "key": "build_deck",
       "label": "Build Deck",
       "type": "deck",
-      "pos": [
-        0.77,
-        0.19,
-        0.99,
-        0.37
-      ],
-      "tags": [
-        "shuffle",
-        "refill_when_empty"
-      ],
+      "pos": [0.77, 0.19, 0.99, 0.37],
+      "tags": ["shuffle", "refill_when_empty"],
       "contents": [
         "watchtower:3",
         "farm:3",
@@ -468,96 +371,42 @@
       "key": "challenge_deck",
       "label": "Challenge Deck",
       "type": "deck",
-      "pos": [
-        0.77,
-        0.39,
-        0.99,
-        0.57
-      ],
-      "tags": [
-        "shuffle",
-        "refill_when_empty"
-      ],
-      "contents": [
-        "bandit_raid:3",
-        "drought:3",
-        "merchant:2",
-        "siege:2"
-      ]
+      "pos": [0.77, 0.39, 0.99, 0.57],
+      "tags": ["shuffle", "refill_when_empty"],
+      "contents": ["bandit_raid:3", "drought:3", "merchant:2", "siege:2"]
     },
     {
       "key": "graveyard",
       "label": "Discard",
       "type": "pile",
-      "pos": [
-        0.77,
-        0.59,
-        0.99,
-        0.99
-      ]
+      "pos": [0.77, 0.59, 0.99, 0.99]
     },
     {
       "key": "offer",
       "type": "hand",
-      "pos": [
-        0.15,
-        0.32,
-        0.85,
-        0.7
-      ],
-      "tags": [
-        "hidden"
-      ]
+      "pos": [0.15, 0.32, 0.85, 0.7],
+      "tags": ["hidden"]
     },
     {
       "key": "edicts",
       "type": "deck",
-      "pos": [
-        0.42,
-        -0.4,
-        0.58,
-        -0.08
-      ],
-      "tags": [
-        "hidden"
-      ],
-      "contents": [
-        "festival",
-        "conscription",
-        "tax_levy"
-      ]
+      "pos": [0.42, -0.4, 0.58, -0.08],
+      "tags": ["hidden"],
+      "contents": ["festival", "conscription", "tax_levy"]
     },
     {
       "key": "fate_victory",
       "type": "deck",
-      "pos": [
-        0.42,
-        -0.4,
-        0.58,
-        -0.08
-      ],
-      "tags": [
-        "hidden"
-      ],
-      "contents": [
-        "triumph"
-      ]
+      "pos": [0.42, -0.4, 0.58, -0.08],
+      "tags": ["hidden"],
+      "contents": ["triumph"]
     },
     {
       "key": "fate_defeat",
       "type": "deck",
-      "pos": [
-        0.42,
-        -0.4,
-        0.58,
-        -0.08
-      ],
-      "tags": [
-        "hidden"
-      ],
-      "contents": [
-        "the_fall"
-      ]
+      "pos": [0.42, -0.4, 0.58, -0.08],
+      "tags": ["hidden"],
+      "contents": ["the_fall"]
     }
   ],
   "phases": [
@@ -592,12 +441,7 @@
       "deck": "build_deck",
       "zone": "offer",
       "draw": 3,
-      "on_pick": [
-        "add_to:hand",
-        "return_to:offer:build_deck",
-        "shuffle:build_deck",
-        "pop_phase"
-      ]
+      "on_pick": ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck", "pop_phase"]
     },
     {
       "key": "decree",
@@ -606,11 +450,7 @@
       "deck": "edicts",
       "zone": "offer",
       "draw": 3,
-      "on_pick": [
-        "add_to:hand",
-        "return_to:offer:edicts",
-        "pop_phase"
-      ]
+      "on_pick": ["add_to:hand", "return_to:offer:edicts", "pop_phase"]
     },
     {
       "key": "victory",
@@ -619,9 +459,7 @@
       "deck": "fate_victory",
       "zone": "offer",
       "draw": 1,
-      "on_pick": [
-        "load_game:menu.json"
-      ]
+      "on_pick": ["load_game:menu.json"]
     },
     {
       "key": "defeat",
@@ -630,25 +468,19 @@
       "deck": "fate_defeat",
       "zone": "offer",
       "draw": 1,
-      "on_pick": [
-        "load_game:menu.json"
-      ]
+      "on_pick": ["load_game:menu.json"]
     }
   ],
   "end_conditions": [
     {
       "stat": "morale",
       "equals": 0,
-      "then": [
-        "push_phase:defeat"
-      ]
+      "then": ["push_phase:defeat"]
     },
     {
       "stat": "morale",
       "at_least": 10,
-      "then": [
-        "push_phase:victory"
-      ]
+      "then": ["push_phase:victory"]
     }
   ]
 }
