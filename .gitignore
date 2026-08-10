@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+
+# Reference material copied in from other projects to look at, never to ship.
+tests/inspiration/

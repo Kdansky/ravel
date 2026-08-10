@@ -77,7 +77,8 @@ The conventions that keep it cheap when you do:
 - **`actions.lua`'s `SPEC` and `HANDLERS`** — append new entries at the **end**,
   never insert alphabetically. Git merges append-only hunks cleanly; sorted
   insertion conflicts every time.
-- **`validate.lua`'s field tables and `tests/run.lua`'s `CASES`** — same rule.
+- **`validate.lua`'s field tables and `tests/integration/validator.lua`'s
+  `CASES`** — same rule.
   `CASES` is "every error message, once", so a new message is a new line at the
   bottom.
 - **Game files** — one new `.json` per track plus one line in `menu.json`.

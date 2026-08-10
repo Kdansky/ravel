@@ -247,7 +247,7 @@ warning), document it. If it affects playability, surface it in
 `flow.can_play` so all interfaces agree.
 
 **A new validator message**: add a case to the `CASES` table in
-`tests/run.lua` ("every error message, once") — each message has exactly one
+`tests/integration/validator.lua` ("every error message, once") — each message has exactly one
 test that proves it still fires, so a check that silently dies turns the
 suite red.
 
@@ -267,6 +267,16 @@ file as output.
   seeded `flow.init(file, seed)` for determinism, `eval("action")` to arrange
   state, count-based assertions over exact-order ones, re-fetch entities by ID
   after undo. All shipped games must validate clean (asserted).
+- `tests/integration/*.lua` — **where new tests go.** A module returning a
+  table; every exported `test*` function is a test, handed `check` and nothing
+  else. `tests/harness.lua` loads the folder, sorts by name and runs each one
+  under `xpcall`, so a test that raises is one failure with a traceback rather
+  than the end of the suite. `luajit tests/run.lua <pattern>` runs just the
+  matching ones and skips everything else. Each test starts from its own
+  `flow.init` and must leave no state behind — the price of being able to run
+  it alone. The body of `run.lua` is the older half: one script whose sections
+  inherit each other's state, cheaper to write and much harder to read a
+  failure out of. Move a section over when you touch it.
 - `luajit tests/render_smoke.lua` — stubs `love.graphics` and drives every
   draw path (flight, arrow, overlays, log, detail views) for every shipped
   game. Catches crashes, not pixels. Two stubs are assertions rather than

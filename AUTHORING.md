@@ -286,9 +286,11 @@ identically drawn in grey.
 - `luajit play.lua mygame.json 42` — play a few turns at a fixed seed.
 - Add a card to `menu.json` (template plus an entry in the `menu` zone's
   `contents`) or the game is only reachable from the CLI.
-- Write a scripted test in `tests/run.lua`: a fixed seed, a few forced moves,
-  and assertions on the end state. Ten lines, and it is the only thing that
-  will notice when an engine change breaks your game.
+- Write a scripted test in `tests/integration/`: a module returning a table,
+  and a `test_my_game(check)` function in it with a fixed seed, a few forced
+  moves and assertions on the end state. Ten lines, and it is the only thing
+  that will notice when an engine change breaks your game.
+  `luajit tests/run.lua my_game` runs just that one.
 
 ## 4. Common patterns
 
