@@ -218,7 +218,7 @@ end
 -- filesystem. Desktop decodes straight from the socket response. The
 -- browser build (love.js) has no sockets, so instead it asks the real
 -- browser to fetch the URL with its own fetch() — the caller's actual
--- session (cookies, HTTP cache, CORS) — via the love.js.eval bridge, and
+-- session (HTTP cache, CORS) — via the love.js.eval bridge, and
 -- polls for the result; a cross-origin host without permissive CORS
 -- headers will still fail, same as it would for a plain <img> tag.
 
@@ -314,6 +314,14 @@ end
 -- documented, so every call is pcall-guarded; if it doesn't behave as
 -- expected this just never resolves — same safe "no image" as a missing
 -- asset, never a crash. Returns nil while still waiting, else Image/false.
+--
+-- `credentials: "same-origin"` and not "include": cookies belong to our own
+-- host, and asking for them cross-origin is not merely pointless but fatal.
+-- The fetch spec refuses a credentialed response whose
+-- Access-Control-Allow-Origin is the wildcard, and a wildcard is what every
+-- public image host answers with — i.imgur.com included. Every off-site
+-- asset the engine was ever pointed at died of that, as a bare "NetworkError"
+-- with no hint that the request had been the wrong shape all along.
 local function fetch_browser(url, id)
 	if not pending[id] then
 		pending[id] = { at = 0 }
@@ -322,7 +330,7 @@ local function fetch_browser(url, id)
 			var id = "%s";
 			if (window.__ravelAssets[id]) return "dup";
 			window.__ravelAssets[id] = { status: "pending" };
-			fetch("%s", { credentials: "include" })
+			fetch("%s", { credentials: "same-origin" })
 				.then(function(r){ if (!r.ok) throw new Error("http " + r.status); return r.blob(); })
 				.then(function(blob){ return new Promise(function(res, rej){
 					var fr = new FileReader();
