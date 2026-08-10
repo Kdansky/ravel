@@ -22,6 +22,16 @@ broken in plain language — typo'd fields and sections, missing references,
 conflicts — with "did you mean" suggestions; the game plays on regardless.
 `luajit check.lua mygame.json` runs the same checks without starting a game.
 
+**Hold ctrl and point at anything** in the running game — a card, the square
+under it, the zone it lies in — to read the JSON behind it: the template (your
+JSON, plus whatever the parser derived from it — a card with `moves` grew the
+`activate_target` that makes those moves clickable), the live entity the engine
+made of it, and the things the engine works out rather than stores anywhere
+(whose piece it is, and *every* tag that is true of it
+right now, including the ones its zone grants and the computed ones that are
+true only while a stat holds). The mouse wheel scrolls the panel and ctrl+C
+copies it, so a dump can go straight back into the game file.
+
 ---
 
 ## 1. Walkthrough: a minimal game

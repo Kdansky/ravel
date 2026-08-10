@@ -27,6 +27,7 @@ above it.
 ```
 main ─ input routing, love callbacks, hot-reload watch
 render ─ drawing, layout, UI scale, buttons     tooltip   debugserver
+inspect ─ ctrl+hover: the JSON behind whatever is under the cursor
 anim ─ flight tweens    fx ─ particles/shake/floats
 art ─ procedural placeholder shapes (its pure `parse` is shared with validate)
 ────────────────────────────────────────────────────────────── presentation

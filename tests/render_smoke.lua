@@ -189,6 +189,26 @@ for _, g in ipairs({ "lost_cities.json", "kingdom.json", "road.json", "vigil.jso
 	for _ = 1, 4 do frame(0.016) end
 end
 
+-- Ctrl+hover's JSON panel, over each of the three things it can describe, in a
+-- game whose board is full: a card's dump is the longest and the only one that
+-- has to scroll, and the panel reserves its own footer line to say so.
+local inspect = require("inspect")
+flow.init("chess.json", 4)
+render.rescale()
+do
+	local piece = zones.find("board").cards[1]
+	local slot  = entity.get(piece).slot_id
+	for _, id in ipairs({ piece, slot, zones.find_id("board") }) do
+		inspect.draw(id)
+		inspect.scroll_by(5)
+		inspect.draw(id)
+		inspect.scroll_by(-99)
+		inspect.draw(id)
+	end
+	inspect.draw(nil)
+	inspect.draw(999999)
+end
+
 -- every base effect animates and draws
 flow.init("castle.json", 7)
 render.rescale()

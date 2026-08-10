@@ -15,6 +15,7 @@ local net         = require("net")
 local netpanel    = require("netpanel")
 local render      = require("render")
 local tooltip     = require("tooltip")
+local inspect     = require("inspect")
 local anim        = require("anim")
 local fx          = require("fx")
 local debugserver = require("debugserver")
@@ -42,6 +43,16 @@ local function card_at(x, y)
 		end
 	end
 	return result
+end
+
+-- What ctrl+hover is pointing at, or nil. Held here rather than in inspect.lua
+-- because finding it is this module's job (it owns the hit tests) and drawing
+-- it is that one's.
+local inspecting = nil
+
+local function ctrl_down()
+	return love.keyboard ~= nil and love.keyboard.isDown ~= nil
+		and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 end
 
 -- What confirming a targeting session does, by intent. flow.activate returns
@@ -234,6 +245,16 @@ function love.resize()
 end
 
 function love.keypressed(key)
+	-- Ctrl+C on what ctrl+hover is showing: a dump is only half useful if it
+	-- cannot leave the window and go into the game file.
+	if key == "c" and inspecting and ctrl_down() then
+		local text = inspect.text(inspecting)
+		if text and love.system and love.system.setClipboardText then
+			pcall(love.system.setClipboardText, text)
+			log.add("copied JSON of #" .. inspecting)
+		end
+		return
+	end
 	if key == "escape" then
 		if render.get_detail() then
 			render.set_detail(nil)
@@ -255,6 +276,9 @@ local press      = nil
 local LONG_PRESS = 0.45
 
 function love.mousepressed(x, y, button)
+	-- Reading a card must not risk playing it: while ctrl is held the pointer
+	-- is a magnifying glass and nothing else.
+	if ctrl_down() then return end
 	if button == 2 then
 		if render.get_detail() then
 			render.set_detail(nil)
@@ -268,6 +292,10 @@ function love.mousepressed(x, y, button)
 	if button == 1 then
 		press = { x = x, y = y, at = love.timer.getTime(), long = false }
 	end
+end
+
+function love.wheelmoved(_, dy)
+	if inspecting then inspect.scroll_by(-dy * 3) end
 end
 
 function love.mousereleased(x, y, button)
@@ -331,21 +359,27 @@ function love.update(dt)
 	end
 
 	local hover = nil
+	inspecting = nil
 	if not render.get_detail() then
 		local mx, my = love.mouse.getPosition()
+		if ctrl_down() then
+			-- Anything under the cursor, cards first, then the square they stand
+			-- on, then the zone they lie in — the same order the click does.
+			inspecting = card_at(mx, my) or slot_at(mx, my) or zones.zone_at(mx, my)
+		end
 		local cid = card_at(mx, my)
 		local c   = cid and entity.get(cid)
 		local z   = c and entity.get(c.zone_id)
 		if z and not z.tags.no_peek then hover = cid end
 	end
-	tooltip.update(dt, hover)
+	tooltip.update(dt, not inspecting and hover or nil)
 
 	debugserver.update()
 end
 
 function love.draw()
 	render.draw()
-	tooltip.draw()
+	if inspecting then inspect.draw(inspecting) else tooltip.draw() end
 end
 
 -- LÖVE's stock main loop with one addition: a frame cap. Nothing else caps

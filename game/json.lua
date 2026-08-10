@@ -252,6 +252,19 @@ local function encode_value(v, indent)
     local parts = {}
     if is_array(v) then
       if #v == 0 then return "[]" end
+      -- A list of plain values goes on one line, however long, because that is
+      -- how every game file in the repo is written and a dump is meant to be
+      -- pasted back into one: ["white", "piece"] is one fact, not two. A list
+      -- holding tables is structure and keeps a line each — which leaves a
+      -- coordinate pair looking exactly like a coordinate pair.
+      if indent then
+        local flat, plain = {}, true
+        for _, x in ipairs(v) do
+          if type(x) == "table" then plain = false break end
+          flat[#flat + 1] = encode_value(x, nil)
+        end
+        if plain then return "[" .. table.concat(flat, ", ") .. "]" end
+      end
       for _, x in ipairs(v) do
         parts[#parts + 1] = pad_in .. encode_value(x, inner)
       end

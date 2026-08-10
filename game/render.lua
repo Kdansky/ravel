@@ -75,6 +75,9 @@ local function get_small_font()
 	return font_small
 end
 
+-- The scale-aware font, for panels drawn outside this module (inspect.lua).
+M.small_font = get_small_font
+
 -- Cut text to fit a width, appending "..." (multibyte-safe trim).
 -- Drop the last *character*, not the last byte. The old version removed a byte
 -- and then walked back over UTF-8 continuation bytes (0x80–0xBF) — but a lead

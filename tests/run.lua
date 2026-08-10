@@ -450,6 +450,54 @@ do
 	cards.reset()
 end
 
+-- === ctrl+hover: the JSON behind a thing ===
+-- The dump is three answers to three different questions — what the author
+-- wrote, what the engine made of it, and what the engine works out afresh every
+-- time it is asked. The third is the one worth having: no file says the throne
+-- room is "standing", and nothing stores it either.
+do
+	-- Required here rather than at the top: this file is one local short of
+	-- Lua's 200-per-function ceiling, and a block's locals are given back.
+	local inspect = require("inspect")
+	flow.init("castle.json")
+	local function blocks(id)
+		local text, out = inspect.text(id), {}
+		for b in ("\n" .. tostring(text)):gmatch("\n(%b{})") do
+			out[#out + 1] = json.decode(b)
+		end
+		return out, text
+	end
+
+	local throne_e   = find_card("throne_room", "board")
+	local parts, txt = blocks(throne_e.id)
+	check("a card dumps its template, its live entity, its derived facts and its square",
+		#parts == 4 and txt:find("// live", 1, true) and txt:find("// derived", 1, true))
+	check("the template block is the template, derived fields and all",
+		parts[1].key == "throne_room"
+		and parts[1].card_stats.hp == 20 and parts[1].tags_set == nil)
+	check("the live entity is the one under the cursor, without its screen rect",
+		parts[2].id == throne_e.id and parts[2].def_key == "throne_room"
+		and parts[2].place == nil and parts[2].stats.hp == 20)
+	check("the derived block answers what no file says and nothing stores",
+		parts[3].tags[1] == "building"
+		and table.concat(parts[3].tags, " "):find("standing")
+		-- The throne is the seat itself, and a seat card is nobody's piece.
+		and parts[3].owner == nil)
+	check("and the square a piece stands on comes with it",
+		parts[4].kind == "slot" and parts[4].stats.col ~= nil)
+
+	eval("lose_stat:hp@hero:5")
+	local hurt = blocks(throne_e.id)
+	check("a computed tag that is only true right now shows up as it becomes true",
+		hurt[2].stats.hp == 15 and table.concat(hurt[3].tags, " "):find("damaged"))
+
+	local zone_parts = blocks(zones.find_id("board"))
+	check("a zone dumps its own declaration and what is lying in it",
+		zone_parts[1].key == "board" and #zone_parts[2].cards > 0)
+	check("nothing under the cursor dumps nothing, rather than crashing",
+		inspect.text(nil) == nil and inspect.text(999999) == nil)
+end
+
 -- === content validation ===
 for _, f in ipairs({ "menu.json", "demo.json", "castle.json", "kingdom.json",
 	"tower.json", "road.json", "starter_cyoa.json", "vigil.json" }) do
@@ -2693,6 +2741,8 @@ local function reach(key)
 end
 
 check("thirty-two pieces, white to move", #board.cards == 32 and zones.active_seat() == "white")
+check("and ctrl+hover says whose a piece is, on a board that belongs to nobody",
+	require("inspect").text(piece("b_knight_g").id):find('"owner": "black"', 1, true) ~= nil)
 check("a piece's rank counts from its own side, so home is 2 for both colours",
 	piece("w_pawn_e").stats.rank == 2 and piece("b_pawn_e").stats.rank == 2
 	and at("e2") == "w_pawn_e" and at("e7") == "b_pawn_e")
