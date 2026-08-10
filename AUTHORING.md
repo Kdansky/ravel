@@ -325,7 +325,7 @@ Option cards can carry their own `cost` (a priced transformation).
 choice cards `reveal:` them. A revealed page fills the screen; clicking it runs
 the page's own `on_pick` — typically `destroy:hand` then `fill:hand:...` with
 the next choices, so the story chains without any phase plumbing. Secret
-conditional branches are `resolve_challenge` choices whose `on_pass`/`on_fail`
+conditional branches are `resolve_challenge` choices whose `challenge.pass`/`challenge.fail`
 reveal different pages; shuffle-decided secrets are `reveal_top:` over a hidden
 deck; the inventory is just a board — keepsakes carry a tag whose home is that
 board, so `gain:rusty_key` puts them there, and `card:<key>` tests for them;
@@ -337,8 +337,8 @@ as much as you write into it.
 **Draft one of three from a real deck** (Architect):
 `on_pick: ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck", "pop_phase"]`.
 
-**Challenges/trials**: `on_play: ["resolve_challenge"]` with `requires` /
-`on_pass` / `on_fail` on the card. Make passes cost tribute (`on_pass` starts
+**Challenges/trials**: `on_play: ["resolve_challenge"]` with a `challenge` block —
+`challenge.pass` / `challenge.fail` on the card. Make passes cost tribute (`pass` starts
 with `move_to:graveyard` plus the toll) and make failures *persist*: `on_fail`
 starts with `move_to:board`, the card carries `on_turn: ["lose_stat:…"]` so an
 unanswered crisis drains you every round, and `on_activate:
@@ -350,7 +350,7 @@ the reference below. Progress trackers are just stats that cards raise in their
 own `on_play`.
 
 **Synergies**: `count:<tag>` amounts (`gain_stat:gold:count:economic`),
-`needs`/`requires` on counts, computed tags for thresholds, `on_turn` engines,
+`needs` on counts (a card's own, or a challenge's), computed tags for thresholds, `on_turn` engines,
 and exhaust-limited `on_activate` bursts.
 
 **Cards as currency**: a `"sacrifice:<tag>"` cost destroys one of your board
@@ -511,7 +511,7 @@ disk cache with no network at all.
 | `cost` | Spent on play; gates and dims when unaffordable. `"sacrifice:<tag>": n` pays by destroying n board cards with that tag |
 | `activate_cost` | Spent on activation (sacrifices allowed here too) |
 | `needs` | Non-consuming gate (shared condition subjects); escape hatch: playable anyway if nothing else in the zone is |
-| `requires` | Checked by `resolve_challenge` → `on_pass` / `on_fail` |
+| `challenge` | A test the `resolve_challenge` action asks: `needs` is the condition, `pass` and `fail` the action lists it chooses between. One block because the three only ever work together — a `needs` with no branches decides nothing, and a branch with no `needs` always passes |
 | `target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
 | `accepts` | Condition map deciding whether **this** card may be targeted by the card being played (see *Legality between two cards*). Zones take it too |
@@ -522,7 +522,6 @@ disk cache with no network at all.
 | `on_activate` | Actions when clicked on the board; **exhausts** the card until the round wraps. A board card shows three states: ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable) |
 | `exhausts` | `false` keeps the card ready after activating — a permanently clickable button ("pass the time") |
 | `on_turn` | Actions each round boundary while on a grid (and not ruined) |
-| `on_pass`, `on_fail` | Challenge outcomes |
 | `on_pick` | Actions when this card is picked from the built-in reveal overlay (pages) |
 | `irreversible` | Playing or picking this card clears the undo stack — the choice is final |
 | `outcome` | `"victory"` or `"defeat"` on an ending card: banner, run summary, and flourish when it is offered |
@@ -570,7 +569,8 @@ runs.
 
 ### Conditions (one vocabulary everywhere)
 
-Used by `next`, `end_conditions`, `requires`, `needs`. Subjects: a stat key,
+Used by `next`, `end_conditions`, and every `needs` — a card's, a challenge's, a
+zone's. Subjects: a stat key,
 `count:<tag>` (cards on grid zones with that tag), or `card:<key>` (instances
 of that specific template on grid zones — "does the player have the rusty key?").
 
@@ -579,7 +579,7 @@ row-major, so where something is on the board is asked with the vocabulary
 already here: `{ "row@target": { "equals": 8 } }` is "the far rank".
 
 - Object form: `{ "stat": "progress", "at_least": 12 }` (`equals` / `at_least` / `at_most`) or `{ "zone_empty": ["road", "hand"] }`.
-- Map form (`requires`, `needs`, `accepts`): `{ "might": 8, "count:farm": 3 }` — a bare number means **at least** n, much the commonest thing to ask.
+- Map form (any `needs`, and `accepts`): `{ "might": 8, "count:farm": 3 }` — a bare number means **at least** n, much the commonest thing to ask.
 - To ask the other way, the value is a comparison instead:
   `{ "max:value@mine.red": { "at_most": 6 } }`.
 
@@ -1058,7 +1058,7 @@ lose_stat:score:20:x:count:wager@mine.red            the same product, distribut
 | `set_stat:stat:n` | Set directly (dev/authoring tool; silent) |
 | `gain_stat:<subject>:n` / `lose_stat:<subject>:n` | Change a stat. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |
 | `attach_to_target` | Attach the acting card under the first target |
-| `resolve_challenge` | Check the card's `requires`, run `on_pass`/`on_fail` |
+| `resolve_challenge` | Ask the card's `challenge`: run its `pass` or its `fail` |
 | `effect:name` | Play a named visual effect on the acting card (headless: skipped) |
 | `reveal:card` | Conjure the card into the page overlay; its `on_pick` continues |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |

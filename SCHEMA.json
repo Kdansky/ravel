@@ -46,8 +46,14 @@
       "needs": {
         "<subject>": "a condition that gates the card without consuming anything. A bare number means at least n; a map like {at_most: 6} asks the other way. See _conditions."
       },
-      "requires": {
-        "<subject>": "a condition checked by the resolve_challenge action, which then runs on_pass or on_fail. Same shape as needs; a different moment."
+      "challenge": {
+        "needs": "a condition deciding pass from fail, read by the resolve_challenge action. Same shape as any other needs; what differs is the moment it is asked.",
+        "pass": [
+          "action strings run when the condition holds"
+        ],
+        "fail": [
+          "action strings run when it does not"
+        ]
       },
       "accepts": {
         "<subject>": "a condition deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."
@@ -85,12 +91,6 @@
       ],
       "on_turn": [
         "action strings run at each round boundary while the card is on a grid and not ruined"
-      ],
-      "on_pass": [
-        "action strings run when resolve_challenge finds requires met"
-      ],
-      "on_fail": [
-        "action strings run when it does not"
       ],
       "on_pick": [
         "action strings run when the card is picked from the page overlay"
@@ -236,7 +236,7 @@
     }
   },
   "_conditions": {
-    "_what": "One vocabulary, used by needs, requires, accepts, a phase's next entries and end_conditions. A subject is a stat key, count:<tag>, card:<key>, sum:<subject> or max:<subject>, optionally carrying a scope after an @.",
+    "_what": "One vocabulary, used by every needs (a card's, a challenge's, a zone's receive), accepts, a phase's next entries and end_conditions. A subject is a stat key, count:<tag>, card:<key>, sum:<subject> or max:<subject>, optionally carrying a scope after an @.",
     "_map_form": "{ <subject>: <number> } means at least n, which is much the commonest thing to ask.",
     "_comparison_form": "{ <subject>: { at_most: n } } asks the other way. The three keys are equals, at_least and at_most, and there is no nesting below them.",
     "_object_form": "{ stat: <subject>, at_least: n } says the same thing with the subject in a named field, which is the form routing and end_conditions use.",
@@ -247,7 +247,7 @@
     "_quantifiers": "any (default: the pool reaches n), each (every member does, and an empty scope is false rather than vacuously true), random (as any, but one member is chosen by the seeded shuffle)."
   },
   "_actions": {
-    "_what": "Colon-separated strings, run from on_play, on_activate, on_turn, on_pass, on_fail, on_pick, a zone's on_click, a phase's actions, and an end condition's then. An unknown op logs and is skipped. A numeric slot takes a number or a measuring fn, optionally multiplied by a second with :x:. A zone slot takes a scope expression too.",
+    "_what": "Colon-separated strings, run from on_play, on_activate, on_turn, a challenge's pass and fail, on_pick, a zone's on_click, a phase's actions, and an end condition's then. An unknown op logs and is skipped. A numeric slot takes a number or a measuring fn, optionally multiplied by a second with :x:. A zone slot takes a scope expression too.",
     "fill": "fill:<zone>:<card>:<n> — create n instances of a card in a zone",
     "shuffle": "shuffle:<zone>",
     "draw_from": "draw_from:<from>:<to>:<n> — move n cards off the top",
@@ -266,7 +266,7 @@
     "destroy_self": "destroy_self — remove the acting card",
     "reveal": "reveal:<card> — conjure a card into the page overlay, where its on_pick continues",
     "reveal_top": "reveal_top:<zone> — turn a zone's top card into the page overlay",
-    "resolve_challenge": "resolve_challenge — check the card's requires and run on_pass or on_fail",
+    "resolve_challenge": "resolve_challenge — ask the card's challenge and run its pass or its fail",
     "effect": "effect:<name> — play a named visual effect on the acting card, skipped headless",
     "next_phase": "next_phase — advance",
     "push_phase": "push_phase:<phase> — enter a phase and remember where to come back to",

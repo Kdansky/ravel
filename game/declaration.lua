@@ -11,6 +11,76 @@ M.TEMPLATE_FIELDS = {
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
 }
 
+-- A card is written as a list of moments, and read as a flat def.
+--
+-- The file says when a thing happens by where it sits: "play" carries the cost,
+-- the gate, the targeting and the action of playing; "activate" carries the same
+-- vocabulary for the board ability. That kills three pairs of near-duplicates
+-- (cost/activate_cost, target/activate_target, on_play/on_activate), which were
+-- one idea spelled as a naming convention nothing documented.
+--
+-- Two words got clearer by moving rather than by being renamed. "requires" and
+-- "needs" described the same thing at different moments and neither said so, so
+-- there is one word — needs — and the block says what it gates: play.needs gates
+-- the play, challenge.needs decides pass from fail. "accepts" sat on a
+-- destination and asked about an arriving card, which a bare field has nowhere
+-- to say; receive.needs reads in the right direction.
+--
+-- The engine keeps the flat names. Everything downstream reads def.on_play and
+-- def.activate_cost as it always did, so this is a change to what an author
+-- writes and to nothing else — which is why the golden traces are the proof it
+-- was faithful. Splitting the document into engine data is what this file is
+-- for (ARCHITECTURE's boundary rule), and it costs one table.
+--
+-- `phases` is the exception worth naming: it was one field gating both playing
+-- and activating, so a zone granting an ability's phases also gated *playing*
+-- the card. Two entries, so the two can differ and that bug cannot recur.
+local MOMENTS = {
+	play      = { cost = "cost", needs = "needs", target = "target", action = "on_play",
+		phases = "phases", irreversible = "irreversible" },
+	activate  = { cost = "activate_cost", target = "activate_target", action = "on_activate",
+		phases = "activate_phases", exhausts = "exhausts", moves = "moves" },
+	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
+	receive   = { needs = "accepts" },
+	turn      = { action = "on_turn" },
+	pick      = { action = "on_pick", irreversible = "irreversible" },
+	start     = { zone = "to_zone", slot = "to_slot" },
+}
+M.MOMENTS = MOMENTS
+
+-- Flat names that have already moved into a block. An author who writes the old
+-- one gets told where it went, rather than a card that silently does nothing.
+-- This grows one entry per moment as each is migrated; a name is only retired
+-- once every shipped game has stopped writing it.
+local RETIRED = {
+	requires = "challenge.needs", on_pass = "challenge.pass", on_fail = "challenge.fail",
+}
+
+-- Flatten the moment blocks onto the def, in place. The authored blocks stay
+-- where they are: ctrl+hover shows an author their own JSON, not our version of
+-- it, and cards.dump has to round-trip back into the file.
+local function flatten_moments(def, pp, what)
+	for flat, moved in pairs(RETIRED) do
+		if def[flat] ~= nil and pp then
+			pp[#pp + 1] = ("%s writes \"%s\", which is \"%s\" now — a card says when a thing happens by which block it is in")
+				:format(what, flat, moved)
+		end
+	end
+	for moment, fields in pairs(MOMENTS) do
+		local block = def[moment]
+		if type(block) == "table" then
+			for authored, internal in pairs(fields) do
+				if block[authored] ~= nil and def[internal] == nil then
+					def[internal] = block[authored]
+				end
+			end
+			-- Presence is the flag: a card with a "start" block starts in play,
+			-- so auto_play stops being a boolean somebody can forget beside it.
+			if moment == "start" then def.auto_play = true end
+		end
+	end
+end
+
 local function tag_set(arr)
 	local s = {}
 	if type(arr) ~= "table" then return s end
@@ -154,7 +224,7 @@ function M.parse(filename)
 		computed_tags  = parsed.computed_tags or {},
 		end_conditions = parsed.end_conditions or {},
 		setup          = parsed.setup or {},
-		tag_defs       = parsed.tags or {},  -- tag behaviour: { "item": { "zone": "inventory" } }
+		tag_defs       = {},       -- tag behaviour, moments flattened like a card's
 		pattern_defs   = {},       -- named direction sets, for movement and neighbourhood
 		asset_defs     = {},       -- named pictures: name -> { src, max }
 		effect_defs    = parsed.effects or {},  -- named effects on the fx base vocabulary
@@ -186,6 +256,14 @@ function M.parse(filename)
 	-- The normaliser drops anything malformed so the walk never has to defend
 	-- itself; the raw shape is kept beside it so the validator can say *why* a
 	-- piece it silently dropped cannot move.
+	-- A tag def is a card mixin, so it is written in the same moments a card is
+	-- and flattened by the same table. If the two vocabularies drifted, a zone's
+	-- "applies" would hand its cards a shape nothing reads.
+	for name, td in pairs(type(parsed.tags) == "table" and parsed.tags or {}) do
+		if type(td) == "table" then flatten_moments(td, pp, "tag '" .. tostring(name) .. "'") end
+		G.tag_defs[name] = td
+	end
+
 	G.raw_patterns = type(parsed.patterns) == "table" and parsed.patterns or {}
 	for name, def in pairs(G.raw_patterns) do
 		G.pattern_defs[name] = normalise_pattern(def)
@@ -221,6 +299,7 @@ function M.parse(filename)
 			else
 				G.card_list[#G.card_list + 1] = cd.key
 			end
+			flatten_moments(cd, pp, "card '" .. cd.key .. "'")
 			cd.tags_set = tag_set(cd.tags)
 			-- A piece that says how it moves is asking for the ordinary board
 			-- targeting, so the engine writes the spec rather than making every

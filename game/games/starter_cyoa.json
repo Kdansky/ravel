@@ -1,72 +1,179 @@
 {
   "title": "TODO: Your Story",
-
   "stats": [
-    { "key": "hp", "label": "Health", "min": 0, "max": 10 }
+    {
+      "key": "hp",
+      "label": "Health",
+      "min": 0,
+      "max": 10
+    }
   ],
-
-  "setup": { "player": { "hp": 6 } },
-
-  "tags": { "keepsake": { "zone": "board" } },
-
+  "setup": {
+    "player": {
+      "hp": 6
+    }
+  },
+  "tags": {
+    "keepsake": {
+      "zone": "board"
+    }
+  },
   "zones": [
-    { "key": "board", "label": "Keepsakes", "type": "grid", "grid": [5, 1], "tags": ["activate"] },
-    { "key": "hand", "type": "hand" },
-    { "key": "secret_deck", "type": "deck", "tags": ["hidden", "shuffle"],
-      "contents": ["p_good_luck", "p_bad_luck"] }
+    {
+      "key": "board",
+      "label": "Keepsakes",
+      "type": "grid",
+      "grid": [
+        5,
+        1
+      ],
+      "tags": [
+        "activate"
+      ]
+    },
+    {
+      "key": "hand",
+      "type": "hand"
+    },
+    {
+      "key": "secret_deck",
+      "type": "deck",
+      "tags": [
+        "hidden",
+        "shuffle"
+      ],
+      "contents": [
+        "p_good_luck",
+        "p_bad_luck"
+      ]
+    }
   ],
-
   "cards": [
-    { "key": "p_start", "text": "TODO: Opening Page Title",
+    {
+      "key": "p_start",
+      "text": "TODO: Opening Page Title",
       "story": "TODO: your opening paragraph. The player reads this, clicks to continue, and receives the choices below in hand.",
-      "on_pick": ["fill:hand:c_look:1", "fill:hand:c_leave:1"] },
-
-    { "key": "c_look", "text": "TODO: A simple choice",
+      "on_pick": [
+        "fill:hand:c_look:1",
+        "fill:hand:c_leave:1"
+      ]
+    },
+    {
+      "key": "c_look",
+      "text": "TODO: A simple choice",
       "tooltip": "TODO: what the player is told. What actually happens can stay secret.",
-      "on_play": ["reveal:p_found"] },
-    { "key": "c_leave", "text": "TODO: A gated choice",
+      "on_play": [
+        "reveal:p_found"
+      ]
+    },
+    {
+      "key": "c_leave",
+      "text": "TODO: A gated choice",
       "tooltip": "TODO: this branch only opens once the key is carried — trying early reveals the failure page.",
-      "requires": { "card:the_key": 1 },
-      "on_play": ["resolve_challenge"],
-      "on_pass": ["reveal:e_end"],
-      "on_fail": ["reveal:p_locked"] },
-    { "key": "c_gamble", "text": "TODO: A gamble",
+      "challenge": {
+        "needs": {
+          "card:the_key": 1
+        },
+        "pass": [
+          "reveal:e_end"
+        ],
+        "fail": [
+          "reveal:p_locked"
+        ]
+      },
+      "on_play": [
+        "resolve_challenge"
+      ]
+    },
+    {
+      "key": "c_gamble",
+      "text": "TODO: A gamble",
       "tooltip": "Draws one of two secret outcomes, decided by the shuffle.",
-      "on_play": ["reveal_top:secret_deck"] },
-
-    { "key": "p_found", "text": "TODO: A page that gives an item",
+      "on_play": [
+        "reveal_top:secret_deck"
+      ]
+    },
+    {
+      "key": "p_found",
+      "text": "TODO: A page that gives an item",
       "story": "TODO: describe finding the key. It lands on the keepsake board because its tag's home zone says so. Note the destroy:hand opener — every page that deals new choices needs it, or old choices pile up.",
-      "on_pick": ["destroy:hand", "gain:the_key:1",
-                  "fill:hand:c_leave:1", "fill:hand:c_gamble:1"] },
-    { "key": "p_locked", "text": "TODO: The failure page",
+      "on_pick": [
+        "destroy:hand",
+        "gain:the_key:1",
+        "fill:hand:c_leave:1",
+        "fill:hand:c_gamble:1"
+      ]
+    },
+    {
+      "key": "p_locked",
+      "text": "TODO: The failure page",
       "story": "TODO: what a failed gate looks like. The empty on_pick keeps the hand, so the player can try something else.",
-      "on_pick": [] },
-    { "key": "p_good_luck", "text": "TODO: The good outcome",
+      "on_pick": []
+    },
+    {
+      "key": "p_good_luck",
+      "text": "TODO: The good outcome",
       "story": "TODO: fortune favors you. +1 health.",
-      "on_pick": ["gain_stat:hp:1"] },
-    { "key": "p_bad_luck", "text": "TODO: The bad outcome",
+      "on_pick": [
+        "gain_stat:hp:1"
+      ]
+    },
+    {
+      "key": "p_bad_luck",
+      "text": "TODO: The bad outcome",
       "story": "TODO: it goes wrong. -2 health.",
-      "on_pick": ["lose_stat:hp:2"] },
-
-    { "key": "the_key", "text": "TODO: The Key", "tags": ["keepsake"],
-      "tooltip": "TODO: an item whose presence unlocks a branch (checked with card:the_key)." },
-
-    { "key": "e_end", "text": "TODO: An Ending",
+      "on_pick": [
+        "lose_stat:hp:2"
+      ]
+    },
+    {
+      "key": "the_key",
+      "text": "TODO: The Key",
+      "tags": [
+        "keepsake"
+      ],
+      "tooltip": "TODO: an item whose presence unlocks a branch (checked with card:the_key)."
+    },
+    {
+      "key": "e_end",
+      "text": "TODO: An Ending",
       "outcome": "victory",
       "story": "TODO: your ending. Picking it returns to the menu.",
-      "on_pick": ["load_game:menu.json"] },
-    { "key": "e_dead", "text": "TODO: The Death Ending",
+      "on_pick": [
+        "load_game:menu.json"
+      ]
+    },
+    {
+      "key": "e_dead",
+      "text": "TODO: The Death Ending",
       "outcome": "defeat",
       "story": "TODO: what zero health looks like.",
-      "on_pick": ["load_game:menu.json"] }
+      "on_pick": [
+        "load_game:menu.json"
+      ]
+    }
   ],
-
   "phases": [
-    { "key": "intro", "type": "automatic", "actions": ["reveal:p_start"] },
-    { "key": "story", "type": "player_input", "label": "TODO: Your Story" }
+    {
+      "key": "intro",
+      "type": "automatic",
+      "actions": [
+        "reveal:p_start"
+      ]
+    },
+    {
+      "key": "story",
+      "type": "player_input",
+      "label": "TODO: Your Story"
+    }
   ],
-
   "end_conditions": [
-    { "stat": "hp", "at_most": 0, "then": ["reveal:e_dead"] }
+    {
+      "stat": "hp",
+      "at_most": 0,
+      "then": [
+        "reveal:e_dead"
+      ]
+    }
   ]
 }

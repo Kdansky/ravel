@@ -91,9 +91,9 @@ function M.test_schema_describes_every_field_the_engine_reads(check)
 	for section, fields in pairs(validate.FIELDS) do
 		local entry = exemplar(doc[section])
 		if entry == nil then
-			-- target and route are shapes inside another section, reached below.
+			-- Shapes that live inside another section rather than beside one.
 			check("the document has an entry for " .. section,
-				section == "target" or section == "route")
+				section == "target" or section == "route" or section == "challenge")
 		else
 			for field in pairs(fields) do
 				if not validate.DERIVED[field] then
@@ -121,6 +121,14 @@ function M.test_schema_describes_the_nested_shapes(check)
 	for field in pairs(card.target) do
 		check("target." .. field .. " is a field the engine reads",
 			validate.FIELDS.target[field] ~= nil)
+	end
+
+	for field in pairs(validate.FIELDS.challenge) do
+		check("challenge." .. field .. " is described", card.challenge[field] ~= nil)
+	end
+	for field in pairs(card.challenge) do
+		check("challenge." .. field .. " is a field the engine reads",
+			validate.FIELDS.challenge[field] ~= nil)
 	end
 
 	local route = exemplar(phase.next)

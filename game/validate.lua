@@ -46,6 +46,7 @@ local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	color = true, tags = true, card_stats = true, cost = true,
 	activate_cost = true, needs = true, requires = true, target = true,
+	challenge = true,
 	activate_target = true, exhausts = true,
 	on_play = true, on_activate = true, on_turn = true, on_pass = true,
 	on_fail = true, on_pick = true, auto_play = true, to_zone = true,
@@ -94,6 +95,10 @@ local COMPUTED_FIELDS = { stat = true, less_than = true, less_than_stat = true,
 -- options. Everything a card's `asset` can spell out inline is legal as a `src`
 -- here too, so the source is checked by the same rules.
 local ASSET_FIELDS    = { src = true, max = true }
+-- A challenge is asked by the resolve_challenge action: one condition, and the
+-- two action lists it chooses between. They only ever work together, which is
+-- why they are one block rather than three fields that can be half-written.
+local CHALLENGE_FIELDS = { needs = true, pass = true, fail = true }
 local PATTERN_FIELDS  = { vectors = true, class = true, zone = true }
 local ZONE_TYPES      = { deck = true, pile = true, hand = true, grid = true }
 local PHASE_TYPES     = { automatic = true, player_input = true, draw_and_play = true, overlay = true }
@@ -113,12 +118,15 @@ M.FIELDS = {
 	end_conditions = END_FIELDS,
 	target        = TARGET_FIELDS,
 	route         = ROUTE_FIELDS,
+	challenge     = CHALLENGE_FIELDS,
 }
 
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
 -- entry the engine hands around and are not things an author ever writes, so
 -- the schema document must not describe them.
-M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true }
+M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
+	-- flattened out of a card's moment blocks by declaration.parse
+	requires = true, on_pass = true, on_fail = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
 -- "did you mean" suggestions.
@@ -714,6 +722,12 @@ function M.check(G)
 	for key, def in pairs(G.card_defs) do
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
+		if type(def.challenge) == "table" then
+			check_fields(where .. " challenge", def.challenge, CHALLENGE_FIELDS)
+			if def.challenge.needs == nil then
+				warn('%s: a challenge with no "needs" has nothing to decide — it always passes', where)
+			end
+		end
 		-- "owns" is how a seat claims its pieces on a board it shares. Only a
 		-- seat can claim anything, and a tag nobody carries claims nothing —
 		-- both are silent today and leave every piece unowned, which reads as
