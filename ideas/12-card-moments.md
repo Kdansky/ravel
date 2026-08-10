@@ -105,6 +105,28 @@ The three fields that only ever work together — `requires`, `on_pass`,
 `on_fail` — now live in one block that cannot be half-written, which the
 validator currently has to check by hand.
 
+## `challenge` is not a moment, and that is deliberate
+
+Six of the seven blocks answer **when**: play, activate, receive, turn, pick,
+start. `challenge` answers **what test**, and is reached by the
+`resolve_challenge` action from any action list at all.
+
+That reads as an inconsistency and is worth stating out loud in the docs — but
+the alternative is worse. Kingdom's eleven crisis cards resolve their challenge
+when **played**, and if it fails the card stays on the board to be **activated**
+later and tried again:
+
+```json
+"challenge": { "needs": { "food": 4 }, "pass": [...], "fail": ["move_to:board", ...] },
+"play":     { "action": ["resolve_challenge"] },
+"activate": { "action": ["resolve_challenge"] }
+```
+
+One test, asked from two moments. Inside `play` it would have to be written
+twice and kept in step by hand. So the odd one out earns its place: a block
+groups things that belong together, and *when* is only the commonest reason
+they do.
+
 ## `accepts` — the question is *whose* condition it is
 
 `accepts` sits on a **destination** and is asked about an **arriving** card,

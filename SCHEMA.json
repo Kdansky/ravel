@@ -86,7 +86,7 @@
         ]
       },
       "challenge": {
-        "needs": "a condition deciding pass from fail, read by the resolve_challenge action. Same shape as any other needs; what differs is the moment it is asked.",
+        "needs": "a condition deciding pass from fail. Unlike the blocks around it this is not a moment but a named test: any action list reaches it by running resolve_challenge, so one challenge can be asked from play and from activate both, which is what a crisis card that stays on the board when it fails needs.",
         "pass": [
           "action strings run when the condition holds"
         ],
