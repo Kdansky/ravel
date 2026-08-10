@@ -52,19 +52,19 @@ local CARD_FIELDS = {
 	turn = true, pick = true, start = true,
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true,
-	irreversible = true, activate_cost = true, activate_target = true,
+	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, exhausts = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
-	accepts = true, on_turn = true, on_pick = true, pick_irreversible = true,
+	accepts = true, on_turn = true, on_pick = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
-	action = true, irreversible = true }
+	action = true }
 local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
 	exhausts = true, moves = true }
 local RECEIVE_FIELDS   = { needs = true }
 local TURN_FIELDS      = { action = true }
-local PICK_FIELDS      = { action = true, irreversible = true }
+local PICK_FIELDS      = { action = true }
 local START_FIELDS     = { zone = true, slot = true }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, fit = true,
@@ -150,10 +150,10 @@ M.FIELDS = {
 M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	-- flattened out of the moment blocks by declaration.parse, never authored
 	cost = true, needs = true, target = true, phases = true, on_play = true,
-	irreversible = true, activate_cost = true, activate_target = true,
+	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, exhausts = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_turn = true, on_pick = true, pick_irreversible = true,
+	on_turn = true, on_pick = true,
 	auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for

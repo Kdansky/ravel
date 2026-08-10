@@ -171,8 +171,9 @@
       "text": "Strike the drowned bell",
       "asset": "old_bell.jpg",
       "tooltip": "Green with age. The tower was built around it. No going back after this.",
-      "play": { "action": ["effect:bell_toll", "resolve_challenge"], "irreversible": true },
-      "challenge": { "needs": { "card:pearl": 1 }, "pass": ["reveal:e_pearl"], "fail": ["reveal:e_bell"] }
+      "play": { "action": ["effect:bell_toll", "resolve_challenge"] },
+      "challenge": { "needs": { "card:pearl": 1 }, "pass": ["reveal:e_pearl"], "fail": ["reveal:e_bell"] },
+      "tags": ["no_undo"]
     },
     {
       "key": "c_flee",

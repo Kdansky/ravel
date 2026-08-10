@@ -493,7 +493,7 @@ function M.play_card(card_id, targets)
 	pay(def.cost, ctx)
 	local before = phase.current()
 	actions.run(def.on_play, ctx)
-	if def.irreversible then
+	if tags.entity_has(c, "no_undo") then
 		history = {}
 		log.add("— no turning back —")
 	end
@@ -580,7 +580,7 @@ function M.pick(card_id)
 	else
 		actions.run(cur.on_pick, { card_id = card_id, targets = {} })
 	end
-	if def and def.pick_irreversible then
+	if tags.entity_has(c, "no_undo") then
 		history = {}
 		log.add("— no turning back —")
 	end

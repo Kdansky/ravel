@@ -346,7 +346,7 @@ reveal different pages; shuffle-decided secrets are `reveal_top:` over a hidden
 deck; the inventory is just a board — keepsakes carry a tag whose home is that
 board, so `gain:rusty_key` puts them there, and `card:<key>` tests for them;
 endings are pages whose `pick.action` is `load_game:menu.json`.
-Put `"irreversible": true` on the point of no return. Note that a choice card's
+Tag the point of no return `no_undo`. Note that a choice card's
 consequences are invisible until played — the tooltip tells the player exactly
 as much as you write into it.
 
@@ -522,14 +522,14 @@ sending `Cache-Control` (imgur sends a year) is answered from the browser's own
 disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `owns` | Seats only (a card tagged `player`): the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone — `"owns": "white"` on the seat makes every card tagged `white` that player's. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. **A tag outranks the zone**, so a planet held by player three inside player two's system is player three's |
-| `tags` | Free vocabulary for targeting/counting; engine-known: `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it), `invisible_title_text` (draw no title; the picture is the whole card, and the band it would have used goes to the art), `transparent_background` (no plate behind the art, so a transparent PNG shows the board through it — and dimming tints the art rather than laying a dark rectangle over the square) |
+| `tags` | Free vocabulary for targeting/counting; engine-known: `no_undo` (playing or picking this card clears the undo stack — the choice is final), `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it), `invisible_title_text` (draw no title; the picture is the whole card, and the band it would have used goes to the art), `transparent_background` (no plate behind the art, so a transparent PNG shows the board through it — and dimming tints the art rather than laying a dark rectangle over the square) |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `turn.action`) |
-| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens. `irreversible` clears the undo stack, so the choice is final |
+| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). Activating **exhausts** the card until the round wraps, and a board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `exhausts: false` keeps it ready, which is how a permanent button works ("pass the time"). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). Zones take the same block |
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
-| `pick` | `action`: run when the card is picked from the built-in reveal overlay (pages). `irreversible` clears the undo stack |
+| `pick` | `action`: run when the card is picked from the built-in reveal overlay (pages) |
 | `start` | The card begins in play — a throne, a board, a button. `zone` says where (without one, its home tag decides, then the only board) and `slot` is a 1-based cell. **Having the block is the flag**; there is no separate `auto_play` |
 | `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
@@ -1105,7 +1105,7 @@ lose_stat:score:20:x:count:wager@mine.red            the same product, distribut
 
 ### Engine behaviors you get for free
 
-Undo (Z / button, 50 steps, includes the event log — cleared by `irreversible`
+Undo (Z / button, 50 steps, includes the event log — cleared by `no_undo`
 cards), the built-in story-page overlay, the corner event log (L
 expands), tooltips and detail views (right-click / long-press), zone browsing
 on face-up piles, cost/needs dimming, targeting arrow with eligibility

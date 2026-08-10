@@ -28,13 +28,13 @@ M.TEMPLATE_FIELDS = {
 -- parser accepted while the validator rejected it would be worse than no block.
 local MOMENTS = {
 	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
-		action = "on_play", irreversible = "irreversible" },
+		action = "on_play" },
 	activate  = { cost = "activate_cost", target = "activate_target", phases = "activate_phases",
 		action = "on_activate", exhausts = "exhausts", moves = "moves" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts" },
 	turn      = { action = "on_turn" },
-	pick      = { action = "on_pick", irreversible = "pick_irreversible" },
+	pick      = { action = "on_pick" },
 	start     = { zone = "to_zone", slot = "to_slot" },
 }
 M.MOMENTS = MOMENTS

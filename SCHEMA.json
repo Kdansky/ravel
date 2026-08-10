@@ -66,8 +66,7 @@
         ],
         "action": [
           "action strings run when the card is played. See _actions."
-        ],
-        "irreversible": "true clears the undo stack when the card is played: the choice is final"
+        ]
       },
       "activate": {
         "cost": {
@@ -107,8 +106,7 @@
       "pick": {
         "action": [
           "action strings run when the card is picked from the page overlay"
-        ],
-        "irreversible": "true clears the undo stack when this page is picked"
+        ]
       },
       "start": {
         "zone": "zone key this card starts in, already in play — for thrones, boards and buttons. Without one, its home tag decides, then the only board.",
@@ -302,7 +300,7 @@
   },
   "_engine_tags": {
     "_what": "Tags are the game's own vocabulary and an unknown one is not an error. These are the words the engine itself reads. A full reference with what each changes is still owed — see ideas/06-schema-and-types.md gap 4.",
-    "_on_cards": "player (this card is a seat), token (vanishes instead of joining the discard), immutable (scenery: nothing may target it and its template can never be edited), invisible_title_text (draw no title, so the picture is the whole card), transparent_background (no plate behind the art)",
+    "_on_cards": "player (this card is a seat), no_undo (playing or picking this card clears the undo stack — the choice is final), token (vanishes instead of joining the discard), immutable (scenery: nothing may target it and its template can never be edited), invisible_title_text (draw no title, so the picture is the whole card), transparent_background (no plate behind the art)",
     "_on_zones": "shuffle (on creation and refill), refill_when_empty, face_up and face_down (override the type's facing), no_peek (no tooltip or browsing), hidden (not drawn and not clickable), activate (cards here may use their abilities, so every board needs it), optional (nothing here ever has to be played, so a gated card stays gated), invisible_slot_outlines (empty cells get no outline, for a board that paints its own squares)",
     "_reserved": "A zone or tag may never be named self or all, nor any of the quantifiers any, each and random, nor the owner words mine, enemy and anyone. player is deliberately not reserved: it is an ordinary tag a game puts on one card."
   }
