@@ -432,6 +432,24 @@ check("a non-string asset is refused, not a crash",
 check("a non-http(s) scheme is refused",
 	cards.url_is_safe("javascript:alert(1)") == false)
 
+-- The browser and desktop fetches are two different state machines sharing one
+-- in-flight table, and an unfinished browser fetch answers falsy. Picking
+-- between them with `and`/`or` therefore ran both, and the desktop half then
+-- read a browser job as if it owned a worker thread. Make the wrong platform
+-- fatal so nothing can quietly fall through again.
+do
+	love.js     = { eval = function() return "" end }   -- always "still pending"
+	local wrong = function() error("the desktop fetch ran in the browser") end
+	love.thread = { getChannel = wrong, newThread = wrong }
+	local url = "https://i.imgur.com/0vnj0kx.jpeg"
+	local ok1 = pcall(cards.asset_image, url, "tmp_web_asset")
+	local ok2, again = pcall(cards.asset_image, url, "tmp_web_asset")
+	check("a pending browser fetch never falls through to the desktop path", ok1 and ok2)
+	check("an unfinished fetch answers nil, so the card asks again next frame", again == nil)
+	love.js, love.thread = nil, nil
+	cards.reset()
+end
+
 -- === content validation ===
 for _, f in ipairs({ "menu.json", "demo.json", "castle.json", "kingdom.json",
 	"tower.json", "road.json", "starter_cyoa.json", "vigil.json" }) do

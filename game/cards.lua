@@ -7,7 +7,10 @@ local M = {}
 
 -- Image cache: def_key → love.graphics.Image or false
 local img_cache = {}
--- Web-asset fetches in flight: url id -> { at = last poll time } (browser only)
+-- Web-asset fetches in flight: url id -> job. The two platforms keep different
+-- shapes in here ({ at = last poll } in the browser, { thread, channel } on the
+-- desktop) and share the table safely only because exactly one of them ever
+-- runs — see the branch in M.asset_image.
 local pending   = {}
 
 -- Strict allowlist for URLs that get spliced into a generated JS program
@@ -379,9 +382,16 @@ function M.asset_image(asset, key)
 			img_cache[def_key] = false
 			return nil
 		end
-		local img = (love.js and love.js.eval)
-			and fetch_browser(asset, url_id(asset))
-			or fetch_desktop(asset, url_id(asset))
+		-- A real branch, not `cond and browser(...) or desktop(...)`: both of the
+		-- browser fetch's unfinished answers are falsy — nil while in flight,
+		-- false on failure — so `or` ran the desktop path too, which found the
+		-- browser's job in `pending` and asked for its nonexistent thread
+		-- channel. Every web asset in the browser build crashed on the first
+		-- frame it was drawn.
+		local id = url_id(asset)
+		local img
+		if love.js and love.js.eval then img = fetch_browser(asset, id)
+		else img = fetch_desktop(asset, id) end
 		if img == nil then return nil end   -- still fetching
 		img_cache[def_key] = img
 		return img or nil
