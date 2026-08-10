@@ -1,7 +1,8 @@
 # 05 — Assets and what the repository carries
 
-**Status:** not started · **Size:** small, and the first two items unblock a
-thing that is wanted now.
+**Status:** gap 2 shipped, in a different shape than proposed (`ff55754`) ·
+gaps 1 and 3 open · **Size:** small, and both unblock a thing that is wanted
+now.
 
 Three items that only make sense together: art can leave the repository once a
 missing picture is harmless, and a missing picture is only harmless once the
@@ -13,7 +14,7 @@ engine stops guessing what an `asset` string was supposed to be.
 
 *Urgency: high (blocks gap 3) · Difficulty: low · Usefulness: high*
 
-`cards.image` (`game/cards.lua:350`) ends with:
+`cards.asset_image` (`game/cards.lua:533`) still ends with:
 
 ```lua
 local ok, i = pcall(love.graphics.newImage, "games/assets/" .. asset)
@@ -22,8 +23,16 @@ return img_cache[def_key] or nil
 ```
 
 A file that isn't there fails the `pcall`, caches `false`, and the card draws
-with **no image at all** — silently. That is the only reason art cannot leave
-the repository today.
+with **no image at all**. That is the only reason art cannot leave the
+repository today.
+
+One correction since this was written: it is no longer *silent*. `validate.lua`
+now reports `its image 'x.jpg' is not in games/assets` at load time, so the
+diagnosis exists. What is missing is only the picture — which is the half that
+matters here, because gap 3 makes a missing file the **normal** state rather
+than an error, and a validator that shouts about seventy of them is worse than
+useless. So gap 1 is now two changes: draw the placeholder, **and** stop warning
+when art is deliberately absent.
 
 **Most of the machinery already exists.** `art.auto(key)` (`game/art.lua:107`)
 hashes a string with djb2 and derives a shape, a count and an HSL hue from it,
@@ -61,13 +70,48 @@ once-ness for free).
 
 ---
 
-## Gap 2 — `asset` should say what it is, not be guessed
+## Gap 2 — `asset` should say what it is, not be guessed — **shipped, differently**
 
-*Urgency: medium · Difficulty: low, but it edits every game file ·
-Usefulness: medium-high*
+*Shipped `ff55754`, as a top-level `assets` table rather than as scheme prefixes.
+What remains is small enough to defer.*
 
-Today `cards.image` decides what an asset string means by pattern-matching it,
-in this order:
+**What shipped.** A picture may be named once and referenced by key, and the
+name is anything with no source *in* it — no extension, no scheme, no shape
+colon:
+
+```json
+"assets": { "archmage_tower": { "src": "https://i.imgur.com/0vnj0kx.jpeg", "max": 4092 } }
+```
+
+This was chosen over prefixes because it answers a question prefixes don't: a
+picture needs **options** (`max`, and whatever comes after it), and those want
+one home rather than one per call site. Naming also makes the name the cache
+key, so twenty cards sharing a picture cost one download.
+
+**It bought most of what the prefix proposal was for.** The old failure — a
+typo landing in whichever branch its shape happened to match, and an error
+message about the wrong thing entirely — is gone for the case that actually
+happens, a bare word: it resolves against `assets` and the validator answers
+`nothing is named 'x' in the assets section` with a did-you-mean.
+
+**What is genuinely left**, and it is now the small half: **a filename and a
+shape spec are still told apart by "does it contain a dot"**
+(`game/cards.lua:522`). That holds until some shape name contains one, or some
+file lacks an extension. Nothing in the repository is close to either.
+
+*Recommendation: leave it.* The remaining ambiguity costs nothing today, the
+migration edits every game file, and if it ever does bite, the cheap fix is to
+require a *named* entry for anything that is not obviously a shape — the
+machinery for which now exists. Reassess when an author outside this repository
+hits it.
+
+The rest of this section is the original proposal, kept because the reasoning
+about guessing is still the reason the assets table exists.
+
+---
+
+Today `cards.asset_image` decides what an inline asset string means by
+pattern-matching it, in this order:
 
 1. `"auto"` → generated placeholder
 2. `^https?://` → remote fetch (through `url_is_safe`, shared with the validator)
@@ -115,12 +159,12 @@ still a bare filename under `games/assets/`, never a path.
 Usefulness: high*
 
 **First, a correction to the premise.** The game files are *not* missing from
-git — all nine are tracked, and so are all 73 art files:
+git — all ten are tracked, and so is every art file:
 
 ```
-castle.json  demo.json  kingdom.json  lost_cities.json  menu.json
-road.json    starter_cyoa.json  tower.json  vigil.json      → all tracked
-game/games/assets/                          → 73 files, 3.1 MB on disk, tracked
+castle.json  chess.json  demo.json  kingdom.json  lost_cities.json
+menu.json    road.json   starter_cyoa.json  tower.json  vigil.json   → all tracked
+game/games/assets/                     → 83 pictures, 3.1 MB on disk, tracked
 ```
 
 So the work is not "add the JSON". It is **remove the art**, which is a
@@ -131,10 +175,14 @@ history.
 
 1. Land gap 1, or every card in every shipped game loses its picture with
    nothing in its place. This ordering is not optional.
-2. `git rm --cached game/games/assets/*.{jpg,png}` and add a `.gitignore`
-   (there is none today). Keep `CREDITS.md` and `card_art.md` tracked — they are
-   text, they are the record of where the art came from, and `DESIGN.md` already
-   requires the first to stay accurate.
+2. `git rm --cached game/games/assets/*.{jpg,png}` and extend `.gitignore`
+   (it now exists, for `__pycache__` and the copied-in test inspiration). Keep
+   `CREDITS.md` and `card_art.md` tracked — they are text, they are the record of
+   where the art came from, and `DESIGN.md` already requires the first to stay
+   accurate. **Chess is the exception worth arguing about**: its 12 piece PNGs
+   are 60×60 Wikimedia sprites, and a chessboard drawn with generated
+   placeholders is not chess. Either they stay, or `make_chess.py` learns to fetch
+   them.
 3. Decide about history. The pack is **2.83 MiB**, essentially all art. Removing
    the files going forward does not shrink a clone; only a history rewrite
    (`git filter-repo`) does, and that invalidates every existing clone and any

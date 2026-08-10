@@ -13,13 +13,14 @@ about how it might go.
 
 | # | Idea | Size | State |
 |---|---|---|---|
-| [DONE](DONE.md) | **Everything already built** | — | stats on cards · seats and hot-seat · the engine's own RNG · procedural art · Lost Cities · networked play |
-| [01](01-boardgames.md) | Any board game as JSON | large, staged | **Lost Cities shipped.** Next: checkers, chess, Klondike, triggers |
+| [DONE](DONE.md) | **Everything already built** | — | stats on cards · seats and hot-seat · the engine's own RNG · procedural art · Lost Cities · networked play · stacks and mixins · chess · named and remote assets · the inspector |
+| [01](01-boardgames.md) | Any board game as JSON | large, staged | **Lost Cities and chess shipped.** Left: checkers' jumped square, Klondike, triggers |
 | [04](04-simulation-games.md) | Cultist Simulator, turn-based | medium | not started — unblocked, and smaller than written |
-| [05](05-assets-and-repo.md) | Assets, and what the repo carries | small | not started — placeholder fallback, `asset` prefixes, art out of git |
-| [06](06-schema-and-types.md) | Saying what things are | medium | not started — zone qualities as tags, lists everywhere, guards at the door |
-| [07](07-presentation.md) | Presentation and its gestures | medium-large | not started — the text/contrast pass, clicking the deck, multi-ability choice |
+| [05](05-assets-and-repo.md) | Assets, and what the repo carries | small | **named assets shipped.** Left: the placeholder fallback, and art out of git |
+| [06](06-schema-and-types.md) | Saying what things are | medium | not started — zone qualities as tags, lists everywhere, guards at the door, the tag registry |
+| [07](07-presentation.md) | Presentation and its gestures | medium-large | not started — the text/contrast pass, clicking the deck, board chrome, zone ratios, multi-ability choice |
 | [08](08-grid-movement-notation.md) | How a piece says where it may go | medium | **chess plays, castling included.** `patterns` (relative and absolute), capture, piece ownership, patterns as scopes. Left: the scope anchor word, check/checkmate, promotion, en passant |
+| [09](09-composition.md) | One game out of several files | small + one trap | not started — `include`, and a base file of shared patterns |
 
 ---
 
@@ -27,9 +28,11 @@ about how it might go.
 
 The engine can express a two-player Knizia game, play it between two computers
 over the internet with no server, and hand the game file itself to somebody who
-has never seen it. It can now also express a piece that moves across a board —
-chess plays, in six pattern entries and no engine knowledge of what a bishop is.
-What it cannot yet promise is that your opponent is honest.
+has never seen it. It can express a piece that moves across a board — chess
+plays, in six pattern entries and no engine knowledge of what a bishop is. Its
+pictures can live on somebody else's server, which is what makes a game file
+shareable without shipping binaries with it. What it cannot yet promise is that
+your opponent is honest.
 
 ## What to do next
 
@@ -38,25 +41,27 @@ things happen come first.
 
 | # | Item | Urgency | Difficulty | Why here |
 |---|---|---|---|---|
-| 1 | [05](05-assets-and-repo.md) gap 1 — **placeholder when a picture is missing** | high | low | one branch in `cards.image`; the *only* thing blocking item 2 |
-| 2 | [05](05-assets-and-repo.md) gap 3 — **art out of git, JSON stays** | high | low | wanted now. Note the premise correction: the JSON is already tracked, the art is what has to go |
+| 1 | [05](05-assets-and-repo.md) gap 1 — **placeholder when a picture is missing** | high | low | one branch in `cards.asset_image`; the *only* thing blocking item 2. Note it is now two changes, not one — see the gap |
+| 2 | [05](05-assets-and-repo.md) gap 3 — **art out of git, JSON stays** | high | low | wanted now. The JSON is already tracked; the art is what has to go, and chess's 12 sprites are the case to decide deliberately |
 | 3 | [07](07-presentation.md) gap 1 — **the text, contrast and tooltip pass** | high | medium-high | the thing players actually hit. Mostly judgement, not code |
 | 4 | **Hidden hands, a nameplate, a pass-the-device overlay** | high | medium | the last of multiplayer stage A. [07](07-presentation.md) gap 2 needs the same "can this player see this card" predicate, so build it once |
-| 5 | [07](07-presentation.md) gap 2 — **click the deck to draw** | medium | low + item 4 | deletes the ugliest card on the Lost Cities board; rules already allow it |
-| 6 | [05](05-assets-and-repo.md) gap 2 — **`asset` scheme prefixes** | medium | low | removes run-time guessing; wide but shallow edit |
-| 7 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `activate` already proved the shape. Cheaper now than after more games exist |
-| 8 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
-| 9 | [08](08-grid-movement-notation.md) — **check, as a stamped `threat` stat** | low | medium | chess and castling are shipped. Check is the last rule that changes how chess plays, and the same stat gives tactical games threat maps. Not a computed tag — see the doc for why |
-| 10 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
-| 11 | [07](07-presentation.md) gap 3 — **multi-ability chooser** | low | medium | no shipped game needs it. Build it with the first card that has two abilities |
+| 5 | [07](07-presentation.md) gap 5 — **zones that keep their shape** | medium | low | chess is a rhombus on a wide window. Six lines in `zones.resize`, and the test is the feature |
+| 6 | [07](07-presentation.md) gap 4 — **a zone tag for board chrome** | medium | low | the slot outlines drawn over a painted chessboard. Resist the general `invisible` — the gap says why |
+| 7 | [06](06-schema-and-types.md) gap 4 — **every engine-known tag in one table** | medium | low | the most-asked authoring question, and the table is what a typo check would later read |
+| 8 | [07](07-presentation.md) gap 2 — **click the deck to draw** | medium | low + item 4 | deletes the ugliest card on the Lost Cities board; rules already allow it |
+| 9 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | small, with one trap | the trap is the network: it ships *a file*, so includes must flatten before they are sent or hashed. Cheap if designed in, expensive if found later |
+| 10 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `activate` already proved the shape. Cheaper now than after more games exist |
+| 11 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
+| 12 | [08](08-grid-movement-notation.md) — **check, as a stamped `threat` stat** | low | medium | chess and castling are shipped. Check is the last rule that changes how chess plays, and the same stat gives tactical games threat maps. Not a computed tag — see the doc for why |
+| 13 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | checkers' jump, en passant and castling-through-check all ask for it. Design it with 08's anchor word or they diverge |
+| 14 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
+| 15 | [07](07-presentation.md) gap 3 — **multi-ability chooser** | low | medium | no shipped game needs it. Build it with the first card that has two abilities |
 
-Still true and still unowned: **`cards.lua`'s browser asset path is dead code.**
-It calls `love.js.eval`, which does not exist in the runtime this repo serves,
-and fails silently because every call is `pcall`-guarded. `netlink.lua` has a
-bridge that works; pointing `cards.image` at it is small, but it would make an
-engine module depend on the optional networking layer, so it wants a decision
-about where that bridge should live. Fold it into item 6 — that is the pass that
-touches asset resolution anyway.
+**The presentation layer is where bugs now live.** The rules layer is covered
+thoroughly and the draw path barely: both chess bugs that reached a human — an
+unclickable capture, a crash on hovering a castling card — passed the whole
+suite. Items 3, 5 and 6 are all in that layer, which is an argument for doing
+them together rather than by urgency alone.
 
 A syntax pass over the JSON is worth doing at some point but **not yet** —
 `needs`/`requires`/`accepts` are three names for one shape, `{"subject":

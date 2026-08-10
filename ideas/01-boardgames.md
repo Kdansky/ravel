@@ -4,7 +4,7 @@
 > boardgame rule set and just turn it into a json, and then have the board game
 > be simulated?* — `IDEAS.md`
 
-**Status:** in progress — **Lost Cities shipped** · **Size:** large, but strictly staged
+**Status:** in progress — **Lost Cities and chess shipped** · **Size:** large, but strictly staged
 
 ---
 
@@ -34,8 +34,8 @@ the signal to generalise.
 | Target | Names the missing capability | State |
 |---|---|---|
 | **Knizia (Lost Cities)** | Two seats; scoring functions; drop legality | **done** — seats, `sum:`/`max:`/products, `accepts` |
-| **Checkers** | Move a piece already on the board; capture; chained moves | *partly* — activation takes targets and `move_to:target` moves the acting card; capture still needs `place_in_slot` to allow an occupied slot |
-| **Chess** | Per-piece movement geometry; blocking; check | not started — no spatial vocabulary at all |
+| **Checkers** | Move a piece already on the board; capture; chained moves | *partly* — chess brought movement, capture and ownership. What is left is **the square a move passes over**: a jump takes the piece it flies past, and nothing can name it |
+| **Chess** | Per-piece movement geometry; blocking; check | **done** — `patterns`, `geometry.lua`, capture, castling ([08](08-grid-movement-notation.md)). Check and checkmate are a separate milestone, still open |
 | **Klondike** | Ordered stacks; move a run | *partly* — `accepts` is built (it was Lost Cities that asked); zones are still unordered lists with `move_top` |
 | **Hearthstone** | Triggered abilities; buffs | not started — `on_turn` is the only trigger |
 
@@ -54,65 +54,62 @@ older engine and both halves it asked for arrived for other reasons.
   for it ("advance the expedition, or discard it"), which is the discipline
   working — no new verb, and `target` was already a scope word.
 
-**What is genuinely left:**
+- ~~`place_in_slot` refuses occupied slots~~ — **done** as
+  `place_in_slot(card, slot, on_occupied)`: `"refuse"` (default), `"destroy"`,
+  or a zone key to move the occupant into, which is how chess's captured-pieces
+  tray works.
 
-- `zones.place_in_slot` **refuses occupied slots**.
-  Capture needs an opt-in: `place_in_slot(card_id, slot_id, on_occupied)` where
-  `on_occupied` is `"refuse"` (default, unchanged), `"destroy"`, or a zone key
-  to move the occupant to (a captured-pieces tray).
-- Movement must not exhaust the piece the way abilities do — or rather, for
-  checkers it must, and that is exactly right: one move per piece per round is
-  the *default* and a chained jump is the exception. Chained jumps = the move
-  action re-pushes a targeting phase while more jumps exist.
+**What is genuinely left, and it is one thing: the squares a move passes over.**
+
+A checkers jump is `[2,2]`, and it takes the piece it flies *past* — a square
+that is neither where the piece started nor where it lands. Nothing in the
+engine can name that square. Chess never asked, because a piece on the path just
+stops the move: the path is consulted and discarded inside `geometry.reach`, and
+nothing above ever sees it.
+
+**Three unbuilt rules want the same word**, which is this document's own signal
+to generalise:
+
+| Rule | Asks about the path |
+|---|---|
+| A checkers jump | is there exactly one enemy on it, and take that piece |
+| En passant | did a pawn pass through this square last turn |
+| Castling through check | is any square on it attacked |
+
+So: `geometry.reach` already walks the squares between origin and destination —
+**return them**, and expose them as a scope anchored on the move being
+considered (`count:enemy@path`, and a `destroy:path` style target for the
+taking). This is close kin to [08](08-grid-movement-notation.md)'s missing
+*anchor word*, and the two should be designed together rather than growing two
+different ways to say "relative to something other than me".
+
+The other half is **chained jumps**: the move action re-pushes a targeting phase
+while more jumps exist. One move per piece per turn is already the default —
+what a turn is bounded by is the handover, not the piece being spent — so the
+chain is the exception and has to say so.
 
 **Milestone: checkers plays end to end, without forced-capture rules.**
 
-## Gap 2 — Spatial vocabulary (chess)
+## Gap 2 — Spatial vocabulary (chess) — **shipped** (`5c1875e`)
 
-Slots know `slot_idx` and their zone knows `grid = {cols, rows}`
-(`game/zones.lua:33`). Everything needed to compute geometry is present; nothing
-reads it. Targeting eligibility (`game/targeting.lua:12`) is "every empty slot",
-optionally filtered by zone.
+**Done, and by a different notation than the one drafted here.** The
+`slide:`/`step:`/`leap:` verbs this section proposed were compared against four
+alternatives in [08](08-grid-movement-notation.md) and lost: they make the engine
+learn a word per movement *kind*, and they force blocking to be guessed from an
+offset's shape. What shipped declares direction vectors in a top-level `patterns`
+block and reads them as *directions*, so blocking, leaping and range are one
+concept rather than four. `geometry.lua` exists as this section predicted, below
+the presentation line, pure and headless.
 
-> **Superseded by [idea 08](08-grid-movement-notation.md).** The `slide:`/`step:`/
-> `leap:` verbs below were compared against four other notations and lost: they
-> make the engine learn a word per movement *kind*, and they force blocking to be
-> guessed from an offset's shape. The chosen design declares direction vectors in
-> a top-level `patterns` block and reads them as *directions*, which makes
-> blocking, leaping and range one concept instead of four. The rest of this
-> section — the gap it names, and the `geometry.reachable` shape — still holds.
-
-**Change — a movement spec on the card template**, in the engine's existing
-`op:param` string style (DESIGN.md forbids nested arrays and code-like
-expressions, so this must stay flat strings):
-
-```json
-{ "key": "rook",   "move": ["slide:orthogonal"] }
-{ "key": "bishop", "move": ["slide:diagonal"] }
-{ "key": "queen",  "move": ["slide:orthogonal", "slide:diagonal"] }
-{ "key": "knight", "move": ["leap:1:2"] }
-{ "key": "king",   "move": ["step:orthogonal:1", "step:diagonal:1"] }
-{ "key": "pawn",   "move": ["step:forward:1"], "capture": ["step:diagonal_forward:1"] }
-```
-
-Verbs: `step:<dir>:<n>` (up to n squares, blocked by anything), `slide:<dir>`
-(any distance until blocked), `leap:<dx>:<dy>` (ignores blocking, all eight
-reflections). Directions: `orthogonal`, `diagonal`, `forward`, `any`.
-`forward` needs a facing, which comes from the owner (foundation doc) — white
-moves +row, black −row.
-
-This lives in a new module `geometry.lua`, below the presentation line, whose
-whole job is `geometry.reachable(card_id) -> { slot_id, ... }`, split into
-"empty destinations" and "capture destinations". `targeting.start` calls it when
-the spec says `"type": "move"`. One module, one function, no state — it stays
-testable headless and it keeps `zones.lua` from growing a second personality.
-
-**Milestone: chess plays, king-capture rules (no check detection).**
+Chess plays with 32 pieces, blocking, capture into a per-seat tray and castling.
+[08](08-grid-movement-notation.md) is the live document; [DONE.md](DONE.md) has
+the summary. The rest of this section — check and checkmate — is still true and
+still unbuilt.
 
 ### Check and checkmate — read this before promising chess
 
 Check detection is "after my move, can any enemy piece reach my king's square" —
-that is one call to `geometry.reachable` per enemy piece, cheap and easy.
+that is one call to `geometry.reach` per enemy piece, cheap and easy.
 **Checkmate is different**: "does the opponent have any legal move that leaves
 their king un-attacked" requires generating every legal move for a side and
 testing each against a hypothetical board. The engine can actually do this
@@ -120,10 +117,17 @@ honestly — `entity.snapshot`/`restore` (`game/entity.lua:49`) is exactly a
 make/unmake move, and it is already fast enough — but it is a real subsystem and
 it should be its own milestone, not smuggled into the first one.
 
-Recommendation: ship **capture-the-king chess** first (fully playable, teaches
-the geometry layer), then add `legal_moves()` and checkmate as a follow-up. Do
-not start with castling, en passant and promotion; each is a special-case card
-or trigger and they are the least interesting part.
+**Capture-the-king chess shipped, as recommended**, and castling came with it
+because it turned out to be the thing that asked for absolute patterns rather
+than a special case bolted on. What is left is unchanged: `legal_moves()` and
+checkmate, as their own milestone.
+
+One correction from building it, in [08](08-grid-movement-notation.md): check is
+**not** a computed tag, however much it looks like one. A computed tag reads one
+card's own stats, and "am I attacked" depends on every enemy piece's reachable
+set. Stamp it as a **stat** instead — a `threat` count per square, recomputed
+after each move — which is the route `rank` already took, and which hands
+tactical games a threat map for the same price.
 
 ## Gap 3 — Ordered stacks and drop legality (solitaire)
 
@@ -232,17 +236,22 @@ game engine that got this wrong:
 1. ~~**Lost Cities + hot-seat**~~ — **done.** It named seats, `accepts`,
    products and subject-valued comparisons, and every one of those landed as
    vocabulary rather than as a special case.
-2. **Checkers** — board movement + capture. (small)
-3. **Chess, capture-the-king** — `geometry.lua`. (medium)
+2. ~~**Chess, capture-the-king**~~ — **done**, and it overtook checkers because
+   the notation question ([08](08-grid-movement-notation.md)) was the
+   interesting one and chess is where it had to be answered. `geometry.lua`
+   exists; castling came with it.
+3. **Checkers** — needs the jumped-over square, which chess never asked for.
+   (small, once that is named)
 4. **Klondike** — ordered stacks + run moves (`accepts` already done). (medium)
 5. **Chess, legal** — move generation, check, checkmate. (medium)
 6. **Hearthstone-like** — triggers. (large)
 
-Each step ships a playable game in `game/games/` and its own test in
-`tests/run.lua`. **Every board game gets a scripted-game test**: a fixed
-sequence of moves with asserted end state (fool's mate for chess, a forced
-double-jump for checkers, a seeded winnable Klondike deal). That is a much
-stronger regression net than unit tests and it costs ten lines each.
+Each step ships a playable game in `game/games/` and its own test. **Every board
+game gets a scripted-game test**: a fixed sequence of moves with asserted end
+state (fool's mate for chess, a forced double-jump for checkers, a seeded
+winnable Klondike deal). That is a much stronger regression net than unit tests
+and it costs ten lines each. Chess's is in `tests/run.lua`; new ones belong in
+`tests/integration/`, one file per subject.
 
 ## Non-goals
 

@@ -451,6 +451,118 @@ addresses an offer contains.
 
 ---
 
+# 01 (part) — Stacks, destinations and mixins · shipped (`7b524de`)
+
+Lost Cities could be discarded to exactly once per colour, and the three rules
+that fixed it are all engine-wide.
+
+- **A stack is reached from the top.** `flow` and `targeting` now say what the
+  renderer always did: the top card of a deck or pile is the playable,
+  activatable and targetable one, and nothing under it is. Before this a script,
+  the debug API or a network peer could name any card in a pile.
+- **A place to put a card is a zone**, not a marker card standing in one.
+  `"target": {"type": "zone"}` points at the expedition or the discard, and
+  `accepts` sits on the zone as naturally as on a card. Ten marker cards
+  disappeared, and with them the failure mode where a destination stops working
+  because something covered it up.
+- **Tags are mixins, and a zone may grant them.** A tag def carries card
+  behaviour; a zone hands its tags to its contents with `applies`. "You may take
+  the top card of a discard pile" is the pile saying what lying on it means,
+  with no card in the game knowing piles exist. The zone answers first, the card
+  answers where the zone is silent, and there is deliberately **no card-wins
+  precedence** — an overlap is an authoring conflict the validator reports.
+
+---
+
+# 08 (core) — Pieces that move · shipped (`5c1875e`)
+
+**Chess plays**, castling included, and the engine never learns what a bishop
+is. Movement is six `patterns` entries shared by both colours: a pattern is a
+list of `[dx, dy]` pairs read as *directions* applied up to `range` times, so
+blocking, leaping and limited range are one loop bound and one break rather than
+three rules. `geometry.lua` holds the arithmetic, pure and headless.
+
+Five notations were drafted against the same five pieces before this one won.
+**[08](08-grid-movement-notation.md) is still the live document** — it carries
+the comparison, the build order with each step's status, and what each step
+taught. Read it rather than duplicating it here. In brief, also shipped:
+absolute patterns and `place:` (castling's fixed destinations), patterns as
+scopes (`count:piece@adjacent`), ownership by seat tag (`tags.owner_of`, so one
+shared board holds pieces that are not shared), `fill` on slot targets, capture
+via `place_in_slot`'s `on_occupied`, and zone art — `asset`, `checker`, `paint`.
+
+Left: the scope anchor word, check and checkmate, promotion, en passant.
+
+Two rules with reach beyond chess came out of it: **a stat nobody carries is
+absent, not zero** (`equals: 0` was true of a rook captured twenty moves ago),
+and **you are not among the things you own** — `owner_of` and `seat_of` are
+different questions, and a party game with four `player` cards needs all four
+clickable on one turn.
+
+---
+
+# 05 (part) — Named assets, and pictures in the browser · shipped (`ff55754`)
+
+A picture may be **named once in a top-level `assets` table** and referenced by
+key: `"asset": "archmage_tower"`. A name is anything with no source in it — no
+extension, no scheme, no shape colon — so it can never be confused with the
+inline forms, and it is the only place a picture carries options. There is one
+option, `max` (longest edge, 1–4092); anything inline gets 1024. The name is
+also the cache key, so twenty cards drawn from one picture are one download and
+one texture.
+
+**Remote images work in the browser build.** This is load-bearing, not a
+convenience: a game file must be able to name pictures somebody else hosts, or
+sharing a game means sending binaries. The browser fetches the URL itself and
+hands the bytes to Lua, and the page decodes first — so a remote WebP, AVIF or
+progressive JPEG works even though LÖVE reads only what stb_image reads. Repeat
+visits are free with no code: it is an ordinary `fetch`, so a host sending
+`Cache-Control` is answered from the browser's own disk cache.
+
+**Four failures stacked on top of each other here, all silent**, and they are
+the reason this took a day rather than an hour:
+
+| What broke | Why |
+|---|---|
+| Every web asset crashed on its first frame | `cond and browser(...) or desktop(...)` **ran both**: the browser fetch's unfinished answers are falsy — nil in flight, false on failure — so `or` ran the desktop path, which asked for a thread channel that did not exist. A platform choice is `if`/`else`, never `and`/`or`. |
+| `NetworkError`, on every public host | `credentials: "include"` asks for cookies, and the fetch spec **refuses a credentialed response whose `Access-Control-Allow-Origin` is `*`** — which is what every image host answers with. Nothing in the error said the request had been the wrong shape. |
+| The tab hung on anything over ~1 MB | love.js hands JS values back to Lua **one byte at a time** through `io.read`, and Emscripten's default `stdin` `Array.shift()`s per byte. Quadratic: fine for a clipboard line, billions of element moves for 3 MB of base64. `index.html` supplies the same contract with an index instead. |
+| A 4K photo decoded to nothing | player.js sizes the wasm heap as `min(4 × game.love + 20 MB, deviceMemory)`, Firefox reports no `deviceMemory`, and this build has **no `ALLOW_MEMORY_GROWTH`** — 33 MB, for a single photo that is 36 MB of RGBA. `index.html` now puts a 256 MB floor under whatever player.js works out. Raise that before raising `max`. |
+
+Plus one shim difference worth knowing: **`love.filesystem.newFileData` returns
+nil under 2dengine's love.js**, where `love.data.newByteData` works. Try the
+latter first, fall back to the former.
+
+The lesson under all four: every one of these paths returned `nil` and said
+nothing, because `nil` also means "still fetching". A path that can fail must
+report *which step* failed — that change is what turned four days of guessing
+into four readable console lines.
+
+---
+
+# Tooling — the inspector and the test harness · shipped (`e198dbb`, `1a03c9d`)
+
+**Ctrl+hover shows a thing's JSON.** Point at a card, a slot or a zone with ctrl
+held and `inspect.lua` prints its template, its live entity, and what the engine
+*derived* — owner, and the effective tag set after the zone's `applies` and the
+computed tags are folded in. That last block is the point: the derived view
+answers "why is this card behaving like that" without a print statement.
+Ctrl+C copies the panel, the wheel scrolls it, and clicks are swallowed while
+ctrl is down so inspecting never plays a card.
+
+**A test is a function in a folder.** `tests/integration/*.lua` export `test*()`
+functions; `tests/harness.lua` loads every file in the directory, sorts, and runs
+each under `xpcall`, so one blowing up does not take the suite with it.
+`tests/run.lua` runs them all, or `luajit tests/run.lua <name>` runs one.
+`tests/run.lua` lost 680 lines to this and the assertion count did not move —
+which was the point of counting them.
+
+This also has a practical cause: Lua allows **200 locals per function**, and
+`run.lua` hit the ceiling. A `do ... end` block hands them back, and a file per
+subject avoids the question.
+
+---
+
 # Bugs found on the way, and what they bought
 
 Recorded because each was invisible to a green test suite, and the fix in each
@@ -464,6 +576,9 @@ case was a *check*, not just a patch.
 | A `local function` called **above its declaration** — Lua resolves it as a nil global and fails at runtime; the whole browser panel silently stopped updating. | `tests/run.lua` greps every module for the pattern. |
 | The dev container **packed `game.love` once** and never again: `exec nginx` orphaned the watcher, and `set -eu` would have killed it anyway on one transient `stat` failure. | nginx runs beside the watcher; the watcher tolerates its own failures. |
 | The golden traces ran **only under LuaJIT**. | rng.lua; both interpreters now produce identical transcripts, and the skip is deleted. |
+| A platform choice written `browser(...) or desktop(...)` **ran both branches**, because "still fetching" is falsy. Every remote picture crashed the browser build on its first frame. | `tests/run.lua` stubs a browser and makes the desktop path **fatal** when it is reached, and the other way round. |
+| **Capture was unclickable** in chess. Hit-testing returns the topmost *card*; a slot-typed spec's eligible list holds *slots*; the two never met — and every test called `targeting.candidates` directly, so the seam was never crossed. | `targeting.aim` — "pointing at a piece means pointing at its square" — lives in `targeting`, where a test can reach it, not in `main`. |
+| **Hovering a castling card crashed the game.** `cards.cost_text` renders `needs` and `accepts` too, and only a cost is always a plain number; the comparison form had been legal since Lost Cities but no card had ever carried one *and* been hovered. | `tests/run.lua` asks `cost_text` for every comparison form, not just the plain number. The gap it exposes — the suite covers the rules layer thoroughly and the presentation layer barely — is still open. |
 
 **Invariants the engine gained:** randomness belongs to the engine (ARCHITECTURE
 invariant 8); layouts may not overlap; and — from the Brave bug — a readback is a

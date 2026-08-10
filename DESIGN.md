@@ -299,8 +299,12 @@ This is aura-shaped, and gap 5 of `ideas/01-boardgames.md` defers auras for good
 ## Assets and Tooltips
 
 Every card definition may include:
-- `"asset": "filename.png"` — image file under `games/assets/`. Falls back to text-only rendering if absent.
+- `"asset": "filename.png"` — image file under `games/assets/`. Falls back to text-only rendering if absent. It may instead be an `http(s)` URL, a procedural shape spec, or `"auto"`; zones take the same field for the picture behind the board.
 - `"tooltip": "string"` — shown in a hover panel after a short delay (plus cost, per-card stats and attachments).
+
+**A picture with options is named once, in the top-level `assets` table, and referenced by key.** A name is anything with no source *in* it — no extension, no scheme, no shape colon — so the two forms cannot be confused, and there is exactly one place a picture carries options (today `max`, the longest edge). Naming also makes the name the cache key, so twenty cards drawn from one picture are one download and one texture.
+
+**A remote picture is not a convenience, it is what makes a game file shareable.** A file that names only local binaries cannot be handed to somebody without also handing them the binaries, which is the thing networked play exists to avoid. The browser build therefore fetches URLs through the page itself, which also decodes them — so the format stops mattering, and the size cap is about the wasm heap rather than about looks (`index.html` explains the floor under it; raise that before raising the cap).
 
 ---
 

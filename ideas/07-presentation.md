@@ -1,7 +1,7 @@
 # 07 — Presentation and the gestures on top of it
 
-**Status:** not started · **Size:** the first gap is the largest design job in
-this list; the other two are small and specific.
+**Status:** not started · **Size:** gap 1 is the largest design job in this
+list; the other four are small and specific.
 
 The rules are in better shape than the surface they are shown through. Every
 item here is something a player sees or does, not something the engine computes.
@@ -137,3 +137,91 @@ exactly one, so each learns to ask "which".
 **Refuse until a game needs it.** The shorthand must keep working untouched, and
 a chooser that appears for a single ability is a click tax on every existing
 game. Build it with the first card that has two abilities, not before.
+
+---
+
+## Gap 4 — A thing that should not be drawn
+
+*Urgency: medium (chess looks wrong today) · Difficulty: low for the narrow
+version, medium for the general one · Usefulness: medium*
+
+`draw_grid_empty` (`render.lua:645`) outlines every unoccupied slot. On a board
+with no art that outline **is** the board, and it is the right default. On a
+chessboard it is a rounded rectangle drawn inside 32 painted squares, and it
+reads as a mistake.
+
+The narrow fix is four characters of condition. The question is what the tag
+should be called, and how far it reaches — the request was *"possibly an
+`invisible` tag on any component we have"*, and that is worth resisting in its
+general form:
+
+| Reading | What it would mean | Verdict |
+|---|---|---|
+| `invisible` on a **zone**'s empty slots | skip the outline | this is the actual request |
+| `invisible` on a **zone** | draw no background, no label, no outline — but still lay out and hit-test | useful; `hidden` already exists and means something stronger (not drawn *and* not clickable, for offer zones and fate decks) |
+| `invisible` on a **card** | ? A card that is not drawn but occupies a square is a rules ghost | **refuse** — there is no honest meaning, and `card_at` would hand the player something they cannot see |
+
+So: **one tag word, applied only to zones**, and it must be a different word from
+`hidden` because the difference between "invisible but live" and "gone" is
+exactly the bug this would otherwise introduce. `chrome` is the thing being
+suppressed — background, label, slot outlines — so `no_chrome` says it, or
+`bare` if a shorter word wins.
+
+**The engine already has the precedent and it is a card tag**:
+`transparent_background` means "no plate behind the art", and
+`invisible_title_text` means "no title band". Both are per-card, both suppress
+one piece of chrome, and both are named after the piece rather than after
+invisibility. Follow that: a zone tag per piece of chrome beats one `invisible`
+that means four things — and it stops the eventual argument about whether an
+invisible zone can still be clicked.
+
+Note that a game *can* already get most of this by giving the zone a `checker`
+or an `asset`, since the outline is then drawn over paint rather than over
+nothing. The reason to do it properly is that chess wants the squares painted
+**and** the outlines gone, and today those are one decision.
+
+---
+
+## Gap 5 — A board that stays square when the window does not
+
+*Urgency: medium (chess is visibly wrong on a wide window) · Difficulty: low ·
+Usefulness: medium, and it is one of those things nobody reports and everybody
+sees*
+
+`zones.resize` (`zones.lua:342`) multiplies a zone's fractional `pos` by the
+window size, straight through. A chessboard given `[0.25, 0.05, 0.75, 0.95]` is
+therefore square only at one window aspect and a rhombus everywhere else, and
+`cell_rect` divides that rect by `[cols, rows]`, so every square is stretched the
+same way. Cards inside cells survive it — `fit: "card"` keeps their proportions
+— which is exactly why the *board* looking wrong is easy to miss in a screenshot
+of the cards.
+
+**The rule to add:** a zone may declare the shape it must keep, and the layout
+gives it the largest rect of that shape inside the space it was allotted.
+
+```json
+{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [...], "ratio": 1 }
+```
+
+Three decisions to make, none of them large:
+
+1. **What `ratio` means.** `w / h`, a number. `1` is square. Deriving it from
+   `grid` automatically is tempting and wrong: a `[8, 8]` grid of *cards* wants
+   cells shaped like cards, not squares, and the fit is already a separate
+   choice (`fit`). Say it explicitly, and let `"ratio": "grid"` mean "take it
+   from the cell count" for the boards that do want that.
+2. **Where the slack goes.** Centre it, and say so once. Anything else needs an
+   alignment field, which is a second concept for a case nobody has.
+3. **What else moves.** Nothing. The whole point is that the *other* zones keep
+   their fractions; a board that shrinks leaves a gap, it does not push the
+   hands around. A layout where that gap matters is a layout that wanted a
+   different `pos`.
+
+**Where it goes:** inside `zones.resize`, after the rect is computed and before
+the slots are — six lines, and every consumer downstream reads `z.place` and is
+unaffected. `validate.lua` gets a range check, and the overlap warning keeps
+working because a ratio-corrected rect is strictly smaller than the one it was
+checked against.
+
+**Test it in `render_smoke`**: draw chess at 960×540 and again at 540×960, and
+assert the board's rect is square in both. That assertion is the whole feature.

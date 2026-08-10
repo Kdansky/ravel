@@ -1,7 +1,13 @@
 # Idea 08 — How a piece says where it may go
 
+**Status: mostly shipped (`5c1875e`).** Option E was chosen and built; chess
+plays, castling included. The comparison below is kept because it is the record
+of *why* directions beat destinations, and the **Build order** at the end of this
+file marks each step's state and what building it taught. Still open: the scope
+anchor word (step 3), check and checkmate (step 5), promotion, en passant.
+
 Three notations for the same five chess pieces, written out so they can be
-compared rather than argued about. Nothing here is built yet.
+compared rather than argued about.
 
 The question is narrow: **a card on a grid needs to name its legal
 destinations, without the engine learning the word "bishop".** Everything else

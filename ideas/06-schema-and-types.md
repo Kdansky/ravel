@@ -3,9 +3,9 @@
 **Status:** not started · **Size:** medium, and mostly mechanical once the first
 decision is made.
 
-Three requests that are the same request wearing different clothes: the engine
+Four requests that are the same request wearing different clothes: the engine
 should know the shape of its own data before it runs, instead of asking at every
-use.
+use — and should be able to say what it knows.
 
 ---
 
@@ -137,3 +137,48 @@ and `predicate.lua` says out loud why it fails closed today:
 
 That comment is the acceptance criterion. The guards may go once the same
 promise is kept somewhere earlier, and not before.
+
+---
+
+## Gap 4 — Every tag the engine knows, in one place
+
+*Urgency: medium (it is the most-asked authoring question) · Difficulty: low for
+the document, medium for the check · Usefulness: high*
+
+**A tag is free vocabulary until it isn't.** Most tags are the author's own
+words, matched by targeting and counting, and that is the design. But a growing
+number of them mean something *to the engine*, and those are scattered across
+three documents and no code:
+
+| Where they are documented now | Which |
+|---|---|
+| AUTHORING's card-field table | `token`, `immutable`, `invisible_title_text`, `transparent_background` |
+| A paragraph under Zones | `shuffle`, `refill_when_empty`, `face_up`, `face_down`, `no_peek`, `hidden`, `activate`, `optional` |
+| Hardcoded conventions | `player` |
+| Nowhere as a list | whatever a reader of `render.lua` finds next |
+
+**Two things are wanted here and they should not be confused.**
+
+**The document.** One reference table: every engine-known tag, what it attaches
+to (card, zone, or either), and what it changes. This is the todo-list item as
+written, it is a couple of hours, and it needs no engine change. Grep for
+`entity_has`, `tags.` and the zone tag reads to build it; the answer is a
+half-dozen more than the lists above.
+
+**The check, which is the interesting half.** A tag the engine *thought* it
+knew, misspelled, is silently inert today — `"tags": ["activaet"]` gives a board
+whose cards can never be used, with no error anywhere. The fix is not to reject
+unknown tags (free vocabulary is the point) but to **warn on near-misses**:
+`validate.lua` already has `suggest()`, and an unknown tag within edit distance
+one of a known one is almost certainly the known one misspelled. That turns a
+silent dead board into a line of output.
+
+**Do the document first, because the check needs it.** The table *is* the
+registry the check reads — put it in the engine as a table with the description
+beside each entry, generate nothing, and let the two drift only as far as one
+edit.
+
+**Refuse:** a closed tag vocabulary. The moment unknown tags are an error, every
+game file has to declare its own words before using them, and the thing that
+makes targeting expressive dies to catch a typo that a suggestion catches
+better.
