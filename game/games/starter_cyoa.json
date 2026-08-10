@@ -1,23 +1,8 @@
 {
   "title": "TODO: Your Story",
-  "stats": [
-    {
-      "key": "hp",
-      "label": "Health",
-      "min": 0,
-      "max": 10
-    }
-  ],
-  "setup": {
-    "player": {
-      "hp": 6
-    }
-  },
-  "tags": {
-    "keepsake": {
-      "zone": "board"
-    }
-  },
+  "stats": [{ "key": "hp", "label": "Health", "min": 0, "max": 10 }],
+  "setup": { "player": { "hp": 6 } },
+  "tags": { "keepsake": { "zone": "board" } },
   "zones": [
     {
       "key": "board",
@@ -26,10 +11,7 @@
       "grid": [5, 1],
       "tags": ["activate"]
     },
-    {
-      "key": "hand",
-      "type": "hand"
-    },
+    { "key": "hand", "type": "hand" },
     {
       "key": "secret_deck",
       "type": "deck",
@@ -42,40 +24,26 @@
       "key": "p_start",
       "text": "TODO: Opening Page Title",
       "story": "TODO: your opening paragraph. The player reads this, clicks to continue, and receives the choices below in hand.",
-      "pick": {
-        "action": ["fill:hand:c_look:1", "fill:hand:c_leave:1"]
-      }
+      "pick": { "action": ["fill:hand:c_look:1", "fill:hand:c_leave:1"] }
     },
     {
       "key": "c_look",
       "text": "TODO: A simple choice",
       "tooltip": "TODO: what the player is told. What actually happens can stay secret.",
-      "play": {
-        "action": ["reveal:p_found"]
-      }
+      "play": { "action": ["reveal:p_found"] }
     },
     {
       "key": "c_leave",
       "text": "TODO: A gated choice",
       "tooltip": "TODO: this branch only opens once the key is carried — trying early reveals the failure page.",
-      "challenge": {
-        "needs": {
-          "card:the_key": 1
-        },
-        "pass": ["reveal:e_end"],
-        "fail": ["reveal:p_locked"]
-      },
-      "play": {
-        "action": ["resolve_challenge"]
-      }
+      "challenge": { "needs": { "card:the_key": 1 }, "pass": ["reveal:e_end"], "fail": ["reveal:p_locked"] },
+      "play": { "action": ["resolve_challenge"] }
     },
     {
       "key": "c_gamble",
       "text": "TODO: A gamble",
       "tooltip": "Draws one of two secret outcomes, decided by the shuffle.",
-      "play": {
-        "action": ["reveal_top:secret_deck"]
-      }
+      "play": { "action": ["reveal_top:secret_deck"] }
     },
     {
       "key": "p_found",
@@ -89,25 +57,19 @@
       "key": "p_locked",
       "text": "TODO: The failure page",
       "story": "TODO: what a failed gate looks like. The empty on_pick keeps the hand, so the player can try something else.",
-      "pick": {
-        "action": []
-      }
+      "pick": { "action": [] }
     },
     {
       "key": "p_good_luck",
       "text": "TODO: The good outcome",
       "story": "TODO: fortune favors you. +1 health.",
-      "pick": {
-        "action": ["gain_stat:hp:1"]
-      }
+      "pick": { "action": ["gain_stat:hp:1"] }
     },
     {
       "key": "p_bad_luck",
       "text": "TODO: The bad outcome",
       "story": "TODO: it goes wrong. -2 health.",
-      "pick": {
-        "action": ["lose_stat:hp:2"]
-      }
+      "pick": { "action": ["lose_stat:hp:2"] }
     },
     {
       "key": "the_key",
@@ -120,37 +82,19 @@
       "text": "TODO: An Ending",
       "outcome": "victory",
       "story": "TODO: your ending. Picking it returns to the menu.",
-      "pick": {
-        "action": ["load_game:menu.json"]
-      }
+      "pick": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "e_dead",
       "text": "TODO: The Death Ending",
       "outcome": "defeat",
       "story": "TODO: what zero health looks like.",
-      "pick": {
-        "action": ["load_game:menu.json"]
-      }
+      "pick": { "action": ["load_game:menu.json"] }
     }
   ],
   "phases": [
-    {
-      "key": "intro",
-      "type": "automatic",
-      "actions": ["reveal:p_start"]
-    },
-    {
-      "key": "story",
-      "type": "player_input",
-      "label": "TODO: Your Story"
-    }
+    { "key": "intro", "type": "automatic", "actions": ["reveal:p_start"] },
+    { "key": "story", "type": "player_input", "label": "TODO: Your Story" }
   ],
-  "end_conditions": [
-    {
-      "stat": "hp",
-      "at_most": 0,
-      "then": ["reveal:e_dead"]
-    }
-  ]
+  "end_conditions": [{ "stat": "hp", "at_most": 0, "then": ["reveal:e_dead"] }]
 }

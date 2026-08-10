@@ -14,9 +14,7 @@
       "text": "The Wandering Road",
       "asset": "world.jpg",
       "tooltip": "A short story of choices and consequence. Draw cards and survive the journey.",
-      "play": {
-        "action": ["load_game:demo.json"]
-      },
+      "play": { "action": ["load_game:demo.json"] },
       "tags": ["immutable"]
     },
     {
@@ -24,9 +22,7 @@
       "text": "Castle Lord",
       "asset": "castle_hill.jpg",
       "tooltip": "Build a castle and weather the challenges that come your way.",
-      "play": {
-        "action": ["load_game:castle.json"]
-      },
+      "play": { "action": ["load_game:castle.json"] },
       "tags": ["immutable"]
     },
     {
@@ -34,9 +30,7 @@
       "text": "Coronation",
       "asset": "crown_royal.jpg",
       "tooltip": "Forge a realm from drafted choices, then let the trials test what you built.",
-      "play": {
-        "action": ["load_game:kingdom.json"]
-      },
+      "play": { "action": ["load_game:kingdom.json"] },
       "tags": ["immutable"]
     },
     {
@@ -44,9 +38,7 @@
       "text": "The Drowned Tower",
       "asset": "lighthouse_lake.jpg",
       "tooltip": "A classical adventure told in pages. Choose blind, turn the page, live with it.",
-      "play": {
-        "action": ["load_game:tower.json"]
-      },
+      "play": { "action": ["load_game:tower.json"] },
       "tags": ["immutable"]
     },
     {
@@ -54,18 +46,14 @@
       "text": "The Long Road",
       "asset": "caravan_winter.jpg",
       "tooltip": "March a caravan across bad country: units on the road, items in the wagons, twelve miles to safety.",
-      "play": {
-        "action": ["load_game:road.json"]
-      },
+      "play": { "action": ["load_game:road.json"] },
       "tags": ["immutable"]
     },
     {
       "key": "play_lost_cities",
       "text": "Lost Cities",
       "tooltip": "Knizia's two-player expedition game. Advance five expeditions or cut your losses — each one you start costs 20 to fund. Play both sides here, or invite a friend once it opens.",
-      "play": {
-        "action": ["load_game:lost_cities.json"]
-      },
+      "play": { "action": ["load_game:lost_cities.json"] },
       "asset": "lost_cities_cover.jpg",
       "tags": ["immutable"]
     },
@@ -73,9 +61,7 @@
       "key": "play_chess",
       "text": "Chess",
       "tooltip": "Capture the king. Two players, one device.",
-      "play": {
-        "action": ["load_game:chess.json"]
-      },
+      "play": { "action": ["load_game:chess.json"] },
       "asset": "checker:8:slate:silver",
       "tags": ["immutable"]
     },
@@ -84,9 +70,7 @@
       "text": "The Long Vigil",
       "asset": "witches_sabbath.jpg",
       "tooltip": "Fourteen nights to finish the work. Click the verbs on the table: work, study, dream, and pay what dreaming costs.",
-      "play": {
-        "action": ["load_game:vigil.json"]
-      },
+      "play": { "action": ["load_game:vigil.json"] },
       "tags": ["immutable"]
     },
     {
@@ -114,24 +98,15 @@
       "text": "Join a friend",
       "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works even for a game you do not have.",
       "tags": ["token", "immutable"],
-      "play": {
-        "action": ["net_join"]
-      }
+      "play": { "action": ["net_join"] }
     },
     {
       "key": "m_back",
       "text": "Back",
       "tooltip": "Return to the first screen.",
       "tags": ["token", "immutable"],
-      "play": {
-        "action": ["destroy:menu", "fill:menu:m_new:1", "fill:menu:m_join:1"]
-      }
+      "play": { "action": ["destroy:menu", "fill:menu:m_new:1", "fill:menu:m_join:1"] }
     }
   ],
-  "phases": [
-    {
-      "key": "waiting",
-      "type": "player_input"
-    }
-  ]
+  "phases": [{ "key": "waiting", "type": "player_input" }]
 }

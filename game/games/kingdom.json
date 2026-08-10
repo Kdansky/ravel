@@ -1,51 +1,15 @@
 {
   "title": "Coronation",
-  "assets": {
-    "archmage_tower": {
-      "src": "https://i.imgur.com/0vnj0kx.jpeg",
-      "max": 4092
-    }
-  },
+  "assets": { "archmage_tower": { "src": "https://i.imgur.com/0vnj0kx.jpeg", "max": 4092 } },
   "stats": [
-    {
-      "key": "round",
-      "label": "Round"
-    },
-    {
-      "key": "progress",
-      "label": "Progress",
-      "min": 0
-    },
-    {
-      "key": "stability",
-      "label": "Stability",
-      "min": 0,
-      "max": 10
-    },
-    {
-      "key": "gold",
-      "label": "Gold",
-      "min": 0
-    },
-    {
-      "key": "food",
-      "label": "Food",
-      "min": 0
-    },
-    {
-      "key": "might",
-      "label": "Might",
-      "min": 0
-    },
-    {
-      "key": "mana",
-      "label": "Mana",
-      "min": 0
-    },
-    {
-      "key": "destination",
-      "hidden": true
-    }
+    { "key": "round", "label": "Round" },
+    { "key": "progress", "label": "Progress", "min": 0 },
+    { "key": "stability", "label": "Stability", "min": 0, "max": 10 },
+    { "key": "gold", "label": "Gold", "min": 0 },
+    { "key": "food", "label": "Food", "min": 0 },
+    { "key": "might", "label": "Might", "min": 0 },
+    { "key": "mana", "label": "Mana", "min": 0 },
+    { "key": "destination", "hidden": true }
   ],
   "setup": {
     "player": {
@@ -59,22 +23,10 @@
     }
   },
   "effects": {
-    "blessing": {
-      "base": "sparkle"
-    },
-    "drill_rally": {
-      "base": "stars",
-      "color": [0.75, 0.82, 0.95]
-    },
-    "eclipse_surge": {
-      "base": "power_up",
-      "color": [0.7, 0.45, 0.95],
-      "size": 1.4
-    },
-    "crisis_smoke": {
-      "base": "smoke",
-      "size": 1.3
-    }
+    "blessing": { "base": "sparkle" },
+    "drill_rally": { "base": "stars", "color": [0.75, 0.82, 0.95] },
+    "eclipse_surge": { "base": "power_up", "color": [0.7, 0.45, 0.95], "size": 1.4 },
+    "crisis_smoke": { "base": "smoke", "size": 1.3 }
   },
   "cards": [
     {
@@ -83,13 +35,8 @@
       "asset": "merchant_portrait.jpg",
       "tooltip": "Born to ledgers and caravans. +6 gold.",
       "tags": ["holding", "origin", "economic"],
-      "card_stats": {
-        "hp": 4,
-        "hp_max": 4
-      },
-      "play": {
-        "action": ["move_to:board", "gain_stat:progress:3", "gain_stat:gold:6"]
-      }
+      "card_stats": { "hp": 4, "hp_max": 4 },
+      "play": { "action": ["move_to:board", "gain_stat:progress:3", "gain_stat:gold:6"] }
     },
     {
       "key": "warlord",
@@ -97,13 +44,8 @@
       "asset": "knight_portrait.jpg",
       "tooltip": "Crowned on a battlefield. +3 might.",
       "tags": ["holding", "origin", "military", "soldier"],
-      "card_stats": {
-        "hp": 5,
-        "hp_max": 5
-      },
-      "play": {
-        "action": ["move_to:board", "gain_stat:progress:3", "gain_stat:might:3"]
-      }
+      "card_stats": { "hp": 5, "hp_max": 5 },
+      "play": { "action": ["move_to:board", "gain_stat:progress:3", "gain_stat:might:3"] }
     },
     {
       "key": "archmage",
@@ -111,16 +53,9 @@
       "asset": "archmage_tower",
       "tooltip": "The tower chose you. +2 mana now, +1 each round.",
       "tags": ["holding", "origin", "mystic"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      },
-      "play": {
-        "action": ["move_to:board", "gain_stat:progress:3", "gain_stat:mana:2"]
-      },
-      "turn": {
-        "action": ["gain_stat:mana:1"]
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 },
+      "play": { "action": ["move_to:board", "gain_stat:progress:3", "gain_stat:mana:2"] },
+      "turn": { "action": ["gain_stat:mana:1"] }
     },
     {
       "key": "decline",
@@ -128,9 +63,7 @@
       "color": [0.1, 0.14, 0.22],
       "tooltip": "Claim no birthright. Begin with nothing.",
       "tags": ["token"],
-      "play": {
-        "action": ["destroy_self"]
-      }
+      "play": { "action": ["destroy_self"] }
     },
     {
       "key": "to_market",
@@ -139,9 +72,7 @@
       "tooltip": "End this season and browse the Market next. Play at least one card first.",
       "tags": ["token"],
       "play": {
-        "needs": {
-          "plays": 1
-        },
+        "needs": { "plays": 1 },
         "action": ["set_stat:destination:1", "destroy_self", "next_phase"]
       }
     },
@@ -152,9 +83,7 @@
       "tooltip": "End this season and train at the Barracks next. Play at least one card first.",
       "tags": ["token"],
       "play": {
-        "needs": {
-          "plays": 1
-        },
+        "needs": { "plays": 1 },
         "action": ["set_stat:destination:2", "destroy_self", "next_phase"]
       }
     },
@@ -165,9 +94,7 @@
       "tooltip": "End this season and seek the Sanctum next. Play at least one card first.",
       "tags": ["token"],
       "play": {
-        "needs": {
-          "plays": 1
-        },
+        "needs": { "plays": 1 },
         "action": ["set_stat:destination:3", "destroy_self", "next_phase"]
       }
     },
@@ -177,12 +104,7 @@
       "color": [0.1, 0.14, 0.22],
       "tooltip": "End the season once both trials are faced.",
       "tags": ["token"],
-      "play": {
-        "needs": {
-          "plays": 2
-        },
-        "action": ["destroy_self", "next_phase"]
-      }
+      "play": { "needs": { "plays": 2 }, "action": ["destroy_self", "next_phase"] }
     },
     {
       "key": "march_on",
@@ -190,9 +112,7 @@
       "color": [0.1, 0.14, 0.22],
       "tooltip": "Enough shopping — the trials won't wait.",
       "tags": ["token"],
-      "play": {
-        "action": ["destroy_self", "next_phase"]
-      }
+      "play": { "action": ["destroy_self", "next_phase"] }
     },
     {
       "key": "homestead",
@@ -200,76 +120,39 @@
       "asset": "farmhouse_fields.jpg",
       "tooltip": "A family stakes its claim. +1 food each round.",
       "tags": ["holding", "economic", "farm"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      },
-      "play": {
-        "action": ["move_to:board", "gain_stat:progress:1"]
-      },
-      "turn": {
-        "action": ["gain_stat:food:1"]
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 },
+      "play": { "action": ["move_to:board", "gain_stat:progress:1"] },
+      "turn": { "action": ["gain_stat:food:1"] }
     },
     {
       "key": "market_square",
       "text": "Market Square",
       "asset": "market_square.jpg",
       "tooltip": "Trade finds its center. +1 gold each round.",
-      "play": {
-        "cost": {
-          "gold": 2
-        },
-        "action": ["move_to:board", "gain_stat:progress:1"]
-      },
-      "turn": {
-        "action": ["gain_stat:gold:1"]
-      },
+      "play": { "cost": { "gold": 2 }, "action": ["move_to:board", "gain_stat:progress:1"] },
+      "turn": { "action": ["gain_stat:gold:1"] },
       "tags": ["holding", "economic"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 }
     },
     {
       "key": "granary",
       "text": "Granary",
       "asset": "haystacks.jpg",
       "tooltip": "Stores every harvest: +1 food per farm, each round.",
-      "play": {
-        "cost": {
-          "food": 2
-        },
-        "action": ["move_to:board", "gain_stat:progress:1"]
-      },
-      "turn": {
-        "action": ["gain_stat:food:count:farm"]
-      },
+      "play": { "cost": { "food": 2 }, "action": ["move_to:board", "gain_stat:progress:1"] },
+      "turn": { "action": ["gain_stat:food:count:farm"] },
       "tags": ["holding", "economic"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 }
     },
     {
       "key": "toll_roads",
       "text": "Toll Roads",
       "asset": "bridge_travelers.jpg",
       "tooltip": "Every wagon pays: +1 gold per economic holding, each round.",
-      "play": {
-        "cost": {
-          "gold": 3
-        },
-        "action": ["move_to:board", "gain_stat:progress:1"]
-      },
-      "turn": {
-        "action": ["gain_stat:gold:count:economic"]
-      },
+      "play": { "cost": { "gold": 3 }, "action": ["move_to:board", "gain_stat:progress:1"] },
+      "turn": { "action": ["gain_stat:gold:count:economic"] },
       "tags": ["holding", "economic"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 }
     },
     {
       "key": "laborers",
@@ -277,29 +160,17 @@
       "asset": "peasants_field.jpg",
       "tooltip": "Willing hands. Gain 2 gold.",
       "tags": ["one_shot"],
-      "play": {
-        "action": ["gain_stat:gold:2", "move_to:graveyard"]
-      }
+      "play": { "action": ["gain_stat:gold:2", "move_to:graveyard"] }
     },
     {
       "key": "royal_mint",
       "text": "Royal Mint",
       "asset": "gold_coins.jpg",
       "tooltip": "The crown's own coin. +2 gold each round.",
-      "play": {
-        "cost": {
-          "gold": 6
-        },
-        "action": ["move_to:board", "gain_stat:progress:3"]
-      },
-      "turn": {
-        "action": ["gain_stat:gold:2"]
-      },
+      "play": { "cost": { "gold": 6 }, "action": ["move_to:board", "gain_stat:progress:3"] },
+      "turn": { "action": ["gain_stat:gold:2"] },
       "tags": ["holding", "economic"],
-      "card_stats": {
-        "hp": 4,
-        "hp_max": 4
-      }
+      "card_stats": { "hp": 4, "hp_max": 4 }
     },
     {
       "key": "militia",
@@ -307,13 +178,8 @@
       "asset": "pikemen_spears.jpg",
       "tooltip": "Farmhands with spears. +1 might.",
       "tags": ["holding", "military", "soldier"],
-      "card_stats": {
-        "hp": 2,
-        "hp_max": 2
-      },
-      "play": {
-        "action": ["move_to:board", "gain_stat:might:1", "gain_stat:progress:1"]
-      }
+      "card_stats": { "hp": 2, "hp_max": 2 },
+      "play": { "action": ["move_to:board", "gain_stat:might:1", "gain_stat:progress:1"] }
     },
     {
       "key": "garrison",
@@ -321,51 +187,31 @@
       "asset": "fortress_walls.jpg",
       "tooltip": "Stone walls and steady watch. +2 might.",
       "play": {
-        "cost": {
-          "gold": 2
-        },
+        "cost": { "gold": 2 },
         "action": ["move_to:board", "gain_stat:might:2", "gain_stat:progress:1"]
       },
       "tags": ["holding", "military", "soldier"],
-      "card_stats": {
-        "hp": 4,
-        "hp_max": 4
-      }
+      "card_stats": { "hp": 4, "hp_max": 4 }
     },
     {
       "key": "war_college",
       "text": "War College",
       "asset": "soldiers_drill.jpg",
       "tooltip": "Drill the ranks: +1 might per soldier. Once per round.",
-      "play": {
-        "cost": {
-          "gold": 3
-        },
-        "action": ["move_to:board", "gain_stat:progress:1"]
-      },
+      "play": { "cost": { "gold": 3 }, "action": ["move_to:board", "gain_stat:progress:1"] },
       "activate": {
-        "cost": {
-          "food": 1
-        },
+        "cost": { "food": 1 },
         "action": ["effect:drill_rally", "gain_stat:might:count:soldier"]
       },
       "tags": ["holding", "military"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 }
     },
     {
       "key": "mercenary_band",
       "text": "Mercenary Band",
       "asset": "army_camp.jpg",
       "tooltip": "Loyal while paid. +3 might.",
-      "play": {
-        "cost": {
-          "gold": 3
-        },
-        "action": ["gain_stat:might:3", "move_to:graveyard"]
-      },
+      "play": { "cost": { "gold": 3 }, "action": ["gain_stat:might:3", "move_to:graveyard"] },
       "tags": ["one_shot"]
     },
     {
@@ -375,9 +221,7 @@
       "tooltip": "The banners rise: +1 might per soldier.",
       "tags": ["one_shot"],
       "play": {
-        "needs": {
-          "count:soldier": 2
-        },
+        "needs": { "count:soldier": 2 },
         "action": ["gain_stat:might:count:soldier", "gain_stat:progress:1", "move_to:graveyard"]
       }
     },
@@ -387,16 +231,11 @@
       "asset": "siege_cannon.jpg",
       "tooltip": "Engines that end arguments. +2 might.",
       "play": {
-        "cost": {
-          "gold": 4
-        },
+        "cost": { "gold": 4 },
         "action": ["move_to:board", "gain_stat:might:2", "gain_stat:progress:2"]
       },
       "tags": ["holding", "military"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 }
     },
     {
       "key": "shrine",
@@ -404,10 +243,7 @@
       "asset": "chapel_altar.jpg",
       "tooltip": "A quiet altar. +1 mana.",
       "tags": ["holding", "mystic"],
-      "card_stats": {
-        "hp": 2,
-        "hp_max": 2
-      },
+      "card_stats": { "hp": 2, "hp_max": 2 },
       "play": {
         "action": ["move_to:board", "effect:blessing", "gain_stat:mana:1", "gain_stat:progress:1"]
       }
@@ -417,63 +253,30 @@
       "text": "Moon Circle",
       "asset": "moonlit_night.jpg",
       "tooltip": "Chants under the open sky: +1 mana each round.",
-      "play": {
-        "cost": {
-          "gold": 2
-        },
-        "action": ["move_to:board", "gain_stat:progress:1"]
-      },
-      "turn": {
-        "action": ["gain_stat:mana:1"]
-      },
+      "play": { "cost": { "gold": 2 }, "action": ["move_to:board", "gain_stat:progress:1"] },
+      "turn": { "action": ["gain_stat:mana:1"] },
       "tags": ["holding", "mystic"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 }
     },
     {
       "key": "seer_tower",
       "text": "Seer's Tower",
       "asset": "starry_tower.jpg",
       "tooltip": "The stars answer: +1 mana per mystic holding, each round.",
-      "play": {
-        "cost": {
-          "mana": 2
-        },
-        "action": ["move_to:board", "gain_stat:progress:1"]
-      },
-      "turn": {
-        "action": ["gain_stat:mana:count:mystic"]
-      },
+      "play": { "cost": { "mana": 2 }, "action": ["move_to:board", "gain_stat:progress:1"] },
+      "turn": { "action": ["gain_stat:mana:count:mystic"] },
       "tags": ["holding", "mystic"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 }
     },
     {
       "key": "eclipse_rite",
       "text": "Eclipse Rite",
       "asset": "eclipse_sun.jpg",
       "tooltip": "Spend 4 mana: the realm remembers. +2 progress. Once per round.",
-      "play": {
-        "cost": {
-          "mana": 3
-        },
-        "action": ["move_to:board", "gain_stat:progress:1"]
-      },
-      "activate": {
-        "cost": {
-          "mana": 4
-        },
-        "action": ["effect:eclipse_surge", "gain_stat:progress:2"]
-      },
+      "play": { "cost": { "mana": 3 }, "action": ["move_to:board", "gain_stat:progress:1"] },
+      "activate": { "cost": { "mana": 4 }, "action": ["effect:eclipse_surge", "gain_stat:progress:2"] },
       "tags": ["holding", "mystic"],
-      "card_stats": {
-        "hp": 2,
-        "hp_max": 2
-      }
+      "card_stats": { "hp": 2, "hp_max": 2 }
     },
     {
       "key": "offering",
@@ -481,32 +284,17 @@
       "asset": "silver_offering.jpg",
       "tooltip": "Wine and silver for the spirits. +2 mana.",
       "tags": ["one_shot"],
-      "play": {
-        "action": ["gain_stat:mana:2", "move_to:graveyard"]
-      }
+      "play": { "action": ["gain_stat:mana:2", "move_to:graveyard"] }
     },
     {
       "key": "warding_circle",
       "text": "Warding Circle",
       "asset": "candle_night.jpg",
       "tooltip": "Spirits stand guard: spend 2 mana for +2 might. Once per round.",
-      "play": {
-        "cost": {
-          "mana": 2
-        },
-        "action": ["move_to:board", "gain_stat:progress:1"]
-      },
-      "activate": {
-        "cost": {
-          "mana": 2
-        },
-        "action": ["gain_stat:might:2"]
-      },
+      "play": { "cost": { "mana": 2 }, "action": ["move_to:board", "gain_stat:progress:1"] },
+      "activate": { "cost": { "mana": 2 }, "action": ["gain_stat:might:2"] },
       "tags": ["holding", "mystic"],
-      "card_stats": {
-        "hp": 3,
-        "hp_max": 3
-      }
+      "card_stats": { "hp": 3, "hp_max": 3 }
     },
     {
       "key": "harvest_blight",
@@ -515,9 +303,7 @@
       "tooltip": "Blight creeps through the fields. Need 4 food.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "food": 4
-        },
+        "needs": { "food": 4 },
         "pass": ["move_to:graveyard", "lose_stat:food:2", "gain_stat:progress:1"],
         "fail": [
           "move_to:board",
@@ -526,15 +312,9 @@
           "lose_stat:hp@random.farm:2"
         ]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "border_raid",
@@ -543,21 +323,13 @@
       "tooltip": "Riders burn the frontier. Need 3 might.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "might": 3
-        },
+        "needs": { "might": 3 },
         "pass": ["move_to:graveyard", "lose_stat:might:1", "gain_stat:progress:1"],
         "fail": ["move_to:board", "effect:crisis_smoke", "lose_stat:stability:2"]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "debt_collectors",
@@ -566,9 +338,7 @@
       "tooltip": "Old debts come due. Need 6 gold.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "gold": 6
-        },
+        "needs": { "gold": 6 },
         "pass": ["move_to:graveyard", "lose_stat:gold:4", "gain_stat:progress:1"],
         "fail": [
           "move_to:board",
@@ -577,15 +347,9 @@
           "lose_stat:hp@random.economic:2"
         ]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "restless_spirits",
@@ -594,9 +358,7 @@
       "tooltip": "The dead whisper louder. Need 3 mana.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "mana": 3
-        },
+        "needs": { "mana": 3 },
         "pass": ["move_to:graveyard", "lose_stat:mana:2", "gain_stat:progress:1"],
         "fail": [
           "move_to:board",
@@ -605,15 +367,9 @@
           "lose_stat:hp@random.mystic:2"
         ]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "famine",
@@ -622,9 +378,7 @@
       "tooltip": "Two lean years in a row. Need 2 farms.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "count:farm": 2
-        },
+        "needs": { "count:farm": 2 },
         "pass": ["move_to:graveyard", "lose_stat:food:3", "gain_stat:progress:2"],
         "fail": [
           "move_to:board",
@@ -633,15 +387,9 @@
           "lose_stat:hp@random.farm:2"
         ]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "mercenary_uprising",
@@ -650,9 +398,7 @@
       "tooltip": "The sellswords name their price. Need 8 gold.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "gold": 8
-        },
+        "needs": { "gold": 8 },
         "pass": ["move_to:graveyard", "lose_stat:gold:6", "gain_stat:progress:2"],
         "fail": [
           "move_to:board",
@@ -661,15 +407,9 @@
           "lose_stat:hp@random.military:3"
         ]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "war_host",
@@ -678,21 +418,13 @@
       "tooltip": "A rival banner marches. Need 6 might.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "might": 6
-        },
+        "needs": { "might": 6 },
         "pass": ["move_to:graveyard", "lose_stat:might:3", "gain_stat:progress:2"],
         "fail": ["move_to:board", "effect:crisis_smoke", "lose_stat:stability:3"]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "witch_hunt",
@@ -701,9 +433,7 @@
       "tooltip": "Fear turns on the wise. Need 6 mana.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "mana": 6
-        },
+        "needs": { "mana": 6 },
         "pass": ["move_to:graveyard", "lose_stat:mana:3", "gain_stat:progress:2"],
         "fail": [
           "move_to:board",
@@ -712,15 +442,9 @@
           "lose_stat:hp@random.mystic:3"
         ]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "war_of_succession",
@@ -729,10 +453,7 @@
       "tooltip": "Cousins with armies. Need 8 might and 8 gold.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "might": 8,
-          "gold": 8
-        },
+        "needs": { "might": 8, "gold": 8 },
         "pass": ["move_to:graveyard", "lose_stat:might:4", "lose_stat:gold:6", "gain_stat:progress:2"],
         "fail": [
           "move_to:board",
@@ -741,15 +462,9 @@
           "lose_stat:hp@random.holding:2"
         ]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "long_winter",
@@ -758,10 +473,7 @@
       "tooltip": "It does not thaw. Need 8 food and 3 farms.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "food": 8,
-          "count:farm": 3
-        },
+        "needs": { "food": 8, "count:farm": 3 },
         "pass": ["move_to:graveyard", "lose_stat:food:5", "gain_stat:progress:2"],
         "fail": [
           "move_to:board",
@@ -770,15 +482,9 @@
           "lose_stat:hp@random.farm:3"
         ]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "dragon",
@@ -787,10 +493,7 @@
       "tooltip": "It remembers where gold sleeps. Need 10 might and 4 mana.",
       "tags": ["trial"],
       "challenge": {
-        "needs": {
-          "might": 10,
-          "mana": 4
-        },
+        "needs": { "might": 10, "mana": 4 },
         "pass": ["move_to:graveyard", "lose_stat:might:4", "lose_stat:mana:2", "gain_stat:progress:3"],
         "fail": [
           "move_to:board",
@@ -799,15 +502,9 @@
           "lose_stat:hp@random.holding:4"
         ]
       },
-      "play": {
-        "action": ["resolve_challenge"]
-      },
-      "activate": {
-        "action": ["resolve_challenge"]
-      },
-      "turn": {
-        "action": ["lose_stat:stability:1"]
-      }
+      "play": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"] },
+      "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
       "key": "crown",
@@ -839,11 +536,7 @@
       "fit": "fill",
       "tags": ["activate"]
     },
-    {
-      "key": "hand",
-      "type": "hand",
-      "pos": [0.19, 0.72, 0.75, 0.99]
-    },
+    { "key": "hand", "type": "hand", "pos": [0.19, 0.72, 0.75, 0.99] },
     {
       "key": "origins",
       "type": "deck",
@@ -857,7 +550,14 @@
       "type": "deck",
       "pos": [0.77, 0.02, 0.99, 0.2],
       "tags": ["shuffle", "refill_when_empty"],
-      "contents": ["homestead:3", "market_square:2", "granary:2", "toll_roads:1", "laborers:2", "royal_mint:1"]
+      "contents": [
+        "homestead:3",
+        "market_square:2",
+        "granary:2",
+        "toll_roads:1",
+        "laborers:2",
+        "royal_mint:1"
+      ]
     },
     {
       "key": "barracks_deck",
@@ -920,18 +620,8 @@
       "tags": ["hidden", "shuffle", "refill_when_empty"],
       "contents": ["mercenary_band:2", "offering:2", "laborers:2", "militia:2", "shrine:1", "granary:1"]
     },
-    {
-      "key": "graveyard",
-      "label": "Discard",
-      "type": "pile",
-      "pos": [0.77, 0.8, 0.99, 0.99]
-    },
-    {
-      "key": "offer",
-      "type": "hand",
-      "pos": [0.15, 0.32, 0.85, 0.7],
-      "tags": ["hidden"]
-    },
+    { "key": "graveyard", "label": "Discard", "type": "pile", "pos": [0.77, 0.8, 0.99, 0.99] },
+    { "key": "offer", "type": "hand", "pos": [0.15, 0.32, 0.85, 0.7], "tags": ["hidden"] },
     {
       "key": "fate_crown",
       "type": "deck",
@@ -962,12 +652,7 @@
       "deck": "origins",
       "draw": 3,
       "pass_card": "decline",
-      "next": [
-        {
-          "then": "market_visit",
-          "ends_round": true
-        }
-      ]
+      "next": [{ "then": "market_visit", "ends_round": true }]
     },
     {
       "key": "market_visit",
@@ -978,34 +663,11 @@
       "pass_card": ["to_market", "to_barracks", "to_sanctum"],
       "discard_hand": true,
       "next": [
-        {
-          "stat": "progress",
-          "at_least": 10,
-          "then": "trial_gate",
-          "ends_round": true
-        },
-        {
-          "stat": "round",
-          "at_least": 7,
-          "then": "trial_gate",
-          "ends_round": true
-        },
-        {
-          "stat": "destination",
-          "equals": 2,
-          "then": "barracks_visit",
-          "ends_round": true
-        },
-        {
-          "stat": "destination",
-          "equals": 3,
-          "then": "sanctum_visit",
-          "ends_round": true
-        },
-        {
-          "then": "market_visit",
-          "ends_round": true
-        }
+        { "stat": "progress", "at_least": 10, "then": "trial_gate", "ends_round": true },
+        { "stat": "round", "at_least": 7, "then": "trial_gate", "ends_round": true },
+        { "stat": "destination", "equals": 2, "then": "barracks_visit", "ends_round": true },
+        { "stat": "destination", "equals": 3, "then": "sanctum_visit", "ends_round": true },
+        { "then": "market_visit", "ends_round": true }
       ]
     },
     {
@@ -1017,34 +679,11 @@
       "pass_card": ["to_market", "to_barracks", "to_sanctum"],
       "discard_hand": true,
       "next": [
-        {
-          "stat": "progress",
-          "at_least": 10,
-          "then": "trial_gate",
-          "ends_round": true
-        },
-        {
-          "stat": "round",
-          "at_least": 7,
-          "then": "trial_gate",
-          "ends_round": true
-        },
-        {
-          "stat": "destination",
-          "equals": 1,
-          "then": "market_visit",
-          "ends_round": true
-        },
-        {
-          "stat": "destination",
-          "equals": 3,
-          "then": "sanctum_visit",
-          "ends_round": true
-        },
-        {
-          "then": "barracks_visit",
-          "ends_round": true
-        }
+        { "stat": "progress", "at_least": 10, "then": "trial_gate", "ends_round": true },
+        { "stat": "round", "at_least": 7, "then": "trial_gate", "ends_round": true },
+        { "stat": "destination", "equals": 1, "then": "market_visit", "ends_round": true },
+        { "stat": "destination", "equals": 3, "then": "sanctum_visit", "ends_round": true },
+        { "then": "barracks_visit", "ends_round": true }
       ]
     },
     {
@@ -1056,53 +695,20 @@
       "pass_card": ["to_market", "to_barracks", "to_sanctum"],
       "discard_hand": true,
       "next": [
-        {
-          "stat": "progress",
-          "at_least": 10,
-          "then": "trial_gate",
-          "ends_round": true
-        },
-        {
-          "stat": "round",
-          "at_least": 7,
-          "then": "trial_gate",
-          "ends_round": true
-        },
-        {
-          "stat": "destination",
-          "equals": 1,
-          "then": "market_visit",
-          "ends_round": true
-        },
-        {
-          "stat": "destination",
-          "equals": 2,
-          "then": "barracks_visit",
-          "ends_round": true
-        },
-        {
-          "then": "sanctum_visit",
-          "ends_round": true
-        }
+        { "stat": "progress", "at_least": 10, "then": "trial_gate", "ends_round": true },
+        { "stat": "round", "at_least": 7, "then": "trial_gate", "ends_round": true },
+        { "stat": "destination", "equals": 1, "then": "market_visit", "ends_round": true },
+        { "stat": "destination", "equals": 2, "then": "barracks_visit", "ends_round": true },
+        { "then": "sanctum_visit", "ends_round": true }
       ]
     },
     {
       "key": "trial_gate",
       "type": "automatic",
       "next": [
-        {
-          "stat": "progress",
-          "at_least": 20,
-          "then": "trial3"
-        },
-        {
-          "stat": "progress",
-          "at_least": 14,
-          "then": "trial2"
-        },
-        {
-          "then": "trial1"
-        }
+        { "stat": "progress", "at_least": 20, "then": "trial3" },
+        { "stat": "progress", "at_least": 14, "then": "trial2" },
+        { "then": "trial1" }
       ]
     },
     {
@@ -1113,12 +719,7 @@
       "draw": 2,
       "pass_card": "rest",
       "discard_hand": true,
-      "next": [
-        {
-          "then": "wartime_market",
-          "ends_round": true
-        }
-      ]
+      "next": [{ "then": "wartime_market", "ends_round": true }]
     },
     {
       "key": "trial2",
@@ -1128,12 +729,7 @@
       "draw": 2,
       "pass_card": "rest",
       "discard_hand": true,
-      "next": [
-        {
-          "then": "wartime_market",
-          "ends_round": true
-        }
-      ]
+      "next": [{ "then": "wartime_market", "ends_round": true }]
     },
     {
       "key": "trial3",
@@ -1143,12 +739,7 @@
       "draw": 2,
       "pass_card": "rest",
       "discard_hand": true,
-      "next": [
-        {
-          "then": "wartime_market",
-          "ends_round": true
-        }
-      ]
+      "next": [{ "then": "wartime_market", "ends_round": true }]
     },
     {
       "key": "wartime_market",
@@ -1158,11 +749,7 @@
       "draw": 3,
       "pass_card": "march_on",
       "discard_hand": true,
-      "next": [
-        {
-          "then": "trial_gate"
-        }
-      ]
+      "next": [{ "then": "trial_gate" }]
     },
     {
       "key": "coronation",
@@ -1193,20 +780,8 @@
     }
   ],
   "end_conditions": [
-    {
-      "stat": "stability",
-      "at_most": 0,
-      "then": ["push_phase:collapse"]
-    },
-    {
-      "stat": "progress",
-      "at_least": 24,
-      "then": ["push_phase:coronation"]
-    },
-    {
-      "stat": "round",
-      "at_least": 20,
-      "then": ["push_phase:twilight_years"]
-    }
+    { "stat": "stability", "at_most": 0, "then": ["push_phase:collapse"] },
+    { "stat": "progress", "at_least": 24, "then": ["push_phase:coronation"] },
+    { "stat": "round", "at_least": 20, "then": ["push_phase:twilight_years"] }
   ]
 }

@@ -9,7 +9,9 @@ Everything structural lives here in one readable place; the output is data.
     python3 tools/make_lost_cities.py
 """
 
-import json, os
+import json, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import jsonfmt
 
 # The fourth entry is the placeholder-art palette name. Note that the art is
 # *decoration that happens to agree* with the rules — the engine reads
@@ -78,8 +80,10 @@ def templates():
                 # Two places it may go, and the player picks one. The
                 # expedition refuses a card worth less than what is already
                 # there; the discard refuses nothing.
-                "target": {"type": "zone", "count": 1, "zones": [c, c + "_discard"]},
-                "on_play": ["move_to:target"],
+                "play": {
+                    "target": {"type": "zone", "count": 1, "zones": [c, c + "_discard"]},
+                    "action": ["move_to:target"],
+                },
             }
 
         for w in range(1, WAGERS + 1):
@@ -100,44 +104,48 @@ def templates():
             "key": c + "_score", "text": "Score " + label, "color": col,
             "tooltip": "Total the " + label.lower() + " expedition.",
             "tags": ["scoring", "token"],
-            "needs": {("count:expedition@mine." + c): 1},
-            # (sum - 20) x (1 + wagers), distributed as (sum - 20) plus
-            # (sum - 20) x wagers, because a product cannot add one inside
-            # itself. The route marker used to carry the "wager" tag so that
-            # count:wager *was* 1 + wagers; there is no marker any more, so the
-            # one is written out instead of smuggled in.
-            "on_play": [
-                "gain_stat:score@mine.player:sum:value@mine." + c,
-                "lose_stat:score@mine.player:20",
-                "gain_stat:score@mine.player:sum:value@mine." + c + ":x:count:wager@mine." + c,
-                "lose_stat:score@mine.player:20:x:count:wager@mine." + c,
-                "destroy_self",
-            ],
+            "play": {
+                "needs": {("count:expedition@mine." + c): 1},
+                # (sum - 20) x (1 + wagers), distributed as (sum - 20) plus
+                # (sum - 20) x wagers, because a product cannot add one inside
+                # itself. The route marker used to carry the "wager" tag so that
+                # count:wager *was* 1 + wagers; there is no marker any more, so
+                # the one is written out instead of smuggled in.
+                "action": [
+                    "gain_stat:score@mine.player:sum:value@mine." + c,
+                    "lose_stat:score@mine.player:20",
+                    "gain_stat:score@mine.player:sum:value@mine." + c + ":x:count:wager@mine." + c,
+                    "lose_stat:score@mine.player:20:x:count:wager@mine." + c,
+                    "destroy_self",
+                ],
+            },
         })
         out.append({
             "key": c + "_bonus", "text": label + " bonus", "color": col,
             "tooltip": "An expedition of eight cards or more is worth 20 more.",
             "tags": ["scoring", "token"],
-            "needs": {("count:expedition@mine." + c): 8},
-            "on_play": ["gain_stat:score@mine.player:20", "destroy_self"],
+            "play": {
+                "needs": {("count:expedition@mine." + c): 8},
+                "action": ["gain_stat:score@mine.player:20", "destroy_self"],
+            },
         })
 
     out.append({"key": "mode_local", "text": "Both sides, here",
                 "tooltip": "Hot-seat: take both players' turns on this machine.",
-                "tags": ["token"], "on_pick": ["destroy:mode"]})
+                "tags": ["token"], "pick": {"action": ["destroy:mode"]}})
     out.append({"key": "mode_online", "text": "With a friend, online",
                 "tooltip": "Sit as North and invite someone to play South. They do not "
                            "need this game — it travels with the invite.",
                 "tags": ["token"],
-                "on_pick": ["destroy:mode", "net_seat:north", "net_invite"]})
+                "pick": {"action": ["destroy:mode", "net_seat:north", "net_invite"]}})
     out.append({"key": "done_scoring", "text": "Done", "tooltip": "Finish tallying.",
                 "tags": ["token"],
-                "on_play": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"]})
+                "play": {"action": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"]}})
     for seat, other in (("north", "South"), ("south", "North")):
         out.append({"key": seat + "_wins", "text": seat.title() + " wins",
                     "story": seat.title() + " comes home with the better haul. "
                              + other + " should have hedged.",
-                    "on_pick": ["load_game:menu.json"]})
+                    "pick": {"action": ["load_game:menu.json"]}})
     return out
 
 
@@ -181,8 +189,8 @@ def zones():
         # Wagers are worth 0, so the same line puts them before every number.
         out.append({"key": c, "label": label, "type": "grid", "per_seat": True,
                     "grid": [1, 12], "fit": "fill", "pos": EXPEDITION_POS[i],
-                    "accepts": {"value@target": {"at_least": "max:value@mine." + c}}})
-        # A pile takes anything, which is what having no "accepts" means, and
+                    "receive": {"needs": {"value@target": {"at_least": "max:value@mine." + c}}}})
+        # A pile takes anything, which is what having no "receive" means, and
         # hands "takeable" to whatever lands on it — so its top card can be
         # picked up during the draw step without any card knowing about piles.
         # "activate" is the zone's own say-so that abilities work here. A pile
@@ -204,9 +212,11 @@ SCORING_CARDS = [c + suffix for suffix in ("_score", "_bonus") for c, _, _, _ in
 # once would never ready again and could never be taken from a pile twice.
 TAG_DEFS = {
     "takeable": {
-        "on_activate": ["move_to:hand", "next_phase"],
-        "phases": ["draw"],
-        "exhausts": False,
+        "activate": {
+            "action": ["move_to:hand", "next_phase"],
+            "phases": ["draw"],
+            "exhausts": False,
+        },
         "tooltip": "Take this card into your hand.",
     },
 }
@@ -265,7 +275,7 @@ def build():
     tpl.append({"key": "draw_deck", "text": "Draw from the deck",
                 "tooltip": "Take the top card of the expedition deck.",
                 "tags": ["token"],
-                "on_play": ["draw_from:deck:hand:1", "destroy_self", "next_phase"]})
+                "play": {"action": ["draw_from:deck:hand:1", "destroy_self", "next_phase"]}})
     z = zones()
     return {
         "title": "Lost Cities",
@@ -286,6 +296,6 @@ if __name__ == "__main__":
     root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
     path = os.path.join(root, "game", "games", "lost_cities.json")
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(build(), f, indent=2)
+        f.write(jsonfmt.dump(build()))
         f.write("\n")
     print("wrote", os.path.relpath(path, root))

@@ -25,7 +25,7 @@ conflicts — with "did you mean" suggestions; the game plays on regardless.
 **Hold ctrl and point at anything** in the running game — a card, the square
 under it, the zone it lies in — to read the JSON behind it: the template (your
 JSON, plus whatever the parser derived from it — a card with `moves` grew the
-`activate_target` that makes those moves clickable), the live entity the engine
+the `activate.target` that makes those moves clickable), the live entity the engine
 made of it, and the things the engine works out rather than stores anywhere
 (whose piece it is, and *every* tag that is true of it
 right now, including the ones its zone grants and the computed ones that are
@@ -39,34 +39,37 @@ copies it, so a dump can go straight back into the game file.
 ```json
 {
   "title": "My Game",
-
-  "stats": [
-    { "key": "hp", "label": "Health", "min": 0, "max": 10 }
-  ],
-
+  "stats": [{ "key": "hp", "label": "Health", "min": 0, "max": 10 }],
   "setup": { "player": { "hp": 5 } },
-
   "zones": [
-    { "key": "deck", "type": "deck", "pos": [0.05, 0.10, 0.25, 0.60],
-      "tags": ["shuffle"], "contents": ["sword:3", "trap:2"] },
+    {
+      "key": "deck",
+      "type": "deck",
+      "pos": [0.05, 0.1, 0.25, 0.6],
+      "tags": ["shuffle"],
+      "contents": ["sword:3", "trap:2"]
+    },
     { "key": "hand", "type": "hand", "pos": [0.05, 0.65, 0.95, 0.98] }
   ],
-
   "cards": [
-    { "key": "sword", "text": "Sword", "tooltip": "Gain 1 health.",
-      "on_play": ["gain_stat:hp:1", "draw_from:deck:hand:1"] },
-    { "key": "trap",  "text": "Trap",  "tooltip": "Lose 2 health.",
-      "on_play": ["lose_stat:hp:2", "draw_from:deck:hand:1"] }
+    {
+      "key": "sword",
+      "text": "Sword",
+      "tooltip": "Gain 1 health.",
+      "play": { "action": ["gain_stat:hp:1", "draw_from:deck:hand:1"] }
+    },
+    {
+      "key": "trap",
+      "text": "Trap",
+      "tooltip": "Lose 2 health.",
+      "play": { "action": ["lose_stat:hp:2", "draw_from:deck:hand:1"] }
+    }
   ],
-
   "phases": [
-    { "key": "setup",   "type": "automatic", "actions": ["draw_from:deck:hand:1"] },
+    { "key": "setup", "type": "automatic", "actions": ["draw_from:deck:hand:1"] },
     { "key": "playing", "type": "player_input", "label": "Playing" }
   ],
-
-  "end_conditions": [
-    { "stat": "hp", "equals": 0, "then": ["push_phase:defeat"] }
-  ]
+  "end_conditions": [{ "stat": "hp", "equals": 0, "then": ["push_phase:defeat"] }]
 }
 ```
 
@@ -83,10 +86,10 @@ The recipe, in order:
 4. **Phases** — the turn structure. The first phase starts the game; `automatic`
    phases run and advance immediately.
 5. **End conditions** — how the game ends. Endings are just overlay phases that
-   deal a "fate card" whose `on_pick` loads the menu.
+   deal a "fate card" whose `pick.action` loads the menu.
 
 The menu itself is a game (`menu.json`); add a card with
-`"on_play": ["load_game:mygame.json"]` to make yours reachable.
+`"play": { "action": ["load_game:mygame.json"] }` to make yours reachable.
 
 ---
 
@@ -105,42 +108,55 @@ from this two-page story:
     { "key": "intro", "type": "automatic", "actions": ["reveal:p_door"] },
     { "key": "story", "type": "player_input", "label": "The Cellar" }
   ],
-  "zones": [ { "key": "hand", "type": "hand" } ],
+  "zones": [{ "key": "hand", "type": "hand" }],
   "cards": [
-    { "key": "p_door", "text": "The Cellar Door",
+    {
+      "key": "p_door",
+      "text": "The Cellar Door",
       "story": "It was locked all your childhood. Tonight it stands open.",
-      "on_pick": ["fill:hand:c_down:1", "fill:hand:c_away:1"] },
-
-    { "key": "c_down", "text": "Take the stairs",
+      "pick": { "action": ["fill:hand:c_down:1", "fill:hand:c_away:1"] }
+    },
+    {
+      "key": "c_down",
+      "text": "Take the stairs",
       "tooltip": "You always wanted to know.",
-      "on_play": ["reveal:p_dark"] },
-    { "key": "c_away", "text": "Close the door",
+      "play": { "action": ["reveal:p_dark"] }
+    },
+    {
+      "key": "c_away",
+      "text": "Close the door",
       "tooltip": "Some doors are better shut.",
-      "on_play": ["reveal:e_away"] },
-
-    { "key": "p_dark", "text": "Down",
+      "play": { "action": ["reveal:e_away"] }
+    },
+    {
+      "key": "p_dark",
+      "text": "Down",
       "story": "The stairs go further than the house is tall.",
-      "on_pick": ["destroy:hand", "fill:hand:c_away:1"] },
-    { "key": "e_away", "text": "An Ordinary Life",
+      "pick": { "action": ["destroy:hand", "fill:hand:c_away:1"] }
+    },
+    {
+      "key": "e_away",
+      "text": "An Ordinary Life",
       "story": "You bolt it, and that is that.",
-      "on_pick": ["load_game:menu.json"] }
+      "pick": { "action": ["load_game:menu.json"] }
+    }
   ]
 }
 ```
 
 Two rules carry every story:
 
-- **Pages** are cards with `story` (the prose) and `on_pick` (what happens
+- **Pages** are cards with `story` (the prose) and `pick.action` (what happens
   when the read page is clicked away). **Choices** are cards with `tooltip`
-  (what the player is told) and `on_play` (what secretly happens — usually a
+  (what the player is told) and `play.action` (what secretly happens — usually a
   `reveal:`). The tooltip reveals exactly as much as you write into it.
-- **Every page that deals new choices starts its `on_pick` with
+- **Every page that deals new choices starts its `pick.action` with
   `destroy:hand`**, or the old choices pile up next to the new ones. A page
-  that keeps the hand (a locked door, a rebuff) uses `"on_pick": []`.
+  that keeps the hand (a locked door, a rebuff) uses `"pick": { "action": [] }`.
 
 From there: keepsakes are cards with a home-zone tag (`gain:` them, test
 them with `card:<key>`), shuffle secrets are `reveal_top:` over a hidden
-deck, and endings are pages whose `on_pick` is `load_game:menu.json` plus
+deck, and endings are pages whose `pick.action` is `load_game:menu.json` plus
 `end_conditions` that `reveal:` a death page. Zones may omit `pos` — every
 type has a sensible default spot. Register your game with a card in
 `menu.json`, or it is only reachable from the CLI.
@@ -170,10 +186,10 @@ rulebook open alongside.
    where it deals and what may be played from it.
 5. **Turn each choice into a card with a destination.** "Play a card to your
    tableau, or discard it" is one `target` spec listing both places plus
-   `on_play: ["move_to:target"]`. A choice with no card attached ("pass",
-   "draw from the deck") is a `pass_card` token whose `on_play` does the thing
+   `play.action: ["move_to:target"]`. A choice with no card attached ("pass",
+   "draw from the deck") is a `pass_card` token whose `play.action` does the thing
    and calls `next_phase`.
-6. **Turn placement restrictions into `accepts`** on the destination, never
+6. **Turn placement restrictions into `receive.needs`** on the destination, never
    into `needs` on the card — `needs` would make the card unplayable entirely,
    including the ways it *is* still legal.
 7. **Costs and prerequisites**: what is spent is `cost`; what merely has to be
@@ -196,13 +212,13 @@ rulebook open alongside.
 | "Play a card from your hand" | phase `"zone": "hand"`, `"ends_after": 1` |
 | "…to your own area" | a `per_seat` grid zone; `move_to:<zone>` resolves to yours |
 | "…or discard it instead" | a second destination in the same `target` spec |
-| "Cards must be played in ascending order" | `accepts` on the destination |
-| "Costs 2 gold" | `"cost": { "gold": 2 }` |
-| "Only if you control a farm" | `"needs": { "count:farm": 1 }` |
-| "Draw from the deck or a discard pile" | a token in the draw phase's `zone` for the deck; for the piles, `"applies": ["takeable"]` on each and one tag def carrying `on_activate` + `phases` |
-| "Only during your main phase" | `"phases": ["main"]` on the card, or on a tag it carries |
+| "Cards must be played in ascending order" | `receive.needs` on the destination |
+| "Costs 2 gold" | `"play": { "cost": { "gold": 2 } }` |
+| "Only if you control a farm" | `"play": { "needs": { "count:farm": 1 } }` |
+| "Draw from the deck or a discard pile" | a token in the draw phase's `zone` for the deck; for the piles, `"applies": ["takeable"]` on each and one tag def carrying an `activate` block |
+| "Only during your main phase" | `"play": { "phases": ["main"] }`, or `activate.phases` for the ability |
 | "Put it on the discard pile" | `"target": { "type": "zone", "zones": ["discard"] }` — point at the place, not at a card lying in it |
-| "Discard a card of your choice" | an `overlay` phase over the hand with `on_pick` |
+| "Discard a card of your choice" | an `overlay` phase over the hand with its own `on_pick` |
 | "Destroy all enemy creatures" | `destroy:each.enemy.creature` |
 | "Choose an enemy creature" | `"target": { "tags": ["creature"], "owner": "enemy", "count": 1 }` |
 | "Roll / draw randomly" | `shuffle` then `reveal_top:<zone>` |
@@ -224,7 +240,7 @@ wrong:
 - **Negotiation, trading, bluffing between players** — there is no channel.
 - **Hidden information between seats.** Hot-seat hides nothing: both hands are
   in the same state on the same screen. Fine at one keyboard, not a secret.
-- **Triggered abilities** — "when a creature dies, …". `on_turn` (each round
+- **Triggered abilities** — "when a creature dies, …". `turn.action` (each round
   boundary) is the only automatic hook; anything else has to be a card the
   player is made to play.
 - **Continuous effects / auras** — "all your beasts have +1 while this is in
@@ -315,43 +331,43 @@ first non-automatic phase, which ends the round. Always give these a `pass_card`
 
 **Free-play draft hands** (Coronation): a `player_input` phase with `deck`,
 `draw` and a `pass_card` deals a hand you play freely from; a Done/router token
-with `"needs": { "plays": 1 }` and `["destroy_self", "next_phase"]` ends the hand.
+with `"play": { "needs": { "plays": 1 }, "action": ["destroy_self", "next_phase"] }` ends the hand.
 
 **Sub-card choices**: options live in a hidden internal deck; the parent card
-pushes an overlay over it; `on_pick` sends the pick to hand and returns the rest.
+pushes an overlay over it; the phase's `on_pick` sends the pick to hand and returns the rest.
 Option cards can carry their own `cost` (a priced transformation).
 
 **Classical CYOA** (The Drowned Tower): pages are cards with a `story` field;
 choice cards `reveal:` them. A revealed page fills the screen; clicking it runs
-the page's own `on_pick` — typically `destroy:hand` then `fill:hand:...` with
+the page's own `pick.action` — typically `destroy:hand` then `fill:hand:...` with
 the next choices, so the story chains without any phase plumbing. Secret
 conditional branches are `resolve_challenge` choices whose `challenge.pass`/`challenge.fail`
 reveal different pages; shuffle-decided secrets are `reveal_top:` over a hidden
 deck; the inventory is just a board — keepsakes carry a tag whose home is that
 board, so `gain:rusty_key` puts them there, and `card:<key>` tests for them;
-endings are pages whose `on_pick` is `load_game:menu.json`.
+endings are pages whose `pick.action` is `load_game:menu.json`.
 Put `"irreversible": true` on the point of no return. Note that a choice card's
 consequences are invisible until played — the tooltip tells the player exactly
 as much as you write into it.
 
 **Draft one of three from a real deck** (Architect):
-`on_pick: ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck", "pop_phase"]`.
+`pick.action: ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck", "pop_phase"]`.
 
-**Challenges/trials**: `on_play: ["resolve_challenge"]` with a `challenge` block —
+**Challenges/trials**: `play.action: ["resolve_challenge"]` with a `challenge` block —
 `challenge.pass` / `challenge.fail` on the card. Make passes cost tribute (`pass` starts
 with `move_to:graveyard` plus the toll) and make failures *persist*: `on_fail`
-starts with `move_to:board`, the card carries `on_turn: ["lose_stat:…"]` so an
-unanswered crisis drains you every round, and `on_activate:
+starts with `move_to:board`, the card carries `turn.action: ["lose_stat:…"]` so an
+unanswered crisis drains you every round, and `activate.action:
 ["resolve_challenge"]` lets the player answer it later — failure becomes
 escalating pressure instead of a slap.
 
 **Stat-driven structure** (tiers, acts, loops): `next` routing on phases — see
 the reference below. Progress trackers are just stats that cards raise in their
-own `on_play`.
+own `play.action`.
 
 **Synergies**: `count:<tag>` amounts (`gain_stat:gold:count:economic`),
 `needs` on counts (a card's own, or a challenge's), computed tags for thresholds, `on_turn` engines,
-and exhaust-limited `on_activate` bursts.
+and exhaust-limited `activate.action` bursts.
 
 **Cards as currency**: a `"sacrifice:<tag>"` cost destroys one of your board
 cards to pay for the play — upgrade chains (sacrifice a Militia to field a
@@ -376,7 +392,7 @@ file to check what may appear where.
 | `seed` | Optional fixed RNG seed (reproducible shuffles) |
 | `stats` | Ordered stat declarations (HUD order) |
 | `computed_tags` | Derived per-card tags (see below) |
-| `tags` | Tag behaviour — a tag is a mixin: it can give its cards a home `zone`, and can carry `on_activate` / `activate_target` / `activate_cost` / `exhausts` / `phases` / `tooltip`, which a zone may then hand to its contents with `applies` (see below) |
+| `tags` | Tag behaviour — a tag is a mixin: it can give its cards a home `zone`, a `tooltip`, and an `activate` block (the same one a card has), which a zone may then hand to its contents with `applies` (see below) |
 | `effects` | Named visual effects on the base vocabulary (see below) |
 | `patterns` | Named direction sets for grid movement (see *Pieces that move*) |
 | `assets` | Named pictures, and the only place a picture carries options (see *Named assets*) |
@@ -413,7 +429,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
 | `on_click` | Actions run when the zone is clicked. **Not phase-scoped** — it fires in every phase. To make a *card* usable at one point in a turn, grant it an ability with `applies` and limit it with `phases` |
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
-| `accepts` | Condition map deciding whether a card being played may be sent **here** — the zone answers for itself, as a card does |
+| `receive` | `needs`: whether a card being played may be sent **here** — the zone answers for itself, as a card does |
 | `per_seat` | `true` makes one copy of this zone per seat (see *Two or more players*). `pos` then takes one rect **per seat**: `[[…], […]]` |
 | `asset` | A picture behind the whole zone — the painted board most games have. Same asset rules as a card's: a filename in `games/assets/`, an `http(s)` URL, or a shape spec. Stretched to the zone's rect, since that rect is what the cells are computed from |
 | `checker` | Two colours alternated across a grid's squares, e.g. `["#f0d9b5", "#b58863"]` — what a chessboard or draughts board is. Palette names or `#rrggbb`, the same words a card's art uses. The top-left square takes the first colour |
@@ -423,7 +439,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 Zone tags: `shuffle` (on contents creation and refill), `refill_when_empty`
 (recreate `contents` when emptied), `face_up` / `face_down` (override facing),
 `no_peek` (no tooltip/browse), `hidden` (not drawn; offer zones, fate decks),
-`activate` (cards here may use `on_activate` — without it an ability is
+`activate` (cards here may use their `activate` block — without it an ability is
 unreachable wherever the card sits, so every board needs it), `optional`
 (nothing here ever has to be played, so a gated card stays gated instead of
 being force-enabled when nothing else in the zone is playable — for zones of
@@ -507,25 +523,16 @@ disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `owns` | Seats only (a card tagged `player`): the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone — `"owns": "white"` on the seat makes every card tagged `white` that player's. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. **A tag outranks the zone**, so a planet held by player three inside player two's system is player three's |
 | `tags` | Free vocabulary for targeting/counting; engine-known: `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it), `invisible_title_text` (draw no title; the picture is the whole card, and the band it would have used goes to the art), `transparent_background` (no plate behind the art, so a transparent PNG shows the board through it — and dimming tints the art rather than laying a dark rectangle over the square) |
-| `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `on_turn`) |
-| `cost` | Spent on play; gates and dims when unaffordable. `"sacrifice:<tag>": n` pays by destroying n board cards with that tag |
-| `activate_cost` | Spent on activation (sacrifices allowed here too) |
-| `needs` | Non-consuming gate (shared condition subjects); escape hatch: playable anyway if nothing else in the zone is |
+| `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `turn.action`) |
+| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens. `irreversible` clears the undo stack, so the choice is final |
+| `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). Activating **exhausts** the card until the round wraps, and a board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `exhausts: false` keeps it ready, which is how a permanent button works ("pass the time"). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `challenge` | A test the `resolve_challenge` action asks: `needs` is the condition, `pass` and `fail` the action lists it chooses between. One block because the three only ever work together — a `needs` with no branches decides nothing, and a branch with no `needs` always passes |
-| `target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
+| `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). Zones take the same block |
+| `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
+| `pick` | `action`: run when the card is picked from the built-in reveal overlay (pages). `irreversible` clears the undo stack |
+| `start` | The card begins in play — a throne, a board, a button. `zone` says where (without one, its home tag decides, then the only board) and `slot` is a 1-based cell. **Having the block is the flag**; there is no separate `auto_play` |
+| `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
-| `accepts` | Condition map deciding whether **this** card may be targeted by the card being played (see *Legality between two cards*). Zones take it too |
-| `phases` | Phase key or list: the card works only in those phases. Naming none means any. This is "cast only during your main phase" |
-| `activate_target` | Same shape, for `on_activate`: clicking the board card opens targeting before the ability runs |
-| `moves` | How a piece moves on a grid: pattern names, or rules carrying their own `fill`/`needs`. Writes the `activate_target` for you (see *Pieces that move*) |
-| `on_play` | Actions when played (ctx: this card + chosen targets) |
-| `on_activate` | Actions when clicked on the board; **exhausts** the card until the round wraps. A board card shows three states: ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable) |
-| `exhausts` | `false` keeps the card ready after activating — a permanently clickable button ("pass the time") |
-| `on_turn` | Actions each round boundary while on a grid (and not ruined) |
-| `on_pick` | Actions when this card is picked from the built-in reveal overlay (pages) |
-| `irreversible` | Playing or picking this card clears the undo stack — the choice is final |
-| `outcome` | `"victory"` or `"defeat"` on an ending card: banner, run summary, and flourish when it is offered |
-| `auto_play`, `to_zone`, `to_slot` | Start in play (e.g. the throne) |
 
 ### Phases
 
@@ -579,7 +586,7 @@ row-major, so where something is on the board is asked with the vocabulary
 already here: `{ "row@target": { "equals": 8 } }` is "the far rank".
 
 - Object form: `{ "stat": "progress", "at_least": 12 }` (`equals` / `at_least` / `at_most`) or `{ "zone_empty": ["road", "hand"] }`.
-- Map form (any `needs`, and `accepts`): `{ "might": 8, "count:farm": 3 }` — a bare number means **at least** n, much the commonest thing to ask.
+- Map form (any `needs`): `{ "might": 8, "count:farm": 3 }` — a bare number means **at least** n, much the commonest thing to ask.
 - To ask the other way, the value is a comparison instead:
   `{ "max:value@mine.red": { "at_most": 6 } }`.
 
@@ -679,9 +686,12 @@ on the board, so it can be looked at, damaged, targeted and destroyed like any
 other, and its stats are the player's stats.
 
 ```json
-{ "key": "throne_room", "tags": ["building", "hero", "player"],
+{
+  "key": "throne_room",
+  "tags": ["building", "hero", "player"],
   "card_stats": { "hp": 20, "gold": 20, "morale": 5 },
-  "auto_play": true, "to_zone": "board", "to_slot": 13 }
+  "start": { "zone": "board", "slot": 13 }
+}
 ```
 
 A **party** is the same idea repeated: N cards in a zone, each tagged `player`,
@@ -713,7 +723,7 @@ all it takes; each carries its own stats, and neither can touch the other's.
   "card_stats": { "score": 0 } }
 ```
 
-A seat with no `to_zone` is auto-played into the hidden `system` zone — an
+A seat with no `start.zone` goes into the hidden `system` zone — an
 invisible stat holder. Give it one (`"to_zone": "board"`) when the seat should
 be a visible hero on the table.
 
@@ -730,7 +740,7 @@ per seat with one rect each:
 An unqualified zone key means **the active seat's** copy — `move_to:arena`
 puts the card in your own arena, `draw_from:deck:hand:1` deals into your own
 hand. Say `enemy.arena` for the other. A `per_seat` zone also receives its own
-copy of every `auto_play` card, so a marker declared once appears in each
+copy of every card with a `start` block, so a marker declared once appears in each
 seat's copy.
 
 **Turn order is the phase list.** A phase declaring `"seat": "next"` hands over
@@ -820,7 +830,7 @@ The same name answers *what is standing there* as readily as *where may I go*,
 so no separate "is this square empty" condition exists or is needed:
 
 ```json
-"needs": { "count:piece@castle_k_path": { "equals": 0 } }
+"play": { "needs": { "count:piece@castle_k_path": { "equals": 0 } } }
 ```
 
 An absolute pattern names its squares outright. A relative one is anchored on
@@ -835,20 +845,19 @@ Pieces then name patterns, and only a piece whose rules differ in *what may be
 standing on the far square* needs more than a list of names:
 
 ```json
-{ "key": "queen",  "moves": ["line_ortho", "line_diag"],
-  "on_activate": ["move_to:target:taken", "next_phase"] },
-{ "key": "knight", "moves": ["knight_leap"], "on_activate": [...] },
-{ "key": "pawn", "moves": [
+{ "key": "queen", "activate": { "moves": ["line_ortho", "line_diag"],
+    "action": ["move_to:target:taken", "next_phase"] } },
+{ "key": "knight", "activate": { "moves": ["knight_leap"], "action": [...] } },
+{ "key": "pawn", "activate": { "action": [...], "moves": [
     { "patterns": ["pawn_step"], "fill": "empty" },
     { "patterns": ["pawn_run"],  "fill": "empty",
       "needs": { "rank@self": { "equals": 2 } } },
-    { "patterns": ["pawn_take"], "fill": "enemy" } ],
-  "on_activate": [...] }
+    { "patterns": ["pawn_take"], "fill": "enemy" } ] } }
 ```
 
-Declaring `moves` writes the `activate_target` for you (one square, `fill` per
+Declaring `activate.moves` writes the `activate.target` for you (one square, `fill` per
 rule), so clicking the piece opens targeting and clicking a square moves it.
-Write the `on_activate` yourself — that is where captures go, and where the turn
+Write the `activate.action` yourself — that is where captures go, and where the turn
 ends.
 
 **`y` is forward for whoever is moving**, so one pawn definition serves both
@@ -865,18 +874,32 @@ and they never change, so it is **a card, not a move** — no targeting, and a
 played card is gated by `needs`, which an activated one is not:
 
 ```json
-{ "key": "w_castle_k", "text": "Castle kingside", "tags": ["white"],
-  "needs": { "moves_made@w_king_e": { "equals": 0 }, "card:w_king_e": 1,
-             "moves_made@w_rook_h": { "equals": 0 }, "card:w_rook_h": 1,
-             "count:piece@w_castle_k_path": { "equals": 0 } },
-  "on_play": ["place:w_king_e:7:8", "place:w_rook_h:6:8",
-              "gain_stat:moves_made@w_king_e:1", "next_phase"] }
+{
+  "key": "w_castle_k",
+  "text": "Castle kingside",
+  "tags": ["white"],
+  "play": {
+    "needs": {
+      "moves_made@w_king_e": { "equals": 0 },
+      "card:w_king_e": 1,
+      "moves_made@w_rook_h": { "equals": 0 },
+      "card:w_rook_h": 1,
+      "count:piece@w_castle_k_path": { "equals": 0 }
+    },
+    "action": [
+      "place:w_king_e:7:8",
+      "place:w_rook_h:6:8",
+      "gain_stat:moves_made@w_king_e:1",
+      "next_phase"
+    ]
+  }
+}
 ```
 
 Three things make that work, none of them specific to chess:
 
 - **"Has it moved" is a stat.** A `moves_made` stat plus
-  `gain_stat:moves_made@self:1` in `on_activate`, and `{"unmoved": {"stat":
+  `gain_stat:moves_made@self:1` in `activate.action`, and `{"unmoved": {"stat":
   "moves_made", "equals": 0}}` if you want it as a computed tag.
 - **A piece is nameable.** Tag each piece with its own key and any other card's
   condition can ask about it. A captured piece carries no stat at all, and an
@@ -902,32 +925,38 @@ may go on a higher one", "onto a card of the opposite colour". Neither `needs`
 (which asks about game-wide state) nor a computed tag (which asks about one
 card alone) can express that, because it takes two cards at once.
 
-`accepts` lives on the **destination** and is asked of each candidate, with
+`receive.needs` lives on the **destination** and is asked of each candidate, with
 itself as `@self` and the arriving card as `@target`:
 
 ```json
-{ "key": "red_route", "tags": ["marker", "red_dest"],
-  "auto_play": true, "to_zone": "red",
-  "accepts": { "value@target": { "at_least": "max:value@mine.red" } } }
+{
+  "key": "red_route",
+  "tags": ["marker", "red_dest"],
+  "receive": { "needs": { "value@target": { "at_least": "max:value@mine.red" } } },
+  "start": { "zone": "red" }
+}
 ```
 
 That single line is the whole of Lost Cities' expedition rule: a card must be
-worth at least what is already there. A destination with **no** `accepts` takes
+worth at least what is already there. A destination with **no** `receive` takes
 anything — which is how the same game's discard pile stays always legal:
 
 ```json
-{ "key": "red_tip", "tags": ["marker", "red_dest"],
-  "auto_play": true, "to_zone": "red_discard" }
+{ "key": "red_tip", "tags": ["marker", "red_dest"], "start": { "zone": "red_discard" } }
 ```
 
 The card being played just names both destinations and goes where it is
 pointed:
 
 ```json
-{ "key": "red_7", "card_stats": { "value": 7 },
-  "target": { "type": "card", "tags": ["red_dest"], "count": 1,
-              "zones": ["red", "red_discard"] },
-  "on_play": ["move_to:target"] }
+{
+  "key": "red_7",
+  "card_stats": { "value": 7 },
+  "play": {
+    "target": { "type": "card", "tags": ["red_dest"], "count": 1, "zones": ["red", "red_discard"] },
+    "action": ["move_to:target"]
+  }
+}
 ```
 
 Putting the rule on the destination rather than on the card is what lets it
@@ -973,7 +1002,7 @@ works by type instead of by naming zones in every action:
 
 - `move_to` without a zone sends the played card home (`"on_play": ["move_to"]`).
 - `gain:card:n` creates cards directly in their home zone (no home: the hand).
-- `auto_play` cards without a `to_zone` start in their home zone.
+- A `start` block with no `zone` puts the card in its home zone.
 
 A game with a single board stays simple: cards without a home fall back to
 it. With two or more boards (an inventory *and* a battlefield, say), every
@@ -983,24 +1012,32 @@ whose tags don't say, and reports the conflict when a card's tags disagree.
 ### Board buttons
 
 A card that starts in play and never leaves is the engine's button. Combine
-`auto_play` with `on_activate`, and `exhausts: false` when it should stay
+a `start` block with an `activate.action`, and `exhausts: false` when it should stay
 clickable rather than tiring for the round:
 
 ```json
-{ "key": "pass_time", "text": "Let time pass", "auto_play": true,
-  "to_zone": "table", "to_slot": 1, "exhausts": false,
-  "on_activate": ["next_phase"] }
+{
+  "key": "pass_time",
+  "text": "Let time pass",
+  "activate": { "action": ["next_phase"], "exhausts": false },
+  "start": { "zone": "table", "slot": 1 }
+}
 ```
 
-Add `activate_target` when the button needs to be pointed at something —
+Add `activate.target` when the button needs to be pointed at something —
 clicking it opens the same targeting arrow a played card uses, and the chosen
-cards arrive in `on_activate` as targets:
+cards arrive in `activate.action` as targets:
 
 ```json
-{ "key": "workbench", "auto_play": true, "to_zone": "table",
-  "activate_cost": { "focus": 1 },
-  "activate_target": { "type": "card", "count": 1, "tags": ["material"], "zones": ["table"] },
-  "on_activate": ["lose_stat:hp@target:1", "gain_stat:progress:2"] }
+{
+  "key": "workbench",
+  "activate": {
+    "cost": { "focus": 1 },
+    "target": { "type": "card", "count": 1, "tags": ["material"], "zones": ["table"] },
+    "action": ["lose_stat:hp@target:1", "gain_stat:progress:2"]
+  },
+  "start": { "zone": "table" }
+}
 ```
 
 ### Effects
@@ -1135,8 +1172,11 @@ at all. Five actions, checked by the validator like any other:
 The menu's own entry is one card:
 
 ```json
-{ "key": "play_lost_cities_net", "text": "Lost Cities · online",
-  "on_play": ["load_game:lost_cities.json", "net_seat:north", "net_invite"] }
+{
+  "key": "play_lost_cities_net",
+  "text": "Lost Cities · online",
+  "play": { "action": ["load_game:lost_cities.json", "net_seat:north", "net_invite"] }
+}
 ```
 
 None of them changes game state — they ask the interface to show something — so
@@ -1157,7 +1197,7 @@ hand.
 ### Hardcoded conventions
 
 `menu.json` boots the engine. Zone keys `hand` (default deal/pick target),
-`graveyard` (draw_and_play discard), `board` (default `auto_play` target) are
+`graveyard` (draw_and_play discard), `board` (where a `start` block with no zone lands) are
 load-bearing names; `reveal` names both the built-in page zone and overlay
 phase, and `system` the hidden zone holding the engine's own two cards (a game
 may declare any of them to override). The tag `player` marks a seat, and the

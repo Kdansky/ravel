@@ -16,7 +16,9 @@ times, so blocking, leaping and range are one loop rather than three rules, and
 (ideas/08-grid-movement-notation.md).
 """
 
-import json, os
+import json, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import jsonfmt
 
 FILES = "abcdefgh"
 BACK_RANK = ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"]
@@ -112,20 +114,20 @@ def piece(seat, colour_label, kind, file_idx, row, palette):
         # rank is stamped by the engine; moves_made is the piece's own count,
         # and is what "has this ever moved" reads.
         "card_stats": {"rank": 0, "moves_made": 0},
-        "moves": MOVES[kind],
-        # Where a taken piece goes. Without this third argument an occupied
-        # square refuses the move, which is what every non-board game wants.
-        #
-        # Then hand over. A phase's `ends_after` counts cards *played*, and a
-        # piece moving is an activation, so the move has to end the turn itself.
+        # Moving is an activation, so everything about it lives in one block.
+        # "taken" is where a captured piece goes: without that third argument an
+        # occupied square refuses the move, which is what every non-board game
+        # wants. Then hand over — a phase's `ends_after` counts cards *played*,
+        # and a piece moving is an activation, so the move ends the turn itself.
         # `exhausts: false` for the same reason: what bounds a turn to one move
         # here is the handover, not the piece being spent until the round wraps.
-        "on_activate": ["move_to:target:taken", "gain_stat:moves_made@self:1",
-                        "next_phase"],
-        "exhausts": False,
-        "auto_play": True,
-        "to_zone": "board",
-        "to_slot": (row - 1) * 8 + file_idx + 1,
+        "activate": {
+            "moves": MOVES[kind],
+            "action": ["move_to:target:taken", "gain_stat:moves_made@self:1",
+                       "next_phase"],
+            "exhausts": False,
+        },
+        "start": {"zone": "board", "slot": (row - 1) * 8 + file_idx + 1},
     }
 
 
@@ -147,21 +149,23 @@ def castle_card(c):
         ),
         "asset": f"Chess_k{'l' if c['seat'] == 'white' else 'd'}t60.png",
         "tags": [c["seat"], "castling"],
-        "needs": {
-            # Neither piece may have moved. A captured piece carries no stat at
-            # all, and a stat nobody carries is absent rather than zero, so this
-            # also refuses a rook that was taken — no presence term needed.
-            f"moves_made@{king}": {"equals": 0},
-            f"moves_made@{rook}": {"equals": 0},
-            # The squares between them, read as a scope over named cells.
-            f"count:piece@{c['seat'][0]}_castle_{c['side']}_path": {"equals": 0},
+        "play": {
+            "needs": {
+                # Neither piece may have moved. A captured piece carries no stat
+                # at all, and a stat nobody carries is absent rather than zero,
+                # so this also refuses a rook that was taken — no presence term.
+                f"moves_made@{king}": {"equals": 0},
+                f"moves_made@{rook}": {"equals": 0},
+                # The squares between them, read as a scope over named cells.
+                f"count:piece@{c['seat'][0]}_castle_{c['side']}_path": {"equals": 0},
+            },
+            "action": [
+                f"place:{king}:{c['king_col']}:{c['back']}",
+                f"place:{rook}:{c['rook_col']}:{c['back']}",
+                f"gain_stat:moves_made@{king}:1",
+                "next_phase",
+            ],
         },
-        "on_play": [
-            f"place:{king}:{c['king_col']}:{c['back']}",
-            f"place:{rook}:{c['rook_col']}:{c['back']}",
-            f"gain_stat:moves_made@{king}:1",
-            "next_phase",
-        ],
     }
 
 
@@ -173,7 +177,7 @@ HOW_TO_PLAY = {
     "key": "how_to_play",
     "text": "How to play",
     "tags": ["immutable"],
-    "phases": [],
+    "play": {"phases": []},
     "tooltip": (
         "Click one of your pieces to light up the squares it can reach, then "
         "click a square to move. Click an enemy piece to take it — its square "
@@ -267,6 +271,6 @@ def build():
 if __name__ == "__main__":
     out = os.path.join(os.path.dirname(__file__), "..", "game", "games", "chess.json")
     with open(os.path.abspath(out), "w") as f:
-        json.dump(build(), f, indent=2)
+        f.write(jsonfmt.dump(build()))
         f.write("\n")
     print(f"wrote {os.path.abspath(out)}")
