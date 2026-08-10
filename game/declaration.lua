@@ -20,12 +20,15 @@ end
 
 -- Sections the engine reads from a game file. Anything else is a typo the
 -- validator should surface, not silently ignore.
+-- Exported as M.KNOWN_SECTIONS: SCHEMA.json describes the same list in prose,
+-- and a test compares them so a new section cannot arrive undocumented.
 local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true,
 	templates = true, cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true,
 	placeholder_art = true, patterns = true, assets = true,
 }
+M.KNOWN_SECTIONS = KNOWN_SECTIONS
 
 -- A movement pattern: direction vectors, plus class words saying how they are
 -- walked. The bare form is a list of pairs and means "these squares, one step",
@@ -201,6 +204,13 @@ function M.parse(filename)
 		end
 	end
 
+	-- "cards" is a second name for "templates" and the `or` picks one, so a file
+	-- carrying both lost every card in the second — silently, and with the
+	-- validator calling the file clean. Say so rather than quietly halving a game.
+	if parsed.templates and parsed.cards then
+		pp[#pp + 1] = 'this file has both a "templates" and a "cards" section, which are two names for one thing'
+			.. " — only \"templates\" is read, so everything under \"cards\" is ignored. Merge them."
+	end
 	for _, cd in ipairs(entries(parsed.templates or parsed.cards, "templates")) do
 		if type(cd) ~= "table" or not cd.key then
 			pp[#pp + 1] = "a template has no \"key\" — every card needs a unique one"

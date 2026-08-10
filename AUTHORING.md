@@ -361,6 +361,12 @@ up the lantern or the pearl). The oldest matching card is taken.
 
 ## 5. Reference
 
+`SCHEMA.json` at the repository root lists **every field a game file may
+contain**, laid out as a game file with a sentence where each value would be. A
+test holds it and the engine to the same field set in both directions, so it
+cannot quietly go out of date. Read this section to learn the format; read that
+file to check what may appear where.
+
 ### Top-level fields
 
 | Field | Meaning |

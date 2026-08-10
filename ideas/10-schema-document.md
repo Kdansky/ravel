@@ -1,7 +1,8 @@
 # 10 — A game file that describes itself
 
-**Status:** not started · **Size:** medium, and most of it is transcription ·
-**Value:** mostly in what writing it *finds*.
+**Status:** **shipped** — `SCHEMA.json` at the repository root, held to the
+engine by `tests/integration/schema.lua` (313 assertions, both directions).
+What it found is at the bottom of this file, and that list was the point.
 
 > *I want a file that lists every possible value we support for the game.json
 > structure. Basically a schema. It should also be a JSON, and instead of the
@@ -146,13 +147,49 @@ it, instead of into a comment where it cannot.
   game*; this file says *what may appear where*. The moment it grows worked
   examples they will disagree with the ones next door.
 
-## Build order
+## Build order — done
 
-1. Export `validate.lua`'s field tables (mechanical, no behaviour change).
-2. Write `SCHEMA.json` top-level-section by top-level-section, in the order
-   `KNOWN_SECTIONS` lists them: `title`, `seed`, `placeholder_art`, `stats`,
-   `computed_tags`, `templates`, `cards`, `zones`, `phases`, `end_conditions`,
-   `setup`, `tags`, `effects`, `patterns`, `assets`.
-3. The two-way key test.
-4. **Write up what it found**, and fold that into `README.md`'s deferred syntax
-   pass. This step is the point of the other three.
+1. ~~Export `validate.lua`'s field tables~~ — `M.FIELDS`, keyed by the JSON
+   section each belongs to, plus `M.DERIVED` for the four fields
+   `declaration.parse` adds that no author writes. `declaration.KNOWN_SECTIONS`
+   and `actions.ops()` are the other two sources of truth the test reads.
+2. ~~Write `SCHEMA.json`~~ — in `KNOWN_SECTIONS` order, one exemplar entry per
+   section. Three blocks are not mirrors and are prefixed with `_`:
+   `_conditions`, `_actions` (all 29 verbs) and `_engine_tags`.
+3. ~~The two-way key test~~ — `tests/integration/schema.lua`. Sections, fields,
+   the two nested shapes (`target`, a routing entry), and every action, each
+   checked in both directions. It also asserts no leaf is a real value: a number
+   or a boolean means somebody filled in an example instead of a description.
+4. ~~Write up what it found~~ — below.
+
+## What it found
+
+Ten passes over the format, one sentence per field. The rule was that a
+sentence needing an "or", a "but only when", or a clause about *where you are*
+marks something worth writing down.
+
+**Two are bugs, and one of those was silent data loss.**
+
+| # | Finding | Verdict |
+|---|---|---|
+| 1 | **`templates` and `cards` are two names for one section, and a file with both loses one.** `declaration.lua:207` reads `parsed.templates or parsed.cards`, so every card under `cards` was dropped — and `check.lua` called the file clean. | **Fixed in this pass.** It now warns. The deeper wart stands: two names, no difference, and a file should pick one |
+| 2 | **`patterns` never checked its field names.** Every other section runs `check_fields`; this one did not, so `"vector": [[1,0]]` loaded as a pattern with no vectors and a piece that mysteriously could not move. | **Fixed in this pass** — `PATTERN_FIELDS` and the missing call |
+| 3 | **`needs`, `requires` and `accepts` are one shape under three names.** Identical condition maps. They differ only in *when* they are asked: gate on play, checked by `resolve_challenge`, asked of a destination. | Wart. Renaming is a wide edit for a real gain in explainability |
+| 4 | **A routing entry's `stat` field does not mean a stat.** `predicate.met` hands it to `parse_subject`, so `count:farm@board` and `sum:value@mine.red` are all legal there. The name is simply wrong. | Wart, and the cheapest to fix: accept `subject` as a second spelling, deprecate `stat` |
+| 5 | **One condition, three spellings, and the site decides which.** Map form `{subject: n}`, comparison form `{subject: {at_most: n}}`, object form `{stat: subject, at_least: n}`. `needs`/`accepts` take the first two; routing and `end_conditions` take only the third. `DESIGN.md` calls conditions "one vocabulary everywhere" — they are one *vocabulary* in three *shapes* | The biggest one. Accepting the object form everywhere would be additive and compatible |
+| 6 | **`ROUTE_FIELDS` and `END_FIELDS` are the same table**, give or take `ends_round` (routing) and `fired` (engine bookkeeping). Two names for one shape, again | Follows from 5; fixing 5 fixes this |
+| 7 | **`pos` changes shape according to a different field.** A rect, or a list of rects when `per_seat` is true — which is why its sentence is the longest in the file | Known, recorded in `README.md`. Still the clearest instance of the problem |
+| 8 | **There is an unstated `activate_` convention.** `target`/`activate_target`, `cost`/`activate_cost`, `on_play`/`on_activate`: a prefix meaning "the same thing, for the board ability". Nothing says so; you learn it by noticing | Not a wart — a *good* pattern that is undocumented. `AUTHORING.md` should name it |
+| 9 | **Derived fields share the authored tables.** `tags_set`, `injected`, `move_rules` and `fired` are legal in `CARD_FIELDS` and friends, so the validator cannot tell an author that hand-writing `tags_set` is meaningless. The schema needed an explicit `DERIVED` list to exclude them | Minor, but it is the engine admitting the two kinds are mixed |
+
+**The pattern under 1, 3, 4, 5 and 6 is one thing: the format has grown
+synonyms.** Two names for a section, three for a condition shape, three for a
+gate, a field called `stat` that takes anything. None of it is expensive
+individually; together it is why the format needs explaining. That is the
+answer `README.md`'s deferred syntax pass was waiting for, and 5 is where it
+should start — it is additive, so nothing has to be rewritten to benefit.
+
+**What it did not find is worth saying too.** No missing capability, no shape
+that could not be described in one sentence, and no section whose fields
+disagreed with the validator. The format is consistent; it is just wordier than
+it needs to be.

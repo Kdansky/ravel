@@ -492,7 +492,8 @@ local SPEC = {
 	effect            = "effect",
 }
 
--- The full op vocabulary, for the validator's suggestions.
+-- The full op vocabulary, for the validator's suggestions — and for the test
+-- that holds SCHEMA.json to describing every verb the engine actually runs.
 function M.ops()
 	local t = {}
 	for k in pairs(HANDLERS) do t[k] = true end

@@ -37,6 +37,11 @@ M.EFFECT_BASES = {
 
 -- Fields the engine reads on each kind of entry (including the derived ones
 -- declaration.parse adds). Anything else is almost certainly a typo.
+--
+-- Exported below as M.FIELDS, because SCHEMA.json describes the same fields in
+-- prose and the two must not drift: a schema that documents a field the engine
+-- dropped is worse than none, since it looks machine-made and is believed.
+-- tests/integration/schema.lua compares them both ways.
 local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	color = true, tags = true, card_stats = true, cost = true,
@@ -85,8 +90,35 @@ local END_FIELDS      = { stat = true, zone_empty = true, equals = true, at_leas
 	at_most = true, ["then"] = true, fired = true }
 local COMPUTED_FIELDS = { stat = true, less_than = true, less_than_stat = true,
 	at_least = true, equals = true }
+-- The assets table: named pictures, and the only place a picture carries
+-- options. Everything a card's `asset` can spell out inline is legal as a `src`
+-- here too, so the source is checked by the same rules.
+local ASSET_FIELDS    = { src = true, max = true }
+local PATTERN_FIELDS  = { vectors = true, class = true, zone = true }
 local ZONE_TYPES      = { deck = true, pile = true, hand = true, grid = true }
 local PHASE_TYPES     = { automatic = true, player_input = true, draw_and_play = true, overlay = true }
+
+-- The same tables, reachable. Named for the JSON section each belongs to, since
+-- that is how the schema document is organised and how an author meets them.
+M.FIELDS = {
+	templates     = CARD_FIELDS,
+	zones         = ZONE_FIELDS,
+	phases        = PHASE_FIELDS,
+	stats         = STAT_FIELDS,
+	tags          = TAG_FIELDS,
+	effects       = EFFECT_FIELDS,
+	assets        = ASSET_FIELDS,
+	patterns      = PATTERN_FIELDS,
+	computed_tags = COMPUTED_FIELDS,
+	end_conditions = END_FIELDS,
+	target        = TARGET_FIELDS,
+	route         = ROUTE_FIELDS,
+}
+
+-- Fields declaration.parse adds to a def after reading it. They are legal on an
+-- entry the engine hands around and are not things an author ever writes, so
+-- the schema document must not describe them.
+M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
 -- "did you mean" suggestions.
@@ -591,14 +623,6 @@ function M.check(G)
 		end
 	end
 
-	-- Movement patterns. Checked against the raw JSON shape rather than the
-	-- normalised one, because a mistyped class word or a vector that isn't a
-	-- pair is silently dropped by the normaliser and would otherwise show up
-	-- only as a piece that mysteriously cannot move.
-	-- The assets table: named pictures, and the only place a picture carries
-	-- options. Everything a card's `asset` can spell out inline is legal as a
-	-- `src` here too, so the source is checked by the same rules.
-	local ASSET_FIELDS = { src = true, max = true }
 	for name, def in pairs(type(G.raw_assets) == "table" and G.raw_assets or {}) do
 		local where = "asset '" .. tostring(name) .. "'"
 		local src = type(def) == "table" and def.src or def
@@ -630,12 +654,17 @@ function M.check(G)
 		end
 	end
 
+	-- Movement patterns. Checked against the raw JSON shape rather than the
+	-- normalised one, because a mistyped class word or a vector that isn't a
+	-- pair is silently dropped by the normaliser and would otherwise show up
+	-- only as a piece that mysteriously cannot move.
 	local raw_patterns = type(G.raw_patterns) == "table" and G.raw_patterns or {}
 	for name, def in pairs(raw_patterns) do
 		local where = "pattern '" .. tostring(name) .. "'"
 		local vectors, class = def, nil
 		if type(def) == "table" and def.vectors ~= nil then
 			vectors, class = def.vectors, def.class
+			check_fields(where, def, PATTERN_FIELDS)
 		end
 		if type(vectors) ~= "table" or #vectors == 0 then
 			warn('%s: should be a list of [x, y] pairs, like [[1,0],[0,1]]', where)
