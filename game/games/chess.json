@@ -299,18 +299,20 @@
   ],
   "cards": [
     {
-      "key": "white",
+      "key": "player_white",
       "text": "White",
       "tags": [
         "player"
-      ]
+      ],
+      "owns": "white"
     },
     {
-      "key": "black",
+      "key": "player_black",
       "text": "Black",
       "tags": [
         "player"
-      ]
+      ],
+      "owns": "black"
     },
     {
       "key": "how_to_play",

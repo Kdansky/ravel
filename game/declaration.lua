@@ -346,12 +346,19 @@ function M.parse(filename)
 	-- own key. Computed after the injection above so a game that declares none
 	-- still has exactly one. One seat is the ordinary case and costs nothing —
 	-- per_seat zones instance once and every owner word means the same cards.
-	G.seat_list, G.seat_set = {}, {}
+	-- `owns` names the tag marking a seat's pieces on a board it shares with the
+	-- other players. It used to be the seat's own key, which cost no field and
+	-- one ambiguity: `@white` named the pieces while `card:white` named the seat
+	-- card, so one word meant two sets. Declared on the seat rather than on every
+	-- piece, because that is where the relationship lives, and it is two lines
+	-- rather than thirty-two.
+	G.seat_list, G.seat_set, G.seat_owns = {}, {}, {}
 	for _, key in ipairs(G.card_list) do
 		local cd = G.card_defs[key]
 		if cd.tags_set.player then
 			G.seat_list[#G.seat_list + 1] = key
 			G.seat_set[key] = true
+			G.seat_owns[key] = type(cd.owns) == "string" and cd.owns or nil
 			-- A seat has to exist before it can act, and one that says nothing
 			-- about where it sits is a stat bag — it goes where the injected
 			-- one goes rather than onto a board it never asked for. Declaring

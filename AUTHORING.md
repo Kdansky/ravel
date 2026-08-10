@@ -505,6 +505,7 @@ Repeat visits are free: the fetch is an ordinary browser request, so a host
 sending `Cache-Control` (imgur sends a year) is answered from the browser's own
 disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
+| `owns` | Seats only (a card tagged `player`): the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone — `"owns": "white"` on the seat makes every card tagged `white` that player's. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. **A tag outranks the zone**, so a planet held by player three inside player two's system is player three's |
 | `tags` | Free vocabulary for targeting/counting; engine-known: `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it), `invisible_title_text` (draw no title; the picture is the whole card, and the band it would have used goes to the art), `transparent_background` (no plate behind the art, so a transparent PNG shows the board through it — and dimming tints the art rather than laying a dark rectangle over the square) |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `on_turn`) |
 | `cost` | Spent on play; gates and dims when unaffordable. `"sacrifice:<tag>": n` pays by destroying n board cards with that tag |

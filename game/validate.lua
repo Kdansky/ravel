@@ -50,7 +50,7 @@ local CARD_FIELDS = {
 	on_play = true, on_activate = true, on_turn = true, on_pass = true,
 	on_fail = true, on_pick = true, auto_play = true, to_zone = true,
 	to_slot = true, irreversible = true, outcome = true, tags_set = true,
-	injected = true, accepts = true, phases = true,
+	injected = true, accepts = true, phases = true, owns = true,
 	moves = true, move_rules = true,
 }
 local ZONE_FIELDS = {
@@ -714,6 +714,18 @@ function M.check(G)
 	for key, def in pairs(G.card_defs) do
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
+		-- "owns" is how a seat claims its pieces on a board it shares. Only a
+		-- seat can claim anything, and a tag nobody carries claims nothing —
+		-- both are silent today and leave every piece unowned, which reads as
+		-- "enemy names nothing" three moves later rather than as a typo here.
+		if def.owns ~= nil then
+			if not (def.tags_set and def.tags_set.player) then
+				warn('%s: only a seat owns pieces, and a seat is a card tagged "player"', where)
+			elseif not known_tags[def.owns] then
+				warn("%s: owns '%s', but no card carries that tag%s", where, tostring(def.owns),
+					suggest(def.owns, known_tags))
+			end
+		end
 		for _, rule in ipairs(def.move_rules or {}) do
 			for _, pname in ipairs(rule.patterns) do
 				if not G.pattern_defs[pname] then

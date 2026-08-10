@@ -35,9 +35,13 @@ end
 --
 -- The tag rule exists for boards that are shared while the pieces on them are
 -- not. A chessboard is one zone — the pieces stand on the same squares — so
--- without it every piece would be unowned and "enemy" would name nothing. It
--- costs no new field: a seat is already a card key, so claiming one is writing
--- "tags": ["white"].
+-- without it every piece would be unowned and "enemy" would name nothing.
+--
+-- The seat says which tag is its, with "owns". That used to be free: a seat is
+-- a card key, so claiming one was writing "tags": ["white"] and no field was
+-- needed. It cost an ambiguity instead — `@white` named the pieces while
+-- `card:white` named the seat card, one word for two sets — and a name that
+-- means two things is the mistake a game file should not be able to make.
 --
 -- **A tag outranks the zone**, because a zone's seat is where a thing *is* and
 -- a tag is whose it *is*, and those come apart the moment a game has more than
@@ -58,7 +62,8 @@ function M.owner_of(e)
 	local G = declaration.G
 	if e.kind == "card" and not (G.seat_set and G.seat_set[e.def_key]) then
 		for _, seat in ipairs(G.seat_list or {}) do
-			if M.entity_has(e, seat) then return seat end
+			local owns = G.seat_owns and G.seat_owns[seat]
+			if owns and M.entity_has(e, owns) then return seat end
 		end
 	end
 	local z = e.zone_id and entity.get(e.zone_id)

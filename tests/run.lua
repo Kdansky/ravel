@@ -1425,8 +1425,8 @@ play_fixture([==[{
   ],
   "phases": [ { "key": "battle", "type": "player_input", "label": "Battle" } ],
   "cards": [
-    { "key": "white", "text": "White", "tags": ["player"] },
-    { "key": "black", "text": "Black", "tags": ["player"] },
+    { "key": "player_white", "text": "White", "tags": ["player"], "owns": "white" },
+    { "key": "player_black", "text": "Black", "tags": ["player"], "owns": "black" },
     { "key": "w_rook", "text": "White Rook", "tags": ["white", "piece"],
       "auto_play": true, "to_zone": "board",
       "activate_target": { "type": "slot", "zones": ["board"], "fill": "open", "count": 1 },
@@ -1459,7 +1459,7 @@ check("a square is readable as a subject once it is the target",
 -- One board, two owners. The zone has no seat at all, so this can only come
 -- from the pieces themselves.
 check("a piece on a shared board belongs to the seat it names",
-	predicate.owner_of(rook) == "white" and predicate.owner_of(pawn) == "black")
+	predicate.owner_of(rook) == "player_white" and predicate.owner_of(pawn) == "player_black")
 check("the board itself still belongs to nobody", zones.find("board").seat == nil)
 check("mine and enemy tell the pieces apart",
 	predicate.total("count:piece@mine.board") == 2
@@ -1518,13 +1518,14 @@ play_fixture([==[{
   ],
   "phases": [ { "key": "turn", "type": "player_input", "label": "Turn" } ],
   "cards": [
-    { "key": "p1", "text": "Empire One",   "tags": ["player"] },
-    { "key": "p2", "text": "Empire Two",   "tags": ["player"] },
-    { "key": "p3", "text": "Empire Three", "tags": ["player"] },
-    { "key": "p4", "text": "Empire Four",  "tags": ["player"] },
-    { "key": "colony",  "text": "Colony",  "tags": ["p3", "planet"] },
-    { "key": "capital", "text": "Capital", "tags": ["p2", "planet"] },
-    { "key": "cruiser", "text": "Cruiser", "tags": ["p1", "ship"],
+    { "key": "p1", "text": "Empire One",   "tags": ["player"], "owns": "one" },
+    { "key": "p2", "text": "Empire Two",   "tags": ["player"], "owns": "two" },
+    { "key": "p3", "text": "Empire Three", "tags": ["player"], "owns": "three" },
+    { "key": "p4", "text": "Empire Four",  "tags": ["player"], "owns": "four" },
+    { "key": "colony",  "text": "Colony",  "tags": ["three", "planet"] },
+    { "key": "capital", "text": "Capital", "tags": ["two", "planet"] },
+    { "key": "outpost", "text": "Outpost", "tags": ["four", "planet"] },
+    { "key": "cruiser", "text": "Cruiser", "tags": ["one", "ship"],
       "activate_target": { "type": "card", "zones": ["system"], "tags": ["planet"],
                            "owner": "enemy", "count": 1 },
       "on_activate": ["destroy:target"] }
@@ -2062,9 +2063,9 @@ local function reach(key)
 	return table.concat(out, " ")
 end
 
-check("thirty-two pieces, white to move", #board.cards == 32 and zones.active_seat() == "white")
+check("thirty-two pieces, white to move", #board.cards == 32 and zones.active_seat() == "player_white")
 check("and ctrl+hover says whose a piece is, on a board that belongs to nobody",
-	require("inspect").text(piece("b_knight_g").id):find('"owner": "black"', 1, true) ~= nil)
+	require("inspect").text(piece("b_knight_g").id):find('"owner": "player_black"', 1, true) ~= nil)
 check("a piece's rank counts from its own side, so home is 2 for both colours",
 	piece("w_pawn_e").stats.rank == 2 and piece("b_pawn_e").stats.rank == 2
 	and at("e2") == "w_pawn_e" and at("e7") == "b_pawn_e")
@@ -2078,9 +2079,9 @@ check("a knight leaps its own pawns", reach("w_knight_b") == "a3 c3")
 check("a pawn on its home rank offers the step and the opening run",
 	reach("w_pawn_e") == "e3 e4")
 
-check("1. e4 — and the turn passes", move("w_pawn_e", "e4") and zones.active_seat() == "black")
+check("1. e4 — and the turn passes", move("w_pawn_e", "e4") and zones.active_seat() == "player_black")
 check("black may not move white's pieces", flow.can_activate(piece("w_pawn_d").id) == false)
-check("1... d5", move("b_pawn_d", "d5") and zones.active_seat() == "white")
+check("1... d5", move("b_pawn_d", "d5") and zones.active_seat() == "player_white")
 check("the bishop is freed down the diagonal it was blocked on",
 	reach("w_bishop_f") == "a6 b5 c4 d3 e2")
 check("a pawn that has left its home rank has no opening run left",
@@ -2193,7 +2194,7 @@ check("the queenside card is still refused, its own three squares being full",
 check("castling moves both pieces at once", flow.play_card(piece("w_castle_k").id, {})
 	and at("g1") == "w_king_e" and at("f1") == "w_rook_h"
 	and at("e1") == nil and at("h1") == nil)
-check("and hands over", zones.active_seat() == "black")
+check("and hands over", zones.active_seat() == "player_black")
 check("a king that has castled has moved, so it may not castle again",
 	flow.can_play(piece("w_castle_k").id) == false
 	and flow.can_play(piece("w_castle_q").id) == false)

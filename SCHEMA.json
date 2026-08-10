@@ -33,6 +33,7 @@
       "tags": [
         "a list of words. Free vocabulary for targeting and counting, except where the engine knows one: see _engine_tags below."
       ],
+      "owns": "the tag marking this seat's pieces, on a board shared with the other players. Only a card tagged player may own anything. Without it a piece belongs to the seat of the zone it sits in, which is enough until a board is shared.",
       "card_stats": {
         "<stat key>": "number stamped on each instance when it is created. An hp with an hp_max companion draws a badge, and 0 hp is ruined."
       },

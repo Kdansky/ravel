@@ -194,9 +194,14 @@ HOW_TO_PLAY = {
 
 
 def build():
+    # The seat card is not the colour. Its key used to be "white", which is also
+    # the tag every white piece carries — so `@white` meant the sixteen pieces
+    # while `card:white` meant this one card. A name that means two things is the
+    # mistake a game file should not be able to make, so the seat is named for
+    # what it is and says which tag is its.
     templates = [
-        {"key": "white", "text": "White", "tags": ["player"]},
-        {"key": "black", "text": "Black", "tags": ["player"]},
+        {"key": "player_white", "text": "White", "tags": ["player"], "owns": "white"},
+        {"key": "player_black", "text": "Black", "tags": ["player"], "owns": "black"},
         HOW_TO_PLAY,
     ]
     for seat, label, back, pawn_row, _rgb, palette in SEATS:
