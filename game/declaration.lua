@@ -8,7 +8,7 @@ M.filename = nil  -- source file of the current game, for template reloads
 -- are structural and need a full game load.
 M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list",
-	"tag_defs", "effect_defs", "parse_problems",
+	"tag_defs", "effect_defs", "pattern_defs", "parse_problems",
 }
 
 local function tag_set(arr)
@@ -24,8 +24,96 @@ local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true,
 	templates = true, cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true,
-	placeholder_art = true,
+	placeholder_art = true, patterns = true,
 }
+
+-- A movement pattern: direction vectors, plus class words saying how they are
+-- walked. The bare form is a list of pairs and means "these squares, one step",
+-- which is much the commonest; the long form adds the class list.
+--
+--   "adjacent":   [[1,0],[0,1],[1,1]]
+--   "line_ortho": { "vectors": [[1,0],[0,1]], "class": ["ray", "mirrored"] }
+--
+-- Class words: "step" (once, the default), "ray" (repeat until stopped),
+-- "ray:n" (up to n times), "phasing" (nothing on the way stops it), "mirrored"
+-- (negate each axis independently, so one vector stands for its whole family).
+-- The coordinate pairs are the only nested arrays the schema allows outside a
+-- per_seat "pos", and they are the same category: a list of coordinates.
+--
+-- "absolute" makes the pairs *squares* rather than directions — [1,1] is the
+-- top-left cell, not "one across and one on". Nothing in the pair itself can
+-- say which is meant, so the pattern says it: one label for the whole list,
+-- rather than a marker repeated in every entry. It is a kind, not a modifier,
+-- so walking words mean nothing beside it and the validator says so.
+local function normalise_pattern(def)
+	local vectors, class = def, nil
+	if type(def) == "table" and def.vectors ~= nil then
+		vectors, class = def.vectors, def.class
+	end
+	local p = { vectors = {}, range = 1, phasing = false, class = {},
+		-- Absolute squares belong to a board, and there is nothing to anchor
+		-- them on. Named here, or the only grid in the game.
+		zone = type(def) == "table" and def.zone or nil }
+	for _, w in ipairs(type(class) == "table" and class or {}) do
+		local word, arg = tostring(w):match("^([%a_]+):?(%d*)$")
+		p.class[word or tostring(w)] = true
+		if word == "ray" then
+			p.range = tonumber(arg) or math.huge
+		elseif word == "step" then
+			p.range = 1
+		elseif word == "phasing" then
+			p.phasing = true
+		end
+	end
+	p.absolute = p.class.absolute or false
+	local seen = {}
+	local function add(dx, dy)
+		-- A zero vector never leaves the square it started on; dropping it here
+		-- keeps the walk from having to defend against a pattern that goes
+		-- nowhere. Mirroring also generates duplicates ([1,0] mirrors onto
+		-- itself twice), so the same guard dedupes. An absolute [0,0] is off the
+		-- board rather than a non-move, and is dropped by the same line.
+		if dx == 0 and dy == 0 then return end
+		local k = dx .. "," .. dy
+		if seen[k] then return end
+		seen[k] = true
+		p.vectors[#p.vectors + 1] = { dx, dy }
+	end
+	for _, v in ipairs(type(vectors) == "table" and vectors or {}) do
+		local dx, dy = tonumber(type(v) == "table" and v[1]), tonumber(type(v) == "table" and v[2])
+		if dx and dy then
+			if p.class.mirrored then
+				for _, sx in ipairs({ 1, -1 }) do
+					for _, sy in ipairs({ 1, -1 }) do add(dx * sx, dy * sy) end
+				end
+			else
+				add(dx, dy)
+			end
+		end
+	end
+	return p
+end
+
+-- How a piece may move: a list of rules, each naming patterns and saying what
+-- may be standing on the square it lands on. A bare string is a rule of its
+-- own, which is what lets a rook be ["line_ortho"] and only the pawn — whose
+-- three rules differ in exactly that — pay for the long form.
+local function normalise_moves(moves)
+	local out = {}
+	for _, rule in ipairs(type(moves) == "table" and moves or {}) do
+		if type(rule) == "string" then
+			out[#out + 1] = { patterns = { rule }, fill = "open" }
+		elseif type(rule) == "table" then
+			local names = rule.patterns or rule.pattern
+			out[#out + 1] = {
+				patterns = type(names) == "table" and names or { names },
+				fill     = rule.fill or "open",
+				needs    = rule.needs,
+			}
+		end
+	end
+	return out
+end
 
 -- Parse a game file into a definition table without touching current state.
 -- Structural problems (typo'd sections, duplicate or missing keys) are
@@ -64,6 +152,7 @@ function M.parse(filename)
 		end_conditions = parsed.end_conditions or {},
 		setup          = parsed.setup or {},
 		tag_defs       = parsed.tags or {},  -- tag behaviour: { "item": { "zone": "inventory" } }
+		pattern_defs   = {},       -- named direction sets, for movement and neighbourhood
 		effect_defs    = parsed.effects or {},  -- named effects on the fx base vocabulary
 		parse_problems = {},
 	}
@@ -90,6 +179,14 @@ function M.parse(filename)
 		end
 	end
 
+	-- The normaliser drops anything malformed so the walk never has to defend
+	-- itself; the raw shape is kept beside it so the validator can say *why* a
+	-- piece it silently dropped cannot move.
+	G.raw_patterns = type(parsed.patterns) == "table" and parsed.patterns or {}
+	for name, def in pairs(G.raw_patterns) do
+		G.pattern_defs[name] = normalise_pattern(def)
+	end
+
 	for _, cd in ipairs(entries(parsed.templates or parsed.cards, "templates")) do
 		if type(cd) ~= "table" or not cd.key then
 			pp[#pp + 1] = "a template has no \"key\" — every card needs a unique one"
@@ -101,6 +198,15 @@ function M.parse(filename)
 				G.card_list[#G.card_list + 1] = cd.key
 			end
 			cd.tags_set = tag_set(cd.tags)
+			-- A piece that says how it moves is asking for the ordinary board
+			-- targeting, so the engine writes the spec rather than making every
+			-- piece repeat the same four fields.
+			if cd.moves then
+				cd.move_rules = normalise_moves(cd.moves)
+				if not cd.activate_target then
+					cd.activate_target = { type = "slot", count = 1, moves = cd.move_rules }
+				end
+			end
 			G.card_defs[cd.key] = cd
 		end
 	end

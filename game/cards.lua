@@ -181,6 +181,20 @@ function M.reload()
 	return true
 end
 
+-- How much of something a requirement asks for. A bare number means "at least
+-- this many" and reads as itself; the comparison form the condition vocabulary
+-- allows ({ "at_most": 6 }) has to be spelled out instead. This function renders
+-- `needs` and `accepts` as well as `cost`, and only costs are always numbers —
+-- concatenating the map form is what took the interface down when the first
+-- card carrying one was hovered.
+local function amount_text(v)
+	if type(v) ~= "table" then return tostring(v), "" end
+	if v.equals   ~= nil then return tostring(v.equals),   "exactly " end
+	if v.at_least ~= nil then return tostring(v.at_least), "at least " end
+	if v.at_most  ~= nil then return tostring(v.at_most),  "at most " end
+	return "?", ""
+end
+
 -- "2 gold, 1 food" for a cost table, stat keys sorted for stable display.
 function M.cost_text(cost)
 	local keys = {}
@@ -188,9 +202,10 @@ function M.cost_text(cost)
 	table.sort(keys)
 	local parts = {}
 	for _, k in ipairs(keys) do
+		local n, qualifier = amount_text(cost[k])
 		local tag = k:match("^sacrifice:(.+)$")
-		parts[#parts + 1] = tag and ("sacrifice " .. cost[k] .. " " .. tag)
-			or (cost[k] .. " " .. k)
+		parts[#parts + 1] = tag and ("sacrifice " .. n .. " " .. tag)
+			or (qualifier .. n .. " " .. k)
 	end
 	return table.concat(parts, ", ")
 end
@@ -347,15 +362,17 @@ end
 
 -- Load (and cache) the asset image for a card def, returns nil if missing
 -- (or, for a browser URL asset, not yet fetched — ask again next frame).
-function M.image(def_key)
-	if img_cache[def_key] ~= nil then return img_cache[def_key] or nil end
-	local def = declaration.G.card_defs[def_key]
-	local asset = def and def.asset
-	-- A game may opt every card without art into a generated placeholder, so a
-	-- brand-new file has visual differentiation from its first save.
-	if not asset and declaration.G.placeholder_art then asset = "auto" end
-	if not asset then img_cache[def_key] = false; return nil end
-	if asset == "auto" then asset = art.auto(def_key) end
+-- Load an asset spec — a bare filename in games/assets, an http(s) URL, or a
+-- shape the art module draws — and cache it under `key`.
+--
+-- Split out of M.image because none of this ever cared which *card* asked: a
+-- zone wants a picture on its board by the same rules, with the same allowlist
+-- and the same refusals. Callers own the cache key, so a zone named like a card
+-- cannot collide with it.
+function M.asset_image(asset, key)
+	if img_cache[key] ~= nil then return img_cache[key] or nil end
+	if not asset then img_cache[key] = false; return nil end
+	local def_key = key
 	if tostring(asset):match("^https?://") then
 		if not M.url_is_safe(asset) then
 			print("asset URL refused (contains characters not valid in a URL): " .. tostring(asset))
@@ -387,6 +404,16 @@ function M.image(def_key)
 	local ok, i = pcall(love.graphics.newImage, "games/assets/" .. asset)
 	img_cache[def_key] = ok and i or false
 	return img_cache[def_key] or nil
+end
+
+function M.image(def_key)
+	local def   = declaration.G.card_defs[def_key]
+	local asset = def and def.asset
+	-- A game may opt every card without art into a generated placeholder, so a
+	-- brand-new file has visual differentiation from its first save.
+	if not asset and declaration.G.placeholder_art then asset = "auto" end
+	if asset == "auto" then asset = art.auto(def_key) end
+	return M.asset_image(asset, def_key)
 end
 
 return M

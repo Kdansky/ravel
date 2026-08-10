@@ -46,7 +46,9 @@ local SHAPES = {
 	dots     = { n = 3, min = 1, max = 8 },
 }
 
-local function colour(word)
+-- A colour word: a palette name or "#rrggbb". Shared with the renderer, which
+-- lets a zone paint its squares from the same vocabulary a card's art uses.
+function M.colour(word)
 	if type(word) ~= "string" then return nil end
 	if PALETTE[word] then return PALETTE[word] end
 	local r, g, b = word:match("^#(%x%x)(%x%x)(%x%x)$")
@@ -81,9 +83,9 @@ function M.parse(spec)
 	end
 	if sd.n then n = math.max(sd.min, math.min(sd.max, n or sd.n)) else n = nil end
 
-	local fg = colour(parts[i])
+	local fg = M.colour(parts[i])
 	if not fg then return nil end
-	local bg = colour(parts[i + 1]) or backdrop(fg)
+	local bg = M.colour(parts[i + 1]) or backdrop(fg)
 	if parts[i + 2] then return nil end   -- trailing junk is a typo, not art
 
 	return { shape = parts[1], n = n, fg = fg, bg = bg }

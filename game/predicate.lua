@@ -5,6 +5,7 @@
 local entity      = require("entity")
 local zones       = require("zones")
 local tags        = require("tags")
+local geometry    = require("geometry")
 local declaration = require("declaration")
 
 local M = {}
@@ -73,19 +74,45 @@ end
 -- Every subject and threshold is coerced or type-checked before use; anything
 -- that doesn't check out fails the condition rather than crashing.
 
--- Whose card this is: the seat of the zone it sits in. A card in a shared zone
--- has no owner, which is why an unqualified scope filters by nothing — "mine"
--- would otherwise have to mean "mine or unowned", and that special case is
--- exactly what this vocabulary exists to avoid.
+-- Whose piece a card is (see tags.owner_of). Re-exported so that ownership has
+-- one name everywhere conditions are written about.
+--
+-- A card with no owner at all still filters by nothing, which is why "mine"
+-- must never come to mean "mine or unowned" — the ambiguity this vocabulary
+-- exists to avoid.
+M.owner_of = tags.owner_of
+
+-- Who a card answers for when a condition asks. As owner_of, except that a seat
+-- card answers with its own key — that is what makes "score@mine" find the
+-- active seat's own stat bag.
+function M.seat_of(e)
+	local G = declaration.G
+	if e and G.seat_set and G.seat_set[e.def_key] then return e.def_key end
+	return M.owner_of(e)
+end
+
 local function owned_by(e, owner, active)
 	if owner == nil or owner == "anyone" then return true end
-	local z = e.zone_id and entity.get(e.zone_id)
-	local seat = z and z.seat
-	if declaration.G.seat_set and declaration.G.seat_set[e.def_key] then
-		seat = e.def_key
-	end
+	local seat = M.seat_of(e)
 	if owner == "mine" then return seat ~= nil and seat == active end
 	return seat ~= nil and seat ~= active
+end
+
+-- The squares a named pattern picks out. Absolute patterns name a board (or
+-- take the only one); relative patterns are anchored on the acting card, and
+-- name nothing when it is not standing on a square.
+function M.pattern_slots(name, ctx)
+	local pat = (declaration.G.pattern_defs or {})[name]
+	if not pat then return {} end
+	if pat.absolute then
+		local z = pat.zone and zones.find(pat.zone) or zones.sole_grid()
+		return geometry.squares(pat, z)
+	end
+	local c = ctx and ctx.card_id and entity.get(ctx.card_id)
+	if not (c and c.slot_id) then return {} end
+	return geometry.reach(c.slot_id, pat,
+		geometry.facing(tags.owner_of(c) or zones.active_seat(),
+			declaration.G.seat_list or {}))
 end
 
 -- Turn a scope into the entities it means. The single place that decides, so
@@ -114,6 +141,17 @@ function M.entities_in_scope(scope, ctx, owner)
 		for _, id in ipairs(ctx and ctx.targets or {}) do
 			local e = entity.get(id)
 			if e then out[#out + 1] = e end
+		end
+	elseif (declaration.G.pattern_defs or {})[scope] then
+		-- A pattern names a shape, and a shape answers "what is standing there"
+		-- as readily as "where may I go" — so the same word serves a move and a
+		-- condition. An absolute pattern names squares outright, which is how
+		-- "these cells are empty" is asked without a condition of its own:
+		-- { "count:piece@castle_path": { "equals": 0 } }. A relative one is
+		-- anchored on the acting card, which is a neighbourhood.
+		for _, sid in ipairs(M.pattern_slots(scope, ctx)) do
+			local occ = entity.get(sid).occupant
+			if occ then out[#out + 1] = entity.get(occ) end
 		end
 	else
 		-- A zone key reaches every instance of it — both arenas, not just the
@@ -246,6 +284,20 @@ function M.met(cond, ctx)
 	-- scope fails rather than passing vacuously, or a cost would be free
 	-- exactly when nothing can pay it.
 	local p = M.parse_subject(cond.stat)
+
+	-- **A stat nobody carries is absent, not zero**, and every comparison
+	-- against it fails. Reading a missing value as 0 is C's mistake and it is
+	-- not repeated here: Lua tells nil from 0 and so does this vocabulary.
+	-- Without it "this rook has never moved" is true of a rook captured twenty
+	-- moves ago, because a sum over nobody is zero — a gate that opens exactly
+	-- when the thing it guards no longer exists.
+	--
+	-- The counting forms are exempt, and must be: no farms really is a count of
+	-- zero, and "these squares are empty" is written that way. `sum:`/`max:` are
+	-- exempt too — they are asked *of a pool*, and the measure of an empty pool
+	-- is honestly 0.
+	if p and p.fn == nil and #M.bearers(p, ctx) == 0 then return false end
+
 	if p and p.quant == "each" and p.fn == nil then
 		local ents = M.entities_in_scope(p.scope, ctx, p.owner)
 		if #ents == 0 then return false end

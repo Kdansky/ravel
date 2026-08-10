@@ -179,7 +179,11 @@ cards.edit("play_castle", "text", "Castle Lord")
 -- Tall narrow grids: an expedition column is five cells deep, so each cell is
 -- shorter than the text band a card reserves. Every shipped game gets a draw
 -- here for the same reason — layouts differ far more than draw code does.
-for _, g in ipairs({ "lost_cities.json", "kingdom.json", "road.json", "vigil.json", "menu.json" }) do
+-- chess.json is the densest of them: sixty-four cells, thirty-two cards, and
+-- the only board where a card is drawn on a square another card may be aiming
+-- at.
+for _, g in ipairs({ "lost_cities.json", "kingdom.json", "road.json", "vigil.json",
+	"chess.json", "menu.json" }) do
 	flow.init(g, 4)
 	render.rescale()
 	for _ = 1, 4 do frame(0.016) end

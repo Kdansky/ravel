@@ -5,6 +5,7 @@ local cards       = require("cards")
 local phase       = require("phase")
 local predicate   = require("predicate")
 local log         = require("log")
+local geometry    = require("geometry")
 local rng         = require("rng")
 
 local M = {}
@@ -188,17 +189,10 @@ HANDLERS["draw_from"] = function(p)
 end
 
 -- The only board, when there is exactly one — the fallback destination for
--- cards without a home tag in single-board games. Hidden grids (the engine's
--- own) are not boards: a card can't be moved onto one nobody can see.
+-- cards without a home tag in single-board games.
 local function sole_grid()
-	local found
-	for z in entity.each("zone") do
-		if z.zone_type == "grid" and not z.tags.hidden then
-			if found then return nil end
-			found = z.key
-		end
-	end
-	return found
+	local z = zones.sole_grid()
+	return z and z.key
 end
 
 HANDLERS["move_to"] = function(p, ctx)
@@ -207,13 +201,23 @@ HANDLERS["move_to"] = function(p, ctx)
 	-- back to the only board; the validator flags the ambiguous cases.
 	if not ctx or not ctx.card_id then return end
 	local dest = p[2]
+	-- A third argument says what to do about a piece already standing there:
+	-- "destroy", or the zone the taken piece goes to. Left out, an occupied
+	-- square refuses the move, which is what every game before this expected.
+	local on_occupied = p[3]
 	-- move_to:target — the card goes where the player chose. It is the only way
 	-- one card can offer two destinations ("advance the expedition, or discard
 	-- it"), and it is the same verb: "target" is already a scope word.
 	if dest == "target" then
 		local t = ctx.targets and ctx.targets[1] and entity.get(ctx.targets[1])
 		if not t then return end
-		if t.kind == "slot" then zones.place_in_slot(ctx.card_id, t.id)
+		if t.kind == "slot" then zones.place_in_slot(ctx.card_id, t.id, on_occupied)
+		-- Aiming at a piece means its *square* only once the author has said
+		-- what becomes of it — that is what a capture is. Left unsaid, aiming at
+		-- a card still means the zone it lies in, which is how "advance the
+		-- expedition" reads and how it has always worked.
+		elseif t.kind == "card" and t.slot_id and on_occupied then
+			zones.place_in_slot(ctx.card_id, t.slot_id, on_occupied)
 		elseif t.kind == "zone" then zones.move_card(ctx.card_id, t.id)
 		elseif t.zone_id then zones.move_card(ctx.card_id, t.zone_id) end
 		return
@@ -228,7 +232,7 @@ HANDLERS["move_to"] = function(p, ctx)
 	local t1  = ctx.targets and ctx.targets[1]
 	local tgt = t1 and entity.get(t1)
 	if tgt and tgt.kind == "slot" and tgt.zone_id == to_id then
-		zones.place_in_slot(ctx.card_id, tgt.id)
+		zones.place_in_slot(ctx.card_id, tgt.id, on_occupied)
 	else
 		zones.move_card(ctx.card_id, to_id)
 	end
@@ -386,6 +390,30 @@ HANDLERS["move_target_to"] = function(p, ctx)
 	end
 end
 
+-- place:<scope>:<col>:<row>  — put every card the scope names on that square of
+-- the only board, 1-based, row 1 at the top. This is the move that is not a
+-- move: it names where a piece ends up rather than how it travels, which is
+-- what a rule with fixed destinations (castling, a return-to-base) needs and
+-- what no direction can express. An occupied square refuses, so the caller's
+-- gate is what makes a two-piece placement all-or-nothing.
+HANDLERS["place"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	local z  = zones.sole_grid()
+	local col, row = tonumber(p[3]), tonumber(p[4])
+	if not (sc and z and col and row) then
+		content_error("place: needs a scope and a column and row, as place:<who>:<col>:<row>")
+		return
+	end
+	local slot_id = geometry.slot_at(z, col, row)
+	if not slot_id then
+		content_error("place: (" .. col .. "," .. row .. ") is off the board")
+		return
+	end
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		if e.kind == "card" and e.zone_id then zones.place_in_slot(e.id, slot_id) end
+	end
+end
+
 -- attach_to_target  — attach ctx.card_id as a child of ctx.targets[1].
 HANDLERS["attach_to_target"] = function(p, ctx)
 	if not ctx or not ctx.card_id or not ctx.targets or #ctx.targets == 0 then return end
@@ -404,7 +432,9 @@ end
 -- suite asserts no handler is missing).
 -- Types: zone, card, stat (a full subject, so it may carry a scope),
 -- phase, effect, gamefile, n (amount: number, count:<tag> or card:<key>),
--- any. A trailing "?" marks the argument optional.
+-- occupied (what to do with a piece already standing there: "refuse",
+-- "destroy", or the zone it goes to), any. A trailing "?" marks the argument
+-- optional.
 -- Networking, as something a card can do. The engine knows the *words* — so
 -- the validator does too, and a game file naming them is checked like any other
 -- — while the behaviour behind them lives entirely in net.lua and arrives only
@@ -435,9 +465,10 @@ local SPEC = {
 	shuffle           = "zone",
 	draw_from         = "zone zone n",
 	return_to         = "zone zone",
-	move_to           = "zone?",
+	move_to           = "zone? occupied?",
 	add_to            = "zone",
 	move_target_to    = "zone",
+	place             = "scope any any",
 	gain_stat         = "stat n",
 	lose_stat         = "stat n",
 	spend_stat        = "stat n",

@@ -74,6 +74,14 @@ Slots know `slot_idx` and their zone knows `grid = {cols, rows}`
 reads it. Targeting eligibility (`game/targeting.lua:12`) is "every empty slot",
 optionally filtered by zone.
 
+> **Superseded by [idea 08](08-grid-movement-notation.md).** The `slide:`/`step:`/
+> `leap:` verbs below were compared against four other notations and lost: they
+> make the engine learn a word per movement *kind*, and they force blocking to be
+> guessed from an offset's shape. The chosen design declares direction vectors in
+> a top-level `patterns` block and reads them as *directions*, which makes
+> blocking, leaping and range one concept instead of four. The rest of this
+> section — the gap it names, and the `geometry.reachable` shape — still holds.
+
 **Change — a movement spec on the card template**, in the engine's existing
 `op:param` string style (DESIGN.md forbids nested arrays and code-like
 expressions, so this must stay flat strings):

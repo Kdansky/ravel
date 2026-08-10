@@ -1,6 +1,8 @@
 local entity      = require("entity")
 local cards       = require("cards")
 local declaration = require("declaration")
+local geometry    = require("geometry")
+local tags        = require("tags")
 local rng         = require("rng")
 
 local M = {}
@@ -41,6 +43,9 @@ local function build(def, seat, pos)
 		tags      = def.tags_set or {},
 		grid      = def.grid,
 		fit       = def.fit,
+		checker   = def.checker,   -- two colours, alternated across the squares
+		asset     = def.asset,     -- a picture behind the whole zone
+		paint     = def.paint,     -- pattern name → colour or picture, per square
 		cards     = {},
 		slots     = {},   -- slot_idx → slot entity ID (grid zones only)
 		contents  = def.contents,
@@ -65,6 +70,12 @@ local function build(def, seat, pos)
 				zone_id  = e.id,
 				slot_idx = idx,
 				occupant = nil,
+				-- Where on the board this is, as ordinary stats, so a condition
+				-- reads it with the vocabulary it already has ("row@target")
+				-- rather than the engine growing a second way to ask for a
+				-- number. Same row-major arithmetic as cell_rect below.
+				stats    = { col = (idx - 1) % cols + 1,
+					row = math.floor((idx - 1) / cols) + 1 },
 				place    = { x = 0, y = 0, w = 0, h = 0 },
 			}
 			entity.register(slot)
@@ -194,6 +205,26 @@ function M.move_card(card_id, to_id)
 	return true
 end
 
+-- A piece knows where it stands, as its own stats: "col" and "row" straight off
+-- the square, and "rank" counted from its owner's own side so that a pawn's
+-- home is rank 2 whichever colour it is. Conditions and computed tags then read
+-- a piece's position with the vocabulary they already have — "promoting" is
+-- { "stat": "rank", "at_least": 8 } and needs nothing new at all.
+--
+-- Only stamped on cards that already carry the stat, following the same rule as
+-- every other stat change: a board game declares them in card_stats, and a card
+-- game that never asks where anything is stays untouched.
+local function stamp_position(card_id)
+	local c    = entity.get(card_id)
+	local slot = c and c.slot_id and entity.get(c.slot_id)
+	local z    = slot and entity.get(slot.zone_id)
+	if not (z and z.grid and c.stats) then return end
+	local facing = geometry.facing(tags.owner_of(c), declaration.G.seat_list or {})
+	if c.stats.col  then c.stats.col  = slot.stats.col end
+	if c.stats.row  then c.stats.row  = slot.stats.row end
+	if c.stats.rank then c.stats.rank = geometry.rank(z, slot.stats.row, facing) end
+end
+
 -- A card in a grid zone without a chosen slot takes the first free one, so
 -- cards can be placed friction-free (creation, drafts) or precisely
 -- (slot targeting overrides this in place_in_slot).
@@ -206,6 +237,7 @@ function M.auto_slot(card_id)
 		if s and not s.occupant then
 			s.occupant = card_id
 			c.slot_id  = sid
+			stamp_position(card_id)
 			return
 		end
 	end
@@ -233,10 +265,26 @@ function M.destroy_card(card_id)
 	c.stats   = {}
 end
 
--- Place a card into a specific slot on a grid zone.
-function M.place_in_slot(card_id, slot_id)
+-- Place a card into a specific slot on a grid zone. What happens to a slot that
+-- is already taken is the caller's to say: refusing is the default and what
+-- every game before board movement assumed, but a piece taking another piece is
+-- a move onto an occupied square and nothing else. The occupant leaves before
+-- the arrival is attempted, so a capture onto a full board still has a free
+-- square to land on, and a tray with no room refuses the whole move rather than
+-- destroying a piece it could not store.
+function M.place_in_slot(card_id, slot_id, on_occupied)
 	local slot = entity.get(slot_id)
-	if not slot or (slot.occupant ~= nil and slot.occupant ~= card_id) then return false end
+	if not slot then return false end
+	local held = slot.occupant
+	if held ~= nil and held ~= card_id then
+		if on_occupied == nil or on_occupied == "refuse" then return false end
+		if on_occupied == "destroy" then
+			M.destroy_card(held)
+		else
+			local to = M.find_id(on_occupied)
+			if not (to and M.move_card(held, to)) then return false end
+		end
+	end
 	M.move_card(card_id, slot.zone_id)
 	local card = entity.get(card_id)
 	-- release whatever slot move_card auto-assigned on grid entry
@@ -246,7 +294,22 @@ function M.place_in_slot(card_id, slot_id)
 	end
 	card.slot_id  = slot_id
 	slot.occupant = card_id
+	stamp_position(card_id)
 	return true
+end
+
+-- The only board, when there is exactly one — what a coordinate means when
+-- nothing said which grid it was on. Hidden grids (the engine's own) are not
+-- boards: nothing can be placed on one nobody can see.
+function M.sole_grid()
+	local found
+	for z in entity.each("zone") do
+		if z.zone_type == "grid" and not z.tags.hidden then
+			if found then return nil end
+			found = z
+		end
+	end
+	return found
 end
 
 function M.shuffle(zone_id)
@@ -257,10 +320,12 @@ end
 
 -- The pixel rect of cell `idx` in a grid zone, 1-based and row-major. Shared
 -- with the renderer, which needs the same cell for a card that has no slot.
-function M.cell_rect(z, idx)
+-- `pad` is the gap that keeps cards from touching; pass 0 for the square
+-- itself, which on a chessboard has to tile edge to edge.
+function M.cell_rect(z, idx, pad)
 	local g    = z.grid or { 4, 3 }
 	local cols = g[1]
-	local pad  = 4
+	pad        = pad or 4
 	local cw   = z.place.w / cols
 	local ch   = z.place.h / (g[2] or 3)
 	local col  = (idx - 1) % cols

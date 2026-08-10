@@ -37,9 +37,12 @@ end
 
 -- A card in another seat's zone is not yours to play, whatever an interface
 -- lets you click. Cards in shared zones belong to nobody and stay reachable.
+-- A card you may act on: your piece, or nobody's. Asked of the card rather than
+-- of the zone it lies in, because a board can be shared while the pieces on it
+-- are not — otherwise white could move black's rook, both being "on the board".
 local function reachable(c)
-	local z = c and c.zone_id and entity.get(c.zone_id)
-	return not (z and z.seat) or z.seat == zones.active_seat()
+	local seat = predicate.owner_of(c)
+	return seat == nil or seat == zones.active_seat()
 end
 
 -- You play out of the phase's own zone — but only where the phase says which
@@ -454,6 +457,12 @@ function M.can_play(card_id)
 	if not M.can_afford(def.cost, { card_id = card_id }) then return false end
 	if predicate.meets_all(def.needs, { card_id = card_id }) then return true end
 	local z = entity.get(c.zone_id)
+	-- A zone tagged "optional" holds buttons, not a hand: nothing in it ever has
+	-- to be played, so there is no soft-lock for the hatch below to break, and
+	-- opening it would offer a move the rules had just refused. Chess's castling
+	-- cards are the case — all four are gated most of the game, and "nothing
+	-- else here is playable" is their normal state rather than a trap.
+	if z and z.tags.optional then return false end
 	for _, cid in ipairs(z and z.cards or {}) do
 		if cid ~= card_id and playable(cards.def(entity.get(cid)), { card_id = cid }) then
 			return false

@@ -30,6 +30,41 @@ function M.entity_has(e, tag)
     return false
 end
 
+-- Whose *piece* this is: the seat whose name it carries as a tag, or failing
+-- that the seat of the per-seat zone it lies in.
+--
+-- The tag rule exists for boards that are shared while the pieces on them are
+-- not. A chessboard is one zone — the pieces stand on the same squares — so
+-- without it every piece would be unowned and "enemy" would name nothing. It
+-- costs no new field: a seat is already a card key, so claiming one is writing
+-- "tags": ["white"].
+--
+-- **A tag outranks the zone**, because a zone's seat is where a thing *is* and
+-- a tag is whose it *is*, and those come apart the moment a game has more than
+-- two players: a planet held by player three, sitting in player two's system,
+-- is player three's to lose and player one's to attack. Ambient ownership is a
+-- default; an explicit claim beats it.
+--
+-- A seat card is nobody's piece, including its own. A party game tags four
+-- characters "player" and so has four seats, and all four must stay usable on
+-- one turn — you are not among the things you own.
+--
+-- Lives here rather than in predicate.lua because zones needs it too (to stamp
+-- a piece's rank, which counts from its owner's own side) and predicate is
+-- built on top of zones.
+function M.owner_of(e)
+	if not e then return nil end
+	if e.kind == "zone" then return e.seat end
+	local G = declaration.G
+	if e.kind == "card" and not (G.seat_set and G.seat_set[e.def_key]) then
+		for _, seat in ipairs(G.seat_list or {}) do
+			if M.entity_has(e, seat) then return seat end
+		end
+	end
+	local z = e.zone_id and entity.get(e.zone_id)
+	return z and z.seat
+end
+
 -- Return array of card entity IDs matching ALL filter_tags.
 -- zone_set: {zone_type=true} restricts which zones to search; nil = any non-deck.
 function M.find_targets(filter_tags, zone_set)

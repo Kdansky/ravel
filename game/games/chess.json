@@ -1,0 +1,1745 @@
+{
+  "title": "Chess",
+  "patterns": {
+    "line_ortho": {
+      "vectors": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "class": [
+        "ray",
+        "mirrored"
+      ]
+    },
+    "line_diag": {
+      "vectors": [
+        [
+          1,
+          1
+        ]
+      ],
+      "class": [
+        "ray",
+        "mirrored"
+      ]
+    },
+    "adjacent": {
+      "vectors": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "class": [
+        "step",
+        "mirrored"
+      ]
+    },
+    "knight_leap": {
+      "vectors": [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "class": [
+        "step",
+        "mirrored"
+      ]
+    },
+    "pawn_step": {
+      "vectors": [
+        [
+          0,
+          1
+        ]
+      ],
+      "class": [
+        "step"
+      ]
+    },
+    "pawn_run": {
+      "vectors": [
+        [
+          0,
+          1
+        ]
+      ],
+      "class": [
+        "ray:2"
+      ]
+    },
+    "pawn_take": {
+      "vectors": [
+        [
+          1,
+          1
+        ],
+        [
+          -1,
+          1
+        ]
+      ],
+      "class": [
+        "step"
+      ]
+    },
+    "w_castle_q_path": {
+      "vectors": [
+        [
+          2,
+          8
+        ],
+        [
+          3,
+          8
+        ],
+        [
+          4,
+          8
+        ]
+      ],
+      "class": [
+        "absolute"
+      ],
+      "zone": "board"
+    },
+    "w_castle_k_path": {
+      "vectors": [
+        [
+          6,
+          8
+        ],
+        [
+          7,
+          8
+        ]
+      ],
+      "class": [
+        "absolute"
+      ],
+      "zone": "board"
+    },
+    "b_castle_q_path": {
+      "vectors": [
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "class": [
+        "absolute"
+      ],
+      "zone": "board"
+    },
+    "b_castle_k_path": {
+      "vectors": [
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ],
+      "class": [
+        "absolute"
+      ],
+      "zone": "board"
+    }
+  },
+  "zones": [
+    {
+      "key": "board",
+      "type": "grid",
+      "grid": [
+        8,
+        8
+      ],
+      "pos": [
+        0.28,
+        0.03,
+        0.72,
+        0.97
+      ],
+      "tags": [
+        "activate"
+      ],
+      "fit": "fill",
+      "checker": [
+        "#f0d9b5",
+        "#b58863"
+      ]
+    },
+    {
+      "key": "taken",
+      "type": "pile",
+      "per_seat": true,
+      "pos": [
+        [
+          0.76,
+          0.65,
+          0.97,
+          0.95
+        ],
+        [
+          0.76,
+          0.05,
+          0.97,
+          0.35
+        ]
+      ]
+    },
+    {
+      "key": "b_options",
+      "type": "hand",
+      "tags": [
+        "optional"
+      ],
+      "pos": [
+        0.76,
+        0.36,
+        0.97,
+        0.44
+      ],
+      "contents": [
+        "b_castle_q:1",
+        "b_castle_k:1"
+      ]
+    },
+    {
+      "key": "rules",
+      "type": "pile",
+      "pos": [
+        0.76,
+        0.45,
+        0.97,
+        0.55
+      ],
+      "contents": [
+        "how_to_play:1"
+      ]
+    },
+    {
+      "key": "w_options",
+      "type": "hand",
+      "tags": [
+        "optional"
+      ],
+      "pos": [
+        0.76,
+        0.56,
+        0.97,
+        0.64
+      ],
+      "contents": [
+        "w_castle_q:1",
+        "w_castle_k:1"
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "key": "white_move",
+      "type": "player_input",
+      "label": "White to move",
+      "seat": "next"
+    },
+    {
+      "key": "black_move",
+      "type": "player_input",
+      "label": "Black to move",
+      "seat": "next"
+    }
+  ],
+  "end_conditions": [
+    {
+      "stat": "card:w_king_e",
+      "equals": 0,
+      "then": [
+        "load_game:menu.json"
+      ]
+    },
+    {
+      "stat": "card:b_king_e",
+      "equals": 0,
+      "then": [
+        "load_game:menu.json"
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "key": "white",
+      "text": "White",
+      "tags": [
+        "player"
+      ]
+    },
+    {
+      "key": "black",
+      "text": "Black",
+      "tags": [
+        "player"
+      ]
+    },
+    {
+      "key": "how_to_play",
+      "text": "How to play",
+      "tags": [
+        "immutable"
+      ],
+      "phases": [],
+      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. Click an enemy piece to take it \u2014 its square lights up too.\n\nCastling: the two buttons beside your graveyard. Needs king and rook both unmoved, and the squares between them empty.\n\nNot implemented yet:\n- Check and checkmate. You win by capturing the king, and nothing stops you moving into check or castling through it.\n- En passant.\n- Pawn promotion. A pawn reaching the far rank just stops there.\n- Draws: stalemate, threefold repetition, the fifty-move rule.\n- Resigning and offering a draw."
+    },
+    {
+      "key": "w_rook_a",
+      "text": "White Rook",
+      "tooltip": "a1 \u2014 white rook",
+      "asset": "Chess_rlt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "rook",
+        "w_rook_a",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_ortho"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 57
+    },
+    {
+      "key": "w_knight_b",
+      "text": "White Knight",
+      "tooltip": "b1 \u2014 white knight",
+      "asset": "Chess_nlt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "knight",
+        "w_knight_b",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "knight_leap"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 58
+    },
+    {
+      "key": "w_bishop_c",
+      "text": "White Bishop",
+      "tooltip": "c1 \u2014 white bishop",
+      "asset": "Chess_blt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "bishop",
+        "w_bishop_c",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_diag"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 59
+    },
+    {
+      "key": "w_queen_d",
+      "text": "White Queen",
+      "tooltip": "d1 \u2014 white queen",
+      "asset": "Chess_qlt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "queen",
+        "w_queen_d",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_ortho",
+        "line_diag"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 60
+    },
+    {
+      "key": "w_king_e",
+      "text": "White King",
+      "tooltip": "e1 \u2014 white king",
+      "asset": "Chess_klt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "king",
+        "w_king_e",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "adjacent"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 61
+    },
+    {
+      "key": "w_bishop_f",
+      "text": "White Bishop",
+      "tooltip": "f1 \u2014 white bishop",
+      "asset": "Chess_blt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "bishop",
+        "w_bishop_f",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_diag"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 62
+    },
+    {
+      "key": "w_knight_g",
+      "text": "White Knight",
+      "tooltip": "g1 \u2014 white knight",
+      "asset": "Chess_nlt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "knight",
+        "w_knight_g",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "knight_leap"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 63
+    },
+    {
+      "key": "w_rook_h",
+      "text": "White Rook",
+      "tooltip": "h1 \u2014 white rook",
+      "asset": "Chess_rlt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "rook",
+        "w_rook_h",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_ortho"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 64
+    },
+    {
+      "key": "w_pawn_a",
+      "text": "White Pawn",
+      "tooltip": "a2 \u2014 white pawn",
+      "asset": "Chess_plt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "pawn",
+        "w_pawn_a",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 49
+    },
+    {
+      "key": "w_pawn_b",
+      "text": "White Pawn",
+      "tooltip": "b2 \u2014 white pawn",
+      "asset": "Chess_plt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "pawn",
+        "w_pawn_b",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 50
+    },
+    {
+      "key": "w_pawn_c",
+      "text": "White Pawn",
+      "tooltip": "c2 \u2014 white pawn",
+      "asset": "Chess_plt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "pawn",
+        "w_pawn_c",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 51
+    },
+    {
+      "key": "w_pawn_d",
+      "text": "White Pawn",
+      "tooltip": "d2 \u2014 white pawn",
+      "asset": "Chess_plt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "pawn",
+        "w_pawn_d",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 52
+    },
+    {
+      "key": "w_pawn_e",
+      "text": "White Pawn",
+      "tooltip": "e2 \u2014 white pawn",
+      "asset": "Chess_plt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "pawn",
+        "w_pawn_e",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 53
+    },
+    {
+      "key": "w_pawn_f",
+      "text": "White Pawn",
+      "tooltip": "f2 \u2014 white pawn",
+      "asset": "Chess_plt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "pawn",
+        "w_pawn_f",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 54
+    },
+    {
+      "key": "w_pawn_g",
+      "text": "White Pawn",
+      "tooltip": "g2 \u2014 white pawn",
+      "asset": "Chess_plt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "pawn",
+        "w_pawn_g",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 55
+    },
+    {
+      "key": "w_pawn_h",
+      "text": "White Pawn",
+      "tooltip": "h2 \u2014 white pawn",
+      "asset": "Chess_plt60.png",
+      "tags": [
+        "white",
+        "piece",
+        "pawn",
+        "w_pawn_h",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 56
+    },
+    {
+      "key": "b_rook_a",
+      "text": "Black Rook",
+      "tooltip": "a8 \u2014 black rook",
+      "asset": "Chess_rdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "rook",
+        "b_rook_a",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_ortho"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 1
+    },
+    {
+      "key": "b_knight_b",
+      "text": "Black Knight",
+      "tooltip": "b8 \u2014 black knight",
+      "asset": "Chess_ndt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "knight",
+        "b_knight_b",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "knight_leap"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 2
+    },
+    {
+      "key": "b_bishop_c",
+      "text": "Black Bishop",
+      "tooltip": "c8 \u2014 black bishop",
+      "asset": "Chess_bdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "bishop",
+        "b_bishop_c",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_diag"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 3
+    },
+    {
+      "key": "b_queen_d",
+      "text": "Black Queen",
+      "tooltip": "d8 \u2014 black queen",
+      "asset": "Chess_qdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "queen",
+        "b_queen_d",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_ortho",
+        "line_diag"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 4
+    },
+    {
+      "key": "b_king_e",
+      "text": "Black King",
+      "tooltip": "e8 \u2014 black king",
+      "asset": "Chess_kdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "king",
+        "b_king_e",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "adjacent"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 5
+    },
+    {
+      "key": "b_bishop_f",
+      "text": "Black Bishop",
+      "tooltip": "f8 \u2014 black bishop",
+      "asset": "Chess_bdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "bishop",
+        "b_bishop_f",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_diag"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 6
+    },
+    {
+      "key": "b_knight_g",
+      "text": "Black Knight",
+      "tooltip": "g8 \u2014 black knight",
+      "asset": "Chess_ndt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "knight",
+        "b_knight_g",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "knight_leap"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 7
+    },
+    {
+      "key": "b_rook_h",
+      "text": "Black Rook",
+      "tooltip": "h8 \u2014 black rook",
+      "asset": "Chess_rdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "rook",
+        "b_rook_h",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        "line_ortho"
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 8
+    },
+    {
+      "key": "b_pawn_a",
+      "text": "Black Pawn",
+      "tooltip": "a7 \u2014 black pawn",
+      "asset": "Chess_pdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "pawn",
+        "b_pawn_a",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 9
+    },
+    {
+      "key": "b_pawn_b",
+      "text": "Black Pawn",
+      "tooltip": "b7 \u2014 black pawn",
+      "asset": "Chess_pdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "pawn",
+        "b_pawn_b",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 10
+    },
+    {
+      "key": "b_pawn_c",
+      "text": "Black Pawn",
+      "tooltip": "c7 \u2014 black pawn",
+      "asset": "Chess_pdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "pawn",
+        "b_pawn_c",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 11
+    },
+    {
+      "key": "b_pawn_d",
+      "text": "Black Pawn",
+      "tooltip": "d7 \u2014 black pawn",
+      "asset": "Chess_pdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "pawn",
+        "b_pawn_d",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 12
+    },
+    {
+      "key": "b_pawn_e",
+      "text": "Black Pawn",
+      "tooltip": "e7 \u2014 black pawn",
+      "asset": "Chess_pdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "pawn",
+        "b_pawn_e",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 13
+    },
+    {
+      "key": "b_pawn_f",
+      "text": "Black Pawn",
+      "tooltip": "f7 \u2014 black pawn",
+      "asset": "Chess_pdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "pawn",
+        "b_pawn_f",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 14
+    },
+    {
+      "key": "b_pawn_g",
+      "text": "Black Pawn",
+      "tooltip": "g7 \u2014 black pawn",
+      "asset": "Chess_pdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "pawn",
+        "b_pawn_g",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 15
+    },
+    {
+      "key": "b_pawn_h",
+      "text": "Black Pawn",
+      "tooltip": "h7 \u2014 black pawn",
+      "asset": "Chess_pdt60.png",
+      "tags": [
+        "black",
+        "piece",
+        "pawn",
+        "b_pawn_h",
+        "invisible_title_text",
+        "transparent_background"
+      ],
+      "card_stats": {
+        "rank": 0,
+        "moves_made": 0
+      },
+      "moves": [
+        {
+          "patterns": [
+            "pawn_step"
+          ],
+          "fill": "empty"
+        },
+        {
+          "patterns": [
+            "pawn_run"
+          ],
+          "fill": "empty",
+          "needs": {
+            "rank@self": {
+              "equals": 2
+            }
+          }
+        },
+        {
+          "patterns": [
+            "pawn_take"
+          ],
+          "fill": "enemy"
+        }
+      ],
+      "on_activate": [
+        "move_to:target:taken",
+        "gain_stat:moves_made@self:1",
+        "next_phase"
+      ],
+      "exhausts": false,
+      "auto_play": true,
+      "to_zone": "board",
+      "to_slot": 16
+    },
+    {
+      "key": "w_castle_q",
+      "text": "Castle queenside",
+      "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
+      "asset": "Chess_klt60.png",
+      "tags": [
+        "white",
+        "castling"
+      ],
+      "needs": {
+        "moves_made@w_king_e": {
+          "equals": 0
+        },
+        "moves_made@w_rook_a": {
+          "equals": 0
+        },
+        "count:piece@w_castle_q_path": {
+          "equals": 0
+        }
+      },
+      "on_play": [
+        "place:w_king_e:3:8",
+        "place:w_rook_a:4:8",
+        "gain_stat:moves_made@w_king_e:1",
+        "next_phase"
+      ]
+    },
+    {
+      "key": "w_castle_k",
+      "text": "Castle kingside",
+      "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
+      "asset": "Chess_klt60.png",
+      "tags": [
+        "white",
+        "castling"
+      ],
+      "needs": {
+        "moves_made@w_king_e": {
+          "equals": 0
+        },
+        "moves_made@w_rook_h": {
+          "equals": 0
+        },
+        "count:piece@w_castle_k_path": {
+          "equals": 0
+        }
+      },
+      "on_play": [
+        "place:w_king_e:7:8",
+        "place:w_rook_h:6:8",
+        "gain_stat:moves_made@w_king_e:1",
+        "next_phase"
+      ]
+    },
+    {
+      "key": "b_castle_q",
+      "text": "Castle queenside",
+      "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
+      "asset": "Chess_kdt60.png",
+      "tags": [
+        "black",
+        "castling"
+      ],
+      "needs": {
+        "moves_made@b_king_e": {
+          "equals": 0
+        },
+        "moves_made@b_rook_a": {
+          "equals": 0
+        },
+        "count:piece@b_castle_q_path": {
+          "equals": 0
+        }
+      },
+      "on_play": [
+        "place:b_king_e:3:1",
+        "place:b_rook_a:4:1",
+        "gain_stat:moves_made@b_king_e:1",
+        "next_phase"
+      ]
+    },
+    {
+      "key": "b_castle_k",
+      "text": "Castle kingside",
+      "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
+      "asset": "Chess_kdt60.png",
+      "tags": [
+        "black",
+        "castling"
+      ],
+      "needs": {
+        "moves_made@b_king_e": {
+          "equals": 0
+        },
+        "moves_made@b_rook_h": {
+          "equals": 0
+        },
+        "count:piece@b_castle_k_path": {
+          "equals": 0
+        }
+      },
+      "on_play": [
+        "place:b_king_e:7:1",
+        "place:b_rook_h:6:1",
+        "gain_stat:moves_made@b_king_e:1",
+        "next_phase"
+      ]
+    }
+  ]
+}

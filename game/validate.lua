@@ -46,11 +46,13 @@ local CARD_FIELDS = {
 	on_fail = true, on_pick = true, auto_play = true, to_zone = true,
 	to_slot = true, irreversible = true, outcome = true, tags_set = true,
 	injected = true, accepts = true, phases = true,
+	moves = true, move_rules = true,
 }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, fit = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
 	injected = true, per_seat = true, applies = true, accepts = true,
+	checker = true, asset = true, paint = true,
 }
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
@@ -66,7 +68,17 @@ local TAG_FIELDS      = { zone = true, on_activate = true, activate_target = tru
 	activate_cost = true, exhausts = true, phases = true, tooltip = true }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
-	owner = true }
+	owner = true, fill = true, moves = true }
+-- How a pattern's vectors are walked. A closed set the engine defines, unlike
+-- card and zone tags, which are the game's own vocabulary — hence the different
+-- word for it in the JSON.
+local PATTERN_CLASSES = { step = true, ray = true, phasing = true, mirrored = true,
+	absolute = true }
+-- Words that describe how a pattern is *walked*, and so mean nothing once its
+-- pairs are squares rather than directions.
+local WALKING_CLASSES = { step = true, ray = true, phasing = true, mirrored = true }
+-- What may already be standing on a targeted square. See targeting.slot_offered.
+local FILL_WORDS      = { empty = true, enemy = true, open = true, any = true }
 local ROUTE_FIELDS    = { stat = true, zone_empty = true, equals = true, at_least = true,
 	at_most = true, ["then"] = true, ends_round = true }
 local END_FIELDS      = { stat = true, zone_empty = true, equals = true, at_least = true,
@@ -198,6 +210,9 @@ function M.check(G)
 	for _, k in ipairs(RESERVED_SCOPES) do scope_names[k] = true end
 	for k in pairs(G.zone_defs) do scope_names[k] = true end
 	for k in pairs(known_tags) do scope_names[k] = true end
+	-- A pattern names a shape, and a shape answers "what is standing there" as
+	-- readily as "where may I go", so it is a scope too.
+	for k in pairs(G.pattern_defs or {}) do scope_names[k] = true end
 
 	-- A subject: [<fn>:]<stat|tag|card>[@[<quant>.]<scope>]. allow_fn is false
 	-- for costs, where count:/card:/sum:/max: have nothing to spend.
@@ -377,6 +392,13 @@ function M.check(G)
 				if not (sc and (G.zone_defs[sc.name] or sc.name == "target")) then
 					warn("%s: '%s' points at zone '%s', but no zone has that key%s",
 						where, op, a, suggest(sc and sc.name or a, G.zone_defs))
+				end
+			elseif t == "occupied" then
+				-- Either of the two words, or the zone a taken piece goes to.
+				local sc = a ~= "refuse" and a ~= "destroy" and predicate.parse_scope(a)
+				if sc and not G.zone_defs[sc.name] then
+					warn("%s: '%s' says '%s' happens to a piece already standing there — it should be 'destroy', 'refuse', or the zone taken pieces go to%s",
+						where, op, a, suggest(sc.name, G.zone_defs))
 				end
 			elseif t == "scope" then
 				local sc = predicate.parse_scope(a)
@@ -569,10 +591,80 @@ function M.check(G)
 		end
 	end
 
+	-- Movement patterns. Checked against the raw JSON shape rather than the
+	-- normalised one, because a mistyped class word or a vector that isn't a
+	-- pair is silently dropped by the normaliser and would otherwise show up
+	-- only as a piece that mysteriously cannot move.
+	local raw_patterns = type(G.raw_patterns) == "table" and G.raw_patterns or {}
+	for name, def in pairs(raw_patterns) do
+		local where = "pattern '" .. tostring(name) .. "'"
+		local vectors, class = def, nil
+		if type(def) == "table" and def.vectors ~= nil then
+			vectors, class = def.vectors, def.class
+		end
+		if type(vectors) ~= "table" or #vectors == 0 then
+			warn('%s: should be a list of [x, y] pairs, like [[1,0],[0,1]]', where)
+		end
+		for _, v in ipairs(type(vectors) == "table" and vectors or {}) do
+			if type(v) ~= "table" or tonumber(v[1]) == nil or tonumber(v[2]) == nil or #v ~= 2 then
+				warn("%s: every direction is a pair of whole numbers — [1,2] means one column across and two rows on", where)
+			elseif tonumber(v[1]) == 0 and tonumber(v[2]) == 0 then
+				warn("%s: [0,0] is not a direction — it never leaves the square it started on", where)
+			end
+		end
+		if class ~= nil and type(class) ~= "table" then
+			warn('%s: "class" should be a list, like ["ray", "mirrored"]', where)
+		end
+		local absolute = false
+		for _, w in ipairs(type(class) == "table" and class or {}) do
+			if tostring(w) == "absolute" then absolute = true end
+		end
+		for _, w in ipairs(type(class) == "table" and class or {}) do
+			local word, arg = tostring(w):match("^([%a_]+):?(%d*)$")
+			if not (word and PATTERN_CLASSES[word]) then
+				warn("%s: '%s' is not a way of walking a pattern%s", where, tostring(w),
+					suggest(word or tostring(w), PATTERN_CLASSES))
+			elseif arg ~= "" and word ~= "ray" then
+				warn("%s: only 'ray' takes a distance — '%s:%s' means nothing", where, word, arg)
+			elseif absolute and WALKING_CLASSES[word] then
+				warn("%s: is absolute, so its pairs are squares and '%s' has no path to describe",
+					where, word)
+			end
+		end
+		-- A square belongs to a board; a direction is anchored on whoever is
+		-- moving and needs none.
+		if type(def) == "table" and def.zone ~= nil then
+			if not absolute then
+				warn('%s: only an absolute pattern names a "zone" — a direction is anchored on the piece using it', where)
+			elseif not G.zone_defs[def.zone] then
+				warn("%s: names zone '%s', but no zone has that key%s", where,
+					tostring(def.zone), suggest(def.zone, G.zone_defs))
+			end
+		elseif absolute and #grids ~= 1 then
+			warn('%s: is absolute, so it needs a "zone" — this game has %d boards and a bare square could mean either',
+				where, #grids)
+		end
+	end
+
 	-- Cards.
 	for key, def in pairs(G.card_defs) do
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
+		for _, rule in ipairs(def.move_rules or {}) do
+			for _, pname in ipairs(rule.patterns) do
+				if not G.pattern_defs[pname] then
+					warn("%s: moves by the pattern '%s', but none is declared under \"patterns\"%s",
+						where, tostring(pname), suggest(pname, G.pattern_defs))
+				end
+			end
+			if not FILL_WORDS[rule.fill] then
+				warn("%s: a move's fill should be 'empty', 'enemy', 'open' or 'any', not '%s'",
+					where, tostring(rule.fill))
+			end
+		end
+		if def.moves and not def.on_activate then
+			warn("%s: says how it moves but has no on_activate — nothing happens when the square is chosen (usually \"move_to:target\")", where)
+		end
 		if def.asset and tostring(def.asset):match("^https?://") then
 			if not url_is_safe(def.asset) then
 				warn("%s: its image URL contains characters that aren't valid in a URL — it will be refused at load time",
@@ -641,6 +733,15 @@ function M.check(G)
 					end
 					if spec.tags then
 						warn("%s %s: targets a zone, so \"tags\" is not read (zones are named, not tagged)", where, field)
+					end
+				end
+				if spec.fill ~= nil then
+					if not FILL_WORDS[spec.fill] then
+						warn("%s %s: fill should be 'empty', 'enemy', 'open' or 'any', not '%s'",
+							where, field, tostring(spec.fill))
+					end
+					if spec.type ~= "slot" then
+						warn("%s %s: \"fill\" says what may be standing on a square, so it only applies to \"type\": \"slot\"", where, field)
 					end
 				end
 				for _, t in ipairs(type(spec.tags) == "table" and spec.tags or {}) do
@@ -738,6 +839,34 @@ function M.check(G)
 			warn("%s: covers the lower-left corner where the undo button and event log live — start it at x 0.19 or higher", where)
 		end
 		if def.type == "grid" then
+			-- Two colours alternated across the squares: what a board is.
+			if def.checker ~= nil then
+				if type(def.checker) ~= "table" or #def.checker ~= 2 then
+					warn('%s: checker should be two colours, like ["#f0d9b5", "#b58863"]', where)
+				else
+					for _, w in ipairs(def.checker) do
+						if not art.colour(w) then
+							warn("%s: '%s' is not a colour — use a palette name or #rrggbb%s",
+								where, tostring(w), suggest(w, art.colours()))
+						end
+					end
+				end
+			end
+			-- Squares named by an absolute pattern, given a colour or a picture.
+			for name, look in pairs(type(def.paint) == "table" and def.paint or {}) do
+				local pat = G.pattern_defs[name]
+				if not pat then
+					warn("%s: paints the squares of '%s', but no pattern has that name%s",
+						where, tostring(name), suggest(name, G.pattern_defs))
+				elseif not pat.absolute then
+					warn("%s: paints '%s', which is a pattern of directions — only an absolute pattern names squares to paint",
+						where, tostring(name))
+				end
+				if type(look) ~= "string" then
+					warn("%s: what '%s' is painted with should be a colour or a filename",
+						where, tostring(name))
+				end
+			end
 			if def.grid == nil then
 				warn('%s: a board needs "grid": [columns, rows]', where)
 			else

@@ -359,6 +359,7 @@ up the lantern or the pearl). The oldest matching card is taken.
 | `computed_tags` | Derived per-card tags (see below) |
 | `tags` | Tag behaviour — a tag is a mixin: it can give its cards a home `zone`, and can carry `on_activate` / `activate_target` / `activate_cost` / `exhausts` / `phases` / `tooltip`, which a zone may then hand to its contents with `applies` (see below) |
 | `effects` | Named visual effects on the base vocabulary (see below) |
+| `patterns` | Named direction sets for grid movement (see *Pieces that move*) |
 | `templates` | Card definitions (`cards` also accepted) |
 | `zones` | Zone definitions, in declaration order |
 | `phases` | Phase definitions; first entry starts the game |
@@ -393,13 +394,19 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
 | `accepts` | Condition map deciding whether a card being played may be sent **here** — the zone answers for itself, as a card does |
 | `per_seat` | `true` makes one copy of this zone per seat (see *Two or more players*). `pos` then takes one rect **per seat**: `[[…], […]]` |
+| `asset` | A picture behind the whole zone — the painted board most games have. Same asset rules as a card's: a filename in `games/assets/`, an `http(s)` URL, or a shape spec. Stretched to the zone's rect, since that rect is what the cells are computed from |
+| `checker` | Two colours alternated across a grid's squares, e.g. `["#f0d9b5", "#b58863"]` — what a chessboard or draughts board is. Palette names or `#rrggbb`, the same words a card's art uses. The top-left square takes the first colour |
+| `paint` | Individual squares, named by an **absolute pattern**: `{"goal_row": "gold", "water": "water_tile.png"}`. A colour or a picture. Terrain, goal squares, home rows — patterns already name sets of cells, so this needs no second way of saying which |
 | `tags` | See below |
 
 Zone tags: `shuffle` (on contents creation and refill), `refill_when_empty`
 (recreate `contents` when emptied), `face_up` / `face_down` (override facing),
 `no_peek` (no tooltip/browse), `hidden` (not drawn; offer zones, fate decks),
 `activate` (cards here may use `on_activate` — without it an ability is
-unreachable wherever the card sits, so every board needs it).
+unreachable wherever the card sits, so every board needs it), `optional`
+(nothing here ever has to be played, so a gated card stays gated instead of
+being force-enabled when nothing else in the zone is playable — for zones of
+buttons rather than hands).
 
 Cards entering a grid without slot targeting auto-occupy the first free slot.
 A full board refuses new arrivals: moves fail quietly and `fill`/`gain` stop
@@ -428,16 +435,18 @@ would. The fetch never blocks the game: on desktop it runs on a worker thread an
 permanently, if the fetch fails) rather than being validated at load time —
 there is nothing to check until the request actually runs.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
-| `tags` | Free vocabulary for targeting/counting; engine-known: `token` (vanishes instead of joining the discard; swept before new pass cards deal) |
+| `tags` | Free vocabulary for targeting/counting; engine-known: `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it), `invisible_title_text` (draw no title; the picture is the whole card, and the band it would have used goes to the art), `transparent_background` (no plate behind the art, so a transparent PNG shows the board through it — and dimming tints the art rather than laying a dark rectangle over the square) |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `on_turn`) |
 | `cost` | Spent on play; gates and dims when unaffordable. `"sacrifice:<tag>": n` pays by destroying n board cards with that tag |
 | `activate_cost` | Spent on activation (sacrifices allowed here too) |
 | `needs` | Non-consuming gate (shared condition subjects); escape hatch: playable anyway if nothing else in the zone is |
 | `requires` | Checked by `resolve_challenge` → `on_pass` / `on_fail` |
-| `target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`) |
+| `target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
+| `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
 | `accepts` | Condition map deciding whether **this** card may be targeted by the card being played (see *Legality between two cards*). Zones take it too |
 | `phases` | Phase key or list: the card works only in those phases. Naming none means any. This is "cast only during your main phase" |
 | `activate_target` | Same shape, for `on_activate`: clicking the board card opens targeting before the ability runs |
+| `moves` | How a piece moves on a grid: pattern names, or rules carrying their own `fill`/`needs`. Writes the `activate_target` for you (see *Pieces that move*) |
 | `on_play` | Actions when played (ctx: this card + chosen targets) |
 | `on_activate` | Actions when clicked on the board; **exhausts** the card until the round wraps. A board card shows three states: ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable) |
 | `exhausts` | `false` keeps the card ready after activating — a permanently clickable button ("pass the time") |
@@ -494,6 +503,10 @@ Used by `next`, `end_conditions`, `requires`, `needs`. Subjects: a stat key,
 `count:<tag>` (cards on grid zones with that tag), or `card:<key>` (instances
 of that specific template on grid zones — "does the player have the rusty key?").
 
+**A square on a grid carries `col` and `row` as ordinary stats**, 1-based and
+row-major, so where something is on the board is asked with the vocabulary
+already here: `{ "row@target": { "equals": 8 } }` is "the far rank".
+
 - Object form: `{ "stat": "progress", "at_least": 12 }` (`equals` / `at_least` / `at_most`) or `{ "zone_empty": ["road", "hand"] }`.
 - Map form (`requires`, `needs`, `accepts`): `{ "might": 8, "count:farm": 3 }` — a bare number means **at least** n, much the commonest thing to ask.
 - To ask the other way, the value is a comparison instead:
@@ -506,6 +519,16 @@ The type decides at run time — a number is a number, a string is measured:
 { "stat": "score@north_side", "at_least": "score@south_side" }
 { "value@target": { "at_least": "max:value@mine.red" } }
 ```
+
+**A stat nobody carries is absent, not zero**, and every comparison against it
+fails — including `equals: 0` and `at_most: n`. Without that rule "this rook has
+never moved" would be true of a rook captured twenty moves ago, since a sum over
+nobody is zero: a gate that opens exactly when the thing it guards stops
+existing. `nil` and `0` are different, here as in Lua.
+
+The measuring forms are exempt and mean what they say: `count:` and `card:` over
+nothing really is zero (which is how "these squares are empty" is written), and
+`sum:`/`max:` are asked *of a pool*, whose empty measure is honestly zero.
 
 A subject used this way must *look* like one — it has to name a scope (`@…`)
 or a measuring fn (`sum:`, `max:`, `count:`, `card:`). A bare word is treated
@@ -652,13 +675,154 @@ on entry, so alternation is just two phases:
 Handing over **clears the undo history** — undoing across it would either show
 a player something they never saw or rewrite a decision that was not theirs.
 
-Three rules the engine enforces so no interface has to: a card in another
-seat's zone cannot be played; a card outside the phase's declared `zone` cannot
+**Pieces on a shared board** belong to a seat without the board doing so. Tag a
+card with a seat's key and it is that seat's:
+
+```json
+{ "key": "w_rook", "text": "White Rook", "tags": ["white", "piece"] }
+```
+
+A chessboard is one zone, not two, so ownership cannot come from the zone; this
+is how `mine` and `enemy` still tell the pieces apart, and how the engine knows
+white may not move black's rook. A seat card itself is nobody's piece, so a
+party game that tags four characters `player` keeps all four usable on one turn.
+
+Three rules the engine enforces so no interface has to: a card another seat owns
+cannot be played or activated; a card outside the phase's declared `zone` cannot
 be played; and a target the rules did not allow is refused even if a script
 passes it directly.
 
 Everything above is invisible in a one-player game: there is exactly one seat,
 every owner word means the same cards, and no handover ever happens.
+
+### Pieces that move
+
+A grid game says how its pieces move in one top-level `patterns` block, and each
+piece names the patterns it uses. **A pair is a direction, not a destination** —
+it is applied up to `range` times, and each repetition has to pass through the
+one before it. That single idea is all of blocking, leaping and range:
+
+```json
+"patterns": {
+  "line_ortho":  { "vectors": [[1,0],[0,1]], "class": ["ray", "mirrored"] },
+  "line_diag":   { "vectors": [[1,1]],       "class": ["ray", "mirrored"] },
+  "knight_leap": { "vectors": [[1,2],[2,1]], "class": ["step", "mirrored"] },
+  "adjacent":    { "vectors": [[1,0],[0,1],[1,1]], "class": ["step", "mirrored"] }
+}
+```
+
+| `class` | Means |
+|---|---|
+| `step` | the vector applies exactly once — **the default** |
+| `ray` | it repeats until something stops it |
+| `ray:n` | …up to n times |
+| `phasing` | nothing on the way stops it |
+| `mirrored` | each axis is negated independently, so one vector stands for its whole family |
+| `absolute` | the pairs are **squares, not directions** — see below |
+
+A bare list of pairs is shorthand for `"class": ["step"]`. `mirrored` is why
+these lists are short: `[[1,0],[0,1]]` is all four orthogonals and
+`[[1,2],[2,1]]` is the knight's eight.
+
+**Absolute patterns** name cells rather than directions. Nothing in `[1,1]`
+itself can say which is meant, so the pattern says it once for the whole list —
+and since a square belongs to a board rather than to whoever is moving, an
+absolute pattern names its `zone` (or takes the only board):
+
+```json
+"home_base":     { "vectors": [[1,1]],       "class": ["absolute"], "zone": "board" },
+"castle_k_path": { "vectors": [[6,8],[7,8]], "class": ["absolute"], "zone": "board" }
+```
+
+`absolute` is a *kind*, not a modifier: there is no path to block and nothing to
+repeat, so `ray`, `phasing` and `mirrored` mean nothing beside it and the
+validator says so. Mixing both kinds in one piece is just two rules —
+`"moves": ["forward", "home_base"]` is "step ahead, or teleport to base".
+
+**Coordinates are 1-based, and row 1 is the top of the board.** So `[1,1]` is
+the top-left cell: on a chessboard that is a8, not a1, and white's back rank is
+row 8.
+
+### A pattern is also a scope
+
+The same name answers *what is standing there* as readily as *where may I go*,
+so no separate "is this square empty" condition exists or is needed:
+
+```json
+"needs": { "count:piece@castle_k_path": { "equals": 0 } }
+```
+
+An absolute pattern names its squares outright. A relative one is anchored on
+the acting card — `count:ally@adjacent` is a support bonus — and names nothing
+when that card is not standing on a square.
+
+**A knight needs no "leaps" flag and a rook needs no "blocked" flag.** `[1,2]`
+applied once has no square before it, so nothing can obstruct it; `[1,0]`
+applied seven times walks through six. It falls out of the geometry.
+
+Pieces then name patterns, and only a piece whose rules differ in *what may be
+standing on the far square* needs more than a list of names:
+
+```json
+{ "key": "queen",  "moves": ["line_ortho", "line_diag"],
+  "on_activate": ["move_to:target:taken", "next_phase"] },
+{ "key": "knight", "moves": ["knight_leap"], "on_activate": [...] },
+{ "key": "pawn", "moves": [
+    { "patterns": ["pawn_step"], "fill": "empty" },
+    { "patterns": ["pawn_run"],  "fill": "empty",
+      "needs": { "rank@self": { "equals": 2 } } },
+    { "patterns": ["pawn_take"], "fill": "enemy" } ],
+  "on_activate": [...] }
+```
+
+Declaring `moves` writes the `activate_target` for you (one square, `fill` per
+rule), so clicking the piece opens targeting and clicking a square moves it.
+Write the `on_activate` yourself — that is where captures go, and where the turn
+ends.
+
+**`y` is forward for whoever is moving**, so one pawn definition serves both
+colours: the first seat advances toward row 1 and the rest advance away from it.
+A piece on a square also carries `col`, `row` and `rank` as stats (declare them
+in `card_stats` to opt in) — `rank` counts from the piece's *owner's* side, which
+is why "home rank" is 2 for both colours above, and why promotion is one
+computed tag: `{ "promoting": { "stat": "rank", "at_least": 8 } }`.
+
+### Moves with fixed destinations (castling)
+
+Some moves are not a direction at all. Castling has exactly four destinations
+and they never change, so it is **a card, not a move** — no targeting, and a
+played card is gated by `needs`, which an activated one is not:
+
+```json
+{ "key": "w_castle_k", "text": "Castle kingside", "tags": ["white"],
+  "needs": { "moves_made@w_king_e": { "equals": 0 }, "card:w_king_e": 1,
+             "moves_made@w_rook_h": { "equals": 0 }, "card:w_rook_h": 1,
+             "count:piece@w_castle_k_path": { "equals": 0 } },
+  "on_play": ["place:w_king_e:7:8", "place:w_rook_h:6:8",
+              "gain_stat:moves_made@w_king_e:1", "next_phase"] }
+```
+
+Three things make that work, none of them specific to chess:
+
+- **"Has it moved" is a stat.** A `moves_made` stat plus
+  `gain_stat:moves_made@self:1` in `on_activate`, and `{"unmoved": {"stat":
+  "moves_made", "equals": 0}}` if you want it as a computed tag.
+- **A piece is nameable.** Tag each piece with its own key and any other card's
+  condition can ask about it. A captured piece carries no stat at all, and an
+  absent stat is not zero (see below), so this refuses a rook that was *taken*
+  as well as one that has moved — no presence term needed.
+- **`place:<who>:<col>:<row>`** puts named cards on named squares. It refuses an
+  occupied square, which is why the gate above has to be complete: two
+  placements are only all-or-nothing if the condition already guaranteed room.
+
+Put such cards in a zone tagged **`optional`**. Ordinarily a `needs`-gated card
+becomes playable when nothing else in its zone is, so a mandatory play can never
+soft-lock a hand — but a zone of buttons is not a hand, and "everything here is
+currently illegal" is its normal state rather than a trap.
+
+`game/games/chess.json` is the worked example, generated by
+`tools/make_chess.py`. Movement is six pattern entries shared by both colours,
+plus four named castling paths.
 
 ### Legality between two cards
 
@@ -813,9 +977,11 @@ lose_stat:score:20:x:count:wager@mine.red            the same product, distribut
 | `return_to:from:to` | Move all cards (bounded; safe with refilling zones) |
 | `move_to:zone` | Move the acting card (uses a slot target when given); without a zone, its home tag decides |
 | `move_to:target` | Move the acting card into the **chosen target's** zone — how one card offers two destinations ("advance the expedition, or discard it") |
+| `move_to:target:<what>` | …and say what becomes of a piece already standing there: `destroy`, or the zone it goes to (a captured-pieces tray). Left out, an occupied square refuses the move. This is capture; with it, aiming at a *piece* means taking its square rather than joining its zone |
 | `gain:card:n` | Create n instances of a card in its home zone (or the hand) |
 | `add_to:zone` | Move the acting card (overlay picks) |
 | `move_target_to:zone` | Move each targeted card |
+| `place:<who>:<col>:<row>` | Put every card the scope names on that square of the only board (1-based, row 1 at the top). Refuses an occupied square — the move that names *where*, not *how* |
 | `gain_stat:stat:n` / `lose_stat:stat:n` | Change the stat holder's total (clamped, logged, floats) |
 | `spend_stat:stat:n` | Alias of lose (costs) |
 | `set_stat:stat:n` | Set directly (dev/authoring tool; silent) |

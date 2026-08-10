@@ -145,6 +145,9 @@ local function primary_action(x, y)
 		if targeting.kind == "zone" and clicked ~= targeting.card_id then
 			clicked = zones.zone_at(x, y) or clicked
 		end
+		-- The mirror of that, and the reason a capture is clickable: pointing at
+		-- a piece means pointing at its square when the spec wants a square.
+		clicked = targeting.aim(clicked)
 		if clicked == targeting.card_id then
 			cancel_targeting()
 		elseif clicked and targeting.add(clicked) and targeting.is_full() then

@@ -2,8 +2,13 @@
 
 Card art in this directory was downloaded from Wikimedia Commons.
 Every image is either public domain / CC0 or carries a Creative Commons
-attribution license, recorded per file below. Images were cropped/resized
-to 400px width for card display.
+attribution license, recorded per file below. The card art was cropped/resized
+to 400px width for display; the chess pieces are the original 60px transparent
+PNGs and are unmodified.
+
+**One set is share-alike.** The chess pieces are CC BY-SA 3.0, which asks more
+than the attribution-only images above it: redistribute them, or anything
+derived from them, under the same licence and with the credit below intact.
 
 The original seven images (bandits, ruins, shelter, storm, stranger,
 village, world) are project-original placeholders.
@@ -73,3 +78,15 @@ village, world) are project-original placeholders.
 | winter_village.jpg | [Musée Ingres-Bourdelle - Un village sous la neige - Frans de Momper - Joconde06070000173.](https://commons.wikimedia.org/w/index.php?curid=91802040) | Didier Descouens | Public domain |
 | witches_sabbath.jpg | [Salvator Rosa - The Witches' Sabbath - Google Art Project.jpg](https://commons.wikimedia.org/w/index.php?curid=29799997) | Salvator Rosa | Public domain |
 | wolves_winter.jpg | [Wilk Alfred Wierusz-Kowalski.jpg](https://commons.wikimedia.org/w/index.php?curid=1627289) | Alfred Wierusz-Kowalski | Public domain |
+
+## Chess pieces
+
+`Chess_<piece><d|l>t60.png` — twelve files, the standard [Wikimedia Commons
+chess set](https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces) by
+Cburnett, CC BY-SA 3.0. Named `<piece>` b bishop, k king, n knight, p pawn,
+q queen, r rook; `d` dark, `l` light.
+
+| File | Work | Artist | License |
+|---|---|---|---|
+| Chess_*t60.png (12 files) | [Standard SVG chess pieces](https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces) | Cburnett | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+

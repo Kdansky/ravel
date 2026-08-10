@@ -19,6 +19,7 @@ about how it might go.
 | [05](05-assets-and-repo.md) | Assets, and what the repo carries | small | not started — placeholder fallback, `asset` prefixes, art out of git |
 | [06](06-schema-and-types.md) | Saying what things are | medium | not started — zone qualities as tags, lists everywhere, guards at the door |
 | [07](07-presentation.md) | Presentation and its gestures | medium-large | not started — the text/contrast pass, clicking the deck, multi-ability choice |
+| [08](08-grid-movement-notation.md) | How a piece says where it may go | medium | **chess plays, castling included.** `patterns` (relative and absolute), capture, piece ownership, patterns as scopes. Left: the scope anchor word, check/checkmate, promotion, en passant |
 
 ---
 
@@ -26,8 +27,9 @@ about how it might go.
 
 The engine can express a two-player Knizia game, play it between two computers
 over the internet with no server, and hand the game file itself to somebody who
-has never seen it. What it cannot yet express is a piece that moves across a
-board, and what it cannot yet promise is that your opponent is honest.
+has never seen it. It can now also express a piece that moves across a board —
+chess plays, in six pattern entries and no engine knowledge of what a bishop is.
+What it cannot yet promise is that your opponent is honest.
 
 ## What to do next
 
@@ -44,7 +46,7 @@ things happen come first.
 | 6 | [05](05-assets-and-repo.md) gap 2 — **`asset` scheme prefixes** | medium | low | removes run-time guessing; wide but shallow edit |
 | 7 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `activate` already proved the shape. Cheaper now than after more games exist |
 | 8 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
-| 9 | [01](01-boardgames.md) — **checkers** | low | small | next rung on the board-game ladder; what is left is letting `place_in_slot` capture an occupant |
+| 9 | [08](08-grid-movement-notation.md) — **check, as a stamped `threat` stat** | low | medium | chess and castling are shipped. Check is the last rule that changes how chess plays, and the same stat gives tactical games threat maps. Not a computed tag — see the doc for why |
 | 10 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
 | 11 | [07](07-presentation.md) gap 3 — **multi-ability chooser** | low | medium | no shipped game needs it. Build it with the first card that has two abilities |
 

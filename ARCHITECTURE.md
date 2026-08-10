@@ -37,7 +37,9 @@ phase ─ phase stack, routing, round/fresh flags
 targeting ─ who may be targeted (candidates), plus the live selection
 predicate ─ the one condition evaluator: subjects, scopes, comparisons
 zones ─ zone membership, seats, slots, moving/destroying cards
+geometry ─ grid arithmetic: which squares a pattern reaches from a square
 cards ─ template helpers, live editing, image cache
+tags ─ what a card is (declared, granted by its zone, computed) and whose it is
 declaration ─ JSON → G, plus the injected system zone, player/system cards, seats
 entity ─ the flat array     log ─ event record     json ─ decode/encode
 rng ─ the engine's own PRNG (never the host's, below this line)
@@ -94,10 +96,21 @@ one-holder-per-stat invariant kept them in step.
 `per_seat` is built once per seat, each instance carrying `seat`; `zones.find`
 resolves a bare key against the active seat, which it derives from the system
 card's `turn` rather than caching — so undo restores whose turn it is along
-with everything else. A card's owner is the seat of its zone, which is why
-ownership costs no per-card state; a seat card is its own seat wherever it
-sits. One seat is the ordinary case and pays for none of this: `active_seat`
-returns on its first line and every owner word names the same cards.
+with everything else. One seat is the ordinary case and pays for none of this:
+`active_seat` returns on its first line and every owner word names the same
+cards.
+
+**Ownership** (`tags.owner_of`) is a card's seat *tag* first, and the seat of
+its zone second. The tag wins because a zone's seat is where a thing is and a
+tag is whose it is, and those come apart on a shared board: a chessboard is one
+zone with pieces belonging to two players, and a four-player game can have a
+planet held by player three sitting inside player two's system. Ownership still
+costs no per-card state — a seat is already a card key, so claiming one is a
+tag. Two questions, deliberately separate: `tags.owner_of` is *whose piece is
+this* (a seat card is nobody's piece, so a party game tagging four characters
+`player` keeps all four clickable on one turn), and `predicate.seat_of` is *who
+does this card answer for* (a seat card answers with its own key, which is what
+makes `score@mine` find the active seat's stat bag).
 
 **Presentation cache**: `card.place` (pixel rect) lives on entities for
 hit-testing and as the animation target, but it is written by
@@ -197,6 +210,15 @@ love.mousepressed/released (main)          ── hit-test via card.place
 The CLI and debug server call the same flow functions; only main.lua's
 hit-testing and hooks are GUI-specific. That is why one test suite covers all
 three interfaces.
+
+**The seam that claim hides**, and the one place a bug can live where no test
+looks: hit-testing returns the topmost *card*, while a spec may be asking for a
+*place*. `targeting.aim` closes it — pointing at a piece means pointing at its
+square when the spec wants a square — and it lives in `targeting` rather than in
+`main` precisely so the tests can ask about it. Capture shipped unclickable for
+exactly as long as that rule was written inline in the input layer: every test
+reached `targeting.candidates` directly and passed. When a rule about *what a
+click means* has to be added, it belongs below the presentation line.
 
 ## Extending the engine
 

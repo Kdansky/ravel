@@ -8,6 +8,8 @@ local anim        = require("anim")
 local fx          = require("fx")
 local log         = require("log")
 local flow        = require("flow")
+local tags        = require("tags")
+local art         = require("art")
 local predicate   = require("predicate")
 
 local M = {}
@@ -295,6 +297,17 @@ local function draw_card_face(pl, card_e, show_text)
 	local img   = cards.image(card_e.def_key)
 	local z     = entity.get(card_e.zone_id)
 	local title = def and def.text or card_e.def_key
+	-- Some cards are their picture. A chess knight labelled "White Knight" is
+	-- worse than one that just looks like a knight, and on a board tile the
+	-- label costs a quarter of the height it needed for the drawing. Carried as
+	-- a tag so a zone can grant it too ("nothing on this board is titled")
+	-- rather than every template having to say it.
+	local no_title = tags.entity_has(card_e, "invisible_title_text")
+	-- What is left to put in the text band once the title is gone. A hand card
+	-- may still have a description worth the room; a board tile has nothing, and
+	-- gives the space back to the art.
+	local body = show_text and def and def.tooltip or nil
+	if body == "" then body = nil end
 
 	-- Three states, and the two unusable ones must be told apart: a spent
 	-- ability reads "exhausted" (wait for the round), an unpayable one reads
@@ -312,12 +325,22 @@ local function draw_card_face(pl, card_e, show_text)
 		dim, dim_label = not flow.can_activate(card_e.id), "not now"
 	end
 
+	-- A piece, not a card: no plate behind the art, so the PNG's own
+	-- transparency shows whatever the board is painted with. The card colour
+	-- would otherwise cover the square it stands on, which on a chessboard means
+	-- covering the chessboard.
+	local bare = tags.entity_has(card_e, "transparent_background")
+
 	love.graphics.push("all")
-	love.graphics.setColor(unpack(color))
-	love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
+	if not bare then
+		love.graphics.setColor(unpack(color))
+		love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
+	end
 
 	local text_h
-	if show_text then
+	if no_title and not body then
+		text_h = 0
+	elseif show_text then
 		-- Allocate ~42% of card height for name + description.
 		text_h = math.max(42 * S, math.floor(pl.h * 0.42))
 	else
@@ -331,7 +354,7 @@ local function draw_card_face(pl, card_e, show_text)
 	local img_h = pl.h - text_h
 
 	if img and img_h > 0 then
-		local iw, _ = img:getDimensions()
+		local iw, ih = img:getDimensions()
 
 		-- Clip the image to the rounded card shape (stencil) and its band (scissor).
 		love.graphics.stencil(function()
@@ -339,13 +362,29 @@ local function draw_card_face(pl, card_e, show_text)
 		end, "replace", 1)
 		love.graphics.setStencilTest("greater", 0)
 		love.graphics.setScissor(pl.x, pl.y, pl.w, img_h)
-		love.graphics.setColor(1, 1, 1)
-		love.graphics.draw(img, pl.x, pl.y, 0, pl.w / iw, pl.w / iw)
+		-- A plateless card has nothing to lay a dimming rectangle over — one
+		-- would just be a dark square on the board — so it dims by tinting the
+		-- art instead, which is how a greyed-out piece has always looked.
+		local t = (bare and dim) and 0.45 or 1
+		love.graphics.setColor(t, t, t)
+		if bare then
+			-- A card crops its art to the width and lets the top of the picture
+			-- be the picture. A piece is the whole shape: fit it inside the
+			-- square and centre it, or it hangs off the top of a cell that is
+			-- taller than it is wide.
+			local sc = math.min(pl.w / iw, img_h / ih)
+			love.graphics.draw(img, pl.x + (pl.w - iw * sc) * 0.5,
+				pl.y + (img_h - ih * sc) * 0.5, 0, sc, sc)
+		else
+			love.graphics.draw(img, pl.x, pl.y, 0, pl.w / iw, pl.w / iw)
+		end
 		love.graphics.setScissor()
 		love.graphics.setStencilTest()
 
-		love.graphics.setColor(unpack(color))
-		love.graphics.rectangle("fill", pl.x, pl.y + img_h, pl.w, text_h)
+		if not bare then
+			love.graphics.setColor(unpack(color))
+			love.graphics.rectangle("fill", pl.x, pl.y + img_h, pl.w, text_h)
+		end
 
 		-- Nothing a card says may leave the card. Text wraps to as many lines as
 		-- it needs, so a card too small for its description used to spill the
@@ -354,22 +393,23 @@ local function draw_card_face(pl, card_e, show_text)
 		love.graphics.setScissor(pl.x, pl.y, pl.w, pl.h)
 		if show_text then
 			local mf     = love.graphics.getFont()
-			local name_h = mf:getHeight() + 4 * S
-			love.graphics.setColor(unpack(C.card_text))
-			love.graphics.printf(
-				truncate(mf, title, pl.w - 6 * S),
-				pl.x + 3 * S, pl.y + img_h + 2 * S, pl.w - 6 * S, "center")
+			local name_h = no_title and 0 or (mf:getHeight() + 4 * S)
+			if not no_title then
+				love.graphics.setColor(unpack(C.card_text))
+				love.graphics.printf(
+					truncate(mf, title, pl.w - 6 * S),
+					pl.x + 3 * S, pl.y + img_h + 2 * S, pl.w - 6 * S, "center")
+			end
 			-- Description below name in a smaller font, and only where a line of
 			-- it actually fits: a clipped word is worse than no word.
 			local sf = get_small_font()
-			if text_h - name_h >= sf:getHeight() then
+			if body and text_h - name_h >= sf:getHeight() then
 				love.graphics.setFont(sf)
 				love.graphics.setColor(unpack(C.card_body))
-				love.graphics.printf(
-					def and def.tooltip or "",
+				love.graphics.printf(body,
 					pl.x + 4 * S, pl.y + img_h + name_h + 2 * S, pl.w - 8 * S, "left")
 			end
-		else
+		elseif not no_title then
 			local mf = love.graphics.getFont()
 			love.graphics.setColor(unpack(C.card_text))
 			love.graphics.printf(
@@ -377,7 +417,7 @@ local function draw_card_face(pl, card_e, show_text)
 				pl.x + 3 * S, pl.y + img_h + (text_h - mf:getHeight()) * 0.5, pl.w - 6 * S, "center")
 		end
 		love.graphics.setScissor()
-	else
+	elseif not no_title then
 		local mf = love.graphics.getFont()
 		love.graphics.setColor(unpack(C.card_text))
 		love.graphics.printf(
@@ -389,7 +429,10 @@ local function draw_card_face(pl, card_e, show_text)
 		draw_cost_badge(pl, def.cost)
 	end
 
-	if dim then
+	-- The art was already tinted for a plateless card, and "not now" written
+	-- across sixteen enemy pieces is noise rather than an explanation: whose
+	-- turn it is, a board says by other means.
+	if dim and not bare then
 		love.graphics.setColor(0, 0, 0, 0.55)
 		love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
 		if dim_label then
@@ -404,17 +447,24 @@ local function draw_card_face(pl, card_e, show_text)
 	-- Targeting states are triple-encoded — border color, pulsing fill and a
 	-- corner marker — so eligibility never rides on hue alone.
 	if targeting.active() then
+		-- A slot-typed spec's eligibility lives on the *square*, and the piece
+		-- standing there is what the player sees and clicks — so ask about the
+		-- same thing a click resolves to. Without this a capture target sat
+		-- faded under a highlight it was never offered, while the empty square
+		-- beside it glowed: the decoration existed all along, nothing asked for
+		-- it. Same seam as targeting.aim, and the same one line fixes both.
+		local aimed = targeting.aim(card_e.id)
 		local marker_col, marker_a = nil, 1
 		if card_e.id == targeting.card_id then
 			love.graphics.setColor(unpack(C.selected))
 			love.graphics.setLineWidth(3 * S)
-		elseif targeting.is_selected(card_e.id) then
+		elseif targeting.is_selected(aimed) then
 			love.graphics.setColor(C.target_chosen[1], C.target_chosen[2], C.target_chosen[3], 0.20)
 			love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
 			love.graphics.setColor(unpack(C.target_chosen))
 			love.graphics.setLineWidth(3 * S)
 			marker_col = C.target_chosen
-		elseif targeting.is_eligible(card_e.id) then
+		elseif targeting.is_eligible(aimed) then
 			love.graphics.setColor(C.eligible[1], C.eligible[2], C.eligible[3], 0.06 + 0.12 * pulse(5))
 			love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
 			love.graphics.setColor(unpack(C.eligible))
@@ -519,6 +569,73 @@ local function draw_page(pl, card_e)
 	love.graphics.setFont(sf)
 	love.graphics.setColor(0.45, 0.60, 0.80, 0.55 + 0.35 * pulse(3))
 	love.graphics.printf("click to continue", pl.x, pl.y + pl.h - hint_h + 4 * S, pl.w, "center")
+	love.graphics.pop()
+end
+
+-- A picture behind a whole zone: the painted board most games have. Stretched
+-- to the zone's rect, because that rect is what the cells are computed from —
+-- an image that kept its own proportions would drift out of step with them.
+local function draw_zone_art(zone_e)
+	local img = zone_e.asset and cards.asset_image(zone_e.asset, "zone:" .. zone_e.key)
+	if not img then return end
+	local p      = zone_e.place
+	local iw, ih = img:getDimensions()
+	love.graphics.push("all")
+	love.graphics.setColor(1, 1, 1)
+	love.graphics.draw(img, p.x, p.y, 0, p.w / iw, p.h / ih)
+	love.graphics.pop()
+end
+
+-- Individual squares, named by an absolute pattern and given a colour or a
+-- picture: terrain, a goal row, the thrones in the middle. Patterns already
+-- name sets of cells and are already checked, so this needs no second way of
+-- saying which squares are meant.
+local function draw_painted_squares(zone_e)
+	if not (zone_e.paint and zone_e.slots) then return end
+	love.graphics.push("all")
+	for name, look in pairs(zone_e.paint) do
+		local col = art.colour(look)
+		local img = not col and cards.asset_image(look, "paint:" .. tostring(look)) or nil
+		for _, slot_id in ipairs(predicate.pattern_slots(name)) do
+			local slot = entity.get(slot_id)
+			if slot and slot.zone_id == zone_e.id then
+				local p = zones.cell_rect(zone_e, slot.slot_idx, 0)
+				love.graphics.setColor(1, 1, 1)
+				if col then
+					love.graphics.setColor(unpack(col))
+					love.graphics.rectangle("fill", p.x, p.y, p.w, p.h)
+				elseif img then
+					local iw, ih = img:getDimensions()
+					love.graphics.draw(img, p.x, p.y, 0, p.w / iw, p.h / ih)
+				end
+			end
+		end
+	end
+	love.graphics.pop()
+end
+
+-- A board's own squares, alternating two colours — which is what a chessboard,
+-- a draughts board and a battle map all are. Drawn under everything, including
+-- occupied cells, and edge to edge (pad 0) rather than on the card footprint:
+-- squares that tile with gaps between them do not read as a board.
+--
+-- The parity is (col + row), so the top-left square takes the first colour.
+-- Colours are the same words a card's art uses — a palette name or "#rrggbb" —
+-- so there is one colour vocabulary rather than two.
+local function draw_grid_squares(zone_e)
+	local c = zone_e.checker
+	if not (c and zone_e.slots and zone_e.grid) then return end
+	local a, b = art.colour(c[1]), art.colour(c[2])
+	if not (a and b) then return end
+	love.graphics.push("all")
+	for idx, slot_id in pairs(zone_e.slots) do
+		local slot = entity.get(slot_id)
+		if slot and slot.stats then
+			local p = zones.cell_rect(zone_e, idx, 0)
+			love.graphics.setColor(unpack((slot.stats.col + slot.stats.row) % 2 == 0 and a or b))
+			love.graphics.rectangle("fill", p.x, p.y, p.w, p.h)
+		end
+	end
 	love.graphics.pop()
 end
 
@@ -637,6 +754,9 @@ local function draw_zone(zone_e)
 			love.graphics.pop()
 		end
 	elseif zt == "grid" then
+		draw_zone_art(zone_e)
+		draw_grid_squares(zone_e)
+		draw_painted_squares(zone_e)
 		draw_grid_empty(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
 			if places[i] and not anim.visual_place(card_id) then
