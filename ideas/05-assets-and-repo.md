@@ -179,16 +179,15 @@ history.
    (it now exists, for `__pycache__` and the copied-in test inspiration). Keep
    `CREDITS.md` and `card_art.md` tracked — they are text, they are the record of
    where the art came from, and `DESIGN.md` already requires the first to stay
-   accurate. **Chess is the exception worth arguing about**: its 12 piece PNGs
-   are 60×60 Wikimedia sprites, and a chessboard drawn with generated
-   placeholders is not chess. Either they stay, or `make_chess.py` learns to fetch
-   them.
-3. Decide about history. The pack is **2.83 MiB**, essentially all art. Removing
-   the files going forward does not shrink a clone; only a history rewrite
-   (`git filter-repo`) does, and that invalidates every existing clone and any
-   published hash. For a repository this size the honest answer is probably
-   **leave history alone** — 2.83 MiB is not a problem worth a rewrite — but it
-   is a decision, not an oversight, and should be recorded as one.
+   accurate. **Art that is small and part of the rules stays** — decided, not
+   left open: chess's 12 piece sprites are 60×60 PNGs, 25 KB for the set, and a
+   chessboard drawn with generated placeholders is not chess. The rule this
+   settles on is about weight and role, not about file type: a photograph
+   dressing a card goes, a glyph the game is played with stays.
+3. History stays. The pack is **2.83 MiB**, essentially all art. Removing files
+   going forward does not shrink a clone; only `git filter-repo` does, and that
+   invalidates every existing clone and any published hash to save two and a
+   half megabytes. Recorded as a decision so nobody reopens it.
 4. Say where art comes from instead. A `tools/fetch_assets.sh` reading
    `CREDITS.md`, or simply "run without art; placeholders are the default look".
    The second is more honest for a repository that is about the engine.

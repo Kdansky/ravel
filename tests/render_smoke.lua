@@ -6,6 +6,7 @@
 
 require("headless")
 
+local rects = 0
 local font = {
 	getHeight = function() return 15 end,
 	getWidth  = function(_, s) return 8 * #tostring(s) end,
@@ -32,6 +33,10 @@ love.graphics = setmetatable({
 		return { getDimensions = function() return 256, 256 end,
 			getWidth = function() return 256 end, getHeight = function() return 256 end }
 	end,
+	-- Counted rather than ignored, so a test can see something that is *not*
+	-- drawn — which is the only way to check a tag whose whole job is to
+	-- suppress a shape.
+	rectangle = function() rects = rects + 1 end,
 	-- Not a stub but a check. Real LÖVE throws on a negative scissor, and a
 	-- catch-all noop swallowed exactly that: a card shorter than the text band
 	-- the layout reserves for it computed a negative image height and crashed
@@ -207,6 +212,49 @@ do
 	end
 	inspect.draw(nil)
 	inspect.draw(999999)
+end
+
+-- `invisible_slot_outlines`: a painted board draws nothing on its empty cells,
+-- and still lights the ones a move may reach. Counting the same frame twice
+-- with the tag flipped is the only way to see a shape that isn't there — and
+-- the difference is exact, one outline per empty square, so a change in what
+-- else the board draws cannot make this pass by accident.
+do
+	local function drawn(f)
+		rects = 0
+		if f then f() end
+		render.draw()
+		return rects
+	end
+
+	flow.init("chess.json", 4)
+	render.rescale()
+	local board = zones.find("board")
+	assert(board.tags.invisible_slot_outlines, "chess.json is expected to tag its board")
+
+	local bare = drawn()
+	board.tags.invisible_slot_outlines = nil
+	local lined = drawn()
+	local empty = 64 - #board.cards
+	assert(lined - bare == empty,
+		("expected %d outlines to disappear with the tag, saw %d"):format(empty, lined - bare))
+
+	-- The affordance is not chrome: with the tag back on, the squares a piece
+	-- may move to are still drawn, or the board is unplayable.
+	board.tags.invisible_slot_outlines = true
+	local piece
+	for _, id in ipairs(board.cards) do
+		local c = entity.get(id)
+		local spec = cards.behaviour(c, "activate_target")
+		if spec then
+			targeting.start(id, spec)
+			if #targeting.eligible > 0 then piece = id; break end
+			targeting.clear()
+		end
+	end
+	assert(piece, "expected some piece on the opening board to have a legal move")
+	assert(drawn() > bare, "an eligible square must be drawn even on a bare board")
+	targeting.clear()
 end
 
 -- every base effect animates and draws

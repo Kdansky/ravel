@@ -42,7 +42,7 @@ things happen come first.
 | # | Item | Urgency | Difficulty | Why here |
 |---|---|---|---|---|
 | 1 | [05](05-assets-and-repo.md) gap 1 — **placeholder when a picture is missing** | high | low | one branch in `cards.asset_image`; the *only* thing blocking item 2. Note it is now two changes, not one — see the gap |
-| 2 | [05](05-assets-and-repo.md) gap 3 — **art out of git, JSON stays** | high | low | wanted now. The JSON is already tracked; the art is what has to go, and chess's 12 sprites are the case to decide deliberately |
+| 2 | [05](05-assets-and-repo.md) gap 3 — **art out of git, JSON stays** | high | low | wanted now. The JSON is already tracked; the art is what has to go. Decided: small art that is *part of the rules* stays, so chess keeps its 12 sprites, and history is not rewritten |
 | 3 | [07](07-presentation.md) gap 1 — **the text, contrast and tooltip pass** | high | medium-high | the thing players actually hit. Mostly judgement, not code |
 | 4 | **Hidden hands, a nameplate, a pass-the-device overlay** | high | medium | the last of multiplayer stage A. [07](07-presentation.md) gap 2 needs the same "can this player see this card" predicate, so build it once |
 | 5 | [07](07-presentation.md) gap 5 — **zones that keep their shape** | medium | low | chess is a rhombus on a wide window. Six lines in `zones.resize`, and the test is the feature |

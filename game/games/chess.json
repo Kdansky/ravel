@@ -189,10 +189,11 @@
         0.72,
         0.97
       ],
-      "tags": [
-        "activate"
-      ],
       "fit": "fill",
+      "tags": [
+        "activate",
+        "invisible_slot_outlines"
+      ],
       "checker": [
         "#f0d9b5",
         "#b58863"

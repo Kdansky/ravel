@@ -216,8 +216,12 @@ def build():
         "title": "Chess",
         "patterns": patterns,
         "zones": [
+            # The squares are painted, so the outline an empty cell gets by
+            # default is a rounded rectangle drawn inside a colour somebody
+            # chose. Eligibility during a move is still drawn.
             {"key": "board", "type": "grid", "grid": [8, 8],
-             "pos": [0.28, 0.03, 0.72, 0.97], "tags": ["activate"], "fit": "fill",
+             "pos": [0.28, 0.03, 0.72, 0.97], "fit": "fill",
+             "tags": ["activate", "invisible_slot_outlines"],
              "checker": ["#f0d9b5", "#b58863"]},
             # The right-hand column, top to bottom: black's graveyard, black's
             # castling buttons, the rules card, white's buttons, white's

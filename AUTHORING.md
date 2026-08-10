@@ -419,7 +419,11 @@ Zone tags: `shuffle` (on contents creation and refill), `refill_when_empty`
 unreachable wherever the card sits, so every board needs it), `optional`
 (nothing here ever has to be played, so a gated card stays gated instead of
 being force-enabled when nothing else in the zone is playable — for zones of
-buttons rather than hands).
+buttons rather than hands), `invisible_slot_outlines` (a grid's empty cells get
+no outline — for a board that paints its own squares with `checker`, `paint` or
+an `asset`, where the outline is a rounded rectangle drawn inside a colour you
+chose. Eligible squares still light up during a move, so the board stays
+playable).
 
 Cards entering a grid without slot targeting auto-occupy the first free slot.
 A full board refuses new arrivals: moves fail quietly and `fill`/`gain` stop

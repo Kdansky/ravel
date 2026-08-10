@@ -642,16 +642,26 @@ local function draw_grid_squares(zone_e)
 	love.graphics.pop()
 end
 
+-- The outline on an empty cell is what a board looks like when it has no art of
+-- its own, so it is the right default — and wrong on a painted one, where it is
+-- a rounded rectangle drawn inside a square somebody chose the colour of.
+-- `invisible_slot_outlines` drops it.
+--
+-- Eligibility during targeting is not chrome and is drawn either way: it is the
+-- only thing telling a player where a piece may go, and a chessboard that hides
+-- it is a chessboard nobody can move on.
 local function draw_grid_empty(zone_e)
 	if not zone_e.slots then return end
+	local bare = zone_e.tags.invisible_slot_outlines
 	love.graphics.push("all")
 	for _, slot_id in pairs(zone_e.slots) do
 		local slot = entity.get(slot_id)
-		if slot and not slot.occupant then
+		local lit  = targeting.active() and targeting.is_eligible(slot_id)
+		if slot and not slot.occupant and (lit or not bare) then
 			-- Match the card footprint, so an empty slot reads as the same
 			-- shape as the card that would fill it.
 			local p = fit_card(slot.place, zone_e.fit)
-			if targeting.active() and targeting.is_eligible(slot_id) then
+			if lit then
 				love.graphics.setColor(C.eligible[1], C.eligible[2], C.eligible[3],
 					0.10 + 0.14 * pulse(5))
 				love.graphics.rectangle("fill", p.x, p.y, p.w, p.h, 3 * S, 3 * S)
