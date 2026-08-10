@@ -402,6 +402,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]` for grid zones |
 | `fit` | Grid zones: `"card"` (default) keeps card proportions inside each cell, leaving breathing room; `"fill"` stretches cards to fill the cell, for board-game tiles |
+| `ratio` | The shape this zone keeps whatever the window does — width over height, so `1` is square and `1.78` is 16:9. `"grid"` takes it from the cell count. Without it, `pos` is fractions of the window and a chessboard is square at exactly one window shape. The zone claims the largest rect of that shape inside what `pos` allotted, centred; the slack is left empty and no other zone moves |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
 | `on_click` | Actions run when the zone is clicked. **Not phase-scoped** — it fires in every phase. To make a *card* usable at one point in a turn, grant it an ability with `applies` and limit it with `phases` |
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |

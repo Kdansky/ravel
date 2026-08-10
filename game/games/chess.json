@@ -190,6 +190,7 @@
         0.97
       ],
       "fit": "fill",
+      "ratio": "grid",
       "tags": [
         "activate",
         "invisible_slot_outlines"

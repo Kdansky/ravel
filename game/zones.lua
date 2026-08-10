@@ -43,6 +43,7 @@ local function build(def, seat, pos)
 		tags      = def.tags_set or {},
 		grid      = def.grid,
 		fit       = def.fit,
+		ratio     = def.ratio,     -- width over height the zone must keep, or "grid"
 		checker   = def.checker,   -- two colours, alternated across the squares
 		asset     = def.asset,     -- a picture behind the whole zone
 		paint     = def.paint,     -- pattern name → colour or picture, per square
@@ -338,6 +339,40 @@ function M.cell_rect(z, idx, pad)
 	}
 end
 
+-- A zone whose contents have a shape of their own — a chessboard, a hex map, a
+-- picture — has to keep it whatever the window does. `pos` is fractions of the
+-- window, so without this a board is only square at one window aspect and a
+-- rhombus at every other, and `cell_rect` stretches all 64 squares to match.
+--
+-- `ratio` is width over height, and claims the largest rect of that shape inside
+-- the space `pos` allotted. The slack is centred and nothing else moves: a board
+-- that shrinks leaves a gap rather than pushing the hands around, because the
+-- other zones' fractions are their own business. A layout where that gap matters
+-- wanted a different `pos`.
+--
+-- It is a **field and not a tag** on purpose. A tag is a word — good for a
+-- quality a zone either has or hasn't, which is why `invisible_slot_outlines` is
+-- one — and a ratio is a number, of which there are infinitely many. Encoding it
+-- as a tag means either a closed set of words that is always missing somebody's
+-- aspect, or numbers parsed out of tag strings, which is a field in a tag's
+-- clothes. One field also keeps one question in one place: `"grid"` reads the
+-- cell count, and any later source of a shape is another word here rather than
+-- another tag that must never appear beside the first.
+local function keep_ratio(z)
+	local r
+	if z.ratio == "grid" then
+		r = z.grid and z.grid[2] and z.grid[1] / z.grid[2]
+	else
+		r = tonumber(z.ratio)
+	end
+	if not r or r <= 0 then return end
+	local p = z.place
+	local w = math.min(p.w, p.h * r)
+	local h = w / r
+	p.x, p.y = p.x + (p.w - w) / 2, p.y + (p.h - h) / 2
+	p.w, p.h = w, h
+end
+
 -- Recompute pixel rects for all zones and their slots.
 function M.resize()
 	local W, H = love.graphics.getDimensions()
@@ -349,6 +384,7 @@ function M.resize()
 			w = (p[3] - p[1]) * W,
 			h = (p[4] - p[2]) * H,
 		}
+		keep_ratio(z)
 		if z.zone_type == "grid" and z.grid and next(z.slots) then
 			for idx, slot_id in pairs(z.slots) do
 				local slot = entity.get(slot_id)

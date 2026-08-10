@@ -140,10 +140,11 @@ game. Build it with the first card that has two abilities, not before.
 
 ---
 
-## Gap 4 — A thing that should not be drawn
+## Gap 4 — A thing that should not be drawn — **shipped**
 
-*Urgency: medium (chess looks wrong today) · Difficulty: low for the narrow
-version, medium for the general one · Usefulness: medium*
+*Shipped as the zone tag `invisible_slot_outlines`. The reasoning below is what
+picked that name over a general `invisible`, and the eligibility rule at the end
+is the part that keeps the board playable.*
 
 `draw_grid_empty` (`render.lua:645`) outlines every unoccupied slot. On a board
 with no art that outline **is** the board, and it is the right default. On a
@@ -163,9 +164,10 @@ general form:
 
 So: **one tag word, applied only to zones**, and it must be a different word from
 `hidden` because the difference between "invisible but live" and "gone" is
-exactly the bug this would otherwise introduce. `chrome` is the thing being
-suppressed — background, label, slot outlines — so `no_chrome` says it, or
-`bare` if a shorter word wins.
+exactly the bug this would otherwise introduce. *Shipped as
+`invisible_slot_outlines`* — named after the one shape it suppresses rather than
+after a general idea of chrome, which is what makes it safe to add the next one
+beside it.
 
 **The engine already has the precedent and it is a card tag**:
 `transparent_background` means "no plate behind the art", and
@@ -175,18 +177,35 @@ invisibility. Follow that: a zone tag per piece of chrome beats one `invisible`
 that means four things — and it stops the eventual argument about whether an
 invisible zone can still be clicked.
 
-Note that a game *can* already get most of this by giving the zone a `checker`
-or an `asset`, since the outline is then drawn over paint rather than over
-nothing. The reason to do it properly is that chess wants the squares painted
-**and** the outlines gone, and today those are one decision.
+**Eligibility is not chrome and is drawn either way.** During targeting the
+highlight on a reachable square is the only thing telling a player where a piece
+may go, so a board that suppressed it would be a board nobody can move on. The
+tag hides the resting outline and nothing else — which is also what makes the
+test exact: flipping it removes precisely one rectangle per empty square, 32 on
+an opening board.
 
 ---
 
-## Gap 5 — A board that stays square when the window does not
+## Gap 5 — A board that stays square when the window does not — **shipped**
 
-*Urgency: medium (chess is visibly wrong on a wide window) · Difficulty: low ·
-Usefulness: medium, and it is one of those things nobody reports and everybody
-sees*
+*Shipped as a `ratio` field on the zone: a number (width over height) or
+`"grid"`. Chess uses `"grid"`. What follows is the design as written; two things
+went differently and are marked below.*
+
+**Field, not tag** — the question came up and the answer generalises. A tag is a
+word, which suits a quality a zone either has or hasn't (`invisible_slot_outlines`
+is rightly one). A ratio is a number, and there are infinitely many. As a tag it
+would be either a closed set of words that is always missing somebody's aspect,
+or a number parsed out of a tag string, which is a field in a tag's clothes. One
+field also keeps one question in one place: `"grid"` is a second *value*, not a
+second tag, and any later source of a shape — the zone's own picture, say — is
+another word in the same field rather than a rival tag that must never appear
+beside the first.
+
+**`"ratio": "asset"` is deliberately not built.** It is one more branch in
+`keep_ratio`, but a remote picture arrives after the layout has run, so it needs
+a re-layout when the image lands — which is a per-frame check for something no
+game asks for yet. Build it with the first zone that wants it.
 
 `zones.resize` (`zones.lua:342`) multiplies a zone's fractional `pos` by the
 window size, straight through. A chessboard given `[0.25, 0.05, 0.75, 0.95]` is
@@ -223,5 +242,14 @@ unaffected. `validate.lua` gets a range check, and the overlap warning keeps
 working because a ratio-corrected rect is strictly smaller than the one it was
 checked against.
 
-**Test it in `render_smoke`**: draw chess at 960×540 and again at 540×960, and
-assert the board's rect is square in both. That assertion is the whole feature.
+**Test it in `render_smoke`** — *changed*: `zones.resize` is arithmetic and draws
+nothing, so it went to `tests/integration/layout.lua`, where it runs headless on
+both interpreters. Chess is measured at 1600×900 and 600×1000, and the board is
+square in both.
+
+**One bug worth remembering, and it was in the test rather than the feature:**
+`("%dx%d"):format(w, h)` passes under LuaJIT and *raises* under Lua 5.4, which
+refuses `%d` for a float with no integer representation. The suite is run under
+both for exactly this reason. It bit in a failure-detail string, which is
+evaluated eagerly even on the passing path — so a detail message can break a
+test that would otherwise pass.

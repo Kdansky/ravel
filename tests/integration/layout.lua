@@ -1,0 +1,129 @@
+-- Where zones land on screen, which is arithmetic and so belongs headless.
+--
+-- `pos` is fractions of the window, so a zone's pixel rect takes the window's
+-- shape unless it says otherwise. `ratio` is how it says otherwise, and a
+-- chessboard is the case: 64 cells divided out of a rhombus are 64 rhombuses.
+
+local declaration = require("declaration")
+local entity = require("entity")
+local zones = require("zones")
+local flow = require("flow")
+local validate = require("validate")
+
+local M = {}
+
+-- The stub love.graphics is fixed at 960x540; every check here needs two
+-- window shapes to say anything, so swap it for the call and put it back.
+local function at(w, h, f)
+	local was = love.graphics.getDimensions
+	love.graphics.getDimensions = function() return w, h end
+	local ok, err = pcall(f)
+	love.graphics.getDimensions = was
+	if not ok then error(err, 2) end
+end
+
+local function board_rect(w, h)
+	local p
+	at(w, h, function()
+		zones.resize()
+		p = zones.find("board").place
+	end)
+	return p
+end
+
+function M.test_layout_a_ratio_survives_the_window(check)
+	flow.init("chess.json", 1)
+	local wide = board_rect(1600, 900)
+	local tall = board_rect(600, 1000)
+	check("square on a wide window", math.abs(wide.w - wide.h) < 0.01,
+		("%.2fx%.2f"):format(wide.w, wide.h))
+	check("square on a tall one", math.abs(tall.w - tall.h) < 0.01,
+		("%.2fx%.2f"):format(tall.w, tall.h))
+	check("and the two are different sizes", math.abs(wide.w - tall.w) > 1)
+end
+
+function M.test_layout_the_slack_is_centred(check)
+	flow.init("chess.json", 1)
+	local z = zones.find("board")
+	local p = z.pos
+	at(1600, 900, function()
+		zones.resize()
+		local r = z.place
+		local left = r.x - p[1] * 1600
+		local right = (p[3] * 1600) - (r.x + r.w)
+		check("equal slack on both sides", math.abs(left - right) < 0.01,
+			("left %.2f right %.2f"):format(left, right))
+		check("and it never grows past what pos allotted",
+			r.w <= (p[3] - p[1]) * 1600 + 0.01 and r.h <= (p[4] - p[2]) * 900 + 0.01)
+	end)
+end
+
+-- The cells are cut out of the corrected rect, not the allotted one — which is
+-- the whole point, since a stretched board is 64 stretched squares.
+function M.test_layout_the_cells_follow(check)
+	flow.init("chess.json", 1)
+	at(1600, 900, function()
+		zones.resize()
+		local z = zones.find("board")
+		local cell = zones.cell_rect(z, 1, 0)
+		check("a square board has square cells", math.abs(cell.w - cell.h) < 0.01,
+			("%.2fx%.2f"):format(cell.w, cell.h))
+		local slot = entity.get(z.slots[1])
+		check("and the slot entity got the same rect", slot and slot.place.x == cell.x + 4)
+	end)
+end
+
+-- A zone that says nothing keeps the old behaviour exactly: this is the
+-- regression that matters, because every shipped layout was drawn against it.
+function M.test_layout_without_a_ratio_nothing_changes(check)
+	flow.init("lost_cities.json", 1)
+	at(1600, 900, function()
+		zones.resize()
+		local z = zones.find("hand")
+		local p = z.pos
+		check("the rect is still pos times the window",
+			math.abs(z.place.w - (p[3] - p[1]) * 1600) < 0.01
+			and math.abs(z.place.h - (p[4] - p[2]) * 900) < 0.01)
+	end)
+end
+
+local function fixture(zone)
+	local path = "game/games/tmp_layout_test.json"
+	local f = assert(io.open(path, "w"))
+	f:write(([[{
+		"title": "Layout",
+		"zones": [%s],
+		"templates": [{ "key": "hero", "text": "Hero" }],
+		"phases": [{ "key": "play", "type": "player_input" }]
+	}]]):format(zone))
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_layout_test.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	return validate.check(G)
+end
+
+local function has(problems, needle)
+	for _, p in ipairs(problems) do
+		if p:find(needle, 1, true) then return true end
+	end
+	return false
+end
+
+function M.test_layout_a_ratio_is_checked(check)
+	check("a number passes",
+		#fixture('{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "ratio": 1.5 }') == 0)
+	check('so does "grid"',
+		#fixture('{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "ratio": "grid" }') == 0)
+	check("a word is refused",
+		has(fixture('{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "ratio": "square" }'),
+			"ratio should be a positive number"))
+	check("so is a negative one",
+		has(fixture('{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "ratio": -2 }'),
+			"ratio should be a positive number"))
+	check('"grid" on a zone with no cells is refused',
+		has(fixture('{ "key": "hand", "type": "hand", "pos": [0.2, 0, 1, 0.9], "ratio": "grid" }'),
+			"needs a grid to read the shape from"))
+end
+
+return M

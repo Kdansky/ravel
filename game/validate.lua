@@ -52,7 +52,7 @@ local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, fit = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
 	injected = true, per_seat = true, applies = true, accepts = true,
-	checker = true, asset = true, paint = true,
+	checker = true, asset = true, paint = true, ratio = true,
 }
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
@@ -870,6 +870,17 @@ function M.check(G)
 		end
 		if def.fit ~= nil and def.fit ~= "card" and def.fit ~= "fill" then
 			warn("%s: fit should be 'card' or 'fill', not '%s'", where, tostring(def.fit))
+		end
+		-- The shape the zone keeps whatever the window does: a number is width
+		-- over height, "grid" reads it from the cell count.
+		if def.ratio ~= nil and def.ratio ~= "grid" then
+			local r = tonumber(def.ratio)
+			if not r or r <= 0 then
+				warn('%s: ratio should be a positive number (width over height, 1 is square) or "grid", not %s',
+					where, tostring(def.ratio))
+			end
+		elseif def.ratio == "grid" and def.type ~= "grid" then
+			warn('%s: ratio "grid" needs a grid to read the shape from — give it a "grid": [cols, rows] or state the number', where)
 		end
 		-- The lower-left corner belongs to the undo button and event log.
 		if type(def.pos) == "table" and #def.pos == 4
