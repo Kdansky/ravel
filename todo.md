@@ -23,4 +23,10 @@ inbox, not the plan. `ideas/README.md` is the plan.
 
 ## Open
 
+Put the debug features (CTRL+hover) behind an explicit "enable debug" which is told to all players so that cheating can be seen more easily.
+
+
+
+
+
 (nothing yet — add as it comes up)

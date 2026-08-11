@@ -224,8 +224,23 @@ inactive seat's zone and a card played from outside the phase's declared zone,
 and clears the undo history at every handover (undoing across one would either
 leak information or rewrite somebody else's decision).
 
-**Still open:** hidden hands, a nameplate, a pass-the-device overlay. All
-presentation; the rules are done.
+**Closed.** Hidden hands shipped: a hand is visible to its seat and to nobody
+else, and a seatless hand — a one-player game, a shared tray — stays visible,
+which is what leaves every game written before seats existed untouched.
+
+**The nameplate and the pass-the-device overlay are refused, deliberately.**
+Hot-seat is a *testing* mode: two seats on one machine is how a two-player game
+gets played through without a second person, and the real multiplayer story is
+the networked path, which is built. A handover screen would be a ceremony
+between two seats being driven by the same person.
+
+Worth writing down because the code makes it look like a bug and it is not.
+`zones.visible` reads `zones.active_seat()` directly and nothing pauses, so the
+moment `turn` advances the incoming seat's hand appears while whoever is at the
+keyboard is still sitting there. **On a network that cannot happen** — each
+machine has its own active seat and only ever draws its own hand — so the leak
+is confined to the mode where both hands belong to the same person anyway. If
+hot-seat ever stops being for testing, this is the first thing it needs.
 
 ## Stages B and C — networked play
 
