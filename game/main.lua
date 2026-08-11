@@ -138,10 +138,11 @@ local function primary_action(x, y)
 	local cur = phase.current()
 	if not cur then return end
 
-	-- Overlay: clicking an offered card picks it; nothing else reacts.
+	-- Overlay: clicking an offered card plays it, which is what choosing is.
+	-- Nothing else on screen reacts while one is open.
 	if cur.type == "overlay" then
 		local cid = card_at(x, y)
-		if cid then flow.pick(cid) end
+		if cid then flow.play_card(cid, {}) end
 		return
 	end
 

@@ -867,7 +867,7 @@ end
 -- table when it loads — a wrapper installed later would never be called from
 -- the GUI. They are inert until a transport is linked or a seat is claimed, so
 -- requiring this module changes nothing on its own.
-for _, name in ipairs({ "play_card", "activate", "pick", "zone_click", "undo" }) do
+for _, name in ipairs({ "play_card", "activate", "zone_click", "undo" }) do
 	local inner = flow[name]
 	flow[name] = function(...)
 		if (link or M.seat) and not M.may_act() then

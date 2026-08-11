@@ -45,7 +45,7 @@ end
 -- here" and get on with it.
 local function dismiss_mode()
 	if phase.is_overlay() and phase.current().key == "mode" then
-		flow.pick(zones.find("mode").cards[1])
+		flow.play_card(zones.find("mode").cards[1], {})
 	end
 end
 
@@ -151,8 +151,8 @@ check("undo erases the undone log lines", log.count() == log_before)
 -- === demo: defeat ===
 eval("set_stat:hp:0")
 check("defeat overlay pushed at 0 hp", phase.current().key == "defeat")
-check("fate card dealt to offer", zone_count("offer") == 1)
-flow.pick(zones.find("offer").cards[1])
+check("fate card dealt to the ending offer", zone_count("defeat_offer") == 1)
+flow.play_card(zones.find("defeat_offer").cards[1], {})
 check("picking the fate card returns to menu", declaration.G.title == "Ravel")
 
 -- === demo: victory (picking through any crossroads choice on the way) ===
@@ -161,7 +161,7 @@ for _ = 1, 30 do
 	local key = phase.current().key
 	if key == "victory" or key == "defeat" then break end
 	if phase.is_overlay() then
-		flow.pick(zones.find("offer").cards[1])
+		flow.play_card(zones.find("offer").cards[1], {})
 	else
 		eval("set_stat:hp:5")
 		local h = zones.find("hand")
@@ -170,7 +170,7 @@ for _ = 1, 30 do
 	end
 end
 check("victory overlay after surviving the road", phase.current().key == "victory")
-flow.pick(zones.find("offer").cards[1])
+flow.play_card(zones.find("victory_offer").cards[1], {})
 check("victory returns to menu", declaration.G.title == "Ravel")
 
 -- === demo: outcomes wait while a choice is open ===
@@ -180,7 +180,7 @@ check("path options dealt from their deck", zone_count("offer") == 3 and zone_co
 eval("destroy:road")
 eval("destroy:hand")
 check("no victory while the choice is open", phase.current().key == "path_choice")
-flow.pick(zones.find("offer").cards[1])
+flow.play_card(zones.find("offer").cards[1], {})
 check("picked path lands in hand", zone_count("hand") == 1)
 check("unpicked paths return to their deck", zone_count("paths") == 2)
 flow.play_card(zones.find("hand").cards[1], {})
@@ -306,7 +306,7 @@ flow.play_card(find_card("architect", "hand").id, {})
 check("draft overlay active", phase.current().key == "draft")
 check("3 cards offered", zone_count("offer") == 3)
 local pick_id = zones.find("offer").cards[1]
-flow.pick(pick_id)
+flow.play_card(pick_id, {})
 check("picked card lands in hand", entity.get(pick_id).zone_id == zones.find_id("hand"))
 check("offer cleared", zone_count("offer") == 0)
 check("unpicked cards returned to deck", zone_count("build_deck") == deck0 - 1)
@@ -319,7 +319,7 @@ eval("fill:hand:royal_decree:1")
 flow.play_card(find_card("royal_decree", "hand").id, {})
 check("decree opens the edict overlay", phase.current().key == "decree")
 check("three edicts offered from their deck",
-	zone_count("offer") == 3 and zone_count("edicts") == 0)
+	zone_count("decree_offer") == 3 and zone_count("edicts") == 0)
 check("decree cost was paid", predicate.total("gold") == 7)
 
 flow.undo()
@@ -330,13 +330,13 @@ check("undo backs out of the whole choice",
 
 flow.play_card(find_card("royal_decree", "hand").id, {})
 local pick
-for _, cid in ipairs(zones.find("offer").cards) do
+for _, cid in ipairs(zones.find("decree_offer").cards) do
 	if entity.get(cid).def_key == "tax_levy" then pick = cid end
 end
-flow.pick(pick)
+flow.play_card(pick, {})
 check("picked edict lands in hand", entity.get(pick).zone_id == zones.find_id("hand"))
 check("unpicked edicts return to their deck",
-	zone_count("edicts") == 2 and zone_count("offer") == 0)
+	zone_count("edicts") == 2 and zone_count("decree_offer") == 0)
 check("choice resumes build2", phase.current().key == "build2")
 
 local gold1 = predicate.total("gold")
@@ -383,13 +383,13 @@ check("a random building took 2 damage", board_hp() == hp_before_dmg - 2)
 -- === castle: end conditions ===
 eval("set_stat:morale:0")
 check("castle defeat at 0 morale", phase.current().key == "defeat")
-flow.pick(zones.find("offer").cards[1])
+flow.play_card(zones.find("defeat_offer").cards[1], {})
 check("castle defeat returns to menu", declaration.G.title == "Ravel")
 
 flow.init("castle.json")
 eval("set_stat:morale:10")
 check("castle victory at 10 morale", phase.current().key == "victory")
-flow.pick(zones.find("offer").cards[1])
+flow.play_card(zones.find("victory_offer").cards[1], {})
 check("castle victory returns to menu", declaration.G.title == "Ravel")
 
 -- === template editing ===
@@ -601,7 +601,7 @@ check("marching on returns to the trials", phase.current().key == "trial2")
 local fired = {}
 actions.on_effect = function(name) fired[#fired + 1] = name end
 flow.init("road.json", 9)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 eval("fill:hand:outrider:1")
 flow.play_card(find_card("outrider", "hand").id, {})
 flow.activate(find_card("outrider", "battlefield").id)
@@ -628,7 +628,7 @@ flow.init("kingdom.json", 5)
 eval("set_stat:stability:0")
 check("the collapse is a defeat", flow.outcome() == "defeat")
 flow.init("tower.json", 3)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 eval("lose_stat:hp:99")
 check("story pages carry outcomes too", flow.outcome() == "defeat")
 
@@ -672,7 +672,7 @@ check("answering the crisis clears it from the board", find_card("war_host", "bo
 -- === kingdom: the three endings ===
 eval("set_stat:stability:0")
 check("stability 0 collapses the realm", phase.current().key == "collapse")
-flow.pick(zones.find("offer").cards[1])
+flow.play_card(zones.find("offer").cards[1], {})
 check("collapse returns to menu", declaration.G.title == "Ravel")
 
 flow.init("kingdom.json", 5)
@@ -693,7 +693,7 @@ flow.init("tower.json", 3)
 check("tower opens on a page overlay", phase.is_overlay() and phase.current().page == true)
 check("the opening page is the shore", top_page() == "p_shore")
 
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 check("the intro advanced once the page closed", phase.current().key == "story")
 check("the shore offers three choices", zone_count("hand") == 3)
 check("the read page vanished", zone_count("reveal") == 0)
@@ -706,11 +706,11 @@ check("undo closed the page again",
 
 flow.play_card(find_card("c_door", "hand").id, {})
 check("the door without the key reveals the locked page", top_page() == "p_door_locked")
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 check("the locked door keeps the hand for another try", zone_count("hand") == 3)
 
 flow.play_card(find_card("c_search", "hand").id, {})
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 check("the beach puts keepsakes on the board", zone_count("board") == 2)
 check("keepsakes occupy board slots", find_card("rusty_key", "board").slot_id ~= nil)
 check("the beach trims the choices", zone_count("hand") == 2)
@@ -721,7 +721,7 @@ check("card amounts resolve template presence", predicate.total("hp") == hp_lant
 
 flow.play_card(find_card("c_door", "hand").id, {})
 check("the door with the key reveals the hall", top_page() == "p_hall")
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 
 local chest0 = zone_count("chest_deck")
 flow.play_card(find_card("c_chest", "hand").id, {})
@@ -729,11 +729,11 @@ local secret = top_page()
 check("the chest reveals one of its two secrets",
 	secret == "p_chest_pearl" or secret == "p_chest_mimic")
 check("the other secret stays face-down", zone_count("chest_deck") == chest0 - 1)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 
 flow.play_card(find_card("c_descend", "hand").id, {})
 check("the lantern lights the stair", top_page() == "p_stair_lit")
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 check("the bell room offers the finale", find_card("c_bell", "hand") ~= nil)
 
 eval("fill:board:pearl:1")
@@ -741,17 +741,17 @@ check("undo is available before the bell", flow.can_undo() == true)
 flow.play_card(find_card("c_bell", "hand").id, {})
 check("the pearl earns the good ending", top_page() == "e_pearl")
 check("irreversible cleared the undo stack", flow.can_undo() == false)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 check("the ending returns to the menu", declaration.G.title == "Ravel")
 
 flow.init("tower.json", 3)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 eval("lose_stat:hp:99")
 check("death fires the collapse page", phase.is_overlay() and top_page() == "e_collapse")
 
 -- === placement: tag homes and the single-board fallback ===
 flow.init("tower.json", 3)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 eval("gain:pearl:1")
 check("gain places a homed card on its board", find_card("pearl", "board") ~= nil)
 check("gained card takes a slot", find_card("pearl", "board").slot_id ~= nil)
@@ -763,7 +763,7 @@ check("bare move_to falls back to the only board", find_card("c_search", "board"
 
 -- === sacrifice costs: board cards as currency ===
 flow.init("tower.json", 3)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 cards.edit("c_flee", "cost", '{"sacrifice:keepsake": 1}')
 eval("fill:hand:c_flee:1")
 local flee = find_card("c_flee", "hand")
@@ -791,7 +791,7 @@ check("the same play with a slot target works", find_card("watchtower", "board")
 
 -- === grid capacity: full boards refuse new arrivals ===
 flow.init("tower.json", 3)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 eval("gain:pearl:8")
 check("gain stops at the board's capacity", zone_count("board") == 5)
 local held = find_card("c_search", "hand")
@@ -811,7 +811,7 @@ end
 
 flow.init("road.json", 9)
 check("the road opens on its title page", phase.is_overlay() and top_page() == "p_depart")
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 check("dawn dealt a threat onto the battlefield", battlefield_threat() ~= nil)
 check("camp offers a draft plus both marches", zone_count("hand") == 5)
 
@@ -855,7 +855,7 @@ check("burning the wagons sacrificed the unit", find_card("outrider", "battlefie
 
 eval("set_stat:distance:12")
 check("twelve miles ends the run at home", phase.is_overlay() and top_page() == "e_home")
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 check("the road returns to the menu", declaration.G.title == "Ravel")
 
 -- === validator: conflicts, ambiguity, and friendly messages ===
@@ -1018,7 +1018,7 @@ end
 -- and a failed load_game (bad file, bad JSON) must recover to the menu
 -- rather than crash or strand the player in a half-reset state.
 flow.init("tower.json", 3)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 eval("effect:nope")   -- an unknown effect name must not raise either
 eval("load_game:../../../etc/passwd")
 check("path-traversal load_game is refused and the game keeps running",
@@ -1032,7 +1032,7 @@ check("a load_game to a missing file recovers to the menu, not a crash",
 -- above already runs through a pcall boundary — prove that chain holds
 -- for this specific shape of attack, not just for a missing file.
 flow.init("tower.json", 3)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 local deep_path = "game/games/tmp_deep_nest.json"
 local df = assert(io.open(deep_path, "w"))
 df:write(string.rep("[", 200000) .. string.rep("]", 200000))
@@ -1120,7 +1120,7 @@ local function legal_moves()
 	if cur and cur.type == "overlay" then
 		local oz = zones.find(cur.zone or "hand")
 		for _, cid in ipairs(oz and oz.cards or {}) do
-			moves[#moves + 1] = function() flow.pick(cid) end
+			moves[#moves + 1] = function() flow.play_card(cid, {}) end
 		end
 		return moves
 	end
@@ -2553,7 +2553,7 @@ local function scripted_play(file, seed, steps)
 		local acted = false
 		if cur.type == "overlay" then
 			local z = zones.find(cur.zone or "hand")
-			if z and #z.cards > 0 then acted = flow.pick(z.cards[1]) end
+			if z and #z.cards > 0 then acted = flow.play_card(z.cards[1], {}) end
 		else
 			local hand = zones.find(cur.zone or "hand")
 			for _, cid in ipairs(hand and hand.cards or {}) do

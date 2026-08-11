@@ -23,7 +23,7 @@ local M = {}
 -- the game itself has to answer that first.
 local function dismiss_mode()
 	if phase.is_overlay() and phase.current().key == "mode" then
-		flow.pick(zones.find("mode").cards[1])
+		flow.play_card(zones.find("mode").cards[1])
 	end
 end
 

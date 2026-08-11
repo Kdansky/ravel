@@ -73,7 +73,7 @@ No s-expressions, no command trees, no arbitrary expressions. Nested arrays are 
 
 ## Actions Are Strings
 
-Game actions (card `on_play` / `on_activate` / `on_turn`, phase `actions`, overlay `on_pick`) are arrays of plain strings. Each string is an operation with optional colon-separated parameters:
+Game actions (a card's `play.action` / `activate.action` / `turn.action`, a phase's `actions`) are arrays of plain strings. Each string is an operation with optional colon-separated parameters:
 
 ```
 "draw_from:stock"
@@ -159,7 +159,7 @@ A `draw_and_play` phase must declare a `"pass_card"`: that card is created into 
 
 The engine keeps a **round counter** as a `round` stat on the injected system card: it starts at 1 and increments every time the phase list wraps. Because it is a stat, games can display it (declare a `round` stat), gate challenges on it (`requires`), or end on it (`end_conditions`) — and undo restores it like everything else. The wrap also **readies** all exhausted cards.
 
-Overlay phases grey out the background, deal `draw` cards from `deck` into `zone`, and run `on_pick` (with the clicked card as context) when the player picks one. They are push-only: they never appear in the phase sequence, only via `push_phase`. Resuming a phase after a pop does not re-deal it.
+Overlay phases grey out the background and deal `draw` cards from `deck` into `zone`. **Choosing is playing**: there is no separate pick path, the phase's `zone` bounds what may be played, and the card's own `play.action` runs — or one its zone grants with `applies`, which is how an offer says what choosing from it means when the cards it deals already do something else in a hand. Picking pops the overlay before the actions run, so a chained reveal lands on top rather than burying it, and a card still lying in the offer afterwards is spent. **A choice costs nothing**: cost, needs and targeting are skipped, because they describe playing that card out of a hand later. Overlays are push-only: they never appear in the phase sequence, only via `push_phase`. Resuming a phase after a pop does not re-deal it.
 
 ---
 
@@ -173,7 +173,7 @@ A card can fork into specific sub-cards: play it, choose one option, the chosen 
 
 { "key": "decree", "type": "overlay", "label": "Choose an edict",
   "deck": "edicts", "zone": "offer", "draw": 3,
-  "on_pick": ["add_to:hand", "return_to:offer:edicts", "pop_phase"] }
+  "zone": "decree_offer" }   // whose zone applies a tag: "play": { "action": ["add_to:hand", "return_to:decree_offer:edicts"] }
 ```
 
 The parent card is just `"on_play": ["move_to:graveyard", "push_phase:decree"]`, and option cards end their own `on_play` with `move_to:edicts` to recycle into their deck. While an overlay is open, all other actions (plays, activations, end conditions) are locked until the choice resolves. `destroy:zone` and `destroy_self` remove cards from play entirely — the flat array keeps the husks (IDs stay valid) but they hold no zone and no stats, so nothing renders, targets or counts them; undo restores them.
@@ -205,7 +205,7 @@ Games declare win/lose checks that run after every action:
 ]
 ```
 
-Comparisons: `equals`, `at_least`, `at_most` on a stat total, or `zone_empty` (all listed zones empty). The first matching condition fires; a game has exactly one outcome. Outcomes wait until any open overlay closes, so a pending choice always resolves first. Victory/defeat screens are just overlay phases dealing a fate card whose `on_pick` loads the menu — no special engine mode.
+Comparisons: `equals`, `at_least`, `at_most` on a stat total, or `zone_empty` (all listed zones empty). The first matching condition fires; a game has exactly one outcome. Outcomes wait until any open overlay closes, so a pending choice always resolves first. Victory/defeat screens are just overlay phases dealing a fate card whose `play.action` loads the menu — no special engine mode.
 
 ---
 

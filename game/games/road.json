@@ -81,7 +81,7 @@
       "key": "p_depart",
       "text": "The Long Road",
       "story": "The city burned a week ago; whatever it was to you, it is smoke now. What is left of your caravan points itself at the mountains, twelve miles of bad country between you and the winter halls of your kin. Every dawn the road sends something new to meet you. Every dusk you choose: spend the bread, or spend the heart.",
-      "pick": { "action": [] }
+      "play": { "action": [] }
     },
     {
       "key": "march",
@@ -282,20 +282,20 @@
       "text": "The Winter Halls",
       "outcome": "victory",
       "story": "The pass opens and there they are: lamplit windows cut into the mountain's shoulder, woodsmoke standing straight up into the cold. Someone on the wall starts ringing the little bell they ring for kin. Whatever you spent on the road — bread, blood, the wagons themselves — the column walks in singing.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "e_broken",
       "text": "The Column Breaks",
       "outcome": "defeat",
       "story": "It isn't one thing. It's the wolves and the rain and the third night without bread, and then one morning the road is full of people quietly walking in different directions. You shout until your voice goes. The mountains keep their winter to themselves.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "e_winter",
       "text": "Snowed In",
       "story": "The first real snow comes down like a door closing. You dig in where the road stands, burn what you can spare and some of what you can't, and learn the long arithmetic of waiting. In spring, the survivors finish the last miles in silence. The halls take you in; the road keeps its share.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     }
   ],
   "phases": [

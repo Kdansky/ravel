@@ -50,6 +50,19 @@ end
 -- written against (the menu plays out of a zone called "menu", and has no hand
 -- at all). A phase that declares one means it, which is what lets a draw step
 -- be a draw step instead of a chance to empty your hand.
+-- Choosing from an overlay is not buying. A card in an offer is being picked,
+-- and what it costs, needs and targets describes playing it out of a hand later
+-- — castle deals buildings into its draft, and paying to *choose* one would
+-- charge the build price twice. So the gates below skip those three, and the
+-- ones that remain (whose card it is, whether the phase's zone holds it) still
+-- apply.
+local function choosing(c)
+	if not phase.is_overlay() then return false end
+	local cur = phase.current()
+	local z = zones.find(cur.zone or "hand")
+	return z ~= nil and c ~= nil and c.zone_id == z.id
+end
+
 local function in_play_zone(c)
 	local cur = phase.current()
 	if not cur or not cur.zone then return true end
@@ -453,6 +466,7 @@ function M.can_play(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
 	if not def or not reachable(c) or not in_play_zone(c) or not on_top(c) then return false end
+	if choosing(c) then return true end
 	if not phase_ok(cards.behaviour(c, "phases")) then return false end
 	if not M.can_afford(def.cost, { card_id = card_id }) then return false end
 	if predicate.meets_all(def.needs, { card_id = card_id }) then return true end
@@ -473,26 +487,50 @@ end
 
 -- Play a card: pay its cost and run on_play. A phase with a play limit then
 -- ends itself; discarding its hand is the on_leave hook's job.
+-- Playing a card out of an overlay's zone *is* choosing it: an overlay is a
+-- pending choice, and a choice is resolved by playing something. So there is no
+-- separate pick path — the phase's zone bounds what may be played (in_play_zone
+-- does that for every phase), and the two rules an overlay adds are its own:
+--
+--   it pops before the action runs, so a chained reveal lands on top rather than
+--   burying the overlay it came from;
+--   and a card still lying in the offer afterwards is spent — a read page
+--   vanishes, while one whose action moved it somewhere stays where it went.
+--
+-- Both used to live inside flow.pick, which also meant a card's own actions were
+-- silently ignored unless the overlay declared "page".
 function M.play_card(card_id, targets)
-	if phase.is_overlay() then return false end   -- a pending choice locks other actions
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
 	if not def or not M.can_play(card_id) then return false end
 	-- Flow is the single legality gate: target counts are enforced here, not
 	-- only in the input layers, so scripts and the debug API can't skip them.
-	local lo, hi = targeting.bounds(def.target)
-	if #(targets or {}) < lo or #(targets or {}) > hi then return false end
-	if not targets_legal(card_id, def.target, targets) then return false end
+	local overlay = choosing(c) and phase.current() or nil
+	if not overlay then
+		local lo, hi = targeting.bounds(def.target)
+		if #(targets or {}) < lo or #(targets or {}) > hi then return false end
+		if not targets_legal(card_id, def.target, targets) then return false end
+	end
 	local ctx = { card_id = card_id, targets = targets or {} }
 	-- A cost the targets pay could not be judged before they were chosen.
-	if not M.can_afford(def.cost, ctx) then return false end
+	if not overlay and not M.can_afford(def.cost, ctx) then return false end
 	checkpoint()
-	log.add("Played " .. (def.text or c.def_key))
+	local offer   = overlay and zones.find_id(overlay.zone or "hand")
+	log.add((overlay and "Chose " or "Played ") .. (def.text or c.def_key))
 	local pl = player()
-	if pl then pl.stats.plays = (pl.stats.plays or 0) + 1 end
-	pay(def.cost, ctx)
+	-- An overlay is a phase of its own, and the counter that bounds a hand
+	-- belongs to the phase underneath it: counting a choice as a play would end
+	-- that phase early, since the count survives the pop.
+	if pl and not overlay then pl.stats.plays = (pl.stats.plays or 0) + 1 end
+	if not overlay then pay(def.cost, ctx) end
+	if overlay then phase.pop() end
 	local before = phase.current()
-	actions.run(def.on_play, ctx)
+	-- Through behaviour, so a zone can grant what playing a card lying in it
+	-- does — which is how one offer deals a card the game has other plans for.
+	actions.run(cards.behaviour(c, "on_play"), ctx)
+	if offer and entity.get(card_id) and entity.get(card_id).zone_id == offer then
+		zones.destroy_card(card_id)
+	end
 	if tags.entity_has(c, "no_undo") then
 		history = {}
 		log.add("— no turning back —")
@@ -502,7 +540,7 @@ function M.play_card(card_id, targets)
 	-- the phase's own rule, not the card's). Discarding is the on_leave
 	-- hook's job, so card-driven next_phase gets the same treatment.
 	local cur = phase.current()
-	if not actions.pending_load and cur == before and cur and cur.ends_after
+	if not overlay and not actions.pending_load and cur == before and cur and cur.ends_after
 		and pl and (pl.stats.plays or 0) >= cur.ends_after then
 		phase.next()
 	end
@@ -554,36 +592,6 @@ function M.activate(card_id, targets)
 	pay(def.activate_cost, ctx)
 	if cards.behaviour(c, "exhausts") ~= false then c.exhausted = true end
 	actions.run(cards.behaviour(c, "on_activate"), ctx)
-	M.settle()
-	return true
-end
-
--- Pick a card from the active overlay's offer zone.
-function M.pick(card_id)
-	local cur = phase.current()
-	if not cur or cur.type ~= "overlay" then return false end
-	local offer_id = zones.find_id(cur.zone or "hand")
-	local c = entity.get(card_id)
-	if not c or c.zone_id ~= offer_id then return false end
-	checkpoint()
-	local def = cards.def(c)
-	log.add("Chose " .. (def and def.text or c.def_key))
-	if cur.page then
-		-- Page overlays run the revealed card's own on_pick. Pop first so a
-		-- chained reveal lands on top; the read page vanishes unless its
-		-- actions moved it somewhere.
-		phase.pop()
-		actions.run(def and def.on_pick, { card_id = card_id, targets = {} })
-		if entity.get(card_id).zone_id == offer_id then
-			zones.destroy_card(card_id)
-		end
-	else
-		actions.run(cur.on_pick, { card_id = card_id, targets = {} })
-	end
-	if tags.entity_has(c, "no_undo") then
-		history = {}
-		log.add("— no turning back —")
-	end
 	M.settle()
 	return true
 end

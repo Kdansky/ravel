@@ -105,7 +105,7 @@ end
 
 COMMANDS["pick"] = function(args)
 	local cid = resolve(args[1])
-	local ok  = cid and flow.pick(cid) or false
+	local ok  = cid and flow.play_card(cid, {}) or false
 	local s = summary(); s.ok = ok; return s
 end
 

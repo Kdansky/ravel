@@ -27,13 +27,13 @@
       "key": "p_shore",
       "text": "The Black Shingle",
       "story": "The ferryman will not wait. He leaves you on the black shingle as the light goes, and rows back toward the living shore without once turning his head. Out in the lake the drowned tower stands hip-deep in its own reflection: an iron-bound door crusted shut at the waterline, and high above it a gallery window, gaping like a pulled tooth.",
-      "pick": { "action": ["fill:hand:c_search:1", "fill:hand:c_door:1", "fill:hand:c_climb:1"] }
+      "play": { "action": ["fill:hand:c_search:1", "fill:hand:c_door:1", "fill:hand:c_climb:1"] }
     },
     {
       "key": "p_beach",
       "text": "The Wrack Line",
       "story": "Among the rope-ends and bird bones the lake has spat out, you find a drowned man's coat, neatly folded, as if he meant to come back for it. In one pocket: a rusty key on a loop of tarred string. In the other, a stub of candle-lantern — and the candle, against all sense, is dry.",
-      "pick": {
+      "play": {
         "action": [
           "destroy:hand",
           "gain:rusty_key:1",
@@ -47,43 +47,43 @@
       "key": "p_door_locked",
       "text": "The Door Does Not Breathe",
       "story": "The lock is a rusted knot and the door does not so much as breathe under your shoulder. Whatever opens it is not in your hands. Not yet.",
-      "pick": { "action": [] }
+      "play": { "action": [] }
     },
     {
       "key": "p_hall",
       "text": "The Flooded Hall",
       "story": "The key turns with a snap like old bone, and the door lets you into a hall ankle-deep in still water. A stair winds up into dark and down into darker. On the dry landing between them sits a sea-chest, unlocked — which is never a good sign.",
-      "pick": { "action": ["destroy:hand", "fill:hand:c_chest:1", "fill:hand:c_descend:1"] }
+      "play": { "action": ["destroy:hand", "fill:hand:c_chest:1", "fill:hand:c_descend:1"] }
     },
     {
       "key": "p_gallery",
       "text": "Over the Sill",
       "story": "You go up the outside of the tower the hard way, palms raw on wet stone, and haul yourself over the gallery sill before your arms give out. Below you the flooded hall glimmers: a stair descending into black water, and on the landing a sea-chest, unlocked — which is never a good sign.",
-      "pick": { "action": ["destroy:hand", "fill:hand:c_chest:1", "fill:hand:c_descend:1"] }
+      "play": { "action": ["destroy:hand", "fill:hand:c_chest:1", "fill:hand:c_descend:1"] }
     },
     {
       "key": "p_chest_pearl",
       "text": "Under the Oilcloth",
       "story": "Under a fold of oilcloth, nested like an egg: a pearl the size of a knuckle, cold as the lake and just as patient. It hums faintly against your palm, in a pitch you feel rather than hear.",
-      "pick": { "action": ["gain:pearl:1"] }
+      "play": { "action": ["gain:pearl:1"] }
     },
     {
       "key": "p_chest_mimic",
       "text": "The Chest Clenches",
       "story": "The 'chest' clenches. Rows of pale, wet teeth close on your forearm before you tear yourself free, and the thing settles back into its shape of planks and brass, satisfied.",
-      "pick": { "action": ["lose_stat:hp:3"] }
+      "play": { "action": ["lose_stat:hp:3"] }
     },
     {
       "key": "p_stair_lit",
       "text": "The Pilot's Trick",
       "story": "Lantern light slides down the steps and shows you the trick: the stair only seems drowned. Angled glass, an old lake-pilot's mirror-work, keeps the water standing aside like a held breath. You walk down dry between the mirrors, all the way to the bell room.",
-      "pick": { "action": ["destroy:hand", "fill:hand:c_bell:1", "fill:hand:c_flee:1"] }
+      "play": { "action": ["destroy:hand", "fill:hand:c_bell:1", "fill:hand:c_flee:1"] }
     },
     {
       "key": "p_stair_dark",
       "text": "Down in the Dark",
       "story": "You feel your way down step by step in the pitch dark. Something thin and sharp — glass? mirrors? — gashes your shins twice before the stair spits you, bleeding, into the bell room.",
-      "pick": {
+      "play": {
         "action": ["lose_stat:hp:2", "destroy:hand", "fill:hand:c_bell:1", "fill:hand:c_flee:1"]
       }
     },
@@ -92,34 +92,34 @@
       "text": "The Answering Note",
       "outcome": "victory",
       "story": "You set the pearl against the green bronze and strike. The bell swallows the pearl's cold note and returns it tenfold, a sound like a knot coming undone, and the lake lets the tower go. Water walks itself out of the hall like a guest that has overstayed. You leave over wet stone, into a morning that smells, for the first time in years, of nothing at all.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "e_bell",
       "text": "Something Answers",
       "outcome": "defeat",
       "story": "The bell's bare voice goes down into the water, and something very far below answers it. You do not stay to translate. Up, out, over the sill, and you swim until the shingle scrapes your knees. Behind you the tower closes over its secret like a fist. The lake keeps what it holds.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "e_flee",
       "text": "Doors Best Left Below",
       "story": "You climb back to the light and leave the bell to its long patience. The ferryman, against all custom, is waiting. He does not ask what you saw, and you do not tell him. Some doors are better left below.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "e_flee_pearl",
       "text": "The Unstruck Note",
       "outcome": "victory",
       "story": "You leave the bell unstruck and carry the pearl out into the ordinary light. It sits on your mantel for the rest of your life, humming very faintly on still nights, in a pitch you feel rather than hear — a note the drowned tower is still waiting for. You never go back. You never quite stop listening, either.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "e_collapse",
       "text": "The Book Is Shut",
       "outcome": "defeat",
       "story": "Your legs go, and the cold closes over your head like a book being shut. The last thing you hear is the bell, ringing very softly, welcoming you down.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "c_search",

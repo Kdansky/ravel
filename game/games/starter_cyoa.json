@@ -24,7 +24,7 @@
       "key": "p_start",
       "text": "TODO: Opening Page Title",
       "story": "TODO: your opening paragraph. The player reads this, clicks to continue, and receives the choices below in hand.",
-      "pick": { "action": ["fill:hand:c_look:1", "fill:hand:c_leave:1"] }
+      "play": { "action": ["fill:hand:c_look:1", "fill:hand:c_leave:1"] }
     },
     {
       "key": "c_look",
@@ -49,7 +49,7 @@
       "key": "p_found",
       "text": "TODO: A page that gives an item",
       "story": "TODO: describe finding the key. It lands on the keepsake board because its tag's home zone says so. Note the destroy:hand opener — every page that deals new choices needs it, or old choices pile up.",
-      "pick": {
+      "play": {
         "action": ["destroy:hand", "gain:the_key:1", "fill:hand:c_leave:1", "fill:hand:c_gamble:1"]
       }
     },
@@ -57,19 +57,19 @@
       "key": "p_locked",
       "text": "TODO: The failure page",
       "story": "TODO: what a failed gate looks like. The empty on_pick keeps the hand, so the player can try something else.",
-      "pick": { "action": [] }
+      "play": { "action": [] }
     },
     {
       "key": "p_good_luck",
       "text": "TODO: The good outcome",
       "story": "TODO: fortune favors you. +1 health.",
-      "pick": { "action": ["gain_stat:hp:1"] }
+      "play": { "action": ["gain_stat:hp:1"] }
     },
     {
       "key": "p_bad_luck",
       "text": "TODO: The bad outcome",
       "story": "TODO: it goes wrong. -2 health.",
-      "pick": { "action": ["lose_stat:hp:2"] }
+      "play": { "action": ["lose_stat:hp:2"] }
     },
     {
       "key": "the_key",
@@ -82,14 +82,14 @@
       "text": "TODO: An Ending",
       "outcome": "victory",
       "story": "TODO: your ending. Picking it returns to the menu.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "e_dead",
       "text": "TODO: The Death Ending",
       "outcome": "defeat",
       "story": "TODO: what zero health looks like.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     }
   ],
   "phases": [

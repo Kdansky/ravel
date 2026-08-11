@@ -152,7 +152,7 @@ local CASES = {
 		function(g) g.phase_by_key.story.type = "draw_and_play" end },
 	{ "actions on a non-automatic phase", "only automatic phases run them",
 		function(g) g.phase_by_key.story.actions = { "shuffle:chest_deck" } end },
-	{ "on_pick outside an overlay", "only overlay phases use it",
+	{ "a phase field that no longer exists", "the engine doesn't read",
 		function(g) g.phase_by_key.story.on_pick = { "destroy:hand" } end },
 	{ "routing that isn't a list", "next should be a list of routes",
 		function(g) g.phase_by_key.story.next = "story" end },

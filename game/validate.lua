@@ -49,13 +49,13 @@ local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	color = true, tags = true, card_stats = true, owns = true, outcome = true,
 	play = true, activate = true, challenge = true, receive = true,
-	turn = true, pick = true, start = true,
+	turn = true, start = true,
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true,
 	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, exhausts = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
-	accepts = true, on_turn = true, on_pick = true,
+	accepts = true, on_turn = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
@@ -64,7 +64,6 @@ local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = t
 	exhausts = true, moves = true }
 local RECEIVE_FIELDS   = { needs = true }
 local TURN_FIELDS      = { action = true }
-local PICK_FIELDS      = { action = true }
 local START_FIELDS     = { zone = true, slot = true }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, fit = true,
@@ -74,7 +73,7 @@ local ZONE_FIELDS = {
 }
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
-	draw = true, zone = true, pass_card = true, on_pick = true, next = true,
+	draw = true, zone = true, pass_card = true, next = true,
 	ends_after = true, discard_hand = true, page = true, injected = true,
 	seat = true,
 }
@@ -85,10 +84,11 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, hidd
 -- A tag def is a card mixin, so it speaks a card's moments. What a tag can
 -- honestly grant is an ability and a home — nothing that would have to be
 -- re-derived as state moves — so `activate` is the only block it takes.
-local TAG_FIELDS      = { zone = true, tooltip = true, activate = true,
-	-- derived from the block, as on a card
+local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
+	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
-	activate_phases = true, exhausts = true, moves = true }
+	activate_phases = true, exhausts = true, moves = true,
+	on_play = true, cost = true, needs = true, target = true, phases = true }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
 	owner = true, fill = true, moves = true }
@@ -140,7 +140,6 @@ M.FIELDS = {
 	challenge     = CHALLENGE_FIELDS,
 	receive       = RECEIVE_FIELDS,
 	turn          = TURN_FIELDS,
-	pick          = PICK_FIELDS,
 	start         = START_FIELDS,
 }
 
@@ -153,7 +152,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, exhausts = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_turn = true, on_pick = true,
+	on_turn = true,
 	auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
@@ -751,7 +750,7 @@ function M.check(G)
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
 		for moment, fields in pairs({ play = PLAY_FIELDS, activate = ACTIVATE_FIELDS,
-			receive = RECEIVE_FIELDS, turn = TURN_FIELDS, pick = PICK_FIELDS,
+			receive = RECEIVE_FIELDS, turn = TURN_FIELDS,
 			start = START_FIELDS, challenge = CHALLENGE_FIELDS }) do
 			if type(def[moment]) == "table" then
 				check_fields(where .. " " .. moment, def[moment], fields)
@@ -844,7 +843,6 @@ function M.check(G)
 		check_list(where .. " on_turn", def.on_turn)
 		check_list(where .. " on_pass", def.on_pass)
 		check_list(where .. " on_fail", def.on_fail)
-		check_list(where .. " on_pick", def.on_pick)
 
 		-- "target" gates playing the card, "activate_target" its board ability;
 		-- same shape, same checks.
@@ -916,7 +914,7 @@ function M.check(G)
 			end
 			return false
 		end
-		if #homes == 0 and (bare_move(def.on_play) or bare_move(def.on_pick)
+		if #homes == 0 and (bare_move(def.on_play)
 			or bare_move(def.on_pass) or bare_move(def.on_fail)) then
 			if #grids > 1 then
 				warn("%s: is moved with 'move_to' but nothing says where — this game has %d boards (%s); give the card a tag with a home zone, or write move_to:<zone>",
@@ -1141,11 +1139,7 @@ function M.check(G)
 		if pd.actions and pd.type ~= "automatic" then
 			warn("%s: has 'actions', but only automatic phases run them", where)
 		end
-		if pd.on_pick and pd.type ~= "overlay" then
-			warn("%s: has 'on_pick', but only overlay phases use it", where)
-		end
 		check_list(where .. " actions", pd.actions)
-		check_list(where .. " on_pick", pd.on_pick)
 		if pd.next then
 			if type(pd.next) ~= "table" then
 				warn("%s: next should be a list of routes", where)

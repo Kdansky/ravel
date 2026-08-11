@@ -1120,14 +1120,14 @@
       "text": "Both sides, here",
       "tooltip": "Hot-seat: take both players' turns on this machine.",
       "tags": ["token"],
-      "pick": { "action": ["destroy:mode"] }
+      "play": { "action": ["destroy:mode"] }
     },
     {
       "key": "mode_online",
       "text": "With a friend, online",
       "tooltip": "Sit as North and invite someone to play South. They do not need this game — it travels with the invite.",
       "tags": ["token"],
-      "pick": { "action": ["destroy:mode", "net_seat:north", "net_invite"] }
+      "play": { "action": ["destroy:mode", "net_seat:north", "net_invite"] }
     },
     {
       "key": "done_scoring",
@@ -1140,13 +1140,13 @@
       "key": "north_wins",
       "text": "North wins",
       "story": "North comes home with the better haul. South should have hedged.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "south_wins",
       "text": "South wins",
       "story": "South comes home with the better haul. North should have hedged.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "draw_deck",

@@ -34,7 +34,6 @@ local MOMENTS = {
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts" },
 	turn      = { action = "on_turn" },
-	pick      = { action = "on_pick" },
 	start     = { zone = "to_zone", slot = "to_slot" },
 }
 M.MOMENTS = MOMENTS

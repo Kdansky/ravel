@@ -193,14 +193,16 @@
       "outcome": "victory",
       "text": "Triumph",
       "asset": "banners_procession.jpg",
-      "tooltip": "Your people rejoice — the castle stands proud. Click to return to the menu."
+      "tooltip": "Your people rejoice — the castle stands proud. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "the_fall",
       "outcome": "defeat",
       "text": "The Castle Falls",
       "asset": "abbey_ruins.jpg",
-      "tooltip": "Morale is broken and the halls stand empty. Click to return to the menu."
+      "tooltip": "Morale is broken and the halls stand empty. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     }
   ],
   "zones": [
@@ -238,7 +240,13 @@
       "contents": ["bandit_raid:3", "drought:3", "merchant:2", "siege:2"]
     },
     { "key": "graveyard", "label": "Discard", "type": "pile", "pos": [0.77, 0.59, 0.99, 0.99] },
-    { "key": "offer", "type": "hand", "pos": [0.15, 0.32, 0.85, 0.7], "tags": ["hidden"] },
+    {
+      "key": "offer",
+      "type": "hand",
+      "pos": [0.15, 0.32, 0.85, 0.7],
+      "tags": ["hidden"],
+      "applies": ["draft_pick"]
+    },
     {
       "key": "edicts",
       "type": "deck",
@@ -259,6 +267,25 @@
       "pos": [0.42, -0.4, 0.58, -0.08],
       "tags": ["hidden"],
       "contents": ["the_fall"]
+    },
+    {
+      "key": "decree_offer",
+      "type": "hand",
+      "pos": [0.15, 0.32, 0.85, 0.7],
+      "tags": ["hidden"],
+      "applies": ["decree_pick"]
+    },
+    {
+      "key": "victory_offer",
+      "type": "hand",
+      "pos": [0.15, 0.32, 0.85, 0.7],
+      "tags": ["hidden"]
+    },
+    {
+      "key": "defeat_offer",
+      "type": "hand",
+      "pos": [0.15, 0.32, 0.85, 0.7],
+      "tags": ["hidden"]
     }
   ],
   "phases": [
@@ -292,39 +319,41 @@
       "label": "Choose a building",
       "deck": "build_deck",
       "zone": "offer",
-      "draw": 3,
-      "on_pick": ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck", "pop_phase"]
+      "draw": 3
     },
     {
       "key": "decree",
       "type": "overlay",
       "label": "Choose an edict",
       "deck": "edicts",
-      "zone": "offer",
-      "draw": 3,
-      "on_pick": ["add_to:hand", "return_to:offer:edicts", "pop_phase"]
+      "zone": "decree_offer",
+      "draw": 3
     },
     {
       "key": "victory",
       "type": "overlay",
       "label": "Victory",
       "deck": "fate_victory",
-      "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "zone": "victory_offer",
+      "draw": 1
     },
     {
       "key": "defeat",
       "type": "overlay",
       "label": "Defeat",
       "deck": "fate_defeat",
-      "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "zone": "defeat_offer",
+      "draw": 1
     }
   ],
   "end_conditions": [
     { "stat": "morale", "equals": 0, "then": ["push_phase:defeat"] },
     { "stat": "morale", "at_least": 10, "then": ["push_phase:victory"] }
-  ]
+  ],
+  "tags": {
+    "draft_pick": {
+      "play": { "action": ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck"] }
+    },
+    "decree_pick": { "play": { "action": ["add_to:hand", "return_to:decree_offer:edicts"] } }
+  }
 }

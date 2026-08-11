@@ -18,7 +18,7 @@ local actions = require("actions")
 local NESTED = {
 	target = true, route = true,
 	play = true, activate = true, challenge = true, receive = true,
-	turn = true, pick = true, start = true,
+	turn = true, start = true,
 }
 
 local M = {}
@@ -133,7 +133,7 @@ function M.test_schema_describes_the_nested_shapes(check)
 	end
 
 	-- A card's moments: each block against its own field table, both ways.
-	for _, moment in ipairs({ "play", "activate", "challenge", "receive", "turn", "pick", "start" }) do
+	for _, moment in ipairs({ "play", "activate", "challenge", "receive", "turn", "start" }) do
 		local block, fields = card[moment], validate.FIELDS[moment]
 		check("the document has a " .. moment .. " block", type(block) == "table")
 		for field in pairs(fields) do

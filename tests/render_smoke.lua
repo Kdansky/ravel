@@ -162,11 +162,11 @@ render.rescale()
 for _ = 1, 8 do frame(0.016) end
 render.set_detail(zones.find("reveal").cards[1]); frame(0.016)
 render.set_detail(nil)
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 for _ = 1, 8 do frame(0.016) end
 flow.play_card(hand_card("c_search").id, {})
 for _ = 1, 8 do frame(0.016) end
-flow.pick(zones.find("reveal").cards[1])
+flow.play_card(zones.find("reveal").cards[1], {})
 for _ = 1, 8 do frame(0.016) end
 
 -- Titles that do not fit, in a font that has to cut them. A card whose name

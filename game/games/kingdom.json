@@ -511,20 +511,23 @@
       "text": "The Coronation",
       "asset": "crown_royal.jpg",
       "outcome": "victory",
-      "tooltip": "Bells in every tower — the realm is whole and yours. Click to return to the menu."
+      "tooltip": "Bells in every tower — the realm is whole and yours. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "ruin",
       "text": "The Fall",
       "asset": "abbey_ruins.jpg",
       "outcome": "defeat",
-      "tooltip": "The gates stand open and the throne stands empty. Click to return to the menu."
+      "tooltip": "The gates stand open and the throne stands empty. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "twilight",
       "text": "Twilight Years",
       "asset": "twilight_field.jpg",
-      "tooltip": "No crown, no ruin — the seasons simply carry on without you. Click to return to the menu."
+      "tooltip": "No crown, no ruin — the seasons simply carry on without you. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     }
   ],
   "zones": [
@@ -757,8 +760,7 @@
       "label": "Coronation",
       "deck": "fate_crown",
       "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "draw": 1
     },
     {
       "key": "collapse",
@@ -766,8 +768,7 @@
       "label": "The Fall",
       "deck": "fate_ruin",
       "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "draw": 1
     },
     {
       "key": "twilight_years",
@@ -775,8 +776,7 @@
       "label": "Twilight Years",
       "deck": "fate_twilight",
       "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "draw": 1
     }
   ],
   "end_conditions": [

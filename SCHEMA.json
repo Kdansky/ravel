@@ -103,11 +103,6 @@
           "action strings run at each round boundary while the card is on a grid and not ruined"
         ]
       },
-      "pick": {
-        "action": [
-          "action strings run when the card is picked from the page overlay"
-        ]
-      },
       "start": {
         "zone": "zone key this card starts in, already in play — for thrones, boards and buttons. Without one, its home tag decides, then the only board.",
         "slot": "1-based cell index it starts on, row-major. Grid zones only."
@@ -155,7 +150,7 @@
     {
       "key": "unique name. A phase key must never name a seat: both players share one play phase, and seat: next is what makes the turn theirs.",
       "label": "string for the HUD",
-      "type": "automatic (run actions once and advance), player_input (play freely), draw_and_play (player_input with ends_after 1 and discard_hand), or overlay (dim the screen, deal, resolve by on_pick; push-only and locks everything else)",
+      "type": "automatic (run actions once and advance), player_input (play freely), draw_and_play (player_input with ends_after 1 and discard_hand), or overlay (dim the screen, deal into its zone, and resolve by *playing* one of the cards dealt — choosing is playing. Push-only, and a choice costs nothing: cost, needs and targeting are skipped)",
       "actions": [
         "action strings run on entry, for automatic phases"
       ],
@@ -166,10 +161,7 @@
       "ends_after": "number of plays after which the phase advances itself",
       "seat": "next hands over to the following seat on entry, which is the whole of turn-taking",
       "discard_hand": "true discards the unplayed hand when the phase is left, so unpicked options do not pile up",
-      "page": "overlay only: render its cards as full-screen story pages and run the picked card's own on_pick rather than the phase's",
-      "on_pick": [
-        "overlay only: action strings run with the picked card"
-      ],
+      "page": "true renders the overlay's cards as full-screen story pages (title, story prose, click to continue). Purely how they are drawn: what choosing one does is the card's own play block, page or not.",
       "next": [
         {
           "stat": "a subject, with equals, at_least or at_most beside it: the condition deciding whether this route is taken",
@@ -208,6 +200,17 @@
   "tags": {
     "<your tag name>": {
       "zone": "the home zone of every card carrying this tag, so move_to with no zone, gain and auto_play all know where the card goes without naming it",
+      "play": {
+        "cost": "what playing a card that lies here costs",
+        "needs": "a condition gating it",
+        "target": "a target spec for it, the same shape as a card's play.target",
+        "phases": [
+          "phase keys it works in"
+        ],
+        "action": [
+          "what playing a card here does. This is how an offer says what choosing from it means, when the cards it deals already do something else when played from a hand."
+        ]
+      },
       "activate": {
         "action": [
           "action strings this tag gives its cards, which is what a zone hands out with applies"
@@ -267,7 +270,7 @@
     "_quantifiers": "any (default: the pool reaches n), each (every member does, and an empty scope is false rather than vacuously true), random (as any, but one member is chosen by the seeded shuffle)."
   },
   "_actions": {
-    "_what": "Colon-separated strings, run from on_play, on_activate, on_turn, a challenge's pass and fail, on_pick, a zone's on_click, a phase's actions, and an end condition's then. An unknown op logs and is skipped. A numeric slot takes a number or a measuring fn, optionally multiplied by a second with :x:. A zone slot takes a scope expression too.",
+    "_what": "Colon-separated strings, run from on_play, on_activate, on_turn, a challenge's pass and fail, a zone's on_click, a phase's actions, and an end condition's then. An unknown op logs and is skipped. A numeric slot takes a number or a measuring fn, optionally multiplied by a second with :x:. A zone slot takes a scope expression too.",
     "fill": "fill:<zone>:<card>:<n> — create n instances of a card in a zone",
     "shuffle": "shuffle:<zone>",
     "draw_from": "draw_from:<from>:<to>:<n> — move n cards off the top",
@@ -284,7 +287,7 @@
     "attach_to_target": "attach_to_target — tuck the acting card under the first target",
     "destroy": "destroy:<scope> — remove those cards from play entirely. A bare zone key is a scope, so destroy:hand still works.",
     "destroy_self": "destroy_self — remove the acting card",
-    "reveal": "reveal:<card> — conjure a card into the page overlay, where its on_pick continues",
+    "reveal": "reveal:<card> — conjure a card into the page overlay, where playing it continues the story",
     "reveal_top": "reveal_top:<zone> — turn a zone's top card into the page overlay",
     "resolve_challenge": "resolve_challenge — ask the card's challenge and run its pass or its fail",
     "effect": "effect:<name> — play a named visual effect on the acting card, skipped headless",

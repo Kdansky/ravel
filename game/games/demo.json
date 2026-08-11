@@ -18,7 +18,13 @@
     },
     { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.96, 0.96] },
     { "key": "past", "type": "pile", "pos": [0.8, 0.08, 0.96, 0.55] },
-    { "key": "offer", "type": "hand", "pos": [0.32, 0.3, 0.68, 0.72], "tags": ["hidden"] },
+    {
+      "key": "offer",
+      "type": "hand",
+      "pos": [0.32, 0.3, 0.68, 0.72],
+      "tags": ["hidden"],
+      "applies": ["path_choice_pick"]
+    },
     {
       "key": "paths",
       "type": "deck",
@@ -39,6 +45,18 @@
       "pos": [0.42, -0.4, 0.58, -0.08],
       "tags": ["hidden"],
       "contents": ["perished"]
+    },
+    {
+      "key": "victory_offer",
+      "type": "hand",
+      "pos": [0.32, 0.3, 0.68, 0.72],
+      "tags": ["hidden"]
+    },
+    {
+      "key": "defeat_offer",
+      "type": "hand",
+      "pos": [0.32, 0.3, 0.68, 0.72],
+      "tags": ["hidden"]
     }
   ],
   "cards": [
@@ -117,14 +135,16 @@
       "outcome": "victory",
       "text": "Journey's End",
       "asset": "village.png",
-      "tooltip": "You survived the wandering road. Click to return to the menu."
+      "tooltip": "You survived the wandering road. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "perished",
       "outcome": "defeat",
       "text": "You Perished",
       "asset": "storm.png",
-      "tooltip": "The road has claimed you. Click to return to the menu."
+      "tooltip": "The road has claimed you. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     }
   ],
   "stats": [{ "key": "hp", "min": 0, "max": 10, "label": "Health" }],
@@ -137,31 +157,29 @@
       "label": "Choose your path",
       "deck": "paths",
       "zone": "offer",
-      "draw": 3,
-      "on_pick": ["add_to:hand", "return_to:offer:paths", "pop_phase"]
+      "draw": 3
     },
     {
       "key": "victory",
       "type": "overlay",
       "label": "Journey's End",
       "deck": "fate_victory",
-      "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "zone": "victory_offer",
+      "draw": 1
     },
     {
       "key": "defeat",
       "type": "overlay",
       "label": "You Perished",
       "deck": "fate_defeat",
-      "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "zone": "defeat_offer",
+      "draw": 1
     }
   ],
   "end_conditions": [
     { "stat": "hp", "equals": 0, "then": ["push_phase:defeat"] },
     { "zone_empty": ["road", "hand"], "then": ["push_phase:victory"] }
   ],
-  "setup": { "player": { "hp": 5 } }
+  "setup": { "player": { "hp": 5 } },
+  "tags": { "path_choice_pick": { "play": { "action": ["add_to:hand", "return_to:offer:paths"] } } }
 }

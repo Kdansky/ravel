@@ -1,6 +1,6 @@
 # 12 — A card is a list of moments
 
-**Status:** in progress — `challenge` shipped (`251b48f`) · **Size:** large, and
+**Status:** shipped — all seven moments, and `pick` turned out not to be one · **Size:** large, and
 almost all of it is migration · **Depends on:** [11](11-styles-as-tags.md) for
 `color`
 
@@ -82,9 +82,8 @@ board ability" spelled as a naming trick. Structure says it instead.
 | **`accepts`** | **`receive.needs`** | see below |
 | `on_pass` / `on_fail` | `challenge.pass` / `challenge.fail` | inside `challenge` the `on_` prefix is noise |
 | `on_turn` | `turn.action` | |
-| `on_pick` | `pick.action` | |
 | `exhausts`, `moves` | `activate.*` only | they mean nothing about playing a card, and now cannot be written there |
-| `irreversible` | `play.*` and `pick.*` | the two moments it applies to, duplicated because both genuinely have it |
+| `irreversible` | the tag `no_undo` | a boolean quality is a tag, not a field — and it was one field serving two moments |
 | `phases` | `play.phases`, `activate.phases` | **a gain**: today one field gates both, so "playable in main, activatable any time" cannot be said |
 | `auto_play`, `to_zone`, `to_slot` | `start.zone`, `start.slot` | the same prefix disease, one letter shorter. Presence of `start` replaces the `auto_play` flag |
 | `color` | a style | [11](11-styles-as-tags.md) |
@@ -104,6 +103,35 @@ gates. `play.needs` gates the play; `challenge.needs` decides pass from fail.
 The three fields that only ever work together — `requires`, `on_pass`,
 `on_fail` — now live in one block that cannot be half-written, which the
 validator currently has to check by hand.
+
+## `pick` was not a moment either, and it went away
+
+The last block turned out to be a duplicate of `play`. An overlay is a pending
+choice, and a choice is resolved by *playing* one of the cards offered — so
+`flow.pick` was a second path doing what `play_card` does, and the phase's
+`zone` already bounds what may be played.
+
+Deleting it removed more than a block: `flow.pick`, the `page`/non-page split
+that decided *whose* actions ran, a phase-level `on_pick`, and a footgun where a
+card's own actions were silently ignored in a non-page overlay.
+
+Three rules that lived inside `flow.pick` had to become rules of their own, and
+all three are better said out loud:
+
+- **An overlay pops before the card's actions run**, so a chained reveal lands on
+  top rather than burying the overlay it came from.
+- **A card still lying in the offer afterwards is spent.** A read page vanishes;
+  one whose actions moved it stays where it went.
+- **A choice costs nothing.** Cost, needs and targeting are skipped, because they
+  describe playing that card out of a hand later — castle deals *buildings* into
+  its draft, and paying to choose one charged the build price twice. The golden
+  trace caught exactly that.
+
+What a phase's `on_pick` used to say is now the offer zone's, granted with
+`applies` — behaviour belonging to the place, which is the rule
+[DONE](DONE.md) already records for piles. That needed one honest change: two
+different offers sharing one zone had to become two zones, because a zone grants
+to everything lying in it and an ending card must not inherit a draft's rule.
 
 ## `challenge` is not a moment, and that is deliberate
 

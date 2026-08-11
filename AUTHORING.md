@@ -86,7 +86,7 @@ The recipe, in order:
 4. **Phases** — the turn structure. The first phase starts the game; `automatic`
    phases run and advance immediately.
 5. **End conditions** — how the game ends. Endings are just overlay phases that
-   deal a "fate card" whose `pick.action` loads the menu.
+   deal a "fate card" whose `play.action` loads the menu.
 
 The menu itself is a game (`menu.json`); add a card with
 `"play": { "action": ["load_game:mygame.json"] }` to make yours reachable.
@@ -146,17 +146,17 @@ from this two-page story:
 
 Two rules carry every story:
 
-- **Pages** are cards with `story` (the prose) and `pick.action` (what happens
+- **Pages** are cards with `story` (the prose) and `play.action` (what happens
   when the read page is clicked away). **Choices** are cards with `tooltip`
   (what the player is told) and `play.action` (what secretly happens — usually a
   `reveal:`). The tooltip reveals exactly as much as you write into it.
-- **Every page that deals new choices starts its `pick.action` with
+- **Every page that deals new choices starts its `play.action` with
   `destroy:hand`**, or the old choices pile up next to the new ones. A page
   that keeps the hand (a locked door, a rebuff) uses `"pick": { "action": [] }`.
 
 From there: keepsakes are cards with a home-zone tag (`gain:` them, test
 them with `card:<key>`), shuffle secrets are `reveal_top:` over a hidden
-deck, and endings are pages whose `pick.action` is `load_game:menu.json` plus
+deck, and endings are pages whose `play.action` is `load_game:menu.json` plus
 `end_conditions` that `reveal:` a death page. Zones may omit `pos` — every
 type has a sensible default spot. Register your game with a card in
 `menu.json`, or it is only reachable from the CLI.
@@ -218,7 +218,7 @@ rulebook open alongside.
 | "Draw from the deck or a discard pile" | a token in the draw phase's `zone` for the deck; for the piles, `"applies": ["takeable"]` on each and one tag def carrying an `activate` block |
 | "Only during your main phase" | `"play": { "phases": ["main"] }`, or `activate.phases` for the ability |
 | "Put it on the discard pile" | `"target": { "type": "zone", "zones": ["discard"] }` — point at the place, not at a card lying in it |
-| "Discard a card of your choice" | an `overlay` phase over the hand with its own `on_pick` |
+| "Discard a card of your choice" | an `overlay` phase over the hand; the zone `applies` a tag whose `play.action` discards |
 | "Destroy all enemy creatures" | `destroy:each.enemy.creature` |
 | "Choose an enemy creature" | `"target": { "tags": ["creature"], "owner": "enemy", "count": 1 }` |
 | "Roll / draw randomly" | `shuffle` then `reveal_top:<zone>` |
@@ -322,7 +322,7 @@ overlay phase:
 
 { "key": "victory", "type": "overlay", "label": "Victory",
   "deck": "fate_win", "zone": "offer", "draw": 1,
-  "on_pick": ["load_game:menu.json"] }
+  "play": { "action": ["load_game:menu.json"] } }
 ```
 
 **Turn cycle with forced plays** (Castle Lord): `draw_and_play` phases in list
@@ -334,18 +334,20 @@ first non-automatic phase, which ends the round. Always give these a `pass_card`
 with `"play": { "needs": { "plays": 1 }, "action": ["destroy_self", "next_phase"] }` ends the hand.
 
 **Sub-card choices**: options live in a hidden internal deck; the parent card
-pushes an overlay over it; the phase's `on_pick` sends the pick to hand and returns the rest.
+pushes an overlay over it, and the offer zone `applies` a tag whose `play.action`
+sends the chosen card to hand and returns the rest — behaviour that belongs to
+the offer, not to the buildings it deals.
 Option cards can carry their own `cost` (a priced transformation).
 
 **Classical CYOA** (The Drowned Tower): pages are cards with a `story` field;
 choice cards `reveal:` them. A revealed page fills the screen; clicking it runs
-the page's own `pick.action` — typically `destroy:hand` then `fill:hand:...` with
+the page's own `play.action` — typically `destroy:hand` then `fill:hand:...` with
 the next choices, so the story chains without any phase plumbing. Secret
 conditional branches are `resolve_challenge` choices whose `challenge.pass`/`challenge.fail`
 reveal different pages; shuffle-decided secrets are `reveal_top:` over a hidden
 deck; the inventory is just a board — keepsakes carry a tag whose home is that
 board, so `gain:rusty_key` puts them there, and `card:<key>` tests for them;
-endings are pages whose `pick.action` is `load_game:menu.json`.
+endings are pages whose `play.action` is `load_game:menu.json`.
 Tag the point of no return `no_undo`. Note that a choice card's
 consequences are invisible until played — the tooltip tells the player exactly
 as much as you write into it.
@@ -529,7 +531,6 @@ disk cache with no network at all.
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). Zones take the same block |
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
-| `pick` | `action`: run when the card is picked from the built-in reveal overlay (pages) |
 | `start` | The card begins in play — a throne, a board, a button. `zone` says where (without one, its home tag decides, then the only board) and `slot` is a 1-based cell. **Having the block is the flag**; there is no separate `auto_play` |
 | `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
@@ -546,16 +547,20 @@ disk cache with no network at all.
 | `ends_after` | The phase advances itself after this many plays |
 | `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*) |
 | `discard_hand` | Leaving the phase discards its unplayed hand (tokens vanish) |
-| `on_pick` | Overlay only: actions run with the picked card |
-| `page` | Overlay only: render its cards as full-screen story pages (title, `story` prose, click to continue) and run the *picked card's own* `on_pick` instead of the phase's. The built-in `reveal` overlay sets this |
+| `page` | Overlay only: render its cards as full-screen story pages (title, `story` prose, click to continue) and run the built-in `reveal` overlay sets this. Purely how they are drawn — what choosing one *does* is its own `play.action`, page or not |
 | `next` | Routing table (below) |
 
 Types: `automatic` runs its actions once and advances (if the actions opened
 an overlay — a revealed page, say — it waits and advances when the overlay
 closes); `player_input` lets you play freely; `draw_and_play` is shorthand
 for `player_input` with `ends_after: 1` and `discard_hand: true`; `overlay`
-dims the screen, deals into its zone, and resolves via `on_pick` — overlays
-are push-only (never in the sequence) and lock all other actions.
+dims the screen, deals into its zone, and is resolved by **playing** one of the
+cards in it — choosing is playing. Overlays are push-only (never in the
+sequence), and the phase's `zone` is what bounds the choice to the offered
+cards. Picking pops the overlay before the card's actions run, so a chained
+reveal lands on top rather than burying it, and a card still lying in the offer
+afterwards is spent. **A choice costs nothing**: cost, needs and targeting are
+skipped, because they describe playing that card out of a hand later.
 
 Think of phases like Magic's turn structure: each phase declares what it
 deals on entry (`deck`/`draw`/`pass_card`), how it ends (`ends_after` N
@@ -566,7 +571,7 @@ the usual choice, so unpicked options don't pile up across turns).
 The engine provides a built-in overlay phase `reveal` over a built-in hidden
 zone `reveal`, used by the reveal actions. It renders cards as full-text story
 pages (title, `story` prose, click to continue), runs the picked card's own
-`on_pick`, and destroys the read page unless its actions moved it somewhere.
+its `play.action`, and destroys the read page unless its actions moved it somewhere.
 
 Routing: `"next": [ { <condition>, "then": "phase_key", "ends_round": true }, ... ]`.
 First matching entry wins; a condition-less entry always matches; no `next`
@@ -1097,7 +1102,7 @@ lose_stat:score:20:x:count:wager@mine.red            the same product, distribut
 | `attach_to_target` | Attach the acting card under the first target |
 | `resolve_challenge` | Ask the card's `challenge`: run its `pass` or its `fail` |
 | `effect:name` | Play a named visual effect on the acting card (headless: skipped) |
-| `reveal:card` | Conjure the card into the page overlay; its `on_pick` continues |
+| `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
 | `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
 | `destroy:<scope>` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A card cannot be partly destroyed, so only `random.` narrows — to one victim |

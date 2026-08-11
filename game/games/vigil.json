@@ -115,70 +115,74 @@
       "text": "A Loose Page",
       "asset": "old_bell.jpg",
       "tooltip": "Torn from something larger, and legible. It becomes a tome.",
-      "pick": { "action": ["gain:tome:1"] }
+      "play": { "action": ["gain:tome:1"] }
     },
     {
       "key": "a_whisper",
       "text": "A Whisper",
       "asset": "torch_night.jpg",
       "tooltip": "One word, in a voice you know. +1 insight, +1 dread.",
-      "pick": { "action": ["gain_stat:insight:1", "gain_stat:dread:1"] }
+      "play": { "action": ["gain_stat:insight:1", "gain_stat:dread:1"] }
     },
     {
       "key": "a_patron",
       "text": "A Patron",
       "asset": "gold_coins.jpg",
       "tooltip": "Someone wealthy is interested in your work. +4 funds.",
-      "pick": { "action": ["gain_stat:funds:4"] }
+      "play": { "action": ["gain_stat:funds:4"] }
     },
     {
       "key": "a_nightmare",
       "text": "A Nightmare",
       "asset": "wolves_winter.jpg",
       "tooltip": "You are followed through the snow and you do not wake until it catches you. -2 health, +2 dread.",
-      "pick": { "action": ["lose_stat:health:2", "gain_stat:dread:2"] }
+      "play": { "action": ["lose_stat:health:2", "gain_stat:dread:2"] }
     },
     {
       "key": "a_revelation",
       "text": "A Revelation",
       "asset": "eclipse_sun.jpg",
       "tooltip": "For a moment the whole shape of it is plain. +3 insight.",
-      "pick": { "action": ["gain_stat:insight:3"] }
+      "play": { "action": ["gain_stat:insight:3"] }
     },
     {
       "key": "an_omen",
       "text": "An Omen",
       "asset": "blighted_tree.jpg",
       "tooltip": "The tree by the gate is dead on one side only. +2 dread, and a tome you did not buy.",
-      "pick": { "action": ["gain_stat:dread:2", "gain:tome:1"] }
+      "play": { "action": ["gain_stat:dread:2", "gain:tome:1"] }
     },
     {
       "key": "ascended",
       "outcome": "victory",
       "text": "The Vigil Ends",
       "asset": "starry_tower.jpg",
-      "tooltip": "Three rites, and the door opens from the other side. Click to return to the menu."
+      "tooltip": "Three rites, and the door opens from the other side. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "perished",
       "outcome": "defeat",
       "text": "You Do Not Wake",
       "asset": "graveyard_mist.jpg",
-      "tooltip": "The body gives out before the work is done. Click to return to the menu."
+      "tooltip": "The body gives out before the work is done. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "unmade",
       "outcome": "defeat",
       "text": "Nothing Left to Frighten",
       "asset": "swamp_mire.jpg",
-      "tooltip": "The dread finishes what the dreams began. Click to return to the menu."
+      "tooltip": "The dread finishes what the dreams began. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "too_late",
       "outcome": "defeat",
       "text": "The Hour Passes",
       "asset": "old_door.jpg",
-      "tooltip": "The conjunction holds for fourteen nights and not one more. You were close. Click to return to the menu."
+      "tooltip": "The conjunction holds for fourteen nights and not one more. You were close. Click to return to the menu.",
+      "play": { "action": ["load_game:menu.json"] }
     }
   ],
   "zones": [
@@ -226,8 +230,7 @@
       "label": "Ascension",
       "deck": "fate_win",
       "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "draw": 1
     },
     {
       "key": "death",
@@ -235,8 +238,7 @@
       "label": "Death",
       "deck": "fate_dead",
       "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "draw": 1
     },
     {
       "key": "madness",
@@ -244,8 +246,7 @@
       "label": "Madness",
       "deck": "fate_mad",
       "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "draw": 1
     },
     {
       "key": "too_slow",
@@ -253,8 +254,7 @@
       "label": "The Hour Passes",
       "deck": "fate_late",
       "zone": "offer",
-      "draw": 1,
-      "on_pick": ["load_game:menu.json"]
+      "draw": 1
     }
   ],
   "end_conditions": [
