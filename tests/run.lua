@@ -1303,121 +1303,53 @@ end
 play_fixture([[{
   "title": "The Company",
   "stats": [
-    {
-      "key": "might",
-      "label": "Might",
-      "subject": "sum:might@party"
-    },
-    {
-      "key": "mana",
-      "label": "Mana"
-    }
+    { "key": "might", "label": "Might", "subject": "sum:might@party" },
+    { "key": "mana", "label": "Mana" }
   ],
   "zones": [
     {
       "key": "party",
       "type": "grid",
-      "pos": [
-        0.0,
-        0.0,
-        0.8,
-        0.5
-      ],
-      "grid": [
-        4,
-        1
-      ],
-      "tags": [
-        "activate"
-      ]
+      "pos": [0.0, 0.0, 0.8, 0.5],
+      "grid": [4, 1],
+      "tags": ["activate"]
     },
-    {
-      "key": "hand",
-      "type": "hand",
-      "pos": [
-        0.19,
-        0.62,
-        0.97,
-        0.97
-      ]
-    }
+    { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
-  "phases": [
-    {
-      "key": "adventuring",
-      "type": "player_input",
-      "label": "Adventuring"
-    }
-  ],
+  "phases": [{ "key": "adventuring", "type": "player_input", "label": "Adventuring" }],
+  "setup": {
+    "place": [
+      { "card": "ranger", "zone": "party" },
+      { "card": "cleric", "zone": "party" },
+      { "card": "dwarf", "zone": "party" },
+      { "card": "mage", "zone": "party" }
+    ]
+  },
   "cards": [
     {
       "key": "ranger",
       "text": "Ranger",
-      "tags": [
-        "player",
-        "ranger"
-      ],
-      "card_stats": {
-        "hp": 6,
-        "might": 3
-      },
-      "start": {
-        "zone": "party"
-      }
+      "tags": ["player", "ranger"],
+      "card_stats": { "hp": 6, "might": 3 }
     },
     {
       "key": "cleric",
       "text": "Cleric",
-      "tags": [
-        "player",
-        "cleric"
-      ],
-      "card_stats": {
-        "hp": 5,
-        "might": 2
-      },
-      "start": {
-        "zone": "party"
-      }
+      "tags": ["player", "cleric"],
+      "card_stats": { "hp": 5, "might": 2 }
     },
     {
       "key": "dwarf",
       "text": "Dwarf",
-      "tags": [
-        "player",
-        "dwarf"
-      ],
-      "card_stats": {
-        "hp": 8,
-        "might": 4
-      },
-      "start": {
-        "zone": "party"
-      }
+      "tags": ["player", "dwarf"],
+      "card_stats": { "hp": 8, "might": 4 }
     },
     {
       "key": "mage",
       "text": "Mage",
-      "tags": [
-        "player",
-        "mage"
-      ],
-      "card_stats": {
-        "hp": 4,
-        "might": 1,
-        "mana": 3
-      },
-      "activate": {
-        "cost": {
-          "mana@self": 1
-        },
-        "action": [
-          "gain_stat:might@self:1"
-        ]
-      },
-      "start": {
-        "zone": "party"
-      }
+      "tags": ["player", "mage"],
+      "card_stats": { "hp": 4, "might": 1, "mana": 3 },
+      "activate": { "cost": { "mana@self": 1 }, "action": ["gain_stat:might@self:1"] }
     }
   ]
 }]], 1)
@@ -1700,135 +1632,49 @@ play_fixture([==[{
     {
       "key": "board",
       "type": "grid",
-      "grid": [
-        3,
-        3
-      ],
-      "pos": [
-        0.02,
-        0.05,
-        0.6,
-        0.6
-      ],
-      "tags": [
-        "activate"
-      ]
+      "grid": [3, 3],
+      "pos": [0.02, 0.05, 0.6, 0.6],
+      "tags": ["activate"]
     },
-    {
-      "key": "taken",
-      "type": "pile",
-      "pos": [
-        0.62,
-        0.05,
-        0.98,
-        0.4
-      ]
-    },
-    {
-      "key": "hand",
-      "type": "hand",
-      "pos": [
-        0.19,
-        0.62,
-        0.97,
-        0.97
-      ]
-    }
+    { "key": "taken", "type": "pile", "pos": [0.62, 0.05, 0.98, 0.4] },
+    { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
-  "phases": [
-    {
-      "key": "battle",
-      "type": "player_input",
-      "label": "Battle"
-    }
-  ],
+  "phases": [{ "key": "battle", "type": "player_input", "label": "Battle" }],
+  "setup": {
+    "place": [
+      { "card": "w_rook", "zone": "board" },
+      { "card": "w_ghost", "zone": "board" },
+      { "card": "b_pawn", "zone": "board" }
+    ]
+  },
   "cards": [
-    {
-      "key": "player_white",
-      "text": "White",
-      "tags": [
-        "player"
-      ],
-      "owns": "white"
-    },
-    {
-      "key": "player_black",
-      "text": "Black",
-      "tags": [
-        "player"
-      ],
-      "owns": "black"
-    },
+    { "key": "player_white", "text": "White", "tags": ["player"], "owns": "white" },
+    { "key": "player_black", "text": "Black", "tags": ["player"], "owns": "black" },
     {
       "key": "w_rook",
       "text": "White Rook",
-      "tags": [
-        "white",
-        "piece"
-      ],
+      "tags": ["white", "piece"],
       "activate": {
-        "target": {
-          "type": "slot",
-          "zones": [
-            "board"
-          ],
-          "fill": "open",
-          "count": 1
-        },
-        "action": [
-          "move_to:target:taken"
-        ]
-      },
-      "start": {
-        "zone": "board"
+        "target": { "type": "slot", "zones": ["board"], "fill": "open", "count": 1 },
+        "action": ["move_to:target:taken"]
       }
     },
     {
       "key": "w_ghost",
       "text": "White Ghost",
-      "tags": [
-        "white",
-        "piece"
-      ],
+      "tags": ["white", "piece"],
       "activate": {
-        "target": {
-          "type": "slot",
-          "zones": [
-            "board"
-          ],
-          "fill": "open",
-          "count": 1
-        },
-        "action": [
-          "move_to:target"
-        ]
-      },
-      "start": {
-        "zone": "board"
+        "target": { "type": "slot", "zones": ["board"], "fill": "open", "count": 1 },
+        "action": ["move_to:target"]
       }
     },
     {
       "key": "b_pawn",
       "text": "Black Pawn",
-      "tags": [
-        "black",
-        "piece"
-      ],
+      "tags": ["black", "piece"],
       "activate": {
-        "target": {
-          "type": "slot",
-          "zones": [
-            "board"
-          ],
-          "fill": "empty",
-          "count": 1
-        },
-        "action": [
-          "move_to:target"
-        ]
-      },
-      "start": {
-        "zone": "board"
+        "target": { "type": "slot", "zones": ["board"], "fill": "empty", "count": 1 },
+        "action": ["move_to:target"]
       }
     }
   ]

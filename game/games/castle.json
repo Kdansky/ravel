@@ -19,6 +19,7 @@
     "standing": { "stat": "hp", "at_least": 1 }
   },
   "styles": { "slate": { "color": [0.1, 0.14, 0.22] }, "tiled": { "fit": "fill" } },
+  "setup": { "place": [{ "card": "throne_room", "zone": "board", "slot": 13 }] },
   "cards": [
     {
       "key": "throne_room",
@@ -28,8 +29,7 @@
       "card_stats": { "hp": 20, "hp_max": 20, "gold": 20, "morale": 5, "defense": 0, "food": 0 },
       "tags": ["building", "hero", "player"],
       "activate": { "cost": { "gold": 2 }, "action": ["gain_stat:morale:1"] },
-      "turn": { "action": ["gain_stat:gold:1"] },
-      "start": { "zone": "board", "slot": 13 }
+      "turn": { "action": ["gain_stat:gold:1"] }
     },
     {
       "key": "watchtower",

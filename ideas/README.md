@@ -25,7 +25,7 @@ about how it might go.
 | [11](11-styles-as-tags.md) | Styles are tags too | medium-large | **shipped** — `styles`, claimed by tagging one. Absorbed `color`, `fit`, `ratio`, `checker`, `paint` and three tags; `color: false` replaced `transparent_background`. A style that is also a computed tag makes a look follow the numbers |
 | [12](12-card-moments.md) | A card is a list of moments | large, mostly migration | **shipped** — `play` / `activate` / `challenge` / `receive` / `turn` / `start`. The `activate_` prefix, `requires`, `accepts` and every `on_` name are gone, and `pick` turned out to be `play` |
 | [13](13-one-name-one-thing.md) | One name, one thing | small check | **shipped**, and narrower: a key is unique within its kind, and the *scope* namespace (patterns, zones, tags) may not collide. Everything else may repeat — two repeats are load-bearing |
-| [14](14-kinds-and-placements.md) | Six kinds, thirty-two pieces | medium | not started, and now unblocked — [11](11-styles-as-tags.md) can give a piece its colour, which was the half it was waiting on |
+| [14](14-kinds-and-placements.md) | Six kinds, thirty-two pieces | medium | **half shipped**: `setup.place` exists, so a card no longer says where it starts. Left is the collapse itself — six kinds, with [11](11-styles-as-tags.md) giving a piece its colour |
 
 ---
 

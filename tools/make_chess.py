@@ -93,7 +93,7 @@ ART = {"king": "k", "queen": "q", "rook": "r", "bishop": "b", "knight": "n", "pa
 
 
 def piece(seat, colour_label, kind, file_idx, row, palette):
-    """One template: a named piece on a named starting square."""
+    """One card: a piece. Where it starts is setup's business, not the card's."""
     key = f"{seat[0]}_{kind}_{FILES[file_idx]}"
     return {
         "key": key,
@@ -126,7 +126,6 @@ def piece(seat, colour_label, kind, file_idx, row, palette):
                        "next_phase"],
             "exhausts": False,
         },
-        "start": {"zone": "board", "slot": (row - 1) * 8 + file_idx + 1},
     }
 
 
@@ -220,8 +219,20 @@ def build():
             "vectors": c["path"], "class": ["absolute"], "zone": "board",
         }
 
+    # Setup is the manual: which piece goes on which square, in reading order.
+    # The cards above are what comes out of the box and say nothing about it.
+    place = []
+    for seat, _label, back, pawn_row, _rgb, _pal in SEATS:
+        for i, kind in enumerate(BACK_RANK):
+            place.append({"card": f"{seat[0]}_{kind}_{FILES[i]}", "zone": "board",
+                          "slot": (back - 1) * 8 + i + 1})
+        for i in range(8):
+            place.append({"card": f"{seat[0]}_pawn_{FILES[i]}", "zone": "board",
+                          "slot": (pawn_row - 1) * 8 + i + 1})
+
     return {
         "title": "Chess",
+        "setup": {"place": place},
         "styles": {
             "piece": {"title": False, "color": False},
             "chessboard": {"fit": "fill", "ratio": "grid",

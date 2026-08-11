@@ -589,6 +589,15 @@ false` replaced `transparent_background` — a field and a tag deciding the same
 thing. And a style that is *also* a computed tag makes a look follow the
 numbers, with nothing in the drawing code that knows what `wounded` means.
 
+**Setup is the manual, not the cards.** `start` was the last block, and it went
+the same way `pick` did: the `cards` section is what comes out of the box, and
+`setup.place` is the page that arranges it — which card, which zone, which cell,
+in order. A card may be placed twice, which is what lets a template be a *kind*
+rather than a piece on a square ([14](14-kinds-and-placements.md)). The engine
+places its own first and a game never writes those down: the `system` card, an
+injected `player`, and any seat that named no place, because a seat has to exist
+before it can act.
+
 **Two blocks turned out not to be moments**, and the difference is worth
 keeping. `challenge` is a named *test* any action list reaches with
 `resolve_challenge`, which is why kingdom's crises can be asked from `play` and

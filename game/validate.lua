@@ -48,8 +48,7 @@ M.EFFECT_BASES = {
 local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	tags = true, card_stats = true, owns = true, outcome = true,
-	play = true, activate = true, challenge = true, receive = true,
-	turn = true, start = true,
+	play = true, activate = true, challenge = true, receive = true, turn = true,
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true,
 	activate_cost = true, activate_target = true,
@@ -65,7 +64,6 @@ local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = t
 	exhausts = true, moves = true }
 local RECEIVE_FIELDS   = { needs = true }
 local TURN_FIELDS      = { action = true }
-local START_FIELDS     = { zone = true, slot = true }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, style = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
@@ -146,7 +144,6 @@ M.FIELDS = {
 	challenge     = CHALLENGE_FIELDS,
 	receive       = RECEIVE_FIELDS,
 	turn          = TURN_FIELDS,
-	start         = START_FIELDS,
 }
 
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
@@ -841,8 +838,7 @@ function M.check(G)
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
 		for moment, fields in pairs({ play = PLAY_FIELDS, activate = ACTIVATE_FIELDS,
-			receive = RECEIVE_FIELDS, turn = TURN_FIELDS,
-			start = START_FIELDS, challenge = CHALLENGE_FIELDS }) do
+			receive = RECEIVE_FIELDS, turn = TURN_FIELDS, challenge = CHALLENGE_FIELDS }) do
 			if type(def[moment]) == "table" then
 				check_fields(where .. " " .. moment, def[moment], fields)
 			end
@@ -1251,7 +1247,33 @@ function M.check(G)
 
 	-- Setup.
 	if G.setup then
-		check_fields("setup", G.setup, { player = true })
+		check_fields("setup", G.setup, { player = true, place = true })
+		-- Setup arranges the box: every entry names a card, and may say which
+		-- zone and which cell. A slot outside the grid is silently ignored at
+		-- init, which reads as a piece that simply is not there.
+		for i, e in ipairs(type(G.setup.place) == "table" and G.setup.place or {}) do
+			local where = ("setup.place entry %d"):format(i)
+			if type(e) == "table" then
+				check_fields(where, e, { card = true, zone = true, slot = true })
+				if not G.card_defs[e.card] then
+					warn("%s: places '%s', but no card has that key%s", where, tostring(e.card),
+						suggest(e.card, G.card_defs))
+				end
+				local z = e.zone and G.zone_defs[e.zone]
+				if e.zone and not z then
+					warn("%s: places into '%s', but no zone has that key%s", where, tostring(e.zone),
+						suggest(e.zone, G.zone_defs))
+				elseif e.slot ~= nil then
+					local cells = z and type(z.grid) == "table" and (tonumber(z.grid[1]) or 0) * (tonumber(z.grid[2]) or 0)
+					if not cells or cells == 0 then
+						warn("%s: names a slot, but '%s' is not a grid", where, tostring(e.zone))
+					elseif tonumber(e.slot) == nil or e.slot < 1 or e.slot > cells then
+						warn("%s: slot %s is outside '%s', which has %d cells",
+							where, tostring(e.slot), tostring(e.zone), cells)
+					end
+				end
+			end
+		end
 		for k, v in pairs(type(G.setup.player) == "table" and G.setup.player or {}) do
 			if type(v) ~= "number" then
 				warn("setup: the starting value of '%s' should be a number", tostring(k))

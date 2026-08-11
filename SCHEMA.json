@@ -117,10 +117,6 @@
           "action strings run at each round boundary while the card is on a grid and not ruined"
         ]
       },
-      "start": {
-        "zone": "zone key this card starts in, already in play — for thrones, boards and buttons. Without one, its home tag decides, then the only board.",
-        "slot": "1-based cell index it starts on, row-major. Grid zones only."
-      },
       "outcome": "victory or defeat on an ending card, which gives a banner, a run summary and a flourish"
     }
   ],
@@ -201,7 +197,14 @@
   "setup": {
     "player": {
       "<stat key>": "number the injected player card starts with. A game that declares its own card tagged player does not need this."
-    }
+    },
+    "place": [
+      {
+        "card": "the key of a card that starts already in play — a throne, a board, a button, a chess piece",
+        "zone": "where it goes. Leave it out and its home tag decides, then the only board. A per-seat zone gets one copy in each seat's.",
+        "slot": "1-based cell index, row-major. Grid zones only; without one it takes the first free cell."
+      }
+    ]
   },
   "tags": {
     "<your tag name>": {

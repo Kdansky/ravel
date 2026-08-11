@@ -110,6 +110,16 @@ The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>
 
 ---
 
+## Setup Is the Manual, Not the Cards
+
+**A card never says where it starts.** The `cards` section is the list of things that come out of the box; `setup.place` is the page that arranges them — which card, which zone, which cell. This is why a template can be a *kind* rather than a piece on a square: eight pawns are eight placements naming one card, not eight cards that each know their square.
+
+The order of `setup.place` is load-bearing rather than incidental: entity IDs are handed out as cards are created, so a seeded game replays identically only if setup builds the board the same way every time.
+
+The engine places its own first — the system card, an injected player, and any seat that named no place. A seat has to exist before it can act, so that is plumbing rather than setup and a game never writes it down. **The `system` card living in the `system` zone, and an injected `player` card carrying the `player` tag, are both deliberate**: neither name is in the scope namespace, and both are engine furniture a game may replace by declaring its own.
+
+---
+
 ## Zone Contents
 
 A zone declares its starting cards in its own definition, as `"card_key"` or `"card_key:count"` strings:

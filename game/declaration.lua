@@ -35,7 +35,6 @@ local MOMENTS = {
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts" },
 	turn      = { action = "on_turn" },
-	start     = { zone = "to_zone", slot = "to_slot" },
 }
 M.MOMENTS = MOMENTS
 
@@ -61,9 +60,6 @@ local function flatten_moments(def, pp, what)
 			for authored, internal in pairs(fields) do
 				if block[authored] ~= nil then def[internal] = block[authored] end
 			end
-			-- Presence is the flag: a card with a "start" block starts in play, so
-			-- there is no separate boolean to forget beside it.
-			if moment == "start" then def.auto_play = true end
 			-- Presence is the flag: a card with a "start" block starts in play,
 			-- so auto_play stops being a boolean somebody can forget beside it.
 			if moment == "start" then def.auto_play = true end
@@ -235,6 +231,11 @@ function M.parse(filename)
 		dynamic_styles = {},   -- style names that are also computed tags
 		end_conditions = parsed.end_conditions or {},
 		setup          = parsed.setup or {},
+		-- Where the game begins, in the order the manual would say it. A card
+		-- does not declare its own place: the list of cards is what comes out of
+		-- the box, and this is the setup section that arranges them. Repeats are
+		-- the point — eight pawns are eight entries naming one kind.
+		setup_place    = {},
 		tag_defs       = {},       -- tag behaviour, moments flattened like a card's
 		pattern_defs   = {},       -- named direction sets, for movement and neighbourhood
 		asset_defs     = {},       -- named pictures: name -> { src, max }
@@ -402,6 +403,20 @@ function M.parse(filename)
 		G.zone_list[#G.zone_list + 1] = "system"
 	end
 
+	-- The engine places its own first: the system card, an injected player, and
+	-- any seat that named no place. Those are plumbing rather than setup — a
+	-- seat has to exist before it can act — so a game never writes them down.
+	-- Everything else is an entry an author put in "setup".
+	for _, e in ipairs(type(G.setup.place) == "table" and G.setup.place or {}) do
+		if type(e) == "table" and type(e.card) == "string" then
+			G.setup_place[#G.setup_place + 1] = { card = e.card, zone = e.zone, slot = tonumber(e.slot) }
+		elseif type(e) == "string" then
+			G.setup_place[#G.setup_place + 1] = { card = e }
+		else
+			pp[#pp + 1] = 'a "setup.place" entry should name a card, like { "card": "throne", "zone": "board", "slot": 13 }'
+		end
+	end
+
 	-- The player is a card. A game that wants a visible one tags it (castle's
 	-- throne room) and gets stats, targeting, rendering and undo for free;
 	-- otherwise the engine injects an invisible stat bag from setup.player, so
@@ -433,6 +448,22 @@ function M.parse(filename)
 			tags = {}, tags_set = {},
 			card_stats = { round = 1, turn = 0 }, auto_play = true, to_zone = "system" }
 		table.insert(G.card_list, 1, "system")
+	end
+
+	-- The engine's own, prepended in card_list order so entity IDs are handed out
+	-- exactly as before: a seed reproduces a board only if setup builds it the
+	-- same way every time.
+	do
+		local named = {}
+		for _, e in ipairs(G.setup_place) do named[e.card] = true end
+		local own = {}
+		for _, key in ipairs(G.card_list) do
+			local cd = G.card_defs[key]
+			if not named[key] and (cd.injected or cd.tags_set.player) then
+				own[#own + 1] = { card = key, engine = true }
+			end
+		end
+		for i = #own, 1, -1 do table.insert(G.setup_place, 1, own[i]) end
 	end
 
 	-- Seats, in file order: every card carrying the "player" tag, named by its

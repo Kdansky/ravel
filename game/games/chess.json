@@ -1,5 +1,41 @@
 {
   "title": "Chess",
+  "setup": {
+    "place": [
+      { "card": "w_rook_a", "zone": "board", "slot": 57 },
+      { "card": "w_knight_b", "zone": "board", "slot": 58 },
+      { "card": "w_bishop_c", "zone": "board", "slot": 59 },
+      { "card": "w_queen_d", "zone": "board", "slot": 60 },
+      { "card": "w_king_e", "zone": "board", "slot": 61 },
+      { "card": "w_bishop_f", "zone": "board", "slot": 62 },
+      { "card": "w_knight_g", "zone": "board", "slot": 63 },
+      { "card": "w_rook_h", "zone": "board", "slot": 64 },
+      { "card": "w_pawn_a", "zone": "board", "slot": 49 },
+      { "card": "w_pawn_b", "zone": "board", "slot": 50 },
+      { "card": "w_pawn_c", "zone": "board", "slot": 51 },
+      { "card": "w_pawn_d", "zone": "board", "slot": 52 },
+      { "card": "w_pawn_e", "zone": "board", "slot": 53 },
+      { "card": "w_pawn_f", "zone": "board", "slot": 54 },
+      { "card": "w_pawn_g", "zone": "board", "slot": 55 },
+      { "card": "w_pawn_h", "zone": "board", "slot": 56 },
+      { "card": "b_rook_a", "zone": "board", "slot": 1 },
+      { "card": "b_knight_b", "zone": "board", "slot": 2 },
+      { "card": "b_bishop_c", "zone": "board", "slot": 3 },
+      { "card": "b_queen_d", "zone": "board", "slot": 4 },
+      { "card": "b_king_e", "zone": "board", "slot": 5 },
+      { "card": "b_bishop_f", "zone": "board", "slot": 6 },
+      { "card": "b_knight_g", "zone": "board", "slot": 7 },
+      { "card": "b_rook_h", "zone": "board", "slot": 8 },
+      { "card": "b_pawn_a", "zone": "board", "slot": 9 },
+      { "card": "b_pawn_b", "zone": "board", "slot": 10 },
+      { "card": "b_pawn_c", "zone": "board", "slot": 11 },
+      { "card": "b_pawn_d", "zone": "board", "slot": 12 },
+      { "card": "b_pawn_e", "zone": "board", "slot": 13 },
+      { "card": "b_pawn_f", "zone": "board", "slot": 14 },
+      { "card": "b_pawn_g", "zone": "board", "slot": 15 },
+      { "card": "b_pawn_h", "zone": "board", "slot": 16 }
+    ]
+  },
   "styles": {
     "piece": { "title": false, "color": false },
     "chessboard": { "fit": "fill", "ratio": "grid", "checker": ["#f0d9b5", "#b58863"], "cell_outline": false }
@@ -81,8 +117,7 @@
         "moves": ["line_ortho"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 57 }
+      }
     },
     {
       "key": "w_knight_b",
@@ -95,8 +130,7 @@
         "moves": ["knight_leap"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 58 }
+      }
     },
     {
       "key": "w_bishop_c",
@@ -109,8 +143,7 @@
         "moves": ["line_diag"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 59 }
+      }
     },
     {
       "key": "w_queen_d",
@@ -123,8 +156,7 @@
         "moves": ["line_ortho", "line_diag"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 60 }
+      }
     },
     {
       "key": "w_king_e",
@@ -137,8 +169,7 @@
         "moves": ["adjacent"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 61 }
+      }
     },
     {
       "key": "w_bishop_f",
@@ -151,8 +182,7 @@
         "moves": ["line_diag"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 62 }
+      }
     },
     {
       "key": "w_knight_g",
@@ -165,8 +195,7 @@
         "moves": ["knight_leap"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 63 }
+      }
     },
     {
       "key": "w_rook_h",
@@ -179,8 +208,7 @@
         "moves": ["line_ortho"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 64 }
+      }
     },
     {
       "key": "w_pawn_a",
@@ -201,8 +229,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 49 }
+      }
     },
     {
       "key": "w_pawn_b",
@@ -223,8 +250,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 50 }
+      }
     },
     {
       "key": "w_pawn_c",
@@ -245,8 +271,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 51 }
+      }
     },
     {
       "key": "w_pawn_d",
@@ -267,8 +292,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 52 }
+      }
     },
     {
       "key": "w_pawn_e",
@@ -289,8 +313,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 53 }
+      }
     },
     {
       "key": "w_pawn_f",
@@ -311,8 +334,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 54 }
+      }
     },
     {
       "key": "w_pawn_g",
@@ -333,8 +355,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 55 }
+      }
     },
     {
       "key": "w_pawn_h",
@@ -355,8 +376,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 56 }
+      }
     },
     {
       "key": "b_rook_a",
@@ -369,8 +389,7 @@
         "moves": ["line_ortho"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 1 }
+      }
     },
     {
       "key": "b_knight_b",
@@ -383,8 +402,7 @@
         "moves": ["knight_leap"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 2 }
+      }
     },
     {
       "key": "b_bishop_c",
@@ -397,8 +415,7 @@
         "moves": ["line_diag"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 3 }
+      }
     },
     {
       "key": "b_queen_d",
@@ -411,8 +428,7 @@
         "moves": ["line_ortho", "line_diag"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 4 }
+      }
     },
     {
       "key": "b_king_e",
@@ -425,8 +441,7 @@
         "moves": ["adjacent"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 5 }
+      }
     },
     {
       "key": "b_bishop_f",
@@ -439,8 +454,7 @@
         "moves": ["line_diag"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 6 }
+      }
     },
     {
       "key": "b_knight_g",
@@ -453,8 +467,7 @@
         "moves": ["knight_leap"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 7 }
+      }
     },
     {
       "key": "b_rook_h",
@@ -467,8 +480,7 @@
         "moves": ["line_ortho"],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 8 }
+      }
     },
     {
       "key": "b_pawn_a",
@@ -489,8 +501,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 9 }
+      }
     },
     {
       "key": "b_pawn_b",
@@ -511,8 +522,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 10 }
+      }
     },
     {
       "key": "b_pawn_c",
@@ -533,8 +543,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 11 }
+      }
     },
     {
       "key": "b_pawn_d",
@@ -555,8 +564,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 12 }
+      }
     },
     {
       "key": "b_pawn_e",
@@ -577,8 +585,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 13 }
+      }
     },
     {
       "key": "b_pawn_f",
@@ -599,8 +606,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 14 }
+      }
     },
     {
       "key": "b_pawn_g",
@@ -621,8 +627,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 15 }
+      }
     },
     {
       "key": "b_pawn_h",
@@ -643,8 +648,7 @@
         ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
         "exhausts": false
-      },
-      "start": { "zone": "board", "slot": 16 }
+      }
     },
     {
       "key": "w_castle_q",

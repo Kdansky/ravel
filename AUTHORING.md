@@ -407,7 +407,7 @@ file to check what may appear where.
 | `zones` | Zone definitions, in declaration order |
 | `phases` | Phase definitions; first entry starts the game |
 | `end_conditions` | Outcome checks, first match wins, once per game |
-| `setup.player` | Starting player stats — becomes the injected player card |
+| `setup` | How the game begins: `player` is the starting stats of the injected player card, and `place` lays out whatever starts on the table (see *Setup*) |
 | `placeholder_art` | `true` gives every card without an `asset` generated art from its key |
 
 ### Stats
@@ -451,6 +451,38 @@ buttons rather than hands).
 Cards entering a grid without slot targeting auto-occupy the first free slot.
 A full board refuses new arrivals: moves fail quietly and `fill`/`gain` stop
 early (the validator warns when starting `contents` already exceed capacity).
+
+### Setup
+
+**A card never says where it starts.** The `cards` list is what comes out of the
+box; `setup` is the page of the manual that arranges it:
+
+```json
+"setup": {
+  "player": { "hp": 5 },
+  "place": [
+    { "card": "throne_room", "zone": "board", "slot": 13 },
+    { "card": "w_rook_a", "zone": "board", "slot": 57 }
+  ]
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `card` | the key of a card that starts already in play |
+| `zone` | where it goes. Leave it out and its home tag decides, then the only board. A `per_seat` zone gets one copy in **each** seat's — a marker declared once appears on every player's board |
+| `slot` | 1-based cell, row-major. Grid zones only; without one it takes the first free cell |
+
+**The order is the order things are placed**, and it is worth caring about:
+entity IDs are handed out as cards are created, so a seeded game only replays
+identically if setup builds the board the same way every time.
+
+**A card may be placed more than once** — the same key on two entries is two
+copies on two squares, which is how eight pawns come from one pawn.
+
+The engine places its own before any of this: the system card, the injected
+player, and any seat that named no place. A seat has to exist before it can act,
+so that is plumbing rather than setup, and a game never writes it down.
 
 ### Card templates
 
@@ -528,7 +560,6 @@ disk cache with no network at all.
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). Zones take the same block |
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
-| `start` | The card begins in play — a throne, a board, a button. `zone` says where (without one, its home tag decides, then the only board) and `slot` is a 1-based cell. **Having the block is the flag** |
 | `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
 
@@ -691,9 +722,10 @@ other, and its stats are the player's stats.
 {
   "key": "throne_room",
   "tags": ["building", "hero", "player"],
-  "card_stats": { "hp": 20, "gold": 20, "morale": 5 },
-  "start": { "zone": "board", "slot": 13 }
+  "card_stats": { "hp": 20, "gold": 20, "morale": 5 }
 }
+
+"setup": { "place": [{ "card": "throne_room", "zone": "board", "slot": 13 }] }
 ```
 
 A **party** is the same idea repeated: N cards in a zone, each tagged `player`,
@@ -726,7 +758,7 @@ all it takes; each carries its own stats, and neither can touch the other's.
 ```
 
 A seat with no `start.zone` goes into the hidden `system` zone — an
-invisible stat holder. Give it one (`"start": { "zone": "board" }`) when the seat should
+invisible stat holder. Place it (a `setup.place` entry) when the seat should
 be a visible hero on the table.
 
 **Zones that belong to a seat** declare `per_seat`, and are then created once
@@ -742,7 +774,7 @@ per seat with one rect each:
 An unqualified zone key means **the active seat's** copy — `move_to:arena`
 puts the card in your own arena, `draw_from:deck:hand:1` deals into your own
 hand. Say `enemy.arena` for the other. A `per_seat` zone also receives its own
-copy of every card with a `start` block, so a marker declared once appears in each
+copy of every card `setup.place` puts there, so a marker placed once appears in each
 seat's copy.
 
 **Turn order is the phase list.** A phase declaring `"seat": "next"` hands over
@@ -934,9 +966,10 @@ itself as `@self` and the arriving card as `@target`:
 {
   "key": "red_route",
   "tags": ["marker", "red_dest"],
-  "receive": { "needs": { "value@target": { "at_least": "max:value@mine.red" } } },
-  "start": { "zone": "red" }
+  "receive": { "needs": { "value@target": { "at_least": "max:value@mine.red" } } }
 }
+
+"setup": { "place": [{ "card": "red_route", "zone": "red" }] }
 ```
 
 That single line is the whole of Lost Cities' expedition rule: a card must be
@@ -944,7 +977,9 @@ worth at least what is already there. A destination with **no** `receive` takes
 anything — which is how the same game's discard pile stays always legal:
 
 ```json
-{ "key": "red_tip", "tags": ["marker", "red_dest"], "start": { "zone": "red_discard" } }
+{ "key": "red_tip", "tags": ["marker", "red_dest"] }
+
+"setup": { "place": [{ "card": "red_tip", "zone": "red_discard" }] }
 ```
 
 The card being played just names both destinations and goes where it is
@@ -1094,7 +1129,7 @@ works by type instead of by naming zones in every action:
 
 - `move_to` without a zone sends the played card home (`"play": { "action": ["move_to"] }`).
 - `gain:card:n` creates cards directly in their home zone (no home: the hand).
-- A `start` block with no `zone` puts the card in its home zone.
+- A `setup.place` entry with no `zone` puts the card in its home zone.
 
 A game with a single board stays simple: cards without a home fall back to
 it. With two or more boards (an inventory *and* a battlefield, say), every
@@ -1104,16 +1139,17 @@ whose tags don't say, and reports the conflict when a card's tags disagree.
 ### Board buttons
 
 A card that starts in play and never leaves is the engine's button. Combine
-a `start` block with an `activate.action`, and `exhausts: false` when it should stay
+a `setup.place` entry with an `activate.action`, and `exhausts: false` when it should stay
 clickable rather than tiring for the round:
 
 ```json
 {
   "key": "pass_time",
   "text": "Let time pass",
-  "activate": { "action": ["next_phase"], "exhausts": false },
-  "start": { "zone": "table", "slot": 1 }
+  "activate": { "action": ["next_phase"], "exhausts": false }
 }
+
+"setup": { "place": [{ "card": "pass_time", "zone": "table", "slot": 1 }] }
 ```
 
 Add `activate.target` when the button needs to be pointed at something —
@@ -1127,9 +1163,10 @@ cards arrive in `activate.action` as targets:
     "cost": { "focus": 1 },
     "target": { "type": "card", "count": 1, "tags": ["material"], "zones": ["table"] },
     "action": ["lose_stat:hp@target:1", "gain_stat:progress:2"]
-  },
-  "start": { "zone": "table" }
+  }
 }
+
+"setup": { "place": [{ "card": "workbench", "zone": "table" }] }
 ```
 
 ### Effects
@@ -1288,8 +1325,16 @@ hand.
 
 ### Hardcoded conventions
 
+**The engine injects two cards**, into a hidden zone it also owns. A `system`
+card carries `round` and `turn` — the round belongs to the game, so two seats
+cannot get two calendars. A `player` card carries `setup.player`'s stats, and is
+injected only when a game declares no card tagged `player` of its own. The
+`system` card sitting in the `system` zone and the `player` card carrying the
+`player` tag are both fine: neither name is one a scope resolves, and a game
+that wants a visible hero just tags a board card `player` and gets no injection.
+
 `menu.json` boots the engine. Zone keys `hand` (default deal/pick target),
-`graveyard` (draw_and_play discard), `board` (where a `start` block with no zone lands) are
+`graveyard` (draw_and_play discard), `board` (where a placement with no zone lands) are
 load-bearing names; `reveal` names both the built-in page zone and overlay
 phase, and `system` the hidden zone holding the engine's own two cards (a game
 may declare any of them to override). The tag `player` marks a seat, and the

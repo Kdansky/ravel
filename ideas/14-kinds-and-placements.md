@@ -1,7 +1,13 @@
 # 14 — Six kinds, thirty-two pieces
 
-**Status:** not started · **Size:** medium · **Depends on:**
-[11](11-styles-as-tags.md) for the half that is presentation
+**Status:** half shipped. **`setup.place` exists** — a card no longer says where
+it starts, and the placement list is the manual. What is left is the collapse
+itself: six kinds instead of thirty-two pieces, which needs the presentation
+half.
+
+**Size:** medium · **Depends on:** [11](11-styles-as-tags.md), now shipped, for
+the presentation half — a white rook and a black rook differ in `asset` and
+`text`, and with six kinds that difference has to come from *whose it is*.
 
 > *For chess, I believe the correct game.json says that there is a type pawn, of
 > which there are 16, 8 of which are for each player. When the game is set up,
@@ -60,9 +66,15 @@ snapshots for free, because entities are what `snapshot`/`restore` copy.
 
 ## The three things it needs
 
-**1. Placement as data.** `auto_play` / `to_zone` / `to_slot` are per-template
-today, so "this kind, here, for them" cannot be said. A `setup.place` list says
-it once per group. This subsumes `auto_play` entirely.
+**1. Placement as data** — ~~needed~~ **built.** `auto_play`, `to_zone` and
+`to_slot` are gone; `setup.place` names the card, the zone and the cell, in the
+order the manual would say it, and a card may be placed more than once. That
+last part is what the collapse needs: eight pawns are eight entries naming one
+card. The engine's own placements (the system card, an injected player, a seat)
+are prepended rather than written down, because a seat has to exist before it
+can act.
+
+What it still lacks for chess is `owner` on the entry — see below.
 
 **2. Presentation that varies by owner.** `asset` and `text` have twelve values
 because a white rook and a black rook are drawn differently and named

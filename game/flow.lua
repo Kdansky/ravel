@@ -377,24 +377,25 @@ function M.init(filename, seed)
 		log.add("! " .. problem)
 	end
 
-	-- Cards that start in play (the player card, the system card, a throne
-	-- room), placed onto their zone/slot.
-	-- Walked in file order, never with pairs: entity IDs are handed out in
-	-- creation order, and Lua's hash order is not stable across interpreters
-	-- (or, in 5.4, across processes). Setup has to build the same board every
-	-- time for seeds to reproduce and for replays to line up.
-	for _, key in ipairs(G.card_list) do
-		local def = G.card_defs[key]
-		if def.auto_play then
+	-- Setup: the manual's arrangement, in the order it is written. A card no
+	-- longer says where it starts — the cards are what comes out of the box, and
+	-- this is the page that lays them out. The engine's own entries (the system
+	-- card, an injected player, a seat) are prepended by declaration.parse.
+	--
+	-- The order is load-bearing rather than incidental: entity IDs are handed out
+	-- in creation order, so a seed reproduces a board only if setup builds it the
+	-- same way every time.
+	for _, e in ipairs(G.setup_place or {}) do
+		local def = G.card_defs[e.card]
+		if def then
 			-- Into every instance of the zone, which is one for a shared zone
 			-- and one per seat otherwise: a per-seat board wants its marker in
 			-- each seat's copy, not a single one in whoever happens to be first.
-			local zkey = def.to_zone or cards.home_zone(def) or "board"
+			local zkey = e.zone or def.to_zone or cards.home_zone(def) or "board"
 			for _, to in ipairs(zones.all_with_key(zkey)) do
-				local e = cards.create(def.key, to.id)
-				local slot_id = def.to_slot and to.slots[def.to_slot]
-				if slot_id then zones.place_in_slot(e.id, slot_id) else zones.auto_slot(e.id) end
-				actions.run(def.on_play, { card_id = e.id, targets = {} })
+				local card = cards.create(def.key, to.id)
+				local slot_id = e.slot and to.slots[e.slot]
+				if slot_id then zones.place_in_slot(card.id, slot_id) else zones.auto_slot(card.id) end
 			end
 		end
 	end
