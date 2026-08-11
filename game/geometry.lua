@@ -14,6 +14,28 @@ local M = {}
 
 -- The slot at (col, row), or nil when that is off the board. Row-major and
 -- 1-based, the same arithmetic zones uses to build and to draw them.
+-- A square by the name a player would say: a column letter and a rank counted
+-- from the bottom, "a1" through "h8" on a chessboard. Ranks count up from the
+-- near edge because that is what algebraic notation means; the grid indexes
+-- rows from the top, and this is the one place the two meet.
+--
+-- Not chess-only: any grid can be addressed this way, and a setup that says
+-- "e1" instead of "slot 61" is a setup a person can check against a board.
+function M.square(z, name)
+	if type(name) ~= "string" or not z.grid then return nil end
+	local letters, rank = name:lower():match("^(%a+)(%d+)$")
+	if not letters then return nil end
+	local col = 0
+	for i = 1, #letters do col = col * 26 + (letters:byte(i) - 96) end
+	local rows = z.grid[2]
+	return col, rows - tonumber(rank) + 1
+end
+
+function M.slot_named(z, name)
+	local col, row = M.square(z, name)
+	return col and M.slot_at(z, col, row) or nil
+end
+
 function M.slot_at(z, col, row)
 	local cols, rows = z.grid[1], z.grid[2]
 	if col < 1 or col > cols or row < 1 or row > rows then return nil end

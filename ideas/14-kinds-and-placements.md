@@ -1,13 +1,70 @@
 # 14 — Six kinds, thirty-two pieces
 
-**Status:** half shipped. **`setup.place` exists** — a card no longer says where
-it starts, and the placement list is the manual. What is left is the collapse
-itself: six kinds instead of thirty-two pieces, which needs the presentation
-half.
+**Status:** **shipped.** Chess is thirteen cards, six of which are the pieces,
+and `tools/make_chess.py` is deleted — the file is written and read by hand.
+704 lines became 279.
 
-**Size:** medium · **Depends on:** [11](11-styles-as-tags.md), now shipped, for
-the presentation half — a white rook and a black rook differ in `asset` and
-`text`, and with six kinds that difference has to come from *whose it is*.
+**What it took**, and only the second of these was new machinery:
+
+| | |
+|---|---|
+| `setup.place` | already built. What it lacked was `owner` and a way to name a square |
+| Ownership as **placement state** | a stat the piece carries, written where it is put down. The `owns` field and the `white`/`black` tags are gone |
+| Squares by name | `"at": ["a1", "h1"]` — a column letter and a rank counted from the near edge. A list is that many cards, so eight pawns are one line |
+| **One picture per player** | `"src": ["light.png", "dark.png"]` on a named asset, chosen by whose card wears it |
+| Castling by square | no new machinery, exactly as predicted below |
+
+## The one thing this document got wrong
+
+It said the presentation half was **[11](11-styles-as-tags.md)'s dynamic styles
+— "a style keyed on the owner, choosing the light or dark sprite"**. That cannot
+work, and the reason is worth keeping.
+
+A dynamic style fires on a **computed tag**, and a computed tag reads *one of the
+card's own stats* and compares it to a number (`tags.lua`). So it can express
+"is black". It cannot express **"is a rook *and* is black"** — and that is the
+question, because the sprite depends on both. Six kinds times two owners is
+twelve pictures, and a style keyed on the owner alone offers two.
+
+Encoding both facts into one number to get around it (`kind * 2 + owner`, twelve
+computed tags) is the boolean-field mistake wearing a different hat.
+
+**So the picture varies where pictures are declared, not where looks are
+claimed:** a named asset takes one source per seat. That also meant `asset` never
+had to enter `styles`, which keeps the last per-card look out of a table it would
+have been the odd entry in — and it generalises to every game with coloured
+pieces, which is checkers, draughts, go and backgammon.
+
+## What it deleted
+
+- 26 of 32 piece templates, and the whole of `make_chess.py`.
+- The `white` / `black` tags, and with them the last collision
+  [13](13-one-name-one-thing.md) had to design around.
+- The 32 self-tags (`w_rook_h` as a tag on `w_rook_h`).
+- The `owns` field on a seat, and `seat_owns` in the engine.
+- `slot` on a placement — one way to name a cell, not two.
+
+## The proof
+
+Chess has no golden trace, so the scripted opening in `tests/run.lua` is it. It
+had to be rewritten anyway — it addressed pieces by template key
+(`piece("w_pawn_e")`), which cannot survive eight cards keyed `pawn` — and it now
+addresses them **by square**, which is both the only thing that works and how
+chess is actually written:
+
+```lua
+check("1. e4 — and the turn passes", move("e2", "e4") and zones.active_seat() == "player_black")
+check("2. exd5 — a capture", move("e4", "d5") and at("d5") == "white pawn")
+```
+
+**It earned its keep immediately.** The first generated file passed the rank
+where the grid row was wanted, so white castled onto black's back rank — the
+king landed on g8. Nothing else would have noticed: the file validated clean, the
+board rendered, and castling "worked".
+
+---
+
+*The original write-up follows.*
 
 > *For chess, I believe the correct game.json says that there is a type pawn, of
 > which there are 16, 8 of which are for each player. When the game is set up,
@@ -84,7 +141,9 @@ style keyed on the owner, choosing the light or dark sprite. Until 11 lands, thi
 one can't fully land either.
 
 **3. A way to talk about a particular piece** — and this is the question worth
-answering carefully.
+answering carefully. *It was answered exactly as written below, and `place`
+turned out to already take a scope, so the castling **action** needed no more
+than the condition did.*
 
 ## Castling needs no reference to a piece
 

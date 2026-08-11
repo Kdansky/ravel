@@ -1537,19 +1537,19 @@ play_fixture([==[{
   "phases": [{ "key": "battle", "type": "player_input", "label": "Battle" }],
   "setup": {
     "place": [
-      { "card": "w_rook", "zone": "board" },
-      { "card": "w_ghost", "zone": "board" },
-      { "card": "b_pawn", "zone": "board" }
+      { "card": "w_rook", "zone": "board", "owner": "player_white" },
+      { "card": "w_ghost", "zone": "board", "owner": "player_white" },
+      { "card": "b_pawn", "zone": "board", "owner": "player_black" }
     ]
   },
-  "players": [{ "card": "player_white", "owns": "white" }, { "card": "player_black", "owns": "black" }],
+  "players": [{ "card": "player_white" }, { "card": "player_black" }],
   "cards": [
     { "key": "player_white", "text": "White" },
     { "key": "player_black", "text": "Black" },
     {
       "key": "w_rook",
       "text": "White Rook",
-      "tags": ["white", "piece"],
+      "tags": ["piece"],
       "activate": {
         "target": { "type": "slot", "zones": ["board"], "fill": "open", "count": 1 },
         "action": ["move_to:target:taken"]
@@ -1558,7 +1558,7 @@ play_fixture([==[{
     {
       "key": "w_ghost",
       "text": "White Ghost",
-      "tags": ["white", "piece"],
+      "tags": ["piece"],
       "activate": {
         "target": { "type": "slot", "zones": ["board"], "fill": "open", "count": 1 },
         "action": ["move_to:target"]
@@ -1567,7 +1567,7 @@ play_fixture([==[{
     {
       "key": "b_pawn",
       "text": "Black Pawn",
-      "tags": ["black", "piece"],
+      "tags": ["piece"],
       "activate": {
         "target": { "type": "slot", "zones": ["board"], "fill": "empty", "count": 1 },
         "action": ["move_to:target"]
@@ -1592,7 +1592,7 @@ check("a square is readable as a subject once it is the target",
 
 -- One board, two owners. The zone has no seat at all, so this can only come
 -- from the pieces themselves.
-check("a piece on a shared board belongs to the seat it names",
+check("a piece on a shared board belongs to whoever it was dealt to",
 	predicate.owner_of(rook) == "player_white" and predicate.owner_of(pawn) == "player_black")
 check("the board itself still belongs to nobody", zones.find("board").seat == nil)
 check("mine and enemy tell the pieces apart",
@@ -1660,24 +1660,19 @@ play_fixture([==[{
     { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
   "phases": [{ "key": "turn", "type": "player_input", "label": "Turn" }],
-  "players": [
-    { "card": "p1", "owns": "one" },
-    { "card": "p2", "owns": "two" },
-    { "card": "p3", "owns": "three" },
-    { "card": "p4", "owns": "four" }
-  ],
+  "players": [{ "card": "p1" }, { "card": "p2" }, { "card": "p3" }, { "card": "p4" }],
   "cards": [
     { "key": "p1", "text": "Empire One" },
     { "key": "p2", "text": "Empire Two" },
     { "key": "p3", "text": "Empire Three" },
     { "key": "p4", "text": "Empire Four" },
-    { "key": "colony", "text": "Colony", "tags": ["three", "planet"] },
-    { "key": "capital", "text": "Capital", "tags": ["two", "planet"] },
-    { "key": "outpost", "text": "Outpost", "tags": ["four", "planet"] },
+    { "key": "colony", "text": "Colony", "tags": ["planet"] },
+    { "key": "capital", "text": "Capital", "tags": ["planet"] },
+    { "key": "outpost", "text": "Outpost", "tags": ["planet"] },
     {
       "key": "cruiser",
       "text": "Cruiser",
-      "tags": ["one", "ship"],
+      "tags": ["ship"],
       "activate": {
         "target": {
           "type": "card",
@@ -1696,10 +1691,13 @@ check("a four-seat fixture validates clean", #validate.check(declaration.G) == 0
 local sys = zones.all_with_key("system")
 check("a per_seat zone instanced once per seat", #sys == 4 and zones.active_seat() == "p1")
 
--- Player three's colony, parked inside player two's system.
+-- Player three's colony, parked inside player two's system. Ownership is the
+-- seat index the piece carries, which is what setup.place writes; these are
+-- created by hand, so they are stamped by hand.
 local colony  = cards.create("colony",  sys[2].id)
 local capital = cards.create("capital", sys[2].id)
 local cruiser = cards.create("cruiser", sys[1].id)
+colony.stats.owner, cruiser.stats.owner = 3, 1
 zones.auto_slot(colony.id); zones.auto_slot(capital.id); zones.auto_slot(cruiser.id)
 
 check("the colony sits in player two's system", colony.zone_id == sys[2].id)
@@ -2209,21 +2207,32 @@ local board = zones.find("board")
 local function sq(name)   -- "e4" → the slot on that square
 	return geometry.slot_at(board, string.byte(name, 1) - 96, 9 - tonumber(name:sub(2)))
 end
-local function piece(key)
+-- Pieces are addressed by the square they stand on, because that is the only
+-- way a chess position can be described once there are six cards and not
+-- thirty-two: eight pawns share a template and differ only in where they are.
+-- It also makes the script read like the game — move("e2", "e4").
+local function on(name)
+	local occ = entity.get(sq(name)).occupant
+	return occ and entity.get(occ)
+end
+local function at(name)   -- what stands on a square, as a player would say it
+	local e = on(name)
+	if not e then return nil end
+	return (predicate.owner_of(e) == "player_white" and "white " or "black ") .. e.def_key
+end
+-- Cards that are not pieces — the castling buttons — still answer to their key,
+-- since they stand on no square.
+local function card_named(key)
 	for e in entity.each("card") do
 		if e.def_key == key and e.zone_id then return e end
 	end
 end
-local function at(name)   -- what stands on a square, by template key
-	local occ = entity.get(sq(name)).occupant
-	return occ and entity.get(occ).def_key
-end
-local function move(key, to)
-	local p = piece(key)
+local function move(from, to)
+	local p = on(from)
 	return p ~= nil and flow.activate(p.id, { sq(to) })
 end
-local function reach(key)
-	local p, out = piece(key), {}
+local function reach(from)
+	local p, out = on(from), {}
 	for _, sid in ipairs(targeting.candidates(p.id, cards.def(p).activate_target)) do
 		local s = entity.get(sid)
 		out[#out + 1] = string.char(96 + s.stats.col) .. tostring(9 - s.stats.row)
@@ -2234,42 +2243,43 @@ end
 
 check("thirty-two pieces, white to move", #board.cards == 32 and zones.active_seat() == "player_white")
 check("and ctrl+hover says whose a piece is, on a board that belongs to nobody",
-	require("inspect").text(piece("b_knight_g").id):find('"owner": "player_black"', 1, true) ~= nil)
+	require("inspect").text(on("g8").id):find('"owner": "player_black"', 1, true) ~= nil)
 check("a piece's rank counts from its own side, so home is 2 for both colours",
-	piece("w_pawn_e").stats.rank == 2 and piece("b_pawn_e").stats.rank == 2
-	and at("e2") == "w_pawn_e" and at("e7") == "b_pawn_e")
+	on("e2").stats.rank == 2 and on("e7").stats.rank == 2
+	and at("e2") == "white pawn" and at("e7") == "black pawn")
 
 -- The opening position: everything on the back rank is boxed in except the
 -- knights, which is the whole of "leaping" falling out of the geometry rather
 -- than out of a flag.
 check("a rook, a queen and a king all start with nowhere to go",
-	reach("w_rook_a") == "" and reach("w_queen_d") == "" and reach("w_king_e") == "")
-check("a knight leaps its own pawns", reach("w_knight_b") == "a3 c3")
+	reach("a1") == "" and reach("d1") == "" and reach("e1") == "")
+check("a knight leaps its own pawns", reach("b1") == "a3 c3")
 check("a pawn on its home rank offers the step and the opening run",
-	reach("w_pawn_e") == "e3 e4")
+	reach("e2") == "e3 e4")
 
-check("1. e4 — and the turn passes", move("w_pawn_e", "e4") and zones.active_seat() == "player_black")
-check("black may not move white's pieces", flow.can_activate(piece("w_pawn_d").id) == false)
-check("1... d5", move("b_pawn_d", "d5") and zones.active_seat() == "player_white")
+check("1. e4 — and the turn passes", move("e2", "e4") and zones.active_seat() == "player_black")
+check("black may not move white's pieces", flow.can_activate(on("d2").id) == false)
+check("1... d5", move("d7", "d5") and zones.active_seat() == "player_white")
 check("the bishop is freed down the diagonal it was blocked on",
-	reach("w_bishop_f") == "a6 b5 c4 d3 e2")
+	reach("f1") == "a6 b5 c4 d3 e2")
 check("a pawn that has left its home rank has no opening run left",
-	reach("w_pawn_e") == "d5 e5")
+	reach("e4") == "d5 e5")
 
-check("2. exd5 — a capture", move("w_pawn_e", "d5") and at("d5") == "w_pawn_e")
+local doomed = on("d5")
+check("2. exd5 — a capture", move("e4", "d5") and at("d5") == "white pawn")
 check("the taken pawn is in a tray, off the board",
-	entity.get(piece("b_pawn_d").id).zone_id == zones.find_id("taken", "anyone")
+	entity.get(doomed.id).zone_id == zones.find_id("taken", "anyone")
 	and #board.cards == 31)
 
-check("2... Qxd5 — and the recapture", move("b_queen_d", "d5") and at("d5") == "b_queen_d")
-check("3. Nc3", move("w_knight_b", "c3"))
+check("2... Qxd5 — and the recapture", move("d8", "d5") and at("d5") == "black queen")
+check("3. Nc3", move("b1", "c3"))
 -- Read off the position by hand: three clear rays, four cut short by a pawn it
 -- may take, and two cut short by one it may not.
 check("the queen sees exactly what a queen on d5 sees",
-	reach("b_queen_d") == "a2 a5 b3 b5 c4 c5 c6 d2 d3 d4 d6 d7 d8 e4 e5 e6 f3 f5 g2 g5 h5")
+	reach("d5") == "a2 a5 b3 b5 c4 c5 c6 d2 d3 d4 d6 d7 d8 e4 e5 e6 f3 f5 g2 g5 h5")
 
-check("a rook still cannot move through its own pawn", move("w_rook_a", "a5") == false)
-check("and a piece cannot move out of turn", move("w_knight_b", "b1") == false)
+check("a rook still cannot move through its own pawn", move("a1", "a5") == false)
+check("and a piece cannot move out of turn", move("c3", "b1") == false)
 
 -- === pointing at a piece means pointing at its square ===
 -- Every test above reached targeting.candidates directly, so all of them passed
@@ -2278,10 +2288,10 @@ check("and a piece cannot move out of turn", move("w_knight_b", "b1") == false)
 -- that path, without a mouse.
 flow.init("chess.json", 1)
 board = zones.find("board")
-move("w_pawn_e", "e4"); move("b_pawn_d", "d5")
+move("e2", "e4"); move("d7", "d5")
 
-local victim = piece("b_pawn_d")
-targeting.start(piece("w_pawn_e").id, cards.def(piece("w_pawn_e")).activate_target, "activate")
+local victim = on("d5")
+targeting.start(on("e4").id, cards.def(on("e4")).activate_target, "activate")
 check("the square under an enemy is eligible, but the enemy card itself is not",
 	targeting.is_eligible(victim.slot_id) and targeting.is_eligible(victim.id) == false)
 check("so aiming at the piece resolves to the square it stands on",
@@ -2289,7 +2299,7 @@ check("so aiming at the piece resolves to the square it stands on",
 targeting.clear()
 
 -- The two things aim must not do.
-targeting.start(piece("w_pawn_e").id, cards.def(piece("w_pawn_e")).activate_target, "activate")
+targeting.start(on("e4").id, cards.def(on("e4")).activate_target, "activate")
 check("the acting card still answers as itself, so clicking it cancels",
 	targeting.aim(targeting.card_id) == targeting.card_id)
 local empty = geometry.slot_at(board, 5, 5)
@@ -2298,7 +2308,7 @@ check("and a square with nothing on it is already what was meant",
 targeting.clear()
 
 -- A card-typed spec must keep meaning the card: aim is for specs that want a place.
-targeting.start(piece("w_pawn_e").id, { type = "card", count = 1, tags = { "piece" } }, "activate")
+targeting.start(on("e4").id, { type = "card", count = 1, tags = { "piece" } }, "activate")
 check("a card-typed spec still means the card, not the square under it",
 	targeting.aim(victim.id) == victim.id)
 targeting.clear()
@@ -2308,8 +2318,8 @@ targeting.clear()
 -- always a number. Hovering the first card whose needs carried a comparison map
 -- concatenated a table and took the interface down.
 check("a comparison map renders instead of crashing",
-	cards.cost_text({ ["moves_made@w_king_e"] = { equals = 0 } })
-		== "exactly 0 moves_made@w_king_e"
+	cards.cost_text({ ["moves_made@w_king_home"] = { equals = 0 } })
+		== "exactly 0 moves_made@w_king_home"
 	and cards.cost_text({ hp = { at_most = 3 } })  == "at most 3 hp"
 	and cards.cost_text({ hp = { at_least = 3 } }) == "at least 3 hp")
 check("a plain number still reads as itself", cards.cost_text({ gold = 2 }) == "2 gold")
@@ -2337,9 +2347,9 @@ flow.init("chess.json", 1)
 board = zones.find("board")
 
 check("a relative pattern is a neighbourhood, anchored on the acting card",
-	predicate.total("count:piece@adjacent", { card_id = piece("w_king_e").id }) == 5)
+	predicate.total("count:piece@adjacent", { card_id = on("e1").id }) == 5)
 check("...and names nothing for a card that is not standing on a square",
-	predicate.total("count:piece@adjacent", { card_id = piece("w_castle_k").id }) == 0)
+	predicate.total("count:piece@adjacent", { card_id = card_named("w_castle_k").id }) == 0)
 check("an absolute pattern names squares outright, with no anchor at all",
 	predicate.total("count:piece@w_castle_k_path") == 2)
 
@@ -2347,26 +2357,26 @@ check("an absolute pattern names squares outright, with no anchor at all",
 -- no targeting — and a played card is gated by "needs", which an activated one
 -- is not.
 check("castling is refused while its squares are occupied",
-	flow.can_play(piece("w_castle_k").id) == false)
-move("w_pawn_e", "e4"); move("b_pawn_e", "e5")
-move("w_bishop_f", "c4"); move("b_bishop_f", "c5")
+	flow.can_play(card_named("w_castle_k").id) == false)
+move("e2", "e4"); move("e7", "e5")
+move("f1", "c4"); move("f8", "c5")
 check("still refused with only one square cleared",
 	predicate.total("count:piece@w_castle_k_path") == 1
-	and flow.can_play(piece("w_castle_k").id) == false)
-move("w_knight_g", "f3"); move("b_knight_g", "f6")
+	and flow.can_play(card_named("w_castle_k").id) == false)
+move("g1", "f3"); move("g8", "f6")
 check("offered once both squares are clear",
 	predicate.total("count:piece@w_castle_k_path") == 0
-	and flow.can_play(piece("w_castle_k").id))
+	and flow.can_play(card_named("w_castle_k").id))
 check("the queenside card is still refused, its own three squares being full",
-	flow.can_play(piece("w_castle_q").id) == false)
+	flow.can_play(card_named("w_castle_q").id) == false)
 
-check("castling moves both pieces at once", flow.play_card(piece("w_castle_k").id, {})
-	and at("g1") == "w_king_e" and at("f1") == "w_rook_h"
+check("castling moves both pieces at once", flow.play_card(card_named("w_castle_k").id, {})
+	and at("g1") == "white king" and at("f1") == "white rook"
 	and at("e1") == nil and at("h1") == nil)
 check("and hands over", zones.active_seat() == "player_black")
 check("a king that has castled has moved, so it may not castle again",
-	flow.can_play(piece("w_castle_k").id) == false
-	and flow.can_play(piece("w_castle_q").id) == false)
+	flow.can_play(card_named("w_castle_k").id) == false
+	and flow.can_play(card_named("w_castle_q").id) == false)
 
 -- === a stat nobody carries is absent, not zero ===
 -- Reading a missing value as 0 would make "this rook has never moved" true of a
@@ -2375,15 +2385,15 @@ check("a king that has castled has moved, so it may not castle again",
 flow.init("chess.json", 1)
 board = zones.find("board")
 check("an unmoved rook satisfies the gate",
-	predicate.meets_all({ ["moves_made@w_rook_h"] = { equals = 0 } }))
-zones.destroy_card(piece("w_rook_h").id)
+	predicate.meets_all({ ["moves_made@w_rook_h_home"] = { equals = 0 } }))
+zones.destroy_card(on("h1").id)
 check("a captured rook does not, though its absent stat would sum to zero",
-	predicate.meets_all({ ["moves_made@w_rook_h"] = { equals = 0 } }) == false)
+	predicate.meets_all({ ["moves_made@w_rook_h_home"] = { equals = 0 } }) == false)
 check("...and no comparison against it succeeds, not just equality",
-	predicate.meets_all({ ["moves_made@w_rook_h"] = { at_most = 5 } }) == false
-	and predicate.meets_all({ ["moves_made@w_rook_h"] = { at_least = 0 } }) == false)
+	predicate.meets_all({ ["moves_made@w_rook_h_home"] = { at_most = 5 } }) == false
+	and predicate.meets_all({ ["moves_made@w_rook_h_home"] = { at_least = 0 } }) == false)
 check("so castling is refused once its rook is gone",
-	flow.can_play(piece("w_castle_k").id) == false)
+	flow.can_play(card_named("w_castle_k").id) == false)
 
 -- The counting forms keep meaning what they say: no farms is a count of zero,
 -- and that is how "these squares are empty" is written.
@@ -2391,7 +2401,7 @@ check("a count of nothing is still zero",
 	predicate.meets_all({ ["count:piece@w_castle_k_path"] = { equals = 0 } }) == false
 	and predicate.total("count:piece@nowhere_at_all") == 0)
 check("and an aggregate over an empty pool is still zero, being asked of a pool",
-	predicate.meets_all({ ["sum:moves_made@w_rook_h"] = { equals = 0 } }))
+	predicate.meets_all({ ["sum:moves_made@w_rook_h_home"] = { equals = 0 } }))
 
 -- These used to be recorded under LuaJIT and skipped everywhere else, because
 -- math.random was the host's and no two hosts agreed. rng.lua ended that: one

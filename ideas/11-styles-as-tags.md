@@ -239,7 +239,7 @@ saying which words the engine knows and what each changes — not the identifier
 5. **The dynamic test** — a card that recolours when a stat crosses a threshold,
    written entirely in JSON.
 
-**Both generators regenerate**, so `make_chess.py` and `make_lost_cities.py`
+**The generator regenerates**, so `make_lost_cities.py`
 change rather than their output.
 
 ## The debt this creates, stated plainly

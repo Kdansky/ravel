@@ -536,11 +536,32 @@ local function placeholder(key, why)
 	return ok and img or nil
 end
 
-function M.asset_image(asset, key)
+-- Which seat a card belongs to, as an index. Its own `owner` first — that is
+-- placement state and beats everything — then the seat of the zone it lies in,
+-- so a per-seat hand works without every card being stamped.
+local function seat_of(e)
+	if type(e) ~= "table" then return nil end
+	if e.stats and e.stats.owner then return e.stats.owner end
+	local seat = require("tags").owner_of(e)
+	return seat and declaration.G.seat_index and declaration.G.seat_index[seat] or nil
+end
+
+function M.asset_image(asset, key, e)
 	local named = asset and declaration.G.asset_defs and declaration.G.asset_defs[asset]
 	local max = DEFAULT_MAX
 	if named then
-		key, asset, max = "asset:" .. asset, named.src, named.max or DEFAULT_MAX
+		local src = named.src
+		-- One name, one picture per seat. A rook is a rook — whose it is decides
+		-- only which sprite is drawn — and that is what lets six cards stand for
+		-- thirty-two pieces. The seat index is part of the cache key, or the
+		-- second player is handed the first one's rook.
+		if type(src) == "table" then
+			local i = seat_of(e) or 1
+			key, src = "asset:" .. asset .. "#" .. i, src[i] or src[1]
+		else
+			key = "asset:" .. asset
+		end
+		asset, max = src, named.max or DEFAULT_MAX
 	end
 	if img_cache[key] ~= nil then return img_cache[key] or nil end
 	if not asset then img_cache[key] = false; return nil end
@@ -587,7 +608,10 @@ function M.asset_image(asset, key)
 	return img_cache[def_key] or nil
 end
 
-function M.image(def_key)
+-- Takes the card entity, because a picture can depend on whose card it is.
+-- A bare key still works and means "the template's own picture".
+function M.image(e)
+	local def_key = type(e) == "table" and e.def_key or e
 	local def   = declaration.G.card_defs[def_key]
 	local asset = def and def.asset
 	-- `generate_art` is a card asking for a shape derived from its key, which is
@@ -598,7 +622,7 @@ function M.image(def_key)
 	-- generated cards among thirty-five photographs.
 	if not asset and def and def.tags_set and def.tags_set.generate_art then asset = "auto" end
 	if asset == "auto" then asset = art.auto(def_key) end
-	return M.asset_image(asset, def_key)
+	return M.asset_image(asset, def_key, type(e) == "table" and e or nil)
 end
 
 return M

@@ -1,42 +1,15 @@
 {
   "title": "Chess",
-  "setup": {
-    "place": [
-      { "card": "w_rook_a", "zone": "board", "slot": 57 },
-      { "card": "w_knight_b", "zone": "board", "slot": 58 },
-      { "card": "w_bishop_c", "zone": "board", "slot": 59 },
-      { "card": "w_queen_d", "zone": "board", "slot": 60 },
-      { "card": "w_king_e", "zone": "board", "slot": 61 },
-      { "card": "w_bishop_f", "zone": "board", "slot": 62 },
-      { "card": "w_knight_g", "zone": "board", "slot": 63 },
-      { "card": "w_rook_h", "zone": "board", "slot": 64 },
-      { "card": "w_pawn_a", "zone": "board", "slot": 49 },
-      { "card": "w_pawn_b", "zone": "board", "slot": 50 },
-      { "card": "w_pawn_c", "zone": "board", "slot": 51 },
-      { "card": "w_pawn_d", "zone": "board", "slot": 52 },
-      { "card": "w_pawn_e", "zone": "board", "slot": 53 },
-      { "card": "w_pawn_f", "zone": "board", "slot": 54 },
-      { "card": "w_pawn_g", "zone": "board", "slot": 55 },
-      { "card": "w_pawn_h", "zone": "board", "slot": 56 },
-      { "card": "b_rook_a", "zone": "board", "slot": 1 },
-      { "card": "b_knight_b", "zone": "board", "slot": 2 },
-      { "card": "b_bishop_c", "zone": "board", "slot": 3 },
-      { "card": "b_queen_d", "zone": "board", "slot": 4 },
-      { "card": "b_king_e", "zone": "board", "slot": 5 },
-      { "card": "b_bishop_f", "zone": "board", "slot": 6 },
-      { "card": "b_knight_g", "zone": "board", "slot": 7 },
-      { "card": "b_rook_h", "zone": "board", "slot": 8 },
-      { "card": "b_pawn_a", "zone": "board", "slot": 9 },
-      { "card": "b_pawn_b", "zone": "board", "slot": 10 },
-      { "card": "b_pawn_c", "zone": "board", "slot": 11 },
-      { "card": "b_pawn_d", "zone": "board", "slot": 12 },
-      { "card": "b_pawn_e", "zone": "board", "slot": 13 },
-      { "card": "b_pawn_f", "zone": "board", "slot": 14 },
-      { "card": "b_pawn_g", "zone": "board", "slot": 15 },
-      { "card": "b_pawn_h", "zone": "board", "slot": 16 }
-    ]
+  "players": [{ "card": "player_white" }, { "card": "player_black" }],
+  "assets": {
+    "pawn": { "src": ["Chess_plt60.png", "Chess_pdt60.png"] },
+    "rook": { "src": ["Chess_rlt60.png", "Chess_rdt60.png"] },
+    "knight": { "src": ["Chess_nlt60.png", "Chess_ndt60.png"] },
+    "bishop": { "src": ["Chess_blt60.png", "Chess_bdt60.png"] },
+    "queen": { "src": ["Chess_qlt60.png", "Chess_qdt60.png"] },
+    "king": { "src": ["Chess_klt60.png", "Chess_kdt60.png"] },
+    "castle_button": { "src": ["Chess_klt60.png", "Chess_kdt60.png"] }
   },
-  "players": [{ "card": "player_white", "owns": "white" }, { "card": "player_black", "owns": "black" }],
   "styles": {
     "piece": { "title": false, "color": false, "border": false },
     "chessboard": { "fit": "fill", "ratio": "grid", "chequer": ["#f0d9b5", "#b58863"], "cell_outline": false }
@@ -52,7 +25,13 @@
     "w_castle_q_path": { "vectors": [[2, 8], [3, 8], [4, 8]], "class": ["absolute"], "zone": "board" },
     "w_castle_k_path": { "vectors": [[6, 8], [7, 8]], "class": ["absolute"], "zone": "board" },
     "b_castle_q_path": { "vectors": [[2, 1], [3, 1], [4, 1]], "class": ["absolute"], "zone": "board" },
-    "b_castle_k_path": { "vectors": [[6, 1], [7, 1]], "class": ["absolute"], "zone": "board" }
+    "b_castle_k_path": { "vectors": [[6, 1], [7, 1]], "class": ["absolute"], "zone": "board" },
+    "w_king_home": { "vectors": [[5, 8]], "class": ["absolute"], "zone": "board" },
+    "w_rook_a_home": { "vectors": [[1, 8]], "class": ["absolute"], "zone": "board" },
+    "w_rook_h_home": { "vectors": [[8, 8]], "class": ["absolute"], "zone": "board" },
+    "b_king_home": { "vectors": [[5, 1]], "class": ["absolute"], "zone": "board" },
+    "b_rook_a_home": { "vectors": [[1, 1]], "class": ["absolute"], "zone": "board" },
+    "b_rook_h_home": { "vectors": [[8, 1]], "class": ["absolute"], "zone": "board" }
   },
   "zones": [
     {
@@ -72,47 +51,81 @@
       "key": "b_options",
       "type": "hand",
       "tags": ["optional"],
-      "pos": [0.76, 0.36, 0.97, 0.44],
-      "contents": ["b_castle_q:1", "b_castle_k:1"]
+      "pos": [0.76, 0.36, 0.97, 0.44]
     },
-    {
-      "key": "rules",
-      "type": "pile",
-      "pos": [0.76, 0.45, 0.97, 0.55],
-      "contents": ["how_to_play:1"]
-    },
+    { "key": "rules", "type": "pile", "pos": [0.76, 0.45, 0.97, 0.55] },
     {
       "key": "w_options",
       "type": "hand",
       "tags": ["optional"],
-      "pos": [0.76, 0.56, 0.97, 0.64],
-      "contents": ["w_castle_q:1", "w_castle_k:1"]
+      "pos": [0.76, 0.56, 0.97, 0.64]
     }
   ],
   "phases": [
     { "key": "white_move", "type": "player_input", "label": "White to move", "seat": "next" },
     { "key": "black_move", "type": "player_input", "label": "Black to move", "seat": "next" }
   ],
-  "end_conditions": [
-    { "stat": "card:w_king_e", "equals": 0, "then": ["load_game:menu.json"] },
-    { "stat": "card:b_king_e", "equals": 0, "then": ["load_game:menu.json"] }
-  ],
+  "end_conditions": [{ "stat": "count:king@taken", "at_least": 1, "then": ["load_game:menu.json"] }],
+  "setup": {
+    "place": [
+      { "card": "rook", "owner": "player_white", "zone": "board", "at": ["a1", "h1"] },
+      { "card": "knight", "owner": "player_white", "zone": "board", "at": ["b1", "g1"] },
+      { "card": "bishop", "owner": "player_white", "zone": "board", "at": ["c1", "f1"] },
+      { "card": "queen", "owner": "player_white", "zone": "board", "at": ["d1"] },
+      { "card": "king", "owner": "player_white", "zone": "board", "at": ["e1"] },
+      {
+        "card": "pawn",
+        "owner": "player_white",
+        "zone": "board",
+        "at": ["a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"]
+      },
+      { "card": "rook", "owner": "player_black", "zone": "board", "at": ["a8", "h8"] },
+      { "card": "knight", "owner": "player_black", "zone": "board", "at": ["b8", "g8"] },
+      { "card": "bishop", "owner": "player_black", "zone": "board", "at": ["c8", "f8"] },
+      { "card": "queen", "owner": "player_black", "zone": "board", "at": ["d8"] },
+      { "card": "king", "owner": "player_black", "zone": "board", "at": ["e8"] },
+      {
+        "card": "pawn",
+        "owner": "player_black",
+        "zone": "board",
+        "at": ["a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7"]
+      },
+      { "card": "w_castle_q", "owner": "player_white", "zone": "w_options" },
+      { "card": "w_castle_k", "owner": "player_white", "zone": "w_options" },
+      { "card": "b_castle_q", "owner": "player_black", "zone": "b_options" },
+      { "card": "b_castle_k", "owner": "player_black", "zone": "b_options" },
+      { "card": "how_to_play", "zone": "rules" }
+    ]
+  },
   "cards": [
     { "key": "player_white", "text": "White" },
     { "key": "player_black", "text": "Black" },
     {
-      "key": "how_to_play",
-      "text": "How to play",
-      "tags": ["immutable"],
-      "play": { "phases": [] },
-      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. Click an enemy piece to take it — its square lights up too.\n\nCastling: the two buttons beside your graveyard. Needs king and rook both unmoved, and the squares between them empty.\n\nNot implemented yet:\n- Check and checkmate. You win by capturing the king, and nothing stops you moving into check or castling through it.\n- En passant.\n- Pawn promotion. A pawn reaching the far rank just stops there.\n- Draws: stalemate, threefold repetition, the fifty-move rule.\n- Resigning and offering a draw."
+      "key": "pawn",
+      "text": "Pawn",
+      "asset": "pawn",
+      "tooltip": "One square forward, two from its home rank, and it takes diagonally.",
+      "tags": ["piece", "pawn", "stays_ready"],
+      "card_stats": { "rank": 0, "moves_made": 0 },
+      "activate": {
+        "moves": [
+          { "patterns": ["pawn_step"], "fill": "empty" },
+          {
+            "patterns": ["pawn_run"],
+            "fill": "empty",
+            "needs": { "rank@self": { "equals": 2 } }
+          },
+          { "patterns": ["pawn_take"], "fill": "enemy" }
+        ],
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
+      }
     },
     {
-      "key": "w_rook_a",
-      "text": "White Rook",
-      "tooltip": "a1 — white rook",
-      "asset": "Chess_rlt60.png",
-      "tags": ["white", "piece", "rook", "w_rook_a", "stays_ready"],
+      "key": "rook",
+      "text": "Rook",
+      "asset": "rook",
+      "tooltip": "Any distance along a rank or a file.",
+      "tags": ["piece", "rook", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
@@ -120,11 +133,11 @@
       }
     },
     {
-      "key": "w_knight_b",
-      "text": "White Knight",
-      "tooltip": "b1 — white knight",
-      "asset": "Chess_nlt60.png",
-      "tags": ["white", "piece", "knight", "w_knight_b", "stays_ready"],
+      "key": "knight",
+      "text": "Knight",
+      "asset": "knight",
+      "tooltip": "An L, and the only piece that leaps what stands in the way.",
+      "tags": ["piece", "knight", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
@@ -132,11 +145,11 @@
       }
     },
     {
-      "key": "w_bishop_c",
-      "text": "White Bishop",
-      "tooltip": "c1 — white bishop",
-      "asset": "Chess_blt60.png",
-      "tags": ["white", "piece", "bishop", "w_bishop_c", "stays_ready"],
+      "key": "bishop",
+      "text": "Bishop",
+      "asset": "bishop",
+      "tooltip": "Any distance along a diagonal, so it never leaves its colour.",
+      "tags": ["piece", "bishop", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
@@ -144,11 +157,11 @@
       }
     },
     {
-      "key": "w_queen_d",
-      "text": "White Queen",
-      "tooltip": "d1 — white queen",
-      "asset": "Chess_qlt60.png",
-      "tags": ["white", "piece", "queen", "w_queen_d", "stays_ready"],
+      "key": "queen",
+      "text": "Queen",
+      "asset": "queen",
+      "tooltip": "Any distance in any of the eight directions.",
+      "tags": ["piece", "queen", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho", "line_diag"],
@@ -156,466 +169,14 @@
       }
     },
     {
-      "key": "w_king_e",
-      "text": "White King",
-      "tooltip": "e1 — white king",
-      "asset": "Chess_klt60.png",
-      "tags": ["white", "piece", "king", "w_king_e", "stays_ready"],
+      "key": "king",
+      "text": "King",
+      "asset": "king",
+      "tooltip": "One square in any direction. Lose it and the game is over.",
+      "tags": ["piece", "king", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["adjacent"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_bishop_f",
-      "text": "White Bishop",
-      "tooltip": "f1 — white bishop",
-      "asset": "Chess_blt60.png",
-      "tags": ["white", "piece", "bishop", "w_bishop_f", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_knight_g",
-      "text": "White Knight",
-      "tooltip": "g1 — white knight",
-      "asset": "Chess_nlt60.png",
-      "tags": ["white", "piece", "knight", "w_knight_g", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["knight_leap"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_rook_h",
-      "text": "White Rook",
-      "tooltip": "h1 — white rook",
-      "asset": "Chess_rlt60.png",
-      "tags": ["white", "piece", "rook", "w_rook_h", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["line_ortho"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_pawn_a",
-      "text": "White Pawn",
-      "tooltip": "a2 — white pawn",
-      "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_a", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_pawn_b",
-      "text": "White Pawn",
-      "tooltip": "b2 — white pawn",
-      "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_b", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_pawn_c",
-      "text": "White Pawn",
-      "tooltip": "c2 — white pawn",
-      "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_c", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_pawn_d",
-      "text": "White Pawn",
-      "tooltip": "d2 — white pawn",
-      "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_d", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_pawn_e",
-      "text": "White Pawn",
-      "tooltip": "e2 — white pawn",
-      "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_e", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_pawn_f",
-      "text": "White Pawn",
-      "tooltip": "f2 — white pawn",
-      "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_f", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_pawn_g",
-      "text": "White Pawn",
-      "tooltip": "g2 — white pawn",
-      "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_g", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_pawn_h",
-      "text": "White Pawn",
-      "tooltip": "h2 — white pawn",
-      "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_h", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_rook_a",
-      "text": "Black Rook",
-      "tooltip": "a8 — black rook",
-      "asset": "Chess_rdt60.png",
-      "tags": ["black", "piece", "rook", "b_rook_a", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["line_ortho"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_knight_b",
-      "text": "Black Knight",
-      "tooltip": "b8 — black knight",
-      "asset": "Chess_ndt60.png",
-      "tags": ["black", "piece", "knight", "b_knight_b", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["knight_leap"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_bishop_c",
-      "text": "Black Bishop",
-      "tooltip": "c8 — black bishop",
-      "asset": "Chess_bdt60.png",
-      "tags": ["black", "piece", "bishop", "b_bishop_c", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_queen_d",
-      "text": "Black Queen",
-      "tooltip": "d8 — black queen",
-      "asset": "Chess_qdt60.png",
-      "tags": ["black", "piece", "queen", "b_queen_d", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["line_ortho", "line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_king_e",
-      "text": "Black King",
-      "tooltip": "e8 — black king",
-      "asset": "Chess_kdt60.png",
-      "tags": ["black", "piece", "king", "b_king_e", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["adjacent"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_bishop_f",
-      "text": "Black Bishop",
-      "tooltip": "f8 — black bishop",
-      "asset": "Chess_bdt60.png",
-      "tags": ["black", "piece", "bishop", "b_bishop_f", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_knight_g",
-      "text": "Black Knight",
-      "tooltip": "g8 — black knight",
-      "asset": "Chess_ndt60.png",
-      "tags": ["black", "piece", "knight", "b_knight_g", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["knight_leap"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_rook_h",
-      "text": "Black Rook",
-      "tooltip": "h8 — black rook",
-      "asset": "Chess_rdt60.png",
-      "tags": ["black", "piece", "rook", "b_rook_h", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["line_ortho"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_pawn_a",
-      "text": "Black Pawn",
-      "tooltip": "a7 — black pawn",
-      "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_a", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_pawn_b",
-      "text": "Black Pawn",
-      "tooltip": "b7 — black pawn",
-      "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_b", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_pawn_c",
-      "text": "Black Pawn",
-      "tooltip": "c7 — black pawn",
-      "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_c", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_pawn_d",
-      "text": "Black Pawn",
-      "tooltip": "d7 — black pawn",
-      "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_d", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_pawn_e",
-      "text": "Black Pawn",
-      "tooltip": "e7 — black pawn",
-      "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_e", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_pawn_f",
-      "text": "Black Pawn",
-      "tooltip": "f7 — black pawn",
-      "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_f", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_pawn_g",
-      "text": "Black Pawn",
-      "tooltip": "g7 — black pawn",
-      "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_g", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "b_pawn_h",
-      "text": "Black Pawn",
-      "tooltip": "h7 — black pawn",
-      "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_h", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
         "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
@@ -623,18 +184,20 @@
       "key": "w_castle_q",
       "text": "Castle queenside",
       "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
-      "asset": "Chess_klt60.png",
-      "tags": ["white", "castling"],
+      "asset": "castle_button",
+      "tags": ["castling"],
       "play": {
         "needs": {
-          "moves_made@w_king_e": { "equals": 0 },
-          "moves_made@w_rook_a": { "equals": 0 },
+          "count:king@w_king_home": { "equals": 1 },
+          "moves_made@w_king_home": { "equals": 0 },
+          "count:rook@w_rook_a_home": { "equals": 1 },
+          "moves_made@w_rook_a_home": { "equals": 0 },
           "count:piece@w_castle_q_path": { "equals": 0 }
         },
         "action": [
-          "place:w_king_e:3:8",
-          "place:w_rook_a:4:8",
-          "gain_stat:moves_made@w_king_e:1",
+          "gain_stat:moves_made@w_king_home:1",
+          "place:w_king_home:3:8",
+          "place:w_rook_a_home:4:8",
           "next_phase"
         ]
       }
@@ -643,18 +206,20 @@
       "key": "w_castle_k",
       "text": "Castle kingside",
       "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
-      "asset": "Chess_klt60.png",
-      "tags": ["white", "castling"],
+      "asset": "castle_button",
+      "tags": ["castling"],
       "play": {
         "needs": {
-          "moves_made@w_king_e": { "equals": 0 },
-          "moves_made@w_rook_h": { "equals": 0 },
+          "count:king@w_king_home": { "equals": 1 },
+          "moves_made@w_king_home": { "equals": 0 },
+          "count:rook@w_rook_h_home": { "equals": 1 },
+          "moves_made@w_rook_h_home": { "equals": 0 },
           "count:piece@w_castle_k_path": { "equals": 0 }
         },
         "action": [
-          "place:w_king_e:7:8",
-          "place:w_rook_h:6:8",
-          "gain_stat:moves_made@w_king_e:1",
+          "gain_stat:moves_made@w_king_home:1",
+          "place:w_king_home:7:8",
+          "place:w_rook_h_home:6:8",
           "next_phase"
         ]
       }
@@ -663,18 +228,20 @@
       "key": "b_castle_q",
       "text": "Castle queenside",
       "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
-      "asset": "Chess_kdt60.png",
-      "tags": ["black", "castling"],
+      "asset": "castle_button",
+      "tags": ["castling"],
       "play": {
         "needs": {
-          "moves_made@b_king_e": { "equals": 0 },
-          "moves_made@b_rook_a": { "equals": 0 },
+          "count:king@b_king_home": { "equals": 1 },
+          "moves_made@b_king_home": { "equals": 0 },
+          "count:rook@b_rook_a_home": { "equals": 1 },
+          "moves_made@b_rook_a_home": { "equals": 0 },
           "count:piece@b_castle_q_path": { "equals": 0 }
         },
         "action": [
-          "place:b_king_e:3:1",
-          "place:b_rook_a:4:1",
-          "gain_stat:moves_made@b_king_e:1",
+          "gain_stat:moves_made@b_king_home:1",
+          "place:b_king_home:3:1",
+          "place:b_rook_a_home:4:1",
           "next_phase"
         ]
       }
@@ -683,22 +250,30 @@
       "key": "b_castle_k",
       "text": "Castle kingside",
       "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
-      "asset": "Chess_kdt60.png",
-      "tags": ["black", "castling"],
+      "asset": "castle_button",
+      "tags": ["castling"],
       "play": {
         "needs": {
-          "moves_made@b_king_e": { "equals": 0 },
-          "moves_made@b_rook_h": { "equals": 0 },
+          "count:king@b_king_home": { "equals": 1 },
+          "moves_made@b_king_home": { "equals": 0 },
+          "count:rook@b_rook_h_home": { "equals": 1 },
+          "moves_made@b_rook_h_home": { "equals": 0 },
           "count:piece@b_castle_k_path": { "equals": 0 }
         },
         "action": [
-          "place:b_king_e:7:1",
-          "place:b_rook_h:6:1",
-          "gain_stat:moves_made@b_king_e:1",
+          "gain_stat:moves_made@b_king_home:1",
+          "place:b_king_home:7:1",
+          "place:b_rook_h_home:6:1",
           "next_phase"
         ]
       }
+    },
+    {
+      "key": "how_to_play",
+      "text": "How to play",
+      "tags": ["immutable"],
+      "play": { "phases": [] },
+      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. Click an enemy piece to take it — its square lights up too.\n\nCastling: the two buttons beside your graveyard. Needs king and rook both unmoved, and the squares between them empty.\n\nNot implemented yet:\n- Check and checkmate. You win by capturing the king, and nothing stops you moving into check or castling through it.\n- En passant.\n- Pawn promotion. A pawn reaching the far rank just stops there.\n- Draws: stalemate, threefold repetition, the fifty-move rule.\n- Resigning and offering a draw."
     }
   ]
 }
-

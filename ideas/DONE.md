@@ -11,9 +11,8 @@ this file replaces them.
 parse the way you remember.
 
 Still open, in their own files: [01](01-boardgames.md) (board games past Lost
-Cities), [04](04-simulation-games.md) (Cultist Simulator), [09](09-composition.md)
-(one game out of several files) and [14](14-kinds-and-placements.md) (a template
-is a kind, not a piece on a square).
+Cities), [04](04-simulation-games.md) (Cultist Simulator) and
+[09](09-composition.md) (one game out of several files).
 
 The three reference documents remain the source of truth for detail:
 `DESIGN.md` (directives), `AUTHORING.md` (content manual), `ARCHITECTURE.md`
@@ -726,6 +725,98 @@ did nothing. 1100×620 gives 1.146.
 nothing if you quit the same frame. A canvas created with `stencil = true` — the
 card face stencils its art to the rounded shape — plus a synchronous
 `newImageData():encode("png", name)` is what works.
+
+---
+
+# Six cards, thirty-two pieces
+
+Chess was 39 cards and 704 lines, written by a generator because no person would
+maintain thirty-two templates by hand. It is now **13 cards and 279 lines, and
+the generator is deleted.** Six of the cards are the pieces.
+
+The 32 templates were doing three jobs at once — a kind, a placement and a
+presentation — and each of the three moved to where it belongs.
+
+**Ownership is placement state.** It used to be a tag the *template* wore
+(`"tags": ["white"]`) plus an `owns` field on the seat saying which tag was
+whose. That forced one template per owner: a `white` rook and a `black` rook
+that were byte-identical apart from a sprite. Whose a piece is gets decided when
+it is put on the board, so that is where it is written:
+
+```json
+{ "card": "rook", "owner": "player_white", "zone": "board", "at": ["a1", "h1"] }
+```
+
+It is an ordinary stat, so it snapshots for free, reads through the condition
+vocabulary that already existed, and `owner_of` is three lines instead of a
+loop over seats. The `white`/`black` tags and `seat_owns` are gone, which also
+closes the last name collision [13](13-one-name-one-thing.md) had to work around.
+
+**Squares have names.** `"at": "e1"` — a column letter and a rank counted from
+the near edge — replaces `"slot": 61`. A list is that many cards, so the eight
+pawns are one line. This is most of why the file can be read: the placement list
+is now the diagram in a rulebook rather than a table of cell indices. It is not
+chess-only; castle's throne room is at `"c3"`.
+
+**A named asset may carry one picture per player.**
+
+```json
+"assets": { "rook": { "src": ["Chess_rlt60.png", "Chess_rdt60.png"] } }
+```
+
+## Why this is *not* a dynamic style, though [14](14-kinds-and-placements.md) said it would be
+
+Worth keeping, because the plan was specific and wrong. It said the presentation
+half was a style keyed on the owner, choosing the light or dark sprite.
+
+A dynamic style fires on a **computed tag**, and a computed tag reads *one of the
+card's own stats* and compares it to a number. It can say "is black". It cannot
+say **"is a rook and is black"** — and that is the question, because six kinds
+times two owners is twelve sprites where an owner-keyed style offers two. Getting
+around it by packing both facts into one number is the boolean-field mistake in a
+different hat.
+
+So the picture varies where pictures are declared, not where looks are claimed.
+That also kept `asset` out of `styles`, and it generalises to every game with
+coloured pieces — checkers, go, backgammon.
+
+## Castling needed no new machinery, and the reason is a nice one
+
+Its gates named pieces (`moves_made@w_rook_h`) and so did its actions
+(`place:w_king_e:3:8`), and with six kinds there are no piece names left. Both
+became references to **squares**, via absolute patterns:
+
+```json
+"needs":  { "count:rook@w_rook_h_home": { "equals": 1 },
+            "moves_made@w_rook_h_home": { "equals": 0 } },
+"action": ["gain_stat:moves_made@w_king_home:1",
+           "place:w_king_home:7:8", "place:w_rook_h_home:6:8", "next_phase"]
+```
+
+`place` was **already** taking a scope rather than a card key, and a pattern
+scope already yielded *the occupants of those squares* — so the action came free
+with the condition. It is also more correct than the old form, which would have
+accepted a different rook that wandered onto h1 after a promotion.
+
+One ordering trap: count the move **before** anything moves, or the square being
+named is the one the king has just walked off.
+
+## The test was the proof, and it caught the bug
+
+Chess has no golden trace, so `tests/run.lua`'s scripted opening is the whole
+guarantee. It addressed pieces by template key, which cannot survive eight cards
+keyed `pawn`, so it now addresses them **by square** — which is both the only
+thing that works and how chess is actually written:
+
+```lua
+check("1. e4 — and the turn passes", move("e2", "e4") and zones.active_seat() == "player_black")
+check("2. exd5 — a capture", move("e4", "d5") and at("d5") == "white pawn")
+```
+
+**It earned its keep on the first run.** The generated castling actions passed
+the algebraic rank where the grid row was wanted, so white castled onto black's
+back rank — the king landed on g8. The file validated clean, the board rendered,
+and castling "worked". Nothing else in the suite would have noticed.
 
 ---
 

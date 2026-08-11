@@ -8,8 +8,7 @@
       "stats": {
         "<stat key>": "number the injected seat starts with. Only for a seat the engine makes; one that names a card takes its numbers from that card's card_stats."
       },
-      "text": "the injected seat's name, shown where a card's title would be. Defaults to You.",
-      "owns": "the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone."
+      "text": "the injected seat's name, shown where a card's title would be. Defaults to You."
     }
   ],
   "stats": [
@@ -60,7 +59,6 @@
       "tags": [
         "a list of words. Free vocabulary for targeting and counting, except where the engine knows one (see _engine_tags) or a style is named after one (see styles) — a card claims a look by tagging it."
       ],
-      "owns": "the tag marking this seat's pieces, on a board shared with the other players. Only a card tagged player may own anything. Without it a piece belongs to the seat of the zone it sits in, which is enough until a board is shared.",
       "card_stats": {
         "<stat key>": "number stamped on each instance when it is created. An hp with an hp_max companion draws a badge, and 0 hp is ruined."
       },
@@ -76,9 +74,7 @@
           "min": "number of targets that must be chosen",
           "max": "number that may be chosen",
           "count": "number setting min and max at once",
-          "tags": [
-            "every tag a candidate must carry; computed tags count"
-          ],
+          "tags": ["every tag a candidate must carry; computed tags count"],
           "zones": [
             "only look in these zones. A per-seat key means yours unless an owner word says otherwise."
           ],
@@ -91,9 +87,7 @@
         "phases": [
           "phase key or list: this card may be played only in those. Naming none means any phase."
         ],
-        "action": [
-          "action strings run when the card is played. See _actions."
-        ]
+        "action": ["action strings run when the card is played. See _actions."]
       },
       "activate": {
         "cost": {
@@ -112,12 +106,8 @@
       },
       "challenge": {
         "needs": "a condition deciding pass from fail. Unlike the blocks around it this is not a moment but a named test: any action list reaches it by running resolve_challenge, so one challenge can be asked from play and from activate both, which is what a crisis card that stays on the board when it fails needs.",
-        "pass": [
-          "action strings run when the condition holds"
-        ],
-        "fail": [
-          "action strings run when it does not"
-        ]
+        "pass": ["action strings run when the condition holds"],
+        "fail": ["action strings run when it does not"]
       },
       "receive": {
         "needs": {
@@ -125,9 +115,7 @@
         }
       },
       "turn": {
-        "action": [
-          "action strings run at each round boundary while the card is on a grid and not ruined"
-        ]
+        "action": ["action strings run at each round boundary while the card is on a grid and not ruined"]
       },
       "outcome": "victory or defeat on an ending card, which gives a banner, a run summary and a flourish"
     }
@@ -139,9 +127,7 @@
       "type": "deck (face-down stack), pile (face-up stack), hand (a row showing card text), or grid (a board of addressable cells). A stack is reached from the top: only its top card can be played, activated or targeted.",
       "pos": "[x1, y1, x2, y2] as fractions of the window. Per-seat zones take one such list per seat instead, which is the only place a nested array is allowed outside a pattern's vectors. Each type has a default spot; hidden zones default off-screen, which is what gives dealt cards their fly-in.",
       "grid": "[cols, rows] for a grid zone",
-      "contents": [
-        "starting cards, each key or key:count"
-      ],
+      "contents": ["starting cards, each key or key:count"],
       "applies": [
         "tags this zone hands to whatever lies in it, behaviour included. This is how a pile grants an ability no card knows about."
       ],
@@ -152,19 +138,13 @@
       },
       "tooltip": "prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck — so this is what a player reads before clicking it.",
       "activate": {
-        "cost": {
-          "<stat key>": "number paid to use the zone's own ability"
-        },
-        "phases": [
-          "phase keys it works in. Naming none means any."
-        ],
+        "cost": { "<stat key>": "number paid to use the zone's own ability" },
+        "phases": ["phase keys it works in. Naming none means any."],
         "action": [
           "what clicking the zone does. This is how a deck is drawn from: the box answers, rather than the card on top of it becoming clickable."
         ],
         "target": "a target spec, the same shape as a card's play.target",
-        "moves": [
-          "pattern names, if the ability is a move"
-        ]
+        "moves": ["pattern names, if the ability is a move"]
       },
       "asset": "a picture behind the whole zone, stretched to its rect. Same five forms as a card's asset.",
       "tags": [
@@ -177,9 +157,7 @@
       "key": "unique name. A phase key must never name a seat: both players share one play phase, and seat: next is what makes the turn theirs.",
       "label": "string for the HUD",
       "type": "automatic (run actions once and advance), player_input (play freely), draw_and_play (player_input with ends_after 1 and discard_hand), or overlay (dim the screen, deal into its zone, and resolve by *playing* one of the cards dealt — choosing is playing. Push-only, and a choice costs nothing: cost, needs and targeting are skipped)",
-      "actions": [
-        "action strings run on entry, for automatic phases"
-      ],
+      "actions": ["action strings run on entry, for automatic phases"],
       "deck": "zone key to deal from on fresh entry",
       "draw": "number of cards dealt on fresh entry",
       "zone": "where they are dealt, default hand. Naming it also bounds what may be played to the cards in it; a phase naming none lets any reachable card be played, which is what the menu relies on.",
@@ -189,9 +167,7 @@
       "next": [
         {
           "stat": "a subject, with equals, at_least or at_most beside it: the condition deciding whether this route is taken",
-          "zone_empty": [
-            "zone keys that must all be empty for this route to be taken"
-          ],
+          "zone_empty": ["zone keys that must all be empty for this route to be taken"],
           "equals": "number the subject must equal",
           "at_least": "number the subject must reach",
           "at_most": "number the subject must not exceed",
@@ -207,15 +183,11 @@
   "end_conditions": [
     {
       "stat": "a subject, with a comparator beside it, deciding whether the game is over",
-      "zone_empty": [
-        "zone keys that must all be empty"
-      ],
+      "zone_empty": ["zone keys that must all be empty"],
       "equals": "number the subject must equal",
       "at_least": "number the subject must reach",
       "at_most": "number the subject must not exceed",
-      "then": [
-        "action strings run when it fires, usually push_phase to an ending overlay"
-      ],
+      "then": ["action strings run when it fires, usually push_phase to an ending overlay"],
       "fired": "engine bookkeeping: each condition fires once per game, first match wins, and open overlays are waited for"
     }
   ],
@@ -226,8 +198,9 @@
     "place": [
       {
         "card": "the key of a card that starts already in play — a throne, a board, a button, a chess piece",
+        "owner": "the key of the player this piece belongs to. Ownership is decided where a piece is put down, which is here; without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. It is what lets one card be placed for both players.",
         "zone": "where it goes. Leave it out and its home tag decides, then the only board. A per-seat zone gets one copy in each seat's.",
-        "slot": "1-based cell index, row-major. Grid zones only; without one it takes the first free cell."
+        "at": "the square, named the way a player would say it — a column letter and a rank counted from the near edge, \"e1\". A list places one card per square, so eight pawns are one entry. Grid zones only; without it the card takes the first free cell."
       }
     ]
   },
@@ -238,28 +211,18 @@
         "cost": "what playing a card that lies here costs",
         "needs": "a condition gating it",
         "target": "a target spec for it, the same shape as a card's play.target",
-        "phases": [
-          "phase keys it works in"
-        ],
+        "phases": ["phase keys it works in"],
         "action": [
           "what playing a card here does. This is how an offer says what choosing from it means, when the cards it deals already do something else when played from a hand."
         ]
       },
       "activate": {
-        "action": [
-          "action strings this tag gives its cards, which is what a zone hands out with applies"
-        ],
+        "action": ["action strings this tag gives its cards, which is what a zone hands out with applies"],
         "target": "a target spec for that ability, the same shape as a card's play.target",
-        "cost": {
-          "<stat key>": "number paid for that ability"
-        },
-        "phases": [
-          "phase keys the ability works in"
-        ],
+        "cost": { "<stat key>": "number paid for that ability" },
+        "phases": ["phase keys the ability works in"],
         "exhausts": "false keeps a card ready after using this ability",
-        "moves": [
-          "pattern names, if the ability is a move"
-        ]
+        "moves": ["pattern names, if the ability is a move"]
       },
       "tooltip": "prose describing what lying here lets a card do. A card's own tooltip is shown as well, because they describe different acts."
     }
@@ -288,7 +251,7 @@
   },
   "assets": {
     "<your picture name>": {
-      "src": "the picture itself: a bare filename in games/assets, an http(s) URL, or a shape spec. Everything a card can spell out inline is legal here.",
+      "src": "the picture itself: a bare filename in games/assets, an http(s) URL, or a shape spec. Everything a card can spell out inline is legal here. A list gives one picture per player, chosen by whose card it is — which is how one card can be a piece in either colour.",
       "max": "number, 1 to 4092: the longest edge in pixels the browser hands over. Bigger pictures are scaled to it. Anything spelled out inline instead of named gets 1024."
     }
   },

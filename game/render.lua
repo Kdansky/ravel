@@ -480,7 +480,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	-- One property for the plate: a colour, or false for none, so a transparent
 	-- PNG shows the board through it. Two words for one decision was one too many.
 	local color = look.color or C.card_default
-	local img   = cards.image(card_e.def_key)
+	local img   = cards.image(card_e)
 	local z     = entity.get(card_e.zone_id)
 	local title = def and def.text or card_e.def_key
 	-- Some cards are their picture. A chess knight labelled "White Knight" is

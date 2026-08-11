@@ -259,6 +259,24 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "move_to:target:vault" } end },
 	{ "an unknown fit in a style", "fit should be 'card' or 'fill'",
 		function(g) g.style_defs = { tiled = { fit = "stretch" } } end },
+	-- Placement, which is now where ownership and position are both decided, so
+	-- a typo here is a piece that is not on the board or belongs to nobody.
+	{ "a placement giving a piece to nobody", "is not one of this game's players",
+		function(g) g.setup.place = { { card = "throne_room", zone = "board", owner = "gandalf" } } end },
+	{ "a placement onto a square that is not one", 'is not a square — write a column letter',
+		function(g) g.setup.place = { { card = "throne_room", zone = "board", at = "middle" } } end },
+	{ "a placement off the edge of the board", "is off 'board'",
+		function(g) g.setup.place = { { card = "throne_room", zone = "board", at = { "a1", "z9" } } } end },
+	{ "a placement naming a square in a zone with no squares", "is not a grid",
+		function(g) g.setup.place = { { card = "throne_room", zone = "hand", at = "a1" } } end },
+	{ 'an "at" that is neither a square nor a list of them', '"at" should be a square like "e1"',
+		function(g) g.setup.place = { { card = "throne_room", zone = "board", at = 13 } } end },
+	-- One picture per player, and one player per picture: a game with more
+	-- pictures than seats has written some that can never be drawn.
+	{ "more pictures than there are players to draw them", "the rest can never be drawn",
+		function(g) g.raw_assets = { crown = { src = { "a.png", "b.png", "c.png" } } } end },
+	{ "an asset that is neither a source nor a list of them", "or one source per player",
+		function(g) g.raw_assets = { crown = { src = 7 } } end },
 	{ "a fan pointing nowhere", 'fan should be "up", "down", "left" or "right"',
 		function(g) g.style_defs = { tiled = { fan = "sideways" } } end },
 	-- A grid places by slot and a fan by order, and a zone wearing both has two

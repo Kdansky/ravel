@@ -60,10 +60,12 @@ local function blocks(c, def)
 	if zone and zone ~= "" and zone ~= own then add("prose", zone) end
 
 	-- The engine's own counters are not the card's business. `round` and `plays`
-	-- are bookkeeping it keeps on whichever card happens to be the seat, and
-	-- `turn` says whose go it is — none of them describes the thing being
-	-- hovered, and on castle's throne room they read as two of its statistics.
-	local BOOKKEEPING = { round = true, plays = true, turn = true }
+	-- are bookkeeping it keeps on whichever card happens to be the seat, `turn`
+	-- says whose go it is, and `owner` is a seat number nobody wants read out as
+	-- a statistic — the sprite already says whose piece it is. None of them
+	-- describes the thing being hovered, and on castle's throne room the first
+	-- two read as two more of its numbers.
+	local BOOKKEEPING = { round = true, plays = true, turn = true, owner = true }
 
 	local rows = {}
 	if def.cost and next(def.cost) then rows[#rows + 1] = { "Cost", cards.cost_text(def.cost) } end
@@ -168,7 +170,7 @@ function M.draw()
 	local box_w  = math.min(240 * S, W * 0.34)
 	local inner  = box_w - pad * 2
 	local tf, bf = render.main_font(), render.small_font()
-	local img    = not is_zone and cards.image(c.def_key) or nil
+	local img    = not is_zone and cards.image(c) or nil
 	local img_h  = img and math.floor(box_w * 0.62) or 0
 
 	local list = is_zone and zone_blocks(c) or blocks(c, def)

@@ -25,7 +25,7 @@ Three pressures, none of them urgent alone:
   general geometry, not chess, and the next grid game retypes them.
 - **A card set is not a game.** MTG is the honest example: 20,000 cards cannot
   live in one file, and per-set files are how everyone else splits it.
-- **`tools/make_chess.py` and `make_lost_cities.py` exist** because a big game
+- **`tools/make_lost_cities.py` exists** because a big game
   file wants generating. Some of what they generate is boilerplate that would
   not need generating if it could be included.
 

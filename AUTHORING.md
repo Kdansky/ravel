@@ -453,8 +453,8 @@ early (the validator warns when starting `contents` already exceed capacity).
 
 ```json
 "players": [
-  { "card": "player_white", "owns": "white" },
-  { "card": "player_black", "owns": "black" }
+  { "card": "player_white" },
+  { "card": "player_black" }
 ]
 ```
 
@@ -463,7 +463,10 @@ early (the validator warns when starting `contents` already exceed capacity).
 | `card` | the key of the card that **is** this seat. Leave it out and the engine injects an invisible stat bag, which is what a solitaire game has always had |
 | `stats` | starting numbers for an injected seat. A seat that names a card takes its numbers from that card's `card_stats` instead |
 | `text` | an injected seat's name. Defaults to "You" |
-| `owns` | the tag marking this seat's pieces on a board shared with the others — a chessboard is one zone, so ownership cannot come from the zone |
+
+**Whose a piece is** is not declared here. It is written on the piece when
+`setup.place` puts it down (`"owner": "player_white"`), because that is where
+the question is actually decided — see *Setup*.
 
 **A seat is still a card**, which is the point: it has stats, it can be looked
 at, targeted, damaged and destroyed, and castle's throne room is a building on
@@ -490,8 +493,9 @@ box; `setup` is the page of the manual that arranges it:
 "setup": {
   "player": { "hp": 5 },
   "place": [
-    { "card": "throne_room", "zone": "board", "slot": 13 },
-    { "card": "w_rook_a", "zone": "board", "slot": 57 }
+    { "card": "throne_room", "zone": "board", "at": "c3" },
+    { "card": "pawn", "owner": "player_white", "zone": "board",
+      "at": ["a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"] }
   ]
 }
 ```
@@ -499,15 +503,18 @@ box; `setup` is the page of the manual that arranges it:
 | Field | Meaning |
 |---|---|
 | `card` | the key of a card that starts already in play |
+| `owner` | which player this one belongs to. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus; a shared board has no such seat, so pieces on one say whose they are here |
 | `zone` | where it goes. Leave it out and its home tag decides, then the only board. A `per_seat` zone gets one copy in **each** seat's — a marker declared once appears on every player's board |
-| `slot` | 1-based cell, row-major. Grid zones only; without one it takes the first free cell |
+| `at` | the square, named the way a player would say it: a column letter and a rank counted from the near edge, so `"e1"` is the white king's. Grid zones only; without it the card takes the first free cell |
+
+**`at` may be a list, and then it is that many cards.** Eight pawns are one
+entry naming eight squares. That is what makes the placement list read like the
+diagram in a rulebook instead of a table of cell numbers, and it is why chess
+needs six cards rather than thirty-two.
 
 **The order is the order things are placed**, and it is worth caring about:
 entity IDs are handed out as cards are created, so a seeded game only replays
 identically if setup builds the board the same way every time.
-
-**A card may be placed more than once** — the same key on two entries is two
-copies on two squares, which is how eight pawns come from one pawn.
 
 The engine places its own before any of this: the system card, the injected
 player, and any seat that named no place. A seat has to exist before it can act,
@@ -542,10 +549,24 @@ is one, `max` — the longest edge in pixels, 1 to 4092, which caps how large th
 browser hands the picture over (see the size note below). Anything spelled out
 inline instead gets 1024.
 
-Two reasons to name one rather than inline it:
+**A `src` may be a list, and then it is one picture per player**, chosen by whose
+card wears it:
+
+```json
+"assets": { "rook": { "src": ["Chess_rlt60.png", "Chess_rdt60.png"] } }
+```
+
+That is what lets one card be a piece in either colour, and it is why chess
+declares six pieces rather than six times however many players. A card's owner
+is placement state (`setup.place`'s `owner`), so the same template placed for
+white and for black draws differently without knowing anything about either.
+A card with no owner takes the first picture.
+
+Three reasons to name one rather than inline it:
 
 - **Options.** A photograph that must stay sharp in the detail view asks for a
   bigger `max`; everything else should not pay for it.
+- **One picture per player**, as above — there is nowhere else to say it.
 - **Sharing.** The name is the cache key, so twenty cards drawn from one
   picture are one download and one texture. Inline sources are cached per card.
 
@@ -581,7 +602,6 @@ Repeat visits are free: the fetch is an ordinary browser request, so a host
 sending `Cache-Control` (imgur sends a year) is answered from the browser's own
 disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
-| `owns` | Seats only (a card tagged `player`): the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone — `"owns": "white"` on the seat makes every card tagged `white` that player's. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. **A tag outranks the zone**, so a planet held by player three inside player two's system is player three's |
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `turn.action`) |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
@@ -753,7 +773,7 @@ other, and its stats are the player's stats.
   "card_stats": { "hp": 20, "gold": 20, "morale": 5 }
 }
 
-"setup": { "place": [{ "card": "throne_room", "zone": "board", "slot": 13 }] }
+"setup": { "place": [{ "card": "throne_room", "zone": "board", "at": "c3" }] }
 ```
 
 A **party** is the same idea repeated: N cards in a zone, each tagged `player`,
@@ -976,9 +996,9 @@ becomes playable when nothing else in its zone is, so a mandatory play can never
 soft-lock a hand — but a zone of buttons is not a hand, and "everything here is
 currently illegal" is its normal state rather than a trap.
 
-`game/games/chess.json` is the worked example, generated by
-`tools/make_chess.py`. Movement is six pattern entries shared by both colours,
-plus four named castling paths.
+`game/games/chess.json` is the worked example, and it is written by hand —
+thirteen cards, six of which are the pieces. Movement is six pattern entries
+shared by both colours, plus four named castling paths.
 
 ### Legality between two cards
 

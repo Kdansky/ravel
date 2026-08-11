@@ -10,6 +10,10 @@ local phase       = require("phase")
 local actions     = require("actions")
 local targeting   = require("targeting")
 local rng         = require("rng")
+local geometry    = require("geometry")
+
+-- An entry that names no square still places one card, wherever there is room.
+local NOWHERE     = { true }
 local predicate   = require("predicate")
 local tags        = require("tags")
 local validate    = require("validate")
@@ -393,9 +397,17 @@ function M.init(filename, seed)
 			-- each seat's copy, not a single one in whoever happens to be first.
 			local zkey = e.zone or def.to_zone or cards.home_zone(def) or "board"
 			for _, to in ipairs(zones.all_with_key(zkey)) do
-				local card = cards.create(def.key, to.id)
-				local slot_id = e.slot and to.slots[e.slot]
-				if slot_id then zones.place_in_slot(card.id, slot_id) else zones.auto_slot(card.id) end
+				-- One entry may name several squares, and then it is several
+				-- pieces: eight pawns are one line naming eight squares.
+				for _, at in ipairs(e.at or NOWHERE) do
+					local card = cards.create(def.key, to.id)
+					-- Before it is put down, not after: placing a piece stamps
+					-- its rank, and a rank counts from its owner's own side.
+					local owner = e.owner and G.seat_index and G.seat_index[e.owner]
+					if owner then card.stats.owner = owner end
+					local slot_id = at ~= true and geometry.slot_named(to, at)
+					if slot_id then zones.place_in_slot(card.id, slot_id) else zones.auto_slot(card.id) end
+				end
 			end
 		end
 	end

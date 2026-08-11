@@ -16,14 +16,14 @@
   },
   "setup": {
     "place": [
-      { "card": "pass_night", "zone": "table", "slot": 1 },
-      { "card": "work", "zone": "table", "slot": 2 },
-      { "card": "rest", "zone": "table", "slot": 3 },
-      { "card": "carouse", "zone": "table", "slot": 8 },
-      { "card": "study", "zone": "table", "slot": 4 },
-      { "card": "commune", "zone": "table", "slot": 5 },
-      { "card": "dream", "zone": "table", "slot": 6 },
-      { "card": "the_rite", "zone": "table", "slot": 7 }
+      { "card": "pass_night", "zone": "table", "at": "a1" },
+      { "card": "work", "zone": "table", "at": "b1" },
+      { "card": "rest", "zone": "table", "at": "c1" },
+      { "card": "carouse", "zone": "table", "at": "h1" },
+      { "card": "study", "zone": "table", "at": "d1" },
+      { "card": "commune", "zone": "table", "at": "e1" },
+      { "card": "dream", "zone": "table", "at": "f1" },
+      { "card": "the_rite", "zone": "table", "at": "g1" }
     ]
   },
   "players": [{ "stats": { "time": 3, "health": 10, "funds": 4, "insight": 0, "dread": 0, "ritual": 0 } }],

@@ -9,7 +9,7 @@ M.filename = nil  -- source file of the current game, for template reloads
 M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list",
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
-	"style_defs", "dynamic_styles",
+	"style_defs", "dynamic_styles", "seat_index",
 }
 
 -- A card is written as a list of moments, and read as a flat def.
@@ -297,7 +297,10 @@ function M.parse(filename)
 	G.raw_assets = type(parsed.assets) == "table" and parsed.assets or {}
 	for name, def in pairs(G.raw_assets) do
 		local src = type(def) == "table" and def.src or def
-		if type(src) == "string" then
+		-- A string, or one per seat: the same named picture drawn differently
+		-- depending on whose card wears it. Kept as given, because which one is
+		-- wanted is not known until a card asks.
+		if type(src) == "string" or (type(src) == "table" and #src > 0) then
 			G.asset_defs[name] = { src = src, max = tonumber(type(def) == "table" and def.max) }
 		end
 	end
@@ -414,11 +417,18 @@ function M.parse(filename)
 	-- Everything else is an entry an author put in "setup".
 	for _, e in ipairs(type(G.setup.place) == "table" and G.setup.place or {}) do
 		if type(e) == "table" and type(e.card) == "string" then
-			G.setup_place[#G.setup_place + 1] = { card = e.card, zone = e.zone, slot = tonumber(e.slot) }
+			-- One square or several: eight pawns are one entry naming eight
+			-- squares, which is how the placement list reads like the diagram
+			-- in a rulebook rather than like a table of cell numbers.
+			local at = e.at
+			if type(at) == "string" then at = { at } end
+			G.setup_place[#G.setup_place + 1] = { card = e.card, zone = e.zone,
+				at = type(at) == "table" and at or nil,
+				owner = type(e.owner) == "string" and e.owner or nil }
 		elseif type(e) == "string" then
 			G.setup_place[#G.setup_place + 1] = { card = e }
 		else
-			pp[#pp + 1] = 'a "setup.place" entry should name a card, like { "card": "throne", "zone": "board", "slot": 13 }'
+			pp[#pp + 1] = 'a "setup.place" entry should name a card, like { "card": "throne", "zone": "board", "at": "c3" }'
 		end
 	end
 
@@ -475,16 +485,16 @@ function M.parse(filename)
 	-- the word stays the way you name a seat's cards — it just stops being how
 	-- the engine finds out who the seats are.
 	--
-	-- `owns` names the tag marking a seat's pieces on a board it shares with the
-	-- other players, and belongs to the seat rather than to the card: a chessboard
-	-- is one zone, so ownership cannot come from the zone.
-	G.seat_list, G.seat_set, G.seat_owns = {}, {}, {}
+	-- Seats in declared order, and the index of each. The index is what a piece
+	-- carries: ownership is decided where a piece is placed, so it is written on
+	-- the piece as an ordinary stat rather than inferred from a tag it wears.
+	G.seat_list, G.seat_set, G.seat_index = {}, {}, {}
 	for _, seat in ipairs(G.player_list) do
 		local cd = G.card_defs[seat.card]
 		if cd then
 			G.seat_list[#G.seat_list + 1] = seat.card
 			G.seat_set[seat.card] = true
-			G.seat_owns[seat.card] = type(seat.owns) == "string" and seat.owns or nil
+			G.seat_index[seat.card] = #G.seat_list
 			cd.tags_set = cd.tags_set or {}
 			if not cd.tags_set.player then
 				cd.tags_set.player = true

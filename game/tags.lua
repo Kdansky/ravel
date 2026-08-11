@@ -30,18 +30,19 @@ function M.entity_has(e, tag)
     return false
 end
 
--- Whose *piece* this is: the seat whose name it carries as a tag, or failing
+-- Whose *piece* this is: the seat written on it when it was placed, or failing
 -- that the seat of the per-seat zone it lies in.
 --
--- The tag rule exists for boards that are shared while the pieces on them are
--- not. A chessboard is one zone — the pieces stand on the same squares — so
--- without it every piece would be unowned and "enemy" would name nothing.
+-- The stat exists for boards that are shared while the pieces on them are not.
+-- A chessboard is one zone — the pieces stand on the same squares — so without
+-- it every piece would be unowned and "enemy" would name nothing.
 --
--- The seat says which tag is its, with "owns". That used to be free: a seat is
--- a card key, so claiming one was writing "tags": ["white"] and no field was
--- needed. It cost an ambiguity instead — `@white` named the pieces while
--- `card:white` named the seat card, one word for two sets — and a name that
--- means two things is the mistake a game file should not be able to make.
+-- **It is placement state, and that is the point.** Ownership is decided where a
+-- piece is put on the board, which is exactly where `setup.place` says it. It
+-- used to be a tag the *template* wore, which forced one template per owner and
+-- so a `white` and a `black` copy of every piece — thirty-two cards to say six
+-- things. As a stat it snapshots for free, reads through the ordinary condition
+-- vocabulary (`owner@target`), and one `rook` can be placed four times.
 --
 -- **A tag outranks the zone**, because a zone's seat is where a thing *is* and
 -- a tag is whose it *is*, and those come apart the moment a game has more than
@@ -60,12 +61,8 @@ function M.owner_of(e)
 	if not e then return nil end
 	if e.kind == "zone" then return e.seat end
 	local G = declaration.G
-	if e.kind == "card" and not (G.seat_set and G.seat_set[e.def_key]) then
-		for _, seat in ipairs(G.seat_list or {}) do
-			local owns = G.seat_owns and G.seat_owns[seat]
-			if owns and M.entity_has(e, owns) then return seat end
-		end
-	end
+	local i = e.stats and e.stats.owner
+	if i then return (G.seat_list or {})[i] end
 	local z = e.zone_id and entity.get(e.zone_id)
 	return z and z.seat
 end

@@ -16,6 +16,7 @@ local url_is_safe = require("cards").url_is_safe
 -- art.parse is pure (no love, no state) for exactly this: a typo in a shape
 -- spec is caught at load time rather than as a blank card at play time.
 local art         = require("art")
+local geometry    = require("geometry")
 
 local M = {}
 
@@ -90,7 +91,7 @@ M.EFFECT_BASES = {
 -- derives, and writing one is an error rather than a second spelling.
 local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
-	tags = true, card_stats = true, owns = true, outcome = true,
+	tags = true, card_stats = true, outcome = true,
 	play = true, activate = true, challenge = true, receive = true, turn = true,
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true,
@@ -878,22 +879,39 @@ function M.check(G)
 				warn("%s: max is the longest edge in pixels, between 1 and 4092 — %s is not", where, tostring(def.max))
 			end
 		end
-		if type(src) ~= "string" then
-			warn("%s: should be a source, or an object with one", where)
-		elseif src:match("^https?://") then
-			if not url_is_safe(src) then
-				warn("%s: its URL contains characters that aren't valid in a URL — it will be refused at load time", where)
-			end
-		elseif src:find(":") then
-			if not art.parse(src) then
-				warn("%s: '%s' isn't a shape the engine can draw", where, src)
-			end
-		elseif src:find("%.") then
-			if not love.filesystem.read("games/assets/" .. src) then
-				warn("%s: '%s' is not in games/assets", where, src)
-			end
+		-- One source, or one per seat. A piece that is the same piece in two
+		-- colours is one name with two pictures, which is what lets a game
+		-- declare six kinds instead of six kinds times however many players.
+		local srcs = src
+		if type(src) == "string" then srcs = { src }
+		elseif type(src) == "table" and #src == 0 then srcs = nil end
+		if type(srcs) ~= "table" then
+			warn("%s: should be a source, an object with one, or one source per player", where)
 		else
-			warn("%s: '%s' names no picture — a filename, an http(s) URL or a shape", where, src)
+			local seats = #(G.seat_list or {})
+			if seats > 0 and #srcs > seats then
+				warn("%s: has %d pictures for %d player%s — the rest can never be drawn",
+					where, #srcs, seats, seats == 1 and "" or "s")
+			end
+			for _, s in ipairs(srcs) do
+				if type(s) ~= "string" then
+					warn("%s: '%s' is not a source", where, tostring(s))
+				elseif s:match("^https?://") then
+					if not url_is_safe(s) then
+						warn("%s: its URL contains characters that aren't valid in a URL — it will be refused at load time", where)
+					end
+				elseif s:find(":") then
+					if not art.parse(s) then
+						warn("%s: '%s' isn't a shape the engine can draw", where, s)
+					end
+				elseif s:find("%.") then
+					if not love.filesystem.read("games/assets/" .. s) then
+						warn("%s: '%s' is not in games/assets", where, s)
+					end
+				else
+					warn("%s: '%s' names no picture — a filename, an http(s) URL or a shape", where, s)
+				end
+			end
 		end
 	end
 
@@ -966,18 +984,6 @@ function M.check(G)
 		if type(def.challenge) == "table" then
 			if def.challenge.needs == nil then
 				warn('%s: a challenge with no "needs" has nothing to decide — it always passes', where)
-			end
-		end
-		-- "owns" is how a seat claims its pieces on a board it shares. Only a
-		-- seat can claim anything, and a tag nobody carries claims nothing —
-		-- both are silent today and leave every piece unowned, which reads as
-		-- "enemy names nothing" three moves later rather than as a typo here.
-		if def.owns ~= nil then
-			if not (def.tags_set and def.tags_set.player) then
-				warn('%s: only a seat owns pieces, and a seat is a card tagged "player"', where)
-			elseif not known_tags[def.owns] then
-				warn("%s: owns '%s', but no card carries that tag%s", where, tostring(def.owns),
-					suggest(def.owns, known_tags))
 			end
 		end
 		for _, rule in ipairs(def.move_rules or {}) do
@@ -1387,27 +1393,44 @@ function M.check(G)
 	if G.setup then
 		check_fields("setup", G.setup, { place = true })
 		-- Setup arranges the box: every entry names a card, and may say which
-		-- zone and which cell. A slot outside the grid is silently ignored at
-		-- init, which reads as a piece that simply is not there.
+		-- zone, which squares, and whose it is. A square outside the grid is
+		-- silently ignored at init, which reads as a piece that simply is not
+		-- there — so it is worth saying out loud here.
 		for i, e in ipairs(type(G.setup.place) == "table" and G.setup.place or {}) do
 			local where = ("setup.place entry %d"):format(i)
 			if type(e) == "table" then
-				check_fields(where, e, { card = true, zone = true, slot = true })
+				check_fields(where, e, { card = true, zone = true, at = true, owner = true })
 				if not G.card_defs[e.card] then
 					warn("%s: places '%s', but no card has that key%s", where, tostring(e.card),
 						suggest(e.card, G.card_defs))
+				end
+				if e.owner ~= nil and not (G.seat_index and G.seat_index[e.owner]) then
+					warn('%s: gives the piece to "%s", which is not one of this game\'s players%s',
+						where, tostring(e.owner), suggest(e.owner, G.seat_index or {}))
 				end
 				local z = e.zone and G.zone_defs[e.zone]
 				if e.zone and not z then
 					warn("%s: places into '%s', but no zone has that key%s", where, tostring(e.zone),
 						suggest(e.zone, G.zone_defs))
-				elseif e.slot ~= nil then
-					local cells = z and type(z.grid) == "table" and (tonumber(z.grid[1]) or 0) * (tonumber(z.grid[2]) or 0)
-					if not cells or cells == 0 then
-						warn("%s: names a slot, but '%s' is not a grid", where, tostring(e.zone))
-					elseif tonumber(e.slot) == nil or e.slot < 1 or e.slot > cells then
-						warn("%s: slot %s is outside '%s', which has %d cells",
-							where, tostring(e.slot), tostring(e.zone), cells)
+				elseif e.at ~= nil then
+					local at = type(e.at) == "string" and { e.at } or e.at
+					local cols = z and type(z.grid) == "table" and tonumber(z.grid[1]) or 0
+					local rows = z and type(z.grid) == "table" and tonumber(z.grid[2]) or 0
+					if type(at) ~= "table" then
+						warn('%s: "at" should be a square like "e1", or a list of them', where)
+					elseif cols == 0 or rows == 0 then
+						warn("%s: names a square, but '%s' is not a grid", where, tostring(e.zone))
+					else
+						for _, name in ipairs(at) do
+							local col, row = geometry.square({ grid = { cols, rows } }, name)
+							if not col then
+								warn('%s: "%s" is not a square — write a column letter and a rank, like "e1"',
+									where, tostring(name))
+							elseif col > cols or row < 1 or row > rows then
+								warn("%s: square '%s' is off '%s', which is %dx%d",
+									where, tostring(name), tostring(e.zone), cols, rows)
+							end
+						end
 					end
 				end
 			end
@@ -1421,7 +1444,7 @@ function M.check(G)
 		if type(e) ~= "table" then
 			warn('%s: should be an object, like { "card": "north" }', where)
 		else
-			check_fields(where, e, { card = true, stats = true, text = true, owns = true })
+			check_fields(where, e, { card = true, stats = true, text = true })
 			if e.card ~= nil and type(e.card) ~= "string" then
 				warn("%s: its \"card\" should be the key of a card", where)
 			end
@@ -1429,10 +1452,6 @@ function M.check(G)
 				if type(v) ~= "number" then
 					warn("%s: the starting value of '%s' should be a number", where, tostring(k))
 				end
-			end
-			if e.owns ~= nil and not known_tags[e.owns] then
-				warn("%s: owns '%s', but no card carries that tag%s", where, tostring(e.owns),
-					suggest(e.owns, known_tags))
 			end
 		end
 	end

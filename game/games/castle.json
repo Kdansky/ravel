@@ -19,7 +19,7 @@
     "standing": { "stat": "hp", "at_least": 1 }
   },
   "styles": { "slate": { "color": [0.1, 0.14, 0.22] }, "tiled": { "fit": "fill" } },
-  "setup": { "place": [{ "card": "throne_room", "zone": "board", "slot": 13 }] },
+  "setup": { "place": [{ "card": "throne_room", "zone": "board", "at": "c3" }] },
   "players": [{ "card": "throne_room" }],
   "cards": [
     {
