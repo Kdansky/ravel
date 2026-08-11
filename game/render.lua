@@ -903,6 +903,11 @@ local function draw_zone(zone_e)
 				local c = entity.get(card_id)
 				if zone_e.tags.page then
 					draw_page(places[i], c)
+				elseif not zones.visible(c) then
+					-- Somebody else's hand. Backs, so the cards are still there
+					-- to count — how many an opponent holds is public in every
+					-- card game — and the faces are not.
+					draw_card_back(places[i])
 				else
 					draw_card_face(places[i], c, true)
 				end

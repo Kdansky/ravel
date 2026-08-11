@@ -3,6 +3,7 @@ local declaration = require("declaration")
 local cards       = require("cards")
 local render      = require("render")
 local flow        = require("flow")
+local zones       = require("zones")
 
 local M = {}
 
@@ -126,6 +127,9 @@ function M.draw()
 	if not c then return end
 	local def = declaration.G.card_defs[c.def_key]
 	if not def or not c.place then return end
+	-- Hovering is looking. A card the player may not see does not describe
+	-- itself, or the hand is face-down and the tooltip reads it out.
+	if not zones.visible(c) then return end
 
 	local S      = render.scale()
 	local W, H   = love.graphics.getDimensions()

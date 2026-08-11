@@ -158,6 +158,29 @@ function M.all_with_key(key)
 	return out
 end
 
+-- Whether the player at the keyboard may look at this card.
+--
+-- One rule, deliberately: a card in a *hand* belongs to whoever that hand
+-- belongs to, and nobody else sees its face. Decks already draw a back, piles
+-- are face-up because that is what a discard is, and a board is public.
+--
+-- A hand with no seat is nobody's in particular — a one-player game, or a
+-- shared tray — and stays visible, so every game written before seats existed
+-- is unchanged.
+--
+-- **This hides, it does not protect.** The whole state is in memory and travels
+-- over the wire, so a determined player can still read an opponent's hand; what
+-- this stops is the accidental version, which in hot-seat is the only version
+-- that matters — two people at one screen where the game shows both hands at
+-- once. Trust is a referee's job and the engine has never claimed to be one
+-- (DESIGN.md, *Trust*).
+function M.visible(c)
+	if not c then return false end
+	local z = c.zone_id and entity.get(c.zone_id)
+	if not z or z.zone_type ~= "hand" or not z.seat then return true end
+	return z.seat == M.active_seat()
+end
+
 function M.move_top(from_id, to_id)
 	local from = entity.get(from_id)
 	if not from or #from.cards == 0 then return false end
