@@ -156,8 +156,8 @@ local COMPUTED_FIELDS = { stat = true, less_than = true, less_than_stat = true,
 -- here too, so the source is checked by the same rules.
 -- What a style may carry. Presentation only, and deliberately closed: the
 -- moment a style could change a rule, every rules bug becomes a drawing bug.
-local STYLE_FIELDS    = { color = true, title = true, fit = true, ratio = true,
-	checker = true, paint = true, cell_outline = true }
+local STYLE_FIELDS    = { color = true, title = true, border = true, fit = true,
+	ratio = true, checkered = true, paint = true, cell_outline = true }
 local ASSET_FIELDS    = { src = true, max = true }
 -- A challenge is asked by the resolve_challenge action: one condition, and the
 -- two action lists it chooses between. They only ever work together, which is
@@ -789,6 +789,9 @@ function M.check(G)
 			if sd.cell_outline ~= nil and sd.cell_outline ~= false then
 				warn("%s: cell_outline takes only false, which means draw none", where)
 			end
+			if sd.border ~= nil and sd.border ~= false then
+				warn("%s: border takes only false, which means draw none", where)
+			end
 			if sd.fit ~= nil and sd.fit ~= "card" and sd.fit ~= "fill" then
 				warn("%s: fit should be 'card' or 'fill', not '%s'", where, tostring(sd.fit))
 			end
@@ -798,11 +801,11 @@ function M.check(G)
 				warn('%s: ratio should be a positive number (width over height, 1 is square) or "grid", not %s',
 					where, tostring(sd.ratio))
 			end
-			if sd.checker ~= nil then
-				if type(sd.checker) ~= "table" or #sd.checker ~= 2 then
-					warn('%s: checker should be two colours, like ["#f0d9b5", "#b58863"]', where)
+			if sd.checkered ~= nil then
+				if type(sd.checkered) ~= "table" or #sd.checkered ~= 2 then
+					warn('%s: checkered should be two colours, like ["#f0d9b5", "#b58863"]', where)
 				else
-					for _, w in ipairs(sd.checker) do
+					for _, w in ipairs(sd.checkered) do
 						if not art.colour(w) then
 							warn("%s: '%s' is not a colour — use a palette name or #rrggbb%s",
 								where, tostring(w), suggest(w, art.colours()))

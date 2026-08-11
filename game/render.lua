@@ -601,7 +601,12 @@ local function draw_card_face(pl, card_e, show_text)
 		love.graphics.setColor(unpack(C.selected))
 		love.graphics.setLineWidth(3 * S)
 		love.graphics.rectangle("line", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
-	else
+	elseif look.border ~= false then
+		-- A piece is not a card and should not be drawn inside one. The same
+		-- reasoning as `cell_outline` on the board it stands on: the rectangle
+		-- is chrome, and a chess knight in a rounded box reads as a card with a
+		-- knight on it. Selection and eligibility above still draw, because
+		-- those are the affordance rather than the frame.
 		love.graphics.setColor(unpack(C.card_border))
 		love.graphics.setLineWidth(S)
 		love.graphics.rectangle("line", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
@@ -739,7 +744,7 @@ end
 -- Colours are the same words a card's art uses — a palette name or "#rrggbb" —
 -- so there is one colour vocabulary rather than two.
 local function draw_grid_squares(zone_e)
-	local c = zone_e.style.checker
+	local c = zone_e.style.checkered
 	if not (c and zone_e.slots and zone_e.grid) then return end
 	local a, b = art.colour(c[1]), art.colour(c[2])
 	if not (a and b) then return end

@@ -1057,9 +1057,10 @@ A style carries everything about how a thing *looks*, for cards and zones alike:
 |---|---|---|
 | `color` | cards | `[r, g, b]` for the plate behind the art, or **`false`** for no plate at all, so a transparent PNG shows the board through it |
 | `title` | cards | `false` draws none, giving the whole card to the picture |
+| `border` | cards | `false` draws no frame. A chess piece is not a card and should not be drawn inside one — selection and eligibility outlines still draw, because those are the affordance rather than the frame |
 | `fit` | grid zones | `card` (default) keeps card proportions in a cell; `fill` stretches to the whole cell, for board tiles |
 | `ratio` | zones | the shape it keeps whatever the window is — width over height, or `"grid"` to read it from the cell count |
-| `checker` | grid zones | two colours alternated across the squares |
+| `checkered` | grid zones | two colours alternated across the squares |
 | `paint` | grid zones | `{ "<absolute pattern>": colour-or-filename }` — terrain, goal rows, home rows |
 | `cell_outline` | grid zones | `false` draws no outline on empty cells. Eligible squares still light up during a move |
 
@@ -1069,7 +1070,7 @@ one word:
 ```json
 "styles": {
   "chessboard": { "fit": "fill", "ratio": "grid",
-                  "checker": ["#f0d9b5", "#b58863"], "cell_outline": false },
+                  "checkered": ["#f0d9b5", "#b58863"], "cell_outline": false },
   "piece":      { "title": false, "color": false }
 },
 "zones": [{ "key": "board", "type": "grid", "grid": [8, 8], "tags": ["activate", "chessboard"] }]

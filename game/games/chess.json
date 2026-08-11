@@ -38,8 +38,13 @@
   },
   "players": [{ "card": "player_white", "owns": "white" }, { "card": "player_black", "owns": "black" }],
   "styles": {
-    "piece": { "title": false, "color": false },
-    "chessboard": { "fit": "fill", "ratio": "grid", "checker": ["#f0d9b5", "#b58863"], "cell_outline": false }
+    "piece": { "title": false, "color": false, "border": false },
+    "chessboard": {
+      "fit": "fill",
+      "ratio": "grid",
+      "checkered": ["#f0d9b5", "#b58863"],
+      "cell_outline": false
+    }
   },
   "patterns": {
     "line_ortho": { "vectors": [[1, 0], [0, 1]], "class": ["ray", "mirrored"] },

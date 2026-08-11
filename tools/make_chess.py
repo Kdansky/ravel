@@ -239,9 +239,10 @@ def build():
             {"card": "player_black", "owns": "black"},
         ],
         "styles": {
-            "piece": {"title": False, "color": False},
+            # A piece is not a card: no title, no plate, and no frame drawn round it.
+            "piece": {"title": False, "color": False, "border": False},
             "chessboard": {"fit": "fill", "ratio": "grid",
-                           "checker": ["#f0d9b5", "#b58863"], "cell_outline": False},
+                           "checkered": ["#f0d9b5", "#b58863"], "cell_outline": False},
         },
         "patterns": patterns,
         "zones": [
