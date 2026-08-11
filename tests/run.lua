@@ -1045,67 +1045,30 @@ check("a stack-overflow JSON payload recovers to the menu, not a crash",
 -- Parse-level messages need real files: entries with no key, duplicate
 -- zone/phase keys, and a section written as an object instead of a list.
 local kp = with_fixture([[{
-  "cards": [
-    {
-      "text": "No Key"
-    }
-  ],
+  "cards": [{ "text": "No Key" }, { "key": "twice", "text": "One" }, { "key": "twice", "text": "Two" }],
   "zones": [
-    {
-      "type": "hand",
-      "pos": [
-        0,
-        0,
-        1,
-        1
-      ]
-    },
-    {
-      "key": "dup",
-      "type": "hand",
-      "pos": [
-        0,
-        0,
-        1,
-        1
-      ]
-    },
-    {
-      "key": "dup",
-      "type": "hand",
-      "pos": [
-        0,
-        0,
-        1,
-        1
-      ]
-    }
+    { "type": "hand", "pos": [0, 0, 1, 1] },
+    { "key": "dup", "type": "hand", "pos": [0, 0, 1, 1] },
+    { "key": "dup", "type": "hand", "pos": [0, 0, 1, 1] }
   ],
-  "stats": [
-    {
-      "label": "No Key"
-    }
-  ],
+  "stats": [{ "label": "No Key" }, { "key": "same" }, { "key": "same" }],
   "phases": [
-    {
-      "type": "automatic"
-    },
-    {
-      "key": "p",
-      "type": "player_input"
-    },
-    {
-      "key": "p",
-      "type": "player_input"
-    }
+    { "type": "automatic" },
+    { "key": "p", "type": "player_input" },
+    { "key": "p", "type": "player_input" }
   ]
 }]])
 check("entries without keys are reported for every kind",
 	has_problem(kp, "a card has no") and has_problem(kp, "a zone has no")
 	and has_problem(kp, "a stat has no") and has_problem(kp, "a phase has no"))
-check("duplicate zone and phase keys are conflicts",
+-- Within a domain a key names one thing, and the four domains that carry keys
+-- all say so. Across domains a repeat is legal and sometimes load-bearing —
+-- what may not repeat is a name a *scope* resolves, checked separately.
+check("a duplicate key is a conflict in every kind that has keys",
 	has_problem(kp, "two zones share the key 'dup'")
-	and has_problem(kp, "two phases share the key 'p'"))
+	and has_problem(kp, "two phases share the key 'p'")
+	and has_problem(kp, "two cards share the key 'twice'")
+	and has_problem(kp, "two stats share the key 'same'"))
 
 local sp = with_fixture('{ "cards": { "key": "x" } }')
 check("a section that isn't a list is explained",

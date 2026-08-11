@@ -229,14 +229,31 @@ function M.check(G)
 	-- have to guess. Caught here, at authoring time, rather than resolved by a
 	-- precedence rule nobody would remember. RESERVED_SCOPES are the names the
 	-- engine answers for itself, so content may not claim them either.
-	local conflicts = {}
-	for name in pairs(known_tags) do
-		if G.zone_defs[name] then conflicts[#conflicts + 1] = name end
+	-- One namespace, and only one: the words a *scope* resolves. `@board` is
+	-- asked of patterns first, then zones, then tags (predicate.lua:145), so two
+	-- kinds sharing a name means a condition silently picks one.
+	--
+	-- Names outside this set are free to repeat, and two of those repetitions are
+	-- load-bearing. A card key doubling as a tag is how a chess piece is named by
+	-- another piece's condition. And a style sharing its name with a computed tag
+	-- is what makes a look follow the numbers — both are tag words, so they are
+	-- one kind here and never in conflict.
+	local scope_kind, conflicts = {}, {}
+	local function claim(name, kind)
+		local had = scope_kind[name]
+		if had and had ~= kind then
+			conflicts[#conflicts + 1] = { name = name, a = had, b = kind }
+		end
+		scope_kind[name] = had or kind
 	end
-	table.sort(conflicts)
-	for _, name in ipairs(conflicts) do
-		warn("'%s' is the name of both a zone and a tag — a condition pointing at it "
-			.. "could mean either, so rename one of them", name)
+	for name in pairs(G.zone_defs) do claim(name, "zone") end
+	for name in pairs(G.pattern_defs or {}) do claim(name, "pattern") end
+	for name in pairs(known_tags) do claim(name, "tag") end
+	for name in pairs(G.style_defs or {}) do claim(name, "tag") end
+	table.sort(conflicts, function(x, y) return x.name < y.name end)
+	for _, c in ipairs(conflicts) do
+		warn("'%s' is the name of both a %s and a %s — a condition pointing at it "
+			.. "could mean either, so rename one of them", c.name, c.a, c.b)
 	end
 
 	-- Walk the two reserved names, not every tag and zone: deterministic order
@@ -703,12 +720,6 @@ function M.check(G)
 					warn("%s: what '%s' is painted with should be a colour or a filename", where, tostring(name))
 				end
 			end
-		end
-		-- One name, one thing: a style shares the namespace tags and zones do.
-		if G.zone_defs[name] then
-			warn("%s: is also a zone key, and a name may mean only one thing", where)
-		elseif G.card_defs[name] then
-			warn("%s: is also a card key, and a name may mean only one thing", where)
 		end
 	end
 	for key, def in pairs(G.card_defs) do

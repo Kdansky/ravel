@@ -1,6 +1,9 @@
 # 13 — One name, one thing
 
-**Status:** not started · **Size:** small check, one real redesign in front of it
+**Status:** **shipped**, and narrower than proposed — see *The rule, as built*.
+
+**Size:** it turned out to be one loop, because the redesign in front of it
+(ownership) had already shipped for its own reasons.
 
 > *We can absolutely have duplicate keys during the game because a card exists
 > twice. What I do not want is that a game.json file has overlapping keys. The
@@ -15,7 +18,35 @@ names in a game file.
 
 ---
 
-## The rule
+## The rule, as built
+
+The original proposal — *every declared name unique across every kind* — was
+softened, and rightly:
+
+> *They have to be unique within their domain: we cannot have two cards defined
+> with the same key. We can however share tags between dynamic tags and styles,
+> so that colour can change dynamically. That's kinda clever. I just want to
+> prevent collisions and confusion.*
+
+So there are two rules, not one:
+
+1. **Within a kind, a key names one thing.** Two cards, zones, stats or phases
+   sharing a key is a conflict, reported by name. This was already true and is
+   now tested for all four.
+2. **Across kinds, only what a *scope* resolves must be unambiguous** —
+   patterns, zones and tags, asked in that order by `predicate.lua:145`. Styles
+   are tag words, since that is where they are named.
+
+Everything else may repeat, and two repetitions are load-bearing rather than
+tolerated: a chess piece is a card key *and* a tag so another piece's condition
+can name it, and **a style sharing a computed tag's name is what makes a look
+follow the numbers**. A rule that forbade those would have cost the engine two
+of its better mechanisms to prevent a confusion nobody had.
+
+What the pass actually found: **patterns were never checked at all**, and they
+are resolved *first* — a pattern named `board` would silently beat the zone.
+
+## The rule as first proposed
 
 Every name a game file declares — a card key, a zone key, a phase key, a stat
 key, a tag, a style, a pattern, an asset, an effect — is unique across all of

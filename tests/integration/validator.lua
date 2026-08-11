@@ -265,8 +265,12 @@ local CASES = {
 			g.pattern_defs.hop = { vectors = { { 1, 0 } }, range = 1 }
 			g.style_defs = { tiled = { paint = { hop = "gold" } } }
 		end },
-	{ "a style named after a zone", "a name may mean only one thing",
+	{ "a style named after a zone", "both a zone and a tag",
 		function(g) g.style_defs = { board = { color = { 1, 0, 0 } } } end },
+	{ "a pattern named after a zone", "both a zone and a pattern",
+		function(g) g.pattern_defs.board = { vectors = { { 1, 0 } }, range = 1 } end },
+	{ "a pattern named after a tag", "both a pattern and a tag",
+		function(g) g.pattern_defs.keepsake = { vectors = { { 1, 0 } }, range = 1 } end },
 	{ "a tag and a zone sharing a name", "both a zone and a tag",
 		function(g) g.tag_defs.board = { zone = "board" } end },
 	{ "a tag claiming a reserved scope name", "reserves for conditions",

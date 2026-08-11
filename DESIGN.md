@@ -102,6 +102,14 @@ The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>
 
 ---
 
+## One Name, One Thing — Where It Matters
+
+**A key is unique inside its own kind**: no two cards, zones, stats or phases share one. **Across kinds a repeat is legal**, and two are load-bearing — a chess piece is a card key *and* a tag so another piece's condition can name it, and a style sharing a computed tag's name is what makes a look follow the numbers.
+
+**The one namespace that must stay unambiguous is what a scope resolves**: patterns, then zones, then tags (`predicate.lua` asks in that order). Two of those kinds sharing a name means a condition silently picks one, so the validator refuses it rather than inventing a precedence rule. Styles are tag words for this purpose, being named in the same list.
+
+---
+
 ## Zone Contents
 
 A zone declares its starting cards in its own definition, as `"card_key"` or `"card_key:count"` strings:

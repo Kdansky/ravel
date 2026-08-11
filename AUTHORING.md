@@ -1058,12 +1058,32 @@ A game can give tags meaning of their own — types, essentially:
 "tags": { "item": { "zone": "inventory" }, "unit": { "zone": "battlefield" } }
 ```
 
-**Zones and tags share one namespace.** A condition that points at a name
-means either the zone or the cards carrying that tag, so the two may never
-collide — the validator refuses a file where they do, rather than picking a
-winner by a precedence rule you would have to remember. `self` and `all` are
-reserved for the engine. (`player` is not reserved: it is an ordinary tag you
-put on one card, which is exactly what makes that card easy to find.)
+### What a name may repeat
+
+**A key names one thing inside its own kind.** Two cards may not share a key,
+and nor may two zones, two stats or two phases — the validator says so by name.
+
+**Across kinds, a repeat is usually fine and sometimes the point.** A chess
+piece is a card keyed `w_rook_h` *and* a tag of the same name, which is how one
+piece is named by another's condition. A style sharing its name with a computed
+tag is what makes a look follow the numbers. Neither is a mistake.
+
+**One namespace is real, and it is what a *scope* resolves.** `@board` is asked
+of patterns first, then zones, then tags, so two of those kinds sharing a name
+means a condition silently picks one. The validator refuses that rather than
+inventing a precedence rule you would have to remember:
+
+```
+'board' is the name of both a zone and a pattern — a condition pointing at it
+could mean either, so rename one of them
+```
+
+Styles count as tag words here, since that is where they are named — so a style
+may not be called after a zone, and *may* be called after a computed tag.
+
+`self` and `all` are reserved for the engine. (`player` is not reserved: it is
+an ordinary tag you put on one card, which is exactly what makes that card easy
+to find.)
 
 A tag's `zone` is the home of every card carrying it, and placement then
 works by type instead of by naming zones in every action:
