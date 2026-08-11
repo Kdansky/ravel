@@ -40,7 +40,6 @@ copies it, so a dump can go straight back into the game file.
 {
   "title": "My Game",
   "stats": [{ "key": "hp", "label": "Health", "min": 0, "max": 10 }],
-  "setup": { "player": { "hp": 5 } },
   "zones": [
     {
       "key": "deck",
@@ -51,6 +50,7 @@ copies it, so a dump can go straight back into the game file.
     },
     { "key": "hand", "type": "hand", "pos": [0.19, 0.65, 0.95, 0.98] }
   ],
+  "players": [{ "stats": { "hp": 5 } }],
   "cards": [
     {
       "key": "sword",
@@ -70,13 +70,13 @@ copies it, so a dump can go straight back into the game file.
     { "key": "playing", "type": "player_input", "label": "Playing" }
   ],
   "end_conditions": [{ "stat": "hp", "equals": 0, "then": ["load_game:menu.json"] }]
-}
-```
+}```
 
 The recipe, in order:
 
 1. **Stats** — the numbers of your game. Declared stats show in the HUD (add
-   `"hidden": true` to keep one internal). Starting values go in `setup.player`.
+   `"hidden": true` to keep one internal). Starting values go in the seat's
+   `stats` under `players`.
 2. **Zones** — where cards live. `pos` is window fractions `[x1, y1, x2, y2]`;
    positions off-screen (negative y) make cards fly in from outside. Decks own
    their starting cards via `contents`.
@@ -407,7 +407,8 @@ file to check what may appear where.
 | `zones` | Zone definitions, in declaration order |
 | `phases` | Phase definitions; first entry starts the game |
 | `end_conditions` | Outcome checks, first match wins, once per game |
-| `setup` | How the game begins: `player` is the starting stats of the injected player card, and `place` lays out whatever starts on the table (see *Setup*) |
+| `players` | Who is playing, in seat order (see *Players*) |
+| `setup` | How the game begins: `place` lays out whatever starts on the table (see *Setup*) |
 | `placeholder_art` | `true` gives every card without an `asset` generated art from its key |
 
 ### Stats
@@ -451,6 +452,40 @@ buttons rather than hands).
 Cards entering a grid without slot targeting auto-occupy the first free slot.
 A full board refuses new arrivals: moves fail quietly and `fill`/`gain` stop
 early (the validator warns when starting `contents` already exceed capacity).
+
+### Players
+
+**Who is playing is declared, not inferred.** One entry per seat, in seat order:
+
+```json
+"players": [
+  { "card": "player_white", "owns": "white" },
+  { "card": "player_black", "owns": "black" }
+]
+```
+
+| Field | Meaning |
+|---|---|
+| `card` | the key of the card that **is** this seat. Leave it out and the engine injects an invisible stat bag, which is what a solitaire game has always had |
+| `stats` | starting numbers for an injected seat. A seat that names a card takes its numbers from that card's `card_stats` instead |
+| `text` | an injected seat's name. Defaults to "You" |
+| `owns` | the tag marking this seat's pieces on a board shared with the others — a chessboard is one zone, so ownership cannot come from the zone |
+
+**A seat is still a card**, which is the point: it has stats, it can be looked
+at, targeted, damaged and destroyed, and castle's throne room is a building on
+the board that happens to be the player. Saying nothing at all gives you one
+injected seat, so a game that never thinks about players never writes the
+section.
+
+The engine stamps the `player` tag onto each seat, so `@mine.player` and every
+other scope keeps working. Writing that tag by hand no longer makes a seat, and
+the validator says so — it would be a card every `@player` condition reached
+that the engine did not consider a player.
+
+**Whether a game can be played with somebody else is now a fact you can read**:
+two entries means two seats. It does not, by itself, offer an invite — that is
+still a card's decision (see *Playing over a network*), because whether a game
+*wants* to be shared is content's business and not the engine's.
 
 ### Setup
 
@@ -708,7 +743,7 @@ things rather than spend them, so they belong in `needs`, not `cost`.
 
 ### The player is a card
 
-There is no player object. `setup.player` becomes an invisible card tagged
+There is no player object. A seat that names no card becomes an invisible one tagged
 `player`, and a subject with no scope means that card — so `"cost": { "gold": 2 }`
 and `{ "stat": "gold", "at_least": 5 }` are guaranteed to be talking about the
 same coins. Nothing else changes for a game that never thinks about it.
@@ -1252,8 +1287,17 @@ bad shapes, broken references and conflicts, with did-you-mean suggestions.
 Any game with two seats is already playable between two people on different
 machines, and no game file needs a single line changed for it. What the engine
 transfers is the whole game state — so what a game has to do to be networkable
-is exactly what it had to do to be hot-seatable: tag two cards `player`, and
-give the turn-taking phases `"seat": "next"`.
+is exactly what it had to do to be hot-seatable: **list two seats under
+`players`**, and give the turn-taking phases `"seat": "next"`.
+
+**Whether an invite is *offered* is still a card's decision, deliberately.** The
+engine never counts seats and decides for you: a game that wants to be shared
+deals a card whose action is `net_invite`, and a solitaire game deals none. That
+keeps a question about content — *should this game be played with somebody?* —
+out of the interface, where it was once a branch in a panel. What `players`
+changes is that the *fact* is now readable: two entries means two seats, so a
+menu can say so and the validator can warn when a game offers an invite it has
+no second chair for.
 
 Three ways to connect, all of them without a server:
 
@@ -1327,7 +1371,7 @@ hand.
 
 **The engine injects two cards**, into a hidden zone it also owns. A `system`
 card carries `round` and `turn` — the round belongs to the game, so two seats
-cannot get two calendars. A `player` card carries `setup.player`'s stats, and is
+cannot get two calendars. A `player` card carries its seat's `stats`, and is
 injected only when a game declares no card tagged `player` of its own. The
 `system` card sitting in the `system` zone and the `player` card carrying the
 `player` tag are both fine: neither name is one a scope resolves, and a game

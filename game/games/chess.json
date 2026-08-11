@@ -36,6 +36,7 @@
       { "card": "b_pawn_h", "zone": "board", "slot": 16 }
     ]
   },
+  "players": [{ "card": "player_white", "owns": "white" }, { "card": "player_black", "owns": "black" }],
   "styles": {
     "piece": { "title": false, "color": false },
     "chessboard": { "fit": "fill", "ratio": "grid", "checker": ["#f0d9b5", "#b58863"], "cell_outline": false }
@@ -97,8 +98,8 @@
     { "stat": "card:b_king_e", "equals": 0, "then": ["load_game:menu.json"] }
   ],
   "cards": [
-    { "key": "player_white", "text": "White", "tags": ["player"], "owns": "white" },
-    { "key": "player_black", "text": "Black", "tags": ["player"], "owns": "black" },
+    { "key": "player_white", "text": "White" },
+    { "key": "player_black", "text": "Black" },
     {
       "key": "how_to_play",
       "text": "How to play",

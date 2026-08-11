@@ -11,17 +11,6 @@
     { "key": "mana", "label": "Mana", "min": 0 },
     { "key": "destination", "hidden": true }
   ],
-  "setup": {
-    "player": {
-      "stability": 10,
-      "gold": 4,
-      "food": 2,
-      "might": 0,
-      "mana": 0,
-      "progress": 0,
-      "destination": 1
-    }
-  },
   "effects": {
     "blessing": { "base": "sparkle" },
     "drill_rally": { "base": "stars", "color": [0.75, 0.82, 0.95] },
@@ -35,6 +24,19 @@
     "indigo": { "color": [0.14, 0.12, 0.19] },
     "tiled": { "fit": "fill" }
   },
+  "players": [
+    {
+      "stats": {
+        "stability": 10,
+        "gold": 4,
+        "food": 2,
+        "might": 0,
+        "mana": 0,
+        "progress": 0,
+        "destination": 1
+      }
+    }
+  ],
   "cards": [
     {
       "key": "merchant_prince",

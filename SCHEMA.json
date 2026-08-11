@@ -3,6 +3,16 @@
   "title": "string shown in the HUD. Defaults to Ravel.",
   "seed": "number fixing the RNG so shuffles and every random choice replay identically. Omit for a different game each run.",
   "placeholder_art": "true gives every card with no asset a generated picture derived from its key, so a new file has visual differentiation from the first save.",
+  "players": [
+    {
+      "card": "the key of the card that is this seat — a seat is a card, so it has stats, can be looked at, targeted and destroyed. Leave it out and the engine injects an invisible stat bag, which is what a solitaire game has.",
+      "stats": {
+        "<stat key>": "number the injected seat starts with. Only for a seat the engine makes; one that names a card takes its numbers from that card's card_stats."
+      },
+      "text": "the injected seat's name, shown where a card's title would be. Defaults to You.",
+      "owns": "the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone."
+    }
+  ],
   "stats": [
     {
       "key": "name cards spend and conditions read. round and plays are reserved: the engine manages them, declare them only to show them.",

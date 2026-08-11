@@ -6,7 +6,6 @@
     { "key": "supplies", "label": "Supplies", "min": 0 },
     { "key": "distance", "label": "Miles", "min": 0 }
   ],
-  "setup": { "player": { "morale": 8, "supplies": 4, "distance": 0 } },
   "tags": { "unit": { "zone": "battlefield" }, "item": { "zone": "inventory" } },
   "computed_tags": { "slain": { "stat": "hp", "equals": "0" } },
   "effects": {
@@ -81,6 +80,7 @@
     "rust": { "color": [0.16, 0.12, 0.12] },
     "slate": { "color": [0.13, 0.13, 0.16] }
   },
+  "players": [{ "stats": { "morale": 8, "supplies": 4, "distance": 0 } }],
   "cards": [
     {
       "key": "p_depart",

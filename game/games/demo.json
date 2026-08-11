@@ -59,6 +59,7 @@
       "tags": ["hidden"]
     }
   ],
+  "players": [{ "stats": { "hp": 5 } }],
   "cards": [
     {
       "key": "shelter",
@@ -180,6 +181,5 @@
     { "stat": "hp", "equals": 0, "then": ["push_phase:defeat"] },
     { "zone_empty": ["road", "hand"], "then": ["push_phase:victory"] }
   ],
-  "setup": { "player": { "hp": 5 } },
   "tags": { "path_choice_pick": { "play": { "action": ["add_to:hand", "return_to:offer:paths"] } } }
 }

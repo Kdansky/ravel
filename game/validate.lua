@@ -1247,7 +1247,7 @@ function M.check(G)
 
 	-- Setup.
 	if G.setup then
-		check_fields("setup", G.setup, { player = true, place = true })
+		check_fields("setup", G.setup, { place = true })
 		-- Setup arranges the box: every entry names a card, and may say which
 		-- zone and which cell. A slot outside the grid is silently ignored at
 		-- init, which reads as a piece that simply is not there.
@@ -1274,10 +1274,60 @@ function M.check(G)
 				end
 			end
 		end
-		for k, v in pairs(type(G.setup.player) == "table" and G.setup.player or {}) do
-			if type(v) ~= "number" then
-				warn("setup: the starting value of '%s' should be a number", tostring(k))
+	end
+
+	-- Who is playing. A seat is still a card; this says which cards those are,
+	-- in seat order, so "is this a two-player game" is read rather than scanned.
+	for i, e in ipairs(type(G.players) == "table" and G.players or {}) do
+		local where = ("player %d"):format(i)
+		if type(e) ~= "table" then
+			warn('%s: should be an object, like { "card": "north" }', where)
+		else
+			check_fields(where, e, { card = true, stats = true, text = true, owns = true })
+			if e.card ~= nil and type(e.card) ~= "string" then
+				warn("%s: its \"card\" should be the key of a card", where)
 			end
+			for k, v in pairs(type(e.stats) == "table" and e.stats or {}) do
+				if type(v) ~= "number" then
+					warn("%s: the starting value of '%s' should be a number", where, tostring(k))
+				end
+			end
+			if e.owns ~= nil and not known_tags[e.owns] then
+				warn("%s: owns '%s', but no card carries that tag%s", where, tostring(e.owns),
+					suggest(e.owns, known_tags))
+			end
+		end
+	end
+	-- Checked against the normalised list too, not only the raw section: the
+	-- parse drops an entry naming nothing so the walk below never has to defend
+	-- itself, and a check that only read the raw form would miss what the engine
+	-- actually ended up with.
+	for i, seat in ipairs(G.player_list or {}) do
+		if not G.card_defs[seat.card] then
+			warn("player %d: names the card '%s', but no card has that key%s", i,
+				tostring(seat.card), suggest(seat.card, G.card_defs))
+		end
+	end
+
+	-- Offering an invite is content's decision, not the engine's — but a game
+	-- with one chair offering one is a mistake nothing else would catch, since
+	-- the action is a silent no-op without a second seat to hand over to.
+	if #(G.player_list or {}) < 2 then
+		for key, def in pairs(G.card_defs) do
+			for _, act in ipairs(type(def.on_play) == "table" and def.on_play or {}) do
+				if tostring(act):match("^net_invite") then
+					warn("card '%s': offers an invite, but this game declares one seat — "
+						.. 'add a second entry to "players" or drop the invite', key)
+				end
+			end
+		end
+	end
+
+	-- The tag is stamped onto a seat, so one written by hand names a card the
+	-- engine does not consider a player — and every "@mine.player" would reach it.
+	for key, def in pairs(G.card_defs) do
+		if def.tags_set and def.tags_set.player and not G.seat_set[key] then
+			warn("card '%s': is tagged \"player\" but is not one — list it under \"players\" to make it a seat, or drop the tag", key)
 		end
 	end
 

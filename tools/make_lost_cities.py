@@ -67,7 +67,7 @@ def templates():
     out = []
     # The two seats. Each holds its own score; nothing else distinguishes them.
     for key, text in (("north", "North"), ("south", "South")):
-        out.append({"key": key, "text": text, "tags": ["player", key + "_side"],
+        out.append({"key": key, "text": text, "tags": [key + "_side"],
                     "card_stats": {"score": 0, "tallied": 0}})
 
     # There are no destination markers. Playing a card points at a *place* — the
@@ -292,6 +292,8 @@ def build():
     z = zones()
     return {
         "title": "Lost Cities",
+        # Two seats, facing each other across the table.
+        "players": [{"card": "north"}, {"card": "south"}],
         "styles": STYLES,
         "seed": 11,
         # No "round": the turn loop is a routing cycle and nothing declares

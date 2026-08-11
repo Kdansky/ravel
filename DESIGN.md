@@ -20,9 +20,11 @@ card.zone = some_zone_table
 
 Snapshotting state = copying the array. Undo = push snapshot before each action, pop to revert. No graph traversal, no pointer invalidation. Cross-references in JSON are resolved to IDs at load time by `declaration.lua`.
 
+**Who is playing is declared, in a `players` section, one entry per seat in seat order.** It used to be inferred — any card carrying the `player` tag was a seat — which meant "is this a two-player game" was a scan, and a game that wanted an invite card had to know its own seat count without ever stating it. The engine now stamps that tag onto the cards `players` names, so every `@mine.player` scope is unchanged and the word still means what it did.
+
 **A seat is a card too.** Several cards tagged `player` are several seats, named by their own keys; a zone declaring `per_seat` is instanced once per seat, and a card's owner is the seat of the zone it sits in — so ownership needs no per-card controller field and no new state to snapshot. An unqualified zone key means the active seat's copy, because a destination must resolve to exactly one zone even though a *set* may be wide. Whose turn it is is a `turn` stat on the system card, advanced by phases declaring `"seat": "next"`.
 
-**There are three entity kinds — `zone`, `slot`, `card` — and the player is a card.** A player has stats, can be looked at, targeted, damaged and destroyed; every one of those already works for cards, and a fourth kind meant re-implementing all of it. When a game declares no template tagged `player`, the engine injects one from `setup.player` into a hidden `system` zone, alongside a second injected card holding `round` (which belongs to the game, not to a seat). A game that wants a visible hero simply tags a board card `player`. This is *when in doubt, decks and cards* applied to the one thing in the engine that wasn't.
+**There are three entity kinds — `zone`, `slot`, `card` — and the player is a card.** A player has stats, can be looked at, targeted, damaged and destroyed; every one of those already works for cards, and a fourth kind meant re-implementing all of it. When a game names no card for a seat, the engine injects one from that seat's `stats` into a hidden `system` zone, alongside a second injected card holding `round` (which belongs to the game, not to a seat). A game that wants a visible hero simply lists that board card under `players`. This is *when in doubt, decks and cards* applied to the one thing in the engine that wasn't.
 
 ---
 

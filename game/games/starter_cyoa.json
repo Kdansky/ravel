@@ -1,7 +1,6 @@
 {
   "title": "TODO: Your Story",
   "stats": [{ "key": "hp", "label": "Health", "min": 0, "max": 10 }],
-  "setup": { "player": { "hp": 6 } },
   "tags": { "keepsake": { "zone": "board" } },
   "zones": [
     {
@@ -19,6 +18,7 @@
       "contents": ["p_good_luck", "p_bad_luck"]
     }
   ],
+  "players": [{ "stats": { "hp": 6 } }],
   "cards": [
     {
       "key": "p_start",

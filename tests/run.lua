@@ -1325,29 +1325,30 @@ play_fixture([[{
       { "card": "mage", "zone": "party" }
     ]
   },
+  "players": [{ "card": "ranger" }, { "card": "cleric" }, { "card": "dwarf" }, { "card": "mage" }],
   "cards": [
     {
       "key": "ranger",
       "text": "Ranger",
-      "tags": ["player", "ranger"],
+      "tags": ["ranger"],
       "card_stats": { "hp": 6, "might": 3 }
     },
     {
       "key": "cleric",
       "text": "Cleric",
-      "tags": ["player", "cleric"],
+      "tags": ["cleric"],
       "card_stats": { "hp": 5, "might": 2 }
     },
     {
       "key": "dwarf",
       "text": "Dwarf",
-      "tags": ["player", "dwarf"],
+      "tags": ["dwarf"],
       "card_stats": { "hp": 8, "might": 4 }
     },
     {
       "key": "mage",
       "text": "Mage",
-      "tags": ["player", "mage"],
+      "tags": ["mage"],
       "card_stats": { "hp": 4, "might": 1, "mana": 3 },
       "activate": { "cost": { "mana@self": 1 }, "action": ["gain_stat:might@self:1"] }
     }
@@ -1385,148 +1386,40 @@ check("a character who dies takes her might with her",
 -- the three is meaningful, which is the test that it belongs beside them.
 play_fixture([==[{
   "title": "The Duel",
-  "stats": [
-    {
-      "key": "gold",
-      "label": "Gold"
-    }
-  ],
+  "stats": [{ "key": "gold", "label": "Gold" }],
   "zones": [
     {
       "key": "arena",
       "type": "grid",
-      "grid": [
-        3,
-        1
-      ],
+      "grid": [3, 1],
       "per_seat": true,
-      "pos": [
-        [
-          0.02,
-          0.05,
-          0.6,
-          0.3
-        ],
-        [
-          0.02,
-          0.32,
-          0.6,
-          0.57
-        ]
-      ]
+      "pos": [[0.02, 0.05, 0.6, 0.3], [0.02, 0.32, 0.6, 0.57]]
     },
     {
       "key": "hand",
       "type": "hand",
       "per_seat": true,
-      "pos": [
-        [
-          0.19,
-          0.62,
-          0.97,
-          0.78
-        ],
-        [
-          0.19,
-          0.8,
-          0.97,
-          0.97
-        ]
-      ]
+      "pos": [[0.19, 0.62, 0.97, 0.78], [0.19, 0.8, 0.97, 0.97]]
     },
-    {
-      "key": "commons",
-      "type": "grid",
-      "pos": [
-        0.62,
-        0.05,
-        0.98,
-        0.3
-      ],
-      "grid": [
-        2,
-        1
-      ]
-    }
+    { "key": "commons", "type": "grid", "pos": [0.62, 0.05, 0.98, 0.3], "grid": [2, 1] }
   ],
   "phases": [
-    {
-      "key": "north_turn",
-      "type": "player_input",
-      "label": "North",
-      "seat": "next"
-    },
-    {
-      "key": "south_turn",
-      "type": "player_input",
-      "label": "South",
-      "seat": "next"
-    }
+    { "key": "north_turn", "type": "player_input", "label": "North", "seat": "next" },
+    { "key": "south_turn", "type": "player_input", "label": "South", "seat": "next" }
   ],
+  "players": [{ "card": "north" }, { "card": "south" }],
   "cards": [
-    {
-      "key": "north",
-      "text": "North",
-      "tags": [
-        "player",
-        "north_side"
-      ],
-      "card_stats": {
-        "gold": 5
-      }
-    },
-    {
-      "key": "south",
-      "text": "South",
-      "tags": [
-        "player",
-        "south_side"
-      ],
-      "card_stats": {
-        "gold": 2
-      }
-    },
-    {
-      "key": "wolf",
-      "text": "Wolf",
-      "tags": [
-        "creature"
-      ],
-      "card_stats": {
-        "hp": 3
-      }
-    },
-    {
-      "key": "statue",
-      "text": "Statue",
-      "tags": [
-        "creature"
-      ],
-      "card_stats": {
-        "hp": 9
-      }
-    },
+    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "gold": 5 } },
+    { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "gold": 2 } },
+    { "key": "wolf", "text": "Wolf", "tags": ["creature"], "card_stats": { "hp": 3 } },
+    { "key": "statue", "text": "Statue", "tags": ["creature"], "card_stats": { "hp": 9 } },
     {
       "key": "banner",
       "text": "Banner",
-      "tags": [
-        "gear"
-      ],
+      "tags": ["gear"],
       "play": {
-        "target": {
-          "type": "card",
-          "tags": [
-            "creature"
-          ],
-          "count": 1,
-          "zones": [
-            "arena",
-            "commons"
-          ]
-        },
-        "action": [
-          "move_to:target"
-        ]
+        "target": { "type": "card", "tags": ["creature"], "count": 1, "zones": ["arena", "commons"] },
+        "action": ["move_to:target"]
       }
     }
   ]
@@ -1647,9 +1540,10 @@ play_fixture([==[{
       { "card": "b_pawn", "zone": "board" }
     ]
   },
+  "players": [{ "card": "player_white", "owns": "white" }, { "card": "player_black", "owns": "black" }],
   "cards": [
-    { "key": "player_white", "text": "White", "tags": ["player"], "owns": "white" },
-    { "key": "player_black", "text": "Black", "tags": ["player"], "owns": "black" },
+    { "key": "player_white", "text": "White" },
+    { "key": "player_black", "text": "Black" },
     {
       "key": "w_rook",
       "text": "White Rook",
@@ -1752,138 +1646,46 @@ play_fixture([==[{
     {
       "key": "system",
       "type": "grid",
-      "grid": [
-        2,
-        1
-      ],
+      "grid": [2, 1],
       "per_seat": true,
-      "tags": [
-        "activate"
-      ],
+      "tags": ["activate"],
       "pos": [
-        [
-          0.02,
-          0.05,
-          0.3,
-          0.3
-        ],
-        [
-          0.32,
-          0.05,
-          0.6,
-          0.3
-        ],
-        [
-          0.02,
-          0.32,
-          0.3,
-          0.57
-        ],
-        [
-          0.32,
-          0.32,
-          0.6,
-          0.57
-        ]
+        [0.02, 0.05, 0.3, 0.3],
+        [0.32, 0.05, 0.6, 0.3],
+        [0.02, 0.32, 0.3, 0.57],
+        [0.32, 0.32, 0.6, 0.57]
       ]
     },
-    {
-      "key": "hand",
-      "type": "hand",
-      "pos": [
-        0.19,
-        0.62,
-        0.97,
-        0.97
-      ]
-    }
+    { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
-  "phases": [
-    {
-      "key": "turn",
-      "type": "player_input",
-      "label": "Turn"
-    }
+  "phases": [{ "key": "turn", "type": "player_input", "label": "Turn" }],
+  "players": [
+    { "card": "p1", "owns": "one" },
+    { "card": "p2", "owns": "two" },
+    { "card": "p3", "owns": "three" },
+    { "card": "p4", "owns": "four" }
   ],
   "cards": [
-    {
-      "key": "p1",
-      "text": "Empire One",
-      "tags": [
-        "player"
-      ],
-      "owns": "one"
-    },
-    {
-      "key": "p2",
-      "text": "Empire Two",
-      "tags": [
-        "player"
-      ],
-      "owns": "two"
-    },
-    {
-      "key": "p3",
-      "text": "Empire Three",
-      "tags": [
-        "player"
-      ],
-      "owns": "three"
-    },
-    {
-      "key": "p4",
-      "text": "Empire Four",
-      "tags": [
-        "player"
-      ],
-      "owns": "four"
-    },
-    {
-      "key": "colony",
-      "text": "Colony",
-      "tags": [
-        "three",
-        "planet"
-      ]
-    },
-    {
-      "key": "capital",
-      "text": "Capital",
-      "tags": [
-        "two",
-        "planet"
-      ]
-    },
-    {
-      "key": "outpost",
-      "text": "Outpost",
-      "tags": [
-        "four",
-        "planet"
-      ]
-    },
+    { "key": "p1", "text": "Empire One" },
+    { "key": "p2", "text": "Empire Two" },
+    { "key": "p3", "text": "Empire Three" },
+    { "key": "p4", "text": "Empire Four" },
+    { "key": "colony", "text": "Colony", "tags": ["three", "planet"] },
+    { "key": "capital", "text": "Capital", "tags": ["two", "planet"] },
+    { "key": "outpost", "text": "Outpost", "tags": ["four", "planet"] },
     {
       "key": "cruiser",
       "text": "Cruiser",
-      "tags": [
-        "one",
-        "ship"
-      ],
+      "tags": ["one", "ship"],
       "activate": {
         "target": {
           "type": "card",
-          "zones": [
-            "system"
-          ],
-          "tags": [
-            "planet"
-          ],
+          "zones": ["system"],
+          "tags": ["planet"],
           "owner": "enemy",
           "count": 1
         },
-        "action": [
-          "destroy:target"
-        ]
+        "action": ["destroy:target"]
       }
     }
   ]

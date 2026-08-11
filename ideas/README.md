@@ -71,7 +71,7 @@ unclickable capture, a crash on hovering a castling card — passed the whole
 suite. Items 3, 5 and 6 are all in that layer, which is an argument for doing
 them together rather than by urgency alone.
 
-**The syntax pass is done.** [10](10-schema-document.md) measured it — nine
+**The syntax pass is done**, and `players` and `setup.place` finished it: a card no longer says whether it is a seat or where it starts. [10](10-schema-document.md) measured it — nine
 findings, two of them bugs — and the diagnosis held: **the format had grown
 synonyms**. Those are gone. Two names for the card section became `cards`; three
 names for one gate became `needs`, with the block saying what it gates; the

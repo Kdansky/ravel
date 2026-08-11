@@ -1,7 +1,6 @@
 {
   "title": "The Drowned Tower",
   "stats": [{ "key": "hp", "label": "Health", "min": 0, "max": 8 }],
-  "setup": { "player": { "hp": 6 } },
   "tags": { "keepsake": { "zone": "board" } },
   "effects": { "bell_toll": { "base": "stars", "color": [0.95, 0.85, 0.4], "size": 1.6, "speed": 0.7 } },
   "zones": [
@@ -22,6 +21,7 @@
       "contents": ["p_chest_pearl", "p_chest_mimic"]
     }
   ],
+  "players": [{ "stats": { "hp": 6 } }],
   "cards": [
     {
       "key": "p_shore",

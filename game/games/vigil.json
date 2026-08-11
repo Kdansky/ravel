@@ -15,7 +15,6 @@
     "verb": { "zone": "table" }
   },
   "setup": {
-    "player": { "time": 3, "health": 10, "funds": 4, "insight": 0, "dread": 0, "ritual": 0 },
     "place": [
       { "card": "pass_night", "zone": "table", "slot": 1 },
       { "card": "work", "zone": "table", "slot": 2 },
@@ -27,6 +26,7 @@
       { "card": "the_rite", "zone": "table", "slot": 7 }
     ]
   },
+  "players": [{ "stats": { "time": 3, "health": 10, "funds": 4, "insight": 0, "dread": 0, "ritual": 0 } }],
   "cards": [
     {
       "key": "pass_night",

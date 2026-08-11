@@ -95,7 +95,7 @@ end
 local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true,
 	cards = true, zones = true, phases = true,
-	end_conditions = true, setup = true, tags = true, effects = true,
+	end_conditions = true, setup = true, tags = true, effects = true, players = true,
 	placeholder_art = true, patterns = true, assets = true, styles = true,
 }
 M.KNOWN_SECTIONS = KNOWN_SECTIONS
@@ -236,6 +236,8 @@ function M.parse(filename)
 		-- the box, and this is the setup section that arranges them. Repeats are
 		-- the point — eight pawns are eight entries naming one kind.
 		setup_place    = {},
+		players        = type(parsed.players) == "table" and parsed.players or {},
+		player_list    = {},   -- seats, in declared order: { card = key, owns = tag }
 		tag_defs       = {},       -- tag behaviour, moments flattened like a card's
 		pattern_defs   = {},       -- named direction sets, for movement and neighbourhood
 		asset_defs     = {},       -- named pictures: name -> { src, max }
@@ -417,84 +419,116 @@ function M.parse(filename)
 		end
 	end
 
-	-- The player is a card. A game that wants a visible one tags it (castle's
-	-- throne room) and gets stats, targeting, rendering and undo for free;
-	-- otherwise the engine injects an invisible stat bag from setup.player, so
-	-- games that never think about it change by zero bytes.
-	local has_player = false
-	for _, key in ipairs(G.card_list) do
-		if G.card_defs[key].tags_set.player then has_player = true; break end
+	-- Who is playing, declared rather than inferred. A seat used to be any card
+	-- carrying the "player" tag, which meant the answer to "is this a two-player
+	-- game" was a scan — and a game that wanted an invite card had to know its
+	-- own seat count without ever stating it. The list says it, in seat order.
+	--
+	-- A seat is still a card: it has stats, it can be looked at, targeted,
+	-- damaged and destroyed, and castle's throne room is a building on the board
+	-- that happens to be the player. An entry naming one adopts it; an entry
+	-- naming none gets an invisible stat bag injected, which is what a solitaire
+	-- game has always had without writing it down.
+	local players = type(parsed.players) == "table" and parsed.players or nil
+	if players and #players == 0 then
+		pp[#pp + 1] = 'the "players" section is empty — a game needs at least one seat'
+		players = nil
 	end
-	if not has_player then
-		-- setup.player is untrusted content: coerce to numbers so later stat
-		-- arithmetic can never be handed a string/table and crash.
-		local stats = {}
-		for k, v in pairs(type(G.setup.player) == "table" and G.setup.player or {}) do
-			stats[k] = tonumber(v) or 0
+	-- Saying nothing means one seat, exactly as before this section existed.
+	players = players or { {} }
+	local injected = 0
+	for i, entry in ipairs(players) do
+		if type(entry) ~= "table" then
+			pp[#pp + 1] = 'a "players" entry should be an object, like { "card": "north" }'
+		else
+			local key = entry.card
+			if key == nil or G.card_defs[key] == nil then
+				-- No card of that name, so the engine makes one. Its stats are
+				-- untrusted content: coerce to numbers, or later arithmetic can
+				-- be handed a string and crash.
+				injected = injected + 1
+				key = key or (injected == 1 and "player" or ("player_" .. injected))
+				local stats = {}
+				for k, v in pairs(type(entry.stats) == "table" and entry.stats or {}) do
+					stats[k] = tonumber(v) or 0
+				end
+				-- The engine owns these two, wherever a game tried to put them: a
+				-- second bearer of either would be counted twice and advanced once.
+				stats.plays, stats.round = 0, nil
+				G.card_defs[key] = { key = key, text = entry.text or "You", injected = true,
+					tags = {}, tags_set = {}, style = {},
+					card_stats = stats, auto_play = true, to_zone = "system" }
+				table.insert(G.card_list, i, key)
+			elseif entry.stats ~= nil then
+				pp[#pp + 1] = "player '" .. tostring(key) .. "' names a card, so its starting "
+					.. 'numbers belong in that card\'s "card_stats" rather than in "stats"'
+			end
+			G.player_list[#G.player_list + 1] = { card = key, owns = entry.owns }
 		end
-		-- The engine owns these two, wherever a game tried to put them: a
-		-- second bearer of either would be counted twice and advanced once.
-		stats.plays, stats.round = 0, nil
-		G.card_defs.player = { key = "player", text = "You", injected = true,
-			tags = { "player" }, tags_set = { player = true },
-			card_stats = stats, auto_play = true, to_zone = "system" }
-		table.insert(G.card_list, 1, "player")
+	end
+
+	-- Seats, in declared order. The "player" tag is stamped rather than read:
+	-- twenty-seven conditions across the shipped games scope by @mine.player, so
+	-- the word stays the way you name a seat's cards — it just stops being how
+	-- the engine finds out who the seats are.
+	--
+	-- `owns` names the tag marking a seat's pieces on a board it shares with the
+	-- other players, and belongs to the seat rather than to the card: a chessboard
+	-- is one zone, so ownership cannot come from the zone.
+	G.seat_list, G.seat_set, G.seat_owns = {}, {}, {}
+	for _, seat in ipairs(G.player_list) do
+		local cd = G.card_defs[seat.card]
+		if cd then
+			G.seat_list[#G.seat_list + 1] = seat.card
+			G.seat_set[seat.card] = true
+			G.seat_owns[seat.card] = type(seat.owns) == "string" and seat.owns or nil
+			cd.tags_set = cd.tags_set or {}
+			if not cd.tags_set.player then
+				cd.tags_set.player = true
+				cd.tags = cd.tags or {}
+				cd.tags[#cd.tags + 1] = "player"
+			end
+			-- A seat has to exist before it can act, and one that says nothing
+			-- about where it sits is a stat bag — it goes where the injected one
+			-- goes rather than onto a board it never asked for.
+			if cd.auto_play == nil then cd.auto_play = true end
+			local homed = false
+			for _, tg in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
+				local td = G.tag_defs[tg]
+				if type(td) == "table" and td.zone then homed = true end
+			end
+			if not (cd.to_zone or homed) then cd.to_zone = "system" end
+		else
+			pp[#pp + 1] = "player " .. tostring(#G.seat_list + 1) .. " names the card '"
+				.. tostring(seat.card) .. "', but no card has that key"
+		end
 	end
 
 	-- The round belongs to the game, not to a player: two seats must not get
 	-- two calendars, and a hero who dies must not take one with them.
 	if not G.card_defs.system then
 		G.card_defs.system = { key = "system", injected = true,
-			tags = {}, tags_set = {},
+			tags = {}, tags_set = {}, style = {},
 			card_stats = { round = 1, turn = 0 }, auto_play = true, to_zone = "system" }
 		table.insert(G.card_list, 1, "system")
 	end
 
-	-- The engine's own, prepended in card_list order so entity IDs are handed out
-	-- exactly as before: a seed reproduces a board only if setup builds it the
-	-- same way every time.
+	-- The engine's own placements go in front, in card_list order: the system
+	-- card, an injected seat, a declared seat that named no place. None of these
+	-- is written down by a game — a seat has to exist before it can act — and
+	-- the order is load-bearing, since entity IDs are handed out as cards are
+	-- created and a seed only replays a board built the same way twice.
 	do
 		local named = {}
 		for _, e in ipairs(G.setup_place) do named[e.card] = true end
 		local own = {}
 		for _, key in ipairs(G.card_list) do
 			local cd = G.card_defs[key]
-			if not named[key] and (cd.injected or cd.tags_set.player) then
+			if not named[key] and (cd.injected or G.seat_set[key]) then
 				own[#own + 1] = { card = key, engine = true }
 			end
 		end
 		for i = #own, 1, -1 do table.insert(G.setup_place, 1, own[i]) end
-	end
-
-	-- Seats, in file order: every card carrying the "player" tag, named by its
-	-- own key. Computed after the injection above so a game that declares none
-	-- still has exactly one. One seat is the ordinary case and costs nothing —
-	-- per_seat zones instance once and every owner word means the same cards.
-	-- `owns` names the tag marking a seat's pieces on a board it shares with the
-	-- other players. It used to be the seat's own key, which cost no field and
-	-- one ambiguity: `@white` named the pieces while `card:white` named the seat
-	-- card, so one word meant two sets. Declared on the seat rather than on every
-	-- piece, because that is where the relationship lives, and it is two lines
-	-- rather than thirty-two.
-	G.seat_list, G.seat_set, G.seat_owns = {}, {}, {}
-	for _, key in ipairs(G.card_list) do
-		local cd = G.card_defs[key]
-		if cd.tags_set.player then
-			G.seat_list[#G.seat_list + 1] = key
-			G.seat_set[key] = true
-			G.seat_owns[key] = type(cd.owns) == "string" and cd.owns or nil
-			-- A seat has to exist before it can act, and one that says nothing
-			-- about where it sits is a stat bag — it goes where the injected
-			-- one goes rather than onto a board it never asked for. Declaring
-			-- a seat is then just tagging a card, which is the point.
-			if cd.auto_play == nil then cd.auto_play = true end
-			local homed = false
-			for _, t in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
-				local td = G.tag_defs[t]
-				if type(td) == "table" and td.zone then homed = true end
-			end
-			if not (cd.to_zone or homed) then cd.to_zone = "system" end
-		end
 	end
 
 	-- Built-in "turn the page": the reveal actions conjure cards into this

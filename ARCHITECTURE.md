@@ -78,7 +78,7 @@ Undo does not revert template edits — that's a feature (tune, then replay).
 cards into a hidden `system` grid zone, the same way it injects the built-in
 `reveal` zone and phase, and a game may claim either key to override them:
 
-- the **player card** (tag `player`), holding `setup.player`'s stats and
+- the **player card** (tagged `player` by the engine), holding its seat's `stats` and
   `plays`. Injected only when no template already carries the `player` tag, so
   a game that wants a visible hero just tags it (castle's throne room) and gets
   stats, targeting, rendering, tooltips and undo for free.
@@ -157,7 +157,7 @@ Treat it as disposable.
    from running, so the *runtime* must be safe on its own); loops are
    budgeted. Concretely: `json.lua` is a hand-rolled recursive-descent
    parser, never `load`/`loadstring` over untrusted text; stat-bearing
-   values (`card_stats`, `setup.player`) are coerced with `tonumber(v) or 0`
+   values (`card_stats`, a seat's `stats`) are coerced with `tonumber(v) or 0`
    at the point they're written, so a malformed value can never reach
    arithmetic as a string and throw; `predicate.met`/`meets_all` coerce and
    type-check before every comparison and fail closed (false) rather than

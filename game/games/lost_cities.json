@@ -1,5 +1,6 @@
 {
   "title": "Lost Cities",
+  "players": [{ "card": "north" }, { "card": "south" }],
   "styles": {
     "crimson": { "color": [0.85, 0.25, 0.25] },
     "jade": { "color": [0.3, 0.7, 0.35] },
@@ -194,13 +195,13 @@
     {
       "key": "north",
       "text": "North",
-      "tags": ["player", "north_side"],
+      "tags": ["north_side"],
       "card_stats": { "score": 0, "tallied": 0 }
     },
     {
       "key": "south",
       "text": "South",
-      "tags": ["player", "south_side"],
+      "tags": ["south_side"],
       "card_stats": { "score": 0, "tallied": 0 }
     },
     {

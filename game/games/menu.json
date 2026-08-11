@@ -8,6 +8,7 @@
       "contents": ["m_new", "m_join"]
     }
   ],
+  "players": [{}],
   "cards": [
     {
       "key": "play_demo",

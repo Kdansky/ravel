@@ -20,6 +20,7 @@
   },
   "styles": { "slate": { "color": [0.1, 0.14, 0.22] }, "tiled": { "fit": "fill" } },
   "setup": { "place": [{ "card": "throne_room", "zone": "board", "slot": 13 }] },
+  "players": [{ "card": "throne_room" }],
   "cards": [
     {
       "key": "throne_room",
@@ -27,7 +28,7 @@
       "asset": "castle_hill.jpg",
       "tooltip": "Your seat of power. Taxes bring 1 gold each round. Pay 2 gold to inspire your people (+1 morale).",
       "card_stats": { "hp": 20, "hp_max": 20, "gold": 20, "morale": 5, "defense": 0, "food": 0 },
-      "tags": ["building", "hero", "player"],
+      "tags": ["building", "hero"],
       "activate": { "cost": { "gold": 2 }, "action": ["gain_stat:morale:1"] },
       "turn": { "action": ["gain_stat:gold:1"] }
     },

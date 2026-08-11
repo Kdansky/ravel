@@ -589,6 +589,19 @@ false` replaced `transparent_background` — a field and a tag deciding the same
 thing. And a style that is *also* a computed tag makes a look follow the
 numbers, with nothing in the drawing code that knows what `wounded` means.
 
+**Who is playing is declared.** A seat used to be any card carrying the `player`
+tag, so "is this a two-player game" was a scan and a game that wanted an invite
+card had to know its own seat count without ever stating it. `players` says it,
+one entry per seat in seat order, and a seat is still a card — it has stats, it
+can be targeted and destroyed, and castle's throne room is a building that
+happens to be the player. An entry naming no card gets the invisible stat bag a
+solitaire game always had. The engine stamps the `player` tag onto the cards the
+section names, so all 27 `@mine.player` scopes are untouched.
+
+Offering an invite stays a *card's* decision — invariant 7, a question about
+content answered by content — but the fact is now readable, so the validator
+warns when a one-seat game deals an invite that could never hand over.
+
 **Setup is the manual, not the cards.** `start` was the last block, and it went
 the same way `pick` did: the `cards` section is what comes out of the box, and
 `setup.place` is the page that arranges it — which card, which zone, which cell,

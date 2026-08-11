@@ -200,10 +200,10 @@ def build():
     # the tag every white piece carries — so `@white` meant the sixteen pieces
     # while `card:white` meant this one card. A name that means two things is the
     # mistake a game file should not be able to make, so the seat is named for
-    # what it is and says which tag is its.
+    # what it is, and the players section says which tag is its.
     templates = [
-        {"key": "player_white", "text": "White", "tags": ["player"], "owns": "white"},
-        {"key": "player_black", "text": "Black", "tags": ["player"], "owns": "black"},
+        {"key": "player_white", "text": "White"},
+        {"key": "player_black", "text": "Black"},
         HOW_TO_PLAY,
     ]
     for seat, label, back, pawn_row, _rgb, palette in SEATS:
@@ -233,6 +233,12 @@ def build():
     return {
         "title": "Chess",
         "setup": {"place": place},
+        # Two seats, said once. Everything that wants to know whether this game
+        # can be played with somebody else reads this rather than counting tags.
+        "players": [
+            {"card": "player_white", "owns": "white"},
+            {"card": "player_black", "owns": "black"},
+        ],
         "styles": {
             "piece": {"title": False, "color": False},
             "chessboard": {"fit": "fill", "ratio": "grid",
