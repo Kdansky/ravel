@@ -1,8 +1,21 @@
 # 11 — Styles are tags too
 
-**Status:** not started · **Size:** medium-large, and it *deletes* more than it
-adds · **Supersedes:** `ratio` and `fit` as zone fields ([07](07-presentation.md)
+**Status:** in progress — the section, the resolution and `color` are shipped.
+Left: `fit`, `ratio`, `checker`, `paint` and the two card presentation tags ·
+**Size:** medium-large, and it *deletes* more than it adds ·
+**Supersedes:** `ratio` and `fit` as zone fields ([07](07-presentation.md)
 gaps 4 and 5, both shipped and both now on the wrong side of this).
+
+**What shipped first, and why `color`:** it had exactly one reader
+(`render.lua:299`), which made the machinery provable before anything wide
+depended on it. The payoff was immediate — 83 cards carrying a colour became 12
+style entries and a tag each, and Lost Cities' 70 dropped to five.
+
+The dynamic case is built and tested: a card tagged with a style that is also a
+computed tag recolours the moment its stat crosses, with nothing in the drawing
+code that knows what `wounded` means. Nothing per frame is paid by a game
+without one — the parse lists which style words are computed tags, and that list
+is empty in every shipped game.
 
 > *A top-level list of styles, which can have specialised fields for rendering.
 > These styles are also loaded in the tags set, which gets rid of `fit` as its

@@ -47,7 +47,7 @@ M.EFFECT_BASES = {
 -- derives, and writing one is an error rather than a second spelling.
 local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
-	color = true, tags = true, card_stats = true, owns = true, outcome = true,
+	tags = true, card_stats = true, owns = true, outcome = true,
 	play = true, activate = true, challenge = true, receive = true,
 	turn = true, start = true,
 	-- derived by declaration.parse from the blocks above
@@ -57,6 +57,7 @@ local CARD_FIELDS = {
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
 	accepts = true, on_turn = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
+	style = true,
 }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
 	action = true }
@@ -111,6 +112,9 @@ local COMPUTED_FIELDS = { stat = true, less_than = true, less_than_stat = true,
 -- The assets table: named pictures, and the only place a picture carries
 -- options. Everything a card's `asset` can spell out inline is legal as a `src`
 -- here too, so the source is checked by the same rules.
+-- What a style may carry. Presentation only, and deliberately closed: the
+-- moment a style could change a rule, every rules bug becomes a drawing bug.
+local STYLE_FIELDS    = { color = true }
 local ASSET_FIELDS    = { src = true, max = true }
 -- A challenge is asked by the resolve_challenge action: one condition, and the
 -- two action lists it chooses between. They only ever work together, which is
@@ -132,6 +136,7 @@ M.FIELDS = {
 	assets        = ASSET_FIELDS,
 	patterns      = PATTERN_FIELDS,
 	computed_tags = COMPUTED_FIELDS,
+	styles        = STYLE_FIELDS,
 	end_conditions = END_FIELDS,
 	target        = TARGET_FIELDS,
 	route         = ROUTE_FIELDS,
@@ -146,7 +151,7 @@ M.FIELDS = {
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
 -- entry the engine hands around and are not things an author ever writes, so
 -- the schema document must not describe them.
-M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
+M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true, style = true,
 	-- flattened out of the moment blocks by declaration.parse, never authored
 	cost = true, needs = true, target = true, phases = true, on_play = true,
 	activate_cost = true, activate_target = true,
@@ -641,6 +646,38 @@ function M.check(G)
 				end
 			end
 			check_numbers(where, "color", def.color, 3)
+		end
+	end
+
+	-- Styles: a named look, claimed by tagging it. Two styles on one card
+	-- claiming the same property is an authoring conflict, reported rather than
+	-- resolved by a precedence rule nobody could remember — the same stance the
+	-- engine takes when a card and its zone define one behaviour twice.
+	for name, sd in pairs(G.style_defs or {}) do
+		local where = "style '" .. tostring(name) .. "'"
+		if type(sd) ~= "table" then
+			warn('%s: should be a map of look, like { "color": [0.8, 0.2, 0.2] }', where)
+		else
+			check_fields(where, sd, STYLE_FIELDS)
+			check_numbers(where, "color", sd.color, 3)
+		end
+		-- One name, one thing: a style shares the namespace tags and zones do.
+		if G.zone_defs[name] then
+			warn("%s: is also a zone key, and a name may mean only one thing", where)
+		elseif G.card_defs[name] then
+			warn("%s: is also a card key, and a name may mean only one thing", where)
+		end
+	end
+	for key, def in pairs(G.card_defs) do
+		local claimed = {}
+		for tag in pairs(def.tags_set or {}) do
+			for prop in pairs(type((G.style_defs or {})[tag]) == "table" and G.style_defs[tag] or {}) do
+				if claimed[prop] then
+					warn("card '%s': styles '%s' and '%s' both set %s — one look, one word for it",
+						key, claimed[prop], tag, prop)
+				end
+				claimed[prop] = tag
+			end
 		end
 	end
 

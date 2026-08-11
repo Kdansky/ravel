@@ -18,6 +18,7 @@
     "damaged": { "stat": "hp", "less_than_stat": "hp_max" },
     "standing": { "stat": "hp", "at_least": 1 }
   },
+  "styles": { "slate": { "color": [0.1, 0.14, 0.22] } },
   "cards": [
     {
       "key": "throne_room",
@@ -109,8 +110,7 @@
       "key": "pass",
       "text": "Pass",
       "tooltip": "Bide your time. Nothing happens this phase.",
-      "color": [0.1, 0.14, 0.22],
-      "tags": ["token"],
+      "tags": ["token", "slate"],
       "play": { "action": ["destroy_self"] }
     },
     {

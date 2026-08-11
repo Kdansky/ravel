@@ -394,6 +394,7 @@ file to check what may appear where.
 | `seed` | Optional fixed RNG seed (reproducible shuffles) |
 | `stats` | Ordered stat declarations (HUD order) |
 | `computed_tags` | Derived per-card tags (see below) |
+| `styles` | Named looks, claimed by tagging one (see *Styles*) |
 | `tags` | Tag behaviour — a tag is a mixin: it can give its cards a home `zone`, a `tooltip`, and an `activate` block (the same one a card has), which a zone may then hand to its contents with `applies` (see below) |
 | `effects` | Named visual effects on the base vocabulary (see below) |
 | `patterns` | Named direction sets for grid movement (see *Pieces that move*) |
@@ -460,7 +461,7 @@ early (the validator warns when starting `contents` already exceed capacity).
 | Field | Meaning |
 |---|---|
 | `key` | Unique identifier |
-| `text`, `tooltip`, `asset`, `color` | Presentation. `asset` is optional and may be a filename, an `http(s)://` URL, a procedural shape spec, or `"auto"` (see *Art without assets*); `color` is `[r, g, b]` |
+| `text`, `tooltip`, `asset` | Presentation. `asset` is optional and may be a filename, an `http(s)://` URL, a procedural shape spec, or `"auto"` (see *Art without assets*). A card's **colour is a style it tags** — see *Styles* |
 
 A local `asset` must be a bare filename (`sword.png`, not `../sword.png` or
 a path) — this is enforced, not just a convention, since games can be
@@ -973,6 +974,51 @@ also gives the empty case something to target.
 syntax of its own: `{ "type": "card", "tags": ["creature"], "owner": "enemy",
 "count": 1 }`. And a spec that lists `zones` means *yours* — it never offers
 another seat's copy of a per-seat zone unless an owner word says so.
+
+### Styles
+
+A **style is a named look**, and a card claims one by tagging it:
+
+```json
+"styles": {
+  "crimson": { "color": [0.85, 0.25, 0.25] },
+  "jade":    { "color": [0.30, 0.70, 0.35] }
+},
+"cards": [
+  { "key": "red_2", "text": "Red 2", "tags": ["expedition", "crimson"] }
+]
+```
+
+Lost Cities has seventy coloured cards and five colours, so this is five style
+entries and one word per card rather than three numbers repeated fourteen times.
+Change the red and every red card changes.
+
+Today a style carries one property, `color`. The field it replaced is gone: a
+card has no `color` of its own.
+
+**A style name lives in the same namespace as zones, tags and cards** — one name
+means one thing, and the validator refuses a style called `red` in a game that
+already has a `red` zone. That is why these are named for the look (`crimson`,
+`jade`) rather than for the thing wearing it.
+
+**Two styles on one card claiming the same property is an error**, not a
+precedence rule you would have to remember — the same stance the engine takes
+when a card and its zone both define one behaviour.
+
+**A style may be a computed tag, and then the look follows the numbers:**
+
+```json
+"computed_tags": { "wounded": { "stat": "hp", "less_than": 3 } },
+"styles":        { "wounded": { "color": [0.8, 0.1, 0.1] } }
+```
+
+A card carrying that tag turns red the moment its `hp` drops, with no condition
+anywhere in the drawing code. Only style words that are *also* computed tags are
+re-checked while the game runs, so a game without any pays nothing for this.
+
+**A style may not change a rule.** It decides how a thing looks, never whether it
+can be played, targeted or afforded — the moment it could, every rules bug would
+become a drawing bug too.
 
 ### Computed tags
 

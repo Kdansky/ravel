@@ -76,6 +76,11 @@
       "pos": [0.82, 0.32, 1.0, 0.6]
     }
   ],
+  "styles": {
+    "moss": { "color": [0.12, 0.16, 0.13] },
+    "rust": { "color": [0.16, 0.12, 0.12] },
+    "slate": { "color": [0.13, 0.13, 0.16] }
+  },
   "cards": [
     {
       "key": "p_depart",
@@ -86,9 +91,8 @@
     {
       "key": "march",
       "text": "March",
-      "color": [0.12, 0.16, 0.13],
       "tooltip": "Break camp and cover a mile. Costs 1 supply.",
-      "tags": ["token"],
+      "tags": ["token", "moss"],
       "play": {
         "cost": { "supplies": 1 },
         "action": ["gain_stat:distance:1", "destroy_self", "next_phase"]
@@ -97,9 +101,8 @@
     {
       "key": "hard_march",
       "text": "Hungry March",
-      "color": [0.16, 0.12, 0.12],
       "tooltip": "March on empty bellies: a mile for 1 morale.",
-      "tags": ["token"],
+      "tags": ["token", "rust"],
       "play": { "action": ["lose_stat:morale:1", "gain_stat:distance:1", "destroy_self", "next_phase"] }
     },
     {
@@ -161,40 +164,40 @@
     {
       "key": "second_wind",
       "text": "Second Wind",
-      "color": [0.12, 0.16, 0.13],
       "asset": "tavern_meal.jpg",
       "tooltip": "A hot meal and an old song. +2 morale.",
       "play": {
         "cost": { "supplies": 1 },
         "action": ["effect:hearth_glow", "gain_stat:morale:2", "move_to:graveyard"]
-      }
+      },
+      "tags": ["moss"]
     },
     {
       "key": "forced_march",
       "text": "Forced March",
-      "color": [0.16, 0.12, 0.12],
       "asset": "marching_column.jpg",
       "tooltip": "Two miles before moonrise, and everyone hates you. Costs 1 morale.",
-      "play": { "cost": { "morale": 1 }, "action": ["gain_stat:distance:2", "move_to:graveyard"] }
+      "play": { "cost": { "morale": 1 }, "action": ["gain_stat:distance:2", "move_to:graveyard"] },
+      "tags": ["rust"]
     },
     {
       "key": "scavenge",
       "text": "Scavenge the Field",
-      "color": [0.13, 0.13, 0.16],
       "asset": "battle_aftermath.jpg",
       "tooltip": "Strip a slain threat: clear it from the road, +2 supplies.",
       "play": {
         "target": { "type": "card", "min": 1, "max": 1, "tags": ["slain"], "zones": ["battlefield"] },
         "action": ["move_target_to:graveyard", "gain_stat:supplies:2", "move_to:graveyard"]
-      }
+      },
+      "tags": ["slate"]
     },
     {
       "key": "campfire_songs",
       "text": "Campfire Songs",
-      "color": [0.12, 0.16, 0.13],
       "asset": "campfire_night.jpg",
       "tooltip": "The old verses: +1 morale for every unit still standing.",
-      "play": { "action": ["gain_stat:morale:count:unit", "move_to:graveyard"] }
+      "play": { "action": ["gain_stat:morale:count:unit", "move_to:graveyard"] },
+      "tags": ["moss"]
     },
     {
       "key": "burn_the_wagons",

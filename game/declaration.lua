@@ -9,6 +9,7 @@ M.filename = nil  -- source file of the current game, for template reloads
 M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list",
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
+	"style_defs", "dynamic_styles",
 }
 
 -- A card is written as a list of moments, and read as a flat def.
@@ -85,7 +86,7 @@ local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true,
 	cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true,
-	placeholder_art = true, patterns = true, assets = true,
+	placeholder_art = true, patterns = true, assets = true, styles = true,
 }
 M.KNOWN_SECTIONS = KNOWN_SECTIONS
 
@@ -211,6 +212,13 @@ function M.parse(filename)
 		phase_list     = {},       -- ordered array of phase keys
 		phase_by_key   = {},
 		computed_tags  = parsed.computed_tags or {},
+		-- A style is a named bundle of presentation properties, claimed by
+		-- tagging it. "This card is crimson" becomes a word instead of three
+		-- numbers repeated on fourteen cards, and the word can be a computed
+		-- tag, which is conditional rendering with nothing in render.lua that
+		-- knows what wounded means.
+		style_defs     = type(parsed.styles) == "table" and parsed.styles or {},
+		dynamic_styles = {},   -- style names that are also computed tags
 		end_conditions = parsed.end_conditions or {},
 		setup          = parsed.setup or {},
 		tag_defs       = {},       -- tag behaviour, moments flattened like a card's
@@ -253,6 +261,13 @@ function M.parse(filename)
 		G.tag_defs[name] = td
 	end
 
+	-- Only a style word that is *also* a computed tag can change under a running
+	-- game; every other look is settled at load. So a game with none pays
+	-- nothing per frame, which is every shipped game today.
+	for name in pairs(G.style_defs) do
+		if G.computed_tags[name] then G.dynamic_styles[#G.dynamic_styles + 1] = name end
+	end
+
 	G.raw_patterns = type(parsed.patterns) == "table" and parsed.patterns or {}
 	for name, def in pairs(G.raw_patterns) do
 		G.pattern_defs[name] = normalise_pattern(def)
@@ -283,6 +298,12 @@ function M.parse(filename)
 			end
 			flatten_moments(cd, pp, "card '" .. cd.key .. "'")
 			cd.tags_set = tag_set(cd.tags)
+			cd.style = {}
+			for tag in pairs(cd.tags_set) do
+				for k, v in pairs(type(G.style_defs[tag]) == "table" and G.style_defs[tag] or {}) do
+					cd.style[k] = v
+				end
+			end
 			-- A piece that says how it moves is asking for the ordinary board
 			-- targeting, so the engine writes the spec rather than making every
 			-- piece repeat the same four fields.

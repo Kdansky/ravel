@@ -5,6 +5,35 @@ local art         = require("art")
 
 local M = {}
 
+local EMPTY = {}
+
+-- The look a card's tags add up to: every style they name, merged. Two styles
+-- claiming the same property is an authoring conflict the validator reports, so
+-- nothing here has to invent a winner.
+--
+-- The definition tags are merged once at load (`def.style`). Only a style word
+-- that is also a *computed* tag can change while the game runs, and the parse
+-- knows which those are — so a game with none returns the cached table and pays
+-- nothing, and one with them pays only for the entities carrying them.
+function M.style(e)
+	local G    = declaration.G
+	local def  = e and M.def(e)
+	local base = (def and def.style) or EMPTY
+	local dyn  = G.dynamic_styles
+	if not e or not dyn or #dyn == 0 then return base end
+	local out
+	for _, name in ipairs(dyn) do
+		if require("tags").entity_has(e, name) then
+			if not out then
+				out = {}
+				for k, v in pairs(base) do out[k] = v end
+			end
+			for k, v in pairs(G.style_defs[name]) do out[k] = v end
+		end
+	end
+	return out or base
+end
+
 -- Image cache: def_key → love.graphics.Image or false
 local img_cache = {}
 -- Web-asset fetches in flight: url id -> job. The two platforms keep different

@@ -22,6 +22,11 @@
       "equals": "number: the tag holds while the stat is exactly it"
     }
   },
+  "styles": {
+    "<your style name>": {
+      "color": "[r, g, b] each 0 to 1: the plate behind the card's art"
+    }
+  },
   "cards": [
     {
       "key": "unique name. Cards, actions, conditions and scopes all reference it, and it may never collide with a zone key or a tag.",
@@ -29,9 +34,8 @@
       "tooltip": "prose shown in the hover panel after a short delay",
       "story": "long prose for the full-screen page overlay and the detail view",
       "asset": "a picture: a name in the assets table, a bare filename in games/assets, an http(s) URL, a shape spec like star:5:amber, or auto for a generated one. A name is anything with no source in it, which is what tells the five apart.",
-      "color": "[r, g, b] each 0 to 1, the plate behind the art",
       "tags": [
-        "a list of words. Free vocabulary for targeting and counting, except where the engine knows one: see _engine_tags below."
+        "a list of words. Free vocabulary for targeting and counting, except where the engine knows one (see _engine_tags) or a style is named after one (see styles) — a card claims a look by tagging it."
       ],
       "owns": "the tag marking this seat's pieces, on a board shared with the other players. Only a card tagged player may own anything. Without it a piece belongs to the seat of the zone it sits in, which is enough until a board is shared.",
       "card_stats": {

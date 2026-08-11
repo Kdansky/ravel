@@ -17,13 +17,24 @@ import jsonfmt
 # *decoration that happens to agree* with the rules — the engine reads
 # card_stats.value and the "<colour>_dest" tags, never the picture. A card is
 # never red because it is drawn red.
+# key, label, style, art palette. The style is a *look* with its own name,
+# because "red" is already this colour's zone and one name means one thing — so
+# fourteen cards claim a colour by tagging `crimson` rather than repeating three
+# numbers each.
 COLOURS = [
-    ("red",    "Red",    [0.85, 0.25, 0.25], "crimson"),
-    ("green",  "Green",  [0.30, 0.70, 0.35], "green"),
-    ("blue",   "Blue",   [0.30, 0.50, 0.90], "blue"),
-    ("white",  "White",  [0.85, 0.85, 0.80], "silver"),
-    ("yellow", "Yellow", [0.90, 0.75, 0.25], "gold"),
+    ("red",    "Red",    "crimson", "crimson"),
+    ("green",  "Green",  "jade",    "green"),
+    ("blue",   "Blue",   "azure",   "blue"),
+    ("white",  "White",  "ivory",   "silver"),
+    ("yellow", "Yellow", "amber",   "gold"),
 ]
+STYLES = {
+    "crimson": {"color": [0.85, 0.25, 0.25]},
+    "jade":    {"color": [0.30, 0.70, 0.35]},
+    "azure":   {"color": [0.30, 0.50, 0.90]},
+    "ivory":   {"color": [0.85, 0.85, 0.80]},
+    "amber":   {"color": [0.90, 0.75, 0.25]},
+}
 VALUES = list(range(2, 11))
 WAGERS = 3
 
@@ -65,17 +76,17 @@ def templates():
     # discard the marker was eligible forever and reachable never, and that
     # colour could not be discarded to again for the rest of the game.
 
-    for i, (c, label, col, art) in enumerate(COLOURS):
+    for i, (c, label, look, art) in enumerate(COLOURS):
         # A card may only be played onto a lower one. Wagers count as zero, so
         # they must come before every number — which the same rule already says.
         def card(key, text, value, tooltip, extra_tags=()):
             return {
-                "key": key, "text": text, "color": col,
+                "key": key, "text": text,
                 # Stripes count the value, so a card reads at a glance without
                 # a single image file; wagers get a star instead.
                 "asset": ("star:5:" + art) if value == 0 else ("stripes:%d:%s" % (value, art)),
                 "tooltip": tooltip,
-                "tags": ["expedition", *extra_tags],
+                "tags": ["expedition", look, *extra_tags],
                 "card_stats": {"value": value},
                 # Two places it may go, and the player picks one. The
                 # expedition refuses a card worth less than what is already
@@ -99,11 +110,11 @@ def templates():
     # Scoring runs once per expedition at the end, as an ordinary card each
     # seat plays through: (sum - 20) x wagers, distributed so it needs no
     # nested arithmetic, plus the 20-card bonus for a long expedition.
-    for c, label, col, art in COLOURS:
+    for c, label, look, art in COLOURS:
         out.append({
-            "key": c + "_score", "text": "Score " + label, "color": col,
+            "key": c + "_score", "text": "Score " + label,
             "tooltip": "Total the " + label.lower() + " expedition.",
-            "tags": ["scoring", "token"],
+            "tags": ["scoring", "token", look],
             "play": {
                 "needs": {("count:expedition@mine." + c): 1},
                 # (sum - 20) x (1 + wagers), distributed as (sum - 20) plus
@@ -121,9 +132,9 @@ def templates():
             },
         })
         out.append({
-            "key": c + "_bonus", "text": label + " bonus", "color": col,
+            "key": c + "_bonus", "text": label + " bonus",
             "tooltip": "An expedition of eight cards or more is worth 20 more.",
-            "tags": ["scoring", "token"],
+            "tags": ["scoring", "token", look],
             "play": {
                 "needs": {("count:expedition@mine." + c): 8},
                 "action": ["gain_stat:score@mine.player:20", "destroy_self"],
@@ -132,12 +143,12 @@ def templates():
 
     out.append({"key": "mode_local", "text": "Both sides, here",
                 "tooltip": "Hot-seat: take both players' turns on this machine.",
-                "tags": ["token"], "pick": {"action": ["destroy:mode"]}})
+                "tags": ["token"], "play": {"action": ["destroy:mode"]}})
     out.append({"key": "mode_online", "text": "With a friend, online",
                 "tooltip": "Sit as North and invite someone to play South. They do not "
                            "need this game — it travels with the invite.",
                 "tags": ["token"],
-                "pick": {"action": ["destroy:mode", "net_seat:north", "net_invite"]}})
+                "play": {"action": ["destroy:mode", "net_seat:north", "net_invite"]}})
     out.append({"key": "done_scoring", "text": "Done", "tooltip": "Finish tallying.",
                 "tags": ["token"],
                 "play": {"action": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"]}})
@@ -145,7 +156,7 @@ def templates():
         out.append({"key": seat + "_wins", "text": seat.title() + " wins",
                     "story": seat.title() + " comes home with the better haul. "
                              + other + " should have hedged.",
-                    "pick": {"action": ["load_game:menu.json"]}})
+                    "play": {"action": ["load_game:menu.json"]}})
     return out
 
 
@@ -279,6 +290,7 @@ def build():
     z = zones()
     return {
         "title": "Lost Cities",
+        "styles": STYLES,
         "seed": 11,
         # No "round": the turn loop is a routing cycle and nothing declares
         # ends_round, so the counter never moves. A stat that always reads 1 is

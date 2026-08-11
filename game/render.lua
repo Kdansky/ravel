@@ -296,7 +296,7 @@ end
 -- show_text=false: compact title bar only (board tiles, animations, pile top).
 local function draw_card_face(pl, card_e, show_text)
 	local def   = cards.def(card_e)
-	local color = def and def.color or C.card_default
+	local color = cards.style(card_e).color or C.card_default
 	local img   = cards.image(card_e.def_key)
 	local z     = entity.get(card_e.zone_id)
 	local title = def and def.text or card_e.def_key

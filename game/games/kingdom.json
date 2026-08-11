@@ -28,6 +28,12 @@
     "eclipse_surge": { "base": "power_up", "color": [0.7, 0.45, 0.95], "size": 1.4 },
     "crisis_smoke": { "base": "smoke", "size": 1.3 }
   },
+  "styles": {
+    "slate": { "color": [0.1, 0.14, 0.22] },
+    "moss": { "color": [0.12, 0.17, 0.14] },
+    "rust": { "color": [0.18, 0.13, 0.12] },
+    "indigo": { "color": [0.14, 0.12, 0.19] }
+  },
   "cards": [
     {
       "key": "merchant_prince",
@@ -60,17 +66,15 @@
     {
       "key": "decline",
       "text": "Decline",
-      "color": [0.1, 0.14, 0.22],
       "tooltip": "Claim no birthright. Begin with nothing.",
-      "tags": ["token"],
+      "tags": ["token", "slate"],
       "play": { "action": ["destroy_self"] }
     },
     {
       "key": "to_market",
       "text": "Visit the Market",
-      "color": [0.12, 0.17, 0.14],
       "tooltip": "End this season and browse the Market next. Play at least one card first.",
-      "tags": ["token"],
+      "tags": ["token", "moss"],
       "play": {
         "needs": { "plays": 1 },
         "action": ["set_stat:destination:1", "destroy_self", "next_phase"]
@@ -79,9 +83,8 @@
     {
       "key": "to_barracks",
       "text": "Visit the Barracks",
-      "color": [0.18, 0.13, 0.12],
       "tooltip": "End this season and train at the Barracks next. Play at least one card first.",
-      "tags": ["token"],
+      "tags": ["token", "rust"],
       "play": {
         "needs": { "plays": 1 },
         "action": ["set_stat:destination:2", "destroy_self", "next_phase"]
@@ -90,9 +93,8 @@
     {
       "key": "to_sanctum",
       "text": "Visit the Sanctum",
-      "color": [0.14, 0.12, 0.19],
       "tooltip": "End this season and seek the Sanctum next. Play at least one card first.",
-      "tags": ["token"],
+      "tags": ["token", "indigo"],
       "play": {
         "needs": { "plays": 1 },
         "action": ["set_stat:destination:3", "destroy_self", "next_phase"]
@@ -101,17 +103,15 @@
     {
       "key": "rest",
       "text": "Rest",
-      "color": [0.1, 0.14, 0.22],
       "tooltip": "End the season once both trials are faced.",
-      "tags": ["token"],
+      "tags": ["token", "slate"],
       "play": { "needs": { "plays": 2 }, "action": ["destroy_self", "next_phase"] }
     },
     {
       "key": "march_on",
       "text": "March On",
-      "color": [0.1, 0.14, 0.22],
       "tooltip": "Enough shopping — the trials won't wait.",
-      "tags": ["token"],
+      "tags": ["token", "slate"],
       "play": { "action": ["destroy_self", "next_phase"] }
     },
     {
