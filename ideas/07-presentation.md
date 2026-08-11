@@ -10,9 +10,7 @@ item here is something a player sees or does, not something the engine computes.
 
 ## Gap 1 — A pass on text, contrast and layout — **shipped**
 
-*The card face is the part that shipped: the picture takes the whole card and
-the words float over it, outlined, fitted rather than cut. The tooltip pass
-below is still open.*
+*Both halves: the card face, and the tooltip.*
 
 **What changed, and why each.**
 
@@ -32,6 +30,26 @@ below is still open.*
   paragraph, not both — and the name is what a player is choosing between. The
   description is a hover away, which is where the long version always lived.
 - **Whole lines only.** The old band clipped mid-glyph at the card's edge.
+
+**The tooltip is a list of blocks, measured then drawn.** It used to concatenate
+up to six sections into one string and hand the lot to a single `printf` in one
+colour at one size — the card's prose, its price and the hint about clicking it
+were indistinguishable, and it never said the card's *name*. Now each piece
+knows what it is:
+
+| Block | Weight |
+|---|---|
+| title | main font, brightest |
+| prose | small, dimmer — the card's own words, then what its zone says about lying there |
+| rule | a hairline, between groups |
+| row | label left and dim, value right and bright, so a column reads down |
+| hint | accent colour: green to click, amber for exhausted or out of phase |
+
+Two passes rather than one, so the panel is the size of what is in it — guessing
+the height is what left the old one padded on a short card and tight on a long
+one. And the engine's own counters (`round`, `plays`, `turn`) are filtered out:
+they are bookkeeping it keeps on whichever card happens to be the seat, and on
+castle's throne room they read as two of its statistics.
 
 **Two traps worth recording.** `getWrap` splits a word it cannot fit, so
 "Yellow 9" comes back as "Yello" / "w 9" — which passes a width check and reads

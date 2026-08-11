@@ -132,9 +132,23 @@ assert(anim.visual_place(wt.id).rot ~= nil, "expected a flight tilt")
 for _ = 1, 40 do frame(0.016) end
 assert(not anim.visual_place(wt.id), "expected the flight to finish")
 
--- tooltip after hover delay
+-- The tooltip, over each kind of thing it has to describe. It is built as
+-- measured blocks now — title, prose, a rule, label/value rows, a hint — and
+-- every one of those has its own branch, so hovering one card exercised a third
+-- of it. The throne room is the interesting case: it is the player, so it
+-- carries a column of stats and an ability that may or may not be affordable.
+for _, id in ipairs({ zones.find("hand").cards[1], zones.find("board").cards[1] }) do
+	tooltip.update(0.3, id)
+	tooltip.update(0.3, id)
+	frame(0.016)
+	-- and again once it is spent, which is the other hint branch
+	local e = entity.get(id)
+	local was = e.exhausted
+	e.exhausted = true
+	frame(0.016)
+	e.exhausted = was
+end
 local hover = zones.find("hand").cards[1]
-tooltip.update(0.3, hover)
 tooltip.update(0.3, hover)
 frame(0.016)
 

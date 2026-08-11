@@ -92,6 +92,13 @@ end
 -- The scale-aware font, for panels drawn outside this module (inspect.lua).
 M.small_font = get_small_font
 
+-- The body font, for panels drawn outside this module. Both are functions
+-- rather than values because rescale replaces them when the window changes.
+function M.main_font()
+	if not font_main then M.rescale() end
+	return font_main
+end
+
 -- Cut text to fit a width, appending "..." (multibyte-safe trim).
 -- Drop the last *character*, not the last byte. The old version removed a byte
 -- and then walked back over UTF-8 continuation bytes (0x80–0xBF) — but a lead

@@ -22,120 +22,203 @@ function M.update(dt, card_id)
 	end
 end
 
+-- Colours, by what a line *is* rather than where it sits. The old panel drew
+-- everything in one tone at one size, so the card's prose, its price and the
+-- hint about clicking it were indistinguishable — a wall of text the eye had to
+-- parse word by word.
+local C = {
+	title = { 0.94, 0.96, 1.00 },
+	prose = { 0.78, 0.85, 0.97 },
+	label = { 0.52, 0.62, 0.78 },
+	value = { 0.88, 0.93, 1.00 },
+	rule  = { 0.25, 0.34, 0.50 },
+	ready = { 0.55, 0.90, 0.70 },
+	wait  = { 0.75, 0.70, 0.55 },
+}
+
+-- What a card has to say about itself, in order and in kinds. Built as a list
+-- so the panel can measure before it draws and so each kind can be given its
+-- own weight — a title is not a price is not a hint.
+--
+-- The order is deliberate: what it is, what it says, what it costs, what it is
+-- worth now, and what happens if you click. A player reads down until the
+-- answer appears, and the commonest question is the top one.
+local function blocks(c, def)
+	local out = {}
+	local function add(kind, a, b) out[#out + 1] = { kind = kind, a = a, b = b } end
+
+	add("title", def.text or c.def_key)
+
+	-- The card's own words, then whatever its zone says about lying there
+	-- ("Take this card into your hand"). Without the second, a granted ability
+	-- is invisible: nothing on the card mentions it and nothing in the rulebook
+	-- is a card.
+	local own   = def.tooltip
+	local zone  = cards.zone_grant(c, "tooltip")
+	if own and own ~= "" then add("prose", own) end
+	if zone and zone ~= "" and zone ~= own then add("prose", zone) end
+
+	-- The engine's own counters are not the card's business. `round` and `plays`
+	-- are bookkeeping it keeps on whichever card happens to be the seat, and
+	-- `turn` says whose go it is — none of them describes the thing being
+	-- hovered, and on castle's throne room they read as two of its statistics.
+	local BOOKKEEPING = { round = true, plays = true, turn = true }
+
+	local rows = {}
+	if def.cost and next(def.cost) then rows[#rows + 1] = { "Cost", cards.cost_text(def.cost) } end
+	if def.needs and next(def.needs) then rows[#rows + 1] = { "Needs", cards.cost_text(def.needs) } end
+	-- Per-instance numbers, named the way the HUD names them where the game
+	-- declared a label, so one card does not call it "hp" while the bar calls it
+	-- "Health".
+	for _, key in ipairs(declaration.G.stat_defs_list or {}) do
+		local v = c.stats and c.stats[key]
+		if v and key:sub(-4) ~= "_max" and not BOOKKEEPING[key] then
+			local sd  = declaration.G.stat_defs[key]
+			local max = c.stats[key .. "_max"]
+			rows[#rows + 1] = { sd and sd.label or key, max and (v .. "/" .. max) or tostring(v) }
+		end
+	end
+	-- Anything the game never declared as a stat is still worth showing, under
+	-- its own name — capitalised, so a column does not read half labels and half
+	-- variable names.
+	local undeclared = {}
+	for key in pairs(c.stats or {}) do
+		if key:sub(-4) ~= "_max" and not declaration.G.stat_defs[key] and not BOOKKEEPING[key] then
+			undeclared[#undeclared + 1] = key
+		end
+	end
+	table.sort(undeclared)
+	for _, key in ipairs(undeclared) do
+		local v, max = c.stats[key], c.stats[key .. "_max"]
+		rows[#rows + 1] = { key:sub(1, 1):upper() .. key:sub(2),
+			max and (v .. "/" .. max) or tostring(v) }
+	end
+	if c.attached and #c.attached > 0 then
+		rows[#rows + 1] = { "Attached", tostring(#c.attached) }
+	end
+	if #rows > 0 then
+		add("rule")
+		for _, r in ipairs(rows) do add("row", r[1], r[2]) end
+	end
+
+	-- What clicking does, and when it will not. Reads the *granted* ability, so
+	-- one a zone hands out announces itself rather than leaving a dead click to
+	-- explain itself.
+	if cards.behaviour(c, "on_activate") then
+		add("rule")
+		if c.exhausted then
+			add("hint", "Exhausted — ready next round", C.wait)
+		elseif not flow.can_activate(c.id) then
+			add("hint", "Not available in this phase", C.wait)
+		else
+			local ac = cards.behaviour(c, "activate_cost")
+			local text = "Click to activate"
+			if ac and next(ac) then text = text .. "  (" .. cards.cost_text(ac) .. ")" end
+			add("hint", text, C.ready)
+		end
+	end
+	return out
+end
+
 function M.draw()
 	if not visible or not hover_id then return end
-	local c   = entity.get(hover_id)
+	local c = entity.get(hover_id)
 	if not c then return end
 	local def = declaration.G.card_defs[c.def_key]
-	if not def then return end
+	if not def or not c.place then return end
 
-	local pl  = c.place
-	if not pl then return end
-
-	local img  = cards.image(c.def_key)
-	-- A card's own words first, then whatever its zone says about lying there
-	-- ("Take this card into your hand"). Without the second line a granted
-	-- ability is invisible: nothing on the card mentions it and nothing in the
-	-- rulebook is a card.
-	local text = def.tooltip or ""
-	local zone_text = cards.zone_grant(c, "tooltip")
-	if zone_text and zone_text ~= def.tooltip then
-		text = text ~= "" and (text .. "\n" .. zone_text) or zone_text
-	end
-
-	if def.cost and next(def.cost) then
-		if text ~= "" then text = text .. "\n" end
-		text = text .. "Cost: " .. cards.cost_text(def.cost)
-	end
-	if def.needs and next(def.needs) then
-		if text ~= "" then text = text .. "\n" end
-		text = text .. "Needs: " .. cards.cost_text(def.needs)
-	end
-
-	-- Per-entity stats (hp, etc.) shown below tooltip text.
-	if c.stats and next(c.stats) then
-		local parts = {}
-		for k, v in pairs(c.stats) do
-			if k:sub(-4) ~= "_max" then
-				local mk = k .. "_max"
-				if c.stats[mk] then
-					parts[#parts + 1] = k .. ": " .. v .. "/" .. c.stats[mk]
-				else
-					parts[#parts + 1] = k .. ": " .. v
-				end
-			end
-		end
-		if #parts > 0 then
-			if text ~= "" then text = text .. "\n" end
-			text = text .. table.concat(parts, "  ")
-		end
-	end
-
-	-- Activatable ability hint. Reads the granted ability, so one a zone hands
-	-- out announces itself, and says when it is out of season rather than
-	-- leaving a dead click to explain itself.
-	if cards.behaviour(c, "on_activate") then
-		if text ~= "" then text = text .. "\n" end
-		if c.exhausted then
-			text = text .. "[Exhausted — readies next round]"
-		elseif not flow.can_activate(c.id) then
-			text = text .. "[Not available in this phase]"
-		else
-			text = text .. "[Click to activate]"
-			local ac = cards.behaviour(c, "activate_cost")
-			if ac and next(ac) then
-				text = text .. " (" .. cards.cost_text(ac) .. ")"
-			end
-		end
-	end
-
-	-- Attached cards summary.
-	if c.attached and #c.attached > 0 then
-		if text ~= "" then text = text .. "\n" end
-		text = text .. "Attachments: " .. #c.attached
-	end
-
-	if not img and text == "" then return end
-
-	local W, H   = love.graphics.getDimensions()
 	local S      = render.scale()
-	local pad    = 10 * S
-	local box_w  = math.min(230 * S, W * 0.32)
-	local img_h  = img and math.floor(box_w * 0.67) or 0
+	local W, H   = love.graphics.getDimensions()
+	local pad    = 9 * S
+	local gap    = 5 * S
+	local box_w  = math.min(240 * S, W * 0.34)
+	local inner  = box_w - pad * 2
+	local tf, bf = render.main_font(), render.small_font()
+	local img    = cards.image(c.def_key)
+	local img_h  = img and math.floor(box_w * 0.62) or 0
 
-	local font       = love.graphics.getFont()
-	local _, lines   = font:getWrap(text, box_w - pad * 2)
-	local text_h     = #lines > 0 and (#lines * math.ceil(font:getHeight() * 1.2) + pad) or 0
-	local box_h      = pad + img_h + text_h + pad
+	local list = blocks(c, def)
 
-	local x = pl.x + pl.w + 8 * S
-	local y = pl.y
-	if x + box_w > W then x = pl.x - box_w - 8 * S end
+	-- Measure, then draw. Two passes rather than one so the panel is the size of
+	-- what is in it: guessing the height is what left the old one padded at the
+	-- bottom on a short card and tight on a long one.
+	local function height_of(b)
+		if b.kind == "title" then return tf:getHeight()
+		elseif b.kind == "prose" then
+			local _, lines = bf:getWrap(b.a, inner)
+			return #lines * math.ceil(bf:getHeight() * 1.25)
+		elseif b.kind == "rule" then return gap * 1.8
+		elseif b.kind == "row" then return math.ceil(bf:getHeight() * 1.15)
+		else
+			local _, lines = bf:getWrap(b.a, inner)
+			return #lines * math.ceil(bf:getHeight() * 1.25)
+		end
+	end
+
+	local body_h = 0
+	for i, b in ipairs(list) do
+		body_h = body_h + height_of(b)
+		if b.kind == "title" or (b.kind == "prose" and list[i + 1] and list[i + 1].kind ~= "prose") then
+			body_h = body_h + gap
+		end
+	end
+	local box_h = pad + img_h + (img_h > 0 and gap or 0) + body_h + pad
+
+	local x = c.place.x + c.place.w + 8 * S
+	local y = c.place.y
+	if x + box_w > W then x = c.place.x - box_w - 8 * S end
+	if x < 0 then x = 4 end
 	if y + box_h > H then y = H - box_h - 4 end
 	if y < 0 then y = 4 end
 
 	love.graphics.push("all")
-
-	-- background
-	love.graphics.setColor(0.04, 0.07, 0.13, 0.96)
-	love.graphics.rectangle("fill", x, y, box_w, box_h, 4, 4)
-	love.graphics.setColor(0.25, 0.38, 0.60)
+	love.graphics.setColor(0.04, 0.07, 0.13, 0.97)
+	love.graphics.rectangle("fill", x, y, box_w, box_h, 5 * S, 5 * S)
+	love.graphics.setColor(C.rule[1], C.rule[2], C.rule[3], 0.9)
 	love.graphics.setLineWidth(1)
-	love.graphics.rectangle("line", x, y, box_w, box_h, 4, 4)
+	love.graphics.rectangle("line", x, y, box_w, box_h, 5 * S, 5 * S)
 
-	-- card image (larger, fills top of tooltip)
+	local cy = y + pad
 	if img then
 		local iw, ih = img:getDimensions()
-		love.graphics.setScissor(x, y + pad, box_w, img_h)
+		local sc = math.max(inner / iw, img_h / ih)
+		love.graphics.setScissor(x + pad, cy, inner, img_h)
 		love.graphics.setColor(1, 1, 1)
-		love.graphics.draw(img, x, y + pad, 0, box_w / iw, box_w / iw)
+		love.graphics.draw(img, x + pad + (inner - iw * sc) * 0.5,
+			cy + (img_h - ih * sc) * 0.5, 0, sc, sc)
 		love.graphics.setScissor()
+		cy = cy + img_h + gap
 	end
 
-	-- tooltip text below image
-	if text ~= "" then
-		love.graphics.setColor(0.82, 0.88, 1.00)
-		love.graphics.printf(text, x + pad, y + pad + img_h, box_w - pad * 2)
+	for i, b in ipairs(list) do
+		if b.kind == "title" then
+			love.graphics.setFont(tf)
+			love.graphics.setColor(unpack(C.title))
+			love.graphics.printf(b.a, x + pad, cy, inner, "left")
+		elseif b.kind == "prose" then
+			love.graphics.setFont(bf)
+			love.graphics.setColor(unpack(C.prose))
+			love.graphics.printf(b.a, x + pad, cy, inner, "left")
+		elseif b.kind == "rule" then
+			love.graphics.setColor(C.rule[1], C.rule[2], C.rule[3], 0.85)
+			love.graphics.rectangle("fill", x + pad, math.floor(cy + gap * 0.9) + 0.5, inner, 1)
+		elseif b.kind == "row" then
+			-- Name on the left, number on the right, so a column of them can be
+			-- read down rather than word by word.
+			love.graphics.setFont(bf)
+			love.graphics.setColor(unpack(C.label))
+			love.graphics.printf(b.a, x + pad, cy, inner, "left")
+			love.graphics.setColor(unpack(C.value))
+			love.graphics.printf(b.b, x + pad, cy, inner, "right")
+		else
+			love.graphics.setFont(bf)
+			love.graphics.setColor(unpack(b.b))
+			love.graphics.printf(b.a, x + pad, cy, inner, "left")
+		end
+		cy = cy + height_of(b)
+		if b.kind == "title" or (b.kind == "prose" and list[i + 1] and list[i + 1].kind ~= "prose") then
+			cy = cy + gap
+		end
 	end
 
 	love.graphics.pop()
