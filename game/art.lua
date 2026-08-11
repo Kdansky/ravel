@@ -106,14 +106,43 @@ local AUTO_SHAPES = { "circle", "square", "triangle", "diamond", "polygon",
 -- run and every machine, with no authoring and no RNG draw (which would also
 -- shift the seeded shuffle). Distinct shapes matter more than distinct hues —
 -- you end up recognising cards by silhouette.
+--
+-- Five independent passes rather than five slices of one number. djb2 spreads
+-- its entropy unevenly — neighbouring keys differ mostly in the low bits — and
+-- the shape, the count and the hue used to be cut from overlapping ranges of a
+-- single hash, so two keys agreeing in those bits agreed about everything.
+-- Re-running the hash from a different seed costs five passes over a short
+-- string and makes the five choices genuinely independent.
+--
+-- Independence was not the thing that mattered, though — the *size* of the
+-- output was. Hue alone gives 360 values, but at one fixed lightness and
+-- saturation barely 160 survive rounding to eight bits a channel, and with 277
+-- card keys in this repository that ceiling predicts about four pairs looking
+-- alike. Varying lightness and saturation as well is what takes the expected
+-- number below one.
+--
+-- Integer arithmetic only, and every intermediate stays exact in a double: the
+-- same reason rng.lua avoids bit operations, so LuaJIT and 5.4 derive the same
+-- picture for the same card.
+local AUTO_SEEDS = { 5381, 7919, 104729, 1299709, 15485863 }
+
+local function hash_with(s, seed)
+	local h = seed
+	for i = 1, #s do h = (h * 33 + s:byte(i)) % 4294967296 end
+	return h
+end
+
 function M.auto(key)
-	local h = 5381
-	for i = 1, #tostring(key) do h = (h * 33 + tostring(key):byte(i)) % 4294967296 end
-	local shape = AUTO_SHAPES[h % #AUTO_SHAPES + 1]
-	local n     = 3 + math.floor(h / 16) % 6
-	local c     = hsl((math.floor(h / 512) % 360) / 360, 0.52, 0.58)
+	key = tostring(key)
+	local h = {}
+	for i, seed in ipairs(AUTO_SEEDS) do h[i] = hash_with(key, seed) end
+	local shape = AUTO_SHAPES[h[1] % #AUTO_SHAPES + 1]
+	local n     = 3 + h[2] % 6
+	-- Kept inside the range the palette was chosen for: bright enough to read on
+	-- the dark table, never bright enough to glow.
+	local rgb   = hsl((h[3] % 360) / 360, 0.40 + (h[4] % 3) * 0.12, 0.44 + (h[5] % 5) * 0.06)
 	return string.format("%s:%d:#%02x%02x%02x", shape, n,
-		math.floor(c[1] * 255), math.floor(c[2] * 255), math.floor(c[3] * 255))
+		math.floor(rgb[1] * 255), math.floor(rgb[2] * 255), math.floor(rgb[3] * 255))
 end
 
 local SIZE = 256

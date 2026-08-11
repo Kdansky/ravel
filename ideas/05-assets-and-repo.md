@@ -57,7 +57,7 @@ end
 ```
 
 It is reachable two ways — `"asset": "auto"` on one card, or
-`"placeholder_art": true` for a whole game — and neither fires when a *named*
+the tag `generate_art` on a card — and neither fires when a *named*
 file is absent. The change is one branch: when the load fails, fall through to
 `art.render(art.auto(...))` instead of caching `false`.
 

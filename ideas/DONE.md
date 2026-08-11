@@ -164,9 +164,11 @@ must not be reproducible, and must not consume draws the rules depend on.
 
 **What it does.** A card's `asset` may be a shape spec instead of a filename —
 `"circle:teal"`, `"polygon:5:green"`, `"star:5:amber"`, `"checker:8:black:white"`
-— drawn by `game/art.lua`. `"placeholder_art": true` at the top of a game file
-gives every card without art a generated one derived from its key, so a
-brand-new file has visual differentiation from its first save.
+— drawn by `game/art.lua`. A card tagged `generate_art` gets one derived from
+its key without naming an asset, so a brand-new file has visual differentiation
+from its first save. That was a game-wide `placeholder_art` boolean until it
+became a tag: a field could only ever be set for the whole file, which is no use
+when six cards want shapes among thirty-five photographs.
 
 **Where.** `art.lua` is above the presentation line. Its `parse` is pure and
 shared with `validate.lua`, so the validator's suggestions and the renderer

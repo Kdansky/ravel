@@ -96,7 +96,7 @@ local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true,
 	cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true, players = true,
-	placeholder_art = true, patterns = true, assets = true, styles = true,
+	patterns = true, assets = true, styles = true,
 }
 M.KNOWN_SECTIONS = KNOWN_SECTIONS
 
@@ -212,7 +212,6 @@ function M.parse(filename)
 	local G = {
 		title          = parsed.title or "Ravel",
 		seed           = parsed.seed,       -- optional: fixed RNG seed for the game
-		placeholder_art = parsed.placeholder_art,  -- generate art for cards with no asset
 		card_defs      = {},
 		card_list      = {},       -- ordered array of card keys (file order, for deterministic setup)
 		zone_defs      = {},

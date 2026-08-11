@@ -73,7 +73,7 @@ Sections are one of two shapes, so there are two rules.
   exists **replaces the earlier one in place**, keeping its position. Position
   is not decoration: `phases` is an ordered list and `card_list` is file order,
   which is what makes an unseeded setup deterministic.
-- **Scalars** — `title`, `seed`, `placeholder_art`: the top file wins outright.
+- **Scalars** — `title`, `seed`: the top file wins outright.
   An included file setting `title` is a bug in that file, and the validator
   should say so rather than the engine resolving it quietly.
 

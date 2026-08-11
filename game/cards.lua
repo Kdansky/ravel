@@ -590,9 +590,13 @@ end
 function M.image(def_key)
 	local def   = declaration.G.card_defs[def_key]
 	local asset = def and def.asset
-	-- A game may opt every card without art into a generated placeholder, so a
-	-- brand-new file has visual differentiation from its first save.
-	if not asset and declaration.G.placeholder_art then asset = "auto" end
+	-- `generate_art` is a card asking for a shape derived from its key, which is
+	-- what a card with nothing to show should look like rather than a bare
+	-- colour. A tag and not a field, because a thing a card either does or does
+	-- not do is exactly what a tag is: the boolean field this replaced could
+	-- only ever be set for a whole game at once, so a file could not have six
+	-- generated cards among thirty-five photographs.
+	if not asset and def and def.tags_set and def.tags_set.generate_art then asset = "auto" end
 	if asset == "auto" then asset = art.auto(def_key) end
 	return M.asset_image(asset, def_key)
 end

@@ -648,7 +648,7 @@ end
 --
 -- What does *not* travel is anything the file only points at. A game whose cards
 -- name local image files will render as text on the far side; one using
--- "placeholder_art" looks identical, because that art is generated rather than
+-- a "generate_art" card looks identical, because that art is generated rather than
 -- fetched.
 function M.share_game()
 	if not link then return false end

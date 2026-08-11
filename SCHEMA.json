@@ -2,7 +2,6 @@
   "_about": "Every field a game file may contain, laid out as a game file, with a sentence where each value would be. Keys starting with an underscore are not sections: they describe vocabularies that are not shapes. A nested block is a moment — it says when the thing inside it happens, so one word can mean one thing (needs is a gate wherever it appears, and the block says what it gates). Fields still sitting flat on a card are moments that have not moved yet, which makes this file the honest record of how far that has got. tests/integration/schema.lua asserts this file and the validator know the same fields in both directions, so if they disagree one of them is a bug.",
   "title": "string shown in the HUD. Defaults to Ravel.",
   "seed": "number fixing the RNG so shuffles and every random choice replay identically. Omit for a different game each run.",
-  "placeholder_art": "true gives every card with no asset a generated picture derived from its key, so a new file has visual differentiation from the first save.",
   "players": [
     {
       "card": "the key of the card that is this seat — a seat is a card, so it has stats, can be looked at, targeted and destroyed. Leave it out and the engine injects an invisible stat bag, which is what a solitaire game has.",
@@ -322,7 +321,7 @@
   },
   "_engine_tags": {
     "_what": "Tags are the game's own vocabulary and an unknown one is not an error. These are the words the engine itself reads. A word naming an entry in styles claims a look instead, and a word naming one in tags claims behaviour. A full reference with what each changes is still owed — see ideas/06-schema-and-types.md gap 4.",
-    "_on_cards": "player (this card is a seat), no_undo (playing or picking this card clears the undo stack — the choice is final), token (vanishes instead of joining the discard), immutable (scenery: nothing may target it and its template can never be edited). How a card looks is a style it tags, not a tag the engine knows.",
+    "_on_cards": "player (this card is a seat), no_undo (playing or picking this card clears the undo stack — the choice is final), generate_art (a card with no asset draws a shape derived from its key, rather than a bare colour), token (vanishes instead of joining the discard), immutable (scenery: nothing may target it and its template can never be edited). How a card looks is a style it tags, not a tag the engine knows.",
     "_on_zones": "shuffle (on creation and refill), refill_when_empty, face_up and face_down (override the type's facing), no_peek (no tooltip or browsing), hidden (not drawn and not clickable), activate (cards here may use their abilities, so every board needs it), optional (nothing here ever has to be played, so a gated card stays gated). How a zone looks is a style it tags.",
     "_reserved": "A zone or tag may never be named self or all, nor any of the quantifiers any, each and random, nor the owner words mine, enemy and anyone. player is deliberately not reserved: it is an ordinary tag a game puts on one card."
   }

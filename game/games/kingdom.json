@@ -70,14 +70,14 @@
       "key": "decline",
       "text": "Decline",
       "tooltip": "Claim no birthright. Begin with nothing.",
-      "tags": ["token", "slate"],
+      "tags": ["token", "slate", "generate_art"],
       "play": { "action": ["destroy_self"] }
     },
     {
       "key": "to_market",
       "text": "Visit the Market",
       "tooltip": "End this season and browse the Market next. Play at least one card first.",
-      "tags": ["token", "moss"],
+      "tags": ["token", "moss", "generate_art"],
       "play": {
         "needs": { "plays": 1 },
         "action": ["set_stat:destination:1", "destroy_self", "next_phase"]
@@ -87,7 +87,7 @@
       "key": "to_barracks",
       "text": "Visit the Barracks",
       "tooltip": "End this season and train at the Barracks next. Play at least one card first.",
-      "tags": ["token", "rust"],
+      "tags": ["token", "rust", "generate_art"],
       "play": {
         "needs": { "plays": 1 },
         "action": ["set_stat:destination:2", "destroy_self", "next_phase"]
@@ -97,7 +97,7 @@
       "key": "to_sanctum",
       "text": "Visit the Sanctum",
       "tooltip": "End this season and seek the Sanctum next. Play at least one card first.",
-      "tags": ["token", "indigo"],
+      "tags": ["token", "indigo", "generate_art"],
       "play": {
         "needs": { "plays": 1 },
         "action": ["set_stat:destination:3", "destroy_self", "next_phase"]
@@ -107,14 +107,14 @@
       "key": "rest",
       "text": "Rest",
       "tooltip": "End the season once both trials are faced.",
-      "tags": ["token", "slate"],
+      "tags": ["token", "slate", "generate_art"],
       "play": { "needs": { "plays": 2 }, "action": ["destroy_self", "next_phase"] }
     },
     {
       "key": "march_on",
       "text": "March On",
       "tooltip": "Enough shopping — the trials won't wait.",
-      "tags": ["token", "slate"],
+      "tags": ["token", "slate", "generate_art"],
       "play": { "action": ["destroy_self", "next_phase"] }
     },
     {

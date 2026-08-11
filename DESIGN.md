@@ -135,6 +135,14 @@ Contents are created (and shuffled, if tagged) when the zone is created, and rec
 
 ---
 
+## No Boolean Fields
+
+**A thing an entity either is or isn't is a tag, not a field.** A boolean field is a name that has to be read twice — once for the word, once for the value — and it can only ever be set on the thing that owns the field. `placeholder_art` was the clearest case: a game-level `true`/`false` that could not give six cards generated art among thirty-five photographs. It is the tag `generate_art`, and a card asks for itself.
+
+This is what the tag system is for, and the rule the [styles](#) pass already followed from the other side: a *quality* is a tag, a *value* is a field. `ratio` is a number and there are infinitely many, so it is a field; `no_undo` and `generate_art` are words a card carries or does not.
+
+---
+
 ## Zone / Deck Behaviour: Tags
 
 Zones declare behaviour through an open-ended string tag set. The engine checks for known tags; unknown tags are ignored (forward-compatible).

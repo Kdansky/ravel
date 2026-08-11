@@ -280,9 +280,10 @@ one-colour spec looks deliberate. Counts outside a shape's range are clamped.
 
 **`"asset": "auto"`** derives a shape, a count and a hue from the card *key*.
 Same card, same art, every run and every machine — no authoring at all, and no
-RNG draw, so it cannot shift a seeded shuffle. Set `"placeholder_art": true` at
-the top level to make `auto` the default for every card with no `asset`, which
-is the one-line way to give a brand-new game visual differentiation.
+RNG draw, so it cannot shift a seeded shuffle. **Tag a card `generate_art`** and
+it gets the same thing without naming an asset at all — which is how a handful of
+cards can carry generated shapes among a deck of photographs, and how a brand-new
+game gets visual differentiation before it has any art.
 
 `lost_cities.json` is the worked example: sixty cards, no image files. Its
 number cards are `stripes:<value>:<colour>`, so a card's value is legible as a
@@ -409,7 +410,6 @@ file to check what may appear where.
 | `end_conditions` | Outcome checks, first match wins, once per game |
 | `players` | Who is playing, in seat order (see *Players*) |
 | `setup` | How the game begins: `place` lays out whatever starts on the table (see *Setup*) |
-| `placeholder_art` | `true` gives every card without an `asset` generated art from its key |
 
 ### Stats
 
@@ -588,7 +588,7 @@ sending `Cache-Control` (imgur sends a year) is answered from the browser's own
 disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `owns` | Seats only (a card tagged `player`): the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone — `"owns": "white"` on the seat makes every card tagged `white` that player's. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. **A tag outranks the zone**, so a planet held by player three inside player two's system is player three's |
-| `tags` | Free vocabulary for targeting/counting; engine-known: `no_undo` (playing or picking this card clears the undo stack — the choice is final), `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it). How a card *looks* is a style it tags, not a tag the engine knows |
+| `tags` | Free vocabulary for targeting/counting; engine-known: `generate_art` (a card with no `asset` draws a shape derived from its key, rather than a bare colour), `no_undo` (playing or picking this card clears the undo stack — the choice is final), `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it). How a card *looks* is a style it tags, not a tag the engine knows |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `turn.action`) |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). Activating **exhausts** the card until the round wraps, and a board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `exhausts: false` keeps it ready, which is how a permanent button works ("pass the time"). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
@@ -1313,7 +1313,7 @@ Three ways to connect, all of them without a server:
   **Your opponent does not need the game**: if they do not have the file, it is
   sent over the connection and they play a game they have never seen. What does
   not travel is anything the file only points at — a game naming local image
-  files renders as text on their side, while `placeholder_art` looks identical
+  files renders as text on their side, while a `generate_art` card looks identical
   because it is generated. It fails on some mobile and carrier-NAT connections,
   where copy/paste is the fallback. The blob contains your IP address, which is
   what it is for: send it in a DM, not to a public channel.
