@@ -25,6 +25,7 @@ about how it might go.
 | [11](11-styles-as-tags.md) | Styles are tags too | medium-large | **shipped** — `styles`, claimed by tagging one. Absorbed `color`, `fit`, `ratio`, `checker`, `paint` and three tags; `color: false` replaced `transparent_background`. A style that is also a computed tag makes a look follow the numbers |
 | [12](12-card-moments.md) | A card is a list of moments | large, mostly migration | **shipped** — `play` / `activate` / `challenge` / `receive` / `turn` / `start`. The `activate_` prefix, `requires`, `accepts` and every `on_` name are gone, and `pick` turned out to be `play` |
 | [13](13-one-name-one-thing.md) | One name, one thing | small check | **shipped**, and narrower: a key is unique within its kind, and the *scope* namespace (patterns, zones, tags) may not collide. Everything else may repeat — two repeats are load-bearing |
+| [15](15-many-on-one-square.md) | Several cards on one square | answered: *not yet* | **refused for now.** Three questions in one: cards on a card is `attach_to_target`, **built and unused**; a count on a square is a slot stat, half built; an ordered run is a zone with `fan`, shipped. What is left over — identity *and* order *and* a square — no target game asks for |
 | [14](14-kinds-and-placements.md) | Six kinds, thirty-two pieces | medium | **half shipped**: `setup.place` exists, so a card no longer says where it starts. Left is the collapse itself — six kinds, with [11](11-styles-as-tags.md) giving a piece its colour |
 
 ---
@@ -55,7 +56,8 @@ things happen come first.
 | 5 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
 | 6 | [08](08-grid-movement-notation.md) — **check, as a stamped `threat` stat** | low | medium | the last rule that changes how chess plays, and the same stat gives tactical games threat maps. Not a computed tag — the doc says why |
 | 7 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | a jump takes the piece it flies past, and nothing can name that square. En passant and castling-through-check ask for the same word |
-| 8 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
+| 8 | [15](15-many-on-one-square.md) — **a number on a square** | low | small | a slot is already an entity whose stats a condition can read (`row@target`); it just cannot declare one, so `gain_stat` aimed at a square does nothing. One field on the grid. Wanted twice: it is also how [08](08-grid-movement-notation.md) stamps `threat` for check |
+| 9 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
 | 10 | [07](07-presentation.md) gap 3 — **multi-ability chooser** | low | medium | no shipped game needs it. Build it with the first card that has two abilities |
 
 **The draw path is still where bugs hide, and there is now a way to look.** The
