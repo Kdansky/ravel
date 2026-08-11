@@ -53,7 +53,7 @@
       "text": "the card title, drawn on its face",
       "tooltip": "prose shown in the hover panel after a short delay",
       "story": "long prose for the full-screen page overlay and the detail view",
-      "asset": "a picture: a name in the assets table, a bare filename in games/assets, an http(s) URL, a shape spec like star:5:amber, or auto for a generated one. A name is anything with no source in it, which is what tells the five apart.",
+      "asset": "a picture: a name in the assets table, a bare filename in games/assets, an http(s) URL, a shape spec like star:5:amber, or auto for a generated one. A name is anything with no source in it, which is what tells the five apart. A picture that cannot be produced draws a generated placeholder derived from the card key, never nothing.",
       "tags": [
         "a list of words. Free vocabulary for targeting and counting, except where the engine knows one (see _engine_tags) or a style is named after one (see styles) — a card claims a look by tagging it."
       ],

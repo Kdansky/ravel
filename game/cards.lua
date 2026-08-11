@@ -512,6 +512,30 @@ end
 -- one texture.
 local DEFAULT_MAX = 1024
 
+-- A picture that cannot be produced draws a generated one, never nothing.
+--
+-- The reasons a picture goes missing are mostly not the author's: a remote host
+-- is down or refuses the fetch, or — the common one — somebody is playing a game
+-- file that arrived over the network, which carries the JSON and not the art
+-- sitting in the sender's assets folder. A card with no image at all reads as a
+-- bug in the game; a shape derived from its key reads as a card.
+--
+-- The **key** is hashed, not the text, because the key is the card's identity
+-- and the text is presentation: renaming a card's title should not give it a
+-- different picture, and a saved game should not change under a copy-edit.
+--
+-- Said once per key rather than per frame, which img_cache gives for free — the
+-- caller is a draw path and would otherwise print sixty times a second.
+local function placeholder(key, why)
+	print(("no picture for '%s' (%s) — drawing a generated one"):format(tostring(key), why))
+	-- A placeholder is a drawing, and drawing needs a canvas. The headless shim
+	-- has no graphics layer and nothing to show it to, so there answering nil is
+	-- the honest result rather than an error on a path that only ever runs
+	-- because something else already went wrong.
+	local ok, img = pcall(art.render, art.auto(tostring(key)))
+	return ok and img or nil
+end
+
 function M.asset_image(asset, key)
 	local named = asset and declaration.G.asset_defs and declaration.G.asset_defs[asset]
 	local max = DEFAULT_MAX
@@ -523,9 +547,8 @@ function M.asset_image(asset, key)
 	local def_key = key
 	if tostring(asset):match("^https?://") then
 		if not M.url_is_safe(asset) then
-			print("asset URL refused (contains characters not valid in a URL): " .. tostring(asset))
-			img_cache[def_key] = false
-			return nil
+			img_cache[def_key] = placeholder(key, "that URL has characters no URL may contain") or false
+			return img_cache[def_key] or nil
 		end
 		-- A real branch, not `cond and browser(...) or desktop(...)`: both of the
 		-- browser fetch's unfinished answers are falsy — nil while in flight,
@@ -541,6 +564,7 @@ function M.asset_image(asset, key)
 		if love.js and love.js.eval then img = fetch_browser(asset, id, max)
 		else img = fetch_desktop(asset, id) end
 		if img == nil then return nil end   -- still fetching
+		if img == false then img = placeholder(key, "the fetch failed") or false end
 		img_cache[def_key] = img
 		return img or nil
 	end
@@ -551,16 +575,15 @@ function M.asset_image(asset, key)
 	if not tostring(asset):match("^[%w_%-]+%.[%w]+$") then
 		local drawn = art.render(asset)
 		if drawn then img_cache[def_key] = drawn; return drawn end
-		if art.parse(asset) == nil and asset:find(":") then
-			print("asset refused (not a shape the engine knows): " .. tostring(asset))
-		elseif not asset:find(":") then
-			print("asset refused (must be a plain filename or a shape): " .. tostring(asset))
-		end
-		img_cache[def_key] = false
-		return nil
+		local why = (art.parse(asset) == nil and asset:find(":"))
+			and ("'" .. tostring(asset) .. "' is not a shape the engine knows")
+			or ("'" .. tostring(asset) .. "' is neither a plain filename nor a shape")
+		img_cache[def_key] = placeholder(key, why) or false
+		return img_cache[def_key] or nil
 	end
 	local ok, i = pcall(love.graphics.newImage, "games/assets/" .. asset)
-	img_cache[def_key] = ok and i or false
+	if not ok then i = placeholder(key, "'" .. tostring(asset) .. "' is not in games/assets") end
+	img_cache[def_key] = i or false
 	return img_cache[def_key] or nil
 end
 

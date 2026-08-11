@@ -16,7 +16,7 @@ about how it might go.
 | [DONE](DONE.md) | **Everything already built** | — | stats on cards · seats and hot-seat · the engine's own RNG · procedural art · Lost Cities · networked play · stacks and mixins · chess · named and remote assets · the inspector |
 | [01](01-boardgames.md) | Any board game as JSON | large, staged | **Lost Cities and chess shipped.** Left: checkers' jumped square, Klondike, triggers |
 | [04](04-simulation-games.md) | Cultist Simulator, turn-based | medium | not started — unblocked, and smaller than written |
-| [05](05-assets-and-repo.md) | Assets, and what the repo carries | small | **named assets shipped.** Left: the placeholder fallback, and art out of git |
+| [05](05-assets-and-repo.md) | Assets, and what the repo carries | small | **closed** — named assets, remote pictures, and a generated placeholder when one cannot be produced. Art stays in git: that gap was a misunderstanding, and remote art was the real requirement |
 | [06](06-schema-and-types.md) | Saying what things are | medium | not started — zone qualities as tags, lists everywhere, guards at the door, the tag registry |
 | [07](07-presentation.md) | Presentation and its gestures | medium-large | not started — the text/contrast pass, clicking the deck, board chrome, zone ratios, multi-ability choice |
 | [08](08-grid-movement-notation.md) | How a piece says where it may go | medium | **chess plays, castling included.** `patterns` (relative and absolute), capture, piece ownership, patterns as scopes. Left: the scope anchor word, check/checkmate, promotion, en passant |
@@ -46,20 +46,18 @@ things happen come first.
 
 | # | Item | Urgency | Difficulty | Why here |
 |---|---|---|---|---|
-| 1 | [05](05-assets-and-repo.md) gap 1 — **placeholder when a picture is missing** | high | low | one branch in `cards.asset_image`, and the *only* thing blocking item 2. Two changes, not one: draw the placeholder, and stop the validator warning when art is deliberately absent |
-| 2 | [05](05-assets-and-repo.md) gap 3 — **art out of git** | high | low | wanted, and cheap once 1 lands. Decided already: small art that is *part of the rules* stays, so chess keeps its sprites, and history is not rewritten |
-| 3 | [07](07-presentation.md) gap 1 — **the text, contrast and tooltip pass** | high | medium-high | the thing players actually hit, and the one area this year's format work never touched. Mostly judgement, not code |
-| 4 | **Hidden hands, a nameplate, a pass-the-device overlay** | high | medium | the last of multiplayer stage A. [07](07-presentation.md) gap 2 needs the same "can this player see this card" predicate, so build it once |
-| 5 | [14](14-kinds-and-placements.md) — **six chess kinds instead of thirty-two** | medium | medium | the payoff for `setup.place` and `styles`, and the proof they were worth it: chess loses 26 cards and stops needing a generator. **Needs one thing first** — a style that varies by *owner*, since a white rook and a black rook differ only in how they are drawn |
-| 6 | [06](06-schema-and-types.md) gap 4 — **every engine-known tag in one table** | medium | low | cheaper than it was (the vocabulary shrank when presentation left) and more needed (a lot of words moved). The table is also what a near-miss check would read |
-| 7 | [07](07-presentation.md) gap 2 — **click the deck to draw** | medium | low, after 4 | deletes the ugliest card on the Lost Cities board; the rules already allow it |
-| 8 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | small, with one trap | the trap is the network: it ships *a file*, so includes must flatten before being sent or hashed. Cheap designed in, expensive found later |
-| 9 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `type` is still four words bundling facing, reach, layout and order. Styles took the presentation half; this is the rest |
-| 10 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
-| 11 | [08](08-grid-movement-notation.md) — **check, as a stamped `threat` stat** | low | medium | the last rule that changes how chess plays, and the same stat gives tactical games threat maps. Not a computed tag — the doc says why |
-| 12 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | checkers' jump, en passant and castling-through-check all ask for it. Design it once or they diverge |
-| 13 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
-| 14 | [07](07-presentation.md) gap 3 — **multi-ability chooser** | low | medium | no shipped game needs it. Build it with the first card that has two abilities |
+| 1 | [07](07-presentation.md) gap 1 — **the text, contrast and tooltip pass** | high | medium-high | the thing players actually hit, and the one area this year's format work never touched. Mostly judgement, not code |
+| 2 | **Hidden hands, a nameplate, a pass-the-device overlay** | high | medium | the last of multiplayer stage A. [07](07-presentation.md) gap 2 needs the same "can this player see this card" predicate, so build it once |
+| 3 | [14](14-kinds-and-placements.md) — **six chess kinds instead of thirty-two** | medium | medium | the payoff for `setup.place` and `styles`, and the proof they were worth it: chess loses 26 cards and stops needing a generator. **Needs one thing first** — a style that varies by *owner*, since a white rook and a black rook differ only in how they are drawn |
+| 4 | [06](06-schema-and-types.md) gap 4 — **every engine-known tag in one table** | medium | low | cheaper than it was (the vocabulary shrank when presentation left) and more needed (a lot of words moved). The table is also what a near-miss check would read |
+| 5 | [07](07-presentation.md) gap 2 — **click the deck to draw** | medium | low, after 2 | deletes the ugliest card on the Lost Cities board; the rules already allow it |
+| 6 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | small, with one trap | the trap is the network: it ships *a file*, so includes must flatten before being sent or hashed. Cheap designed in, expensive found later |
+| 7 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `type` is still four words bundling facing, reach, layout and order. Styles took the presentation half; this is the rest |
+| 8 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
+| 9 | [08](08-grid-movement-notation.md) — **check, as a stamped `threat` stat** | low | medium | the last rule that changes how chess plays, and the same stat gives tactical games threat maps. Not a computed tag — the doc says why |
+| 10 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | checkers' jump, en passant and castling-through-check all ask for it. Design it once or they diverge |
+| 11 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
+| 12 | [07](07-presentation.md) gap 3 — **multi-ability chooser** | low | medium | no shipped game needs it. Build it with the first card that has two abilities |
 
 Two format findings stay open and stay cheap, both from
 [10](10-schema-document.md): one condition has three spellings with the *site*

@@ -1,18 +1,17 @@
 # 05 — Assets and what the repository carries
 
-**Status:** gap 2 shipped, in a different shape than proposed (`ff55754`) ·
-gaps 1 and 3 open · **Size:** small, and both unblock a thing that is wanted
-now.
+**Status: closed.** Gap 2 shipped as named assets (`ff55754`), gap 1 as the
+placeholder, and **gap 3 was a misunderstanding** — see below.
 
-Three items that only make sense together: art can leave the repository once a
-missing picture is harmless, and a missing picture is only harmless once the
-engine stops guessing what an `asset` string was supposed to be.
+The three were written as one chain: art could leave the repository once a
+missing picture was harmless. That premise is gone, and the two that remained
+turned out to stand on their own.
 
 ---
 
 ## Gap 1 — A missing picture must produce a placeholder, not nothing
 
-*Urgency: high (blocks gap 3) · Difficulty: low · Usefulness: high*
+**Shipped.** *(Was: urgency high, blocks gap 3 — which is cancelled.)*
 
 `cards.asset_image` (`game/cards.lua:533`) still ends with:
 
@@ -23,16 +22,27 @@ return img_cache[def_key] or nil
 ```
 
 A file that isn't there fails the `pcall`, caches `false`, and the card draws
-with **no image at all**. That is the only reason art cannot leave the
-repository today.
+with **no image at all**.
 
-One correction since this was written: it is no longer *silent*. `validate.lua`
-now reports `its image 'x.jpg' is not in games/assets` at load time, so the
-diagnosis exists. What is missing is only the picture — which is the half that
-matters here, because gap 3 makes a missing file the **normal** state rather
-than an error, and a validator that shouts about seventy of them is worse than
-useless. So gap 1 is now two changes: draw the placeholder, **and** stop warning
-when art is deliberately absent.
+**Shipped**, and for a better reason than the one written here. Art is not
+leaving the repository (gap 3), so this is not about making absence normal — it
+is about the failures that are *not* the author's doing. A remote host refuses
+the fetch; or, the common one, somebody is playing a game file that arrived over
+the network, which carries the JSON and none of the sender's assets folder. A
+card with no image reads as a bug in the game; a shape derived from its key
+reads as a card.
+
+Every exit that could not produce a picture now falls through to
+`art.render(art.auto(key))` — a missing file, a refused URL, a failed fetch, a
+shape the engine cannot draw — and each says once which of those it was. The
+**key** is hashed rather than the text, as recommended below: the key is
+identity, the text is presentation, and a copy-edit should not repaint a card.
+
+The validator's `its image 'x.jpg' is not in games/assets` **stays**, and that
+is the one thing gap 3's cancellation changed here. It was going to be removed,
+because a missing file was about to become the normal state; it isn't, so a
+local file that is not there is still an authoring mistake worth reporting. The
+placeholder is what the *player* sees, not permission to lose the art.
 
 **Most of the machinery already exists.** `art.auto(key)` (`game/art.lua:107`)
 hashes a string with djb2 and derives a shape, a count and an HSL hue from it,
@@ -153,10 +163,24 @@ still a bare filename under `games/assets/`, never a path.
 
 ---
 
-## Gap 3 — Art out of the repository, JSON in
+## Gap 3 — Art out of the repository — **not wanted, and never was**
 
-*Urgency: high (wanted now) · Difficulty: low, with one judgement call ·
-Usefulness: high*
+> *I do not actually require the art to be removed from git, that was a
+> misunderstanding. I want the engine to be able to use art that's not hosted
+> here, and we have done that already.*
+
+**The real requirement was remote art, and it shipped** with named assets: an
+`asset` may be an `http(s)` URL, the browser fetches it through the page, and
+the format stops mattering because the page decodes it. A game file can name
+pictures somebody else hosts, which is what "not hosted here" meant.
+
+Nothing below is being done. It is kept because the *measurements* in it are
+still true and someone will ask again — the pack is 2.83 MiB, essentially all
+art, and removing files going forward would not shrink a clone anyway.
+
+The rest of this section is the plan as written, and is not the plan.
+
+### The original reasoning
 
 **First, a correction to the premise.** The game files are *not* missing from
 git — all ten are tracked, and so is every art file:

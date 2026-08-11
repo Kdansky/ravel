@@ -257,6 +257,23 @@ do
 	targeting.clear()
 end
 
+-- A picture that cannot be produced draws a generated one. The reasons are
+-- mostly not the author's — a remote host refusing the fetch, or a game file
+-- that arrived over the network without the sender's assets folder — and a card
+-- with no image at all reads as a bug in the game rather than as a card.
+do
+	local cards = require("cards")
+	for _, case in ipairs({ "no_such_file.png", "hexagram:red", "gibberish" }) do
+		local img = cards.asset_image(case, "smoke_" .. case)
+		assert(img, "expected a placeholder for " .. case)
+		assert(img.getDimensions, "the placeholder should be a texture")
+	end
+	-- Twice for one key is one draw and one cache hit, never two prints.
+	local first = cards.asset_image("no_such_file.png", "smoke_twice")
+	assert(cards.asset_image("no_such_file.png", "smoke_twice") == first,
+		"a placeholder should be cached like any other picture")
+end
+
 -- every base effect animates and draws
 flow.init("castle.json", 7)
 render.rescale()
