@@ -129,8 +129,11 @@ function M.draw()
 
 	local S      = render.scale()
 	local W, H   = love.graphics.getDimensions()
-	local pad    = 9 * S
-	local gap    = 5 * S
+	-- Whole pixels, so glyphs are not sampled between texels. Rounded here at
+	-- the source rather than at each printf: everything below is measured from
+	-- these, so integers in means integers out.
+	local pad    = math.floor(9 * S + 0.5)
+	local gap    = math.floor(5 * S + 0.5)
 	local box_w  = math.min(240 * S, W * 0.34)
 	local inner  = box_w - pad * 2
 	local tf, bf = render.main_font(), render.small_font()
@@ -147,7 +150,7 @@ function M.draw()
 		elseif b.kind == "prose" then
 			local _, lines = bf:getWrap(b.a, inner)
 			return #lines * math.ceil(bf:getHeight() * 1.25)
-		elseif b.kind == "rule" then return gap * 1.8
+		elseif b.kind == "rule" then return math.floor(gap * 1.8)
 		elseif b.kind == "row" then return math.ceil(bf:getHeight() * 1.15)
 		else
 			local _, lines = bf:getWrap(b.a, inner)
@@ -170,6 +173,7 @@ function M.draw()
 	if x < 0 then x = 4 end
 	if y + box_h > H then y = H - box_h - 4 end
 	if y < 0 then y = 4 end
+	x, y = math.floor(x + 0.5), math.floor(y + 0.5)
 
 	love.graphics.push("all")
 	love.graphics.setColor(0.04, 0.07, 0.13, 0.97)

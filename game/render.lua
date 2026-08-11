@@ -61,9 +61,29 @@ local font_banner = nil
 -- out as "S...", which tells a player nothing at all, and the same string at
 -- 8px is legible. Cutting is still the last resort, not the first.
 local font_cache = {}
+-- Text lands on whole pixels, everywhere. A zone's rect is a fraction of the
+-- window, so a card lands on x = 371.4 and every glyph in it is sampled between
+-- two texels — which is most of what "blurry" is. Wrapped once here rather than
+-- rounded at forty call sites, where the next one added would forget.
+local function printf(text, x, y, ...)
+	return love.graphics.printf(text, math.floor(x + 0.5), math.floor(y + 0.5), ...)
+end
+
+local function print_at(text, x, y, ...)
+	return love.graphics.print(text, math.floor(x + 0.5), math.floor(y + 0.5), ...)
+end
+
 local function font_at(px)
 	px = math.max(6, math.floor(px + 0.5))
-	if not font_cache[px] then font_cache[px] = love.graphics.newFont(px) end
+	if not font_cache[px] then
+		local f = love.graphics.newFont(px)
+		-- The default filter is linear, set once in main.lua for the card art,
+		-- and a glyph atlas is not art: it is already rasterised at exactly the
+		-- size it will be drawn, so sampling it smoothly can only soften edges
+		-- that were sharp. Text is the one thing that wants nearest.
+		f:setFilter("nearest", "nearest")
+		font_cache[px] = f
+	end
 	return font_cache[px]
 end
 
@@ -167,13 +187,14 @@ end
 -- gap lets a bright pixel of art touch the glyph and the letter loses its edge.
 local OUTLINE_OFFSETS = { {-1,-1},{0,-1},{1,-1},{-1,0},{1,0},{-1,1},{0,1},{1,1} }
 local function outlined_printf(text, x, y, w, align, fg, outline)
+	local w_i = math.floor(w + 0.5)
 	local d = math.max(1, math.floor(S + 0.5))
 	love.graphics.setColor(outline[1], outline[2], outline[3], outline[4] or 1)
 	for _, o in ipairs(OUTLINE_OFFSETS) do
-		love.graphics.printf(text, x + o[1] * d, y + o[2] * d, w, align)
+		printf(text, x + o[1] * d, y + o[2] * d, w_i, align)
 	end
 	love.graphics.setColor(fg[1], fg[2], fg[3], fg[4] or 1)
-	love.graphics.printf(text, x, y, w, align)
+	printf(text, x, y, w_i, align)
 end
 
 local function pulse(speed)
@@ -362,7 +383,7 @@ local function draw_cost_badge(pl, cost)
 	for _, k in ipairs(keys) do
 		draw_stat_icon(k, x + ih * 0.5, y + ih * 0.5, ih)
 		love.graphics.setColor(unpack(C.cost))
-		love.graphics.print(tostring(cost[k]), x + ih + 2 * S, y)
+		print_at(tostring(cost[k]), x + ih + 2 * S, y)
 		x = x + ih + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
 	end
 end
@@ -534,7 +555,7 @@ local function draw_card_face(pl, card_e, show_text)
 			local sf = get_small_font()
 			love.graphics.setFont(sf)
 			love.graphics.setColor(0.70, 0.75, 0.85, 0.90)
-			love.graphics.printf(dim_label, pl.x, pl.y + pl.h * 0.5 - sf:getHeight() * 0.5,
+			printf(dim_label, pl.x, pl.y + pl.h * 0.5 - sf:getHeight() * 0.5,
 				pl.w, "center")
 		end
 	end
@@ -595,7 +616,7 @@ local function draw_card_face(pl, card_e, show_text)
 		love.graphics.setColor(0.80, 0.60, 1.00)
 		love.graphics.rectangle("fill", bx, by, bs, bs, 2 * S, 2 * S)
 		love.graphics.setColor(0.05, 0.05, 0.10)
-		love.graphics.printf(tostring(#card_e.attached), bx, by + S, bs, "center")
+		printf(tostring(#card_e.attached), bx, by + S, bs, "center")
 	end
 
 	love.graphics.pop()
@@ -627,7 +648,7 @@ local function draw_card_stats_overlay(pl, card_e)
 	else
 		love.graphics.setColor(1.00, 0.28, 0.15)
 	end
-	love.graphics.print(txt, bx + fh + 3 * S, by)
+	print_at(txt, bx + fh + 3 * S, by)
 	love.graphics.pop()
 end
 
@@ -648,7 +669,7 @@ local function draw_page(pl, card_e)
 	local m = 18 * S
 	local y = pl.y + m
 	love.graphics.setColor(unpack(C.card_text))
-	love.graphics.printf(def and def.text or card_e.def_key, pl.x + m, y, pl.w - m * 2, "center")
+	printf(def and def.text or card_e.def_key, pl.x + m, y, pl.w - m * 2, "center")
 	y = y + mf:getHeight() + 8 * S
 	love.graphics.setColor(0.28, 0.40, 0.62)
 	love.graphics.line(pl.x + m, y, pl.x + pl.w - m, y)
@@ -657,13 +678,13 @@ local function draw_page(pl, card_e)
 	local hint_h = sf:getHeight() + 12 * S
 	love.graphics.setScissor(pl.x, y, pl.w, math.max(0, pl.y + pl.h - hint_h - y))
 	love.graphics.setColor(0.80, 0.88, 1.00)
-	love.graphics.printf(def and (def.story or def.tooltip) or "",
+	printf(def and (def.story or def.tooltip) or "",
 		pl.x + m, y, pl.w - m * 2, "left")
 	love.graphics.setScissor()
 
 	love.graphics.setFont(sf)
 	love.graphics.setColor(0.45, 0.60, 0.80, 0.55 + 0.35 * pulse(3))
-	love.graphics.printf("click to continue", pl.x, pl.y + pl.h - hint_h + 4 * S, pl.w, "center")
+	printf("click to continue", pl.x, pl.y + pl.h - hint_h + 4 * S, pl.w, "center")
 	love.graphics.pop()
 end
 
@@ -822,10 +843,10 @@ local function draw_zone(zone_e)
 		love.graphics.setColor(0, 0, 0, 0.55)
 		love.graphics.rectangle("fill", p.x + 3 * S, band_y, p.w - 6 * S, band_h, 3 * S, 3 * S)
 		love.graphics.setColor(unpack(C.card_text))
-		love.graphics.printf(truncate(love.graphics.getFont(), zone_e.label, p.w - 10 * S),
+		printf(truncate(love.graphics.getFont(), zone_e.label, p.w - 10 * S),
 			p.x + 5 * S, band_y + 3 * S, p.w - 10 * S, "center")
 		love.graphics.setColor(0.55, 0.72, 1.00)
-		love.graphics.printf(tostring(#zone_e.cards),
+		printf(tostring(#zone_e.cards),
 			p.x + 5 * S, band_y + fh + 5 * S, p.w - 10 * S, "center")
 		love.graphics.pop()
 	elseif zt == "deck" then
@@ -838,7 +859,7 @@ local function draw_zone(zone_e)
 			end
 			love.graphics.push("all")
 			love.graphics.setColor(unpack(C.deck_count))
-			love.graphics.printf(tostring(#zone_e.cards), p.x, p.y + p.h - fh - 5 * S, p.w, "center")
+			printf(tostring(#zone_e.cards), p.x, p.y + p.h - fh - 5 * S, p.w, "center")
 			love.graphics.pop()
 		end
 	elseif zt == "pile" then
@@ -855,7 +876,7 @@ local function draw_zone(zone_e)
 		if zone_e.label then
 			love.graphics.push("all")
 			love.graphics.setColor(0.30, 0.42, 0.60, 0.65)
-			love.graphics.printf(zone_e.label, p.x + 2, p.y + 3 * S, p.w - 4, "center")
+			printf(zone_e.label, p.x + 2, p.y + 3 * S, p.w - 4, "center")
 			love.graphics.pop()
 		end
 	elseif zt == "grid" then
@@ -897,7 +918,7 @@ local function draw_stats()
 	local cur = phase.current()
 	if cur and cur.label then
 		love.graphics.setColor(0.70, 0.88, 1.00)
-		love.graphics.print(cur.label, x - mf:getWidth(cur.label), y)
+		print_at(cur.label, x - mf:getWidth(cur.label), y)
 		y = y + fh + 8 * S
 	end
 	for _, key in ipairs(G.stat_defs_list or {}) do
@@ -909,7 +930,7 @@ local function draw_stats()
 			local row_x = x - tw - fh - 4 * S
 			draw_stat_icon(key, row_x + fh * 0.5, y + fh * 0.5, fh * 0.85)
 			love.graphics.setColor(unpack(C.stat))
-			love.graphics.print(txt, row_x + fh + 4 * S, y)
+			print_at(txt, row_x + fh + 4 * S, y)
 			stat_hud[key] = { x = row_x + fh + tw * 0.5, y = y }
 			y = y + fh + 5 * S
 		end
@@ -1010,7 +1031,7 @@ local function draw_button(name, label, x, y, w, h)
 	love.graphics.rectangle("line", x, y, w, h, 4 * S, 4 * S)
 	love.graphics.setColor(unpack(C.card_text))
 	local mf = love.graphics.getFont()
-	love.graphics.print(label, x + (w - mf:getWidth(label)) * 0.5,
+	print_at(label, x + (w - mf:getWidth(label)) * 0.5,
 		y + (h - mf:getHeight()) * 0.5)
 end
 
@@ -1033,7 +1054,7 @@ local function draw_targeting_hint()
 	love.graphics.setColor(0.00, 0.00, 0.00, 0.82)
 	love.graphics.rectangle("fill", 0, H - bar_h, W, bar_h)
 	love.graphics.setColor(0.75, 0.92, 1.00)
-	love.graphics.print(msg, 12 * S, H - bar_h + 7 * S)
+	print_at(msg, 12 * S, H - bar_h + 7 * S)
 
 	-- tap-friendly confirm/cancel, mirrored by Enter / Esc
 	local bh = bar_h - 6 * S
@@ -1091,11 +1112,11 @@ local function draw_log()
 	for i, line in ipairs(lines) do
 		local a = log_expanded and 0.95 or (0.55 + 0.40 * (i / #lines))
 		love.graphics.setColor(0.75, 0.85, 1.00, a)
-		love.graphics.print(truncate(sf, line, w - 22 * S),
+		print_at(truncate(sf, line, w - 22 * S),
 			x + 4 * S, y + 4 * S + (i - 1) * (fh + 2 * S))
 	end
 	love.graphics.setColor(0.45, 0.60, 0.80, 0.75)
-	love.graphics.print("L", x + w - fh - 3 * S, y + 4 * S)
+	print_at("L", x + w - fh - 3 * S, y + 4 * S)
 	love.graphics.pop()
 end
 
@@ -1133,7 +1154,7 @@ local function draw_zone_browse(zone_e)
 
 	love.graphics.push("all")
 	love.graphics.setColor(unpack(C.card_text))
-	love.graphics.printf((zone_e.label or zone_e.key) .. "  (" .. n .. ")", 0, 18 * S, W, "center")
+	printf((zone_e.label or zone_e.key) .. "  (" .. n .. ")", 0, 18 * S, W, "center")
 
 	local cw   = math.min(130 * S, (W - 40 * S) / math.min(n, 5) - gap)
 	local cols = math.max(1, math.floor((W - 40 * S) / (cw + gap)))
@@ -1182,7 +1203,7 @@ local function draw_card_detail(card_e)
 		local y = info_y
 
 		love.graphics.setColor(1.00, 1.00, 1.00)
-		love.graphics.printf(def and def.text or card_e.def_key, info_x, y, info_w, "left")
+		printf(def and def.text or card_e.def_key, info_x, y, info_w, "left")
 		y = y + main_font:getHeight() + 8 * S
 
 		love.graphics.setColor(0.28, 0.40, 0.62)
@@ -1192,14 +1213,14 @@ local function draw_card_detail(card_e)
 
 		if def and def.cost and next(def.cost) then
 			love.graphics.setColor(unpack(C.cost))
-			love.graphics.print("Cost: " .. cards.cost_text(def.cost), info_x, y)
+			print_at("Cost: " .. cards.cost_text(def.cost), info_x, y)
 			y = y + main_font:getHeight() + 8 * S
 		end
 
 		local tooltip = def and def.tooltip or ""
 		if tooltip ~= "" then
 			love.graphics.setColor(0.82, 0.91, 1.00)
-			love.graphics.printf(tooltip, info_x, y, info_w, "left")
+			printf(tooltip, info_x, y, info_w, "left")
 			local _, wrapped = main_font:getWrap(tooltip, info_w)
 			y = y + #wrapped * main_font:getHeight() + 14 * S
 		end
@@ -1207,7 +1228,7 @@ local function draw_card_detail(card_e)
 		local story = def and def.story or ""
 		if story ~= "" then
 			love.graphics.setColor(0.68, 0.78, 0.94)
-			love.graphics.printf(story, info_x, y, info_w, "left")
+			printf(story, info_x, y, info_w, "left")
 			local _, swrapped = main_font:getWrap(story, info_w)
 			y = y + #swrapped * main_font:getHeight() + 14 * S
 		end
@@ -1215,14 +1236,14 @@ local function draw_card_detail(card_e)
 		local stats = card_e.stats
 		if stats and next(stats) then
 			love.graphics.setColor(0.55, 0.70, 0.90)
-			love.graphics.print("Stats:", info_x, y)
+			print_at("Stats:", info_x, y)
 			y = y + main_font:getHeight() + 4 * S
 			for k, v in pairs(stats) do
 				if k:sub(-4) ~= "_max" then
 					local mk  = k .. "_max"
 					local val = stats[mk] and (v .. "/" .. stats[mk]) or tostring(v)
 					love.graphics.setColor(0.78, 0.92, 1.00)
-					love.graphics.print("  " .. k .. ": " .. val, info_x, y)
+					print_at("  " .. k .. ": " .. val, info_x, y)
 					y = y + main_font:getHeight()
 				end
 			end
@@ -1232,7 +1253,7 @@ local function draw_card_detail(card_e)
 		if def and def.tags_set and next(def.tags_set) then
 			love.graphics.setColor(0.55, 0.70, 0.90)
 			love.graphics.setFont(main_font)
-			love.graphics.print("Tags:", info_x, y)
+			print_at("Tags:", info_x, y)
 			y = y + main_font:getHeight() + 4 * S
 
 			local sf = get_small_font()
@@ -1249,7 +1270,7 @@ local function draw_card_detail(card_e)
 				love.graphics.setColor(0.35, 0.52, 0.80)
 				love.graphics.rectangle("line", tx, y, tw, sf:getHeight() + 4 * S, 3 * S, 3 * S)
 				love.graphics.setColor(0.78, 0.90, 1.00)
-				love.graphics.print(tag, tx + 5 * S, y + 2 * S)
+				print_at(tag, tx + 5 * S, y + 2 * S)
 				tx = tx + tw + 5 * S
 			end
 		end
@@ -1276,7 +1297,7 @@ local function draw_detail_overlay()
 	end
 
 	love.graphics.setColor(0.38, 0.52, 0.70)
-	love.graphics.printf("Click or tap anywhere to close",
+	printf("Click or tap anywhere to close",
 		0, H - love.graphics.getFont():getHeight() - 10 * S, W, "center")
 	love.graphics.pop()
 end
@@ -1315,7 +1336,7 @@ function M.draw()
 			if cur.label then
 				love.graphics.push("all")
 				love.graphics.setColor(unpack(C.card_text))
-				love.graphics.printf(cur.label, 0, oz.place.y - 30 * S, W, "center")
+				printf(cur.label, 0, oz.place.y - 30 * S, W, "center")
 				love.graphics.pop()
 			end
 			draw_zone(oz)
@@ -1336,14 +1357,14 @@ function M.draw()
 			love.graphics.push("all")
 			love.graphics.setFont(font_banner)
 			love.graphics.setColor(0, 0, 0, 0.80)
-			love.graphics.printf(btxt, 0, 10 * S + 2 * S, W, "center")
+			printf(btxt, 0, 10 * S + 2 * S, W, "center")
 			love.graphics.setColor(unpack(col))
-			love.graphics.printf(btxt, 0, 10 * S, W, "center")
+			printf(btxt, 0, 10 * S, W, "center")
 			local summary = table.concat(flow.summary(), "    ·    ")
 			if summary ~= "" then
 				love.graphics.setFont(font_main)
 				love.graphics.setColor(0.85, 0.90, 1.00, 0.95)
-				love.graphics.printf(summary, 0, 10 * S + font_banner:getHeight() + 4 * S, W, "center")
+				printf(summary, 0, 10 * S + font_banner:getHeight() + 4 * S, W, "center")
 			end
 			love.graphics.pop()
 		end

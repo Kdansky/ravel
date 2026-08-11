@@ -150,14 +150,15 @@ function M.draw(id)
 		else
 			love.graphics.setColor(0.80, 0.86, 0.96)
 		end
-		love.graphics.print(line, x + pad, y + pad + (i - 1) * lh)
+		love.graphics.print(line, math.floor(x + pad + 0.5), math.floor(y + pad + (i - 1) * lh + 0.5))
 	end
 	love.graphics.setScissor()
 
 	if #lines > visible then
 		love.graphics.setColor(0.45, 0.60, 0.85, 0.9)
 		love.graphics.print(("lines %d-%d of %d, wheel scrolls"):format(
-			scroll + 1, scroll + visible, #lines), x + pad, y + h - lh - 2 * S)
+			scroll + 1, scroll + visible, #lines),
+			math.floor(x + pad + 0.5), math.floor(y + h - lh - 2 * S + 0.5))
 	end
 	love.graphics.pop()
 end

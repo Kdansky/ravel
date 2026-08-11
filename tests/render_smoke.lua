@@ -7,10 +7,15 @@
 require("headless")
 
 local rects = 0
+-- Enough of a Font that the engine can treat it as one. setFilter matters:
+-- text is drawn with nearest sampling because a glyph atlas is rasterised at
+-- the size it is shown, and a stub without it turns that into a crash the real
+-- game never sees.
 local font = {
 	getHeight = function() return 15 end,
 	getWidth  = function(_, s) return 8 * #tostring(s) end,
 	getWrap   = function(_, s, w) return w, { tostring(s) } end,
+	setFilter = function() end,
 }
 local noop = function() end
 love.graphics = setmetatable({
