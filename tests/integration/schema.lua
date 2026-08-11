@@ -154,6 +154,42 @@ function M.test_schema_describes_the_nested_shapes(check)
 	end
 end
 
+-- The engine's reserved tag words, held to the registry that defines them.
+-- Four prose strings drifting from one table is how this started: a word two of
+-- them disagreed about is reported as a typo or silently ignored, and both read
+-- as the game being wrong.
+function M.test_schema_describes_every_reserved_tag(check)
+	local doc = schema()._engine_tags
+	local by = {}
+	for name, e in pairs(validate.ENGINE_TAGS) do
+		by[e.on] = by[e.on] or {}
+		by[e.on][name] = true
+	end
+	for name in pairs(validate.ENGINE_TAGS_ALSO_ON_STATS) do
+		by.stat = by.stat or {}
+		by.stat[name] = true
+	end
+	for kind, names in pairs(by) do
+		local text = doc["_on_" .. kind .. "s"]
+		check("the document lists the " .. kind .. " tags", type(text) == "string")
+		for name in pairs(names) do
+			check(kind .. " tag '" .. name .. "' is described",
+				text and text:find(name .. " (", 1, true) ~= nil)
+		end
+	end
+	-- And nothing described that the engine does not read.
+	for key, text in pairs(doc) do
+		local kind = key:match("^_on_(%a+)s$")
+		if kind then
+			for word in text:gmatch("([a-z_]+) %(") do
+				check("'" .. word .. "' is a tag the engine reads",
+					validate.ENGINE_TAGS[word] ~= nil or validate.ENGINE_TAGS_ALSO_ON_STATS[word] ~= nil,
+					"listed under _on_" .. kind .. "s")
+			end
+		end
+	end
+end
+
 function M.test_schema_describes_every_action(check)
 	local doc = schema()
 	local described = doc._actions

@@ -21,14 +21,48 @@ local M = {}
 
 local RESERVED = { round = true, plays = true }
 
--- Words the engine itself reads off a card, so a zone may hand one out even
--- though no card in the file declares it and no tag def defines it. They are
--- listed rather than inferred: a granted word that means nothing is almost
--- always a typo, and the check that catches that has to know the exceptions.
-local ENGINE_CARD_TAGS = {
-	player = true, token = true, immutable = true, no_undo = true,
-	generate_art = true, stays_ready = true,
+-- Every tag the engine itself reads, what it attaches to, and what it does.
+--
+-- One table because there were four half-lists: a set in this file that only
+-- knew card words, three paragraphs in AUTHORING, and four prose strings in
+-- SCHEMA.json. A word that two of them disagreed about would be reported as a
+-- typo or silently ignored, and both failures look like the game being wrong.
+--
+-- **These names are reserved.** A game may not define a style, a tag with
+-- behaviour, or a computed tag under one of them: the engine reads the word off
+-- the entity and would obey both meanings at once. It costs a game the ability
+-- to colour, say, everything `hidden` by naming a style after it — worth it, to
+-- make "this word already means something" impossible to write by accident.
+--
+-- `on` is what carries it. Anything not listed is the game's own vocabulary and
+-- the engine never looks at it.
+M.ENGINE_TAGS = {
+	-- cards
+	player       = { on = "card", what = "this card is a seat. Stamped by the engine from the players section, not written by hand" },
+	token        = { on = "card", what = "vanishes when a hand is swept, instead of joining the discard" },
+	immutable    = { on = "card", what = "scenery: nothing may target it and its template can never be edited" },
+	no_undo      = { on = "card", what = "playing or picking it clears the undo stack — the choice is final" },
+	generate_art = { on = "card", what = "with no asset, draws a shape derived from its key rather than a bare colour" },
+	stays_ready  = { on = "card", what = "using its ability does not exhaust it, so a button stays clickable" },
+	-- zones
+	per_seat          = { on = "zone", what = "one copy per seat; pos then takes one rect each" },
+	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
+	refill_when_empty = { on = "zone", what = "recreates its contents when the last card leaves" },
+	face_up           = { on = "zone", what = "cards here are shown, whatever the type would do" },
+	face_down         = { on = "zone", what = "cards here are hidden, whatever the type would do" },
+	no_peek           = { on = "zone", what = "no tooltip and no browsing the pile" },
+	activate          = { on = "zone", what = "cards here may use their abilities — without it an ability is unreachable" },
+	optional          = { on = "zone", what = "nothing here ever has to be played, so a gated card stays gated" },
+	page              = { on = "zone", what = "its cards are drawn as full-screen story pages" },
+	hidden            = { on = "zone", what = "not drawn and not clickable — offer zones, fate decks" },
+	-- phases
+	discard_hand = { on = "phase", what = "leaving it discards the unplayed hand; tokens vanish" },
+	keep_hand    = { on = "phase", what = "a draw_and_play phase opting out of the discard it would otherwise get" },
 }
+-- One word means two things, on two different kinds, and always has: a hidden
+-- zone is not drawn, a hidden stat is not in the HUD. Listed apart rather than
+-- given a second entry, since the table is keyed by the word.
+M.ENGINE_TAGS_ALSO_ON_STATS = { hidden = "kept out of the HUD, while cards may still read and change it" }
 
 -- Names conditions answer for themselves, so a zone or tag may not take one.
 -- "self" is the acting card and "all" is everything; neither can be expressed
@@ -236,6 +270,69 @@ function M.check(G)
 	-- have to guess. Caught here, at authoring time, rather than resolved by a
 	-- precedence rule nobody would remember. RESERVED_SCOPES are the names the
 	-- engine answers for itself, so content may not claim them either.
+	-- One edit from a reserved word, and long enough that the resemblance cannot
+	-- be a coincidence. Short words collide by accident — "mage" is one edit from
+	-- "page" and is nobody's mistake — so both the word and the reserved one have
+	-- to be at least six letters. "activaet" is eight and unmistakable.
+	local function near_reserved(word)
+		if #word < 6 then return nil end
+		local best
+		for name in pairs(M.ENGINE_TAGS) do
+			if #name >= 6 and distance(word, name) == 1 and (not best or name < best) then best = name end
+		end
+		return best
+	end
+
+	-- A tag the engine *nearly* knows. Free vocabulary is the point, so an
+	-- unknown word is never an error — but a word one edit away from a reserved
+	-- one is almost always that word misspelled, and every one of them fails
+	-- silently: a board tagged "activaet" holds cards whose abilities can never
+	-- be used, and nothing anywhere says so.
+	do
+		local carriers = {
+			card  = { defs = G.card_defs,  what = "card" },
+			zone  = { defs = G.zone_defs,  what = "zone" },
+			phase = { defs = G.phase_by_key, what = "phase" },
+			stat  = { defs = G.stat_defs,  what = "stat" },
+		}
+		local order = { "card", "zone", "phase", "stat" }
+		for _, kind in ipairs(order) do
+			local keys = {}
+			for key in pairs(carriers[kind].defs) do keys[#keys + 1] = key end
+			table.sort(keys)
+			for _, key in ipairs(keys) do
+				local def = carriers[kind].defs[key]
+				local words = {}
+				for tag in pairs(def.tags_set or {}) do words[#words + 1] = tag end
+				table.sort(words)
+				for _, tag in ipairs(words) do
+					local near = not M.ENGINE_TAGS[tag] and near_reserved(tag)
+					if near then
+						warn("%s '%s': is tagged '%s', which the engine does not read — did you mean '%s'?",
+							carriers[kind].what, key, tag, near)
+					end
+				end
+			end
+		end
+	end
+
+	-- A reserved word may not be redefined. The engine reads it off the entity,
+	-- so a style or a tag def under the same name would have the engine obeying
+	-- one meaning and the game intending another, with nothing to say which won.
+	for kind, defs in pairs({ style = G.style_defs or {}, tag = tag_defs,
+		["computed tag"] = G.computed_tags or {} }) do
+		local names = {}
+		for name in pairs(defs) do names[#names + 1] = name end
+		table.sort(names)
+		for _, name in ipairs(names) do
+			local e = M.ENGINE_TAGS[name]
+			if e then
+				warn("%s '%s' redefines a word the engine already reads on a %s (%s) — pick another name",
+					kind, name, e.on, e.what)
+			end
+		end
+	end
+
 	-- One namespace, and only one: the words a *scope* resolves. `@board` is
 	-- asked of patterns first, then zones, then tags (predicate.lua:145), so two
 	-- kinds sharing a name means a condition silently picks one.
@@ -1100,7 +1197,7 @@ function M.check(G)
 					if G.computed_tags[tag] then
 						warn("%s: hands out '%s', which is a computed tag — those are "
 							.. "derived from a card's own stats and cannot be granted", where, tostring(tag))
-					elseif not tag_defs[tag] and not card_tags[tag] and not ENGINE_CARD_TAGS[tag] then
+					elseif not tag_defs[tag] and not card_tags[tag] and not M.ENGINE_TAGS[tag] then
 						warn("%s: hands out '%s', which nothing defines or reads%s",
 							where, tostring(tag), suggest(tag, known_tags))
 					end

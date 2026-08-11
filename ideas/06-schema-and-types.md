@@ -140,7 +140,26 @@ promise is kept somewhere earlier, and not before.
 
 ---
 
-## Gap 4 — Every tag the engine knows, in one place
+## Gap 4 — Every tag the engine knows, in one place — **shipped**
+
+*`validate.lua`'s `ENGINE_TAGS`, eighteen words with what each attaches to and
+what it does. `SCHEMA.json`'s four strings and AUTHORING's table are generated
+from it, and a two-way test holds all three together.*
+
+**Both halves shipped, and the check went further than proposed.** The document
+half was the easy part. The check was to *suggest* on a near miss; it also
+**refuses redefinition** — a style, a tag def or a computed tag named after a
+reserved word is an error, because the engine reads the word off the entity and
+would obey both meanings at once. That costs a game the ability to name a style
+after an engine word, which was accepted deliberately rather than worked around.
+
+One thing measurement changed: the near-miss check as first written flagged
+`mage` as a typo for `page`. Short words collide by accident, so both the word
+and the reserved one must be six letters or longer — which still catches
+`activaet`, `stays_redy` and `discard_hnd`, the cases that actually fail
+silently.
+
+### The original write-up
 
 *Urgency: medium (it is the most-asked authoring question) · Difficulty: low for
 the document, medium for the check · Usefulness: high*

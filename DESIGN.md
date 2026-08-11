@@ -147,6 +147,16 @@ This is what the tag system is for, and the rule the styles pass already followe
 
 ---
 
+## Reserved Tags
+
+**Eighteen words are the engine's, and a game may not redefine them.** `validate.lua`'s `ENGINE_TAGS` is the single list — what each word attaches to and what it does — and `SCHEMA.json`, AUTHORING's table and the validator all read it rather than restating it. Four half-lists is how this started, and a word two of them disagreed about was reported as a typo or silently ignored, both of which look like the game being wrong.
+
+A style, a tag with behaviour or a computed tag under a reserved name is **an error**: the engine reads the word off the entity, so two meanings would both apply with nothing to say which wins. The cost is accepted rather than argued away — a game cannot name a style `hidden` to colour everything that is — and it buys the guarantee that a word already meaning something cannot quietly be given a second job.
+
+**A near miss is reported, an unknown word never is.** Free vocabulary is the point. But a tag of six letters or more that is one edit from a reserved word is almost certainly that word misspelled, and those fail *silently*: a board tagged `activaet` holds cards whose abilities can never be used. Short words are exempt, because `mage` is one edit from `page` and is nobody's mistake.
+
+---
+
 ## Zone / Deck Behaviour: Tags
 
 Zones declare behaviour through an open-ended string tag set. The engine checks for known tags; unknown tags are ignored (forward-compatible).

@@ -439,14 +439,8 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `asset` | A picture behind the whole zone — the painted board most games have. Same asset rules as a card's: a filename in `games/assets/`, an `http(s)` URL, or a shape spec. Stretched to the zone's rect, since that rect is what the cells are computed from |
 | `tags` | See below |
 
-Zone tags: `per_seat` (one copy per seat — `pos` then takes one rect **each**: `[[…], […]]`), `shuffle` (on contents creation and refill), `refill_when_empty`
-(recreate `contents` when emptied), `face_up` / `face_down` (override facing),
-`no_peek` (no tooltip/browse), `hidden` (not drawn; offer zones, fate decks),
-`activate` (cards here may use their `activate` block — without it an ability is
-unreachable wherever the card sits, so every board needs it), `optional`
-(nothing here ever has to be played, so a gated card stays gated instead of
-being force-enabled when nothing else in the zone is playable — for zones of
-buttons rather than hands).
+The words the engine reads on a zone are in *Every tag the engine reads*,
+with every other reserved tag.
 
 Cards entering a grid without slot targeting auto-occupy the first free slot.
 A full board refuses new arrivals: moves fail quietly and `fill`/`gain` stop
@@ -587,7 +581,7 @@ sending `Cache-Control` (imgur sends a year) is answered from the browser's own
 disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `owns` | Seats only (a card tagged `player`): the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone — `"owns": "white"` on the seat makes every card tagged `white` that player's. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. **A tag outranks the zone**, so a planet held by player three inside player two's system is player three's |
-| `tags` | Free vocabulary for targeting/counting; engine-known: `stays_ready` (using this card's ability does not exhaust it — a button that stays clickable), `generate_art` (a card with no `asset` draws a shape derived from its key, rather than a bare colour), `no_undo` (playing or picking this card clears the undo stack — the choice is final), `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it). How a card *looks* is a style it tags, not a tag the engine knows |
+| `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `turn.action`) |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). Activating **exhausts** the card until the round wraps, and a board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `exhausts: false` keeps it ready, which is how a permanent button works ("pass the time"). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
@@ -608,7 +602,7 @@ disk cache with no network at all.
 | `pass_card` | Card key or array, dealt with every hand — forced plays always have an out |
 | `ends_after` | The phase advances itself after this many plays |
 | `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*) |
-| `tags` | `discard_hand` — leaving the phase discards its unplayed hand, and tokens vanish. A `draw_and_play` phase gets it by default; `keep_hand` opts out |
+| `tags` | `discard_hand` and `keep_hand` — see *Every tag the engine reads* |
 | `next` | Routing table (below) |
 
 Types: `automatic` runs its actions once and advances (if the actions opened
@@ -1108,6 +1102,46 @@ re-checked while the game runs, so a game without any pays nothing for this.
 **A style may not change a rule.** It decides how a thing looks, never whether it
 can be played, targeted or afforded — the moment it could, every rules bug would
 become a drawing bug too.
+
+### Every tag the engine reads
+
+Tags are your own vocabulary and an unknown one is never an error. These
+eighteen are the exceptions — the words the engine itself looks for:
+
+| Tag | On | What it does |
+|---|---|---|
+| `generate_art` | card | with no asset, draws a shape derived from its key rather than a bare colour |
+| `immutable` | card | scenery: nothing may target it and its template can never be edited |
+| `no_undo` | card | playing or picking it clears the undo stack — the choice is final |
+| `player` | card | this card is a seat. Stamped by the engine from the players section, not written by hand |
+| `stays_ready` | card | using its ability does not exhaust it, so a button stays clickable |
+| `token` | card | vanishes when a hand is swept, instead of joining the discard |
+| `activate` | zone | cards here may use their abilities — without it an ability is unreachable |
+| `face_down` | zone | cards here are hidden, whatever the type would do |
+| `face_up` | zone | cards here are shown, whatever the type would do |
+| `hidden` | zone | not drawn and not clickable — offer zones, fate decks |
+| `no_peek` | zone | no tooltip and no browsing the pile |
+| `optional` | zone | nothing here ever has to be played, so a gated card stays gated |
+| `page` | zone | its cards are drawn as full-screen story pages |
+| `per_seat` | zone | one copy per seat; pos then takes one rect each |
+| `refill_when_empty` | zone | recreates its contents when the last card leaves |
+| `shuffle` | zone | shuffled when its contents are created, and on every refill |
+| `discard_hand` | phase | leaving it discards the unplayed hand; tokens vanish |
+| `keep_hand` | phase | a draw_and_play phase opting out of the discard it would otherwise get |
+| `hidden` | stat | kept out of the HUD, while cards may still read and change it |
+
+**They are reserved.** A style, a tag with behaviour, or a computed tag may not
+be named after one: the engine reads the word off the entity, so two meanings
+would both apply with nothing to say which wins. The cost is real and accepted —
+you cannot name a style `hidden` to colour everything that is — and it buys the
+guarantee that a word already meaning something cannot be quietly given a second
+job.
+
+**A near miss is reported.** A tag six letters or longer that is one edit from a
+reserved word is almost certainly that word misspelled, and every one of them
+fails *silently*: a board tagged `activaet` holds cards whose abilities can never
+be used, and nothing else would ever say so. Short words are left alone, because
+`mage` is one edit from `page` and is nobody's mistake.
 
 ### Computed tags
 
