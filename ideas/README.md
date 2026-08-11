@@ -46,29 +46,24 @@ things happen come first.
 
 | # | Item | Urgency | Difficulty | Why here |
 |---|---|---|---|---|
-| 1 | [07](07-presentation.md) gap 1 — **the text, contrast and tooltip pass** | high | medium-high | the thing players actually hit, and the one area this year's format work never touched. Mostly judgement, not code |
-| 2 | **Hidden hands, a nameplate, a pass-the-device overlay** | high | medium | the last of multiplayer stage A. [07](07-presentation.md) gap 2 needs the same "can this player see this card" predicate, so build it once |
-| 3 | [14](14-kinds-and-placements.md) — **six chess kinds instead of thirty-two** | medium | medium | the payoff for `setup.place` and `styles`, and the proof they were worth it: chess loses 26 cards and stops needing a generator. **Needs one thing first** — a style that varies by *owner*, since a white rook and a black rook differ only in how they are drawn |
-| ~~4~~ | ~~[06](06-schema-and-types.md) gap 4 — **every engine-known tag in one table**~~ — **shipped** | medium | low | cheaper than it was (the vocabulary shrank when presentation left) and more needed (a lot of words moved). The table is also what a near-miss check would read |
-| 5 | [07](07-presentation.md) gap 2 — **click the deck to draw** | medium | low, after 2 | deletes the ugliest card on the Lost Cities board; the rules already allow it |
-| 6 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | small, with one trap | the trap is the network: it ships *a file*, so includes must flatten before being sent or hashed. Cheap designed in, expensive found later |
-| 7 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `type` is still four words bundling facing, reach, layout and order. Styles took the presentation half; this is the rest |
-| 8 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
-| 9 | [08](08-grid-movement-notation.md) — **check, as a stamped `threat` stat** | low | medium | the last rule that changes how chess plays, and the same stat gives tactical games threat maps. Not a computed tag — the doc says why |
-| 10 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | checkers' jump, en passant and castling-through-check all ask for it. Design it once or they diverge |
-| 11 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
-| 12 | [07](07-presentation.md) gap 3 — **multi-ability chooser** | low | medium | no shipped game needs it. Build it with the first card that has two abilities |
+| 1 | **Hidden hands, a nameplate, a pass-the-device overlay** | high | medium | the last of multiplayer stage A, and a real fault in a shipped game: the renderer is seat-blind, so hot-seat Lost Cities shows both players each other's hands. One predicate — *can this player see this card?* — and item 2 needs the same one |
+| 2 | [07](07-presentation.md) gap 2 — **click the deck to draw** | medium | low, after 1 | deletes the ugliest card on the Lost Cities board; the rules already allow it. Blocked only on that predicate: letting a deck be clickable also makes it hoverable, and hovering a face-down deck would name its top card |
+| 3 | [14](14-kinds-and-placements.md) — **six chess kinds instead of thirty-two** | medium | medium | the payoff for `setup.place` and `styles`: chess loses 26 cards and stops needing a generator. **Needs one thing first** — a style that varies by *owner*, since a white rook and a black rook differ only in how they are drawn, and dynamic styles key on computed tags, which read a card's own stats |
+| 4 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | small, with one trap | the trap is the network: it ships *a file*, so includes must flatten before being sent or hashed. Cheap designed in, expensive found later |
+| 5 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `type` is still four words bundling facing, reach, layout and order. Styles took the presentation half; this is the rest, and the boolean pass just proved the pattern |
+| 6 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
+| 7 | [08](08-grid-movement-notation.md) — **check, as a stamped `threat` stat** | low | medium | the last rule that changes how chess plays, and the same stat gives tactical games threat maps. Not a computed tag — the doc says why |
+| 8 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | a jump takes the piece it flies past, and nothing can name that square. En passant and castling-through-check ask for the same word |
+| 9 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
+| 10 | [07](07-presentation.md) gap 3 — **multi-ability chooser** | low | medium | no shipped game needs it. Build it with the first card that has two abilities |
 
-Two format findings stay open and stay cheap, both from
-[10](10-schema-document.md): one condition has three spellings with the *site*
-deciding which is legal, and a routing entry's `stat` field takes any subject.
-Both are additive — nothing would have to be rewritten to benefit.
-
-**The presentation layer is where bugs now live.** The rules layer is covered
-thoroughly and the draw path barely: both chess bugs that reached a human — an
-unclickable capture, a crash on hovering a castling card — passed the whole
-suite. Items 3, 5 and 6 are all in that layer, which is an argument for doing
-them together rather than by urgency alone.
+**The draw path is still where bugs hide, and there is now a way to look.** The
+text pass found six faults no test could see — a wrap splitting "Yellow 9" into
+"Yello"/"w 9", a badge sitting where the title goes, the tooltip reporting the
+engine's own counters as card statistics — every one of them obvious in the
+first screenshot. `ideas/07` records the scratch harness and the two things that
+stop it working (`captureScreenshot` is asynchronous; the canvas needs
+`stencil = true`). Any visual item below should be done against it.
 
 **The syntax pass is done**, and `players` and `setup.place` finished it: a card no longer says whether it is a seat or where it starts. [10](10-schema-document.md) measured it — nine
 findings, two of them bugs — and the diagnosis held: **the format had grown
