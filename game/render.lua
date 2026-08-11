@@ -813,7 +813,7 @@ local function draw_stats()
 	end
 	for _, key in ipairs(G.stat_defs_list or {}) do
 		local def = G.stat_defs[key]
-		if not (def and def.hidden) then
+		if not (def and def.tags_set and def.tags_set.hidden) then
 			local label = def and (def.label or key) or key
 			local txt   = label .. ": " .. tostring(predicate.total(def and def.subject or key))
 			local tw    = mf:getWidth(txt)

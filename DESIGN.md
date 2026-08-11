@@ -139,7 +139,11 @@ Contents are created (and shuffled, if tagged) when the zone is created, and rec
 
 **A thing an entity either is or isn't is a tag, not a field.** A boolean field is a name that has to be read twice — once for the word, once for the value — and it can only ever be set on the thing that owns the field. `placeholder_art` was the clearest case: a game-level `true`/`false` that could not give six cards generated art among thirty-five photographs. It is the tag `generate_art`, and a card asks for itself.
 
-This is what the tag system is for, and the rule the [styles](#) pass already followed from the other side: a *quality* is a tag, a *value* is a field. `ratio` is a number and there are infinitely many, so it is a field; `no_undo` and `generate_art` are words a card carries or does not.
+This is what the tag system is for, and the rule the styles pass already followed from the other side: a *quality* is a tag, a *value* is a field. `ratio` is a number and there are infinitely many, so it is a field; `no_undo`, `generate_art`, `stays_ready`, `per_seat`, `discard_hand` and `hidden` are words a thing carries or does not. Phases and stats grew a `tags` list so they could say so too — everything the format declares now has one.
+
+**A tag is carried or it is not, so there is no "false" to write**, and an opt-out needs its own word: a `draw_and_play` phase discards its hand by default and says `keep_hand` when it should not.
+
+**One exception, and it is a real one.** A routing entry's `ends_round` stays a boolean, because a routing entry is not a *thing* — it has no key, no identity and nothing to tag. It is a property of a transition, and the rule above needs an entity to attach to. Moving it up to the phase would narrow what a game can say: a phase that self-loops for a repeated draft must be able to end the round on the way out and not on the way round, which is exactly why `ends_round` is declared per route rather than inferred.
 
 ---
 

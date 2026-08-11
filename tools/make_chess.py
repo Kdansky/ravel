@@ -109,7 +109,7 @@ def piece(seat, colour_label, kind, file_idx, row, palette):
         # knight and the label costs a quarter of a 64-cell board's height; and
         # no plate, so the PNG's transparency lets the square show through. The
         # name still shows in the tooltip.
-        "tags": [seat, "piece", kind, key],
+        "tags": [seat, "piece", kind, key, "stays_ready"],
         # rank is stamped by the engine; moves_made is the piece's own count,
         # and is what "has this ever moved" reads.
         "card_stats": {"rank": 0, "moves_made": 0},
@@ -124,7 +124,6 @@ def piece(seat, colour_label, kind, file_idx, row, palette):
             "moves": MOVES[kind],
             "action": ["move_to:target:taken", "gain_stat:moves_made@self:1",
                        "next_phase"],
-            "exhausts": False,
         },
     }
 
@@ -256,7 +255,7 @@ def build():
             # castling buttons, the rules card, white's buttons, white's
             # graveyard. Each player's buttons sit against their own pile, so
             # the column reads as two halves with the help between them.
-            {"key": "taken", "type": "pile", "per_seat": True,
+            {"key": "taken", "type": "pile", "tags": ["per_seat"],
              "pos": [[0.76, 0.65, 0.97, 0.95], [0.76, 0.05, 0.97, 0.35]]},
             # One zone per colour rather than one shared: contents belong to a
             # zone, so a per_seat zone would deal all four cards to both seats.

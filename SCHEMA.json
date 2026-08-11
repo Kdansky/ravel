@@ -18,8 +18,10 @@
       "label": "string for the HUD row. Defaults to the key.",
       "min": "number the stat is clamped to below. Usually 0.",
       "max": "number the stat is clamped to above.",
-      "hidden": "true keeps it out of the HUD while cards may still read and change it.",
-      "subject": "a subject expression the HUD row displays instead of the plain total, while the key still names what cards spend: sum:defense@standing shows the buildings still standing."
+      "subject": "a subject expression the HUD row displays instead of the plain total, while the key still names what cards spend: sum:defense@standing shows the buildings still standing.",
+      "tags": [
+        "a list of words; the engine knows hidden (keep it out of the HUD while cards may still read and change it)"
+      ]
     }
   ],
   "computed_tags": {
@@ -102,7 +104,6 @@
         "action": [
           "action strings run when the card is clicked on the board. Activating exhausts the card until the round wraps, unless exhausts says otherwise."
         ],
-        "exhausts": "false keeps the card ready after activating, which is what a permanent button wants. Default true: one use per round.",
         "moves": [
           "how a piece moves on a grid: pattern names, or rules carrying their own fill and needs. Declaring this writes the activate target for you, so clicking the piece opens targeting."
         ]
@@ -139,7 +140,6 @@
       "contents": [
         "starting cards, each key or key:count"
       ],
-      "per_seat": "true makes one copy of this zone per seat, and pos then takes one rect per seat",
       "applies": [
         "tags this zone hands to whatever lies in it, behaviour included. This is how a pile grants an ability no card knows about."
       ],
@@ -171,8 +171,6 @@
       "pass_card": "a card key or a list of them, dealt with every hand so a forced play always has an out",
       "ends_after": "number of plays after which the phase advances itself",
       "seat": "next hands over to the following seat on entry, which is the whole of turn-taking",
-      "discard_hand": "true discards the unplayed hand when the phase is left, so unpicked options do not pile up",
-      "page": "true renders the overlay's cards as full-screen story pages (title, story prose, click to continue). Purely how they are drawn: what choosing one does is the card's own play block, page or not.",
       "next": [
         {
           "stat": "a subject, with equals, at_least or at_most beside it: the condition deciding whether this route is taken",
@@ -185,6 +183,9 @@
           "then": "phase key to go to. An entry with no condition always matches, and the first match wins.",
           "ends_round": "true ticks the round here: the counter rises, exhausted cards ready, and every card's turn action runs. Nothing else does this, and it is never inferred from list position."
         }
+      ],
+      "tags": [
+        "a list of words; the engine knows discard_hand (leaving discards the unplayed hand, and tokens vanish) and keep_hand (a draw_and_play phase opting out of it)"
       ]
     }
   ],
@@ -321,8 +322,10 @@
   },
   "_engine_tags": {
     "_what": "Tags are the game's own vocabulary and an unknown one is not an error. These are the words the engine itself reads. A word naming an entry in styles claims a look instead, and a word naming one in tags claims behaviour. A full reference with what each changes is still owed — see ideas/06-schema-and-types.md gap 4.",
-    "_on_cards": "player (this card is a seat), no_undo (playing or picking this card clears the undo stack — the choice is final), generate_art (a card with no asset draws a shape derived from its key, rather than a bare colour), token (vanishes instead of joining the discard), immutable (scenery: nothing may target it and its template can never be edited). How a card looks is a style it tags, not a tag the engine knows.",
-    "_on_zones": "shuffle (on creation and refill), refill_when_empty, face_up and face_down (override the type's facing), no_peek (no tooltip or browsing), hidden (not drawn and not clickable), activate (cards here may use their abilities, so every board needs it), optional (nothing here ever has to be played, so a gated card stays gated). How a zone looks is a style it tags.",
-    "_reserved": "A zone or tag may never be named self or all, nor any of the quantifiers any, each and random, nor the owner words mine, enemy and anyone. player is deliberately not reserved: it is an ordinary tag a game puts on one card."
+    "_on_cards": "player (this card is a seat), no_undo (playing or picking this card clears the undo stack — the choice is final), stays_ready (using this card's ability does not exhaust it, so a button stays clickable), generate_art (a card with no asset draws a shape derived from its key, rather than a bare colour), token (vanishes instead of joining the discard), immutable (scenery: nothing may target it and its template can never be edited). How a card looks is a style it tags, not a tag the engine knows.",
+    "_on_zones": "per_seat (one copy of this zone per seat, and pos then takes one rect each), shuffle (on creation and refill), refill_when_empty, face_up and face_down (override the type's facing), no_peek (no tooltip or browsing), hidden (not drawn and not clickable), activate (cards here may use their abilities, so every board needs it), optional (nothing here ever has to be played, so a gated card stays gated). How a zone looks is a style it tags.",
+    "_reserved": "A zone or tag may never be named self or all, nor any of the quantifiers any, each and random, nor the owner words mine, enemy and anyone. player is deliberately not reserved: it is an ordinary tag a game puts on one card.",
+    "_on_phases": "discard_hand (leaving the phase discards its unplayed hand; tokens vanish rather than joining the discard), keep_hand (a draw_and_play phase opting out of the discard it would otherwise get)",
+    "_on_stats": "hidden (kept out of the HUD, while cards may still read and change it)"
   }
 }

@@ -9,7 +9,7 @@
     { "key": "food", "label": "Food", "min": 0 },
     { "key": "might", "label": "Might", "min": 0 },
     { "key": "mana", "label": "Mana", "min": 0 },
-    { "key": "destination", "hidden": true }
+    { "key": "destination", "tags": ["hidden"] }
   ],
   "effects": {
     "blessing": { "base": "sparkle" },
@@ -69,15 +69,17 @@
     {
       "key": "decline",
       "text": "Decline",
+      "asset": "stripes:2:ash",
       "tooltip": "Claim no birthright. Begin with nothing.",
-      "tags": ["token", "slate", "generate_art"],
+      "tags": ["token", "slate"],
       "play": { "action": ["destroy_self"] }
     },
     {
       "key": "to_market",
       "text": "Visit the Market",
+      "asset": "dots:6:gold",
       "tooltip": "End this season and browse the Market next. Play at least one card first.",
-      "tags": ["token", "moss", "generate_art"],
+      "tags": ["token", "moss"],
       "play": {
         "needs": { "plays": 1 },
         "action": ["set_stat:destination:1", "destroy_self", "next_phase"]
@@ -86,8 +88,9 @@
     {
       "key": "to_barracks",
       "text": "Visit the Barracks",
+      "asset": "cross:silver:maroon",
       "tooltip": "End this season and train at the Barracks next. Play at least one card first.",
-      "tags": ["token", "rust", "generate_art"],
+      "tags": ["token", "rust"],
       "play": {
         "needs": { "plays": 1 },
         "action": ["set_stat:destination:2", "destroy_self", "next_phase"]
@@ -96,8 +99,9 @@
     {
       "key": "to_sanctum",
       "text": "Visit the Sanctum",
+      "asset": "star:5:violet",
       "tooltip": "End this season and seek the Sanctum next. Play at least one card first.",
-      "tags": ["token", "indigo", "generate_art"],
+      "tags": ["token", "indigo"],
       "play": {
         "needs": { "plays": 1 },
         "action": ["set_stat:destination:3", "destroy_self", "next_phase"]
@@ -106,15 +110,17 @@
     {
       "key": "rest",
       "text": "Rest",
+      "asset": "circle:teal",
       "tooltip": "End the season once both trials are faced.",
-      "tags": ["token", "slate", "generate_art"],
+      "tags": ["token", "slate"],
       "play": { "needs": { "plays": 2 }, "action": ["destroy_self", "next_phase"] }
     },
     {
       "key": "march_on",
       "text": "March On",
+      "asset": "triangle:sand",
       "tooltip": "Enough shopping — the trials won't wait.",
-      "tags": ["token", "slate", "generate_art"],
+      "tags": ["token", "slate"],
       "play": { "action": ["destroy_self", "next_phase"] }
     },
     {
@@ -666,14 +672,14 @@
       "deck": "market_deck",
       "draw": 4,
       "pass_card": ["to_market", "to_barracks", "to_sanctum"],
-      "discard_hand": true,
       "next": [
         { "stat": "progress", "at_least": 10, "then": "trial_gate", "ends_round": true },
         { "stat": "round", "at_least": 7, "then": "trial_gate", "ends_round": true },
         { "stat": "destination", "equals": 2, "then": "barracks_visit", "ends_round": true },
         { "stat": "destination", "equals": 3, "then": "sanctum_visit", "ends_round": true },
         { "then": "market_visit", "ends_round": true }
-      ]
+      ],
+      "tags": ["discard_hand"]
     },
     {
       "key": "barracks_visit",
@@ -682,14 +688,14 @@
       "deck": "barracks_deck",
       "draw": 4,
       "pass_card": ["to_market", "to_barracks", "to_sanctum"],
-      "discard_hand": true,
       "next": [
         { "stat": "progress", "at_least": 10, "then": "trial_gate", "ends_round": true },
         { "stat": "round", "at_least": 7, "then": "trial_gate", "ends_round": true },
         { "stat": "destination", "equals": 1, "then": "market_visit", "ends_round": true },
         { "stat": "destination", "equals": 3, "then": "sanctum_visit", "ends_round": true },
         { "then": "barracks_visit", "ends_round": true }
-      ]
+      ],
+      "tags": ["discard_hand"]
     },
     {
       "key": "sanctum_visit",
@@ -698,14 +704,14 @@
       "deck": "sanctum_deck",
       "draw": 4,
       "pass_card": ["to_market", "to_barracks", "to_sanctum"],
-      "discard_hand": true,
       "next": [
         { "stat": "progress", "at_least": 10, "then": "trial_gate", "ends_round": true },
         { "stat": "round", "at_least": 7, "then": "trial_gate", "ends_round": true },
         { "stat": "destination", "equals": 1, "then": "market_visit", "ends_round": true },
         { "stat": "destination", "equals": 2, "then": "barracks_visit", "ends_round": true },
         { "then": "sanctum_visit", "ends_round": true }
-      ]
+      ],
+      "tags": ["discard_hand"]
     },
     {
       "key": "trial_gate",
@@ -723,8 +729,8 @@
       "deck": "trials1",
       "draw": 2,
       "pass_card": "rest",
-      "discard_hand": true,
-      "next": [{ "then": "wartime_market", "ends_round": true }]
+      "next": [{ "then": "wartime_market", "ends_round": true }],
+      "tags": ["discard_hand"]
     },
     {
       "key": "trial2",
@@ -733,8 +739,8 @@
       "deck": "trials2",
       "draw": 2,
       "pass_card": "rest",
-      "discard_hand": true,
-      "next": [{ "then": "wartime_market", "ends_round": true }]
+      "next": [{ "then": "wartime_market", "ends_round": true }],
+      "tags": ["discard_hand"]
     },
     {
       "key": "trial3",
@@ -743,8 +749,8 @@
       "deck": "trials3",
       "draw": 2,
       "pass_card": "rest",
-      "discard_hand": true,
-      "next": [{ "then": "wartime_market", "ends_round": true }]
+      "next": [{ "then": "wartime_market", "ends_round": true }],
+      "tags": ["discard_hand"]
     },
     {
       "key": "wartime_market",
@@ -753,8 +759,8 @@
       "deck": "wartime_deck",
       "draw": 3,
       "pass_card": "march_on",
-      "discard_hand": true,
-      "next": [{ "then": "trial_gate" }]
+      "next": [{ "then": "trial_gate" }],
+      "tags": ["discard_hand"]
     },
     {
       "key": "coronation",

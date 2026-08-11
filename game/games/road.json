@@ -322,11 +322,11 @@
       "deck": "camp_deck",
       "draw": 3,
       "pass_card": ["march", "hard_march"],
-      "discard_hand": true,
       "next": [
         { "stat": "distance", "at_least": 6, "then": "dawn_far", "ends_round": true },
         { "then": "dawn_near", "ends_round": true }
-      ]
+      ],
+      "tags": ["discard_hand"]
     }
   ],
   "end_conditions": [

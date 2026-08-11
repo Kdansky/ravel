@@ -65,7 +65,7 @@
     {
       "key": "taken",
       "type": "pile",
-      "per_seat": true,
+      "tags": ["per_seat"],
       "pos": [[0.76, 0.65, 0.97, 0.95], [0.76, 0.05, 0.97, 0.35]]
     },
     {
@@ -112,12 +112,11 @@
       "text": "White Rook",
       "tooltip": "a1 — white rook",
       "asset": "Chess_rlt60.png",
-      "tags": ["white", "piece", "rook", "w_rook_a"],
+      "tags": ["white", "piece", "rook", "w_rook_a", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -125,12 +124,11 @@
       "text": "White Knight",
       "tooltip": "b1 — white knight",
       "asset": "Chess_nlt60.png",
-      "tags": ["white", "piece", "knight", "w_knight_b"],
+      "tags": ["white", "piece", "knight", "w_knight_b", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -138,12 +136,11 @@
       "text": "White Bishop",
       "tooltip": "c1 — white bishop",
       "asset": "Chess_blt60.png",
-      "tags": ["white", "piece", "bishop", "w_bishop_c"],
+      "tags": ["white", "piece", "bishop", "w_bishop_c", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -151,12 +148,11 @@
       "text": "White Queen",
       "tooltip": "d1 — white queen",
       "asset": "Chess_qlt60.png",
-      "tags": ["white", "piece", "queen", "w_queen_d"],
+      "tags": ["white", "piece", "queen", "w_queen_d", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho", "line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -164,12 +160,11 @@
       "text": "White King",
       "tooltip": "e1 — white king",
       "asset": "Chess_klt60.png",
-      "tags": ["white", "piece", "king", "w_king_e"],
+      "tags": ["white", "piece", "king", "w_king_e", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["adjacent"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -177,12 +172,11 @@
       "text": "White Bishop",
       "tooltip": "f1 — white bishop",
       "asset": "Chess_blt60.png",
-      "tags": ["white", "piece", "bishop", "w_bishop_f"],
+      "tags": ["white", "piece", "bishop", "w_bishop_f", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -190,12 +184,11 @@
       "text": "White Knight",
       "tooltip": "g1 — white knight",
       "asset": "Chess_nlt60.png",
-      "tags": ["white", "piece", "knight", "w_knight_g"],
+      "tags": ["white", "piece", "knight", "w_knight_g", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -203,12 +196,11 @@
       "text": "White Rook",
       "tooltip": "h1 — white rook",
       "asset": "Chess_rlt60.png",
-      "tags": ["white", "piece", "rook", "w_rook_h"],
+      "tags": ["white", "piece", "rook", "w_rook_h", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -216,7 +208,7 @@
       "text": "White Pawn",
       "tooltip": "a2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_a"],
+      "tags": ["white", "piece", "pawn", "w_pawn_a", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -228,8 +220,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -237,7 +228,7 @@
       "text": "White Pawn",
       "tooltip": "b2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_b"],
+      "tags": ["white", "piece", "pawn", "w_pawn_b", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -249,8 +240,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -258,7 +248,7 @@
       "text": "White Pawn",
       "tooltip": "c2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_c"],
+      "tags": ["white", "piece", "pawn", "w_pawn_c", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -270,8 +260,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -279,7 +268,7 @@
       "text": "White Pawn",
       "tooltip": "d2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_d"],
+      "tags": ["white", "piece", "pawn", "w_pawn_d", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -291,8 +280,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -300,7 +288,7 @@
       "text": "White Pawn",
       "tooltip": "e2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_e"],
+      "tags": ["white", "piece", "pawn", "w_pawn_e", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -312,8 +300,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -321,7 +308,7 @@
       "text": "White Pawn",
       "tooltip": "f2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_f"],
+      "tags": ["white", "piece", "pawn", "w_pawn_f", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -333,8 +320,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -342,7 +328,7 @@
       "text": "White Pawn",
       "tooltip": "g2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_g"],
+      "tags": ["white", "piece", "pawn", "w_pawn_g", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -354,8 +340,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -363,7 +348,7 @@
       "text": "White Pawn",
       "tooltip": "h2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_h"],
+      "tags": ["white", "piece", "pawn", "w_pawn_h", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -375,8 +360,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -384,12 +368,11 @@
       "text": "Black Rook",
       "tooltip": "a8 — black rook",
       "asset": "Chess_rdt60.png",
-      "tags": ["black", "piece", "rook", "b_rook_a"],
+      "tags": ["black", "piece", "rook", "b_rook_a", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -397,12 +380,11 @@
       "text": "Black Knight",
       "tooltip": "b8 — black knight",
       "asset": "Chess_ndt60.png",
-      "tags": ["black", "piece", "knight", "b_knight_b"],
+      "tags": ["black", "piece", "knight", "b_knight_b", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -410,12 +392,11 @@
       "text": "Black Bishop",
       "tooltip": "c8 — black bishop",
       "asset": "Chess_bdt60.png",
-      "tags": ["black", "piece", "bishop", "b_bishop_c"],
+      "tags": ["black", "piece", "bishop", "b_bishop_c", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -423,12 +404,11 @@
       "text": "Black Queen",
       "tooltip": "d8 — black queen",
       "asset": "Chess_qdt60.png",
-      "tags": ["black", "piece", "queen", "b_queen_d"],
+      "tags": ["black", "piece", "queen", "b_queen_d", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho", "line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -436,12 +416,11 @@
       "text": "Black King",
       "tooltip": "e8 — black king",
       "asset": "Chess_kdt60.png",
-      "tags": ["black", "piece", "king", "b_king_e"],
+      "tags": ["black", "piece", "king", "b_king_e", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["adjacent"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -449,12 +428,11 @@
       "text": "Black Bishop",
       "tooltip": "f8 — black bishop",
       "asset": "Chess_bdt60.png",
-      "tags": ["black", "piece", "bishop", "b_bishop_f"],
+      "tags": ["black", "piece", "bishop", "b_bishop_f", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -462,12 +440,11 @@
       "text": "Black Knight",
       "tooltip": "g8 — black knight",
       "asset": "Chess_ndt60.png",
-      "tags": ["black", "piece", "knight", "b_knight_g"],
+      "tags": ["black", "piece", "knight", "b_knight_g", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -475,12 +452,11 @@
       "text": "Black Rook",
       "tooltip": "h8 — black rook",
       "asset": "Chess_rdt60.png",
-      "tags": ["black", "piece", "rook", "b_rook_h"],
+      "tags": ["black", "piece", "rook", "b_rook_h", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -488,7 +464,7 @@
       "text": "Black Pawn",
       "tooltip": "a7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_a"],
+      "tags": ["black", "piece", "pawn", "b_pawn_a", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -500,8 +476,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -509,7 +484,7 @@
       "text": "Black Pawn",
       "tooltip": "b7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_b"],
+      "tags": ["black", "piece", "pawn", "b_pawn_b", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -521,8 +496,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -530,7 +504,7 @@
       "text": "Black Pawn",
       "tooltip": "c7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_c"],
+      "tags": ["black", "piece", "pawn", "b_pawn_c", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -542,8 +516,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -551,7 +524,7 @@
       "text": "Black Pawn",
       "tooltip": "d7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_d"],
+      "tags": ["black", "piece", "pawn", "b_pawn_d", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -563,8 +536,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -572,7 +544,7 @@
       "text": "Black Pawn",
       "tooltip": "e7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_e"],
+      "tags": ["black", "piece", "pawn", "b_pawn_e", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -584,8 +556,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -593,7 +564,7 @@
       "text": "Black Pawn",
       "tooltip": "f7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_f"],
+      "tags": ["black", "piece", "pawn", "b_pawn_f", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -605,8 +576,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -614,7 +584,7 @@
       "text": "Black Pawn",
       "tooltip": "g7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_g"],
+      "tags": ["black", "piece", "pawn", "b_pawn_g", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -626,8 +596,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -635,7 +604,7 @@
       "text": "Black Pawn",
       "tooltip": "h7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_h"],
+      "tags": ["black", "piece", "pawn", "b_pawn_h", "stays_ready"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -647,8 +616,7 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"],
-        "exhausts": false
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
       }
     },
     {

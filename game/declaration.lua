@@ -31,7 +31,7 @@ local MOMENTS = {
 	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
 		action = "on_play" },
 	activate  = { cost = "activate_cost", target = "activate_target", phases = "activate_phases",
-		action = "on_activate", exhausts = "exhausts", moves = "moves" },
+		action = "on_activate", moves = "moves" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts" },
 	turn      = { action = "on_turn" },
@@ -370,6 +370,7 @@ function M.parse(filename)
 			else
 				G.stat_defs_list[#G.stat_defs_list + 1] = sd.key
 			end
+			sd.tags_set = tag_set(sd.tags)
 			G.stat_defs[sd.key] = sd
 		end
 	end
@@ -385,10 +386,13 @@ function M.parse(filename)
 			elseif pd.type ~= "overlay" then
 				G.phase_list[#G.phase_list + 1] = pd.key
 			end
+			pd.tags_set = tag_set(pd.tags)
 			-- draw_and_play is shorthand: play once, discard the rest, advance.
 			if pd.type == "draw_and_play" then
 				if pd.ends_after == nil then pd.ends_after = 1 end
-				if pd.discard_hand == nil then pd.discard_hand = true end
+				-- It discards by default; `keep_hand` opts out, because a tag is
+				-- carried or it is not and there is no "false" to write.
+				if not pd.tags_set.keep_hand then pd.tags_set.discard_hand = true end
 			end
 			G.phase_by_key[pd.key] = pd
 		end
@@ -541,7 +545,7 @@ function M.parse(filename)
 	end
 	if not G.phase_by_key.reveal then
 		G.phase_by_key.reveal = { key = "reveal", type = "overlay", zone = "reveal",
-			page = true, injected = true }
+			injected = true, tags_set = {} }
 	end
 
 	return G

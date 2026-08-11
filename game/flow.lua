@@ -260,7 +260,7 @@ local function discard_hand(ph)
 end
 
 phase.on_leave = function(pd)
-	if pd.discard_hand then discard_hand(pd) end
+	if pd.tags_set and pd.tags_set.discard_hand then discard_hand(pd) end
 end
 
 -- A full round completed: each card on a grid zone runs its on_turn actions.
@@ -591,7 +591,8 @@ function M.activate(card_id, targets)
 	checkpoint()
 	log.add("Activated " .. (def.text or c.def_key))
 	pay(def.activate_cost, ctx)
-	if cards.behaviour(c, "exhausts") ~= false then c.exhausted = true end
+	-- A quality the card either has or has not, so it is a word it carries.
+	if not tags.entity_has(c, "stays_ready") then c.exhausted = true end
 	actions.run(cards.behaviour(c, "on_activate"), ctx)
 	M.settle()
 	return true

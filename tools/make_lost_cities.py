@@ -167,7 +167,7 @@ def zones():
             "pos": DECK_POS, "tags": ["shuffle"],
             "contents": ["%s_w%d" % (c, w) for c, _, _, _ in COLOURS for w in range(1, WAGERS + 1)]
                         + ["%s_%d" % (c, v) for c, _, _, _ in COLOURS for v in VALUES]},
-           {"key": "hand", "type": "hand", "per_seat": True, "pos": HAND_POS},
+           {"key": "hand", "type": "hand", "tags": ["per_seat"], "pos": HAND_POS},
            # The opening question, as an overlay of its own. Hidden, so it costs
            # no board space and the layout check ignores it, but an overlay
            # phase draws its zone over the dim regardless. Deliberately *not*
@@ -200,8 +200,8 @@ def zones():
         # The expedition's own legality, asked of it when a card is aimed here:
         # worth at least what is already on it, which is the ascending rule.
         # Wagers are worth 0, so the same line puts them before every number.
-        out.append({"key": c, "label": label, "type": "grid", "per_seat": True,
-                    "grid": [1, 12], "tags": ["tiled"], "pos": EXPEDITION_POS[i],
+        out.append({"key": c, "label": label, "type": "grid",
+                    "grid": [1, 12], "tags": ["tiled", "per_seat"], "pos": EXPEDITION_POS[i],
                     "receive": {"needs": {"value@target": {"at_least": "max:value@mine." + c}}}})
         # A pile takes anything, which is what having no "receive" means, and
         # hands "takeable" to whatever lands on it — so its top card can be
@@ -210,7 +210,8 @@ def zones():
         # is not automatically a place you may take from — an MTG graveyard is
         # the same shape and must not be — so the zone declares it.
         out.append({"key": c + "_discard", "label": label + " discard", "type": "pile",
-                    "pos": DISCARD_POS[i], "tags": ["activate"], "applies": ["takeable"]})
+                    "pos": DISCARD_POS[i], "tags": ["activate"],
+                    "applies": ["takeable", "stays_ready"]})
     return out
 
 
@@ -228,7 +229,7 @@ TAG_DEFS = {
         "activate": {
             "action": ["move_to:hand", "next_phase"],
             "phases": ["draw"],
-            "exhausts": False,
+
         },
         "tooltip": "Take this card into your hand.",
     },
@@ -256,13 +257,13 @@ def phases():
         # The expedition deck running out ends the game, mid-round or not.
         {"key": "draw", "type": "player_input", "zone": "choice",
          "label": "Draw from the deck, or take the top of a discard",
-         "pass_card": "draw_deck", "discard_hand": True,
+         "pass_card": "draw_deck", "tags": ["discard_hand"],
          "next": [{"zone_empty": ["deck"], "then": "tally"}, {"then": "play"}]},
         # One tally phase, entered once per seat. It counts itself: each seat
         # marks its own card as it finishes, and the sum across both is how the
         # routing knows the second one is done.
         {"key": "tally", "type": "player_input", "label": "Tally",
-         "seat": "next", "zone": "choice", "discard_hand": True,
+         "seat": "next", "zone": "choice", "tags": ["discard_hand"],
          "pass_card": SCORING_CARDS + ["done_scoring"],
          "next": [{"stat": "tallied@player", "at_least": 2, "then": "ending"},
                   {"then": "tally"}]},
@@ -279,7 +280,7 @@ def phases():
                     "actions": ["reveal:" + seat + "_wins"]})
     # Last, so nothing reaches it by falling off the end of the list: it is
     # only ever pushed, and popped by answering it.
-    out.append({"key": "mode", "type": "overlay", "zone": "mode", "page": True})
+    out.append({"key": "mode", "type": "overlay", "zone": "mode"})
     return out
 
 

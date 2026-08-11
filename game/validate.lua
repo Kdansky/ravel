@@ -21,6 +21,15 @@ local M = {}
 
 local RESERVED = { round = true, plays = true }
 
+-- Words the engine itself reads off a card, so a zone may hand one out even
+-- though no card in the file declares it and no tag def defines it. They are
+-- listed rather than inferred: a granted word that means nothing is almost
+-- always a typo, and the check that catches that has to know the exceptions.
+local ENGINE_CARD_TAGS = {
+	player = true, token = true, immutable = true, no_undo = true,
+	generate_art = true, stays_ready = true,
+}
+
 -- Names conditions answer for themselves, so a zone or tag may not take one.
 -- "self" is the acting card and "all" is everything; neither can be expressed
 -- as a tag, which is why they are the only two the engine claims. "player" is
@@ -52,7 +61,7 @@ local CARD_FIELDS = {
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true,
 	activate_cost = true, activate_target = true,
-	activate_phases = true, on_activate = true, exhausts = true, moves = true,
+	activate_phases = true, on_activate = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
 	accepts = true, on_turn = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
@@ -61,22 +70,23 @@ local CARD_FIELDS = {
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
 	action = true }
 local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
-	exhausts = true, moves = true }
+	moves = true }
 local RECEIVE_FIELDS   = { needs = true }
 local TURN_FIELDS      = { action = true }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, style = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
-	injected = true, per_seat = true, applies = true, accepts = true, receive = true,
+	injected = true, applies = true, accepts = true, receive = true,
 	asset = true,
 }
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
 	draw = true, zone = true, pass_card = true, next = true,
-	ends_after = true, discard_hand = true, page = true, injected = true,
+	ends_after = true, injected = true, tags = true, tags_set = true,
 	seat = true,
 }
-local STAT_FIELDS     = { key = true, label = true, min = true, max = true, hidden = true, subject = true }
+local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subject = true,
+	tags = true, tags_set = true }
 -- A tag def is a mixin: it may carry a home zone, and the card behaviour a zone
 -- hands to whatever sits in it ("applies"). Kept to the fields a granted rule
 -- can honestly mean — nothing that would have to be re-derived as state moves.
@@ -86,7 +96,7 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, hidd
 local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
-	activate_phases = true, exhausts = true, moves = true,
+	activate_phases = true, moves = true,
 	on_play = true, cost = true, needs = true, target = true, phases = true }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
@@ -153,7 +163,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	-- flattened out of the moment blocks by declaration.parse, never authored
 	cost = true, needs = true, target = true, phases = true, on_play = true,
 	activate_cost = true, activate_target = true,
-	activate_phases = true, on_activate = true, exhausts = true, moves = true,
+	activate_phases = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_turn = true,
 	auto_play = true, to_zone = true, to_slot = true }
@@ -1027,7 +1037,7 @@ function M.check(G)
 			warn("%s: '%s' is not a zone type (deck, pile, hand or grid)%s",
 				where, tostring(def.type), suggest(def.type, ZONE_TYPES))
 		end
-		if def.per_seat then
+		if def.tags_set and def.tags_set.per_seat then
 			local seats = #(G.seat_list or {})
 			if seats > 1 then
 				if type(def.pos) ~= "table" or #def.pos ~= seats then
@@ -1090,7 +1100,7 @@ function M.check(G)
 					if G.computed_tags[tag] then
 						warn("%s: hands out '%s', which is a computed tag — those are "
 							.. "derived from a card's own stats and cannot be granted", where, tostring(tag))
-					elseif not tag_defs[tag] and not card_tags[tag] then
+					elseif not tag_defs[tag] and not card_tags[tag] and not ENGINE_CARD_TAGS[tag] then
 						warn("%s: hands out '%s', which nothing defines or reads%s",
 							where, tostring(tag), suggest(tag, known_tags))
 					end
@@ -1111,7 +1121,8 @@ function M.check(G)
 		for _, key in ipairs(G.zone_list) do
 			local def = G.zone_defs[key]
 			if def and not (def.tags_set and def.tags_set.hidden) and type(def.pos) == "table" then
-				local list = def.per_seat and def.pos or { def.pos }
+				local per_seat = def.tags_set and def.tags_set.per_seat
+				local list = per_seat and def.pos or { def.pos }
 				-- A per_seat zone declaring one rect shares it between seats,
 				-- which the check above already warns about; skip it here so one
 				-- mistake is not reported twice.
@@ -1123,7 +1134,7 @@ function M.check(G)
 						local numeric = type(r) == "table" and #r == 4
 						for k = 1, 4 do numeric = numeric and type(r[k]) == "number" end
 						if numeric then
-							rects[#rects + 1] = { key = key .. (def.per_seat and ("[" .. i .. "]") or ""), r = r }
+							rects[#rects + 1] = { key = key .. (per_seat and ("[" .. i .. "]") or ""), r = r }
 						end
 					end
 				end

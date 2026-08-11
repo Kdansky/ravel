@@ -91,7 +91,7 @@ end
 -- the def's list of positions. Everything downstream sees ordinary zones that
 -- happen to carry a seat, so only the lookup below has to know the difference.
 function M.create(def)
-	if not def.per_seat then return build(def, nil, def.pos) end
+	if not (def.tags_set and def.tags_set.per_seat) then return build(def, nil, def.pos) end
 	-- One rect per seat: "pos" is a list of rects here, not the single rect a
 	-- shared zone declares. Two seats sharing one rect would draw on top of
 	-- each other, so the author names both — the validator insists.

@@ -250,14 +250,16 @@ check("the ability reached its target",
 	entity.get(throne.id).stats.defense == defense0 + 1)
 
 -- A repeatable ability (the "pass the time" pattern) opts out of exhausting.
-tdef.exhausts = false
+-- A word the card carries, not a field set to false: there is nothing to write
+-- "false" on, which is the point of the tag.
+tdef.tags_set.stays_ready = true
 entity.get(throne.id).exhausted = nil
-check("exhausts:false leaves the card ready",
+check("stays_ready leaves the card ready",
 	flow.activate(throne.id, { throne.id }) and not entity.get(throne.id).exhausted)
 check("a repeatable ability fires again at once",
 	flow.activate(throne.id, { throne.id }))
 
-tdef.exhausts        = nil
+tdef.tags_set.stays_ready = nil
 tdef.activate_target = nil
 tdef.on_activate     = { "gain_stat:morale:1" }
 entity.get(throne.id).exhausted = nil
@@ -690,7 +692,7 @@ local function top_page()
 end
 
 flow.init("tower.json", 3)
-check("tower opens on a page overlay", phase.is_overlay() and phase.current().page == true)
+check("tower opens on an overlay", phase.is_overlay() and phase.current().key == "reveal")
 check("the opening page is the shore", top_page() == "p_shore")
 
 flow.play_card(zones.find("reveal").cards[1], {})
@@ -1392,14 +1394,14 @@ play_fixture([==[{
       "key": "arena",
       "type": "grid",
       "grid": [3, 1],
-      "per_seat": true,
-      "pos": [[0.02, 0.05, 0.6, 0.3], [0.02, 0.32, 0.6, 0.57]]
+      "pos": [[0.02, 0.05, 0.6, 0.3], [0.02, 0.32, 0.6, 0.57]],
+      "tags": ["per_seat"]
     },
     {
       "key": "hand",
       "type": "hand",
-      "per_seat": true,
-      "pos": [[0.19, 0.62, 0.97, 0.78], [0.19, 0.8, 0.97, 0.97]]
+      "pos": [[0.19, 0.62, 0.97, 0.78], [0.19, 0.8, 0.97, 0.97]],
+      "tags": ["per_seat"]
     },
     { "key": "commons", "type": "grid", "pos": [0.62, 0.05, 0.98, 0.3], "grid": [2, 1] }
   ],
@@ -1647,8 +1649,7 @@ play_fixture([==[{
       "key": "system",
       "type": "grid",
       "grid": [2, 1],
-      "per_seat": true,
-      "tags": ["activate"],
+      "tags": ["activate", "per_seat"],
       "pos": [
         [0.02, 0.05, 0.3, 0.3],
         [0.32, 0.05, 0.6, 0.3],

@@ -75,7 +75,7 @@ copies it, so a dump can go straight back into the game file.
 The recipe, in order:
 
 1. **Stats** — the numbers of your game. Declared stats show in the HUD (add
-   `"hidden": true` to keep one internal). Starting values go in the seat's
+   `"tags": ["hidden"]` to keep one internal). Starting values go in the seat's
    `stats` under `players`.
 2. **Zones** — where cards live. `pos` is window fractions `[x1, y1, x2, y2]`;
    positions off-screen (negative y) make cards fly in from outside. Decks own
@@ -413,7 +413,7 @@ file to check what may appear where.
 
 ### Stats
 
-`{ "key", "label", "min", "max", "hidden", "subject" }`. Declared stats display with a
+`{ "key", "label", "min", "max", "subject", "tags" }`. Declared stats display with a
 built-in icon (`gold` coin, `hp` heart, `defense` shield, `morale` banner,
 `food` apple, others a diamond). Stat changes clamp to `min`/`max`; a card
 stat with a `<key>_max` companion clamps to `[0, max]`. **Reserved:** `round`
@@ -436,11 +436,10 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `on_click` | Actions run when the zone is clicked. **Not phase-scoped** — it fires in every phase. To make a *card* usable at one point in a turn, grant it an ability with `applies` and limit it with `phases` |
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
 | `receive` | `needs`: whether a card being played may be sent **here** — the zone answers for itself, as a card does |
-| `per_seat` | `true` makes one copy of this zone per seat (see *Two or more players*). `pos` then takes one rect **per seat**: `[[…], […]]` |
 | `asset` | A picture behind the whole zone — the painted board most games have. Same asset rules as a card's: a filename in `games/assets/`, an `http(s)` URL, or a shape spec. Stretched to the zone's rect, since that rect is what the cells are computed from |
 | `tags` | See below |
 
-Zone tags: `shuffle` (on contents creation and refill), `refill_when_empty`
+Zone tags: `per_seat` (one copy per seat — `pos` then takes one rect **each**: `[[…], […]]`), `shuffle` (on contents creation and refill), `refill_when_empty`
 (recreate `contents` when emptied), `face_up` / `face_down` (override facing),
 `no_peek` (no tooltip/browse), `hidden` (not drawn; offer zones, fate decks),
 `activate` (cards here may use their `activate` block — without it an ability is
@@ -588,7 +587,7 @@ sending `Cache-Control` (imgur sends a year) is answered from the browser's own
 disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `owns` | Seats only (a card tagged `player`): the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone — `"owns": "white"` on the seat makes every card tagged `white` that player's. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. **A tag outranks the zone**, so a planet held by player three inside player two's system is player three's |
-| `tags` | Free vocabulary for targeting/counting; engine-known: `generate_art` (a card with no `asset` draws a shape derived from its key, rather than a bare colour), `no_undo` (playing or picking this card clears the undo stack — the choice is final), `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it). How a card *looks* is a style it tags, not a tag the engine knows |
+| `tags` | Free vocabulary for targeting/counting; engine-known: `stays_ready` (using this card's ability does not exhaust it — a button that stays clickable), `generate_art` (a card with no `asset` draws a shape derived from its key, rather than a bare colour), `no_undo` (playing or picking this card clears the undo stack — the choice is final), `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it). How a card *looks* is a style it tags, not a tag the engine knows |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `turn.action`) |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). Activating **exhausts** the card until the round wraps, and a board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `exhausts: false` keeps it ready, which is how a permanent button works ("pass the time"). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
@@ -609,8 +608,7 @@ disk cache with no network at all.
 | `pass_card` | Card key or array, dealt with every hand — forced plays always have an out |
 | `ends_after` | The phase advances itself after this many plays |
 | `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*) |
-| `discard_hand` | Leaving the phase discards its unplayed hand (tokens vanish) |
-| `page` | Overlay only: render its cards as full-screen story pages (title, `story` prose, click to continue) and run the built-in `reveal` overlay sets this. Purely how they are drawn — what choosing one *does* is its own `play.action`, page or not |
+| `tags` | `discard_hand` — leaving the phase discards its unplayed hand, and tokens vanish. A `draw_and_play` phase gets it by default; `keep_hand` opts out |
 | `next` | Routing table (below) |
 
 Types: `automatic` runs its actions once and advances (if the actions opened
@@ -800,9 +798,9 @@ be a visible hero on the table.
 per seat with one rect each:
 
 ```json
-{ "key": "hand",  "type": "hand", "per_seat": true,
+{ "key": "hand",  "type": "hand", "tags": ["per_seat"],
   "pos": [[0.02, 0.75, 0.78, 0.87], [0.02, 0.88, 0.78, 0.99]] },
-{ "key": "arena", "type": "grid", "grid": [5, 1], "per_seat": true,
+{ "key": "arena", "type": "grid", "grid": [5, 1], "tags": ["per_seat"],
   "pos": [[0.02, 0.05, 0.60, 0.30], [0.02, 0.32, 0.60, 0.57]] }
 ```
 
