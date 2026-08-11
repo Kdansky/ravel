@@ -52,7 +52,7 @@ tags it absorbs. Everything below is presentation living somewhere bespoke today
 |---|---|
 | `fit: "card"` / `"fill"` on a zone | a style word, and the default when nothing says otherwise |
 | `ratio: 1` / `"grid"` on a zone | a style property — see the note at the end |
-| `checker: ["#f0d9b5", "#b58863"]` on a zone | a style, and `black_and_white` is a shipped one |
+| `chequer: ["#f0d9b5", "#b58863"]` on a zone | a style, and `black_and_white` is a shipped one |
 | `paint: {...}` on a zone | a style property |
 | `invisible_slot_outlines` tag | already a tag; becomes a style, shorter: `no_square_lines` |
 | `invisible_title_text` card tag | a style |
@@ -63,7 +63,7 @@ tags it absorbs. Everything below is presentation living somewhere bespoke today
 `transparent_background` were a field and a tag deciding the same thing: what is
 behind the art. They collapsed into one property that takes a colour or `false`.
 The other pairs that looked related are not: `fit` shapes a card inside a cell
-while `ratio` shapes the zone, and `checker` paints every cell while `paint`
+while `ratio` shapes the zone, and `chequer` paints every cell while `paint`
 names particular ones — different subjects, kept apart.
 
 **The prerequisite turned out not to be one.** `entity_has` still does not answer

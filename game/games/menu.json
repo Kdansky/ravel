@@ -63,7 +63,7 @@
       "text": "Chess",
       "tooltip": "Capture the king. Two players, one device.",
       "play": { "action": ["load_game:chess.json"] },
-      "asset": "checker:8:slate:silver",
+      "asset": "chequer:8:slate:silver",
       "tags": ["immutable"]
     },
     {

@@ -323,8 +323,8 @@ local drawn = 0
 for _, spec in ipairs({
 	"circle:teal", "square:#ff8000", "triangle:crimson", "diamond:gold",
 	"cross:red:white", "polygon:3:green", "polygon:12:navy", "star:5:amber",
-	"star:3:violet", "stripes:2:slate", "stripes:16:sand", "checker:2:black:white",
-	"checker:16:olive", "dots:1:pink", "dots:8:cyan",
+	"star:3:violet", "stripes:2:slate", "stripes:16:sand", "chequer:2:black:white",
+	"chequer:16:olive", "dots:1:pink", "dots:8:cyan",
 }) do
 	assert(art.render(spec), "art.render returned nothing for " .. spec)
 	drawn = drawn + 1

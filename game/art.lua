@@ -42,7 +42,7 @@ local SHAPES = {
 	polygon  = { n = 5, min = 3, max = 12 },
 	star     = { n = 5, min = 3, max = 12 },
 	stripes  = { n = 4, min = 2, max = 16 },
-	checker  = { n = 6, min = 2, max = 16 },
+	chequer  = { n = 6, min = 2, max = 16 },
 	dots     = { n = 3, min = 1, max = 8 },
 }
 
@@ -100,7 +100,7 @@ local function hsl(h, s, l)
 end
 
 local AUTO_SHAPES = { "circle", "square", "triangle", "diamond", "polygon",
-	"star", "cross", "stripes", "checker", "dots" }
+	"star", "cross", "stripes", "chequer", "dots" }
 
 -- A stable spec derived from the card key alone: same card, same art, every
 -- run and every machine, with no authoring and no RNG draw (which would also
@@ -187,7 +187,7 @@ local function paint(p)
 	elseif p.shape == "stripes" then
 		local h = SIZE / (p.n * 2 - 1)
 		for i = 0, p.n - 1 do g.rectangle("fill", 0, i * 2 * h, SIZE, h) end
-	elseif p.shape == "checker" then
+	elseif p.shape == "chequer" then
 		local s = SIZE / p.n
 		for row = 0, p.n - 1 do
 			for col = 0, p.n - 1 do

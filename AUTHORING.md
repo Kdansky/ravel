@@ -264,13 +264,13 @@ procedurally: `<shape>[:<n>]:<colour>[:<colour>]`.
 ```json
 "asset": "circle:teal"           "asset": "polygon:5:green"
 "asset": "star:6:gold:navy"      "asset": "stripes:7:crimson"
-"asset": "checker:8:black:white" "asset": "auto"
+"asset": "chequer:8:black:white" "asset": "auto"
 ```
 
 | Shapes | |
 |---|---|
 | no count | `circle`, `square`, `triangle`, `diamond`, `cross` |
-| counted | `polygon:3–12`, `star:3–12`, `stripes:2–16`, `checker:2–16`, `dots:1–8` |
+| counted | `polygon:3–12`, `star:3–12`, `stripes:2–16`, `chequer:2–16`, `dots:1–8` |
 
 Colours are `#rrggbb` or a palette name: `black white grey slate ash silver
 red crimson maroon pink orange amber gold yellow sand tan brown olive green
@@ -1060,7 +1060,7 @@ A style carries everything about how a thing *looks*, for cards and zones alike:
 | `border` | cards | `false` draws no frame. A chess piece is not a card and should not be drawn inside one — selection and eligibility outlines still draw, because those are the affordance rather than the frame |
 | `fit` | grid zones | `card` (default) keeps card proportions in a cell; `fill` stretches to the whole cell, for board tiles |
 | `ratio` | zones | the shape it keeps whatever the window is — width over height, or `"grid"` to read it from the cell count |
-| `checkered` | grid zones | two colours alternated across the squares |
+| `chequer` | grid zones | two colours alternated across the squares |
 | `paint` | grid zones | `{ "<absolute pattern>": colour-or-filename }` — terrain, goal rows, home rows |
 | `cell_outline` | grid zones | `false` draws no outline on empty cells. Eligible squares still light up during a move |
 
@@ -1070,7 +1070,7 @@ one word:
 ```json
 "styles": {
   "chessboard": { "fit": "fill", "ratio": "grid",
-                  "checkered": ["#f0d9b5", "#b58863"], "cell_outline": false },
+                  "chequer": ["#f0d9b5", "#b58863"], "cell_outline": false },
   "piece":      { "title": false, "color": false }
 },
 "zones": [{ "key": "board", "type": "grid", "grid": [8, 8], "tags": ["activate", "chessboard"] }]

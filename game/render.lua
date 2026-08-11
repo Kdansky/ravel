@@ -744,7 +744,7 @@ end
 -- Colours are the same words a card's art uses — a palette name or "#rrggbb" —
 -- so there is one colour vocabulary rather than two.
 local function draw_grid_squares(zone_e)
-	local c = zone_e.style.checkered
+	local c = zone_e.style.chequer
 	if not (c and zone_e.slots and zone_e.grid) then return end
 	local a, b = art.colour(c[1]), art.colour(c[2])
 	if not (a and b) then return end

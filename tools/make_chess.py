@@ -242,7 +242,7 @@ def build():
             # A piece is not a card: no title, no plate, and no frame drawn round it.
             "piece": {"title": False, "color": False, "border": False},
             "chessboard": {"fit": "fill", "ratio": "grid",
-                           "checkered": ["#f0d9b5", "#b58863"], "cell_outline": False},
+                           "chequer": ["#f0d9b5", "#b58863"], "cell_outline": False},
         },
         "patterns": patterns,
         "zones": [
