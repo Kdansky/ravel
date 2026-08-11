@@ -104,13 +104,12 @@ def piece(seat, colour_label, kind, file_idx, row, palette):
         # The board is one shared zone, so ownership cannot come from the zone.
         # Its own key is a tag too, so one piece can be named by another's
         # condition — which is how a castling gate asks about its rook.
-        # A knight labelled "White Knight" is worse than one that just looks
-        # like a knight, and on a 64-cell board the label costs a quarter of the
-        # height the drawing needed. The name still shows in the tooltip.
-        # ...and no plate behind it either, so the PNG's transparency lets the
-        # square it stands on show through.
-        "tags": [seat, "piece", kind, key,
-                 "invisible_title_text", "transparent_background"],
+        # The "piece" style is both of those: no title, because a knight
+        # labelled "White Knight" is worse than one that just looks like a
+        # knight and the label costs a quarter of a 64-cell board's height; and
+        # no plate, so the PNG's transparency lets the square show through. The
+        # name still shows in the tooltip.
+        "tags": [seat, "piece", kind, key],
         # rank is stamped by the engine; moves_made is the piece's own count,
         # and is what "has this ever moved" reads.
         "card_stats": {"rank": 0, "moves_made": 0},
@@ -223,15 +222,19 @@ def build():
 
     return {
         "title": "Chess",
+        "styles": {
+            "piece": {"title": False, "color": False},
+            "chessboard": {"fit": "fill", "ratio": "grid",
+                           "checker": ["#f0d9b5", "#b58863"], "cell_outline": False},
+        },
         "patterns": patterns,
         "zones": [
-            # The squares are painted, so the outline an empty cell gets by
-            # default is a rounded rectangle drawn inside a colour somebody
-            # chose. Eligibility during a move is still drawn.
+            # Everything about how the board looks is one word. The squares are
+            # painted, so the outline an empty cell gets by default would be a
+            # rounded rectangle drawn inside a colour somebody chose — hence
+            # cell_outline false. Eligibility during a move is still drawn.
             {"key": "board", "type": "grid", "grid": [8, 8],
-             "pos": [0.28, 0.03, 0.72, 0.97], "fit": "fill", "ratio": "grid",
-             "tags": ["activate", "invisible_slot_outlines"],
-             "checker": ["#f0d9b5", "#b58863"]},
+             "pos": [0.28, 0.03, 0.72, 0.97], "tags": ["activate", "chessboard"]},
             # The right-hand column, top to bottom: black's graveyard, black's
             # castling buttons, the rules card, white's buttons, white's
             # graveyard. Each player's buttons sit against their own pile, so

@@ -1,7 +1,7 @@
 # 11 — Styles are tags too
 
-**Status:** in progress — the section, the resolution and `color` are shipped.
-Left: `fit`, `ratio`, `checker`, `paint` and the two card presentation tags ·
+**Status:** **shipped.** Every field and tag in the table below now lives in
+`styles`, for zones as well as cards ·
 **Size:** medium-large, and it *deletes* more than it adds ·
 **Supersedes:** `ratio` and `fit` as zone fields ([07](07-presentation.md)
 gaps 4 and 5, both shipped and both now on the wrong side of this).
@@ -57,7 +57,18 @@ tags it absorbs. Everything below is presentation living somewhere bespoke today
 | `invisible_slot_outlines` tag | already a tag; becomes a style, shorter: `no_square_lines` |
 | `invisible_title_text` card tag | a style |
 | `transparent_background` card tag | a style |
-| `color: [r,g,b]` on a card | a style property |
+| `color: [r,g,b]` on a card | a style property — **and `false` on the same property replaced `transparent_background`** |
+
+**One overlap turned out to be real.** A card's `color` and the tag
+`transparent_background` were a field and a tag deciding the same thing: what is
+behind the art. They collapsed into one property that takes a colour or `false`.
+The other pairs that looked related are not: `fit` shapes a card inside a cell
+while `ratio` shapes the zone, and `checker` paints every cell while `paint`
+names particular ones — different subjects, kept apart.
+
+**The prerequisite turned out not to be one.** `entity_has` still does not answer
+for zones, and did not need to: a zone has no stats, so no computed tag can be
+true of one, so a zone's look is settled at load and a plain merge does it.
 
 Two of those are already tags, which is the sign the idea is right: the engine
 has been drifting toward it one ad-hoc word at a time, and this is the pass that

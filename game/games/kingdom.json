@@ -32,7 +32,8 @@
     "slate": { "color": [0.1, 0.14, 0.22] },
     "moss": { "color": [0.12, 0.17, 0.14] },
     "rust": { "color": [0.18, 0.13, 0.12] },
-    "indigo": { "color": [0.14, 0.12, 0.19] }
+    "indigo": { "color": [0.14, 0.12, 0.19] },
+    "tiled": { "fit": "fill" }
   },
   "cards": [
     {
@@ -536,8 +537,7 @@
       "type": "grid",
       "pos": [0.0, 0.0, 0.75, 0.7],
       "grid": [5, 5],
-      "fit": "fill",
-      "tags": ["activate"]
+      "tags": ["activate", "tiled"]
     },
     { "key": "hand", "type": "hand", "pos": [0.19, 0.72, 0.75, 0.99] },
     {

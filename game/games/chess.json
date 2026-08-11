@@ -1,5 +1,9 @@
 {
   "title": "Chess",
+  "styles": {
+    "piece": { "title": false, "color": false },
+    "chessboard": { "fit": "fill", "ratio": "grid", "checker": ["#f0d9b5", "#b58863"], "cell_outline": false }
+  },
   "patterns": {
     "line_ortho": { "vectors": [[1, 0], [0, 1]], "class": ["ray", "mirrored"] },
     "line_diag": { "vectors": [[1, 1]], "class": ["ray", "mirrored"] },
@@ -19,10 +23,7 @@
       "type": "grid",
       "grid": [8, 8],
       "pos": [0.28, 0.03, 0.72, 0.97],
-      "fit": "fill",
-      "ratio": "grid",
-      "tags": ["activate", "invisible_slot_outlines"],
-      "checker": ["#f0d9b5", "#b58863"]
+      "tags": ["activate", "chessboard"]
     },
     {
       "key": "taken",
@@ -74,7 +75,7 @@
       "text": "White Rook",
       "tooltip": "a1 — white rook",
       "asset": "Chess_rlt60.png",
-      "tags": ["white", "piece", "rook", "w_rook_a", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "rook", "w_rook_a"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
@@ -88,14 +89,7 @@
       "text": "White Knight",
       "tooltip": "b1 — white knight",
       "asset": "Chess_nlt60.png",
-      "tags": [
-        "white",
-        "piece",
-        "knight",
-        "w_knight_b",
-        "invisible_title_text",
-        "transparent_background"
-      ],
+      "tags": ["white", "piece", "knight", "w_knight_b"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
@@ -109,14 +103,7 @@
       "text": "White Bishop",
       "tooltip": "c1 — white bishop",
       "asset": "Chess_blt60.png",
-      "tags": [
-        "white",
-        "piece",
-        "bishop",
-        "w_bishop_c",
-        "invisible_title_text",
-        "transparent_background"
-      ],
+      "tags": ["white", "piece", "bishop", "w_bishop_c"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
@@ -130,7 +117,7 @@
       "text": "White Queen",
       "tooltip": "d1 — white queen",
       "asset": "Chess_qlt60.png",
-      "tags": ["white", "piece", "queen", "w_queen_d", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "queen", "w_queen_d"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho", "line_diag"],
@@ -144,7 +131,7 @@
       "text": "White King",
       "tooltip": "e1 — white king",
       "asset": "Chess_klt60.png",
-      "tags": ["white", "piece", "king", "w_king_e", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "king", "w_king_e"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["adjacent"],
@@ -158,14 +145,7 @@
       "text": "White Bishop",
       "tooltip": "f1 — white bishop",
       "asset": "Chess_blt60.png",
-      "tags": [
-        "white",
-        "piece",
-        "bishop",
-        "w_bishop_f",
-        "invisible_title_text",
-        "transparent_background"
-      ],
+      "tags": ["white", "piece", "bishop", "w_bishop_f"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
@@ -179,14 +159,7 @@
       "text": "White Knight",
       "tooltip": "g1 — white knight",
       "asset": "Chess_nlt60.png",
-      "tags": [
-        "white",
-        "piece",
-        "knight",
-        "w_knight_g",
-        "invisible_title_text",
-        "transparent_background"
-      ],
+      "tags": ["white", "piece", "knight", "w_knight_g"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
@@ -200,7 +173,7 @@
       "text": "White Rook",
       "tooltip": "h1 — white rook",
       "asset": "Chess_rlt60.png",
-      "tags": ["white", "piece", "rook", "w_rook_h", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "rook", "w_rook_h"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
@@ -214,7 +187,7 @@
       "text": "White Pawn",
       "tooltip": "a2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_a", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "pawn", "w_pawn_a"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -236,7 +209,7 @@
       "text": "White Pawn",
       "tooltip": "b2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_b", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "pawn", "w_pawn_b"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -258,7 +231,7 @@
       "text": "White Pawn",
       "tooltip": "c2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_c", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "pawn", "w_pawn_c"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -280,7 +253,7 @@
       "text": "White Pawn",
       "tooltip": "d2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_d", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "pawn", "w_pawn_d"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -302,7 +275,7 @@
       "text": "White Pawn",
       "tooltip": "e2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_e", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "pawn", "w_pawn_e"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -324,7 +297,7 @@
       "text": "White Pawn",
       "tooltip": "f2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_f", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "pawn", "w_pawn_f"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -346,7 +319,7 @@
       "text": "White Pawn",
       "tooltip": "g2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_g", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "pawn", "w_pawn_g"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -368,7 +341,7 @@
       "text": "White Pawn",
       "tooltip": "h2 — white pawn",
       "asset": "Chess_plt60.png",
-      "tags": ["white", "piece", "pawn", "w_pawn_h", "invisible_title_text", "transparent_background"],
+      "tags": ["white", "piece", "pawn", "w_pawn_h"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -390,7 +363,7 @@
       "text": "Black Rook",
       "tooltip": "a8 — black rook",
       "asset": "Chess_rdt60.png",
-      "tags": ["black", "piece", "rook", "b_rook_a", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "rook", "b_rook_a"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
@@ -404,14 +377,7 @@
       "text": "Black Knight",
       "tooltip": "b8 — black knight",
       "asset": "Chess_ndt60.png",
-      "tags": [
-        "black",
-        "piece",
-        "knight",
-        "b_knight_b",
-        "invisible_title_text",
-        "transparent_background"
-      ],
+      "tags": ["black", "piece", "knight", "b_knight_b"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
@@ -425,14 +391,7 @@
       "text": "Black Bishop",
       "tooltip": "c8 — black bishop",
       "asset": "Chess_bdt60.png",
-      "tags": [
-        "black",
-        "piece",
-        "bishop",
-        "b_bishop_c",
-        "invisible_title_text",
-        "transparent_background"
-      ],
+      "tags": ["black", "piece", "bishop", "b_bishop_c"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
@@ -446,7 +405,7 @@
       "text": "Black Queen",
       "tooltip": "d8 — black queen",
       "asset": "Chess_qdt60.png",
-      "tags": ["black", "piece", "queen", "b_queen_d", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "queen", "b_queen_d"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho", "line_diag"],
@@ -460,7 +419,7 @@
       "text": "Black King",
       "tooltip": "e8 — black king",
       "asset": "Chess_kdt60.png",
-      "tags": ["black", "piece", "king", "b_king_e", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "king", "b_king_e"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["adjacent"],
@@ -474,14 +433,7 @@
       "text": "Black Bishop",
       "tooltip": "f8 — black bishop",
       "asset": "Chess_bdt60.png",
-      "tags": [
-        "black",
-        "piece",
-        "bishop",
-        "b_bishop_f",
-        "invisible_title_text",
-        "transparent_background"
-      ],
+      "tags": ["black", "piece", "bishop", "b_bishop_f"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
@@ -495,14 +447,7 @@
       "text": "Black Knight",
       "tooltip": "g8 — black knight",
       "asset": "Chess_ndt60.png",
-      "tags": [
-        "black",
-        "piece",
-        "knight",
-        "b_knight_g",
-        "invisible_title_text",
-        "transparent_background"
-      ],
+      "tags": ["black", "piece", "knight", "b_knight_g"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
@@ -516,7 +461,7 @@
       "text": "Black Rook",
       "tooltip": "h8 — black rook",
       "asset": "Chess_rdt60.png",
-      "tags": ["black", "piece", "rook", "b_rook_h", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "rook", "b_rook_h"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
@@ -530,7 +475,7 @@
       "text": "Black Pawn",
       "tooltip": "a7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_a", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "pawn", "b_pawn_a"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -552,7 +497,7 @@
       "text": "Black Pawn",
       "tooltip": "b7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_b", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "pawn", "b_pawn_b"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -574,7 +519,7 @@
       "text": "Black Pawn",
       "tooltip": "c7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_c", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "pawn", "b_pawn_c"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -596,7 +541,7 @@
       "text": "Black Pawn",
       "tooltip": "d7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_d", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "pawn", "b_pawn_d"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -618,7 +563,7 @@
       "text": "Black Pawn",
       "tooltip": "e7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_e", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "pawn", "b_pawn_e"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -640,7 +585,7 @@
       "text": "Black Pawn",
       "tooltip": "f7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_f", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "pawn", "b_pawn_f"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -662,7 +607,7 @@
       "text": "Black Pawn",
       "tooltip": "g7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_g", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "pawn", "b_pawn_g"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -684,7 +629,7 @@
       "text": "Black Pawn",
       "tooltip": "h7 — black pawn",
       "asset": "Chess_pdt60.png",
-      "tags": ["black", "piece", "pawn", "b_pawn_h", "invisible_title_text", "transparent_background"],
+      "tags": ["black", "piece", "pawn", "b_pawn_h"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -783,3 +728,4 @@
     }
   ]
 }
+

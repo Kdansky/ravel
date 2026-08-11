@@ -18,7 +18,7 @@
     "damaged": { "stat": "hp", "less_than_stat": "hp_max" },
     "standing": { "stat": "hp", "at_least": 1 }
   },
-  "styles": { "slate": { "color": [0.1, 0.14, 0.22] } },
+  "styles": { "slate": { "color": [0.1, 0.14, 0.22] }, "tiled": { "fit": "fill" } },
   "cards": [
     {
       "key": "throne_room",
@@ -211,8 +211,7 @@
       "type": "grid",
       "pos": [0.0, 0.0, 0.75, 0.7],
       "grid": [5, 5],
-      "fit": "fill",
-      "tags": ["activate"]
+      "tags": ["activate", "tiled"]
     },
     { "key": "hand", "type": "hand", "pos": [0.19, 0.72, 0.75, 0.99] },
     {

@@ -34,6 +34,8 @@ STYLES = {
     "azure":   {"color": [0.30, 0.50, 0.90]},
     "ivory":   {"color": [0.85, 0.85, 0.80]},
     "amber":   {"color": [0.90, 0.75, 0.25]},
+    # An expedition is a column of tiles, not of cards with margins.
+    "tiled":   {"fit": "fill"},
 }
 VALUES = list(range(2, 11))
 WAGERS = 3
@@ -199,7 +201,7 @@ def zones():
         # worth at least what is already on it, which is the ascending rule.
         # Wagers are worth 0, so the same line puts them before every number.
         out.append({"key": c, "label": label, "type": "grid", "per_seat": True,
-                    "grid": [1, 12], "fit": "fill", "pos": EXPEDITION_POS[i],
+                    "grid": [1, 12], "tags": ["tiled"], "pos": EXPEDITION_POS[i],
                     "receive": {"needs": {"value@target": {"at_least": "max:value@mine." + c}}}})
         # A pile takes anything, which is what having no "receive" means, and
         # hands "takeable" to whatever lands on it — so its top card can be

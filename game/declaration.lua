@@ -71,6 +71,20 @@ local function flatten_moments(def, pp, what)
 	end
 end
 
+-- Every style a tag set names, merged into one flat table. Two styles claiming
+-- one property is an authoring conflict the validator reports, so nothing here
+-- has to invent a winner.
+local function merge_styles(G, tags_set)
+	local out = {}
+	for tag in pairs(tags_set or {}) do
+		local sd = G.style_defs[tag]
+		if type(sd) == "table" then
+			for k, v in pairs(sd) do out[k] = v end
+		end
+	end
+	return out
+end
+
 local function tag_set(arr)
 	local s = {}
 	if type(arr) ~= "table" then return s end
@@ -298,12 +312,7 @@ function M.parse(filename)
 			end
 			flatten_moments(cd, pp, "card '" .. cd.key .. "'")
 			cd.tags_set = tag_set(cd.tags)
-			cd.style = {}
-			for tag in pairs(cd.tags_set) do
-				for k, v in pairs(type(G.style_defs[tag]) == "table" and G.style_defs[tag] or {}) do
-					cd.style[k] = v
-				end
-			end
+			cd.style = merge_styles(G, cd.tags_set)
 			-- A piece that says how it moves is asking for the ordinary board
 			-- targeting, so the engine writes the spec rather than making every
 			-- piece repeat the same four fields.
@@ -340,6 +349,7 @@ function M.parse(filename)
 			end
 			flatten_moments(zd, pp, "zone '" .. zd.key .. "'")
 			zd.tags_set = tag_set(zd.tags)
+			zd.style = merge_styles(G, zd.tags_set)
 			if not zd.pos then
 				zd.pos = zd.tags_set.hidden and DEFAULT_POS.hidden
 					or DEFAULT_POS[zd.type] or DEFAULT_POS.pile

@@ -427,16 +427,12 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots). **Stacks are reached from the top**: only the top card of a deck or pile can be played, activated or targeted |
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]` for grid zones |
-| `fit` | Grid zones: `"card"` (default) keeps card proportions inside each cell, leaving breathing room; `"fill"` stretches cards to fill the cell, for board-game tiles |
-| `ratio` | The shape this zone keeps whatever the window does — width over height, so `1` is square and `1.78` is 16:9. `"grid"` takes it from the cell count. Without it, `pos` is fractions of the window and a chessboard is square at exactly one window shape. The zone claims the largest rect of that shape inside what `pos` allotted, centred; the slack is left empty and no other zone moves |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
 | `on_click` | Actions run when the zone is clicked. **Not phase-scoped** — it fires in every phase. To make a *card* usable at one point in a turn, grant it an ability with `applies` and limit it with `phases` |
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
 | `receive` | `needs`: whether a card being played may be sent **here** — the zone answers for itself, as a card does |
 | `per_seat` | `true` makes one copy of this zone per seat (see *Two or more players*). `pos` then takes one rect **per seat**: `[[…], […]]` |
 | `asset` | A picture behind the whole zone — the painted board most games have. Same asset rules as a card's: a filename in `games/assets/`, an `http(s)` URL, or a shape spec. Stretched to the zone's rect, since that rect is what the cells are computed from |
-| `checker` | Two colours alternated across a grid's squares, e.g. `["#f0d9b5", "#b58863"]` — what a chessboard or draughts board is. Palette names or `#rrggbb`, the same words a card's art uses. The top-left square takes the first colour |
-| `paint` | Individual squares, named by an **absolute pattern**: `{"goal_row": "gold", "water": "water_tile.png"}`. A colour or a picture. Terrain, goal squares, home rows — patterns already name sets of cells, so this needs no second way of saying which |
 | `tags` | See below |
 
 Zone tags: `shuffle` (on contents creation and refill), `refill_when_empty`
@@ -446,11 +442,7 @@ Zone tags: `shuffle` (on contents creation and refill), `refill_when_empty`
 unreachable wherever the card sits, so every board needs it), `optional`
 (nothing here ever has to be played, so a gated card stays gated instead of
 being force-enabled when nothing else in the zone is playable — for zones of
-buttons rather than hands), `invisible_slot_outlines` (a grid's empty cells get
-no outline — for a board that paints its own squares with `checker`, `paint` or
-an `asset`, where the outline is a rounded rectangle drawn inside a colour you
-chose. Eligible squares still light up during a move, so the board stays
-playable).
+buttons rather than hands).
 
 Cards entering a grid without slot targeting auto-occupy the first free slot.
 A full board refuses new arrivals: moves fail quietly and `fill`/`gain` stop
@@ -525,7 +517,7 @@ sending `Cache-Control` (imgur sends a year) is answered from the browser's own
 disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `owns` | Seats only (a card tagged `player`): the tag marking this seat's pieces on a board shared with the other players. A chessboard is one zone, so ownership cannot come from the zone — `"owns": "white"` on the seat makes every card tagged `white` that player's. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. **A tag outranks the zone**, so a planet held by player three inside player two's system is player three's |
-| `tags` | Free vocabulary for targeting/counting; engine-known: `no_undo` (playing or picking this card clears the undo stack — the choice is final), `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it), `invisible_title_text` (draw no title; the picture is the whole card, and the band it would have used goes to the art), `transparent_background` (no plate behind the art, so a transparent PNG shows the board through it — and dimming tints the art rather than laying a dark rectangle over the square) |
+| `tags` | Free vocabulary for targeting/counting; engine-known: `no_undo` (playing or picking this card clears the undo stack — the choice is final), `token` (vanishes instead of joining the discard; swept before new pass cards deal), `immutable` (furniture — nothing may target or edit it). How a card *looks* is a style it tags, not a tag the engine knows |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `turn.action`) |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). Activating **exhausts** the card until the round wraps, and a board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `exhausts: false` keeps it ready, which is how a permanent button works ("pass the time"). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
@@ -993,8 +985,33 @@ Lost Cities has seventy coloured cards and five colours, so this is five style
 entries and one word per card rather than three numbers repeated fourteen times.
 Change the red and every red card changes.
 
-Today a style carries one property, `color`. The field it replaced is gone: a
-card has no `color` of its own.
+A style carries everything about how a thing *looks*, for cards and zones alike:
+
+| Property | On | Means |
+|---|---|---|
+| `color` | cards | `[r, g, b]` for the plate behind the art, or **`false`** for no plate at all, so a transparent PNG shows the board through it |
+| `title` | cards | `false` draws none, giving the whole card to the picture |
+| `fit` | grid zones | `card` (default) keeps card proportions in a cell; `fill` stretches to the whole cell, for board tiles |
+| `ratio` | zones | the shape it keeps whatever the window is — width over height, or `"grid"` to read it from the cell count |
+| `checker` | grid zones | two colours alternated across the squares |
+| `paint` | grid zones | `{ "<absolute pattern>": colour-or-filename }` — terrain, goal rows, home rows |
+| `cell_outline` | grid zones | `false` draws no outline on empty cells. Eligible squares still light up during a move |
+
+Every one of these was its own field or its own tag. Chess's whole board is now
+one word:
+
+```json
+"styles": {
+  "chessboard": { "fit": "fill", "ratio": "grid",
+                  "checker": ["#f0d9b5", "#b58863"], "cell_outline": false },
+  "piece":      { "title": false, "color": false }
+},
+"zones": [{ "key": "board", "type": "grid", "grid": [8, 8], "tags": ["activate", "chessboard"] }]
+```
+
+**`color: false` is where two ideas became one.** A card's colour and "draw no
+plate behind it" were a field and a tag deciding the same thing; now the plate
+has a colour, or it has none.
 
 **A style name lives in the same namespace as zones, tags and cards** — one name
 means one thing, and the validator refuses a style called `red` in a game that

@@ -24,7 +24,17 @@
   },
   "styles": {
     "<your style name>": {
-      "color": "[r, g, b] each 0 to 1: the plate behind the card's art"
+      "color": "cards: [r, g, b] each 0 to 1 for the plate behind the art, or false for no plate at all — so a transparent PNG shows the board through it",
+      "title": "cards: false draws no title, giving the whole card to the picture",
+      "fit": "grid zones: how a card sits in a cell. card (the default) keeps card proportions and leaves breathing room; fill stretches it to the whole cell, for board tiles",
+      "ratio": "zones: the shape it keeps whatever the window is — width over height, so 1 is square, or the word grid to read it from the cell count. The zone takes the largest rect of that shape inside what pos allotted, centred.",
+      "checker": [
+        "grid zones: two colours alternated across the squares, palette names or #rrggbb, the top-left square taking the first"
+      ],
+      "paint": {
+        "<absolute pattern name>": "grid zones: a colour or a picture for the squares that pattern names — terrain, goal rows, home rows"
+      },
+      "cell_outline": "grid zones: false draws no outline on empty cells, for a board that paints its own squares. Eligible squares still light up during a move."
     }
   },
   "cards": [
@@ -121,8 +131,6 @@
       "type": "deck (face-down stack), pile (face-up stack), hand (a row showing card text), or grid (a board of addressable cells). A stack is reached from the top: only its top card can be played, activated or targeted.",
       "pos": "[x1, y1, x2, y2] as fractions of the window. Per-seat zones take one such list per seat instead, which is the only place a nested array is allowed outside a pattern's vectors. Each type has a default spot; hidden zones default off-screen, which is what gives dealt cards their fly-in.",
       "grid": "[cols, rows] for a grid zone",
-      "fit": "grid zones: card (default) keeps card proportions inside each cell, fill stretches cards to the whole cell for board tiles",
-      "ratio": "the shape the zone keeps whatever the window is: a number, width over height, or the word grid to read it from the cell count. The zone takes the largest rect of that shape inside what pos allotted, centred.",
       "contents": [
         "starting cards, each key or key:count"
       ],
@@ -139,14 +147,8 @@
         "action strings run when the zone is clicked. Not phase-scoped: it fires in every phase, so it is not a move. An ability on a card, granted with applies, is what a move wants to be."
       ],
       "asset": "a picture behind the whole zone, stretched to its rect. Same five forms as a card's asset.",
-      "checker": [
-        "two colours alternated across a grid's squares, palette names or #rrggbb, the top-left square taking the first"
-      ],
-      "paint": {
-        "<absolute pattern name>": "a colour or a picture for the squares that pattern names, which is how terrain, goal rows and home rows are painted"
-      },
       "tags": [
-        "a list of words; the engine knows several for zones. See _engine_tags."
+        "a list of words; the engine knows several for zones (see _engine_tags), and a zone claims a look by naming a style (see styles)"
       ]
     }
   ],
@@ -306,9 +308,9 @@
     "net_offline": "net_offline — disconnect"
   },
   "_engine_tags": {
-    "_what": "Tags are the game's own vocabulary and an unknown one is not an error. These are the words the engine itself reads. A full reference with what each changes is still owed — see ideas/06-schema-and-types.md gap 4.",
-    "_on_cards": "player (this card is a seat), no_undo (playing or picking this card clears the undo stack — the choice is final), token (vanishes instead of joining the discard), immutable (scenery: nothing may target it and its template can never be edited), invisible_title_text (draw no title, so the picture is the whole card), transparent_background (no plate behind the art)",
-    "_on_zones": "shuffle (on creation and refill), refill_when_empty, face_up and face_down (override the type's facing), no_peek (no tooltip or browsing), hidden (not drawn and not clickable), activate (cards here may use their abilities, so every board needs it), optional (nothing here ever has to be played, so a gated card stays gated), invisible_slot_outlines (empty cells get no outline, for a board that paints its own squares)",
+    "_what": "Tags are the game's own vocabulary and an unknown one is not an error. These are the words the engine itself reads. A word naming an entry in styles claims a look instead, and a word naming one in tags claims behaviour. A full reference with what each changes is still owed — see ideas/06-schema-and-types.md gap 4.",
+    "_on_cards": "player (this card is a seat), no_undo (playing or picking this card clears the undo stack — the choice is final), token (vanishes instead of joining the discard), immutable (scenery: nothing may target it and its template can never be edited). How a card looks is a style it tags, not a tag the engine knows.",
+    "_on_zones": "shuffle (on creation and refill), refill_when_empty, face_up and face_down (override the type's facing), no_peek (no tooltip or browsing), hidden (not drawn and not clickable), activate (cards here may use their abilities, so every board needs it), optional (nothing here ever has to be played, so a gated card stays gated). How a zone looks is a style it tags.",
     "_reserved": "A zone or tag may never be named self or all, nor any of the quantifiers any, each and random, nor the owner words mine, enemy and anyone. player is deliberately not reserved: it is an ordinary tag a game puts on one card."
   }
 }

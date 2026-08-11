@@ -42,11 +42,10 @@ local function build(def, seat, pos)
 		zone_type = def.type or "pile",
 		tags      = def.tags_set or {},
 		grid      = def.grid,
-		fit       = def.fit,
-		ratio     = def.ratio,     -- width over height the zone must keep, or "grid"
-		checker   = def.checker,   -- two colours, alternated across the squares
+		-- How this zone looks, merged from the styles its tags name: the shape it
+		-- keeps, how a card sits in a cell, what the cells are painted with.
+		style     = def.style or {},
 		asset     = def.asset,     -- a picture behind the whole zone
-		paint     = def.paint,     -- pattern name → colour or picture, per square
 		cards     = {},
 		slots     = {},   -- slot_idx → slot entity ID (grid zones only)
 		contents  = def.contents,
@@ -360,10 +359,11 @@ end
 -- another tag that must never appear beside the first.
 local function keep_ratio(z)
 	local r
-	if z.ratio == "grid" then
+	local ratio = z.style.ratio
+	if ratio == "grid" then
 		r = z.grid and z.grid[2] and z.grid[1] / z.grid[2]
 	else
-		r = tonumber(z.ratio)
+		r = tonumber(ratio)
 	end
 	if not r or r <= 0 then return end
 	local p = z.place

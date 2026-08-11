@@ -214,7 +214,7 @@ do
 	inspect.draw(999999)
 end
 
--- `invisible_slot_outlines`: a painted board draws nothing on its empty cells,
+-- `cell_outline: false`: a painted board draws nothing on its empty cells,
 -- and still lights the ones a move may reach. Counting the same frame twice
 -- with the tag flipped is the only way to see a shape that isn't there — and
 -- the difference is exact, one outline per empty square, so a change in what
@@ -230,10 +230,10 @@ do
 	flow.init("chess.json", 4)
 	render.rescale()
 	local board = zones.find("board")
-	assert(board.tags.invisible_slot_outlines, "chess.json is expected to tag its board")
+	assert(board.style.cell_outline == false, "chess.json is expected to style its board bare")
 
 	local bare = drawn()
-	board.tags.invisible_slot_outlines = nil
+	board.style.cell_outline = nil
 	local lined = drawn()
 	local empty = 64 - #board.cards
 	assert(lined - bare == empty,
@@ -241,7 +241,7 @@ do
 
 	-- The affordance is not chrome: with the tag back on, the squares a piece
 	-- may move to are still drawn, or the board is unplayable.
-	board.tags.invisible_slot_outlines = true
+	board.style.cell_outline = false
 	local piece
 	for _, id in ipairs(board.cards) do
 		local c = entity.get(id)

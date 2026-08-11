@@ -251,20 +251,22 @@ local CASES = {
 		function(g) g.card_defs.c_flee.target = { type = "card", count = 1, fill = "empty" } end },
 	{ "a move_to that names no such tray", "happens to a piece already standing there",
 		function(g) g.card_defs.c_flee.on_play = { "move_to:target:vault" } end },
-	{ "an unknown zone fit", "fit should be 'card' or 'fill'",
-		function(g) g.zone_defs.board.fit = "stretch" end },
+	{ "an unknown fit in a style", "fit should be 'card' or 'fill'",
+		function(g) g.style_defs = { tiled = { fit = "stretch" } } end },
 	{ "a checker that isn't a pair of colours", "checker should be two colours",
-		function(g) g.zone_defs.board.checker = { "cream" } end },
+		function(g) g.style_defs = { tiled = { checker = { "cream" } } } end },
 	{ "a checker colour that isn't one", "is not a colour",
-		function(g) g.zone_defs.board.checker = { "cream", "octarine" } end },
+		function(g) g.style_defs = { tiled = { checker = { "cream", "octarine" } } } end },
 	{ "painting squares no pattern names", "no pattern has that name",
-		function(g) g.zone_defs.board.paint = { throne = "gold" } end },
+		function(g) g.style_defs = { tiled = { paint = { throne = "gold" } } } end },
 	{ "painting by a pattern of directions", "only an absolute pattern names squares",
 		function(g)
 			g.raw_patterns = { hop = { { 1, 0 } } }
 			g.pattern_defs.hop = { vectors = { { 1, 0 } }, range = 1 }
-			g.zone_defs.board.paint = { hop = "gold" }
+			g.style_defs = { tiled = { paint = { hop = "gold" } } }
 		end },
+	{ "a style named after a zone", "a name may mean only one thing",
+		function(g) g.style_defs = { board = { color = { 1, 0, 0 } } } end },
 	{ "a tag and a zone sharing a name", "both a zone and a tag",
 		function(g) g.tag_defs.board = { zone = "board" } end },
 	{ "a tag claiming a reserved scope name", "reserves for conditions",

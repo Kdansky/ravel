@@ -207,9 +207,9 @@ local function card_places(zone_e)
 			local c    = entity.get(card_id)
 			local slot = c and c.slot_id and entity.get(c.slot_id)
 			if slot then
-				places[i] = fit_card(slot.place, zone_e.fit)
+				places[i] = fit_card(slot.place, zone_e.style.fit)
 			else
-				places[i] = fit_card(zones.cell_rect(zone_e, i), zone_e.fit)
+				places[i] = fit_card(zones.cell_rect(zone_e, i), zone_e.style.fit)
 			end
 		end
 		return places
@@ -296,7 +296,10 @@ end
 -- show_text=false: compact title bar only (board tiles, animations, pile top).
 local function draw_card_face(pl, card_e, show_text)
 	local def   = cards.def(card_e)
-	local color = cards.style(card_e).color or C.card_default
+	local look  = cards.style(card_e)
+	-- One property for the plate: a colour, or false for none, so a transparent
+	-- PNG shows the board through it. Two words for one decision was one too many.
+	local color = look.color or C.card_default
 	local img   = cards.image(card_e.def_key)
 	local z     = entity.get(card_e.zone_id)
 	local title = def and def.text or card_e.def_key
@@ -305,7 +308,7 @@ local function draw_card_face(pl, card_e, show_text)
 	-- label costs a quarter of the height it needed for the drawing. Carried as
 	-- a tag so a zone can grant it too ("nothing on this board is titled")
 	-- rather than every template having to say it.
-	local no_title = tags.entity_has(card_e, "invisible_title_text")
+	local no_title = look.title == false
 	-- What is left to put in the text band once the title is gone. A hand card
 	-- may still have a description worth the room; a board tile has nothing, and
 	-- gives the space back to the art.
@@ -332,7 +335,7 @@ local function draw_card_face(pl, card_e, show_text)
 	-- transparency shows whatever the board is painted with. The card colour
 	-- would otherwise cover the square it stands on, which on a chessboard means
 	-- covering the chessboard.
-	local bare = tags.entity_has(card_e, "transparent_background")
+	local bare = look.color == false
 
 	love.graphics.push("all")
 	if not bare then
@@ -594,9 +597,9 @@ end
 -- name sets of cells and are already checked, so this needs no second way of
 -- saying which squares are meant.
 local function draw_painted_squares(zone_e)
-	if not (zone_e.paint and zone_e.slots) then return end
+	if not (zone_e.style.paint and zone_e.slots) then return end
 	love.graphics.push("all")
-	for name, look in pairs(zone_e.paint) do
+	for name, look in pairs(zone_e.style.paint) do
 		local col = art.colour(look)
 		local img = not col and cards.asset_image(look, "paint:" .. tostring(look)) or nil
 		for _, slot_id in ipairs(predicate.pattern_slots(name)) do
@@ -626,7 +629,7 @@ end
 -- Colours are the same words a card's art uses — a palette name or "#rrggbb" —
 -- so there is one colour vocabulary rather than two.
 local function draw_grid_squares(zone_e)
-	local c = zone_e.checker
+	local c = zone_e.style.checker
 	if not (c and zone_e.slots and zone_e.grid) then return end
 	local a, b = art.colour(c[1]), art.colour(c[2])
 	if not (a and b) then return end
@@ -652,7 +655,7 @@ end
 -- it is a chessboard nobody can move on.
 local function draw_grid_empty(zone_e)
 	if not zone_e.slots then return end
-	local bare = zone_e.tags.invisible_slot_outlines
+	local bare = zone_e.style.cell_outline == false
 	love.graphics.push("all")
 	for _, slot_id in pairs(zone_e.slots) do
 		local slot = entity.get(slot_id)
@@ -660,7 +663,7 @@ local function draw_grid_empty(zone_e)
 		if slot and not slot.occupant and (lit or not bare) then
 			-- Match the card footprint, so an empty slot reads as the same
 			-- shape as the card that would fill it.
-			local p = fit_card(slot.place, zone_e.fit)
+			local p = fit_card(slot.place, zone_e.style.fit)
 			if lit then
 				love.graphics.setColor(C.eligible[1], C.eligible[2], C.eligible[3],
 					0.10 + 0.14 * pulse(5))

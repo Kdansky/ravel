@@ -67,10 +67,10 @@ local RECEIVE_FIELDS   = { needs = true }
 local TURN_FIELDS      = { action = true }
 local START_FIELDS     = { zone = true, slot = true }
 local ZONE_FIELDS = {
-	key = true, label = true, type = true, pos = true, grid = true, fit = true,
+	key = true, label = true, type = true, pos = true, grid = true, style = true,
 	contents = true, on_click = true, tags = true, tags_set = true,
 	injected = true, per_seat = true, applies = true, accepts = true, receive = true,
-	checker = true, asset = true, paint = true, ratio = true,
+	asset = true,
 }
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
@@ -114,7 +114,8 @@ local COMPUTED_FIELDS = { stat = true, less_than = true, less_than_stat = true,
 -- here too, so the source is checked by the same rules.
 -- What a style may carry. Presentation only, and deliberately closed: the
 -- moment a style could change a rule, every rules bug becomes a drawing bug.
-local STYLE_FIELDS    = { color = true }
+local STYLE_FIELDS    = { color = true, title = true, fit = true, ratio = true,
+	checker = true, paint = true, cell_outline = true }
 local ASSET_FIELDS    = { src = true, max = true }
 -- A challenge is asked by the resolve_challenge action: one condition, and the
 -- two action lists it chooses between. They only ever work together, which is
@@ -659,7 +660,49 @@ function M.check(G)
 			warn('%s: should be a map of look, like { "color": [0.8, 0.2, 0.2] }', where)
 		else
 			check_fields(where, sd, STYLE_FIELDS)
-			check_numbers(where, "color", sd.color, 3)
+			-- One property for the plate: a colour, or false for none.
+			if sd.color ~= false then check_numbers(where, "color", sd.color, 3) end
+			if sd.title ~= nil and sd.title ~= false then
+				warn("%s: title takes only false, which means draw none", where)
+			end
+			if sd.cell_outline ~= nil and sd.cell_outline ~= false then
+				warn("%s: cell_outline takes only false, which means draw none", where)
+			end
+			if sd.fit ~= nil and sd.fit ~= "card" and sd.fit ~= "fill" then
+				warn("%s: fit should be 'card' or 'fill', not '%s'", where, tostring(sd.fit))
+			end
+			-- The shape a zone keeps whatever the window does: a number is width
+			-- over height, "grid" reads it from the cell count.
+			if sd.ratio ~= nil and sd.ratio ~= "grid" and not (tonumber(sd.ratio) and tonumber(sd.ratio) > 0) then
+				warn('%s: ratio should be a positive number (width over height, 1 is square) or "grid", not %s',
+					where, tostring(sd.ratio))
+			end
+			if sd.checker ~= nil then
+				if type(sd.checker) ~= "table" or #sd.checker ~= 2 then
+					warn('%s: checker should be two colours, like ["#f0d9b5", "#b58863"]', where)
+				else
+					for _, w in ipairs(sd.checker) do
+						if not art.colour(w) then
+							warn("%s: '%s' is not a colour — use a palette name or #rrggbb%s",
+								where, tostring(w), suggest(w, art.colours()))
+						end
+					end
+				end
+			end
+			-- Squares named by an absolute pattern, given a colour or a picture.
+			for name, look in pairs(type(sd.paint) == "table" and sd.paint or {}) do
+				local pat = G.pattern_defs[name]
+				if not pat then
+					warn("%s: paints the squares of '%s', but no pattern has that name%s",
+						where, tostring(name), suggest(name, G.pattern_defs))
+				elseif not pat.absolute then
+					warn("%s: paints '%s', which is a pattern of directions — only an absolute pattern names squares to paint",
+						where, tostring(name))
+				end
+				if type(look) ~= "string" then
+					warn("%s: what '%s' is painted with should be a colour or a filename", where, tostring(name))
+				end
+			end
 		end
 		-- One name, one thing: a style shares the namespace tags and zones do.
 		if G.zone_defs[name] then
@@ -992,20 +1035,6 @@ function M.check(G)
 		else
 			check_numbers(where, "pos", def.pos, 4)
 		end
-		if def.fit ~= nil and def.fit ~= "card" and def.fit ~= "fill" then
-			warn("%s: fit should be 'card' or 'fill', not '%s'", where, tostring(def.fit))
-		end
-		-- The shape the zone keeps whatever the window does: a number is width
-		-- over height, "grid" reads it from the cell count.
-		if def.ratio ~= nil and def.ratio ~= "grid" then
-			local r = tonumber(def.ratio)
-			if not r or r <= 0 then
-				warn('%s: ratio should be a positive number (width over height, 1 is square) or "grid", not %s',
-					where, tostring(def.ratio))
-			end
-		elseif def.ratio == "grid" and def.type ~= "grid" then
-			warn('%s: ratio "grid" needs a grid to read the shape from — give it a "grid": [cols, rows] or state the number', where)
-		end
 		-- The lower-left corner belongs to the undo button and event log.
 		if type(def.pos) == "table" and #def.pos == 4
 			and type(def.pos[1]) == "number" and type(def.pos[4]) == "number"
@@ -1014,34 +1043,6 @@ function M.check(G)
 			warn("%s: covers the lower-left corner where the undo button and event log live — start it at x 0.19 or higher", where)
 		end
 		if def.type == "grid" then
-			-- Two colours alternated across the squares: what a board is.
-			if def.checker ~= nil then
-				if type(def.checker) ~= "table" or #def.checker ~= 2 then
-					warn('%s: checker should be two colours, like ["#f0d9b5", "#b58863"]', where)
-				else
-					for _, w in ipairs(def.checker) do
-						if not art.colour(w) then
-							warn("%s: '%s' is not a colour — use a palette name or #rrggbb%s",
-								where, tostring(w), suggest(w, art.colours()))
-						end
-					end
-				end
-			end
-			-- Squares named by an absolute pattern, given a colour or a picture.
-			for name, look in pairs(type(def.paint) == "table" and def.paint or {}) do
-				local pat = G.pattern_defs[name]
-				if not pat then
-					warn("%s: paints the squares of '%s', but no pattern has that name%s",
-						where, tostring(name), suggest(name, G.pattern_defs))
-				elseif not pat.absolute then
-					warn("%s: paints '%s', which is a pattern of directions — only an absolute pattern names squares to paint",
-						where, tostring(name))
-				end
-				if type(look) ~= "string" then
-					warn("%s: what '%s' is painted with should be a colour or a filename",
-						where, tostring(name))
-				end
-			end
 			if def.grid == nil then
 				warn('%s: a board needs "grid": [columns, rows]', where)
 			else

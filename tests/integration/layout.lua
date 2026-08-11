@@ -87,15 +87,16 @@ function M.test_layout_without_a_ratio_nothing_changes(check)
 	end)
 end
 
-local function fixture(zone)
+local function fixture(zone, style)
 	local path = "game/games/tmp_layout_test.json"
 	local f = assert(io.open(path, "w"))
 	f:write(([[{
 		"title": "Layout",
+		"styles": { "shaped": %s },
 		"zones": [%s],
 		"cards": [{ "key": "hero", "text": "Hero" }],
 		"phases": [{ "key": "play", "type": "player_input" }]
-	}]]):format(zone))
+	}]]):format(style or "{}", zone))
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_layout_test.json")
 	os.remove(path)
@@ -110,20 +111,18 @@ local function has(problems, needle)
 	return false
 end
 
+-- The shape is a style the zone tags, so what is checked is the style.
+local BOARD = '{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "tags": ["shaped"] }'
+
 function M.test_layout_a_ratio_is_checked(check)
-	check("a number passes",
-		#fixture('{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "ratio": 1.5 }') == 0)
-	check('so does "grid"',
-		#fixture('{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "ratio": "grid" }') == 0)
+	check("a number passes", #fixture(BOARD, '{ "ratio": 1.5 }') == 0)
+	check('so does "grid"', #fixture(BOARD, '{ "ratio": "grid" }') == 0)
 	check("a word is refused",
-		has(fixture('{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "ratio": "square" }'),
-			"ratio should be a positive number"))
+		has(fixture(BOARD, '{ "ratio": "square" }'), "ratio should be a positive number"))
 	check("so is a negative one",
-		has(fixture('{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "ratio": -2 }'),
-			"ratio should be a positive number"))
-	check('"grid" on a zone with no cells is refused',
-		has(fixture('{ "key": "hand", "type": "hand", "pos": [0.2, 0, 1, 0.9], "ratio": "grid" }'),
-			"needs a grid to read the shape from"))
+		has(fixture(BOARD, '{ "ratio": -2 }'), "ratio should be a positive number"))
+	check("and a style may not carry a rule",
+		has(fixture(BOARD, '{ "ratio": 1, "cost": { "gold": 1 } }'), "the engine doesn't read"))
 end
 
 return M
