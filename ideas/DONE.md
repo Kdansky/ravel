@@ -714,6 +714,93 @@ card face stencils its art to the rounded shape — plus a synchronous
 
 ---
 
+# A stack you can read — the `fan` style
+
+**The fault:** a Lost Cities expedition was a `grid [1, 12]` in a zone about a
+finger tall. Twelve cells, eight pixels each, so a played card drew as a
+horizontal line — five cards in a colour were five hairlines with no number, no
+colour and nothing to read. Every test passed the whole time.
+
+**The fix is one style property.** `"fan": "down"` on a pile draws the whole
+stack instead of just its top card: each card over the one before, leaving a
+strip of it showing, and the strip is what the arithmetic protects. The fan
+opens to a comfortable spread, closes to a minimum readable strip as cards pile
+up, and only then do the cards themselves shrink.
+
+```json
+"styles": { "stacked": { "fit": "fill", "fan": "down" } },
+"zones":  [{ "key": "red", "type": "pile", "label": "Red", "tags": ["stacked", "per_seat"] }]
+```
+
+**The card's name moves to the bottom of the visible strip**, not the bottom of
+the card. Without that the whole layout is pointless: the title band sits at a
+card's foot, which is exactly the part the next card covers, so a fan of ten
+would have shown one name. `draw_card_face` takes the uncovered rect and lays
+the words out inside it — the same code, given a smaller box.
+
+## It reverses a refusal, and the reason matters
+
+[06](06-schema-and-types.md) gap 1 said: *"Refuse: letting a tag change the
+layout algorithm … the moment a tag moves cards around, every renderer question
+becomes a search through a tag set."* The danger was real; the mechanism named
+in it is what expired. **Styles removed the search** — a zone's tags resolve into
+one flat map at load, so `z.style.fan` is a single table lookup, exactly what
+`z.zone_type` costs and asked in the same place.
+
+What survives is the distinction: **`type` says what kind of container a zone
+is; a style says how it is drawn.** A fan is drawing. The cards are one ordered
+list in one zone either way — a pile is a pile whether or not you spread it out.
+`fit` was already the precedent and had been all along: it decides where inside
+a *cell* a card lands, which is the same kind of decision about one cell instead
+of a run.
+
+**The line is enforced where the two would contradict each other.** A `grid`
+wearing a fanning style is a validation error: a grid places by slot and a fan
+by order, both answer *where does this card go*, and a renderer taking whichever
+branch it reached first is the unpredictability the refusal was guarding
+against. One error message keeps what the whole refusal was buying.
+
+## Three things that had to move with it
+
+- **`sync_places` collapses a stack to one card**, because only a pile's top
+  card is ever drawn or clicked. Miss this and the fan draws perfectly and
+  answers the mouse from wherever its cards used to be. Same in `card_at`, where
+  the last match must win so a click in the overlap lands on the card actually
+  showing there.
+- **A fanned zone needs room along its axis.** The layout divides what it is
+  given; a dozen cards fanned down a short zone is the original fault wearing a
+  new hat. Lost Cities was relaid out around this — the hands and the discard
+  row are sized by what they hold (one row of eight, one card), and the height
+  left over goes to the expeditions, the only band whose contents grow.
+- **The scoring tray moved into the right-hand column and fans too.** Eleven
+  cards laid side by side there would be 14px wide, narrower than the words on
+  them; eleven strips down it are full width and readable. It also empties the
+  bottom edge, where the undo button and event log are drawn over everything.
+
+## Two things it made simpler
+
+**The capacity question disappeared.** As a `[1, 12]` grid an expedition was one
+slot short of a full colour, and a full board refuses arrivals *silently* — the
+last card of a completed expedition stayed in hand with the turn already spent
+on it. A pile takes what it is given.
+
+**The empty-zone rule found its second customer.** A zone with no cards and no
+label draws nothing, so the tally tray is invisible for the whole game until it
+is dealt into, which is what let it take a whole column without costing the
+board anything.
+
+## Testing something that only draws
+
+The arithmetic decides where cards go and paints nothing of its own, so it is
+checked in `render_smoke` by measuring `place` after a real frame: every card
+gets its own rect, inside the zone, ordered along the fan, one size, with a
+strip tall enough to letter. **Both perturbations were run** — a 2px strip fails
+the strip assertion, removing `fan` from the game file fails the every-card-has-
+a-place assertion — because a layout test that passes on a broken layout is the
+only kind worth suspecting.
+
+---
+
 # Bugs found on the way, and what they bought
 
 Recorded because each was invisible to a green test suite, and the fix in each

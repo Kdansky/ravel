@@ -206,9 +206,16 @@ saying which words the engine knows and what each changes — not the identifier
 - **A style that changes rules.** It may not decide legality, targeting or cost.
   Behaviour is what top-level `tags` is for, and the moment a rendering choice can
   make a card unplayable, every rules bug becomes a presentation bug too.
-- **A style that moves a thing.** It may change the *shape of the box* a thing is
-  drawn in — that is what `square` does — but never *which* box. Position by
-  cascade is CSS, and CSS is a language.
+- **A style that moves a thing between containers.** It may say where a thing
+  sits *inside* the box it is in — that is what `fit` does for a cell and `fan`
+  does for a run of cards — but never *which* box it is in. That is the rules'
+  answer, and position by cascade is CSS, and CSS is a language.
+
+  *Sharpened by `fan`, which looked at first like a breach of this.* It is not:
+  a fanned card is in the same zone it was in, drawn where that zone chose to
+  draw it. The test that keeps the line honest is whether a *rule* could read
+  the result — nothing does, because the fan is computed at draw time from
+  `zone.cards`, which the rules wrote.
 - **Cascading, inheritance, selectors.** A style is a flat map of properties.
   The moment one style names another the whole thing becomes a resolution order
   nobody can predict from reading the file.

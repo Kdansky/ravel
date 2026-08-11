@@ -1795,9 +1795,6 @@ do   -- scoped: Lua 5.4 allows only 200 live locals in the main chunk,
 	local _, kw = cw, select(2, drawn("red_w2"))
 	check("a wager cannot follow a number", has(kw, my_red.id) == false)
 
-	check("a full expedition holds all three wagers and all nine numbers",
-		#my_red.slots == 12)
-
 	-- The scoring arithmetic, end to end: (sum - 20) x (1 + wagers), written as
 	-- (sum - 20) plus (sum - 20) x wagers because a product cannot add one
 	-- inside itself. Red holds a single 7 here, and no wagers.
@@ -1808,6 +1805,18 @@ do   -- scoped: Lua 5.4 allows only 200 live locals in the main chunk,
 	eval("lose_stat:score@mine.player:20:x:count:wager@mine.red")
 	check("an expedition scores (sum - 20) x (1 + wagers)",
 		predicate.total("score@mine.player") == score0 - 13)
+
+	-- An expedition is a stack, so the capacity question cannot be asked of it.
+	-- As a 1x12 grid it was one slot short of a full colour, and a full board
+	-- refuses arrivals silently: the last card of a completed expedition stayed
+	-- in hand with the turn already spent on it. Twelve is every card of a
+	-- colour, and all of them go in.
+	for _, key in ipairs({ "red_w1", "red_w2", "red_w3", "red_2", "red_3", "red_4",
+		"red_5", "red_6", "red_8", "red_9", "red_10" }) do
+		eval("fill:mine.red:" .. key .. ":1")
+	end
+	check("a stack has no room to run out of", #my_red.cards == 12 and zones.has_room(my_red),
+		tostring(#my_red.cards) .. " cards")
 end
 
 -- Taking from a discard is the pile's top card offering an ability, granted by

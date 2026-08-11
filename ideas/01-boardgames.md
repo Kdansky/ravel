@@ -135,8 +135,10 @@ Klondike is the sharpest test of "is this an engine or a card game", because it
 uses almost none of what ravel has (no costs, no phases to speak of, no stats)
 and all of what it lacks.
 
-- **Order matters.** `zone.cards` is an array, so order exists, but only
-  `move_top` (`game/zones.lua:74`) respects it and nothing renders a fan.
+- ~~**Order matters.**~~ Half done: `zone.cards` was always an array and
+  `move_top` (`game/zones.lua:74`) always respected it — what was missing was
+  anything that *drew* the order, and `fan` does. Reordering within a stack
+  still has no verb.
 - ~~**Drop legality is relational**~~ — **done.** `accepts` on the destination
   is built: `{ "rank@target": { "equals": 8 } }` plus a `black` tag in the
   target spec is the whole of "a red 7 goes on a black 8". Klondike expected to
@@ -148,16 +150,23 @@ and all of what it lacks.
   `red`/`black` tag on the templates. Do not let the renderer's colour become a
   rules input — see [placeholder art](DONE.md), which makes the
   same point from the other side.
-- **Tableau zones need a new zone type** `stack`: ordered, cards drawn
-  overlapping with a visible offset, drop target is the *top card*, not a slot.
+- ~~**Tableau zones need a new zone type** `stack`~~ — **shipped, and not as a
+  type.** The drawing half is the `fan` style property: `"fan": "down"` on a
+  pile lays every card over the one before, leaving a strip of each showing, and
+  the card's name moves to the bottom of that strip so a covered card still says
+  what it is. Lost Cities' expeditions are piles wearing it.
 
-  **Lost Cities needs this now, and it is the most visible fault in a shipped
-  game.** An expedition is a `grid [1, 12]` in a zone about 100px tall, so a
-  played card gets eight pixels and renders as a horizontal line: five cards in
-  a colour are five hairlines, with no number, no colour and nothing to read.
-  A physical expedition is a fan — each card showing a strip with its value, the
-  last one whole — which is exactly the offset stack Klondike asked for. One
-  layout, two games, and one of them is already shipped and unreadable.
+  **It is a style, not a type, and that reverses a refusal** — see
+  [06](06-schema-and-types.md) gap 1, corrected there. The short version: `type`
+  says what kind of container a zone is, a style says how it is drawn, and a fan
+  is drawing. The cards were always one ordered list in one zone; the fan only
+  decides where inside the zone each one sits, which is what `fit` already did
+  for a grid cell.
+
+  **What is still open is the reach half**: "drop target is the *top card*, not
+  a slot". Lost Cities never asked, because an expedition is targeted as a zone
+  and its cards are never touched once played. Klondike does ask, and it should
+  be built with Klondike.
   This is a render change plus a hit-test change, both in the presentation
   layer, plus `zones.has_room` returning true for it (unbounded).
 

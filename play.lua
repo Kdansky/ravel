@@ -162,7 +162,9 @@ local function play_index(n)
 	local h   = hand_zone()
 	local cid = h and h.cards[n]
 	if not cid then print("No card [" .. n .. "]."); return end
-	if phase.is_overlay() then flow.pick(cid); return end
+	-- Playing a card out of an overlay's zone *is* choosing it — flow works that
+	-- out from the card's zone, so there is no separate verb for it.
+	if phase.is_overlay() then flow.play_card(cid); return end
 
 	local c   = entity.get(cid)
 	local def = cards.def(c)

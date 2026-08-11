@@ -35,7 +35,10 @@ local function card_at(x, y)
 	local result
 	for z in entity.each("zone") do
 		if z.zone_type ~= "deck" and zones.contains(z.place, x, y) then
-			local list = z.zone_type == "pile" and { z.cards[#z.cards] } or z.cards
+			-- Last match wins, and a fan is drawn in order, so a click in the
+			-- overlap lands on the card actually showing there.
+			local list = z.zone_type == "pile" and not z.style.fan
+				and { z.cards[#z.cards] } or z.cards
 			for _, cid in ipairs(list) do
 				local c = entity.get(cid)
 				if c and c.place and zones.contains(c.place, x, y) then result = cid end

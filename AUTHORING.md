@@ -1060,6 +1060,7 @@ A style carries everything about how a thing *looks*, for cards and zones alike:
 | `title` | cards | `false` draws none, giving the whole card to the picture |
 | `border` | cards | `false` draws no frame. A chess piece is not a card and should not be drawn inside one — selection and eligibility outlines still draw, because those are the affordance rather than the frame |
 | `fit` | grid zones | `card` (default) keeps card proportions in a cell; `fill` stretches to the whole cell, for board tiles |
+| `fan` | stack zones | show the whole stack, not just its top card — `"up"`, `"down"`, `"left"` or `"right"`, the way the next card is laid. See below |
 | `ratio` | zones | the shape it keeps whatever the window is — width over height, or `"grid"` to read it from the cell count |
 | `chequer` | grid zones | two colours alternated across the squares |
 | `paint` | grid zones | `{ "<absolute pattern>": colour-or-filename }` — terrain, goal rows, home rows |
@@ -1080,6 +1081,38 @@ one word:
 **`color: false` is where two ideas became one.** A card's colour and "draw no
 plate behind it" were a field and a tag deciding the same thing; now the plate
 has a colour, or it has none.
+
+### `fan` — a stack you can read
+
+A `pile` draws its top card, because that is what a stack of cards looks like.
+Some stacks are meant to be read down their whole length — a solitaire tableau,
+a Lost Cities expedition, a row of tricks won — and for those the pile says
+which way it spreads:
+
+```json
+"styles": { "expedition": { "fit": "fill", "fan": "down" } },
+"zones":  [{ "key": "red", "type": "pile", "label": "Red", "tags": ["expedition"] }]
+```
+
+Every card is drawn, each over the one before, leaving a **strip** of it showing.
+The card's name moves to the bottom of that strip rather than the bottom of the
+card, so a covered card still says what it is — which is the whole point, and the
+reason the arithmetic protects the strip first: as cards pile up the fan closes
+to a minimum readable strip, then the *cards* shrink, and only a stack too long
+for even that shares the room out evenly.
+
+The direction is where the **next** card goes. `"down"` is a tableau read
+top-to-bottom. `"up"` grows away from whoever owns the zone. `"left"` and
+`"right"` lay a horizontal run, and there the strip is a narrow column, so keep
+those for short stacks or wide zones.
+
+**Give a fanned zone room along its axis.** A dozen cards fanned down a zone a
+finger tall is the fault this replaced, not the fix for it — the layout will
+divide what it is given, and eight cards want roughly the height of two.
+
+**Not on a `grid`.** A grid puts each card in an addressed slot and a fan lays
+them in a run; both answer *where does this card go*, so a grid wearing a fanning
+style is a validation error rather than a coin toss.
 
 **A style name lives in the same namespace as zones, tags and cards** — one name
 means one thing, and the validator refuses a style called `red` in a game that

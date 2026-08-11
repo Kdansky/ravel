@@ -277,6 +277,79 @@ local function fit_card(box, mode)
 	return { x = box.x + (box.w - w) * 0.5, y = box.y + (box.h - h) * 0.5, w = w, h = h }
 end
 
+-- A fanned stack: every card laid along one axis, each one covering all but a
+-- strip of the one before. The strip is what the whole layout is for, so it is
+-- what the arithmetic protects — the cards shrink to keep it, not the other way
+-- round. Below `STRIP` a card is a line with no room for its name, which is the
+-- fault this replaced.
+local STRIP  = 18
+local SPREAD = 0.34
+
+local function fan_places(zone_e, dir)
+	local p, n = zone_e.place, #zone_e.cards
+	if n == 0 then return {} end
+	local vert   = dir == "up" or dir == "down"
+	local pad    = 4 * S
+	-- Along the fan, and across it. Naming the two axes once is what keeps the
+	-- four directions from being four copies of this function.
+	local run    = (vert and p.h or p.w) - pad * 2
+	local across = (vert and p.w or p.h) - pad * 2
+
+	-- Open to a comfortable spread, close it to fit, and only then make the
+	-- cards smaller: a tight strip on a big card reads, a loose one on a card
+	-- too small to letter does not.
+	local card_run = vert and across * CARD_RATIO or across / CARD_RATIO
+	local strip    = math.min(card_run * SPREAD, math.max(STRIP * S, (run - card_run) / math.max(1, n - 1)))
+	if card_run + (n - 1) * strip > run then
+		card_run = run - (n - 1) * strip
+		-- More cards than there are readable strips. Keep the last one a card —
+		-- it is the one being played on, and a fan of nothing but strips has no
+		-- top — and divide what is left. Strips get thin here, which is honest:
+		-- the zone is too short for what is in it, and the alternative is cards
+		-- running off the end where they cannot be seen at all.
+		if card_run < strip then
+			card_run = math.max(strip, run * 0.3)
+			strip    = (run - card_run) / (n - 1)
+		end
+	end
+
+	local card_w = vert and across or card_run
+	local card_h = vert and card_run or across
+	local step   = (dir == "up" or dir == "left") and -strip or strip
+	-- Growing up or left, the first card still sits at the far end, so the run
+	-- fills the zone in the direction it was asked to fill.
+	local x0 = p.x + pad + (dir == "left" and (run - card_w) or 0)
+	local y0 = p.y + pad + (dir == "up" and (run - card_h) or 0)
+
+	local places = {}
+	for i = 1, n do
+		local box = {
+			x = x0 + (vert and 0 or (i - 1) * step),
+			y = y0 + (vert and (i - 1) * step or 0),
+			w = card_w,
+			h = card_h,
+		}
+		places[i] = fit_card(box, zone_e.style.fit)
+	end
+	return places
+end
+
+-- How much of a fanned card is still showing once the next one is laid over it.
+-- The card's name is drawn at the bottom of *this*, not of the card, so a strip
+-- carries the one thing a covered card has to say.
+local function fan_visible(pl, next_pl, dir)
+	if not next_pl then return pl end
+	if dir == "down" then return { x = pl.x, y = pl.y, w = pl.w, h = math.max(0, next_pl.y - pl.y) }
+	elseif dir == "up" then
+		local top = next_pl.y + next_pl.h
+		return { x = pl.x, y = top, w = pl.w, h = math.max(0, pl.y + pl.h - top) }
+	elseif dir == "right" then return { x = pl.x, y = pl.y, w = math.max(0, next_pl.x - pl.x), h = pl.h }
+	else
+		local left = next_pl.x + next_pl.w
+		return { x = left, y = pl.y, w = math.max(0, pl.x + pl.w - left), h = pl.h }
+	end
+end
+
 local function card_places(zone_e)
 	local p  = zone_e.place
 	local n  = #zone_e.cards
@@ -291,6 +364,11 @@ local function card_places(zone_e)
 		end
 		return places
 	end
+
+	-- A stack asked to show its whole length. It answers before `type` does,
+	-- because the question it settles — where does each card go — is the one
+	-- `type` was otherwise the only one answering.
+	if zone_e.style.fan then return fan_places(zone_e, zone_e.style.fan) end
 
 	if zt == "deck" or zt == "pile" then
 		local pad = 3 * S
@@ -391,7 +469,12 @@ end
 -- Draw a card face.
 -- show_text=true: allocate extra space below the image for description text (hand cards).
 -- show_text=false: compact title bar only (board tiles, animations, pile top).
-local function draw_card_face(pl, card_e, show_text)
+-- `vis` is the part of the card that is not covered by the next one in a fan;
+-- the words go at the bottom of it rather than at the bottom of the card, so a
+-- card showing only a strip still shows its name. It is the whole card
+-- everywhere else, which is every zone that is not fanned.
+local function draw_card_face(pl, card_e, show_text, vis)
+	vis = vis or pl
 	local def   = cards.def(card_e)
 	local look  = cards.style(card_e)
 	-- One property for the plate: a colour, or false for none, so a transparent
@@ -488,10 +571,10 @@ local function draw_card_face(pl, card_e, show_text)
 	-- tooltip, which is where the long version always lived.
 	if not no_title or body then
 		local pad, gap = 3 * S, 2 * S
-		local avail    = pl.w - pad * 2
+		local avail    = vis.w - pad * 2
 		-- A badge sits in the bottom-left corner, so the words start to its
 		-- right rather than under it.
-		local badge_w = (card_e.stats and card_e.stats.hp) and (pl.w * 0.42) or 0
+		local badge_w = (card_e.stats and card_e.stats.hp) and (vis.w * 0.42) or 0
 
 		local tf, shown, title_h = nil, nil, 0
 		if not no_title then
@@ -502,9 +585,9 @@ local function draw_card_face(pl, card_e, show_text)
 		-- hold a name or a paragraph, not both, and the name is the half a
 		-- player is choosing between — the rest is a hover away.
 		local bf, body_h, body_text = get_small_font(), 0, nil
-		if body and show_text and pl.w >= 92 * S then
+		if body and show_text and vis.w >= 92 * S then
 			local _, lines = bf:getWrap(body, avail)
-			local room = pl.h * 0.55 - title_h - pad * 2 - gap
+			local room = vis.h * 0.55 - title_h - pad * 2 - gap
 			local n = math.min(#lines, math.max(0, math.floor(room / bf:getHeight())))
 			if n > 0 then
 				body_text = table.concat(lines, "\n", 1, n)
@@ -513,28 +596,28 @@ local function draw_card_face(pl, card_e, show_text)
 		end
 
 		local band = pad + title_h + (body_h > 0 and (gap + body_h) or 0) + pad
-		band = math.min(band, pl.h)
-		local top = pl.y + pl.h - band
+		band = math.min(band, vis.h)
+		local top = vis.y + vis.h - band
 
 		-- A dark strip under the words, softest at its top edge so the picture
 		-- fades into it instead of ending at a line.
-		love.graphics.setScissor(pl.x, pl.y, pl.w, pl.h)
+		love.graphics.setScissor(vis.x, vis.y, vis.w, vis.h)
 		local steps = 6
 		for i = 0, steps - 1 do
 			love.graphics.setColor(0, 0, 0, 0.72 * (i / (steps - 1)) ^ 0.6)
-			love.graphics.rectangle("fill", pl.x, top + band * i / steps, pl.w, band / steps + 1)
+			love.graphics.rectangle("fill", vis.x, top + band * i / steps, vis.w, band / steps + 1)
 		end
 
 		local y = top + pad
 		if not no_title then
 			love.graphics.setFont(tf)
-			outlined_printf(shown, pl.x + pad + badge_w, y, avail - badge_w, "center",
+			outlined_printf(shown, vis.x + pad + badge_w, y, avail - badge_w, "center",
 				C.card_text, { 0, 0, 0, 0.9 })
 			y = y + title_h + gap
 		end
 		if body_h > 0 then
 			love.graphics.setFont(bf)
-			outlined_printf(body_text, pl.x + pad, y, avail, "center",
+			outlined_printf(body_text, vis.x + pad, y, avail, "center",
 				C.card_body, { 0, 0, 0, 0.85 })
 		end
 		love.graphics.setScissor()
@@ -830,7 +913,27 @@ local function draw_zone(zone_e)
 	local places = card_places(zone_e)
 	local fh     = love.graphics.getFont():getHeight()
 
-	if zt == "deck" and zone_e.label then
+	if zone_e.style.fan then
+		-- The name goes down first, so an empty expedition says which colour it
+		-- is waiting for and a played one is covered by what was played.
+		if zone_e.label then
+			love.graphics.push("all")
+			love.graphics.setColor(0.30, 0.42, 0.60, 0.65)
+			printf(zone_e.label, p.x + 2, p.y + 3 * S, p.w - 4, "center")
+			love.graphics.pop()
+		end
+		for i, card_id in ipairs(zone_e.cards) do
+			if places[i] and not anim.visual_place(card_id) then
+				local c = entity.get(card_id)
+				if zone_e.tags.face_down or not zones.visible(c) then
+					draw_card_back(places[i])
+				else
+					draw_card_face(places[i], c, false,
+						fan_visible(places[i], places[i + 1], zone_e.style.fan))
+				end
+			end
+		end
+	elseif zt == "deck" and zone_e.label then
 		local cur = phase.current()
 		if cur and cur.deck == zone_e.key then
 			love.graphics.push("all")
@@ -1407,7 +1510,12 @@ function M.sync_places()
 		local zt     = z.zone_type
 		local kind   = zt == "grid" and "slam"
 			or (zt == "deck" or zt == "pile") and "drop" or "glide"
-		local list   = (zt == "deck" or zt == "pile") and { z.cards[#z.cards] } or z.cards
+		-- A stack keeps one place, because only its top card is ever drawn or
+		-- clicked. A fanned one shows every card, so every card needs one — miss
+		-- this and the fan draws correctly and answers the mouse from wherever
+		-- its cards used to be.
+		local list   = (zt == "deck" or zt == "pile") and not z.style.fan
+			and { z.cards[#z.cards] } or z.cards
 		for i, cid in ipairs(list) do
 			local c   = cid and entity.get(cid)
 			local new = places[i]

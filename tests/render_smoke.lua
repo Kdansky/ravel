@@ -335,4 +335,48 @@ for _, key in ipairs({ "watchtower", "farm", "a", "", "the_longest_card_key_here
 end
 assert(art.render("hexagram:red") == nil, "an unknown shape must draw nothing")
 
+-- A fanned stack, measured. This is arithmetic that draws nothing of its own —
+-- it decides where the cards go — and the fault it replaced passed every test
+-- in the suite: a 1x12 grid in a zone a finger tall gave each card eight pixels
+-- and drew it as a horizontal line.
+do
+	flow.init("lost_cities.json", 11)
+	render.rescale()
+	local red = zones.find("red")
+	for _, key in ipairs({ "red_w1", "red_2", "red_4", "red_6", "red_9" }) do
+		eval("fill:mine.red:" .. key .. ":1")
+	end
+	frame(0.016)
+
+	local z = red.place
+	local last
+	for i, cid in ipairs(red.cards) do
+		local pl = entity.get(cid).place
+		assert(pl and pl.w > 0, "every card in a fan needs a place of its own, card " .. i)
+		assert(pl.x >= z.x - 1 and pl.y >= z.y - 1
+			and pl.x + pl.w <= z.x + z.w + 1 and pl.y + pl.h <= z.y + z.h + 1,
+			"a fanned card must stay inside its zone, card " .. i)
+		if last then
+			local strip = pl.y - last.y
+			assert(strip > 0, "a fan laid down must go down, card " .. i)
+			-- The strip is the point of the whole layout: it has to be tall
+			-- enough for the card's name, which is what the eight-pixel grid
+			-- cell was not.
+			assert(strip >= 12, ("card %d shows a %.1fpx strip, too thin to letter"):format(i, strip))
+			assert(math.abs(pl.w - last.w) < 0.01 and math.abs(pl.h - last.h) < 0.01,
+				"cards in one fan are one size, card " .. i)
+		end
+		last = pl
+	end
+	assert(#red.cards == 5, "expected the five cards played above")
+
+	-- And the other way: the same zone without the style draws one card, which
+	-- is what every other pile does and what this one did before.
+	red.style = { fit = "fill" }
+	render.sync_places()
+	local top = entity.get(red.cards[#red.cards]).place
+	assert(top.h > last.h * 2,
+		"a stack that is not fanned shows its top card whole, not a strip")
+end
+
 print("render smoke ok: " .. frames .. " frames drawn, " .. drawn .. " placeholders")

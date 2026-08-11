@@ -34,8 +34,10 @@ STYLES = {
     "azure":   {"color": [0.30, 0.50, 0.90]},
     "ivory":   {"color": [0.85, 0.85, 0.80]},
     "amber":   {"color": [0.90, 0.75, 0.25]},
-    # An expedition is a column of tiles, not of cards with margins.
-    "tiled":   {"fit": "fill"},
+    # An expedition is read down its whole length, so the stack is fanned out
+    # rather than showing only the card played last. "fill" because these are
+    # tiles in a column, not cards with margins around them.
+    "stacked": {"fit": "fill", "fan": "down"},
 }
 VALUES = list(range(2, 11))
 WAGERS = 3
@@ -47,20 +49,24 @@ WAGERS = 3
 # share one centre line.
 COL = lambda i: (0.06 + i * 0.152, 0.19 + i * 0.152)
 
+# A fanned expedition needs length, and every band above is sized by what it
+# holds: a hand is one row of eight, a discard is one card. The height left over
+# goes to the expeditions, which is the only band whose contents grow.
 EXPEDITION_POS = {  # colour index -> [north rect, south rect]
-    i: [[COL(i)[0], 0.155, COL(i)[1], 0.345],
-        [COL(i)[0], 0.525, COL(i)[1], 0.715]]
+    i: [[COL(i)[0], 0.120, COL(i)[1], 0.398],
+        [COL(i)[0], 0.536, COL(i)[1], 0.814]]
     for i in range(len(COLOURS))
 }
-DISCARD_POS = {i: [COL(i)[0], 0.365, COL(i)[1], 0.505]
+DISCARD_POS = {i: [COL(i)[0], 0.410, COL(i)[1], 0.524]
                for i in range(len(COLOURS))}
-HAND_POS    = [[0.06, 0.015, 0.798, 0.135],    # north, top edge
-               [0.06, 0.735, 0.798, 0.855]]    # south, above the tray
-# The tray sits below South's hand and starts at x 0.19: the lower-left corner
-# belongs to the undo button and the event log, which are drawn over
-# everything and would otherwise sit on top of the cards.
-CHOICE_POS  = [0.19, 0.875, 0.97, 0.995]
-DECK_POS    = [0.815, 0.365, 0.975, 0.505]     # beside the discards it feeds
+HAND_POS    = [[0.06, 0.010, 0.798, 0.108],    # north, top edge
+               [0.06, 0.826, 0.798, 0.924]]    # south, bottom edge
+# The right-hand column: rulebook, the deck beside the discards it feeds, and
+# the scoring tray below both. Nothing is left along the bottom edge, where the
+# undo button and the event log are drawn over everything.
+RULES_POS   = [0.815, 0.120, 0.975, 0.290]
+DECK_POS    = [0.815, 0.306, 0.975, 0.524]
+CHOICE_POS  = [0.815, 0.536, 0.975, 0.924]
 
 
 def templates():
@@ -205,13 +211,12 @@ def zones():
            # each card's own on_pick run — while the zone lays them side by side.
            {"key": "mode", "type": "hand", "pos": [0.30, 0.24, 0.70, 0.76],
             "tags": ["hidden", "no_peek"]},
-           # Where every choice that is not a card in your hand is made: the six
-           # ways to draw, and later the eleven scoring cards. One zone, because
-           # the two steps are never live at once, and a wide one, because a hand
-           # lays its cards out in a single row and shrinks them to fit — the
-           # tally used to be a 163px column and drew its eleven cards 10px wide,
-           # smaller than the text on them. The room comes from the hands, which
-           # have eight cards to its eleven and were never using it.
+           # Where every choice that is not a card in your hand is made — which
+           # today is only the tally, eleven scoring cards at the end of the
+           # game. It is fanned rather than laid in a row: eleven cards side by
+           # side in this column would be 14px wide, narrower than the words on
+           # them, where eleven strips down it are full width and readable. The
+           # zone draws nothing at all until the tally deals into it.
            #
            # Declaring a phase's zone also bounds what may be played from it,
            # which is the whole reason the draw options live here rather than on
@@ -220,20 +225,21 @@ def zones():
            # tokens are not in your hand. No engine gate is needed for either.
            # A shelf for the rulebook, above the deck it sits beside. A pile
            # rather than a hand: nothing is ever dealt here and nothing leaves.
-           {"key": "rules", "type": "pile", "pos": [0.815, 0.155, 0.975, 0.345],
+           {"key": "rules", "type": "pile", "pos": RULES_POS,
             "contents": ["how_to_play"]},
-           {"key": "choice", "type": "hand", "pos": CHOICE_POS}]
+           {"key": "choice", "type": "hand", "tags": ["stacked"], "pos": CHOICE_POS}]
     for i, (c, label, _, _) in enumerate(COLOURS):
-        # Thirteen, not twelve: an expedition can hold all three wagers and all
-        # nine numbers, and the route marker that gives them somewhere to land
-        # takes a slot of its own. A full board refuses arrivals silently, so
-        # one slot short meant the last card of a completed expedition stayed
-        # in hand while the turn was spent on it.
+        # A stack, not a grid of slots: an expedition is a run of cards in the
+        # order they were played, which is what a pile is, and "stacked" fans it
+        # out so every card is read rather than only the last. As a 1x12 grid
+        # each card got a twelfth of the column — eight pixels, a horizontal
+        # line with no room for a number. It also drops the capacity question
+        # entirely: a pile takes what it is given, and a colour only has twelve.
         # The expedition's own legality, asked of it when a card is aimed here:
         # worth at least what is already on it, which is the ascending rule.
         # Wagers are worth 0, so the same line puts them before every number.
-        out.append({"key": c, "label": label, "type": "grid",
-                    "grid": [1, 12], "tags": ["tiled", "per_seat"], "pos": EXPEDITION_POS[i],
+        out.append({"key": c, "label": label, "type": "pile",
+                    "tags": ["stacked", "per_seat"], "pos": EXPEDITION_POS[i],
                     "receive": {"needs": {"value@target": {"at_least": "max:value@mine." + c}}}})
         # A pile takes anything, which is what having no "receive" means, and
         # hands "takeable" to whatever lands on it — so its top card can be

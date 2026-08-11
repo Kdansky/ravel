@@ -55,11 +55,37 @@ cheaper before more games exist than after.
 
 **What is genuinely new:** `free` does not exist — `grid` is the only positional
 zone and it is slotted. Klondike's offset stack (gap 3 of
-[01](01-boardgames.md)) is a fifth layout, or a tag on `stack`.
+[01](01-boardgames.md)) shipped as neither a fifth layout nor a tag on `stack`,
+but as a style property — see below.
 
-**Refuse:** letting a tag change the layout algorithm. Tags decide rules; `type`
-decides geometry. The moment a tag moves cards around, every renderer question
-becomes a search through a tag set.
+**~~Refuse:~~ letting a tag change the layout algorithm** — *withdrawn, and the
+`fan` property is what withdrew it.* The refusal was right about the danger and
+wrong about the mechanism, and its own stated reason is what expired: "every
+renderer question becomes a **search through a tag set**". Styles removed the
+search. A zone's tags are resolved into one flat `style` map at load
+(`declaration.lua`, `merge_styles`), so `z.style.fan` is a single table lookup —
+exactly what `z.zone_type` costs, and asked in exactly the same place.
+
+What survives is the *distinction*, sharpened by having to state it:
+
+> **`type` says what kind of container a zone is. A style says how it is
+> drawn.** A fan is drawing. The cards are one ordered list in one zone either
+> way — a pile is a pile whether or not you spread it out — and the fan only
+> decides where inside the zone each card sits.
+
+**`fit` was already the precedent** and had been for as long as styles existed:
+`fit: "fill"` versus `fit: "card"` decides where inside a *cell* a card lands.
+The fan says the same thing about a *run* of cards instead of one cell. If
+placing cards were genuinely `type`'s alone, `fit` was the violation and nobody
+noticed, because a flat resolved map is not the thing the refusal was guarding
+against.
+
+**The real line is drawn where the two would contradict each other**, and that
+is enforced rather than trusted: a `grid` wearing a fanning style is a
+validation error. A grid places by slot and a fan by order, both answer *where
+does this card go*, and a renderer taking whichever branch it reached first is
+precisely the unpredictability the refusal was written to prevent. One error
+message keeps the guarantee that the whole refusal was buying.
 
 ---
 

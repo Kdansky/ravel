@@ -259,6 +259,16 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "move_to:target:vault" } end },
 	{ "an unknown fit in a style", "fit should be 'card' or 'fill'",
 		function(g) g.style_defs = { tiled = { fit = "stretch" } } end },
+	{ "a fan pointing nowhere", 'fan should be "up", "down", "left" or "right"',
+		function(g) g.style_defs = { tiled = { fan = "sideways" } } end },
+	-- A grid places by slot and a fan by order, and a zone wearing both has two
+	-- answers to where a card goes. Silently taking one of them is how a board
+	-- ends up laid out by whichever branch the renderer reached first.
+	{ "a grid wearing a style that fans", "a grid places by slot and a fan by order",
+		function(g)
+			g.style_defs = { spread = { fan = "down" } }
+			g.zone_defs.board.tags_set.spread = true
+		end },
 	{ "a chequer that isn't a pair of colours", "chequer should be two colours",
 		function(g) g.style_defs = { tiled = { chequer = { "cream" } } } end },
 	{ "a chequer colour that isn't one", "is not a colour",

@@ -160,7 +160,8 @@ local COMPUTED_FIELDS = { stat = true, less_than = true, less_than_stat = true,
 -- What a style may carry. Presentation only, and deliberately closed: the
 -- moment a style could change a rule, every rules bug becomes a drawing bug.
 local STYLE_FIELDS    = { color = true, title = true, border = true, fit = true,
-	ratio = true, chequer = true, paint = true, cell_outline = true }
+	ratio = true, chequer = true, paint = true, cell_outline = true, fan = true }
+local FAN_DIRS        = { up = true, down = true, left = true, right = true }
 local ASSET_FIELDS    = { src = true, max = true }
 -- A challenge is asked by the resolve_challenge action: one condition, and the
 -- two action lists it chooses between. They only ever work together, which is
@@ -798,6 +799,12 @@ function M.check(G)
 			if sd.fit ~= nil and sd.fit ~= "card" and sd.fit ~= "fill" then
 				warn("%s: fit should be 'card' or 'fill', not '%s'", where, tostring(sd.fit))
 			end
+			-- Which way a stack spreads when it is shown spread out. The word is
+			-- the direction the *next* card is laid, so "down" is a tableau and
+			-- "up" is an expedition growing away from its owner.
+			if sd.fan ~= nil and not FAN_DIRS[sd.fan] then
+				warn('%s: fan should be "up", "down", "left" or "right", not %s', where, tostring(sd.fan))
+			end
 			-- The shape a zone keeps whatever the window does: a number is width
 			-- over height, "grid" reads it from the cell count.
 			if sd.ratio ~= nil and sd.ratio ~= "grid" and not (tonumber(sd.ratio) and tonumber(sd.ratio) > 0) then
@@ -1139,6 +1146,18 @@ function M.check(G)
 		if def.type and not ZONE_TYPES[def.type] then
 			warn("%s: '%s' is not a zone type (deck, pile, hand or grid)%s",
 				where, tostring(def.type), suggest(def.type, ZONE_TYPES))
+		end
+		-- A grid puts each card in an addressed slot; a fan lays them in a run.
+		-- Both answer "where does this card go", so a zone wearing both has two
+		-- answers and the renderer would take whichever it read last.
+		if def.type == "grid" then
+			for tag in pairs(def.tags_set or {}) do
+				local sd = G.style_defs and G.style_defs[tag]
+				if type(sd) == "table" and sd.fan then
+					warn("%s: is a grid and wears '%s', which fans — a grid places by slot and a fan by order, "
+						.. "and they cannot both decide. Make it a pile, or drop the style", where, tag)
+				end
+			end
 		end
 		if type(def.activate) == "table" then
 			check_fields(where .. " activate", def.activate, ACTIVATE_FIELDS)
