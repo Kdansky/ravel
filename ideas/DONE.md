@@ -665,6 +665,55 @@ keep key order and inline what fits.
 
 ---
 
+# 07 (part) — The text pass · shipped (`19b0788`, `89cf0be`, `b24f601`)
+
+**A card is its picture, with its name over it.** The face used to be a
+stamp-sized image above a slab of colour holding the title; the picture now
+fills the card and the words float on it, light on a dark outline over a
+gradient. That is where the height went — and it settles contrast by
+construction rather than by palette, which matters because the *game* picks the
+card colour: fixed light text over a green expedition was unreadable and no
+choice of colours could have fixed it.
+
+**A title is fitted, never cut.** Largest size that holds it on one line; then
+two lines, but only where there is a space to break at; then smaller; and only
+then an ellipsis. Lost Cities rendered "Score Green" as `S...`.
+
+**A tooltip is a list of blocks**, measured then drawn: a title, prose, a
+hairline, label/value rows that read down a column, and a click hint in green or
+amber. It was one string built by concatenation and handed to a single `printf`
+— and it never said the card's name.
+
+## What only a screenshot would tell you
+
+None of this was visible to the test suite, which is exactly why the suite is
+green through all of it. It was done against a scratch LÖVE harness rendering
+each game to a PNG between edits, and every one of these came out of looking:
+
+- **`getWrap` splits a word it cannot fit.** "Yellow 9" comes back as `Yello` /
+  `w 9` — passes a width check, reads as nonsense. Rejoining the lines and
+  comparing against the original is what tells a real break from a broken word.
+- **The hp badge sits bottom-left, which is where the title now is.** Throne
+  Room rendered as "one Room" until the title learned to start clear of it.
+- **The tooltip was showing `round`, `plays` and `turn`** — bookkeeping the
+  engine keeps on whichever card happens to be the seat, reading as two more of
+  the throne room's statistics.
+- **Text was blurry**, and for two reasons: every position was fractional (a
+  zone's rect is a fraction of the window), and the default filter is linear,
+  which is right for card art and wrong for a glyph atlas rasterised at exactly
+  the size it will be drawn.
+
+**Check it at a size where the scale is not 1.** At 960×540 the scale is exactly
+1 and most positions land on whole numbers anyway, so the blur fix looks like it
+did nothing. 1100×620 gives 1.146.
+
+**Harness note:** `love.graphics.captureScreenshot` is asynchronous and writes
+nothing if you quit the same frame. A canvas created with `stencil = true` — the
+card face stencils its art to the rounded shape — plus a synchronous
+`newImageData():encode("png", name)` is what works.
+
+---
+
 # Bugs found on the way, and what they bought
 
 Recorded because each was invisible to a green test suite, and the fix in each

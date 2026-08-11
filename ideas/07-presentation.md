@@ -1,7 +1,8 @@
 # 07 — Presentation and the gestures on top of it
 
-**Status:** not started · **Size:** gap 1 is the largest design job in this
-list; the other four are small and specific.
+**Status:** gaps 1, 4 and 5 shipped. Left: clicking the deck (gap 2, which needs
+the visibility predicate) and the multi-ability chooser (gap 3, which no game
+needs yet).
 
 The rules are in better shape than the surface they are shown through. Every
 item here is something a player sees or does, not something the engine computes.
@@ -50,6 +51,21 @@ the height is what left the old one padded on a short card and tight on a long
 one. And the engine's own counters (`round`, `plays`, `turn`) are filtered out:
 they are bookkeeping it keeps on whichever card happens to be the seat, and on
 castle's throne room they read as two of its statistics.
+
+**And the text was blurry, for two reasons that only show on a screen.** Every
+position was fractional — a zone's rect is a fraction of the window, so a card
+lands on `x = 371.4` and its glyphs are sampled between two texels. And
+`main.lua` sets a linear default filter, which is right for card art and wrong
+for a glyph atlas: that is rasterised at exactly the size it will be drawn, so
+sampling it smoothly can only soften edges that were sharp.
+
+Rounding is wrapped once in `render` rather than applied at forty call sites,
+where the forty-first would forget; the tooltip and the inspector round at
+source, since they measure everything from a pad and an origin.
+
+**It is invisible at 960×540**, where the scale is exactly 1 and most positions
+land on whole numbers anyway. Check any other size — 1100×620 gives 1.146 — or
+the fix looks like it did nothing.
 
 **Two traps worth recording.** `getWrap` splits a word it cannot fit, so
 "Yellow 9" comes back as "Yello" / "w 9" — which passes a width check and reads

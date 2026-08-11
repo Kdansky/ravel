@@ -18,7 +18,7 @@ about how it might go.
 | [04](04-simulation-games.md) | Cultist Simulator, turn-based | medium | not started — unblocked, and smaller than written |
 | [05](05-assets-and-repo.md) | Assets, and what the repo carries | small | **closed** — named assets, remote pictures, and a generated placeholder when one cannot be produced. Art stays in git: that gap was a misunderstanding, and remote art was the real requirement |
 | [06](06-schema-and-types.md) | Saying what things are | medium | not started — zone qualities as tags, lists everywhere, guards at the door, the tag registry |
-| [07](07-presentation.md) | Presentation and its gestures | medium-large | not started — the text/contrast pass, clicking the deck, board chrome, zone ratios, multi-ability choice |
+| [07](07-presentation.md) | Presentation and its gestures | medium-large | **text, contrast, board chrome and zone ratios shipped.** Left: clicking the deck (needs the visibility predicate) and the multi-ability chooser |
 | [08](08-grid-movement-notation.md) | How a piece says where it may go | medium | **chess plays, castling included.** `patterns` (relative and absolute), capture, piece ownership, patterns as scopes. Left: the scope anchor word, check/checkmate, promotion, en passant |
 | [09](09-composition.md) | One game out of several files | small + one trap | not started — `include`, and a base file of shared patterns |
 | [10](10-schema-document.md) | A game file that describes itself | medium | **shipped** — `SCHEMA.json`, held to the engine both ways by a test. Nine findings; two were bugs and are fixed |
