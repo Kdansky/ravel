@@ -109,7 +109,10 @@ local RECEIVE_FIELDS   = { needs = true }
 local TURN_FIELDS      = { action = true }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, style = true,
-	contents = true, on_click = true, tags = true, tags_set = true,
+	contents = true, tooltip = true, tags = true, tags_set = true,
+	-- its own ability, and what declaration.parse derives from that block
+	activate = true, on_activate = true, activate_phases = true, activate_cost = true,
+	activate_target = true, moves = true,
 	injected = true, applies = true, accepts = true, receive = true,
 	asset = true,
 }
@@ -1137,6 +1140,12 @@ function M.check(G)
 			warn("%s: '%s' is not a zone type (deck, pile, hand or grid)%s",
 				where, tostring(def.type), suggest(def.type, ZONE_TYPES))
 		end
+		if type(def.activate) == "table" then
+			check_fields(where .. " activate", def.activate, ACTIVATE_FIELDS)
+			if def.activate.action == nil then
+				warn('%s: has an "activate" block with no action — nothing would happen', where)
+			end
+		end
 		if def.tags_set and def.tags_set.per_seat then
 			local seats = #(G.seat_list or {})
 			if seats > 1 then
@@ -1190,7 +1199,6 @@ function M.check(G)
 		if def.contents ~= nil and type(def.contents) ~= "table" then
 			warn('%s: contents should be a list like ["sword:3", "trap"]', where)
 		end
-		check_list(where .. " on_click", def.on_click)
 		check_map(where .. " accepts", def.accepts)
 		if def.applies ~= nil then
 			if type(def.applies) ~= "table" then

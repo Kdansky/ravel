@@ -24,6 +24,8 @@
       "type": "deck",
       "pos": [0.815, 0.365, 0.975, 0.505],
       "tags": ["shuffle"],
+      "tooltip": "Take the top card. Ends your turn.",
+      "activate": { "phases": ["draw"], "action": ["draw_from:deck:hand:1", "next_phase"] },
       "contents": [
         "red_w1",
         "red_w2",
@@ -1081,13 +1083,6 @@
       "text": "South wins",
       "story": "South comes home with the better haul. North should have hedged.",
       "play": { "action": ["load_game:menu.json"] }
-    },
-    {
-      "key": "draw_deck",
-      "text": "Draw from the deck",
-      "tooltip": "Take the top card of the expedition deck.",
-      "tags": ["token"],
-      "play": { "action": ["draw_from:deck:hand:1", "destroy_self", "next_phase"] }
     }
   ],
   "phases": [
@@ -1116,7 +1111,6 @@
       "type": "player_input",
       "zone": "choice",
       "label": "Draw from the deck, or take the top of a discard",
-      "pass_card": "draw_deck",
       "tags": ["discard_hand"],
       "next": [{ "zone_empty": ["deck"], "then": "tally" }, { "then": "play" }]
     },

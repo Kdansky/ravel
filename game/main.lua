@@ -190,7 +190,7 @@ local function primary_action(x, y)
 	end
 
 	local zid = zones.zone_at(x, y)
-	if zid then flow.zone_click(zid) end
+	if zid then flow.activate_zone(zid) end
 end
 
 function love.load()
@@ -371,7 +371,16 @@ function love.update(dt)
 		local cid = card_at(mx, my)
 		local c   = cid and entity.get(cid)
 		local z   = c and entity.get(c.zone_id)
-		if z and not z.tags.no_peek then hover = cid end
+		if z and not z.tags.no_peek then
+			hover = cid
+		else
+			-- No card under the cursor, so ask the zone. A deck has no clickable
+			-- cards — it is a box — and until now it answered nothing at all,
+			-- which made the one thing you can do with it undiscoverable.
+			local zid = zones.zone_at(mx, my)
+			local zz  = zid and entity.get(zid)
+			if zz and not zz.tags.no_peek and (zz.tooltip or zz.on_activate) then hover = zid end
+		end
 	end
 	tooltip.update(dt, not inspecting and hover or nil)
 

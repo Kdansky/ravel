@@ -121,15 +121,42 @@ local function blocks(c, def)
 	return out
 end
 
+-- A zone answers for itself: its label, whatever it says about being used, and
+-- what using it would cost. There are no cards in a deck to ask — there is a
+-- deck — so this is what a player reads before clicking one.
+local function zone_blocks(z)
+	local out = {}
+	local function add(kind, a, b) out[#out + 1] = { kind = kind, a = a, b = b } end
+	add("title", z.label or z.key)
+	if z.tooltip and z.tooltip ~= "" then add("prose", z.tooltip) end
+	if #z.cards > 0 then
+		add("rule")
+		add("row", "Cards", tostring(#z.cards))
+	end
+	if flow.can_activate_zone(z.id) then
+		add("rule")
+		local text = "Click to use"
+		if z.activate_cost and next(z.activate_cost) then
+			text = text .. "  (" .. cards.cost_text(z.activate_cost) .. ")"
+		end
+		add("hint", text, C.ready)
+	elseif z.on_activate then
+		add("rule")
+		add("hint", "Not available in this phase", C.wait)
+	end
+	return out
+end
+
 function M.draw()
 	if not visible or not hover_id then return end
 	local c = entity.get(hover_id)
 	if not c then return end
-	local def = declaration.G.card_defs[c.def_key]
-	if not def or not c.place then return end
+	local is_zone = c.kind == "zone"
+	local def = not is_zone and declaration.G.card_defs[c.def_key] or nil
+	if (not is_zone and not def) or not c.place then return end
 	-- Hovering is looking. A card the player may not see does not describe
 	-- itself, or the hand is face-down and the tooltip reads it out.
-	if not zones.visible(c) then return end
+	if not is_zone and not zones.visible(c) then return end
 
 	local S      = render.scale()
 	local W, H   = love.graphics.getDimensions()
@@ -141,10 +168,10 @@ function M.draw()
 	local box_w  = math.min(240 * S, W * 0.34)
 	local inner  = box_w - pad * 2
 	local tf, bf = render.main_font(), render.small_font()
-	local img    = cards.image(c.def_key)
+	local img    = not is_zone and cards.image(c.def_key) or nil
 	local img_h  = img and math.floor(box_w * 0.62) or 0
 
-	local list = blocks(c, def)
+	local list = is_zone and zone_blocks(c) or blocks(c, def)
 
 	-- Measure, then draw. Two passes rather than one so the panel is the size of
 	-- what is in it: guessing the height is what left the old one padded at the

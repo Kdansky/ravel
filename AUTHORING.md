@@ -433,7 +433,8 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]` for grid zones |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
-| `on_click` | Actions run when the zone is clicked. **Not phase-scoped** — it fires in every phase. To make a *card* usable at one point in a turn, grant it an ability with `applies` and limit it with `phases` |
+| `tooltip` | Prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck |
+| `activate` | The zone's **own** ability, in a card's words: `cost`, `phases`, `action`, `target`. This is how a deck is drawn from — the box answers, rather than the card on top of it becoming clickable. Gated like a card's: the phase it works in, what it costs, and whose zone it is. Not to be confused with `applies`, which hands an ability to the cards *lying* there |
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
 | `receive` | `needs`: whether a card being played may be sent **here** — the zone answers for itself, as a card does |
 | `asset` | A picture behind the whole zone — the painted board most games have. Same asset rules as a card's: a filename in `games/assets/`, an `http(s)` URL, or a shape spec. Stretched to the zone's rect, since that rect is what the cells are computed from |
@@ -1419,7 +1420,7 @@ card key `system` the round counter. The tag `immutable` means scenery: nothing
 may target such a card and its template can never be edited — put it on menu
 entries and anything else that is interface rather than game. Clicking a face-up
 card plays it; clicking a grid card, or the top of a pile, activates it; decks
-aren't clickable (give them `on_click` if needed).
+aren't clickable unless they carry an `activate` block, which is how a deck is drawn from.
 
 Reserved words that a zone or tag may never be named: `self` and `all` (the
 engine answers for them in scopes), plus the quantifiers `any` / `each` /

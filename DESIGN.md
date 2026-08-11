@@ -295,7 +295,9 @@ The startup screen is `menu.json`, a valid game loaded like any other. Menu item
 
 Clicking any face-up card always selects it. This is hardcoded engine behaviour, not a JSON-configurable action. No game definition needs to declare a "select" action. Right-click opens a detail view of a card, or browses a face-up zone's contents (e.g. the discard pile).
 
-**A zone's `on_click` is not a move, and must not be used as one.** It fires in every phase and answers to nothing but the overlay lock. A click that means "take the top of that pile" is an *ability on the card*, granted by the pile — see *Stacks*, *Tags Are Mixins* and *When a Card May Be Used* below.
+**A zone has abilities of its own, and they are gated like a card's.** `activate` on a zone carries the same words a card's does — cost, phases, action — and answers the same questions: the phase it works in, what it costs, and whose zone it is. It replaced `on_click`, which fired in *any* phase and answered to nothing, and therefore had to carry a warning that it was not a move and must not be used as one. It is a move now. Do not confuse it with `applies`, which grants an ability to the cards *lying* in the zone: a discard pile has both, and they are different sentences — "you may take the top of this pile" is the pile speaking about its cards, "draw from this deck" is the deck speaking about itself.
+
+**A deck is a box, not a stack of clickable cards**, and that is what makes drawing simple. "Click the deck to draw" was going to need the top card to become clickable, and therefore hoverable, and therefore guarded so that hovering a face-down deck did not read out the card you were about to draw. The zone answers instead, and the problem is deleted rather than defended against.
 
 ---
 

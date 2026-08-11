@@ -149,9 +149,22 @@
           "<subject>": "a condition deciding whether a card being played may be sent here. Same shape as a card's accepts, asked of the zone."
         }
       },
-      "on_click": [
-        "action strings run when the zone is clicked. Not phase-scoped: it fires in every phase, so it is not a move. An ability on a card, granted with applies, is what a move wants to be."
-      ],
+      "tooltip": "prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck — so this is what a player reads before clicking it.",
+      "activate": {
+        "cost": {
+          "<stat key>": "number paid to use the zone's own ability"
+        },
+        "phases": [
+          "phase keys it works in. Naming none means any."
+        ],
+        "action": [
+          "what clicking the zone does. This is how a deck is drawn from: the box answers, rather than the card on top of it becoming clickable."
+        ],
+        "target": "a target spec, the same shape as a card's play.target",
+        "moves": [
+          "pattern names, if the ability is a move"
+        ]
+      },
       "asset": "a picture behind the whole zone, stretched to its rect. Same five forms as a card's asset.",
       "tags": [
         "a list of words; the engine knows several for zones (see _engine_tags), and a zone claims a look by naming a style (see styles)"
@@ -290,7 +303,7 @@
     "_quantifiers": "any (default: the pool reaches n), each (every member does, and an empty scope is false rather than vacuously true), random (as any, but one member is chosen by the seeded shuffle)."
   },
   "_actions": {
-    "_what": "Colon-separated strings, run from a card's play, activate and turn actions, a challenge's pass and fail, a zone's on_click, a phase's actions, and an end condition's then. An unknown op logs and is skipped. A numeric slot takes a number or a measuring fn, optionally multiplied by a second with :x:. A zone slot takes a scope expression too.",
+    "_what": "Colon-separated strings, run from a card's play, activate and turn actions, a challenge's pass and fail, a zone's own activate action, a phase's actions, and an end condition's then. An unknown op logs and is skipped. A numeric slot takes a number or a measuring fn, optionally multiplied by a second with :x:. A zone slot takes a scope expression too.",
     "fill": "fill:<zone>:<card>:<n> — create n instances of a card in a zone",
     "shuffle": "shuffle:<zone>",
     "draw_from": "draw_from:<from>:<to>:<n> — move n cards off the top",

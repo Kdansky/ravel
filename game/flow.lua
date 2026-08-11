@@ -624,17 +624,41 @@ function M.summary()
 	return out
 end
 
--- A zone click is a player action, so a pending choice locks it exactly as it
--- locks playing and activating. Note that nothing else gates it: an on_click
--- fires in any phase, which is why "take the top of that pile" belongs on a
--- card in the phase's own zone (where in_play_zone already bounds it) rather
--- than on the pile. Lost Cities learned that the expensive way.
-function M.zone_click(zone_id)
-	if phase.is_overlay() then return false end
+-- A zone has abilities of its own, and they are gated like a card's.
+--
+-- This used to be `on_click`, which fired in *any* phase and answered to
+-- nothing but the overlay lock — so DESIGN had to warn that it was not a move
+-- and must not be used as one. It is a move now, and bounded like one: the
+-- phase it works in, what it costs, and whose zone it is.
+--
+-- A deck is the case that asked for it. "Click the deck to draw" was going to
+-- need the top card to become clickable, and therefore hoverable, and therefore
+-- guarded by a visibility rule so that hovering a face-down deck did not read
+-- out its top card. A deck has no clickable cards — it is a box — so the box
+-- answers, and the problem is deleted rather than defended against.
+--
+-- Not gated: exhaustion. A zone is not spent by being used, and a deck that
+-- could only be drawn from once a round is a rule a game would have to ask for
+-- rather than one it should get by default.
+function M.can_activate_zone(zone_id)
 	local z = entity.get(zone_id)
-	if not z or #z.on_click == 0 then return false end
+	if not z or not has_ability(z.on_activate) then return false end
+	-- A per-seat zone answers to its seat, which is what `reachable` says for a
+	-- card. A shared zone belongs to nobody and answers to whoever is playing.
+	if z.seat and z.seat ~= zones.active_seat() then return false end
+	if not phase_ok(z.activate_phases) then return false end
+	return M.can_afford(z.activate_cost, { zone_id = zone_id })
+end
+
+function M.activate_zone(zone_id)
+	if phase.is_overlay() then return false end   -- a pending choice locks other actions
+	if not M.can_activate_zone(zone_id) then return false end
+	local z   = entity.get(zone_id)
+	local ctx = { zone_id = zone_id }
 	checkpoint()
-	actions.run(z.on_click, { zone_id = zone_id })
+	log.add("Used " .. (z.label or z.key))
+	pay(z.activate_cost, ctx)
+	actions.run(z.on_activate, ctx)
 	M.settle()
 	return true
 end

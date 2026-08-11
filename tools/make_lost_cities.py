@@ -165,6 +165,12 @@ def templates():
 def zones():
     out = [{"key": "deck", "label": "Expedition Deck", "type": "deck",
             "pos": DECK_POS, "tags": ["shuffle"],
+            "tooltip": "Take the top card. Ends your turn.",
+            # The box answers, not the card on top of it. A deck has no
+            # clickable cards, which is also why nothing has to hide the face
+            # of the one you are about to draw.
+            "activate": {"phases": ["draw"],
+                         "action": ["draw_from:deck:hand:1", "next_phase"]},
             "contents": ["%s_w%d" % (c, w) for c, _, _, _ in COLOURS for w in range(1, WAGERS + 1)]
                         + ["%s_%d" % (c, v) for c, _, _, _ in COLOURS for v in VALUES]},
            {"key": "hand", "type": "hand", "tags": ["per_seat"], "pos": HAND_POS},
@@ -257,7 +263,7 @@ def phases():
         # The expedition deck running out ends the game, mid-round or not.
         {"key": "draw", "type": "player_input", "zone": "choice",
          "label": "Draw from the deck, or take the top of a discard",
-         "pass_card": "draw_deck", "tags": ["discard_hand"],
+         "tags": ["discard_hand"],
          "next": [{"zone_empty": ["deck"], "then": "tally"}, {"then": "play"}]},
         # One tally phase, entered once per seat. It counts itself: each seat
         # marks its own card as it finishes, and the sum across both is how the
@@ -286,10 +292,6 @@ def phases():
 
 def build():
     tpl = templates()
-    tpl.append({"key": "draw_deck", "text": "Draw from the deck",
-                "tooltip": "Take the top card of the expedition deck.",
-                "tags": ["token"],
-                "play": {"action": ["draw_from:deck:hand:1", "destroy_self", "next_phase"]}})
     z = zones()
     return {
         "title": "Lost Cities",

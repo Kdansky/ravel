@@ -1,8 +1,7 @@
 # 07 — Presentation and the gestures on top of it
 
-**Status:** gaps 1, 4 and 5 shipped. Left: clicking the deck (gap 2, which needs
-the visibility predicate) and the multi-ability chooser (gap 3, which no game
-needs yet).
+**Status:** gaps 1, 2, 4 and 5 shipped. Left: the multi-ability chooser (gap 3),
+which no game needs yet.
 
 The rules are in better shape than the surface they are shown through. Every
 item here is something a player sees or does, not something the engine computes.
@@ -119,6 +118,44 @@ symptom by symptom: every item above is really "there is no typographic system,
 only per-site decisions".
 
 ---
+
+## Gap 2 — Drawing from the deck should be a gesture, not a token — **shipped**
+
+*And by a better route than the one designed below.*
+
+The plan here was to grant the deck's top card a `takeable` ability, which meant
+letting `card_at` return it — and therefore letting it be *hovered*, and
+therefore needing a visibility rule so that pointing at a face-down deck did not
+read out the card you were about to draw. That is the "real work" this section
+identifies, and it was real.
+
+**The deck answers instead.** A zone carries its own `activate` block now, in a
+card's words:
+
+```json
+{ "key": "deck", "type": "deck", "tooltip": "Take the top card. Ends your turn.",
+  "activate": { "phases": ["draw"], "action": ["draw_from:deck:hand:1", "next_phase"] } }
+```
+
+A deck is a box, not a stack of clickable cards, so there is nothing to hide and
+no predicate to write. Lost Cities loses the `draw_deck` token and its draw step
+becomes one sentence: *click the deck, or take the top of a discard.*
+
+What it replaced is `on_click`, which fired in any phase, answered to nothing but
+the overlay lock, and carried a DESIGN warning that it was not a move and must
+not be used as one. No shipped game used it. A zone's ability is gated exactly
+as a card's is — the phase, the cost, and whose zone it is — so it *is* a move,
+and the warning goes with the field.
+
+The hover half shipped with it: a zone with a tooltip or an ability now
+describes itself, which a deck previously could not do at all.
+
+**Note the distinction it creates**, because the two words look alike:
+`applies` grants an ability to the cards *lying in* a zone (that is how a
+discard becomes takeable); `activate` is the zone's *own*. A discard pile has
+both, and they are different sentences.
+
+### The original write-up
 
 ## Gap 2 — Drawing from the deck should be a gesture, not a token
 

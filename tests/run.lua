@@ -1870,7 +1870,7 @@ do
 		return false
 	end
 	local first = discard_once()
-	flow.play_card(zones.find("choice").cards[1], {})   -- draw from the deck, hand over
+	flow.activate_zone(zones.find_id("deck"))   -- draw from the deck, hand over
 	check("a pile with a card on it is still a legal place to discard",
 		first and discard_once() and #pile(pile_key).cards == 2)
 	check("and the card underneath the top one cannot be taken",
@@ -1878,7 +1878,7 @@ do
 
 	-- The pile's ability is the pile's, not the card's: the same card in a hand
 	-- has none, and no card may be taken outside the draw step.
-	flow.play_card(zones.find("choice").cards[1], {})   -- draw, back to a play step
+	flow.activate_zone(zones.find_id("deck"))   -- draw, back to a play step
 	check("the top of a pile is inert during the play step",
 		phase.current().key == "play" and flow.can_activate(top_of(pile_key)) == false)
 

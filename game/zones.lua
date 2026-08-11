@@ -51,7 +51,12 @@ local function build(def, seat, pos)
 		contents  = def.contents,
 		pos       = pos,
 		place     = { x = 0, y = 0, w = 0, h = 0 },
-		on_click  = def.on_click or {},
+		tooltip   = def.tooltip,   -- what it says when hovered
+		-- The zone's own ability, flattened out of its "activate" block by the
+		-- same table a card's is. A deck that can be drawn from says so here.
+		on_activate      = def.on_activate,
+		activate_phases  = def.activate_phases,
+		activate_cost    = def.activate_cost,
 		applies   = def.applies,   -- tags this zone grants to whatever sits in it
 	}
 	entity.register(e)

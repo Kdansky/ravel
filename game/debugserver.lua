@@ -111,7 +111,7 @@ end
 
 COMMANDS["click"] = function(args)
 	local zid = zones.find_id(args[1])
-	local ok  = zid and flow.zone_click(zid) or false
+	local ok  = zid and flow.activate_zone(zid) or false
 	local s = summary(); s.ok = ok; return s
 end
 
