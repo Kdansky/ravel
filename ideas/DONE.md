@@ -6,8 +6,14 @@ load-bearing, and the traps that cost real time the first time round. The
 per-idea design documents for shipped work have been folded in and deleted —
 this file replaces them.
 
+**If you last read a game file before the syntax pass, read that section first**
+— a card is written differently now, and nothing else in this document will
+parse the way you remember.
+
 Still open, in their own files: [01](01-boardgames.md) (board games past Lost
-Cities) and [04](04-simulation-games.md) (Cultist Simulator).
+Cities), [04](04-simulation-games.md) (Cultist Simulator), [09](09-composition.md)
+(one game out of several files) and [14](14-kinds-and-placements.md) (a template
+is a kind, not a piece on a square).
 
 The three reference documents remain the source of truth for detail:
 `DESIGN.md` (directives), `AUTHORING.md` (content manual), `ARCHITECTURE.md`
@@ -560,6 +566,78 @@ which was the point of counting them.
 This also has a practical cause: Lua allows **200 locals per function**, and
 `run.lua` hit the ceiling. A `do ... end` block hands them back, and a file per
 subject avoids the question.
+
+---
+
+# The syntax pass — shipped (`60c4654` … `790b549`)
+
+The format had grown synonyms, and [10](10-schema-document.md) measured which
+ones actually hurt before anything was changed. What a game file says now:
+
+**A card is what it is, then the moments it has.** `key`, `text`, `tooltip`,
+`story`, `asset`, `tags`, `owns`, `card_stats`, `outcome` — then `play`,
+`activate`, `challenge`, `receive`, `turn`, `start`, each holding the vocabulary
+of that moment. `cost`/`activate_cost`, `target`/`activate_target`,
+`on_play`/`on_activate` were three pairs spelled as a naming convention nothing
+documented; position says it now. **One word, `needs`, is a gate everywhere**,
+and the block says what it gates.
+
+**How a thing looks is a style it tags.** `color`, `fit`, `ratio`, `checker`,
+`paint` and three engine-known tags all became properties of a named `styles`
+entry, for zones as well as cards. Chess's whole board is one word. `color:
+false` replaced `transparent_background` — a field and a tag deciding the same
+thing. And a style that is *also* a computed tag makes a look follow the
+numbers, with nothing in the drawing code that knows what `wounded` means.
+
+**Two blocks turned out not to be moments**, and the difference is worth
+keeping. `challenge` is a named *test* any action list reaches with
+`resolve_challenge`, which is why kingdom's crises can be asked from `play` and
+`activate` both. And `pick` was simply `play`: an overlay is a pending choice,
+a choice is resolved by playing something, and the phase's `zone` already bounds
+what may be played. Deleting `flow.pick` also deleted the `page`/non-page split
+that decided *whose* actions ran — a footgun where a card's own actions were
+silently ignored.
+
+## Rules that came out of it
+
+- **A quality is a tag; a value is a field.** `no_undo` and
+  `invisible_slot_outlines` are words a thing either carries or doesn't. A ratio
+  is a number and there are infinitely many, so it is a field — and then a style
+  property, because presentation belongs in one named place.
+- **A name may repeat unless a *scope* has to resolve it.** Keys are unique
+  within their kind; the scope namespace (patterns, then zones, then tags) may
+  not collide. Everything else is free, and two repeats are load-bearing: a
+  chess piece is a card key *and* a tag so another piece's condition can name
+  it, and a style sharing a computed tag's name is the dynamic-look mechanism.
+- **No old syntax, and no migration aids.** Every game is in this repository, so
+  the flat name is an *error* once its moment has moved — otherwise it keeps
+  working by accident, which is the alias being removed.
+- **The document becomes engine data at `declaration.parse`, and nowhere else.**
+  One table maps authored blocks to the flat names the engine already read, so
+  all 38 read sites were untouched by a change to what an author writes.
+
+## What made it safe
+
+**The golden traces.** `castle.log` and `kingdom.log` cover the two densest
+games, and every step had to leave them byte-identical. They earned it once:
+folding `pick` into `play` made castle's draft charge a building's *build cost*
+to choose it, and the transcript diverged at line 51 with a stray
+`Throne Room -1 gold`. Every unit test passed.
+
+**`SCHEMA.json` and its two-way test**, which fails the moment the document and
+the engine disagree about a single field — exactly what a rename this wide gets
+wrong.
+
+**And, added at the end of it, `tests/integration/docs.lua`**: AUTHORING's two
+walkthroughs are parsed out of the markdown and validated. Both had quietly
+stopped working — one pushed a phase it never declared and put its hand under
+the undo button, the other still spoke a vocabulary the engine had dropped —
+because a document cannot fail a test until somebody makes it able to.
+
+Two traps worth knowing, because both were hit: **the generators emit the format
+too**, and running one would have silently undone a migration; and `json.dump`
+explodes every scalar array onto its own line, so `tools/jsonfmt.py` exists to
+keep key order and inline what fits.
 
 ---
 

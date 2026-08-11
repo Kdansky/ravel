@@ -22,10 +22,10 @@ about how it might go.
 | [08](08-grid-movement-notation.md) | How a piece says where it may go | medium | **chess plays, castling included.** `patterns` (relative and absolute), capture, piece ownership, patterns as scopes. Left: the scope anchor word, check/checkmate, promotion, en passant |
 | [09](09-composition.md) | One game out of several files | small + one trap | not started — `include`, and a base file of shared patterns |
 | [10](10-schema-document.md) | A game file that describes itself | medium | **shipped** — `SCHEMA.json`, held to the engine both ways by a test. Nine findings; two were bugs and are fixed |
-| [11](11-styles-as-tags.md) | Styles are tags too | medium-large | not started — a `styles` section referenced by tag, absorbing `fit`, `ratio`, `checker`, `paint` and two card tags. Dynamic styles fall out of computed tags for free |
-| [12](12-card-moments.md) | A card is a list of moments | large, mostly migration | not started — `play` / `activate` / `challenge` / `receive` blocks. Kills the `activate_` prefix, `requires`, `accepts` and every `on_` name |
-| [13](13-one-name-one-thing.md) | One name, one thing | small check, one redesign first | **seat ownership shipped** (`owns`). Left: the two injected names, and the check itself |
-| [14](14-kinds-and-placements.md) | Six kinds, thirty-two pieces | medium | not started — a template is a *kind*; where a piece starts and whose it is belong to setup. Deletes 26 chess templates, both colour tags, and most of the generator |
+| [11](11-styles-as-tags.md) | Styles are tags too | medium-large | **shipped** — `styles`, claimed by tagging one. Absorbed `color`, `fit`, `ratio`, `checker`, `paint` and three tags; `color: false` replaced `transparent_background`. A style that is also a computed tag makes a look follow the numbers |
+| [12](12-card-moments.md) | A card is a list of moments | large, mostly migration | **shipped** — `play` / `activate` / `challenge` / `receive` / `turn` / `start`. The `activate_` prefix, `requires`, `accepts` and every `on_` name are gone, and `pick` turned out to be `play` |
+| [13](13-one-name-one-thing.md) | One name, one thing | small check | **shipped**, and narrower: a key is unique within its kind, and the *scope* namespace (patterns, zones, tags) may not collide. Everything else may repeat — two repeats are load-bearing |
+| [14](14-kinds-and-placements.md) | Six kinds, thirty-two pieces | medium | not started, and now unblocked — [11](11-styles-as-tags.md) can give a piece its colour, which was the half it was waiting on |
 
 ---
 
@@ -56,7 +56,7 @@ things happen come first.
 | ~~7½~~ | ~~[10](10-schema-document.md) — **`SCHEMA.json`**~~ | — | — | **shipped.** It did what it was for: nine findings, two of them bugs already fixed — a `cards` section silently dropped when `templates` was also present, and `patterns` never checking its field names |
 | 8½ | [11](11-styles-as-tags.md) — **styles named by tag** | medium | medium-large | the correction to items 5 and 6: presentation belongs in one named, shared section like `assets`, not as another field per zone. It *deletes* `fit`, `ratio`, `checker` and `paint`, and computed tags then give conditional rendering with no code. Do it after [10](10-schema-document.md) — writing a sentence per field is the cheapest way to find every field this should absorb |
 | 8 | [07](07-presentation.md) gap 2 — **click the deck to draw** | medium | low + item 4 | deletes the ugliest card on the Lost Cities board; rules already allow it |
-| **S** | **The syntax pass: [13](13-one-name-one-thing.md), then [11](11-styles-as-tags.md), then [12](12-card-moments.md), with [14](14-kinds-and-placements.md) riding along** | high | large | One migration wearing three names, and the order is not free. **13 first**: unique names are what let a scope resolve a card key, which is what deletes chess's self-tags — and 11 and 12 both add names to the namespace it defines. **11 next**, because 12 must know whether `color` is still a card field. **12 last**, and it is mostly a script. All three are proved the same way: the golden traces must come out byte-identical, since none of this changes behaviour |
+| ~~S~~ | ~~**The syntax pass**: [12](12-card-moments.md), [11](11-styles-as-tags.md), [13](13-one-name-one-thing.md)~~ | — | — | **shipped**, in the opposite order to the one planned: 12 went first because each moment could move on its own, and 13 shrank to a loop once ownership had moved for its own reasons. The golden traces proved every step — and caught the one real regression, a draft that charged a building's cost to *choose* it |
 | 9 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | small, with one trap | the trap is the network: it ships *a file*, so includes must flatten before they are sent or hashed. Cheap if designed in, expensive if found later |
 | 10 | [06](06-schema-and-types.md) gap 1 — **zone qualities as tags** | medium | medium | `activate` already proved the shape. Cheaper now than after more games exist |
 | 11 | [06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door** | medium | medium | strictly in that order: deleting a guard before the normaliser exists turns a warning into a crash |
@@ -71,15 +71,18 @@ unclickable capture, a crash on hovering a castling card — passed the whole
 suite. Items 3, 5 and 6 are all in that layer, which is an argument for doing
 them together rather than by urgency alone.
 
-**The syntax pass now has its evidence.** It was deferred until "the warts that
-actually hurt" could be told from the ones that merely look untidy, and
-[10](10-schema-document.md) is that measurement: nine findings, listed with
-verdicts at the bottom of that file. Two were bugs and are fixed. The rest are
-one problem wearing different clothes — **the format has grown synonyms**: two
-names for the card section, three shapes for one condition, three names for one
-gate, and a routing field called `stat` that accepts any subject. Start with
-finding 5 (the object condition form accepted everywhere), because it is
-additive and nothing has to be rewritten to benefit from it.
+**The syntax pass is done.** [10](10-schema-document.md) measured it — nine
+findings, two of them bugs — and the diagnosis held: **the format had grown
+synonyms**. Those are gone. Two names for the card section became `cards`; three
+names for one gate became `needs`, with the block saying what it gates; the
+`activate_` prefix became structure; seven ways to say how a thing looks became
+`styles`. A card is now what it *is*, then the moments it has.
+
+What the schema pass found and this did **not** fix, in case it still itches:
+one condition still has three spellings and the site decides which is legal
+(finding 5), and a routing entry's `stat` field still takes any subject
+(finding 4). Both are additive to fix — nothing would have to be rewritten to
+benefit — and neither has cost anybody anything yet.
 
 ## Worktrees: still the same advice
 

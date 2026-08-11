@@ -31,7 +31,7 @@ inspect ─ ctrl+hover: the JSON behind whatever is under the cursor
 anim ─ flight tweens    fx ─ particles/shake/floats
 art ─ procedural placeholder shapes (its pure `parse` is shared with validate)
 ────────────────────────────────────────────────────────────── presentation
-flow ─ THE game driver: init/settle/play/activate/pick/undo, costs, legality
+flow ─ THE game driver: init/settle/play/activate/undo, costs, legality
 validate ─ whole-file checks: schema, references, conflicts
 actions ─ the op vocabulary (HANDLERS table)
 phase ─ phase stack, routing, round/fresh flags
@@ -124,7 +124,7 @@ Treat it as disposable.
    Undo replaces every entity table with snapshot copies — a held Lua table
    reference across an undo is stale. Re-fetch via `entity.get(id)`.
 2. **All mutation goes through flow, and so does all legality.** `play_card`,
-   `activate`, `pick`, `zone_click`, `undo`, `init` — each checkpoints first,
+   `activate`, `zone_click`, `undo`, `init` — each checkpoints first,
    then acts, then `settle()`s. Never mutate game state from presentation code.
    Flow **re-derives** what is legal rather than trusting what it is handed:
    target counts, target identity (`targeting.candidates`, a pure function it
@@ -133,7 +133,7 @@ Treat it as disposable.
    script or the debug API is bound by exactly the same checks the GUI is.
 3. **`settle` is the only driver.** It loops: pending `load_game` → end
    conditions (deferred while an overlay is open) → round boundaries
-   (counter, ready, `on_turn` — always before the new round's phases act) →
+   (counter, ready, every card's `turn.action` — always before the new round's phases act) →
    automatic phases → dealing fresh phases. It carries a
    64-transition budget; on breach it warns and halts. Anything that needs to
    happen "after an action" belongs here, not sprinkled at call sites.
@@ -200,8 +200,10 @@ love.mousepressed/released (main)          ── hit-test via card.place
   → flow.play_card(id, targets)
       checkpoint (entities+phases+fired+log mark)
       can_play? (cost via flow.can_afford, needs via predicate, escape hatch)
+      choosing from an overlay? skip cost/needs/targets, pop the phase first
       log "Played X", plays+1, pay cost
-      actions.run(def.on_play, ctx)         ── mutates entities, maybe phases
+      actions.run(play action, ctx)         ── mutates entities, maybe phases
+      spent? a card still in the offer it was chosen from is destroyed
       draw_and_play? discard hand (tokens vanish), phase.next
       settle()                              ── routing, rounds, deals, endings
   → next frames: render.sync_places diffs card.place → anim tweens
@@ -237,7 +239,7 @@ AUTHORING.md. Nothing else to touch.
 
 **A new kind of legality**: put it where flow can re-derive it, not only where
 the GUI can show it — `targeting.candidates` is pure for exactly this reason.
-Prefer expressing it in the condition vocabulary (`accepts` is a `predicate`
+Prefer expressing it in the condition vocabulary (`receive.needs` is a `predicate`
 map, not a new dialect) over a bespoke check.
 
 **A new card/phase/zone field**: parse nothing — defs are carried whole from

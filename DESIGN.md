@@ -41,7 +41,7 @@ Editing `card_stats` (directly or via a reload that changes them) re-stamps the 
 
 ## Module Split: flow vs main
 
-`flow.lua` owns every state change that follows from player intent: loading, dealing, playing, activating, picking, undo, end conditions, `on_turn` triggers. It has no rendering or input dependency, so the whole game logic runs headless (tests, debug server).
+`flow.lua` owns every state change that follows from player intent: loading, dealing, playing, activating, undo, end conditions, round-boundary `turn` actions. It has no rendering or input dependency, so the whole game logic runs headless (tests, debug server).
 
 `main.lua` is only LÖVE wiring: hit-testing, click routing, tooltip hover, per-frame place syncing. Rendering lives in `render.lua`; it re-derives card rectangles every frame — no module ever needs to remember to "refresh" positions after a mutation.
 
@@ -90,7 +90,7 @@ Every numeric slot accepts a number or `count:<tag>` — the number of cards on 
 
 ## Conditions Are One Vocabulary
 
-`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, challenge `requires` and card `needs` all share it, and so do costs and the stat arguments of actions. A subject is `[<fn>:]<arg>[@<scope expression>]`: `gold`, `count:farm`, `sum:defense@board`, `hp@each.follower`, `hp@each.enemy.creature`, `hp@self`, `hp@target`. Comparisons are `equals` / `at_least` / `at_most` — against a number or another subject — or `zone_empty`. Map forms like `"requires": { "might": 8, "count:farm": 3 }` mean "each subject totals at least n".
+`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, and every `needs` — a card's, a challenge's, a destination's — all share it, and so do costs and the stat arguments of actions. A subject is `[<fn>:]<arg>[@<scope expression>]`: `gold`, `count:farm`, `sum:defense@board`, `hp@each.follower`, `hp@each.enemy.creature`, `hp@self`, `hp@target`. Comparisons are `equals` / `at_least` / `at_most` — against a number or another subject — or `zone_empty`. Map forms like `"requires": { "might": 8, "count:farm": 3 }` mean "each subject totals at least n".
 
 The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>`. The name is always a zone or a tag, never a seat — whose cards is a separate word (`mine` / `enemy` / `anyone`), so ownership composes with everything instead of doubling the vocabulary. A subject with no scope means the player's own cards. `predicate.parse_subject` is the only place the grammar is decided and `predicate.entities_in_scope` the only place a scope becomes entities, so a read, a cost and an effect can never disagree about who they mean.
 
@@ -98,7 +98,7 @@ The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>
 
 **A comparison may be measured against another subject, not only a constant.** This deliberately bends the no-expressions rule below: putting your own stat inside a condition is a genuine requirement (`{"value@target": {"at_least": "max:value@mine.red"}}`), and JSON and Lua both carry either type happily, so the type decides at run time. The rule the bend keeps: a subject used as a bound must *look* like one — name a scope or a measuring fn — so a bare word still fails closed instead of quietly reading as zero.
 
-**Legality between two cards lives on the destination.** `accepts` is a condition map asked of each candidate target, with itself as `@self` and the arriving card as `@target`. Putting it there rather than on the acting card is what lets it name its own zone; a destination with no `accepts` takes anything, which is what every game before it assumed.
+**Legality between two cards lives on the destination.** `receive.needs` is a condition map asked of each candidate target, with itself as `@self` and the arriving card as `@target`. The block is what says *when* it is asked, which a bare field could not. Putting it there rather than on the acting card is what lets it name its own zone; a destination with no `receive` takes anything, which is what every game before it assumed.
 
 ---
 
@@ -145,7 +145,7 @@ Decks are finite by default; drawing removes the card.
 
 Phases are a stack, not a flat list. Current phase = top of stack.
 
-- `next_phase` — replace top with the next phase in the JSON sequence; at the end of the sequence, wrap to the first non-automatic phase. A wrap marks a completed **round**: every board card then runs its `on_turn` actions (cards at 0 hp are ruined and don't act).
+- `next_phase` — replace top with the next phase in the JSON sequence; at the end of the sequence, wrap to the first non-automatic phase. A wrap marks a completed **round**: every board card then runs its `turn.action` (cards at 0 hp are ruined and don't act).
 - `push_phase:key` — push a phase (opens overlay, modal, menu).
 - `pop_phase` — pop current phase (closes overlay, returns to previous).
 
@@ -163,9 +163,9 @@ Phase types: `automatic` (runs `actions`, advances immediately), `player_input`,
 
 **Free-play drafts** need no phase type: a `player_input` phase with `deck`, `draw` and a `pass_card` deals a hand you may play freely from; a Done/router token advances via `next_phase`. `pass_card` accepts a single key or an array (e.g. three "travel" routers that each set a destination stat the routing reads). Stale tokens are swept from the hand before each deal, so they never accumulate across phases.
 
-A `draw_and_play` phase must declare a `"pass_card"`: that card is created into the hand with every deal, so a forced play always has an out — no hand can deadlock the game. The pass card is an ordinary template tagged `token` (tokens are destroyed instead of discarded when the hand is swept) with `"on_play": ["destroy_self"]`.
+A `draw_and_play` phase must declare a `"pass_card"`: that card is created into the hand with every deal, so a forced play always has an out — no hand can deadlock the game. The pass card is an ordinary card tagged `token` (tokens are destroyed instead of discarded when the hand is swept) whose play action is `["destroy_self"]`.
 
-The engine keeps a **round counter** as a `round` stat on the injected system card: it starts at 1 and increments every time the phase list wraps. Because it is a stat, games can display it (declare a `round` stat), gate challenges on it (`requires`), or end on it (`end_conditions`) — and undo restores it like everything else. The wrap also **readies** all exhausted cards.
+The engine keeps a **round counter** as a `round` stat on the injected system card: it starts at 1 and increments every time the phase list wraps. Because it is a stat, games can display it (declare a `round` stat), gate a challenge on it (`challenge.needs`), or end on it (`end_conditions`) — and undo restores it like everything else. The wrap also **readies** all exhausted cards.
 
 Overlay phases grey out the background and deal `draw` cards from `deck` into `zone`. **Choosing is playing**: there is no separate pick path, the phase's `zone` bounds what may be played, and the card's own `play.action` runs — or one its zone grants with `applies`, which is how an offer says what choosing from it means when the cards it deals already do something else in a hand. Picking pops the overlay before the actions run, so a chained reveal lands on top rather than burying it, and a card still lying in the offer afterwards is spent. **A choice costs nothing**: cost, needs and targeting are skipped, because they describe playing that card out of a hand later. Overlays are push-only: they never appear in the phase sequence, only via `push_phase`. Resuming a phase after a pop does not re-deal it.
 
@@ -184,13 +184,13 @@ A card can fork into specific sub-cards: play it, choose one option, the chosen 
   "zone": "decree_offer" }   // whose zone applies a tag: "play": { "action": ["add_to:hand", "return_to:decree_offer:edicts"] }
 ```
 
-The parent card is just `"on_play": ["move_to:graveyard", "push_phase:decree"]`, and option cards end their own `on_play` with `move_to:edicts` to recycle into their deck. While an overlay is open, all other actions (plays, activations, end conditions) are locked until the choice resolves. `destroy:zone` and `destroy_self` remove cards from play entirely — the flat array keeps the husks (IDs stay valid) but they hold no zone and no stats, so nothing renders, targets or counts them; undo restores them.
+The parent card is just `"play": { "action": ["move_to:graveyard", "push_phase:decree"] }`, and the offer zone grants what choosing from it means — behaviour belonging to the place, so the option cards need say nothing about being offered. While an overlay is open, all other actions (plays, activations, end conditions) are locked until the choice resolves. `destroy:zone` and `destroy_self` remove cards from play entirely — the flat array keeps the husks (IDs stay valid) but they hold no zone and no stats, so nothing renders, targets or counts them; undo restores them.
 
 ---
 
 ## Costs
 
-`"cost": { "gold": 2 }` on a card gates playing it: unaffordable cards render dimmed and don't respond to clicks; the cost is deducted on play. `"activate_cost"` does the same for `on_activate`. Affordability reads the same subject the payment spends, so it checks whatever the subject's scope names — the player's own cards by default.
+`"play": { "cost": { "gold": 2 } }` gates playing a card: unaffordable cards render dimmed and don't respond to clicks; the cost is deducted on play. `activate.cost` does the same for the board ability. **Choosing from an overlay costs nothing** — cost, needs and targeting describe playing that card out of a hand later. Affordability reads the same subject the payment spends, so it checks whatever the subject's scope names — the player's own cards by default.
 
 `"needs": { "plays": 1 }` is the non-consuming gate: nothing is spent, the card is simply unplayable (dimmed) until the condition holds. Subjects follow the shared vocabulary, so `"needs": { "count:soldier": 2 }` gates on the board. The engine maintains a `plays` stat on the player card — reset to 0 whenever a phase is freshly entered (not when resumed after an overlay), +1 per card played — which is how "play at least one card per hand" is expressed. Escape hatch: a needs-gated card becomes playable when nothing else in its zone is, so a mandatory play can never soft-lock a hand. `round` and `plays` are reserved engine stats; declare them only to display them.
 
@@ -253,7 +253,7 @@ Changing that is not a patch. It needs an authoritative referee that takes moves
 
 ## Menu as a Game
 
-The startup screen is `menu.json`, a valid game loaded like any other. Menu items are cards with `on_play: ["load_game:filename.json"]`. The engine has no special menu code. Loading a game resets state and reinitialises from the new JSON.
+The startup screen is `menu.json`, a valid game loaded like any other. Menu items are cards with `"play": { "action": ["load_game:filename.json"] }`. The engine has no special menu code. Loading a game resets state and reinitialises from the new JSON.
 
 ---
 
@@ -269,16 +269,16 @@ Clicking any face-up card always selects it. This is hardcoded engine behaviour,
 
 A `deck` or a `pile` draws one card and hit-tests one card, so the rules say the same: the top card of a stack is playable, activatable and targetable, and nothing under it is. Anything else is a disagreement between what the player is shown and what the engine allows, and it can point either way. Lost Cities had it pointing both ways at once — a destination marker at the bottom of each discard pile stayed *eligible* for the whole game while the first card discarded on top of it made the marker *unreachable*, so a colour could be discarded to exactly once and never again; meanwhile a script or a network peer could name any card buried in the pile.
 
-**A place to put a card is a zone, not a marker card standing in one.** `"target": { "type": "zone", "zones": ["red", "red_discard"] }` offers the expedition and the discard, and the player points at a place. `accepts` therefore belongs on the zone as naturally as on a card — the expedition's ascending rule is one line on the expedition — and destinations stop needing a stand-in card that anything can cover up.
+**A place to put a card is a zone, not a marker card standing in one.** `"target": { "type": "zone", "zones": ["red", "red_discard"] }` offers the expedition and the discard, and the player points at a place. `receive` therefore belongs on the zone as naturally as on a card — the expedition's ascending rule is one line on the expedition — and destinations stop needing a stand-in card that anything can cover up.
 
 ---
 
 ## Tags Are Mixins, and a Zone May Grant Them
 
-A tag definition may carry card behaviour (`on_activate`, `activate_target`, `activate_cost`, `exhausts`, `phases`, `tooltip`), and a zone may hand tags to whatever sits in it:
+A tag definition may carry card behaviour — a home `zone`, a `tooltip`, and the `play` and `activate` blocks a card itself has — and a zone may hand tags to whatever sits in it:
 
 ```json
-"tags":  { "takeable": { "on_activate": ["move_to:hand", "next_phase"], "phases": ["draw"] } }
+"tags":  { "takeable": { "activate": { "action": ["move_to:hand", "next_phase"], "phases": ["draw"] } } }
 "zones": [ { "key": "red_discard", "type": "pile", "applies": ["takeable"] } ]
 ```
 

@@ -49,7 +49,7 @@ copies it, so a dump can go straight back into the game file.
       "tags": ["shuffle"],
       "contents": ["sword:3", "trap:2"]
     },
-    { "key": "hand", "type": "hand", "pos": [0.05, 0.65, 0.95, 0.98] }
+    { "key": "hand", "type": "hand", "pos": [0.19, 0.65, 0.95, 0.98] }
   ],
   "cards": [
     {
@@ -69,7 +69,7 @@ copies it, so a dump can go straight back into the game file.
     { "key": "setup", "type": "automatic", "actions": ["draw_from:deck:hand:1"] },
     { "key": "playing", "type": "player_input", "label": "Playing" }
   ],
-  "end_conditions": [{ "stat": "hp", "equals": 0, "then": ["push_phase:defeat"] }]
+  "end_conditions": [{ "stat": "hp", "equals": 0, "then": ["load_game:menu.json"] }]
 }
 ```
 
@@ -114,7 +114,7 @@ from this two-page story:
       "key": "p_door",
       "text": "The Cellar Door",
       "story": "It was locked all your childhood. Tonight it stands open.",
-      "pick": { "action": ["fill:hand:c_down:1", "fill:hand:c_away:1"] }
+      "play": { "action": ["fill:hand:c_down:1", "fill:hand:c_away:1"] }
     },
     {
       "key": "c_down",
@@ -132,13 +132,13 @@ from this two-page story:
       "key": "p_dark",
       "text": "Down",
       "story": "The stairs go further than the house is tall.",
-      "pick": { "action": ["destroy:hand", "fill:hand:c_away:1"] }
+      "play": { "action": ["destroy:hand", "fill:hand:c_away:1"] }
     },
     {
       "key": "e_away",
       "text": "An Ordinary Life",
       "story": "You bolt it, and that is that.",
-      "pick": { "action": ["load_game:menu.json"] }
+      "play": { "action": ["load_game:menu.json"] }
     }
   ]
 }
@@ -152,7 +152,7 @@ Two rules carry every story:
   `reveal:`). The tooltip reveals exactly as much as you write into it.
 - **Every page that deals new choices starts its `play.action` with
   `destroy:hand`**, or the old choices pile up next to the new ones. A page
-  that keeps the hand (a locked door, a rebuff) uses `"pick": { "action": [] }`.
+  that keeps the hand (a locked door, a rebuff) uses `"play": { "action": [] }`.
 
 From there: keepsakes are cards with a home-zone tag (`gain:` them, test
 them with `card:<key>`), shuffle secrets are `reveal_top:` over a hidden
@@ -368,7 +368,7 @@ the reference below. Progress trackers are just stats that cards raise in their
 own `play.action`.
 
 **Synergies**: `count:<tag>` amounts (`gain_stat:gold:count:economic`),
-`needs` on counts (a card's own, or a challenge's), computed tags for thresholds, `on_turn` engines,
+`needs` on counts (a card's own, or a challenge's), computed tags for thresholds, `turn.action` engines,
 and exhaust-limited `activate.action` bursts.
 
 **Cards as currency**: a `"sacrifice:<tag>"` cost destroys one of your board
@@ -379,6 +379,10 @@ up the lantern or the pearl). The oldest matching card is taken.
 ---
 
 ## 5. Reference
+
+The two walkthroughs below are checked by the test suite — they are parsed out
+of this file and run through the validator, so an example that stops working
+fails a test rather than wasting your afternoon.
 
 `SCHEMA.json` at the repository root lists **every field a game file may
 contain**, laid out as a game file with a sentence where each value would be. A
@@ -524,7 +528,7 @@ disk cache with no network at all.
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). Zones take the same block |
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
-| `start` | The card begins in play — a throne, a board, a button. `zone` says where (without one, its home tag decides, then the only board) and `slot` is a 1-based cell. **Having the block is the flag**; there is no separate `auto_play` |
+| `start` | The card begins in play — a throne, a board, a button. `zone` says where (without one, its home tag decides, then the only board) and `slot` is a 1-based cell. **Having the block is the flag** |
 | `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
 
@@ -569,7 +573,7 @@ its `play.action`, and destroys the read page unless its actions moved it somewh
 Routing: `"next": [ { <condition>, "then": "phase_key", "ends_round": true }, ... ]`.
 First matching entry wins; a condition-less entry always matches; no `next`
 means list order with an implicit round-ending wrap. `ends_round` is the only
-thing that ticks the round: round counter +1, exhausted cards ready, `on_turn`
+thing that ticks the round: round counter +1, exhausted cards ready, `turn.action`
 runs.
 
 ### Conditions (one vocabulary everywhere)
@@ -695,7 +699,7 @@ other, and its stats are the player's stats.
 A **party** is the same idea repeated: N cards in a zone, each tagged `player`,
 each with its own `card_stats`. Per-character stats, targeting, death and
 revival are all ordinary card behaviour — `sum:might@party` asks what the party
-has between them, `"activate_cost": { "mana@self": 1 }` makes a character pay
+has between them, `"activate": { "cost": { "mana@self": 1 } }` makes a character pay
 from her own pool. Note that with several player cards a *bare* subject means
 all of them at once; name a scope when you mean one.
 
@@ -722,7 +726,7 @@ all it takes; each carries its own stats, and neither can touch the other's.
 ```
 
 A seat with no `start.zone` goes into the hidden `system` zone — an
-invisible stat holder. Give it one (`"to_zone": "board"`) when the seat should
+invisible stat holder. Give it one (`"start": { "zone": "board" }`) when the seat should
 be a visible hero on the table.
 
 **Zones that belong to a seat** declare `per_seat`, and are then created once
@@ -1088,7 +1092,7 @@ to find.)
 A tag's `zone` is the home of every card carrying it, and placement then
 works by type instead of by naming zones in every action:
 
-- `move_to` without a zone sends the played card home (`"on_play": ["move_to"]`).
+- `move_to` without a zone sends the played card home (`"play": { "action": ["move_to"] }`).
 - `gain:card:n` creates cards directly in their home zone (no home: the hand).
 - A `start` block with no `zone` puts the card in its home zone.
 

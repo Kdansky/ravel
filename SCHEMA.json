@@ -95,7 +95,7 @@
         ],
         "exhausts": "false keeps the card ready after activating, which is what a permanent button wants. Default true: one use per round.",
         "moves": [
-          "how a piece moves on a grid: pattern names, or objects carrying their own patterns plus fill and needs. Declaring this writes the activate_target for you."
+          "how a piece moves on a grid: pattern names, or rules carrying their own fill and needs. Declaring this writes the activate target for you, so clicking the piece opens targeting."
         ]
       },
       "challenge": {
@@ -178,7 +178,7 @@
           "at_least": "number the subject must reach",
           "at_most": "number the subject must not exceed",
           "then": "phase key to go to. An entry with no condition always matches, and the first match wins.",
-          "ends_round": "true ticks the round here: the counter rises, exhausted cards ready, and on_turn runs. Nothing else does this, and it is never inferred from list position."
+          "ends_round": "true ticks the round here: the counter rises, exhausted cards ready, and every card's turn action runs. Nothing else does this, and it is never inferred from list position."
         }
       ]
     }
@@ -205,7 +205,7 @@
   },
   "tags": {
     "<your tag name>": {
-      "zone": "the home zone of every card carrying this tag, so move_to with no zone, gain and auto_play all know where the card goes without naming it",
+      "zone": "the home zone of every card carrying this tag, so a move_to with no zone, a gain, and a card whose start block names none all know where it goes without saying so",
       "play": {
         "cost": "what playing a card that lies here costs",
         "needs": "a condition gating it",
@@ -276,7 +276,7 @@
     "_quantifiers": "any (default: the pool reaches n), each (every member does, and an empty scope is false rather than vacuously true), random (as any, but one member is chosen by the seeded shuffle)."
   },
   "_actions": {
-    "_what": "Colon-separated strings, run from on_play, on_activate, on_turn, a challenge's pass and fail, a zone's on_click, a phase's actions, and an end condition's then. An unknown op logs and is skipped. A numeric slot takes a number or a measuring fn, optionally multiplied by a second with :x:. A zone slot takes a scope expression too.",
+    "_what": "Colon-separated strings, run from a card's play, activate and turn actions, a challenge's pass and fail, a zone's on_click, a phase's actions, and an end condition's then. An unknown op logs and is skipped. A numeric slot takes a number or a measuring fn, optionally multiplied by a second with :x:. A zone slot takes a scope expression too.",
     "fill": "fill:<zone>:<card>:<n> — create n instances of a card in a zone",
     "shuffle": "shuffle:<zone>",
     "draw_from": "draw_from:<from>:<to>:<n> — move n cards off the top",
