@@ -56,12 +56,26 @@ local font_main   = nil
 local font_small  = nil
 local font_banner = nil
 
+-- Fonts by pixel size, made once. A card picks the largest that fits rather
+-- than cutting the word: "Score Green" at 13px in a 35px Lost Cities card came
+-- out as "S...", which tells a player nothing at all, and the same string at
+-- 8px is legible. Cutting is still the last resort, not the first.
+local font_cache = {}
+local function font_at(px)
+	px = math.max(6, math.floor(px + 0.5))
+	if not font_cache[px] then font_cache[px] = love.graphics.newFont(px) end
+	return font_cache[px]
+end
+
 function M.rescale()
 	local W, H = love.graphics.getDimensions()
 	S = math.max(0.75, math.min(3, math.min(W / 960, H / 540)))
-	font_main   = love.graphics.newFont(math.floor(13 * S + 0.5))
-	font_small  = love.graphics.newFont(math.max(8, math.floor(9 * S + 0.5)))
-	font_banner = love.graphics.newFont(math.floor(32 * S + 0.5))
+	-- A point smaller than they were. The HUD and the zone labels are read at a
+	-- glance and never studied, and the room they were taking is room a card
+	-- wanted: a title that fits at 12 does not have to shrink to 8.
+	font_main   = font_at(12 * S)
+	font_small  = font_at(math.max(8, 8 * S))
+	font_banner = font_at(30 * S)
 	love.graphics.setFont(font_main)
 	fx.set_scale(S)
 end
@@ -98,6 +112,61 @@ local function truncate(font, text, w)
 		text = drop_char(text)
 	end
 	return text .. "..."
+end
+
+-- A title, fitted rather than cut. One line at the largest size that holds it;
+-- failing that two lines, which is what a two-word name wants anyway; and only
+-- when neither works does it lose characters. "Score Green" used to come out as
+-- "S...", which tells a player nothing.
+--
+-- Returns the font, the text to draw (with a newline if it wrapped) and how
+-- tall it will be.
+local function fit_title(text, w, max_px, min_px)
+	text = tostring(text)
+	for px = math.floor(max_px), math.floor(min_px), -1 do
+		local f = font_at(px)
+		if f:getWidth(text) <= w then return f, text, f:getHeight() end
+	end
+	-- Two lines, biggest first — but only where there is a space to break at.
+	-- LÖVE will happily split a long word, and "Watch/tower" reads worse than a
+	-- smaller "Watchtower": a name is a name.
+	for px = math.floor(max_px), math.floor(min_px), -1 do
+		if not text:find(" ") then break end
+		local f = font_at(px)
+		local _, lines = f:getWrap(text, w)
+		-- Two lines that put every line inside the width *and* broke at a space.
+		-- LÖVE splits a word it cannot fit, so "Yellow 9" comes back as
+		-- "Yello" / "w 9" — which passes a width check and reads as nonsense.
+		-- Rejoining tells the difference: only a break at a space rebuilds the
+		-- original string.
+		if #lines == 2 and lines[1] .. " " .. lines[2] == text then
+			local fits = true
+			for _, l in ipairs(lines) do if f:getWidth(l) > w then fits = false end end
+			if fits then return f, lines[1] .. "\n" .. lines[2], f:getHeight() * 2 end
+		end
+	end
+	-- Nothing fitted: go smaller still before cutting, because a name a size
+	-- down is readable and a name with its end missing is not.
+	for px = math.floor(min_px) - 1, 7, -1 do
+		local f = font_at(px)
+		if f:getWidth(text) <= w then return f, text, f:getHeight() end
+	end
+	local f = font_at(7)
+	return f, truncate(f, text, w), f:getHeight()
+end
+
+-- Light text with a dark outline, so it reads against a picture instead of
+-- needing a slab of colour under it. Eight offsets rather than four: a diagonal
+-- gap lets a bright pixel of art touch the glyph and the letter loses its edge.
+local OUTLINE_OFFSETS = { {-1,-1},{0,-1},{1,-1},{-1,0},{1,0},{-1,1},{0,1},{1,1} }
+local function outlined_printf(text, x, y, w, align, fg, outline)
+	local d = math.max(1, math.floor(S + 0.5))
+	love.graphics.setColor(outline[1], outline[2], outline[3], outline[4] or 1)
+	for _, o in ipairs(OUTLINE_OFFSETS) do
+		love.graphics.printf(text, x + o[1] * d, y + o[2] * d, w, align)
+	end
+	love.graphics.setColor(fg[1], fg[2], fg[3], fg[4] or 1)
+	love.graphics.printf(text, x, y, w, align)
 end
 
 local function pulse(speed)
@@ -343,36 +412,30 @@ local function draw_card_face(pl, card_e, show_text)
 		love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
 	end
 
-	local text_h
-	if no_title and not body then
-		text_h = 0
-	elseif show_text then
-		-- Allocate ~42% of card height for name + description.
-		text_h = math.max(42 * S, math.floor(pl.h * 0.42))
-	else
-		text_h = math.max(18 * S, math.floor(pl.h * 0.26))
-	end
-	-- Those minimums are taller than a cell in a tall, narrow grid — Lost
-	-- Cities' expeditions are five rows deep — and the leftover was going to
-	-- setScissor as a negative height, which LÖVE refuses. A card with no room
-	-- for a picture is all text, which is what a card that small has to be.
-	text_h = math.min(text_h, pl.h)
-	local img_h = pl.h - text_h
+	-- The picture gets the whole card. The words float over it, light on a dark
+	-- outline and a scrim, rather than being given a slab of colour to sit on —
+	-- which is where the height went, and why a hand card showed a stamp-sized
+	-- image above two cut-off lines.
+	--
+	-- It also settles contrast by construction. The old band drew fixed light
+	-- text over whatever colour the card chose, so white on a green expedition
+	-- was unreadable and no palette could have fixed it: the game picks the
+	-- colour. Outlined text on a darkened strip reads on anything.
+	local img_h = pl.h
 
-	if img and img_h > 0 then
+	love.graphics.stencil(function()
+		love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
+	end, "replace", 1)
+	love.graphics.setStencilTest("greater", 0)
+
+	if img then
 		local iw, ih = img:getDimensions()
-
-		-- Clip the image to the rounded card shape (stencil) and its band (scissor).
-		love.graphics.stencil(function()
-			love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
-		end, "replace", 1)
-		love.graphics.setStencilTest("greater", 0)
 		love.graphics.setScissor(pl.x, pl.y, pl.w, img_h)
 		-- A plateless card has nothing to lay a dimming rectangle over — one
 		-- would just be a dark square on the board — so it dims by tinting the
 		-- art instead, which is how a greyed-out piece has always looked.
-		local t = (bare and dim) and 0.45 or 1
-		love.graphics.setColor(t, t, t)
+		local tint = (bare and dim) and 0.45 or 1
+		love.graphics.setColor(tint, tint, tint)
 		if bare then
 			-- A card crops its art to the width and lets the top of the picture
 			-- be the picture. A piece is the whole shape: fit it inside the
@@ -382,54 +445,73 @@ local function draw_card_face(pl, card_e, show_text)
 			love.graphics.draw(img, pl.x + (pl.w - iw * sc) * 0.5,
 				pl.y + (img_h - ih * sc) * 0.5, 0, sc, sc)
 		else
-			love.graphics.draw(img, pl.x, pl.y, 0, pl.w / iw, pl.w / iw)
+			-- Cover the card rather than fit it: a letterbox of plate colour
+			-- under a picture is the band this pass removed, wearing a hat.
+			local sc = math.max(pl.w / iw, img_h / ih)
+			love.graphics.draw(img, pl.x + (pl.w - iw * sc) * 0.5,
+				pl.y + (img_h - ih * sc) * 0.5, 0, sc, sc)
 		end
 		love.graphics.setScissor()
-		love.graphics.setStencilTest()
-
-		if not bare then
-			love.graphics.setColor(unpack(color))
-			love.graphics.rectangle("fill", pl.x, pl.y + img_h, pl.w, text_h)
-		end
-
-		-- Nothing a card says may leave the card. Text wraps to as many lines as
-		-- it needs, so a card too small for its description used to spill the
-		-- overflow onto whatever lay below it — which, once a hand sits along
-		-- the top edge, is the board.
-		love.graphics.setScissor(pl.x, pl.y, pl.w, pl.h)
-		if show_text then
-			local mf     = love.graphics.getFont()
-			local name_h = no_title and 0 or (mf:getHeight() + 4 * S)
-			if not no_title then
-				love.graphics.setColor(unpack(C.card_text))
-				love.graphics.printf(
-					truncate(mf, title, pl.w - 6 * S),
-					pl.x + 3 * S, pl.y + img_h + 2 * S, pl.w - 6 * S, "center")
-			end
-			-- Description below name in a smaller font, and only where a line of
-			-- it actually fits: a clipped word is worse than no word.
-			local sf = get_small_font()
-			if body and text_h - name_h >= sf:getHeight() then
-				love.graphics.setFont(sf)
-				love.graphics.setColor(unpack(C.card_body))
-				love.graphics.printf(body,
-					pl.x + 4 * S, pl.y + img_h + name_h + 2 * S, pl.w - 8 * S, "left")
-			end
-		elseif not no_title then
-			local mf = love.graphics.getFont()
-			love.graphics.setColor(unpack(C.card_text))
-			love.graphics.printf(
-				truncate(mf, title, pl.w - 6 * S),
-				pl.x + 3 * S, pl.y + img_h + (text_h - mf:getHeight()) * 0.5, pl.w - 6 * S, "center")
-		end
-		love.graphics.setScissor()
-	elseif not no_title then
-		local mf = love.graphics.getFont()
-		love.graphics.setColor(unpack(C.card_text))
-		love.graphics.printf(
-			truncate(mf, title, pl.w - 8 * S),
-			pl.x + 4 * S, pl.y + pl.h * 0.5 - mf:getHeight() * 0.5, pl.w - 8 * S, "center")
 	end
+
+	-- What the card has to say, and how much room it can have for it. Whole
+	-- lines only: the old band clipped mid-glyph at the card's edge, so a
+	-- description ended in a row of half-letters. What does not fit is in the
+	-- tooltip, which is where the long version always lived.
+	if not no_title or body then
+		local pad, gap = 3 * S, 2 * S
+		local avail    = pl.w - pad * 2
+		-- A badge sits in the bottom-left corner, so the words start to its
+		-- right rather than under it.
+		local badge_w = (card_e.stats and card_e.stats.hp) and (pl.w * 0.42) or 0
+
+		local tf, shown, title_h = nil, nil, 0
+		if not no_title then
+			tf, shown, title_h = fit_title(title, avail - badge_w, 12 * S, 8 * S)
+		end
+
+		-- Prose needs room to be prose. Below about a thumb's width a card can
+		-- hold a name or a paragraph, not both, and the name is the half a
+		-- player is choosing between — the rest is a hover away.
+		local bf, body_h, body_text = get_small_font(), 0, nil
+		if body and show_text and pl.w >= 92 * S then
+			local _, lines = bf:getWrap(body, avail)
+			local room = pl.h * 0.55 - title_h - pad * 2 - gap
+			local n = math.min(#lines, math.max(0, math.floor(room / bf:getHeight())))
+			if n > 0 then
+				body_text = table.concat(lines, "\n", 1, n)
+				body_h    = n * bf:getHeight()
+			end
+		end
+
+		local band = pad + title_h + (body_h > 0 and (gap + body_h) or 0) + pad
+		band = math.min(band, pl.h)
+		local top = pl.y + pl.h - band
+
+		-- A dark strip under the words, softest at its top edge so the picture
+		-- fades into it instead of ending at a line.
+		love.graphics.setScissor(pl.x, pl.y, pl.w, pl.h)
+		local steps = 6
+		for i = 0, steps - 1 do
+			love.graphics.setColor(0, 0, 0, 0.72 * (i / (steps - 1)) ^ 0.6)
+			love.graphics.rectangle("fill", pl.x, top + band * i / steps, pl.w, band / steps + 1)
+		end
+
+		local y = top + pad
+		if not no_title then
+			love.graphics.setFont(tf)
+			outlined_printf(shown, pl.x + pad + badge_w, y, avail - badge_w, "center",
+				C.card_text, { 0, 0, 0, 0.9 })
+			y = y + title_h + gap
+		end
+		if body_h > 0 then
+			love.graphics.setFont(bf)
+			outlined_printf(body_text, pl.x + pad, y, avail, "center",
+				C.card_body, { 0, 0, 0, 0.85 })
+		end
+		love.graphics.setScissor()
+	end
+	love.graphics.setStencilTest()
 
 	if def and def.cost and next(def.cost) then
 		draw_cost_badge(pl, def.cost)

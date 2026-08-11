@@ -8,7 +8,44 @@ item here is something a player sees or does, not something the engine computes.
 
 ---
 
-## Gap 1 — A pass on text, contrast and layout
+## Gap 1 — A pass on text, contrast and layout — **shipped**
+
+*The card face is the part that shipped: the picture takes the whole card and
+the words float over it, outlined, fitted rather than cut. The tooltip pass
+below is still open.*
+
+**What changed, and why each.**
+
+- **The text band is gone.** A card was split into a picture and a slab of
+  colour holding its name; the picture now fills the card and the name sits over
+  it on a dark gradient. That is where the height went, and why a hand card
+  showed a stamp above two clipped lines.
+- **Contrast is settled by construction, not by palette.** The band drew fixed
+  light text over whatever colour the *game* chose — white on a green expedition
+  was unreadable and no palette could have fixed it. Light text with a dark
+  outline on a darkened strip reads on anything.
+- **A title is fitted, not cut.** Largest size that fits on one line; failing
+  that two lines, but only where there is a space to break at; then smaller
+  still; and only then an ellipsis. "Score Green" used to render as `S...` in
+  Lost Cities and now reads.
+- **Prose needs room to be prose.** Below about 92px a card carries a name or a
+  paragraph, not both — and the name is what a player is choosing between. The
+  description is a hover away, which is where the long version always lived.
+- **Whole lines only.** The old band clipped mid-glyph at the card's edge.
+
+**Two traps worth recording.** `getWrap` splits a word it cannot fit, so
+"Yellow 9" comes back as "Yello" / "w 9" — which passes a width check and reads
+as nonsense; rejoining the lines and comparing to the original is what tells a
+real break from a broken word. And a card's hp badge sits in the bottom-left
+corner, which is now where the title is: the title starts to its right instead.
+
+**It was done by looking.** A scratch LÖVE harness rendered each game to a PNG
+between edits — `love.graphics.captureScreenshot` is asynchronous and writes
+nothing if you quit, so a canvas with `stencil = true` and a synchronous
+`newImageData():encode` is the thing that works. Every problem above was visible
+in the first screenshot and none of them was visible in the test suite.
+
+### The original write-up
 
 *Urgency: high (this is what players actually hit) · Difficulty: medium-high,
 because most of it is judgement rather than code · Usefulness: high*
