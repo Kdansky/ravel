@@ -46,7 +46,8 @@ things happen come first.
 
 | # | Item | Urgency | Difficulty | Why here |
 |---|---|---|---|---|
-| 1 | **A nameplate and a pass-the-device overlay** | high | low-medium | hidden hands shipped — a hand is visible to its seat and nobody else. What is left is telling the players *whose turn it is* and giving them a moment to swap seats, which is what makes hot-seat playable rather than merely correct |
+| 1 | [01](01-boardgames.md) gap 3 — **the offset stack** | high | medium | the most visible fault in a shipped game: a Lost Cities expedition is a 1×12 grid in 100px, so a played card gets eight pixels and draws as a hairline. A fan — each card a readable strip, the last one whole — is the same layout Klondike wants |
+| 2 | **A nameplate and a pass-the-device overlay** | high | low-medium | hidden hands shipped — a hand is visible to its seat and nobody else. What is left is telling the players *whose turn it is* and giving them a moment to swap seats, which is what makes hot-seat playable rather than merely correct |
 | ~~2~~ | ~~[07](07-presentation.md) gap 2 — **click the deck to draw**~~ | — | — | **shipped**, and it never needed the predicate: a zone carries its own `activate` block, so the deck answers rather than the card on top of it becoming clickable |
 | 3 | [14](14-kinds-and-placements.md) — **six chess kinds instead of thirty-two** | medium | medium | the payoff for `setup.place` and `styles`: chess loses 26 cards and stops needing a generator. **Needs one thing first** — a style that varies by *owner*, since a white rook and a black rook differ only in how they are drawn, and dynamic styles key on computed tags, which read a card's own stats |
 | 4 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | small, with one trap | the trap is the network: it ships *a file*, so includes must flatten before being sent or hashed. Cheap designed in, expensive found later |

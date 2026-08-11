@@ -101,6 +101,12 @@
       "pos": [0.3, 0.24, 0.7, 0.76],
       "tags": ["hidden", "no_peek"]
     },
+    {
+      "key": "rules",
+      "type": "pile",
+      "pos": [0.815, 0.155, 0.975, 0.345],
+      "contents": ["how_to_play"]
+    },
     { "key": "choice", "type": "hand", "pos": [0.19, 0.875, 0.97, 0.995] },
     {
       "key": "red",
@@ -1064,6 +1070,13 @@
       "tooltip": "Sit as North and invite someone to play South. They do not need this game — it travels with the invite.",
       "tags": ["token"],
       "play": { "action": ["destroy:mode", "net_seat:north", "net_invite"] }
+    },
+    {
+      "key": "how_to_play",
+      "text": "How to play",
+      "tags": ["immutable"],
+      "play": { "phases": [] },
+      "tooltip": "Build expeditions in up to five colours. Each turn: play one card to an expedition or discard it, then draw — from the deck, or the top of any discard pile.\n\nA card only goes on an expedition worth at least as much as itself, so a colour is built upwards and never repaired. Wagers score nothing themselves and multiply what the colour finally earns, so they must be laid before any number in it.\n\nMounting an expedition costs 20. Its cards are worth their face value, and a colour of eight or more is worth 20 more. Leaving a colour alone costs nothing.\n\nThe game ends the moment the deck runs out, mid-turn or not."
     },
     {
       "key": "done_scoring",

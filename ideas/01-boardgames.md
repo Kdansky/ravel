@@ -150,6 +150,14 @@ and all of what it lacks.
   same point from the other side.
 - **Tableau zones need a new zone type** `stack`: ordered, cards drawn
   overlapping with a visible offset, drop target is the *top card*, not a slot.
+
+  **Lost Cities needs this now, and it is the most visible fault in a shipped
+  game.** An expedition is a `grid [1, 12]` in a zone about 100px tall, so a
+  played card gets eight pixels and renders as a horizontal line: five cards in
+  a colour are five hairlines, with no number, no colour and nothing to read.
+  A physical expedition is a fan — each card showing a strip with its value, the
+  last one whole — which is exactly the offset stack Klondike asked for. One
+  layout, two games, and one of them is already shipped and unreadable.
   This is a render change plus a hit-test change, both in the presentation
   layer, plus `zones.has_room` returning true for it (unbounded).
 

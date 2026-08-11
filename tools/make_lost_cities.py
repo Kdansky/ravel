@@ -151,6 +151,28 @@ def templates():
                            "need this game — it travels with the invite.",
                 "tags": ["token"],
                 "play": {"action": ["destroy:mode", "net_seat:north", "net_invite"]}})
+    # The rulebook, as a card. "phases": [] means it works in no phase, so it can
+    # never be played — it is a thing to read. "immutable" keeps it out of
+    # targeting, so no stray effect can eat the instructions.
+    out.append({
+        "key": "how_to_play", "text": "How to play", "tags": ["immutable"],
+        "play": {"phases": []},
+        "tooltip": (
+            "Build expeditions in up to five colours. Each turn: play one card to "
+            "an expedition or discard it, then draw \u2014 from the deck, or the "
+            "top of any discard pile.\n"
+            "\n"
+            "A card only goes on an expedition worth at least as much as itself, so "
+            "a colour is built upwards and never repaired. Wagers score nothing "
+            "themselves and multiply what the colour finally earns, so they must be "
+            "laid before any number in it.\n"
+            "\n"
+            "Mounting an expedition costs 20. Its cards are worth their face value, "
+            "and a colour of eight or more is worth 20 more. Leaving a colour alone "
+            "costs nothing.\n"
+            "\n"
+            "The game ends the moment the deck runs out, mid-turn or not."
+        )})
     out.append({"key": "done_scoring", "text": "Done", "tooltip": "Finish tallying.",
                 "tags": ["token"],
                 "play": {"action": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"]}})
@@ -196,6 +218,10 @@ def zones():
            # the discard piles: a draw step stays a draw step because your hand
            # is not in this zone, and a play step stays a play step because these
            # tokens are not in your hand. No engine gate is needed for either.
+           # A shelf for the rulebook, above the deck it sits beside. A pile
+           # rather than a hand: nothing is ever dealt here and nothing leaves.
+           {"key": "rules", "type": "pile", "pos": [0.815, 0.155, 0.975, 0.345],
+            "contents": ["how_to_play"]},
            {"key": "choice", "type": "hand", "pos": CHOICE_POS}]
     for i, (c, label, _, _) in enumerate(COLOURS):
         # Thirteen, not twelve: an expedition can hold all three wagers and all

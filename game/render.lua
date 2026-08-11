@@ -810,6 +810,14 @@ local function draw_zone(zone_e)
 		love.graphics.rectangle("fill", p.x, p.y, p.w, p.h, 7 * S, 7 * S)
 		love.graphics.setColor(C.eligible[1], C.eligible[2], C.eligible[3], 0.90)
 		love.graphics.setLineWidth(2 * S)
+	elseif #zone_e.cards == 0 and not zone_e.label and zt ~= "grid" then
+		-- A box with nothing in it and no name on it tells a player nothing.
+		-- Lost Cities' scoring tray is empty from the first move until the
+		-- tally, and drew a wide blank rectangle across the bottom of the board
+		-- for the whole game. A grid is exempt: its empty cells *are* the thing,
+		-- because they are where a card may be put.
+		love.graphics.pop()
+		return
 	else
 		love.graphics.setColor(unpack(C.zone_fill))
 		love.graphics.rectangle("fill", p.x, p.y, p.w, p.h, 7 * S, 7 * S)
