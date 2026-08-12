@@ -450,6 +450,7 @@ end
 
 function M.can_afford(cost, ctx)
 	for subject, n in pairs(cost or {}) do
+		local tag = type(subject) == "string" and subject:match("^sacrifice:(.+)$")
 		-- Tapping, in the MTG sense: the card spends *itself* being ready. A
 		-- card already spent cannot pay it, which is the whole of "once per
 		-- round" — and saying it as a cost rather than as a consequence is what
@@ -457,10 +458,7 @@ function M.can_afford(cost, ctx)
 		if subject == "exhaust" then
 			local c = ctx and ctx.card_id and entity.get(ctx.card_id)
 			if not c or c.exhausted then return false end
-			goto continue
-		end
-		local tag = type(subject) == "string" and subject:match("^sacrifice:(.+)$")
-		if tag then
+		elseif tag then
 			if #tags.find_targets({ tag }, { grid = true }) < (tonumber(n) or 0) then
 				return false
 			end
@@ -468,7 +466,6 @@ function M.can_afford(cost, ctx)
 			and not predicate.meets_all({ [subject] = n }, ctx) then
 			return false
 		end
-		::continue::
 	end
 	return true
 end

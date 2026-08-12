@@ -2094,6 +2094,39 @@ for _, mod in ipairs({ "predicate", "actions", "flow", "zones", "phase", "entity
 	check(mod .. " does not require art", src:find('require%("art"%)') == nil)
 end
 
+-- === the dialect is Lua 5.1, because the browser build is ===
+-- The shipped delivery mechanism is love.js, which is LOVE compiled against
+-- **Lua 5.1** — no goto, no labels, no integer division, no bitwise shifts.
+-- Every interpreter this suite runs under accepts them: LuaJIT implements goto
+-- as a 5.2 extension, Lua 5.4 has all of it, and desktop LOVE is LuaJIT. So a
+-- 5.2-ism passes everything here, ships, and dies on the first frame in a
+-- browser with a syntax error naming a line nobody touched.
+--
+-- That is exactly what "goto continue" in flow.can_afford did. A grep is a
+-- blunt instrument and the right one: there is no 5.1 parser on this machine to
+-- ask, and the rule is short enough to state.
+local FIVE_TWO = {
+	{ "goto%s+[%a_]", "goto" },
+	{ "::[%a_]+::", "a ::label::" },
+	{ "[^/:]//[^/]", "integer division //" },
+	{ "[%w%)%]]%s*<<%s*[%w%(]", "a << shift" },
+	{ "[%w%)%]]%s*>>%s*[%w%(]", "a >> shift" },
+}
+for _, mod in ipairs({ "actions", "anim", "art", "cards", "conf", "debugserver", "declaration", "entity", "flow", "fx", "geometry", "inspect", "json", "log", "main", "net", "netlink", "netpack", "netpanel", "phase", "predicate", "render", "rng", "tags", "targeting", "tooltip", "validate", "zones" }) do
+	local src = assert(io.open("game/" .. mod .. ".lua")):read("*a")
+	-- Strings and comments first, or this reads the JavaScript that netlink and
+	-- netpanel keep in long strings for the browser bridge — where "//" really
+	-- is a comment — and a comment explaining goto as goto. Long brackets are
+	-- stripped by back-reference so [==[ ]==] goes too.
+	local code = src:gsub("%-%-%[(=*)%[.-%]%1%]", " "):gsub("%-%-[^\n]*", " ")
+		:gsub("%[(=*)%[.-%]%1%]", " ")
+		:gsub('"[^"\n]*"', '""'):gsub("'[^'\n]*'", "''")
+	for _, rule in ipairs(FIVE_TWO) do
+		check(mod .. " uses no " .. rule[2] .. " (the browser build is Lua 5.1)",
+			code:find(rule[1]) == nil, tostring(code:match(rule[1])))
+	end
+end
+
 -- === the engine's own RNG ===
 -- The point of rng.lua is that a seed means one sequence everywhere, so the
 -- test that matters is against a published reference rather than against
