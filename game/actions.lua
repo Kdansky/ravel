@@ -364,7 +364,12 @@ HANDLERS["resolve_challenge"] = function(p, ctx)
 	local def = declaration.G.card_defs[c and c.def_key]
 	if not def or not def.requires then return end
 
-	local passed = predicate.meets_all(def.requires)
+	-- With the context, so a challenge may ask about the card making it. Every
+	-- shipped challenge asks a scope-free question ("do I hold the torch", "is
+	-- there food"), which is why nothing noticed that "@self" and "@target"
+	-- silently named nothing in here — a gate that reads as false whatever the
+	-- board says.
+	local passed = predicate.meets_all(def.requires, ctx)
 	log.add((def.text or c.def_key) .. (passed and " — passed" or " — failed"))
 	M.run(passed and def.on_pass or def.on_fail, ctx)
 end

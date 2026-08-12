@@ -2378,6 +2378,29 @@ check("a king that has castled has moved, so it may not castle again",
 	flow.can_play(card_named("w_castle_k").id) == false
 	and flow.can_play(card_named("w_castle_q").id) == false)
 
+-- === a challenge may ask about the card making it ===
+-- resolve_challenge evaluated its condition with no context, so "@self" and
+-- "@target" named nothing inside one — a gate that reads false whatever the
+-- board says. Every shipped challenge asks a scope-free question ("do I hold
+-- the torch", "is there food"), which is why five games never noticed.
+--
+-- Chess's pawn is the shape that will want it: promotion is "did this move end
+-- on my eighth rank", and only the moving piece knows.
+do
+	flow.init("chess.json", 1)
+	board = zones.find("board")
+	local pawn = declaration.G.card_defs.pawn
+	pawn.on_activate = { "move_to:target:taken", "resolve_challenge", "next_phase" }
+	pawn.requires = { ["rank@self"] = { at_least = 3 } }
+	pawn.on_pass, pawn.on_fail = { "gain_stat:moves_made@self:100" }, {}
+
+	move("e2", "e4")
+	local p = on("e4")
+	check("the action list runs for a move-driven ability", p ~= nil and p.def_key == "pawn")
+	check("and the challenge inside it can read the acting card",
+		p.stats.moves_made == 100, tostring(p.stats.moves_made))
+end
+
 -- === check, as a question the game file asks ===
 -- The engine has no idea what check is. It knows where a piece could move —
 -- which it already had to know to offer the squares — and "@enemy.reach" adds

@@ -3,3 +3,5 @@ __pycache__/
 
 # Reference material copied in from other projects to look at, never to ship.
 tests/inspiration/
+
+.claude/settings.local.json

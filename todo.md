@@ -25,7 +25,7 @@ inbox, not the plan. `ideas/README.md` is the plan.
 
 Put the debug features (CTRL+hover) behind an explicit "enable debug" which is told to all players so that cheating can be seen more easily.
 
-
+Consider instead of complex {stat "at_least": 8 } struct to just use small eval blocks, which look more like "a.b@c.d > e.f@g.h", allowing simple math and lookup logic. This might just be easier, and we can parse this on validation and generate lambda functions for it all instead of having to write unique special cases for every field type.
 
 
 
