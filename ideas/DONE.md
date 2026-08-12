@@ -728,6 +728,41 @@ card face stencils its art to the rounded shape — plus a synchronous
 
 ---
 
+# Being spent is a cost
+
+`"cost": { "exhaust": 1 }` in an `activate` block is MTG's tap symbol: the
+ability spends the card *being ready*, a card already spent cannot pay it, and
+that is the whole of "once a round". An ability that does not charge it stays
+available.
+
+**It used to be a consequence.** Activating exhausted the card, full stop, and
+`stays_ready` was the opt-out. Two reasons the cost is the right end of it:
+
+- The round-long cooldown is **the card's rule, not the engine's**. Chess pieces
+  wore `stays_ready` to say "I am not that kind of card", which is a game
+  apologising for a default it never asked for. They now say nothing.
+- **Once a card may carry several abilities, "activating exhausts it" has no
+  answer to *which* ability did.** Only the one whose cost says so. So this is a
+  prerequisite for the ability chooser, not a tidy-up beside it.
+
+`stays_ready` is gone. 28 cards across five games gained the cost, 7 dropped the
+tag, and five Lost Cities discards stopped granting it.
+
+**The golden traces are what made this safe**: castle and kingdom hold 15 of
+those 28 cards, and a migration that put the cost on the wrong card would have
+moved a transcript. They did not move.
+
+**One real bug it surfaced, in the test harness rather than the engine.**
+`legal_moves` asked `flow.can_afford(def.activate_cost)` with no context — "can
+this be paid for?" without saying by whom. Nothing depended on the asker until a
+cost was paid *with the card*, and then every card looked unaffordable and
+castle stopped terminating. Costs are asked of somebody now.
+
+Refused for now: `"exhaust:<tag>": n` — "tap two of your elves" — which is the
+`sacrifice:<tag>` shape and will parse the same way when a game wants it.
+
+---
+
 # Asking a question — the `options` offer
 
 "Choose one of these" is not a chess rule, so it is not chess's to implement.

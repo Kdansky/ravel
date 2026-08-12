@@ -426,6 +426,15 @@ end
 -- every caller is a legality gate, and because payment is right below it.
 function M.can_afford(cost, ctx)
 	for subject, n in pairs(cost or {}) do
+		-- Tapping, in the MTG sense: the card spends *itself* being ready. A
+		-- card already spent cannot pay it, which is the whole of "once per
+		-- round" — and saying it as a cost rather than as a consequence is what
+		-- lets one card have an ability that taps beside one that does not.
+		if subject == "exhaust" then
+			local c = ctx and ctx.card_id and entity.get(ctx.card_id)
+			if not c or c.exhausted then return false end
+			goto continue
+		end
 		local tag = type(subject) == "string" and subject:match("^sacrifice:(.+)$")
 		if tag then
 			if #tags.find_targets({ tag }, { grid = true }) < (tonumber(n) or 0) then
@@ -435,6 +444,7 @@ function M.can_afford(cost, ctx)
 			and not predicate.meets_all({ [subject] = n }, ctx) then
 			return false
 		end
+		::continue::
 	end
 	return true
 end
@@ -451,7 +461,10 @@ local function pay(cost, ctx)
 	for _, stat in ipairs(subjects) do
 		local n   = cost[stat]
 		local tag = stat:match("^sacrifice:(.+)$")
-		if tag then
+		if stat == "exhaust" then
+			local c = ctx and ctx.card_id and entity.get(ctx.card_id)
+			if c then c.exhausted = true end
+		elseif tag then
 			for _ = 1, n do
 				local ids = tags.find_targets({ tag }, { grid = true })
 				if #ids == 0 then break end
@@ -601,10 +614,15 @@ function M.can_activate(card_id)
 	return M.can_afford(def.activate_cost, { card_id = card_id })
 end
 
--- Activate a board card's ability. Activation exhausts the card until the
--- round wraps and readies it again — unless the card declares
--- "exhausts": false, which is how a permanently available button (a "pass the
--- time" card) is expressed.
+-- Activate a board card's ability.
+--
+-- **Being spent is a cost, not a consequence.** An ability that may be used
+-- once a round says { "exhaust": 1 } and one that stays available says nothing,
+-- where this used to exhaust every card that acted and offer "stays_ready" to
+-- opt out. Two reasons the cost is the right end of it: the round-long cooldown
+-- is the card's rule rather than the engine's, and once a card may carry
+-- several abilities "activating exhausts it" has no answer to *which* ability
+-- did — only the one whose cost says so.
 function M.activate(card_id, targets)
 	if phase.is_overlay() then return false end   -- a pending choice locks other actions
 	if not M.can_activate(card_id) then return false end
@@ -621,8 +639,6 @@ function M.activate(card_id, targets)
 	checkpoint()
 	log.add("Activated " .. (def.text or c.def_key))
 	pay(def.activate_cost, ctx)
-	-- A quality the card either has or has not, so it is a word it carries.
-	if not tags.entity_has(c, "stays_ready") then c.exhausted = true end
 	actions.run(cards.behaviour(c, "on_activate"), ctx)
 	M.settle()
 	return true

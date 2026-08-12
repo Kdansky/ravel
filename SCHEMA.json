@@ -91,14 +91,14 @@
       },
       "activate": {
         "cost": {
-          "<stat key or sacrifice:tag>": "number paid when the card is activated on the board, same rules as cost"
+          "<stat key, sacrifice:tag, or exhaust>": "number paid when the ability is used, same rules as play.cost. \"exhaust\": 1 is MTG's tap symbol — the ability spends the card being ready, so it may be used once a round and a card already spent cannot pay it. An ability that does not charge it stays available. Only an activate cost may ask for it."
         },
         "target": "the same shape as play.target, for the board ability rather than the play",
         "phases": [
           "phase key or list: the ability works only in those. Separate from play.phases, so a card can be playable in one phase and activatable in another."
         ],
         "action": [
-          "action strings run when the card is clicked on the board. Activating exhausts the card until the round wraps, unless exhausts says otherwise."
+          "action strings run when the card is clicked on the board. Being spent is a cost, not a consequence: an ability exhausts its card only if its cost says so."
         ],
         "moves": [
           "how a piece moves on a grid: pattern names, or rules carrying their own fill and needs. Declaring this writes the activate target for you, so clicking the piece opens targeting."
@@ -303,7 +303,7 @@
   },
   "_engine_tags": {
     "_what": "Tags are the game's own vocabulary and an unknown one is not an error. These are the words the engine itself reads, and they are reserved: a style, a tag with behaviour or a computed tag may not be named after one. A word naming an entry in styles claims a look; one naming an entry in tags claims behaviour.",
-    "_on_cards": "generate_art (with no asset, draws a shape derived from its key rather than a bare colour), immutable (scenery: nothing may target it and its template can never be edited), no_undo (playing or picking it clears the undo stack — the choice is final), player (this card is a seat. Stamped by the engine from the players section, not written by hand), stays_ready (using its ability does not exhaust it, so a button stays clickable), token (vanishes when a hand is swept, instead of joining the discard)",
+    "_on_cards": "generate_art (with no asset, draws a shape derived from its key rather than a bare colour), immutable (scenery: nothing may target it and its template can never be edited), no_undo (playing or picking it clears the undo stack — the choice is final), player (this card is a seat. Stamped by the engine from the players section, not written by hand), token (vanishes when a hand is swept, instead of joining the discard)",
     "_on_zones": "activate (cards here may use their abilities — without it an ability is unreachable), face_down (cards here are hidden, whatever the type would do), face_up (cards here are shown, whatever the type would do), hidden (not drawn and not clickable — offer zones, fate decks), no_peek (no tooltip and no browsing the pile), optional (nothing here ever has to be played, so a gated card stays gated), page (its cards are drawn as full-screen story pages), per_seat (one copy per seat; pos then takes one rect each), refill_when_empty (recreates its contents when the last card leaves), shuffle (shuffled when its contents are created, and on every refill)",
     "_reserved": "A zone or tag may never be named self or all, nor any of the quantifiers any, each and random, nor the owner words mine, enemy and anyone. player is deliberately not reserved: it is an ordinary tag a game puts on one card.",
     "_on_phases": "discard_hand (leaving it discards the unplayed hand; tokens vanish), keep_hand (a draw_and_play phase opting out of the discard it would otherwise get)",

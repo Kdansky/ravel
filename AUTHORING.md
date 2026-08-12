@@ -372,6 +372,12 @@ own `play.action`.
 `needs` on counts (a card's own, or a challenge's), computed tags for thresholds, `turn.action` engines,
 and exhaust-limited `activate.action` bursts.
 
+**A card as its own currency**: `"exhaust": 1` in an `activate.cost` is MTG's
+tap symbol — the ability spends the card *being ready*, and a card already spent
+cannot pay it, which is the whole of "once a round". An ability that does not
+charge it stays available all round. Only an activate cost may ask for it: a
+card leaving a hand has nothing to stay spent.
+
 **Cards as currency**: a `"sacrifice:<tag>"` cost destroys one of your board
 cards to pay for the play — upgrade chains (sacrifice a Militia to field a
 Garrison), trials payable in blood instead of coin, and story dilemmas (give
@@ -605,7 +611,7 @@ disk cache with no network at all.
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
 | `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `turn.action`) |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
-| `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). Activating **exhausts** the card until the round wraps, and a board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `exhausts: false` keeps it ready, which is how a permanent button works ("pass the time"). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
+| `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). Zones take the same block |
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
@@ -1244,7 +1250,6 @@ eighteen are the exceptions — the words the engine itself looks for:
 | `immutable` | card | scenery: nothing may target it and its template can never be edited |
 | `no_undo` | card | playing or picking it clears the undo stack — the choice is final |
 | `player` | card | this card is a seat. Stamped by the engine from the players section, not written by hand |
-| `stays_ready` | card | using its ability does not exhaust it, so a button stays clickable |
 | `token` | card | vanishes when a hand is swept, instead of joining the discard |
 | `activate` | zone | cards here may use their abilities — without it an ability is unreachable |
 | `face_down` | zone | cards here are hidden, whatever the type would do |

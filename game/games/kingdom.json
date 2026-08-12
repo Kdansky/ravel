@@ -209,7 +209,7 @@
       "tooltip": "Drill the ranks: +1 might per soldier. Once per round.",
       "play": { "cost": { "gold": 3 }, "action": ["move_to:board", "gain_stat:progress:1"] },
       "activate": {
-        "cost": { "food": 1 },
+        "cost": { "exhaust": 1, "food": 1 },
         "action": ["effect:drill_rally", "gain_stat:might:count:soldier"]
       },
       "tags": ["holding", "military"],
@@ -283,7 +283,10 @@
       "asset": "eclipse_sun.jpg",
       "tooltip": "Spend 4 mana: the realm remembers. +2 progress. Once per round.",
       "play": { "cost": { "mana": 3 }, "action": ["move_to:board", "gain_stat:progress:1"] },
-      "activate": { "cost": { "mana": 4 }, "action": ["effect:eclipse_surge", "gain_stat:progress:2"] },
+      "activate": {
+        "cost": { "exhaust": 1, "mana": 4 },
+        "action": ["effect:eclipse_surge", "gain_stat:progress:2"]
+      },
       "tags": ["holding", "mystic"],
       "card_stats": { "hp": 2, "hp_max": 2 }
     },
@@ -301,7 +304,7 @@
       "asset": "candle_night.jpg",
       "tooltip": "Spirits stand guard: spend 2 mana for +2 might. Once per round.",
       "play": { "cost": { "mana": 2 }, "action": ["move_to:board", "gain_stat:progress:1"] },
-      "activate": { "cost": { "mana": 2 }, "action": ["gain_stat:might:2"] },
+      "activate": { "cost": { "exhaust": 1, "mana": 2 }, "action": ["gain_stat:might:2"] },
       "tags": ["holding", "mystic"],
       "card_stats": { "hp": 3, "hp_max": 3 }
     },
@@ -322,7 +325,7 @@
         ]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -337,7 +340,7 @@
         "fail": ["move_to:board", "effect:crisis_smoke", "lose_stat:stability:2"]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -357,7 +360,7 @@
         ]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -377,7 +380,7 @@
         ]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -397,7 +400,7 @@
         ]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -417,7 +420,7 @@
         ]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -432,7 +435,7 @@
         "fail": ["move_to:board", "effect:crisis_smoke", "lose_stat:stability:3"]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -452,7 +455,7 @@
         ]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -472,7 +475,7 @@
         ]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -492,7 +495,7 @@
         ]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {
@@ -512,7 +515,7 @@
         ]
       },
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:stability:1"] }
     },
     {

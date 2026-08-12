@@ -249,17 +249,28 @@ check("an ability with the right target count fires", flow.activate(throne.id, {
 check("the ability reached its target",
 	entity.get(throne.id).stats.defense == defense0 + 1)
 
--- A repeatable ability (the "pass the time" pattern) opts out of exhausting.
--- A word the card carries, not a field set to false: there is nothing to write
--- "false" on, which is the point of the tag.
-tdef.tags_set.stays_ready = true
+-- Being spent is a cost, so an ability that does not charge it is repeatable —
+-- the "pass the time" pattern — and one that does may be used once a round.
+-- There is no opting out of a consequence any more, because it is not one.
+tdef.activate_cost = nil
 entity.get(throne.id).exhausted = nil
-check("stays_ready leaves the card ready",
+check("an ability that does not charge exhaustion leaves the card ready",
 	flow.activate(throne.id, { throne.id }) and not entity.get(throne.id).exhausted)
-check("a repeatable ability fires again at once",
-	flow.activate(throne.id, { throne.id }))
+check("so it fires again at once", flow.activate(throne.id, { throne.id }))
 
-tdef.tags_set.stays_ready = nil
+tdef.activate_cost = { exhaust = 1 }
+check("one that charges it spends the card",
+	flow.activate(throne.id, { throne.id }) and entity.get(throne.id).exhausted)
+check("and cannot be paid for twice",
+	flow.activate(throne.id, { throne.id }) == false)
+check("nor is it affordable in the abstract, being paid with the card itself",
+	flow.can_afford({ exhaust = 1 }, { card_id = throne.id }) == false
+	and flow.can_afford({ exhaust = 1 }, {}) == false)
+entity.get(throne.id).exhausted = nil
+check("a readied card can pay it again",
+	flow.can_afford({ exhaust = 1 }, { card_id = throne.id }))
+
+tdef.activate_cost   = nil
 tdef.activate_target = nil
 tdef.on_activate     = { "gain_stat:morale:1" }
 entity.get(throne.id).exhausted = nil
@@ -1109,8 +1120,11 @@ local function legal_moves()
 	for e in entity.each("card") do
 		local z   = entity.get(e.zone_id)
 		local def = cards.def(e)
+		-- With the card, because a cost may be paid *with* it: "exhaust" asks
+		-- whether this one is still ready, and a cost asked in the abstract
+		-- has no answer.
 		if z and z.zone_type == "grid" and def and def.on_activate
-			and not e.exhausted and flow.can_afford(def.activate_cost) then
+			and not e.exhausted and flow.can_afford(def.activate_cost, { card_id = e.id }) then
 			local id = e.id
 			moves[#moves + 1] = function() flow.activate(id) end
 		end

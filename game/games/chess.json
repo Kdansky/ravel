@@ -143,7 +143,7 @@
       "text": "Pawn",
       "asset": "pawn",
       "tooltip": "One square forward, two from its home rank, and it takes diagonally. Reaching the far rank, it becomes a piece of your choosing.",
-      "tags": ["piece", "pawn", "stays_ready"],
+      "tags": ["piece", "pawn"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
@@ -168,7 +168,7 @@
       "text": "Rook",
       "asset": "rook",
       "tooltip": "Any distance along a rank or a file.",
-      "tags": ["piece", "rook", "stays_ready"],
+      "tags": ["piece", "rook"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
@@ -180,7 +180,7 @@
       "text": "Knight",
       "asset": "knight",
       "tooltip": "An L, and the only piece that leaps what stands in the way.",
-      "tags": ["piece", "knight", "stays_ready"],
+      "tags": ["piece", "knight"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
@@ -192,7 +192,7 @@
       "text": "Bishop",
       "asset": "bishop",
       "tooltip": "Any distance along a diagonal, so it never leaves its colour.",
-      "tags": ["piece", "bishop", "stays_ready"],
+      "tags": ["piece", "bishop"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
@@ -204,7 +204,7 @@
       "text": "Queen",
       "asset": "queen",
       "tooltip": "Any distance in any of the eight directions.",
-      "tags": ["piece", "queen", "stays_ready"],
+      "tags": ["piece", "queen"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho", "line_diag"],
@@ -216,7 +216,7 @@
       "text": "King",
       "asset": "king",
       "tooltip": "One square in any direction. Lose it and the game is over.",
-      "tags": ["piece", "king", "stays_ready"],
+      "tags": ["piece", "king"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["adjacent"],

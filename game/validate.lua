@@ -44,7 +44,6 @@ M.ENGINE_TAGS = {
 	immutable    = { on = "card", what = "scenery: nothing may target it and its template can never be edited" },
 	no_undo      = { on = "card", what = "playing or picking it clears the undo stack — the choice is final" },
 	generate_art = { on = "card", what = "with no asset, draws a shape derived from its key rather than a bare colour" },
-	stays_ready  = { on = "card", what = "using its ability does not exhaust it, so a button stays clickable" },
 	-- zones
 	per_seat          = { on = "zone", what = "one copy per seat; pos then takes one rect each" },
 	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
@@ -478,7 +477,18 @@ function M.check(G)
 		end
 		for key, v in pairs(map) do
 			local sac = tostring(key):match("^sacrifice:(.+)$")
-			if sac then
+			-- Being spent is a cost like any other, and the only one a card pays
+			-- with itself. It has no place on a card being played out of a hand:
+			-- there is nothing there to stay spent.
+			if key == "exhaust" then
+				if not is_cost then
+					warn("%s: 'exhaust' is a cost, not a condition — a card cannot need itself spent", where)
+				elseif not where:find("activate", 1, true) then
+					warn("%s: 'exhaust' belongs in an activate cost — a card leaving a hand has nothing to spend", where)
+				elseif tonumber(v) ~= 1 then
+					warn("%s: exhaust is 1 — a card is either spent or it is not", where)
+				end
+			elseif sac then
 				if not is_cost then
 					warn("%s: 'sacrifice:' belongs in cost or activate_cost, not here", where)
 				elseif not known_tags[sac] then

@@ -113,7 +113,10 @@
       "tags": ["unit"],
       "card_stats": { "hp": 2, "hp_max": 2 },
       "play": { "action": ["move_to"] },
-      "activate": { "action": ["effect:sabre_hit", "lose_stat:hp@random.threat:2"] }
+      "activate": {
+        "action": ["effect:sabre_hit", "lose_stat:hp@random.threat:2"],
+        "cost": { "exhaust": 1 }
+      }
     },
     {
       "key": "pikemen",
@@ -123,7 +126,10 @@
       "tags": ["unit"],
       "card_stats": { "hp": 4, "hp_max": 4 },
       "play": { "action": ["move_to"] },
-      "activate": { "action": ["effect:sabre_hit", "lose_stat:hp@random.threat:1"] }
+      "activate": {
+        "action": ["effect:sabre_hit", "lose_stat:hp@random.threat:1"],
+        "cost": { "exhaust": 1 }
+      }
     },
     {
       "key": "huntsman",
@@ -133,7 +139,7 @@
       "tags": ["unit"],
       "card_stats": { "hp": 2, "hp_max": 2 },
       "play": { "action": ["move_to"] },
-      "activate": { "action": ["gain_stat:supplies:1"] }
+      "activate": { "action": ["gain_stat:supplies:1"], "cost": { "exhaust": 1 } }
     },
     {
       "key": "torch",
@@ -150,7 +156,7 @@
       "tooltip": "Use it up: +2 supplies, then it is gone.",
       "tags": ["item"],
       "play": { "action": ["move_to"] },
-      "activate": { "action": ["gain_stat:supplies:2", "destroy_self"] }
+      "activate": { "action": ["gain_stat:supplies:2", "destroy_self"], "cost": { "exhaust": 1 } }
     },
     {
       "key": "lucky_shoe",
@@ -262,7 +268,7 @@
         "pass": ["move_to:graveyard", "gain_stat:distance:1", "gain_stat:morale:1"],
         "fail": ["lose_stat:morale:2"]
       },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:morale:1"] }
     },
     {
@@ -277,7 +283,7 @@
         "pass": ["move_to:graveyard", "lose_stat:supplies:2", "gain_stat:distance:2"],
         "fail": ["lose_stat:morale:1"]
       },
-      "activate": { "action": ["resolve_challenge"] },
+      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
       "turn": { "action": ["lose_stat:morale:1"] }
     },
     {
