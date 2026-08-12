@@ -342,6 +342,30 @@ function M.test_validator_names_every_problem_it_knows(check)
 	end
 end
 
+-- A typo inside an ability has to be caught at *parse*, because that is the
+-- last moment the authored entry exists: what leaves declaration is the
+-- normalised one, which cannot carry an unknown field. So it arrives as a parse
+-- problem, and the CASES harness above — which mutates an already-parsed game —
+-- structurally cannot reach it.
+function M.test_validator_catches_a_typo_inside_an_ability(check)
+	local path = "game/games/tmp_ability_typo.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Typo",
+		"zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "thing", "text": "Thing",
+			"abilities": [{ "key": "go", "assset": "circle:red", "action": ["next_phase"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_ability_typo.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	check("a misspelled field inside an ability is caught",
+		has_problem(validate.check(G), "ability 1: has a field 'assset'"),
+		table.concat(validate.check(G), "; "))
+end
+
 -- The validator derives its checks from each op's declared shape: every
 -- handler must declare one, or new actions silently skip validation.
 function M.test_every_action_declares_its_argument_shape(check)

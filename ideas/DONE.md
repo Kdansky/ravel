@@ -756,6 +756,12 @@ rook beyond it, nothing in between), and `fill: "empty"` is about the square
 itself. Nothing else had to be invented — this is en passant's machinery, used
 again a day later, which is the argument that it was the right machinery.
 
+**The chooser wears the right pieces.** An ability may name its own `asset`, so
+castling shows a king and a queen — the sides the notation is named for — and
+because those are named per-seat assets they come out in the colours of whoever
+opened the chooser. Without one the engine still draws a shape from the
+ability's name.
+
 **One small addition:** `place` takes a pattern as its destination, not only a
 square. "One column left of me" is the same sentence whichever end of the board
 you sit at; `f1` is only ever white's.

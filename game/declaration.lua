@@ -64,6 +64,9 @@ local function normalise_moves(moves)
 	return out
 end
 
+local ABILITY_FIELDS = { key = true, text = true, tooltip = true, asset = true,
+	cost = true, target = true, phases = true, action = true, moves = true }
+
 local function abilities_of(def, pp, where)
 	local out = {}
 	if type(def.abilities) == "table" and #def.abilities > 0 then
@@ -75,6 +78,16 @@ local function abilities_of(def, pp, where)
 			if type(a) ~= "table" then
 				pp[#pp + 1] = where .. ": ability " .. i .. " should be an object"
 			else
+				-- Checked here rather than in the validator, because this is
+				-- the last place the *authored* entry exists: what leaves this
+				-- function is the normalised one, and a typo has been dropped
+				-- from it by then. Same reason flatten_moments checks names.
+				for k in pairs(a) do
+					if not ABILITY_FIELDS[k] then
+						pp[#pp + 1] = ("%s ability %d: has a field '%s' the engine doesn't read")
+							:format(where, i, tostring(k))
+					end
+				end
 				-- An ability that says how it moves is asking for the ordinary
 				-- board targeting, exactly as a card with one does: the engine
 				-- writes the spec rather than making every ability repeat it.
@@ -84,7 +97,7 @@ local function abilities_of(def, pp, where)
 					target = { type = "slot", count = 1, moves = rules }
 				end
 				out[#out + 1] = { key = a.key or ("ability_" .. i), text = a.text,
-					tooltip = a.tooltip,
+					tooltip = a.tooltip, asset = a.asset,
 					cost = a.cost, target = target, phases = a.phases,
 					action = a.action, moves = rules }
 			end
@@ -618,7 +631,10 @@ function M.parse(filename)
 				a.menu_card = mk
 				G.card_defs[mk] = { key = mk, injected = true, menu_for = { card = key, index = i },
 					text = a.text or a.key, tooltip = a.tooltip or a.text,
-					asset = "auto", tags = {}, tags_set = { token = true },
+					-- A picture the ability named, or a shape from its name. A
+					-- named asset resolves per player like any other, so a
+					-- chooser wears the colours of whoever opened it.
+					asset = a.asset or "auto", tags = {}, tags_set = { token = true },
 					abilities = {}, style = merge_styles(G, { token = true }) }
 			end
 		end

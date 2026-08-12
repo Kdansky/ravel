@@ -251,7 +251,8 @@
             "place:one_right:one_left",
             "gain_stat:moves_made@self:1",
             "next_phase"
-          ]
+          ],
+          "asset": "king"
         },
         {
           "key": "castle_q",
@@ -275,7 +276,8 @@
             "place:two_left:one_right",
             "gain_stat:moves_made@self:1",
             "next_phase"
-          ]
+          ],
+          "asset": "queen"
         }
       ]
     },
