@@ -82,8 +82,12 @@ already written. Reading, arithmetic, conditions, targeting and the tooltip all
 work the moment the number exists, because none of them ever cared that the
 bearer was a card.
 
-That is worth doing on its own merits — [01](01-boardgames.md) already wants a
-`threat` count per square for check detection, and this is the same field.
+**It is not, however, what check needs**, which is how it was first filed here.
+`threat` is stamped by the *engine* after each move, exactly as `col` and `row`
+are stamped when the square is built — and a stat the engine writes never needed
+declaring, because `bearers` only asks that the stat already exist. The field
+below is for numbers an *author* writes, and the honest position is that no game
+has asked for one yet.
 
 ---
 
@@ -145,8 +149,9 @@ arithmetic in a smaller box.
 
 ## Do instead, when something asks
 
-1. **Per-square stats** — small, wanted twice already, and it removes most of the
-   demand for stacking by removing the cases where the pieces are alike.
+1. **Per-square stats** — small, and it removes most of the demand for stacking
+   by removing the cases where the pieces are alike. Not urgent: no game has
+   asked, and the second customer this was filed with turned out not to be one.
 2. **Play something through `attach_to_target`**, so the mechanism that already
    exists stops being theoretical.
 3. **Only then**, and only with a game in hand, decide whether a square holds a
