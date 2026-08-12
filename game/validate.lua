@@ -66,11 +66,12 @@ M.ENGINE_TAGS = {
 M.ENGINE_TAGS_ALSO_ON_STATS = { hidden = "kept out of the HUD, while cards may still read and change it" }
 
 -- Names conditions answer for themselves, so a zone or tag may not take one.
--- "self" is the acting card and "all" is everything; neither can be expressed
--- as a tag, which is why they are the only two the engine claims. "player" is
--- deliberately NOT reserved — it is an ordinary tag that content puts on one
--- card, which is what makes finding that card trivial.
-local RESERVED_SCOPES = { "self", "all" }
+-- "self" is the acting card, "all" is everything, and "reach" is wherever a set
+-- of pieces could move; none can be expressed as a tag, which is why they are
+-- the only three the engine claims. "player" is deliberately NOT reserved — it
+-- is an ordinary tag that content puts on one card, which is what makes finding
+-- that card trivial.
+local RESERVED_SCOPES = { "self", "all", "reach" }
 
 -- The fx base-effect vocabulary. The test suite asserts this stays in step
 -- with fx.bases() — validate must not require the presentation layer.

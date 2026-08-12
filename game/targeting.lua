@@ -43,16 +43,19 @@ end
 local function find_moves(card_id, rules)
 	local c = entity.get(card_id)
 	if not (c and c.slot_id) then return {} end
-	local active = zones.active_seat()
-	local facing = geometry.facing(predicate.owner_of(c) or active,
-		declaration.G.seat_list or {})
+	-- Whose move this is, which is not always whose turn it is. Asking what an
+	-- *idle* enemy piece could do is how check is answered, and measuring "enemy"
+	-- against the seat to play would invert it — that piece's own colleagues
+	-- would read as capturable and its opponents as friends.
+	local mover  = predicate.owner_of(c) or zones.active_seat()
+	local facing = geometry.facing(mover, declaration.G.seat_list or {})
 	local out, seen = {}, {}
 	for _, rule in ipairs(rules) do
 		if rule.needs == nil or predicate.meets_all(rule.needs, { card_id = card_id }) then
 			for _, name in ipairs(rule.patterns) do
 				local pat = (declaration.G.pattern_defs or {})[name]
 				for _, sid in ipairs(pat and geometry.reach(c.slot_id, pat, facing) or {}) do
-					if not seen[sid] and slot_offered(entity.get(sid), rule.fill, active) then
+					if not seen[sid] and slot_offered(entity.get(sid), rule.fill, mover) then
 						seen[sid]     = true
 						out[#out + 1] = sid
 					end
@@ -106,6 +109,17 @@ local function find_zones(zone_set)
 		if zone_set and zone_set[z.key] and not z.tags.hidden then res[#res + 1] = z.id end
 	end
 	return res
+end
+
+-- Where this piece could move, right now. The reach half of `candidates`, with
+-- none of the filtering that decides what a *player* may pick — a condition
+-- asking what the enemy threatens is not choosing anything.
+function M.moves_of(card_id)
+	local e    = entity.get(card_id)
+	local def  = e and declaration.G.card_defs[e.def_key]
+	local spec = def and def.activate_target
+	if not (spec and spec.moves) then return {} end
+	return find_moves(card_id, spec.moves)
 end
 
 function M.candidates(card_id, spec)

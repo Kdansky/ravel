@@ -1,7 +1,28 @@
 # 09 — One game out of several files
 
-**Status:** not started · **Size:** small engine change, one large decision, and
-one trap that will bite hard if it is found late.
+**Status:** **paused on purpose**, not merely unstarted · **Size:** small engine
+change, one large decision, and one trap that will bite hard if it is found late.
+
+Two things came out of discussing it that change the design below, and it should
+not be built until they are settled:
+
+- **Collisions should be refused, not resolved.** The merge rules below say "the
+  including file wins" and "an entry whose key already exists replaces the
+  earlier one in place". The preference is the opposite: a **union**, where a key
+  in both files must be *identical* or it is an error, and a section in only one
+  file simply comes along. That kills the "redefine one card from a set" case
+  this document argues for — and buys no override order to debug, which for a
+  convenience feature is the better trade. `setup`, `title` and `seed` would not
+  travel at all, being the three things that say *this particular game, arranged
+  this way*. (That is not the "partial includes" refused below: that refusal is
+  about a *query* in the including file, and this is one fixed rule.)
+- **How far a path may reach touches the network.** A game that arrived from a
+  peer is stored by `net.accept_game` and parsed through the very same door
+  (`declaration.lua:207`), so if includes resolve there, a hostile game file can
+  read a local JSON file into itself — and `game_text` forwards the flattened
+  result to the next peer. Absolute paths also need `io.open` rather than
+  `love.filesystem`, which reads nothing useful in the browser build, so a game
+  using one stops being playable at a URL.
 
 Two requests that are really one:
 

@@ -62,8 +62,46 @@
     }
   ],
   "phases": [
-    { "key": "white_move", "type": "player_input", "label": "White to move", "seat": "next" },
-    { "key": "black_move", "type": "player_input", "label": "Black to move", "seat": "next" }
+    {
+      "key": "white_move",
+      "type": "player_input",
+      "label": "White to move",
+      "seat": "next",
+      "next": [
+        { "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
+        { "then": "black_move" }
+      ]
+    },
+    {
+      "key": "black_check",
+      "type": "player_input",
+      "label": "Black to move — in check",
+      "seat": "next",
+      "next": [
+        { "stat": "count:king@mine.reach", "at_least": 1, "then": "white_check" },
+        { "then": "white_move" }
+      ]
+    },
+    {
+      "key": "black_move",
+      "type": "player_input",
+      "label": "Black to move",
+      "seat": "next",
+      "next": [
+        { "stat": "count:king@mine.reach", "at_least": 1, "then": "white_check" },
+        { "then": "white_move" }
+      ]
+    },
+    {
+      "key": "white_check",
+      "type": "player_input",
+      "label": "White to move — in check",
+      "seat": "next",
+      "next": [
+        { "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
+        { "then": "black_move" }
+      ]
+    }
   ],
   "end_conditions": [{ "stat": "count:king@taken", "at_least": 1, "then": ["load_game:menu.json"] }],
   "setup": {
@@ -273,7 +311,7 @@
       "text": "How to play",
       "tags": ["immutable"],
       "play": { "phases": [] },
-      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. Click an enemy piece to take it — its square lights up too.\n\nCastling: the two buttons beside your graveyard. Needs king and rook both unmoved, and the squares between them empty.\n\nNot implemented yet:\n- Check and checkmate. You win by capturing the king, and nothing stops you moving into check or castling through it.\n- En passant.\n- Pawn promotion. A pawn reaching the far rank just stops there.\n- Draws: stalemate, threefold repetition, the fifty-move rule.\n- Resigning and offering a draw."
+      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. Click an enemy piece to take it — its square lights up too.\n\nCastling: the two buttons beside your graveyard. Needs king and rook both unmoved, and the squares between them empty.\n\nNot implemented yet:\n- Checkmate. Check is shown — the phase says \"in check\" — but nothing stops you moving into check, leaving one, or castling through it, and you win by capturing the king rather than by trapping it.\n- En passant.\n- Pawn promotion. A pawn reaching the far rank just stops there.\n- Draws: stalemate, threefold repetition, the fifty-move rule.\n- Resigning and offering a draw."
     }
   ]
 }

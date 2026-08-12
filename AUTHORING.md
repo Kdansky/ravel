@@ -699,8 +699,9 @@ run their `then` actions — usually `push_phase:` to an ending overlay.
 
 **Scopes: which cards a subject is about.** The part after `@` is a *scope
 expression*: `[<quant>.][<owner>.]<zone-or-tag>`, where the name is a zone key,
-a tag, or one of `self` / `target` / `all`. Without any scope, a subject means
-**your own cards** — see *The player is a card* below.
+a tag, a movement pattern, or one of `self` / `target` / `all` / `reach`.
+Without any scope, a subject means **your own cards** — see *The player is a
+card* below.
 
 ```
 insight@player       the stat on cards carrying the "player" tag
@@ -711,6 +712,43 @@ hp@target            the cards the player chose for this card
 sum:defense@board    a stat summed over one zone
 max:rank@tableau     the largest value in one zone
 count:farm@board     count, narrowed to a zone
+count:king@enemy.reach  a king standing where an opponent could move — check
+```
+
+### `@reach` — wherever a set of pieces could move
+
+`reach` is the squares a set of pieces could move onto **right now**, answered as
+the things standing on them. The owner word picks *whose* pieces are asked, not
+what comes back, so `@enemy.reach` is every square an opponent could move to —
+and asking what stands there is how a game asks about threats:
+
+```json
+{ "count:king@enemy.reach": { "equals": 0 } }
+```
+
+*No king of mine stands where an enemy could move* — which is "not in check",
+written by the game rather than known by the engine.
+
+**The engine has no idea what an attack is**, and does not need one. A piece may
+only land on an occupied square if its own move says so: a pawn's step is
+`"fill": "empty"` and cannot reach an occupied square, its take is
+`"fill": "enemy"` and can. The line between moving and threatening is already
+drawn in the game file, and `reach` only adds it up. That also means a piece is
+never offered its own side's squares, so `count:king@enemy.reach` can only ever
+have found *your* king.
+
+It is computed on demand from the `moves` each piece declares — nothing is
+stored, so there is no "when is it recomputed" to get wrong. **A move rule's own
+`needs` may not usefully ask for it**: that would be reach asking itself, and the
+circle names nothing rather than hanging.
+
+Chess uses it to route into a phase whose label says so, which is the whole of
+the feature on the game's side:
+
+```json
+{ "key": "white_move", "label": "White to move", "seat": "next",
+  "next": [{ "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
+           { "then": "black_move" }] }
 ```
 
 A **tag** scope means cards *in play* — on grid zones — exactly like

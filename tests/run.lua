@@ -2378,6 +2378,69 @@ check("a king that has castled has moved, so it may not castle again",
 	flow.can_play(card_named("w_castle_k").id) == false
 	and flow.can_play(card_named("w_castle_q").id) == false)
 
+-- === check, as a question the game file asks ===
+-- The engine has no idea what check is. It knows where a piece could move —
+-- which it already had to know to offer the squares — and "@enemy.reach" adds
+-- those up. A king standing among the answers is the whole of it.
+--
+-- The line between moving and threatening is drawn by the game file, not here:
+-- a pawn's step is "fill": "empty" so it cannot reach an occupied square, and
+-- its take is "fill": "enemy" so it can. Nothing in the engine knows why.
+flow.init("chess.json", 1)
+board = zones.find("board")
+check("nobody is in check at the opening",
+	predicate.total("count:king@enemy.reach") == 0
+	and predicate.total("count:king@mine.reach") == 0)
+
+-- Fool's mate. The white king on e1 is attacked along h4-g3-f2-e1, and both
+-- squares on the way were vacated by the two moves that made it.
+move("f2", "f3"); move("e7", "e5"); move("g2", "g4"); move("d8", "h4")
+check("white to move, and its king stands where black could move",
+	zones.active_seat() == "player_white"
+	and predicate.total("count:king@enemy.reach") == 1)
+check("the other king is not attacked, and a piece never threatens its own side",
+	predicate.total("count:king@mine.reach") == 0)
+check("the phase says so, which is the game file asking and not the engine telling",
+	phase.current().label == "White to move — in check")
+
+-- The owner word picks whose pieces are asked, not what comes back. Without
+-- that, "@enemy.reach" would filter the answers to enemy-owned things and the
+-- one piece it must find — my king — would be the one it dropped.
+check("an attacked pawn is found the same way",
+	predicate.total("count:pawn@enemy.reach") > 0)
+
+-- Reach is asked of *idle* pieces, which is what makes the seat to play the
+-- wrong yardstick for "enemy": black's queen is asked what it threatens while
+-- white is to move, and its own colleagues must not read as capturable.
+do
+	local q
+	for e in entity.each("card") do
+		if e.def_key == "queen" and e.stats.owner == 2 then q = e end
+	end
+	local hits = require("targeting").moves_of(q.id)
+	local own = 0
+	for _, sid in ipairs(hits) do
+		local occ = entity.get(sid).occupant
+		if occ and entity.get(occ).stats.owner == 2 then own = own + 1 end
+	end
+	check("an idle piece is never offered its own side's squares", own == 0,
+		("%d of %d"):format(own, #hits))
+end
+
+-- A move rule may carry a needs, and a needs may name a scope — so a rule that
+-- asks what its own side threatens asks reach while reach is asking it. The
+-- circle has to name nothing rather than hang, and a test that hangs is worse
+-- than one that fails, so this one is measured.
+do
+	flow.init("chess.json", 1)
+	declaration.G.card_defs.rook.activate_target.moves[1].needs =
+		{ ["count:king@enemy.reach"] = { equals = 0 } }
+	local t0 = os.clock()
+	local n  = predicate.total("count:king@enemy.reach")
+	check("a move that asks what it threatens names nothing, and returns",
+		n == 0 and os.clock() - t0 < 1, ("%d in %.3fs"):format(n, os.clock() - t0))
+end
+
 -- === a stat nobody carries is absent, not zero ===
 -- Reading a missing value as 0 would make "this rook has never moved" true of a
 -- rook captured twenty moves ago — a gate that opens exactly when the thing it

@@ -117,6 +117,11 @@ end
 
 -- Turn a scope into the entities it means. The single place that decides, so
 -- reads, costs and effects can never disagree about who "@player" is.
+-- A move rule may carry a `needs`, and a `needs` may name a scope, so a rule
+-- asking what its own side threatens would ask again while still being asked.
+-- The circle names nothing rather than hanging.
+local reaching = false
+
 function M.entities_in_scope(scope, ctx, owner)
 	local out = {}
 	if scope == nil then
@@ -142,6 +147,36 @@ function M.entities_in_scope(scope, ctx, owner)
 			local e = entity.get(id)
 			if e then out[#out + 1] = e end
 		end
+	elseif scope == "reach" then
+		-- Where a set of pieces could move, answered as the things standing
+		-- there. The owner word picks *whose* pieces are asked rather than what
+		-- comes back: "@enemy.reach" is every square my opponent could move
+		-- onto, and my king turning up among the answers is what check means.
+		--
+		-- Nothing here knows what an attack is. A piece may only land on an
+		-- occupied square if its own move says so — a pawn's step is
+		-- "fill": "empty" and its take is "fill": "enemy" — so the line between
+		-- moving and threatening is one the game file has already drawn, and
+		-- this only adds it up.
+		if reaching then return out end
+		reaching = true
+		local active, seen = zones.active_seat(), {}
+		local targeting = require("targeting")
+		for e in entity.each("card") do
+			if e.slot_id and owned_by(e, owner, active) then
+				for _, sid in ipairs(targeting.moves_of(e.id)) do
+					if not seen[sid] then
+						seen[sid] = true
+						local occ = entity.get(sid).occupant
+						if occ then out[#out + 1] = entity.get(occ) end
+					end
+				end
+			end
+		end
+		reaching = false
+		-- The owner word was spent on choosing the pieces, so it must not be
+		-- spent again on what they threaten.
+		return out
 	elseif (declaration.G.pattern_defs or {})[scope] then
 		-- A pattern names a shape, and a shape answers "what is standing there"
 		-- as readily as "where may I go" — so the same word serves a move and a

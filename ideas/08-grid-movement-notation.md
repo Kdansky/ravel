@@ -646,15 +646,38 @@ cannot be written per-instance; its good half (positional computed tags) is kept
    the gap between the rules layer, which the suite covers thoroughly, and the
    presentation layer, which it barely touches.
 
-5. **Check** — not built, and **not expressible as a computed tag**, which is
-   the obvious-looking route. A computed tag reads one card's own stats;
-   "am I attacked" depends on every enemy piece's reachable set, and nothing in
-   a tag lookup has a board to consult. It is the same failure as option F.
-   The route that would work is the one `rank` already uses: **stamp it as a
-   stat** — a `threat` count per square, recomputed after each move (32 pieces ×
-   8 vectors is nothing) — which also gives tactical games threat maps. Then
-   check is an ordinary condition and `in_check` is an ordinary computed tag.
-   Checkmate is strictly harder and stays its own milestone.
+5. **Check** — **shipped, and by neither route this list proposed.** A computed
+   tag was correctly refused here: it reads one card's own stats, and "am I
+   attacked" depends on every enemy piece's reachable set.
+
+   But the fallback proposed above — *stamp a `threat` count on every square,
+   recomputed after each move* — is also wrong, and for a reason worth keeping:
+   **it is the engine deciding chess is special.** A number the engine writes
+   after every move, whose meaning no game file states, that has to be keyed by
+   side and generalises badly past two seats.
+
+   What shipped is a **scope word**: `@reach`, the squares a set of pieces could
+   move onto, answered as the things standing there. Check is then something the
+   game file *says*:
+
+   ```json
+   { "count:king@enemy.reach": { "equals": 0 } }
+   ```
+
+   Nothing is stored, so there is no recompute timing to get wrong; the owner
+   word (`mine.` / `enemy.`) does the side-keying that the stat would have needed
+   a second field for, and it already works for four seats. The engine gained one
+   `elseif`.
+
+   **It needed no new computation at all** — `find_moves` was already answering
+   "where can this piece go" to offer the squares, and it honours `fill`, which
+   is where the game file draws the line between moving and threatening. A pawn's
+   step is `"fill": "empty"` and so cannot reach an occupied square; its take is
+   `"fill": "enemy"` and can.
+
+   Checkmate is strictly harder and stays its own milestone, along with refusing
+   a move that leaves your own king attacked — that one needs the position
+   *after* a hypothetical move, which is `entity.snapshot`/`restore`.
 
 **Settled:** `moves` sits top-level on the card def and the engine writes the
 `activate_target` from it. The alternative — spelling the spec out on every piece
