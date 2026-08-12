@@ -1665,10 +1665,12 @@ local rook, ghost, pawn = find_card("w_rook"), find_card("w_ghost"), find_card("
 -- Squares carry their own coordinates, so a condition reads them with the
 -- vocabulary it already has rather than a second one invented for boards.
 check("a slot knows where it is, as ordinary stats",
-	slot_of(rook).stats.col == 1 and slot_of(rook).stats.row == 1
-	and slot_of(pawn).stats.col == 3 and slot_of(pawn).stats.row == 1)
+	slot_of(rook).stats.col == 1 and slot_of(rook).stats.row == 3
+	and slot_of(pawn).stats.col == 3 and slot_of(pawn).stats.row == 3)
+-- Counted from the bottom-left, like every coordinate an author writes: this
+-- fixture's board is 3x3 and its pieces stand on the top row, which is rank 3.
 check("a square is readable as a subject once it is the target",
-	predicate.total("row@target", { targets = { slot_of(pawn).id } }) == 1
+	predicate.total("row@target", { targets = { slot_of(pawn).id } }) == 3
 	and predicate.total("col@target", { targets = { slot_of(pawn).id } }) == 3)
 
 -- One board, two owners. The zone has no seat at all, so this can only come
@@ -2286,7 +2288,7 @@ flow.init("chess.json", 1)
 
 local board = zones.find("board")
 local function sq(name)   -- "e4" → the slot on that square
-	return geometry.slot_at(board, string.byte(name, 1) - 96, 9 - tonumber(name:sub(2)))
+	return geometry.slot_named(board, name)
 end
 -- Pieces are addressed by the square they stand on, because that is the only
 -- way a chess position can be described once there are six cards and not
@@ -2316,7 +2318,7 @@ local function reach(from)
 	local p, out = on(from), {}
 	for _, sid in ipairs(targeting.candidates(p.id, cards.def(p).activate_target)) do
 		local s = entity.get(sid)
-		out[#out + 1] = string.char(96 + s.stats.col) .. tostring(9 - s.stats.row)
+		out[#out + 1] = string.char(96 + s.stats.col) .. tostring(s.stats.row)
 	end
 	table.sort(out)
 	return table.concat(out, " ")
@@ -2383,7 +2385,7 @@ targeting.clear()
 targeting.start(on("e4").id, cards.def(on("e4")).activate_target, "activate")
 check("the acting card still answers as itself, so clicking it cancels",
 	targeting.aim(targeting.card_id) == targeting.card_id)
-local empty = geometry.slot_at(board, 5, 5)
+local empty = geometry.slot_named(board, "e4")
 check("and a square with nothing on it is already what was meant",
 	targeting.aim(empty) == empty and targeting.aim(nil) == nil)
 targeting.clear()

@@ -728,6 +728,45 @@ card face stencils its art to the rounded shape — plus a synchronous
 
 ---
 
+# Every coordinate starts at the bottom left
+
+`a1` is the near-left corner, everywhere an author writes one.
+
+| Was | Is |
+|---|---|
+| `"vectors": [[5, 8]]` (absolute = e1) | `"vectors": ["e1"]` |
+| `"place:w_king_home:7:8"` | `"place:w_king_home:g1"` |
+| `row@target` counted from the top | counted from the bottom — it is a rank |
+| `[0,1]` = one row down the grid, flipped by facing | `[0,1]` = one square **forward**, up the board |
+
+**One function knows the difference.** `geometry.slot_at` takes a rank and turns
+it into a row, and it is the only place the two meet — everything above it
+counts the way a player does, and the cells stay laid out top-down because that
+is the order they are drawn in.
+
+This was not tidiness. Castling once put the white king on **g8** because a rank
+was passed where a row was wanted; the file validated, the board rendered, and
+only the scripted opening caught it. A notation that cannot express the mistake
+is better than a check that catches it.
+
+## `mirrored` is gone
+
+It negated each axis so one pair stood for its family: `[[1,0],[0,1]]` meant all
+four orthogonals, `[[1,2],[2,1]]` the knight's eight. Every direction is written
+out now.
+
+It saved **fourteen pairs in one game** and cost a reader working out which eight
+directions `[1,2]` meant. And it hid a bug: mirroring a zero produced `-0`, whose
+dedupe key is `"1,-0"` rather than `"1,0"`, so `line_ortho` expanded to eight
+vectors down four lines and `adjacent` to twelve steps for eight squares.
+Harmless — `reach` dedupes the squares it lands on — but nobody knew.
+
+The proof the expansion was faithful is the scripted opening, which asserts
+reachable sets as **exact strings**: *"the queen sees exactly what a queen on d5
+sees"* is twenty-one squares in order, and it did not move.
+
+---
+
 # A card that can do several things
 
 `abilities` is a list where `activate` was one thing, and a card with more than

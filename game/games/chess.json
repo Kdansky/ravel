@@ -15,23 +15,29 @@
     "chessboard": { "fit": "fill", "ratio": "grid", "chequer": ["#f0d9b5", "#b58863"], "cell_outline": false }
   },
   "patterns": {
-    "line_ortho": { "vectors": [[1, 0], [0, 1]], "class": ["ray", "mirrored"] },
-    "line_diag": { "vectors": [[1, 1]], "class": ["ray", "mirrored"] },
-    "adjacent": { "vectors": [[1, 0], [0, 1], [1, 1]], "class": ["step", "mirrored"] },
-    "knight_leap": { "vectors": [[1, 2], [2, 1]], "class": ["step", "mirrored"] },
+    "line_ortho": { "vectors": [[1, 0], [-1, 0], [0, 1], [0, -1]], "class": ["ray"] },
+    "line_diag": { "vectors": [[1, 1], [1, -1], [-1, 1], [-1, -1]], "class": ["ray"] },
+    "adjacent": {
+      "vectors": [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]],
+      "class": ["step"]
+    },
+    "knight_leap": {
+      "vectors": [[1, 2], [1, -2], [-1, 2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]],
+      "class": ["step"]
+    },
     "pawn_step": { "vectors": [[0, 1]], "class": ["step"] },
     "pawn_run": { "vectors": [[0, 1]], "class": ["ray:2"] },
     "pawn_take": { "vectors": [[1, 1], [-1, 1]], "class": ["step"] },
-    "w_castle_q_path": { "vectors": [[2, 8], [3, 8], [4, 8]], "class": ["absolute"], "zone": "board" },
-    "w_castle_k_path": { "vectors": [[6, 8], [7, 8]], "class": ["absolute"], "zone": "board" },
-    "b_castle_q_path": { "vectors": [[2, 1], [3, 1], [4, 1]], "class": ["absolute"], "zone": "board" },
-    "b_castle_k_path": { "vectors": [[6, 1], [7, 1]], "class": ["absolute"], "zone": "board" },
-    "w_king_home": { "vectors": [[5, 8]], "class": ["absolute"], "zone": "board" },
-    "w_rook_a_home": { "vectors": [[1, 8]], "class": ["absolute"], "zone": "board" },
-    "w_rook_h_home": { "vectors": [[8, 8]], "class": ["absolute"], "zone": "board" },
-    "b_king_home": { "vectors": [[5, 1]], "class": ["absolute"], "zone": "board" },
-    "b_rook_a_home": { "vectors": [[1, 1]], "class": ["absolute"], "zone": "board" },
-    "b_rook_h_home": { "vectors": [[8, 1]], "class": ["absolute"], "zone": "board" }
+    "w_castle_q_path": { "vectors": ["b1", "c1", "d1"], "class": ["absolute"], "zone": "board" },
+    "w_castle_k_path": { "vectors": ["f1", "g1"], "class": ["absolute"], "zone": "board" },
+    "b_castle_q_path": { "vectors": ["b8", "c8", "d8"], "class": ["absolute"], "zone": "board" },
+    "b_castle_k_path": { "vectors": ["f8", "g8"], "class": ["absolute"], "zone": "board" },
+    "w_king_home": { "vectors": ["e1"], "class": ["absolute"], "zone": "board" },
+    "w_rook_a_home": { "vectors": ["a1"], "class": ["absolute"], "zone": "board" },
+    "w_rook_h_home": { "vectors": ["h1"], "class": ["absolute"], "zone": "board" },
+    "b_king_home": { "vectors": ["e8"], "class": ["absolute"], "zone": "board" },
+    "b_rook_a_home": { "vectors": ["a8"], "class": ["absolute"], "zone": "board" },
+    "b_rook_h_home": { "vectors": ["h8"], "class": ["absolute"], "zone": "board" }
   },
   "zones": [
     {
@@ -239,8 +245,8 @@
         },
         "action": [
           "gain_stat:moves_made@w_king_home:1",
-          "place:w_king_home:3:8",
-          "place:w_rook_a_home:4:8",
+          "place:w_king_home:c1",
+          "place:w_rook_a_home:d1",
           "next_phase"
         ]
       }
@@ -261,8 +267,8 @@
         },
         "action": [
           "gain_stat:moves_made@w_king_home:1",
-          "place:w_king_home:7:8",
-          "place:w_rook_h_home:6:8",
+          "place:w_king_home:g1",
+          "place:w_rook_h_home:f1",
           "next_phase"
         ]
       }
@@ -283,8 +289,8 @@
         },
         "action": [
           "gain_stat:moves_made@b_king_home:1",
-          "place:b_king_home:3:1",
-          "place:b_rook_a_home:4:1",
+          "place:b_king_home:c8",
+          "place:b_rook_a_home:d8",
           "next_phase"
         ]
       }
@@ -305,8 +311,8 @@
         },
         "action": [
           "gain_stat:moves_made@b_king_home:1",
-          "place:b_king_home:7:1",
-          "place:b_rook_h_home:6:1",
+          "place:b_king_home:g8",
+          "place:b_rook_h_home:f8",
           "next_phase"
         ]
       }

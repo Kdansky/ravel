@@ -140,7 +140,7 @@ function M.test_layout_a_hidden_offer_swallows_no_clicks(check)
 	flow.init("chess.json", 1)
 	zones.resize()
 	local board = zones.find("board")
-	local e4    = entity.get(geometry.slot_at(board, 5, 5))
+	local e4    = entity.get(geometry.slot_named(board, "e4"))
 	local cx    = e4.place.x + e4.place.w * 0.5
 	local cy    = e4.place.y + e4.place.h * 0.5
 

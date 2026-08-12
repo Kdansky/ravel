@@ -277,6 +277,18 @@ local CASES = {
 		function(g) g.raw_assets = { crown = { src = { "a.png", "b.png", "c.png" } } } end },
 	{ "an asset that is neither a source nor a list of them", "or one source per player",
 		function(g) g.raw_assets = { crown = { src = 7 } } end },
+	-- An absolute pattern names squares, so a pair is as wrong there as a name
+	-- would be in a direction.
+	{ "an absolute pattern given a pair instead of a square", 'is not a square — write a column letter',
+		function(g)
+			g.raw_patterns = { home = { vectors = { { 1, 1 } }, class = { "absolute" }, zone = "board" } }
+		end },
+	{ "an absolute pattern naming a square off the board", "is off 'board'",
+		function(g)
+			g.raw_patterns = { home = { vectors = { "z9" }, class = { "absolute" }, zone = "board" } }
+		end },
+	{ "a pattern still calling for the word that went", "is not a way of walking a pattern",
+		function(g) g.raw_patterns = { hop = { vectors = { { 1, 2 } }, class = { "mirrored" } } } end },
 	{ "a fan pointing nowhere", 'fan should be "up", "down", "left" or "right"',
 		function(g) g.style_defs = { tiled = { fan = "sideways" } } end },
 	-- A grid places by slot and a fan by order, and a zone wearing both has two

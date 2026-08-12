@@ -911,10 +911,10 @@ one before it. That single idea is all of blocking, leaping and range:
 
 ```json
 "patterns": {
-  "line_ortho":  { "vectors": [[1,0],[0,1]], "class": ["ray", "mirrored"] },
-  "line_diag":   { "vectors": [[1,1]],       "class": ["ray", "mirrored"] },
-  "knight_leap": { "vectors": [[1,2],[2,1]], "class": ["step", "mirrored"] },
-  "adjacent":    { "vectors": [[1,0],[0,1],[1,1]], "class": ["step", "mirrored"] }
+  "line_ortho":  { "vectors": [[1,0],[-1,0],[0,1],[0,-1]], "class": ["ray"] },
+  "line_diag":   { "vectors": [[1,1],[1,-1],[-1,1],[-1,-1]], "class": ["ray"] },
+  "knight_leap": { "vectors": [[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]] },
+  "adjacent":    { "vectors": [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]] }
 }
 ```
 
@@ -924,31 +924,37 @@ one before it. That single idea is all of blocking, leaping and range:
 | `ray` | it repeats until something stops it |
 | `ray:n` | …up to n times |
 | `phasing` | nothing on the way stops it |
-| `mirrored` | each axis is negated independently, so one vector stands for its whole family |
-| `absolute` | the pairs are **squares, not directions** — see below |
+| `absolute` | the entries are **squares, not directions** — see below |
 
-A bare list of pairs is shorthand for `"class": ["step"]`. `mirrored` is why
-these lists are short: `[[1,0],[0,1]]` is all four orthogonals and
-`[[1,2],[2,1]]` is the knight's eight.
+A bare list of pairs is shorthand for `"class": ["step"]`. **Every direction is
+written out.** There used to be a `mirrored` word that negated each axis so one
+pair stood for its family; it saved four lines in one game and cost a reader
+working out which eight directions `[1,2]` meant — and it hid a bug, since
+mirroring a zero produced `-0`, which dodged the duplicate check and had rooks
+walking eight rays down four lines.
 
-**Absolute patterns** name cells rather than directions. Nothing in `[1,1]`
-itself can say which is meant, so the pattern says it once for the whole list —
-and since a square belongs to a board rather than to whoever is moving, an
-absolute pattern names its `zone` (or takes the only board):
+**`y` is a rank: `[0,1]` is one square forward, up the board**, and the engine
+flips it for whoever is sitting at the other side. So one pawn template serves
+both colours.
+
+**Absolute patterns** name squares rather than directions, and name them the way
+a player says them. A square belongs to a board rather than to whoever is
+moving, so an absolute pattern names its `zone` (or takes the only board):
 
 ```json
-"home_base":     { "vectors": [[1,1]],       "class": ["absolute"], "zone": "board" },
-"castle_k_path": { "vectors": [[6,8],[7,8]], "class": ["absolute"], "zone": "board" }
+"home_base":     { "vectors": ["a1"],       "class": ["absolute"], "zone": "board" },
+"castle_k_path": { "vectors": ["f1", "g1"], "class": ["absolute"], "zone": "board" }
 ```
 
 `absolute` is a *kind*, not a modifier: there is no path to block and nothing to
-repeat, so `ray`, `phasing` and `mirrored` mean nothing beside it and the
-validator says so. Mixing both kinds in one piece is just two rules —
-`"moves": ["forward", "home_base"]` is "step ahead, or teleport to base".
+repeat, so `ray` and `phasing` mean nothing beside it and the validator says so.
+Mixing both kinds in one piece is just two rules — `"moves": ["forward",
+"home_base"]` is "step ahead, or teleport to base".
 
-**Coordinates are 1-based, and row 1 is the top of the board.** So `[1,1]` is
-the top-left cell: on a chessboard that is a8, not a1, and white's back rank is
-row 8.
+**Every coordinate an author writes starts at the bottom left.** `a1` is the
+near-left corner, `row@target` is a rank counted from the bottom, and
+`place:<who>:<square>` takes a name. The cells are laid out top-down on screen,
+which is `geometry.slot_at`'s business and appears nowhere else.
 
 ### A pattern is also a scope
 

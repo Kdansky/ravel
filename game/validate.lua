@@ -151,11 +151,11 @@ local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tag
 -- How a pattern's vectors are walked. A closed set the engine defines, unlike
 -- card and zone tags, which are the game's own vocabulary — hence the different
 -- word for it in the JSON.
-local PATTERN_CLASSES = { step = true, ray = true, phasing = true, mirrored = true,
+local PATTERN_CLASSES = { step = true, ray = true, phasing = true,
 	absolute = true }
 -- Words that describe how a pattern is *walked*, and so mean nothing once its
 -- pairs are squares rather than directions.
-local WALKING_CLASSES = { step = true, ray = true, phasing = true, mirrored = true }
+local WALKING_CLASSES = { step = true, ray = true, phasing = true }
 -- What may already be standing on a targeted square. See targeting.slot_offered.
 local FILL_WORDS      = { empty = true, enemy = true, open = true, any = true }
 local ROUTE_FIELDS    = { stat = true, zone_empty = true, equals = true, at_least = true,
@@ -952,22 +952,37 @@ function M.check(G)
 			vectors, class = def.vectors, def.class
 			check_fields(where, def, PATTERN_FIELDS)
 		end
-		if type(vectors) ~= "table" or #vectors == 0 then
-			warn('%s: should be a list of [x, y] pairs, like [[1,0],[0,1]]', where)
-		end
-		for _, v in ipairs(type(vectors) == "table" and vectors or {}) do
-			if type(v) ~= "table" or tonumber(v[1]) == nil or tonumber(v[2]) == nil or #v ~= 2 then
-				warn("%s: every direction is a pair of whole numbers — [1,2] means one column across and two rows on", where)
-			elseif tonumber(v[1]) == 0 and tonumber(v[2]) == 0 then
-				warn("%s: [0,0] is not a direction — it never leaves the square it started on", where)
-			end
-		end
 		if class ~= nil and type(class) ~= "table" then
-			warn('%s: "class" should be a list, like ["ray", "mirrored"]', where)
+			warn('%s: "class" should be a list, like ["ray"]', where)
 		end
 		local absolute = false
 		for _, w in ipairs(type(class) == "table" and class or {}) do
 			if tostring(w) == "absolute" then absolute = true end
+		end
+		if type(vectors) ~= "table" or #vectors == 0 then
+			warn(absolute and '%s: should be a list of squares, like ["a1", "h1"]'
+				or '%s: should be a list of [x, y] pairs, like [[1,0],[0,1]]', where)
+		end
+		-- Two different things wear the same field. An absolute pattern names
+		-- squares — places, said the way a player says them — and a relative one
+		-- names directions, which are pairs counted from the piece outwards.
+		local grid = absolute and type(def) == "table" and G.zone_defs[def.zone]
+			and G.zone_defs[def.zone].grid or nil
+		for _, v in ipairs(type(vectors) == "table" and vectors or {}) do
+			if absolute then
+				local col, rank = geometry.square({ grid = grid or { 26, 99 } }, v)
+				if not col then
+					warn('%s: "%s" is not a square — write a column letter and a rank, like "e1"',
+						where, tostring(v))
+				elseif grid and (col > grid[1] or rank > grid[2]) then
+					warn("%s: square '%s' is off '%s', which is %dx%d", where, tostring(v),
+						tostring(def.zone), grid[1], grid[2])
+				end
+			elseif type(v) ~= "table" or tonumber(v[1]) == nil or tonumber(v[2]) == nil or #v ~= 2 then
+				warn("%s: every direction is a pair of whole numbers — [1,2] means one column across and two ranks on", where)
+			elseif tonumber(v[1]) == 0 and tonumber(v[2]) == 0 then
+				warn("%s: [0,0] is not a direction — it never leaves the square it started on", where)
+			end
 		end
 		for _, w in ipairs(type(class) == "table" and class or {}) do
 			local word, arg = tostring(w):match("^([%a_]+):?(%d*)$")

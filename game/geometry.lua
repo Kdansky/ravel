@@ -27,47 +27,57 @@ function M.square(z, name)
 	if not letters then return nil end
 	local col = 0
 	for i = 1, #letters do col = col * 26 + (letters:byte(i) - 96) end
-	local rows = z.grid[2]
-	return col, rows - tonumber(rank) + 1
+	return col, tonumber(rank)
 end
 
 function M.slot_named(z, name)
-	local col, row = M.square(z, name)
-	return col and M.slot_at(z, col, row) or nil
+	local col, rank = M.square(z, name)
+	return col and M.slot_at(z, col, rank) or nil
 end
 
-function M.slot_at(z, col, row)
+-- **The one place a rank becomes a row.** Everything above this line counts
+-- from the bottom-left, the way a player reads a board; the cells themselves
+-- are laid out top-down because that is the order they are drawn in. Keeping
+-- the conversion to a single function is what stops the two being confused,
+-- which they were: castling once put the white king on g8 because a rank was
+-- passed where a row was wanted, and the file still validated.
+function M.slot_at(z, col, rank)
 	local cols, rows = z.grid[1], z.grid[2]
-	if col < 1 or col > cols or row < 1 or row > rows then return nil end
+	if col < 1 or col > cols or rank < 1 or rank > rows then return nil end
+	local row = rows + 1 - rank
 	return z.slots[(row - 1) * cols + col]
 end
 
 -- Which way "forward" points for a seat, so one pawn template serves both
--- colours. Rows count downward from the top of the board and the first seat
--- sits nearest the viewer, so it advances toward row 1.
+-- colours. The first seat sits nearest the viewer and advances up the board,
+-- which is now +1: a vector's y is a rank, and ranks grow away from you.
 --
 -- Only a two-seat board has an honest answer here. A game with four players
 -- around a table has no shared notion of forward at all, and rather than
--- invent one this returns "away from the top" for everyone else — such games
--- should write their vectors out per seat instead of leaning on this.
+-- invent one this returns "away from the bottom" for everyone else — such
+-- games should write their vectors out per seat instead of leaning on this.
 function M.facing(seat, seat_list)
-	return seat_list[1] == seat and -1 or 1
+	return seat_list[1] == seat and 1 or -1
 end
 
--- A piece's rank: its row counted from its *owner's* own side, so the home row
--- is 2 for both colours and the far side is 8 for both. Stamped onto the piece
--- by zones as it takes a square.
-function M.rank(z, row, facing)
-	return facing < 0 and (z.grid[2] + 1 - row) or row
+-- A piece's rank counted from its *owner's* own side, given one counted from
+-- the bottom of the board: the home rank is 2 for both colours and the far side
+-- is 8 for both. Stamped onto the piece by zones as it takes a square.
+function M.rank(z, rank, facing)
+	return facing < 0 and (z.grid[2] + 1 - rank) or rank
 end
 
 -- The named squares of an absolute pattern. No anchor, no facing, no walking:
 -- the pairs are cells, so there is no path to be blocked and nothing to repeat.
+-- An absolute pattern names squares the way a player says them: "e1", not a
+-- column and a row counted from the top corner. The row a grid indexes by and
+-- the rank a person counts are not the same number, and every place the two met
+-- was a place to get it backwards — this file is now the only one that knows.
 function M.squares(pat, z)
 	local out = {}
 	if not (z and z.grid) then return out end
 	for _, v in ipairs(pat.vectors or {}) do
-		local sid = M.slot_at(z, v[1], v[2])
+		local sid = M.slot_named(z, v)
 		if sid then out[#out + 1] = sid end
 	end
 	return out
@@ -90,6 +100,10 @@ function M.reach(from_id, pat, facing)
 	-- the longest side, and this is also what keeps an unbounded range finite.
 	local limit = math.min(pat.range or 1, math.max(z.grid[1], z.grid[2]))
 	local out, seen = {}, {}
+	-- A direction is written from the near edge outwards: [0,1] is one square
+	-- forward — up the board, whoever is looking — and forward is a bigger
+	-- rank. Which cell that is on a screen is slot_at's problem and nobody
+	-- else's.
 	for _, v in ipairs(pat.vectors or {}) do
 		local dx, dy   = v[1], v[2] * (facing or 1)
 		local col, row = from.stats.col, from.stats.row

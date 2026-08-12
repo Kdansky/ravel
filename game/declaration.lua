@@ -137,17 +137,24 @@ M.KNOWN_SECTIONS = KNOWN_SECTIONS
 -- walked. The bare form is a list of pairs and means "these squares, one step",
 -- which is much the commonest; the long form adds the class list.
 --
---   "adjacent":   [[1,0],[0,1],[1,1]]
---   "line_ortho": { "vectors": [[1,0],[0,1]], "class": ["ray", "mirrored"] }
+--   "adjacent":   [[1,0],[-1,0],[0,1],[0,-1]]
+--   "line_ortho": { "vectors": [[1,0],[-1,0],[0,1],[0,-1]], "class": ["ray"] }
 --
 -- Class words: "step" (once, the default), "ray" (repeat until stopped),
--- "ray:n" (up to n times), "phasing" (nothing on the way stops it), "mirrored"
--- (negate each axis independently, so one vector stands for its whole family).
+-- "ray:n" (up to n times), "phasing" (nothing on the way stops it). Every
+-- direction is written out: a "mirrored" word used to negate each axis and let
+-- one vector stand for its family, and it went because four saved pairs are
+-- not worth a reader working out which eight directions [1,2] meant — nor the
+-- bug it hid, where mirroring a zero produced "-0" and dodged the dedupe, so
+-- a rook walked eight rays down four lines.
+--
+-- **y is a rank: [0,1] is one square forward, up the board.** The grid draws
+-- its rows top-down, which is geometry's business and nobody else's.
 -- The coordinate pairs are the only nested arrays the schema allows outside a
 -- per_seat "pos", and they are the same category: a list of coordinates.
 --
--- "absolute" makes the pairs *squares* rather than directions — [1,1] is the
--- top-left cell, not "one across and one on". Nothing in the pair itself can
+-- "absolute" makes the entries *squares* rather than directions, and then they
+-- are written the way a player says them — "e1", not a pair. Nothing in the pair itself can
 -- say which is meant, so the pattern says it: one label for the whole list,
 -- rather than a marker repeated in every entry. It is a kind, not a modifier,
 -- so walking words mean nothing beside it and the validator says so.
@@ -176,9 +183,7 @@ local function normalise_pattern(def)
 	local function add(dx, dy)
 		-- A zero vector never leaves the square it started on; dropping it here
 		-- keeps the walk from having to defend against a pattern that goes
-		-- nowhere. Mirroring also generates duplicates ([1,0] mirrors onto
-		-- itself twice), so the same guard dedupes. An absolute [0,0] is off the
-		-- board rather than a non-move, and is dropped by the same line.
+		-- nowhere, and the same guard drops a direction written twice.
 		if dx == 0 and dy == 0 then return end
 		local k = dx .. "," .. dy
 		if seen[k] then return end
@@ -186,15 +191,14 @@ local function normalise_pattern(def)
 		p.vectors[#p.vectors + 1] = { dx, dy }
 	end
 	for _, v in ipairs(type(vectors) == "table" and vectors or {}) do
-		local dx, dy = tonumber(type(v) == "table" and v[1]), tonumber(type(v) == "table" and v[2])
-		if dx and dy then
-			if p.class.mirrored then
-				for _, sx in ipairs({ 1, -1 }) do
-					for _, sy in ipairs({ 1, -1 }) do add(dx * sx, dy * sy) end
-				end
-			else
-				add(dx, dy)
-			end
+		if p.absolute then
+			-- A square is a name and stays one. Which cell it is depends on the
+			-- board, and the board is not known here — geometry resolves it,
+			-- which is the only place a rank becomes a row.
+			if type(v) == "string" then p.vectors[#p.vectors + 1] = v end
+		else
+			local dx, dy = tonumber(type(v) == "table" and v[1]), tonumber(type(v) == "table" and v[2])
+			if dx and dy then add(dx, dy) end
 		end
 	end
 	return p

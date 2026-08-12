@@ -262,11 +262,11 @@
     "<your pattern name>": {
       "vectors": [
         [
-          "[dx, dy] pairs. Read as directions applied up to range times, unless the class says absolute, when they are squares. x is the column; y is forward for whoever is moving, so one pawn serves both colours."
+          "[dx, dy] pairs, every direction written out. x is the column and y is a rank — [0,1] is one square forward, up the board — and the engine flips it for a seat sitting at the other side. When the class says absolute these are squares instead, named the way a player says them: \"e1\"."
         ]
       ],
       "class": [
-        "how the vectors are walked: step (once, the default), ray (repeat until stopped), ray:n (up to n times), phasing (nothing on the way stops it), mirrored (negate each axis independently, so one vector stands for its whole family), absolute (the pairs are squares, not directions, and the walking words mean nothing beside it)"
+        "how the vectors are walked: step (once, the default), ray (repeat until stopped), ray:n (up to n times), phasing (nothing on the way stops it), absolute (the entries are squares, not directions, and the walking words mean nothing beside it)"
       ],
       "zone": "the board an absolute pattern names squares on. Relative patterns need none: they are anchored on the moving card."
     }

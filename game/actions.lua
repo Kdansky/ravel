@@ -452,14 +452,14 @@ end
 HANDLERS["place"] = function(p, ctx)
 	local sc = predicate.parse_scope(p[2] or "")
 	local z  = zones.sole_grid()
-	local col, row = tonumber(p[3]), tonumber(p[4])
-	if not (sc and z and col and row) then
-		content_error("place: needs a scope and a column and row, as place:<who>:<col>:<row>")
+	local at = p[3]
+	if not (sc and z and at) then
+		content_error("place: needs a scope and a square, as place:<who>:<square>")
 		return
 	end
-	local slot_id = geometry.slot_at(z, col, row)
+	local slot_id = geometry.slot_named(z, at)
 	if not slot_id then
-		content_error("place: (" .. col .. "," .. row .. ") is off the board")
+		content_error("place: '" .. tostring(at) .. "' is not a square on the board")
 		return
 	end
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
@@ -557,7 +557,7 @@ local SPEC = {
 	move_to           = "zone? occupied?",
 	add_to            = "zone",
 	move_target_to    = "zone",
-	place             = "scope any any",
+	place             = "scope any",
 	gain_stat         = "stat n",
 	lose_stat         = "stat n",
 	spend_stat        = "stat n",

@@ -79,8 +79,12 @@ local function build(def, seat, pos)
 				-- reads it with the vocabulary it already has ("row@target")
 				-- rather than the engine growing a second way to ask for a
 				-- number. Same row-major arithmetic as cell_rect below.
+				-- Counted from the bottom-left, like every other coordinate an
+				-- author writes: "row" is a rank, and a1 is row 1. The index
+				-- above still runs top-down, because that is how the cells are
+				-- laid out on a screen; the two meet here and nowhere else.
 				stats    = { col = (idx - 1) % cols + 1,
-					row = math.floor((idx - 1) / cols) + 1 },
+					row = rows - math.floor((idx - 1) / cols) },
 				place    = { x = 0, y = 0, w = 0, h = 0 },
 			}
 			entity.register(slot)

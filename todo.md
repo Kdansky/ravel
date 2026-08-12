@@ -14,4 +14,8 @@ It would be nice if a player could set their name somehow.
 
 Maybe we need a menu where settings can be adjusted, such as the player name? This might be tricky.
 
-En passant for chess?
+En passant for chess
+
+ So, let's try a big one: Write an .md file that writes down the rules of Legends of Runeterra. Then read it, and see if it's correct. If
+  necessary, repeat this until it's satisfying. Copy down two relatively simple decks with all their card's texts. I want to implement LoR
+  instead of MTG, purely because it's more streamlined and MTG is full of annoying edge cases.
