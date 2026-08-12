@@ -55,7 +55,14 @@ local function find_moves(card_id, rules)
 			for _, name in ipairs(rule.patterns) do
 				local pat = (declaration.G.pattern_defs or {})[name]
 				for _, sid in ipairs(pat and geometry.reach(c.slot_id, pat, facing) or {}) do
-					if not seen[sid] and slot_offered(entity.get(sid), rule.fill, mover) then
+					-- `fill` asks what is standing on the square; `where` asks
+					-- anything else about it, with the square as the target and
+					-- as the anchor for any pattern inside. That is the whole
+					-- difference from `needs`, which is asked once for the rule
+					-- and cannot tell one candidate from another.
+					if not seen[sid] and slot_offered(entity.get(sid), rule.fill, mover)
+						and (rule.where == nil or predicate.meets_all(rule.where,
+							{ card_id = card_id, anchor = sid, targets = { sid } })) then
 						seen[sid]     = true
 						out[#out + 1] = sid
 					end
@@ -114,6 +121,12 @@ end
 -- Where this piece could move, right now. The reach half of `candidates`, with
 -- none of the filtering that decides what a *player* may pick — a condition
 -- asking what the enemy threatens is not choosing anything.
+-- The squares one set of move rules offers, for asking whether an ability has
+-- anywhere to go before offering it.
+function M.moves_by(card_id, rules)
+	return find_moves(card_id, rules)
+end
+
 function M.moves_of(card_id)
 	local e = entity.get(card_id)
 	if not e then return {} end

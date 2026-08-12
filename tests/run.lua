@@ -28,6 +28,7 @@ local json        = require("json")
 local validate    = require("validate")
 local predicate   = require("predicate")
 local geometry    = require("geometry")
+local tags        = require("tags")
 
 local harness = require("harness")
 local check   = harness.check
@@ -137,13 +138,30 @@ eval("set_stat:hp:10")
 eval("gain_stat:hp:3")
 check("hp clamps at declared max", predicate.total("hp") == 10)
 
+-- === the card a player touched last ===
+-- One mark, engine-written, lingering until the next thing a player does. It is
+-- how a rule asks whether something happened *just now* — en passant's window
+-- closes the instant the opponent does anything, which is the actual rule.
+local function marked()
+	local out = {}
+	for e in entity.each("card") do
+		if tags.entity_has(e, "last_acted") then out[#out + 1] = e.id end
+	end
+	return out
+end
+
 -- === demo: undo (state and log together) ===
 local hp_before   = predicate.total("hp")
 local hand_before = zones.find("hand").cards[1]
 local log_before  = log.count()
+local marked_before = marked()[1]
 flow.play_card(hand_before, {})
 check("plays write log lines", log.count() > log_before)
+check("playing a card marks it, and only it",
+	#marked() == 1 and marked()[1] == hand_before)
 check("undo works", flow.undo())
+check("and undo takes the mark back with everything else",
+	marked()[1] == marked_before, tostring(marked()[1]) .. " vs " .. tostring(marked_before))
 check("undo restores hp and hand",
 	predicate.total("hp") == hp_before and zones.find("hand").cards[1] == hand_before)
 check("undo erases the undone log lines", log.count() == log_before)
@@ -2310,13 +2328,15 @@ local function card_named(key)
 		if e.def_key == key and e.zone_id then return e end
 	end
 end
-local function move(from, to)
+-- A piece's ordinary move is its first ability; a pawn has a second for taking
+-- in passing, which the tests reach for by index when they want it.
+local function move(from, to, ability)
 	local p = on(from)
-	return p ~= nil and flow.activate(p.id, { sq(to) })
+	return p ~= nil and flow.activate(p.id, { sq(to) }, ability or 1)
 end
 local function reach(from)
 	local p, out = on(from), {}
-	for _, sid in ipairs(targeting.candidates(p.id, cards.def(p).activate_target)) do
+	for _, sid in ipairs(targeting.moves_of(p.id)) do
 		local s = entity.get(sid)
 		out[#out + 1] = string.char(96 + s.stats.col) .. tostring(s.stats.row)
 	end
@@ -2374,7 +2394,7 @@ board = zones.find("board")
 move("e2", "e4"); move("d7", "d5")
 
 local victim = on("d5")
-targeting.start(on("e4").id, cards.def(on("e4")).activate_target, "activate")
+targeting.start(on("e4").id, cards.abilities(on("e4"))[1].target, "activate")
 check("the square under an enemy is eligible, but the enemy card itself is not",
 	targeting.is_eligible(victim.slot_id) and targeting.is_eligible(victim.id) == false)
 check("so aiming at the piece resolves to the square it stands on",
@@ -2382,7 +2402,7 @@ check("so aiming at the piece resolves to the square it stands on",
 targeting.clear()
 
 -- The two things aim must not do.
-targeting.start(on("e4").id, cards.def(on("e4")).activate_target, "activate")
+targeting.start(on("e4").id, cards.abilities(on("e4"))[1].target, "activate")
 check("the acting card still answers as itself, so clicking it cancels",
 	targeting.aim(targeting.card_id) == targeting.card_id)
 local empty = geometry.slot_named(board, "e4")
@@ -2544,6 +2564,75 @@ do
 	end
 	check("choosing a knight", flow.play_card(pick, {}))
 	check("and a knight is what stands there", at("h1") == "black knight")
+end
+
+-- === en passant ===
+-- Two engine ideas and no chess knowledge. `last_acted` is the card a player
+-- touched last, which closes the window the instant the opponent does anything
+-- — the actual rule, where a phase that swept the flag would have been an
+-- approximation. `where` asks about the square being *considered*, which `fill`
+-- could not: it knows occupancy and nothing else.
+do
+	flow.init("chess.json", 1)
+	board = zones.find("board")
+	local function ep_squares(from)
+		for _, u in ipairs(flow.usable_abilities(on(from).id)) do
+			if u.ability.key == "en_passant" then
+				return #targeting.moves_by(on(from).id, u.ability.moves)
+			end
+		end
+		return 0
+	end
+
+	move("e2", "e4"); move("g8", "f6")
+	move("e4", "e5"); move("d7", "d5")
+	check("the pawn that ran is the one a player touched last",
+		require("tags").entity_has(on("d5"), "last_acted"))
+	check("so the pawn beside it is offered the square it ran through",
+		ep_squares("e5") == 1)
+	check("and its ordinary moves are still its own", reach("e5") == "d6 e6 f6")
+
+	check("taking in passing", move("e5", "d6", 2))
+	check("the pawn stands on the empty square it took", at("d6") == "white pawn")
+	check("and the pawn that ran past is gone, from a square it never touched",
+		on("d5") == nil and #board.cards == 31)
+end
+
+do
+	-- The window is one move wide, and closes on *anything* the opponent does.
+	flow.init("chess.json", 1)
+	board = zones.find("board")
+	local function offered(from)
+		for _, u in ipairs(flow.usable_abilities(on(from).id)) do
+			if u.ability.key == "en_passant" then
+				return #targeting.moves_by(on(from).id, u.ability.moves) > 0
+			end
+		end
+		return false
+	end
+	move("e2", "e4"); move("g8", "f6"); move("e4", "e5"); move("d7", "d5")
+	check("offered the moment the pawn runs", offered("e5"))
+	move("g1", "f3"); move("f6", "g8")
+	check("and gone once white has done something else", offered("e5") == false)
+end
+
+do
+	-- The clause that looks like decoration. A pawn that stepped *one* square
+	-- sits exactly where a pawn that ran two would, relative to a taker one rank
+	-- further on — so without "rank@behind equals 4" this position offers an
+	-- illegal capture.
+	flow.init("chess.json", 1)
+	board = zones.find("board")
+	move("g2", "g4"); move("b8", "c6")
+	move("g4", "g5"); move("c6", "b8")
+	move("g5", "g6"); move("f7", "f6")
+	local offered = false
+	for _, u in ipairs(flow.usable_abilities(on("g6").id)) do
+		if u.ability.key == "en_passant" then
+			offered = #targeting.moves_by(on("g6").id, u.ability.moves) > 0
+		end
+	end
+	check("a pawn that stepped one square cannot be taken in passing", offered == false)
 end
 
 -- === check, as a question the game file asks ===

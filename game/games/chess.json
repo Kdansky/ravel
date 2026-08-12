@@ -37,7 +37,8 @@
     "w_rook_h_home": { "vectors": ["h1"], "class": ["absolute"], "zone": "board" },
     "b_king_home": { "vectors": ["e8"], "class": ["absolute"], "zone": "board" },
     "b_rook_a_home": { "vectors": ["a8"], "class": ["absolute"], "zone": "board" },
-    "b_rook_h_home": { "vectors": ["h8"], "class": ["absolute"], "zone": "board" }
+    "b_rook_h_home": { "vectors": ["h8"], "class": ["absolute"], "zone": "board" },
+    "behind": { "vectors": [[0, -1]] }
   },
   "zones": [
     {
@@ -148,26 +149,46 @@
       "key": "pawn",
       "text": "Pawn",
       "asset": "pawn",
-      "tooltip": "One square forward, two from its home rank, and it takes diagonally. Reaching the far rank, it becomes a piece of your choosing.",
+      "tooltip": "One square forward, two from its home rank, and it takes diagonally. It may take a pawn that has just run past it, as if it had not. Reaching the far rank, it becomes a piece of your choosing.",
       "tags": ["piece", "pawn"],
       "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": [
-          { "patterns": ["pawn_step"], "fill": "empty" },
-          {
-            "patterns": ["pawn_run"],
-            "fill": "empty",
-            "needs": { "rank@self": { "equals": 2 } }
-          },
-          { "patterns": ["pawn_take"], "fill": "enemy" }
-        ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "resolve_challenge"]
-      },
       "challenge": {
         "needs": { "rank@self": { "equals": 8 } },
         "pass": ["options:to_queen,to_rook,to_bishop,to_knight"],
         "fail": ["next_phase"]
-      }
+      },
+      "abilities": [
+        {
+          "key": "move",
+          "text": "Move",
+          "moves": [
+            { "patterns": ["pawn_step"], "fill": "empty" },
+            {
+              "patterns": ["pawn_run"],
+              "fill": "empty",
+              "needs": { "rank@self": { "equals": 2 } }
+            },
+            { "patterns": ["pawn_take"], "fill": "enemy" }
+          ],
+          "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "resolve_challenge"]
+        },
+        {
+          "key": "en_passant",
+          "text": "Take in passing",
+          "moves": [
+            {
+              "patterns": ["pawn_take"],
+              "fill": "empty",
+              "where": {
+                "tagged:last_acted@behind": 1,
+                "tagged:pawn@behind": 1,
+                "rank@behind": { "equals": 4 }
+              }
+            }
+          ],
+          "action": ["move_to:target", "destroy:behind", "gain_stat:moves_made@self:1", "next_phase"]
+        }
+      ]
     },
     {
       "key": "rook",
@@ -237,11 +258,11 @@
       "tags": ["castling"],
       "play": {
         "needs": {
-          "count:king@w_king_home": { "equals": 1 },
           "moves_made@w_king_home": { "equals": 0 },
-          "count:rook@w_rook_a_home": { "equals": 1 },
           "moves_made@w_rook_a_home": { "equals": 0 },
-          "count:piece@w_castle_q_path": { "equals": 0 }
+          "tagged:king@w_king_home": 1,
+          "tagged:rook@w_rook_a_home": 1,
+          "not_tagged:piece@w_castle_q_path": 1
         },
         "action": [
           "gain_stat:moves_made@w_king_home:1",
@@ -259,11 +280,11 @@
       "tags": ["castling"],
       "play": {
         "needs": {
-          "count:king@w_king_home": { "equals": 1 },
           "moves_made@w_king_home": { "equals": 0 },
-          "count:rook@w_rook_h_home": { "equals": 1 },
           "moves_made@w_rook_h_home": { "equals": 0 },
-          "count:piece@w_castle_k_path": { "equals": 0 }
+          "tagged:king@w_king_home": 1,
+          "tagged:rook@w_rook_h_home": 1,
+          "not_tagged:piece@w_castle_k_path": 1
         },
         "action": [
           "gain_stat:moves_made@w_king_home:1",
@@ -281,11 +302,11 @@
       "tags": ["castling"],
       "play": {
         "needs": {
-          "count:king@b_king_home": { "equals": 1 },
           "moves_made@b_king_home": { "equals": 0 },
-          "count:rook@b_rook_a_home": { "equals": 1 },
           "moves_made@b_rook_a_home": { "equals": 0 },
-          "count:piece@b_castle_q_path": { "equals": 0 }
+          "tagged:king@b_king_home": 1,
+          "tagged:rook@b_rook_a_home": 1,
+          "not_tagged:piece@b_castle_q_path": 1
         },
         "action": [
           "gain_stat:moves_made@b_king_home:1",
@@ -303,11 +324,11 @@
       "tags": ["castling"],
       "play": {
         "needs": {
-          "count:king@b_king_home": { "equals": 1 },
           "moves_made@b_king_home": { "equals": 0 },
-          "count:rook@b_rook_h_home": { "equals": 1 },
           "moves_made@b_rook_h_home": { "equals": 0 },
-          "count:piece@b_castle_k_path": { "equals": 0 }
+          "tagged:king@b_king_home": 1,
+          "tagged:rook@b_rook_h_home": 1,
+          "not_tagged:piece@b_castle_k_path": 1
         },
         "action": [
           "gain_stat:moves_made@b_king_home:1",

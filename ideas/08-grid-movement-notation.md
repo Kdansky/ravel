@@ -6,8 +6,10 @@ of *why* directions beat destinations, and the **Build order** at the end of thi
 file marks each step's state and what building it taught. Check shipped as the
 `@reach` scope and **promotion** as the `become` action — the latter needing no
 movement machinery at all, since `rank` was already counted from a piece's own
-side. Still open: the scope anchor word (step 3), checkmate and the legality
-filter that goes with it (step 5), en passant.
+side. **En passant shipped** as `where` (a rule about the candidate square — the very
+thing this file deferred for Connect 4 until a second game asked) plus
+`last_acted`. Still open: the scope anchor word for *reading* a neighbourhood
+(step 3), and checkmate with the legality filter that goes with it (step 5).
 
 Three notations for the same five chess pieces, written out so they can be
 compared rather than argued about.

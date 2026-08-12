@@ -25,7 +25,12 @@ local M = {}
 -- The words are separated by "." because ":" cannot be: action strings are
 -- split on colons (actions.lua), so "hp@each:follower" would arrive as two
 -- arguments.
-local FNS    = { count = true, card = true, sum = true, max = true }
+-- "tagged" and "not_tagged" answer a yes/no about a scope and are written as
+-- 1 or 0, because a condition compares numbers. They exist because asking
+-- "is there a pawn on that square" by counting to one reads like arithmetic
+-- about a question that has no arithmetic in it.
+local FNS    = { count = true, card = true, sum = true, max = true,
+	tagged = true, not_tagged = true }
 local QUANTS = { any = true, each = true, random = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
 
@@ -108,10 +113,15 @@ function M.pattern_slots(name, ctx)
 		local z = pat.zone and zones.find(pat.zone) or zones.sole_grid()
 		return geometry.squares(pat, z)
 	end
+	-- Usually anchored on the acting card; a move rule asking about a square it
+	-- is *considering* anchors on that square instead. Facing still comes from
+	-- the mover, so "behind" means behind from where they are looking whichever
+	-- square is being asked about.
 	local c = ctx and ctx.card_id and entity.get(ctx.card_id)
-	if not (c and c.slot_id) then return {} end
-	return geometry.reach(c.slot_id, pat,
-		geometry.facing(tags.owner_of(c) or zones.active_seat(),
+	local from = ctx and ctx.anchor or (c and c.slot_id)
+	if not from then return {} end
+	return geometry.reach(from, pat,
+		geometry.facing(c and tags.owner_of(c) or zones.active_seat(),
 			declaration.G.seat_list or {}))
 end
 
@@ -248,6 +258,9 @@ function M.total(subject, ctx)
 	if not p.scope then
 		if p.fn == "count" then
 			return #tags.find_targets({ p.arg }, { grid = true })
+		elseif p.fn == "tagged" or p.fn == "not_tagged" then
+			local any = #tags.find_targets({ p.arg }, { grid = true }) > 0
+			return (p.fn == "tagged") == any and 1 or 0
 		elseif p.fn == "card" then
 			local n = 0
 			for _, id in ipairs(tags.find_targets({}, { grid = true })) do
@@ -262,6 +275,14 @@ function M.total(subject, ctx)
 		local n = 0
 		for _, e in ipairs(ents) do if tags.entity_has(e, p.arg) then n = n + 1 end end
 		return n
+	elseif p.fn == "tagged" or p.fn == "not_tagged" then
+		-- Any of them, and its exact complement: an empty scope has nothing
+		-- tagged, so it answers no to the first and yes to the second.
+		local any = false
+		for _, e in ipairs(ents) do
+			if tags.entity_has(e, p.arg) then any = true; break end
+		end
+		return (p.fn == "tagged") == any and 1 or 0
 	elseif p.fn == "card" then
 		local n = 0
 		for _, e in ipairs(ents) do if e.def_key == p.arg then n = n + 1 end end

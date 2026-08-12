@@ -956,6 +956,42 @@ near-left corner, `row@target` is a rank counted from the bottom, and
 `place:<who>:<square>` takes a name. The cells are laid out top-down on screen,
 which is `geometry.slot_at`'s business and appears nowhere else.
 
+### Asking about the square you are considering
+
+A move rule's `needs` is asked **once for the rule**, so it cannot tell one
+candidate square from another. `fill` is asked per square but knows only what is
+standing there. `where` is the third: asked per candidate, with that square as
+`@target` **and as the anchor for any pattern inside it**.
+
+```json
+{ "patterns": ["pawn_take"], "fill": "empty",
+  "where": { "tagged:last_acted@behind": 1,
+             "tagged:pawn@behind": 1,
+             "rank@behind": { "equals": 4 } } }
+```
+
+That is en passant: *an empty square I could take onto, with a pawn just behind
+it that a player touched last and that stands on its own fourth rank* — which
+between them mean it has just run two squares past me. `behind` is anchored on
+the square being considered, and its facing still comes from the mover, so the
+same clause serves both colours.
+
+**`tagged:` and `not_tagged:`** answer yes or no about a scope, as 1 or 0:
+`"tagged:pawn@behind": 1` is *there is a pawn there*. Use them rather than
+counting to one — `count:` is for when the number is the point.
+
+### `last_acted` — the card a player touched last
+
+The engine marks whichever card was most recently **played or activated**, one
+at a time, and the mark lingers until the next thing a player does. A zone
+activation clears it: the last thing that happened was not to a card.
+
+That is how a rule asks whether something happened *just now*. En passant's
+window closes the instant the opponent does anything at all, which is the real
+rule — not "at the end of the turn", which is only nearly it.
+
+It rides undo with everything else, being an ordinary stat on the entity.
+
 ### A pattern is also a scope
 
 The same name answers *what is standing there* as readily as *where may I go*,

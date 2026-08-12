@@ -54,6 +54,7 @@ M.ENGINE_TAGS = {
 	activate          = { on = "zone", what = "cards here may use their abilities — without it an ability is unreachable" },
 	optional          = { on = "zone", what = "nothing here ever has to be played, so a gated card stays gated" },
 	page              = { on = "zone", what = "its cards are drawn as full-screen story pages" },
+	last_acted        = { on = "card", what = "the card a player most recently played or activated. Written by the engine, one at a time, and it lingers until the next thing a player does" },
 	hidden            = { on = "zone", what = "not drawn and not clickable — offer zones, fate decks" },
 	-- phases
 	discard_hand = { on = "phase", what = "leaving it discards the unplayed hand; tokens vanish" },
@@ -162,7 +163,7 @@ local ROUTE_FIELDS    = { stat = true, zone_empty = true, equals = true, at_leas
 	at_most = true, ["then"] = true, ends_round = true }
 local END_FIELDS      = { stat = true, zone_empty = true, equals = true, at_least = true,
 	at_most = true, ["then"] = true, fired = true }
-local COMPUTED_FIELDS = { stat = true, less_than = true, less_than_stat = true,
+local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_than_stat = true,
 	at_least = true, equals = true }
 -- The assets table: named pictures, and the only place a picture carries
 -- options. Everything a card's `asset` can spell out inline is legal as a `src`
@@ -340,7 +341,9 @@ function M.check(G)
 		table.sort(names)
 		for _, name in ipairs(names) do
 			local e = M.ENGINE_TAGS[name]
-			if e then
+			-- The engine's own registrations are how some of those words come to
+			-- be readable at all; only a game writing one is a collision.
+			if e and not (type(defs[name]) == "table" and defs[name].injected) then
 				warn("%s '%s' redefines a word the engine already reads on a %s (%s) — pick another name",
 					kind, name, e.on, e.what)
 			end
@@ -440,9 +443,11 @@ function M.check(G)
 				where, p.fn)
 			return
 		end
-		if p.fn == "count" then
+		if p.fn == "count" or p.fn == "tagged" or p.fn == "not_tagged" then
 			if not known_tags[p.arg] then
-				warn("%s: counts the tag '%s', but no card has it%s", where, p.arg, suggest(p.arg, known_tags))
+				warn("%s: %s the tag '%s', but no card has it%s", where,
+					p.fn == "count" and "counts" or "asks about",
+					p.arg, suggest(p.arg, known_tags))
 			end
 		elseif p.fn == "card" then
 			if not G.card_defs[p.arg] then
@@ -881,7 +886,10 @@ function M.check(G)
 	-- Computed tags.
 	for tag, def in pairs(G.computed_tags) do
 		local where = "computed tag '" .. tostring(tag) .. "'"
-		if type(def) ~= "table" then
+		if type(def) == "table" and def.injected then
+			-- The engine's own, over a stat the engine writes: no card declares
+			-- it and none should.
+		elseif type(def) ~= "table" then
 			warn('%s: should be written like { "stat": "hp", "equals": "0" }', where)
 		else
 			check_fields(where, def, COMPUTED_FIELDS)
@@ -1037,6 +1045,10 @@ function M.check(G)
 				warn("%s: a move's fill should be 'empty', 'enemy', 'open' or 'any', not '%s'",
 					where, tostring(rule.fill))
 			end
+			-- Asked of each square the rule offers, with that square as the
+			-- target — so it reads like any other condition, and its subjects
+			-- are checked like any other's.
+			check_map(where .. " where", rule.where)
 		end
 		if def.moves and not def.on_activate then
 			warn("%s: says how it moves but has no on_activate — nothing happens when the square is chosen (usually \"move_to:target\")", where)

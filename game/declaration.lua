@@ -46,6 +46,24 @@ M.MOMENTS = MOMENTS
 -- The entries keep the authored words: cost, target, phases, action, moves.
 -- `text` is what a chooser shows, and only a card with more than one ability
 -- has anything to choose between, so only that card has to write it.
+local function normalise_moves(moves)
+	local out = {}
+	for _, rule in ipairs(type(moves) == "table" and moves or {}) do
+		if type(rule) == "string" then
+			out[#out + 1] = { patterns = { rule }, fill = "open" }
+		elseif type(rule) == "table" then
+			local names = rule.patterns
+			out[#out + 1] = {
+				patterns = type(names) == "table" and names or { names },
+				fill     = rule.fill or "open",
+				needs    = rule.needs,
+				where    = rule.where,
+			}
+		end
+	end
+	return out
+end
+
 local function abilities_of(def, pp, where)
 	local out = {}
 	if type(def.abilities) == "table" and #def.abilities > 0 then
@@ -57,10 +75,18 @@ local function abilities_of(def, pp, where)
 			if type(a) ~= "table" then
 				pp[#pp + 1] = where .. ": ability " .. i .. " should be an object"
 			else
+				-- An ability that says how it moves is asking for the ordinary
+				-- board targeting, exactly as a card with one does: the engine
+				-- writes the spec rather than making every ability repeat it.
+				local rules  = a.moves and normalise_moves(a.moves) or nil
+				local target = a.target
+				if rules and not target then
+					target = { type = "slot", count = 1, moves = rules }
+				end
 				out[#out + 1] = { key = a.key or ("ability_" .. i), text = a.text,
 					tooltip = a.tooltip,
-					cost = a.cost, target = a.target, phases = a.phases,
-					action = a.action, moves = a.moves }
+					cost = a.cost, target = target, phases = a.phases,
+					action = a.action, moves = rules }
 			end
 		end
 	elseif def.on_activate then
@@ -208,22 +234,6 @@ end
 -- may be standing on the square it lands on. A bare string is a rule of its
 -- own, which is what lets a rook be ["line_ortho"] and only the pawn — whose
 -- three rules differ in exactly that — pay for the long form.
-local function normalise_moves(moves)
-	local out = {}
-	for _, rule in ipairs(type(moves) == "table" and moves or {}) do
-		if type(rule) == "string" then
-			out[#out + 1] = { patterns = { rule }, fill = "open" }
-		elseif type(rule) == "table" then
-			local names = rule.patterns
-			out[#out + 1] = {
-				patterns = type(names) == "table" and names or { names },
-				fill     = rule.fill or "open",
-				needs    = rule.needs,
-			}
-		end
-	end
-	return out
-end
 
 -- Parse a game file into a definition table without touching current state.
 -- Structural problems (typo'd sections, duplicate or missing keys) are
@@ -590,6 +600,11 @@ function M.parse(filename)
 	-- Built-in "turn the page": the reveal actions conjure cards into this
 	-- hidden zone and push this overlay. A game may claim either key to
 	-- override the presentation.
+	-- The engine writes "last_acted" onto whichever card a player touched last,
+	-- so it hands games the word for reading it back rather than making each one
+	-- declare the same computed tag.
+	G.computed_tags.last_acted = { stat = "last_acted", at_least = 1, injected = true }
+
 	-- A card with more than one ability needs something to *show* for each, and
 	-- the offer deals cards. So the engine writes one per ability: a menu entry,
 	-- never dealt or played by a game, carrying the ability's own words and a

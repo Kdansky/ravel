@@ -424,6 +424,30 @@ end
 -- ({ "hp@each.follower": 1 } — each follower must have one to give).
 -- Lives here rather than in cards because it reads the live entity graph and
 -- every caller is a legality gate, and because payment is right below it.
+-- The card a player most recently played or activated. One at a time, and it
+-- lingers until the next thing a player does — which is exactly the window en
+-- passant needs, and closes it the instant the opponent does anything at all
+-- rather than one turn later.
+--
+-- A mark on the card rather than a pointer somewhere, because the question a
+-- rule asks is "is *this* one it" — about the occupant of some square it is
+-- considering — and only a mark composes that way. Being an ordinary stat, it
+-- rides undo with everything else: snapshots deep-copy the entities.
+--
+-- Set from the two player intents and nowhere else. Dealing, drawing and an
+-- automatic phase's actions are not somebody acting, and would clobber it
+-- between turns.
+local function mark_acted(card_id)
+	for e in entity.each("card") do
+		if e.stats and e.stats.last_acted then e.stats.last_acted = nil end
+	end
+	local c = card_id and entity.get(card_id)
+	if c then
+		c.stats = c.stats or {}
+		c.stats.last_acted = 1
+	end
+end
+
 function M.can_afford(cost, ctx)
 	for subject, n in pairs(cost or {}) do
 		-- Tapping, in the MTG sense: the card spends *itself* being ready. A
@@ -555,6 +579,9 @@ function M.play_card(card_id, targets)
 	-- that phase early, since the count survives the pop.
 	if pl and not overlay then pl.stats.plays = (pl.stats.plays or 0) + 1 end
 	if not overlay then pay(def.cost, ctx) end
+	-- A choice taken out of an offer is not a card acting, it is the card that
+	-- opened the offer still acting — so the mark stays where it was.
+	if not overlay then mark_acted(card_id) end
 	if overlay then phase.pop() end
 	local before = phase.current()
 	-- Through behaviour, so a zone can grant what playing a card lying in it
@@ -619,7 +646,12 @@ function M.usable_abilities(card_id)
 	local out = {}
 	for i, a in ipairs(cards.abilities(c)) do
 		if has_ability(a.action) and phase_ok(a.phases)
-			and M.can_afford(a.cost, { card_id = card_id }) then
+			and M.can_afford(a.cost, { card_id = card_id })
+			-- A move that can reach nowhere is not on offer. Without this a
+			-- chooser lists dead entries, and a piece with a conditional move
+			-- looks like it has two things to do when it has one.
+			and (a.target == nil or a.target.moves == nil
+				or #targeting.moves_by(card_id, a.target.moves) > 0) then
 			out[#out + 1] = { index = i, ability = a }
 		end
 	end
@@ -714,6 +746,7 @@ function M.activate(card_id, targets, index)
 	local ctx = { card_id = card_id, targets = targets or {} }
 	if not M.can_afford(a.cost, ctx) then return false end
 	checkpoint()
+	mark_acted(card_id)
 	log.add("Activated " .. (def.text or c.def_key)
 		.. (a.text and #M.usable_abilities(card_id) > 1 and (" — " .. a.text) or ""))
 	pay(a.cost, ctx)
@@ -780,6 +813,10 @@ function M.activate_zone(zone_id)
 	local z   = entity.get(zone_id)
 	local ctx = { zone_id = zone_id }
 	checkpoint()
+	-- A zone is nothing card-shaped, so the last thing a player did was not to a
+	-- card and nothing carries the mark. Leaving a stale one would keep a window
+	-- open through a draw.
+	mark_acted(nil)
 	log.add("Used " .. (z.label or z.key))
 	pay(z.activate_cost, ctx)
 	actions.run(z.on_activate, ctx)

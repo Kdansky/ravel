@@ -728,6 +728,88 @@ card face stencils its art to the rounded shape — plus a synchronous
 
 ---
 
+# En passant, and the two ideas it needed
+
+Neither of them is about chess.
+
+## `last_acted` — the card a player touched last
+
+One mark, engine-written, on whichever card was most recently **played or
+activated**. It lingers until the next thing a player does; a zone activation
+clears it, because the last thing that happened was not to a card.
+
+That is how a rule asks whether something happened *just now*, and it closes en
+passant's window the instant the opponent does anything at all — which is the
+real rule. The design it replaced was an invisible phase between moves that
+swept a flag, and that was only *nearly* the rule as well as being a phase
+nobody would have understood on reading the file.
+
+**A mark on the card, not a pointer somewhere.** The question a rule asks is
+"is *this* one it" — about the occupant of some square it is considering — and
+only a mark composes that way. Being an ordinary stat, it rides undo with
+everything else.
+
+## `where` — a rule about the square being considered
+
+A move rule's `needs` is asked once **for the rule**, so it cannot tell one
+candidate from another. `fill` is asked per square but knows only what is
+standing there. `where` is the third: per candidate, with that square as
+`@target` *and as the anchor for any pattern inside it*.
+
+`ideas/08` had already named this, for Connect 4's gravity — *"anchored on the
+candidate… a rule about the destination itself. Worth noting, not worth building
+until a second game asks."* En passant was the second asker.
+
+## What chess says
+
+```json
+{ "patterns": ["pawn_take"], "fill": "empty",
+  "where": { "tagged:last_acted@behind": 1,
+             "tagged:pawn@behind": 1,
+             "rank@behind": { "equals": 4 } },
+  "action": ["move_to:target", "destroy:behind", "next_phase"] }
+```
+
+`tagged:` and `not_tagged:` came out of writing it: a yes/no about a scope,
+answered as 1 or 0, because asking "is there a pawn there" by counting to one
+reads like arithmetic about a question with no arithmetic in it. Castling's path
+check became `not_tagged:piece@w_castle_k_path` at the same time.
+
+**The clause that looks like decoration is load-bearing.** `rank@behind` was the
+one I tried to cut, reasoning that `moves_made == 1` already implied a double
+step. It does not: a pawn that stepped *one* square sits exactly where a pawn
+that ran two would, relative to a taker one rank further on — white on g6, black
+having just played f7-f6. Without it that position offers an illegal capture,
+and the suite has that position in it.
+
+## Two things the shadow-pawn design would have cost
+
+The alternative considered was a ghost pawn on the skipped square, capturable
+like any piece, destroying its sibling when taken. It was rejected on evidence:
+
+- **It blocks.** `geometry.lua:118` breaks a ray on `occupant`, tags or no tags,
+  so a ghost on e6 stops a rook on e1 seeing e8 — and since `@reach` is the same
+  walk, **a ghost can mask a check**.
+- **Anyone could take it.** A bare pattern gets `fill: "open"` — empty *or
+  enemy* — so a queen could slide onto the ghost and kill the pawn behind it.
+- **Nothing fires when a card dies.** There is no destroy hook; `on_leave` is a
+  phase hook.
+
+Three engine concepts against two, and the two are wanted elsewhere. The deeper
+objection is that a ghost **puts a lie on the board** and the engine then has to
+be taught, one rule at a time, where not to believe it.
+
+## En passant is its own ability
+
+It could not share the pawn's action list: `destroy:behind` after an ordinary
+diagonal capture would destroy whatever stood there, including one's own pawn.
+As a second ability its `where` guarantees what `behind` holds, so the destroy
+needs no guard — and `usable_abilities` now skips an ability whose moves reach
+nowhere, so the chooser appears only when taking in passing is genuinely on
+offer.
+
+---
+
 # Every coordinate starts at the bottom left
 
 `a1` is the near-left corner, everywhere an author writes one.
