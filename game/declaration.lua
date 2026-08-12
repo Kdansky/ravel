@@ -547,6 +547,30 @@ function M.parse(filename)
 	-- Built-in "turn the page": the reveal actions conjure cards into this
 	-- hidden zone and push this overlay. A game may claim either key to
 	-- override the presentation.
+	-- An "options" zone is hidden by its own type rather than by a tag it has to
+	-- remember: an offer that is not open is not on the board, and forgetting to
+	-- say so is how a zone ends up invisible and still clickable.
+	for _, zd in pairs(G.zone_defs) do
+		if zd.type == "options" then
+			zd.tags_set = zd.tags_set or {}
+			zd.tags_set.hidden = true
+		end
+	end
+
+	-- The offer, and the phase that shows it — the same pair "reveal" gets, and
+	-- for the same reason: a game that never mentions either still has one, and
+	-- a game that wants it drawn somewhere else claims the key.
+	if not G.zone_defs.options then
+		G.zone_defs.options = { key = "options", type = "options", injected = true,
+			pos = { 0.24, 0.40, 0.76, 0.62 },
+			tags_set = { hidden = true } }
+		G.zone_list[#G.zone_list + 1] = "options"
+	end
+	if not G.phase_by_key.options then
+		G.phase_by_key.options = { key = "options", type = "overlay", zone = "options",
+			injected = true, tags_set = {} }
+	end
+
 	if not G.zone_defs.reveal then
 		G.zone_defs.reveal = { key = "reveal", type = "hand", injected = true,
 			pos = { 0.22, 0.14, 0.78, 0.88 },

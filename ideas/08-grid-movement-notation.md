@@ -502,11 +502,12 @@ and `rank`, and computed tags work today, unchanged:
 
 That is pawn promotion with no new machinery whatsoever — **and it shipped that
 way.** The detection is exactly the `rank@self` this section predicted; the only
-verb that had to be added was `become:<scope>:<card>`, which swaps a card for
+verb that had to be added was `transform:<scope>:<card>`, which swaps a card for
 another keeping its square, zone and owner, and is a general one (a crowned
-checker, a levelled unit, a flipped tile). The choice of piece is Lost Cities'
-opening question in different clothes: a `per_seat` overlay zone whose four
-cards take their colour from the seat that copy belongs to.
+checker, a levelled unit, a flipped tile). The choice of piece is the engine's
+`options` offer — see [DONE.md](DONE.md) — which deals a card per choice, opens
+over the board, remembers the pawn that asked, and hands it to the chosen card
+as its target. Chess writes `transform:target:queen` and nothing else.
 
 Two things drafting it turned up, both in the engine's favour: `resolve_challenge`
 is the conditional (no new one was needed), and `flow.play_card` **already pops an

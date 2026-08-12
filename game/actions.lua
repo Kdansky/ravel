@@ -339,6 +339,54 @@ HANDLERS["reveal"] = function(p)
 	phase.push("reveal")
 end
 
+-- options:<source>  — offer a choice. The source is either a zone, whose cards
+-- name the choices, or a comma-separated list of card keys. Either way a fresh
+-- card is dealt per choice into the offer, and the overlay opens.
+--
+-- The offer remembers **who asked**, because a choice is almost always about
+-- something: a pawn asking what to become, a unit asking what to build. The
+-- chosen card is played with the asker as its target, so it says
+-- "transform:target:queen" and needs no marker stat to find it again.
+--
+-- Whatever is left in the offer is cleared when the choice is made — an offer
+-- outlives its question by nothing. That also keeps the board free of invisible
+-- cards, which is its own class of bug.
+HANDLERS["options"] = function(p, ctx)
+	local zone_id = zones.find_id("options")
+	if not zone_id then
+		content_error("options: this game has no options zone")
+		return
+	end
+	local src, keys = p[2] or "", {}
+	local from = zones.find(src)
+	if from then
+		for _, cid in ipairs(from.cards) do keys[#keys + 1] = entity.get(cid).def_key end
+	else
+		for key in src:gmatch("[^,]+") do keys[#keys + 1] = key end
+	end
+	if #keys == 0 then
+		content_error("options: '" .. src .. "' names no zone and no cards")
+		return
+	end
+	-- A choice about my piece is my choice, and wears my colours: the offer's
+	-- cards take the asker's owner, so a named asset with one picture per player
+	-- draws them the way the player expects without the game saying anything.
+	local asker = ctx and ctx.card_id and entity.get(ctx.card_id)
+	local owner = asker and asker.stats and asker.stats.owner
+	for _, key in ipairs(keys) do
+		if declaration.G.card_defs[key] then
+			local made = cards.create(key, zone_id)
+			if owner then made.stats.owner = owner end
+		else
+			content_error("options: no card is called '" .. tostring(key) .. "'")
+		end
+	end
+	-- On the zone rather than in a module local, so it survives undo with
+	-- everything else: entities are what snapshot and restore copy.
+	entity.get(zone_id).asked_by = ctx and ctx.card_id or nil
+	phase.push("options")
+end
+
 -- reveal_top:zone  — turn over the top card of a (usually hidden, shuffled)
 -- deck into the page overlay: a secret outcome decided by the shuffle.
 HANDLERS["reveal_top"] = function(p)
@@ -419,7 +467,7 @@ HANDLERS["place"] = function(p, ctx)
 	end
 end
 
--- become:<scope>:<card>  — replace each card in scope with a new one of that
+-- transform:<scope>:<card>  — replace each card in scope with a new one of that
 -- key, standing where it stood and belonging to whoever it belonged to.
 --
 -- A general verb rather than a promotion-shaped one: a pawn reaching the far
@@ -427,10 +475,10 @@ end
 -- up are the same sentence. What carries over is *placement* — the square, the
 -- zone, the owner — and nothing else, because the new card is a different card
 -- and its numbers are its own.
-HANDLERS["become"] = function(p, ctx)
+HANDLERS["transform"] = function(p, ctx)
 	local key = p[3]
 	if not declaration.G.card_defs[key] then
-		content_error("become: no card is called '" .. tostring(key) .. "'")
+		content_error("transform: no card is called '" .. tostring(key) .. "'")
 		return
 	end
 	local sc = predicate.parse_scope(p[2] or "self")
@@ -514,7 +562,7 @@ local SPEC = {
 	lose_stat         = "stat n",
 	spend_stat        = "stat n",
 	set_stat          = "stat n",
-	become            = "scope card",
+	transform         = "scope card",
 	attach_to_target  = "",
 	net_invite        = "",
 	net_join          = "",
@@ -528,6 +576,7 @@ local SPEC = {
 	load_game         = "gamefile",
 	destroy           = "scope",
 	destroy_self      = "",
+	options           = "any",
 	reveal            = "card",
 	reveal_top        = "zone",
 	gain              = "card n",

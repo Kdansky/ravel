@@ -2421,18 +2421,16 @@ do
 
 	move("a7", "b8")
 	check("landing on the eighth rank asks the question instead of ending the turn",
-		phase.current().key == "promote" and at("b8") == "white pawn")
+		phase.current().key == "options" and at("b8") == "white pawn")
 
-	local offer = zones.find("promote")
-	check("the offer is the promoting player's own, four pieces of it",
-		#offer.cards == 4 and offer.seat == "player_white")
-	-- The choices carry no owner: they are in this seat's copy of the zone, and
-	-- that is what picks the light sprite over the dark one.
-	check("and they are drawn in that player's colour without saying so",
-		entity.get(offer.cards[1]).stats.owner == nil
-		and require("tags").owner_of(entity.get(offer.cards[1])) == "player_white")
-	check("the other seat's offer is not playable",
-		flow.can_play(zones.find("promote", "enemy").cards[1]) == false)
+	local offer = zones.find("options")
+	check("four choices, dealt because they were asked for", #offer.cards == 4)
+	check("and the offer remembers the pawn that asked",
+		offer.asked_by == on("b8").id)
+	-- Which is also what makes them the right colour: a named asset takes one
+	-- picture per player, and these belong to whoever is promoting.
+	check("its cards wear the asker's colours without the game saying so",
+		entity.get(offer.cards[1]).stats.owner == 1)
 
 	local pick
 	for _, id in ipairs(offer.cards) do
@@ -2443,9 +2441,8 @@ do
 		at("b8") == "white queen")
 	check("and the turn passes, the overlay having closed itself",
 		phase.current().key == "black_move" and zones.active_seat() == "player_black")
-	check("nothing is left flagged for promotion",
-		predicate.total("count:promoting@mine") == 0
-		and predicate.total("count:promoting@enemy") == 0)
+	check("the offer is empty again and has forgotten what it was for",
+		#zones.find("options").cards == 0 and zones.find("options").asked_by == nil)
 	check("the board did not gain or lose a piece", #board.cards == 30,
 		tostring(#board.cards))
 
@@ -2457,8 +2454,9 @@ do
 	move("h3", "g2"); move("a6", "b7")
 	move("g2", "h1")
 	check("black promotes on its own eighth rank, which is rank one on screen",
-		phase.current().key == "promote" and zones.find("promote").seat == "player_black")
-	for _, id in ipairs(zones.find("promote").cards) do
+		phase.current().key == "options"
+		and entity.get(zones.find("options").cards[1]).stats.owner == 2)
+	for _, id in ipairs(zones.find("options").cards) do
 		if entity.get(id).def_key == "to_knight" then pick = id end
 	end
 	check("choosing a knight", flow.play_card(pick, {}))

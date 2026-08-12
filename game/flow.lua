@@ -524,11 +524,17 @@ function M.play_card(card_id, targets)
 		if #(targets or {}) < lo or #(targets or {}) > hi then return false end
 		if not targets_legal(card_id, def.target, targets) then return false end
 	end
+	local offer   = overlay and zones.find_id(overlay.zone or "hand")
+	-- An offer remembers what it was an offer *for*, and the card chosen is
+	-- played against it. That is what lets a choice act on the thing that asked
+	-- — a pawn becoming a queen — without the game marking it first and hunting
+	-- for the mark afterwards.
+	local asker   = offer and entity.get(offer) and entity.get(offer).asked_by
+	if asker and entity.get(asker) then targets = { asker } end
 	local ctx = { card_id = card_id, targets = targets or {} }
 	-- A cost the targets pay could not be judged before they were chosen.
 	if not overlay and not M.can_afford(def.cost, ctx) then return false end
 	checkpoint()
-	local offer   = overlay and zones.find_id(overlay.zone or "hand")
 	log.add((overlay and "Chose " or "Played ") .. (def.text or c.def_key))
 	local pl = player()
 	-- An overlay is a phase of its own, and the counter that bounds a hand
@@ -543,6 +549,18 @@ function M.play_card(card_id, targets)
 	actions.run(cards.behaviour(c, "on_play"), ctx)
 	if offer and entity.get(card_id) and entity.get(card_id).zone_id == offer then
 		zones.destroy_card(card_id)
+	end
+	-- An offer outlives its question by nothing: the choices not taken go too,
+	-- and the offer forgets what it was for. Leaving them would leave invisible
+	-- cards lying over the board, which is a bug this engine has already had
+	-- once. Only an "options" zone is cleared — a page overlay deals its own
+	-- cards and decides for itself what stays.
+	local oz = offer and entity.get(offer)
+	if oz and oz.zone_type == "options" then
+		local left = {}
+		for i, cid in ipairs(oz.cards) do left[i] = cid end
+		for _, cid in ipairs(left) do zones.destroy_card(cid) end
+		oz.asked_by = nil
 	end
 	if tags.entity_has(c, "no_undo") then
 		history = {}

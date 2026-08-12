@@ -129,13 +129,13 @@ end
 -- What is drawn is what may be clicked. A hidden zone is not drawn, and
 -- `zone_at` has always refused to return one — but the card and slot hit tests
 -- did not, and their cards keep their places whether or not anyone can see
--- them. Chess's promotion offer sits over the middle of the board, so every
--- click in that band hit an invisible card instead of the square underneath:
--- a pawn could step to e3 and never to e4, and the targeting session it left
--- open swallowed everything after it.
+-- them. An offer parked over the middle of the board swallowed every click that
+-- landed in its rectangle: a pawn could step to e3 and never to e4, and the
+-- targeting session it left open ate everything after it.
 --
--- Lost Cities dodged this for a year by destroying its offer's cards when one
--- is chosen, leaving the zone empty. Chess keeps its four for the whole game.
+-- An `options` zone now holds nothing until it is asked for, which removes the
+-- cards there were to click. The rule still has to hold, because a game may
+-- put cards in any hidden zone it likes.
 function M.test_layout_a_hidden_offer_swallows_no_clicks(check)
 	flow.init("chess.json", 1)
 	zones.resize()
@@ -144,10 +144,15 @@ function M.test_layout_a_hidden_offer_swallows_no_clicks(check)
 	local cx    = e4.place.x + e4.place.w * 0.5
 	local cy    = e4.place.y + e4.place.h * 0.5
 
-	local offer = zones.find("promote")
-	check("the promotion offer really does lie over the middle of the board",
+	local offer = zones.find("options")
+	check("the offer lies over the middle of the board, as an offer must",
 		zones.contains(offer.place, cx, cy))
+	check("but holds nothing at all until something asks", #offer.cards == 0)
 
+	-- Ask, so there is something there to be wrongly clickable.
+	require("actions").execute("options:to_queen,to_rook,to_bishop,to_knight",
+		{ card_id = entity.get(board.cards[1]).id })
+	check("and holds the choices once asked", #offer.cards == 4)
 	-- Cards are given places by the renderer; this is the shape of what it gives
 	-- them, and the point is that they have one at all.
 	for _, id in ipairs(offer.cards) do entity.get(id).place = offer.place end
@@ -158,7 +163,7 @@ function M.test_layout_a_hidden_offer_swallows_no_clicks(check)
 		zones.card_at(cx, cy) == nil)
 	check("the offer being open is the one thing that makes it reachable",
 		zones.card_at(cx, cy, offer.id) == offer.cards[#offer.cards])
-	check("and then it is the offer that answers, not the board beneath",
+	check("and the board beneath still answers for its own squares",
 		zones.slot_at(cx, cy, offer.id) == e4.id)
 end
 

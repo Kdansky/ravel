@@ -170,7 +170,7 @@ local ASSET_FIELDS    = { src = true, max = true }
 -- why they are one block rather than three fields that can be half-written.
 local CHALLENGE_FIELDS = { needs = true, pass = true, fail = true }
 local PATTERN_FIELDS  = { vectors = true, class = true, zone = true }
-local ZONE_TYPES      = { deck = true, pile = true, hand = true, grid = true }
+local ZONE_TYPES      = { deck = true, pile = true, hand = true, grid = true, options = true }
 local PHASE_TYPES     = { automatic = true, player_input = true, draw_and_play = true, overlay = true }
 
 -- The same tables, reachable. Named for the JSON section each belongs to, since
@@ -1151,7 +1151,7 @@ function M.check(G)
 		local where = "zone '" .. key .. "'"
 		check_fields(where, def, ZONE_FIELDS)
 		if def.type and not ZONE_TYPES[def.type] then
-			warn("%s: '%s' is not a zone type (deck, pile, hand or grid)%s",
+			warn("%s: '%s' is not a zone type (deck, pile, hand, grid or options)%s",
 				where, tostring(def.type), suggest(def.type, ZONE_TYPES))
 		end
 		-- A grid puts each card in an addressed slot; a fan lays them in a run.

@@ -59,12 +59,6 @@
       "type": "hand",
       "tags": ["optional"],
       "pos": [0.76, 0.56, 0.97, 0.64]
-    },
-    {
-      "key": "promote",
-      "type": "hand",
-      "tags": ["hidden", "no_peek", "per_seat"],
-      "pos": [[0.3, 0.4, 0.7, 0.6], [0.3, 0.4, 0.7, 0.6]]
     }
   ],
   "phases": [
@@ -107,8 +101,7 @@
         { "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
         { "then": "black_move" }
       ]
-    },
-    { "key": "promote", "type": "overlay", "zone": "promote" }
+    }
   ],
   "end_conditions": [{ "stat": "count:king@taken", "at_least": 1, "then": ["load_game:menu.json"] }],
   "setup": {
@@ -139,10 +132,6 @@
       { "card": "w_castle_k", "owner": "player_white", "zone": "w_options" },
       { "card": "b_castle_q", "owner": "player_black", "zone": "b_options" },
       { "card": "b_castle_k", "owner": "player_black", "zone": "b_options" },
-      { "card": "to_queen", "zone": "promote" },
-      { "card": "to_rook", "zone": "promote" },
-      { "card": "to_bishop", "zone": "promote" },
-      { "card": "to_knight", "zone": "promote" },
       { "card": "how_to_play", "zone": "rules" }
     ]
   },
@@ -155,7 +144,7 @@
       "asset": "pawn",
       "tooltip": "One square forward, two from its home rank, and it takes diagonally. Reaching the far rank, it becomes a piece of your choosing.",
       "tags": ["piece", "pawn", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0, "promotion": 0 },
+      "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": [
           { "patterns": ["pawn_step"], "fill": "empty" },
@@ -170,7 +159,7 @@
       },
       "challenge": {
         "needs": { "rank@self": { "equals": 8 } },
-        "pass": ["set_stat:promotion@self:1", "push_phase:promote"],
+        "pass": ["options:to_queen,to_rook,to_bishop,to_knight"],
         "fail": ["next_phase"]
       }
     },
@@ -335,7 +324,7 @@
       "asset": "queen",
       "tags": ["token"],
       "tooltip": "Promote the pawn to a queen.",
-      "play": { "action": ["become:mine.promoting:queen", "next_phase"] }
+      "play": { "action": ["transform:target:queen", "next_phase"] }
     },
     {
       "key": "to_rook",
@@ -343,7 +332,7 @@
       "asset": "rook",
       "tags": ["token"],
       "tooltip": "Promote the pawn to a rook.",
-      "play": { "action": ["become:mine.promoting:rook", "next_phase"] }
+      "play": { "action": ["transform:target:rook", "next_phase"] }
     },
     {
       "key": "to_bishop",
@@ -351,7 +340,7 @@
       "asset": "bishop",
       "tags": ["token"],
       "tooltip": "Promote the pawn to a bishop.",
-      "play": { "action": ["become:mine.promoting:bishop", "next_phase"] }
+      "play": { "action": ["transform:target:bishop", "next_phase"] }
     },
     {
       "key": "to_knight",
@@ -359,8 +348,7 @@
       "asset": "knight",
       "tags": ["token"],
       "tooltip": "Promote the pawn to a knight.",
-      "play": { "action": ["become:mine.promoting:knight", "next_phase"] }
+      "play": { "action": ["transform:target:knight", "next_phase"] }
     }
-  ],
-  "computed_tags": { "promoting": { "stat": "promotion", "at_least": 1 } }
+  ]
 }

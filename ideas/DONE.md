@@ -728,6 +728,66 @@ card face stencils its art to the rounded shape — plus a synchronous
 
 ---
 
+# Asking a question — the `options` offer
+
+"Choose one of these" is not a chess rule, so it is not chess's to implement.
+The engine has an **offer**: a zone of type `options`, an overlay phase to show
+it, and one action.
+
+```json
+"pass": ["options:to_queen,to_rook,to_bishop,to_knight"]
+```
+
+A card is dealt per choice, the overlay opens, and clicking one plays it.
+Everything left is cleared — an offer outlives its question by nothing, which
+also keeps the board free of invisible cards.
+
+**The source may be a zone instead of a list**, and then the choices are its
+cards: `"options:upgrades"` for a set that varies with the game.
+
+## The offer remembers who asked, and that is the whole trick
+
+The first promotion had the pawn set a `promotion` stat, declared a computed tag
+`promoting` to read it back, and wrote `become:mine.promoting:queen`. Three
+pieces of bookkeeping to answer "which pawn?".
+
+The offer knows. `options` records the asking card on the zone, and flow plays
+the chosen card **with that card as its target**:
+
+```json
+{ "key": "to_queen", "play": { "action": ["transform:target:queen", "next_phase"] } }
+```
+
+The stat and the computed tag are gone from chess. The choices also inherit the
+asker's **owner**, so the per-player asset lookup draws them in the right colour
+with nothing said.
+
+Kept on the *zone entity* rather than in a module local, because entities are
+what `snapshot`/`restore` copy — so it survives undo with everything else.
+
+## `become` is `transform`
+
+Renamed on the way past. It was always the general verb — a crowned checker, a
+levelled unit, a tile turned face up — and `transform` is what that is called.
+
+## An `options` zone is hidden by its type
+
+Not by a tag it has to remember. **An offer that is not open is not on the
+board**, and this is exactly the rule whose absence cost a day: chess's first
+promotion offer was a `hidden` zone holding four cards permanently, parked over
+the middle of the board, and every click that landed in its rectangle hit an
+invisible card. A type cannot be forgotten, and a zone that only holds cards
+while it is open has nothing to swallow them with.
+
+## It is `reveal` with a choice
+
+The pattern was already there: `reveal` injects a hidden zone and an overlay
+phase under one key, fills it, and pushes. `options` is the same pair with more
+than one card and an answer that comes back. Both are overridable by declaring
+a zone with the key, so a game that wants the offer drawn elsewhere says so.
+
+---
+
 # A card that stops being the card it was
 
 Pawn promotion, and the engine learned one verb for it.
@@ -756,7 +816,7 @@ pawn sitting on the eighth rank.
 
 ## The one new verb
 
-`become:<scope>:<card>` — replace each card in scope with a new one of that key,
+`transform:<scope>:<card>` — replace each card in scope with a new one of that key,
 standing on the same square, in the same zone, belonging to the same player.
 Everything else is the new card's own, because it is a different card.
 

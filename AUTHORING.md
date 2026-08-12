@@ -429,7 +429,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | Field | Meaning |
 |---|---|
 | `key`, `label` | Identity and optional on-screen label |
-| `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots). **Stacks are reached from the top**: only the top card of a deck or pile can be played, activated or targeted |
+| `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots), `options` (an offer: empty and unreachable until something asks — see *Asking a question*). **Stacks are reached from the top**: only the top card of a deck or pile can be played, activated or targeted |
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]` for grid zones |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
@@ -1140,6 +1140,43 @@ one word:
 plate behind it" were a field and a tag deciding the same thing; now the plate
 has a colour, or it has none.
 
+### Asking a question
+
+Some moves end in a choice: a pawn reaching the far rank, a builder picking what
+to build. That is one action:
+
+```json
+"challenge": { "needs": { "rank@self": { "equals": 8 } },
+               "pass":  ["options:to_queen,to_rook,to_bishop,to_knight"],
+               "fail":  ["next_phase"] }
+```
+
+`options` deals a card per choice into the **offer** — a zone of type `options`
+— and opens it over the board. Clicking one plays it, and everything left is
+cleared: an offer outlives its question by nothing.
+
+**The offer remembers who asked**, which is the part that saves the game file
+work. The chosen card is played with the asking card as its `target`, so a
+promotion choice is one line and needs no marker stat to find the pawn again:
+
+```json
+{ "key": "to_queen", "text": "Queen", "asset": "queen",
+  "play": { "action": ["transform:target:queen", "next_phase"] } }
+```
+
+The choices also take the asker's **owner**, so a named asset with one picture
+per player draws them in the right colours without the game saying anything.
+
+**The source may be a zone instead of a list** — `"options:upgrades"` offers a
+card per card in that zone, which is how a variable set of choices is written.
+
+**You get the zone and the phase for free.** Both are injected under the key
+`options`, exactly as `reveal` is, and a game that wants the offer drawn
+somewhere else declares its own zone with that key. An `options` zone is hidden
+by its type rather than by a tag it has to remember — an offer that is not open
+is not on the board, and *that* is a rule worth having in the type, because a
+hidden zone holding cards is how clicks go missing.
+
 ### `fan` — a stack you can read
 
 A `pile` draws its top card, because that is what a stack of cards looks like.
@@ -1384,7 +1421,8 @@ lose_stat:score:20:x:count:wager@mine.red            the same product, distribut
 | `set_stat:stat:n` | Set directly (dev/authoring tool; silent) |
 | `gain_stat:<subject>:n` / `lose_stat:<subject>:n` | Change a stat. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |
 | `attach_to_target` | Attach the acting card under the first target |
-| `become:<scope>:<card>` | Replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own |
+| `options:<source>` | Offer a choice and open it. `<source>` is a zone, whose cards name the choices, or a comma-separated list of card keys. The chosen card is played with **the asking card as its target** |
+| `transform:<scope>:<card>` | Replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own |
 | `resolve_challenge` | Ask the card's `challenge`: run its `pass` or its `fail`. The condition is asked with the acting card and its targets in hand, so it may say `@self` and `@target` |
 | `effect:name` | Play a named visual effect on the acting card (headless: skipped) |
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
