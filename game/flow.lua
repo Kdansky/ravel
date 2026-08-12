@@ -688,8 +688,24 @@ function M.offer_abilities(card_id)
 		local made = cards.create(u.ability.menu_card, zone_id)
 		if owner then made.stats.owner = owner end
 	end
-	entity.get(zone_id).asked_by = card_id
+	local z = entity.get(zone_id)
+	z.asked_by = card_id
+	-- A chooser opened by clicking a card is a question asked before anything
+	-- has happened, so it may be declined and the click taken back. An offer the
+	-- *rules* opened — promotion, after the pawn has already moved — may not:
+	-- there is no state to return to, and a pawn cannot stay a pawn on the far
+	-- rank.
+	z.dismissable = true
 	phase.push("options")
+	return true
+end
+
+-- Decline an offer that may be declined. Answers whether it did, so an input
+-- layer can fall through to whatever a right-click otherwise means.
+function M.dismiss_offer()
+	local z = zones.find("options")
+	if not (z and z.dismissable and phase.is_overlay()) then return false end
+	M.close_offer()
 	return true
 end
 
@@ -717,7 +733,7 @@ function M.close_offer()
 	local left = {}
 	for i, cid in ipairs(z.cards) do left[i] = cid end
 	for _, cid in ipairs(left) do zones.destroy_card(cid) end
-	z.asked_by = nil
+	z.asked_by, z.dismissable = nil, nil
 	if phase.is_overlay() then phase.pop() end
 end
 

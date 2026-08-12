@@ -1276,6 +1276,12 @@ per player draws them in the right colours without the game saying anything.
 **The source may be a zone instead of a list** — `"options:upgrades"` offers a
 card per card in that zone, which is how a variable set of choices is written.
 
+**An offer you asked for can be declined.** Right-click or Escape closes a
+chooser opened by clicking a card — nothing has happened yet, so taking the
+click back costs nothing. An offer the *rules* opened stays: promotion appears
+after the pawn has already moved, and there is no state to return it to. The
+engine draws that line itself, by which side opened the offer.
+
 **You get the zone and the phase for free.** Both are injected under the key
 `options`, exactly as `reveal` is, and a game that wants the offer drawn
 somewhere else declares its own zone with that key. An `options` zone is hidden

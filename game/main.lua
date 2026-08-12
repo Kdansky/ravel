@@ -283,6 +283,7 @@ function love.keypressed(key)
 	if key == "escape" then
 		if render.get_detail() then
 			render.set_detail(nil)
+		elseif flow.dismiss_offer() then     -- same as a right-click
 		elseif targeting.active() then
 			cancel_targeting()
 		end
@@ -307,6 +308,10 @@ function love.mousepressed(x, y, button)
 	if button == 2 then
 		if render.get_detail() then
 			render.set_detail(nil)
+		-- A chooser is a question, and a question you were not obliged to ask
+		-- can be taken back. One the rules opened stays put and this falls
+		-- through, so the cards in it can still be inspected.
+		elseif flow.dismiss_offer() then     -- nothing else: the offer is gone
 		elseif targeting.active() then
 			if targeting.can_confirm() then confirm_targeting() else cancel_targeting() end
 		else

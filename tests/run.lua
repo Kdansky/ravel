@@ -2611,6 +2611,38 @@ do
 	check("and a knight is what stands there", at("h1") == "black knight")
 end
 
+-- === an offer you asked for may be declined ===
+-- Clicking a card to see what it can do is a question, and a question can be
+-- taken back: nothing has happened yet. An offer the *rules* opened is not the
+-- same thing — promotion appears after the pawn has already moved, and there is
+-- no state to return it to.
+do
+	flow.init("chess.json", 1)
+	board = zones.find("board")
+	move("e2", "e4"); move("e7", "e5")
+	move("f1", "c4"); move("f8", "c5")
+	move("g1", "f3"); move("g8", "f6")
+
+	check("the king offers a chooser", flow.offer_abilities(on("e1").id)
+		and phase.current().key == "options")
+	check("which can be declined", flow.dismiss_offer())
+	check("and declining costs nothing at all",
+		phase.current().key == "white_move" and zones.active_seat() == "player_white"
+		and on("e1") ~= nil and on("e1").stats.moves_made == 0
+		and #zones.find("options").cards == 0)
+
+	-- Promotion, which may not be.
+	flow.init("chess.json", 1)
+	board = zones.find("board")
+	move("b2", "b4"); move("g8", "f6"); move("b4", "b5"); move("f6", "g8")
+	move("b5", "b6"); move("g8", "f6"); move("b6", "a7"); move("f6", "g8")
+	move("a7", "b8")
+	check("a promotion offer is open", phase.current().key == "options")
+	check("and refuses to be declined, the pawn having already moved",
+		flow.dismiss_offer() == false and phase.current().key == "options"
+		and #zones.find("options").cards == 4)
+end
+
 -- === en passant ===
 -- Two engine ideas and no chess knowledge. `last_acted` is the card a player
 -- touched last, which closes the window the instant the opponent does anything
