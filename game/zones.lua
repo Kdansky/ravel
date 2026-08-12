@@ -434,4 +434,45 @@ function M.zone_at(x, y)
 	return result
 end
 
+-- What is drawn is what may be clicked, and the three hit tests have to agree
+-- about that or the board grows places where clicks disappear.
+--
+-- A hidden zone is not drawn, so it is not clickable — `zone_at` above has
+-- always said so, and these two did not. Their cards and slots still have
+-- places, so an offer zone parked over the middle of the board swallowed every
+-- click that landed in its rectangle while showing nothing. `open_id` is the
+-- one exception: an overlay draws its own zone over the dim, and that zone is
+-- clickable exactly while it is.
+--
+-- A hidden zone with no `pos` sits off-screen (declaration's DEFAULT_POS), which
+-- is why this went unnoticed: only a zone that overrides that — an overlay,
+-- which must be somewhere visible when it opens — can cover anything.
+local function reachable(z, open_id)
+	return not z.tags.hidden or z.id == open_id
+end
+
+function M.card_at(x, y, open_id)
+	local result
+	for z in entity.each("zone") do
+		if z.zone_type ~= "deck" and reachable(z, open_id) and M.contains(z.place, x, y) then
+			-- Last match wins, and a fan is drawn in order, so a click in the
+			-- overlap lands on the card actually showing there.
+			local list = z.zone_type == "pile" and not z.style.fan
+				and { z.cards[#z.cards] } or z.cards
+			for _, cid in ipairs(list) do
+				local c = entity.get(cid)
+				if c and c.place and M.contains(c.place, x, y) then result = cid end
+			end
+		end
+	end
+	return result
+end
+
+function M.slot_at(x, y, open_id)
+	for e in entity.each("slot") do
+		local z = e.zone_id and entity.get(e.zone_id)
+		if z and reachable(z, open_id) and M.contains(e.place, x, y) then return e.id end
+	end
+end
+
 return M

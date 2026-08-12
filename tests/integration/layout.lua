@@ -9,6 +9,7 @@ local entity = require("entity")
 local zones = require("zones")
 local flow = require("flow")
 local validate = require("validate")
+local geometry = require("geometry")
 
 local M = {}
 
@@ -123,6 +124,42 @@ function M.test_layout_a_ratio_is_checked(check)
 		has(fixture(BOARD, '{ "ratio": -2 }'), "ratio should be a positive number"))
 	check("and a style may not carry a rule",
 		has(fixture(BOARD, '{ "ratio": 1, "cost": { "gold": 1 } }'), "the engine doesn't read"))
+end
+
+-- What is drawn is what may be clicked. A hidden zone is not drawn, and
+-- `zone_at` has always refused to return one — but the card and slot hit tests
+-- did not, and their cards keep their places whether or not anyone can see
+-- them. Chess's promotion offer sits over the middle of the board, so every
+-- click in that band hit an invisible card instead of the square underneath:
+-- a pawn could step to e3 and never to e4, and the targeting session it left
+-- open swallowed everything after it.
+--
+-- Lost Cities dodged this for a year by destroying its offer's cards when one
+-- is chosen, leaving the zone empty. Chess keeps its four for the whole game.
+function M.test_layout_a_hidden_offer_swallows_no_clicks(check)
+	flow.init("chess.json", 1)
+	zones.resize()
+	local board = zones.find("board")
+	local e4    = entity.get(geometry.slot_at(board, 5, 5))
+	local cx    = e4.place.x + e4.place.w * 0.5
+	local cy    = e4.place.y + e4.place.h * 0.5
+
+	local offer = zones.find("promote")
+	check("the promotion offer really does lie over the middle of the board",
+		zones.contains(offer.place, cx, cy))
+
+	-- Cards are given places by the renderer; this is the shape of what it gives
+	-- them, and the point is that they have one at all.
+	for _, id in ipairs(offer.cards) do entity.get(id).place = offer.place end
+
+	check("a square under a closed offer is still that square",
+		zones.slot_at(cx, cy) == e4.id)
+	check("and nothing in the offer is clickable through it",
+		zones.card_at(cx, cy) == nil)
+	check("the offer being open is the one thing that makes it reachable",
+		zones.card_at(cx, cy, offer.id) == offer.cards[#offer.cards])
+	check("and then it is the offer that answers, not the board beneath",
+		zones.slot_at(cx, cy, offer.id) == e4.id)
 end
 
 return M

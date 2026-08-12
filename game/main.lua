@@ -22,31 +22,18 @@ local debugserver = require("debugserver")
 local validate    = require("validate")
 local log         = require("log")
 
--- Find a slot entity at the given screen position.
-local function slot_at(x, y)
-	for e in entity.each("slot") do
-		if zones.contains(e.place, x, y) then return e.id end
-	end
+-- The offer that is open, if one is: the only hidden zone a click may reach.
+-- Mirrors what render draws for an overlay phase, and per_seat resolves to the
+-- seat being asked, so the other player's copy stays untouchable.
+local function open_offer()
+	local cur = phase.is_overlay() and phase.current()
+	return cur and zones.find_id(cur.zone or "hand") or nil
 end
 
--- Topmost face-up card at screen position. Decks are never clickable;
--- piles only expose their top card.
-local function card_at(x, y)
-	local result
-	for z in entity.each("zone") do
-		if z.zone_type ~= "deck" and zones.contains(z.place, x, y) then
-			-- Last match wins, and a fan is drawn in order, so a click in the
-			-- overlap lands on the card actually showing there.
-			local list = z.zone_type == "pile" and not z.style.fan
-				and { z.cards[#z.cards] } or z.cards
-			for _, cid in ipairs(list) do
-				local c = entity.get(cid)
-				if c and c.place and zones.contains(c.place, x, y) then result = cid end
-			end
-		end
-	end
-	return result
-end
+-- Both live in zones, beside zone_at, because the three have to agree about
+-- what is reachable and disagreeing is invisible until a click vanishes.
+local function slot_at(x, y) return zones.slot_at(x, y, open_offer()) end
+local function card_at(x, y) return zones.card_at(x, y, open_offer()) end
 
 -- What ctrl+hover is pointing at, or nil. Held here rather than in inspect.lua
 -- because finding it is this module's job (it owns the hit tests) and drawing
