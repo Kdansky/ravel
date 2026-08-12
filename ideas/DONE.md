@@ -840,6 +840,14 @@ also keeps the board free of invisible cards.
 **The source may be a zone instead of a list**, and then the choices are its
 cards: `"options:upgrades"` for a set that varies with the game.
 
+**Choices dealt by `options` are free, and deliberately.** A second spawning
+action whose choices charge their own cost was designed and then dropped: the
+card that *opened* the offer already paid whatever it costs, and no game has
+wanted the choice itself to cost more on top. An ability chooser is different —
+those are gated per ability, because there the cost is what decides which are
+offered at all — so the case that would have justified it is already covered by
+something else. Build it with the first game that asks, and not before.
+
 ## The offer remembers who asked, and that is the whole trick
 
 The first promotion had the pawn set a `promotion` stat, declared a computed tag
