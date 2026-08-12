@@ -1022,6 +1022,18 @@ those are gated per ability, because there the cost is what decides which are
 offered at all — so the case that would have justified it is already covered by
 something else. Build it with the first game that asks, and not before.
 
+## An offer you asked for can be declined
+
+Right-click or Escape closes a chooser opened by clicking a card: nothing has
+happened yet, so the click is simply taken back — the piece has not moved and
+the turn has not passed. An offer the **rules** opened cannot be declined.
+Promotion appears after the pawn has already moved, and there is no state to
+return it to, so it stays and a right-click falls through to the inspector,
+which is what lets a player read the four choices before taking one.
+
+The engine draws that line by which side opened the offer rather than by asking
+the game: `offer_abilities` marks it dismissable, the `options` action does not.
+
 ## The offer remembers who asked, and that is the whole trick
 
 The first promotion had the pawn set a `promotion` stat, declared a computed tag
