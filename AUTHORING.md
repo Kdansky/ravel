@@ -1146,6 +1146,44 @@ one word:
 plate behind it" were a field and a tag deciding the same thing; now the plate
 has a colour, or it has none.
 
+### A card that can do several things
+
+One `activate` is a card with one thing to do. A list of `abilities` is a card
+the player has to be asked about:
+
+```json
+"abilities": [
+  { "key": "levy",  "text": "Raise a levy",
+    "cost": { "exhaust": 1 }, "action": ["gain_stat:gold:3", "lose_stat:stability:1"] },
+  { "key": "drill", "text": "Drill the levies",
+    "cost": { "exhaust": 1, "gold": 3 }, "action": ["gain_stat:might:2"] },
+  { "key": "rest",  "text": "A day of rest", "action": ["gain_stat:stability:1"] }
+]
+```
+
+Each ability has its own `cost`, `target`, `phases` and `action` — they are
+gated separately, and **only the ones usable right now are offered**. The third
+above has no cost, so it stays available after the first two are spent, which is
+what `exhaust` being a *cost* rather than a consequence buys.
+
+`text` is the label in the chooser, so a card with more than one ability needs
+it. The engine generates the menu entry itself, with a shape derived from the
+ability's name — you do not write a card per option.
+
+**Clicking is unchanged for everything else.** One usable ability acts at once;
+a chooser only appears when the answer stopped being obvious. `@self` is the
+card that asked either way, so an ability is written the same whether it is the
+card's only one or one of five.
+
+**An ability that targets asks after it is chosen.** The offer closes, the board
+comes back, and the targeting arrow starts from the card — and **cancelling
+reopens the chooser**, because a player who changed their mind about *which*
+ability has not changed their mind about the card.
+
+**A tag's abilities are added to the card's, not substituted.** A zone that
+grants an ability used to hide whatever the card could already do; now a card
+that can move and is handed "take me" can do both, and is asked which.
+
 ### Asking a question
 
 Some moves end in a choice: a pawn reaching the far rank, a builder picking what

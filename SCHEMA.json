@@ -104,6 +104,22 @@
           "how a piece moves on a grid: pattern names, or rules carrying their own fill and needs. Declaring this writes the activate target for you, so clicking the piece opens targeting."
         ]
       },
+      "abilities": [
+        {
+          "key": "a name for this ability, unique on the card",
+          "text": "what it does, in the player's words. This is the label in the chooser, so a card with more than one ability needs it.",
+          "cost": {
+            "<stat key, sacrifice:tag, or exhaust>": "paid when this ability is used, not when another is"
+          },
+          "target": "the same shape as play.target, for this ability alone",
+          "phases": ["phase key or list: this ability works only in those"],
+          "action": [
+            "what this ability does. @self is the card carrying it, even when a chooser was shown in between."
+          ],
+          "moves": ["how a piece moves, if this ability is a move"]
+        }
+      ],
+      "menu_for": "engine-written, never authored: marks the card the engine generates to stand for one ability in a chooser. A card with several abilities gets one per ability, labelled with the ability's text and drawn with a shape generated from its name.",
       "challenge": {
         "needs": "a condition deciding pass from fail. Unlike the blocks around it this is not a moment but a named test: any action list reaches it by running resolve_challenge, so one challenge can be asked from play and from activate both, which is what a crisis card that stays on the board when it fails needs.",
         "pass": ["action strings run when the condition holds"],
@@ -224,6 +240,11 @@
         "exhausts": "false keeps a card ready after using this ability",
         "moves": ["pattern names, if the ability is a move"]
       },
+      "abilities": [
+        {
+          "...": "several activated abilities instead of one, exactly as on a card. A tag that grants abilities *adds* them to whatever the card can already do."
+        }
+      ],
       "tooltip": "prose describing what lying here lets a card do. A card's own tooltip is shown as well, because they describe different acts."
     }
   },

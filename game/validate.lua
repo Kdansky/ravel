@@ -93,6 +93,10 @@ local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	tags = true, card_stats = true, outcome = true,
 	play = true, activate = true, challenge = true, receive = true, turn = true,
+	-- Several activated abilities instead of one. Authored as a list, and
+	-- normalised in place into the same shape a lone "activate" produces, so
+	-- nothing downstream asks which form was written.
+	abilities = true,
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true,
 	activate_cost = true, activate_target = true,
@@ -101,6 +105,10 @@ local CARD_FIELDS = {
 	accepts = true, on_turn = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 	style = true,
+	-- Written by the engine onto the menu entry it generates for each ability of
+	-- a card that has several. Never authored: a game names abilities, not the
+	-- cards that stand for them in a chooser.
+	menu_for = true,
 }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
 	action = true }
@@ -132,6 +140,7 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 -- honestly grant is an ability and a home — nothing that would have to be
 -- re-derived as state moves — so `activate` is the only block it takes.
 local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
+	abilities = true,
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
 	activate_phases = true, moves = true,
@@ -722,8 +731,13 @@ function M.check(G)
 			-- also declares the same field is two answers to one question.
 			-- Reported rather than resolved: there is no precedence rule to
 			-- fall back on, and inventing one hides the mistake.
+			--
+			-- Abilities are the exception, and the only one: two answers is
+			-- exactly what they are for. A card that can already do something
+			-- and is handed another thing can do both, and the player is asked
+			-- which — where a granted ability used to hide the card's own.
 			for field in pairs(td) do
-				if field ~= "zone" then
+				if field ~= "zone" and field ~= "abilities" then
 					for _, ck in ipairs(G.card_list) do
 						local cd = G.card_defs[ck]
 						if cd.tags_set and cd.tags_set[tag] and cd[field] ~= nil then

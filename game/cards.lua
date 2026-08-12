@@ -94,6 +94,22 @@ end
 -- Only what the zone a card lies in hands it, through "applies". Prose wants
 -- this on its own: "advance the expedition" and "take this into your hand"
 -- describe different acts, and the tooltip shows both.
+-- Every activated ability this card has right now: its own, then any its zone
+-- hands out. **Added, not substituted** — a zone that grants an ability used to
+-- hide the card's own, so a rook lying in a discard pile could be taken and no
+-- longer moved. One card can do two things, and the player is asked which.
+function M.abilities(card_entity)
+	local out = {}
+	local def = M.def(card_entity)
+	for _, a in ipairs((def and def.abilities) or EMPTY) do out[#out + 1] = a end
+	local z = card_entity and card_entity.zone_id and entity.get(card_entity.zone_id)
+	for _, tag in ipairs(z and z.applies or EMPTY) do
+		local td = declaration.G.tag_defs[tag]
+		for _, a in ipairs((td and td.abilities) or EMPTY) do out[#out + 1] = a end
+	end
+	return out
+end
+
 function M.zone_grant(card_entity, field)
 	local z = card_entity.zone_id and entity.get(card_entity.zone_id)
 	for _, tag in ipairs(z and z.applies or {}) do

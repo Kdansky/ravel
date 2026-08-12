@@ -507,7 +507,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		dim, dim_label = true, "exhausted"
 	elseif z and z.zone_type == "hand" then
 		dim = not flow.can_play(card_e.id)
-	elseif z and z.tags.activate and cards.behaviour(card_e, "on_activate") then
+	elseif z and z.tags.activate and #cards.abilities(card_e) > 0 then
 		dim, dim_label = not flow.can_activate(card_e.id), "not now"
 	end
 

@@ -236,9 +236,13 @@ check("activation exhausts the throne", throne.exhausted == true)
 check("exhausted cards cannot activate again", flow.activate(throne.id) == false)
 
 -- === castle: abilities that take targets ===
+-- Abilities are normalised into one list at parse, whether a card wrote a lone
+-- "activate" or several, so a test that reshapes a card reshapes that list —
+-- the flat activate_* names are what the list was built *from*.
 local tdef = declaration.G.card_defs.throne_room
-tdef.activate_target = { type = "card", count = 1, tags = { "building" }, zones = { "board" } }
-tdef.on_activate     = { "gain_stat:defense@target:1" }
+local ab   = tdef.abilities[1]
+ab.target = { type = "card", count = 1, tags = { "building" }, zones = { "board" } }
+ab.action = { "gain_stat:defense@target:1" }
 entity.get(throne.id).exhausted = nil
 eval("set_stat:gold:9")
 check("an ability with a target refuses none", flow.activate(throne.id, {}) == false)
@@ -252,13 +256,13 @@ check("the ability reached its target",
 -- Being spent is a cost, so an ability that does not charge it is repeatable —
 -- the "pass the time" pattern — and one that does may be used once a round.
 -- There is no opting out of a consequence any more, because it is not one.
-tdef.activate_cost = nil
+ab.cost = nil
 entity.get(throne.id).exhausted = nil
 check("an ability that does not charge exhaustion leaves the card ready",
 	flow.activate(throne.id, { throne.id }) and not entity.get(throne.id).exhausted)
 check("so it fires again at once", flow.activate(throne.id, { throne.id }))
 
-tdef.activate_cost = { exhaust = 1 }
+ab.cost = { exhaust = 1 }
 check("one that charges it spends the card",
 	flow.activate(throne.id, { throne.id }) and entity.get(throne.id).exhausted)
 check("and cannot be paid for twice",
@@ -270,10 +274,73 @@ entity.get(throne.id).exhausted = nil
 check("a readied card can pay it again",
 	flow.can_afford({ exhaust = 1 }, { card_id = throne.id }))
 
-tdef.activate_cost   = nil
-tdef.activate_target = nil
-tdef.on_activate     = { "gain_stat:morale:1" }
+ab.cost, ab.target = nil, nil
+ab.action = { "gain_stat:morale:1" }
 entity.get(throne.id).exhausted = nil
+
+-- === several abilities on one card ===
+-- A card with one thing to do acts when clicked; a card with several is asked
+-- which. The chooser is the same offer "options" deals, so nothing new was
+-- invented for it — and "@self" keeps meaning the card that asked, whether or
+-- not a menu appeared in between.
+do
+	local td = declaration.G.card_defs.throne_room
+	local was = td.abilities
+	td.abilities = {
+		{ key = "inspire", text = "Inspire the court", cost = { exhaust = 1, gold = 2 },
+			action = { "gain_stat:morale:1" } },
+		{ key = "fortify", text = "Fortify a building", cost = { gold = 1 },
+			target = { type = "card", count = 1, tags = { "building" }, zones = { "board" } },
+			action = { "gain_stat:defense@target:1" } },
+		{ key = "rest", text = "Take the day off", action = { "gain_stat:morale:1" } },
+	}
+	for i, a in ipairs(td.abilities) do
+		a.menu_card = "throne_room#" .. a.key
+		declaration.G.card_defs[a.menu_card] = { key = a.menu_card, injected = true,
+			menu_for = { card = "throne_room", index = i }, text = a.text, asset = "auto",
+			tags = {}, tags_set = {}, abilities = {}, style = {} }
+	end
+	eval("set_stat:gold:9")
+	entity.get(throne.id).exhausted = nil
+
+	check("all three are usable with the gold for them", #flow.usable_abilities(throne.id) == 3)
+	check("so there is no sole ability to mean", flow.sole_ability(throne.id) == nil)
+	-- Guessing is how a click spends the wrong thing.
+	check("and a bare activation refuses to guess", flow.activate(throne.id) == false)
+
+	check("the chooser opens", flow.offer_abilities(throne.id))
+	local offer = zones.find("options")
+	check("with one entry per ability, and it knows whose",
+		#offer.cards == 3 and offer.asked_by == throne.id)
+	check("each entry says what it is for",
+		cards.def(entity.get(offer.cards[1])).text == "Inspire the court")
+
+	local pick
+	for _, id in ipairs(offer.cards) do
+		if entity.get(id).def_key == "throne_room#rest" then pick = id end
+	end
+	local choice = flow.menu_choice(pick)
+	check("choosing resolves to the card that asked, not to the entry",
+		choice.source == throne.id and choice.index == 3)
+
+	local morale0 = predicate.total("morale")
+	flow.close_offer()
+	check("closing the offer clears it and gives the board back",
+		#zones.find("options").cards == 0 and phase.current().key ~= "options")
+	check("and the ability runs as the source card",
+		flow.activate(choice.source, {}, choice.index)
+		and predicate.total("morale") == morale0 + 1)
+
+	-- The point of exhaustion being a cost: it spends one ability, not the card.
+	check("spending the tap ability exhausts the card",
+		flow.activate(throne.id, {}, 1) and entity.get(throne.id).exhausted)
+	local left = flow.usable_abilities(throne.id)
+	check("but the abilities that do not charge it are still there",
+		#left == 2 and left[1].ability.key == "fortify" and left[2].ability.key == "rest")
+
+	td.abilities = was
+	entity.get(throne.id).exhausted = nil
+end
 
 -- === castle: play cost gating ===
 eval("set_stat:gold:0")
@@ -2404,7 +2471,7 @@ do
 	flow.init("chess.json", 1)
 	board = zones.find("board")
 	local pawn = declaration.G.card_defs.pawn
-	pawn.on_activate = { "move_to:target:taken", "resolve_challenge", "next_phase" }
+	pawn.abilities[1].action = { "move_to:target:taken", "resolve_challenge", "next_phase" }
 	pawn.requires = { ["rank@self"] = { at_least = 3 } }
 	pawn.on_pass, pawn.on_fail = { "gain_stat:moves_made@self:100" }, {}
 

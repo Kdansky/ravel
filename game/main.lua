@@ -45,13 +45,28 @@ local function ctrl_down()
 		and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 end
 
+-- Which ability the open targeting session is for, when the player picked one
+-- out of a chooser. Kept here rather than in targeting because it is a fact
+-- about the question being asked, not about the answers.
+local aiming_at = nil
+
 -- What confirming a targeting session does, by intent. flow.activate returns
 -- false on refusal, so this cannot be an and/or chain.
-local RESOLVE = { play = flow.play_card, activate = flow.activate }
+local RESOLVE = {
+	play     = function(cid, targs) return flow.play_card(cid, targs) end,
+	activate = function(cid, targs) return flow.activate(cid, targs, aiming_at) end,
+}
 
+-- Cancelling a choice that came out of a chooser puts the chooser back: the
+-- player asked "what can this do", picked one, and changed their mind — landing
+-- them on an empty board having spent nothing would be a dead end they did not
+-- ask for.
 local function cancel_targeting()
+	local reopen = aiming_at and targeting.card_id or nil
 	targeting.clear()
 	render.set_selected(nil)
+	aiming_at = nil
+	if reopen then flow.offer_abilities(reopen) end
 end
 
 local function confirm_targeting()
@@ -67,16 +82,19 @@ local function confirm_targeting()
 			end
 		end
 	end
-	cancel_targeting()
+	targeting.clear()
+	render.set_selected(nil)
 	if resolve(cid, targs) then
 		for _, h in ipairs(hits) do fx.hit(h.x, h.y) end
 	end
+	aiming_at = nil
 end
 
 -- Start targeting for a card's spec, or act at once when the spec asks for
 -- nothing (or nothing is eligible and none is required). Shared by playing
 -- from hand and activating an ability on the board.
-local function begin_action(cid, spec, intent)
+local function begin_action(cid, spec, intent, ability_index)
+	aiming_at = ability_index
 	if select(2, targeting.bounds(spec)) > 0 then
 		render.set_selected(cid)
 		targeting.start(cid, spec, intent)
@@ -132,7 +150,18 @@ local function primary_action(x, y)
 	-- Nothing else on screen reacts while one is open.
 	if cur.type == "overlay" then
 		local cid = card_at(x, y)
-		if cid then flow.play_card(cid, {}) end
+		if not cid then return end
+		-- A menu entry is not a card being played: it is the card that asked,
+		-- acting. So the offer closes and the *source* takes over, which is what
+		-- keeps "@self" meaning the same thing whether or not anything was
+		-- chosen in between.
+		local pick = flow.menu_choice(cid)
+		if pick then
+			flow.close_offer()
+			begin_action(pick.source, pick.ability.target, "activate", pick.index)
+		else
+			flow.play_card(cid, {})
+		end
 		return
 	end
 
@@ -168,8 +197,13 @@ local function primary_action(x, y)
 		-- clicking a card plays it. The zone says which, so a board, a discard
 		-- you may take from and a hand need no special cases here.
 		if z and z.tags.activate then
-			if flow.can_activate(cid) then
-				begin_action(cid, cards.behaviour(c, "activate_target"), "activate")
+			local sole = flow.sole_ability(cid)
+			if sole then
+				begin_action(cid, sole.ability.target, "activate", sole.index)
+			else
+				-- More than one thing this card can do, so the card stops being
+				-- the question and the chooser becomes it.
+				flow.offer_abilities(cid)
 			end
 			return
 		end

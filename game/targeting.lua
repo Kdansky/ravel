@@ -115,11 +115,18 @@ end
 -- none of the filtering that decides what a *player* may pick — a condition
 -- asking what the enemy threatens is not choosing anything.
 function M.moves_of(card_id)
-	local e    = entity.get(card_id)
-	local def  = e and declaration.G.card_defs[e.def_key]
-	local spec = def and def.activate_target
-	if not (spec and spec.moves) then return {} end
-	return find_moves(card_id, spec.moves)
+	local e = entity.get(card_id)
+	if not e then return {} end
+	local out, seen = {}, {}
+	for _, a in ipairs(require("cards").abilities(e)) do
+		local spec = a.target
+		if spec and spec.moves then
+			for _, sid in ipairs(find_moves(card_id, spec.moves)) do
+				if not seen[sid] then seen[sid] = true; out[#out + 1] = sid end
+			end
+		end
+	end
+	return out
 end
 
 function M.candidates(card_id, spec)

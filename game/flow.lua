@@ -600,18 +600,41 @@ end
 -- pile is not the phase's zone and never will be. The phase restriction above
 -- is what bounds it instead, which is why that rule had to exist before this
 -- one could be safe.
-function M.can_activate(card_id)
-	local c   = entity.get(card_id)
-	local def = c and cards.def(c)
-	if not def or c.exhausted or not reachable(c) or not on_top(c) then return false end
+-- Which of a card's abilities may be used right now, in the order it declared
+-- them. A card is clickable when this is not empty, and when it holds more than
+-- one the player is asked which — the chooser exists because the answer stopped
+-- being obvious, not because every card wants one.
+--
+-- Exhaustion is not asked here any more: it is a cost, and "exhaust" is checked
+-- like the rest. A card with a tap ability beside a free one keeps offering the
+-- free one after the first is spent, which is half the reason it moved.
+function M.usable_abilities(card_id)
+	local c = entity.get(card_id)
+	if not c or not cards.def(c) or not reachable(c) or not on_top(c) then return {} end
 	-- Whether abilities work here is the zone's to say, not something to infer
 	-- from its shape: a board and a Lost Cities discard both allow it, a hand
 	-- and an MTG graveyard both do not, and neither pair shares a zone type.
 	local z = entity.get(c.zone_id)
-	if not (z and z.tags.activate) then return false end
-	if not has_ability(cards.behaviour(c, "on_activate")) then return false end
-	if not phase_ok(cards.behaviour(c, "activate_phases")) then return false end
-	return M.can_afford(def.activate_cost, { card_id = card_id })
+	if not (z and z.tags.activate) then return {} end
+	local out = {}
+	for i, a in ipairs(cards.abilities(c)) do
+		if has_ability(a.action) and phase_ok(a.phases)
+			and M.can_afford(a.cost, { card_id = card_id }) then
+			out[#out + 1] = { index = i, ability = a }
+		end
+	end
+	return out
+end
+
+function M.can_activate(card_id)
+	return #M.usable_abilities(card_id) > 0
+end
+
+-- The ability a bare activation means: the only usable one. With several, the
+-- caller has to have chosen, and the input layer is what asks.
+function M.sole_ability(card_id)
+	local u = M.usable_abilities(card_id)
+	return #u == 1 and u[1] or nil
 end
 
 -- Activate a board card's ability.
@@ -623,23 +646,78 @@ end
 -- is the card's rule rather than the engine's, and once a card may carry
 -- several abilities "activating exhausts it" has no answer to *which* ability
 -- did — only the one whose cost says so.
-function M.activate(card_id, targets)
+-- Open the chooser for a card that has more than one thing to do. The offer is
+-- the same one `options` deals, and it remembers the card that asked, so the
+-- menu entry chosen knows whose ability it was.
+function M.offer_abilities(card_id)
+	local usable = M.usable_abilities(card_id)
+	if #usable < 2 then return false end
+	local zone_id = zones.find_id("options")
+	if not zone_id then return false end
+	local owner = (entity.get(card_id).stats or {}).owner
+	for _, u in ipairs(usable) do
+		local made = cards.create(u.ability.menu_card, zone_id)
+		if owner then made.stats.owner = owner end
+	end
+	entity.get(zone_id).asked_by = card_id
+	phase.push("options")
+	return true
+end
+
+-- The ability a menu entry stands for, and the card it belongs to — nil for any
+-- other card, which is every card a game wrote.
+function M.menu_choice(card_id)
+	local c   = entity.get(card_id)
+	local def = c and cards.def(c)
+	local m   = def and def.menu_for
+	if not m then return nil end
+	local z = c.zone_id and entity.get(c.zone_id)
+	local source = z and z.asked_by
+	if not (source and entity.get(source)) then return nil end
+	local a = (cards.abilities(entity.get(source)) or {})[m.index]
+	return a and { source = source, index = m.index, ability = a } or nil
+end
+
+-- Shut the offer without choosing anything from it: the entries go, the offer
+-- forgets, and the phase underneath comes back. Used when a choice turns into a
+-- question — the chooser has done its job and the board has to be visible to
+-- answer on.
+function M.close_offer()
+	local z = zones.find("options")
+	if not z then return end
+	local left = {}
+	for i, cid in ipairs(z.cards) do left[i] = cid end
+	for _, cid in ipairs(left) do zones.destroy_card(cid) end
+	z.asked_by = nil
+	if phase.is_overlay() then phase.pop() end
+end
+
+function M.activate(card_id, targets, index)
 	if phase.is_overlay() then return false end   -- a pending choice locks other actions
-	if not M.can_activate(card_id) then return false end
+	local chosen
+	for _, u in ipairs(M.usable_abilities(card_id)) do
+		if index == nil or u.index == index then chosen = chosen or u end
+	end
+	-- No index and more than one to pick from is a caller that has not asked
+	-- the player yet. Refusing beats guessing: choosing for them is how a
+	-- click spends the wrong thing.
+	if not chosen or (index == nil and #M.usable_abilities(card_id) > 1) then return false end
+	local a   = chosen.ability
 	local c   = entity.get(card_id)
 	local def = cards.def(c)
 	-- Flow is the single legality gate, exactly as in play_card: target counts
 	-- are enforced here, not only in the input layers, so scripts and the
 	-- debug API can't skip them.
-	local lo, hi = targeting.bounds(def.activate_target)
+	local lo, hi = targeting.bounds(a.target)
 	if #(targets or {}) < lo or #(targets or {}) > hi then return false end
-	if not targets_legal(card_id, def.activate_target, targets) then return false end
+	if not targets_legal(card_id, a.target, targets) then return false end
 	local ctx = { card_id = card_id, targets = targets or {} }
-	if not M.can_afford(def.activate_cost, ctx) then return false end
+	if not M.can_afford(a.cost, ctx) then return false end
 	checkpoint()
-	log.add("Activated " .. (def.text or c.def_key))
-	pay(def.activate_cost, ctx)
-	actions.run(cards.behaviour(c, "on_activate"), ctx)
+	log.add("Activated " .. (def.text or c.def_key)
+		.. (a.text and #M.usable_abilities(card_id) > 1 and (" — " .. a.text) or ""))
+	pay(a.cost, ctx)
+	actions.run(a.action, ctx)
 	M.settle()
 	return true
 end

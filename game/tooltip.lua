@@ -104,20 +104,31 @@ local function blocks(c, def)
 		for _, r in ipairs(rows) do add("row", r[1], r[2]) end
 	end
 
-	-- What clicking does, and when it will not. Reads the *granted* ability, so
-	-- one a zone hands out announces itself rather than leaving a dead click to
-	-- explain itself.
-	if cards.behaviour(c, "on_activate") then
+	-- What clicking does, and when it will not. Reads the *granted* abilities
+	-- too, so one a zone hands out announces itself rather than leaving a dead
+	-- click to explain itself — and every ability is listed, because a card with
+	-- two is a card whose tooltip has to say what the choice will be between.
+	local all   = cards.abilities(c)
+	local ready = flow.usable_abilities(c.id)
+	if #all > 0 then
 		add("rule")
-		if c.exhausted then
-			add("hint", "Exhausted — ready next round", C.wait)
-		elseif not flow.can_activate(c.id) then
-			add("hint", "Not available in this phase", C.wait)
-		else
-			local ac = cards.behaviour(c, "activate_cost")
-			local text = "Click to activate"
+		if #ready == 0 then
+			add("hint", c.exhausted and "Exhausted — ready next round"
+				or "Not available now", C.wait)
+		elseif #ready == 1 then
+			local text = "Click to " .. (#all > 1 and (ready[1].ability.text or "activate") or "activate")
+			local ac = ready[1].ability.cost
 			if ac and next(ac) then text = text .. "  (" .. cards.cost_text(ac) .. ")" end
 			add("hint", text, C.ready)
+		else
+			add("hint", "Click to choose:", C.ready)
+			for _, u in ipairs(ready) do
+				local line = "  " .. (u.ability.text or u.ability.key)
+				if u.ability.cost and next(u.ability.cost) then
+					line = line .. "  (" .. cards.cost_text(u.ability.cost) .. ")"
+				end
+				add("hint", line, C.ready)
+			end
 		end
 	end
 	return out

@@ -38,6 +38,38 @@ local MOMENTS = {
 }
 M.MOMENTS = MOMENTS
 
+-- Every activated ability a card has, as one list, whether it wrote one
+-- (`activate`) or several (`abilities`). Downstream never asks which form was
+-- used — the shorthand is the list with one entry in it, and a chooser never
+-- appears for a card that has one thing to do.
+--
+-- The entries keep the authored words: cost, target, phases, action, moves.
+-- `text` is what a chooser shows, and only a card with more than one ability
+-- has anything to choose between, so only that card has to write it.
+local function abilities_of(def, pp, where)
+	local out = {}
+	if type(def.abilities) == "table" and #def.abilities > 0 then
+		if def.on_activate or def.activate_cost or def.activate_target then
+			pp[#pp + 1] = where .. ": has both an 'activate' block and an 'abilities' list"
+				.. " — one card, one way of saying what it can do"
+		end
+		for i, a in ipairs(def.abilities) do
+			if type(a) ~= "table" then
+				pp[#pp + 1] = where .. ": ability " .. i .. " should be an object"
+			else
+				out[#out + 1] = { key = a.key or ("ability_" .. i), text = a.text,
+					cost = a.cost, target = a.target, phases = a.phases,
+					action = a.action, moves = a.moves }
+			end
+		end
+	elseif def.on_activate then
+		out[1] = { key = "activate", text = def.text, cost = def.activate_cost,
+			target = def.activate_target, phases = def.activate_phases,
+			action = def.on_activate, moves = def.move_rules }
+	end
+	return out
+end
+
 -- Flatten the moment blocks onto the def, in place. The authored blocks stay
 -- where they are: ctrl+hover shows an author their own JSON, not our version of
 -- it, and cards.dump has to round-trip back into the file.
@@ -273,7 +305,12 @@ function M.parse(filename)
 	-- and flattened by the same table. If the two vocabularies drifted, a zone's
 	-- "applies" would hand its cards a shape nothing reads.
 	for name, td in pairs(type(parsed.tags) == "table" and parsed.tags or {}) do
-		if type(td) == "table" then flatten_moments(td, pp, "tag '" .. tostring(name) .. "'") end
+		if type(td) == "table" then
+			flatten_moments(td, pp, "tag '" .. tostring(name) .. "'")
+			-- A granted ability is an ability: same shape, so a card that has
+			-- one of its own and is handed another simply has two.
+			td.abilities = abilities_of(td, pp, "tag '" .. tostring(name) .. "'")
+		end
 		G.tag_defs[name] = td
 	end
 
@@ -327,6 +364,7 @@ function M.parse(filename)
 					cd.activate_target = { type = "slot", count = 1, moves = cd.move_rules }
 				end
 			end
+			cd.abilities = abilities_of(cd, pp, "card '" .. cd.key .. "'")
 			G.card_defs[cd.key] = cd
 		end
 	end
@@ -547,6 +585,25 @@ function M.parse(filename)
 	-- Built-in "turn the page": the reveal actions conjure cards into this
 	-- hidden zone and push this overlay. A game may claim either key to
 	-- override the presentation.
+	-- A card with more than one ability needs something to *show* for each, and
+	-- the offer deals cards. So the engine writes one per ability: a menu entry,
+	-- never dealt or played by a game, carrying the ability's own words and a
+	-- shape generated from its name. It is not a card the game has to invent,
+	-- because it is not a card the game means.
+	for _, key in ipairs(G.card_list) do
+		local cd = G.card_defs[key]
+		if #(cd.abilities or {}) > 1 then
+			for i, a in ipairs(cd.abilities) do
+				local mk = key .. "#" .. a.key
+				a.menu_card = mk
+				G.card_defs[mk] = { key = mk, injected = true, menu_for = { card = key, index = i },
+					text = a.text or a.key, tooltip = a.text,
+					asset = "auto", tags = {}, tags_set = { token = true },
+					abilities = {}, style = merge_styles(G, { token = true }) }
+			end
+		end
+	end
+
 	-- An "options" zone is hidden by its own type rather than by a tag it has to
 	-- remember: an offer that is not open is not on the board, and forgetting to
 	-- say so is how a zone ends up invisible and still clickable.
