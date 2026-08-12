@@ -540,6 +540,50 @@
       "asset": "twilight_field.jpg",
       "tooltip": "No crown, no ruin — the seasons simply carry on without you. Click to return to the menu.",
       "play": { "action": ["load_game:menu.json"] }
+    },
+    {
+      "key": "council",
+      "text": "Small Council",
+      "tooltip": "Five advisors, one ear. Each will tell you what the realm needs; you have time for one of them.",
+      "asset": "auto",
+      "tags": ["holding", "immutable"],
+      "card_stats": { "hp": 3, "hp_max": 3 },
+      "abilities": [
+        {
+          "key": "treasurer",
+          "text": "Raise a levy",
+          "cost": { "exhaust": 1 },
+          "action": ["gain_stat:gold:3", "lose_stat:stability:1"],
+          "tooltip": "The treasurer wants a levy raised: +3 gold, and the realm likes it less."
+        },
+        {
+          "key": "steward",
+          "text": "Fill the granaries",
+          "cost": { "exhaust": 1, "gold": 2 },
+          "action": ["gain_stat:food:3"],
+          "tooltip": "The steward wants the granaries filled: 2 gold buys 3 food."
+        },
+        {
+          "key": "marshal",
+          "text": "Drill the levies",
+          "cost": { "exhaust": 1, "gold": 3 },
+          "action": ["gain_stat:might:2"],
+          "tooltip": "The marshal wants the levies drilled: 3 gold buys 2 might."
+        },
+        {
+          "key": "magister",
+          "text": "Renew the wards",
+          "cost": { "exhaust": 1, "gold": 2 },
+          "action": ["gain_stat:mana:2"],
+          "tooltip": "The magister wants the wards renewed: 2 gold buys 2 mana."
+        },
+        {
+          "key": "confessor",
+          "text": "A day of rest",
+          "action": ["gain_stat:stability:1"],
+          "tooltip": "The confessor wants a day of rest: +1 stability, and it costs nothing."
+        }
+      ]
     }
   ],
   "zones": [
@@ -794,5 +838,6 @@
     { "stat": "stability", "at_most": 0, "then": ["push_phase:collapse"] },
     { "stat": "progress", "at_least": 24, "then": ["push_phase:coronation"] },
     { "stat": "round", "at_least": 20, "then": ["push_phase:twilight_years"] }
-  ]
+  ],
+  "setup": { "place": [{ "card": "council", "zone": "board" }] }
 }

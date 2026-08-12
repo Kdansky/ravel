@@ -14,4 +14,4 @@ It would be nice if a player could set their name somehow.
 
 Maybe we need a menu where settings can be adjusted, such as the player name? This might be tricky.
 
-
+En passant for chess?

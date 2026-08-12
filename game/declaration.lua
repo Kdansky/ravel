@@ -58,6 +58,7 @@ local function abilities_of(def, pp, where)
 				pp[#pp + 1] = where .. ": ability " .. i .. " should be an object"
 			else
 				out[#out + 1] = { key = a.key or ("ability_" .. i), text = a.text,
+					tooltip = a.tooltip,
 					cost = a.cost, target = a.target, phases = a.phases,
 					action = a.action, moves = a.moves }
 			end
@@ -597,7 +598,7 @@ function M.parse(filename)
 				local mk = key .. "#" .. a.key
 				a.menu_card = mk
 				G.card_defs[mk] = { key = mk, injected = true, menu_for = { card = key, index = i },
-					text = a.text or a.key, tooltip = a.text,
+					text = a.text or a.key, tooltip = a.tooltip or a.text,
 					asset = "auto", tags = {}, tags_set = { token = true },
 					abilities = {}, style = merge_styles(G, { token = true }) }
 			end
@@ -619,7 +620,7 @@ function M.parse(filename)
 	-- a game that wants it drawn somewhere else claims the key.
 	if not G.zone_defs.options then
 		G.zone_defs.options = { key = "options", type = "options", injected = true,
-			pos = { 0.24, 0.40, 0.76, 0.62 },
+			pos = { 0.12, 0.38, 0.88, 0.62 },
 			tags_set = { hidden = true } }
 		G.zone_list[#G.zone_list + 1] = "options"
 	end

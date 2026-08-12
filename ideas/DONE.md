@@ -728,6 +728,66 @@ card face stencils its art to the rounded shape — plus a synchronous
 
 ---
 
+# A card that can do several things
+
+`abilities` is a list where `activate` was one thing, and a card with more than
+one is **asked which** — through the offer that already existed.
+
+```json
+"abilities": [
+  { "key": "levy", "text": "Raise a levy", "cost": { "exhaust": 1 },
+    "action": ["gain_stat:gold:3", "lose_stat:stability:1"] },
+  { "key": "rest", "text": "A day of rest", "action": ["gain_stat:stability:1"] }
+]
+```
+
+Normalised at the door: one activate block and five entries produce the same
+list, so no read site asks which form was written, and the shorthand is simply
+the list with one entry in it.
+
+## The three rules that make it behave
+
+**`@self` is the card that asked, menu or no menu.** A menu entry is not a card
+being played — it is the source *acting* — so choosing closes the offer and
+hands control to the source. An ability is written identically whether it is a
+card's only one or one of five, which is the whole reason this is worth having.
+
+**A bare activation refuses to guess.** Several usable abilities and no index
+returns false rather than picking the first. Guessing is how a click spends the
+wrong thing.
+
+**A tag's abilities add to the card's, never substitute.** That was the bug this
+started from: a zone granting an ability hid whatever the card could already do.
+Checked before changing it — no card that can reach any of the five granting
+zones has an `activate` of its own — so nothing shipped moved.
+
+## Only usable abilities are offered
+
+Each is gated by its own cost and phase, which is what exhaustion-as-a-cost
+bought: a card whose tap ability is spent still offers its free one, where
+before the *card* was done for the round. Coronation's Small Council shows it —
+with no gold two of its five advisors will speak, with five gold all of them.
+
+## An ability that targets asks after it is chosen
+
+The offer closes, the board comes back, and the arrow starts from the card.
+**Cancelling reopens the chooser**, because a player who changed their mind
+about *which* ability has not changed their mind about the card — dropping them
+on an empty board having spent nothing is a dead end they did not ask for.
+
+## The menu entries are the engine's, not the game's
+
+One generated card per ability, labelled with the ability's `text` and drawn
+with `art.auto` on its name. A game names abilities; it does not write a card
+per option.
+
+**A label is a label.** The first draft put a sentence in `text` and the chooser
+rendered "The treasurer w…" five times. Abilities take a `tooltip` for the long
+version, and the label stays short enough to read at a glance — which is a
+lesson the card face already taught once.
+
+---
+
 # Being spent is a cost
 
 `"cost": { "exhaust": 1 }` in an `activate` block is MTG's tap symbol: the

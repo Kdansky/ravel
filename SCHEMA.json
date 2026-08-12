@@ -108,6 +108,7 @@
         {
           "key": "a name for this ability, unique on the card",
           "text": "what it does, in the player's words. This is the label in the chooser, so a card with more than one ability needs it.",
+          "tooltip": "the long version, shown on hover. The text above is a label and should stay short enough to read at a glance.",
           "cost": {
             "<stat key, sacrifice:tag, or exhaust>": "paid when this ability is used, not when another is"
           },
