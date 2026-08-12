@@ -4,7 +4,27 @@ set -eu
 GAME_DIR="${GAME_DIR:-/workspace/game}"
 OUTPUT="${OUTPUT:-/usr/share/nginx/html/game.love}"
 
+# A stale bind mount reads as an *empty directory*, never as an error — and an
+# empty directory has a perfectly good fingerprint, so the watcher below sees a
+# change, packs nothing, and replaces a working build with one that cannot
+# start. The browser meets that as "Cannot read game file: menu.json", three
+# layers away from the cause, and the game.love keeps being served with a 200.
+#
+# So: never overwrite a build with something that is not a game. This is the
+# same class of silent failure the watcher comment below describes, and the
+# reason it was not already caught is that "empty" and "broken" look identical
+# from a fingerprint.
+game_is_there() {
+  [ -f "$GAME_DIR/main.lua" ] && [ -f "$GAME_DIR/games/menu.json" ]
+}
+
 pack_game() {
+  if ! game_is_there; then
+    echo "Refusing to pack: $GAME_DIR holds no main.lua and games/menu.json." >&2
+    echo "  The bind mount has probably gone stale. Recreate the container:" >&2
+    echo "    docker compose up -d --force-recreate" >&2
+    return 1
+  fi
   tmpdir="$(mktemp -d /tmp/game.XXXXXX)"
   tmpfile="$tmpdir/game.love"
   (
@@ -36,7 +56,9 @@ watch_game() {
   done
 }
 
-pack_game
+# Not fatal: nginx should come up and say 404 rather than the container
+# crash-looping, which hides the message above in a wall of restarts.
+pack_game || true
 watch_game &
 WATCHER=$!
 
