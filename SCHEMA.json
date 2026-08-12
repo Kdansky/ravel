@@ -283,6 +283,7 @@
     "spend_stat": "spend_stat:<subject>:<n> — an alias of lose_stat, for costs",
     "set_stat": "set_stat:<subject>:<n> — set it directly, without logging. An authoring tool rather than a game rule.",
     "attach_to_target": "attach_to_target — tuck the acting card under the first target",
+    "become": "become:<scope>:<card> — replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own, because it is a different card. A pawn promoting, a checker being crowned, a unit levelling up and a tile turned face up are all this.",
     "destroy": "destroy:<scope> — remove those cards from play entirely. A bare zone key is a scope, so destroy:hand still works.",
     "destroy_self": "destroy_self — remove the acting card",
     "reveal": "reveal:<card> — conjure a card into the page overlay, where playing it continues the story",

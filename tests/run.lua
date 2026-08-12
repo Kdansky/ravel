@@ -2401,6 +2401,70 @@ do
 		p.stats.moves_made == 100, tostring(p.stats.moves_made))
 end
 
+-- === promotion: a card that stops being the card it was ===
+-- Nothing here is chess knowledge in the engine. The pawn asks "did this move
+-- end on my eighth rank" through an ordinary challenge — `rank` has always been
+-- counted from a piece's own side, so 8 is the far rank for both colours — and
+-- the answer pushes an overlay. `become` is the only new verb, and it is a
+-- general one: what carries over is the square, the zone and the owner.
+do
+	flow.init("chess.json", 1)
+	board = zones.find("board")
+	-- Walk a white pawn up the b-file and take twice to reach the eighth rank,
+	-- black shuffling a knight meanwhile.
+	move("b2", "b4"); move("g8", "f6")
+	move("b4", "b5"); move("f6", "g8")
+	move("b5", "b6"); move("g8", "f6")
+	move("b6", "a7"); move("f6", "g8")
+	check("a pawn one square short is still just a pawn, and play is normal",
+		at("a7") == "white pawn" and phase.current().key == "white_move")
+
+	move("a7", "b8")
+	check("landing on the eighth rank asks the question instead of ending the turn",
+		phase.current().key == "promote" and at("b8") == "white pawn")
+
+	local offer = zones.find("promote")
+	check("the offer is the promoting player's own, four pieces of it",
+		#offer.cards == 4 and offer.seat == "player_white")
+	-- The choices carry no owner: they are in this seat's copy of the zone, and
+	-- that is what picks the light sprite over the dark one.
+	check("and they are drawn in that player's colour without saying so",
+		entity.get(offer.cards[1]).stats.owner == nil
+		and require("tags").owner_of(entity.get(offer.cards[1])) == "player_white")
+	check("the other seat's offer is not playable",
+		flow.can_play(zones.find("promote", "enemy").cards[1]) == false)
+
+	local pick
+	for _, id in ipairs(offer.cards) do
+		if entity.get(id).def_key == "to_queen" then pick = id end
+	end
+	check("choosing the queen", flow.play_card(pick, {}))
+	check("the pawn is a queen, on the square the pawn reached, still white's",
+		at("b8") == "white queen")
+	check("and the turn passes, the overlay having closed itself",
+		phase.current().key == "black_move" and zones.active_seat() == "player_black")
+	check("nothing is left flagged for promotion",
+		predicate.total("count:promoting@mine") == 0
+		and predicate.total("count:promoting@enemy") == 0)
+	check("the board did not gain or lose a piece", #board.cards == 30,
+		tostring(#board.cards))
+
+	-- The other direction, and a different choice, because "queen" is the one
+	-- that would still look right if `become` ignored its argument.
+	move("h7", "h5"); move("a2", "a4")
+	move("h5", "h4"); move("a4", "a5")
+	move("h4", "h3"); move("a5", "a6")
+	move("h3", "g2"); move("a6", "b7")
+	move("g2", "h1")
+	check("black promotes on its own eighth rank, which is rank one on screen",
+		phase.current().key == "promote" and zones.find("promote").seat == "player_black")
+	for _, id in ipairs(zones.find("promote").cards) do
+		if entity.get(id).def_key == "to_knight" then pick = id end
+	end
+	check("choosing a knight", flow.play_card(pick, {}))
+	check("and a knight is what stands there", at("h1") == "black knight")
+end
+
 -- === check, as a question the game file asks ===
 -- The engine has no idea what check is. It knows where a piece could move —
 -- which it already had to know to offer the squares — and "@enemy.reach" adds

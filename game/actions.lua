@@ -419,6 +419,42 @@ HANDLERS["place"] = function(p, ctx)
 	end
 end
 
+-- become:<scope>:<card>  — replace each card in scope with a new one of that
+-- key, standing where it stood and belonging to whoever it belonged to.
+--
+-- A general verb rather than a promotion-shaped one: a pawn reaching the far
+-- rank, a checker being crowned, a unit that levels up and a tile turned face
+-- up are the same sentence. What carries over is *placement* — the square, the
+-- zone, the owner — and nothing else, because the new card is a different card
+-- and its numbers are its own.
+HANDLERS["become"] = function(p, ctx)
+	local key = p[3]
+	if not declaration.G.card_defs[key] then
+		content_error("become: no card is called '" .. tostring(key) .. "'")
+		return
+	end
+	local sc = predicate.parse_scope(p[2] or "self")
+	if not sc then return end
+	-- Collected before any of it changes: the scope is recomputed from the
+	-- board, and replacing the first card would move the ground under the rest.
+	local doomed = {}
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		if e.kind == "card" and e.zone_id then doomed[#doomed + 1] = e end
+	end
+	for _, e in ipairs(doomed) do
+		local zone, slot = e.zone_id, e.slot_id
+		local owner = e.stats and e.stats.owner
+		-- Out before in: the square has to be free, since place_in_slot refuses
+		-- an occupied one and would otherwise leave the new card in limbo.
+		zones.destroy_card(e.id)
+		local new = cards.create(key, zone)
+		if owner then new.stats.owner = owner end
+		if slot then zones.place_in_slot(new.id, slot) else zones.auto_slot(new.id) end
+		log.add(((cards.def(e) or {}).text or e.def_key) .. " became "
+			.. (declaration.G.card_defs[key].text or key))
+	end
+end
+
 -- attach_to_target  — attach ctx.card_id as a child of ctx.targets[1].
 HANDLERS["attach_to_target"] = function(p, ctx)
 	if not ctx or not ctx.card_id or not ctx.targets or #ctx.targets == 0 then return end
@@ -478,6 +514,7 @@ local SPEC = {
 	lose_stat         = "stat n",
 	spend_stat        = "stat n",
 	set_stat          = "stat n",
+	become            = "scope card",
 	attach_to_target  = "",
 	net_invite        = "",
 	net_join          = "",

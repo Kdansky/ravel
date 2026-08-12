@@ -3,8 +3,11 @@
 **Status: mostly shipped (`5c1875e`).** Option E was chosen and built; chess
 plays, castling included. The comparison below is kept because it is the record
 of *why* directions beat destinations, and the **Build order** at the end of this
-file marks each step's state and what building it taught. Still open: the scope
-anchor word (step 3), check and checkmate (step 5), promotion, en passant.
+file marks each step's state and what building it taught. Check shipped as the
+`@reach` scope and **promotion** as the `become` action — the latter needing no
+movement machinery at all, since `rank` was already counted from a piece's own
+side. Still open: the scope anchor word (step 3), checkmate and the legality
+filter that goes with it (step 5), en passant.
 
 Three notations for the same five chess pieces, written out so they can be
 compared rather than argued about.
@@ -497,7 +500,20 @@ and `rank`, and computed tags work today, unchanged:
 "computed_tags": { "promoting": { "stat": "rank", "at_least": 8 } }
 ```
 
-That is pawn promotion with no new machinery whatsoever. So: **relational
+That is pawn promotion with no new machinery whatsoever — **and it shipped that
+way.** The detection is exactly the `rank@self` this section predicted; the only
+verb that had to be added was `become:<scope>:<card>`, which swaps a card for
+another keeping its square, zone and owner, and is a general one (a crowned
+checker, a levelled unit, a flipped tile). The choice of piece is Lost Cities'
+opening question in different clothes: a `per_seat` overlay zone whose four
+cards take their colour from the seat that copy belongs to.
+
+Two things drafting it turned up, both in the engine's favour: `resolve_challenge`
+is the conditional (no new one was needed), and `flow.play_card` **already pops an
+overlay before the chosen card's action runs**, so a card that pops again takes
+the phase underneath with it. The first draft did exactly that.
+
+So: **relational
 questions are scopes, positional ones are tags** — and the split is not a
 compromise, it is the same line the engine already draws between what a card *is*
 and what a card is *near*.

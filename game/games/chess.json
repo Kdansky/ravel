@@ -59,6 +59,12 @@
       "type": "hand",
       "tags": ["optional"],
       "pos": [0.76, 0.56, 0.97, 0.64]
+    },
+    {
+      "key": "promote",
+      "type": "hand",
+      "tags": ["hidden", "no_peek", "per_seat"],
+      "pos": [[0.3, 0.4, 0.7, 0.6], [0.3, 0.4, 0.7, 0.6]]
     }
   ],
   "phases": [
@@ -101,7 +107,8 @@
         { "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
         { "then": "black_move" }
       ]
-    }
+    },
+    { "key": "promote", "type": "overlay", "zone": "promote" }
   ],
   "end_conditions": [{ "stat": "count:king@taken", "at_least": 1, "then": ["load_game:menu.json"] }],
   "setup": {
@@ -132,6 +139,10 @@
       { "card": "w_castle_k", "owner": "player_white", "zone": "w_options" },
       { "card": "b_castle_q", "owner": "player_black", "zone": "b_options" },
       { "card": "b_castle_k", "owner": "player_black", "zone": "b_options" },
+      { "card": "to_queen", "zone": "promote" },
+      { "card": "to_rook", "zone": "promote" },
+      { "card": "to_bishop", "zone": "promote" },
+      { "card": "to_knight", "zone": "promote" },
       { "card": "how_to_play", "zone": "rules" }
     ]
   },
@@ -142,9 +153,9 @@
       "key": "pawn",
       "text": "Pawn",
       "asset": "pawn",
-      "tooltip": "One square forward, two from its home rank, and it takes diagonally.",
+      "tooltip": "One square forward, two from its home rank, and it takes diagonally. Reaching the far rank, it becomes a piece of your choosing.",
       "tags": ["piece", "pawn", "stays_ready"],
-      "card_stats": { "rank": 0, "moves_made": 0 },
+      "card_stats": { "rank": 0, "moves_made": 0, "promotion": 0 },
       "activate": {
         "moves": [
           { "patterns": ["pawn_step"], "fill": "empty" },
@@ -155,7 +166,12 @@
           },
           { "patterns": ["pawn_take"], "fill": "enemy" }
         ],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
+        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "resolve_challenge"]
+      },
+      "challenge": {
+        "needs": { "rank@self": { "equals": 8 } },
+        "pass": ["set_stat:promotion@self:1", "push_phase:promote"],
+        "fail": ["next_phase"]
       }
     },
     {
@@ -311,7 +327,40 @@
       "text": "How to play",
       "tags": ["immutable"],
       "play": { "phases": [] },
-      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. Click an enemy piece to take it — its square lights up too.\n\nCastling: the two buttons beside your graveyard. Needs king and rook both unmoved, and the squares between them empty.\n\nNot implemented yet:\n- Checkmate. Check is shown — the phase says \"in check\" — but nothing stops you moving into check, leaving one, or castling through it, and you win by capturing the king rather than by trapping it.\n- En passant.\n- Pawn promotion. A pawn reaching the far rank just stops there.\n- Draws: stalemate, threefold repetition, the fifty-move rule.\n- Resigning and offering a draw."
+      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. Click an enemy piece to take it — its square lights up too.\n\nCastling: the two buttons beside your graveyard. Needs king and rook both unmoved, and the squares between them empty.\n\nPromotion: a pawn reaching the far rank offers you a queen, rook, bishop or knight, and becomes it.\n\nNot implemented yet:\n- Checkmate. Check is shown — the phase says \"in check\" — but nothing stops you moving into check, leaving one, or castling through it, and you win by capturing the king rather than by trapping it.\n- En passant.\n- Draws: stalemate, threefold repetition, the fifty-move rule.\n- Resigning and offering a draw."
+    },
+    {
+      "key": "to_queen",
+      "text": "Queen",
+      "asset": "queen",
+      "tags": ["token"],
+      "tooltip": "Promote the pawn to a queen.",
+      "play": { "action": ["become:mine.promoting:queen", "next_phase"] }
+    },
+    {
+      "key": "to_rook",
+      "text": "Rook",
+      "asset": "rook",
+      "tags": ["token"],
+      "tooltip": "Promote the pawn to a rook.",
+      "play": { "action": ["become:mine.promoting:rook", "next_phase"] }
+    },
+    {
+      "key": "to_bishop",
+      "text": "Bishop",
+      "asset": "bishop",
+      "tags": ["token"],
+      "tooltip": "Promote the pawn to a bishop.",
+      "play": { "action": ["become:mine.promoting:bishop", "next_phase"] }
+    },
+    {
+      "key": "to_knight",
+      "text": "Knight",
+      "asset": "knight",
+      "tags": ["token"],
+      "tooltip": "Promote the pawn to a knight.",
+      "play": { "action": ["become:mine.promoting:knight", "next_phase"] }
     }
-  ]
+  ],
+  "computed_tags": { "promoting": { "stat": "promotion", "at_least": 1 } }
 }

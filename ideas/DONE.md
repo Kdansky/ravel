@@ -728,6 +728,74 @@ card face stencils its art to the rounded shape — plus a synchronous
 
 ---
 
+# A card that stops being the card it was
+
+Pawn promotion, and the engine learned one verb for it.
+
+**The detection was already built and a comment said so.** `zones.lua:237`
+stamps `rank` from a piece's *owner's* own side on every placement, so a pawn's
+home is rank 2 whichever colour it is — and the comment there had already worked
+out the consequence: *"conditions and computed tags then read
+`{ "stat": "rank", "at_least": 8 }` and needs nothing new at all."*
+
+**The conditional was already built too.** `resolve_challenge` runs one of two
+action lists off the acting card's `challenge` block, so the pawn asks the
+question inside its own move:
+
+```json
+"activate": { "moves": [...], "action": ["move_to:target:taken",
+              "gain_stat:moves_made@self:1", "resolve_challenge"] },
+"challenge": { "needs": { "rank@self": { "equals": 8 } },
+               "pass":  ["set_stat:promotion@self:1", "push_phase:promote"],
+               "fail":  ["next_phase"] }
+```
+
+That makes promotion **mandatory and part of the move**, which is what it is. A
+granted ability would have made it a click the player could decline, leaving a
+pawn sitting on the eighth rank.
+
+## The one new verb
+
+`become:<scope>:<card>` — replace each card in scope with a new one of that key,
+standing on the same square, in the same zone, belonging to the same player.
+Everything else is the new card's own, because it is a different card.
+
+Deliberately general rather than promotion-shaped: a crowned checker, a levelled
+unit and a tile turned face up are the same sentence. It collects its victims
+before changing any of them (the scope is recomputed from the board, so
+replacing the first would move the ground under the rest) and destroys before
+creating, since `place_in_slot` refuses an occupied square.
+
+## The choice is Lost Cities' opening question in different clothes
+
+A `per_seat` hidden zone and an `overlay` phase, four cards in it. **They carry
+no owner** — they sit in *this* seat's copy of the zone, and that is what picks
+the light sprite over the dark one, through the same per-seat asset lookup the
+pieces use. The other seat's copy is unplayable for free, because flow already
+refuses a card in another seat's zone.
+
+## Two things the drafting got wrong, both the engine's fault for being right
+
+- **`flow.play_card` already pops an overlay** before the chosen card's action
+  runs — it says so in a comment, so that a chained reveal lands on top rather
+  than burying what it came from. A choice card that pops again takes the phase
+  *underneath* with it, and the stack empties. Symptom: the phase after
+  promoting is `nil`.
+- **A placement into a `per_seat` zone goes into every copy.** Giving the four
+  choices an `owner` did not send them to that seat's zone; it put eight cards
+  in each. Dropping the owner entirely was both the fix and the better design.
+
+## And one real bug, found by drafting rather than by playing
+
+`resolve_challenge` evaluated its condition with **no context**, so `@self` and
+`@target` named nothing inside a challenge — a gate reading false whatever the
+board said. Five shipped games use challenges and none noticed, because every
+one asks a scope-free question: *do I hold the torch*, *is there food*, *is the
+wall strong enough*. Fixed by passing `ctx`, which changed no shipped behaviour
+and left the golden traces where they were.
+
+---
+
 # Six cards, thirty-two pieces
 
 Chess was 39 cards and 704 lines, written by a generator because no person would
