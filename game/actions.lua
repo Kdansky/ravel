@@ -457,9 +457,16 @@ HANDLERS["place"] = function(p, ctx)
 		content_error("place: needs a scope and a square, as place:<who>:<square>")
 		return
 	end
+	-- A square by name, or a pattern pointing at one from the acting card. The
+	-- second is what lets a rule that works for both sides of a board say where
+	-- something goes: "one column left of me" is the same sentence whichever end
+	-- you are sitting at, where "f1" is only ever white's.
 	local slot_id = geometry.slot_named(z, at)
+	if not slot_id and declaration.G.pattern_defs[at] then
+		slot_id = predicate.pattern_slots(at, ctx)[1]
+	end
 	if not slot_id then
-		content_error("place: '" .. tostring(at) .. "' is not a square on the board")
+		content_error("place: '" .. tostring(at) .. "' is neither a square nor a pattern pointing at one")
 		return
 	end
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do

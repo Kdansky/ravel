@@ -299,7 +299,7 @@
     "move_to": "move_to[:<zone>][:<on_occupied>] — move the acting card. With no zone its home tag decides; the word target means the zone or slot the player chose; a third part says what becomes of a piece already standing there, either destroy or the zone it goes to, and leaving it out makes an occupied square refuse the move. That third part is capture.",
     "add_to": "add_to:<zone> — move the acting card, for overlay picks",
     "move_target_to": "move_target_to:<zone> — move each targeted card",
-    "place": "place:<scope>:<col>:<row> — put every card the scope names on that square of the only board, 1-based with row 1 at the top. Refuses an occupied square. The move that names where rather than how.",
+    "place": "place:<scope>:<where> — put every card in scope on a square. <where> is a square by name (\"g1\"), or the name of a pattern pointing at one from the acting card (\"one_left\") — which is how a rule that works for both sides of a board says where something goes, since a named square is only ever one player's.",
     "gain": "gain:<card>:<n> — create n instances in their home zone, or the hand when no tag names one",
     "gain_stat": "gain_stat:<subject>:<n> — raise a stat, clamped and logged. The subject may carry a scope: hp@target, hp@each.follower.",
     "lose_stat": "lose_stat:<subject>:<n> — lower it, same rules",

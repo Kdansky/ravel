@@ -2485,34 +2485,46 @@ board = zones.find("board")
 check("a relative pattern is a neighbourhood, anchored on the acting card",
 	predicate.total("count:piece@adjacent", { card_id = on("e1").id }) == 5)
 check("...and names nothing for a card that is not standing on a square",
-	predicate.total("count:piece@adjacent", { card_id = card_named("w_castle_k").id }) == 0)
-check("an absolute pattern names squares outright, with no anchor at all",
-	predicate.total("count:piece@w_castle_k_path") == 2)
+	predicate.total("count:piece@adjacent",
+		{ card_id = zones.find("rules").cards[1] }) == 0)
 
--- Castling is a card, not a move: its destinations are constants, so it needs
--- no targeting — and a played card is gated by "needs", which an activated one
--- is not.
-check("castling is refused while its squares are occupied",
-	flow.can_play(card_named("w_castle_k").id) == false)
+-- Castling is the king's move, not a button beside the board. Everything it
+-- asks is relative: the king goes two columns toward the rook, and columns do
+-- not flip with facing, so one set of patterns serves both colours. That is
+-- what let four cards, two zones and ten absolute patterns go.
+local function king_can(what)
+	for _, u in ipairs(flow.usable_abilities(on("e1").id)) do
+		if u.ability.key == what then
+			return #targeting.moves_by(on("e1").id, u.ability.moves) > 0
+		end
+	end
+	return false
+end
+
+check("a boxed-in king offers nothing at all", #flow.usable_abilities(on("e1").id) == 0)
 move("e2", "e4"); move("e7", "e5")
 move("f1", "c4"); move("f8", "c5")
-check("still refused with only one square cleared",
-	predicate.total("count:piece@w_castle_k_path") == 1
-	and flow.can_play(card_named("w_castle_k").id) == false)
+check("still no castling with one square cleared", king_can("castle_k") == false)
 move("g1", "f3"); move("g8", "f6")
-check("offered once both squares are clear",
-	predicate.total("count:piece@w_castle_k_path") == 0
-	and flow.can_play(card_named("w_castle_k").id))
-check("the queenside card is still refused, its own three squares being full",
-	flow.can_play(card_named("w_castle_q").id) == false)
+check("offered once both squares are clear", king_can("castle_k"))
+check("and the king now has two things it can do, so it is asked which",
+	#flow.usable_abilities(on("e1").id) == 2)
+check("queenside is still refused, its own three squares being full",
+	king_can("castle_q") == false)
 
-check("castling moves both pieces at once", flow.play_card(card_named("w_castle_k").id, {})
+check("castling moves both pieces at once",
+	flow.activate(on("e1").id, { sq("g1") }, 2)
 	and at("g1") == "white king" and at("f1") == "white rook"
 	and at("e1") == nil and at("h1") == nil)
 check("and hands over", zones.active_seat() == "player_black")
-check("a king that has castled has moved, so it may not castle again",
-	flow.can_play(card_named("w_castle_k").id) == false
-	and flow.can_play(card_named("w_castle_q").id) == false)
+
+-- A king that leaves and comes back has moved, and so has a rook.
+flow.init("chess.json", 1)
+board = zones.find("board")
+move("e2", "e4"); move("e7", "e5"); move("f1", "c4"); move("f8", "c5")
+move("g1", "f3"); move("g8", "f6")
+move("h1", "g1"); move("a7", "a6"); move("g1", "h1"); move("a6", "a5")
+check("a rook that went out and came back cannot castle", king_can("castle_k") == false)
 
 -- === a challenge may ask about the card making it ===
 -- resolve_challenge evaluated its condition with no context, so "@self" and
@@ -2732,29 +2744,30 @@ do
 end
 
 -- === a stat nobody carries is absent, not zero ===
--- Reading a missing value as 0 would make "this rook has never moved" true of a
--- rook captured twenty moves ago — a gate that opens exactly when the thing it
--- guards stops existing.
+-- Reading a missing value as 0 would make "this piece has never moved" true of
+-- a piece captured twenty moves ago — a gate that opens exactly when the thing
+-- it guards stops existing. Castling is the rule that would suffer.
 flow.init("chess.json", 1)
 board = zones.find("board")
-check("an unmoved rook satisfies the gate",
-	predicate.meets_all({ ["moves_made@w_rook_h_home"] = { equals = 0 } }))
-zones.destroy_card(on("h1").id)
-check("a captured rook does not, though its absent stat would sum to zero",
-	predicate.meets_all({ ["moves_made@w_rook_h_home"] = { equals = 0 } }) == false)
+local king = { card_id = on("e1").id }
+check("a piece that has never moved satisfies the gate",
+	predicate.meets_all({ ["moves_made@one_right"] = { equals = 0 } }, king))
+zones.destroy_card(on("f1").id)
+check("an empty square does not, though its absent stat would sum to zero",
+	predicate.meets_all({ ["moves_made@one_right"] = { equals = 0 } }, king) == false)
 check("...and no comparison against it succeeds, not just equality",
-	predicate.meets_all({ ["moves_made@w_rook_h_home"] = { at_most = 5 } }) == false
-	and predicate.meets_all({ ["moves_made@w_rook_h_home"] = { at_least = 0 } }) == false)
-check("so castling is refused once its rook is gone",
-	flow.can_play(card_named("w_castle_k").id) == false)
+	predicate.meets_all({ ["moves_made@one_right"] = { at_most = 5 } }, king) == false
+	and predicate.meets_all({ ["moves_made@one_right"] = { at_least = 0 } }, king) == false)
 
--- The counting forms keep meaning what they say: no farms is a count of zero,
--- and that is how "these squares are empty" is written.
+-- The counting forms keep meaning what they say: nothing there is a count of
+-- zero, and a yes/no about nothing is "no".
 check("a count of nothing is still zero",
-	predicate.meets_all({ ["count:piece@w_castle_k_path"] = { equals = 0 } }) == false
+	predicate.meets_all({ ["count:piece@one_right"] = { equals = 0 } }, king)
 	and predicate.total("count:piece@nowhere_at_all") == 0)
-check("and an aggregate over an empty pool is still zero, being asked of a pool",
-	predicate.meets_all({ ["sum:moves_made@w_rook_h_home"] = { equals = 0 } }))
+check("and an empty scope answers no to tagged and yes to not_tagged",
+	predicate.total("tagged:piece@one_right", king) == 0
+	and predicate.total("not_tagged:piece@one_right", king) == 1)
+
 
 -- These used to be recorded under LuaJIT and skipped everywhere else, because
 -- math.random was the host's and no two hosts agreed. rng.lua ended that: one

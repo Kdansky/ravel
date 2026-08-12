@@ -28,17 +28,11 @@
     "pawn_step": { "vectors": [[0, 1]], "class": ["step"] },
     "pawn_run": { "vectors": [[0, 1]], "class": ["ray:2"] },
     "pawn_take": { "vectors": [[1, 1], [-1, 1]], "class": ["step"] },
-    "w_castle_q_path": { "vectors": ["b1", "c1", "d1"], "class": ["absolute"], "zone": "board" },
-    "w_castle_k_path": { "vectors": ["f1", "g1"], "class": ["absolute"], "zone": "board" },
-    "b_castle_q_path": { "vectors": ["b8", "c8", "d8"], "class": ["absolute"], "zone": "board" },
-    "b_castle_k_path": { "vectors": ["f8", "g8"], "class": ["absolute"], "zone": "board" },
-    "w_king_home": { "vectors": ["e1"], "class": ["absolute"], "zone": "board" },
-    "w_rook_a_home": { "vectors": ["a1"], "class": ["absolute"], "zone": "board" },
-    "w_rook_h_home": { "vectors": ["h1"], "class": ["absolute"], "zone": "board" },
-    "b_king_home": { "vectors": ["e8"], "class": ["absolute"], "zone": "board" },
-    "b_rook_a_home": { "vectors": ["a8"], "class": ["absolute"], "zone": "board" },
-    "b_rook_h_home": { "vectors": ["h8"], "class": ["absolute"], "zone": "board" },
-    "behind": { "vectors": [[0, -1]] }
+    "behind": { "vectors": [[0, -1]] },
+    "one_left": { "vectors": [[-1, 0]] },
+    "one_right": { "vectors": [[1, 0]] },
+    "two_left": { "vectors": [[-2, 0]] },
+    "two_right": { "vectors": [[2, 0]] }
   },
   "zones": [
     {
@@ -54,19 +48,7 @@
       "tags": ["per_seat"],
       "pos": [[0.76, 0.65, 0.97, 0.95], [0.76, 0.05, 0.97, 0.35]]
     },
-    {
-      "key": "b_options",
-      "type": "hand",
-      "tags": ["optional"],
-      "pos": [0.76, 0.36, 0.97, 0.44]
-    },
-    { "key": "rules", "type": "pile", "pos": [0.76, 0.45, 0.97, 0.55] },
-    {
-      "key": "w_options",
-      "type": "hand",
-      "tags": ["optional"],
-      "pos": [0.76, 0.56, 0.97, 0.64]
-    }
+    { "key": "rules", "type": "pile", "pos": [0.76, 0.45, 0.97, 0.55] }
   ],
   "phases": [
     {
@@ -135,10 +117,6 @@
         "zone": "board",
         "at": ["a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7"]
       },
-      { "card": "w_castle_q", "owner": "player_white", "zone": "w_options" },
-      { "card": "w_castle_k", "owner": "player_white", "zone": "w_options" },
-      { "card": "b_castle_q", "owner": "player_black", "zone": "b_options" },
-      { "card": "b_castle_k", "owner": "player_black", "zone": "b_options" },
       { "card": "how_to_play", "zone": "rules" }
     ]
   },
@@ -245,105 +223,68 @@
       "tooltip": "One square in any direction. Lose it and the game is over.",
       "tags": ["piece", "king"],
       "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
-        "moves": ["adjacent"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
-      }
-    },
-    {
-      "key": "w_castle_q",
-      "text": "Castle queenside",
-      "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
-      "asset": "castle_button",
-      "tags": ["castling"],
-      "play": {
-        "needs": {
-          "moves_made@w_king_home": { "equals": 0 },
-          "moves_made@w_rook_a_home": { "equals": 0 },
-          "tagged:king@w_king_home": 1,
-          "tagged:rook@w_rook_a_home": 1,
-          "not_tagged:piece@w_castle_q_path": 1
+      "abilities": [
+        {
+          "key": "move",
+          "text": "Move",
+          "moves": ["adjacent"],
+          "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
         },
-        "action": [
-          "gain_stat:moves_made@w_king_home:1",
-          "place:w_king_home:c1",
-          "place:w_rook_a_home:d1",
-          "next_phase"
-        ]
-      }
-    },
-    {
-      "key": "w_castle_k",
-      "text": "Castle kingside",
-      "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
-      "asset": "castle_button",
-      "tags": ["castling"],
-      "play": {
-        "needs": {
-          "moves_made@w_king_home": { "equals": 0 },
-          "moves_made@w_rook_h_home": { "equals": 0 },
-          "tagged:king@w_king_home": 1,
-          "tagged:rook@w_rook_h_home": 1,
-          "not_tagged:piece@w_castle_k_path": 1
+        {
+          "key": "castle_k",
+          "text": "Castle kingside",
+          "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side.",
+          "moves": [
+            {
+              "patterns": ["two_right"],
+              "fill": "empty",
+              "needs": { "moves_made@self": { "equals": 0 } },
+              "where": {
+                "tagged:rook@one_right": 1,
+                "moves_made@one_right": { "equals": 0 },
+                "not_tagged:piece@one_left": 1
+              }
+            }
+          ],
+          "action": [
+            "move_to:target",
+            "place:one_right:one_left",
+            "gain_stat:moves_made@self:1",
+            "next_phase"
+          ]
         },
-        "action": [
-          "gain_stat:moves_made@w_king_home:1",
-          "place:w_king_home:g1",
-          "place:w_rook_h_home:f1",
-          "next_phase"
-        ]
-      }
-    },
-    {
-      "key": "b_castle_q",
-      "text": "Castle queenside",
-      "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
-      "asset": "castle_button",
-      "tags": ["castling"],
-      "play": {
-        "needs": {
-          "moves_made@b_king_home": { "equals": 0 },
-          "moves_made@b_rook_a_home": { "equals": 0 },
-          "tagged:king@b_king_home": 1,
-          "tagged:rook@b_rook_a_home": 1,
-          "not_tagged:piece@b_castle_q_path": 1
-        },
-        "action": [
-          "gain_stat:moves_made@b_king_home:1",
-          "place:b_king_home:c8",
-          "place:b_rook_a_home:d8",
-          "next_phase"
-        ]
-      }
-    },
-    {
-      "key": "b_castle_k",
-      "text": "Castle kingside",
-      "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side. Counts as your move.",
-      "asset": "castle_button",
-      "tags": ["castling"],
-      "play": {
-        "needs": {
-          "moves_made@b_king_home": { "equals": 0 },
-          "moves_made@b_rook_h_home": { "equals": 0 },
-          "tagged:king@b_king_home": 1,
-          "tagged:rook@b_rook_h_home": 1,
-          "not_tagged:piece@b_castle_k_path": 1
-        },
-        "action": [
-          "gain_stat:moves_made@b_king_home:1",
-          "place:b_king_home:g8",
-          "place:b_rook_h_home:f8",
-          "next_phase"
-        ]
-      }
+        {
+          "key": "castle_q",
+          "text": "Castle queenside",
+          "tooltip": "King and rook both still unmoved, and the squares between them empty. The king moves two toward the rook; the rook hops to its far side.",
+          "moves": [
+            {
+              "patterns": ["two_left"],
+              "fill": "empty",
+              "needs": { "moves_made@self": { "equals": 0 } },
+              "where": {
+                "tagged:rook@two_left": 1,
+                "moves_made@two_left": { "equals": 0 },
+                "not_tagged:piece@one_right": 1,
+                "not_tagged:piece@one_left": 1
+              }
+            }
+          ],
+          "action": [
+            "move_to:target",
+            "place:two_left:one_right",
+            "gain_stat:moves_made@self:1",
+            "next_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "how_to_play",
       "text": "How to play",
       "tags": ["immutable"],
       "play": { "phases": [] },
-      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. Click an enemy piece to take it — its square lights up too.\n\nCastling: the two buttons beside your graveyard. Needs king and rook both unmoved, and the squares between them empty.\n\nPromotion: a pawn reaching the far rank offers you a queen, rook, bishop or knight, and becomes it.\n\nNot implemented yet:\n- Checkmate. Check is shown — the phase says \"in check\" — but nothing stops you moving into check, leaving one, or castling through it, and you win by capturing the king rather than by trapping it.\n- En passant.\n- Draws: stalemate, threefold repetition, the fifty-move rule.\n- Resigning and offering a draw."
+      "tooltip": "Click one of your pieces to light up the squares it can reach, then click a square to move. Click an enemy piece to take it — its square lights up too.\n\nCastling: click your king. Needs king and rook both unmoved, and the squares between them empty.\n\nPromotion: a pawn reaching the far rank offers you a queen, rook, bishop or knight, and becomes it.\n\nNot implemented yet:\n- Checkmate. Check is shown — the phase says \"in check\" — but nothing stops you moving into check, leaving one, or castling through it, and you win by capturing the king rather than by trapping it.\n- En passant.\n- Draws: stalemate, threefold repetition, the fifty-move rule.\n- Resigning and offering a draw."
     },
     {
       "key": "to_queen",

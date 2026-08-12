@@ -732,6 +732,49 @@ card face stencils its art to the rounded shape — plus a synchronous
 
 ---
 
+# Castling is the king's move, not a button
+
+Chess had four castling *cards* sitting in two zones beside the board, each
+naming squares outright: `place:w_king_home:g1`. They are gone. Castling is two
+abilities on the king, and **everything it asks is relative**:
+
+```json
+{ "key": "castle_k", "moves": [{ "patterns": ["two_right"], "fill": "empty",
+    "needs": { "moves_made@self": { "equals": 0 } },
+    "where": { "tagged:rook@one_right": 1, "moves_made@one_right": { "equals": 0 },
+               "not_tagged:piece@one_left": 1 } }],
+  "action": ["move_to:target", "place:one_right:one_left", "next_phase"] }
+```
+
+**Columns do not flip with facing** — only ranks do — so one set of patterns
+serves both colours, where the old form needed ten absolute ones (four paths and
+six home squares, per side).
+
+The three questions land in the three places that fit: `needs` is about the king
+(it has not moved), `where` is about the square being considered (an unmoved
+rook beyond it, nothing in between), and `fill: "empty"` is about the square
+itself. Nothing else had to be invented — this is en passant's machinery, used
+again a day later, which is the argument that it was the right machinery.
+
+**One small addition:** `place` takes a pattern as its destination, not only a
+square. "One column left of me" is the same sentence whichever end of the board
+you sit at; `f1` is only ever white's.
+
+## What it deleted
+
+| | Was | Is |
+|---|---|---|
+| cards | 17 | 13 |
+| zones | 5 | 3 |
+| patterns | 18 | 12 |
+| placements | 17 | 13 |
+| lines | 381 | 322 |
+
+And the board itself: two boxes of buttons that were on screen for the whole
+game, for a move most games never make.
+
+---
+
 # En passant, and the two ideas it needed
 
 Neither of them is about chess.

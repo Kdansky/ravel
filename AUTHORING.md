@@ -980,6 +980,26 @@ same clause serves both colours.
 `"tagged:pawn@behind": 1` is *there is a pawn there*. Use them rather than
 counting to one — `count:` is for when the number is the point.
 
+**Castling is what this is for.** It is two abilities on the king, and every
+question it asks is relative — the king goes two columns toward the rook, and
+columns do not flip with facing, so the same rules serve both colours:
+
+```json
+{ "key": "castle_k", "text": "Castle kingside",
+  "moves": [{ "patterns": ["two_right"], "fill": "empty",
+              "needs": { "moves_made@self": { "equals": 0 } },
+              "where": { "tagged:rook@one_right": 1,
+                         "moves_made@one_right": { "equals": 0 },
+                         "not_tagged:piece@one_left": 1 } }],
+  "action": ["move_to:target", "place:one_right:one_left", "next_phase"] }
+```
+
+`needs` asks about the king (it has not moved), `where` asks about the square it
+is considering (a rook still sits beyond it, unmoved, with nothing in between),
+and the action moves the rook to the far side by pointing rather than by naming
+a square. Clicking the king offers "Move" and "Castle kingside" only when both
+are really available.
+
 ### `last_acted` — the card a player touched last
 
 The engine marks whichever card was most recently **played or activated**, one
@@ -1500,7 +1520,7 @@ lose_stat:score:20:x:count:wager@mine.red            the same product, distribut
 | `gain:card:n` | Create n instances of a card in its home zone (or the hand) |
 | `add_to:zone` | Move the acting card (overlay picks) |
 | `move_target_to:zone` | Move each targeted card |
-| `place:<who>:<col>:<row>` | Put every card the scope names on that square of the only board (1-based, row 1 at the top). Refuses an occupied square — the move that names *where*, not *how* |
+| `place:<who>:<where>` | Put every card the scope names on a square of the only board. `<where>` is a square by name (`"g1"`) or a **pattern pointing at one from the acting card** (`"one_left"`) — the second is how a rule works for both sides of a board, since a named square is only ever one player's. Refuses an occupied square |
 | `gain_stat:stat:n` / `lose_stat:stat:n` | Change the stat holder's total (clamped, logged, floats) |
 | `spend_stat:stat:n` | Alias of lose (costs) |
 | `set_stat:stat:n` | Set directly (dev/authoring tool; silent) |
