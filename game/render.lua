@@ -1277,18 +1277,24 @@ local function draw_zone_browse(zone_e)
 	love.graphics.setColor(unpack(C.card_text))
 	printf((zone_e.label or zone_e.key) .. "  (" .. n .. ")", 0, 18 * S, W, "center")
 
-	local cw   = math.min(130 * S, (W - 40 * S) / math.min(n, 5) - gap)
-	local cols = math.max(1, math.floor((W - 40 * S) / (cw + gap)))
-	local rows = math.ceil(n / cols)
-	local avail_h = H - 100 * S
-	if rows * (cw * CARD_RATIO + gap) > avail_h then
-		cw = math.min(cw, (avail_h / rows - gap) / CARD_RATIO)
+	-- Pick the shape of the grid, rather than the width of a card and then
+	-- however many rows that needs. The old way fixed the columns from an
+	-- uncapped card width and shrank the cards to fit the height, so a big deck
+	-- came out as six columns of stamps with the sides of the screen empty:
+	-- forty-four cards were 40px wide and titled "Whit…".
+	local avail_w, avail_h = W - 40 * S, H - 100 * S
+	local cols, cw = 1, 0
+	for c = 1, n do
+		local r = math.ceil(n / c)
+		local w = math.min(130 * S, avail_w / c - gap, (avail_h / r - gap) / CARD_RATIO)
+		if w > cw then cols, cw = c, w end
 	end
-	local ch = cw * CARD_RATIO
+	local rows = math.ceil(n / cols)
+	local ch   = cw * CARD_RATIO
 	local x0 = (W - math.min(n, cols) * (cw + gap) + gap) / 2
 	local y0 = 55 * S
 
-	for i, cid in ipairs(zone_e.cards) do
+	for i, cid in ipairs(zones.browse_order(zone_e)) do
 		local col = (i - 1) % cols
 		local row = math.floor((i - 1) / cols)
 		local pl  = { x = x0 + col * (cw + gap), y = y0 + row * (ch + gap), w = cw, h = ch }

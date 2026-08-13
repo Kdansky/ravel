@@ -115,8 +115,11 @@ local function inspect_at(x, y)
 	end
 	local zid = zones.zone_at(x, y)
 	local z   = zid and entity.get(zid)
-	if z and #z.cards > 0 and not z.tags.no_peek
-		and (z.zone_type ~= "deck" or z.tags.face_up) then
+	-- A deck is browsable too: what is *in* it is public in most games — you
+	-- know what the market holds — and what must stay secret is already marked
+	-- "hidden", which nothing can click anyway. The order is the secret, and
+	-- the browser is what keeps it (see draw_zone_browse).
+	if z and #z.cards > 0 and not z.tags.no_peek then
 		render.set_detail(zid)
 		return true
 	end

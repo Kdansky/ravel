@@ -190,6 +190,33 @@ function M.visible(c)
 	return z.seat == M.active_seat()
 end
 
+-- The order a browser should show a zone's cards in. **A face-down stack's
+-- order is its secret, not its contents** — you may know what is in the market
+-- deck, and must not know what comes next — so it is sorted by name and tells
+-- you nothing. Anything whose order is already on the table is shown as it is.
+--
+-- Lives here rather than in the renderer because it is a rule about what a zone
+-- reveals, which is the same question `visible` answers, and because a renderer
+-- is a bad place to keep a promise.
+function M.browse_order(z)
+	local out = {}
+	for i, cid in ipairs(z and z.cards or {}) do out[i] = cid end
+	if not (z and z.zone_type == "deck" and not z.tags.face_up) then return out end
+	local declaration = require("declaration")
+	local function name(id)
+		local e = entity.get(id)
+		local d = declaration.G.card_defs[e.def_key]
+		return ((d and d.text) or e.def_key), e.def_key
+	end
+	table.sort(out, function(a, b)
+		local na, ka = name(a)
+		local nb, kb = name(b)
+		if na ~= nb then return na < nb end
+		return ka < kb
+	end)
+	return out
+end
+
 function M.move_top(from_id, to_id)
 	local from = entity.get(from_id)
 	if not from or #from.cards == 0 then return false end

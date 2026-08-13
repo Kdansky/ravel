@@ -12,6 +12,7 @@
 local entity = require("entity")
 local zones = require("zones")
 local flow = require("flow")
+local declaration = require("declaration")
 
 local M = {}
 
@@ -77,6 +78,56 @@ function M.test_visibility_a_seatless_hand_stays_visible(check)
 	check("castle's hand has no seat", hand.seat == nil)
 	check("and its cards are visible", #hand.cards > 0 and zones.visible(entity.get(hand.cards[1])),
 		tostring(#hand.cards) .. " cards")
+end
+
+-- Looking inside a deck. What is *in* one is public in most games — you know
+-- what the market holds — and every deck whose contents are secret is already
+-- tagged "hidden", which nothing can click. The **order** is the secret, and
+-- the browser is what keeps it: a face-down stack is shown sorted by name, so
+-- reading it tells you nothing about what comes next.
+function M.test_visibility_a_deck_shows_what_not_when(check)
+	flow.init("lost_cities.json", 11)
+	local deck = zones.find("deck")
+	check("the deck is a face-down stack with cards in it",
+		deck.zone_type == "deck" and #deck.cards > 1 and not deck.tags.face_up)
+
+	local shown = zones.browse_order(deck)
+	check("browsing shows every card", #shown == #deck.cards)
+
+	local function names(list)
+		local out = {}
+		for i, id in ipairs(list) do
+			out[i] = declaration.G.card_defs[entity.get(id).def_key].text
+		end
+		return out
+	end
+	local sorted, order = names(shown), names(deck.cards)
+	local ok = true
+	for i = 2, #sorted do if sorted[i] < sorted[i - 1] then ok = false end end
+	check("in name order", ok, table.concat(sorted, ", "):sub(1, 60))
+
+	-- The point: shuffling changes what comes next and changes nothing about
+	-- what browsing shows, so the list carries no information about the draw.
+	local before = table.concat(sorted, "|")
+	require("actions").execute("shuffle:deck", {})
+	check("shuffling really did reorder it",
+		table.concat(names(deck.cards), "|") ~= table.concat(order, "|"))
+	check("and the browser reads exactly the same afterwards",
+		table.concat(names(zones.browse_order(deck)), "|") == before)
+end
+
+-- A face-up stack has no secret to keep, so it is shown as it lies.
+function M.test_visibility_a_pile_is_shown_in_order(check)
+	flow.init("castle.json", 7)
+	local pile = zones.find("graveyard")
+	for _ = 1, 3 do
+		require("actions").execute("draw_from:build_deck:graveyard:1", {})
+	end
+	local shown = zones.browse_order(pile)
+	local same = #shown == #pile.cards
+	for i, id in ipairs(shown) do if id ~= pile.cards[i] then same = false end end
+	check("a pile browses in the order it is stacked", same and #shown == 3,
+		tostring(#shown))
 end
 
 return M

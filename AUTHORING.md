@@ -1000,6 +1000,21 @@ and the action moves the rook to the far side by pointing rather than by naming
 a square. Clicking the king offers "Move" and "Castle kingside" only when both
 are really available.
 
+### Looking inside a deck
+
+Right-click or long-press a zone to browse it: every card, full size, laid out
+to fill the panel. **A deck may be browsed too** — what is *in* one is public in
+most games, and a deck whose contents are secret is already `hidden`, which
+nothing can click.
+
+**The order is the secret, not the contents.** A face-down stack is shown sorted
+by name, so reading it tells you what is left and nothing about what comes next
+— shuffling changes the draw and changes the browser not at all. A face-up pile
+has no secret to keep and is shown as it lies, top card last.
+
+Browsing never changes anything, so it is safe to offer everywhere. Drawing is a
+separate gesture and stays one.
+
 ### `last_acted` — the card a player touched last
 
 The engine marks whichever card was most recently **played or activated**, one
@@ -1360,7 +1375,7 @@ eighteen are the exceptions — the words the engine itself looks for:
 | `activate` | zone | cards here may use their abilities — without it an ability is unreachable |
 | `face_down` | zone | cards here are hidden, whatever the type would do |
 | `face_up` | zone | cards here are shown, whatever the type would do |
-| `hidden` | zone | not drawn and not clickable — offer zones, fate decks |
+| `hidden` | zone | not drawn and not clickable — offer zones, fate decks. **This is what keeps a deck's contents secret**: any other deck can be browsed |
 | `no_peek` | zone | no tooltip and no browsing the pile |
 | `optional` | zone | nothing here ever has to be played, so a gated card stays gated |
 | `page` | zone | its cards are drawn as full-screen story pages |
