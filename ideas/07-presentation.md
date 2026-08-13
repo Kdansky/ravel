@@ -1,7 +1,7 @@
 # 07 — Presentation and the gestures on top of it
 
-**Status:** gaps 1, 2, 4 and 5 shipped. Left: the multi-ability chooser (gap 3),
-which no game needs yet.
+**Status:** gaps 1–5 all shipped — gap 3 last, as `abilities` (`d27d18a`). Left:
+gap 6, the ending screen, which no game with two seats has at all.
 
 The rules are in better shape than the surface they are shown through. Every
 item here is something a player sees or does, not something the engine computes.
@@ -212,7 +212,16 @@ features, and the second one is already wanted.
 
 ---
 
-## Gap 3 — Choosing between several abilities
+## Gap 3 — Choosing between several abilities — **shipped** (`d27d18a`)
+
+*And by the route this section predicted: an ability is a thing with a name, and
+the chooser is the offer overlay that already existed. `abilities` is a list
+where `activate` was one thing, normalised at the door so a card with one is the
+list with one entry — see [DONE.md](DONE.md), "A card that can do several
+things". The refusal below held right up to the card that needed it: Coronation's
+Small Council is five advisors on one card.*
+
+### The original write-up
 
 *Urgency: low (no shipped game needs it) · Difficulty: medium · Usefulness: low
 now, load-bearing for anything MTG-shaped*
@@ -370,3 +379,72 @@ refuses `%d` for a float with no integer representation. The suite is run under
 both for exactly this reason. It bit in a failure-detail string, which is
 evaluated eagerly even on the passing path — so a detail message can break a
 test that would otherwise pass.
+
+---
+
+## Gap 6 — An ending that knows who won
+
+*Urgency: medium — two of the three games anyone would show somebody end with no
+screen at all · Difficulty: medium · Usefulness: high*
+
+> *We need a good win/lose screen. With fireworks for the player if they win,
+> and some sad effects if they lose. If multiple players are in the game, the
+> winner should get the fireworks, and the loser(s) should get the loss screen,
+> but also display in smaller text below who won.*
+
+**The flourish is already built and the screen is already there.** `fx.celebrate`
+(`fx.lua:141`) rains golden confetti for a victory and slow dark embers for a
+defeat, and `render.lua:1481` draws a banner, the run summary from
+`flow.summary()`, and fires the celebration once. So this gap is not "build a win
+screen" — it is that **the screen is single-player and the engine has no idea
+whose victory it is.**
+
+Two separate holes, and the second is the larger one:
+
+**1. The outcome is a word, not a seat.** `flow.outcome()` (`flow.lua:774`)
+walks the open overlay's cards and returns the first `outcome` field it finds —
+`"victory"` or `"defeat"`, a global fact. Six games write one, and every one of
+them is solo: you against the tower, the road, the vigil. In a game with two
+seats the same card would tell both players the same word, which is wrong for
+exactly one of them.
+
+**2. The two-seat games have no ending screen at all.** Chess ends with
+`"end_conditions": [{ "stat": "count:king@taken", "at_least": 1, "then":
+["load_game:menu.json"] }]` — the king is taken and you are dropped back to the
+menu, with no announcement that anything happened. Lost Cities' `end_conditions`
+is empty and its finish is a scoring pass. So the first thing to build is not
+the screen but the **thing the screen reads**.
+
+### What it needs
+
+- **An outcome that names a seat.** [Assumption: the smallest form that fits the
+  existing vocabulary is `"outcome": { "winner": "<subject>" }` on the ending
+  card — a subject, so a game says `"max:score@anyone"`-style *who* rather than
+  hardcoding a seat, and Lost Cities' winner is already written exactly that way
+  in a condition today (`{ "stat": "score@north_side", "at_least":
+  "score@south_side" }`). The plain `"victory"` / `"defeat"` strings must keep
+  working untouched, because six solo games are correct as they are and a seat is
+  meaningless in them.]
+- **A viewer**, which is [16](16-the-player-at-this-screen.md) gap 1. "The winner
+  gets the fireworks" is a sentence about the person at the screen, and the
+  engine currently only knows which seat is *up* — so in networked play the
+  loser would get the confetti whenever the last move happened to be theirs.
+  **This gap cannot be built correctly before that one.**
+- **A name to print**, which is [16](16-the-player-at-this-screen.md) gap 2.
+  Without it the smaller line reads *player_white wins*, which is a chair's key.
+  It degrades honestly, so this is an ordering preference rather than a
+  dependency.
+- **The loser's screen says who won**, in the smaller line under the banner,
+  where `flow.summary()`'s run summary already sits. That is a layout question
+  the text pass (gap 1) already answered for every other panel: blocks with
+  weights, measured then drawn, not one `printf`.
+
+### Refuse
+
+- **A second ending mechanism.** An ending is an overlay holding a card, and
+  that is `12`'s and the offer's shape both. Whatever names the winner goes *on
+  that card*, not into a new engine concept with its own state to snapshot.
+- **Per-seat screens in hot-seat.** One screen, one person: the handover
+  ceremony was already refused ([DONE.md](DONE.md), stage A), so a hot-seat
+  ending announces the winner by name to the room rather than pretending the
+  loser is not looking.

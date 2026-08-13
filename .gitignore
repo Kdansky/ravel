@@ -5,3 +5,6 @@ __pycache__/
 tests/inspiration/
 
 .claude/settings.local.json
+
+# Worktrees live inside the repo; they are checkouts, not content.
+.claude/worktrees/

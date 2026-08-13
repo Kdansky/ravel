@@ -1,0 +1,151 @@
+# 18 — Legends of Runeterra
+
+**Status:** not started · **Size:** large, and the first deliverable is a
+document rather than code · **Depends on:** [01](01-boardgames.md) gap 5
+(triggers) for anything past the vanilla prototype
+
+> *So, let's try a big one: Write an .md file that writes down the rules of
+> Legends of Runeterra. Then read it, and see if it's correct. If necessary,
+> repeat this until it's satisfying. Copy down two relatively simple decks with
+> all their card's texts. I want to implement LoR instead of MTG, purely because
+> it's more streamlined and MTG is full of annoying edge cases.*
+
+[01](01-boardgames.md) already refuses full Magic in as many words — *the
+comprehensive rules are a programming language with a priority stack and
+replacement effects* — and names Hearthstone as the creature-combat target
+instead. LoR is a better choice than either: it is a real, current, two-player
+card game with a small closed rule set, and it is the first target on the ladder
+that would make ravel a *card game* engine rather than a board game engine that
+also holds cards.
+
+---
+
+## Stage 1 — the rules document, and why it comes first
+
+**Deliverable:** [Assumption: `ideas/lor/rules.md`, with the decks beside it in
+`ideas/lor/decks.md` — a subfolder rather than a numbered file, because the
+rules of somebody else's game are reference material and not an idea about
+ravel.]
+
+The instruction *write it, read it, see if it's correct, repeat until it's
+satisfying* is the important part of this stage and not a formality.
+[Assumption: writing it means writing it from recollection, which is exactly the
+thing that produces a confident, subtly wrong document — the wrong mana curve,
+a keyword's interaction misremembered, a phase boundary in the wrong place. The
+re-read loop is the check that exists in place of a source. If a rulebook or a
+wiki is reachable at the time, use it and say so in the file; if not, the
+document must say which parts are recalled rather than verified, because
+building against a wrong rule costs far more than writing "unsure" costs.]
+
+**What the document must contain**, because these are the parts an
+implementation will ask about and a summary always omits:
+
+- The round structure: who gets the attack token, when it passes, what refills.
+- Mana: the gem count, how it grows, and how banked spell mana differs.
+- The action loop: what a "pass" is, what ends a round, and when a player may
+  respond to what.
+- Combat in exact order: declaring attackers, declaring blockers, what happens
+  to unblocked units, when damage lands and whether it is simultaneous.
+- Every keyword in the two decks, written as a rule rather than as flavour.
+- The board limits: hand size, bench size, deck size, how the game ends.
+
+**Acceptance criterion, borrowed from [10](10-schema-document.md):** the
+document plus a short list of what writing it exposed — every rule that turned
+out to need a paragraph, and every one that ravel cannot express. That second
+list *is* stage 2.
+
+## Stage 2 — what LoR names that the engine lacks
+
+The ladder's discipline is *each target game names one missing capability*. LoR
+names three, and the honest reading is that it names them because it is a
+different genre, not because it is unusually complex.
+
+| LoR rule | Ravel today |
+|---|---|
+| Nexus health, mana, deck of 40, hand of 10 | seat stats and per-seat zones — **exists** |
+| Bench and battlefield | two grid zones per seat — **exists** |
+| Drawing at round start, mana refilling | `turn.action` on a round wrap — **exists** |
+| The attack token alternating | a seat stat plus phase routing — **expressible**, no engine work |
+| Champions levelling up | `become` — **shipped**, and it was chess promotion that paid for it |
+| Ephemeral, Fleeting | a tag plus a round-boundary action — **expressible** |
+| Play / Last Breath / Round Start abilities | **[01](01-boardgames.md) gap 5, triggers** — not started |
+| **Blocking: which unit blocks which** | **missing** — a pairing between two cards |
+| **Combat damage, simultaneous, then deaths** | **missing** — follows from the pairing |
+| **The pass, and responding to a spell** | **missing** — a bounded stack |
+| Spell mana, spendable only on spells | **missing, and small** — a cost paid from either of two pools by a rule |
+
+### The pairing is the interesting one
+
+Blocking is *this unit blocks that one*, which is a relation between two cards
+that both stay on the board — and the engine has exactly one mechanism for
+that: `attach_to_target` (`actions.lua:418`), which
+[15](15-many-on-one-square.md) records as **built and never used by any shipped
+game**. That file's own recommendation is to *play something through
+`attach_to_target` so the mechanism that already exists stops being
+theoretical*, and a blocker declaring itself against an attacker is the first
+honest customer for it. Expect to find the thin parts it lists — detaching,
+what happens when the parent dies, whether a child can be targeted apart from
+its parent — since a blocker/attacker pair asks all four in one turn.
+
+### The pass is a stack, and it is a small one
+
+This is where "more streamlined than MTG" has to be tested rather than
+believed. [Assumption: from recollection, LoR keeps a stack — a spell can be
+responded to and the responses resolve last-first — but bounds it in ways MTG
+does not: no permanents entering as a response, a small closed set of spell
+speeds, and a round that ends when both players pass in succession. If that is
+right, it is a *bounded* version of the exact thing `01` refused, and the
+refusal was about the unbounded one. The rules document is what settles this,
+and it should be settled before any code, because the answer decides whether
+this is a milestone or a project.]
+
+The engine has one relevant guarantee already: `flow.settle`'s 64-step budget
+(ARCHITECTURE invariant 3), which is the same discipline `01` gap 5 requires of
+triggers — *they queue, they never recurse*. A response stack drained by
+`settle` under that budget is the shape to aim at.
+
+## Stage 3 — the milestones, smallest first
+
+Each ships a playable game file in `game/games/` and its own scripted test, per
+`01`'s rule that every board game gets one.
+
+1. **Vanilla combat.** Two decks of units with no text at all, no spells, no
+   keywords: draw, play to bench, take the attack token, declare attackers,
+   declare blockers, damage, nexus health, somebody wins. This is the milestone
+   that proves the pairing and the combat resolution, and it needs no triggers.
+2. **Burst spells only** — the ones that resolve immediately, so there is still
+   no stack. This is where a spell targets, and targeting already exists.
+3. **The pass and the response stack.** Fast and Slow spells, and the round
+   ending on two passes.
+4. **Keywords**, one at a time, each as a tag with behaviour. [Assumption: the
+   ones that only change combat arithmetic — Quick Attack, Overwhelm, Tough,
+   Lifesteal — are the cheap half, and the ones that change *who may block* —
+   Elusive, Fearsome, Challenger — are rules about the pairing and want the
+   pairing to be solid first.]
+5. **Champions**, which are `become` plus a trigger that watches the level-up
+   condition — so they land after 01 gap 5 and not before.
+
+**Two decks, not the card pool.** ~40 templates hand-written, which
+[14](14-kinds-and-placements.md) shows is a readable size (chess is 13 cards and
+279 lines) and does **not** want a generator — the generator is what 14 deleted.
+
+**One line about provenance:** card text and names are Riot's. `CREDITS.md`
+already exists as the place this repository records where content came from, and
+`DESIGN.md` requires it stays accurate — a fan implementation of two decks
+belongs in it beside the art.
+
+## Refuse
+
+- **A rules-complete LoR.** The same refusal `01` makes for Magic, for the same
+  reason: the target is *a playable subset that is honestly the game*, not every
+  card ever printed.
+- **Building anything before the rules document is satisfying.** The whole
+  request is shaped as document-first, and it is right: the cost of discovering
+  a misremembered combat order after the combat code exists is the entire combat
+  code.
+- **Engine knowledge of a keyword.** A keyword is a tag with behaviour declared
+  in the game file, exactly as `takeable` is. The moment `render.lua` or
+  `flow.lua` knows what Overwhelm means, ravel is a LoR engine rather than a card
+  game engine, and invariant 7 is gone.
+- **The client, the collection, the levelling, the art.** This is a rules
+  implementation played from a fixed deck list.
