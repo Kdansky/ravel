@@ -248,7 +248,7 @@ HANDLERS["resync"] = function()
 end
 
 HANDLERS["seat"] = function(name)
-	net.seat = (name ~= "" and name) or nil
+	net.claim_seat(name)
 end
 
 HANDLERS["copy"] = function()

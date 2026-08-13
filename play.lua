@@ -275,10 +275,10 @@ local function net_command(rest)
 		if args == "" then
 			print("seats: " .. table.concat(net.seats(), ", "))
 		elseif args == "off" then
-			net.seat = nil
+			net.claim_seat(nil)
 			print("playing any seat")
 		else
-			net.seat = args
+			net.claim_seat(args)
 			print("playing as " .. args)
 		end
 	elseif sub == "send" then

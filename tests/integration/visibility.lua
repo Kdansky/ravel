@@ -162,4 +162,51 @@ function M.test_visibility_an_opponents_hand_cannot_be_read(check)
 		zones.peekable(theirs) and zones.peekable(mine) == false)
 end
 
+-- Whose turn it is and who is looking are one question at one screen and two
+-- questions over a network. Every test above hands over to change the answer,
+-- which is exactly why none of them could catch this: with one client the two
+-- seats move together, and with two they must not — a client that has claimed a
+-- seat goes on seeing its own hand, and only its own, while the opponent thinks.
+function M.test_visibility_the_viewer_is_not_the_seat_to_play(check)
+	local net = require("net")
+	flow.init("lost_cities.json", 11)
+	local mine, theirs = hand_of("south"), hand_of("north")
+
+	net.claim_seat("south")
+	check("this screen is south's, and north is up",
+		zones.viewer == "south" and zones.active_seat() == "north")
+	check("south still sees its own hand", zones.peekable(mine)
+		and zones.visible(entity.get(mine.cards[1])))
+	check("and not north's, whose turn it is", zones.peekable(theirs) == false
+		and zones.visible(entity.get(theirs.cards[1])) == false)
+
+	-- The handover every test above relies on must now move nothing at all.
+	seat_turn(2)
+	check("south to play, and the same two answers", zones.active_seat() == "south"
+		and zones.peekable(mine) and zones.peekable(theirs) == false)
+
+	-- Standing up is the spectator and the hot-seat case, where the seat to play
+	-- is the seat watching and the answers follow the turn again.
+	net.claim_seat(nil)
+	check("a seat given up leaves the turn deciding",
+		zones.viewer == nil and zones.peekable(mine))
+	seat_turn(1)
+	check("and it swaps on the handover once more",
+		zones.peekable(theirs) and zones.peekable(mine) == false)
+end
+
+-- A seat claimed in one game names nobody in the next. Falling through to the
+-- turn is what keeps that harmless: taking the claim literally would hide every
+-- hand on the table, starting with the one being held.
+function M.test_visibility_a_seat_this_game_never_heard_of(check)
+	local net = require("net")
+	flow.init("lost_cities.json", 11)
+	net.claim_seat("player_white")
+	check("the claim stands, and matches no seat here",
+		zones.viewer == "player_white" and declaration.G.seat_set.player_white == nil)
+	check("so north, who is up, is read as the one watching",
+		zones.peekable(hand_of("north")) and zones.peekable(hand_of("south")) == false)
+	net.claim_seat(nil)
+end
+
 return M

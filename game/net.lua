@@ -553,6 +553,20 @@ function M.seats()
 	return declaration.G.seat_list or {}
 end
 
+-- Sitting down says two things: which moves this client may make, and who is
+-- looking at the screen. Only the first was ever read, so the renderer went on
+-- believing the seat to play was the seat watching — and drew the opponent's
+-- hand face up while it was their turn. An empty name and "any" both stand up
+-- again, which is the spectator case.
+--
+-- Every seat claim goes through here rather than assigning M.seat, or the two
+-- halves drift apart the next time one of them is set somewhere else.
+function M.claim_seat(name)
+	M.seat = (name and name ~= "" and name ~= "any") and name or nil
+	zones.viewer = M.seat
+	return M.seat
+end
+
 ---------------------------------------------------------------- transports
 --
 -- A transport is a table:
@@ -849,7 +863,7 @@ actions.on_net = function(what, arg)
 	if what == "seat" then
 		-- Which chair you are sitting in. Local, not game state: it says who
 		-- *you* are, not what is true of the game, so it is never published.
-		M.seat = (arg and arg ~= "" and arg ~= "any") and arg or nil
+		M.claim_seat(arg)
 		say(M.seat and ("you are " .. M.seat) or "playing any seat")
 	elseif what == "offline" then
 		M.unlink()

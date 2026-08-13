@@ -33,6 +33,26 @@ function M.active_seat()
 	return seats[1]
 end
 
+-- The seat in front of *this* screen, which is a different question from whose
+-- turn it is. They are the same in hot-seat — one screen, one person, and both
+-- swap at the handover — and they come apart the moment two machines are
+-- playing: your opponent's turn is still your screen.
+--
+-- Written from outside rather than read out of net, because no engine module
+-- requires net (net.lua's first line) and that is worth keeping for one string.
+-- Client-side display state: it must never reach the snapshot, since two
+-- machines watching one game hold different values on purpose.
+M.viewer = nil
+
+-- A viewer naming no seat in *this* game is no viewer at all. Claiming a seat
+-- and then loading a game that never heard of it would otherwise hide every
+-- hand on the table, including the one you are holding.
+local function watching()
+	local seats = declaration.G.seat_set
+	if M.viewer and seats and seats[M.viewer] then return M.viewer end
+	return M.active_seat()
+end
+
 local function build(def, seat, pos)
 	local e = {
 		kind      = "zone",
@@ -179,15 +199,15 @@ end
 --
 -- **This hides, it does not protect.** The whole state is in memory and travels
 -- over the wire, so a determined player can still read an opponent's hand; what
--- this stops is the accidental version, which in hot-seat is the only version
--- that matters — two people at one screen where the game shows both hands at
--- once. Trust is a referee's job and the engine has never claimed to be one
--- (DESIGN.md, *Trust*).
+-- this stops is the accidental version — two people at one screen where the
+-- game shows both hands at once, and a networked client drawing the opponent's
+-- hand while they think. Trust is a referee's job and the engine has never
+-- claimed to be one (DESIGN.md, *Trust*).
 function M.visible(c)
 	if not c then return false end
 	local z = c.zone_id and entity.get(c.zone_id)
 	if not z or z.zone_type ~= "hand" or not z.seat then return true end
-	return z.seat == M.active_seat()
+	return z.seat == watching()
 end
 
 -- The order a browser should show a zone's cards in. **A face-down stack's
@@ -217,7 +237,7 @@ function M.browse_order(z)
 	return out
 end
 
--- The same rule asked of the container: may the seat to play look inside this
+-- The same rule asked of the container: may the seat watching look inside this
 -- zone at all? A hand belonging to somebody else is the case that matters. Its
 -- cards already draw as backs, and every path that *reads* a card — the
 -- browser, the card detail, the ctrl+hover inspector — has to ask this too, or
@@ -225,7 +245,7 @@ end
 function M.peekable(z)
 	if not z or z.tags.no_peek then return false end
 	if z.zone_type ~= "hand" or not z.seat then return true end
-	return z.seat == M.active_seat()
+	return z.seat == watching()
 end
 
 function M.move_top(from_id, to_id)
