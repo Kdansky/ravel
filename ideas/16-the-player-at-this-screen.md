@@ -1,8 +1,7 @@
 # 16 — The player at this screen
 
-**Status:** not started · **Size:** gap 1 is small and is a **bug in shipped
-multiplayer**; gaps 2–4 are an afternoon each once gap 1 exists, and they all
-want the same missing thing.
+**Status:** **gap 1 shipped** (`fb3d704`) · **Size:** gaps 2–4 are an afternoon
+each now that the concept exists, and they all want the same missing thing.
 
 Three notes from `todo.md`, and they turn out to be one subject: the engine
 knows which seat is **up** and has no notion of who is **looking**.
@@ -23,7 +22,35 @@ once "who is watching" does.
 
 ---
 
-## Gap 1 — the viewer is not a concept, and hidden hands leak because of it
+## Gap 1 — the viewer is not a concept — **shipped** (`fb3d704`)
+
+**`zones.viewer` is the seat in front of this screen**, nil unless a client has
+claimed one, and `visible`/`peekable` ask it instead of `active_seat()`. The
+design below is what shipped; three things the build settled, and only the first
+was foreseen:
+
+- **A field written from outside, not a call into `net`.** The dependency runs
+  the wrong way and it stays that way — `net.lua`'s first line promises no engine
+  module requires it, and that is worth more than the one string it costs.
+- **`net.claim_seat` is now the only way to sit down.** The seat was assigned in
+  **three** places, not the two this file counted: the `net_seat` action
+  (`net.lua`), the browser panel's seat buttons (`netpanel.lua`), and `play.lua`'s
+  CLI. Sitting down says two things now, and one site setting half of it is
+  exactly how this comes back.
+- **A viewer naming no seat in the current game falls through to the turn.**
+  Not in the plan, and needed: claiming `south` and then loading chess would
+  otherwise hide every hand on the table, including the one being held. A claim
+  this game has never heard of is not a claim about anybody.
+
+**The test is the one the file could not previously express**, and it earns its
+place — it fails on exactly the two checks that name the bug when the viewer is
+disabled. With `south` claimed and north to play, south sees its own hand and
+not north's; then the handover that *every other test in the file leans on*
+changes nothing at all. That is also the answer to why a thorough pass missed
+this a commit earlier: with one client the two seats always move together, so
+the bug is invisible from inside a hot-seat test.
+
+### The original write-up
 
 *Urgency: high — it is a bug, in the feature that shipped last · Difficulty:
 small · Usefulness: high, and it unblocks the rest of this file*
@@ -64,7 +91,7 @@ way: `net` requires `zones`, so `zones` may not ask `net`.
 nil by default, written by `net` when a seat is claimed or released, read by the
 two functions above. It is client-side display state, so it must **not** join the
 snapshot protocol, and `net.seat` already lives outside the snapshot for the same
-reason.]
+reason.] *— that is what shipped, unchanged.*
 
 **Test it where the bug is**, not where the old ones are: two clients, seats
 claimed, and assert that the same game state answers `visible` differently on
@@ -191,8 +218,8 @@ a friend cannot forget they left it on.**
 
 ## Build order
 
-1. **The viewer** (gap 1), and the two-client visibility test. It is a bug fix
-   and it stands alone.
+1. ~~**The viewer** (gap 1), and the two-client visibility test~~ — **done**
+   (`fb3d704`). It was a bug fix and it stood alone, as expected.
 2. **The store** — `conf.lua` identity, `settings.lua`, and the browser check.
    Nothing uses it yet.
 3. **The name**: settings entry, handshake field, and the places that print a
