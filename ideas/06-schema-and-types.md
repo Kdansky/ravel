@@ -9,7 +9,92 @@ use — and should be able to say what it knows.
 
 ---
 
-## Gap 1 — Zone qualities belong in tags, not in `type`
+## Gap 1 — What a zone's `type` decides — **surveyed, and refused**
+
+*Urgency: none · Difficulty: high in the honest sense — the code is shallow, the
+design is not · Usefulness: unproven*
+
+**Decision (2026-08-13, at `85e51eb`): not doing this.** The survey below is the
+whole of what `type` bundles, taken from every `zone_type` read in the engine at
+that commit. It is kept because it is genuinely useful to have written down —
+and because the answer to "should we split it" turned out to be no, for a reason
+worth recording rather than rediscovering.
+
+**This table will drift.** It is a snapshot, not a contract. Re-derive it with
+`grep -rn "zone_type" game/` before trusting a cell.
+
+### The matrix
+
+| Trait | `deck` | `pile` | `hand` | `grid` | `options` |
+|---|---|---|---|---|---|
+| Layout | one stack | one stack | a row | addressed cells | a row |
+| Facing | backs | faces | faces | faces | faces |
+| Which cards can be acted on | top only | top only | all | all | all |
+| Clickable | **never** | top only | all | all | only while open |
+| Found by a tag search | **no** | yes | yes | yes | yes |
+| Browsable (ctrl / long-press) | only if `face_up` | yes | yes | yes | yes |
+| Addressable slots | no | no | no | **yes** | no |
+| Capacity bounded | no | no | no | **yes** (by cells) | no |
+| Private to its owner | no | no | **yes, if it has a seat** | no | no |
+| Cards run `on_turn` | no | no | no | **yes** | no |
+| Can be `sole_grid` (`place:`) | no | no | no | **yes, if not hidden** | no |
+| Drawn on the board | always | always | always | always | **only while open** |
+| Emptied when a choice is made | no | no | no | no | **yes** |
+| A card dims when… | — | — | unplayable | — | — |
+| Arrival animation | drop | drop | glide | slam | glide |
+| Empty and unlabelled draws | nothing | nothing | nothing | **the cells** | nothing |
+| Label chrome | back-stack + count | text at top | none | none | none |
+
+`fan` (a style) and `page` (a tag) override the layout row; `face_up` /
+`face_down` already override the facing row.
+
+### What the matrix shows
+
+- **`deck` and `pile` differ in one behavioural row — facing — and that row is
+  already a tag.** Everything else between them is chrome or exclusion.
+- **`deck`'s three exclusions have nothing to do with facing**: never clickable,
+  never found by a tag search, not browsable. That is "a closed box", and it is
+  *already incoherent*: a deck tagged `face_up` stays unclickable and
+  unsearchable, so it looks like a pile and behaves like a box. **This is a real
+  latent bug and does not need the refactor to fix** — see below.
+- **`grid` is the one coherent bundle.** Slots, capacity, `sole_grid` and the
+  empty-cell drawing all follow from *having addressed cells*. Only `on_turn`
+  firing on grids alone is a rule wearing a layout's clothes.
+- **Two rows are not about the type at all.** *Private to its owner* is `hand`
+  **and has a seat** — a seatless hand is public, so the quality is ownership.
+  And *dims when unplayable* is `hand` while everything else dims on `activate`,
+  which is "what does clicking mean here", already half-answered by a tag.
+
+### Why it is refused
+
+*(This is the decision as taken, in the words it was taken in: there is no
+elegant solution that does not come with its own baggage.)*
+
+The obvious split — `type` keeps the layout row, everything else becomes a tag —
+reads well in a table and badly in a game file. It trades one word every author
+already knows for five or six they would have to learn and keep consistent, and
+**the tagging system is not up for it**: tags are a flat unordered set with no
+grouping and no defaults, so `stack` + `face_down` + `closed` + `top_only` is
+four independent chances to write three of them. The alternative, half a dozen
+enum fields per zone, is more honest about the structure and much more to write.
+
+Neither is clearly better than four words that happen to bundle correctly for
+every game anyone has written. **The bundles are not wrong; they are unexplained
+— and explaining them is what this table is for.**
+
+Revisit if a game genuinely wants a combination no current type offers. The one
+that has come closest is a face-up deck, which is `pile` in every respect that
+matters, so it is not evidence.
+
+### Worth doing on its own, without the refactor
+
+- **A face-up deck should be clickable and searchable.** The three exclusions
+  belong to "closed", not to "face down", and today `face_up` only changes what
+  is drawn. Small, and a bug rather than a design change.
+- **`on_turn` on grids only** is undocumented and surprising; either widen it or
+  say so in `AUTHORING.md`.
+
+### The original write-up
 
 *Urgency: medium (half-done already) · Difficulty: medium · Usefulness: high*
 
