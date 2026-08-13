@@ -110,6 +110,10 @@ end
 local function inspect_at(x, y)
 	local cid = card_at(x, y)
 	if cid then
+		-- Reading a card is looking at it, and the rule is the one that decides
+		-- whether it is drawn face up: an opponent's hand shows backs, and must
+		-- not become readable by right-clicking it.
+		if not zones.visible(entity.get(cid)) then return false end
 		render.set_detail(cid)
 		return true
 	end
@@ -119,7 +123,7 @@ local function inspect_at(x, y)
 	-- know what the market holds — and what must stay secret is already marked
 	-- "hidden", which nothing can click anyway. The order is the secret, and
 	-- the browser is what keeps it (see draw_zone_browse).
-	if z and #z.cards > 0 and not z.tags.no_peek then
+	if z and #z.cards > 0 and zones.peekable(z) then
 		render.set_detail(zid)
 		return true
 	end
@@ -397,8 +401,12 @@ function love.update(dt)
 		local mx, my = love.mouse.getPosition()
 		if ctrl_down() then
 			-- Anything under the cursor, cards first, then the square they stand
-			-- on, then the zone they lie in — the same order the click does.
-			inspecting = card_at(mx, my) or slot_at(mx, my) or zones.zone_at(mx, my)
+			-- on, then the zone they lie in — the same order the click does. A
+			-- card nobody may look at is skipped: the inspector prints its key,
+			-- which is the whole of what a hidden hand is hiding.
+			local under = card_at(mx, my)
+			if under and not zones.visible(entity.get(under)) then under = nil end
+			inspecting = under or slot_at(mx, my) or zones.zone_at(mx, my)
 		end
 		local cid = card_at(mx, my)
 		local c   = cid and entity.get(cid)

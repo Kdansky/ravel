@@ -1299,8 +1299,12 @@ local function draw_zone_browse(zone_e)
 		local row = math.floor((i - 1) / cols)
 		local pl  = { x = x0 + col * (cw + gap), y = y0 + row * (ch + gap), w = cw, h = ch }
 		local c   = entity.get(cid)
-		draw_card_face(pl, c, false)
-		draw_card_stats_overlay(pl, c)
+		if zones.visible(c) then
+			draw_card_face(pl, c, false)
+			draw_card_stats_overlay(pl, c)
+		else
+			draw_card_back(pl)
+		end
 	end
 	love.graphics.pop()
 end

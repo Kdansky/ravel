@@ -130,4 +130,36 @@ function M.test_visibility_a_pile_is_shown_in_order(check)
 		tostring(#shown))
 end
 
+-- Drawing a hand as backs is only half of hiding it. Every path that *reads* a
+-- card has to ask the same question, or one of them quietly undoes the other:
+-- right-clicking a card, right-clicking the hand it lies in, and ctrl+hovering
+-- for the inspector all named the opponent's cards outright.
+function M.test_visibility_an_opponents_hand_cannot_be_read(check)
+	flow.init("lost_cities.json", 11)
+	local mine, theirs = hand_of("north"), hand_of("south")
+	check("north is to play, with a hand each", zones.active_seat() == "north"
+		and #mine.cards > 0 and #theirs.cards > 0)
+
+	check("my own hand may be looked into", zones.peekable(mine))
+	check("and theirs may not", zones.peekable(theirs) == false)
+	check("which is the same answer their cards give", 
+		zones.visible(entity.get(mine.cards[1]))
+		and zones.visible(entity.get(theirs.cards[1])) == false)
+
+	-- The board is nobody's hand and stays readable, or this would have hidden
+	-- the game from both players.
+	local deck = zones.find("deck")
+	check("a shared zone is still open to everyone", zones.peekable(deck))
+	check("and a zone that asked not to be peeked at is not",
+		zones.peekable(zones.find("mode")) == false)
+
+	-- Hand over, and the answers swap.
+	for e in entity.each("card") do
+		if e.def_key == "system" then e.stats.turn = 2 end
+	end
+	check("south to play", zones.active_seat() == "south")
+	check("now theirs is readable and mine is not",
+		zones.peekable(theirs) and zones.peekable(mine) == false)
+end
+
 return M

@@ -1012,8 +1012,15 @@ by name, so reading it tells you what is left and nothing about what comes next
 — shuffling changes the draw and changes the browser not at all. A face-up pile
 has no secret to keep and is shown as it lies, top card last.
 
-Browsing never changes anything, so it is safe to offer everywhere. Drawing is a
-separate gesture and stays one.
+Browsing never changes anything, so it is safe to offer everywhere it is
+allowed at all. Drawing is a separate gesture and stays one.
+
+**An opponent's hand is not browsable, and neither are its cards.** Drawing them
+as backs is only half of hiding a hand: right-clicking a card, right-clicking
+the hand itself, and ctrl+hovering for the inspector all read a card, and all
+three ask the same question now. The rule is one function — a hand with a seat
+is its owner's alone — and the board, the decks and a seatless hand stay open to
+everybody.
 
 ### `last_acted` — the card a player touched last
 

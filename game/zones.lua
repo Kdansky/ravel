@@ -217,6 +217,17 @@ function M.browse_order(z)
 	return out
 end
 
+-- The same rule asked of the container: may the seat to play look inside this
+-- zone at all? A hand belonging to somebody else is the case that matters. Its
+-- cards already draw as backs, and every path that *reads* a card — the
+-- browser, the card detail, the ctrl+hover inspector — has to ask this too, or
+-- one of them quietly undoes the other.
+function M.peekable(z)
+	if not z or z.tags.no_peek then return false end
+	if z.zone_type ~= "hand" or not z.seat then return true end
+	return z.seat == M.active_seat()
+end
+
 function M.move_top(from_id, to_id)
 	local from = entity.get(from_id)
 	if not from or #from.cards == 0 then return false end
