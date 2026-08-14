@@ -425,11 +425,12 @@ the screen but the **thing the screen reads**.
   "score@south_side" }`). The plain `"victory"` / `"defeat"` strings must keep
   working untouched, because six solo games are correct as they are and a seat is
   meaningless in them.]
-- **A viewer**, which is [16](16-the-player-at-this-screen.md) gap 1. "The winner
-  gets the fireworks" is a sentence about the person at the screen, and the
-  engine currently only knows which seat is *up* — so in networked play the
-  loser would get the confetti whenever the last move happened to be theirs.
-  **This gap cannot be built correctly before that one.**
+- **A viewer**, which is [16](16-the-player-at-this-screen.md) gap 1 — **shipped**
+  (`fb3d704`). "The winner gets the fireworks" is a sentence about the person at
+  the screen, and the engine used to know only which seat was *up*, so in
+  networked play the loser would have got the confetti whenever the last move
+  happened to be theirs. `zones.viewer` is the seat to compare the winner
+  against; the blocker is gone.
 - **A name to print**, which is [16](16-the-player-at-this-screen.md) gap 2.
   Without it the smaller line reads *player_white wins*, which is a chair's key.
   It degrades honestly, so this is an ordering preference rather than a
