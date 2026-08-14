@@ -57,6 +57,7 @@
       "label": "White to move",
       "seat": "next",
       "next": [
+        { "stat": "count:king@enemy.taken", "at_least": 1, "then": "white_won" },
         { "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
         { "then": "black_move" }
       ]
@@ -67,6 +68,7 @@
       "label": "Black to move — in check",
       "seat": "next",
       "next": [
+        { "stat": "count:king@enemy.taken", "at_least": 1, "then": "black_won" },
         { "stat": "count:king@mine.reach", "at_least": 1, "then": "white_check" },
         { "then": "white_move" }
       ]
@@ -77,6 +79,7 @@
       "label": "Black to move",
       "seat": "next",
       "next": [
+        { "stat": "count:king@enemy.taken", "at_least": 1, "then": "black_won" },
         { "stat": "count:king@mine.reach", "at_least": 1, "then": "white_check" },
         { "then": "white_move" }
       ]
@@ -87,12 +90,15 @@
       "label": "White to move — in check",
       "seat": "next",
       "next": [
+        { "stat": "count:king@enemy.taken", "at_least": 1, "then": "white_won" },
         { "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
         { "then": "black_move" }
       ]
-    }
+    },
+    { "key": "white_won", "type": "automatic", "actions": ["reveal:white_wins"] },
+    { "key": "black_won", "type": "automatic", "actions": ["reveal:black_wins"] }
   ],
-  "end_conditions": [{ "stat": "count:king@taken", "at_least": 1, "then": ["load_game:menu.json"] }],
+  "end_conditions": [],
   "setup": {
     "place": [
       { "card": "rook", "owner": "player_white", "zone": "board", "at": ["a1", "h1"] },
@@ -319,6 +325,20 @@
       "tags": ["token"],
       "tooltip": "Promote the pawn to a knight.",
       "play": { "action": ["transform:target:knight", "next_phase"] }
+    },
+    {
+      "key": "white_wins",
+      "text": "White wins",
+      "outcome": { "winner": "player_white" },
+      "story": "The black king is taken. There is nothing left to defend with.",
+      "play": { "action": ["load_game:menu.json"] }
+    },
+    {
+      "key": "black_wins",
+      "text": "Black wins",
+      "outcome": { "winner": "player_black" },
+      "story": "The white king is taken. There is nothing left to defend with.",
+      "play": { "action": ["load_game:menu.json"] }
     }
   ]
 }

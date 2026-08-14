@@ -1,7 +1,8 @@
 # 07 — Presentation and the gestures on top of it
 
-**Status:** gaps 1–5 all shipped — gap 3 last, as `abilities` (`d27d18a`). Left:
-gap 6, the ending screen, which no game with two seats has at all.
+**Status:** **closed** — gaps 1–5 shipped, and gap 6 with them. Chess and Lost
+Cities announce a winner, and the same card reads as a victory on one machine
+and a defeat on the other.
 
 The rules are in better shape than the surface they are shown through. Every
 item here is something a player sees or does, not something the engine computes.
@@ -382,7 +383,55 @@ test that would otherwise pass.
 
 ---
 
-## Gap 6 — An ending that knows who won
+## Gap 6 — An ending that knows who won — **shipped**
+
+**A card may name a winner instead of naming a feeling.** `"outcome": { "winner":
+"<seat key>" }` beside the `"victory"` / `"defeat"` that six solo games keep
+untouched; `flow.outcome()` answers it against `zones.watching()`, so one state
+ends as a victory on one machine and a defeat on the other. Chess ends with a
+screen instead of the menu, and Lost Cities' two winner cards became endings by
+gaining one line each.
+
+Four things the build settled, and only the third was foreseen:
+
+- **A winner is a seat key, not a subject.** The design below assumed
+  `"winner": "<subject>"` so a game could say *who* rather than hardcode a chair.
+  A subject evaluates to a **number** — `max:score@anyone` is the score, never
+  the seat holding it — so no subject can name anybody. It did not need to:
+  both two-seat games already route to a *per-winner card* (`north_end` /
+  `south_end`), so the card that got revealed is the answer, and all it had to do
+  was say so.
+- **"decided" is the third answer, and it is what the hot-seat refusal looks
+  like in code.** Victory and defeat need somebody to be about. With no seat
+  claimed there is no "you" in the room, so the banner reads *Black wins* — the
+  winner announced to the room rather than one of the two people in it being
+  told they lost. That is also the spectator's screen, for free.
+- **`zones.watching()` is exported and answers nil**, where
+  [16](16-the-player-at-this-screen.md) gap 1 left it a local that fell back to
+  the turn. Hiding a hand must name somebody and hot-seat means the seat to play;
+  an ending has nobody to congratulate and says so. The fallback moved to the two
+  visibility call sites, where it belongs.
+- **Chess's ending could not be an `end_condition`, and that is a finding about
+  conditions rather than about chess.** A condition can only say `mine` /
+  `enemy`, which are relative to the *active seat* — and at the end of a game
+  that is an accident of who moved last. **There is no way to name a seat
+  absolutely in a condition.** The four phases already know their colour
+  (`white_move` is white's), so the routing that picks "black is in check" picks
+  "white won" from the same place, and `end_conditions` is empty. Worth carrying
+  to [17](17-conditions-as-expressions.md): an owner word that accepts a seat key
+  would have made this one line.
+
+**No second line under the banner**, and the request asked for one — *display in
+smaller text below who won*. The ending card is drawn in the overlay two inches
+under the banner, titled "White wins", with the story beneath it. A copy of that
+sentence between them would be the same screen saying the same thing twice.
+
+**One thing fixed in passing, because regenerating was part of the job:**
+`tools/make_lost_cities.py` still emitted `stays_ready`, deleted from the engine
+in `8856432`, and wrote a trailing newline the checked-in file did not have — so
+the generator had not reproduced its own output for two commits. It does now.
+
+### The original write-up
 
 *Urgency: medium — two of the three games anyone would show somebody end with no
 screen at all · Difficulty: medium · Usefulness: high*
@@ -417,7 +466,8 @@ the screen but the **thing the screen reads**.
 
 ### What it needs
 
-- **An outcome that names a seat.** [Assumption: the smallest form that fits the
+- **An outcome that names a seat.** *— shipped as a seat key, not a subject; see
+  above.* [Assumption: the smallest form that fits the
   existing vocabulary is `"outcome": { "winner": "<subject>" }` on the ending
   card — a subject, so a game says `"max:score@anyone"`-style *who* rather than
   hardcoding a seat, and Lost Cities' winner is already written exactly that way

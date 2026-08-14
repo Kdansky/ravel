@@ -768,10 +768,9 @@ function M.activate(card_id, targets, index)
 	return true
 end
 
--- The outcome announced by the open ending screen: "victory" or "defeat"
--- from the offered card's def, nil while the game is still live. Purely
--- derived, so undo needs no extra state.
-function M.outcome()
+-- What the open ending screen announces, nil while the game is still live.
+-- Purely derived, so undo needs no extra state.
+local function ending()
 	local cur = phase.current()
 	if not cur or cur.type ~= "overlay" then return nil end
 	local z = zones.find(cur.zone or "hand")
@@ -779,6 +778,35 @@ function M.outcome()
 		local def = cards.def(entity.get(cid))
 		if def and def.outcome then return def.outcome end
 	end
+end
+
+-- "victory", "defeat", or "decided" — an ending that happened to somebody other
+-- than the person reading it.
+--
+-- A solo game says the word outright and is right to: you against the tower,
+-- and nobody else for it to be wrong about. An ending that names a winner is
+-- answered against the seat *watching*, because one word cannot be true for
+-- both players — congratulating the loser is the whole reason a seat is asked
+-- for here. With no seat claimed there is no "you" in the room to address, so
+-- the ending is announced rather than delivered, which is the hot-seat ceremony
+-- refused in kinder words: one screen, one room, the winner named to it.
+function M.outcome()
+	local o = ending()
+	if type(o) == "string" then return o end
+	if type(o) ~= "table" or type(o.winner) ~= "string" then return nil end
+	local seat = zones.watching()
+	if not seat then return "decided" end
+	return seat == o.winner and "victory" or "defeat"
+end
+
+-- Who won, in the seat's own words. A seat is a card, so it already has the
+-- name a game gave it — "White", "North" — and there is nowhere else that name
+-- should come from.
+function M.winner()
+	local o = ending()
+	if type(o) ~= "table" or type(o.winner) ~= "string" then return nil end
+	local def = declaration.G.card_defs[o.winner]
+	return (def and def.text) or o.winner
 end
 
 -- One entry per visible stat, for the end-of-run summary.

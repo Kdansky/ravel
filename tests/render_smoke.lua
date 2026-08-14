@@ -307,6 +307,16 @@ for _ = 1, 20 do frame(0.033) end
 fx.celebrate("victory")
 for _ = 1, 20 do frame(0.033) end
 
+-- An ending with two seats in it draws twice from one state: the winner's name
+-- when nobody at this screen is playing, and the loser's word when somebody is.
+flow.init("chess.json", 1)
+render.rescale()
+eval("reveal:black_wins")
+for _ = 1, 10 do frame(0.033) end
+require("net").claim_seat("player_white")
+for _ = 1, 10 do frame(0.033) end
+require("net").claim_seat(nil)
+
 -- direct bursts and floating deltas
 fx.hit(300, 200)
 fx.impact(400, 300, 1)

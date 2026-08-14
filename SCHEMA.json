@@ -135,7 +135,7 @@
       "turn": {
         "action": ["action strings run at each round boundary while the card is on a grid and not ruined"]
       },
-      "outcome": "victory or defeat on an ending card, which gives a banner, a run summary and a flourish"
+      "outcome": "on an ending card, which gives a banner, a run summary and a flourish. \"victory\" or \"defeat\" where there is one player to be right about; { \"winner\": \"<seat key>\" } where there are two, and the banner is then answered against the seat this screen has claimed"
     }
   ],
   "zones": [

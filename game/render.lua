@@ -1479,12 +1479,17 @@ function M.draw()
 
 		-- An ending screen announces itself: banner, run summary, flourish.
 		if outcome then
+			local lost = outcome == "defeat"
 			if not celebrated then
-				fx.celebrate(outcome)
+				fx.celebrate(lost and "defeat" or "victory")
 				celebrated = true
 			end
-			local btxt = outcome == "victory" and "Victory" or "Defeat"
-			local col  = outcome == "victory" and { 1.00, 0.84, 0.30 } or { 0.95, 0.32, 0.26 }
+			-- Nobody at this screen has claimed a seat, so there is no "you" to
+			-- congratulate: the room is told who won, rather than one of the two
+			-- people in it being told they lost.
+			local btxt = outcome == "decided" and ((flow.winner() or "Nobody") .. " wins")
+				or (lost and "Defeat" or "Victory")
+			local col  = lost and { 0.95, 0.32, 0.26 } or { 1.00, 0.84, 0.30 }
 			love.graphics.push("all")
 			love.graphics.setFont(font_banner)
 			love.graphics.setColor(0, 0, 0, 0.80)

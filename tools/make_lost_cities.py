@@ -183,7 +183,10 @@ def templates():
                 "tags": ["token"],
                 "play": {"action": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"]}})
     for seat, other in (("north", "South"), ("south", "North")):
+        # The winner is a seat rather than the word "victory": the same card is
+        # read by both players, and one of them lost.
         out.append({"key": seat + "_wins", "text": seat.title() + " wins",
+                    "outcome": {"winner": seat},
                     "story": seat.title() + " comes home with the better haul. "
                              + other + " should have hedged.",
                     "play": {"action": ["load_game:menu.json"]}})
@@ -249,7 +252,7 @@ def zones():
         # the same shape and must not be — so the zone declares it.
         out.append({"key": c + "_discard", "label": label + " discard", "type": "pile",
                     "pos": DISCARD_POS[i], "tags": ["activate"],
-                    "applies": ["takeable", "stays_ready"]})
+                    "applies": ["takeable"]})
     return out
 
 
@@ -348,5 +351,4 @@ if __name__ == "__main__":
     path = os.path.join(root, "game", "games", "lost_cities.json")
     with open(path, "w", encoding="utf-8") as f:
         f.write(jsonfmt.dump(build()))
-        f.write("\n")
     print("wrote", os.path.relpath(path, root))

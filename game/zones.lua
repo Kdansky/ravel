@@ -44,13 +44,19 @@ end
 -- machines watching one game hold different values on purpose.
 M.viewer = nil
 
--- A viewer naming no seat in *this* game is no viewer at all. Claiming a seat
--- and then loading a game that never heard of it would otherwise hide every
--- hand on the table, including the one you are holding.
-local function watching()
+-- The claim, once it has been checked against the game actually loaded, and nil
+-- when nobody at this screen is playing. A viewer naming no seat in *this* game
+-- is no viewer at all: claiming a seat and then loading a game that never heard
+-- of it would otherwise hide every hand on the table, including the one you are
+-- holding.
+--
+-- Nil is an answer rather than a gap, which is why the fallback to the turn sits
+-- at the two call sites below instead of in here. Hiding a hand has to name
+-- somebody and hot-seat means the seat to play; an ending screen has nobody to
+-- congratulate and says so (flow.outcome).
+function M.watching()
 	local seats = declaration.G.seat_set
 	if M.viewer and seats and seats[M.viewer] then return M.viewer end
-	return M.active_seat()
 end
 
 local function build(def, seat, pos)
@@ -207,7 +213,7 @@ function M.visible(c)
 	if not c then return false end
 	local z = c.zone_id and entity.get(c.zone_id)
 	if not z or z.zone_type ~= "hand" or not z.seat then return true end
-	return z.seat == watching()
+	return z.seat == (M.watching() or M.active_seat())
 end
 
 -- The order a browser should show a zone's cards in. **A face-down stack's
@@ -245,7 +251,7 @@ end
 function M.peekable(z)
 	if not z or z.tags.no_peek then return false end
 	if z.zone_type ~= "hand" or not z.seat then return true end
-	return z.seat == watching()
+	return z.seat == (M.watching() or M.active_seat())
 end
 
 function M.move_top(from_id, to_id)

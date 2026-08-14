@@ -1075,8 +1075,17 @@ function M.check(G)
 		elseif def.asset and not love.filesystem.read("games/assets/" .. tostring(def.asset)) then
 			warn("%s: its image '%s' is not in games/assets", where, tostring(def.asset))
 		end
-		if def.outcome and def.outcome ~= "victory" and def.outcome ~= "defeat" then
-			warn("%s: outcome should be 'victory' or 'defeat', not '%s'%s",
+		-- An ending that names a winner is read against the seat watching, so the
+		-- name has to be a seat and not a side's word for itself: "white" would
+		-- compare equal to nobody, and quietly lose the game for both players.
+		if type(def.outcome) == "table" then
+			local won = def.outcome.winner
+			if type(won) ~= "string" or not (G.seat_set or {})[won] then
+				warn('%s: outcome winner should name a seat from "players", not \'%s\'%s',
+					where, tostring(won), type(won) == "string" and suggest(won, G.seat_set or {}) or "")
+			end
+		elseif def.outcome and def.outcome ~= "victory" and def.outcome ~= "defeat" then
+			warn("%s: outcome should be 'victory', 'defeat', or a winner, not '%s'%s",
 				where, tostring(def.outcome), suggest(def.outcome, { victory = true, defeat = true }))
 		end
 		if def.tags ~= nil and type(def.tags) ~= "table" then

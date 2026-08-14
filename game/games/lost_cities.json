@@ -1088,12 +1088,14 @@
     {
       "key": "north_wins",
       "text": "North wins",
+      "outcome": { "winner": "north" },
       "story": "North comes home with the better haul. South should have hedged.",
       "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "south_wins",
       "text": "South wins",
+      "outcome": { "winner": "south" },
       "story": "South comes home with the better haul. North should have hedged.",
       "play": { "action": ["load_game:menu.json"] }
     }

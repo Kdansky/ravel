@@ -195,7 +195,7 @@ local CASES = {
 		function(g) g.phase_by_key.intro.ends_after = 1 end },
 	{ "discard_hand on an overlay", "overlays pop back — it never fires",
 		function(g) g.phase_by_key.reveal.discard_hand = true end },
-	{ "a misspelled outcome", "outcome should be 'victory' or 'defeat'",
+	{ "a misspelled outcome", "outcome should be 'victory', 'defeat', or a winner",
 		function(g) g.card_defs.e_pearl.outcome = "vctory" end },
 	{ "an unknown base effect", "is not a base effect",
 		function(g) g.effect_defs.oops = { base = "sparkles" } end },
@@ -332,6 +332,8 @@ local CASES = {
 	{ "two zones drawn on top of each other", "overlaps zone",
 		function(g) g.zone_defs.board.pos = { 0.2, 0.2, 0.9, 0.9 }
 			g.zone_defs.hand.pos = { 0.3, 0.3, 0.8, 0.8 } end },
+	{ "an ending whose winner is nobody", 'winner should name a seat from "players"',
+		function(g) g.card_defs.e_pearl.outcome = { winner = "the_baron" } end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)
