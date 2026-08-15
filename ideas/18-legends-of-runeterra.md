@@ -71,9 +71,9 @@ as the rules are.
   rule this whole stage exists to catch — and the truth is *better* news, since
   an ordered run of cards in a zone is a thing ravel already has.
 - **Blocking is one to one, and cannot be anything else.** No double-blocking in
-  either direction. That is the narrowest possible pairing, which is the best
-  case for `attach_to_target` ([15](15-many-on-one-square.md)) rather than the
-  worst.
+  either direction — which, with strikes resolving by position, is what makes it
+  *placement* rather than a stored relation. See "Blocking is placement" below;
+  it is the finding that took a missing capability off the list.
 - **The stack is bounded more sharply than expected**, though the bound is
   recalled rather than verified: **Burst and Focus never enter it at all**, since
   they resolve on the spot. A response stack is therefore only Fast and Slow, and
@@ -118,26 +118,44 @@ different genre, not because it is unusually complex.
 | Champions levelling up | `become` — **shipped**, and it was chess promotion that paid for it |
 | Ephemeral, Fleeting | a tag plus a round-boundary action — **expressible** |
 | Play / Last Breath / Round Start abilities | **[01](01-boardgames.md) gap 5, triggers** — not started |
-| **Blocking: which unit blocks which** | **missing** — a pairing between two cards, and stage 1 confirms it is strictly one to one |
-| **Combat damage, ~~simultaneous~~ left to right, then deaths** | **missing** — follows from the pairing. *Corrected by stage 1: strikes resolve by board position, one pair at a time, not all at once* |
+| ~~**Blocking: which unit blocks which**~~ | **not missing — it is placement.** Six lanes a side, and a unit fights what is across. Strictly one to one, which is what a lane is. See below |
+| **Combat damage, ~~simultaneous~~ left to right, then deaths** | **missing** — a walk along the lanes. *Corrected by stage 1: strikes resolve by board position, one pair at a time, not all at once* |
 | **The pass, and responding to a spell** | **missing** — a bounded stack, and stage 1 narrows it: Burst and Focus never enter one |
 | Spell mana, spendable only on spells | **missing, and small** — a cost paid from either of two pools by a rule |
 | Mulligan: draw 4, replace any subset | **missing** — the offer overlay picks exactly one |
 | A hand that holds at most 10 | **missing** — a grid is bounded by its cells, a hand by nothing |
 | Round 40 is a tie · decking out loses · Scout returns the token | **expressible** — an end condition on the round counter, `zone_empty`, and a seat stat |
 
-### The pairing is the interesting one
+### Blocking is placement, and that is the whole of it
 
-Blocking is *this unit blocks that one*, which is a relation between two cards
-that both stay on the board — and the engine has exactly one mechanism for
-that: `attach_to_target` (`actions.lua:418`), which
-[15](15-many-on-one-square.md) records as **built and never used by any shipped
-game**. That file's own recommendation is to *play something through
-`attach_to_target` so the mechanism that already exists stops being
-theoretical*, and a blocker declaring itself against an attacker is the first
-honest customer for it. Expect to find the thin parts it lists — detaching,
-what happens when the parent dies, whether a child can be targeted apart from
-its parent — since a blocker/attacker pair asks all four in one turn.
+*Decided 2026-08-16, and it replaces the design this section used to carry.*
+
+**Six lanes per side, and a unit fights whatever is across from it.** The
+battlefield is a grid of six addressed cells, an attacker is placed in a lane, a
+blocker is placed in the lane opposite, and combat walks the lanes. There is no
+relation to store, because the board already holds it.
+
+**Stage 1 is what makes this a reading of the rule rather than a convenience.**
+Blocking is strictly one to one with no double-blocking in either direction, and
+strikes resolve **left to right by board position** — so LoR's own resolution
+order is a walk along the lanes, and the game lines blockers up opposite
+attackers on screen for exactly that reason. A lane index is not a stand-in for
+the pairing; it *is* the pairing, in the game as well as in the model.
+
+Everything it needs is built: a `grid` zone with addressed cells, `per_seat` so
+each side has its own, `place_in_slot` with its `on_occupied` rule, ownership as
+placement state, and `col`/`row` stamped on every slot so a condition can ask
+what is across ([14](14-kinds-and-placements.md), [08](08-grid-movement-notation.md)).
+An attacker whose opposite lane is empty is the unblocked case, and it is an
+empty-square test rather than an absence of relation.
+
+**So `attach_to_target` is not this track's customer after all.** It stays
+[15](15-many-on-one-square.md)'s open question until the thing it was made for
+turns up — the **Attach** keyword, where a card genuinely rides another and
+moves with it. That is a later milestone and it will ask 15's four thin
+questions properly (detaching, what happens when the parent dies, whether a
+child can be targeted alone) instead of a blocker asking them for one turn and
+then dissolving.
 
 ### The pass is a stack, and it is a small one
 
@@ -172,7 +190,9 @@ Each ships a playable game file in `game/games/` and its own scripted test, per
 1. **Vanilla combat.** Two decks of units with no text at all, no spells, no
    keywords: draw, play to bench, take the attack token, declare attackers,
    declare blockers, damage, nexus health, somebody wins. This is the milestone
-   that proves the pairing and the combat resolution, and it needs no triggers.
+   that proves the lane model and the combat resolution, and it needs no
+   triggers. Four zones a seat — hand, bench, battlefield, deck — and the
+   battlefield is the six-cell grid the lanes are cut from.
 2. **Burst spells only** — the ones that resolve immediately, so there is still
    no stack. This is where a spell targets, and targeting already exists.
 3. **The pass and the response stack.** Fast and Slow spells, and the round
