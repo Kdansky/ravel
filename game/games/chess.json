@@ -95,8 +95,8 @@
         { "then": "black_move" }
       ]
     },
-    { "key": "white_won", "type": "automatic", "actions": ["reveal:white_wins"] },
-    { "key": "black_won", "type": "automatic", "actions": ["reveal:black_wins"] }
+    { "key": "white_won", "type": "automatic", "actions": ["gain_stat:won@white_side:1", "reveal:white_wins"] },
+    { "key": "black_won", "type": "automatic", "actions": ["gain_stat:won@black_side:1", "reveal:black_wins"] }
   ],
   "end_conditions": [],
   "setup": {
@@ -127,8 +127,8 @@
     ]
   },
   "cards": [
-    { "key": "player_white", "text": "White" },
-    { "key": "player_black", "text": "Black" },
+    { "key": "player_white", "text": "White", "tags": ["white_side"] },
+    { "key": "player_black", "text": "Black", "tags": ["black_side"] },
     {
       "key": "pawn",
       "text": "Pawn",
@@ -329,14 +329,12 @@
     {
       "key": "white_wins",
       "text": "White wins",
-      "outcome": { "winner": "player_white" },
       "story": "The black king is taken. There is nothing left to defend with.",
       "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "black_wins",
       "text": "Black wins",
-      "outcome": { "winner": "player_black" },
       "story": "The white king is taken. There is nothing left to defend with.",
       "play": { "action": ["load_game:menu.json"] }
     }

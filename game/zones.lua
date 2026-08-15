@@ -17,10 +17,30 @@ function M.contains(p, x, y)
 	return x >= p.x and x <= p.x + p.w and y >= p.y and y <= p.y + p.h
 end
 
+-- Reading the board as somebody else. "Mine" is answered from the turn, which is
+-- right for a rule and wrong for a readout: the HUD row says *Your score* on a
+-- machine whose player is not the one to move, and shows the opponent's number.
+-- Every consumer of "mine" — subjects, zone lookups, ownership — asks
+-- active_seat, so one override answers for all of them at once.
+--
+-- **Reads only.** An action run inside this would act as the wrong seat, which
+-- is why it is scoped and restored even when the body raises: the alternative is
+-- an engine that quietly stays somebody else for the rest of the session.
+local as_if = nil
+
+function M.as_seat(seat, fn)
+	local prev = as_if
+	as_if = seat
+	local ok, err = pcall(fn)
+	as_if = prev
+	if not ok then error(err, 0) end
+end
+
 -- The seat an unqualified zone key means. Derived from the system card's
 -- "turn" rather than cached, so undo restores it along with everything else.
 -- One-seat games — every shipped game — never look past the first line.
 function M.active_seat()
+	if as_if then return as_if end
 	local seats = declaration.G.seat_list or {}
 	if #seats < 2 then return seats[1] end
 	for e in entity.each("card") do

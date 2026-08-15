@@ -311,6 +311,7 @@ for _ = 1, 20 do frame(0.033) end
 -- when nobody at this screen is playing, and the loser's word when somebody is.
 flow.init("chess.json", 1)
 render.rescale()
+eval("gain_stat:won@black_side:1")
 eval("reveal:black_wins")
 for _ = 1, 10 do frame(0.033) end
 require("net").claim_seat("player_white")

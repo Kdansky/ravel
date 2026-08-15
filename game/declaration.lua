@@ -567,6 +567,13 @@ function M.parse(filename)
 				cd.tags = cd.tags or {}
 				cd.tags[#cd.tags + 1] = "player"
 			end
+			-- Any seat can be the one that won, so the engine puts the stat on all
+			-- of them rather than making every game declare it. It has to exist
+			-- before it can be written: gain_stat only reaches a card that already
+			-- carries the stat, so a game missing the line would name its winner
+			-- and change nothing at all.
+			cd.card_stats = cd.card_stats or {}
+			cd.card_stats.won = 0
 			-- A seat has to exist before it can act, and one that says nothing
 			-- about where it sits is a stat bag — it goes where the injected one
 			-- goes rather than onto a board it never asked for.

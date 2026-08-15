@@ -13,7 +13,7 @@
   ],
   "stats": [
     {
-      "key": "name cards spend and conditions read. round and plays are reserved: the engine manages them, declare them only to show them.",
+      "key": "name cards spend and conditions read. round and plays are reserved: the engine manages them, declare them only to show them. won is reserved too and sits on every seat, 0 until a game sets it — gain_stat:won@<the winning seat>:1 is how a game with two seats says who won, and the ending screen reads it against the seat this client claimed.",
       "label": "string for the HUD row. Defaults to the key.",
       "min": "number the stat is clamped to below. Usually 0.",
       "max": "number the stat is clamped to above.",
@@ -135,7 +135,7 @@
       "turn": {
         "action": ["action strings run at each round boundary while the card is on a grid and not ruined"]
       },
-      "outcome": "on an ending card, which gives a banner, a run summary and a flourish. \"victory\" or \"defeat\" where there is one player to be right about; { \"winner\": \"<seat key>\" } where there are two, and the banner is then answered against the seat this screen has claimed"
+      "outcome": "\"victory\" or \"defeat\" on an ending card, which gives a banner, a run summary and a flourish. It is a word about the only player there is, so a game with two seats says who won by setting the reserved \"won\" stat on a seat instead, and needs no field here"
     }
   ],
   "zones": [

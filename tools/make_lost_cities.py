@@ -183,10 +183,7 @@ def templates():
                 "tags": ["token"],
                 "play": {"action": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"]}})
     for seat, other in (("north", "South"), ("south", "North")):
-        # The winner is a seat rather than the word "victory": the same card is
-        # read by both players, and one of them lost.
         out.append({"key": seat + "_wins", "text": seat.title() + " wins",
-                    "outcome": {"winner": seat},
                     "story": seat.title() + " comes home with the better haul. "
                              + other + " should have hedged.",
                     "play": {"action": ["load_game:menu.json"]}})
@@ -316,9 +313,12 @@ def phases():
                 "next": [{"stat": "score@north_side", "at_least": "score@south_side",
                           "then": "north_end"},
                          {"then": "south_end"}]})
+    # Won is a stat on the seat rather than a word on the card that follows: the
+    # same card is read by both players, and one of them lost.
     for seat in ("north", "south"):
         out.append({"key": seat + "_end", "type": "automatic",
-                    "actions": ["reveal:" + seat + "_wins"]})
+                    "actions": ["gain_stat:won@" + seat + "_side:1",
+                                "reveal:" + seat + "_wins"]})
     # Last, so nothing reaches it by falling off the end of the list: it is
     # only ever pushed, and popped by answering it.
     out.append({"key": "mode", "type": "overlay", "zone": "mode"})

@@ -1088,14 +1088,12 @@
     {
       "key": "north_wins",
       "text": "North wins",
-      "outcome": { "winner": "north" },
       "story": "North comes home with the better haul. South should have hedged.",
       "play": { "action": ["load_game:menu.json"] }
     },
     {
       "key": "south_wins",
       "text": "South wins",
-      "outcome": { "winner": "south" },
       "story": "South comes home with the better haul. North should have hedged.",
       "play": { "action": ["load_game:menu.json"] }
     }
@@ -1160,8 +1158,16 @@
         { "then": "south_end" }
       ]
     },
-    { "key": "north_end", "type": "automatic", "actions": ["reveal:north_wins"] },
-    { "key": "south_end", "type": "automatic", "actions": ["reveal:south_wins"] },
+    {
+      "key": "north_end",
+      "type": "automatic",
+      "actions": ["gain_stat:won@north_side:1", "reveal:north_wins"]
+    },
+    {
+      "key": "south_end",
+      "type": "automatic",
+      "actions": ["gain_stat:won@south_side:1", "reveal:south_wins"]
+    },
     { "key": "mode", "type": "overlay", "zone": "mode" }
   ],
   "end_conditions": []

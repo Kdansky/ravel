@@ -1042,20 +1042,25 @@ local function draw_stats()
 		print_at(cur.label, x - mf:getWidth(cur.label), y)
 		y = y + fh + 8 * S
 	end
-	for _, key in ipairs(G.stat_defs_list or {}) do
-		local def = G.stat_defs[key]
-		if not (def and def.tags_set and def.tags_set.hidden) then
-			local label = def and (def.label or key) or key
-			local txt   = label .. ": " .. tostring(predicate.total(def and def.subject or key))
-			local tw    = mf:getWidth(txt)
-			local row_x = x - tw - fh - 4 * S
-			draw_stat_icon(key, row_x + fh * 0.5, y + fh * 0.5, fh * 0.85)
-			love.graphics.setColor(unpack(C.stat))
-			print_at(txt, row_x + fh + 4 * S, y)
-			stat_hud[key] = { x = row_x + fh + tw * 0.5, y = y }
-			y = y + fh + 5 * S
+	-- Your numbers, not the numbers of whoever is to move. The two are the same
+	-- seat at one screen and two seats over a network, where a row reading
+	-- "Your score" would otherwise report the opponent's while they think.
+	zones.as_seat(zones.watching(), function()
+		for _, key in ipairs(G.stat_defs_list or {}) do
+			local def = G.stat_defs[key]
+			if not (def and def.tags_set and def.tags_set.hidden) then
+				local label = def and (def.label or key) or key
+				local txt   = label .. ": " .. tostring(predicate.total(def and def.subject or key))
+				local tw    = mf:getWidth(txt)
+				local row_x = x - tw - fh - 4 * S
+				draw_stat_icon(key, row_x + fh * 0.5, y + fh * 0.5, fh * 0.85)
+				love.graphics.setColor(unpack(C.stat))
+				print_at(txt, row_x + fh + 4 * S, y)
+				stat_hud[key] = { x = row_x + fh + tw * 0.5, y = y }
+				y = y + fh + 5 * S
+			end
 		end
-	end
+	end)
 	love.graphics.pop()
 end
 

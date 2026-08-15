@@ -768,8 +768,8 @@ function M.activate(card_id, targets, index)
 	return true
 end
 
--- What the open ending screen announces, nil while the game is still live.
--- Purely derived, so undo needs no extra state.
+-- The word an open ending card says, for the games where one word is the whole
+-- truth. Purely derived, so undo needs no extra state.
 local function ending()
 	local cur = phase.current()
 	if not cur or cur.type ~= "overlay" then return nil end
@@ -780,45 +780,64 @@ local function ending()
 	end
 end
 
+-- The seat that won, if one has. A win is a number on a seat rather than a word
+-- on the ending card, and the difference is everything a word cannot do: it is
+-- state, so the snapshot carries it to the other machine, undo takes it back,
+-- and a rule can read it ("won@mine"). Every seat carries the stat from load
+-- (declaration.parse), so a game says who won with one ordinary action.
+local function victor()
+	local seats = declaration.G.seat_set or {}
+	for e in entity.each("card") do
+		if seats[e.def_key] and e.zone_id and (e.stats.won or 0) > 0 then return e.def_key end
+	end
+end
+
 -- "victory", "defeat", or "decided" — an ending that happened to somebody other
 -- than the person reading it.
 --
--- A solo game says the word outright and is right to: you against the tower,
--- and nobody else for it to be wrong about. An ending that names a winner is
--- answered against the seat *watching*, because one word cannot be true for
--- both players — congratulating the loser is the whole reason a seat is asked
--- for here. With no seat claimed there is no "you" in the room to address, so
--- the ending is announced rather than delivered, which is the hot-seat ceremony
--- refused in kinder words: one screen, one room, the winner named to it.
+-- A solo game says the word outright and is right to: you against the tower, and
+-- nobody else for it to be wrong about. Where a seat won, the word is answered
+-- against the seat *watching*, because one word cannot be true for both players
+-- — congratulating the loser is the whole reason a seat is asked for here. With
+-- no seat claimed there is no "you" in the room to address, so the ending is
+-- announced rather than delivered: the hot-seat handover ceremony refused in
+-- kinder words, one screen, one room, the winner named to it.
 function M.outcome()
+	local cur = phase.current()
+	if not cur or cur.type ~= "overlay" then return nil end
+	local won = victor()
+	if won then
+		local seat = zones.watching()
+		if not seat then return "decided" end
+		return seat == won and "victory" or "defeat"
+	end
 	local o = ending()
-	if type(o) == "string" then return o end
-	if type(o) ~= "table" or type(o.winner) ~= "string" then return nil end
-	local seat = zones.watching()
-	if not seat then return "decided" end
-	return seat == o.winner and "victory" or "defeat"
+	return type(o) == "string" and o or nil
 end
 
--- Who won, in the seat's own words. A seat is a card, so it already has the
--- name a game gave it — "White", "North" — and there is nowhere else that name
--- should come from.
+-- Who won, in the seat's own words. A seat is a card, so it already has the name
+-- a game gave it — "White", "North" — and there is nowhere else that name should
+-- come from.
 function M.winner()
-	local o = ending()
-	if type(o) ~= "table" or type(o.winner) ~= "string" then return nil end
-	local def = declaration.G.card_defs[o.winner]
-	return (def and def.text) or o.winner
+	local won = victor()
+	local def = won and declaration.G.card_defs[won]
+	return won and ((def and def.text) or won) or nil
 end
 
--- One entry per visible stat, for the end-of-run summary.
+-- One entry per visible stat, for the end-of-run summary. Read as the seat
+-- watching, since a row labelled "Your score" showing the other player's is the
+-- same fault as an opponent's hand drawn face up — see zones.as_seat.
 function M.summary()
 	local G   = declaration.G
 	local out = {}
-	for _, key in ipairs(G.stat_defs_list or {}) do
-		local def = G.stat_defs[key]
-		if not (def and def.hidden) then
-			out[#out + 1] = (def and def.label or key) .. " " .. predicate.total(def and def.subject or key)
+	zones.as_seat(zones.watching(), function()
+		for _, key in ipairs(G.stat_defs_list or {}) do
+			local def = G.stat_defs[key]
+			if not (def and def.hidden) then
+				out[#out + 1] = (def and def.label or key) .. " " .. predicate.total(def and def.subject or key)
+			end
 		end
-	end
+	end)
 	return out
 end
 

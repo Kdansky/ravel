@@ -385,22 +385,36 @@ test that would otherwise pass.
 
 ## Gap 6 — An ending that knows who won — **shipped**
 
-**A card may name a winner instead of naming a feeling.** `"outcome": { "winner":
-"<seat key>" }` beside the `"victory"` / `"defeat"` that six solo games keep
-untouched; `flow.outcome()` answers it against `zones.watching()`, so one state
-ends as a victory on one machine and a defeat on the other. Chess ends with a
-screen instead of the menu, and Lost Cities' two winner cards became endings by
-gaining one line each.
+**A win is a number on the seat that won.** `won` is stamped on every seat card
+at load and set by an ordinary action — `gain_stat:won@white_side:1` — and
+`flow.outcome()` reads it against `zones.watching()`, so one state ends as a
+victory on one machine and a defeat on the other. The `"victory"` / `"defeat"`
+word on a card stays exactly as it was for the six solo games. Chess ends with a
+screen instead of the menu; Lost Cities' two ending phases gained one action each.
+
+**It was a field on the ending card first, and a stat is better.** The first
+version put `"outcome": { "winner": "<seat key>" }` on the revealed card. It
+worked, and it was def data — invisible to the rules, absent from the snapshot,
+untouched by undo. A stat is *state*: the network carries it because it carries
+every stat, undo takes it back because it takes back everything, and a condition
+can read `won@mine`, which a field could never offer. Nothing had to be passed
+anywhere, which was the point.
+
+**What stayed a card is the screen.** The alternative sketch — jump to a phase
+the engine hardcodes and let it draw the ending — costs the games their own
+words: chess's *"The black king is taken"* and Lost Cities' *"South should have
+hedged"* live on the revealed card, and the six solo endings are cards already.
+The flag decides *what the banner says*; the game still decides what the screen
+holds.
 
 Four things the build settled, and only the third was foreseen:
 
-- **A winner is a seat key, not a subject.** The design below assumed
+- **A winner cannot be a subject.** The design below assumed
   `"winner": "<subject>"` so a game could say *who* rather than hardcode a chair.
   A subject evaluates to a **number** — `max:score@anyone` is the score, never
-  the seat holding it — so no subject can name anybody. It did not need to:
-  both two-seat games already route to a *per-winner card* (`north_end` /
-  `south_end`), so the card that got revealed is the answer, and all it had to do
-  was say so.
+  the seat holding it — so no subject can name anybody. Both two-seat games
+  already route to a per-winner phase (`north_end` / `south_end`), so the seat
+  is known where the ending is decided, and one action writes it down.
 - **"decided" is the third answer, and it is what the hot-seat refusal looks
   like in code.** Victory and defeat need somebody to be about. With no seat
   claimed there is no "you" in the room, so the banner reads *Black wins* — the
@@ -420,6 +434,18 @@ Four things the build settled, and only the third was foreseen:
   "white won" from the same place, and `end_conditions` is empty. Worth carrying
   to [17](17-conditions-as-expressions.md): an owner word that accepts a seat key
   would have made this one line.
+
+**The numbers under the banner were wrong for the same reason the banner was**,
+and the flag does not fix them. `flow.summary()` and the stat HUD both go through
+`predicate.total`, where `mine` is resolved from `zones.active_seat()` several
+layers down — so a row labelled *Your score* read the score of whoever was to
+move. Measured in Lost Cities with north on 111 and south on 222: viewer north,
+turn south, readout **222**. The fix is `zones.as_seat(seat, fn)`, a scoped
+override of `active_seat()` that the two display paths wrap their reads in.
+Every consumer of "mine" — subjects, zone lookups, ownership — asks that one
+function, so one override answers for all of them instead of a seat parameter
+being threaded through six. **Reads only**, and restored even when the body
+raises: an engine that quietly stays somebody else is worse than a crash.
 
 **No second line under the banner**, and the request asked for one — *display in
 smaller text below who won*. The ending card is drawn in the overlay two inches
@@ -466,8 +492,8 @@ the screen but the **thing the screen reads**.
 
 ### What it needs
 
-- **An outcome that names a seat.** *— shipped as a seat key, not a subject; see
-  above.* [Assumption: the smallest form that fits the
+- **An outcome that names a seat.** *— shipped as a stat on the seat, not a
+  field and not a subject; see above.* [Assumption: the smallest form that fits the
   existing vocabulary is `"outcome": { "winner": "<subject>" }` on the ending
   card — a subject, so a game says `"max:score@anyone"`-style *who* rather than
   hardcoding a seat, and Lost Cities' winner is already written exactly that way
