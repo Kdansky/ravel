@@ -56,7 +56,7 @@
     {
       "key": "p_locked",
       "text": "TODO: The failure page",
-      "story": "TODO: what a failed gate looks like. The empty on_pick keeps the hand, so the player can try something else.",
+      "story": "TODO: what a failed gate looks like. The empty play action keeps the hand, so the player can try something else.",
       "play": { "action": [] }
     },
     {

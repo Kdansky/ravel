@@ -466,8 +466,8 @@ end
 -- wanted a different `pos`.
 --
 -- It is a **field and not a tag** on purpose. A tag is a word — good for a
--- quality a zone either has or hasn't, which is why `invisible_slot_outlines` is
--- one — and a ratio is a number, of which there are infinitely many. Encoding it
+-- quality a zone either has or hasn't, which is what `cell_outline: false` says
+-- — and a ratio is a number, of which there are infinitely many. Encoding it
 -- as a tag means either a closed set of words that is always missing somebody's
 -- aspect, or numbers parsed out of tag strings, which is a field in a tag's
 -- clothes. One field also keeps one question in one place: `"grid"` reads the

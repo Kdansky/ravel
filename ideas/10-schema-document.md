@@ -120,6 +120,26 @@ Two-way matching also picks up the *reverse* problem, which is the one nobody
 looks for: a field the validator accepts that nothing documents. There are
 almost certainly a few.
 
+### The blind spot it has, found by falling into it (2026-08-16)
+
+**Both directions compare field *names* against the field tables, and a word can
+sit outside both while still being read as an offer.** `exhausts` did, for three
+passes after `8856432` made being spent a cost: `SCHEMA.json` described it inside
+an `activate` block, which the two-way test skips as `NESTED`; `validate.lua`
+type-checked it, so it looked live to a reader; and `AUTHORING.md` recommended it
+for board buttons. Nothing in `game/` had read it since the migration. A card
+written from the manual tired for the round anyway, silently — and the validator
+had been saying *has a field 'exhausts' the engine doesn't read* the whole time,
+to nobody, because the manual's fragment is not a whole game and was never run.
+
+The fix is not more schema matching, which is why it goes here rather than into
+the build order: it is a **retired-vocabulary guard**
+(`tests/integration/docs.lua`). Every word the format has dropped is listed with
+what to write instead, and no shipped game, the schema, the generator, or an
+AUTHORING example may contain it as a quoted token. Prose keeps its history.
+`stays_ready` was found the same way a day earlier — deleted from the engine,
+still emitted by `tools/make_lost_cities.py`, which the suite never runs.
+
 ## Where it lives
 
 **`SCHEMA.json` at the repository root**, beside `DESIGN.md`, `AUTHORING.md` and

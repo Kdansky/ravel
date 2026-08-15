@@ -213,8 +213,6 @@ local CASES = {
 		function(g) g.tag_defs.keepsakes = { zone = "board" } end },
 	{ "an activate_target with no ability", "no ability for it to target",
 		function(g) g.card_defs.c_flee.activate_target = { type = "card", count = 1 } end },
-	{ "a non-boolean exhausts", "exhausts should be true or false",
-		function(g) g.card_defs.c_flee.exhausts = "no" end },
 	{ "an unknown fill word", "fill should be 'empty', 'enemy', 'open' or 'any'",
 		function(g) g.card_defs.c_flee.target = { type = "slot", count = 1, fill = "friendly" } end },
 	{ "a pattern that isn't a list of pairs", "should be a list of [x, y] pairs",

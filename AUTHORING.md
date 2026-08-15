@@ -1468,18 +1468,19 @@ whose tags don't say, and reports the conflict when a card's tags disagree.
 
 ### Board buttons
 
-A card that starts in play and never leaves is the engine's button. Combine
-a `setup.place` entry with an `activate.action`, and `exhausts: false` when it should stay
-clickable rather than tiring for the round:
+A card that starts in play and never leaves is the engine's button. Combine a
+`setup.place` entry with an `activate.action`. A button stays clickable by
+saying nothing: an ability spends its card only if its cost says so, and one
+that charges no `exhaust` is available every turn.
 
 ```json
 {
   "key": "pass_time",
   "text": "Let time pass",
-  "activate": { "action": ["next_phase"], "exhausts": false }
+  "activate": { "action": ["next_phase"] }
 }
 
-"setup": { "place": [{ "card": "pass_time", "zone": "table", "slot": 1 }] }
+"setup": { "place": [{ "card": "pass_time", "zone": "table", "at": ["a1"] }] }
 ```
 
 Add `activate.target` when the button needs to be pointed at something —

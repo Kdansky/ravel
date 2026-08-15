@@ -239,7 +239,6 @@
         "target": "a target spec for that ability, the same shape as a card's play.target",
         "cost": { "<stat key>": "number paid for that ability" },
         "phases": ["phase keys the ability works in"],
-        "exhausts": "false keeps a card ready after using this ability",
         "moves": ["pattern names, if the ability is a move"]
       },
       "abilities": [

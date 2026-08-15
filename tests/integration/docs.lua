@@ -50,4 +50,60 @@ function M.test_docs_every_whole_game_example_validates(check)
 	end
 end
 
+-- Vocabulary the format used to have, and what to write instead.
+--
+-- A word leaves the engine in one commit and lives on for months in the things a
+-- game is written from. `exhausts` outlived the engine reading it by three
+-- passes and was still recommended by the manual, so a card built from the
+-- board-button example tired for the round anyway. `stays_ready` outlived its
+-- own deletion inside the generator that writes a shipped game file. Neither was
+-- noticed, because a document cannot fail and a generator is not run by the
+-- suite.
+--
+-- Prose may still name a retired word — the history is worth writing down, and
+-- several comments explain why a word went. This looks for the word as a *token*
+-- a game could be carrying: quoted whole, which is a key or a value and never a
+-- sentence.
+local RETIRED = {
+	{ "exhausts", 'a cost — "exhaust": 1 on the ability that spends the card' },
+	{ "stays_ready", "nothing at all — an ability charging no exhaust stays ready" },
+	{ "transparent_background", 'the style property "color": false' },
+	{ "invisible_title_text", 'the style property "title": false' },
+	{ "invisible_slot_outlines", 'the style property "cell_outline": false' },
+	{ "on_pick", 'the "play" block' },
+}
+
+local function read(path)
+	local f = io.open(path)
+	if not f then return nil end
+	local text = f:read("*a")
+	f:close()
+	return text
+end
+
+function M.test_docs_no_retired_word_is_still_on_offer(check)
+	-- Every shipped game, the schema they are held to, the generator that writes
+	-- one of them, and the manual's examples — everything a game is copied from.
+	local sources = {}
+	local ls = io.popen("ls game/games/*.json tools/*.py 2>/dev/null")
+	for path in ls:lines() do sources[path] = read(path) end
+	ls:close()
+	sources["SCHEMA.json"] = read("SCHEMA.json")
+	for i, ex in ipairs(examples()) do
+		sources[("AUTHORING.md example %d (%s)"):format(i, ex.title)] = ex.text
+	end
+	check("there is something to check", next(sources) ~= nil)
+
+	for _, entry in ipairs(RETIRED) do
+		local word, instead = entry[1], entry[2]
+		local found = {}
+		for path, text in pairs(sources) do
+			if text:find('"' .. word .. '"', 1, true) then found[#found + 1] = path end
+		end
+		table.sort(found)
+		check("nothing still offers '" .. word .. "'", #found == 0,
+			table.concat(found, ", ") .. " — write " .. instead .. " instead")
+	end
+end
+
 return M

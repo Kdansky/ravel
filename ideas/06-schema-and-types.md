@@ -178,6 +178,24 @@ message keeps the guarantee that the whole refusal was buying.
 
 *Urgency: medium · Difficulty: medium · Usefulness: medium*
 
+> **Measured 2026-08-16, and it is much smaller than what follows.** Three fields
+> are left, not six, and one of them the write-up itself argues against changing.
+> `applies`, `tags`, `zones` and `zone_empty` were already array-only, and
+> **`patterns` has since been normalised at the door** (`declaration.lua:57`) —
+> which is this gap's own proposal, already done once and worth copying.
+>
+> | field | read at | note |
+> |---|---|---|
+> | `pass_card` | `flow.lua:238`, and the identical coercion again in `validate.lua:1374` | the only duplicated one |
+> | `phases` | `flow.lua:102-103` | one reader |
+> | `at` (setup.place) | `validate.lua:1471` | string or list, and not in the table below because it did not exist when this was written |
+> | `pos` | `zones.lua:153` and its twin in validate | changing it makes shared zones write `[[…]]`, which the section below already calls the likely mistake |
+>
+> So this is an hour, not a track. **It is worth doing as
+> [17](17-conditions-as-expressions.md)'s first step** — that is the only thing
+> that needs the normalising door for its own sake — and not as an item ahead of
+> it.
+
 Several fields accept "a key, or a list of keys", and the engine re-derives
 which it got at every use:
 
@@ -214,6 +232,23 @@ conversation than a rule about brackets.
 ## Gap 3 — Fewer `type(x)` guards, because the type is known
 
 *Urgency: low · Difficulty: medium · Usefulness: medium (high for readability)*
+
+> **Measured 2026-08-16: the count has grown from 106 to 184, and that is the
+> gap working rather than rotting.** All of the growth is in the two files this
+> section says must keep every guard — `validate.lua` 52 → 90 and
+> `declaration.lua` 9 → 40 — and declaration growing is the stated goal, *move
+> them to the door*, happening on its own as the format gained fields.
+>
+> The "~22 downstream" figure counted every `type(` in seven files, and most of
+> them are not re-asking a known type at all: `predicate` (8) parses subject
+> strings out of peer-suppliable content and says at `predicate.lua:75` why it
+> must, `cards.lua:630` accepts an entity *or* a key on purpose, and the rest are
+> deep copy, reflection and string guards on content. **Six would actually
+> disappear if gap 2 landed** — `flow.lua:102-103`, `flow.lua:238`,
+> `validate.lua:1374`, `zones.lua:153` and its validate twin, `cards.lua:574`.
+>
+> There is no cleanup to do here on its own. What survives is the acceptance
+> criterion at the end of this section, which still holds.
 
 There are 106 `type(` calls in `game/`:
 

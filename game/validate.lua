@@ -1155,9 +1155,6 @@ function M.check(G)
 		if def.activate_target and not def.on_activate then
 			warn("%s: has an activate_target but no on_activate — there is no ability for it to target", where)
 		end
-		if def.exhausts ~= nil and type(def.exhausts) ~= "boolean" then
-			warn("%s: exhausts should be true or false, not '%s'", where, tostring(def.exhausts))
-		end
 
 		-- Placement: where does this card go? Its tags may disagree (a
 		-- conflict), or nothing may say (ambiguous once there are several

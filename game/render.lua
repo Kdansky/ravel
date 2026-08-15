@@ -846,7 +846,7 @@ end
 -- The outline on an empty cell is what a board looks like when it has no art of
 -- its own, so it is the right default — and wrong on a painted one, where it is
 -- a rounded rectangle drawn inside a square somebody chose the colour of.
--- `invisible_slot_outlines` drops it.
+-- The style property `cell_outline: false` drops it.
 --
 -- Eligibility during targeting is not chrome and is drawn either way: it is the
 -- only thing telling a player where a piece may go, and a chessboard that hides

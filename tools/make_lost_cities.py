@@ -208,7 +208,7 @@ def zones():
            # the built-in "reveal" pair: that one is page-mode at the zone, so
            # every card fills the whole panel and two choices would stack.
            # Here the page flag lives on the phase instead — which is what makes
-           # each card's own on_pick run — while the zone lays them side by side.
+           # each card's own play block run — while the zone lays them side by side.
            {"key": "mode", "type": "hand", "pos": [0.30, 0.24, 0.70, 0.76],
             "tags": ["hidden", "no_peek"]},
            # Where every choice that is not a card in your hand is made — which
@@ -260,8 +260,8 @@ SCORING_CARDS = [c + suffix for suffix in ("_score", "_bonus") for c, _, _, _ in
 # pile says "whatever lies on me can be taken", the engine reaches only the top
 # of a stack, and "phases" keeps it to the draw step — which is the whole reason
 # a card-side phase restriction had to exist before a pickup could be safe.
-# exhausts is false because Lost Cities never wraps a round, so a card exhausted
-# once would never ready again and could never be taken from a pile twice.
+# It charges no exhaust, so it stays available: Lost Cities never wraps a round,
+# and a card spent once would never ready again to be taken from a pile twice.
 TAG_DEFS = {
     "takeable": {
         "activate": {
