@@ -35,6 +35,31 @@ already `subject <op> subject`; it is just spelled as a map.
 already evaluates**, plus arithmetic, which it does not. Those two halves are
 worth deciding separately — see *The arithmetic question*.
 
+## One thing the grammar is missing, found by building an ending screen
+
+**A condition cannot name a seat.** The owner word is `mine` / `enemy` /
+`anyone` (`OWNERS`, `predicate.lua:33`), all three relative to
+`zones.active_seat()`. That is right for a rule a player is playing — and there
+is no way to write *white's*, absolutely, at a moment when nobody in particular
+is to move.
+
+It cost twice in one afternoon ([07](07-presentation.md) gap 6). Chess's ending
+could not be an `end_condition`, because at the moment a king is taken "mine" is
+whoever moved last, which is an accident of turn order; it became phase routing
+instead, since a phase called `white_move` does know its colour. And writing the
+winner down needed an absolute handle too, so chess's seat cards gained a tag
+each — the trick Lost Cities was already using for `score@north_side`.
+
+**Tagging a seat card is the workaround, and it is a good one**, which is why
+this is a paper cut rather than a blocker. But it means every game with seats
+writes two words that mean the same thing as the seat key it already declared.
+[Assumption: the fix is one line in `owned_by` — an owner word that is not one
+of the three known ones and *is* a key in `G.seat_set` matches that seat — plus
+the same lookup in `parse_scope`, which is what makes it a decision rather than
+a patch: `parse_scope` is documented as pure and testable without a game, and
+consulting `seat_set` ends that. Either the grammar gains a game-state
+dependency, or seats keep wearing tags.]
+
 ## The three shapes it collapses
 
 | Shape | Written | Where it is legal today |
