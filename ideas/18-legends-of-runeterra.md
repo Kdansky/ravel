@@ -1,6 +1,7 @@
 # 18 — Legends of Runeterra
 
-**Status:** not started · **Size:** large, and the first deliverable is a
+**Status:** **stage 1 done** — [lor/rules.md](lor/rules.md) and
+[lor/decks.md](lor/decks.md) · **Size:** large, and the first deliverable was a
 document rather than code · **Depends on:** [01](01-boardgames.md) gap 5
 (triggers) for anything past the vanilla prototype
 
@@ -54,6 +55,54 @@ document plus a short list of what writing it exposed — every rule that turned
 out to need a paragraph, and every one that ravel cannot express. That second
 list *is* stage 2.
 
+### What writing it exposed
+
+**It was written from sources, not from recollection, and that changed an
+answer.** Riot's own rules pages render in JavaScript and fetch as blank, so the
+spine is the Riot-hosted wiki with gamepressure for the turn structure. Every
+rule in the document is marked **(v)** verified or **(r)** recalled, and the
+Round FAQ — unreadable, and the authority for most of the **(r)** lines — is
+named as the first place to check. That distinction is the deliverable as much
+as the rules are.
+
+- **"Simultaneous combat" was wrong, and it is the correction that matters
+  most.** Strikes resolve **left to right by board position**, one pair at a
+  time. Building simultaneous resolution first would have been the misremembered
+  rule this whole stage exists to catch — and the truth is *better* news, since
+  an ordered run of cards in a zone is a thing ravel already has.
+- **Blocking is one to one, and cannot be anything else.** No double-blocking in
+  either direction. That is the narrowest possible pairing, which is the best
+  case for `attach_to_target` ([15](15-many-on-one-square.md)) rather than the
+  worst.
+- **The stack is bounded more sharply than expected**, though the bound is
+  recalled rather than verified: **Burst and Focus never enter it at all**, since
+  they resolve on the spot. A response stack is therefore only Fast and Slow, and
+  the four speeds are really *two* questions — may this be played during combat,
+  and may the opponent answer before it resolves. Two booleans, not four cases.
+- **Damage persists across combats within a round** and clears at round start,
+  which is why Regeneration is a keyword. A game that healed at end of combat
+  would be a different game.
+- **Three rules turned out to be free**, and none was on the capability table:
+  round 40 is a tie (an end condition on the round counter), decking out is a
+  loss (`zone_empty` already), and the attack token returning through Scout is a
+  seat stat.
+- **Two were not free and are new to the list.** The **mulligan** is *draw four,
+  replace any subset* — ravel's offer overlay picks exactly one, and choosing a
+  subset is a different interaction. And the **hand cap of 10** is a bound on a
+  zone that has none: a grid is bounded by its cells, a hand is not bounded at
+  all.
+- **A question for whoever builds champions**: level-up transforms in place
+  *keeping the damage already taken*. `become` shipped for chess promotion, where
+  the pawn had no damage to keep — so whether it preserves stats is worth
+  checking before it is relied on.
+- **The card texts did not survive the same standard**, and
+  [lor/decks.md](lor/decks.md) says so rather than approximating them. The deck
+  list is real and second-hand; the text is in Riot's Data Dragon
+  (`dd.b.pvp.net/latest/set1/en_us/data/set1-en_us.json`, confirmed reachable and
+  machine-readable), which is a few megabytes and wants downloading rather than
+  fetching. **Milestone 1 needs none of it** — its decks are vanilla bodies —
+  so this blocks nothing yet.
+
 ## Stage 2 — what LoR names that the engine lacks
 
 The ladder's discipline is *each target game names one missing capability*. LoR
@@ -69,10 +118,13 @@ different genre, not because it is unusually complex.
 | Champions levelling up | `become` — **shipped**, and it was chess promotion that paid for it |
 | Ephemeral, Fleeting | a tag plus a round-boundary action — **expressible** |
 | Play / Last Breath / Round Start abilities | **[01](01-boardgames.md) gap 5, triggers** — not started |
-| **Blocking: which unit blocks which** | **missing** — a pairing between two cards |
-| **Combat damage, simultaneous, then deaths** | **missing** — follows from the pairing |
-| **The pass, and responding to a spell** | **missing** — a bounded stack |
+| **Blocking: which unit blocks which** | **missing** — a pairing between two cards, and stage 1 confirms it is strictly one to one |
+| **Combat damage, ~~simultaneous~~ left to right, then deaths** | **missing** — follows from the pairing. *Corrected by stage 1: strikes resolve by board position, one pair at a time, not all at once* |
+| **The pass, and responding to a spell** | **missing** — a bounded stack, and stage 1 narrows it: Burst and Focus never enter one |
 | Spell mana, spendable only on spells | **missing, and small** — a cost paid from either of two pools by a rule |
+| Mulligan: draw 4, replace any subset | **missing** — the offer overlay picks exactly one |
+| A hand that holds at most 10 | **missing** — a grid is bounded by its cells, a hand by nothing |
+| Round 40 is a tie · decking out loses · Scout returns the token | **expressible** — an end condition on the round counter, `zone_empty`, and a seat stat |
 
 ### The pairing is the interesting one
 
@@ -98,6 +150,14 @@ right, it is a *bounded* version of the exact thing `01` refused, and the
 refusal was about the unbounded one. The rules document is what settles this,
 and it should be settled before any code, because the answer decides whether
 this is a milestone or a project.]
+
+**Stage 1 got halfway there and says so.** The round *does* end on two
+consecutive passes (verified), the speeds *are* a closed set of four (verified),
+and **Burst and Focus never enter a stack at all** — so what can wait to resolve
+is Fast and Slow alone. Last-first draining is still recalled, not verified,
+because the one page that would settle it is the one that would not render. The
+four speeds collapse into two questions — *playable during combat?* and *may the
+opponent answer first?* — which is a much smaller thing to build than four cases.
 
 The engine has one relevant guarantee already: `flow.settle`'s 64-step budget
 (ARCHITECTURE invariant 3), which is the same discipline `01` gap 5 requires of
