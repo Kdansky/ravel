@@ -95,13 +95,15 @@ as the rules are.
   *keeping the damage already taken*. `become` shipped for chess promotion, where
   the pawn had no damage to keep — so whether it preserves stats is worth
   checking before it is relied on.
-- **The card texts did not survive the same standard**, and
-  [lor/decks.md](lor/decks.md) says so rather than approximating them. The deck
-  list is real and second-hand; the text is in Riot's Data Dragon
-  (`dd.b.pvp.net/latest/set1/en_us/data/set1-en_us.json`, confirmed reachable and
-  machine-readable), which is a few megabytes and wants downloading rather than
-  fetching. **Milestone 1 needs none of it** — its decks are vanilla bodies —
-  so this blocks nothing yet.
+- **The card texts arrived after the first draft, and corrected it.** Riot's
+  Data Dragon is 584 KB for set1, not the "few megabytes" the first pass guessed
+  from a truncated fetch; both sets are now checked in under `lor/data/` and
+  every card list is read out of them by a printed query. What that turned up is
+  worth the trip: **four collectible units in the whole of set1 have no keyword
+  at all.** Vanilla bodies are not "most of a real deck's bottom half" — that was
+  recollection, and it was wrong. Milestone 1's deck is ten *text-free* units
+  carrying two keywords between them, Tough and Overwhelm, both pure combat
+  arithmetic and neither touching who may block.
 
 ## Stage 2 — what LoR names that the engine lacks
 
@@ -209,10 +211,11 @@ Each ships a playable game file in `game/games/` and its own scripted test, per
 [14](14-kinds-and-placements.md) shows is a readable size (chess is 13 cards and
 279 lines) and does **not** want a generator — the generator is what 14 deleted.
 
-**One line about provenance:** card text and names are Riot's. `CREDITS.md`
-already exists as the place this repository records where content came from, and
-`DESIGN.md` requires it stays accurate — a fan implementation of two decks
-belongs in it beside the art.
+**One line about provenance:** card text and names are Riot's. *Corrected by
+stage 1: there is no `CREDITS.md` at the root — the one that exists is
+`game/games/assets/CREDITS.md`, credits living beside the material they cover.
+So the LoR data has its own, [lor/CREDITS.md](lor/CREDITS.md), in the same
+spirit.*
 
 ## Refuse
 
