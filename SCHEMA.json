@@ -46,7 +46,10 @@
       "paint": {
         "<absolute pattern name>": "grid zones: a colour or a picture for the squares that pattern names — terrain, goal rows, home rows"
       },
-      "cell_outline": "grid zones: false draws no outline on empty cells, for a board that paints its own squares. Eligible squares still light up during a move."
+      "cell_outline": "grid zones: false draws no outline on empty cells, for a board that paints its own squares. Eligible squares still light up during a move.",
+      "badges": [
+        "cards: stat keys drawn as numbers along the bottom edge of the face, left to right — [\"power\", \"health\"] is a creature card. Without it a card shows hp (with its hp_max companion) as a coloured bar's worth and nothing else, which is the default every game before this was written against. A card that carries numbers and names none of them here shows none of them."
+      ]
     }
   },
   "cards": [

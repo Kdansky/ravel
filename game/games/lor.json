@@ -11,7 +11,7 @@
     "passed": { "stat": "passed", "at_least": 1 }
   },
   "styles": {
-    "unit": { "fit": "card" },
+    "unit": { "fit": "card", "badges": ["power", "health"] },
     "lane": { "chequer": ["#2b3a55", "#243248"], "cell_outline": false }
   },
   "patterns": {
@@ -94,9 +94,9 @@
     {
       "key": "controls",
       "type": "grid",
-      "grid": [2, 2],
-      "tags": ["activate", "optional"],
-      "pos": [0.82, 0.32, 0.98, 0.68]
+      "grid": [2, 1],
+      "tags": ["per_seat", "activate", "optional"],
+      "pos": [[0.82, 0.32, 0.98, 0.48], [0.82, 0.52, 0.98, 0.68]]
     },
     {
       "key": "battle",
@@ -400,10 +400,8 @@
   ],
   "setup": {
     "place": [
-      { "card": "pass_button", "owner": "north", "zone": "controls", "at": ["a2"] },
-      { "card": "attack_button", "owner": "north", "zone": "controls", "at": ["b2"] },
-      { "card": "pass_button", "owner": "south", "zone": "controls", "at": ["a1"] },
-      { "card": "attack_button", "owner": "south", "zone": "controls", "at": ["b1"] }
+      { "card": "pass_button", "zone": "controls", "at": ["a1"] },
+      { "card": "attack_button", "zone": "controls", "at": ["b1"] }
     ]
   }
 }

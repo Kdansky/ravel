@@ -8,6 +8,7 @@ local rings    = {}
 local floats   = {}
 local confetti = {}
 local motes    = {}   -- shaped particles for the named card effects
+local pending  = {}   -- work waiting its turn, so a run of hits reads as a run
 local trauma   = 0
 local SCALE    = 1
 
@@ -18,6 +19,7 @@ end
 
 function M.clear()
 	parts, rings, floats, confetti, motes, trauma = {}, {}, {}, {}, {}, 0
+	pending = {}
 end
 
 -- The classic card-game effects, parameterized. Games name their own
@@ -184,6 +186,13 @@ function M.impact(x, y, power, color)
 	trauma = math.min(1, trauma + 0.2 + 0.25 * power)
 end
 
+-- Do this a moment from now. Presentation only — whatever it shows has already
+-- happened in the rules, so nothing downstream may depend on when it runs.
+function M.after(delay, fn)
+	if not (delay and delay > 0) then return fn() end
+	pending[#pending + 1] = { at = delay, fn = fn }
+end
+
 -- Floating text ("+2 gold") drifting up from a stat change.
 function M.float(x, y, text, color)
 	floats[#floats + 1] = { x = x, y = y, text = text, color = color, t = 0, life = 1.0 }
@@ -199,6 +208,17 @@ function M.hit(x, y, color)
 end
 
 function M.update(dt)
+	-- Anything waiting its turn. This is what lets a run of strikes read as a
+	-- sequence instead of a single flash: the rules resolved the whole combat in
+	-- one instant, and the sparks and numbers catch up one lane at a time.
+	for i = #pending, 1, -1 do
+		local q = pending[i]
+		q.at = q.at - dt
+		if q.at <= 0 then
+			table.remove(pending, i)
+			q.fn()
+		end
+	end
 	trauma = math.max(0, trauma - 2.2 * dt)
 	for i = #parts, 1, -1 do
 		local p = parts[i]

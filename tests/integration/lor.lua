@@ -30,10 +30,14 @@ local function stat(seat, key)
 	return predicate.total(key .. "@" .. seat .. "_side")
 end
 
+-- Each seat has its own controls, beside its own deck, so a button is that
+-- seat's by the zone it was dealt into rather than by anything the file says.
 local function button(def_key, seat)
-	for _, id in ipairs(zones.find("controls").cards) do
-		local e = entity.get(id)
-		if e.def_key == def_key and predicate.owner_of(e) == seat then return e.id end
+	for _, z in ipairs(zones.all_with_key("controls")) do
+		for _, id in ipairs(z.cards) do
+			local e = entity.get(id)
+			if e.def_key == def_key and predicate.owner_of(e) == seat then return e.id end
+		end
 	end
 end
 
@@ -102,8 +106,11 @@ function M.test_lor_the_opening_deals_four_and_the_round_deals_one(check)
 	check("and both decks are five lighter",
 		#zone_of("deck", "north").cards == 25 and #zone_of("deck", "south").cards == 25,
 		("%d / %d"):format(#zone_of("deck", "north").cards, #zone_of("deck", "south").cards))
-	check("each seat has a pass button and an attack button of its own",
-		#zones.find("controls").cards == 4)
+	check("each seat has a pass button and an attack button of its own, on its own side",
+		#zone_of("controls", "north").cards == 2 and #zone_of("controls", "south").cards == 2)
+	check("and they belong to that seat because of where they were dealt",
+		predicate.owner_of(entity.get(zone_of("controls", "north").cards[1])) == "north"
+		and predicate.owner_of(entity.get(zone_of("controls", "south").cards[1])) == "south")
 
 	-- Whose button it is does the gating, which is the ordinary ownership rule
 	-- and not something passing had to be taught.

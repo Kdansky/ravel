@@ -193,7 +193,8 @@ local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_t
 -- What a style may carry. Presentation only, and deliberately closed: the
 -- moment a style could change a rule, every rules bug becomes a drawing bug.
 local STYLE_FIELDS    = { color = true, title = true, border = true, fit = true,
-	ratio = true, chequer = true, paint = true, cell_outline = true, fan = true }
+	ratio = true, chequer = true, paint = true, cell_outline = true, fan = true,
+	badges = true }
 local FAN_DIRS        = { up = true, down = true, left = true, right = true }
 local ASSET_FIELDS    = { src = true, max = true }
 -- A challenge is asked by the resolve_challenge action: one condition, and the

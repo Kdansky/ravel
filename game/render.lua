@@ -206,6 +206,8 @@ end
 local ICON_COLOR = {
 	gold    = { 0.95, 0.78, 0.25 },
 	hp      = { 0.92, 0.32, 0.32 },
+	health  = { 0.92, 0.32, 0.32 },
+	power   = { 0.98, 0.72, 0.30 },
 	defense = { 0.55, 0.70, 0.90 },
 	morale  = { 0.78, 0.55, 0.95 },
 	food    = { 0.55, 0.85, 0.40 },
@@ -218,11 +220,18 @@ local function draw_stat_icon(key, cx, cy, s)
 		love.graphics.circle("fill", cx, cy, s * 0.42)
 		love.graphics.setColor(col[1] * 0.6, col[2] * 0.6, col[3] * 0.6)
 		love.graphics.circle("line", cx, cy, s * 0.24)
-	elseif key == "hp" then
+	elseif key == "hp" or key == "health" then
 		love.graphics.circle("fill", cx - s * 0.18, cy - s * 0.12, s * 0.24)
 		love.graphics.circle("fill", cx + s * 0.18, cy - s * 0.12, s * 0.24)
 		love.graphics.polygon("fill",
 			cx - s * 0.40, cy - s * 0.02, cx + s * 0.40, cy - s * 0.02, cx, cy + s * 0.44)
+	elseif key == "power" then
+		-- A blade: the other half of every creature card ever printed.
+		love.graphics.polygon("fill",
+			cx - s * 0.08, cy + s * 0.44, cx + s * 0.10, cy + s * 0.44,
+			cx + s * 0.10, cy - s * 0.18, cx + s * 0.01, cy - s * 0.46,
+			cx - s * 0.08, cy - s * 0.18)
+		love.graphics.rectangle("fill", cx - s * 0.28, cy + s * 0.16, s * 0.56, s * 0.10)
 	elseif key == "defense" then
 		love.graphics.polygon("fill",
 			cx - s * 0.35, cy - s * 0.38, cx + s * 0.35, cy - s * 0.38,
@@ -574,7 +583,9 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		local avail    = vis.w - pad * 2
 		-- A badge sits in the bottom-left corner, so the words start to its
 		-- right rather than under it.
-		local badge_w = (card_e.stats and card_e.stats.hp) and (vis.w * 0.42) or 0
+		local badges  = type(look.badges) == "table" and #look.badges or 0
+		local badge_w = (badges > 0 or (card_e.stats and card_e.stats.hp))
+			and (vis.w * (badges > 1 and 0.62 or 0.42)) or 0
 
 		local tf, shown, title_h = nil, nil, 0
 		if not no_title then
@@ -710,33 +721,54 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	love.graphics.pop()
 end
 
--- HP badge overlaid on board cards (bottom-left corner).
-local function draw_card_stats_overlay(pl, card_e)
-	local stats = card_e and card_e.stats
-	if not stats or not stats.hp then return end
-	local hp     = stats.hp
-	local hp_max = stats.hp_max or hp
-	local txt    = hp .. "/" .. hp_max
-	local ratio  = hp_max > 0 and hp / hp_max or 0
-
-	love.graphics.push("all")
+-- One number in a dark pill, with its icon. Returns the width it took.
+local function draw_badge(key, txt, x, y, colour)
 	local sf = get_small_font()
 	love.graphics.setFont(sf)
-	local tw = sf:getWidth(txt)
-	local fh = sf:getHeight()
-	local bx = pl.x + 2 * S
-	local by = pl.y + pl.h - fh - 3 * S
+	local tw, fh = sf:getWidth(txt), sf:getHeight()
+	local w = fh + tw + 8 * S
 	love.graphics.setColor(0, 0, 0, 0.65)
-	love.graphics.rectangle("fill", bx - 1, by - 1, fh + tw + 8 * S, fh + 2, 2 * S, 2 * S)
-	draw_stat_icon("hp", bx + fh * 0.5, by + fh * 0.5, fh * 0.9)
-	if ratio > 0.6 then
-		love.graphics.setColor(0.25, 0.95, 0.35)
-	elseif ratio > 0.3 then
-		love.graphics.setColor(1.00, 0.82, 0.15)
-	else
-		love.graphics.setColor(1.00, 0.28, 0.15)
+	love.graphics.rectangle("fill", x - 1, y - 1, w, fh + 2, 2 * S, 2 * S)
+	draw_stat_icon(key, x + fh * 0.5, y + fh * 0.5, fh * 0.9)
+	love.graphics.setColor(colour)
+	print_at(txt, x + fh + 3 * S, y)
+	return w
+end
+
+-- The numbers a card wears on its face.
+--
+-- `hp` is the engine's own: a bar's worth of health, coloured by how much of it
+-- is left, and it stays the default so every game written before this is
+-- unchanged. Anything else is the game's business — a creature game wants its
+-- attack beside its health and neither of them is `hp` — so a style names them
+-- and they are drawn left to right along the bottom edge.
+--
+-- Without this a card could carry any number of stats and show none of them,
+-- which is how a whole combat could resolve correctly and look like nothing had
+-- happened.
+local function draw_card_stats_overlay(pl, card_e)
+	local stats = card_e and card_e.stats
+	if not stats then return end
+	local look   = cards.style(card_e)
+	local badges = type(look.badges) == "table" and look.badges or nil
+
+	love.graphics.push("all")
+	local fh = get_small_font():getHeight()
+	local by = pl.y + pl.h - fh - 3 * S
+	if badges then
+		local x = pl.x + 2 * S
+		for _, key in ipairs(badges) do
+			local v = stats[key]
+			if v then x = x + draw_badge(key, tostring(v), x, by, { 1, 1, 1 }) + 2 * S end
+		end
+	elseif stats.hp then
+		local hp_max = stats.hp_max or stats.hp
+		local ratio  = hp_max > 0 and stats.hp / hp_max or 0
+		local colour = ratio > 0.6 and { 0.25, 0.95, 0.35 }
+			or ratio > 0.3 and { 1.00, 0.82, 0.15 }
+			or { 1.00, 0.28, 0.15 }
+		draw_badge("hp", stats.hp .. "/" .. hp_max, pl.x + 2 * S, by, colour)
 	end
-	print_at(txt, bx + fh + 3 * S, by)
 	love.graphics.pop()
 end
 
@@ -925,7 +957,7 @@ local function draw_zone(zone_e)
 			love.graphics.pop()
 		end
 		for i, card_id in ipairs(zone_e.cards) do
-			if places[i] and not anim.visual_place(card_id) then
+			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
 				if zone_e.tags.face_down or not zones.visible(c) then
 					draw_card_back(places[i])
@@ -983,7 +1015,7 @@ local function draw_zone(zone_e)
 	elseif zt == "pile" then
 		if #zone_e.cards > 0 then
 			local top = entity.get(zone_e.cards[#zone_e.cards])
-			if not anim.visual_place(top.id) then
+			if not anim.visual_place(top.id, top.place) then
 				if zone_e.tags.face_down then
 					draw_card_back(places[1])
 				else
@@ -1003,7 +1035,7 @@ local function draw_zone(zone_e)
 		draw_painted_squares(zone_e)
 		draw_grid_empty(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
-			if places[i] and not anim.visual_place(card_id) then
+			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
 				draw_card_face(places[i], c, false)
 				draw_card_stats_overlay(places[i], c)
@@ -1012,7 +1044,7 @@ local function draw_zone(zone_e)
 	else
 		-- hand and other zones: show description text on the card
 		for i, card_id in ipairs(zone_e.cards) do
-			if places[i] and not anim.visual_place(card_id) then
+			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
 				if zone_e.tags.page then
 					draw_page(places[i], c)
@@ -1267,7 +1299,7 @@ local function draw_animated_cards()
 			local zt   = z.zone_type
 			local list = (zt == "deck" or zt == "pile") and { z.cards[#z.cards] } or z.cards
 			for _, cid in ipairs(list or {}) do
-				local vpl = cid and anim.visual_place(cid)
+				local vpl = cid and anim.visual_place(cid, (entity.get(cid) or {}).place)
 				if vpl then draw_flying_card(vpl, entity.get(cid)) end
 			end
 		end
@@ -1479,7 +1511,7 @@ function M.draw()
 			end
 			draw_zone(oz)
 			for _, cid in ipairs(oz.cards) do
-				local vpl = anim.visual_place(cid)
+				local vpl = anim.visual_place(cid, (entity.get(cid) or {}).place)
 				if vpl then draw_flying_card(vpl, entity.get(cid)) end
 			end
 		end

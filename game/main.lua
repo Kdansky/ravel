@@ -251,20 +251,40 @@ function love.load()
 		render.set_selected(nil)
 		render.set_detail(nil)
 	end
+	-- How far into a run of cards acting we are, so a whole zone resolving at
+	-- once still reads left to right. Zero outside a run, which is every
+	-- ordinary click.
+	local beat = 0
+	actions.on_act = function(_, ordinal) beat = ordinal or 0 end
+
 	-- Stat changes float up from where they happened (card, or the HUD row).
-	-- A card losing hp also takes a small damage burst, for free.
-	actions.on_stat_change = function(e, key, delta)
-		local txt = (delta > 0 and "+" or "") .. delta .. " " .. key
-		local col = delta > 0 and { 0.45, 0.95, 0.50 } or { 1.00, 0.45, 0.35 }
+	-- A card losing health also takes a small damage burst, and whoever did it
+	-- leans into them — a number changing across the board says nothing about
+	-- where it came from, and that is most of what there is to follow.
+	local HURT = { hp = true, health = true }
+	actions.on_stat_change = function(e, key, delta, ctx)
+		local txt   = (delta > 0 and "+" or "") .. delta .. " " .. key
+		local col   = delta > 0 and { 0.45, 0.95, 0.50 } or { 1.00, 0.45, 0.35 }
+		local delay = math.max(0, beat - 1) * 0.16
 		if e.kind == "card" and e.place and e.place.w > 0 then
-			fx.float(e.place.x + e.place.w * 0.5, e.place.y, txt, col)
-			if key == "hp" and delta < 0 then
-				fx.play({ base = "damage", size = 0.7 },
-					e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5)
+			-- Read the rect now: by the time a delayed burst plays, the rules
+			-- have long finished and the card may have been sent home.
+			local cx, cy = e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5
+			local top    = e.place.y
+			fx.after(delay, function()
+				fx.float(cx, top, txt, col)
+				if HURT[key] and delta < 0 then
+					fx.play({ base = "damage", size = 0.7 }, cx, cy)
+				end
+			end)
+			local actor = ctx and ctx.card_id and entity.get(ctx.card_id)
+			if actor and actor.id ~= e.id and actor.place and actor.place.w > 0 then
+				local ax, ay = actor.place.x + actor.place.w * 0.5, actor.place.y + actor.place.h * 0.5
+				anim.bump(actor.id, cx - ax, cy - ay)
 			end
 		else
 			local x, y = render.stat_pos(key)
-			fx.float(x, y, txt, col)
+			fx.after(delay, function() fx.float(x, y, txt, col) end)
 		end
 	end
 

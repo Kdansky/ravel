@@ -390,4 +390,29 @@ do
 		"a stack that is not fanned shows its top card whole, not a strip")
 end
 
+-- A bump is a displacement laid over a card standing still: the rules put it
+-- somewhere and it stays there, so the rect the renderer asks for moves and
+-- nothing else does. It also has to settle back to exactly where it started,
+-- or a card that gets hit twice walks off its square.
+do
+	local rest = { x = 100, y = 200, w = 40, h = 60 }
+	assert(anim.visual_place("bumper", rest) == nil, "a card at rest has no visual of its own")
+
+	anim.bump("bumper", 0, 400)
+	anim.update(0.05)
+	local out = anim.visual_place("bumper", rest)
+	assert(out, "a bumping card has a visual rect")
+	assert(out.y > rest.y, "it leans towards what it hit")
+	assert(out.y - rest.y <= 26.01, "and only leans — the reach is capped")
+	assert(math.abs(out.x - rest.x) < 0.01, "straight down means straight down")
+	assert(out.w == rest.w and out.h == rest.h, "a bump moves a card, it does not resize it")
+
+	anim.update(1)
+	assert(anim.visual_place("bumper", rest) == nil, "and it settles back to where it stood")
+
+	-- Nothing to lean towards is not a bump.
+	anim.bump("still", 0, 0)
+	assert(anim.visual_place("still", rest) == nil, "a bump at no distance does nothing")
+end
+
 print("render smoke ok: " .. frames .. " frames drawn, " .. drawn .. " placeholders")

@@ -12,7 +12,10 @@ local M = {}
 
 M.pending_load   = nil   -- set by load_game, consumed by flow after the action list
 M.on_net         = nil   -- optional hook(what, arg): the networking layer's UI, if one is loaded
-M.on_stat_change = nil   -- optional hook(entity, key, delta) for visual feedback
+M.on_stat_change = nil   -- optional hook(entity, key, delta, ctx) for visual feedback
+-- optional hook(card_id, ordinal): a zone's cards acting in turn, so the
+-- presentation can space them out. ordinal 0 with no card means the run is over.
+M.on_act         = nil
 M.on_effect      = nil   -- optional hook(name, ctx): presentation plays the named effect
 
 function M.take_load()
@@ -88,7 +91,7 @@ end
 
 -- Change a stat on an entity, clamped to the stat's declared min/max and,
 -- when a "<key>_max" companion stat exists, to [0, <key>_max].
-local function change_stat(e, key, delta)
+local function change_stat(e, key, delta, ctx)
 	if not e or not e.stats then return end
 	local old = e.stats[key] or 0
 	local v   = old + delta
@@ -107,7 +110,10 @@ local function change_stat(e, key, delta)
 			txt = (d and d.text or e.def_key) .. " " .. txt
 		end
 		log.add(txt)
-		if M.on_stat_change then M.on_stat_change(e, key, v - old) end
+		-- The ctx carries who did it. A number changing on a card says nothing
+		-- about where it came from, and "that one hit this one" is the whole of
+		-- what a player needs to follow a board.
+		if M.on_stat_change then M.on_stat_change(e, key, v - old, ctx) end
 	end
 end
 
@@ -125,7 +131,7 @@ end
 local function apply_stat(subject, delta, ctx)
 	local p = predicate.parse_subject(subject)
 	if not p then return end
-	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, delta) end
+	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, delta, ctx) end
 end
 
 -- Take n from a pool, in id order until it is covered — deterministic, so a
@@ -140,7 +146,7 @@ local function drain(p, n, ctx)
 		if left <= 0 then break end
 		local take = math.min(tonumber(e.stats[p.arg]) or 0, left)
 		if take > 0 then
-			change_stat(e, p.arg, -take)
+			change_stat(e, p.arg, -take, ctx)
 			left = left - take
 		end
 	end
@@ -152,7 +158,7 @@ function M.spend(subject, n, ctx)
 	local p = predicate.parse_subject(subject)
 	if not p then return end
 	if p.scope and p.quant ~= "each" then return drain(p, n, ctx) end
-	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, -n) end
+	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, -n, ctx) end
 end
 
 local HANDLERS = {}
@@ -340,9 +346,16 @@ HANDLERS["activate_zone"] = function(p, ctx)
 			return (sa and sa.slot_idx or 0) < (sb and sb.slot_idx or 0)
 		end)
 	end
+	local beat = 0
 	for _, id in ipairs(order) do
 		local e = entity.get(id)
 		if e and e.zone_id == z.id then
+			beat = beat + 1
+			-- Which of the run this is. The rules resolve the whole zone in one
+			-- instant — they have to, or a snapshot could be taken halfway
+			-- through a combat — so this is the only thing the presentation has
+			-- to tell one lane from the next and space them out.
+			if M.on_act then M.on_act(id, beat) end
 			for _, a in ipairs(cards.abilities(e)) do
 				if type(a.action) == "table" then
 					M.run(a.action, { card_id = id, targets = {} })
@@ -350,6 +363,7 @@ HANDLERS["activate_zone"] = function(p, ctx)
 			end
 		end
 	end
+	if M.on_act then M.on_act(nil, 0) end
 end
 
 -- ready:<scope>  — un-spend the cards in scope. The counterpart to the "exhaust"

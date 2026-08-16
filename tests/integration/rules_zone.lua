@@ -126,4 +126,31 @@ function M.test_rules_zone_a_grid_acts_in_slot_order(check)
 	end)
 end
 
+-- A whole zone resolves in one instant, because a snapshot taken halfway
+-- through a combat would be a position no rule could describe. So the only
+-- thing the presentation gets to space a run out with is the ordinal, and it
+-- has to count the cards that actually acted, in the order they acted.
+function M.test_rules_zone_says_which_of_the_run_each_card_is(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local lane = zones.find("lane")
+		local far = zones.add(lane, "counter")
+		zones.place_in_slot(far.id, lane.slots[3])
+		local near = zones.add(lane, "counter")
+		zones.place_in_slot(near.id, lane.slots[1])
+
+		local seen = {}
+		local was = actions.on_act
+		actions.on_act = function(id, ordinal) seen[#seen + 1] = { id = id, n = ordinal } end
+		actions.execute("activate_zone:lane", {})
+		actions.on_act = was
+
+		check("one beat per card, plus the end of the run", #seen == 3, tostring(#seen))
+		check("counted from one, in the order they stand",
+			seen[1].id == near.id and seen[1].n == 1
+			and seen[2].id == far.id and seen[2].n == 2)
+		check("and the run says when it is over", seen[3].id == nil and seen[3].n == 0)
+	end)
+end
+
 return M

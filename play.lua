@@ -47,12 +47,19 @@ end
 
 -- The zone the numbered choices refer to: the overlay's offer zone when one
 -- is open, otherwise the first visible hand.
+-- The hand the player at this prompt is holding. Asked of zones rather than
+-- walked for, because a per-seat hand has one instance per seat and walking
+-- found the *first* — so a two-seat game showed north's cards whoever was to
+-- play, and every command after a handover was aimed at somebody else's hand.
 local function hand_zone()
 	local cur = phase.current()
-	if cur and cur.type == "overlay" then return zones.find(cur.zone or "hand") end
-	for z in entity.each("zone") do
-		if z.zone_type == "hand" and not z.tags.hidden then return z end
+	local z   = zones.find(cur and cur.zone or "hand")
+	if z and z.zone_type == "hand" and not z.tags.hidden then return z end
+	if cur and cur.type == "overlay" then return z end
+	for zz in entity.each("zone") do
+		if zz.zone_type == "hand" and not zz.tags.hidden and zz.seat == nil then return zz end
 	end
+	return z
 end
 
 local function show()
@@ -202,9 +209,27 @@ local function play_index(n)
 	if not flow.play_card(cid, targets) then print("Can't play that.") end
 end
 
-local function activate_slot(idx)
+-- Which grid holds the piece meant by "a <slot>". Every per-seat grid has the
+-- same slot numbers, so the first one found is not the one meant: it used to
+-- stop at whichever grid came first and report "empty" for a square that was
+-- occupied on the other seat's copy, which made a two-seat board unplayable
+-- from here. Prefer a piece the player may actually act on, then any piece.
+local function slot_owner_zone(idx)
+	local fallback
 	for z in entity.each("zone") do
-		if z.zone_type == "grid" and z.slots[idx] then
+		if z.zone_type == "grid" and z.slots[idx] and entity.get(z.slots[idx]).occupant then
+			local occ = entity.get(z.slots[idx]).occupant
+			if flow.can_activate(occ) then return z end
+			fallback = fallback or z
+		end
+	end
+	return fallback
+end
+
+local function activate_slot(idx)
+	local only = slot_owner_zone(idx)
+	for z in entity.each("zone") do
+		if z == only then
 			local occ = entity.get(z.slots[idx]).occupant
 			if not occ then print("Slot " .. idx .. " is empty."); return end
 			-- What this piece can do *right now*, which is its own abilities plus
