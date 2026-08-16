@@ -1463,9 +1463,11 @@ check("the party's might is an aggregate over the zone",
 	predicate.total("sum:might@party") == 10)
 check("each character is addressable on its own",
 	predicate.total("might@ranger") == 3 and predicate.total("might@mage") == 1)
--- Honest about the hot-seat gap: several cards tagged "player" means a bare
--- subject is the whole company. Telling them apart by seat is idea 02's job.
-check("a bare subject is every player card at once", predicate.total("might") == 10)
+-- A bare subject is the seat whose go it is, not the company: four characters
+-- tagged "player" are four seats, and adding their stats together was how one
+-- of them came to be able to spend another's mana.
+check("a bare subject is the seat that is up", predicate.total("might") == 3,
+	tostring(predicate.total("might")))
 
 local mage = find_card("mage")
 check("a character pays from her own mana",

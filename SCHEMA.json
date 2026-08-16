@@ -82,7 +82,10 @@
           "fill": "slots only: what may already be standing there. empty (default), enemy, open (empty or enemy), any.",
           "moves": [
             "pattern names limiting the squares offered, written for you when the card declares moves"
-          ]
+          ],
+          "where": {
+            "<subject>": "a condition asked of each candidate, with the candidate as @target and as the anchor for any pattern inside — so it can say things about the destination that fill cannot. \"row@target\": 1 is the near row of a grid; {\"count:unit@across\": {\"at_least\": 1}} is a cell with something standing opposite it. See _conditions."
+          }
         },
         "phases": [
           "phase key or list: this card may be played only in those. Naming none means any phase."
@@ -130,7 +133,8 @@
       "receive": {
         "needs": {
           "<subject>": "a condition deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."
-        }
+        },
+        "action": ["action strings run when a card lands here, with this card as @self and the newcomer as @target. What the destination does about an arrival, said once by the destination rather than by every card that might arrive."]
       },
       "turn": {
         "action": ["action strings run at each round boundary while the card is on a grid and not ruined"]
@@ -152,7 +156,8 @@
       "receive": {
         "needs": {
           "<subject>": "a condition deciding whether a card being played may be sent here. Same shape as a card's accepts, asked of the zone."
-        }
+        },
+        "action": ["action strings run when a card lands in this zone, with the zone as @self and the newcomer as @target. A discard pile anybody may take from says \"set_owner:target:none\" here, rather than every card that might be thrown into it saying it."]
       },
       "tooltip": "prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck — so this is what a player reads before clicking it.",
       "activate": {
@@ -175,7 +180,7 @@
       "key": "unique name. A phase key must never name a seat: both players share one play phase, and seat: next is what makes the turn theirs.",
       "label": "string for the HUD",
       "type": "automatic (run actions once and advance), player_input (play freely), draw_and_play (player_input with ends_after 1 and discard_hand), or overlay (dim the screen, deal into its zone, and resolve by *playing* one of the cards dealt — choosing is playing. Push-only, and a choice costs nothing: cost, needs and targeting are skipped)",
-      "actions": ["action strings run on entry, for automatic phases"],
+      "actions": ["action strings run when the phase begins — any phase, not only automatic ones. On a phase that hands over, the seat has already changed, so \"mine\" is the player about to act."],
       "deck": "zone key to deal from on fresh entry",
       "draw": "number of cards dealt on fresh entry",
       "zone": "where they are dealt, default hand. Naming it also bounds what may be played to the cards in it; a phase naming none lets any reachable card be played, which is what the menu relies on.",
@@ -308,6 +313,8 @@
     "attach_to_target": "attach_to_target — tuck the acting card under the first target",
     "transform": "transform:<scope>:<card> — replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own, because it is a different card. A pawn promoting, a checker being crowned, a unit levelling up and a tile turned face up are all this.",
     "destroy": "destroy:<scope> — remove those cards from play entirely. A bare zone key is a scope, so destroy:hand still works.",
+    "set_owner": "set_owner:<scope>:<who> — hand those cards to a seat, to the one that is up (\"mine\"), or to nobody (\"none\"). Whose a card is is decided when it is dealt and stays decided, so this is the only thing that changes it: mind control, and a pile that disowns whatever lands in it. Seats are numbered from 1 and nobody is 0.",
+    "move": "move:<scope>:<zone> — every card the scope names goes to that zone. The scope-first sibling of move_to (the acting card) and move_target_to (the ones a player chose), for a set nobody picked: \"move:mine.battle:mine.bench\" sends the survivors home, and writing it again with enemy covers the other seat without asking whose turn it is.",
     "activate_zone": "activate_zone:<zone> — every card lying in that zone does what it does, in the zone's own order (slot order on a grid). How a phase makes cards act rather than waiting for a player to click one: put the rule on a card, put the card in a hidden zone, and have the phase that should run it say so. Ungated — the phase has already decided it is time.",
     "ready": "ready:<scope> — un-spend those cards, the counterpart to the \"exhaust\" cost. A phase's own actions run when it begins, so this is how a game says *when* being spent wears off rather than taking the engine's round boundary for it.",
     "destroy_self": "destroy_self — remove the acting card",

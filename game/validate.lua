@@ -22,6 +22,12 @@ local M = {}
 
 local RESERVED = { round = true, plays = true }
 
+-- Stamped by the engine on every square of a grid (zones.lua), so a *scoped*
+-- subject may read one off a slot although no card declares it. Not reserved:
+-- a card declaring "col" or "row" is opting in to being stamped with where it
+-- stands, which is how "rank" already works.
+local SLOT_STATS = { col = true, row = true }
+
 -- Every tag the engine itself reads, what it attaches to, and what it does.
 --
 -- One table because there were four half-lists: a set in this file that only
@@ -103,7 +109,7 @@ local CARD_FIELDS = {
 	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
-	accepts = true, on_turn = true,
+	accepts = true, on_receive = true, on_turn = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 	style = true,
 	-- Written by the engine onto the menu entry it generates for each ability of
@@ -115,7 +121,7 @@ local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = tr
 	action = true }
 local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
 	moves = true }
-local RECEIVE_FIELDS   = { needs = true }
+local RECEIVE_FIELDS   = { needs = true, action = true }
 local TURN_FIELDS      = { action = true }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, style = true,
@@ -123,7 +129,7 @@ local ZONE_FIELDS = {
 	-- its own ability, and what declaration.parse derives from that block
 	activate = true, on_activate = true, activate_phases = true, activate_cost = true,
 	activate_target = true, moves = true,
-	injected = true, applies = true, accepts = true, receive = true,
+	injected = true, applies = true, accepts = true, on_receive = true, receive = true,
 	asset = true,
 }
 local PHASE_FIELDS = {
@@ -164,7 +170,7 @@ local ENGINE_STATS    = {
 }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
-	owner = true, fill = true, moves = true }
+	owner = true, fill = true, moves = true, where = true }
 -- How a pattern's vectors are walked. A closed set the engine defines, unlike
 -- card and zone tags, which are the game's own vocabulary — hence the different
 -- word for it in the JSON.
@@ -230,7 +236,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_turn = true,
+	on_receive = true, on_turn = true,
 	auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
@@ -405,6 +411,15 @@ function M.check(G)
 
 	local player_stats = {}
 	for k in pairs((G.setup or {}).player or {}) do player_stats[k] = true end
+	-- A bare subject resolves to the seat whose go it is, so a stat declared on
+	-- a seat card is one a bare subject may legitimately name — which is what
+	-- lets a cost be written "mana" rather than "mana@mine.player".
+	for _, key in ipairs(G.seat_list or {}) do
+		local sd = G.card_defs[key]
+		for k in pairs(type(sd) == "table" and type(sd.card_stats) == "table" and sd.card_stats or {}) do
+			player_stats[k] = true
+		end
+	end
 
 	local card_stats = {}
 	for _, def in pairs(G.card_defs) do
@@ -473,7 +488,7 @@ function M.check(G)
 		elseif not stat_ok(p.arg) then
 			-- A scoped subject reads a stat off the cards it names, so a stat
 			-- only ever carried by cards is legitimate there.
-			if not (p.scope and card_stats[p.arg]) then
+			if not (p.scope and (card_stats[p.arg] or SLOT_STATS[p.arg])) then
 				warn("%s: uses the stat '%s', but it is never declared or set up%s",
 					where, tostring(p.arg), suggest(p.arg, all_stats))
 			end
@@ -653,6 +668,12 @@ function M.check(G)
 				-- An action's stat argument is a full subject: it may carry a
 				-- scope, and a scoped one may read a stat only cards have.
 				subject_ok(where .. ": " .. op, a)
+			elseif t == "seat" then
+				-- A seat by its own key, the one that is up, or nobody.
+				if a ~= "none" and a ~= "mine" and not (G.seat_index or {})[a] then
+					warn("%s: '%s' hands the card to '%s', which is neither a seat nor \"mine\" nor \"none\"%s",
+						where, op, tostring(a), suggest(a, G.seat_index or {}))
+				end
 			elseif t == "phase" and not G.phase_by_key[a] then
 				warn("%s: '%s' points at phase '%s', but no phase has that key%s",
 					where, op, a, suggest(a, G.phase_by_key))
@@ -735,6 +756,9 @@ function M.check(G)
 				warn("%s %s: searches zone '%s', but no zone has that key%s", where, field, zk, suggest(zk, G.zone_defs))
 			end
 		end
+		-- Asked of each candidate with that candidate as the target, so its
+		-- subjects are checked exactly as a move rule's "where" already is.
+		check_map(where .. " " .. field .. " where", spec.where)
 	end
 
 	-- "phases": which phases a card (or a tag granting it one) may be used in.
@@ -1204,8 +1228,9 @@ function M.check(G)
 		check_map(where .. " needs", def.needs)
 		check_map(where .. " requires", def.requires)
 		-- "accepts" is asked of this card about the one arriving, so @self is
-		-- this card and @target the newcomer.
+		-- this card and @target the newcomer. "on_receive" answers the same way.
 		check_map(where .. " accepts", def.accepts)
+		check_list(where .. " receive action", def.on_receive)
 		check_phases(where, def.phases)
 		-- card_stats declare new per-card stats, so only their values are checked.
 		if def.card_stats ~= nil then
@@ -1369,6 +1394,7 @@ function M.check(G)
 			warn('%s: contents should be a list like ["sword:3", "trap"]', where)
 		end
 		check_map(where .. " accepts", def.accepts)
+		check_list(where .. " receive action", def.on_receive)
 		if def.applies ~= nil then
 			if type(def.applies) ~= "table" then
 				warn('%s: applies should be a list of tag names like ["takeable"]', where)
@@ -1468,9 +1494,6 @@ function M.check(G)
 		end
 		if pd.type == "draw_and_play" and not pd.pass_card then
 			warn("%s: forces a play every turn but has no pass_card — players can get stuck with nothing playable", where)
-		end
-		if pd.actions and pd.type ~= "automatic" then
-			warn("%s: has 'actions', but only automatic phases run them", where)
 		end
 		check_list(where .. " actions", pd.actions)
 		if pd.next then

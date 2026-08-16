@@ -135,14 +135,23 @@ local reaching = false
 function M.entities_in_scope(scope, ctx, owner)
 	local out = {}
 	if scope == nil then
-		-- No scope means "mine": the cards this player's stats live on, plus
-		-- the engine's own card behind them. A bare subject has always meant
-		-- the player's total; it now names the cards that hold it, so a read
-		-- and a write can no longer disagree about which one that is.
-		local seen = {}
+		-- No scope means "mine": the card this player's stats live on, plus the
+		-- engine's own card behind it. A bare subject has always meant the
+		-- player's total; it names the cards that hold it, so a read and a write
+		-- can no longer disagree about which one that is.
+		--
+		-- **The active seat's, and only theirs.** Said without the filter this
+		-- was the *pool* of every seat's copy of the stat — so a two-seat game
+		-- checked a cost against both players' mana added together and then took
+		-- it off whichever seat came first in the file, and one player could buy
+		-- a card out of the other's gems. A solo game cannot see it, which is why
+		-- it survived this long. A seatless game has no active seat and every
+		-- player card answers to nobody, so it is unchanged.
+		local active, seen = zones.active_seat(), {}
 		for _, id in ipairs(tags.find_targets({ "player" }, { grid = true })) do
-			seen[id]     = true
-			out[#out + 1] = entity.get(id)
+			local e = entity.get(id)
+			seen[id] = true
+			if M.seat_of(e) == active then out[#out + 1] = e end
 		end
 		for _, id in ipairs((zones.find("system") or {}).cards or {}) do
 			if not seen[id] then out[#out + 1] = entity.get(id) end

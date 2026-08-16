@@ -4,6 +4,7 @@ local declaration = require("declaration")
 local geometry    = require("geometry")
 local tags        = require("tags")
 local rng         = require("rng")
+local log         = require("log")
 
 local M = {}
 local key_map  = {}  -- zone key → entity ID (shared zones)
@@ -290,6 +291,38 @@ function M.has_room(z)
 	return false
 end
 
+-- What a zone does when something lands in it — the other half of `receive`,
+-- whose `needs` already says what it will take. Set by actions.lua at load,
+-- because actions requires this file and the dependency may not run both ways.
+M.run_actions = nil
+
+-- Bounded, and the bound is the point: a receive action may move the card on,
+-- and that lands it in another zone which may do the same. Eight is far past
+-- anything a game needs and far short of a stack overflow, and the same
+-- discipline as settle's step budget — a rule that runs away says so instead of
+-- taking the process with it.
+local receiving = 0
+
+local function fire_receive(to, card_id)
+	local def = to and declaration.G.zone_defs[to.key]
+	if not (def and def.on_receive and M.run_actions) then return end
+	if receiving >= 8 then
+		local msg = "! receive: '" .. tostring(to.key) .. "' is passing cards round in a circle — stopped"
+		log.add(msg)
+		print(msg)
+		return
+	end
+	receiving = receiving + 1
+	-- Put the depth back even when the body raises, for the same reason
+	-- zones.as_seat and predicate's reach latch are written this way: a counter
+	-- left standing answers "too deep" to every later arrival, and a zone that
+	-- quietly stopped responding is worse than the error that caused it.
+	local ok, err = pcall(M.run_actions, def.on_receive,
+		{ card_id = to.id, zone_id = to.id, targets = { card_id } })
+	receiving = receiving - 1
+	if not ok then error(err, 0) end
+end
+
 function M.move_card(card_id, to_id)
 	local c  = entity.get(card_id)
 	local to = entity.get(to_id)
@@ -317,6 +350,7 @@ function M.move_card(card_id, to_id)
 	table.insert(to.cards, card_id)
 	c.zone_id = to_id
 	M.auto_slot(card_id)
+	fire_receive(to, card_id)
 	return true
 end
 
@@ -402,6 +436,10 @@ function M.place_in_slot(card_id, slot_id, on_occupied)
 	end
 	M.move_card(card_id, slot.zone_id)
 	local card = entity.get(card_id)
+	-- The zone may have answered the arrival by sending the card somewhere else,
+	-- and binding it to a square it no longer stands on would leave the slot
+	-- pointing at a card in another zone.
+	if card.zone_id ~= slot.zone_id then return false end
 	-- release whatever slot move_card auto-assigned on grid entry
 	if card.slot_id and card.slot_id ~= slot_id then
 		local old = entity.get(card.slot_id)

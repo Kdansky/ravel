@@ -7,6 +7,7 @@
   ],
   "computed_tags": {
     "dead": { "stat": "health", "less_than": 1 },
+    "overkilled": { "stat": "health", "less_than": 0 },
     "passed": { "stat": "passed", "at_least": 1 }
   },
   "styles": {
@@ -14,7 +15,53 @@
     "lane": { "chequer": ["#2b3a55", "#243248"], "cell_outline": false }
   },
   "patterns": {
-    "across": { "vectors": [[0, 1]], "class": ["step"] }
+    "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] }
+  },
+  "tags": {
+    "on_bench": {
+      "abilities": [
+        {
+          "key": "attack",
+          "text": "Attack",
+          "tooltip": "Send this unit into one of your lanes.",
+          "phases": ["declare_attack"],
+          "target": {
+            "type": "slot", "count": 1, "zones": ["battle"], "fill": "empty",
+            "where": { "row@target": { "equals": "side@mine.player" } }
+          },
+          "action": ["set_stat:attacking@self:1", "move_to:target"]
+        },
+        {
+          "key": "block",
+          "text": "Block",
+          "tooltip": "Meet an attacker. A lane with nothing across it cannot be blocked into.",
+          "phases": ["declare_block"],
+          "target": {
+            "type": "slot", "count": 1, "zones": ["battle"], "fill": "empty",
+            "where": {
+              "row@target": { "equals": "side@mine.player" },
+              "count:unit@across": { "at_least": 1 }
+            }
+          },
+          "action": ["move_to:target"]
+        }
+      ]
+    },
+    "in_combat": {
+      "abilities": [
+        {
+          "key": "clash",
+          "text": "Strike",
+          "action": [
+            "lose_stat:health@across:sum:power@self",
+            "gain_stat:health@across:count:tough@across",
+            "set_stat:spill@self:sum:power@self:x:sum:attacking@self",
+            "lose_stat:spill@self:sum:spill@self:x:count:unit@across",
+            "lose_stat:spill@self:sum:health@across:x:count:overkilled@across:x:count:overwhelm@self:x:sum:attacking@self"
+          ]
+        }
+      ]
+    }
   },
   "zones": [
     {
@@ -41,31 +88,45 @@
       "type": "grid",
       "grid": [6, 1],
       "tags": ["per_seat", "activate"],
+      "applies": ["on_bench"],
       "pos": [[0.16, 0.13, 0.80, 0.28], [0.16, 0.72, 0.80, 0.87]]
     },
     {
       "key": "controls",
       "type": "grid",
-      "grid": [1, 2],
-      "tags": ["activate"],
-      "pos": [0.02, 0.31, 0.14, 0.69]
+      "grid": [2, 2],
+      "tags": ["activate", "optional"],
+      "pos": [0.82, 0.32, 0.98, 0.68]
     },
     {
       "key": "battle",
       "type": "grid",
       "grid": [6, 2],
-      "tags": ["activate", "lane"],
+      "tags": ["lane"],
+      "applies": ["in_combat"],
       "pos": [0.16, 0.31, 0.80, 0.69]
     }
   ],
   "phases": [
+    {
+      "key": "setup",
+      "type": "automatic",
+      "actions": [
+        "draw_from:mine.deck:mine.hand:4",
+        "draw_from:enemy.deck:enemy.hand:4"
+      ],
+      "next": [{ "then": "round_start" }]
+    },
     {
       "key": "round_start",
       "type": "automatic",
       "actions": [
         "draw_from:mine.deck:mine.hand:1",
         "draw_from:enemy.deck:enemy.hand:1",
-        "set_stat:mana@each.anyone.player:max:round",
+        "set_stat:mana@each.anyone.player:0",
+        "gain_stat:mana@each.anyone.player:max:round",
+        "set_stat:token@north_side:sum:attacker@north_side",
+        "set_stat:token@south_side:sum:attacker@south_side",
         "set_stat:passed@each.anyone.pass_button:0"
       ],
       "next": [{ "then": "play" }]
@@ -73,10 +134,22 @@
     {
       "key": "play",
       "type": "player_input",
-      "label": "Play a unit, or pass",
+      "label": "Play a unit, attack, or pass",
       "seat": "next",
       "zone": "hand",
       "next": [
+        { "stat": "attack_declared@anyone.player", "at_least": 1, "then": "declare_attack" },
+        { "stat": "count:passed", "at_least": 2, "then": "round_end" },
+        { "then": "hand_over" }
+      ]
+    },
+    {
+      "key": "play_on",
+      "type": "player_input",
+      "label": "Play a unit, attack, or pass",
+      "zone": "hand",
+      "next": [
+        { "stat": "attack_declared@anyone.player", "at_least": 1, "then": "declare_attack" },
         { "stat": "count:passed", "at_least": 2, "then": "round_end" },
         { "then": "hand_over" }
       ]
@@ -88,9 +161,84 @@
       "next": [{ "then": "play" }]
     },
     {
+      "key": "declare_attack",
+      "type": "player_input",
+      "label": "Send units into your lanes, then press Done",
+      "zone": "bench",
+      "actions": ["set_stat:attacking@each.bench:0"],
+      "next": [{ "then": "declare_block" }]
+    },
+    {
+      "key": "declare_block",
+      "type": "player_input",
+      "label": "Block what you can, then press Done",
+      "seat": "next",
+      "zone": "bench",
+      "next": [{ "then": "strike" }]
+    },
+    {
+      "key": "strike",
+      "type": "automatic",
+      "actions": [
+        "set_stat:spill@each.battle:0",
+        "activate_zone:battle"
+      ],
+      "next": [
+        { "stat": "attacker@north_side", "at_least": 1, "then": "nexus_south" },
+        { "then": "nexus_north" }
+      ]
+    },
+    {
+      "key": "nexus_south",
+      "type": "automatic",
+      "actions": ["lose_stat:nexus@south_side:sum:spill@battle"],
+      "next": [{ "then": "after_combat" }]
+    },
+    {
+      "key": "nexus_north",
+      "type": "automatic",
+      "actions": ["lose_stat:nexus@north_side:sum:spill@battle"],
+      "next": [{ "then": "after_combat" }]
+    },
+    {
+      "key": "after_combat",
+      "type": "automatic",
+      "actions": [
+        "destroy:dead",
+        "set_stat:attacking@each.battle:0",
+        "set_stat:spill@each.battle:0",
+        "move:mine.battle:mine.bench",
+        "move:enemy.battle:enemy.bench",
+        "set_stat:attack_declared@each.anyone.player:0",
+        "set_stat:passed@each.anyone.pass_button:0"
+      ],
+      "next": [{ "then": "play_on" }]
+    },
+    {
       "key": "round_end",
       "type": "automatic",
       "actions": [],
+      "next": [
+        { "stat": "attacker@north_side", "at_least": 1, "then": "token_to_south" },
+        { "then": "token_to_north" }
+      ]
+    },
+    {
+      "key": "token_to_south",
+      "type": "automatic",
+      "actions": [
+        "set_stat:attacker@north_side:0",
+        "set_stat:attacker@south_side:1"
+      ],
+      "next": [{ "then": "round_start", "ends_round": true }]
+    },
+    {
+      "key": "token_to_north",
+      "type": "automatic",
+      "actions": [
+        "set_stat:attacker@north_side:1",
+        "set_stat:attacker@south_side:0"
+      ],
       "next": [{ "then": "round_start", "ends_round": true }]
     }
   ],
@@ -99,8 +247,18 @@
     { "stat": "nexus@south_side", "at_most": 0, "then": ["gain_stat:won@north_side:1", "reveal:north_wins"] }
   ],
   "cards": [
-    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "nexus": 20, "mana": 0 } },
-    { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "nexus": 20, "mana": 0 } },
+    {
+      "key": "north",
+      "text": "North",
+      "tags": ["north_side"],
+      "card_stats": { "nexus": 20, "mana": 0, "side": 2, "attacker": 1, "token": 0, "attack_declared": 0 }
+    },
+    {
+      "key": "south",
+      "text": "South",
+      "tags": ["south_side"],
+      "card_stats": { "nexus": 20, "mana": 0, "side": 1, "attacker": 0, "token": 0, "attack_declared": 0 }
+    },
 
     {
       "key": "plucky_poro",
@@ -108,7 +266,7 @@
       "tooltip": "Tough — takes 1 less damage from every source.",
       "asset": "circle:1:silver",
       "tags": ["unit", "tough"],
-      "card_stats": { "power": 1, "health": 1, "cost": 1 },
+      "card_stats": { "power": 1, "health": 1, "cost": 1, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
@@ -116,7 +274,7 @@
       "text": "Cithria of Cloudfield",
       "asset": "circle:1:gold",
       "tags": ["unit"],
-      "card_stats": { "power": 2, "health": 2, "cost": 1 },
+      "card_stats": { "power": 2, "health": 2, "cost": 1, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
@@ -125,7 +283,7 @@
       "tooltip": "Tough — takes 1 less damage from every source.",
       "asset": "square:2:gold",
       "tags": ["unit", "tough"],
-      "card_stats": { "power": 2, "health": 2, "cost": 2 },
+      "card_stats": { "power": 2, "health": 2, "cost": 2, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
@@ -133,7 +291,7 @@
       "text": "Vanguard Lookout",
       "asset": "square:2:silver",
       "tags": ["unit"],
-      "card_stats": { "power": 1, "health": 4, "cost": 2 },
+      "card_stats": { "power": 1, "health": 4, "cost": 2, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
@@ -142,7 +300,7 @@
       "tooltip": "Overwhelm, Tough — damage past the blocker hits the Nexus, and it takes 1 less from every source.",
       "asset": "triangle:2:crimson",
       "tags": ["unit", "tough", "overwhelm"],
-      "card_stats": { "power": 3, "health": 1, "cost": 2 },
+      "card_stats": { "power": 3, "health": 1, "cost": 2, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
@@ -150,7 +308,7 @@
       "text": "Loyal Badgerbear",
       "asset": "square:3:gold",
       "tags": ["unit"],
-      "card_stats": { "power": 3, "health": 4, "cost": 3 },
+      "card_stats": { "power": 3, "health": 4, "cost": 3, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
@@ -159,7 +317,7 @@
       "tooltip": "Overwhelm — damage past the blocker hits the Nexus.",
       "asset": "triangle:3:silver",
       "tags": ["unit", "overwhelm"],
-      "card_stats": { "power": 3, "health": 3, "cost": 3 },
+      "card_stats": { "power": 3, "health": 3, "cost": 3, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
@@ -167,7 +325,7 @@
       "text": "Bull Elnuk",
       "asset": "square:4:silver",
       "tags": ["unit"],
-      "card_stats": { "power": 4, "health": 5, "cost": 4 },
+      "card_stats": { "power": 4, "health": 5, "cost": 4, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 4 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
@@ -176,7 +334,7 @@
       "tooltip": "Tough — takes 1 less damage from every source.",
       "asset": "square:5:gold",
       "tags": ["unit", "tough"],
-      "card_stats": { "power": 5, "health": 5, "cost": 5 },
+      "card_stats": { "power": 5, "health": 5, "cost": 5, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 5 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
@@ -185,7 +343,7 @@
       "tooltip": "Overwhelm — damage past the blocker hits the Nexus.",
       "asset": "triangle:6:crimson",
       "tags": ["unit", "overwhelm"],
-      "card_stats": { "power": 7, "health": 6, "cost": 6 },
+      "card_stats": { "power": 7, "health": 6, "cost": 6, "attacking": 0, "spill": 0 },
       "play": { "cost": { "mana": 6 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
 
@@ -204,17 +362,48 @@
     {
       "key": "pass_button",
       "text": "Pass",
-      "tooltip": "Do nothing and hand over. Two passes in a row end the round; anything either of you does in between clears them.",
+      "tooltip": "Do nothing and hand over. Two passes in a row end the round; anything either of you does in between clears them. While attackers or blockers are being chosen it means \"done\".",
       "asset": "circle:1:slate",
       "tags": ["pass_button", "immutable"],
       "card_stats": { "passed": 0 },
-      "activate": { "action": ["set_stat:passed@self:1", "next_phase"] }
+      "abilities": [
+        {
+          "key": "pass",
+          "text": "Pass",
+          "phases": ["play", "play_on"],
+          "action": ["set_stat:passed@self:1", "next_phase"]
+        },
+        {
+          "key": "done",
+          "text": "Done",
+          "phases": ["declare_attack", "declare_block"],
+          "action": ["next_phase"]
+        }
+      ]
+    },
+    {
+      "key": "attack_button",
+      "text": "Attack",
+      "tooltip": "Declare an attack. Only the seat holding this round's attack token may, and doing it spends the token.",
+      "asset": "triangle:3:crimson",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "declare",
+          "text": "Attack",
+          "phases": ["play", "play_on"],
+          "cost": { "token": 1 },
+          "action": ["set_stat:attack_declared@mine.player:1", "next_phase"]
+        }
+      ]
     }
   ],
   "setup": {
     "place": [
       { "card": "pass_button", "owner": "north", "zone": "controls", "at": ["a2"] },
-      { "card": "pass_button", "owner": "south", "zone": "controls", "at": ["a1"] }
+      { "card": "attack_button", "owner": "north", "zone": "controls", "at": ["b2"] },
+      { "card": "pass_button", "owner": "south", "zone": "controls", "at": ["a1"] },
+      { "card": "attack_button", "owner": "south", "zone": "controls", "at": ["b1"] }
     ]
   }
 }

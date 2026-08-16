@@ -241,15 +241,21 @@ def zones():
         out.append({"key": c, "label": label, "type": "pile",
                     "tags": ["stacked", "per_seat"], "pos": EXPEDITION_POS[i],
                     "receive": {"needs": {"value@target": {"at_least": "max:value@mine." + c}}}})
-        # A pile takes anything, which is what having no "receive" means, and
-        # hands "takeable" to whatever lands on it — so its top card can be
-        # picked up during the draw step without any card knowing about piles.
+        # A pile hands "takeable" to whatever lands on it — so its top card can
+        # be picked up during the draw step without any card knowing about piles.
         # "activate" is the zone's own say-so that abilities work here. A pile
         # is not automatically a place you may take from — an MTG graveyard is
         # the same shape and must not be — so the zone declares it.
+        #
+        # And it disowns what lands on it. Whose a card is is settled when it is
+        # dealt and stays settled, so a pile either player may take from has to
+        # say so — here, once, rather than in every card that might be thrown
+        # away. It changes nothing today, since these cards come from one shared
+        # deck and were never anybody's; it is the rule rather than the accident.
         out.append({"key": c + "_discard", "label": label + " discard", "type": "pile",
                     "pos": DISCARD_POS[i], "tags": ["activate"],
-                    "applies": ["takeable"]})
+                    "applies": ["takeable"],
+                    "receive": {"action": ["set_owner:target:none"]}})
     return out
 
 

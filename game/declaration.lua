@@ -33,7 +33,7 @@ local MOMENTS = {
 	activate  = { cost = "activate_cost", target = "activate_target", phases = "activate_phases",
 		action = "on_activate", moves = "moves" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
-	receive   = { needs = "accepts" },
+	receive   = { needs = "accepts", action = "on_receive" },
 	turn      = { action = "on_turn" },
 }
 M.MOMENTS = MOMENTS
