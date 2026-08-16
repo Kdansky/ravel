@@ -597,7 +597,11 @@ function M.play_card(card_id, targets)
 		local left = {}
 		for i, cid in ipairs(oz.cards) do left[i] = cid end
 		for _, cid in ipairs(left) do zones.destroy_card(cid) end
-		oz.asked_by = nil
+		-- Both flags, together: they describe one offer, and leaving the second
+		-- behind hands the *next* offer a permission it never asked for. A
+		-- promotion opened after the pawn has already moved would then be
+		-- declinable, and a pawn would sit on the eighth rank as a pawn.
+		oz.asked_by, oz.dismissable = nil, nil
 	end
 	if tags.entity_has(c, "no_undo") then
 		history = {}
@@ -701,7 +705,14 @@ end
 -- layer can fall through to whatever a right-click otherwise means.
 function M.dismiss_offer()
 	local z = zones.find("options")
-	if not (z and z.dismissable and phase.is_overlay()) then return false end
+	-- The *open* overlay has to be the offer being dismissed. "An overlay is
+	-- open" is not the same question: a reveal stacked on top of an options
+	-- phase would otherwise be popped by a click meant for the chooser
+	-- underneath it, taking the chooser's cards with it.
+	local cur = phase.current()
+	if not (z and z.dismissable and cur and cur.type == "overlay" and cur.zone == "options") then
+		return false
+	end
 	M.close_offer()
 	return true
 end

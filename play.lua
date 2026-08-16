@@ -163,8 +163,26 @@ local function play_index(n)
 	local cid = h and h.cards[n]
 	if not cid then print("No card [" .. n .. "]."); return end
 	-- Playing a card out of an overlay's zone *is* choosing it — flow works that
-	-- out from the card's zone, so there is no separate verb for it.
-	if phase.is_overlay() then flow.play_card(cid); return end
+	-- out from the card's zone, so there is no separate verb for it. Unless the
+	-- entry is a chooser's: those stand for an ability on some other card, and
+	-- playing one as a card destroys the offer and runs nothing.
+	if phase.is_overlay() then
+		local choice = flow.menu_choice(cid)
+		if choice then
+			flow.close_offer()
+			local targets = {}
+			if select(2, targeting.bounds(choice.ability.target)) > 0 then
+				targets = prompt_targets(entity.get(choice.source), choice.ability.target)
+				if not targets then return end
+			end
+			if not flow.activate(choice.source, targets, choice.index) then
+				print("Can't use that ability.")
+			end
+			return
+		end
+		flow.play_card(cid)
+		return
+	end
 
 	local c   = entity.get(cid)
 	local def = cards.def(c)
@@ -189,13 +207,30 @@ local function activate_slot(idx)
 		if z.zone_type == "grid" and z.slots[idx] then
 			local occ = entity.get(z.slots[idx]).occupant
 			if not occ then print("Slot " .. idx .. " is empty."); return end
+			-- What this piece can do *right now*, which is its own abilities plus
+			-- any its zone hands out. Reading the flat activate_target instead
+			-- meant every card written as an "abilities" list — chess's whole
+			-- board — offered no targets and refused to act.
+			local usable = flow.usable_abilities(occ)
+			if #usable == 0 then print("No ability, or can't afford it."); return end
+			local pick = usable[1]
+			if #usable > 1 then
+				print("Which?")
+				for i, u in ipairs(usable) do
+					print("  [" .. i .. "] " .. (u.ability.text or u.ability.key))
+				end
+				local n = tonumber((io.read() or ""):match("%d+"))
+				pick = n and usable[n]
+				if not pick then print("Not one of those."); return end
+			end
 			local targets = {}
-			local spec    = cards.def(entity.get(occ)).activate_target
-			if select(2, targeting.bounds(spec)) > 0 and flow.can_activate(occ) then
-				targets = prompt_targets(entity.get(occ), spec)
+			if select(2, targeting.bounds(pick.ability.target)) > 0 then
+				targets = prompt_targets(entity.get(occ), pick.ability.target)
 				if not targets then return end
 			end
-			if not flow.activate(occ, targets) then print("No ability, or can't afford it.") end
+			if not flow.activate(occ, targets, pick.index) then
+				print("Can't use that ability.")
+			end
 			return
 		end
 	end

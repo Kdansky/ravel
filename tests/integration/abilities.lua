@@ -117,6 +117,33 @@ function M.test_abilities_a_list_entry_is_validated_like_a_block(check)
 	reports("and names which ability it was talking about", "ability 1 ('bad')")
 end
 
+-- A chooser you opened may be taken back; one the rules opened may not. The
+-- permission lived on the offer zone and only close_offer cleared it, so an
+-- offer consumed any other way left it standing — and the next offer, opened
+-- after a pawn had already moved, could be declined into a pawn on the eighth
+-- rank.
+function M.test_abilities_a_mandatory_offer_cannot_inherit_a_dismissal(check)
+	flow.init("chess.json", 1)
+	local board = zones.find("board")
+	local offer = zones.find("options")
+
+	-- The rules ask: promotion, opened by an action rather than by a click.
+	require("actions").execute("options:to_queen,to_rook,to_bishop,to_knight",
+		{ card_id = board.cards[1] })
+	check("the offer is open with its choices", #offer.cards == 4)
+	check("and it cannot be waved away", flow.dismiss_offer() == false)
+	check("so the choices are still there", #offer.cards == 4)
+	flow.close_offer()
+
+	-- Now one a player opened, then emptied by another route than close_offer.
+	offer.dismissable = true
+	offer.asked_by = board.cards[1]
+	require("actions").execute("options:to_queen,to_rook", { card_id = board.cards[1] })
+	check("an offer the rules opened says nothing about being dismissable",
+		offer.dismissable == nil and flow.dismiss_offer() == false)
+	flow.close_offer()
+end
+
 -- Two abilities with one name are one name for two things, and the chooser
 -- cannot tell them apart: both mint the same menu card, so the second silently
 -- eats the first. Caught where the authored entry still exists.
