@@ -1,6 +1,6 @@
 ---
 name: next-work
-description: Use when the user wants to move on to the next piece of work in ravel — "what's next", "next thing", "let's pick up the next piece of work" — typically right after finishing a task. Surveys todo.md and ideas/ for open notes, folds them into the ideas plan in priority order, presents a shortlist, and opens a worktree for whichever one gets picked.
+description: Use when the user wants to move on to the next piece of work in ravel — "what's next", "next thing", "let's pick up the next piece of work" — typically right after finishing a task. Surveys todo.md and ideas/ for open notes, folds them into the ideas plan in priority order, and presents a shortlist to pick from.
 ---
 
 # Next piece of work
@@ -12,15 +12,15 @@ end to end.
 
 ## 1. Read the inbox
 
-Open `todo.md`. The `## Open` section holds new, unstruck notes — often just a
-sentence. Items under `## Worked through, see ideas/` are already handled;
-skim them only as examples of the strike-through pointer format, to reuse in
-step 3.
+Open `todo.md`. It is one `## Open` section of loose notes, often a sentence
+each. It stays short on purpose — the file's own rule is that anything handed
+off to `ideas/` is **removed** from it rather than left struck through, because
+strike-through is only worth reading while something is half-done.
 
 ## 2. Read the plan
 
 Read `ideas/README.md` in full, then every numbered `ideas/NN-*.md` file in
-ascending order (currently 01, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15).
+ascending order (currently 01, 04–24 — there is no 02 or 03).
 For each, note what it says is already shipped versus what it lists as still
 left. `ideas/DONE.md` and root-level `IDEAS.md` are historical records, not
 part of this pass — skip them unless a specific todo item needs cross-checking
@@ -44,10 +44,10 @@ For each open `todo.md` note:
   that the user did not literally say. Never let an assumption read as
   something the user dictated; that has caused confusion before and is the
   one rule in this skill that isn't optional.
-- Strike the item in `todo.md`'s `## Open` section with `~~...~~ — <pointer>`,
-  in the exact format already used under "Worked through, see ideas/" (e.g.
-  `~~Fix the run.sh script~~ — done (\`hash\`).` or
-  `~~text~~ — [NN gap X](ideas/NN-topic.md).`).
+- **Delete the item from `todo.md`** once it has a home in `ideas/`. The
+  pointer lives in the idea file and in the ranking table, and a copy in the
+  inbox is a third place to keep in step. Leave it — struck through, with a
+  pointer — only when part of it is still genuinely open and unwritten.
 
 ## 4. Order the candidates
 
@@ -71,19 +71,22 @@ Pull the top 3–5 rows of the refreshed table and present them as a short list,
 one line of "why here" each. Wait for a pick — don't default to the top row
 unasked; the ranking is a heuristic, not a decision.
 
-## 6. Open a worktree
+## 6. Build it, in the repository itself
 
-Once the user picks one, call `EnterWorktree` (name it after the idea's slug,
-e.g. `06-schema-tags`) to create and switch into an isolated worktree. Before
-that, check `git worktree list` — the repo's own guidance is 2–3 concurrent
-worktrees at a time, and a second worktree touching the same hot files as one
-already open (`predicate.lua`, `actions.lua`, `validate.lua`, `tests/run.lua`)
-is pure cost, so flag that to the user if it applies. Inside the worktree,
-follow the append-only conventions `ideas/README.md` documents (`actions.lua`'s
-`SPEC`/`HANDLERS` and `validate.lua`'s field tables append at the end, never
-sorted-insert; shared docs — `AUTHORING.md`, `DESIGN.md`, `ARCHITECTURE.md` —
-aren't edited on a track branch, the track writes its own `ideas/` file
-instead).
+**No worktrees.** Work in `/home/kdansky/code/ravel` on whatever branch is
+checked out. A worktree buys isolation nobody asked for and charges for it at
+every commit and every test run — the paths move, the stash is shared, and
+`luajit tests/run.lua` has to be re-taught where it is. Tried and dropped
+(2026-08-16); `ideas/README.md`'s "Worktrees: no" section records the verdict.
+
+The append-only conventions still hold, and they are what the worktree advice
+was really protecting: `actions.lua`'s `SPEC`/`HANDLERS`, `validate.lua`'s field
+tables and `tests/integration/validator.lua`'s `CASES` all append at the end,
+never sorted-insert.
+
+Shared docs — `AUTHORING.md`, `DESIGN.md`, `ARCHITECTURE.md` — are still not the
+place to write a track's own findings while it is in flight: put those in its
+`ideas/NN-*.md`, and fold them into the shared docs in a pass of their own.
 
 ## 7. After the task is done
 

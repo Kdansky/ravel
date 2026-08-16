@@ -29,12 +29,13 @@ about how it might go.
 | [14](14-kinds-and-placements.md) | Six kinds, thirty-two pieces | medium | **shipped** — chess is 13 cards and 279 lines, and its generator is deleted. Ownership is placement state, squares are named (`"at": ["a1", "h1"]`), and a named asset takes one picture per player. Dynamic styles turned out to be the wrong route, and the doc says why |
 | [16](16-the-player-at-this-screen.md) | The player at this screen | small + three afternoons | **gap 1 shipped** (`fb3d704`) — `zones.viewer` is the seat in front of the screen, and a networked opponent's hand now stays hidden while they think. Left: a name, a place to set it, and debug mode as an announced thing |
 | [17](17-conditions-as-expressions.md) | A condition is one string | large | not started — [10](10-schema-document.md)'s finding 5 from the inside. The operands exist; what is new is the infix spelling, and whether arithmetic comes with it |
-| [18](18-legends-of-runeterra.md) | Legends of Runeterra | large, document first | not started — the rules `.md` is stage 1. LoR names blocking (a pairing), simultaneous combat, and a bounded response stack |
-| [19](19-mage-knight.md) | Mage Knight | large, research first | not started — one of three deckbuilder candidates. Likely names hex geometry, a map built during play, and cards with four distinct uses each |
-| [20](20-puzzle-strike.md) | Puzzle Strike | medium | not started — second deckbuilder candidate, closest in shape to a Dominion-style loop the engine likely already supports |
-| [21](21-lost-ruins-of-arnak.md) | Lost Ruins of Arnak | large | not started — third deckbuilder candidate. Likely names worker placement, which nothing in the engine expresses today |
-| [22](22-the-crew.md) | The Crew: The Quest for Planet Nine | medium | not started — cooperative trick-taking. Names the trick winner becoming the next active seat, which phase routing can't express yet |
-| [23](23-splendor.md) | Splendor | small, mostly content | not started — likely buildable now; the deliverable is the real 90-card tier list, not new engine vocabulary |
+| [18](18-legends-of-runeterra.md) | Legends of Runeterra | large, document first | **stage 1 and milestone 1 shipped** — it plays: draw, mana, the pass, the attack token, attackers and blockers as lane placement, the strike, the Nexus, a winner. Tough and Overwhelm came with it, as arithmetic. Left: spells, the response stack, the rest of the keywords, champions |
+| [19](19-mage-knight.md) | Mage Knight | large, research first | **researched, and ranked last of the three deckbuilders.** Two compounding engine gaps — hex geometry, and a map whose *extent* grows — plus a change to the arithmetic grammar. Buildable only as a stripped prototype, and the cuts are dishonest ones |
+| [20](20-puzzle-strike.md) | Puzzle Strike | medium | **researched — buildable now as a 2-player game, mostly content.** One real gap (`flow.reachable` refuses a card played out of turn) and it is cleanly cuttable. Found that `refill_when_empty` is the wrong tool for a personal pile, which pays for itself on 21 too |
+| [21](21-lost-ruins-of-arnak.md) | Lost Ruins of Arnak | large | **researched — zero new primitives, the largest content bill of the three.** Worker placement resolved into two shipped idioms (`exhaust` on the *space*, a capped counter for the workers), which is not what the stub predicted |
+| [22](22-the-crew.md) | The Crew: The Quest for Planet Nine | medium | **researched — buildable in full, contingent on one small primitive**: read whose card a scope resolves to and make that seat active. Two customers for it inside one game, which is the ladder's own bar for generalising |
+| [23](23-splendor.md) | Splendor | small, mostly content | **researched, and the cleanest verdict of the five** — zero new primitives, zero cut content, and the 90-card data is already collected and cross-checked |
+| [24](24-save-and-load.md) | Saving a game, and loading it back | small, on a store that does not exist | not started — the format is already shipped (`net.snapshot`), and so is the has-the-file-changed check. What is missing is somewhere to write |
 
 ---
 
@@ -50,7 +51,20 @@ your opponent is honest. It does now promise that their hand is hidden, that the
 ending screen congratulates the right one of them, and that a row labelled *Your
 score* is yours: every one of those asks which seat is *watching* rather than
 which one is *up*, one question at one screen and two questions over a network.
-Chess and Lost Cities both end with a screen that names the winner.
+Chess and Lost Cities both end with a screen that names the winner, and so
+does a two-player creature game with combat in it: Runeterra's vanilla
+milestone plays, and every rule of the fight is written in the game file.
+
+**Five games have now been researched rather than guessed at**, and the research
+kept paying before any of them was built: LoR's rules corrected *simultaneous
+combat* to left-to-right and turned blocking from a stored pairing into
+placement; Puzzle Strike found that `refill_when_empty` is the wrong tool for any
+personal pile that grows through play, which is true of Arnak too; Arnak's worker
+placement — the one row its own file was written to interrogate — dissolved into
+two idioms already shipped. The pattern across all five is the same and worth
+stating: **what looks like a missing capability is usually a missing
+combination**, and the exceptions are few enough to name — hex geometry, a board
+whose extent grows, a card played out of turn, and the seat a scope points at.
 
 ## What to do next
 
@@ -71,15 +85,25 @@ things happen come first.
 | ~~1~~ | ~~[07](07-presentation.md) gap 6 — **an ending that knows who won**~~ | — | — | **shipped** (`f964bbe`, reworked the same day in `0f01bc3`). A win is the reserved `won` stat on the winning seat, set by an ordinary action — so the snapshot carries it, undo takes it back, and a rule can read `won@mine`. It was a field on the ending card first, which could do none of those things. `flow.outcome()` answers it against the seat watching, and `zones.as_seat` fixed the numbers underneath, which had been reporting whoever was to move |
 | ~~—~~ | ~~[06](06-schema-and-types.md) gaps 2–3 — **lists everywhere, then guards at the door**~~ | — | — | **measured and folded into [17](17-conditions-as-expressions.md)** (2026-08-16). It is three fields, not six — `patterns` was normalised at the door already and is the model — and six guards, not twenty-two: the `type(` count grew 106 → 184 and *all* of it is in the two files that must keep them, which is this gap's own goal happening on its own. An hour's work with nothing downstream of it but 17, so it is 17's first step rather than an item ahead of it |
 | ~~—~~ | ~~**A boolean flag nothing reads**~~ | — | — | **done** (2026-08-16). `exhausts` outlived the engine reading it by three passes and was still recommended by AUTHORING for board buttons; `setup.place`'s `slot` became `at` in [14](14-kinds-and-placements.md) and the same example still wrote it. Both gone, with a retired-vocabulary guard in `tests/integration/docs.lua` so a dropped word cannot stay on offer in a game file, the schema, the generator or an example. See [10](10-schema-document.md) for why the two-way schema test could not see it |
-| 1 | [18](18-legends-of-runeterra.md) stage 1 — **the LoR rules document** | medium | small | an afternoon that decides whether a large track is worth entering, and it is the deliverable the request actually asks for first |
-| 2 | [16](16-the-player-at-this-screen.md) gaps 2–3 — **a name, and somewhere to type it** | medium | medium | there is no client-side store of any kind — no `love.filesystem.write` in `game/`, no `t.identity`. The browser panel is nearly free; a text field in the engine is a second input surface. The ending screen now prints a seat's name where a player's belongs |
-| 3 | [17](17-conditions-as-expressions.md) — **a condition is one string** | medium | large | the format's biggest remaining lever: [10](10-schema-document.md)'s findings 4, 5 and 6 are one fix, and the ending screen added a sixth — a condition cannot name a seat, only `mine` / `enemy`. It opens by normalising the three key-or-list fields, which is all that is left of [06](06-schema-and-types.md) gaps 2–3. The golden traces prove the migration |
-| 4 | [16](16-the-player-at-this-screen.md) gap 4 — **debug mode, announced** | low | small | wants the store and the handshake field from 2 to exist. Says plainly what it does not buy: an honest client announcing itself is not a defence against a modified one |
-| 5 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | a jump takes the piece it flies past, and nothing can name that square. Castling-through-check asks for the same word — en passant no longer does, having shipped as `where` |
-| 6 | [15](15-many-on-one-square.md) — **a number on a square** | low | small | a slot is already an entity whose stats a condition can read (`row@target`); it just cannot declare one, so `gain_stat` aimed at a square does nothing. One field on the grid. **Correction:** this was filed as "wanted twice, [08](08-grid-movement-notation.md) needs it for `threat`" and that is wrong — `threat` is stamped by the *engine*, like `col` and `row`, and an engine-stamped stat never needed declaring. The field is for numbers an *author* writes, and no game asks yet |
-| 7 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
-| 8 | [06](06-schema-and-types.md) — **a face-up deck is still unsearchable** | low | small | of the three exclusions the survey called incoherent, two went with `db0cbbd`: a deck can be clicked and browsed now. `tags.find_targets` (`tags.lua:76`) still skips deck zones outright, so `count:<tag>` cannot see a market |
-| — | [18](18-legends-of-runeterra.md) stages 2–3, and [01](01-boardgames.md) gap 5 — **triggers, then combat** | low | large | not ranked as one item on purpose, and stage 1 shrank it: blocking is **placement**, six lanes a side with a unit fighting what is across, so the pairing needs no mechanism the engine lacks. What is left missing is the combat walk itself, spell mana, the mulligan, and a bounded response stack that Burst and Focus never enter |
+| ~~1~~ | ~~[18](18-legends-of-runeterra.md) stage 1 — **the LoR rules document**~~ | — | — | **done** (`f40a5c2`). It paid for itself twice before a line of combat code existed: strikes resolve **left to right by board position**, not simultaneously, and blocking is strictly one-to-one — which makes it *placement*, and took a missing capability off the list. The card texts came from Riot's Data Dragon, checked in under `lor/data/`, and corrected the deck: only four collectible units in set1 have no keyword at all |
+| ~~1~~ | ~~[18](18-legends-of-runeterra.md) milestone 1 — **the combat walk**~~ | — | — | **shipped** (`3f02237`, corrected in `a03c899`). Combat turned out to be *content*: the battlefield applies one tag whose single ability holds five actions, so all ten templates stay text-free and Tough and Overwhelm are terms in a formula rather than words the engine knows. It cost four words — `where` on a slot spec, `move:<scope>:<zone>`, `set_owner`, and a zone's `receive.action` — plus the rule underneath them, **a card is born owned**. And it found a bug no solo game could: an unscoped subject was the *pool* of every seat's copy of a stat, so one player could buy a card out of another's mana |
+| ~~2~~ | ~~**Two loose ends on `lor.json`**~~ | — | — | **done** with the above. The controls moved to `[0.82, 0.32, 0.98, 0.68]` — the right edge, between the two decks — and gained an attack button each; a leading `setup` phase deals the opening four, so round one ends with five in hand as [lor/rules.md](lor/rules.md) says |
+| 1 | **Chequer parity: a1 takes the first colour listed** | medium | trivial | `zones.chequer_index` (`zones.lua:444`) currently makes a1 the *second* colour, and carries a paragraph explaining why a1 is dark. The rule wanted is the one nobody has to check against a real chessboard: **first colour listed wins a1**, and a designer who disagrees swaps two strings. Flip the parity, swap the pairs in `chess.json` and `lor.json`, delete the justification — and `tests/integration/layout.lua:180` already measures it |
+| 2 | [17](17-conditions-as-expressions.md) — **a condition is one string** | medium | large | the format's biggest remaining lever: [10](10-schema-document.md)'s findings 4, 5 and 6 are one fix, and the ending screen added a sixth — a condition cannot name a seat, only `mine` / `enemy`. It opens by normalising the three key-or-list fields, which is all that is left of [06](06-schema-and-types.md) gaps 2–3. The golden traces prove the migration |
+| 3 | [06](06-schema-and-types.md) gap 5 — **a tag is a boolean below the door** | low | small | ride along with 2, because it is the same door and the same normalising pass. Mostly shipped already: a zone entity's `tags` *is* the boolean map, and only two card readers still walk the array. One of them (`cards.home_zone`) depends on tag **order**, so the real deliverable is a validation error for two tags claiming a home zone, not a representation change |
+| 4 | [23](23-splendor.md) — **Splendor, from the data already collected** | medium | small | the cheapest whole game on the board: zero new primitives, zero cut content, and all 90 cards plus 10 nobles already triangulated across three sources. It is the strongest available answer to "does the vocabulary reach a euro nobody designed it for", for the price of a JSON file and a scripted test |
+| 5 | [16](16-the-player-at-this-screen.md) gaps 2–3 — **a name, and somewhere to type it** | medium | medium | there is no client-side store of any kind — no `love.filesystem.write` in `game/`, no `t.identity`. The browser panel is nearly free; a text field in the engine is a second input surface. It now unblocks two things rather than one: the ending screen prints a seat's key where a player's name belongs, and [24](24-save-and-load.md) has nowhere to write |
+| 6 | [24](24-save-and-load.md) — **save and load** | medium | small | strictly after 5, and small once the store exists: the save format is `net.snapshot()` unchanged, loading is `net.apply_full`, and *has the game file changed* is `net.game_hash` with the error message already written. The engine work is two actions and a slot |
+| 7 | [20](20-puzzle-strike.md) — **Puzzle Strike, two-player** | low | medium | researched and buildable now. Its one real gap — `flow.reachable` refuses a card played out of turn, which blocks counter-crashing — is cuttable without changing what the game is, and it is the *same* gap LoR's response stack names, so whichever is built second gets it for free |
+| 8 | [22](22-the-crew.md) — **the seat a scope points at** | low | medium | the primitive, not the game: `"seat": "owner_of:<scope>"` (or `set_active_seat:<scope>`) built from `predicate.seat_of` and `G.seat_index`, both already internal. The Crew names two customers for it inside one game — the trick winner and the mission commander — and **LoR now names a third**: its attack token's holder is supposed to act first in the round, and nothing can point the turn at a named seat. That is this repository's own bar for generalising, met three times over |
+| 9 | [16](16-the-player-at-this-screen.md) gap 4 — **debug mode, announced** | low | small | wants the store and the handshake field from 7 to exist. Says plainly what it does not buy: an honest client announcing itself is not a defence against a modified one |
+| 10 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | a jump takes the piece it flies past, and nothing can name that square. Castling-through-check asks for the same word — en passant no longer does, having shipped as `where` |
+| 11 | [15](15-many-on-one-square.md) — **a number on a square** | low | small | a slot is already an entity whose stats a condition can read (`row@target`); it just cannot declare one, so `gain_stat` aimed at a square does nothing. One field on the grid. It has a **first honest customer at last** — Mage Knight's per-hex terrain cost — but that game is ranked last, so it stays cheap-and-unasked-for |
+| 12 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
+| 13 | [06](06-schema-and-types.md) — **a face-up deck is still unsearchable** | low | small | of the three exclusions the survey called incoherent, two went with `db0cbbd`: a deck can be clicked and browsed now. `tags.find_targets` (`tags.lua:76`) still skips deck zones outright, so `count:<tag>` cannot see a market |
+| 14 | [21](21-lost-ruins-of-arnak.md) — **Arnak** | low | large | needs nothing from the engine and the largest content bill of the five researched games. Worth doing when authoring volume is the thing there is appetite for, not when capability is |
+| — | [18](18-legends-of-runeterra.md) stages 2–5, and [01](01-boardgames.md) gap 5 — **triggers, spells, the stack** | low | large | not ranked as one item on purpose, and the combat walk in row 1 is deliberately ahead of all of it. What stays missing: spell mana, the mulligan (the offer overlay picks exactly one, and a mulligan picks a subset), a hand bounded at ten, and a response stack that Burst and Focus never enter |
+| — | [19](19-mage-knight.md) — **Mage Knight** | low | large | **ranked last on evidence, not on taste.** Hex geometry and a map whose extent grows are two compounding gaps content cannot route around, and the cut that buys both back — a fixed, pre-placed, mostly-hidden map — stops it being Mage Knight. Worth revisiting only if hex geometry is wanted for its own sake |
 
 **The draw path is still where bugs hide, and there is now a way to look.** The
 text pass found six faults no test could see — a wrap splitting "Yellow 9" into
@@ -105,46 +129,29 @@ benefit — and neither has cost anybody anything yet.
 diagnosis arrived independently from the other direction, as *write a condition
 as one string instead of a struct*, and the two findings are one fix.
 
-## Worktrees: still the same advice
+## Worktrees: no. Work in the repository.
 
-**Yes — but for two or three at a time, not five, and not for docs.**
+**Dropped, 2026-08-16, after using them.** The advice here used to be "two or
+three at a time"; the honest verdict from actually doing it is that they make
+committing and testing harder for a benefit nobody was collecting. Paths move,
+the stash stack is shared with every other checkout, and every command has to be
+re-aimed. Work on `main`, or on a branch in this directory.
 
-Worktrees pay off when branches touch **disjoint files**. Measured against this
-repo they mostly don't: `predicate.lua`, `actions.lua`, `validate.lua` and
-`tests/run.lua` are the hot files, and most ideas want to edit all four.
-
-The conventions that keep it cheap when you do:
+**What was really being protected survives, and it is worth keeping**: the
+append-only conventions. They cost nothing and they are good practice whether or
+not two branches ever exist at once.
 
 - **`actions.lua`'s `SPEC` and `HANDLERS`** — append new entries at the **end**,
-  never insert alphabetically. Git merges append-only hunks cleanly; sorted
-  insertion conflicts every time.
+  never insert alphabetically. Append-only hunks merge cleanly; sorted insertion
+  conflicts every time.
 - **`validate.lua`'s field tables and `tests/integration/validator.lua`'s
-  `CASES`** — same rule.
-  `CASES` is "every error message, once", so a new message is a new line at the
-  bottom.
-- **Game files** — one new `.json` per track plus one line in `menu.json`.
-  Resolve by taking both. A generated game conflicts in the generator, not the
-  output: regenerate after merging rather than merging the JSON.
-- **`AUTHORING.md` / `DESIGN.md` / `ARCHITECTURE.md`** — the real conflict
-  magnet. **Rule: no track edits the shared docs.** Each writes its user-facing
-  documentation into its own `ideas/` file, and one pass on `main` folds them in
-  — which is exactly how `DONE.md` came to exist.
-
-### When *not* to use one
-
-- Anything central. A second branch touching `predicate.lua`, `flow.lua` or
-  `zones.lua` while another is in flight is pure cost.
-- Anything you would finish in an afternoon on `main`.
-- These docs. They are additive files with no conflicts.
-
-```fish
-git worktree list                    # what's out there
-git worktree remove ../ravel-art     # when merged
-git worktree prune                   # after deleting a directory by hand
-```
-
-Each worktree is a full checkout, so the tests, `play.lua` and `docker compose
-up` all work inside it unchanged — everything resolves relative to the repo root
-(`headless.lua` sets `package.path` to `game/?.lua`). One caveat:
-`docker-compose.yml` binds a fixed port, so don't run two stacks at once without
-changing it.
+  `CASES`** — same rule. `CASES` is "every error message, once", so a new
+  message is a new line at the bottom.
+- **Game files** — one new `.json` per track plus one line in `menu.json`. A
+  generated game conflicts in the generator, not the output: regenerate rather
+  than merging the JSON.
+- **`AUTHORING.md` / `DESIGN.md` / `ARCHITECTURE.md`** — a track in flight
+  writes its user-facing documentation into its own `ideas/` file, and one pass
+  folds them into the shared docs. That is exactly how `DONE.md` came to exist,
+  and it is about keeping one voice in those three files rather than about
+  merge conflicts.

@@ -249,6 +249,16 @@ conversation than a rule about brackets.
 >
 > There is no cleanup to do here on its own. What survives is the acceptance
 > criterion at the end of this section, which still holds.
+>
+> **The shape the surviving guards should take** (from `todo.md`, 2026-08-16):
+> where a branch on `type(x)` has to stay, a module-local table reads better than
+> a chain — `TABLE[type(v)](v, ...)` rather than three `elseif`s.
+> [Assumption: this is a readability rule for the guards that *remain* rather
+> than a second cleanup pass, and it only pays where the branches are a real set.
+> `json.lua`'s encoder and `validate.lua`'s field checks are the two places with
+> enough arms to be worth a table; a lone `if type(x) == "string"` guarding one
+> coercion is worse as a table, not better, because the dispatch costs a name and
+> a lookup to replace one word.]
 
 There are 106 `type(` calls in `game/`:
 
@@ -347,3 +357,75 @@ edit.
 game file has to declare its own words before using them, and the thing that
 makes targeting expressive dies to catch a typo that a suggestion catches
 better.
+
+---
+
+## Gap 5 — A tag is a boolean below the door, a list above it
+
+*Urgency: low · Difficulty: small · Usefulness: readability, and it finishes
+something already half done*
+
+> *When parsing the tags, replace every single tag in memory with a boolean.
+> It's drastically simpler to code against, so `tags = [a, b, c]` just becomes
+> `tagsMap = { a=true, b=true, c=true }`. I just don't want this format in my
+> API, because it's cumbersome and errorprone, but it's totally okay inside the
+> running engine. Also throw any boolean values in there which are not yet
+> marked as tags.*
+
+**Measured 2026-08-16, and the first half is mostly shipped.** `tag_set()` in
+`declaration.lua` already builds a `tags_set` map for cards (`:383`), zones
+(`:421`), stats (`:441`), phases (`:457`) and every injected def — which is
+exactly this proposal, at exactly the door this whole file argues for.
+
+**A zone entity is already the finished version.** `zones.lua:89` builds the
+entity with `tags = def.tags_set or {}`, so the array is gone by the time
+anything plays: `z.tags.hidden`, `z.tags.activate`, `z.tags.no_peek` and
+`z.tags.refill_when_empty` are all plain lookups on a boolean map. Roughly
+fifteen reads across `render.lua`, `zones.lua`, `main.lua` and `flow.lua` are
+already written the way the note wants.
+
+**What is left is cards, and it is two readers.** A card def carries both the
+array and the map, and only two places below the validator still walk the array:
+
+| Site | What it does |
+|---|---|
+| `cards.home_zone` (`cards.lua:140`) | the **first** of a card's tags whose tag def names a zone |
+| `declaration.lua:585` | whether *any* of a seat card's tags names a home zone |
+
+The second is a plain existence test and converts to `tags_set` unchanged. **The
+first cannot**, and that is the finding: it is order-dependent, and a map has no
+order. Two tags both claiming a home zone give a card two homes today, and file
+order silently picks one.
+
+[Assumption: the honest fix is not to preserve the array for it but to make the
+ambiguity an error — *two tags claim a home zone for this card* — at which point
+order stops mattering and `tags_set` answers. That is a validation message and a
+loop, which is smaller than keeping a second representation alive to encode a
+precedence nobody wrote down. `validate.lua` and `json.lua` keep the array
+regardless: they meet the authored document, where it genuinely is a list.]
+
+### The second half does not survive measurement
+
+*"Throw any boolean values in there which are not yet marked as tags"* — every
+boolean actually written across the ten game files, counted:
+
+```
+22 × ends_round: true
+ 2 × cell_outline: false
+ 1 × title: false · 1 × color: false · 1 × border: false
+```
+
+Neither group can become a tag, for a different reason each:
+
+- **`ends_round` is on a routing entry**, not on a def. A routing entry has no
+  tag set and no identity — it is a step in a `next` list — so there is nothing
+  for a tag to attach to.
+- **The other four are `false`**, and they are style properties whose whole job
+  is to *suppress* chrome ([11](11-styles-as-tags.md): `color: false` is what
+  replaced `transparent_background`). **A tag set can say present; it can never
+  say absent.** Turning them into tags would mean naming the negative — a
+  `no_border` tag — which is the vocabulary 11 deliberately collapsed.
+
+So the tail of the note is refused on evidence rather than on taste: there are
+no stray booleans that want to be tags, because the format already put every
+boolean somewhere a tag cannot reach.
