@@ -30,6 +30,11 @@ about how it might go.
 | [16](16-the-player-at-this-screen.md) | The player at this screen | small + three afternoons | **gap 1 shipped** (`fb3d704`) — `zones.viewer` is the seat in front of the screen, and a networked opponent's hand now stays hidden while they think. Left: a name, a place to set it, and debug mode as an announced thing |
 | [17](17-conditions-as-expressions.md) | A condition is one string | large | not started — [10](10-schema-document.md)'s finding 5 from the inside. The operands exist; what is new is the infix spelling, and whether arithmetic comes with it |
 | [18](18-legends-of-runeterra.md) | Legends of Runeterra | large, document first | not started — the rules `.md` is stage 1. LoR names blocking (a pairing), simultaneous combat, and a bounded response stack |
+| [19](19-mage-knight.md) | Mage Knight | large, research first | not started — one of three deckbuilder candidates. Likely names hex geometry, a map built during play, and cards with four distinct uses each |
+| [20](20-puzzle-strike.md) | Puzzle Strike | medium | not started — second deckbuilder candidate, closest in shape to a Dominion-style loop the engine likely already supports |
+| [21](21-lost-ruins-of-arnak.md) | Lost Ruins of Arnak | large | not started — third deckbuilder candidate. Likely names worker placement, which nothing in the engine expresses today |
+| [22](22-the-crew.md) | The Crew: The Quest for Planet Nine | medium | not started — cooperative trick-taking. Names the trick winner becoming the next active seat, which phase routing can't express yet |
+| [23](23-splendor.md) | Splendor | small, mostly content | not started — likely buildable now; the deliverable is the real 90-card tier list, not new engine vocabulary |
 
 ---
 
