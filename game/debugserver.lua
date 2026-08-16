@@ -95,11 +95,17 @@ COMMANDS["play"] = function(args)
 	local s = summary(); s.ok = ok; return s
 end
 
+-- activate <card> [targets...]  — and with several abilities, "activate <card>
+-- #<n> [targets...]" says which. Without the index flow refuses to guess, which
+-- is right and left every card written as an "abilities" list unusable from here.
 COMMANDS["activate"] = function(args)
 	local cid = resolve(args[1])
-	local targets = {}
-	for i = 2, #args do targets[#targets + 1] = resolve(args[i]) end
-	local ok = cid and flow.activate(cid, targets) or false
+	local targets, index = {}, nil
+	for i = 2, #args do
+		local n = tostring(args[i]):match("^#(%d+)$")
+		if n then index = tonumber(n) else targets[#targets + 1] = resolve(args[i]) end
+	end
+	local ok = cid and flow.activate(cid, targets, index) or false
 	local s = summary(); s.ok = ok; return s
 end
 

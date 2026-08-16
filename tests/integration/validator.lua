@@ -364,6 +364,44 @@ function M.test_validator_catches_a_typo_inside_an_ability(check)
 		table.concat(validate.check(G), "; "))
 end
 
+-- A square an absolute pattern names has to be on the board at both ends, and
+-- the board is the one the game has when the pattern names none.
+--
+-- Rank 0 passed an upper-bound-only check and was then refused by
+-- geometry.slot_at at runtime, so the pattern quietly offered one square fewer
+-- than it read. And a pattern leaving "zone" out — legal with a single grid — was
+-- measured against a placeholder 26x99 instead of that grid, so nothing on a
+-- sole 8x8 board was ever off it.
+function M.test_validator_an_absolute_square_is_on_the_board_at_both_ends(check)
+	local path = "game/games/tmp_off_board.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+  "title": "Off Board",
+  "zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+  "phases": [{ "key": "turn", "type": "player_input" }],
+  "patterns": {
+    "under": { "vectors": ["a0"], "class": ["absolute"] },
+    "beyond": { "vectors": ["z9"], "class": ["absolute"] },
+    "fine": { "vectors": ["a1", "b2"], "class": ["absolute"] }
+  },
+  "cards": [{ "key": "thing", "text": "Thing" }]
+}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_off_board.json")
+	os.remove(path)
+	check("it parses", ok, tostring(G))
+	if not ok then return end
+
+	local said = table.concat(validate.check(G), "\n")
+	check("rank 0 is off the board", said:find("square 'a0' is off", 1, true) ~= nil, said)
+	check("and so is a square past both edges",
+		said:find("square 'z9' is off", 1, true) ~= nil, said)
+	check("a pattern naming no zone is still measured against the only board",
+		said:find("which is 2x2", 1, true) ~= nil, said)
+	check("and the squares that are on it are not reported",
+		said:find("'a1' is off", 1, true) == nil and said:find("'b2' is off", 1, true) == nil, said)
+end
+
 -- The validator derives its checks from each op's declared shape: every
 -- handler must declare one, or new actions silently skip validation.
 function M.test_every_action_declares_its_argument_shape(check)

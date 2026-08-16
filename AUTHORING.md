@@ -1079,54 +1079,60 @@ computed tag: `{ "promoting": { "stat": "rank", "at_least": 8 } }`.
 
 ### Moves with fixed destinations (castling)
 
-Some moves are not a direction at all. Castling has exactly four destinations
-and they never change, so it is **a card, not a move** — no targeting, and a
-played card is gated by `needs`, which an activated one is not:
+Some moves are not a direction so much as one exception. Castling is the king's
+second ability: a two-square pattern with everything it needs written beside it,
+which is how chess declares it.
 
 ```json
 {
-  "key": "w_castle_k",
+  "key": "castle_k",
   "text": "Castle kingside",
-  "tags": ["white"],
-  "play": {
-    "needs": {
-      "moves_made@w_king_e": { "equals": 0 },
-      "card:w_king_e": 1,
-      "moves_made@w_rook_h": { "equals": 0 },
-      "card:w_rook_h": 1,
-      "count:piece@w_castle_k_path": { "equals": 0 }
-    },
-    "action": [
-      "place:w_king_e:7:8",
-      "place:w_rook_h:6:8",
-      "gain_stat:moves_made@w_king_e:1",
-      "next_phase"
-    ]
-  }
+  "moves": [
+    {
+      "patterns": ["two_right"],
+      "fill": "empty",
+      "needs": { "moves_made@self": { "equals": 0 } },
+      "where": {
+        "tagged:rook@one_right": 1,
+        "moves_made@one_right": { "equals": 0 },
+        "not_tagged:piece@one_left": 1
+      }
+    }
+  ],
+  "action": ["move_to:target", "place:one_right:one_left", "gain_stat:moves_made@self:1", "next_phase"]
 }
 ```
 
 Three things make that work, none of them specific to chess:
 
 - **"Has it moved" is a stat.** A `moves_made` stat plus
-  `gain_stat:moves_made@self:1` in `activate.action`, and `{"unmoved": {"stat":
-  "moves_made", "equals": 0}}` if you want it as a computed tag.
-- **A piece is nameable.** Tag each piece with its own key and any other card's
-  condition can ask about it. A captured piece carries no stat at all, and an
-  absent stat is not zero (see below), so this refuses a rook that was *taken*
-  as well as one that has moved — no presence term needed.
-- **`place:<who>:<col>:<row>`** puts named cards on named squares. It refuses an
-  occupied square, which is why the gate above has to be complete: two
-  placements are only all-or-nothing if the condition already guaranteed room.
+  `gain_stat:moves_made@self:1` in the ability's action, and `{"unmoved":
+  {"stat": "moves_made", "equals": 0}}` if you want it as a computed tag.
+- **`needs` asks about the piece, `where` asks about the square.** A move rule's
+  `needs` is a condition on the mover; its `where` is asked of each square the
+  rule offers, with the *patterns anchored on that square* — which is how "the
+  rook beside it has not moved either" is a condition and not a special case. A
+  captured rook carries no stat at all, and an absent stat is not zero (see
+  below), so this refuses a rook that was taken as well as one that has moved.
+- **`place:<who>:<square>`** moves a named card onto a named square, and a
+  pattern naming one square is a "who" as much as a card key is: `place:one_right:one_left`
+  is *the piece one square to my right goes one square to my left*. It refuses an
+  occupied square, which is why the rule above has to be complete.
 
-Put such cards in a zone tagged **`optional`**. Ordinarily a `needs`-gated card
+Two spellings this section used to teach are gone: `place:<who>:<col>:<row>`
+takes a square name now, and a board of individually named pieces
+(`w_king_e`, `w_rook_h`, one card per piece) became six templates placed with
+an `owner`, which is the section on `setup.place` above.
+
+**If you do write a move as a card** — a button in a zone rather than an ability
+on the piece — put that zone in **`optional`**. Ordinarily a `needs`-gated card
 becomes playable when nothing else in its zone is, so a mandatory play can never
-soft-lock a hand — but a zone of buttons is not a hand, and "everything here is
+soft-lock a hand; but a zone of buttons is not a hand, and "everything here is
 currently illegal" is its normal state rather than a trap.
 
 `game/games/chess.json` is the worked example, and it is written by hand —
 thirteen cards, six of which are the pieces. Movement is six pattern entries
-shared by both colours, plus four named castling paths.
+shared by both colours, and castling is two more abilities on the king.
 
 ### Legality between two cards
 

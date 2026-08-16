@@ -57,16 +57,29 @@ local RESOLVE = {
 	activate = function(cid, targs) return flow.activate(cid, targs, aiming_at) end,
 }
 
+-- Give up on targeting without offering anything back. The plain version of
+-- changing your mind, and the only version when there was never a choice.
+local function abandon_targeting()
+	targeting.clear()
+	render.set_selected(nil)
+	aiming_at = nil
+end
+
 -- Cancelling a choice that came out of a chooser puts the chooser back: the
 -- player asked "what can this do", picked one, and changed their mind — landing
 -- them on an empty board having spent nothing would be a dead end they did not
 -- ask for.
+--
+-- Only where a chooser is what they would go back *to*. Reopening is asked of
+-- the card rather than assumed from having been aiming: a card with one ability
+-- was reaching for a chooser that declines to open, and — worse — an ability
+-- with nothing to aim at cancels itself the instant it starts, so reopening put
+-- the same dead entry in front of the player who had just picked it. Picking it
+-- again did the same thing, for as long as they were willing to.
 local function cancel_targeting()
 	local reopen = aiming_at and targeting.card_id or nil
-	targeting.clear()
-	render.set_selected(nil)
-	aiming_at = nil
-	if reopen then flow.offer_abilities(reopen) end
+	abandon_targeting()
+	if reopen and #flow.usable_abilities(reopen) > 1 then flow.offer_abilities(reopen) end
 end
 
 local function confirm_targeting()
@@ -99,7 +112,10 @@ local function begin_action(cid, spec, intent, ability_index)
 		render.set_selected(cid)
 		targeting.start(cid, spec, intent)
 		if #targeting.eligible == 0 then
-			if targeting.can_confirm() then confirm_targeting() else cancel_targeting() end
+			-- Nothing to aim at is not the player changing their mind, so it does
+			-- not reopen anything: it puts the board back and lets them pick
+			-- something that can actually happen.
+			if targeting.can_confirm() then confirm_targeting() else abandon_targeting() end
 		end
 	else
 		RESOLVE[intent](cid, {})

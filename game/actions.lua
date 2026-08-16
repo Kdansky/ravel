@@ -442,7 +442,13 @@ HANDLERS["options"] = function(p, ctx)
 	end
 	-- On the zone rather than in a module local, so it survives undo with
 	-- everything else: entities are what snapshot and restore copy.
-	entity.get(zone_id).asked_by = ctx and ctx.card_id or nil
+	local z = entity.get(zone_id)
+	z.asked_by = ctx and ctx.card_id or nil
+	-- An offer the rules opened is not a question that can be taken back — the
+	-- thing that prompted it has already happened. Written every time rather
+	-- than left to whatever the last offer set, which is how a mandatory choice
+	-- inherited a stale permission to be declined.
+	z.dismissable = nil
 	phase.push("options")
 end
 

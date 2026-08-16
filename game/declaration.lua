@@ -38,14 +38,10 @@ local MOMENTS = {
 }
 M.MOMENTS = MOMENTS
 
--- Every activated ability a card has, as one list, whether it wrote one
--- (`activate`) or several (`abilities`). Downstream never asks which form was
--- used — the shorthand is the list with one entry in it, and a chooser never
--- appears for a card that has one thing to do.
---
--- The entries keep the authored words: cost, target, phases, action, moves.
--- `text` is what a chooser shows, and only a card with more than one ability
--- has anything to choose between, so only that card has to write it.
+-- How a piece may move: a list of rules, each naming patterns and saying what
+-- may be standing on the square it lands on. A bare string is a rule of its
+-- own, which is what lets a rook be ["line_ortho"] and only the pawn — whose
+-- three rules differ in exactly that — pay for the long form.
 local function normalise_moves(moves)
 	local out = {}
 	for _, rule in ipairs(type(moves) == "table" and moves or {}) do
@@ -67,6 +63,14 @@ end
 local ABILITY_FIELDS = { key = true, text = true, tooltip = true, asset = true,
 	cost = true, target = true, phases = true, action = true, moves = true }
 
+-- Every activated ability a card has, as one list, whether it wrote one
+-- (`activate`) or several (`abilities`). Downstream never asks which form was
+-- used — the shorthand is the list with one entry in it, and a chooser never
+-- appears for a card that has one thing to do.
+--
+-- The entries keep the authored words: cost, target, phases, action, moves.
+-- `text` is what a chooser shows, and only a card with more than one ability
+-- has anything to choose between, so only that card has to write it.
 local function abilities_of(def, pp, where)
 	local out = {}
 	if type(def.abilities) == "table" and #def.abilities > 0 then
@@ -242,11 +246,6 @@ local function normalise_pattern(def)
 	end
 	return p
 end
-
--- How a piece may move: a list of rules, each naming patterns and saying what
--- may be standing on the square it lands on. A bare string is a rule of its
--- own, which is what lets a rook be ["line_ortho"] and only the pawn — whose
--- three rules differ in exactly that — pay for the long form.
 
 -- Parse a game file into a definition table without touching current state.
 -- Structural problems (typo'd sections, duplicate or missing keys) are
@@ -573,6 +572,10 @@ function M.parse(filename)
 			-- carries the stat, so a game missing the line would name its winner
 			-- and change nothing at all.
 			cd.card_stats = cd.card_stats or {}
+			if cd.card_stats.won ~= nil then
+				pp[#pp + 1] = ("card '%s' is a seat and declares \"won\", which the engine keeps for who"
+					.. " has won — it starts at 0 whatever the card says"):format(tostring(seat.card))
+			end
 			cd.card_stats.won = 0
 			-- A seat has to exist before it can act, and one that says nothing
 			-- about where it sits is a stat bag — it goes where the injected one
@@ -623,6 +626,14 @@ function M.parse(filename)
 	-- The engine writes "last_acted" onto whichever card a player touched last,
 	-- so it hands games the word for reading it back rather than making each one
 	-- declare the same computed tag.
+	-- The engine's meaning is the one that survives, and a game silently losing
+	-- its own definition is worse than being told: the injected flag below is what
+	-- makes the validator skip its redefinition warning, so without this nothing
+	-- anywhere would mention the collision.
+	if G.computed_tags.last_acted then
+		pp[#pp + 1] = "computed_tags: 'last_acted' is the engine's own word for the card a player"
+			.. " just touched, and the engine's meaning is the one that survives — pick another name"
+	end
 	G.computed_tags.last_acted = { stat = "last_acted", at_least = 1, injected = true }
 
 	-- A card with more than one ability needs something to *show* for each, and
@@ -630,22 +641,33 @@ function M.parse(filename)
 	-- never dealt or played by a game, carrying the ability's own words and a
 	-- shape generated from its name. It is not a card the game has to invent,
 	-- because it is not a card the game means.
-	for _, key in ipairs(G.card_list) do
-		local cd = G.card_defs[key]
-		if #(cd.abilities or {}) > 1 then
-			for i, a in ipairs(cd.abilities) do
-				local mk = key .. "#" .. a.key
-				a.menu_card = mk
-				G.card_defs[mk] = { key = mk, injected = true, menu_for = { card = key, index = i },
-					text = a.text or a.key, tooltip = a.tooltip or a.text,
-					-- A picture the ability named, or a shape from its name. A
-					-- named asset resolves per player like any other, so a
-					-- chooser wears the colours of whoever opened it.
-					asset = a.asset or "auto", tags = {}, tags_set = { token = true },
-					abilities = {}, style = merge_styles(G, { token = true }) }
+	--
+	-- One per ability wherever an ability is *declared*, which means tags as much
+	-- as cards: a zone's "applies" hands its cards an ability, so a rook lying in
+	-- a discard pile has two — its move and the pile's "take me". Minting only for
+	-- cards, and only for cards already declaring two of their own, left that
+	-- second entry with no card to deal and the chooser asked for a card called
+	-- nil. Minting for every ability costs a def nobody deals and removes the
+	-- coupling entirely.
+	local function mint(owner_key, list, what)
+		for _, a in ipairs(list or {}) do
+			local mk = owner_key .. "#" .. a.key
+			if G.card_defs[mk] then
+				pp[#pp + 1] = ("%s '%s' has two abilities called '%s' — the chooser deals one entry per"
+					.. " ability and could not tell them apart"):format(what, tostring(owner_key), tostring(a.key))
 			end
+			a.menu_card = mk
+			G.card_defs[mk] = { key = mk, injected = true, menu_for = { card = owner_key },
+				text = a.text or a.key, tooltip = a.tooltip or a.text,
+				-- A picture the ability named, or a shape from its name. A named
+				-- asset resolves per player like any other, so a chooser wears
+				-- the colours of whoever opened it.
+				asset = a.asset or "auto", tags = {}, tags_set = { token = true },
+				abilities = {}, style = merge_styles(G, { token = true }) }
 		end
 	end
+	for _, key in ipairs(G.card_list) do mint(key, G.card_defs[key].abilities, "card") end
+	for key, td in pairs(G.tag_defs) do mint(key, td.abilities, "tag") end
 
 	-- An "options" zone is hidden by its own type rather than by a tag it has to
 	-- remember: an offer that is not open is not on the board, and forgetting to
