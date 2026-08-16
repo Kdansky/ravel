@@ -67,6 +67,14 @@
       "tags": ["immutable"]
     },
     {
+      "key": "play_lor",
+      "text": "Runeterra",
+      "tooltip": "Vanilla combat: units, lanes, and a Nexus at twenty. Two players, one device.",
+      "play": { "action": ["load_game:lor.json"] },
+      "asset": "triangle:6:crimson",
+      "tags": ["immutable"]
+    },
+    {
       "key": "play_vigil",
       "text": "The Long Vigil",
       "asset": "witches_sabbath.jpg",
@@ -89,6 +97,7 @@
           "fill:menu:play_road:1",
           "fill:menu:play_lost_cities:1",
           "fill:menu:play_chess:1",
+          "fill:menu:play_lor:1",
           "fill:menu:play_vigil:1",
           "fill:menu:m_back:1"
         ]
