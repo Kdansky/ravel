@@ -173,6 +173,26 @@ function M.candidates(card_id, spec)
 		out = kept
 	end
 
+	-- `where` asks anything else about a candidate, with the candidate as
+	-- @target and as the anchor for any pattern inside. It is the same word a
+	-- move rule already carries and the same question — asked one level up, so
+	-- a destination nothing walks to can be narrowed too. A blocker's lane is
+	-- the case: it is not somewhere the unit *moves*, it is a cell picked out of
+	-- a grid, and "the row that is mine, opposite something that is attacking"
+	-- has nowhere else to be said.
+	if spec.where then
+		local kept = {}
+		for _, id in ipairs(out) do
+			local e = entity.get(id)
+			local anchor = e and (e.kind == "slot" and id or e.slot_id)
+			if predicate.meets_all(spec.where,
+				{ card_id = card_id, anchor = anchor, targets = { id } }) then
+				kept[#kept + 1] = id
+			end
+		end
+		out = kept
+	end
+
 	-- A stack offers its top card and nothing else. The renderer has always
 	-- drawn and hit-tested exactly that, so a candidate buried in a pile was one
 	-- the player was shown and could never click: Lost Cities' discard marker

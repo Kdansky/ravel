@@ -314,6 +314,20 @@ function M.move_card(card_id, to_id)
 		end
 	end
 
+	-- A piece keeps whose it is. Ownership is placement state (ideas/14) and was
+	-- only ever *written* by setup, so a unit played out of a seat's own zone
+	-- onto a shared board became nobody's — and "a board can be shared while the
+	-- pieces on it are not", which is flow.reachable's own reason for asking the
+	-- card rather than the zone, stopped being true the moment the card arrived.
+	--
+	-- Onto a board only. A card discarded into a shared *pile* is genuinely up
+	-- for grabs — that is how a Lost Cities discard is taken by either player —
+	-- and an owner stamped there would refuse it to the opponent.
+	if c.stats and c.stats.owner == nil and to.zone_type == "grid" and not to.seat then
+		local i = from and from.seat and (declaration.G.seat_index or {})[from.seat]
+		if i then c.stats.owner = i end
+	end
+
 	table.insert(to.cards, card_id)
 	c.zone_id = to_id
 	M.auto_slot(card_id)

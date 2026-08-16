@@ -22,6 +22,12 @@ local M = {}
 
 local RESERVED = { round = true, plays = true }
 
+-- Stamped by the engine on every square of a grid (zones.lua), so a *scoped*
+-- subject may read one off a slot although no card declares it. Not reserved:
+-- a card declaring "col" or "row" is opting in to being stamped with where it
+-- stands, which is how "rank" already works.
+local SLOT_STATS = { col = true, row = true }
+
 -- Every tag the engine itself reads, what it attaches to, and what it does.
 --
 -- One table because there were four half-lists: a set in this file that only
@@ -164,7 +170,7 @@ local ENGINE_STATS    = {
 }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
-	owner = true, fill = true, moves = true }
+	owner = true, fill = true, moves = true, where = true }
 -- How a pattern's vectors are walked. A closed set the engine defines, unlike
 -- card and zone tags, which are the game's own vocabulary — hence the different
 -- word for it in the JSON.
@@ -473,7 +479,7 @@ function M.check(G)
 		elseif not stat_ok(p.arg) then
 			-- A scoped subject reads a stat off the cards it names, so a stat
 			-- only ever carried by cards is legitimate there.
-			if not (p.scope and card_stats[p.arg]) then
+			if not (p.scope and (card_stats[p.arg] or SLOT_STATS[p.arg])) then
 				warn("%s: uses the stat '%s', but it is never declared or set up%s",
 					where, tostring(p.arg), suggest(p.arg, all_stats))
 			end
@@ -735,6 +741,9 @@ function M.check(G)
 				warn("%s %s: searches zone '%s', but no zone has that key%s", where, field, zk, suggest(zk, G.zone_defs))
 			end
 		end
+		-- Asked of each candidate with that candidate as the target, so its
+		-- subjects are checked exactly as a move rule's "where" already is.
+		check_map(where .. " " .. field .. " where", spec.where)
 	end
 
 	-- "phases": which phases a card (or a tag granting it one) may be used in.
@@ -1468,9 +1477,6 @@ function M.check(G)
 		end
 		if pd.type == "draw_and_play" and not pd.pass_card then
 			warn("%s: forces a play every turn but has no pass_card — players can get stuck with nothing playable", where)
-		end
-		if pd.actions and pd.type ~= "automatic" then
-			warn("%s: has 'actions', but only automatic phases run them", where)
 		end
 		check_list(where .. " actions", pd.actions)
 		if pd.next then

@@ -1,7 +1,9 @@
 # 18 — Legends of Runeterra
 
 **Status:** **stage 1 done** — [lor/rules.md](lor/rules.md) and
-[lor/decks.md](lor/decks.md) · **Size:** large, and the first deliverable was a
+[lor/decks.md](lor/decks.md) — and **milestone 1 plays**: draw, mana, the pass,
+the attack token, attackers and blockers as lane placement, the strike, the
+Nexus, and a winner · **Size:** large, and the first deliverable was a
 document rather than code · **Depends on:** [01](01-boardgames.md) gap 5
 (triggers) for anything past the vanilla prototype
 
@@ -116,13 +118,14 @@ different genre, not because it is unusually complex.
 | Nexus health, mana, deck of 40, hand of 10 | seat stats and per-seat zones — **exists** |
 | Bench and battlefield | two grid zones per seat — **exists** |
 | Drawing at round start, mana refilling | `turn.action` on a round wrap — **exists** |
-| The attack token alternating | a seat stat plus phase routing — **expressible**, no engine work |
+| The attack token alternating | a seat stat plus phase routing — **built**, and it wanted *two* stats: `attacker` (whose round it is, persistent) and `token` (what the attack spends). What is still missing is that its holder should **act first**, which no routing can say — see [22](22-the-crew.md) |
 | Champions levelling up | `become` — **shipped**, and it was chess promotion that paid for it |
 | Ephemeral, Fleeting | a tag plus a round-boundary action — **expressible** |
 | Play / Last Breath / Round Start abilities | **[01](01-boardgames.md) gap 5, triggers** — not started |
 | ~~**Blocking: which unit blocks which**~~ | **not missing — it is placement.** Six lanes a side, and a unit fights what is across. Strictly one to one, which is what a lane is. See below |
-| **Combat damage, ~~simultaneous~~ left to right, then deaths** | **missing** — a walk along the lanes. *Corrected by stage 1: strikes resolve by board position, one pair at a time, not all at once* |
-| **The pass, and responding to a spell** | **missing** — a bounded stack, and stage 1 narrows it: Burst and Focus never enter one |
+| ~~**Combat damage, ~~simultaneous~~ left to right, then deaths**~~ | **built** — `activate_zone:battle` walks the lanes in slot order and every unit strikes what is `@across`; deaths are deferred to a `destroy:dead` after the walk, which is what makes a pair's strikes simultaneous while the pairs stay ordered |
+| ~~Tough, Overwhelm~~ | **built, and as arithmetic** — one term each in the zone's own formula, no engine word. See *What milestone 1 cost* below |
+| ~~**The pass**~~, and responding to a spell | the pass **shipped** (`6e29b75`) as a card on the table with a flag on it. The response **stack** is still missing, and stage 1 narrows it: Burst and Focus never enter one |
 | Spell mana, spendable only on spells | **missing, and small** — a cost paid from either of two pools by a rule |
 | Mulligan: draw 4, replace any subset | **missing** — the offer overlay picks exactly one |
 | A hand that holds at most 10 | **missing** — a grid is bounded by its cells, a hand by nothing |
@@ -189,12 +192,12 @@ triggers — *they queue, they never recurse*. A response stack drained by
 Each ships a playable game file in `game/games/` and its own scripted test, per
 `01`'s rule that every board game gets one.
 
-1. **Vanilla combat.** Two decks of units with no text at all, no spells, no
-   keywords: draw, play to bench, take the attack token, declare attackers,
-   declare blockers, damage, nexus health, somebody wins. This is the milestone
-   that proves the lane model and the combat resolution, and it needs no
-   triggers. Four zones a seat — hand, bench, battlefield, deck — and the
-   battlefield is the six-cell grid the lanes are cut from.
+1. ~~**Vanilla combat.**~~ **Done** — `game/games/lor.json`, with
+   `tests/integration/lor.lua` scripting it. Draw, play to bench, take the
+   attack token, declare attackers, declare blockers, strike, Nexus, and a
+   winner. The lane model holds and needed no triggers, and **Tough and
+   Overwhelm came with it** rather than waiting for milestone 4, because both
+   turned out to be arithmetic. What it cost is below.
 2. **Burst spells only** — the ones that resolve immediately, so there is still
    no stack. This is where a spell targets, and targeting already exists.
 3. **The pass and the response stack.** Fast and Slow spells, and the round
@@ -216,6 +219,105 @@ stage 1: there is no `CREDITS.md` at the root — the one that exists is
 `game/games/assets/CREDITS.md`, credits living beside the material they cover.
 So the LoR data has its own, [lor/CREDITS.md](lor/CREDITS.md), in the same
 spirit.*
+
+## What milestone 1 cost, and what it taught
+
+**Three engine words, and the whole of combat is content.** Nothing in
+`flow.lua`, `predicate.lua` or `render.lua` knows what a lane, a blocker, Tough
+or Overwhelm is — which was the refusal below, held.
+
+| Added | Why LoR asked | Where |
+|---|---|---|
+| `where` on a **slot target spec** | a blocker's lane is *my row, opposite something already attacking*. `where` existed but only inside a `moves` rule, and a bench unit walks no pattern to reach the battlefield | `targeting.candidates` |
+| `move:<scope>:<zone>` | "send the survivors home". Only the acting card (`move_to`) and the ones a player chose (`move_target_to`) could be moved; a set nobody picked had no verb. [23](23-splendor.md) named this same gap independently | `actions.lua` |
+| **A piece keeps its owner** when it moves onto a shared board | a unit played out of a seat's hand arrived on the shared battlefield belonging to nobody, so `mine`/`enemy` stopped seeing it. Ownership was only ever *written* by `setup.place` | `zones.move_card` |
+
+The third is the one to weigh. It is a behaviour change to a function every game
+goes through, and it is bounded to a **grid** destination on purpose: a card
+dropped into a shared *pile* is genuinely up for grabs, which is how a Lost
+Cities discard is taken by either player, and an owner stamped there would refuse
+it to the opponent. The golden traces are what says the bound is right — they are
+byte-identical, and the whole suite passed unchanged.
+
+### Three things the build settled that the design had not
+
+- **Combat is a rule on the zone, not on the cards.** The battlefield carries
+  `"applies": ["in_combat"]` and the tag def holds one ability with five
+  actions; `activate_zone:battle` runs it for every unit standing there, in slot
+  order. All ten templates stay text-free — they are stats, a picture and a
+  price — and the two keywords are one term each in a formula nobody has to
+  repeat. That is [01](01-boardgames.md)'s *when in doubt, decks and cards*
+  arriving at rules rather than at objects.
+- **A product stands in for a condition, and that is why no keyword needed a
+  gate.** An activated ability has no `needs` — `activate_zone` is deliberately
+  ungated, and `ACTIVATE_FIELDS` has never carried one — so every branch had to
+  be arithmetic. `count:<tag>@<scope>` is 1 or 0, so multiplying by it *is* an
+  if:
+
+  ```
+  gain_stat:health@across:count:tough@across                  Tough: hand one back, if it is tough
+  lose_stat:spill@self:sum:spill@self:x:count:unit@across      a blocked attacker spills nothing
+  lose_stat:spill@self:sum:health@across:x:count:overkilled@across:x:count:overwhelm@self:x:sum:attacking@self
+  ```
+
+  The last line is Overwhelm, and it works because **the excess is already on
+  the board**: health is unclamped, so a blocker struck past zero carries the
+  overflow as a negative number, and `overkilled` is a computed tag reading
+  `health < 0`. Losing a negative is gaining. Whether that is elegant or a trick
+  is a fair question — it is certainly *dense* — and it is the strongest
+  argument this repository has produced for [17](17-conditions-as-expressions.md).
+- **Two stats, not one, for the attack token.** `attacker` says whose round it
+  is to attack and survives the whole round; `token` is what the attack button
+  *spends*, so "once a round" is the cost and needs no counter. Combat then names
+  the Nexus **absolutely** — routing on `attacker@north_side` picks one of two
+  one-line phases — because the active seat during the strike is the *defender*
+  (blocking is the last thing anybody did), and `enemy` would have pointed the
+  wrong way. That is [07](07-presentation.md) gap 6's finding again: a condition
+  cannot name a seat, and tagging the seat card is the workaround.
+
+### Two drifts the game file found in the validator
+
+Both were the validator disagreeing with the engine rather than with the game,
+and both are fixed here:
+
+- **`actions` on a non-automatic phase were rejected**, three commits after
+  `c68c0c8` made phase entry actions universal. `SCHEMA.json` said the same. The
+  warning, its case in `tests/integration/validator.lua` and the schema line are
+  gone.
+- **A slot's `col` and `row` were unknown stats.** They are stamped on every
+  square by `zones.lua` and can only be read through a scope, so they are
+  legitimate exactly where `where` uses them (`row@target`). Allowed in the
+  scoped branch only, beside `card_stats`.
+
+### And one real bug in the shipped file
+
+`"cost": { "mana": 3 }` is the **pool of both seats' mana**. A bare subject has
+no scope, and the default scope is every `player`-tagged card — so `can_afford`
+added north's gems to south's, and `pay` took the amount off whichever seat came
+first in the file. Measured: with north on 5 and south on 0, south played a
+three-drop and north paid for it. Every cost is now `mana@mine.player`, and
+`tests/integration/lor.lua` has the case. **No solo game could ever have seen
+this**, which is the argument for two-seat games as a test of the vocabulary and
+not only of the engine.
+
+### What milestone 1 deliberately does not do
+
+Stated rather than implied, because a prototype that quietly differs from the
+game is worse than one that says where:
+
+- **The token holder does not act first.** LoR is explicit that they do; `play`
+  alternates with `seat: "next"` and nothing can point the turn at a named seat.
+  This is [22](22-the-crew.md)'s `set_active_seat:<scope>` primitive, and this
+  game is its **second independent customer** — which is the ladder's own bar
+  for building it.
+- **The deck is 30, not 40**, and there is no mulligan (the offer overlay picks
+  exactly one; a mulligan picks a subset), no hand cap of ten, no spell mana, no
+  decking out and no round-40 tie. All of those are named in the stage-2 table
+  and none of them is combat.
+- **A blocker may meet any attacker, not only the one it is "in front of"** —
+  which is the real rule, since the defender chooses the pairing. What it may
+  *not* do is enter an empty lane or the attacker's row, and `where` is what says
+  so.
 
 ## Refuse
 
