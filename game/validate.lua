@@ -79,6 +79,16 @@ M.ENGINE_TAGS_ALSO_ON_STATS = { hidden = "kept out of the HUD, while cards may s
 -- that card trivial.
 local RESERVED_SCOPES = { "self", "all", "reach" }
 
+-- The shapes a stat may ask to be drawn with. Named by shape rather than by
+-- meaning, so a game's own word for its currency is its own business — and a
+-- closed set, so a shape nobody draws is refused rather than silently becoming
+-- a diamond. Held in step with render.icons() by the test suite; validate must
+-- not require the presentation layer.
+M.ICONS = {
+	coin = true, heart = true, shield = true, banner = true, leaf = true,
+	blade = true, diamond = true,
+}
+
 -- The fx base-effect vocabulary. The test suite asserts this stays in step
 -- with fx.bases() — validate must not require the presentation layer.
 M.EFFECT_BASES = {
@@ -139,7 +149,7 @@ local PHASE_FIELDS = {
 	seat = true,
 }
 local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subject = true,
-	tags = true, tags_set = true }
+	tags = true, tags_set = true, icon = true }
 -- A tag def is a mixin: it may carry a home zone, and the card behaviour a zone
 -- hands to whatever sits in it ("applies"). Kept to the fields a granted rule
 -- can honestly mean — nothing that would have to be re-derived as state moves.
@@ -854,6 +864,10 @@ function M.check(G)
 		if def.subject ~= nil then subject_ok(where, def.subject) end
 		if type(def.min) == "number" and type(def.max) == "number" and def.min > def.max then
 			warn("%s: min (%s) is greater than max (%s)", where, def.min, def.max)
+		end
+		if def.icon ~= nil and not M.ICONS[def.icon] then
+			warn("%s: asks to be drawn as '%s', which is not a shape the engine has%s",
+				where, tostring(def.icon), suggest(def.icon, M.ICONS))
 		end
 	end
 

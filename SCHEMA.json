@@ -18,6 +18,7 @@
       "min": "number the stat is clamped to below. Usually 0.",
       "max": "number the stat is clamped to above.",
       "subject": "a subject expression the HUD row displays instead of the plain total, while the key still names what cards spend: sum:defense@standing shows the buildings still standing.",
+      "icon": "the shape drawn beside this stat's number, on a card face and in the HUD: coin, heart, shield, banner, leaf, blade, or diamond. Named by shape rather than by meaning — what a game calls its currency is its own business — and a closed set, so a shape nobody draws is refused rather than silently becoming a diamond. Left out, it is the diamond.",
       "tags": [
         "a list of words; the engine knows hidden (keep it out of the HUD while cards may still read and change it)"
       ]

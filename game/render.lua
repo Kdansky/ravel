@@ -202,44 +202,70 @@ local function pulse(speed)
 end
 
 -- Tiny vector glyphs for stats, so numbers read at a glance without art.
--- Keys are conventions (gold/hp/defense/morale/food); anything else gets a diamond.
+--
+-- **Named by shape, and the game says which.** These used to be keyed on the
+-- stat's own name — a stat called `gold` drew a coin — which is the engine
+-- knowing one game's vocabulary, and the next game's currency drew a diamond
+-- for no reason it could see or change. A stat declares its `icon` instead, out
+-- of this closed set; anything undeclared gets the diamond.
 local ICON_COLOR = {
-	gold    = { 0.95, 0.78, 0.25 },
-	hp      = { 0.92, 0.32, 0.32 },
-	defense = { 0.55, 0.70, 0.90 },
-	morale  = { 0.78, 0.55, 0.95 },
-	food    = { 0.55, 0.85, 0.40 },
+	coin   = { 0.95, 0.78, 0.25 },
+	heart  = { 0.92, 0.32, 0.32 },
+	shield = { 0.55, 0.70, 0.90 },
+	banner = { 0.78, 0.55, 0.95 },
+	leaf   = { 0.55, 0.85, 0.40 },
+	blade  = { 0.98, 0.72, 0.30 },
 }
+
+-- The vocabulary, for the validator: it must refuse a shape nobody draws rather
+-- than let a game ask for one and silently get a diamond.
+function M.icons()
+	local out = { diamond = true }
+	for k in pairs(ICON_COLOR) do out[k] = true end
+	return out
+end
 
 local function draw_stat_icon(key, cx, cy, s)
 	local col = ICON_COLOR[key] or { 0.60, 0.70, 0.85 }
 	love.graphics.setColor(unpack(col))
-	if key == "gold" then
+	if key == "coin" then
 		love.graphics.circle("fill", cx, cy, s * 0.42)
 		love.graphics.setColor(col[1] * 0.6, col[2] * 0.6, col[3] * 0.6)
 		love.graphics.circle("line", cx, cy, s * 0.24)
-	elseif key == "hp" then
+	elseif key == "heart" then
 		love.graphics.circle("fill", cx - s * 0.18, cy - s * 0.12, s * 0.24)
 		love.graphics.circle("fill", cx + s * 0.18, cy - s * 0.12, s * 0.24)
 		love.graphics.polygon("fill",
 			cx - s * 0.40, cy - s * 0.02, cx + s * 0.40, cy - s * 0.02, cx, cy + s * 0.44)
-	elseif key == "defense" then
+	elseif key == "shield" then
 		love.graphics.polygon("fill",
 			cx - s * 0.35, cy - s * 0.38, cx + s * 0.35, cy - s * 0.38,
 			cx + s * 0.35, cy + s * 0.02, cx, cy + s * 0.44, cx - s * 0.35, cy + s * 0.02)
-	elseif key == "morale" then
+	elseif key == "banner" then
 		love.graphics.setLineWidth(math.max(1, s * 0.12))
 		love.graphics.line(cx - s * 0.28, cy - s * 0.42, cx - s * 0.28, cy + s * 0.44)
 		love.graphics.polygon("fill",
 			cx - s * 0.28, cy - s * 0.42, cx + s * 0.42, cy - s * 0.24, cx - s * 0.28, cy - s * 0.04)
-	elseif key == "food" then
+	elseif key == "leaf" then
 		love.graphics.circle("fill", cx, cy + s * 0.08, s * 0.32)
 		love.graphics.setLineWidth(math.max(1, s * 0.10))
 		love.graphics.line(cx, cy - s * 0.20, cx + s * 0.16, cy - s * 0.42)
+	elseif key == "blade" then
+		love.graphics.polygon("fill",
+			cx - s * 0.08, cy + s * 0.44, cx + s * 0.10, cy + s * 0.44,
+			cx + s * 0.10, cy - s * 0.18, cx + s * 0.01, cy - s * 0.46,
+			cx - s * 0.08, cy - s * 0.18)
+		love.graphics.rectangle("fill", cx - s * 0.28, cy + s * 0.16, s * 0.56, s * 0.10)
 	else
 		love.graphics.polygon("fill",
 			cx, cy - s * 0.42, cx + s * 0.36, cy, cx, cy + s * 0.42, cx - s * 0.36, cy)
 	end
+end
+
+-- The shape a stat asks for, or nothing, which draws the diamond.
+local function stat_icon(key)
+	local def = declaration.G.stat_defs[key]
+	return def and def.icon or nil
 end
 
 local selected_id = nil
@@ -459,7 +485,7 @@ local function draw_cost_badge(pl, cost)
 	local x = pl.x + 2 + 4 * S
 	local y = pl.y + 2 + 2 * S
 	for _, k in ipairs(keys) do
-		draw_stat_icon(k, x + ih * 0.5, y + ih * 0.5, ih)
+		draw_stat_icon(stat_icon(k), x + ih * 0.5, y + ih * 0.5, ih)
 		love.graphics.setColor(unpack(C.cost))
 		print_at(tostring(cost[k]), x + ih + 2 * S, y)
 		x = x + ih + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
@@ -720,7 +746,7 @@ local function draw_badge(key, txt, x, y, colour)
 	local w = fh + tw + 8 * S
 	love.graphics.setColor(0, 0, 0, 0.65)
 	love.graphics.rectangle("fill", x - 1, y - 1, w, fh + 2, 2 * S, 2 * S)
-	draw_stat_icon(key, x + fh * 0.5, y + fh * 0.5, fh * 0.9)
+	draw_stat_icon(stat_icon(key), x + fh * 0.5, y + fh * 0.5, fh * 0.9)
 	love.graphics.setColor(colour)
 	print_at(txt, x + fh + 3 * S, y)
 	return w
@@ -1078,7 +1104,7 @@ local function draw_stats()
 				local txt   = label .. ": " .. tostring(predicate.total(def and def.subject or key))
 				local tw    = mf:getWidth(txt)
 				local row_x = x - tw - fh - 4 * S
-				draw_stat_icon(key, row_x + fh * 0.5, y + fh * 0.5, fh * 0.85)
+				draw_stat_icon(stat_icon(key), row_x + fh * 0.5, y + fh * 0.5, fh * 0.85)
 				love.graphics.setColor(unpack(C.stat))
 				print_at(txt, row_x + fh + 4 * S, y)
 				stat_hud[key] = { x = row_x + fh + tw * 0.5, y = y }

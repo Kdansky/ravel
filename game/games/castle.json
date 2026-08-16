@@ -2,18 +2,19 @@
   "title": "Castle Lord",
   "effects": { "festival_lights": { "base": "sparkle", "count": 1.6 } },
   "stats": [
-    { "key": "hp", "min": 0, "tags": ["hidden"] },
+    { "key": "hp", "icon": "heart", "min": 0, "tags": ["hidden"] },
     { "key": "round", "label": "Round" },
-    { "key": "gold", "label": "Gold", "min": 0, "max": 999 },
-    { "key": "morale", "label": "Morale", "min": 0, "max": 10 },
+    { "key": "gold", "label": "Gold", "icon": "coin", "min": 0, "max": 999 },
+    { "key": "morale", "label": "Morale", "icon": "banner", "min": 0, "max": 10 },
     {
       "key": "defense",
       "label": "Defense",
+      "icon": "shield",
       "min": 0,
       "max": 999,
       "subject": "sum:defense@standing"
     },
-    { "key": "food", "label": "Food", "min": 0, "max": 999 }
+    { "key": "food", "label": "Food", "icon": "leaf", "min": 0, "max": 999 }
   ],
   "computed_tags": {
     "damaged": { "stat": "hp", "less_than_max": true },

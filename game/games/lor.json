@@ -3,7 +3,9 @@
   "players": [{ "card": "north" }, { "card": "south" }],
   "stats": [
     { "key": "nexus", "label": "Nexus", "min": 0, "max": 99, "subject": "nexus@mine.player" },
-    { "key": "mana", "label": "Mana", "min": 0, "max": 10, "subject": "mana@mine.player" }
+    { "key": "mana", "label": "Mana", "min": 0, "max": 10, "subject": "mana@mine.player" },
+    { "key": "power", "icon": "blade", "tags": ["hidden"] },
+    { "key": "health", "icon": "heart", "tags": ["hidden"] }
   ],
   "computed_tags": {
     "dead": { "stat": "health", "less_than": 1 },

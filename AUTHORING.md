@@ -419,12 +419,26 @@ file to check what may appear where.
 
 ### Stats
 
-`{ "key", "label", "min", "max", "subject", "tags" }`. Declared stats display with a
-built-in icon (`gold` coin, `hp` heart, `defense` shield, `morale` banner,
-`food` apple, others a diamond). Stat changes clamp to `min`/`max`; a card
-stat with a `<key>_max` companion clamps to `[0, max]`. **Reserved:** `round`
-(starts 1, +1 per round boundary) and `plays` (per-hand play counter) are
-engine-managed — declare them only to display them.
+`{ "key", "label", "min", "max", "subject", "icon", "tags" }`.
+
+`icon` is the shape drawn beside the number, on a card face and in the HUD:
+`coin`, `heart`, `shield`, `banner`, `leaf`, `blade`, or `diamond`. **Named by
+shape, not by meaning** — what your game calls its currency is your business,
+and the engine has no opinion about which word means money. A closed set: a
+shape nobody draws is refused rather than silently becoming a diamond. Left
+out, it *is* the diamond.
+
+`min` and `max` are the bounds every bearer of the stat is held between, and a
+card may narrow them for itself by writing `card_stats` as a list
+(`"hp": [0, 4, 4]` — see *Cards*). A card that declares neither takes the
+global rule, and where there is no global rule there is no bound at all.
+
+**Reserved:** `round` (starts 1, +1 per round boundary) and `plays` (per-hand
+play counter) are engine-managed — declare them only to display them.
+
+A stat a game keeps on its *cards* rather than its players still wants an entry
+here, tagged `hidden`: that is where its bounds and its icon are said, without
+it becoming a row in the HUD.
 
 `subject` overrides what the HUD row *reads* while the key still names what
 cards spend: castle's defense lives on the buildings that provide it and shows

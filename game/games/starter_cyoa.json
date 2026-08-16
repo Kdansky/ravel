@@ -1,6 +1,6 @@
 {
   "title": "TODO: Your Story",
-  "stats": [{ "key": "hp", "label": "Health", "min": 0, "max": 10 }],
+  "stats": [{ "key": "hp", "label": "Health", "icon": "heart", "min": 0, "max": 10 }],
   "tags": { "keepsake": { "zone": "board" } },
   "zones": [
     {

@@ -148,7 +148,7 @@
       "play": { "action": ["load_game:menu.json"] }
     }
   ],
-  "stats": [{ "key": "hp", "min": 0, "max": 10, "label": "Health" }],
+  "stats": [{ "key": "hp", "icon": "heart", "min": 0, "max": 10, "label": "Health" }],
   "phases": [
     { "key": "setup", "type": "automatic", "actions": ["draw_from:road:hand:1"] },
     { "key": "journey", "type": "player_input", "label": "The Journey" },

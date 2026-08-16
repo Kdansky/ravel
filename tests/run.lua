@@ -722,6 +722,18 @@ for b in pairs(validate.EFFECT_BASES) do
 end
 check("validator and fx agree on the base effects", agree)
 
+-- The same rule for the icon shapes: the validator refuses what the renderer
+-- cannot draw, and it must not require the renderer to find out.
+local rendermod = require("render")
+local icons_agree = true
+for i in pairs(rendermod.icons()) do
+	if not validate.ICONS[i] then icons_agree = false end
+end
+for i in pairs(validate.ICONS) do
+	if not rendermod.icons()[i] then icons_agree = false end
+end
+check("validator and render agree on the stat icons", icons_agree)
+
 -- === endings announce themselves ===
 flow.init("kingdom.json", 5)
 check("no outcome while the game runs", flow.outcome() == nil)
