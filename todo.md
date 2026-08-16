@@ -2,6 +2,8 @@ Scratch list. Anything here that turns out to be more than an afternoon gets
 worked through in `ideas/` and struck off with a pointer — this file is the
 inbox, not the plan. `ideas/README.md` is the plan.
 
+Remove fully completed entries when we have done them or moved them to other files to not waste time reading solved things. Strike-through is only useful if something is half-done.
+
 ## Worked through, see ideas/
 
 - ~~Debug features (CTRL+hover) behind an explicit "enable debug", told to all
@@ -34,4 +36,11 @@ inbox, not the plan. `ideas/README.md` is the plan.
 
 ## Open
 
-(nothing yet — add as it comes up)
+Do a full pass on every function that does some sort of if type(a.b) == "some lua type" and find out whether we really need it, or if we can guarantee that the validator has it under control. If we absolutely need such type checks, consider putting the different branches into a module-local table and access it via TABLE[type(a.b)](<function params>), because that just reads cleaner.
+
+Add a safe/load functionality to the engine which produces what is essentially an encoded json (just like what we send over the network for multiplayer), and give games the ability to save/load. We might want to check that a game's json hasn't changed between saves, though I'm not sure how.
+
+When parsing the tags, replace every single tag in memory with a boolean. It's drastically simpler to code against, so tags = [a, b, c] just becomes tagsMap = { a=true, b=true, c=true}. I just don't want this format in my API, because it's cumbersome and errorprone, but it's totally okay inside the running engine. Also throw any boolean values in there which are not yet marked as tags. 
+
+Chequer-index is pointless: A1 in any game that uses the chequered logic should always be whatever colour is listed first. If that ends up being the wrong one, the rules designer can always just switch the two colours.
+ 
