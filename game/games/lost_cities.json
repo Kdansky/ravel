@@ -127,7 +127,8 @@
       "type": "pile",
       "pos": [0.06, 0.41, 0.19, 0.524],
       "tags": ["activate"],
-      "applies": ["takeable"]
+      "applies": ["takeable"],
+      "receive": { "action": ["set_owner:target:none"] }
     },
     {
       "key": "green",
@@ -143,7 +144,8 @@
       "type": "pile",
       "pos": [0.212, 0.41, 0.34199999999999997, 0.524],
       "tags": ["activate"],
-      "applies": ["takeable"]
+      "applies": ["takeable"],
+      "receive": { "action": ["set_owner:target:none"] }
     },
     {
       "key": "blue",
@@ -159,7 +161,8 @@
       "type": "pile",
       "pos": [0.364, 0.41, 0.494, 0.524],
       "tags": ["activate"],
-      "applies": ["takeable"]
+      "applies": ["takeable"],
+      "receive": { "action": ["set_owner:target:none"] }
     },
     {
       "key": "white",
@@ -175,7 +178,8 @@
       "type": "pile",
       "pos": [0.516, 0.41, 0.6459999999999999, 0.524],
       "tags": ["activate"],
-      "applies": ["takeable"]
+      "applies": ["takeable"],
+      "receive": { "action": ["set_owner:target:none"] }
     },
     {
       "key": "yellow",
@@ -191,7 +195,8 @@
       "type": "pile",
       "pos": [0.6679999999999999, 0.41, 0.798, 0.524],
       "tags": ["activate"],
-      "applies": ["takeable"]
+      "applies": ["takeable"],
+      "receive": { "action": ["set_owner:target:none"] }
     }
   ],
   "cards": [

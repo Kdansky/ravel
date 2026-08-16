@@ -222,7 +222,7 @@ spirit.*
 
 ## What milestone 1 cost, and what it taught
 
-**Three engine words, and the whole of combat is content.** Nothing in
+**Four engine words, and the whole of combat is content.** Nothing in
 `flow.lua`, `predicate.lua` or `render.lua` knows what a lane, a blocker, Tough
 or Overwhelm is — which was the refusal below, held.
 
@@ -230,14 +230,43 @@ or Overwhelm is — which was the refusal below, held.
 |---|---|---|
 | `where` on a **slot target spec** | a blocker's lane is *my row, opposite something already attacking*. `where` existed but only inside a `moves` rule, and a bench unit walks no pattern to reach the battlefield | `targeting.candidates` |
 | `move:<scope>:<zone>` | "send the survivors home". Only the acting card (`move_to`) and the ones a player chose (`move_target_to`) could be moved; a set nobody picked had no verb. [23](23-splendor.md) named this same gap independently | `actions.lua` |
-| **A piece keeps its owner** when it moves onto a shared board | a unit played out of a seat's hand arrived on the shared battlefield belonging to nobody, so `mine`/`enemy` stopped seeing it. Ownership was only ever *written* by `setup.place` | `zones.move_card` |
+| `set_owner:<scope>:<who>` and **`receive.action`** | the pair the rule below needs to be honest: something has to be able to *change* an owner, and a pile anybody may take from has to say so itself | `actions.lua`, `zones.move_card` |
+| **A card is born owned** | a unit played out of a seat's hand arrived on the shared battlefield belonging to nobody, so `mine`/`enemy` stopped seeing it | `cards.create` |
 
-The third is the one to weigh. It is a behaviour change to a function every game
-goes through, and it is bounded to a **grid** destination on purpose: a card
-dropped into a shared *pile* is genuinely up for grabs, which is how a Lost
-Cities discard is taken by either player, and an owner stamped there would refuse
-it to the opponent. The golden traces are what says the bound is right — they are
-byte-identical, and the whole suite passed unchanged.
+### Ownership is a property of the card, not of where it is lying
+
+The last row started out in the wrong place and is worth recording as a
+correction, because the wrong version *worked*. It first stamped the owner in
+`zones.move_card` — a card leaving a seat's zone for a shared board took the
+seat with it — bounded to grid destinations so that a Lost Cities discard, which
+either player may take from, stayed unowned.
+
+That is ownership as a **consequence of moving**, and it is wrong for a plain
+reason: *whose a card is does not change when it moves.* It changes when
+somebody takes it, and that is a rule a game says out loud.
+
+So the stamp moved to `cards.create`: **a card dealt out of a seat's own zone is
+that seat's from the moment it exists**, through the hand, the board and the
+discard, and one born in a shared zone is nobody's and never gains an owner by
+moving. Lost Cities needs no exclusion at all under that rule — its cards come
+from one shared deck, so nothing it deals was ever anybody's — and the pile-vs-grid
+carve-out disappeared with the version that needed it.
+
+What the change *does* need is a way to say the exception, which is the third
+row above: `set_owner:<scope>:<who>` (a seat, `mine`, or `none`), and a zone
+moment to run it from. `receive` already said what a zone will take; it now also
+says what it does about an arrival, with the zone as `@self` and the newcomer as
+`@target`, exactly as `receive.needs` reads. Lost Cities' four discards carry
+`"receive": { "action": ["set_owner:target:none"] }` — which changes nothing
+today and states the rule rather than leaning on the accident.
+
+Seats are numbered from 1 and **nobody is 0**, which is why "none" needed no new
+storage: `tags.owner_of` reads the number, finds no seat at 0, and — the part
+that matters — does *not* then fall back to the zone the card is lying in. Unset
+is a third state meaning "never had one", and it stays distinct: a card nobody
+ever owned is not the same as one taken away from somebody.
+
+The golden traces are byte-identical across all of it.
 
 ### Three things the build settled that the design had not
 
@@ -287,18 +316,29 @@ and both are fixed here:
 - **A slot's `col` and `row` were unknown stats.** They are stamped on every
   square by `zones.lua` and can only be read through a scope, so they are
   legitimate exactly where `where` uses them (`row@target`). Allowed in the
-  scoped branch only, beside `card_stats`.
+  scoped branch only, beside `card_stats`. A stat declared on a **seat card** is
+  now allowed unscoped too, which is what the next section makes true.
 
-### And one real bug in the shipped file
+### And one real bug, in the engine rather than in the file
 
-`"cost": { "mana": 3 }` is the **pool of both seats' mana**. A bare subject has
-no scope, and the default scope is every `player`-tagged card — so `can_afford`
+`"cost": { "mana": 3 }` was the **pool of both seats' mana**. A bare subject has
+no scope, and the default scope was every `player`-tagged card — so `can_afford`
 added north's gems to south's, and `pay` took the amount off whichever seat came
 first in the file. Measured: with north on 5 and south on 0, south played a
-three-drop and north paid for it. Every cost is now `mana@mine.player`, and
-`tests/integration/lor.lua` has the case. **No solo game could ever have seen
-this**, which is the argument for two-seat games as a test of the vocabulary and
-not only of the engine.
+three-drop and north paid for it.
+
+It was first patched in the game file, by writing every cost `mana@mine.player`,
+and that was treating the symptom. **An unscoped subject means the seat that is
+up** — `predicate.entities_in_scope`'s own comment has said "no scope means mine"
+since it was written; it simply never filtered. It does now, and `lor.json`'s
+costs are back to `{ "mana": 3 }`.
+
+**No solo game could ever have seen this** — one seat, and the pool is that seat
+— which is the argument for two-seat games as a test of the vocabulary and not
+only of the engine. The one thing it changed elsewhere is a four-seat party
+fixture in `tests/run.lua` whose comment already named the gap it was
+documenting: *"several cards tagged player means a bare subject is the whole
+company"*. It is one character now, not four.
 
 ### What milestone 1 deliberately does not do
 

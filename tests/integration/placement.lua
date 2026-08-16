@@ -30,7 +30,10 @@ local GAME = [==[{
       "pos": [[0.05, 0.05, 0.95, 0.24], [0.05, 0.76, 0.95, 0.95]] },
     { "key": "board", "type": "grid", "grid": [3, 2], "tags": ["activate"],
       "pos": [0.05, 0.32, 0.95, 0.68] },
-    { "key": "bin", "type": "pile", "pos": [0.05, 0.26, 0.20, 0.30] }
+    { "key": "bin", "type": "pile", "pos": [0.05, 0.26, 0.20, 0.30] },
+    { "key": "stock", "type": "pile", "pos": [0.80, 0.26, 0.95, 0.30] },
+    { "key": "commons", "type": "pile", "pos": [0.40, 0.26, 0.60, 0.30],
+      "receive": { "action": ["set_owner:target:none"] } }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": "stash", "next": [{ "then": "act" }] }
@@ -79,27 +82,77 @@ local function offered(card_id)
 	return u and targeting.candidates(card_id, u.ability.target) or {}
 end
 
--- Ownership is placement state, and until this it was only ever *written* by
--- setup: a card played out of a seat's own zone onto a shared board arrived
--- belonging to nobody, and every rule that says "mine" stopped seeing it.
-function M.test_placement_a_piece_keeps_its_owner_on_a_shared_board(check)
+-- A card is born owned and stays owned. Until this, ownership was *derived*
+-- from wherever the card happened to be lying, so a piece played out of a
+-- seat's own zone onto a shared board arrived belonging to nobody, and every
+-- rule that says "mine" stopped seeing it.
+function M.test_placement_a_piece_keeps_the_owner_it_was_born_with(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local mine = put("one", "mark")
-		check("in its own stash it is the zone that says whose it is",
+		check("dealt out of a seat's own zone, it is that seat's",
 			predicate.owner_of(mine) == "one")
 
 		zones.move_card(mine.id, zones.find_id("board"))
-		check("and on the shared board it says so itself", predicate.owner_of(mine) == "one",
+		check("and it still is on the shared board", predicate.owner_of(mine) == "one",
 			tostring(predicate.owner_of(mine)))
+		zones.move_card(mine.id, zones.find_id("bin"))
+		check("and in a shared pile, because whose it is is not where it lies",
+			predicate.owner_of(mine) == "one", tostring(predicate.owner_of(mine)))
+	end)
+end
 
-		-- The exclusion that keeps a discard pile a discard pile: a card thrown
-		-- into a shared stack is up for grabs, and an owner stamped there would
-		-- refuse it to everybody else.
-		local tossed = put("two", "mark")
-		zones.move_card(tossed.id, zones.find_id("bin"))
-		check("but a card dropped into a shared pile belongs to nobody",
-			predicate.owner_of(tossed) == nil, tostring(predicate.owner_of(tossed)))
+-- The other half, and it is what keeps a discard pile a discard pile: Lost
+-- Cities deals from one shared deck, so nothing it deals is ever anybody's and
+-- either player may take from either pile.
+function M.test_placement_a_card_from_a_shared_zone_is_nobodys(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local stock = zones.find("stock")
+		local loose = zones.add(stock, "mark")
+		check("born in a shared zone, it belongs to nobody",
+			predicate.owner_of(loose) == nil, tostring(predicate.owner_of(loose)))
+
+		zones.move_card(loose.id, zones.find_id("board"))
+		check("and moving does not hand it to anybody",
+			predicate.owner_of(loose) == nil, tostring(predicate.owner_of(loose)))
+		check("so either seat may reach it", flow.can_activate(loose.id))
+	end)
+end
+
+-- The one thing that changes whose a card is, and the zone that says it. A pile
+-- anybody may take from has to disown what lands in it, and saying that once on
+-- the pile beats saying it in every card that might be thrown away — which is
+-- what Lost Cities' four discards now do.
+function M.test_placement_a_zone_can_disown_what_lands_in_it(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local c = put("two", "mark")
+		check("it starts as somebody's", predicate.owner_of(c) == "two")
+
+		zones.move_card(c.id, zones.find_id("commons"))
+		check("and the pile takes that away as it arrives",
+			predicate.owner_of(c) == nil, tostring(predicate.owner_of(c)))
+		check("nobody is 0, not absent — so it cannot fall back to the zone it lies in",
+			c.stats.owner == 0, tostring(c.stats.owner))
+
+		zones.move_card(c.id, zones.find_id("board"))
+		check("and it stays nobody's when it moves on",
+			predicate.owner_of(c) == nil, tostring(predicate.owner_of(c)))
+	end)
+end
+
+-- The other direction, which is what the verb is really for: mind control.
+function M.test_placement_set_owner_hands_a_card_over(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local c = put("two", "mark")
+		actions.execute("set_owner:each.stash:mine", {})
+		check("the seat that is up takes it", predicate.owner_of(c) == "one",
+			tostring(predicate.owner_of(c)))
+		actions.execute("set_owner:each.stash:two", {})
+		check("and a seat can be named outright", predicate.owner_of(c) == "two",
+			tostring(predicate.owner_of(c)))
 	end)
 end
 

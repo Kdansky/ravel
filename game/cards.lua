@@ -83,6 +83,22 @@ function M.create(def_key, zone_id)
 	end
 	entity.register(e)
 	local zone = entity.get(zone_id)
+	-- **A card is born owned, and stays owned.** Ownership is a property of the
+	-- card, not of wherever it happens to be lying: dealt out of a seat's own
+	-- deck, it is that seat's through the hand, the board and the discard, and
+	-- only something that says so in as many words takes it away. Derived from
+	-- the zone instead, it was a fact that evaporated the moment a card was
+	-- played onto a shared board — which is where "a board can be shared while
+	-- the pieces on it are not" quietly stopped being true.
+	--
+	-- A card created in a shared zone has no owner and never gains one by
+	-- moving, which is what keeps a discard pile a discard pile: Lost Cities
+	-- deals from one shared deck, so either player may take from either pile.
+	-- setup.place writes its own owner straight after this, and so does
+	-- transform, so an explicit answer still wins.
+	if zone and zone.seat then
+		e.stats.owner = (declaration.G.seat_index or {})[zone.seat]
+	end
 	if zone then table.insert(zone.cards, e.id) end
 	return e
 end
