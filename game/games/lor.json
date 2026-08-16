@@ -18,6 +18,8 @@
     "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] }
   },
   "tags": {
+    "tough": { "tooltip": "Tough — takes 1 less damage from every source." },
+    "overwhelm": { "tooltip": "Overwhelm — damage past the blocker hits the Nexus." },
     "on_bench": {
       "abilities": [
         {
@@ -263,7 +265,6 @@
     {
       "key": "plucky_poro",
       "text": "Plucky Poro",
-      "tooltip": "Tough — takes 1 less damage from every source.",
       "asset": "circle:1:silver",
       "tags": ["unit", "tough"],
       "card_stats": { "power": 1, "health": 1, "cost": 1, "attacking": 0, "spill": 0 },
@@ -280,7 +281,6 @@
     {
       "key": "vanguard_defender",
       "text": "Vanguard Defender",
-      "tooltip": "Tough — takes 1 less damage from every source.",
       "asset": "square:2:gold",
       "tags": ["unit", "tough"],
       "card_stats": { "power": 2, "health": 2, "cost": 2, "attacking": 0, "spill": 0 },
@@ -297,7 +297,6 @@
     {
       "key": "ruthless_raider",
       "text": "Ruthless Raider",
-      "tooltip": "Overwhelm, Tough — damage past the blocker hits the Nexus, and it takes 1 less from every source.",
       "asset": "triangle:2:crimson",
       "tags": ["unit", "tough", "overwhelm"],
       "card_stats": { "power": 3, "health": 1, "cost": 2, "attacking": 0, "spill": 0 },
@@ -314,7 +313,6 @@
     {
       "key": "mighty_poro",
       "text": "Mighty Poro",
-      "tooltip": "Overwhelm — damage past the blocker hits the Nexus.",
       "asset": "triangle:3:silver",
       "tags": ["unit", "overwhelm"],
       "card_stats": { "power": 3, "health": 3, "cost": 3, "attacking": 0, "spill": 0 },
@@ -331,7 +329,6 @@
     {
       "key": "vanguard_cavalry",
       "text": "Vanguard Cavalry",
-      "tooltip": "Tough — takes 1 less damage from every source.",
       "asset": "square:5:gold",
       "tags": ["unit", "tough"],
       "card_stats": { "power": 5, "health": 5, "cost": 5, "attacking": 0, "spill": 0 },
@@ -340,7 +337,6 @@
     {
       "key": "alpha_wildclaw",
       "text": "Alpha Wildclaw",
-      "tooltip": "Overwhelm — damage past the blocker hits the Nexus.",
       "asset": "triangle:6:crimson",
       "tags": ["unit", "overwhelm"],
       "card_stats": { "power": 7, "health": 6, "cost": 6, "attacking": 0, "spill": 0 },

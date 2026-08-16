@@ -255,7 +255,7 @@
           "...": "several activated abilities instead of one, exactly as on a card. A tag that grants abilities *adds* them to whatever the card can already do."
         }
       ],
-      "tooltip": "prose describing what lying here lets a card do. A card's own tooltip is shown as well, because they describe different acts."
+      "tooltip": "what this tag means, in one place. Two readings, and both are live: a tag a *zone* hands out through \"applies\" describes what lying there lets a card do, and a tag a *card* carries is a keyword — the game says once what Tough does and every card with the tag inherits the sentence, in the hover panel and in the detail overlay. A card's own tooltip is shown as well, because they describe different things."
     }
   },
   "effects": {

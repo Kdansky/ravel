@@ -1433,6 +1433,38 @@ A game can give tags meaning of their own — types, essentially:
 "tags": { "item": { "zone": "inventory" }, "unit": { "zone": "battlefield" } }
 ```
 
+### Keywords: a tag that means something to the player
+
+A tag with a `tooltip` is a **keyword**. The game says once what it does, and
+every card carrying the tag inherits the sentence — in the hover panel and in
+the detail overlay a player opens to find out:
+
+```json
+"tags": {
+  "tough":     { "tooltip": "Tough — takes 1 less damage from every source." },
+  "overwhelm": { "tooltip": "Overwhelm — damage past the blocker hits the Nexus." }
+}
+```
+
+```json
+{ "key": "plucky_poro", "text": "Plucky Poro", "tags": ["unit", "tough"], … }
+```
+
+The card says which keywords it has and nothing about what they mean. Write the
+name into the sentence — the engine adds no punctuation and makes no decision
+about how it reads.
+
+**The tag is still what the rules read.** `count:tough@across` is what makes
+Tough happen; the tooltip is only what a player is told. A keyword whose text
+nobody wrote is a tag like any other, and a keyword whose *behaviour* nobody
+wrote is a sentence that lies — the two halves are independent and the engine
+checks neither against the other.
+
+The same field does a second job: on a tag a **zone** hands out through
+`applies` it describes what lying there lets a card do ("Take this card into
+your hand"). One field, because both answers are the same shape — what does
+this tag mean for the card wearing it.
+
 ### What a name may repeat
 
 **A key names one thing inside its own kind.** Two cards may not share a key,

@@ -17,6 +17,8 @@ local flow = require("flow")
 local phase = require("phase")
 local predicate = require("predicate")
 local targeting = require("targeting")
+local actions = require("actions")
+local declaration = require("declaration")
 
 local M = {}
 
@@ -303,6 +305,78 @@ function M.test_lor_a_nexus_at_zero_ends_it(check)
 	check("and with nobody in either chair the room is simply told who won",
 		flow.outcome() == "decided" and flow.winner() == "North")
 	zones.viewer = was
+end
+
+-- Strikes resolve left to right by board position (lor/rules.md), and on a
+-- battlefield that is by *lane*: a, then b, then c. Reading the grid row by row
+-- would resolve one whole side and then the other, which is a different rule
+-- and would matter the moment anything watched a unit die.
+function M.test_lor_the_lanes_resolve_left_to_right(check)
+	flow.init("lor.json", 5)
+	for _, seat in ipairs({ "north", "south" }) do
+		local h = zone_of("hand", seat)
+		for i = #h.cards, 1, -1 do zones.destroy_card(h.cards[i]) end
+	end
+	-- Two attackers and two blockers, so there are two lanes to order.
+	local a1 = bench_put("north", "vanguard_lookout", 1)
+	local a2 = bench_put("north", "vanguard_lookout", 2)
+	local b1 = bench_put("south", "vanguard_lookout", 1)
+	local b2 = bench_put("south", "vanguard_lookout", 2)
+
+	-- Pick the lane by its column: which of the offered slots that is depends on
+	-- what is already standing out there.
+	local function lane(id, col)
+		for _, sid in ipairs(lanes(id)) do
+			if entity.get(sid).stats.col == col then return sid end
+		end
+	end
+	flow.activate(button("attack_button", "north"), {})
+	flow.activate(a1, { lane(a1, 1) })
+	flow.activate(a2, { lane(a2, 2) })
+	flow.activate(button("pass_button", "north"), {})
+	flow.activate(b1, { lane(b1, 1) })
+	flow.activate(b2, { lane(b2, 2) })
+
+	local acted = {}
+	local was = actions.on_act
+	actions.on_act = function(id, ordinal)
+		if id then acted[#acted + 1] = { col = entity.get(entity.get(id).slot_id).stats.col, beat = ordinal } end
+	end
+	flow.activate(button("pass_button", "south"), {})
+	actions.on_act = was
+
+	check("all four struck", #acted == 4, tostring(#acted))
+	check("the first lane goes first, both of it",
+		acted[1].col == 1 and acted[2].col == 1,
+		("%s, %s"):format(tostring(acted[1] and acted[1].col), tostring(acted[2] and acted[2].col)))
+	check("then the second", acted[3].col == 2 and acted[4].col == 2)
+	check("and a lane is one beat, so a pair is shown as one exchange",
+		acted[1].beat == acted[2].beat and acted[3].beat == acted[4].beat
+		and acted[3].beat > acted[1].beat,
+		("%d %d %d %d"):format(acted[1].beat, acted[2].beat, acted[3].beat, acted[4].beat))
+end
+
+-- A keyword is a tag with a meaning, and the meaning is written once. Ten
+-- templates carried their own copy of what Tough does before this, which is ten
+-- chances for one of them to drift.
+function M.test_lor_a_keyword_says_what_it_means_in_one_place(check)
+	flow.init("lor.json", 5)
+	local cards = require("cards")
+	local poro = bench_put("north", "plucky_poro", 1)
+	local kw = cards.keywords(entity.get(poro))
+	check("the tough unit inherits the sentence", #kw == 1 and kw[1].tag == "tough",
+		tostring(#kw))
+	check("and it is the game's, not the card's",
+		kw[1].text:find("1 less damage", 1, true) ~= nil
+		and (declaration.G.card_defs.plucky_poro.tooltip or "") == "",
+		tostring(declaration.G.card_defs.plucky_poro.tooltip))
+
+	local raider = bench_put("north", "ruthless_raider", 2)
+	check("a unit with two keywords gets both, in the order it declared them",
+		#cards.keywords(entity.get(raider)) == 2)
+
+	check("and a unit with none gets none",
+		#cards.keywords(entity.get(bench_put("north", "cithria", 3))) == 0)
 end
 
 return M

@@ -377,19 +377,34 @@ HANDLERS["activate_zone"] = function(p, ctx)
 	for i, id in ipairs(z.cards) do order[i] = id end
 	-- On a board, order is position — which is what "strikes resolve left to
 	-- right" means, and it is not the order cards happened to arrive in.
+	--
+	-- **Left to right is by column, not by row.** A battlefield is two ranks
+	-- facing each other, so reading it row by row resolves one whole side and
+	-- then the other; reading it column by column resolves lane a, then lane b,
+	-- which is the pairing. On a single-rank zone the two are the same order.
+	local function square(id)
+		local e = entity.get(id)
+		local s = e and e.slot_id and entity.get(e.slot_id)
+		return s and s.stats or nil
+	end
 	if z.zone_type == "grid" then
 		table.sort(order, function(a, b)
-			local ea, eb = entity.get(a), entity.get(b)
-			local sa = ea and ea.slot_id and entity.get(ea.slot_id)
-			local sb = eb and eb.slot_id and entity.get(eb.slot_id)
-			return (sa and sa.slot_idx or 0) < (sb and sb.slot_idx or 0)
+			local sa, sb = square(a), square(b)
+			local ca, cb = sa and sa.col or 0, sb and sb.col or 0
+			if ca ~= cb then return ca < cb end
+			return (sa and sa.row or 0) > (sb and sb.row or 0)
 		end)
 	end
-	local beat = 0
+	-- Which beat of the run a card acts on. Two cards facing each other across
+	-- one lane share it: they are one exchange, and showing them a moment apart
+	-- would read as two.
+	local beat, last_col = 0, nil
 	for _, id in ipairs(order) do
 		local e = entity.get(id)
 		if e and e.zone_id == z.id then
-			beat = beat + 1
+			local col = z.zone_type == "grid" and square(id) and square(id).col or nil
+			if col == nil or col ~= last_col then beat = beat + 1 end
+			last_col = col
 			-- Which of the run this is. The rules resolve the whole zone in one
 			-- instant — they have to, or a snapshot could be taken halfway
 			-- through a combat — so this is the only thing the presentation has

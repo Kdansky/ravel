@@ -189,6 +189,29 @@ function M.behaviour(card_entity, field)
 	return def and def[field]
 end
 
+-- What a card's *own* tags say about it, in the order the card wrote them.
+--
+-- A keyword is a tag with a meaning, and the meaning belongs in one place: the
+-- game says once what Tough does and every card that has it inherits the
+-- sentence, instead of thirty templates each carrying their own copy for
+-- somebody to keep in step. The tag itself is what the *rules* read; this is
+-- only what a player reads.
+--
+-- Distinct from zone_grant, which answers for tags a zone hands out through
+-- "applies" — that is what a card can do *here*, and this is what it is
+-- everywhere.
+function M.keywords(card_entity)
+	local out = {}
+	local def = M.def(card_entity)
+	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
+		local td = declaration.G.tag_defs[tag]
+		if td and type(td.tooltip) == "string" and td.tooltip ~= "" then
+			out[#out + 1] = { tag = tag, text = td.tooltip }
+		end
+	end
+	return out
+end
+
 -- The zone a card's tags call home: the first of its tags whose tag
 -- definition names a zone. nil when no tag does.
 function M.home_zone(def)

@@ -59,6 +59,16 @@ local function blocks(c, def)
 	if own and own ~= "" then add("prose", own) end
 	if zone and zone ~= "" and zone ~= own then add("prose", zone) end
 
+	-- Then its keywords, each said once by the game and inherited by every card
+	-- that carries the tag. A player who has forgotten what Tough does should
+	-- not have to find the one card whose author remembered to write it down.
+	-- Prose, not a labelled row: a keyword is a sentence, and a row is a line.
+	-- The tag def's own text carries the name ("Tough — takes 1 less damage from
+	-- every source"), so the engine makes no decision about how it reads.
+	for _, kw in ipairs(cards.keywords(c)) do
+		if kw.text ~= own then add("prose", kw.text) end
+	end
+
 	-- The engine's own counters are not the card's business. `round` and `plays`
 	-- are bookkeeping it keeps on whichever card happens to be the seat, `turn`
 	-- says whose go it is, and `owner` is a seat number nobody wants read out as

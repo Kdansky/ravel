@@ -1395,6 +1395,18 @@ local function draw_card_detail(card_e)
 			y = y + #wrapped * main_font:getHeight() + 14 * S
 		end
 
+		-- What the card's keywords mean, said once by the game rather than copied
+		-- onto every card that has one. This is the panel a player opens *to
+		-- find out*, so it is the one place the sentence has to appear.
+		for _, kw in ipairs(cards.keywords(card_e)) do
+			if kw.text ~= tooltip then
+				love.graphics.setColor(0.72, 0.86, 0.98)
+				printf(kw.text, info_x, y, info_w, "left")
+				local _, wrapped = main_font:getWrap(kw.text, info_w)
+				y = y + #wrapped * main_font:getHeight() + 8 * S
+			end
+		end
+
 		local story = def and def.story or ""
 		if story ~= "" then
 			love.graphics.setColor(0.68, 0.78, 0.94)
