@@ -183,7 +183,7 @@
       "type": "automatic",
       "actions": [
         "stat_set:spill@each.battle:0",
-        "activate_zone:battle"
+        "activate_zone:battle:by_column"
       ],
       "next": [
         { "stat": "attacker@north_side", "at_least": 1, "then": "nexus_south" },

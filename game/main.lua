@@ -261,7 +261,6 @@ function love.load()
 	-- A card losing health also takes a small damage burst, and whoever did it
 	-- leans into them — a number changing across the board says nothing about
 	-- where it came from, and that is most of what there is to follow.
-	local HURT = { hp = true, health = true }
 	actions.on_stat_change = function(e, key, delta, ctx)
 		local txt   = (delta > 0 and "+" or "") .. delta .. " " .. key
 		local col   = delta > 0 and { 0.45, 0.95, 0.50 } or { 1.00, 0.45, 0.35 }
@@ -273,7 +272,10 @@ function love.load()
 			local top    = e.place.y
 			fx.after(delay, function()
 				fx.float(cx, top, txt, col)
-				if HURT[key] and delta < 0 then
+				-- Any number going down on a card takes a knock. Which stats
+				-- *hurt* is the game's business and naming them here was the
+				-- engine learning one game's word for health.
+				if delta < 0 then
 					fx.play({ base = "damage", size = 0.7 }, cx, cy)
 				end
 			end)

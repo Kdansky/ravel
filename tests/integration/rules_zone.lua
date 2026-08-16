@@ -99,30 +99,55 @@ function M.test_rules_zone_readying_is_a_rule_a_game_writes(check)
 	end)
 end
 
--- On a board, the order cards act in is where they stand — which is what "left
--- to right" means, and not the order they happened to arrive in.
-function M.test_rules_zone_a_grid_acts_in_slot_order(check)
+-- **The order is the game's, not the engine's.** An absolute pattern is a list
+-- of squares in the order it names them, so "left to right" is a line in the
+-- file; the engine walks what it is handed and prefers nothing.
+local function acted_order(order)
+	local lane = zones.find("lane")
+	-- Arrive out of order: the far square first, then the near one, so arrival
+	-- order and board order disagree and the answer says which was used.
+	local far = zones.add(lane, "counter")
+	zones.place_in_slot(far.id, lane.slots[3])
+	local near = zones.add(lane, "counter")
+	zones.place_in_slot(near.id, lane.slots[1])
+
+	local seen = {}
+	local was = actions.on_stat_change
+	actions.on_stat_change = function(e, key)
+		if key == "ticks" then seen[#seen + 1] = e.id end
+	end
+	actions.execute("activate_zone:lane" .. (order and (":" .. order) or ""), {})
+	actions.on_stat_change = was
+	return seen, near.id, far.id
+end
+
+function M.test_rules_zone_the_game_file_names_the_order(check)
 	with_game(function(name)
 		flow.init(name, 3)
-		local lane = zones.find("lane")
-		-- Arrive out of order: the far square first, then the near one.
-		local far = zones.add(lane, "counter")
-		zones.place_in_slot(far.id, lane.slots[3])
-		local near = zones.add(lane, "counter")
-		zones.place_in_slot(near.id, lane.slots[1])
-
-		local seen = {}
-		local was = actions.on_stat_change
-		actions.on_stat_change = function(e, key)
-			if key == "ticks" then seen[#seen + 1] = e.id end
-		end
-		actions.execute("activate_zone:lane", {})
-		actions.on_stat_change = was
-
+		local seen, near, far = acted_order("by_column")
 		check("both acted", #seen == 2, tostring(#seen))
-		check("and the one on the near square went first, though it arrived second",
-			seen[1] == near.id and seen[2] == far.id,
-			("%s then %s; near is %s"):format(tostring(seen[1]), tostring(seen[2]), tostring(near.id)))
+		check("and the near square went first, though it arrived second",
+			seen[1] == near and seen[2] == far)
+	end)
+end
+
+-- A closed set of one, and the rest are refused rather than quietly given the
+-- default: an order the engine cannot honour must not look like one it can.
+function M.test_rules_zone_an_order_it_does_not_know_is_refused(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local seen = acted_order("by_the_light_of_the_moon")
+		check("nothing acted at all", #seen == 0, tostring(#seen))
+	end)
+end
+
+-- Naming none is not "some order the engine likes": it is the order the cards
+-- are in, which is the order the game put them there.
+function M.test_rules_zone_without_an_order_the_cards_act_as_they_lie(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local seen, near, far = acted_order(nil)
+		check("the one that arrived first goes first", seen[1] == far and seen[2] == near)
 	end)
 end
 
@@ -142,11 +167,11 @@ function M.test_rules_zone_says_which_of_the_run_each_card_is(check)
 		local seen = {}
 		local was = actions.on_act
 		actions.on_act = function(id, ordinal) seen[#seen + 1] = { id = id, n = ordinal } end
-		actions.execute("activate_zone:lane", {})
+		actions.execute("activate_zone:lane:by_column", {})
 		actions.on_act = was
 
 		check("one beat per card, plus the end of the run", #seen == 3, tostring(#seen))
-		check("counted from one, in the order they stand",
+		check("counted from one, along the order the file named",
 			seen[1].id == near.id and seen[1].n == 1
 			and seen[2].id == far.id and seen[2].n == 2)
 		check("and the run says when it is over", seen[3].id == nil and seen[3].n == 0)

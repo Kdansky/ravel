@@ -304,6 +304,36 @@ The golden traces are byte-identical across all of it.
   wrong way. That is [07](07-presentation.md) gap 6's finding again: a condition
   cannot name a seat, and tagging the seat card is the workaround.
 
+### Tough is content, and it is an approximation
+
+Worth stating plainly, because "it works" and "it is right" are not the same
+claim here. Nothing in the engine knows the word — `grep -rn tough game/*.lua`
+finds comments — and the behaviour is one line in the battlefield's own tag def:
+
+```
+stat_gain:health@across:count:tough@across
+```
+
+That is **a reaction, not a replacement**: the striker deals its full power and
+then hands one point back if what it hit is tough. The rule it stands for is
+*reduce incoming damage by 1, and never below 0*, and the two differ in exactly
+one case — a source with 0 power, where the reaction would **heal**. No card in
+the deck has 0 power, so it cannot happen today; it is a lie waiting for the
+first card that says "deal damage equal to the number of X you control".
+
+It cannot be written correctly with what exists. The clamp needs
+`min(1, damage)` and the amount grammar has products only — `count:` is 1 or 0
+and there is no way to take the smaller of two numbers. Saying it properly needs
+what [01](01-boardgames.md) gap 5 calls a trigger, and specifically the harder
+half of it: a **replacement** effect that changes a number on its way in rather
+than reacting after it lands. That is the thing 01 warns is where a small engine
+becomes a large one, and it should be entered deliberately rather than by
+noticing that Tough nearly works.
+
+Until then: the approximation stays, the keyword's text says what the *rule* is
+rather than what the arithmetic does, and this paragraph is the record of the
+difference.
+
 ### Two drifts the game file found in the validator
 
 Both were the validator disagreeing with the engine rather than with the game,

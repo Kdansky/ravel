@@ -206,8 +206,6 @@ end
 local ICON_COLOR = {
 	gold    = { 0.95, 0.78, 0.25 },
 	hp      = { 0.92, 0.32, 0.32 },
-	health  = { 0.92, 0.32, 0.32 },
-	power   = { 0.98, 0.72, 0.30 },
 	defense = { 0.55, 0.70, 0.90 },
 	morale  = { 0.78, 0.55, 0.95 },
 	food    = { 0.55, 0.85, 0.40 },
@@ -220,18 +218,11 @@ local function draw_stat_icon(key, cx, cy, s)
 		love.graphics.circle("fill", cx, cy, s * 0.42)
 		love.graphics.setColor(col[1] * 0.6, col[2] * 0.6, col[3] * 0.6)
 		love.graphics.circle("line", cx, cy, s * 0.24)
-	elseif key == "hp" or key == "health" then
+	elseif key == "hp" then
 		love.graphics.circle("fill", cx - s * 0.18, cy - s * 0.12, s * 0.24)
 		love.graphics.circle("fill", cx + s * 0.18, cy - s * 0.12, s * 0.24)
 		love.graphics.polygon("fill",
 			cx - s * 0.40, cy - s * 0.02, cx + s * 0.40, cy - s * 0.02, cx, cy + s * 0.44)
-	elseif key == "power" then
-		-- A blade: the other half of every creature card ever printed.
-		love.graphics.polygon("fill",
-			cx - s * 0.08, cy + s * 0.44, cx + s * 0.10, cy + s * 0.44,
-			cx + s * 0.10, cy - s * 0.18, cx + s * 0.01, cy - s * 0.46,
-			cx - s * 0.08, cy - s * 0.18)
-		love.graphics.rectangle("fill", cx - s * 0.28, cy + s * 0.16, s * 0.56, s * 0.10)
 	elseif key == "defense" then
 		love.graphics.polygon("fill",
 			cx - s * 0.35, cy - s * 0.38, cx + s * 0.35, cy - s * 0.38,

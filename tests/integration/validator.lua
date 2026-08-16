@@ -328,6 +328,8 @@ local CASES = {
 	{ "two zones drawn on top of each other", "overlaps zone",
 		function(g) g.zone_defs.board.pos = { 0.2, 0.2, 0.9, 0.9 }
 			g.zone_defs.hand.pos = { 0.3, 0.3, 0.8, 0.8 } end },
+	{ "an order the engine does not know", "is not an order the engine knows",
+		function(g) g.card_defs.c_flee.on_play = { "activate_zone:board:widdershins" } end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)

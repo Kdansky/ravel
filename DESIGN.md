@@ -6,6 +6,40 @@ Companion documents: **`AUTHORING.md`** — how to build a game, with the full r
 
 ---
 
+## Nothing About a Game Goes In the Engine
+
+**The engine must not learn a game's words, and it must not learn a game's
+rules.** This is the first directive because it is the one that decays quietly:
+every violation is a small convenience at the moment it is written, and the sum
+of them is an engine that plays one game well and nothing else.
+
+It is not enough that a rule *works*. Ask where it is written:
+
+| Written in the game file | Written in the engine |
+|---|---|
+| Tough hands a point back to whatever was struck, if it is tough | `if tag == "tough" then` |
+| A style names the numbers a card wears: `"badges": ["power", "health"]` | an icon keyed on the word `health` |
+| A phase says the order it resolves its board in | a sort in `activate_zone` that prefers columns |
+| `"cost": { "mana": 3 }` | a `mana` the engine spends |
+
+The middle two are real and were both written in this project by somebody who
+knew the rule and wrote it anyway. A game word reaching the engine through the
+*presentation* layer is the commonest way in — a colour, an icon, a burst keyed
+on the name of a stat — and it is no different from reaching it through `flow`.
+
+**Closed sets are the exception, and they are stated rather than inferred.**
+`fill`, `class`, `fan`, `by_column`: a fixed vocabulary the engine defines, that
+a game *chooses from* and the validator refuses anything outside. That is not
+the engine knowing a rule; it is the engine offering one and being told which.
+The test is whether a second game could want the same word for its own reasons.
+
+**Hardcoding a behaviour needs a necessity and an explicit decision.** Not a
+plausible argument — an actual one, written down here or in the idea file that
+paid for it, and agreed. "It was easier" is not a necessity, and neither is "no
+other game will want this", which has been wrong every time it has been said.
+
+---
+
 ## Data Model
 
 **Flat arrays with foreign keys only.** All runtime entity state lives in a single flat array. Entities reference each other by integer index (ID), never by Lua table pointer. This makes the full game state trivially serializable and copyable.

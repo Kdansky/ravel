@@ -351,8 +351,19 @@ end
 -- destroyed, so the pooled quantifiers coincide here: only "random." narrows,
 -- to one victim. Ids are collected before anything is removed — destroying
 -- while walking a zone's own card list is how you skip half of it.
--- activate_zone:<zone>  — every card lying there does what it does, in the
--- zone's own order: slot order on a grid, stacking order anywhere else.
+-- activate_zone:<zone>[:<order>]  — every card lying there does what it does.
+--
+-- **The order is the game's to state, not the engine's.** Without one the cards
+-- act in the order they are in, which is the order the game put them there.
+-- "by_column" is the one other order the engine offers: columns left to right,
+-- and within a column the order the squares are indexed. That is what "strikes
+-- resolve left to right" means on a board of two ranks facing each other — read
+-- row by row it would resolve one whole side and then the other, which is a
+-- different game, and neither is the engine's to prefer.
+--
+-- **One word, and the validator refuses any other.** A closed set of one is not
+-- a design; it is the smallest thing that moves the decision into the file, and
+-- the honest place to grow from when a game wants an order this cannot say.
 --
 -- This is how a *phase* makes cards act. Until now a card only acted because a
 -- player clicked it or because the round wrapped, so anything that had to happen
@@ -375,41 +386,30 @@ HANDLERS["activate_zone"] = function(p, ctx)
 	-- zone entirely, and the list being walked must not be the one changing.
 	local order = {}
 	for i, id in ipairs(z.cards) do order[i] = id end
-	-- On a board, order is position — which is what "strikes resolve left to
-	-- right" means, and it is not the order cards happened to arrive in.
-	--
-	-- **Left to right is by column, not by row.** A battlefield is two ranks
-	-- facing each other, so reading it row by row resolves one whole side and
-	-- then the other; reading it column by column resolves lane a, then lane b,
-	-- which is the pairing. On a single-rank zone the two are the same order.
-	local function square(id)
-		local e = entity.get(id)
-		local s = e and e.slot_id and entity.get(e.slot_id)
-		return s and s.stats or nil
-	end
-	if z.zone_type == "grid" then
+	if p[3] == "by_column" then
+		local function square(id)
+			local e = entity.get(id)
+			return e and e.slot_id and entity.get(e.slot_id) or nil
+		end
 		table.sort(order, function(a, b)
 			local sa, sb = square(a), square(b)
-			local ca, cb = sa and sa.col or 0, sb and sb.col or 0
+			local ca = sa and sa.stats.col or 0
+			local cb = sb and sb.stats.col or 0
 			if ca ~= cb then return ca < cb end
-			return (sa and sa.row or 0) > (sb and sb.row or 0)
+			return (sa and sa.slot_idx or 0) < (sb and sb.slot_idx or 0)
 		end)
+	elseif p[3] then
+		content_error("activate_zone: '" .. tostring(p[3]) .. "' is not an order the engine knows")
+		return
 	end
-	-- Which beat of the run a card acts on. Two cards facing each other across
-	-- one lane share it: they are one exchange, and showing them a moment apart
-	-- would read as two.
-	local beat, last_col = 0, nil
-	for _, id in ipairs(order) do
+	for i, id in ipairs(order) do
 		local e = entity.get(id)
 		if e and e.zone_id == z.id then
-			local col = z.zone_type == "grid" and square(id) and square(id).col or nil
-			if col == nil or col ~= last_col then beat = beat + 1 end
-			last_col = col
 			-- Which of the run this is. The rules resolve the whole zone in one
 			-- instant — they have to, or a snapshot could be taken halfway
 			-- through a combat — so this is the only thing the presentation has
-			-- to tell one lane from the next and space them out.
-			if M.on_act then M.on_act(id, beat) end
+			-- to tell one act from the next and space them out.
+			if M.on_act then M.on_act(id, i) end
 			for _, a in ipairs(cards.abilities(e)) do
 				if type(a.action) == "table" then
 					M.run(a.action, { card_id = id, targets = {} })
@@ -772,7 +772,7 @@ local SPEC = {
 	load_game         = "gamefile",
 	destroy           = "scope",
 	ready             = "scope",
-	activate_zone     = "zone",
+	activate_zone     = "zone order?",
 	move              = "scope zone",
 	set_owner         = "scope seat",
 	destroy_self      = "",

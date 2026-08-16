@@ -196,6 +196,9 @@ local STYLE_FIELDS    = { color = true, title = true, border = true, fit = true,
 	ratio = true, chequer = true, paint = true, cell_outline = true, fan = true,
 	badges = true }
 local FAN_DIRS        = { up = true, down = true, left = true, right = true }
+-- The orders activate_zone will walk a zone in. Naming none is the order the
+-- cards are in, which is why this set does not contain a word for it.
+local ORDER_WORDS     = { by_column = true }
 local ASSET_FIELDS    = { src = true, max = true }
 -- A challenge is asked by the resolve_challenge action: one condition, and the
 -- two action lists it chooses between. They only ever work together, which is
@@ -669,6 +672,16 @@ function M.check(G)
 				-- An action's stat argument is a full subject: it may carry a
 				-- scope, and a scoped one may read a stat only cards have.
 				subject_ok(where .. ": " .. op, a)
+			elseif t == "order" then
+				-- A closed set, and today it holds one word. Refusing the rest
+				-- is the point: an order the engine cannot honour must not look
+				-- like one it can, and a game asking for something else should
+				-- be told rather than quietly given the default.
+				if not ORDER_WORDS[a] then
+					warn('%s: "%s" is not an order the engine knows — it knows "by_column", and naming '
+						.. "none acts in the order the cards are in%s",
+						where, tostring(a), suggest(a, ORDER_WORDS))
+				end
 			elseif t == "seat" then
 				-- A seat by its own key, the one that is up, or nobody.
 				if a ~= "none" and a ~= "mine" and not (G.seat_index or {})[a] then

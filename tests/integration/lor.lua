@@ -308,9 +308,11 @@ function M.test_lor_a_nexus_at_zero_ends_it(check)
 end
 
 -- Strikes resolve left to right by board position (lor/rules.md), and on a
--- battlefield that is by *lane*: a, then b, then c. Reading the grid row by row
--- would resolve one whole side and then the other, which is a different rule
--- and would matter the moment anything watched a unit die.
+-- battlefield that is by *lane*: a1 a2, then b1 b2, and so on. That is a rule of
+-- this game, so it is written in this game's file — the "lanes" pattern names
+-- the twelve squares in the order they resolve, and the engine walks what it is
+-- given. Reading the grid row by row would resolve one whole side and then the
+-- other, which is a different game and nothing in the engine should prefer either.
 function M.test_lor_the_lanes_resolve_left_to_right(check)
 	flow.init("lor.json", 5)
 	for _, seat in ipairs({ "north", "south" }) do
@@ -350,9 +352,11 @@ function M.test_lor_the_lanes_resolve_left_to_right(check)
 		acted[1].col == 1 and acted[2].col == 1,
 		("%s, %s"):format(tostring(acted[1] and acted[1].col), tostring(acted[2] and acted[2].col)))
 	check("then the second", acted[3].col == 2 and acted[4].col == 2)
-	check("and a lane is one beat, so a pair is shown as one exchange",
-		acted[1].beat == acted[2].beat and acted[3].beat == acted[4].beat
-		and acted[3].beat > acted[1].beat,
+	-- The beat is the place in the order the *file* named, which is what the
+	-- presentation spaces its bursts out by. It counts acts rather than lanes,
+	-- because with the order authored the engine no longer knows what a lane is.
+	check("and the beat counts along that order",
+		acted[1].beat == 1 and acted[2].beat == 2 and acted[3].beat == 3 and acted[4].beat == 4,
 		("%d %d %d %d"):format(acted[1].beat, acted[2].beat, acted[3].beat, acted[4].beat))
 end
 
