@@ -1,0 +1,220 @@
+{
+  "title": "Runeterra — vanilla combat",
+  "players": [{ "card": "north" }, { "card": "south" }],
+  "stats": [
+    { "key": "nexus", "label": "Nexus", "min": 0, "max": 99, "subject": "nexus@mine.player" },
+    { "key": "mana", "label": "Mana", "min": 0, "max": 10, "subject": "mana@mine.player" }
+  ],
+  "computed_tags": {
+    "dead": { "stat": "health", "less_than": 1 },
+    "passed": { "stat": "passed", "at_least": 1 }
+  },
+  "styles": {
+    "unit": { "fit": "card" },
+    "lane": { "chequer": ["#2b3a55", "#243248"], "cell_outline": false }
+  },
+  "patterns": {
+    "across": { "vectors": [[0, 1]], "class": ["step"] }
+  },
+  "zones": [
+    {
+      "key": "deck",
+      "label": "Deck",
+      "type": "deck",
+      "tags": ["per_seat", "shuffle"],
+      "pos": [[0.84, 0.10, 0.98, 0.30], [0.84, 0.70, 0.98, 0.90]],
+      "contents": [
+        "plucky_poro:3", "cithria:3", "vanguard_defender:3", "vanguard_lookout:3",
+        "ruthless_raider:3", "loyal_badgerbear:3", "mighty_poro:3", "bull_elnuk:3",
+        "vanguard_cavalry:3", "alpha_wildclaw:3"
+      ]
+    },
+    {
+      "key": "hand",
+      "type": "hand",
+      "tags": ["per_seat"],
+      "pos": [[0.04, 0.01, 0.80, 0.11], [0.04, 0.89, 0.80, 0.99]]
+    },
+    {
+      "key": "bench",
+      "label": "Bench",
+      "type": "grid",
+      "grid": [6, 1],
+      "tags": ["per_seat", "activate"],
+      "pos": [[0.16, 0.13, 0.80, 0.28], [0.16, 0.72, 0.80, 0.87]]
+    },
+    {
+      "key": "controls",
+      "type": "grid",
+      "grid": [1, 2],
+      "tags": ["activate"],
+      "pos": [0.02, 0.31, 0.14, 0.69]
+    },
+    {
+      "key": "battle",
+      "type": "grid",
+      "grid": [6, 2],
+      "tags": ["activate", "lane"],
+      "pos": [0.16, 0.31, 0.80, 0.69]
+    }
+  ],
+  "phases": [
+    {
+      "key": "round_start",
+      "type": "automatic",
+      "actions": [
+        "draw_from:mine.deck:mine.hand:1",
+        "draw_from:enemy.deck:enemy.hand:1",
+        "set_stat:mana@each.anyone.player:max:round",
+        "set_stat:passed@each.anyone.pass_button:0"
+      ],
+      "next": [{ "then": "play" }]
+    },
+    {
+      "key": "play",
+      "type": "player_input",
+      "label": "Play a unit, or pass",
+      "seat": "next",
+      "zone": "hand",
+      "next": [
+        { "stat": "count:passed", "at_least": 2, "then": "round_end" },
+        { "then": "hand_over" }
+      ]
+    },
+    {
+      "key": "hand_over",
+      "type": "automatic",
+      "actions": ["set_stat:passed@each.enemy.pass_button:0"],
+      "next": [{ "then": "play" }]
+    },
+    {
+      "key": "round_end",
+      "type": "automatic",
+      "actions": [],
+      "next": [{ "then": "round_start", "ends_round": true }]
+    }
+  ],
+  "end_conditions": [
+    { "stat": "nexus@north_side", "at_most": 0, "then": ["gain_stat:won@south_side:1", "reveal:south_wins"] },
+    { "stat": "nexus@south_side", "at_most": 0, "then": ["gain_stat:won@north_side:1", "reveal:north_wins"] }
+  ],
+  "cards": [
+    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "nexus": 20, "mana": 0 } },
+    { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "nexus": 20, "mana": 0 } },
+
+    {
+      "key": "plucky_poro",
+      "text": "Plucky Poro",
+      "tooltip": "Tough — takes 1 less damage from every source.",
+      "asset": "circle:1:silver",
+      "tags": ["unit", "tough"],
+      "card_stats": { "power": 1, "health": 1, "cost": 1 },
+      "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+    {
+      "key": "cithria",
+      "text": "Cithria of Cloudfield",
+      "asset": "circle:1:gold",
+      "tags": ["unit"],
+      "card_stats": { "power": 2, "health": 2, "cost": 1 },
+      "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+    {
+      "key": "vanguard_defender",
+      "text": "Vanguard Defender",
+      "tooltip": "Tough — takes 1 less damage from every source.",
+      "asset": "square:2:gold",
+      "tags": ["unit", "tough"],
+      "card_stats": { "power": 2, "health": 2, "cost": 2 },
+      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+    {
+      "key": "vanguard_lookout",
+      "text": "Vanguard Lookout",
+      "asset": "square:2:silver",
+      "tags": ["unit"],
+      "card_stats": { "power": 1, "health": 4, "cost": 2 },
+      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+    {
+      "key": "ruthless_raider",
+      "text": "Ruthless Raider",
+      "tooltip": "Overwhelm, Tough — damage past the blocker hits the Nexus, and it takes 1 less from every source.",
+      "asset": "triangle:2:crimson",
+      "tags": ["unit", "tough", "overwhelm"],
+      "card_stats": { "power": 3, "health": 1, "cost": 2 },
+      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+    {
+      "key": "loyal_badgerbear",
+      "text": "Loyal Badgerbear",
+      "asset": "square:3:gold",
+      "tags": ["unit"],
+      "card_stats": { "power": 3, "health": 4, "cost": 3 },
+      "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+    {
+      "key": "mighty_poro",
+      "text": "Mighty Poro",
+      "tooltip": "Overwhelm — damage past the blocker hits the Nexus.",
+      "asset": "triangle:3:silver",
+      "tags": ["unit", "overwhelm"],
+      "card_stats": { "power": 3, "health": 3, "cost": 3 },
+      "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+    {
+      "key": "bull_elnuk",
+      "text": "Bull Elnuk",
+      "asset": "square:4:silver",
+      "tags": ["unit"],
+      "card_stats": { "power": 4, "health": 5, "cost": 4 },
+      "play": { "cost": { "mana": 4 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+    {
+      "key": "vanguard_cavalry",
+      "text": "Vanguard Cavalry",
+      "tooltip": "Tough — takes 1 less damage from every source.",
+      "asset": "square:5:gold",
+      "tags": ["unit", "tough"],
+      "card_stats": { "power": 5, "health": 5, "cost": 5 },
+      "play": { "cost": { "mana": 5 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+    {
+      "key": "alpha_wildclaw",
+      "text": "Alpha Wildclaw",
+      "tooltip": "Overwhelm — damage past the blocker hits the Nexus.",
+      "asset": "triangle:6:crimson",
+      "tags": ["unit", "overwhelm"],
+      "card_stats": { "power": 7, "health": 6, "cost": 6 },
+      "play": { "cost": { "mana": 6 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
+    },
+
+    {
+      "key": "north_wins",
+      "text": "North wins",
+      "story": "South's Nexus falls.",
+      "play": { "action": ["load_game:menu.json"] }
+    },
+    {
+      "key": "south_wins",
+      "text": "South wins",
+      "story": "North's Nexus falls.",
+      "play": { "action": ["load_game:menu.json"] }
+    },
+    {
+      "key": "pass_button",
+      "text": "Pass",
+      "tooltip": "Do nothing and hand over. Two passes in a row end the round; anything either of you does in between clears them.",
+      "asset": "circle:1:slate",
+      "tags": ["pass_button", "immutable"],
+      "card_stats": { "passed": 0 },
+      "activate": { "action": ["set_stat:passed@self:1", "next_phase"] }
+    }
+  ],
+  "setup": {
+    "place": [
+      { "card": "pass_button", "owner": "north", "zone": "controls", "at": ["a2"] },
+      { "card": "pass_button", "owner": "south", "zone": "controls", "at": ["a1"] }
+    ]
+  }
+}

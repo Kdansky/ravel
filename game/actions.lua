@@ -306,6 +306,65 @@ end
 -- destroyed, so the pooled quantifiers coincide here: only "random." narrows,
 -- to one victim. Ids are collected before anything is removed — destroying
 -- while walking a zone's own card list is how you skip half of it.
+-- activate_zone:<zone>  — every card lying there does what it does, in the
+-- zone's own order: slot order on a grid, stacking order anywhere else.
+--
+-- This is how a *phase* makes cards act. Until now a card only acted because a
+-- player clicked it or because the round wrapped, so anything that had to happen
+-- at a particular moment had to be built into the engine — readying at a round
+-- boundary is exactly that, and it is a rule with very specific timing in most
+-- games that have it. With this, the rule goes on a card in a hidden zone and
+-- the phase that should run it says so.
+--
+-- Ungated on purpose. A player clicking a card asks "may I?", and flow answers
+-- with the phase, the cost and whose card it is. A phase running its own rules
+-- has already decided it is time; a rules card that refused itself here would be
+-- a rule that silently did not happen.
+HANDLERS["activate_zone"] = function(p, ctx)
+	local z = zone_of(p[2] or "")
+	if not z then
+		content_error("activate_zone: unknown zone " .. tostring(p[2]))
+		return
+	end
+	-- Snapshot first: an ability may destroy a card, move one in, or empty the
+	-- zone entirely, and the list being walked must not be the one changing.
+	local order = {}
+	for i, id in ipairs(z.cards) do order[i] = id end
+	-- On a board, order is position — which is what "strikes resolve left to
+	-- right" means, and it is not the order cards happened to arrive in.
+	if z.zone_type == "grid" then
+		table.sort(order, function(a, b)
+			local ea, eb = entity.get(a), entity.get(b)
+			local sa = ea and ea.slot_id and entity.get(ea.slot_id)
+			local sb = eb and eb.slot_id and entity.get(eb.slot_id)
+			return (sa and sa.slot_idx or 0) < (sb and sb.slot_idx or 0)
+		end)
+	end
+	for _, id in ipairs(order) do
+		local e = entity.get(id)
+		if e and e.zone_id == z.id then
+			for _, a in ipairs(cards.abilities(e)) do
+				if type(a.action) == "table" then
+					M.run(a.action, { card_id = id, targets = {} })
+				end
+			end
+		end
+	end
+end
+
+-- ready:<scope>  — un-spend the cards in scope. The counterpart to the "exhaust"
+-- cost, and the only way a game can decide *when* being spent wears off: until
+-- this existed the engine readied everything at the round wrap and no game could
+-- say otherwise, which is a rule with very specific timing in most games that
+-- have it at all.
+HANDLERS["ready"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	if not sc then return end
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		if e.kind == "card" then e.exhausted = nil end
+	end
+end
+
 HANDLERS["destroy"] = function(p, ctx)
 	local sc = predicate.parse_scope(p[2] or "")
 	if not sc then return end
@@ -588,6 +647,8 @@ local SPEC = {
 	pop_phase         = "",
 	load_game         = "gamefile",
 	destroy           = "scope",
+	ready             = "scope",
+	activate_zone     = "zone",
 	destroy_self      = "",
 	options           = "any",
 	reveal            = "card",

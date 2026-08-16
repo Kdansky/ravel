@@ -1,6 +1,7 @@
 # 18 — Legends of Runeterra
 
-**Status:** not started · **Size:** large, and the first deliverable is a
+**Status:** **stage 1 done** — [lor/rules.md](lor/rules.md) and
+[lor/decks.md](lor/decks.md) · **Size:** large, and the first deliverable was a
 document rather than code · **Depends on:** [01](01-boardgames.md) gap 5
 (triggers) for anything past the vanilla prototype
 
@@ -54,6 +55,56 @@ document plus a short list of what writing it exposed — every rule that turned
 out to need a paragraph, and every one that ravel cannot express. That second
 list *is* stage 2.
 
+### What writing it exposed
+
+**It was written from sources, not from recollection, and that changed an
+answer.** Riot's own rules pages render in JavaScript and fetch as blank, so the
+spine is the Riot-hosted wiki with gamepressure for the turn structure. Every
+rule in the document is marked **(v)** verified or **(r)** recalled, and the
+Round FAQ — unreadable, and the authority for most of the **(r)** lines — is
+named as the first place to check. That distinction is the deliverable as much
+as the rules are.
+
+- **"Simultaneous combat" was wrong, and it is the correction that matters
+  most.** Strikes resolve **left to right by board position**, one pair at a
+  time. Building simultaneous resolution first would have been the misremembered
+  rule this whole stage exists to catch — and the truth is *better* news, since
+  an ordered run of cards in a zone is a thing ravel already has.
+- **Blocking is one to one, and cannot be anything else.** No double-blocking in
+  either direction — which, with strikes resolving by position, is what makes it
+  *placement* rather than a stored relation. See "Blocking is placement" below;
+  it is the finding that took a missing capability off the list.
+- **The stack is bounded more sharply than expected**, though the bound is
+  recalled rather than verified: **Burst and Focus never enter it at all**, since
+  they resolve on the spot. A response stack is therefore only Fast and Slow, and
+  the four speeds are really *two* questions — may this be played during combat,
+  and may the opponent answer before it resolves. Two booleans, not four cases.
+- **Damage persists across combats within a round** and clears at round start,
+  which is why Regeneration is a keyword. A game that healed at end of combat
+  would be a different game.
+- **Three rules turned out to be free**, and none was on the capability table:
+  round 40 is a tie (an end condition on the round counter), decking out is a
+  loss (`zone_empty` already), and the attack token returning through Scout is a
+  seat stat.
+- **Two were not free and are new to the list.** The **mulligan** is *draw four,
+  replace any subset* — ravel's offer overlay picks exactly one, and choosing a
+  subset is a different interaction. And the **hand cap of 10** is a bound on a
+  zone that has none: a grid is bounded by its cells, a hand is not bounded at
+  all.
+- **A question for whoever builds champions**: level-up transforms in place
+  *keeping the damage already taken*. `become` shipped for chess promotion, where
+  the pawn had no damage to keep — so whether it preserves stats is worth
+  checking before it is relied on.
+- **The card texts arrived after the first draft, and corrected it.** Riot's
+  Data Dragon is 584 KB for set1, not the "few megabytes" the first pass guessed
+  from a truncated fetch; both sets are now checked in under `lor/data/` and
+  every card list is read out of them by a printed query. What that turned up is
+  worth the trip: **four collectible units in the whole of set1 have no keyword
+  at all.** Vanilla bodies are not "most of a real deck's bottom half" — that was
+  recollection, and it was wrong. Milestone 1's deck is ten *text-free* units
+  carrying two keywords between them, Tough and Overwhelm, both pure combat
+  arithmetic and neither touching who may block.
+
 ## Stage 2 — what LoR names that the engine lacks
 
 The ladder's discipline is *each target game names one missing capability*. LoR
@@ -69,23 +120,44 @@ different genre, not because it is unusually complex.
 | Champions levelling up | `become` — **shipped**, and it was chess promotion that paid for it |
 | Ephemeral, Fleeting | a tag plus a round-boundary action — **expressible** |
 | Play / Last Breath / Round Start abilities | **[01](01-boardgames.md) gap 5, triggers** — not started |
-| **Blocking: which unit blocks which** | **missing** — a pairing between two cards |
-| **Combat damage, simultaneous, then deaths** | **missing** — follows from the pairing |
-| **The pass, and responding to a spell** | **missing** — a bounded stack |
+| ~~**Blocking: which unit blocks which**~~ | **not missing — it is placement.** Six lanes a side, and a unit fights what is across. Strictly one to one, which is what a lane is. See below |
+| **Combat damage, ~~simultaneous~~ left to right, then deaths** | **missing** — a walk along the lanes. *Corrected by stage 1: strikes resolve by board position, one pair at a time, not all at once* |
+| **The pass, and responding to a spell** | **missing** — a bounded stack, and stage 1 narrows it: Burst and Focus never enter one |
 | Spell mana, spendable only on spells | **missing, and small** — a cost paid from either of two pools by a rule |
+| Mulligan: draw 4, replace any subset | **missing** — the offer overlay picks exactly one |
+| A hand that holds at most 10 | **missing** — a grid is bounded by its cells, a hand by nothing |
+| Round 40 is a tie · decking out loses · Scout returns the token | **expressible** — an end condition on the round counter, `zone_empty`, and a seat stat |
 
-### The pairing is the interesting one
+### Blocking is placement, and that is the whole of it
 
-Blocking is *this unit blocks that one*, which is a relation between two cards
-that both stay on the board — and the engine has exactly one mechanism for
-that: `attach_to_target` (`actions.lua:418`), which
-[15](15-many-on-one-square.md) records as **built and never used by any shipped
-game**. That file's own recommendation is to *play something through
-`attach_to_target` so the mechanism that already exists stops being
-theoretical*, and a blocker declaring itself against an attacker is the first
-honest customer for it. Expect to find the thin parts it lists — detaching,
-what happens when the parent dies, whether a child can be targeted apart from
-its parent — since a blocker/attacker pair asks all four in one turn.
+*Decided 2026-08-16, and it replaces the design this section used to carry.*
+
+**Six lanes per side, and a unit fights whatever is across from it.** The
+battlefield is a grid of six addressed cells, an attacker is placed in a lane, a
+blocker is placed in the lane opposite, and combat walks the lanes. There is no
+relation to store, because the board already holds it.
+
+**Stage 1 is what makes this a reading of the rule rather than a convenience.**
+Blocking is strictly one to one with no double-blocking in either direction, and
+strikes resolve **left to right by board position** — so LoR's own resolution
+order is a walk along the lanes, and the game lines blockers up opposite
+attackers on screen for exactly that reason. A lane index is not a stand-in for
+the pairing; it *is* the pairing, in the game as well as in the model.
+
+Everything it needs is built: a `grid` zone with addressed cells, `per_seat` so
+each side has its own, `place_in_slot` with its `on_occupied` rule, ownership as
+placement state, and `col`/`row` stamped on every slot so a condition can ask
+what is across ([14](14-kinds-and-placements.md), [08](08-grid-movement-notation.md)).
+An attacker whose opposite lane is empty is the unblocked case, and it is an
+empty-square test rather than an absence of relation.
+
+**So `attach_to_target` is not this track's customer after all.** It stays
+[15](15-many-on-one-square.md)'s open question until the thing it was made for
+turns up — the **Attach** keyword, where a card genuinely rides another and
+moves with it. That is a later milestone and it will ask 15's four thin
+questions properly (detaching, what happens when the parent dies, whether a
+child can be targeted alone) instead of a blocker asking them for one turn and
+then dissolving.
 
 ### The pass is a stack, and it is a small one
 
@@ -98,6 +170,14 @@ right, it is a *bounded* version of the exact thing `01` refused, and the
 refusal was about the unbounded one. The rules document is what settles this,
 and it should be settled before any code, because the answer decides whether
 this is a milestone or a project.]
+
+**Stage 1 got halfway there and says so.** The round *does* end on two
+consecutive passes (verified), the speeds *are* a closed set of four (verified),
+and **Burst and Focus never enter a stack at all** — so what can wait to resolve
+is Fast and Slow alone. Last-first draining is still recalled, not verified,
+because the one page that would settle it is the one that would not render. The
+four speeds collapse into two questions — *playable during combat?* and *may the
+opponent answer first?* — which is a much smaller thing to build than four cases.
 
 The engine has one relevant guarantee already: `flow.settle`'s 64-step budget
 (ARCHITECTURE invariant 3), which is the same discipline `01` gap 5 requires of
@@ -112,7 +192,9 @@ Each ships a playable game file in `game/games/` and its own scripted test, per
 1. **Vanilla combat.** Two decks of units with no text at all, no spells, no
    keywords: draw, play to bench, take the attack token, declare attackers,
    declare blockers, damage, nexus health, somebody wins. This is the milestone
-   that proves the pairing and the combat resolution, and it needs no triggers.
+   that proves the lane model and the combat resolution, and it needs no
+   triggers. Four zones a seat — hand, bench, battlefield, deck — and the
+   battlefield is the six-cell grid the lanes are cut from.
 2. **Burst spells only** — the ones that resolve immediately, so there is still
    no stack. This is where a spell targets, and targeting already exists.
 3. **The pass and the response stack.** Fast and Slow spells, and the round
@@ -129,10 +211,11 @@ Each ships a playable game file in `game/games/` and its own scripted test, per
 [14](14-kinds-and-placements.md) shows is a readable size (chess is 13 cards and
 279 lines) and does **not** want a generator — the generator is what 14 deleted.
 
-**One line about provenance:** card text and names are Riot's. `CREDITS.md`
-already exists as the place this repository records where content came from, and
-`DESIGN.md` requires it stays accurate — a fan implementation of two decks
-belongs in it beside the art.
+**One line about provenance:** card text and names are Riot's. *Corrected by
+stage 1: there is no `CREDITS.md` at the root — the one that exists is
+`game/games/assets/CREDITS.md`, credits living beside the material they cover.
+So the LoR data has its own, [lor/CREDITS.md](lor/CREDITS.md), in the same
+spirit.*
 
 ## Refuse
 
