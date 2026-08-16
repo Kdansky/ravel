@@ -342,6 +342,11 @@ function M.settle()
 				if cur.seat == "next" then rotate_seat() end
 				local pl = player()
 				if pl then pl.stats.plays = 0 end
+				-- What a phase does when it begins, which used to be a thing only
+				-- automatic phases could say. The seat has changed by now, so
+				-- "mine" here is the player about to act; the hand is dealt after,
+				-- so a phase can draw into the hand it is about to deal.
+				actions.run(cur.actions, {})
 				deal(cur)
 			else
 				return
