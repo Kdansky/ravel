@@ -572,6 +572,10 @@ function M.parse(filename)
 			-- carries the stat, so a game missing the line would name its winner
 			-- and change nothing at all.
 			cd.card_stats = cd.card_stats or {}
+			if cd.card_stats.won ~= nil then
+				pp[#pp + 1] = ("card '%s' is a seat and declares \"won\", which the engine keeps for who"
+					.. " has won — it starts at 0 whatever the card says"):format(tostring(seat.card))
+			end
 			cd.card_stats.won = 0
 			-- A seat has to exist before it can act, and one that says nothing
 			-- about where it sits is a stat bag — it goes where the injected one
@@ -622,6 +626,14 @@ function M.parse(filename)
 	-- The engine writes "last_acted" onto whichever card a player touched last,
 	-- so it hands games the word for reading it back rather than making each one
 	-- declare the same computed tag.
+	-- The engine's meaning is the one that survives, and a game silently losing
+	-- its own definition is worse than being told: the injected flag below is what
+	-- makes the validator skip its redefinition warning, so without this nothing
+	-- anywhere would mention the collision.
+	if G.computed_tags.last_acted then
+		pp[#pp + 1] = "computed_tags: 'last_acted' is the engine's own word for the card a player"
+			.. " just touched, and the engine's meaning is the one that survives — pick another name"
+	end
 	G.computed_tags.last_acted = { stat = "last_acted", at_least = 1, injected = true }
 
 	-- A card with more than one ability needs something to *show* for each, and

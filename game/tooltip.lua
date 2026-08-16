@@ -65,7 +65,8 @@ local function blocks(c, def)
 	-- a statistic — the sprite already says whose piece it is. None of them
 	-- describes the thing being hovered, and on castle's throne room the first
 	-- two read as two more of its numbers.
-	local BOOKKEEPING = { round = true, plays = true, turn = true, owner = true, won = true }
+	local BOOKKEEPING = { round = true, plays = true, turn = true, owner = true, won = true,
+		ability = true, last_acted = true }
 
 	local rows = {}
 	if def.cost and next(def.cost) then rows[#rows + 1] = { "Cost", cards.cost_text(def.cost) } end

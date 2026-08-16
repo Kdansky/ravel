@@ -146,6 +146,22 @@ local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = t
 	on_activate = true, activate_target = true, activate_cost = true,
 	activate_phases = true, moves = true,
 	on_play = true, cost = true, needs = true, target = true, phases = true }
+-- Stats the engine writes on a card for itself. A game declaring one gets it
+-- overwritten and no error — which is the shape of bug that costs an afternoon,
+-- because the number is right in the file and wrong in the game.
+--
+-- Only asked of cards a game wrote. The engine stamps several of these onto its
+-- own injected defs, and "won" it stamps onto whichever card a game named as a
+-- seat — that collision is reported at parse, where the authored value still
+-- exists to be compared against.
+local ENGINE_STATS    = {
+	owner      = "which seat a piece belongs to, from where it was placed",
+	turn       = "whose go it is, on the system card",
+	round      = "the round counter, on the system card",
+	plays      = "how many cards have been played this phase",
+	last_acted = "the card a player most recently played or activated",
+	ability    = "which ability a chooser entry stands for",
+}
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
 	owner = true, fill = true, moves = true }
@@ -497,7 +513,7 @@ function M.check(G)
 			if key == "exhaust" then
 				if not is_cost then
 					warn("%s: 'exhaust' is a cost, not a condition — a card cannot need itself spent", where)
-				elseif not where:find("activate", 1, true) then
+				elseif not (is_cost == "activate" or where:find("activate", 1, true)) then
 					warn("%s: 'exhaust' belongs in an activate cost — a card leaving a hand has nothing to spend", where)
 				elseif tonumber(v) ~= 1 then
 					warn("%s: exhaust is 1 — a card is either spent or it is not", where)
@@ -681,6 +697,46 @@ function M.check(G)
 		end
 	end
 
+	-- A target spec, wherever it is written: a card's "play.target", its
+	-- "activate.target", or one inside an entry of an "abilities" list. Extracted
+	-- because the third of those was going unchecked entirely — the card loop read
+	-- the two flat fields and nothing walked the list.
+	local function check_target(where, field, spec)
+		if type(spec) ~= "table" then return end
+		check_fields(where .. " " .. field, spec, TARGET_FIELDS)
+		if spec.type and spec.type ~= "card" and spec.type ~= "slot"
+			and spec.type ~= "zone" then
+			warn("%s %s: type should be 'card', 'slot' or 'zone', not '%s'", where, field, tostring(spec.type))
+		end
+		if spec.type == "zone" then
+			if not spec.zones then
+				warn("%s %s: targets a zone but names none — list them in \"zones\"", where, field)
+			end
+			if spec.tags then
+				warn("%s %s: targets a zone, so \"tags\" is not read (zones are named, not tagged)", where, field)
+			end
+		end
+		if spec.fill ~= nil then
+			if not FILL_WORDS[spec.fill] then
+				warn("%s %s: fill should be 'empty', 'enemy', 'open' or 'any', not '%s'",
+					where, field, tostring(spec.fill))
+			end
+			if spec.type ~= "slot" then
+				warn("%s %s: \"fill\" says what may be standing on a square, so it only applies to \"type\": \"slot\"", where, field)
+			end
+		end
+		for _, t in ipairs(type(spec.tags) == "table" and spec.tags or {}) do
+			if not known_tags[t] then
+				warn("%s %s: looks for the tag '%s', but no card has it%s", where, field, t, suggest(t, known_tags))
+			end
+		end
+		for _, zk in ipairs(type(spec.zones) == "table" and spec.zones or {}) do
+			if not G.zone_defs[zk] then
+				warn("%s %s: searches zone '%s', but no zone has that key%s", where, field, zk, suggest(zk, G.zone_defs))
+			end
+		end
+	end
+
 	-- "phases": which phases a card (or a tag granting it one) may be used in.
 	-- Overlays are excluded on purpose: they lock every other action while they
 	-- are open, so naming one is a rule that can never come true.
@@ -701,6 +757,50 @@ function M.check(G)
 					.. "overlay locks every other action, so it could never be used there",
 					where, tostring(key))
 			end
+		end
+	end
+
+	-- The move rules of one ability: which patterns it moves by, and what may be
+	-- standing on the square it lands on.
+	local function check_moves(where, rules)
+		for _, rule in ipairs(rules or {}) do
+			for _, pname in ipairs(rule.patterns or {}) do
+				if not G.pattern_defs[pname] then
+					warn("%s: moves by the pattern '%s', but none is declared under \"patterns\"%s",
+						where, tostring(pname), suggest(pname, G.pattern_defs))
+				end
+			end
+			if not FILL_WORDS[rule.fill] then
+				warn("%s: a move's fill should be 'empty', 'enemy', 'open' or 'any', not '%s'",
+					where, tostring(rule.fill))
+			end
+			-- Asked of each square the rule offers, with that square as the
+			-- target — so it reads like any other condition, and its subjects
+			-- are checked like any other's.
+			check_map(where .. " where", rule.where)
+		end
+	end
+
+	-- One entry of an "abilities" list, which nothing used to read.
+	--
+	-- A card writing several abilities was invisible here: the loop below checks
+	-- the flat activate_* fields, and those exist only for the one-ability form.
+	-- Everything chess's pawn and king are written as — costs, actions, patterns,
+	-- fills, phases, targets — went unvalidated, which is to say the game driving
+	-- the whole feature was the one the validator had stopped reading.
+	local function check_ability(where, ab)
+		if type(ab) ~= "table" then return end
+		check_map(where .. " cost", ab.cost, "activate")
+		check_list(where .. " action", ab.action)
+		check_phases(where, ab.phases)
+		check_target(where, "target", ab.target)
+		check_moves(where, ab.moves)
+		if ab.moves and not ab.action then
+			warn("%s: says how it moves but does nothing when the square is chosen "
+				.. '(usually "move_to:target")', where)
+		end
+		if ab.target and not ab.action then
+			warn("%s: has a target but no action — there is nothing for it to target", where)
 		end
 	end
 
@@ -732,6 +832,11 @@ function M.check(G)
 			end
 			check_list(where .. " on_activate", td.on_activate)
 			check_phases(where, td.phases)
+			if not td.on_activate then
+				for i, ab in ipairs(td.abilities or {}) do
+					check_ability(("%s ability %d ('%s')"):format(where, i, tostring(ab.key)), ab)
+				end
+			end
 			-- A tag hands behaviour to the cards carrying it, so a card that
 			-- also declares the same field is two answers to one question.
 			-- Reported rather than resolved: there is no precedence rule to
@@ -974,17 +1079,26 @@ function M.check(G)
 		-- Two different things wear the same field. An absolute pattern names
 		-- squares — places, said the way a player says them — and a relative one
 		-- names directions, which are pairs counted from the piece outwards.
-		local grid = absolute and type(def) == "table" and G.zone_defs[def.zone]
-			and G.zone_defs[def.zone].grid or nil
+		-- The board an absolute pattern names, or the only one there is: a pattern
+		-- may leave "zone" out exactly when the game has a single grid, and
+		-- predicate.pattern_slots then resolves it against that one. Leaving it nil
+		-- here measured every square against a placeholder 26x99 instead, so on a
+		-- sole 8x8 board "z9" validated clean and then named nothing at all.
+		local named = absolute and type(def) == "table" and def.zone
+		local board = named and G.zone_defs[def.zone] or (absolute and #grids == 1 and G.zone_defs[grids[1]])
+		local grid = board and board.grid or nil
 		for _, v in ipairs(type(vectors) == "table" and vectors or {}) do
 			if absolute then
 				local col, rank = geometry.square({ grid = grid or { 26, 99 } }, v)
 				if not col then
 					warn('%s: "%s" is not a square — write a column letter and a rank, like "e1"',
 						where, tostring(v))
-				elseif grid and (col > grid[1] or rank > grid[2]) then
+				elseif grid and (col < 1 or rank < 1 or col > grid[1] or rank > grid[2]) then
+					-- Both ends, because a rank counts from 1: "e0" parses, passes
+					-- an upper bound, and is refused by geometry.slot_at at runtime,
+					-- so the pattern quietly names one square fewer than it reads.
 					warn("%s: square '%s' is off '%s', which is %dx%d", where, tostring(v),
-						tostring(def.zone), grid[1], grid[2])
+						tostring(board.key or named), grid[1], grid[2])
 				end
 			elseif type(v) ~= "table" or tonumber(v[1]) == nil or tonumber(v[2]) == nil or #v ~= 2 then
 				warn("%s: every direction is a pair of whole numbers — [1,2] means one column across and two ranks on", where)
@@ -1102,6 +1216,10 @@ function M.check(G)
 					if type(v) ~= "number" then
 						warn("%s card_stats: the value of '%s' should be a number", where, tostring(k))
 					end
+					if ENGINE_STATS[k] and not def.injected then
+						warn("%s card_stats: '%s' is the engine's own — it is %s, and whatever this card"
+							.. " says is overwritten", where, tostring(k), ENGINE_STATS[k])
+					end
 				end
 			end
 		end
@@ -1113,47 +1231,21 @@ function M.check(G)
 		check_list(where .. " on_fail", def.on_fail)
 
 		-- "target" gates playing the card, "activate_target" its board ability;
-		-- same shape, same checks.
+		-- same shape, same checks, and an ability in a list takes the same again.
 		for _, field in ipairs({ "target", "activate_target" }) do
-			local spec = def[field]
-			if type(spec) == "table" then
-				check_fields(where .. " " .. field, spec, TARGET_FIELDS)
-				if spec.type and spec.type ~= "card" and spec.type ~= "slot"
-					and spec.type ~= "zone" then
-					warn("%s %s: type should be 'card', 'slot' or 'zone', not '%s'", where, field, tostring(spec.type))
-				end
-				if spec.type == "zone" then
-					if not spec.zones then
-						warn("%s %s: targets a zone but names none — list them in \"zones\"", where, field)
-					end
-					if spec.tags then
-						warn("%s %s: targets a zone, so \"tags\" is not read (zones are named, not tagged)", where, field)
-					end
-				end
-				if spec.fill ~= nil then
-					if not FILL_WORDS[spec.fill] then
-						warn("%s %s: fill should be 'empty', 'enemy', 'open' or 'any', not '%s'",
-							where, field, tostring(spec.fill))
-					end
-					if spec.type ~= "slot" then
-						warn("%s %s: \"fill\" says what may be standing on a square, so it only applies to \"type\": \"slot\"", where, field)
-					end
-				end
-				for _, t in ipairs(type(spec.tags) == "table" and spec.tags or {}) do
-					if not known_tags[t] then
-						warn("%s %s: looks for the tag '%s', but no card has it%s", where, field, t, suggest(t, known_tags))
-					end
-				end
-				for _, zk in ipairs(type(spec.zones) == "table" and spec.zones or {}) do
-					if not G.zone_defs[zk] then
-						warn("%s %s: searches zone '%s', but no zone has that key%s", where, field, zk, suggest(zk, G.zone_defs))
-					end
-				end
-			end
+			check_target(where, field, def[field])
 		end
 
 		if def.activate_target and not def.on_activate then
 			warn("%s: has an activate_target but no on_activate — there is no ability for it to target", where)
+		end
+
+		-- The flat fields above are the one-ability form's, and only that form
+		-- sets on_activate — so this walks exactly the entries nothing else read.
+		if not def.on_activate then
+			for i, ab in ipairs(def.abilities or {}) do
+				check_ability(("%s ability %d ('%s')"):format(where, i, tostring(ab.key)), ab)
+			end
 		end
 
 		-- Placement: where does this card go? Its tags may disagree (a

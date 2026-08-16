@@ -79,6 +79,44 @@ function M.test_abilities_a_zone_grants_one_and_the_card_has_its_own(check)
 	end)
 end
 
+-- Everything a card writes as an "abilities" list used to be invisible to the
+-- validator: it read the flat activate_* fields, and those exist only for the
+-- one-ability form. Chess's pawn and king are written entirely as lists, so the
+-- game driving the whole feature was the one nothing was reading.
+function M.test_abilities_a_list_entry_is_validated_like_a_block(check)
+	local path = "game/games/tmp_bad_abilities.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+  "title": "Bad Abilities",
+  "zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+  "phases": [{ "key": "turn", "type": "player_input" }],
+  "patterns": { "hop": { "vectors": [[0, 1]] } },
+  "cards": [{ "key": "thing", "text": "Thing", "abilities": [
+    { "key": "bad", "cost": { "gold": 1, "exhaust": 3 }, "phases": ["nowhere"],
+      "action": ["gain_stat:gold:1", "flibbertigibbet:2"],
+      "moves": [{ "patterns": ["nosuch"], "fill": "friendly" }],
+      "target": { "type": "wherever", "count": 1 } }] }]
+}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_bad_abilities.json")
+	os.remove(path)
+	check("it parses", ok, tostring(G))
+	if not ok then return end
+
+	local said = table.concat(require("validate").check(G), "\n")
+	local function reports(what, needle)
+		check("it reports " .. what, said:find(needle, 1, true) ~= nil, said)
+	end
+	reports("a cost stat no card holds", "gold")
+	reports("exhaust as anything but 1", "exhaust is 1")
+	reports("an action the engine has no verb for", "flibbertigibbet")
+	reports("a pattern nothing declares", "'nosuch'")
+	reports("a fill that is not one of the four words", "a move's fill should be")
+	reports("a target type that is not card, slot or zone", "'wherever'")
+	reports("a phase key no phase has", "'nowhere'")
+	reports("and names which ability it was talking about", "ability 1 ('bad')")
+end
+
 -- Two abilities with one name are one name for two things, and the chooser
 -- cannot tell them apart: both mint the same menu card, so the second silently
 -- eats the first. Caught where the authored entry still exists.
