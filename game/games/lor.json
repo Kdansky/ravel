@@ -78,8 +78,14 @@
       "zone": "hand",
       "next": [
         { "stat": "count:passed", "at_least": 2, "then": "round_end" },
-        { "then": "play" }
+        { "then": "hand_over" }
       ]
+    },
+    {
+      "key": "hand_over",
+      "type": "automatic",
+      "actions": ["set_stat:passed@each.enemy.pass_button:0"],
+      "next": [{ "then": "play" }]
     },
     {
       "key": "round_end",
@@ -103,7 +109,7 @@
       "asset": "circle:1:silver",
       "tags": ["unit", "tough"],
       "card_stats": { "power": 1, "health": 1, "cost": 1 },
-      "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "cithria",
@@ -111,7 +117,7 @@
       "asset": "circle:1:gold",
       "tags": ["unit"],
       "card_stats": { "power": 2, "health": 2, "cost": 1 },
-      "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "vanguard_defender",
@@ -120,7 +126,7 @@
       "asset": "square:2:gold",
       "tags": ["unit", "tough"],
       "card_stats": { "power": 2, "health": 2, "cost": 2 },
-      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "vanguard_lookout",
@@ -128,7 +134,7 @@
       "asset": "square:2:silver",
       "tags": ["unit"],
       "card_stats": { "power": 1, "health": 4, "cost": 2 },
-      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "ruthless_raider",
@@ -137,7 +143,7 @@
       "asset": "triangle:2:crimson",
       "tags": ["unit", "tough", "overwhelm"],
       "card_stats": { "power": 3, "health": 1, "cost": 2 },
-      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "loyal_badgerbear",
@@ -145,7 +151,7 @@
       "asset": "square:3:gold",
       "tags": ["unit"],
       "card_stats": { "power": 3, "health": 4, "cost": 3 },
-      "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "mighty_poro",
@@ -154,7 +160,7 @@
       "asset": "triangle:3:silver",
       "tags": ["unit", "overwhelm"],
       "card_stats": { "power": 3, "health": 3, "cost": 3 },
-      "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "bull_elnuk",
@@ -162,7 +168,7 @@
       "asset": "square:4:silver",
       "tags": ["unit"],
       "card_stats": { "power": 4, "health": 5, "cost": 4 },
-      "play": { "cost": { "mana": 4 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 4 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "vanguard_cavalry",
@@ -171,7 +177,7 @@
       "asset": "square:5:gold",
       "tags": ["unit", "tough"],
       "card_stats": { "power": 5, "health": 5, "cost": 5 },
-      "play": { "cost": { "mana": 5 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 5 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "alpha_wildclaw",
@@ -180,7 +186,7 @@
       "asset": "triangle:6:crimson",
       "tags": ["unit", "overwhelm"],
       "card_stats": { "power": 7, "health": 6, "cost": 6 },
-      "play": { "cost": { "mana": 6 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "set_stat:passed@each.enemy.pass_button:0", "next_phase"] }
+      "play": { "cost": { "mana": 6 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
 
     {

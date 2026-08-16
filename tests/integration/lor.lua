@@ -28,6 +28,12 @@ end
 
 -- Passing is a card on the table with a flag on it, so this is an ordinary
 -- activation of an ordinary card — there is nothing here the engine knows about.
+--
+-- The flag is cleared in one place, the "hand_over" phase, and the trick is that
+-- it clears the **enemy's**. That phase runs after the round-end check and before
+-- the seat rotates, so "enemy" there is the player whose turn is about to begin:
+-- clearing their pass is exactly "your pass only counts until you act again".
+-- Two seats is what makes it read that way, which is all this game has.
 local function pass()
 	local seat = zones.active_seat()
 	for _, id in ipairs(zones.find("controls").cards) do
