@@ -170,20 +170,29 @@ function M.entities_in_scope(scope, ctx, owner)
 		-- this only adds it up.
 		if reaching then return out end
 		reaching = true
-		local active, seen = zones.active_seat(), {}
-		local targeting = require("targeting")
-		for e in entity.each("card") do
-			if e.slot_id and owned_by(e, owner, active) then
-				for _, sid in ipairs(targeting.moves_of(e.id)) do
-					if not seen[sid] then
-						seen[sid] = true
-						local occ = entity.get(sid).occupant
-						if occ then out[#out + 1] = entity.get(occ) end
+		-- Put the latch back even when the body raises. Left standing, it does
+		-- not crash anything — it answers *empty* to every later reach question,
+		-- so chess quietly stops seeing check and the game plays on saying
+		-- nothing is wrong. A silent wrong answer for the rest of the session is
+		-- worse than the error that caused it, which is the same reason
+		-- zones.as_seat is written this way.
+		local ok, err = pcall(function()
+			local active, seen = zones.active_seat(), {}
+			local targeting = require("targeting")
+			for e in entity.each("card") do
+				if e.slot_id and owned_by(e, owner, active) then
+					for _, sid in ipairs(targeting.moves_of(e.id)) do
+						if not seen[sid] then
+							seen[sid] = true
+							local occ = entity.get(sid).occupant
+							if occ then out[#out + 1] = entity.get(occ) end
+						end
 					end
 				end
 			end
-		end
+		end)
 		reaching = false
+		if not ok then error(err, 0) end
 		-- The owner word was spent on choosing the pieces, so it must not be
 		-- spent again on what they threaten.
 		return out

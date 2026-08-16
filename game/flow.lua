@@ -418,12 +418,6 @@ function M.init(filename, seed)
 	M.settle()
 end
 
--- True if a cost table like { gold = 2 } can be paid. nil cost = free.
--- "sacrifice:<tag>" entries are paid in board cards instead of stats; every
--- other key is a subject, so it may carry a scope and quantifier
--- ({ "hp@each.follower": 1 } — each follower must have one to give).
--- Lives here rather than in cards because it reads the live entity graph and
--- every caller is a legality gate, and because payment is right below it.
 -- The card a player most recently played or activated. One at a time, and it
 -- lingers until the next thing a player does — which is exactly the window en
 -- passant needs, and closes it the instant the opponent does anything at all
@@ -448,6 +442,12 @@ local function mark_acted(card_id)
 	end
 end
 
+-- True if a cost table like { gold = 2 } can be paid. nil cost = free.
+-- "sacrifice:<tag>" entries are paid in board cards instead of stats; every
+-- other key is a subject, so it may carry a scope and quantifier
+-- ({ "hp@each.follower": 1 } — each follower must have one to give).
+-- Lives here rather than in cards because it reads the live entity graph and
+-- every caller is a legality gate, and because payment is right below it.
 function M.can_afford(cost, ctx)
 	for subject, n in pairs(cost or {}) do
 		local tag = type(subject) == "string" and subject:match("^sacrifice:(.+)$")
@@ -666,15 +666,6 @@ function M.sole_ability(card_id)
 	return #u == 1 and u[1] or nil
 end
 
--- Activate a board card's ability.
---
--- **Being spent is a cost, not a consequence.** An ability that may be used
--- once a round says { "exhaust": 1 } and one that stays available says nothing,
--- where this used to exhaust every card that acted and offer "stays_ready" to
--- opt out. Two reasons the cost is the right end of it: the round-long cooldown
--- is the card's rule rather than the engine's, and once a card may carry
--- several abilities "activating exhausts it" has no answer to *which* ability
--- did — only the one whose cost says so.
 -- Open the chooser for a card that has more than one thing to do. The offer is
 -- the same one `options` deals, and it remembers the card that asked, so the
 -- menu entry chosen knows whose ability it was.
@@ -686,6 +677,12 @@ function M.offer_abilities(card_id)
 	local owner = (entity.get(card_id).stats or {}).owner
 	for _, u in ipairs(usable) do
 		local made = cards.create(u.ability.menu_card, zone_id)
+		-- Which ability this entry means is written on the entry, not baked into
+		-- its definition: *which number* an ability is depends on the zone the
+		-- card is lying in, because a zone's "applies" adds to the list. The same
+		-- menu card dealt for a rook in a pile and a rook on the board would
+		-- otherwise resolve to two different abilities.
+		made.stats.ability = u.index
 		if owner then made.stats.owner = owner end
 	end
 	local z = entity.get(zone_id)
@@ -714,13 +711,13 @@ end
 function M.menu_choice(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	local m   = def and def.menu_for
-	if not m then return nil end
+	if not (def and def.menu_for) then return nil end
 	local z = c.zone_id and entity.get(c.zone_id)
 	local source = z and z.asked_by
 	if not (source and entity.get(source)) then return nil end
-	local a = (cards.abilities(entity.get(source)) or {})[m.index]
-	return a and { source = source, index = m.index, ability = a } or nil
+	local idx = (c.stats or {}).ability
+	local a = idx and (cards.abilities(entity.get(source)) or {})[idx]
+	return a and { source = source, index = idx, ability = a } or nil
 end
 
 -- Shut the offer without choosing anything from it: the entries go, the offer
@@ -737,16 +734,29 @@ function M.close_offer()
 	if phase.is_overlay() then phase.pop() end
 end
 
+-- Activate a board card's ability. With several usable, `index` says which —
+-- the one the chooser resolved to, since the caller has to have asked.
+--
+-- **Being spent is a cost, not a consequence.** An ability that may be used once
+-- a round says { "exhaust": 1 } and one that stays available says nothing, where
+-- this used to exhaust every card that acted and offer "stays_ready" to opt out.
+-- Two reasons the cost is the right end of it: the round-long cooldown is the
+-- card's rule rather than the engine's, and once a card may carry several
+-- abilities "activating exhausts it" has no answer to *which* ability did — only
+-- the one whose cost says so.
 function M.activate(card_id, targets, index)
 	if phase.is_overlay() then return false end   -- a pending choice locks other actions
-	local chosen
-	for _, u in ipairs(M.usable_abilities(card_id)) do
+	-- Asked once and held: each call walks every ability through can_afford and
+	-- generates its moves, and this is the hot legality path — the renderer asks
+	-- it per board card per frame, and the browser build has no JIT.
+	local usable, chosen = M.usable_abilities(card_id), nil
+	for _, u in ipairs(usable) do
 		if index == nil or u.index == index then chosen = chosen or u end
 	end
 	-- No index and more than one to pick from is a caller that has not asked
 	-- the player yet. Refusing beats guessing: choosing for them is how a
 	-- click spends the wrong thing.
-	if not chosen or (index == nil and #M.usable_abilities(card_id) > 1) then return false end
+	if not chosen or (index == nil and #usable > 1) then return false end
 	local a   = chosen.ability
 	local c   = entity.get(card_id)
 	local def = cards.def(c)
@@ -761,7 +771,7 @@ function M.activate(card_id, targets, index)
 	checkpoint()
 	mark_acted(card_id)
 	log.add("Activated " .. (def.text or c.def_key)
-		.. (a.text and #M.usable_abilities(card_id) > 1 and (" — " .. a.text) or ""))
+		.. (a.text and #usable > 1 and (" — " .. a.text) or ""))
 	pay(a.cost, ctx)
 	actions.run(a.action, ctx)
 	M.settle()

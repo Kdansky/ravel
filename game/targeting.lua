@@ -118,15 +118,15 @@ local function find_zones(zone_set)
 	return res
 end
 
--- Where this piece could move, right now. The reach half of `candidates`, with
--- none of the filtering that decides what a *player* may pick — a condition
--- asking what the enemy threatens is not choosing anything.
 -- The squares one set of move rules offers, for asking whether an ability has
 -- anywhere to go before offering it.
 function M.moves_by(card_id, rules)
 	return find_moves(card_id, rules)
 end
 
+-- Where this piece could move, right now. The reach half of `candidates`, with
+-- none of the filtering that decides what a *player* may pick — a condition
+-- asking what the enemy threatens is not choosing anything.
 function M.moves_of(card_id)
 	local e = entity.get(card_id)
 	if not e then return {} end

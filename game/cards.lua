@@ -91,9 +91,6 @@ function M.def(card_entity)
 	return declaration.G.card_defs[card_entity.def_key]
 end
 
--- Only what the zone a card lies in hands it, through "applies". Prose wants
--- this on its own: "advance the expedition" and "take this into your hand"
--- describe different acts, and the tooltip shows both.
 -- Every activated ability this card has right now: its own, then any its zone
 -- hands out. **Added, not substituted** — a zone that grants an ability used to
 -- hide the card's own, so a rook lying in a discard pile could be taken and no
@@ -110,6 +107,9 @@ function M.abilities(card_entity)
 	return out
 end
 
+-- Only what the zone a card lies in hands it, through "applies". Prose wants
+-- this on its own: "advance the expedition" and "take this into your hand"
+-- describe different acts, and the tooltip shows both.
 function M.zone_grant(card_entity, field)
 	local z = card_entity.zone_id and entity.get(card_entity.zone_id)
 	for _, tag in ipairs(z and z.applies or {}) do

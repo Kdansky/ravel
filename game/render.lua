@@ -823,7 +823,9 @@ end
 -- occupied cells, and edge to edge (pad 0) rather than on the card footprint:
 -- squares that tile with gaps between them do not read as a board.
 --
--- The parity is (col + row), so the top-left square takes the first colour.
+-- Which square takes which colour is `zones.chequer_index`, because it is a fact
+-- about the board and not about drawing — and because a1 being dark is testable
+-- headless, where this function is not.
 -- Colours are the same words a card's art uses — a palette name or "#rrggbb" —
 -- so there is one colour vocabulary rather than two.
 local function draw_grid_squares(zone_e)
@@ -836,7 +838,7 @@ local function draw_grid_squares(zone_e)
 		local slot = entity.get(slot_id)
 		if slot and slot.stats then
 			local p = zones.cell_rect(zone_e, idx, 0)
-			love.graphics.setColor(unpack((slot.stats.col + slot.stats.row) % 2 == 0 and a or b))
+			love.graphics.setColor(unpack(zones.chequer_index(slot) == 1 and a or b))
 			love.graphics.rectangle("fill", p.x, p.y, p.w, p.h)
 		end
 	end
