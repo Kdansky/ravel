@@ -940,10 +940,10 @@
       "play": {
         "needs": { "count:expedition@mine.red": 1 },
         "action": [
-          "gain_stat:score@mine.player:sum:value@mine.red",
-          "lose_stat:score@mine.player:20",
-          "gain_stat:score@mine.player:sum:value@mine.red:x:count:wager@mine.red",
-          "lose_stat:score@mine.player:20:x:count:wager@mine.red",
+          "stat_gain:score@mine.player:sum:value@mine.red",
+          "stat_damage:score@mine.player:20",
+          "stat_gain:score@mine.player:sum:value@mine.red:x:count:wager@mine.red",
+          "stat_damage:score@mine.player:20:x:count:wager@mine.red",
           "destroy_self"
         ]
       }
@@ -955,7 +955,7 @@
       "tags": ["scoring", "token", "crimson"],
       "play": {
         "needs": { "count:expedition@mine.red": 8 },
-        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+        "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },
     {
@@ -966,10 +966,10 @@
       "play": {
         "needs": { "count:expedition@mine.green": 1 },
         "action": [
-          "gain_stat:score@mine.player:sum:value@mine.green",
-          "lose_stat:score@mine.player:20",
-          "gain_stat:score@mine.player:sum:value@mine.green:x:count:wager@mine.green",
-          "lose_stat:score@mine.player:20:x:count:wager@mine.green",
+          "stat_gain:score@mine.player:sum:value@mine.green",
+          "stat_damage:score@mine.player:20",
+          "stat_gain:score@mine.player:sum:value@mine.green:x:count:wager@mine.green",
+          "stat_damage:score@mine.player:20:x:count:wager@mine.green",
           "destroy_self"
         ]
       }
@@ -981,7 +981,7 @@
       "tags": ["scoring", "token", "jade"],
       "play": {
         "needs": { "count:expedition@mine.green": 8 },
-        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+        "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },
     {
@@ -992,10 +992,10 @@
       "play": {
         "needs": { "count:expedition@mine.blue": 1 },
         "action": [
-          "gain_stat:score@mine.player:sum:value@mine.blue",
-          "lose_stat:score@mine.player:20",
-          "gain_stat:score@mine.player:sum:value@mine.blue:x:count:wager@mine.blue",
-          "lose_stat:score@mine.player:20:x:count:wager@mine.blue",
+          "stat_gain:score@mine.player:sum:value@mine.blue",
+          "stat_damage:score@mine.player:20",
+          "stat_gain:score@mine.player:sum:value@mine.blue:x:count:wager@mine.blue",
+          "stat_damage:score@mine.player:20:x:count:wager@mine.blue",
           "destroy_self"
         ]
       }
@@ -1007,7 +1007,7 @@
       "tags": ["scoring", "token", "azure"],
       "play": {
         "needs": { "count:expedition@mine.blue": 8 },
-        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+        "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },
     {
@@ -1018,10 +1018,10 @@
       "play": {
         "needs": { "count:expedition@mine.white": 1 },
         "action": [
-          "gain_stat:score@mine.player:sum:value@mine.white",
-          "lose_stat:score@mine.player:20",
-          "gain_stat:score@mine.player:sum:value@mine.white:x:count:wager@mine.white",
-          "lose_stat:score@mine.player:20:x:count:wager@mine.white",
+          "stat_gain:score@mine.player:sum:value@mine.white",
+          "stat_damage:score@mine.player:20",
+          "stat_gain:score@mine.player:sum:value@mine.white:x:count:wager@mine.white",
+          "stat_damage:score@mine.player:20:x:count:wager@mine.white",
           "destroy_self"
         ]
       }
@@ -1033,7 +1033,7 @@
       "tags": ["scoring", "token", "ivory"],
       "play": {
         "needs": { "count:expedition@mine.white": 8 },
-        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+        "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },
     {
@@ -1044,10 +1044,10 @@
       "play": {
         "needs": { "count:expedition@mine.yellow": 1 },
         "action": [
-          "gain_stat:score@mine.player:sum:value@mine.yellow",
-          "lose_stat:score@mine.player:20",
-          "gain_stat:score@mine.player:sum:value@mine.yellow:x:count:wager@mine.yellow",
-          "lose_stat:score@mine.player:20:x:count:wager@mine.yellow",
+          "stat_gain:score@mine.player:sum:value@mine.yellow",
+          "stat_damage:score@mine.player:20",
+          "stat_gain:score@mine.player:sum:value@mine.yellow:x:count:wager@mine.yellow",
+          "stat_damage:score@mine.player:20:x:count:wager@mine.yellow",
           "destroy_self"
         ]
       }
@@ -1059,7 +1059,7 @@
       "tags": ["scoring", "token", "amber"],
       "play": {
         "needs": { "count:expedition@mine.yellow": 8 },
-        "action": ["gain_stat:score@mine.player:20", "destroy_self"]
+        "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },
     {
@@ -1088,7 +1088,7 @@
       "text": "Done",
       "tooltip": "Finish tallying.",
       "tags": ["token"],
-      "play": { "action": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"] }
+      "play": { "action": ["stat_gain:tallied@mine.player:1", "destroy_self", "next_phase"] }
     },
     {
       "key": "north_wins",
@@ -1166,12 +1166,12 @@
     {
       "key": "north_end",
       "type": "automatic",
-      "actions": ["gain_stat:won@north_side:1", "reveal:north_wins"]
+      "actions": ["stat_gain:won@north_side:1", "reveal:north_wins"]
     },
     {
       "key": "south_end",
       "type": "automatic",
-      "actions": ["gain_stat:won@south_side:1", "reveal:south_wins"]
+      "actions": ["stat_gain:won@south_side:1", "reveal:south_wins"]
     },
     { "key": "mode", "type": "overlay", "zone": "mode" }
   ],

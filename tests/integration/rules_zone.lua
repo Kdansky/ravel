@@ -32,13 +32,13 @@ local GAME = [==[{
   ],
   "cards": [
     { "key": "tapper", "text": "Tapper", "card_stats": { "used": 0 },
-      "activate": { "cost": { "exhaust": 1 }, "action": ["gain_stat:used@self:1"] } },
+      "activate": { "cost": { "exhaust": 1 }, "action": ["stat_gain:used@self:1"] } },
     { "key": "counter", "text": "Counter", "tags": ["counted"], "card_stats": { "ticks": 0 },
-      "activate": { "action": ["gain_stat:ticks@self:1"] } },
+      "activate": { "action": ["stat_gain:ticks@self:1"] } },
     { "key": "rule_ready", "text": "Ready everything",
       "activate": { "action": ["ready:all"] } },
     { "key": "rule_count", "text": "Count the rounds",
-      "activate": { "action": ["gain_stat:ticks@each.counted:1"] } }
+      "activate": { "action": ["stat_gain:ticks@each.counted:1"] } }
   ],
   "setup": {
     "place": [

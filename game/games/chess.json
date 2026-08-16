@@ -95,8 +95,8 @@
         { "then": "black_move" }
       ]
     },
-    { "key": "white_won", "type": "automatic", "actions": ["gain_stat:won@white_side:1", "reveal:white_wins"] },
-    { "key": "black_won", "type": "automatic", "actions": ["gain_stat:won@black_side:1", "reveal:black_wins"] }
+    { "key": "white_won", "type": "automatic", "actions": ["stat_gain:won@white_side:1", "reveal:white_wins"] },
+    { "key": "black_won", "type": "automatic", "actions": ["stat_gain:won@black_side:1", "reveal:black_wins"] }
   ],
   "end_conditions": [],
   "setup": {
@@ -154,7 +154,7 @@
             },
             { "patterns": ["pawn_take"], "fill": "enemy" }
           ],
-          "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "resolve_challenge"]
+          "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "resolve_challenge"]
         },
         {
           "key": "en_passant",
@@ -170,7 +170,7 @@
               }
             }
           ],
-          "action": ["move_to:target", "destroy:behind", "gain_stat:moves_made@self:1", "next_phase"]
+          "action": ["move_to:target", "destroy:behind", "stat_gain:moves_made@self:1", "next_phase"]
         }
       ]
     },
@@ -183,7 +183,7 @@
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
+        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -195,7 +195,7 @@
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["knight_leap"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
+        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -207,7 +207,7 @@
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
+        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -219,7 +219,7 @@
       "card_stats": { "rank": 0, "moves_made": 0 },
       "activate": {
         "moves": ["line_ortho", "line_diag"],
-        "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
+        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
       }
     },
     {
@@ -234,7 +234,7 @@
           "key": "move",
           "text": "Move",
           "moves": ["adjacent"],
-          "action": ["move_to:target:taken", "gain_stat:moves_made@self:1", "next_phase"]
+          "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
         },
         {
           "key": "castle_k",
@@ -255,7 +255,7 @@
           "action": [
             "move_to:target",
             "place:one_right:one_left",
-            "gain_stat:moves_made@self:1",
+            "stat_gain:moves_made@self:1",
             "next_phase"
           ],
           "asset": "king"
@@ -280,7 +280,7 @@
           "action": [
             "move_to:target",
             "place:two_left:one_right",
-            "gain_stat:moves_made@self:1",
+            "stat_gain:moves_made@self:1",
             "next_phase"
           ],
           "asset": "queen"

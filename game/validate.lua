@@ -186,7 +186,7 @@ local ROUTE_FIELDS    = { stat = true, zone_empty = true, equals = true, at_leas
 local END_FIELDS      = { stat = true, zone_empty = true, equals = true, at_least = true,
 	at_most = true, ["then"] = true, fired = true }
 local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_than_stat = true,
-	at_least = true, equals = true }
+	at_least = true, equals = true, less_than_max = true }
 -- The assets table: named pictures, and the only place a picture carries
 -- options. Everything a card's `asset` can spell out inline is legal as a `src`
 -- here too, so the source is checked by the same rules.
@@ -707,7 +707,7 @@ function M.check(G)
 	local function check_list(where, list)
 		if list == nil then return end
 		if type(list) ~= "table" then
-			warn('%s: should be a list of actions like ["gain_stat:gold:1"], not a single value', where)
+			warn('%s: should be a list of actions like ["stat_gain:gold:1"], not a single value', where)
 			return
 		end
 		for _, str in ipairs(list) do
@@ -1218,7 +1218,7 @@ function M.check(G)
 		-- two seats says who won by setting "won" on one of them instead, since
 		-- the same card is read by both and would be wrong for one.
 		if def.outcome and def.outcome ~= "victory" and def.outcome ~= "defeat" then
-			warn("%s: outcome should be 'victory' or 'defeat', not '%s'%s — a game with seats names its winner with gain_stat:won@<seat>:1",
+			warn("%s: outcome should be 'victory' or 'defeat', not '%s'%s — a game with seats names its winner with stat_gain:won@<seat>:1",
 				where, tostring(def.outcome), suggest(def.outcome, { victory = true, defeat = true }))
 		end
 		if def.tags ~= nil and type(def.tags) ~= "table" then
@@ -1236,11 +1236,27 @@ function M.check(G)
 		-- card_stats declare new per-card stats, so only their values are checked.
 		if def.card_stats ~= nil then
 			if type(def.card_stats) ~= "table" then
-				warn('%s: card_stats should be written like { "hp": 3, "hp_max": 3 }', where)
+				warn('%s: card_stats should be written like { "hp": 3 } or { "hp": [3, 3] }', where)
 			else
 				for k, v in pairs(def.card_stats) do
-					if type(v) ~= "number" then
-						warn("%s card_stats: the value of '%s' should be a number", where, tostring(k))
+					-- A number is a bare current value; a list is the bounds
+					-- beside it — [current, max], or [min, current, max].
+					if type(v) == "table" then
+						local n = #v
+						if n < 1 or n > 3 then
+							warn("%s card_stats: '%s' should be a number, [current, max], or [min, current, max]",
+								where, tostring(k))
+						end
+						for _, part in ipairs(v) do
+							if type(part) ~= "number" then
+								warn("%s card_stats: every number in '%s' should be a number", where, tostring(k))
+							end
+						end
+						if n == 3 and type(v[1]) == "number" and type(v[3]) == "number" and v[1] > v[3] then
+							warn("%s card_stats: '%s' has a floor above its ceiling", where, tostring(k))
+						end
+					elseif type(v) ~= "number" then
+						warn("%s card_stats: the value of '%s' should be a number, or a list of them", where, tostring(k))
 					end
 					if ENGINE_STATS[k] and not def.injected then
 						warn("%s card_stats: '%s' is the engine's own — it is %s, and whatever this card"

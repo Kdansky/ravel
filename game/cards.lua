@@ -63,6 +63,45 @@ function M.reset()
 	pending   = {}
 end
 
+-- Give a card a stat it does not have yet, from what the game file wrote.
+--
+-- A number is a bare current value with no ceiling. A list is the bounds
+-- written where a reader can see them:
+--
+--   "hp": 4               current 4, no floor and no ceiling
+--   "hp": [4, 4]          current 4, ceiling 4
+--   "hp": [0, 4, 4]       floor 0, current 4, ceiling 4
+--
+-- The floor left out is whatever the global "stats" entry says, and nothing if
+-- it says nothing — so a card only writes a bound it actually differs on.
+--
+-- **The three live in three tables, and only this function knows that.** A
+-- stat is read as `e.stats[key]` everywhere it was before; the ceiling and the
+-- floor sit beside it rather than inside it, which is what stops "hp_max" being
+-- a stat in its own right that conditions count, actions spend and a tooltip
+-- lists as if the player had one point of maximum.
+--
+-- Untrusted content: every value is coerced to a real number here so nothing
+-- downstream can be tricked into arithmetic on a string or a table.
+function M.attach_stat(e, key, value)
+	local lo, cur, hi
+	if type(value) == "table" then
+		local n = #value
+		if n >= 3 then
+			lo, cur, hi = tonumber(value[1]), tonumber(value[2]), tonumber(value[3])
+		elseif n == 2 then
+			cur, hi = tonumber(value[1]), tonumber(value[2])
+		else
+			cur = tonumber(value[1])
+		end
+	else
+		cur = tonumber(value)
+	end
+	e.stats[key] = cur or 0
+	if hi then e.stat_max[key] = hi end
+	if lo then e.stat_min[key] = lo end
+end
+
 function M.create(def_key, zone_id)
 	local def = declaration.G.card_defs[def_key]
 	assert(def, "Unknown card def: " .. tostring(def_key))
@@ -71,15 +110,14 @@ function M.create(def_key, zone_id)
 		def_key   = def_key,
 		zone_id   = zone_id,
 		place     = { x = 0, y = 0, w = 0, h = 0 },
-		stats     = {},    -- per-entity stats (e.g. hp, hp_max for buildings)
+		stats     = {},    -- per-entity stats: the current value of each
+		stat_max  = {},    -- the ceiling of each, where one was declared
+		stat_min  = {},    -- the floor of each, where one was declared
 		parent_id = nil,   -- set when attached to another card
 		attached  = {},    -- IDs of cards attached to this card
 	}
 	if def.card_stats then
-		-- card_stats is untrusted content: coerce every value to a real
-		-- number here so nothing downstream (gain_stat, comparisons...)
-		-- can be tricked into doing arithmetic on a string/table and crash.
-		for k, v in pairs(def.card_stats) do e.stats[k] = tonumber(v) or 0 end
+		for k, v in pairs(def.card_stats) do M.attach_stat(e, k, v) end
 	end
 	entity.register(e)
 	local zone = entity.get(zone_id)
@@ -167,8 +205,8 @@ local function restamp(def_key, card_stats)
 	for e in entity.each("card") do
 		-- skip destroyed husks (no zone): they must stay stat-less
 		if e.def_key == def_key and e.zone_id then
-			e.stats = {}
-			for k, v in pairs(card_stats or {}) do e.stats[k] = tonumber(v) or 0 end
+			e.stats, e.stat_max, e.stat_min = {}, {}, {}
+			for k, v in pairs(card_stats or {}) do M.attach_stat(e, k, v) end
 		end
 	end
 end

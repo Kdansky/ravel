@@ -76,7 +76,7 @@ end
 
 function M.test_ending_a_winner_names_a_seat_not_a_side(check)
 	flow.init("lost_cities.json", 11)
-	actions.execute("gain_stat:won@north_side:1", {})
+	actions.execute("stat_gain:won@north_side:1", {})
 	actions.execute("reveal:north_wins", {})
 	check("the tally's ending card is an ending", flow.outcome() == "decided")
 

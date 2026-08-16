@@ -762,7 +762,7 @@ local function draw_card_stats_overlay(pl, card_e)
 			if v then x = x + draw_badge(key, tostring(v), x, by, { 1, 1, 1 }) + 2 * S end
 		end
 	elseif stats.hp then
-		local hp_max = stats.hp_max or stats.hp
+		local hp_max = (card_e.stat_max or {}).hp or stats.hp
 		local ratio  = hp_max > 0 and stats.hp / hp_max or 0
 		local colour = ratio > 0.6 and { 0.25, 0.95, 0.35 }
 			or ratio > 0.3 and { 1.00, 0.82, 0.15 }
@@ -1408,14 +1408,12 @@ local function draw_card_detail(card_e)
 			love.graphics.setColor(0.55, 0.70, 0.90)
 			print_at("Stats:", info_x, y)
 			y = y + main_font:getHeight() + 4 * S
+			local caps = card_e.stat_max or {}
 			for k, v in pairs(stats) do
-				if k:sub(-4) ~= "_max" then
-					local mk  = k .. "_max"
-					local val = stats[mk] and (v .. "/" .. stats[mk]) or tostring(v)
-					love.graphics.setColor(0.78, 0.92, 1.00)
-					print_at("  " .. k .. ": " .. val, info_x, y)
-					y = y + main_font:getHeight()
-				end
+				local val = caps[k] and (v .. "/" .. caps[k]) or tostring(v)
+				love.graphics.setColor(0.78, 0.92, 1.00)
+				print_at("  " .. k .. ": " .. val, info_x, y)
+				y = y + main_font:getHeight()
 			end
 			y = y + 10 * S
 		end

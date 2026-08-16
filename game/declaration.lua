@@ -568,7 +568,7 @@ function M.parse(filename)
 			end
 			-- Any seat can be the one that won, so the engine puts the stat on all
 			-- of them rather than making every game declare it. It has to exist
-			-- before it can be written: gain_stat only reaches a card that already
+			-- before it can be written: stat_gain only reaches a card that already
 			-- carries the stat, so a game missing the line would name its winner
 			-- and change nothing at all.
 			cd.card_stats = cd.card_stats or {}

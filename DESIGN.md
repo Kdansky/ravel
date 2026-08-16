@@ -79,14 +79,14 @@ Game actions (a card's `play.action` / `activate.action` / `turn.action`, a phas
 
 ```
 "draw_from:stock"
-"gain_stat:hp:2"
+"stat_gain:hp:2"
 "push_phase:choose_upgrade"
 "load_game:demo.json"
 ```
 
 The engine parses `op:param1:param2:…` at runtime. Unknown ops are ignored (logged). Stat changes clamp to the stat's declared `min`/`max`, and to `[0, <stat>_max]` when the entity carries a companion `<stat>_max` value.
 
-Every numeric slot accepts a number or `count:<tag>` — the number of cards on grid zones carrying that tag: `gain_stat:gold:count:economic`. One amount rule, everywhere.
+Every numeric slot accepts a number or `count:<tag>` — the number of cards on grid zones carrying that tag: `stat_gain:gold:count:economic`. One amount rule, everywhere.
 
 ---
 
@@ -366,7 +366,7 @@ State is flat and serializable, so the engine runs headless (`headless.lua` is t
   ```sh
   echo "stats"                 | nc 127.0.0.1 5757
   echo "play farm slot:8"      | nc 127.0.0.1 5757
-  echo "eval set_stat:gold:9"  | nc 127.0.0.1 5757
+  echo "eval stat_set:gold:9"  | nc 127.0.0.1 5757
   echo "state"                 | nc 127.0.0.1 5757   # full entity dump as JSON
   ```
 

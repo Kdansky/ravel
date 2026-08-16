@@ -65,9 +65,9 @@ local CASES = {
 	{ "an action missing its argument", "'reveal' is missing its card argument",
 		function(g) g.card_defs.c_flee.on_play = { "reveal" } end },
 	{ "an unknown tag in an action amount", "counts the tag 'dragons'",
-		function(g) g.card_defs.c_flee.on_play = { "gain_stat:hp:count:dragons" } end },
+		function(g) g.card_defs.c_flee.on_play = { "stat_gain:hp:count:dragons" } end },
 	{ "a missing card in an action amount", "checks for the card 'excalibur'",
-		function(g) g.card_defs.c_flee.on_play = { "gain_stat:hp:card:excalibur" } end },
+		function(g) g.card_defs.c_flee.on_play = { "stat_gain:hp:card:excalibur" } end },
 	{ "a return_to draining a refilling zone", "refills itself when empty",
 		function(g)
 			g.zone_defs.chest_deck.tags_set.refill_when_empty = true

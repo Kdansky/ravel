@@ -13,7 +13,7 @@
   ],
   "stats": [
     {
-      "key": "name cards spend and conditions read. round and plays are reserved: the engine manages them, declare them only to show them. won is reserved too and sits on every seat, 0 until a game sets it — gain_stat:won@<the winning seat>:1 is how a game with two seats says who won, and the ending screen reads it against the seat this client claimed.",
+      "key": "name cards spend and conditions read. round and plays are reserved: the engine manages them, declare them only to show them. won is reserved too and sits on every seat, 0 until a game sets it — stat_gain:won@<the winning seat>:1 is how a game with two seats says who won, and the ending screen reads it against the seat this client claimed.",
       "label": "string for the HUD row. Defaults to the key.",
       "min": "number the stat is clamped to below. Usually 0.",
       "max": "number the stat is clamped to above.",
@@ -28,6 +28,7 @@
       "stat": "the stat on the card that decides it, read from that card alone",
       "less_than": "number: the tag holds while the stat is under it",
       "less_than_stat": "another stat key on the same card: the tag holds while the first is under the second",
+      "less_than_max": "true: the tag holds while the stat is under its own declared maximum. This is \"damaged\", and it is what card_stats [current, max] made expressible without a second stat standing in for the ceiling.",
       "at_least": "number: the tag holds while the stat reaches it",
       "equals": "number: the tag holds while the stat is exactly it"
     }
@@ -63,7 +64,7 @@
         "a list of words. Free vocabulary for targeting and counting, except where the engine knows one (see _engine_tags) or a style is named after one (see styles) — a card claims a look by tagging it."
       ],
       "card_stats": {
-        "<stat key>": "number stamped on each instance when it is created. An hp with an hp_max companion draws a badge, and 0 hp is ruined."
+        "<stat key>": "the stat each instance is created with. A number is a bare current value. A list is the bounds written beside it: [current, max], or [min, current, max]. A floor left out is whatever the global stats entry declares, and none at all if it declares none — so a card writes only the bound it differs on. Split at creation into the current value, its ceiling and its floor, so every reader downstream still asks for the stat by name."
       },
       "play": {
         "cost": {
@@ -309,10 +310,10 @@
     "move_target_to": "move_target_to:<zone> — move each targeted card",
     "place": "place:<scope>:<where> — put every card in scope on a square. <where> is a square by name (\"g1\"), or the name of a pattern pointing at one from the acting card (\"one_left\") — which is how a rule that works for both sides of a board says where something goes, since a named square is only ever one player's.",
     "gain": "gain:<card>:<n> — create n instances in their home zone, or the hand when no tag names one",
-    "gain_stat": "gain_stat:<subject>:<n> — raise a stat, clamped and logged. The subject may carry a scope: hp@target, hp@each.follower.",
-    "lose_stat": "lose_stat:<subject>:<n> — lower it, same rules",
-    "spend_stat": "spend_stat:<subject>:<n> — an alias of lose_stat, for costs",
-    "set_stat": "set_stat:<subject>:<n> — set it directly, without logging. An authoring tool rather than a game rule.",
+    "stat_gain": "stat_gain:<subject>:<n> — raise a stat, held between its floor and its ceiling, and logged. The subject may carry a scope: hp@target, hp@each.follower.",
+    "stat_damage": "stat_damage:<subject>:<n> — lower it, same rules. The same arithmetic as stat_gain with the sign turned round, and a separate word because \"damage 2\" and \"gain -2\" are the same instruction to the engine and different sentences to everyone else.",
+    "stat_boost": "stat_boost:<subject>:<n> — move the *ceiling*, for a card that carries one (card_stats written [current, max]). The current value comes with it only where it has to: a ceiling lowered under the number standing there would otherwise leave a stat above its own maximum. A stat with no declared ceiling has nothing to boost.",
+    "stat_set": "stat_set:<subject>:<n> — set it directly, past every bound and without logging. An authoring tool rather than a game rule: it is how a phase resets a counter.",
     "attach_to_target": "attach_to_target — tuck the acting card under the first target",
     "transform": "transform:<scope>:<card> — replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own, because it is a different card. A pawn promoting, a checker being crowned, a unit levelling up and a tile turned face up are all this.",
     "destroy": "destroy:<scope> — remove those cards from play entirely. A bare zone key is a scope, so destroy:hand still works.",

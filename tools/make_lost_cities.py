@@ -131,10 +131,10 @@ def templates():
                 # count:wager *was* 1 + wagers; there is no marker any more, so
                 # the one is written out instead of smuggled in.
                 "action": [
-                    "gain_stat:score@mine.player:sum:value@mine." + c,
-                    "lose_stat:score@mine.player:20",
-                    "gain_stat:score@mine.player:sum:value@mine." + c + ":x:count:wager@mine." + c,
-                    "lose_stat:score@mine.player:20:x:count:wager@mine." + c,
+                    "stat_gain:score@mine.player:sum:value@mine." + c,
+                    "stat_damage:score@mine.player:20",
+                    "stat_gain:score@mine.player:sum:value@mine." + c + ":x:count:wager@mine." + c,
+                    "stat_damage:score@mine.player:20:x:count:wager@mine." + c,
                     "destroy_self",
                 ],
             },
@@ -145,7 +145,7 @@ def templates():
             "tags": ["scoring", "token", look],
             "play": {
                 "needs": {("count:expedition@mine." + c): 8},
-                "action": ["gain_stat:score@mine.player:20", "destroy_self"],
+                "action": ["stat_gain:score@mine.player:20", "destroy_self"],
             },
         })
 
@@ -181,7 +181,7 @@ def templates():
         )})
     out.append({"key": "done_scoring", "text": "Done", "tooltip": "Finish tallying.",
                 "tags": ["token"],
-                "play": {"action": ["gain_stat:tallied@mine.player:1", "destroy_self", "next_phase"]}})
+                "play": {"action": ["stat_gain:tallied@mine.player:1", "destroy_self", "next_phase"]}})
     for seat, other in (("north", "South"), ("south", "North")):
         out.append({"key": seat + "_wins", "text": seat.title() + " wins",
                     "story": seat.title() + " comes home with the better haul. "
@@ -323,7 +323,7 @@ def phases():
     # same card is read by both players, and one of them lost.
     for seat in ("north", "south"):
         out.append({"key": seat + "_end", "type": "automatic",
-                    "actions": ["gain_stat:won@" + seat + "_side:1",
+                    "actions": ["stat_gain:won@" + seat + "_side:1",
                                 "reveal:" + seat + "_wins"]})
     # Last, so nothing reaches it by falling off the end of the list: it is
     # only ever pushed, and popped by answering it.

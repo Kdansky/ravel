@@ -42,7 +42,7 @@
       "asset": "blacksmith_forge.jpg",
       "tooltip": "An honest day at the forge. Costs 1 time, earns 2 funds. Once per day.",
       "tags": ["verb"],
-      "activate": { "cost": { "exhaust": 1, "time": 1 }, "action": ["gain_stat:funds:2"] }
+      "activate": { "cost": { "exhaust": 1, "time": 1 }, "action": ["stat_gain:funds:2"] }
     },
     {
       "key": "rest",
@@ -50,7 +50,7 @@
       "asset": "campfire_night.jpg",
       "tooltip": "Sleep, and do not dream. Costs 1 time, restores 3 health. It does nothing for what you already know. Once per day.",
       "tags": ["verb"],
-      "activate": { "cost": { "exhaust": 1, "time": 1 }, "action": ["gain_stat:health:3"] }
+      "activate": { "cost": { "exhaust": 1, "time": 1 }, "action": ["stat_gain:health:3"] }
     },
     {
       "key": "carouse",
@@ -58,7 +58,7 @@
       "asset": "brawl_men.jpg",
       "tooltip": "Drink with people who have never read anything. Costs 1 time and 2 funds, settles 3 dread. Once per day.",
       "tags": ["verb"],
-      "activate": { "cost": { "exhaust": 1, "time": 1, "funds": 2 }, "action": ["lose_stat:dread:3"] }
+      "activate": { "cost": { "exhaust": 1, "time": 1, "funds": 2 }, "action": ["stat_damage:dread:3"] }
     },
     {
       "key": "study",
@@ -69,7 +69,7 @@
       "activate": {
         "cost": { "exhaust": 1, "time": 1 },
         "target": { "type": "card", "count": 1, "tags": ["lore"], "zones": ["holdings"] },
-        "action": ["gain_stat:insight:2", "move_target_to:discard"]
+        "action": ["stat_gain:insight:2", "move_target_to:discard"]
       }
     },
     {
@@ -88,7 +88,7 @@
       "tags": ["verb"],
       "activate": {
         "cost": { "exhaust": 1, "time": 1, "funds": 1 },
-        "action": ["gain_stat:dread:1", "reveal_top:fate"]
+        "action": ["stat_gain:dread:1", "reveal_top:fate"]
       }
     },
     {
@@ -99,7 +99,7 @@
       "tags": ["verb"],
       "activate": {
         "cost": { "exhaust": 1, "time": 2, "insight": 5, "sacrifice:follower": 1 },
-        "action": ["gain_stat:ritual:1"]
+        "action": ["stat_gain:ritual:1"]
       }
     },
     {
@@ -115,7 +115,7 @@
       "asset": "merchant_portrait.jpg",
       "tooltip": "They tithe 1 fund each night. They believe the vigil ends well for everyone.",
       "tags": ["follower"],
-      "turn": { "action": ["gain_stat:funds:1"] }
+      "turn": { "action": ["stat_gain:funds:1"] }
     },
     {
       "key": "a_page",
@@ -129,35 +129,35 @@
       "text": "A Whisper",
       "asset": "torch_night.jpg",
       "tooltip": "One word, in a voice you know. +1 insight, +1 dread.",
-      "play": { "action": ["gain_stat:insight:1", "gain_stat:dread:1"] }
+      "play": { "action": ["stat_gain:insight:1", "stat_gain:dread:1"] }
     },
     {
       "key": "a_patron",
       "text": "A Patron",
       "asset": "gold_coins.jpg",
       "tooltip": "Someone wealthy is interested in your work. +4 funds.",
-      "play": { "action": ["gain_stat:funds:4"] }
+      "play": { "action": ["stat_gain:funds:4"] }
     },
     {
       "key": "a_nightmare",
       "text": "A Nightmare",
       "asset": "wolves_winter.jpg",
       "tooltip": "You are followed through the snow and you do not wake until it catches you. -2 health, +2 dread.",
-      "play": { "action": ["lose_stat:health:2", "gain_stat:dread:2"] }
+      "play": { "action": ["stat_damage:health:2", "stat_gain:dread:2"] }
     },
     {
       "key": "a_revelation",
       "text": "A Revelation",
       "asset": "eclipse_sun.jpg",
       "tooltip": "For a moment the whole shape of it is plain. +3 insight.",
-      "play": { "action": ["gain_stat:insight:3"] }
+      "play": { "action": ["stat_gain:insight:3"] }
     },
     {
       "key": "an_omen",
       "text": "An Omen",
       "asset": "blighted_tree.jpg",
       "tooltip": "The tree by the gate is dead on one side only. +2 dread, and a tome you did not buy.",
-      "play": { "action": ["gain_stat:dread:2", "gain:tome:1"] }
+      "play": { "action": ["stat_gain:dread:2", "gain:tome:1"] }
     },
     {
       "key": "ascended",
@@ -229,7 +229,7 @@
       "key": "night",
       "type": "automatic",
       "label": "Night",
-      "actions": ["set_stat:time:3", "lose_stat:health:1"]
+      "actions": ["stat_set:time:3", "stat_damage:health:1"]
     },
     {
       "key": "ascension",

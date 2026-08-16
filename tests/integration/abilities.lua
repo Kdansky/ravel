@@ -24,7 +24,7 @@ local GAME = [==[{
   "tags": { "takeable": { "abilities": [
     { "key": "take", "text": "Take it", "action": ["move_to:hand"] }] } },
   "cards": [{ "key": "rook", "text": "Rook", "card_stats": { "moves_made": 0 },
-    "abilities": [{ "key": "move", "text": "Move it", "action": ["gain_stat:moves_made@self:1"] }] }],
+    "abilities": [{ "key": "move", "text": "Move it", "action": ["stat_gain:moves_made@self:1"] }] }],
   "setup": { "place": [{ "card": "rook", "zone": "board", "at": ["a1"] }] }
 }]==]
 
@@ -93,7 +93,7 @@ function M.test_abilities_a_list_entry_is_validated_like_a_block(check)
   "patterns": { "hop": { "vectors": [[0, 1]] } },
   "cards": [{ "key": "thing", "text": "Thing", "abilities": [
     { "key": "bad", "cost": { "gold": 1, "exhaust": 3 }, "phases": ["nowhere"],
-      "action": ["gain_stat:gold:1", "flibbertigibbet:2"],
+      "action": ["stat_gain:gold:1", "flibbertigibbet:2"],
       "moves": [{ "patterns": ["nosuch"], "fill": "friendly" }],
       "target": { "type": "wherever", "count": 1 } }] }]
 }]==])

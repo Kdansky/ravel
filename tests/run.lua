@@ -134,8 +134,8 @@ check("demo card applies its effect", predicate.total("hp") == hp0 - 1)
 check("played card goes to past", zone_count("past") == 1)
 check("a new card was drawn", zone_count("hand") == 2)
 
-eval("set_stat:hp:10")
-eval("gain_stat:hp:3")
+eval("stat_set:hp:10")
+eval("stat_gain:hp:3")
 check("hp clamps at declared max", predicate.total("hp") == 10)
 
 -- === the card a player touched last ===
@@ -167,7 +167,7 @@ check("undo restores hp and hand",
 check("undo erases the undone log lines", log.count() == log_before)
 
 -- === demo: defeat ===
-eval("set_stat:hp:0")
+eval("stat_set:hp:0")
 check("defeat overlay pushed at 0 hp", phase.current().key == "defeat")
 check("fate card dealt to the ending offer", zone_count("defeat_offer") == 1)
 flow.play_card(zones.find("defeat_offer").cards[1], {})
@@ -181,7 +181,7 @@ for _ = 1, 30 do
 	if phase.is_overlay() then
 		flow.play_card(zones.find("offer").cards[1], {})
 	else
-		eval("set_stat:hp:5")
+		eval("stat_set:hp:5")
 		local h = zones.find("hand")
 		if #h.cards == 0 then break end
 		flow.play_card(h.cards[1], {})
@@ -243,9 +243,9 @@ check("undo returns to build1 with the pass in hand", phase.current().key == "bu
 
 -- === castle: activation cost ===
 local throne = find_card("throne_room")
-eval("set_stat:gold:0")
+eval("stat_set:gold:0")
 check("cannot inspire without gold", flow.activate(throne.id) == false)
-eval("set_stat:gold:3")
+eval("stat_set:gold:3")
 local morale0 = predicate.total("morale")
 check("inspire succeeds with gold", flow.activate(throne.id))
 check("morale +1 and gold -2",
@@ -260,9 +260,9 @@ check("exhausted cards cannot activate again", flow.activate(throne.id) == false
 local tdef = declaration.G.card_defs.throne_room
 local ab   = tdef.abilities[1]
 ab.target = { type = "card", count = 1, tags = { "building" }, zones = { "board" } }
-ab.action = { "gain_stat:defense@target:1" }
+ab.action = { "stat_gain:defense@target:1" }
 entity.get(throne.id).exhausted = nil
-eval("set_stat:gold:9")
+eval("stat_set:gold:9")
 check("an ability with a target refuses none", flow.activate(throne.id, {}) == false)
 check("an ability with a target refuses too many",
 	flow.activate(throne.id, { throne.id, throne.id }) == false)
@@ -293,7 +293,7 @@ check("a readied card can pay it again",
 	flow.can_afford({ exhaust = 1 }, { card_id = throne.id }))
 
 ab.cost, ab.target = nil, nil
-ab.action = { "gain_stat:morale:1" }
+ab.action = { "stat_gain:morale:1" }
 entity.get(throne.id).exhausted = nil
 
 -- === several abilities on one card ===
@@ -306,11 +306,11 @@ do
 	local was = td.abilities
 	td.abilities = {
 		{ key = "inspire", text = "Inspire the court", cost = { exhaust = 1, gold = 2 },
-			action = { "gain_stat:morale:1" } },
+			action = { "stat_gain:morale:1" } },
 		{ key = "fortify", text = "Fortify a building", cost = { gold = 1 },
 			target = { type = "card", count = 1, tags = { "building" }, zones = { "board" } },
-			action = { "gain_stat:defense@target:1" } },
-		{ key = "rest", text = "Take the day off", action = { "gain_stat:morale:1" } },
+			action = { "stat_gain:defense@target:1" } },
+		{ key = "rest", text = "Take the day off", action = { "stat_gain:morale:1" } },
 	}
 	for i, a in ipairs(td.abilities) do
 		a.menu_card = "throne_room#" .. a.key
@@ -318,7 +318,7 @@ do
 			menu_for = { card = "throne_room", index = i }, text = a.text, asset = "auto",
 			tags = {}, tags_set = {}, abilities = {}, style = {} }
 	end
-	eval("set_stat:gold:9")
+	eval("stat_set:gold:9")
 	entity.get(throne.id).exhausted = nil
 
 	check("all three are usable with the gold for them", #flow.usable_abilities(throne.id) == 3)
@@ -361,13 +361,13 @@ do
 end
 
 -- === castle: play cost gating ===
-eval("set_stat:gold:0")
+eval("stat_set:gold:0")
 eval("fill:hand:mercenaries:1")
 check("cannot afford mercenaries at 0 gold",
 	flow.play_card(find_card("mercenaries", "hand").id, {}) == false)
 
 -- === castle: slot targeting ===
-eval("set_stat:gold:5")
+eval("stat_set:gold:5")
 eval("fill:hand:farm:1")
 local farm  = find_card("farm", "hand")
 local slot  = empty_slot()
@@ -380,23 +380,23 @@ check("turn ended into build2", phase.current().key == "build2")
 check("hand redealt with 3 plus the pass card", zone_count("hand") == 4)
 
 -- === castle: stat clamping on cards (overheal fix) ===
-actions.execute("lose_stat:hp@target:2", { targets = { farm.id } })
+actions.execute("stat_damage:hp@target:2", { targets = { farm.id } })
 check("farm damaged to 1 hp", farm.stats.hp == 1)
-actions.execute("gain_stat:hp@target:9", { targets = { farm.id } })
+actions.execute("stat_gain:hp@target:9", { targets = { farm.id } })
 check("healing clamps at hp_max", farm.stats.hp == 3)
 
 -- === castle: computed-tag targeting ===
-actions.execute("lose_stat:hp@target:1", { targets = { farm.id } })
+actions.execute("stat_damage:hp@target:1", { targets = { farm.id } })
 eval("fill:hand:repair:1")
 local rep = find_card("repair", "hand")
 targeting.start(rep.id, cards.def(rep).target)
 check("damaged farm eligible for repair", targeting.is_eligible(farm.id))
 check("undamaged throne not eligible", not targeting.is_eligible(throne.id))
 targeting.clear()
-actions.execute("gain_stat:hp@target:1", { targets = { farm.id } })
+actions.execute("stat_gain:hp@target:1", { targets = { farm.id } })
 
 -- === castle: draft overlay via architect ===
-eval("set_stat:gold:5")
+eval("stat_set:gold:5")
 eval("fill:hand:architect:1")
 local deck0 = zone_count("build_deck")
 local hand0 = zone_count("hand")
@@ -412,7 +412,7 @@ check("draft resumes build2 without redealing", phase.current().key == "build2")
 check("hand kept its size (architect out, pick in)", zone_count("hand") == hand0)
 
 -- === castle: sub-card choice via an internal deck (royal decree) ===
-eval("set_stat:gold:9")
+eval("stat_set:gold:9")
 eval("fill:hand:royal_decree:1")
 flow.play_card(find_card("royal_decree", "hand").id, {})
 check("decree opens the edict overlay", phase.current().key == "decree")
@@ -449,7 +449,7 @@ for e in entity.each("card") do
 	local z = entity.get(e.zone_id)
 	if z and z.zone_type == "grid" and (e.stats.hp or 1) > 0 then
 		for _, a in ipairs(cards.def(e).on_turn or {}) do
-			local n = a:match("^gain_stat:gold:(%d+)$")
+			local n = a:match("^stat_gain:gold:(%d+)$")
 			if n then expected_income = expected_income + tonumber(n) end
 		end
 	end
@@ -475,17 +475,17 @@ check("emptied build deck refills from contents", #bd.cards == 15)
 
 -- === castle: a random board card takes the hit ===
 local hp_before_dmg = board_hp()
-eval("lose_stat:hp@random.building:2")
+eval("stat_damage:hp@random.building:2")
 check("a random building took 2 damage", board_hp() == hp_before_dmg - 2)
 
 -- === castle: end conditions ===
-eval("set_stat:morale:0")
+eval("stat_set:morale:0")
 check("castle defeat at 0 morale", phase.current().key == "defeat")
 flow.play_card(zones.find("defeat_offer").cards[1], {})
 check("castle defeat returns to menu", declaration.G.title == "Ravel")
 
 flow.init("castle.json")
-eval("set_stat:morale:10")
+eval("stat_set:morale:10")
 check("castle victory at 10 morale", phase.current().key == "victory")
 flow.play_card(zones.find("victory_offer").cards[1], {})
 check("castle victory returns to menu", declaration.G.title == "Ravel")
@@ -498,7 +498,7 @@ check("edit: plain string value",
 check("edit: json value",
 	cards.edit("farm", "cost", '{"gold": 7}') and fdef.cost.gold == 7)
 
-eval("set_stat:gold:3")
+eval("stat_set:gold:3")
 eval("fill:hand:farm:1")
 check("edited cost gates play immediately",
 	flow.play_card(find_card("farm", "hand").id, {}) == false)
@@ -577,12 +577,18 @@ do
 	local parts, txt = blocks(throne_e.id)
 	check("a card dumps its template, its live entity, its derived facts and its square",
 		#parts == 4 and txt:find("// live", 1, true) and txt:find("// derived", 1, true))
+	-- The template says what the file says: hp is written [current, max], the
+	-- bounds beside the number rather than as a second stat called hp_max.
 	check("the template block is the template, derived fields and all",
 		parts[1].key == "throne_room"
-		and parts[1].card_stats.hp == 20 and parts[1].tags_set == nil)
+		and parts[1].card_stats.hp[1] == 20 and parts[1].card_stats.hp[2] == 20
+		and parts[1].tags_set == nil)
+	-- And the instance has it split: the current value where every reader
+	-- already looks, the ceiling in a table of its own.
 	check("the live entity is the one under the cursor, without its screen rect",
 		parts[2].id == throne_e.id and parts[2].def_key == "throne_room"
-		and parts[2].place == nil and parts[2].stats.hp == 20)
+		and parts[2].place == nil and parts[2].stats.hp == 20
+		and parts[2].stat_max.hp == 20)
 	check("the derived block answers what no file says and nothing stores",
 		parts[3].tags[1] == "building"
 		and table.concat(parts[3].tags, " "):find("standing")
@@ -591,7 +597,7 @@ do
 	check("and the square a piece stands on comes with it",
 		parts[4].kind == "slot" and parts[4].stats.col ~= nil)
 
-	eval("lose_stat:hp@hero:5")
+	eval("stat_damage:hp@hero:5")
 	local hurt = blocks(throne_e.id)
 	check("a computed tag that is only true right now shows up as it becomes true",
 		hurt[2].stats.hp == 15 and table.concat(hurt[3].tags, " "):find("damaged"))
@@ -658,7 +664,7 @@ for e in entity.each("card") do
 	end
 end
 local food0 = predicate.total("food")
-eval("gain_stat:food:count:farm")
+eval("stat_gain:food:count:farm")
 check("count amounts resolve board tags",
 	farms >= 2 and predicate.total("food") == food0 + farms)
 
@@ -671,8 +677,8 @@ check("count-needs gate opens at threshold",
 	flow.can_play(find_card("rally_banner", "hand").id) == true)
 
 -- === kingdom: trials via progress routing ===
-eval("set_stat:progress:15")
-eval("set_stat:plays:1")
+eval("stat_set:progress:15")
+eval("stat_set:plays:1")
 flow.play_card(hand_router("to_market"), {})
 check("progress routed into tier-2 trials", phase.current().key == "trial2")
 check("trial hand: 2 trials plus rest, tokens swept", zone_count("hand") == 3)
@@ -720,14 +726,14 @@ check("validator and fx agree on the base effects", agree)
 flow.init("kingdom.json", 5)
 check("no outcome while the game runs", flow.outcome() == nil)
 check("the summary reports the visible stats", #flow.summary() >= 5)
-eval("set_stat:progress:24")
+eval("stat_set:progress:24")
 check("the coronation is a victory", flow.outcome() == "victory")
 flow.init("kingdom.json", 5)
-eval("set_stat:stability:0")
+eval("stat_set:stability:0")
 check("the collapse is a defeat", flow.outcome() == "defeat")
 flow.init("tower.json", 3)
 flow.play_card(zones.find("reveal").cards[1], {})
-eval("lose_stat:hp:99")
+eval("stat_damage:hp:99")
 check("story pages carry outcomes too", flow.outcome() == "defeat")
 
 -- === phases end and discard like MTG turns ===
@@ -754,7 +760,7 @@ check("the phase it advanced into dealt fresh", zone_count("hand") == 7)
 -- === kingdom: failed trials persist as crises ===
 flow.init("kingdom.json", 5)
 flow.play_card(find_card("warlord", "hand").id, {})
-eval("set_stat:might:0")
+eval("stat_set:might:0")
 eval("fill:hand:war_host:1")
 flow.play_card(find_card("war_host", "hand").id, {})
 check("a failed trial squats on the board as a crisis", find_card("war_host", "board") ~= nil)
@@ -763,22 +769,22 @@ flow.play_card(hand_router("to_market"), {})
 check("an unanswered crisis drains stability each round",
 	predicate.total("stability") == stab1 - 1)
 local crisis = find_card("war_host", "board")
-eval("set_stat:might:9")
+eval("stat_set:might:9")
 flow.activate(crisis.id)
 check("answering the crisis clears it from the board", find_card("war_host", "board") == nil)
 
 -- === kingdom: the three endings ===
-eval("set_stat:stability:0")
+eval("stat_set:stability:0")
 check("stability 0 collapses the realm", phase.current().key == "collapse")
 flow.play_card(zones.find("offer").cards[1], {})
 check("collapse returns to menu", declaration.G.title == "Ravel")
 
 flow.init("kingdom.json", 5)
-eval("set_stat:progress:24")
+eval("stat_set:progress:24")
 check("progress 24 crowns you", phase.current().key == "coronation")
 
 flow.init("kingdom.json", 5)
-eval("set_stat:round:20")
+eval("stat_set:round:20")
 check("round 20 fades to twilight", phase.current().key == "twilight_years")
 
 -- === tower: classical CYOA — reveal pages, secret gates, irreversible ===
@@ -814,7 +820,7 @@ check("keepsakes occupy board slots", find_card("rusty_key", "board").slot_id ~=
 check("the beach trims the choices", zone_count("hand") == 2)
 
 local hp_lantern = predicate.total("hp")
-eval("gain_stat:hp:card:lantern")
+eval("stat_gain:hp:card:lantern")
 check("card amounts resolve template presence", predicate.total("hp") == hp_lantern + 1)
 
 flow.play_card(find_card("c_door", "hand").id, {})
@@ -844,7 +850,7 @@ check("the ending returns to the menu", declaration.G.title == "Ravel")
 
 flow.init("tower.json", 3)
 flow.play_card(zones.find("reveal").cards[1], {})
-eval("lose_stat:hp:99")
+eval("stat_damage:hp:99")
 check("death fires the collapse page", phase.is_overlay() and top_page() == "e_collapse")
 
 -- === placement: tag homes and the single-board fallback ===
@@ -924,7 +930,7 @@ local th  = battlefield_threat()
 local hp0 = th.stats.hp
 flow.activate(find_card("outrider", "battlefield").id)
 check("units wound threats once per day", th.stats.hp < hp0)
-eval("lose_stat:hp@random.threat:9")
+eval("stat_damage:hp@random.threat:9")
 check("a dead threat is slain, not gone", th.stats.hp == 0 and th.zone_id ~= nil)
 
 eval("fill:hand:scavenge:1")
@@ -943,7 +949,7 @@ check("a new day has dawned", predicate.total("round") == 2)
 check("camp discards yesterday's leftovers", zone_count("hand") == 5)
 
 local far0 = zone_count("road_far")
-eval("set_stat:distance:7")
+eval("stat_set:distance:7")
 flow.play_card(hand_router("hard_march"), {})
 check("past six miles the far road deals the threats", zone_count("road_far") == far0 - 1)
 
@@ -951,7 +957,7 @@ eval("fill:hand:burn_the_wagons:1")
 flow.play_card(find_card("burn_the_wagons", "hand").id, {})
 check("burning the wagons sacrificed the unit", find_card("outrider", "battlefield") == nil)
 
-eval("set_stat:distance:12")
+eval("stat_set:distance:12")
 check("twelve miles ends the run at home", phase.is_overlay() and top_page() == "e_home")
 flow.play_card(zones.find("reveal").cards[1], {})
 check("the road returns to the menu", declaration.G.title == "Ravel")
@@ -1041,14 +1047,14 @@ local bp = with_fixture([[{
           "gold": "2"
         },
         "action": [
-          "gain_stat:gld:1"
+          "stat_gain:gld:1"
         ]
       }
     },
     {
       "key": "axe",
       "activate": {
-        "action": "gain_stat:gold:1"
+        "action": "stat_gain:gold:1"
       }
     },
     {
@@ -1102,7 +1108,7 @@ check("total tolerates a non-string subject",
 
 -- Stat values are coerced to numbers at the point they're written (card
 -- creation, setup.player), so a malformed content value can never reach
--- gain_stat/lose_stat arithmetic as a string and crash there instead.
+-- stat_gain/stat_damage arithmetic as a string and crash there instead.
 do
 	local g = declaration.parse("tower.json")
 	g.card_defs.pearl.card_stats = { charge = "lots" }
@@ -1305,9 +1311,9 @@ check("any: the pool reaches 9",       predicate.met({ stat = "hp@any.economic",
 eval("fill:hand:farm:1")
 check("a tag scope ignores cards in hand", predicate.total("hp@economic") == econ_hp)
 
-eval("lose_stat:hp@each.economic:1")
+eval("stat_damage:hp@each.economic:1")
 check("each: the effect reached all three", predicate.total("hp@economic") == econ_hp - 3)
-eval("lose_stat:hp@any.economic:1")
+eval("stat_damage:hp@any.economic:1")
 check("any: the effect reached exactly one", predicate.total("hp@economic") == econ_hp - 4)
 
 -- The rule that stops a cost being free precisely when it cannot be paid.
@@ -1357,7 +1363,7 @@ check("setup.player became a card in the hidden system zone",
 	you ~= nil and entity.get(you.zone_id).key == "system")
 check("a bare read resolves to that card", predicate.total("hp") == you.stats.hp)
 local hp_you = you.stats.hp
-eval("lose_stat:hp:1")
+eval("stat_damage:hp:1")
 check("a bare write lands on the same card it reads from",
 	you.stats.hp == hp_you - 1 and predicate.total("hp") == hp_you - 1)
 
@@ -1451,7 +1457,7 @@ play_fixture([[{
       "text": "Mage",
       "tags": ["mage"],
       "card_stats": { "hp": 4, "might": 1, "mana": 3 },
-      "activate": { "cost": { "mana@self": 1 }, "action": ["gain_stat:might@self:1"] }
+      "activate": { "cost": { "mana@self": 1 }, "action": ["stat_gain:might@self:1"] }
     }
   ]
 }]], 1)
@@ -1566,7 +1572,7 @@ check("hp sums follow the same words",
 	predicate.total("hp@mine.creature") == 3 and predicate.total("hp@enemy.creature") == 6)
 
 -- Ownership composes with the quantifier rather than replacing it.
-eval("lose_stat:hp@each.enemy.creature:1")
+eval("stat_damage:hp@each.enemy.creature:1")
 check("each.enemy reached both of theirs and none of mine",
 	predicate.total("hp@enemy.creature") == 4 and predicate.total("hp@mine.creature") == 3)
 
@@ -1842,11 +1848,11 @@ check("a malformed comparison fails closed, it does not crash",
 
 local throne = find_card("throne_room")
 throne.stats.gold = 0
-eval("gain_stat:gold:sum:defense@standing:x:count:military")
+eval("stat_gain:gold:sum:defense@standing:x:count:military")
 check("a product multiplies two measured terms", throne.stats.gold == 8)
-eval("set_stat:gold:3:x:2")
+eval("stat_set:gold:3:x:2")
 check("plain numbers multiply too", throne.stats.gold == 6)
-eval("gain_stat:gold:sum:defense@standing")
+eval("stat_gain:gold:sum:defense@standing")
 check("a sum: term needs no product to be an amount", throne.stats.gold == 10)
 
 -- === lost cities ===
@@ -1900,10 +1906,10 @@ do   -- scoped: Lua 5.4 allows only 200 live locals in the main chunk,
 	-- (sum - 20) plus (sum - 20) x wagers because a product cannot add one
 	-- inside itself. Red holds a single 7 here, and no wagers.
 	local score0 = predicate.total("score@mine.player")
-	eval("gain_stat:score@mine.player:sum:value@mine.red")
-	eval("lose_stat:score@mine.player:20")
-	eval("gain_stat:score@mine.player:sum:value@mine.red:x:count:wager@mine.red")
-	eval("lose_stat:score@mine.player:20:x:count:wager@mine.red")
+	eval("stat_gain:score@mine.player:sum:value@mine.red")
+	eval("stat_damage:score@mine.player:20")
+	eval("stat_gain:score@mine.player:sum:value@mine.red:x:count:wager@mine.red")
+	eval("stat_damage:score@mine.player:20:x:count:wager@mine.red")
 	check("an expedition scores (sum - 20) x (1 + wagers)",
 		predicate.total("score@mine.player") == score0 - 13)
 
@@ -2542,7 +2548,7 @@ do
 	local pawn = declaration.G.card_defs.pawn
 	pawn.abilities[1].action = { "move_to:target:taken", "resolve_challenge", "next_phase" }
 	pawn.requires = { ["rank@self"] = { at_least = 3 } }
-	pawn.on_pass, pawn.on_fail = { "gain_stat:moves_made@self:100" }, {}
+	pawn.on_pass, pawn.on_fail = { "stat_gain:moves_made@self:100" }, {}
 
 	move("e2", "e4")
 	local p = on("e4")

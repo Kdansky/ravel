@@ -71,7 +71,7 @@
       "key": "p_chest_mimic",
       "text": "The Chest Clenches",
       "story": "The 'chest' clenches. Rows of pale, wet teeth close on your forearm before you tear yourself free, and the thing settles back into its shape of planks and brass, satisfied.",
-      "play": { "action": ["lose_stat:hp:3"] }
+      "play": { "action": ["stat_damage:hp:3"] }
     },
     {
       "key": "p_stair_lit",
@@ -84,7 +84,7 @@
       "text": "Down in the Dark",
       "story": "You feel your way down step by step in the pitch dark. Something thin and sharp — glass? mirrors? — gashes your shins twice before the stair spits you, bleeding, into the bell room.",
       "play": {
-        "action": ["lose_stat:hp:2", "destroy:hand", "fill:hand:c_bell:1", "fill:hand:c_flee:1"]
+        "action": ["stat_damage:hp:2", "destroy:hand", "fill:hand:c_bell:1", "fill:hand:c_flee:1"]
       }
     },
     {
@@ -145,7 +145,7 @@
       "text": "Climb to the gallery",
       "asset": "tower_wall.jpg",
       "tooltip": "The wall is slick and the sill is high. It will cost you.",
-      "play": { "action": ["lose_stat:hp:2", "reveal:p_gallery"] }
+      "play": { "action": ["stat_damage:hp:2", "reveal:p_gallery"] }
     },
     {
       "key": "c_chest",

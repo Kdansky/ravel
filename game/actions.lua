@@ -10,6 +10,8 @@ local rng         = require("rng")
 
 local M = {}
 
+local EMPTY = {}
+
 M.pending_load   = nil   -- set by load_game, consumed by flow after the action list
 M.on_net         = nil   -- optional hook(what, arg): the networking layer's UI, if one is loaded
 M.on_stat_change = nil   -- optional hook(entity, key, delta, ctx) for visual feedback
@@ -63,7 +65,7 @@ end
 
 -- Every numeric slot accepts a number or a measuring fn over a subject —
 -- "count:<tag>", "card:<key>", "sum:<subject>", "max:<subject>" — e.g.
--- "gain_stat:gold:count:economic". One rule everywhere.
+-- "stat_gain:gold:count:economic". One rule everywhere.
 local FN_TERMS = { count = true, card = true, sum = true, max = true }
 
 local function term(p, i, default, ctx)
@@ -77,8 +79,8 @@ end
 -- and no parentheses, so there is no precedence to remember — and a product is
 -- the one thing repeated addition cannot stand in for. Lost Cities scores an
 -- expedition as (sum - 20) x wagers, written as the two actions
--- "gain_stat:score:sum:value@mine.red:x:count:wager" and
--- "lose_stat:score:20:x:count:wager", which is the same arithmetic distributed.
+-- "stat_gain:score:sum:value@mine.red:x:count:wager" and
+-- "stat_damage:score:20:x:count:wager", which is the same arithmetic distributed.
 local function amount(p, i, default, ctx)
 	local v, j = term(p, i, default, ctx)
 	while p[j] == "x" do
@@ -89,19 +91,31 @@ local function amount(p, i, default, ctx)
 	return v
 end
 
--- Change a stat on an entity, clamped to the stat's declared min/max and,
--- when a "<key>_max" companion stat exists, to [0, <key>_max].
+-- The floor and the ceiling a stat is held between on this card: its own if it
+-- declared one, the global "stats" entry's otherwise, and nothing at all if
+-- neither said — a stat with no ceiling grows, and one with no floor may go
+-- negative, which is what lets a blocker carry its own overkill.
+local function bounds(e, key)
+	local def = declaration.G.stat_defs[key] or EMPTY
+	local lo  = e.stat_min and e.stat_min[key]
+	local hi  = e.stat_max and e.stat_max[key]
+	if lo == nil then lo = def.min end
+	if hi == nil then hi = def.max end
+	return lo, hi
+end
+
+local function clamped(e, key, v)
+	local lo, hi = bounds(e, key)
+	if lo and v < lo then v = lo end
+	if hi and v > hi then v = hi end
+	return v
+end
+
+-- Change a stat on an entity, held between its floor and its ceiling.
 local function change_stat(e, key, delta, ctx)
 	if not e or not e.stats then return end
 	local old = e.stats[key] or 0
-	local v   = old + delta
-	local def = declaration.G.stat_defs[key]
-	if def then
-		if def.min and v < def.min then v = def.min end
-		if def.max and v > def.max then v = def.max end
-	end
-	local cap = e.stats[key .. "_max"]
-	if cap then v = math.max(0, math.min(v, cap)) end
+	local v   = clamped(e, key, old + delta)
 	e.stats[key] = v
 	if v ~= old then
 		local txt = string.format("%+d %s", v - old, key)
@@ -267,17 +281,42 @@ HANDLERS["add_to"] = function(p, ctx)
 	end
 end
 
-HANDLERS["gain_stat"] = function(p, ctx)
+-- The four verbs that move a number, named so they sort together: what they
+-- share is the stat, and that is the half worth reading first.
+HANDLERS["stat_gain"] = function(p, ctx)
 	apply_stat(p[2], amount(p, 3, 0, ctx), ctx)
 end
 
-HANDLERS["lose_stat"] = function(p, ctx)
+-- Taking it away. The same arithmetic as stat_gain with the sign turned round,
+-- and a separate word because "damage 2" and "gain -2" are the same instruction
+-- to the engine and different sentences to everyone else.
+HANDLERS["stat_damage"] = function(p, ctx)
 	apply_stat(p[2], -amount(p, 3, 0, ctx), ctx)
 end
 
-HANDLERS["spend_stat"] = HANDLERS["lose_stat"]
+-- Move the ceiling. The current value comes with it only where it has to: a
+-- ceiling lowered under the number standing there would leave a stat above its
+-- own maximum until something unrelated happened to touch it.
+HANDLERS["stat_boost"] = function(p, ctx)
+	local sp = predicate.parse_subject(p[2])
+	if not sp then return end
+	local d = amount(p, 3, 0, ctx)
+	for _, e in ipairs(designated(sp, ctx)) do
+		if e.stat_max then
+			local was = e.stat_max[sp.arg]
+			if was then
+				e.stat_max[sp.arg] = was + d
+				local now = e.stats[sp.arg]
+				if now and now > was + d then change_stat(e, sp.arg, 0, ctx) end
+			end
+		end
+	end
+end
 
-HANDLERS["set_stat"] = function(p, ctx)
+-- Write it outright, past every bound. An authoring tool rather than a game
+-- rule: it is how a phase resets a counter, and it neither logs nor animates,
+-- because nothing a player did caused it.
+HANDLERS["stat_set"] = function(p, ctx)
 	local sp = predicate.parse_subject(p[2])
 	if not sp then return end
 	local v = amount(p, 3, 0, ctx)
@@ -700,10 +739,10 @@ local SPEC = {
 	add_to            = "zone",
 	move_target_to    = "zone",
 	place             = "scope any",
-	gain_stat         = "stat n",
-	lose_stat         = "stat n",
-	spend_stat        = "stat n",
-	set_stat          = "stat n",
+	stat_gain         = "stat n",
+	stat_damage       = "stat n",
+	stat_boost        = "stat n",
+	stat_set          = "stat n",
 	transform         = "scope card",
 	attach_to_target  = "",
 	net_invite        = "",

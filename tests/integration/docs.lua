@@ -71,6 +71,13 @@ local RETIRED = {
 	{ "invisible_title_text", 'the style property "title": false' },
 	{ "invisible_slot_outlines", 'the style property "cell_outline": false' },
 	{ "on_pick", 'the "play" block' },
+	-- The four that move a number are prefixed now, so they sort together and a
+	-- reader looking for "what can change a stat" finds them in one place.
+	{ "gain_stat", "stat_gain" },
+	{ "lose_stat", "stat_damage" },
+	{ "spend_stat", "stat_damage — a cost is an ordinary reduction and never needed its own word" },
+	{ "set_stat", "stat_set" },
+	{ "hp_max", 'card_stats written as a list: "hp": [4, 4] is [current, max]' },
 }
 
 local function read(path)

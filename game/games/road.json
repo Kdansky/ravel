@@ -1,6 +1,7 @@
 {
   "title": "The Long Road",
   "stats": [
+    { "key": "hp", "min": 0, "tags": ["hidden"] },
     { "key": "round", "label": "Day" },
     { "key": "morale", "label": "Morale", "min": 0, "max": 10 },
     { "key": "supplies", "label": "Supplies", "min": 0 },
@@ -95,7 +96,7 @@
       "tags": ["token", "moss"],
       "play": {
         "cost": { "supplies": 1 },
-        "action": ["gain_stat:distance:1", "destroy_self", "next_phase"]
+        "action": ["stat_gain:distance:1", "destroy_self", "next_phase"]
       }
     },
     {
@@ -103,7 +104,7 @@
       "text": "Hungry March",
       "tooltip": "March on empty bellies: a mile for 1 morale.",
       "tags": ["token", "rust"],
-      "play": { "action": ["lose_stat:morale:1", "gain_stat:distance:1", "destroy_self", "next_phase"] }
+      "play": { "action": ["stat_damage:morale:1", "stat_gain:distance:1", "destroy_self", "next_phase"] }
     },
     {
       "key": "outrider",
@@ -111,10 +112,10 @@
       "asset": "horseman_dusk.jpg",
       "tooltip": "Sabres at dusk: strikes a threat for 2, once per day.",
       "tags": ["unit"],
-      "card_stats": { "hp": 2, "hp_max": 2 },
+      "card_stats": { "hp": [2, 2] },
       "play": { "action": ["move_to"] },
       "activate": {
-        "action": ["effect:sabre_hit", "lose_stat:hp@random.threat:2"],
+        "action": ["effect:sabre_hit", "stat_damage:hp@random.threat:2"],
         "cost": { "exhaust": 1 }
       }
     },
@@ -124,10 +125,10 @@
       "asset": "pikemen_spears.jpg",
       "tooltip": "A wall that walks: strikes a threat for 1, once per day.",
       "tags": ["unit"],
-      "card_stats": { "hp": 4, "hp_max": 4 },
+      "card_stats": { "hp": [4, 4] },
       "play": { "action": ["move_to"] },
       "activate": {
-        "action": ["effect:sabre_hit", "lose_stat:hp@random.threat:1"],
+        "action": ["effect:sabre_hit", "stat_damage:hp@random.threat:1"],
         "cost": { "exhaust": 1 }
       }
     },
@@ -137,9 +138,9 @@
       "asset": "hunter_forest.jpg",
       "tooltip": "Knows what the land hides: +1 supply, once per day.",
       "tags": ["unit"],
-      "card_stats": { "hp": 2, "hp_max": 2 },
+      "card_stats": { "hp": [2, 2] },
       "play": { "action": ["move_to"] },
-      "activate": { "action": ["gain_stat:supplies:1"], "cost": { "exhaust": 1 } }
+      "activate": { "action": ["stat_gain:supplies:1"], "cost": { "exhaust": 1 } }
     },
     {
       "key": "torch",
@@ -156,7 +157,7 @@
       "tooltip": "Use it up: +2 supplies, then it is gone.",
       "tags": ["item"],
       "play": { "action": ["move_to"] },
-      "activate": { "action": ["gain_stat:supplies:2", "destroy_self"], "cost": { "exhaust": 1 } }
+      "activate": { "action": ["stat_gain:supplies:2", "destroy_self"], "cost": { "exhaust": 1 } }
     },
     {
       "key": "lucky_shoe",
@@ -165,7 +166,7 @@
       "tooltip": "Nobody believes in it. +1 morale every day anyway.",
       "tags": ["item"],
       "play": { "action": ["move_to"] },
-      "turn": { "action": ["gain_stat:morale:1"] }
+      "turn": { "action": ["stat_gain:morale:1"] }
     },
     {
       "key": "second_wind",
@@ -174,7 +175,7 @@
       "tooltip": "A hot meal and an old song. +2 morale.",
       "play": {
         "cost": { "supplies": 1 },
-        "action": ["effect:hearth_glow", "gain_stat:morale:2", "move_to:graveyard"]
+        "action": ["effect:hearth_glow", "stat_gain:morale:2", "move_to:graveyard"]
       },
       "tags": ["moss"]
     },
@@ -183,7 +184,7 @@
       "text": "Forced March",
       "asset": "marching_column.jpg",
       "tooltip": "Two miles before moonrise, and everyone hates you. Costs 1 morale.",
-      "play": { "cost": { "morale": 1 }, "action": ["gain_stat:distance:2", "move_to:graveyard"] },
+      "play": { "cost": { "morale": 1 }, "action": ["stat_gain:distance:2", "move_to:graveyard"] },
       "tags": ["rust"]
     },
     {
@@ -193,7 +194,7 @@
       "tooltip": "Strip a slain threat: clear it from the road, +2 supplies.",
       "play": {
         "target": { "type": "card", "min": 1, "max": 1, "tags": ["slain"], "zones": ["battlefield"] },
-        "action": ["move_target_to:graveyard", "gain_stat:supplies:2", "move_to:graveyard"]
+        "action": ["move_target_to:graveyard", "stat_gain:supplies:2", "move_to:graveyard"]
       },
       "tags": ["slate"]
     },
@@ -202,7 +203,7 @@
       "text": "Campfire Songs",
       "asset": "campfire_night.jpg",
       "tooltip": "The old verses: +1 morale for every unit still standing.",
-      "play": { "action": ["gain_stat:morale:count:unit", "move_to:graveyard"] },
+      "play": { "action": ["stat_gain:morale:count:unit", "move_to:graveyard"] },
       "tags": ["moss"]
     },
     {
@@ -214,8 +215,8 @@
         "cost": { "sacrifice:unit": 1 },
         "action": [
           "effect:wagon_blaze",
-          "gain_stat:distance:3",
-          "gain_stat:morale:1",
+          "stat_gain:distance:3",
+          "stat_gain:morale:1",
           "move_to:graveyard"
         ]
       }
@@ -226,8 +227,8 @@
       "asset": "wolves_winter.jpg",
       "tooltip": "They pace the column after dark. -1 morale each day it lives.",
       "tags": ["threat"],
-      "card_stats": { "hp": 2, "hp_max": 2 },
-      "turn": { "action": ["effect:wolf_bite", "lose_stat:morale:1"] }
+      "card_stats": { "hp": [2, 2] },
+      "turn": { "action": ["effect:wolf_bite", "stat_damage:morale:1"] }
     },
     {
       "key": "mire",
@@ -235,8 +236,8 @@
       "asset": "swamp_mire.jpg",
       "tooltip": "The road drowns and the wagons sink. -1 supply each day it lasts.",
       "tags": ["threat"],
-      "card_stats": { "hp": 2, "hp_max": 2 },
-      "turn": { "action": ["lose_stat:supplies:1"] }
+      "card_stats": { "hp": [2, 2] },
+      "turn": { "action": ["stat_damage:supplies:1"] }
     },
     {
       "key": "night_things",
@@ -244,8 +245,8 @@
       "asset": "dark_forest.jpg",
       "tooltip": "Never quite seen, never quite gone. -1 morale each day.",
       "tags": ["threat"],
-      "card_stats": { "hp": 3, "hp_max": 3 },
-      "turn": { "action": ["lose_stat:morale:1"] }
+      "card_stats": { "hp": [3, 3] },
+      "turn": { "action": ["stat_damage:morale:1"] }
     },
     {
       "key": "ash_knights",
@@ -253,8 +254,8 @@
       "asset": "dark_riders.jpg",
       "tooltip": "Riders in burnt colors. -1 morale and -1 supply each day they shadow you.",
       "tags": ["threat"],
-      "card_stats": { "hp": 4, "hp_max": 4 },
-      "turn": { "action": ["lose_stat:morale:1", "lose_stat:supplies:1"] }
+      "card_stats": { "hp": [4, 4] },
+      "turn": { "action": ["stat_damage:morale:1", "stat_damage:supplies:1"] }
     },
     {
       "key": "dark_ford",
@@ -262,14 +263,14 @@
       "asset": "river_ford.jpg",
       "tooltip": "The water wants a light. Answer it with a torch in the wagons, or cut a way through.",
       "tags": ["threat"],
-      "card_stats": { "hp": 3, "hp_max": 3 },
+      "card_stats": { "hp": [3, 3] },
       "challenge": {
         "needs": { "card:torch": 1 },
-        "pass": ["move_to:graveyard", "gain_stat:distance:1", "gain_stat:morale:1"],
-        "fail": ["lose_stat:morale:2"]
+        "pass": ["move_to:graveyard", "stat_gain:distance:1", "stat_gain:morale:1"],
+        "fail": ["stat_damage:morale:2"]
       },
       "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
-      "turn": { "action": ["lose_stat:morale:1"] }
+      "turn": { "action": ["stat_damage:morale:1"] }
     },
     {
       "key": "toll_bridge",
@@ -277,14 +278,14 @@
       "asset": "stone_bridge.jpg",
       "tooltip": "The keeper counts your sacks. Answer with 3 supplies in hand (2 are taken), or cut a way through.",
       "tags": ["threat"],
-      "card_stats": { "hp": 3, "hp_max": 3 },
+      "card_stats": { "hp": [3, 3] },
       "challenge": {
         "needs": { "supplies": 3 },
-        "pass": ["move_to:graveyard", "lose_stat:supplies:2", "gain_stat:distance:2"],
-        "fail": ["lose_stat:morale:1"]
+        "pass": ["move_to:graveyard", "stat_damage:supplies:2", "stat_gain:distance:2"],
+        "fail": ["stat_damage:morale:1"]
       },
       "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
-      "turn": { "action": ["lose_stat:morale:1"] }
+      "turn": { "action": ["stat_damage:morale:1"] }
     },
     {
       "key": "e_home",

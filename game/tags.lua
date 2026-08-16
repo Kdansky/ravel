@@ -24,6 +24,14 @@ function M.entity_has(e, tag)
     local v = s[cd.stat]
     if v == nil then return false end
     if cd.less_than      then return v < (tonumber(cd.less_than) or s[cd.less_than] or 0) end
+    -- Below its own ceiling: "damaged", the commonest computed tag there is.
+    -- It used to be written less_than_stat: hp_max, which only worked while a
+    -- maximum was a stat in its own right — the card carried a number called
+    -- hp_max that counting and spending could reach as readily as hp.
+    if cd.less_than_max then
+        local hi = e.stat_max and e.stat_max[cd.stat]
+        return hi ~= nil and v < hi
+    end
     if cd.less_than_stat then return v < (s[cd.less_than_stat] or 0) end
     if cd.at_least       then return v >= (tonumber(cd.at_least) or 0) end
     if cd.equals         then return v == (tonumber(cd.equals) or 0) end

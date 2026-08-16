@@ -170,7 +170,7 @@ render.set_detail(zones.find_id("graveyard")); frame(0.016)
 render.set_detail(nil)
 
 -- choose overlay: options flying in above the dim
-eval("set_stat:gold:9")
+eval("stat_set:gold:9")
 eval("fill:hand:royal_decree:1")
 flow.play_card(hand_card("royal_decree").id, {})
 for _ = 1, 30 do frame(0.016) end
@@ -302,7 +302,7 @@ end
 for _ = 1, 25 do frame(0.033) end
 
 -- ending banner: defeat page fires the flourish, confetti animates
-eval("lose_stat:hp:99")
+eval("stat_damage:hp:99")
 for _ = 1, 20 do frame(0.033) end
 fx.celebrate("victory")
 for _ = 1, 20 do frame(0.033) end
@@ -311,7 +311,7 @@ for _ = 1, 20 do frame(0.033) end
 -- when nobody at this screen is playing, and the loser's word when somebody is.
 flow.init("chess.json", 1)
 render.rescale()
-eval("gain_stat:won@black_side:1")
+eval("stat_gain:won@black_side:1")
 eval("reveal:black_wins")
 for _ = 1, 10 do frame(0.033) end
 require("net").claim_seat("player_white")

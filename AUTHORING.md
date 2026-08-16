@@ -56,13 +56,13 @@ copies it, so a dump can go straight back into the game file.
       "key": "sword",
       "text": "Sword",
       "tooltip": "Gain 1 health.",
-      "play": { "action": ["gain_stat:hp:1", "draw_from:deck:hand:1"] }
+      "play": { "action": ["stat_gain:hp:1", "draw_from:deck:hand:1"] }
     },
     {
       "key": "trap",
       "text": "Trap",
       "tooltip": "Lose 2 health.",
-      "play": { "action": ["lose_stat:hp:2", "draw_from:deck:hand:1"] }
+      "play": { "action": ["stat_damage:hp:2", "draw_from:deck:hand:1"] }
     }
   ],
   "phases": [
@@ -223,8 +223,8 @@ rulebook open alongside.
 | "Choose an enemy creature" | `"target": { "tags": ["creature"], "owner": "enemy", "count": 1 }` |
 | "Roll / draw randomly" | `shuffle` then `reveal_top:<zone>` |
 | "The game ends when the deck is empty" | a route on `{ "zone_empty": ["deck"] }` |
-| "Score 3 points per set" | a scoring card: `gain_stat:score:3:x:count:<tag>` |
-| "(sum − 20) × multiplier" | two actions: `gain_stat:score:sum:…:x:…` then `lose_stat:score:20:x:…` |
+| "Score 3 points per set" | a scoring card: `stat_gain:score:3:x:count:<tag>` |
+| "(sum − 20) × multiplier" | two actions: `stat_gain:score:sum:…:x:…` then `stat_damage:score:20:x:…` |
 | "Whoever has more points wins" | a route: `{ "stat": "score@north_side", "at_least": "score@south_side" }` |
 | "Players each have a different power" | different `player`-tagged templates |
 
@@ -359,7 +359,7 @@ as much as you write into it.
 **Challenges/trials**: `play.action: ["resolve_challenge"]` with a `challenge` block —
 `challenge.pass` / `challenge.fail` on the card. Make passes cost tribute (`pass` starts
 with `move_to:graveyard` plus the toll) and make failures *persist*: `on_fail`
-starts with `move_to:board`, the card carries `turn.action: ["lose_stat:…"]` so an
+starts with `move_to:board`, the card carries `turn.action: ["stat_damage:…"]` so an
 unanswered crisis drains you every round, and `activate.action:
 ["resolve_challenge"]` lets the player answer it later — failure becomes
 escalating pressure instead of a slap.
@@ -368,7 +368,7 @@ escalating pressure instead of a slap.
 the reference below. Progress trackers are just stats that cards raise in their
 own `play.action`.
 
-**Synergies**: `count:<tag>` amounts (`gain_stat:gold:count:economic`),
+**Synergies**: `count:<tag>` amounts (`stat_gain:gold:count:economic`),
 `needs` on counts (a card's own, or a challenge's), computed tags for thresholds, `turn.action` engines,
 and exhaust-limited `activate.action` bursts.
 
@@ -609,7 +609,7 @@ sending `Cache-Control` (imgur sends a year) is answered from the browser's own
 disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
-| `card_stats` | Per-instance stats stamped at creation (`hp`/`hp_max` show a badge; 0 hp = ruined, skips `turn.action`) |
+| `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a list is the bounds beside it — `[current, max]`, or `[min, current, max]`. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
@@ -1099,14 +1099,14 @@ which is how chess declares it.
       }
     }
   ],
-  "action": ["move_to:target", "place:one_right:one_left", "gain_stat:moves_made@self:1", "next_phase"]
+  "action": ["move_to:target", "place:one_right:one_left", "stat_gain:moves_made@self:1", "next_phase"]
 }
 ```
 
 Three things make that work, none of them specific to chess:
 
 - **"Has it moved" is a stat.** A `moves_made` stat plus
-  `gain_stat:moves_made@self:1` in the ability's action, and `{"unmoved":
+  `stat_gain:moves_made@self:1` in the ability's action, and `{"unmoved":
   {"stat": "moves_made", "equals": 0}}` if you want it as a computed tag.
 - **`needs` asks about the piece, `where` asks about the square.** A move rule's
   `needs` is a condition on the mover; its `where` is asked of each square the
@@ -1244,10 +1244,10 @@ the player has to be asked about:
 ```json
 "abilities": [
   { "key": "levy",  "text": "Raise a levy",
-    "cost": { "exhaust": 1 }, "action": ["gain_stat:gold:3", "lose_stat:stability:1"] },
+    "cost": { "exhaust": 1 }, "action": ["stat_gain:gold:3", "stat_damage:stability:1"] },
   { "key": "drill", "text": "Drill the levies",
-    "cost": { "exhaust": 1, "gold": 3 }, "action": ["gain_stat:might:2"] },
-  { "key": "rest",  "text": "A day of rest", "action": ["gain_stat:stability:1"] }
+    "cost": { "exhaust": 1, "gold": 3 }, "action": ["stat_gain:might:2"] },
+  { "key": "rest",  "text": "A day of rest", "action": ["stat_gain:stability:1"] }
 ]
 ```
 
@@ -1417,11 +1417,11 @@ be used, and nothing else would ever say so. Short words are left alone, because
 Per-card derived tags from that card's own stats:
 
 ```json
-"computed_tags": { "damaged":  { "stat": "hp", "less_than_stat": "hp_max" },
+"computed_tags": { "damaged":  { "stat": "hp", "less_than_max": true },
                    "standing": { "stat": "hp", "at_least": 1 } }
 ```
 
-Comparators: `less_than`, `less_than_stat`, `at_least`, `equals`. Usable
+Comparators: `less_than`, `less_than_stat`, `less_than_max`, `at_least`, `equals`. Usable
 anywhere card tags are (targeting, `count:`, and as a scope — castle reads
 `sum:defense@standing` so rubble stops defending).
 
@@ -1499,7 +1499,7 @@ cards arrive in `activate.action` as targets:
   "activate": {
     "cost": { "focus": 1 },
     "target": { "type": "card", "count": 1, "tags": ["material"], "zones": ["table"] },
-    "action": ["lose_stat:hp@target:1", "gain_stat:progress:2"]
+    "action": ["stat_damage:hp@target:1", "stat_gain:progress:2"]
   }
 }
 
@@ -1535,9 +1535,9 @@ Colon-separated strings; unknown ops log and skip.
 multiplied by a second such term with `:x:`, left to right:
 
 ```
-gain_stat:gold:count:economic                        one per economic card
-gain_stat:score:sum:value@mine.red:x:count:wager@mine.red
-lose_stat:score:20:x:count:wager@mine.red            the same product, distributed
+stat_gain:gold:count:economic                        one per economic card
+stat_gain:score:sum:value@mine.red:x:count:wager@mine.red
+stat_damage:score:20:x:count:wager@mine.red            the same product, distributed
 ```
 
 **Zone slots** take a scope expression too, so `arena` is the active seat's and
@@ -1556,10 +1556,9 @@ lose_stat:score:20:x:count:wager@mine.red            the same product, distribut
 | `add_to:zone` | Move the acting card (overlay picks) |
 | `move_target_to:zone` | Move each targeted card |
 | `place:<who>:<where>` | Put every card the scope names on a square of the only board. `<where>` is a square by name (`"g1"`) or a **pattern pointing at one from the acting card** (`"one_left"`) — the second is how a rule works for both sides of a board, since a named square is only ever one player's. Refuses an occupied square |
-| `gain_stat:stat:n` / `lose_stat:stat:n` | Change the stat holder's total (clamped, logged, floats) |
-| `spend_stat:stat:n` | Alias of lose (costs) |
-| `set_stat:stat:n` | Set directly (dev/authoring tool; silent) |
-| `gain_stat:<subject>:n` / `lose_stat:<subject>:n` | Change a stat. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |
+| `stat_gain:<subject>:n` / `stat_damage:<subject>:n` | Change the current value, held between its floor and its ceiling, logged, and floated on the card. Two words for one arithmetic, because "damage 2" and "gain −2" read differently to everybody but the engine. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |
+| `stat_boost:<subject>:n` | Move the **ceiling** of a stat that has one (`card_stats` written `[current, max]`). Lowering it under the number standing there brings the current down with it; nothing else does |
+| `stat_set:<subject>:n` | Set directly, past every bound, silently. A dev and authoring tool — how a phase resets a counter, not how a rule changes a number |
 | `attach_to_target` | Attach the acting card under the first target |
 | `options:<source>` | Offer a choice and open it. `<source>` is a zone, whose cards name the choices, or a comma-separated list of card keys. The chosen card is played with **the asking card as its target** |
 | `transform:<scope>:<card>` | Replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own |

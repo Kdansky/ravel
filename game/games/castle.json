@@ -2,6 +2,7 @@
   "title": "Castle Lord",
   "effects": { "festival_lights": { "base": "sparkle", "count": 1.6 } },
   "stats": [
+    { "key": "hp", "min": 0, "tags": ["hidden"] },
     { "key": "round", "label": "Round" },
     { "key": "gold", "label": "Gold", "min": 0, "max": 999 },
     { "key": "morale", "label": "Morale", "min": 0, "max": 10 },
@@ -15,7 +16,7 @@
     { "key": "food", "label": "Food", "min": 0, "max": 999 }
   ],
   "computed_tags": {
-    "damaged": { "stat": "hp", "less_than_stat": "hp_max" },
+    "damaged": { "stat": "hp", "less_than_max": true },
     "standing": { "stat": "hp", "at_least": 1 }
   },
   "styles": { "slate": { "color": [0.1, 0.14, 0.22] }, "tiled": { "fit": "fill" } },
@@ -27,10 +28,10 @@
       "text": "Throne Room",
       "asset": "castle_hill.jpg",
       "tooltip": "Your seat of power. Taxes bring 1 gold each round. Pay 2 gold to inspire your people (+1 morale).",
-      "card_stats": { "hp": 20, "hp_max": 20, "gold": 20, "morale": 5, "defense": 0, "food": 0 },
+      "card_stats": { "hp": [20, 20], "gold": 20, "morale": 5, "defense": 0, "food": 0 },
       "tags": ["building", "hero"],
-      "activate": { "cost": { "exhaust": 1, "gold": 2 }, "action": ["gain_stat:morale:1"] },
-      "turn": { "action": ["gain_stat:gold:1"] }
+      "activate": { "cost": { "exhaust": 1, "gold": 2 }, "action": ["stat_gain:morale:1"] },
+      "turn": { "action": ["stat_gain:gold:1"] }
     },
     {
       "key": "watchtower",
@@ -42,7 +43,7 @@
         "target": { "type": "slot", "min": 1, "max": 1, "zones": ["board"] },
         "action": ["move_to:board"]
       },
-      "card_stats": { "hp": 4, "hp_max": 4, "defense": 2 },
+      "card_stats": { "hp": [4, 4], "defense": 2 },
       "tags": ["building", "military"]
     },
     {
@@ -55,8 +56,8 @@
         "target": { "type": "slot", "min": 1, "max": 1, "zones": ["board"] },
         "action": ["move_to:board"]
       },
-      "turn": { "action": ["gain_stat:food:1"] },
-      "card_stats": { "hp": 3, "hp_max": 3 },
+      "turn": { "action": ["stat_gain:food:1"] },
+      "card_stats": { "hp": [3, 3] },
       "tags": ["building", "economic"]
     },
     {
@@ -69,8 +70,8 @@
         "target": { "type": "slot", "min": 1, "max": 1, "zones": ["board"] },
         "action": ["move_to:board"]
       },
-      "turn": { "action": ["gain_stat:gold:1"] },
-      "card_stats": { "hp": 3, "hp_max": 3 },
+      "turn": { "action": ["stat_gain:gold:1"] },
+      "card_stats": { "hp": [3, 3] },
       "tags": ["building", "economic"]
     },
     {
@@ -87,7 +88,7 @@
           "tags": ["building", "damaged"],
           "zones": ["board"]
         },
-        "action": ["gain_stat:hp@target:2", "move_to:graveyard"]
+        "action": ["stat_gain:hp@target:2", "move_to:graveyard"]
       },
       "tags": ["one_shot"]
     },
@@ -96,7 +97,7 @@
       "text": "Mercenaries",
       "asset": "army_camp.jpg",
       "tooltip": "Hired swords. +3 defense.",
-      "play": { "cost": { "gold": 2 }, "action": ["gain_stat:defense:3", "move_to:graveyard"] },
+      "play": { "cost": { "gold": 2 }, "action": ["stat_gain:defense:3", "move_to:graveyard"] },
       "tags": ["one_shot"]
     },
     {
@@ -129,7 +130,7 @@
       "tooltip": "A feast for the whole town costs 2 gold. Gain 2 morale.",
       "play": {
         "cost": { "gold": 2 },
-        "action": ["effect:festival_lights", "gain_stat:morale:2", "move_to:edicts"]
+        "action": ["effect:festival_lights", "stat_gain:morale:2", "move_to:edicts"]
       },
       "tags": ["one_shot", "edict"]
     },
@@ -139,7 +140,7 @@
       "asset": "marching_column.jpg",
       "tooltip": "Every able hand takes up arms. Gain 3 defense.",
       "tags": ["one_shot", "edict"],
-      "play": { "action": ["gain_stat:defense:3", "move_to:edicts"] }
+      "play": { "action": ["stat_gain:defense:3", "move_to:edicts"] }
     },
     {
       "key": "tax_levy",
@@ -147,7 +148,7 @@
       "asset": "money_lender.jpg",
       "tooltip": "The coffers fill, the people grumble. Gain 3 gold.",
       "tags": ["one_shot", "edict"],
-      "play": { "action": ["gain_stat:gold:3", "move_to:edicts"] }
+      "play": { "action": ["stat_gain:gold:3", "move_to:edicts"] }
     },
     {
       "key": "bandit_raid",
@@ -155,7 +156,7 @@
       "asset": "cavalry_raid.jpg",
       "tooltip": "Raiders attack! Need 3 defense or lose 2 morale.",
       "tags": ["challenge"],
-      "challenge": { "needs": { "sum:defense@standing": 3 }, "pass": [], "fail": ["lose_stat:morale:2"] },
+      "challenge": { "needs": { "sum:defense@standing": 3 }, "pass": [], "fail": ["stat_damage:morale:2"] },
       "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
     },
     {
@@ -164,7 +165,7 @@
       "asset": "blighted_tree.jpg",
       "tooltip": "Crops wither. Need 3 food or lose 1 morale.",
       "tags": ["challenge"],
-      "challenge": { "needs": { "food": 3 }, "pass": [], "fail": ["lose_stat:morale:1"] },
+      "challenge": { "needs": { "food": 3 }, "pass": [], "fail": ["stat_damage:morale:1"] },
       "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
     },
     {
@@ -173,7 +174,7 @@
       "asset": "gold_coins.jpg",
       "tooltip": "A merchant arrives. Have 2 gold and earn 2 more.",
       "tags": ["challenge"],
-      "challenge": { "needs": { "gold": 2 }, "pass": ["gain_stat:gold:2"], "fail": [] },
+      "challenge": { "needs": { "gold": 2 }, "pass": ["stat_gain:gold:2"], "fail": [] },
       "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
     },
     {
@@ -185,7 +186,7 @@
       "challenge": {
         "needs": { "sum:defense@standing": 5 },
         "pass": [],
-        "fail": ["lose_stat:hp@random.building:2"]
+        "fail": ["stat_damage:hp@random.building:2"]
       },
       "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
     },

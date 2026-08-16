@@ -40,13 +40,11 @@ local function card_line(e)
 	local def  = cards.def(e)
 	local bits = { def.text or e.def_key }
 	if def.cost and next(def.cost) then bits[#bits + 1] = "(" .. cards.cost_text(def.cost) .. ")" end
-	if e.stats.hp then bits[#bits + 1] = e.stats.hp .. "/" .. (e.stats.hp_max or e.stats.hp) .. "hp" end
+	if e.stats.hp then bits[#bits + 1] = e.stats.hp .. "/" .. ((e.stat_max or {}).hp or e.stats.hp) .. "hp" end
 	if def.tooltip then bits[#bits + 1] = "- " .. def.tooltip end
 	return table.concat(bits, " ")
 end
 
--- The zone the numbered choices refer to: the overlay's offer zone when one
--- is open, otherwise the first visible hand.
 -- The hand the player at this prompt is holding. Asked of zones rather than
 -- walked for, because a per-seat hand has one instance per seat and walking
 -- found the *first* — so a two-seat game showed north's cards whoever was to
@@ -93,7 +91,7 @@ local function show()
 				local occ = entity.get(slot_id).occupant
 				if occ then
 					local c    = entity.get(occ)
-					local hp   = c.stats.hp and (" " .. c.stats.hp .. "/" .. (c.stats.hp_max or "?")) or ""
+					local hp   = c.stats.hp and (" " .. c.stats.hp .. "/" .. ((c.stat_max or {}).hp or "?")) or ""
 					local mark = c.exhausted and "~" or ">"
 					row[#row + 1] = string.format("%2d%s%-14s", idx, mark,
 						(cards.def(c).text or c.def_key):sub(1, 9) .. hp)
@@ -283,7 +281,7 @@ local HELP = [[
   a <slot>     activate the board card in that slot
   i <n>        inspect card n
   u            undo
-  e <action>   run a raw action string, e.g. "e gain_stat:gold:5"
+  e <action>   run a raw action string, e.g. "e stat_gain:gold:5"
   edit <card> <field> <json>   edit a template live, e.g. edit farm cost {"gold":2}
   dump <card>  print a template as JSON (paste back into the game file)
   reload       re-read templates from the game file, keep playing

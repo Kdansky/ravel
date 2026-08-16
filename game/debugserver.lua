@@ -5,7 +5,7 @@
 --   RAVEL_DEBUG=1 love game
 --   echo "stats"          | nc 127.0.0.1 5757
 --   echo "play farm slot:8" | nc 127.0.0.1 5757
---   echo "eval gain_stat:gold:5" | nc 127.0.0.1 5757
+--   echo "eval stat_gain:gold:5" | nc 127.0.0.1 5757
 
 local declaration = require("declaration")
 local entity      = require("entity")
