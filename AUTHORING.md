@@ -1481,6 +1481,29 @@ The same field does a second job: on a tag a **zone** hands out through
 your hand"). One field, because both answers are the same shape — what does
 this tag mean for the card wearing it.
 
+**A keyword can carry behaviour too**, not only text. A tag def's `abilities`
+are given to every card wearing the tag, so the thing the keyword *does* is
+written once beside the sentence that describes it:
+
+```json
+"overwhelm": {
+  "tooltip": "Overwhelm — damage past the blocker hits the Nexus.",
+  "abilities": [
+    { "key": "spill_over", "text": "Overwhelm", "phases": ["strike"],
+      "action": ["stat_damage:spill@self:…"] }
+  ]
+}
+```
+
+A card's abilities are asked in a fixed order: **its own, then what its zone
+grants, then what its tags give it.** Keywords come last because one that
+changes an *outcome* has to run after the outcome — there is nothing to send
+past a dead blocker until the blocker has been struck.
+
+Gate a keyword that is not meant to be clicked with `phases`. An ability run by
+`activate_zone` is ungated and fires regardless; the phase list is what keeps it
+out of a player's hands the rest of the time.
+
 ### What a name may repeat
 
 **A key names one thing inside its own kind.** Two cards may not share a key,

@@ -334,6 +334,36 @@ Until then: the approximation stays, the keyword's text says what the *rule* is
 rather than what the arithmetic does, and this paragraph is the record of the
 difference.
 
+**Overwhelm went the other way and is now on the keyword itself.** A card's own
+tags grant abilities — the same thing a zone's `applies` has always done, and
+the same asymmetry the tooltip had — so the `overwhelm` tag def carries both the
+sentence and the action, and a unit says only that it has the keyword. The
+`count:overwhelm@self` factor is gone: the tag decides whether the ability
+exists rather than multiplying its result by zero.
+
+That is *where* the rule lives fixed. **What it says is still deduced**, and the
+gap is worth naming precisely, because it is the shape of every keyword after
+these two:
+
+> *When it deals damage to a target, and the target dies, and this is combat —
+> strike the enemy Nexus with the excess.*
+
+Three conditions, and the engine can observe none of them. It infers all three
+from state after the fact: `attacking@self` stands in for "this is combat",
+`overkilled@across` (health below zero) stands in for "the target died *of this
+damage*", and the negative health itself is the excess. Each stands in
+faithfully today and each is a coincidence rather than a reading — a second
+source of damage in the same combat would make the second inference wrong.
+
+**Ability moments are the next question this raises**, and it is the right one:
+`play`, `activate`, `challenge`, `receive` and `turn` are moments a card
+already has, and none of them is *"when something else happens"*. `activate` is
+the click moment — and yet `activate_zone` runs those same action lists with no
+click, no cost and no phase, which is how all of the above works. That is a word
+doing two jobs, and a `trigger` moment beside the others is what would separate
+them. It wants designing with [01](01-boardgames.md) gap 5 rather than bolting
+onto this file.
+
 ### Two drifts the game file found in the validator
 
 Both were the validator disagreeing with the engine rather than with the game,

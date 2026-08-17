@@ -21,11 +21,22 @@ local GAME = [==[{
     "tags": ["activate"], "applies": ["takeable"] },
     { "key": "hand", "type": "hand" }],
   "phases": [{ "key": "turn", "type": "player_input" }],
-  "tags": { "takeable": { "abilities": [
-    { "key": "take", "text": "Take it", "action": ["move_to:hand"] }] } },
-  "cards": [{ "key": "rook", "text": "Rook", "card_stats": { "moves_made": 0 },
-    "abilities": [{ "key": "move", "text": "Move it", "action": ["stat_gain:moves_made@self:1"] }] }],
-  "setup": { "place": [{ "card": "rook", "zone": "board", "at": ["a1"] }] }
+  "tags": {
+    "takeable": { "abilities": [
+      { "key": "take", "text": "Take it", "action": ["move_to:hand"] }] },
+    "eager": { "tooltip": "Eager — hurries.", "abilities": [
+      { "key": "hurry", "text": "Hurry", "action": ["stat_gain:moves_made@self:10"] }] }
+  },
+  "cards": [
+    { "key": "rook", "text": "Rook", "card_stats": { "moves_made": 0 },
+      "abilities": [{ "key": "move", "text": "Move it", "action": ["stat_gain:moves_made@self:1"] }] },
+    { "key": "pawn", "text": "Pawn", "tags": ["eager"], "card_stats": { "moves_made": 0 },
+      "abilities": [{ "key": "move", "text": "Move it", "action": ["stat_gain:moves_made@self:1"] }] }
+  ],
+  "setup": { "place": [
+    { "card": "rook", "zone": "board", "at": ["a1"] },
+    { "card": "pawn", "zone": "board", "at": ["b1"] }
+  ] }
 }]==]
 
 local function with_game(fn)
@@ -169,6 +180,31 @@ function M.test_abilities_two_with_the_same_key_are_refused(check)
 	end
 	check("and says the two abilities share a name", said,
 		table.concat(G.parse_problems or {}, "; "))
+end
+
+-- A keyword is a tag that carries behaviour, and a card wearing the tag does the
+-- thing. Said once by the game, inherited by everything that has it — the
+-- alternative is the same action list copied onto every card and one of them
+-- drifting.
+local function on_board(key)
+	for e in entity.each("card") do
+		if e.def_key == key and e.slot_id then return e end
+	end
+end
+
+function M.test_abilities_a_cards_own_tag_gives_it_one(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local pawn = on_board("pawn")
+		local names = {}
+		for _, a in ipairs(cards.abilities(pawn)) do names[#names + 1] = a.key end
+		check("it has its own, the zone's, and its tag's", #names == 3, table.concat(names, ", "))
+		check("and the keyword comes last, because one that changes an outcome "
+			.. "has to run after the outcome",
+			names[1] == "move" and names[3] == "hurry", table.concat(names, ", "))
+
+		check("a card without the tag does not get it", #cards.abilities(on_board("rook")) == 2)
+	end)
 end
 
 return M

@@ -21,7 +21,17 @@
   },
   "tags": {
     "tough": { "tooltip": "Tough — takes 1 less damage from every source." },
-    "overwhelm": { "tooltip": "Overwhelm — damage past the blocker hits the Nexus." },
+    "overwhelm": {
+      "tooltip": "Overwhelm — damage past the blocker hits the Nexus.",
+      "abilities": [
+        {
+          "key": "spill_over",
+          "text": "Overwhelm",
+          "phases": ["strike"],
+          "action": ["stat_damage:spill@self:sum:health@across:x:count:overkilled@across:x:sum:attacking@self"]
+        }
+      ]
+    },
     "on_bench": {
       "abilities": [
         {
@@ -60,8 +70,7 @@
             "stat_damage:health@across:sum:power@self",
             "stat_gain:health@across:count:tough@across",
             "stat_set:spill@self:sum:power@self:x:sum:attacking@self",
-            "stat_damage:spill@self:sum:spill@self:x:count:unit@across",
-            "stat_damage:spill@self:sum:health@across:x:count:overkilled@across:x:count:overwhelm@self:x:sum:attacking@self"
+            "stat_damage:spill@self:sum:spill@self:x:count:unit@across"
           ]
         }
       ]

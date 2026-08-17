@@ -149,12 +149,26 @@ end
 -- hands out. **Added, not substituted** — a zone that grants an ability used to
 -- hide the card's own, so a rook lying in a discard pile could be taken and no
 -- longer moved. One card can do two things, and the player is asked which.
+-- Everything this card can do, in the order it is asked.
+--
+--   1. its own, written on the card
+--   2. what lying *here* lets it do, from the zone's "applies"
+--   3. what its own tags give it — its keywords
+--
+-- **Keywords come last on purpose.** A keyword is usually an addition to
+-- whatever else applies, and one that changes an *outcome* has to run after the
+-- outcome: Overwhelm sends the damage past a dead blocker onwards, and there is
+-- nothing to send until the blocker has been struck.
 function M.abilities(card_entity)
 	local out = {}
 	local def = M.def(card_entity)
 	for _, a in ipairs((def and def.abilities) or EMPTY) do out[#out + 1] = a end
 	local z = card_entity and card_entity.zone_id and entity.get(card_entity.zone_id)
 	for _, tag in ipairs(z and z.applies or EMPTY) do
+		local td = declaration.G.tag_defs[tag]
+		for _, a in ipairs((td and td.abilities) or EMPTY) do out[#out + 1] = a end
+	end
+	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
 		local td = declaration.G.tag_defs[tag]
 		for _, a in ipairs((td and td.abilities) or EMPTY) do out[#out + 1] = a end
 	end

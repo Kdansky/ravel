@@ -245,7 +245,7 @@
         ]
       },
       "activate": {
-        "action": ["action strings this tag gives its cards, which is what a zone hands out with applies"],
+        "action": ["action strings this tag gives its cards — to every card carrying the tag as a keyword, and to whatever lies in a zone that hands the tag out with applies. A card is asked for its own abilities first, then its zone's, then its tags', so a keyword that changes an outcome runs after the outcome."],
         "target": "a target spec for that ability, the same shape as a card's play.target",
         "cost": { "<stat key>": "number paid for that ability" },
         "phases": ["phase keys the ability works in"],
