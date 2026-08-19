@@ -379,10 +379,114 @@ local function compare(v, cond, ctx)
 	return false
 end
 
+-- A condition written as one string: "<subject> <op> <number-or-subject>".
+--
+-- Pure, exactly as parse_subject above it is — a string in, a table out, no game
+-- state and nothing loaded — so the validator reads one at authoring time and
+-- the runtime compiles each exactly once. It is a *spelling* for the comparison
+-- the engine already evaluates and not a second vocabulary: both operands are
+-- the subject grammar unchanged, which is what keeps one condition language
+-- rather than two.
+--
+-- **One comparison per string, and no boolean operators.** "and" is what a list
+-- of conditions already means, and "or" is two abilities — which the card
+-- grammar has. Anything past that is a program, and the format's whole schema
+-- section exists to refuse one.
+local COMPARE = {
+	[">="] = function(a, b) return a >= b end,
+	["<="] = function(a, b) return a <= b end,
+	[">"] = function(a, b) return a > b end,
+	["<"] = function(a, b) return a < b end,
+	["=="] = function(a, b) return a == b end,
+	["!="] = function(a, b) return a ~= b end,
+}
+
+local function operand(s)
+	local n = tonumber(s)
+	if n then return { n = n } end
+	local p = M.parse_subject(s)
+	return p and { subject = p, src = s } or nil
+end
+
+-- Parsed once per distinct string. The set is bounded by the game file, which
+-- is why this may be a plain table rather than something that forgets: a peer's
+-- game text is parsed through the same door and is one file's worth of strings.
+local compiled = {}
+
+local function compile(s)
+	local left, op, right = s:match("^%s*(.-)%s*([<>=!]=?)%s*(.-)%s*$")
+	if not left then
+		return nil, "should be a comparison, like \"gold >= 3\""
+	end
+	if COMPARE[op] == nil then
+		return nil, "'" .. op .. "' is not a comparison — write >=, <=, >, <, == or !="
+	end
+	if left == "" or right == "" then
+		return nil, "a comparison needs something on both sides of '" .. op .. "'"
+	end
+	if right:find("[<>=!]") then
+		return nil, "one comparison per condition — two of them are two entries"
+	end
+	local l, r = operand(left), operand(right)
+	if not l then return nil, "'" .. left .. "' is not something the engine can measure" end
+	if not r then return nil, "'" .. right .. "' is not something the engine can measure" end
+	-- The rule bound() keeps for the struct form, kept here at the door instead:
+	-- a bare word on the right would read as an unknown stat worth nothing and
+	-- quietly pass, so it is a typo until it says which cards it means.
+	if r.subject and not (r.subject.scope or r.subject.fn) then
+		return nil, "'" .. right .. "' is a bare word, so it would read as a stat worth nothing — "
+			.. "write a number, or say which cards you mean (\"value@target\", \"max:value@mine.red\")"
+	end
+	return { left = l, op = op, right = r, src = s }
+end
+
+function M.parse_condition(s)
+	if type(s) ~= "string" then return nil, "a condition is written as a string" end
+	local hit = compiled[s]
+	if not hit then
+		local ast, err = compile(s)
+		hit = { ast = ast, err = err }
+		compiled[s] = hit
+	end
+	return hit.ast, hit.err
+end
+
+-- What an operand measures, or nil for "absent" — which is not zero, and every
+-- comparison against it is false. Same rule as the struct form below, and the
+-- same exemption: a measuring fn asked of an empty pool honestly answers 0.
+local function measure(o, ctx)
+	if o.n then return o.n end
+	local p = o.subject
+	if p.fn == nil and #M.bearers(p, ctx) == 0 then return nil end
+	return M.total(o.src, ctx)
+end
+
+function M.holds(c, ctx)
+	if type(c) == "string" then c = M.parse_condition(c) end
+	if type(c) ~= "table" or not COMPARE[c.op or ""] then return false end
+	local r = measure(c.right, ctx)
+	if r == nil then return false end
+
+	local p = c.left.subject
+	if p and p.fn == nil and p.quant == "each" then
+		local ents = M.entities_in_scope(p.scope, ctx, p.owner)
+		if #ents == 0 or #M.bearers(p, ctx, ents) == 0 then return false end
+		for _, e in ipairs(ents) do
+			if not COMPARE[c.op](tonumber((e.stats or {})[p.arg]) or 0, r) then return false end
+		end
+		return true
+	end
+	local l = measure(c.left, ctx)
+	return l ~= nil and COMPARE[c.op](l, r)
+end
+
 -- { "stat": "hp", "equals": 0 } with equals / at_least / at_most,
+-- { "when": "hp == 0" } saying the same thing in one string,
 -- or { "zone_empty": ["road", "hand"] } (all listed zones empty).
 function M.met(cond, ctx)
+	if type(cond) == "string" then return M.holds(cond, ctx) end
 	if type(cond) ~= "table" then return false end
+	if cond.when ~= nil then return M.holds(cond.when, ctx) end
 	if cond.zone_empty then
 		if type(cond.zone_empty) ~= "table" then return false end
 		for _, zk in ipairs(cond.zone_empty) do
@@ -428,6 +532,16 @@ end
 -- played on a lower one.
 function M.meets_all(map, ctx)
 	if type(map) ~= "table" then return true end
+	-- A list of strings is the same thing said as expressions, and a list rather
+	-- than a map because a map keyed by its condition cannot hold one subject
+	-- twice — "gold >= 3" and "gold <= 8" is a range, which is an ordinary thing
+	-- to want.
+	if type(map[1]) == "string" then
+		for _, s in ipairs(map) do
+			if not M.holds(s, ctx) then return false end
+		end
+		return true
+	end
 	for subject, n in pairs(map) do
 		local cond
 		if type(n) == "table" then

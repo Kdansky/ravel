@@ -195,6 +195,7 @@
       "next": [
         {
           "stat": "a subject, with equals, at_least or at_most beside it: the condition deciding whether this route is taken",
+          "when": "the same condition written as one string \u2014 \"count:king@taken >= 1\". One comparison, with a subject on the left and a number or another subject on the right; it replaces stat and its comparator, and only one of the two may be written.",
           "zone_empty": ["zone keys that must all be empty for this route to be taken"],
           "equals": "number the subject must equal",
           "at_least": "number the subject must reach",
@@ -211,6 +212,7 @@
   "end_conditions": [
     {
       "stat": "a subject, with a comparator beside it, deciding whether the game is over",
+      "when": "the same condition written as one string \u2014 \"nexus@south_side <= 0\". One comparison, with a subject on the left and a number or another subject on the right; it replaces stat and its comparator, and only one of the two may be written.",
       "zone_empty": ["zone keys that must all be empty"],
       "equals": "number the subject must equal",
       "at_least": "number the subject must reach",
@@ -295,6 +297,7 @@
     "_object_form": "{ stat: <subject>, at_least: n } says the same thing with the subject in a named field, which is the form routing and end_conditions use.",
     "_measured_against_a_subject": "A bound may be another subject rather than a constant: { value@target: { at_least: max:value@mine.red } }. The type decides at run time, so a bound must LOOK like a subject — name a scope or a measuring fn — or it fails closed instead of reading as zero.",
     "_absent_is_not_zero": "A stat nobody carries fails every comparison, equals 0 included, because otherwise a gate opens exactly when the thing it guards stops existing. The measuring forms are exempt: count: and card: over nothing really is zero, and sum:/max: are asked of a pool.",
+    "_string_form": "The same comparison written as one string: \"gold >= 3\", \"max:value@mine.red <= 6\", \"score@north_side >= score@south_side\". The operators are >=, <=, >, <, == and !=, one per string, and both sides are ordinary subjects \u2014 it is a spelling for the comparison above, not a second vocabulary. A needs may be written as a LIST of them, which a map keyed by its subject cannot be: \"gold >= 3\" and \"gold <= 8\" is a range. Routing entries and end_conditions take one under the key when. There are no boolean operators: a list already means and, and or is two abilities.",
     "_scopes": "After the @, [<quantifier>.][<owner>.]<name>, where the name is a zone key, a tag, a movement pattern, or one of self, target, all, reach. No scope at all means your own cards. A tag scope means cards in play, on grid zones — name the zone when a hand is what you meant.",
     "_reach": "reach is the squares a set of pieces could move onto right now, answered as the things standing on them — computed from the moves each piece declares, never stored. The owner word picks whose pieces are asked, not what comes back, so { count:king@enemy.reach: { equals: 0 } } is \"not in check\". The engine has no notion of an attack: a piece may only land on an occupied square if its own move says so, so the game file has already drawn the line between moving and threatening. A move rule's own needs may not usefully ask for it — that is reach asking itself, and the circle names nothing.",
     "_owner_of": "owner_of.<scope> is the seats owning what the rest of it names, answered as their own cards: score@owner_of.target is the score of whoever owns the card the player chose, which no other scope can say \u2014 mine and enemy are relative to whoever is up, and a seat key reaches its card only because the file tagged it with its own name. What follows the prefix is an ordinary scope expression. On its own, @owner_of is the acting card's own seat. An owner word means whichever side of the prefix it stands on: inside it picks the cards (@owner_of.enemy.creature), before it it filters the seats that come back (@mine.owner_of.target). Each seat answers once however many cards it owns, and a card nobody owns names nobody.",

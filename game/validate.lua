@@ -192,9 +192,9 @@ local WALKING_CLASSES = { step = true, ray = true, phasing = true }
 -- What may already be standing on a targeted square. See targeting.slot_offered.
 local FILL_WORDS      = { empty = true, enemy = true, open = true, any = true }
 local ROUTE_FIELDS    = { stat = true, zone_empty = true, equals = true, at_least = true,
-	at_most = true, ["then"] = true, ends_round = true }
+	at_most = true, ["then"] = true, ends_round = true, when = true }
 local END_FIELDS      = { stat = true, zone_empty = true, equals = true, at_least = true,
-	at_most = true, ["then"] = true, fired = true }
+	at_most = true, ["then"] = true, fired = true, when = true }
 local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_than_stat = true,
 	at_least = true, equals = true, less_than_max = true }
 -- The assets table: named pictures, and the only place a picture carries
@@ -539,10 +539,35 @@ function M.check(G)
 		subject_ok(where, v)
 	end
 
+	-- A condition written as one string. The parse is the engine's own, so a file
+	-- the validator calls clean cannot be one the runtime silently drops — and
+	-- what it hands back names the two operands, which are ordinary subjects and
+	-- are checked as such.
+	local function condition_ok(where, s)
+		local c, err = predicate.parse_condition(s)
+		if not c then
+			warn('%s: "%s" — %s', where, tostring(s), err)
+			return
+		end
+		subject_ok(where, c.left.src or c.left.n)
+		if c.right.subject then subject_ok(where, c.right.src) end
+	end
+
 	local function check_map(where, map, is_cost)
 		if map == nil then return end
 		if type(map) ~= "table" then
 			warn('%s: should be written like { "gold": 2 }', where)
+			return
+		end
+		-- The list form: every entry is one condition, and all of them hold.
+		if type(map[1]) == "string" then
+			if is_cost then
+				warn("%s: a cost is what gets spent, not a condition — write it as { \"gold\": 2 }", where)
+				return
+			end
+			for i, entry in ipairs(map) do
+				condition_ok(where .. "[" .. i .. "]", entry)
+			end
 			return
 		end
 		for key, v in pairs(map) do
@@ -596,6 +621,13 @@ function M.check(G)
 	end
 
 	local function check_cond(where, cond)
+		if cond.when ~= nil then
+			condition_ok(where, cond.when)
+			if cond.stat ~= nil then
+				warn("%s: says its condition twice, as 'when' and as 'stat' — keep one", where)
+			end
+			return
+		end
 		if cond.zone_empty then
 			if type(cond.zone_empty) ~= "table" then
 				warn('%s: zone_empty should be a list of zones like ["road", "hand"]', where)
@@ -1561,7 +1593,7 @@ function M.check(G)
 				if pd.type == "automatic" then
 					local fallback = false
 					for _, r in ipairs(pd.next) do
-						if r.stat == nil and r.zone_empty == nil then fallback = true end
+						if r.stat == nil and r.zone_empty == nil and r.when == nil then fallback = true end
 					end
 					if not fallback then
 						warn("%s: is automatic but every route has a condition — when none matches, the game stalls", where)
@@ -1581,7 +1613,7 @@ function M.check(G)
 					elseif target.type == "overlay" then
 						warn("%s: goes to '%s', which is an overlay — overlays can only be pushed", rwhere, r["then"])
 					end
-					if r.stat == nil and r.zone_empty == nil then
+					if r.stat == nil and r.zone_empty == nil and r.when == nil then
 						saw_unconditional = true
 					else
 						check_cond(rwhere, r)

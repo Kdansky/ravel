@@ -1,6 +1,8 @@
 # 17 — A condition is one string
 
-**Status:** not started, and it needs a decision before it needs code ·
+**Status:** **drafted, uncommitted** — steps 1–3 of the build order are written
+and green in the working tree; see *The draft* below for what it decides and
+what it deliberately leaves open ·
 **Size:** large — the engine change is small, the migration is every game file,
 and the design question is the format's biggest open one.
 
@@ -204,17 +206,124 @@ form 3.
 `castle.log` and `kingdom.log` must come out byte-identical. That is what makes
 a rewrite of the condition vocabulary safe to do at all.
 
+## The draft, and the four decisions in it
+
+*Written 2026-08-19, in the working tree and not committed. `luajit tests/run.lua`
+and `lua5.4 tests/run.lua` are green at 1643, and every shipped game still
+validates clean.*
+
+The whole of it is **additive**. No game file changes, no behaviour changes, and
+both spellings answer identically — which is the property the migration then
+leans on, so it is what the tests are pointed at rather than at the new form
+working.
+
+### What it is
+
+```json
+"needs": ["gold >= 3", "max:value@mine.red <= 6"]
+
+{ "when": "count:king@taken >= 1", "then": ["load_game:menu.json"] }
+{ "when": "nexus@south_side <= 0", "then": "north_end" }
+```
+
+| Where | Added | Kept |
+|---|---|---|
+| `predicate.parse_condition(s)` | string → `{ left, op, right }`, pure, memoised per distinct string | `parse_subject` untouched — both operands are subjects |
+| `predicate.holds(c, ctx)` | evaluates one | `met` / `meets_all` / `total` all unchanged underneath |
+| `met` | `cond.when`, and a bare string | the object form, exactly as it was |
+| `meets_all` | a **list** of strings | the map and comparison forms |
+| routing, `end_conditions` | `when` as a field | `stat` + comparator, `zone_empty` |
+| `validate` | `condition_ok`, which parses and then checks both operands as subjects | every existing message |
+| `phase.next` | a `when` entry is a condition, not the unconditional fallback | — |
+
+### Decision 1 — comparison only, and six operators
+
+Position 1 of the three this file lists: `<subject> <op> <number-or-subject>`,
+no arithmetic, no nesting, no booleans. What is new is `>`, `<` and `!=`, which
+the struct form never had and which cost one line each — the engine could always
+*evaluate* them, it just had no field name for them.
+
+**Arithmetic stays refused for now, and the reason is that it belongs to the
+other half of the job.** The argument for it in this file is that `:x:` in an
+action value slot is arithmetic already, and one parser serving both would
+*delete* a notation. That is true — and it means `*` earns its place in step 5,
+where the amount grammar comes through the same door, not here, where it would
+only add power to conditions and leave `:x:` standing.
+
+### Decision 2 — `needs` is a list, `cost` is still a map
+
+A map keyed by its own condition cannot hold one subject twice, and
+`"gold >= 3"` with `"gold <= 8"` is a range. A list also lands on `DESIGN.md`'s
+allowed form 2, arrays of strings, which no other reading of this does.
+
+Costs do not move, and the validator now says so out loud: a list where a cost
+is expected is refused with *a cost is what gets spent, not a condition*. A cost
+names the stat to subtract and by how much; `mana >= 3` says what to check and
+not what to spend.
+
+### Decision 3 — refusals happen at the door, not at run time
+
+The struct form's protections are all *fail-closed at evaluation*: a bare word
+on the right reads as an unknown stat and the comparison quietly fails. A string
+can do better, because a string can be parsed before the game runs:
+
+| Written | Answered |
+|---|---|
+| `gold = 3` | `'=' is not a comparison — write >=, <=, >, <, == or !=` |
+| `3 <= gold <= 8` | `one comparison per condition — two of them are two entries` |
+| `gold >= reserve` | `'reserve' is a bare word, so it would read as a stat worth nothing` |
+| `count:kingg@taken >= 1` | `counts the tag 'kingg', but no card has it — did you mean 'king'?` |
+| `when` *and* `stat` on one entry | `says its condition twice — keep one` |
+
+The last two are the ones that matter: the operands are ordinary subjects, so
+**every check the validator already had comes along for free**, and the two-form
+entry is the one mistake the additive step makes possible.
+
+### Decision 4 — the five rules are asserted against the new spelling
+
+*A grammar reads like arithmetic and invites the reading that a missing number
+is zero.* So `tests/integration/conditions.lua` asserts each of this file's five
+rules against the string form specifically, rather than trusting the shared code
+underneath:
+
+- an absent stat fails every comparison — `== 0`, `<= 9` and `!= 1` included;
+- `count:` / `sum:` / `max:` stay exempt;
+- `each` over an empty scope is false;
+- a condition that will not parse is *false*, never an error;
+- and the equivalence matrix: ten subjects × four bounds × three operators,
+  asked as a struct and as a string, all 120 agreeing.
+
+### What the draft does not do
+
+- **No migration.** Not one game file changed. That is step 3's second half and
+  the golden traces are its proof.
+- **`computed_tags` are untouched**, and they are the one site that does not fit
+  the sentence *one vocabulary, six places*: `tags.entity_has` evaluates them
+  against a single entity on the per-frame path, with its own comparator set
+  (`less_than_max` reads `e.stat_max`, which no subject can name). Folding them
+  in wants either a way to say "this card's ceiling" as a subject or an
+  admission that they are a different question. Worth deciding before step 4,
+  because step 4 is where the old shapes die.
+- **The seat a condition cannot name** — this file's own finding — is untouched
+  and is *not* fixed by the spelling. `@owner_of` (shipped, see
+  [22](22-the-crew.md)) answers the relative question; naming `white` absolutely
+  still means tagging the seat card with its own key.
+- **Nothing is compiled at `declaration.parse`.** The memo in `predicate` gives
+  the same "parse once per distinct string" for a tenth of the wiring, and it
+  keeps the parser reachable from the validator, which has no `G`. If profiling
+  ever wants it earlier, the door is where it moves.
+
 ## Build order
 
-1. **The parser, alone.** String → tree of closures, pure, no game loaded, and a
-   test per rule in *the behaviour that must survive* above. It is not wired to
-   anything yet.
-2. **The object form learns the string**, additively: a routing entry and an
-   `end_condition` accept `"when": "<expression>"` beside the shape they take
-   today. Nothing migrates; the two forms are held equal by a test that runs the
-   same game both ways.
-3. **`needs` as a list of expressions**, then the migration, one game per
-   commit, traces unchanged.
+1. ~~**The parser, alone.**~~ **Drafted.** `predicate.parse_condition`, pure and
+   memoised, and a test per rule in *the behaviour that must survive* above. It
+   came out as a table rather than a tree of closures: one comparison has nothing
+   to nest, so a closure would be a call where a lookup does.
+2. ~~**The object form learns the string**~~ — **drafted**: routing entries and
+   `end_conditions` take `"when"` beside the shape they take today, and the two
+   forms are held equal by a 120-case matrix.
+3. **`needs` as a list of expressions** — the *reading* half is drafted; what is
+   left is the migration, one game per commit, traces unchanged.
 4. **Delete the old shapes** and the branches in `predicate.met`/`meets_all`
    that read them — which is the point at which findings 4, 5 and 6 are actually
    fixed rather than papered over.
