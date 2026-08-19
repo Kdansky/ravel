@@ -938,7 +938,7 @@
       "tooltip": "Total the red expedition.",
       "tags": ["scoring", "token", "crimson"],
       "play": {
-        "needs": { "count:expedition@mine.red": 1 },
+        "needs": ["count:expedition@mine.red >= 1"],
         "action": [
           "stat_gain:score@mine.player:sum:value@mine.red",
           "stat_damage:score@mine.player:20",
@@ -954,7 +954,7 @@
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
       "tags": ["scoring", "token", "crimson"],
       "play": {
-        "needs": { "count:expedition@mine.red": 8 },
+        "needs": ["count:expedition@mine.red >= 8"],
         "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },
@@ -964,7 +964,7 @@
       "tooltip": "Total the green expedition.",
       "tags": ["scoring", "token", "jade"],
       "play": {
-        "needs": { "count:expedition@mine.green": 1 },
+        "needs": ["count:expedition@mine.green >= 1"],
         "action": [
           "stat_gain:score@mine.player:sum:value@mine.green",
           "stat_damage:score@mine.player:20",
@@ -980,7 +980,7 @@
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
       "tags": ["scoring", "token", "jade"],
       "play": {
-        "needs": { "count:expedition@mine.green": 8 },
+        "needs": ["count:expedition@mine.green >= 8"],
         "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },
@@ -990,7 +990,7 @@
       "tooltip": "Total the blue expedition.",
       "tags": ["scoring", "token", "azure"],
       "play": {
-        "needs": { "count:expedition@mine.blue": 1 },
+        "needs": ["count:expedition@mine.blue >= 1"],
         "action": [
           "stat_gain:score@mine.player:sum:value@mine.blue",
           "stat_damage:score@mine.player:20",
@@ -1006,7 +1006,7 @@
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
       "tags": ["scoring", "token", "azure"],
       "play": {
-        "needs": { "count:expedition@mine.blue": 8 },
+        "needs": ["count:expedition@mine.blue >= 8"],
         "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },
@@ -1016,7 +1016,7 @@
       "tooltip": "Total the white expedition.",
       "tags": ["scoring", "token", "ivory"],
       "play": {
-        "needs": { "count:expedition@mine.white": 1 },
+        "needs": ["count:expedition@mine.white >= 1"],
         "action": [
           "stat_gain:score@mine.player:sum:value@mine.white",
           "stat_damage:score@mine.player:20",
@@ -1032,7 +1032,7 @@
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
       "tags": ["scoring", "token", "ivory"],
       "play": {
-        "needs": { "count:expedition@mine.white": 8 },
+        "needs": ["count:expedition@mine.white >= 8"],
         "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },
@@ -1042,7 +1042,7 @@
       "tooltip": "Total the yellow expedition.",
       "tags": ["scoring", "token", "amber"],
       "play": {
-        "needs": { "count:expedition@mine.yellow": 1 },
+        "needs": ["count:expedition@mine.yellow >= 1"],
         "action": [
           "stat_gain:score@mine.player:sum:value@mine.yellow",
           "stat_damage:score@mine.player:20",
@@ -1058,7 +1058,7 @@
       "tooltip": "An expedition of eight cards or more is worth 20 more.",
       "tags": ["scoring", "token", "amber"],
       "play": {
-        "needs": { "count:expedition@mine.yellow": 8 },
+        "needs": ["count:expedition@mine.yellow >= 8"],
         "action": ["stat_gain:score@mine.player:20", "destroy_self"]
       }
     },

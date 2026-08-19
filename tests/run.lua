@@ -610,12 +610,18 @@ do
 end
 
 -- === content validation ===
-for _, f in ipairs({ "menu.json", "demo.json", "castle.json", "kingdom.json",
-	"tower.json", "road.json", "starter_cyoa.json", "vigil.json" }) do
+-- Every file in the directory, not a list beside it: the list was written when
+-- there were eight games and never grew, so lost_cities, chess, lor and
+-- splendor were all shipping unchecked — and a generator that stopped agreeing
+-- with the format went unnoticed for exactly that reason.
+local ls = io.popen("ls game/games/*.json")
+for path in ls:lines() do
+	local f = path:match("([^/]+)$")
 	local problems = validate.check(declaration.parse(f))
 	check(f .. " validates clean", #problems == 0)
 	for _, p in ipairs(problems) do print("  " .. f .. ": " .. p) end
 end
+ls:close()
 
 local bad = declaration.parse("castle.json")
 bad.phase_by_key.build1.next = { { ["then"] = "nope" } }

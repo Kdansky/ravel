@@ -1,0 +1,553 @@
+#!/usr/bin/env python3
+"""Generate game/games/splendor.json.
+
+Ninety development cards, each carrying fifteen numbers, is data — the same
+answer Lost Cities got. What is *not* data lives here in one readable place:
+the pricing arithmetic, the turn loop, and the layout.
+
+The card table is transcribed from ideas/splendor/cards.md, which triangulates
+three independent transcriptions of the physical deck; see that file for the
+sourcing. Nothing here invents a number.
+
+    python3 tools/make_splendor.py
+"""
+
+import json, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import jsonfmt
+
+# key, label, one-letter shorthand printed on a card, plate colour, HUD icon.
+# The icons are named by *shape*, not by meaning, so each gem gets a different
+# silhouette in the row of six and none of them claims to be about money.
+GEMS = [
+    ("white", "Diamond", "W", [0.86, 0.86, 0.82], "diamond"),
+    ("blue",  "Sapphire", "B", [0.22, 0.42, 0.78], "shield"),
+    ("green", "Emerald",  "G", [0.20, 0.56, 0.32], "leaf"),
+    ("red",   "Ruby",     "R", [0.76, 0.24, 0.24], "heart"),
+    ("black", "Onyx",     "K", [0.22, 0.22, 0.26], "blade"),
+]
+KEYS = [g[0] for g in GEMS]
+
+# 2-player supply: four of each gem, five gold. (3p is 5, 4p is 7; the gold
+# stack never changes. See cards.md.)
+SUPPLY = 4
+GOLD_SUPPLY = 5
+TARGET = 15         # prestige that ends the game
+HAND_LIMIT = 10     # tokens held at the end of a turn
+
+
+def cards_table(path):
+    """The three tier tables out of cards.md, as (tier, bonus, vp, cost dict)."""
+    rows, tier = [], None
+    for line in open(path, encoding="utf-8"):
+        m = line.strip()
+        if m.startswith("### Tier "):
+            tier = int(m.split()[2])
+            continue
+        if tier is None or not m.startswith("|"):
+            continue
+        cells = [c.strip() for c in m.strip("|").split("|")]
+        if len(cells) != 7 or cells[0] in ("Bonus", "---") or cells[0].startswith("-"):
+            continue
+        bonus = cells[0].lower()
+        if bonus not in KEYS:
+            continue
+        vp = 0 if cells[1] == "-" else int(cells[1])
+        cost = {k: (0 if c == "-" else int(c)) for k, c in zip(KEYS, cells[2:])}
+        rows.append((tier, bonus, vp, cost))
+        if m.startswith("| Black | 1 |") and tier == 3:
+            tier = None
+    return rows
+
+
+def nobles_table(path):
+    """The ten noble tiles, as cost dicts. Every noble is worth 3."""
+    out, seen_heading = [], False
+    for line in open(path, encoding="utf-8"):
+        m = line.strip()
+        if m.startswith("## Noble tiles"):
+            seen_heading = True
+            continue
+        if m.startswith("## ") and seen_heading and out:
+            break
+        if not (seen_heading and m.startswith("|")):
+            continue
+        cells = [c.strip() for c in m.strip("|").split("|")]
+        if len(cells) != 3 or not cells[0].isdigit():
+            continue
+        cost = {k: 0 for k in KEYS}
+        for part in cells[1].split("+"):
+            n, colour = part.split()
+            cost[colour.strip()] = int(n)
+        out.append(cost)
+    return out
+
+
+# ---------------------------------------------------------------- the pricing
+
+# What a development card costs *this* player, worked out on the card itself so
+# that a condition can read one number and the buy action can spend it.
+#
+# **The whole of it is subtraction that stops at zero**, which is what
+# stat_damage already does against a floor of 0 — there is no min() or max() in
+# the amount grammar and none is needed:
+#
+#   due   = max(0, printed - bonus)      what the discounts leave to pay
+#   short = max(0, due - tokens)         what gold has to cover, per colour
+#   due  := due - short                  what the tokens themselves pay
+#
+# Summing the shorts gives the gold bill; "buyable" is 1 + gold - bill clamped
+# at zero, which is 1 exactly when the gold covers it. A card the player cannot
+# afford therefore reads buyable 0 and is dimmed by an ordinary needs.
+def pricing():
+    a = ["stat_set:gold_due@self:0"]
+    for k in KEYS:
+        a += [
+            f"stat_set:due_{k}@self:sum:cost_{k}@self",
+            f"stat_damage:due_{k}@self:sum:b_{k}@mine.player",
+            f"stat_set:short@self:sum:due_{k}@self",
+            f"stat_damage:short@self:sum:t_{k}@mine.player",
+            "stat_gain:gold_due@self:sum:short@self",
+            f"stat_damage:due_{k}@self:sum:short@self",
+        ]
+    a.append("stat_set:spent@self:sum:gold_due@self")
+    a += [f"stat_gain:spent@self:sum:due_{k}@self" for k in KEYS]
+    a += [
+        "stat_set:buyable@self:1",
+        "stat_gain:buyable@self:sum:t_gold@mine.player",
+        "stat_damage:buyable@self:sum:gold_due@self",
+    ]
+    return a
+
+
+# Buying: the numbers were worked out above, so this only moves them. The bank
+# gets back exactly what the player spends, which is why the tokens are counted
+# out per colour rather than as one total.
+def buying():
+    a = [f"stat_damage:t_{k}@mine.player:sum:due_{k}@self" for k in KEYS]
+    a += ["stat_damage:t_gold@mine.player:sum:gold_due@self",
+          "stat_damage:t_total@mine.player:sum:spent@self"]
+    a += [f"stat_gain:bank@pile_{k}:sum:due_{k}@self" for k in KEYS]
+    a += [
+        "stat_gain:bank@pile_gold:sum:gold_due@self",
+        "stat_gain:score@mine.player:sum:vp@self",
+        "stat_gain:bought@mine.player:1",
+    ]
+    # A card grants one discount, and which one is a tag it wears — so counting
+    # the tag on itself is the +1, and the same five lines serve all ninety.
+    a += [f"stat_gain:b_{k}@mine.player:count:gives_{k}@self" for k in KEYS]
+    a += [
+        # Reserved cards free their slot when bought; ones taken off the row
+        # never held one.
+        "stat_gain:reserve_slots@mine.player:sum:reserved@self",
+        "stat_set:reserved@self:0",
+        # Nothing prices a card once it is bought, so this is what stops a
+        # tableau card being bought again: it is no longer for sale.
+        "stat_set:buyable@self:0",
+        "set_owner:self:mine",
+        "move_to:mine.tableau",
+        "stat_set:done@mine.player:1",
+        "next_phase",
+    ]
+    return a
+
+
+# A noble arrives when the bonuses are all there. Same clamp, read the other
+# way round: every colour short of its requirement subtracts from a 1, so "ok"
+# survives only when nothing is missing.
+def noble_check():
+    a = ["stat_set:ok@self:1"]
+    for k in KEYS:
+        a += [
+            f"stat_set:short@self:sum:n_{k}@self",
+            f"stat_damage:short@self:sum:b_{k}@mine.player",
+            "stat_damage:ok@self:sum:short@self",
+        ]
+    return a
+
+
+# Taking a token is the only thing a gem pile does, and "at least four left"
+# is a number rather than a condition so that an ability can be gated on it —
+# an ability is gated by its cost and its phase, and by nothing else.
+def plenty():
+    out = []
+    for k in KEYS:
+        out += [f"stat_set:plenty@pile_{k}:sum:bank@pile_{k}",
+                f"stat_damage:plenty@pile_{k}:3"]
+    return out
+
+
+REPRICE = ["activate_zone:t1_row", "activate_zone:t2_row", "activate_zone:t3_row",
+           "activate_zone:mine.reserve"]
+
+
+# ------------------------------------------------------------------- the file
+
+def stats():
+    out = [{"key": "score", "label": "Prestige", "icon": "banner", "min": 0, "max": 99,
+            "subject": "score@mine.player"}]
+    for k, label, _, _, icon in GEMS:
+        out.append({"key": f"t_{k}", "label": label, "icon": icon, "min": 0, "max": 10,
+                    "subject": f"t_{k}@mine.player"})
+    out.append({"key": "t_gold", "label": "Gold", "icon": "coin", "min": 0, "max": 10,
+                "subject": "t_gold@mine.player"})
+    # Everything below is arithmetic. It is declared so that it has a floor of
+    # zero — the floor is what makes subtraction mean "and no further" — and
+    # hidden so that the HUD stays the seven numbers a player actually reads.
+    hidden = ["t_total", "takes", "done", "first_take", "reserve_slots", "bought", "opens",
+              "ending", "short", "gold_due", "spent", "buyable", "vp", "bank",
+              "plenty", "ok", "reserved", "tier"]
+    hidden += [f"b_{k}" for k in KEYS]
+    hidden += [f"cost_{k}" for k in KEYS]
+    hidden += [f"due_{k}" for k in KEYS]
+    hidden += [f"n_{k}" for k in KEYS]
+    for k in hidden:
+        out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"]})
+    return out
+
+
+def styles():
+    s = {f"plate_{k}": {"color": colour} for k, _, _, colour, _ in GEMS}
+    s["plate_gold"] = {"color": [0.80, 0.66, 0.24]}
+    s["plate_noble"] = {"color": [0.44, 0.34, 0.56]}
+    s["market"] = {"fit": "card", "badges": ["vp"], "cell_outline": False}
+    s["counter"] = {"fit": "card", "badges": ["bank"], "cell_outline": False}
+    return s
+
+
+def zones(rows):
+    tier = {t: [] for t in (1, 2, 3)}
+    seen = {}
+    for t, bonus, _, _ in rows:
+        seen[t] = seen.get(t, 0) + 1
+        tier[t].append(f"t{t}_{bonus}_{seen[t]:02d}")
+    return [
+        {"key": "tableau", "label": "Bought", "type": "hand", "tags": ["per_seat"],
+         "pos": [[0.02, 0.01, 0.55, 0.15], [0.02, 0.85, 0.55, 0.99]]},
+        {"key": "reserve", "label": "Reserved", "type": "hand", "tags": ["per_seat"],
+         "pos": [[0.57, 0.01, 0.80, 0.15], [0.57, 0.85, 0.80, 0.99]]},
+        {"key": "nobles", "label": "Nobles", "type": "grid", "grid": [3, 1],
+         "tags": ["optional", "market"], "pos": [0.02, 0.17, 0.40, 0.30]},
+        {"key": "noble_deck", "type": "deck", "tags": ["hidden", "shuffle"],
+         "pos": [0.42, 0.17, 0.50, 0.30],
+         "contents": [f"noble_{i + 1}" for i in range(10)]},
+
+        {"key": "t3_deck", "label": "III", "type": "deck", "tags": ["shuffle", "activate"],
+         "pos": [0.02, 0.32, 0.11, 0.47],
+         "tooltip": "Tier three. Click to reserve the top card without looking at it.",
+         "contents": tier[3],
+         "activate": {"phases": ["act", "act_on"], "cost": {"reserve_slots": 1},
+                      "action": ["draw_from:t3_deck:mine.reserve:1"] + RESERVE_GOLD}},
+        {"key": "t3_row", "type": "grid", "grid": [4, 1], "tags": ["optional", "market"],
+         "pos": [0.13, 0.32, 0.55, 0.47]},
+        {"key": "t2_deck", "label": "II", "type": "deck", "tags": ["shuffle", "activate"],
+         "pos": [0.02, 0.49, 0.11, 0.64],
+         "tooltip": "Tier two. Click to reserve the top card without looking at it.",
+         "contents": tier[2],
+         "activate": {"phases": ["act", "act_on"], "cost": {"reserve_slots": 1},
+                      "action": ["draw_from:t2_deck:mine.reserve:1"] + RESERVE_GOLD}},
+        {"key": "t2_row", "type": "grid", "grid": [4, 1], "tags": ["optional", "market"],
+         "pos": [0.13, 0.49, 0.55, 0.64]},
+        {"key": "t1_deck", "label": "I", "type": "deck", "tags": ["shuffle", "activate"],
+         "pos": [0.02, 0.66, 0.11, 0.81],
+         "tooltip": "Tier one. Click to reserve the top card without looking at it.",
+         "contents": tier[1],
+         "activate": {"phases": ["act", "act_on"], "cost": {"reserve_slots": 1},
+                      "action": ["draw_from:t1_deck:mine.reserve:1"] + RESERVE_GOLD}},
+        {"key": "t1_row", "type": "grid", "grid": [4, 1], "tags": ["optional", "market"],
+         "pos": [0.13, 0.66, 0.55, 0.81]},
+
+        {"key": "supply", "label": "The bank", "type": "grid", "grid": [6, 1],
+         "tags": ["activate", "counter"], "pos": [0.57, 0.32, 0.98, 0.47]},
+        {"key": "controls", "type": "hand", "tags": ["optional"],
+         "pos": [0.57, 0.60, 0.98, 0.78],
+         "contents": ["reserve_button", "done_button"]},
+    ]
+
+
+# Reserving pays a gold token, and only if the bank still has one — which is a
+# yes/no the computed tag "has_gold" answers as a 1 or a 0, so it multiplies
+# into the amount instead of needing a branch the format does not have.
+RESERVE_GOLD = [
+    "stat_gain:t_gold@mine.player:count:has_gold@pile_gold",
+    "stat_gain:t_total@mine.player:count:has_gold@pile_gold",
+    "stat_damage:bank@pile_gold:count:has_gold@pile_gold",
+    "stat_set:done@mine.player:1",
+    "next_phase",
+]
+
+
+def piles():
+    out = []
+    for k, label, _, _, _ in GEMS:
+        out.append({
+            "key": f"pile_{k}", "text": label,
+            "tooltip": f"{label} tokens. Take one — up to three different colours a turn — "
+                       "or take two of this colour alone, which needs four still here.",
+            "tags": [f"pile_{k}", f"plate_{k}", "immutable"],
+            "card_stats": {"bank": SUPPLY, "plenty": 0},
+            "abilities": [
+                {"key": f"take_{k}", "text": f"Take one {label.lower()}",
+                 "phases": ["act", "act_on"], "cost": {"exhaust": 1, "bank@self": 1},
+                 "action": [f"stat_gain:t_{k}@mine.player:1",
+                            "stat_gain:t_total@mine.player:1",
+                            "stat_gain:takes@mine.player:1",
+                            "stat_damage:first_take@mine.player:1",
+                            "next_phase"]},
+                {"key": f"take2_{k}", "text": f"Take two {label.lower()}",
+                 "phases": ["act", "act_on"],
+                 "cost": {"exhaust": 1, "bank@self": 2, "plenty@self": 1,
+                          "first_take@mine.player": 1},
+                 "action": [f"stat_gain:t_{k}@mine.player:2",
+                            "stat_gain:t_total@mine.player:2",
+                            "stat_set:done@mine.player:1",
+                            "next_phase"]},
+                {"key": f"back_{k}", "text": f"Put back a {label.lower()}",
+                 "phases": ["discard"], "cost": {f"t_{k}@mine.player": 1},
+                 "action": ["stat_gain:bank@self:1",
+                            "stat_damage:t_total@mine.player:1",
+                            "next_phase"]},
+            ],
+        })
+    out.append({
+        "key": "pile_gold", "text": "Gold",
+        "tooltip": "Gold is wild: it pays for any colour. It is never taken directly — "
+                   "reserving a card is what earns one.",
+        "tags": ["pile_gold", "plate_gold", "immutable"],
+        "card_stats": {"bank": GOLD_SUPPLY, "plenty": 0},
+        "abilities": [
+            {"key": "back_gold", "text": "Put back a gold",
+             "phases": ["discard"], "cost": {"t_gold@mine.player": 1},
+             "action": ["stat_gain:bank@self:1",
+                        "stat_damage:t_total@mine.player:1",
+                        "next_phase"]},
+        ],
+    })
+    return out
+
+
+def buttons():
+    return [
+        {"key": "reserve_button", "text": "Reserve a card",
+         "asset": "square:slate",
+         "tooltip": "Hold a face-up card for later, and take a gold token if any are left. "
+                    "Three reserved cards at a time; buying one gives the slot back. "
+                    "To reserve the top of a deck unseen, click the deck itself.",
+         "tags": ["immutable"],
+         "play": {"phases": ["act", "act_on"], "cost": {"reserve_slots": 1},
+                  "target": {"type": "card", "count": 1,
+                             "zones": ["t1_row", "t2_row", "t3_row"]},
+                  "action": ["set_owner:target:mine", "stat_set:reserved@target:1",
+                             "move_target_to:mine.reserve"] + RESERVE_GOLD}},
+        {"key": "done_button", "text": "Done taking",
+         "asset": "circle:slate",
+         "tooltip": "Stop after one or two tokens. Taking a third ends your turn on its own.",
+         "tags": ["immutable"],
+         "play": {"phases": ["act", "act_on"], "needs": ["takes@mine.player >= 1"],
+                  "action": ["stat_set:done@mine.player:1", "next_phase"]}},
+    ]
+
+
+def development(rows):
+    SHAPE = {1: "circle", 2: "square", 3: "diamond"}
+    ART = {"white": "silver", "blue": "blue", "green": "green",
+           "red": "crimson", "black": "slate"}
+    out, seen = [], {}
+    for tier, bonus, vp, cost in rows:
+        seen[tier] = seen.get(tier, 0) + 1
+        letters = " ".join(f"{n}{c}" for k, n, c in
+                           ((k, cost[k], dict((g[0], g[2]) for g in GEMS)[k]) for k in KEYS)
+                           if n)
+        words = ", ".join(f"{cost[k]} {dict((g[0], g[1].lower()) for g in GEMS)[k]}"
+                          for k in KEYS if cost[k])
+        stats = {f"cost_{k}": cost[k] for k in KEYS}
+        stats.update({f"due_{k}": 0 for k in KEYS})
+        stats.update({"vp": vp, "short": 0, "gold_due": 0, "spent": 0,
+                      "buyable": 0, "reserved": 0, "tier": tier})
+        out.append({
+            "key": f"t{tier}_{bonus}_{seen[tier]:02d}",
+            "text": letters,
+            "tooltip": f"Costs {words}, less your {bonus} — sorry, less your discounts, "
+                       f"with gold covering any shortfall. Gives a permanent {bonus} "
+                       f"discount" + (f" and {vp} prestige." if vp else "."),
+            "asset": f"{SHAPE[tier]}:{ART[bonus]}",
+            "tags": ["development", f"gives_{bonus}", f"plate_{bonus}"],
+            "card_stats": stats,
+            "play": {"phases": ["act", "act_on"], "needs": ["buyable@self >= 1"], "action": buying()},
+        })
+    return out
+
+
+def nobles(rows):
+    out = []
+    for i, cost in enumerate(rows):
+        words = " + ".join(f"{cost[k]} {k}" for k in KEYS if cost[k])
+        stats = {f"n_{k}": cost[k] for k in KEYS}
+        stats.update({"ok": 0, "short": 0, "vp": 3})
+        out.append({
+            "key": f"noble_{i + 1}", "text": words.replace(" + ", "  "),
+            "tooltip": f"Visits you for free once your discounts reach {words}. "
+                       "Worth 3 prestige, and only one noble may arrive per turn.",
+            "asset": "star:6:gold",
+            "tags": ["noble", "plate_noble"],
+            "card_stats": stats,
+            "play": {"phases": ["noble_pick"], "needs": ["ok@self >= 1"],
+                     "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]},
+        })
+    return out
+
+
+def seat_cards():
+    stats = {"score": 0, "t_total": 0, "takes": 0, "done": 0, "first_take": 1,
+             "reserve_slots": 3, "bought": 0, "ending": 0}
+    stats.update({f"t_{k}": 0 for k in KEYS})
+    stats.update({"t_gold": 0})
+    stats.update({f"b_{k}": 0 for k in KEYS})
+    north, south = dict(stats), dict(stats)
+    north["opens"], south["opens"] = 1, 0
+    return [
+        {"key": "north", "text": "North", "tags": ["north_side"], "card_stats": north},
+        {"key": "south", "text": "South", "tags": ["south_side"], "card_stats": south},
+    ]
+
+
+def phases():
+    routes = [{"when": "done@mine.player >= 1", "then": "noble_check"},
+              {"when": "takes@mine.player >= 3", "then": "noble_check"},
+              {"then": "act_on"}]
+    turn_top = ["stat_set:takes@each.anyone.player:0",
+                "stat_set:done@each.anyone.player:0",
+                "stat_set:first_take@each.anyone.player:1",
+                "ready:supply"] + plenty() + REPRICE
+    return [
+        {"key": "setup", "type": "automatic",
+         "actions": ["draw_from:noble_deck:nobles:3",
+                     "draw_from:t1_deck:t1_row:4",
+                     "draw_from:t2_deck:t2_row:4",
+                     "draw_from:t3_deck:t3_row:4"],
+         "next": [{"then": "act"}]},
+        # The seat changes on entry and the actions run after it, so "mine" here
+        # is already the player about to act — which is what lets one phase both
+        # hand the turn over and price the market for whoever it handed it to.
+        # Only a phase a player acts in is asked to hand over, which is why this
+        # is the turn's first *input* rather than an automatic step before it.
+        {"key": "act", "type": "player_input", "seat": "next",
+         "label": "Take tokens, buy a card, or reserve one",
+         "actions": turn_top, "next": routes},
+        # A token changes what is affordable, so the row is priced again between
+        # one take and the next. A second phase because re-entering the first
+        # would hand the turn on again — the counters reset there and only there.
+        {"key": "act_on", "type": "player_input",
+         "label": "Take tokens, buy a card, or reserve one",
+         "actions": plenty() + REPRICE, "next": routes},
+        {"key": "noble_check", "type": "automatic", "actions": ["activate_zone:nobles"],
+         "next": [{"when": "count:noble_ready >= 1", "then": "noble_pick"},
+                  {"then": "cleanup"}]},
+        {"key": "noble_pick", "type": "player_input", "zone": "nobles",
+         "label": "A noble will visit you — choose which",
+         "next": [{"then": "cleanup"}]},
+        {"key": "cleanup", "type": "automatic",
+         "actions": ["draw_from:t1_deck:t1_row:1",
+                     "draw_from:t2_deck:t2_row:1",
+                     "draw_from:t3_deck:t3_row:1"],
+         "next": [{"when": f"t_total@mine.player >= {HAND_LIMIT + 1}", "then": "discard"},
+                  {"when": f"score@mine.player >= {TARGET}", "then": "flag_end"},
+                  {"then": "handover"}]},
+        {"key": "discard", "type": "player_input", "zone": "supply",
+         "label": "Put tokens back until you hold ten",
+         "next": [{"when": f"t_total@mine.player >= {HAND_LIMIT + 1}", "then": "discard"},
+                  {"when": f"score@mine.player >= {TARGET}", "then": "flag_end"},
+                  {"then": "handover"}]},
+        {"key": "flag_end", "type": "automatic",
+         "actions": ["stat_set:ending@mine.player:1"],
+         "next": [{"then": "handover"}]},
+        # Reaching fifteen does not stop the game: everybody finishes the round,
+        # so the two questions are asked one phase apart rather than as one
+        # condition, which the grammar has no "and" for.
+        {"key": "handover", "type": "automatic",
+         "next": [{"when": "ending@anyone.player >= 1", "then": "maybe_end"},
+                  {"then": "act"}]},
+        # The seat that just played is still "mine" here, so the round is over
+        # exactly when that seat is not the one that opens it.
+        {"key": "maybe_end", "type": "automatic",
+         "next": [{"when": "opens@mine.player == 0", "then": "finish"},
+                  {"then": "act"}]},
+        # Highest prestige, then fewest cards bought — efficiency over points.
+        {"key": "finish", "type": "automatic",
+         "next": [{"when": "score@north_side > score@south_side", "then": "north_won"},
+                  {"when": "score@south_side > score@north_side", "then": "south_won"},
+                  {"when": "bought@north_side < bought@south_side", "then": "north_won"},
+                  {"when": "bought@south_side < bought@north_side", "then": "south_won"},
+                  {"then": "drawn"}]},
+        {"key": "north_won", "type": "automatic",
+         "actions": ["stat_gain:won@north_side:1", "reveal:north_wins"],
+         "next": [{"then": "over"}]},
+        {"key": "south_won", "type": "automatic",
+         "actions": ["stat_gain:won@south_side:1", "reveal:south_wins"],
+         "next": [{"then": "over"}]},
+        {"key": "drawn", "type": "automatic", "actions": ["reveal:a_draw"],
+         "next": [{"then": "over"}]},
+        # Nothing calls next_phase from here, so the routing never runs and the
+        # board stays readable behind the banner.
+        {"key": "over", "type": "player_input", "label": "The game is over",
+         "next": [{"then": "over"}]},
+    ]
+
+
+def endings():
+    return [
+        {"key": "north_wins", "text": "North wins",
+         "story": "North's merchants hold the richest houses of the city.",
+         "play": {"action": ["load_game:menu.json"]}},
+        {"key": "south_wins", "text": "South wins",
+         "story": "South's merchants hold the richest houses of the city.",
+         "play": {"action": ["load_game:menu.json"]}},
+        {"key": "a_draw", "text": "A dead heat",
+         "story": "Equal prestige, equal shops. The guild records both names.",
+         "play": {"action": ["load_game:menu.json"]}},
+    ]
+
+
+def build(here):
+    data = os.path.join(here, "..", "ideas", "splendor", "cards.md")
+    rows, noble_rows = cards_table(data), nobles_table(data)
+    if len(rows) != 90 or len(noble_rows) != 10:
+        raise SystemExit(f"read {len(rows)} cards and {len(noble_rows)} nobles, expected 90 and 10")
+    return {
+        "title": "Splendor",
+        "seed": 23,
+        "players": [{"card": "north"}, {"card": "south"}],
+        "styles": styles(),
+        "stats": stats(),
+        "computed_tags": {
+            # Both are yes/no questions asked as a number, so an amount can
+            # multiply by them: the engine has no branch and needs none.
+            "noble_ready": {"stat": "ok", "at_least": 1},
+            "has_gold": {"stat": "bank", "at_least": 1},
+        },
+        "tags": {
+            # The ability is never clicked: neither zone is tagged "activate",
+            # so it is reachable only through activate_zone, which is ungated.
+            "development": {
+                "abilities": [{"key": "price", "text": "Price", "action": pricing()}],
+            },
+            "noble": {
+                "abilities": [{"key": "check", "text": "Check", "action": noble_check()}],
+            },
+        },
+        "zones": zones(rows),
+        "phases": phases(),
+        "end_conditions": [],
+        "cards": (seat_cards() + piles() + buttons()
+                  + development(rows) + nobles(noble_rows) + endings()),
+        "setup": {"place": [{"card": f"pile_{k}", "zone": "supply", "at": [chr(ord('a') + i) + "1"]}
+                            for i, k in enumerate(KEYS + ["gold"])]},
+    }
+
+
+if __name__ == "__main__":
+    here = os.path.dirname(os.path.abspath(__file__))
+    out = os.path.join(here, "..", "game", "games", "splendor.json")
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(jsonfmt.dump(build(here)))
+    print("wrote", os.path.relpath(out, os.path.join(here, "..")))

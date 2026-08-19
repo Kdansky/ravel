@@ -67,6 +67,14 @@
       "tags": ["immutable"]
     },
     {
+      "key": "play_splendor",
+      "text": "Splendor",
+      "tooltip": "Buy gem mines, and each one discounts the next. Ninety cards, ten nobles, fifteen prestige to win. Two players, one device.",
+      "play": { "action": ["load_game:splendor.json"] },
+      "asset": "diamond:teal",
+      "tags": ["immutable"]
+    },
+    {
       "key": "play_lor",
       "text": "Runeterra",
       "tooltip": "Vanilla combat: units, lanes, and a Nexus at twenty. Two players, one device.",
@@ -97,6 +105,7 @@
           "fill:menu:play_road:1",
           "fill:menu:play_lost_cities:1",
           "fill:menu:play_chess:1",
+          "fill:menu:play_splendor:1",
           "fill:menu:play_lor:1",
           "fill:menu:play_vigil:1",
           "fill:menu:m_back:1"

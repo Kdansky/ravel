@@ -247,7 +247,10 @@ wrong:
   play". Model it as a stat change applied once, or leave it out.
 - **Arithmetic beyond a product** — amounts multiply, but there is no division,
   no subtraction inside one amount, and no parentheses. Distribute it into
-  separate actions, as the scoring row above does.
+  separate actions, as the scoring row above does. Subtraction *between*
+  actions is free and clamps at the stat's floor, which is `max(0, a - b)` and
+  further than it looks (see *Actions*); a clamp anywhere but at the floor —
+  "never below one" — is genuinely missing.
 
 ### Big decks
 
@@ -1686,6 +1689,25 @@ stat_gain:gold:count:economic                        one per economic card
 stat_gain:score:sum:value@mine.red:x:count:wager@mine.red
 stat_damage:score:20:x:count:wager@mine.red            the same product, distributed
 ```
+
+**A stat with a floor of zero subtracts down to it and no further, and that is
+`max(0, a - b)`** — the one piece of arithmetic the grammar has beyond the
+product, and it is worth knowing you have it. Splendor's whole pricing is this
+and nothing else: a cost less a discount, then what is left over after the
+tokens, then what the gold has to make up.
+
+```
+stat_set:due@self:sum:cost_red@self             what it says on the card
+stat_damage:due@self:sum:red_bonus@mine.player  ...less the discount, never below nothing
+stat_set:short@self:sum:due@self
+stat_damage:short@self:sum:t_red@mine.player    what the tokens cannot cover
+```
+
+A yes/no comes out the same way: `max(0, 1 + have - need)` is 1 exactly when
+`have >= need`, so **a condition can read one number** where an `and` across
+five would be needed. Declare the working numbers as `hidden` stats with
+`"min": 0` — the floor is what makes it work, and hiding them keeps the HUD to
+what a player reads.
 
 **Zone slots** take a scope expression too, so `arena` is the active seat's and
 `enemy.arena` the other's.
