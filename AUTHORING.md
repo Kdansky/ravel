@@ -720,7 +720,8 @@ run their `then` actions — usually `push_phase:` to an ending overlay.
 
 **Scopes: which cards a subject is about.** The part after `@` is a *scope
 expression*: `[<quant>.][<owner>.]<zone-or-tag>`, where the name is a zone key,
-a tag, a movement pattern, or one of `self` / `target` / `all` / `reach`.
+a tag, a movement pattern, or one of `self` / `target` / `all` / `reach` /
+`owner_of.<scope>`.
 Without any scope, a subject means **your own cards** — see *The player is a
 card* below.
 
@@ -734,6 +735,7 @@ sum:defense@board    a stat summed over one zone
 max:rank@tableau     the largest value in one zone
 count:farm@board     count, narrowed to a zone
 count:king@enemy.reach  a king standing where an opponent could move — check
+score@owner_of.target   the score of whoever owns the card the player chose
 ```
 
 ### `@reach` — wherever a set of pieces could move
@@ -812,6 +814,41 @@ costs and effects:
 
 Costs may carry a scope but not a measuring function: `count:` and `sum:` count
 things rather than spend them, so they belong in `needs`, not `cost`.
+
+### `@owner_of` — the seat a card belongs to
+
+`owner_of.<scope>` is **the seats owning what the rest of it names**, as their
+own cards — so a rule can pay, ask about or score *whoever* owns something
+without naming a chair:
+
+```json
+{ "action": ["stat_gain:score@owner_of.target:1"] }
+```
+
+*The owner of the card you chose scores a point.* Every other way of naming a
+seat is decided in advance: `mine` and `enemy` are relative to whoever is up,
+and a seat key reaches its own card only because the game file tagged that card
+with its own name. Neither can say *whoever owns this particular card*, which is
+what a trick winner, a captured piece and a card played out of somebody's hand
+all need.
+
+What follows the prefix is an ordinary scope expression, so quantifiers and
+owner words work inside it. On its own, `@owner_of` is **the acting card's own
+seat** — which a card cannot otherwise name, since `mine` is whoever is up
+rather than whose the card is.
+
+```
+score@owner_of              the seat this card belongs to
+score@owner_of.target       the seat owning what the player chose
+count:player@owner_of.piece the seats with a piece on the board — each counted once
+score@mine.owner_of.target  ...and only if that owner is me
+```
+
+**An owner word means whichever side of the prefix it stands on.** Inside, it
+picks the cards (`@owner_of.enemy.creature` — the seats an opponent's creatures
+answer for); before it, it filters the seats that come back
+(`@mine.owner_of.target` — the target's owner, when that is me). Each seat
+answers once however many cards it owns, and a card nobody owns names nobody.
 
 ### The player is a card
 

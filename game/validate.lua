@@ -72,12 +72,12 @@ M.ENGINE_TAGS = {
 M.ENGINE_TAGS_ALSO_ON_STATS = { hidden = "kept out of the HUD, while cards may still read and change it" }
 
 -- Names conditions answer for themselves, so a zone or tag may not take one.
--- "self" is the acting card, "all" is everything, and "reach" is wherever a set
--- of pieces could move; none can be expressed as a tag, which is why they are
--- the only three the engine claims. "player" is deliberately NOT reserved — it
--- is an ordinary tag that content puts on one card, which is what makes finding
--- that card trivial.
-local RESERVED_SCOPES = { "self", "all", "reach" }
+-- "self" is the acting card, "all" is everything, "reach" is wherever a set of
+-- pieces could move, and "owner_of" is the seat something belongs to; none can
+-- be expressed as a tag, which is why they are the only four the engine claims.
+-- "player" is deliberately NOT reserved — it is an ordinary tag that content
+-- puts on one card, which is what makes finding that card trivial.
+local RESERVED_SCOPES = { "self", "all", "reach", "owner_of" }
 
 -- The shapes a stat may ask to be drawn with. Named by shape rather than by
 -- meaning, so a game's own word for its currency is its own business — and a
@@ -470,6 +470,16 @@ function M.check(G)
 	-- readily as "where may I go", so it is a scope too.
 	for k in pairs(G.pattern_defs or {}) do scope_names[k] = true end
 
+	-- The name a scope expression really has to resolve. "owner_of.<scope>" is a
+	-- prefix — it names the seats owning what the rest of it names — so the rest
+	-- is what has to exist, and a typo in it is a typo in an ordinary scope.
+	local function scope_named(name)
+		local inner = type(name) == "string" and name:match("^owner_of%.(.+)$")
+		if not inner then return name end
+		local sc = predicate.parse_scope(inner)
+		return sc and scope_named(sc.name) or inner
+	end
+
 	-- A subject: [<fn>:]<stat|tag|card>[@[<quant>.]<scope>]. allow_fn is false
 	-- for costs, where count:/card:/sum:/max: have nothing to spend.
 	local function subject_ok(where, key, allow_fn)
@@ -479,9 +489,10 @@ function M.check(G)
 			warn("%s: '%s' is not something the engine can measure", where, tostring(key))
 			return
 		end
-		if p.scope and not scope_names[p.scope] then
+		local named = p.scope and scope_named(p.scope)
+		if p.scope and not scope_names[named] then
 			warn("%s: '@%s' is neither a zone nor a tag%s",
-				where, p.scope, suggest(p.scope, scope_names))
+				where, p.scope, suggest(named, scope_names))
 		end
 		if p.fn and not allow_fn then
 			warn("%s: '%s:' measures something rather than spending it, so it cannot be a cost",
@@ -671,9 +682,10 @@ function M.check(G)
 				end
 			elseif t == "scope" then
 				local sc = predicate.parse_scope(a)
-				if not (sc and scope_names[sc.name]) then
+				local named = sc and scope_named(sc.name)
+				if not (sc and scope_names[named]) then
 					warn("%s: '%s' names '%s', which is neither a zone nor a tag%s",
-						where, op, a, suggest(sc and sc.name or a, scope_names))
+						where, op, a, suggest(named or a, scope_names))
 				end
 			elseif t == "card" and not G.card_defs[a] then
 				warn("%s: '%s' names the card '%s', but no template has that key%s",

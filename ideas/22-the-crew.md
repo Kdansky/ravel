@@ -1,6 +1,7 @@
 # 22 — The Crew: The Quest for Planet Nine
 
-**Status:** not started · **Size:** medium · **Depends on:** none of the
+**Status:** not started, and **half of its one primitive has shipped** — see
+*What shipped* below · **Size:** medium · **Depends on:** none of the
 deckbuilder candidates — self-contained
 
 > *Cooperative trick-taking. Named directly alongside the deckbuilder
@@ -19,6 +20,43 @@ routing (`"seat": "next"`) cannot express, since it only walks the fixed
 seat list in file order.
 
 ---
+
+## What shipped — the reading half of the primitive
+
+**`@owner_of.<scope>` is a scope, and it answers with the seats.** The lookup
+this file identified as its one root — *convert "this entity's owner" into a seat
+the rules can talk about* — exists now in `predicate.entities_in_scope`, spelled
+as a prefix on a scope expression because the words after `@` are separated by
+`.` and a colon would arrive as a second action argument. `score@owner_of.target`
+is the score of whoever owns the card the player chose; on its own, `@owner_of`
+is the acting card's own seat, which no card could name before.
+
+Four things the build settled:
+
+- **It answers with the seat's *card*, not a key**, because a scope's answer is
+  entities everywhere else — and the card's `def_key` is the seat key, so the
+  other half of the primitive reads it back off the same answer.
+- **It uses `predicate.seat_of`, not `tags.owner_of`.** `seat_of` is what
+  `mine`/`enemy` ask, so the scope and the owner words can never disagree about
+  whose a card is; it also makes a seat card asked about itself answer itself
+  rather than nobody.
+- **An owner word means whichever side of the prefix it stands on** — inside it
+  picks the cards (`@owner_of.enemy.creature`), before it it filters the seats
+  that come back (`@mine.owner_of.target`). Each word sits beside what it is
+  about, so neither reading has to be remembered.
+- **Each seat answers once** however many cards it owns, and a card nobody owns
+  names nobody. A seat counted once per card would pay a player twice for
+  holding two pieces, which reads as a rules decision rather than as a bug.
+
+**What is left is the writing half**: `set_active_seat:<scope>` (or `"seat":
+"owner_of:<scope>"` on a routing entry), which turns that seat into the one whose
+turn it is. That is the part The Crew cannot be built without — the trick winner
+leads the next trick — and it is now a `G.seat_index` lookup over an answer the
+scope already gives. [Assumption: it belongs on the routing entry as well as in
+an action, because the trick winner is decided at a phase boundary and a phase's
+`seat` field is where turn order is already written; but only the action has a
+customer today, so build that one and leave the routing spelling until a game
+asks for it.]
 
 ## Stage 1 — the rules document
 
@@ -153,7 +191,8 @@ differently:
   priority itself, which is exactly the kind of engine-knows-the-game-rule
   move invariant 7 warns against — the equivalent, for turn order, of
   `render.lua` learning what Overwhelm means.
-- **Option B — a narrow, reusable primitive.** Keep all of the above (the
+- **Option B — a narrow, reusable primitive.** *Half built — the scope shipped;
+  see [What shipped](#what-shipped--the-reading-half-of-the-primitive).* Keep all of the above (the
   branching, the per-suit narrowing, the winner identification) in content,
   exactly as worked out above, and give the engine exactly one new thing:
   a way to read *whose* card a scope resolves to and make that seat active.

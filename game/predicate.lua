@@ -21,6 +21,7 @@ local M = {}
 --   hp@self                 the acting card
 --   hp@target               the cards the player chose for this card
 --   count:farm@board        the fn forms take a scope too
+--   score@owner_of.target   the seats owning the cards chosen — see below
 --
 -- The words are separated by "." because ":" cannot be: action strings are
 -- split on colons (actions.lua), so "hp@each:follower" would arrive as two
@@ -205,6 +206,43 @@ function M.entities_in_scope(scope, ctx, owner)
 		-- The owner word was spent on choosing the pieces, so it must not be
 		-- spent again on what they threaten.
 		return out
+	elseif scope == "owner_of" or (type(scope) == "string" and scope:sub(1, 9) == "owner_of.") then
+		-- Whose these are, answered as the seats themselves: "@owner_of.target"
+		-- is the seat holding the card the player pointed at, so a rule can pay
+		-- the *owner* of something without knowing which chair that is. On its
+		-- own the word means the acting card's own seat, which is the commonest
+		-- one to ask about and the one a card can never name otherwise.
+		--
+		-- A prefix rather than a word of its own, because it takes an argument
+		-- and the words after "@" are separated by "." — a colon would arrive as
+		-- a second action argument (actions.lua). What follows it is an ordinary
+		-- scope expression, quantifier and owner word included.
+		--
+		-- **An owner word means whichever side of the prefix it is written on.**
+		-- Inside, it picks the cards: "@owner_of.enemy.creature" is the seats an
+		-- opponent's creatures answer for. Before it, it filters the seats that
+		-- come back, which the tail of this function does: "@mine.owner_of.target"
+		-- is the target's owner, when that owner is me. Each word sits beside
+		-- what it is about, so neither reading has to be remembered.
+		--
+		-- It answers with `seat_of` rather than `owner_of`, which is what
+		-- "mine"/"enemy" ask (`owned_by`): the two can then never disagree about
+		-- whose a card is, and a seat card asked about itself answers itself
+		-- rather than nobody.
+		local inner = M.parse_scope(scope == "owner_of" and "self" or scope:sub(10))
+		if not inner then return out end
+		local seats, cards = declaration.G.seat_set or {}, {}
+		for e in entity.each("card") do
+			if seats[e.def_key] and e.zone_id then cards[e.def_key] = e end
+		end
+		local seen = {}
+		for _, e in ipairs(M.entities_in_scope(inner.name, ctx, inner.owner)) do
+			local key = M.seat_of(e)
+			if key and cards[key] and not seen[key] then
+				seen[key] = true
+				out[#out + 1] = cards[key]
+			end
+		end
 	elseif (declaration.G.pattern_defs or {})[scope] then
 		-- A pattern names a shape, and a shape answers "what is standing there"
 		-- as readily as "where may I go" — so the same word serves a move and a
