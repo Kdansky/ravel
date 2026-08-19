@@ -354,31 +354,6 @@ function M.total(subject, ctx)
 	return p.fn == "max" and best or sum
 end
 
--- What a comparison is measured against: a number, or another subject. JSON
--- and Lua both carry either happily, so the type decides at run time — which
--- is what lets a card compare itself to what it is being played onto
--- ({ "at_least": "max:value@mine.red" }) instead of only to a constant.
---
--- A subject here must *look* like one — it has to name a scope or a measuring
--- fn. A bare word is a typo, not a reading of zero: without that rule every
--- misspelling would quietly compare against 0 and pass, which is precisely the
--- silent-wrong-answer this file's fail-closed discipline exists to prevent.
-local function bound(x, ctx)
-	local n = tonumber(x)
-	if n then return n end
-	if type(x) ~= "string" then return nil end
-	local p = M.parse_subject(x)
-	if not (p and (p.scope or p.fn)) then return nil end
-	return M.total(x, ctx)
-end
-
-local function compare(v, cond, ctx)
-	if cond.equals   ~= nil then local n = bound(cond.equals, ctx);   return n ~= nil and v == n end
-	if cond.at_least ~= nil then local n = bound(cond.at_least, ctx); return n ~= nil and v >= n end
-	if cond.at_most  ~= nil then local n = bound(cond.at_most, ctx);  return n ~= nil and v <= n end
-	return false
-end
-
 -- A condition written as one string: "<subject> <op> <number-or-subject>".
 --
 -- Pure, exactly as parse_subject above it is — a string in, a table out, no game
@@ -451,9 +426,19 @@ function M.parse_condition(s)
 	return hit.ast, hit.err
 end
 
--- What an operand measures, or nil for "absent" — which is not zero, and every
--- comparison against it is false. Same rule as the struct form below, and the
--- same exemption: a measuring fn asked of an empty pool honestly answers 0.
+-- What an operand measures, or nil for "absent".
+--
+-- **A stat nobody carries is absent, not zero**, and every comparison against it
+-- fails. Reading a missing value as 0 is C's mistake and it is not repeated
+-- here: Lua tells nil from 0 and so does this vocabulary. Without it "this rook
+-- has never moved" is true of a rook captured twenty moves ago, because a sum
+-- over nobody is zero — a gate that opens exactly when the thing it guards no
+-- longer exists.
+--
+-- The counting forms are exempt, and must be: no farms really is a count of
+-- zero, and "these squares are empty" is written that way. `sum:`/`max:` are
+-- exempt too — they are asked *of a pool*, and the measure of an empty pool is
+-- honestly 0.
 local function measure(o, ctx)
 	if o.n then return o.n end
 	local p = o.subject
@@ -480,77 +465,29 @@ function M.holds(c, ctx)
 	return l ~= nil and COMPARE[c.op](l, r)
 end
 
--- { "stat": "hp", "equals": 0 } with equals / at_least / at_most,
--- { "when": "hp == 0" } saying the same thing in one string,
--- or { "zone_empty": ["road", "hand"] } (all listed zones empty).
+-- A routing entry or an end condition: { "when": "hp == 0" }, or
+-- { "zone_empty": ["road", "hand"] } (all listed zones empty), which is the one
+-- question the comparison grammar cannot ask — no subject counts a zone's cards
+-- regardless of what they are.
 function M.met(cond, ctx)
 	if type(cond) == "string" then return M.holds(cond, ctx) end
 	if type(cond) ~= "table" then return false end
 	if cond.when ~= nil then return M.holds(cond.when, ctx) end
-	if cond.zone_empty then
-		if type(cond.zone_empty) ~= "table" then return false end
-		for _, zk in ipairs(cond.zone_empty) do
-			local z = type(zk) == "string" and zones.find(zk)
-			if not z or #z.cards > 0 then return false end
-		end
-		return true
+	if type(cond.zone_empty) ~= "table" then return false end
+	for _, zk in ipairs(cond.zone_empty) do
+		local z = type(zk) == "string" and zones.find(zk)
+		if not z or #z.cards > 0 then return false end
 	end
-	-- "each" asks of every member; anything else asks of the pool. The fn
-	-- forms are aggregates already, so they always read the pool. An empty
-	-- scope fails rather than passing vacuously, or a cost would be free
-	-- exactly when nothing can pay it.
-	local p = M.parse_subject(cond.stat)
-
-	-- **A stat nobody carries is absent, not zero**, and every comparison
-	-- against it fails. Reading a missing value as 0 is C's mistake and it is
-	-- not repeated here: Lua tells nil from 0 and so does this vocabulary.
-	-- Without it "this rook has never moved" is true of a rook captured twenty
-	-- moves ago, because a sum over nobody is zero — a gate that opens exactly
-	-- when the thing it guards no longer exists.
-	--
-	-- The counting forms are exempt, and must be: no farms really is a count of
-	-- zero, and "these squares are empty" is written that way. `sum:`/`max:` are
-	-- exempt too — they are asked *of a pool*, and the measure of an empty pool
-	-- is honestly 0.
-	if p and p.fn == nil and #M.bearers(p, ctx) == 0 then return false end
-
-	if p and p.quant == "each" and p.fn == nil then
-		local ents = M.entities_in_scope(p.scope, ctx, p.owner)
-		if #ents == 0 then return false end
-		for _, e in ipairs(ents) do
-			if not compare(tonumber((e.stats or {})[p.arg]) or 0, cond, ctx) then return false end
-		end
-		return true
-	end
-	return compare(M.total(cond.stat, ctx), cond, ctx)
+	return true
 end
 
--- Map form { subject = n, ... }: each entry is "this subject, at least n" —
--- much the commonest thing to ask, so a bare number keeps meaning exactly
--- that. When you need the other direction, the value is a comparison instead:
--- { "max:value@mine.red": { "at_most": 6 } } is how a card says it may only be
--- played on a lower one.
-function M.meets_all(map, ctx)
-	if type(map) ~= "table" then return true end
-	-- A list of strings is the same thing said as expressions, and a list rather
-	-- than a map because a map keyed by its condition cannot hold one subject
-	-- twice — "gold >= 3" and "gold <= 8" is a range, which is an ordinary thing
-	-- to want.
-	if type(map[1]) == "string" then
-		for _, s in ipairs(map) do
-			if not M.holds(s, ctx) then return false end
-		end
-		return true
-	end
-	for subject, n in pairs(map) do
-		local cond
-		if type(n) == "table" then
-			cond = { stat = subject, equals = n.equals,
-				at_least = n.at_least, at_most = n.at_most }
-		else
-			cond = { stat = subject, at_least = tonumber(n) }
-		end
-		if not M.met(cond, ctx) then return false end
+-- Every condition in the list holds. A list rather than a map keyed by subject,
+-- because such a map cannot hold one subject twice — "gold >= 3" with
+-- "gold <= 8" is a range, which is an ordinary thing to want.
+function M.meets_all(list, ctx)
+	if type(list) ~= "table" then return true end
+	for _, s in ipairs(list) do
+		if not M.holds(s, ctx) then return false end
 	end
 	return true
 end

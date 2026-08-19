@@ -21,11 +21,11 @@ end
 local CASES = {
 	-- condition subjects
 	{ "an unknown tag in a count", "counts the tag 'dragons'",
-		function(g) g.card_defs.c_flee.needs = { ["count:dragons"] = 1 } end },
+		function(g) g.card_defs.c_flee.needs = { "count:dragons >= 1" } end },
 	{ "a card check for a missing template", "checks for the card 'excalibur'",
-		function(g) g.card_defs.c_flee.requires = { ["card:excalibur"] = 1 } end },
+		function(g) g.card_defs.c_flee.requires = { "card:excalibur >= 1" } end },
 	{ "an unknown stat in routing", "uses the stat 'mana'",
-		function(g) g.phase_by_key.story.next = { { stat = "mana", at_least = 1, ["then"] = "story" } } end },
+		function(g) g.phase_by_key.story.next = { { when = "mana >= 1", ["then"] = "story" } } end },
 	{ "a zone_empty that isn't a list", "zone_empty should be a list",
 		function(g) g.end_conditions[2] = { zone_empty = "hand", ["then"] = {} } end },
 	{ "a zone_empty watching a missing zone", "watches zone 'vault'",
@@ -33,11 +33,11 @@ local CASES = {
 	{ "an art spec the engine can't draw", "isn't a shape the engine can draw",
 		function(g) g.card_defs.c_flee.asset = "hexagram:red" end },
 	{ "a comparison against a bare word", "is a bare word",
-		function(g) g.end_conditions[2] = { stat = "hp", at_least = "lots", ["then"] = {} } end },
-	{ "a condition with no comparison", "no comparison",
-		function(g) g.end_conditions[2] = { stat = "hp", ["then"] = {} } end },
+		function(g) g.end_conditions[2] = { when = "hp >= lots", ["then"] = {} } end },
+	{ "a condition with no comparison in it", "should be a comparison",
+		function(g) g.end_conditions[2] = { when = "hp", ["then"] = {} } end },
 	{ "an end condition with no then", "has no 'then'",
-		function(g) g.end_conditions[2] = { stat = "hp", equals = 3 } end },
+		function(g) g.end_conditions[2] = { when = "hp == 3" } end },
 	-- maps and shapes
 	{ "a cost that isn't a map", 'should be written like { "gold"',
 		function(g) g.card_defs.c_flee.cost = "2 gold" end },
@@ -179,7 +179,7 @@ local CASES = {
 	{ "a sacrifice of an uncarried tag", "sacrifices the tag 'dragons'",
 		function(g) g.card_defs.c_flee.cost = { ["sacrifice:dragons"] = 1 } end },
 	{ "a sacrifice outside a cost", "belongs in cost or activate_cost",
-		function(g) g.card_defs.c_flee.needs = { ["sacrifice:keepsake"] = 1 } end },
+		function(g) g.card_defs.c_flee.needs = { "sacrifice:keepsake >= 1" } end },
 	{ "a missing image file", "is not in games/assets",
 		function(g) g.card_defs.c_flee.asset = "no_such_file.png" end },
 	{ "a web asset URL with characters that could break out of generated JS",
@@ -320,9 +320,9 @@ local CASES = {
 	{ "a zone claiming a reserved scope name", "reserves for conditions",
 		function(g) g.zone_defs.all = { key = "all", type = "hand" } end },
 	{ "a scope that names nothing", "neither a zone nor a tag",
-		function(g) g.card_defs.c_flee.needs = { ["hp@nowhere"] = 1 } end },
+		function(g) g.card_defs.c_flee.needs = { "hp@nowhere >= 1" } end },
 	{ "a scope with a typo suggests the right one", "did you mean 'keepsake'",
-		function(g) g.card_defs.c_flee.needs = { ["hp@keepsakes"] = 1 } end },
+		function(g) g.card_defs.c_flee.needs = { "hp@keepsakes >= 1" } end },
 	{ "a measuring fn used as a cost", "cannot be a cost",
 		function(g) g.card_defs.c_flee.cost = { ["count:keepsake"] = 1 } end },
 	{ "two zones drawn on top of each other", "overlaps zone",
@@ -330,6 +330,16 @@ local CASES = {
 			g.zone_defs.hand.pos = { 0.3, 0.3, 0.8, 0.8 } end },
 	{ "an order the engine does not know", "is not an order the engine knows",
 		function(g) g.card_defs.c_flee.on_play = { "activate_zone:board:widdershins" } end },
+	-- The shapes a condition used to have. Both are what a game file written
+	-- before the migration carries, so both say what to write instead.
+	{ "a gate still written as a map", "is written as a map",
+		function(g) g.card_defs.c_flee.needs = { gold = 3 } end },
+	{ "a routing entry still written as a stat and a comparison", "no longer is",
+		function(g) g.phase_by_key.story.next = { { stat = "mana", at_least = 1, ["then"] = "story" } } end },
+	{ "a gate that is not a list at all", "should be a list of conditions",
+		function(g) g.card_defs.c_flee.needs = "gold >= 3" end },
+	{ "exhaust asked as a condition", "a card cannot need itself spent",
+		function(g) g.card_defs.c_flee.needs = { "exhaust >= 1" } end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)

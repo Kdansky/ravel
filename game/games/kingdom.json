@@ -82,7 +82,7 @@
       "tooltip": "End this season and browse the Market next. Play at least one card first.",
       "tags": ["token", "moss"],
       "play": {
-        "needs": { "plays": 1 },
+        "needs": ["plays >= 1"],
         "action": ["stat_set:destination:1", "destroy_self", "next_phase"]
       }
     },
@@ -93,7 +93,7 @@
       "tooltip": "End this season and train at the Barracks next. Play at least one card first.",
       "tags": ["token", "rust"],
       "play": {
-        "needs": { "plays": 1 },
+        "needs": ["plays >= 1"],
         "action": ["stat_set:destination:2", "destroy_self", "next_phase"]
       }
     },
@@ -104,7 +104,7 @@
       "tooltip": "End this season and seek the Sanctum next. Play at least one card first.",
       "tags": ["token", "indigo"],
       "play": {
-        "needs": { "plays": 1 },
+        "needs": ["plays >= 1"],
         "action": ["stat_set:destination:3", "destroy_self", "next_phase"]
       }
     },
@@ -114,7 +114,7 @@
       "asset": "circle:teal",
       "tooltip": "End the season once both trials are faced.",
       "tags": ["token", "slate"],
-      "play": { "needs": { "plays": 2 }, "action": ["destroy_self", "next_phase"] }
+      "play": { "needs": ["plays >= 2"], "action": ["destroy_self", "next_phase"] }
     },
     {
       "key": "march_on",
@@ -231,7 +231,7 @@
       "tooltip": "The banners rise: +1 might per soldier.",
       "tags": ["one_shot"],
       "play": {
-        "needs": { "count:soldier": 2 },
+        "needs": ["count:soldier >= 2"],
         "action": ["stat_gain:might:count:soldier", "stat_gain:progress:1", "move_to:graveyard"]
       }
     },
@@ -316,7 +316,7 @@
       "tooltip": "Blight creeps through the fields. Need 4 food.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "food": 4 },
+        "needs": ["food >= 4"],
         "pass": ["move_to:graveyard", "stat_damage:food:2", "stat_gain:progress:1"],
         "fail": [
           "move_to:board",
@@ -336,7 +336,7 @@
       "tooltip": "Riders burn the frontier. Need 3 might.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "might": 3 },
+        "needs": ["might >= 3"],
         "pass": ["move_to:graveyard", "stat_damage:might:1", "stat_gain:progress:1"],
         "fail": ["move_to:board", "effect:crisis_smoke", "stat_damage:stability:2"]
       },
@@ -351,7 +351,7 @@
       "tooltip": "Old debts come due. Need 6 gold.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "gold": 6 },
+        "needs": ["gold >= 6"],
         "pass": ["move_to:graveyard", "stat_damage:gold:4", "stat_gain:progress:1"],
         "fail": [
           "move_to:board",
@@ -371,7 +371,7 @@
       "tooltip": "The dead whisper louder. Need 3 mana.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "mana": 3 },
+        "needs": ["mana >= 3"],
         "pass": ["move_to:graveyard", "stat_damage:mana:2", "stat_gain:progress:1"],
         "fail": [
           "move_to:board",
@@ -391,7 +391,7 @@
       "tooltip": "Two lean years in a row. Need 2 farms.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "count:farm": 2 },
+        "needs": ["count:farm >= 2"],
         "pass": ["move_to:graveyard", "stat_damage:food:3", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -411,7 +411,7 @@
       "tooltip": "The sellswords name their price. Need 8 gold.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "gold": 8 },
+        "needs": ["gold >= 8"],
         "pass": ["move_to:graveyard", "stat_damage:gold:6", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -431,7 +431,7 @@
       "tooltip": "A rival banner marches. Need 6 might.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "might": 6 },
+        "needs": ["might >= 6"],
         "pass": ["move_to:graveyard", "stat_damage:might:3", "stat_gain:progress:2"],
         "fail": ["move_to:board", "effect:crisis_smoke", "stat_damage:stability:3"]
       },
@@ -446,7 +446,7 @@
       "tooltip": "Fear turns on the wise. Need 6 mana.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "mana": 6 },
+        "needs": ["mana >= 6"],
         "pass": ["move_to:graveyard", "stat_damage:mana:3", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -466,7 +466,7 @@
       "tooltip": "Cousins with armies. Need 8 might and 8 gold.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "might": 8, "gold": 8 },
+        "needs": ["might >= 8", "gold >= 8"],
         "pass": ["move_to:graveyard", "stat_damage:might:4", "stat_damage:gold:6", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -486,7 +486,7 @@
       "tooltip": "It does not thaw. Need 8 food and 3 farms.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "food": 8, "count:farm": 3 },
+        "needs": ["food >= 8", "count:farm >= 3"],
         "pass": ["move_to:graveyard", "stat_damage:food:5", "stat_gain:progress:2"],
         "fail": [
           "move_to:board",
@@ -506,7 +506,7 @@
       "tooltip": "It remembers where gold sleeps. Need 10 might and 4 mana.",
       "tags": ["trial"],
       "challenge": {
-        "needs": { "might": 10, "mana": 4 },
+        "needs": ["might >= 10", "mana >= 4"],
         "pass": ["move_to:graveyard", "stat_damage:might:4", "stat_damage:mana:2", "stat_gain:progress:3"],
         "fail": [
           "move_to:board",
@@ -721,10 +721,10 @@
       "draw": 4,
       "pass_card": ["to_market", "to_barracks", "to_sanctum"],
       "next": [
-        { "stat": "progress", "at_least": 10, "then": "trial_gate", "ends_round": true },
-        { "stat": "round", "at_least": 7, "then": "trial_gate", "ends_round": true },
-        { "stat": "destination", "equals": 2, "then": "barracks_visit", "ends_round": true },
-        { "stat": "destination", "equals": 3, "then": "sanctum_visit", "ends_round": true },
+        { "when": "progress >= 10", "then": "trial_gate", "ends_round": true },
+        { "when": "round >= 7", "then": "trial_gate", "ends_round": true },
+        { "when": "destination == 2", "then": "barracks_visit", "ends_round": true },
+        { "when": "destination == 3", "then": "sanctum_visit", "ends_round": true },
         { "then": "market_visit", "ends_round": true }
       ],
       "tags": ["discard_hand"]
@@ -737,10 +737,10 @@
       "draw": 4,
       "pass_card": ["to_market", "to_barracks", "to_sanctum"],
       "next": [
-        { "stat": "progress", "at_least": 10, "then": "trial_gate", "ends_round": true },
-        { "stat": "round", "at_least": 7, "then": "trial_gate", "ends_round": true },
-        { "stat": "destination", "equals": 1, "then": "market_visit", "ends_round": true },
-        { "stat": "destination", "equals": 3, "then": "sanctum_visit", "ends_round": true },
+        { "when": "progress >= 10", "then": "trial_gate", "ends_round": true },
+        { "when": "round >= 7", "then": "trial_gate", "ends_round": true },
+        { "when": "destination == 1", "then": "market_visit", "ends_round": true },
+        { "when": "destination == 3", "then": "sanctum_visit", "ends_round": true },
         { "then": "barracks_visit", "ends_round": true }
       ],
       "tags": ["discard_hand"]
@@ -753,10 +753,10 @@
       "draw": 4,
       "pass_card": ["to_market", "to_barracks", "to_sanctum"],
       "next": [
-        { "stat": "progress", "at_least": 10, "then": "trial_gate", "ends_round": true },
-        { "stat": "round", "at_least": 7, "then": "trial_gate", "ends_round": true },
-        { "stat": "destination", "equals": 1, "then": "market_visit", "ends_round": true },
-        { "stat": "destination", "equals": 2, "then": "barracks_visit", "ends_round": true },
+        { "when": "progress >= 10", "then": "trial_gate", "ends_round": true },
+        { "when": "round >= 7", "then": "trial_gate", "ends_round": true },
+        { "when": "destination == 1", "then": "market_visit", "ends_round": true },
+        { "when": "destination == 2", "then": "barracks_visit", "ends_round": true },
         { "then": "sanctum_visit", "ends_round": true }
       ],
       "tags": ["discard_hand"]
@@ -765,8 +765,8 @@
       "key": "trial_gate",
       "type": "automatic",
       "next": [
-        { "stat": "progress", "at_least": 20, "then": "trial3" },
-        { "stat": "progress", "at_least": 14, "then": "trial2" },
+        { "when": "progress >= 20", "then": "trial3" },
+        { "when": "progress >= 14", "then": "trial2" },
         { "then": "trial1" }
       ]
     },
@@ -836,9 +836,9 @@
     }
   ],
   "end_conditions": [
-    { "stat": "stability", "at_most": 0, "then": ["push_phase:collapse"] },
-    { "stat": "progress", "at_least": 24, "then": ["push_phase:coronation"] },
-    { "stat": "round", "at_least": 20, "then": ["push_phase:twilight_years"] }
+    { "when": "stability <= 0", "then": ["push_phase:collapse"] },
+    { "when": "progress >= 24", "then": ["push_phase:coronation"] },
+    { "when": "round >= 20", "then": ["push_phase:twilight_years"] }
   ],
   "setup": { "place": [{ "card": "council", "zone": "board" }] }
 }

@@ -134,7 +134,7 @@
       "asset": "old_door.jpg",
       "tooltip": "Iron-bound and swollen shut. Locked?",
       "challenge": {
-        "needs": { "card:rusty_key": 1 },
+        "needs": ["card:rusty_key >= 1"],
         "pass": ["reveal:p_hall"],
         "fail": ["reveal:p_door_locked"]
       },
@@ -160,7 +160,7 @@
       "asset": "dark_stair.jpg",
       "tooltip": "The steps vanish into cold black water.",
       "challenge": {
-        "needs": { "card:lantern": 1 },
+        "needs": ["card:lantern >= 1"],
         "pass": ["reveal:p_stair_lit"],
         "fail": ["reveal:p_stair_dark"]
       },
@@ -172,7 +172,7 @@
       "asset": "old_bell.jpg",
       "tooltip": "Green with age. The tower was built around it. No going back after this.",
       "play": { "action": ["effect:bell_toll", "resolve_challenge"] },
-      "challenge": { "needs": { "card:pearl": 1 }, "pass": ["reveal:e_pearl"], "fail": ["reveal:e_bell"] },
+      "challenge": { "needs": ["card:pearl >= 1"], "pass": ["reveal:e_pearl"], "fail": ["reveal:e_bell"] },
       "tags": ["no_undo"]
     },
     {
@@ -181,7 +181,7 @@
       "asset": "row_boat.jpg",
       "tooltip": "The lake was here first. Let it keep what it holds.",
       "challenge": {
-        "needs": { "card:pearl": 1 },
+        "needs": ["card:pearl >= 1"],
         "pass": ["reveal:e_flee_pearl"],
         "fail": ["reveal:e_flee"]
       },
@@ -213,5 +213,5 @@
     { "key": "intro", "type": "automatic", "actions": ["reveal:p_shore"] },
     { "key": "story", "type": "player_input", "label": "The Drowned Tower" }
   ],
-  "end_conditions": [{ "stat": "hp", "at_most": 0, "then": ["reveal:e_collapse"] }]
+  "end_conditions": [{ "when": "hp <= 0", "then": ["reveal:e_collapse"] }]
 }

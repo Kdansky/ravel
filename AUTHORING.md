@@ -69,7 +69,7 @@ copies it, so a dump can go straight back into the game file.
     { "key": "setup", "type": "automatic", "actions": ["draw_from:deck:hand:1"] },
     { "key": "playing", "type": "player_input", "label": "Playing" }
   ],
-  "end_conditions": [{ "stat": "hp", "equals": 0, "then": ["load_game:menu.json"] }]
+  "end_conditions": [{ "when": "hp == 0", "then": ["load_game:menu.json"] }]
 }```
 
 The recipe, in order:
@@ -214,7 +214,7 @@ rulebook open alongside.
 | "…or discard it instead" | a second destination in the same `target` spec |
 | "Cards must be played in ascending order" | `receive.needs` on the destination |
 | "Costs 2 gold" | `"play": { "cost": { "gold": 2 } }` |
-| "Only if you control a farm" | `"play": { "needs": { "count:farm": 1 } }` |
+| "Only if you control a farm" | `"play": { "needs": ["count:farm >= 1"] }` |
 | "Draw from the deck or a discard pile" | a token in the draw phase's `zone` for the deck; for the piles, `"applies": ["takeable"]` on each and one tag def carrying an `activate` block |
 | "Only during your main phase" | `"play": { "phases": ["main"] }`, or `activate.phases` for the ability |
 | "Put it on the discard pile" | `"target": { "type": "zone", "zones": ["discard"] }` — point at the place, not at a card lying in it |
@@ -225,7 +225,7 @@ rulebook open alongside.
 | "The game ends when the deck is empty" | a route on `{ "zone_empty": ["deck"] }` |
 | "Score 3 points per set" | a scoring card: `stat_gain:score:3:x:count:<tag>` |
 | "(sum − 20) × multiplier" | two actions: `stat_gain:score:sum:…:x:…` then `stat_damage:score:20:x:…` |
-| "Whoever has more points wins" | a route: `{ "stat": "score@north_side", "at_least": "score@south_side" }` |
+| "Whoever has more points wins" | a route: `{ "when": "score@north_side >= score@south_side" }` |
 | "Players each have a different power" | different `player`-tagged templates |
 
 ### Rules that do not fit — stop and say so
@@ -332,7 +332,7 @@ first non-automatic phase, which ends the round. Always give these a `pass_card`
 
 **Free-play draft hands** (Coronation): a `player_input` phase with `deck`,
 `draw` and a `pass_card` deals a hand you play freely from; a Done/router token
-with `"play": { "needs": { "plays": 1 }, "action": ["destroy_self", "next_phase"] }` ends the hand.
+with `"play": { "needs": ["plays >= 1"], "action": ["destroy_self", "next_phase"] }` ends the hand.
 
 **Sub-card choices**: options live in a hidden internal deck; the parent card
 pushes an overlay over it, and the offer zone `applies` a tag whose `play.action`
@@ -631,7 +631,7 @@ disk cache with no network at all.
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
 | `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
-| `where` | A condition asked of **each candidate**, with the candidate as `@target` and as the anchor for any pattern inside — so a target spec can say things about the destination that `fill` cannot. `{"row@target": 1}` is the near row of a grid; `{"count:unit@across": {"at_least": 1}}` is a cell with something standing opposite it. The same word a move rule carries, asked one level up so a destination nothing *walks* to can be narrowed too |
+| `where` | A condition asked of **each candidate**, with the candidate as `@target` and as the anchor for any pattern inside — so a target spec can say things about the destination that `fill` cannot. `"row@target == 1"` is the near row of a grid; `"count:unit@across >= 1"` is a cell with something standing opposite it. The same word a move rule carries, asked one level up so a destination nothing *walks* to can be narrowed too |
 
 ### Phases
 
@@ -685,23 +685,37 @@ of that specific template on grid zones — "does the player have the rusty key?
 
 **A square on a grid carries `col` and `row` as ordinary stats**, 1-based and
 row-major, so where something is on the board is asked with the vocabulary
-already here: `{ "row@target": { "equals": 8 } }` is "the far rank".
+already here: `"row@target == 8"` is "the far rank".
 
-- Object form: `{ "stat": "progress", "at_least": 12 }` (`equals` / `at_least` / `at_most`) or `{ "zone_empty": ["road", "hand"] }`.
-- Map form (any `needs`): `{ "might": 8, "count:farm": 3 }` — a bare number means **at least** n, much the commonest thing to ask.
-- To ask the other way, the value is a comparison instead:
-  `{ "max:value@mine.red": { "at_most": 6 } }`.
+**A condition is one string**: `<subject> <op> <number-or-subject>`, where the
+operators are `>=`, `<=`, `>`, `<`, `==` and `!=`. One comparison per string —
+there are no boolean operators, because a list already means *and*, and *or* is
+two abilities.
 
-**A comparison may be measured against another subject, not just a constant.**
-The type decides at run time — a number is a number, a string is measured:
+- Any `needs`, an `accepts` and a target's `where` take a **list** of them, all
+  of which must hold: `["might >= 8", "count:farm >= 3"]`. A list rather than a
+  map keyed by its subject, because such a map cannot name one subject twice,
+  and `["gold >= 3", "gold <= 8"]` is a range.
+- A routing entry and an `end_condition` take exactly one, under `when`:
+  `{ "when": "progress >= 12", "then": "trial" }`. `{ "zone_empty": ["road", "hand"] }`
+  is the one question the comparison grammar cannot ask, and it stays.
+- A **cost** is not a condition and keeps its map: `{ "gold": 2 }` is what gets
+  *spent*, where `"gold >= 2"` would only say what to check.
+
+**The right-hand side may be another subject, not just a constant.** The type
+decides at run time — a number is a number, anything else is measured:
 
 ```json
-{ "stat": "score@north_side", "at_least": "score@south_side" }
-{ "value@target": { "at_least": "max:value@mine.red" } }
+{ "when": "score@north_side >= score@south_side" }
+"value@target >= max:value@mine.red"
 ```
 
+It has to *look* like a subject — name a scope or a measuring fn — or it is
+refused as a bare word, which would otherwise read as a stat worth nothing and
+quietly pass.
+
 **A stat nobody carries is absent, not zero**, and every comparison against it
-fails — including `equals: 0` and `at_most: n`. Without that rule "this rook has
+fails — including `== 0` and `<= n`. Without that rule "this rook has
 never moved" would be true of a rook captured twenty moves ago, since a sum over
 nobody is zero: a gate that opens exactly when the thing it guards stops
 existing. `nil` and `0` are different, here as in Lua.
@@ -746,7 +760,7 @@ what comes back, so `@enemy.reach` is every square an opponent could move to —
 and asking what stands there is how a game asks about threats:
 
 ```json
-{ "count:king@enemy.reach": { "equals": 0 } }
+{ "when": "count:king@enemy.reach == 0" }
 ```
 
 *No king of mine stands where an enemy could move* — which is "not in check",
@@ -770,7 +784,7 @@ the feature on the game's side:
 
 ```json
 { "key": "white_move", "label": "White to move", "seat": "next",
-  "next": [{ "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
+  "next": [{ "when": "count:king@mine.reach >= 1", "then": "black_check" },
            { "then": "black_move" }] }
 ```
 
@@ -873,7 +887,7 @@ exactly as the end of a turn does.
 
 There is no player object. A seat that names no card becomes an invisible one tagged
 `player`, and a subject with no scope means that card — so `"cost": { "gold": 2 }`
-and `{ "stat": "gold", "at_least": 5 }` are guaranteed to be talking about the
+and `{ "when": "gold >= 5" }` are guaranteed to be talking about the
 same coins. Nothing else changes for a game that never thinks about it.
 
 Tag a template `player` and it becomes the player instead, with no stat bag
@@ -1036,9 +1050,9 @@ standing there. `where` is the third: asked per candidate, with that square as
 
 ```json
 { "patterns": ["pawn_take"], "fill": "empty",
-  "where": { "tagged:last_acted@behind": 1,
-             "tagged:pawn@behind": 1,
-             "rank@behind": { "equals": 4 } } }
+  "where": ["tagged:last_acted@behind >= 1",
+            "tagged:pawn@behind >= 1",
+            "rank@behind == 4"] }
 ```
 
 That is en passant: *an empty square I could take onto, with a pawn just behind
@@ -1058,10 +1072,10 @@ columns do not flip with facing, so the same rules serve both colours:
 ```json
 { "key": "castle_k", "text": "Castle kingside",
   "moves": [{ "patterns": ["two_right"], "fill": "empty",
-              "needs": { "moves_made@self": { "equals": 0 } },
-              "where": { "tagged:rook@one_right": 1,
-                         "moves_made@one_right": { "equals": 0 },
-                         "not_tagged:piece@one_left": 1 } }],
+              "needs": ["moves_made@self == 0"],
+              "where": ["tagged:rook@one_right >= 1",
+                        "moves_made@one_right == 0",
+                        "not_tagged:piece@one_left >= 1"] }],
   "action": ["move_to:target", "place:one_right:one_left", "next_phase"] }
 ```
 
@@ -1111,7 +1125,7 @@ The same name answers *what is standing there* as readily as *where may I go*,
 so no separate "is this square empty" condition exists or is needed:
 
 ```json
-"play": { "needs": { "count:piece@castle_k_path": { "equals": 0 } } }
+"play": { "needs": ["count:piece@castle_k_path == 0"] }
 ```
 
 An absolute pattern names its squares outright. A relative one is anchored on
@@ -1132,7 +1146,7 @@ standing on the far square* needs more than a list of names:
 { "key": "pawn", "activate": { "action": [...], "moves": [
     { "patterns": ["pawn_step"], "fill": "empty" },
     { "patterns": ["pawn_run"],  "fill": "empty",
-      "needs": { "rank@self": { "equals": 2 } } },
+      "needs": ["rank@self == 2"] },
     { "patterns": ["pawn_take"], "fill": "enemy" } ] } }
 ```
 
@@ -1162,12 +1176,12 @@ which is how chess declares it.
     {
       "patterns": ["two_right"],
       "fill": "empty",
-      "needs": { "moves_made@self": { "equals": 0 } },
-      "where": {
-        "tagged:rook@one_right": 1,
-        "moves_made@one_right": { "equals": 0 },
-        "not_tagged:piece@one_left": 1
-      }
+      "needs": ["moves_made@self == 0"],
+      "where": [
+        "tagged:rook@one_right >= 1",
+        "moves_made@one_right == 0",
+        "not_tagged:piece@one_left >= 1"
+      ]
     }
   ],
   "action": ["move_to:target", "place:one_right:one_left", "stat_gain:moves_made@self:1", "next_phase"]
@@ -1219,7 +1233,7 @@ itself as `@self` and the arriving card as `@target`:
 {
   "key": "red_route",
   "tags": ["marker", "red_dest"],
-  "receive": { "needs": { "value@target": { "at_least": "max:value@mine.red" } } }
+  "receive": { "needs": ["value@target >= max:value@mine.red"] }
 }
 
 "setup": { "place": [{ "card": "red_route", "zone": "red" }] }
@@ -1352,7 +1366,7 @@ Some moves end in a choice: a pawn reaching the far rank, a builder picking what
 to build. That is one action:
 
 ```json
-"challenge": { "needs": { "rank@self": { "equals": 8 } },
+"challenge": { "needs": ["rank@self == 8"],
                "pass":  ["options:to_queen,to_rook,to_bishop,to_knight"],
                "fail":  ["next_phase"] }
 ```
@@ -1496,6 +1510,12 @@ Per-card derived tags from that card's own stats:
 Comparators: `less_than`, `less_than_stat`, `less_than_max`, `at_least`, `equals`. Usable
 anywhere card tags are (targeting, `count:`, and as a scope — castle reads
 `sum:defense@standing` so rubble stops defending).
+
+**This is the one place the struct spelling survives, and it is a different
+question.** A condition asks about a *scope*; a computed tag is asked of one
+card, per frame, and reaches things no subject can name — `less_than_max` reads
+that card's own ceiling. Until a subject can say "this card's ceiling", folding
+the two together would cost more than the second vocabulary does.
 
 ### Tags with behaviour
 

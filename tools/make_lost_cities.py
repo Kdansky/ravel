@@ -240,7 +240,7 @@ def zones():
         # Wagers are worth 0, so the same line puts them before every number.
         out.append({"key": c, "label": label, "type": "pile",
                     "tags": ["stacked", "per_seat"], "pos": EXPEDITION_POS[i],
-                    "receive": {"needs": {"value@target": {"at_least": "max:value@mine." + c}}}})
+                    "receive": {"needs": ["value@target >= max:value@mine." + c]}})
         # A pile hands "takeable" to whatever lands on it — so its top card can
         # be picked up during the draw step without any card knowing about piles.
         # "activate" is the zone's own say-so that abilities work here. A pile
@@ -309,15 +309,14 @@ def phases():
         {"key": "tally", "type": "player_input", "label": "Tally",
          "seat": "next", "zone": "choice", "tags": ["discard_hand"],
          "pass_card": SCORING_CARDS + ["done_scoring"],
-         "next": [{"stat": "tallied@player", "at_least": 2, "then": "ending"},
+         "next": [{"when": "tallied@player >= 2", "then": "ending"},
                   {"then": "tally"}]},
     ]
 
     # The winner is decided by comparing one seat's score against the other's —
     # a comparison whose bound is a subject rather than a number.
     out.append({"key": "ending", "type": "automatic", "actions": [],
-                "next": [{"stat": "score@north_side", "at_least": "score@south_side",
-                          "then": "north_end"},
+                "next": [{"when": "score@north_side >= score@south_side", "then": "north_end"},
                          {"then": "south_end"}]})
     # Won is a stat on the seat rather than a word on the card that follows: the
     # same card is read by both players, and one of them lost.

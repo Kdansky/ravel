@@ -191,10 +191,11 @@ local PATTERN_CLASSES = { step = true, ray = true, phasing = true,
 local WALKING_CLASSES = { step = true, ray = true, phasing = true }
 -- What may already be standing on a targeted square. See targeting.slot_offered.
 local FILL_WORDS      = { empty = true, enemy = true, open = true, any = true }
-local ROUTE_FIELDS    = { stat = true, zone_empty = true, equals = true, at_least = true,
-	at_most = true, ["then"] = true, ends_round = true, when = true }
-local END_FIELDS      = { stat = true, zone_empty = true, equals = true, at_least = true,
-	at_most = true, ["then"] = true, fired = true, when = true }
+-- A routing entry and an end condition ask the same question and do different
+-- things with the answer, which is the whole of what still separates them: one
+-- may end the round, the other remembers having fired.
+local ROUTE_FIELDS    = { when = true, zone_empty = true, ["then"] = true, ends_round = true }
+local END_FIELDS      = { when = true, zone_empty = true, ["then"] = true, fired = true }
 local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_than_stat = true,
 	at_least = true, equals = true, less_than_max = true }
 -- The assets table: named pictures, and the only place a picture carries
@@ -520,25 +521,6 @@ function M.check(G)
 		end
 	end
 
-	-- A comparison is measured against a number or another subject. A subject
-	-- has to look like one — name a scope or a measuring fn — because a bare
-	-- word would otherwise read as an unknown stat worth zero and quietly pass,
-	-- which is the whole reason the runtime refuses it too.
-	local function bound_ok(where, v)
-		if v == nil or type(v) == "number" then return end
-		if type(v) ~= "string" then
-			warn("%s should be a number or a subject like \"value@target\"", where)
-			return
-		end
-		local p = predicate.parse_subject(v)
-		if not (p and (p.scope or p.fn)) then
-			warn("%s: '%s' is a bare word, so it would read as a stat worth nothing — write a number, or say which cards you mean (\"value@target\", \"max:value@mine.red\")",
-				where, v)
-			return
-		end
-		subject_ok(where, v)
-	end
-
 	-- A condition written as one string. The parse is the engine's own, so a file
 	-- the validator calls clean cannot be one the runtime silently drops — and
 	-- what it hands back names the two operands, which are ordinary subjects and
@@ -549,25 +531,52 @@ function M.check(G)
 			warn('%s: "%s" — %s', where, tostring(s), err)
 			return
 		end
+		-- Two cost words that read as ordinary subjects and would be reported as
+		-- misspelled stats. Both are mistakes somebody actually made, and the
+		-- useful thing to say is which block they belong in.
+		local left = c.left.subject and c.left.subject.arg
+		if left == "exhaust" then
+			warn("%s: 'exhaust' is a cost, not a condition — a card cannot need itself spent", where)
+			return
+		elseif type(left) == "string" and left:match("^sacrifice:") then
+			warn("%s: 'sacrifice:' belongs in cost or activate_cost, not here", where)
+			return
+		end
 		subject_ok(where, c.left.src or c.left.n)
 		if c.right.subject then subject_ok(where, c.right.src) end
 	end
 
-	local function check_map(where, map, is_cost)
+	-- A gate: a list of conditions, every one of which must hold. It was a map
+	-- keyed by its own subject, which could not hold one subject twice — so a
+	-- range had nowhere to live — and which spelled the comparison in a nested
+	-- object. Both are gone; this is what says so to a file that still has one.
+	local function check_conditions(where, list)
+		if list == nil then return end
+		if type(list) ~= "table" then
+			warn('%s: should be a list of conditions like ["gold >= 3"]', where)
+			return
+		end
+		if next(list) ~= nil and list[1] == nil then
+			warn('%s: is written as a map, which a condition no longer is — write ["gold >= 3"], '
+				.. "one entry per condition, and all of them have to hold", where)
+			return
+		end
+		for i, entry in ipairs(list) do
+			condition_ok(where .. "[" .. i .. "]", entry)
+		end
+	end
+
+	-- A cost: a map of subject to number, and it stays one. A cost is what gets
+	-- *spent*, which is a subject and an amount — "mana >= 3" says what to check
+	-- and not what to take away, so the two never wanted the same shape.
+	local function check_cost(where, map, kind)
 		if map == nil then return end
 		if type(map) ~= "table" then
 			warn('%s: should be written like { "gold": 2 }', where)
 			return
 		end
-		-- The list form: every entry is one condition, and all of them hold.
 		if type(map[1]) == "string" then
-			if is_cost then
-				warn("%s: a cost is what gets spent, not a condition — write it as { \"gold\": 2 }", where)
-				return
-			end
-			for i, entry in ipairs(map) do
-				condition_ok(where .. "[" .. i .. "]", entry)
-			end
+			warn('%s: a cost is what gets spent, not a condition — write it as { "gold": 2 }', where)
 			return
 		end
 		for key, v in pairs(map) do
@@ -576,43 +585,22 @@ function M.check(G)
 			-- with itself. It has no place on a card being played out of a hand:
 			-- there is nothing there to stay spent.
 			if key == "exhaust" then
-				if not is_cost then
-					warn("%s: 'exhaust' is a cost, not a condition — a card cannot need itself spent", where)
-				elseif not (is_cost == "activate" or where:find("activate", 1, true)) then
+				if not (kind == "activate" or where:find("activate", 1, true)) then
 					warn("%s: 'exhaust' belongs in an activate cost — a card leaving a hand has nothing to spend", where)
 				elseif tonumber(v) ~= 1 then
 					warn("%s: exhaust is 1 — a card is either spent or it is not", where)
 				end
 			elseif sac then
-				if not is_cost then
-					warn("%s: 'sacrifice:' belongs in cost or activate_cost, not here", where)
-				elseif not known_tags[sac] then
+				if not known_tags[sac] then
 					warn("%s: sacrifices the tag '%s', but no card has it%s",
 						where, sac, suggest(sac, known_tags))
 				end
 			else
 				-- A cost's subjects may carry a scope, but not a measuring fn.
-				subject_ok(where, key, not is_cost)
+				subject_ok(where, key, false)
 			end
-			-- A gate may compare either way ({ "at_most": 6 }); a cost is spent,
-			-- so it can only ever be a number.
-			if type(v) == "table" and not is_cost then
-				for k in pairs(v) do
-					if k ~= "equals" and k ~= "at_least" and k ~= "at_most" then
-						warn("%s: '%s' has a field '%s' the engine doesn't read — a comparison is equals, at_least or at_most",
-							where, tostring(key), tostring(k))
-					end
-				end
-				if v.equals == nil and v.at_least == nil and v.at_most == nil then
-					warn("%s: '%s' compares against nothing (equals / at_least / at_most)",
-						where, tostring(key))
-				end
-				for _, cmp in ipairs({ "equals", "at_least", "at_most" }) do
-					bound_ok(where .. ": '" .. tostring(key) .. "' " .. cmp, v[cmp])
-				end
-			elseif type(v) ~= "number" then
-				warn("%s: the value of '%s' should be %s", where, tostring(key),
-					is_cost and "a number" or 'a number or a comparison like { "at_most": 6 }')
+			if type(v) ~= "number" then
+				warn("%s: the value of '%s' should be a number", where, tostring(key))
 			elseif v < 0 then
 				warn("%s: '%s' is negative — costs and requirements must be zero or more",
 					where, tostring(key))
@@ -620,15 +608,20 @@ function M.check(G)
 		end
 	end
 
+	-- Answers whether it recognised the entry as a stale one, so the caller can
+	-- skip the unknown-field pass: "stat", "at_least" and "at_most" are three
+	-- complaints about one mistake, and only this one says what to write.
 	local function check_cond(where, cond)
+		if cond.stat ~= nil then
+			warn('%s: says its condition as a stat and a comparison, which it no longer is — '
+				.. 'write { "when": "%s >= 1" }', where, tostring(cond.stat))
+			return true
+		end
 		if cond.when ~= nil then
 			condition_ok(where, cond.when)
-			if cond.stat ~= nil then
-				warn("%s: says its condition twice, as 'when' and as 'stat' — keep one", where)
-			end
 			return
 		end
-		if cond.zone_empty then
+		if cond.zone_empty ~= nil then
 			if type(cond.zone_empty) ~= "table" then
 				warn('%s: zone_empty should be a list of zones like ["road", "hand"]', where)
 				return
@@ -637,14 +630,6 @@ function M.check(G)
 				if not G.zone_defs[zk] then
 					warn("%s: watches zone '%s', but no zone has that key%s", where, zk, suggest(zk, G.zone_defs))
 				end
-			end
-		elseif cond.stat then
-			subject_ok(where, cond.stat)
-			for _, cmp in ipairs({ "equals", "at_least", "at_most" }) do
-				bound_ok(where .. ": " .. cmp, cond[cmp])
-			end
-			if cond.equals == nil and cond.at_least == nil and cond.at_most == nil then
-				warn("%s: names a stat but no comparison (equals / at_least / at_most)", where)
 			end
 		end
 	end
@@ -826,7 +811,7 @@ function M.check(G)
 		end
 		-- Asked of each candidate with that candidate as the target, so its
 		-- subjects are checked exactly as a move rule's "where" already is.
-		check_map(where .. " " .. field .. " where", spec.where)
+		check_conditions(where .. " " .. field .. " where", spec.where)
 	end
 
 	-- "phases": which phases a card (or a tag granting it one) may be used in.
@@ -869,7 +854,7 @@ function M.check(G)
 			-- Asked of each square the rule offers, with that square as the
 			-- target — so it reads like any other condition, and its subjects
 			-- are checked like any other's.
-			check_map(where .. " where", rule.where)
+			check_conditions(where .. " where", rule.where)
 		end
 	end
 
@@ -882,7 +867,7 @@ function M.check(G)
 	-- the whole feature was the one the validator had stopped reading.
 	local function check_ability(where, ab)
 		if type(ab) ~= "table" then return end
-		check_map(where .. " cost", ab.cost, "activate")
+		check_cost(where .. " cost", ab.cost, "activate")
 		check_list(where .. " action", ab.action)
 		check_phases(where, ab.phases)
 		check_target(where, "target", ab.target)
@@ -1258,7 +1243,7 @@ function M.check(G)
 			-- Asked of each square the rule offers, with that square as the
 			-- target — so it reads like any other condition, and its subjects
 			-- are checked like any other's.
-			check_map(where .. " where", rule.where)
+			check_conditions(where .. " where", rule.where)
 		end
 		if def.moves and not def.on_activate then
 			warn("%s: says how it moves but has no on_activate — nothing happens when the square is chosen (usually \"move_to:target\")", where)
@@ -1295,13 +1280,13 @@ function M.check(G)
 		if def.tags ~= nil and type(def.tags) ~= "table" then
 			warn('%s: tags should be a list like ["item", "weapon"]', where)
 		end
-		check_map(where .. " cost", def.cost, true)
-		check_map(where .. " activate_cost", def.activate_cost, true)
-		check_map(where .. " needs", def.needs)
-		check_map(where .. " requires", def.requires)
+		check_cost(where .. " cost", def.cost)
+		check_cost(where .. " activate_cost", def.activate_cost, "activate")
+		check_conditions(where .. " needs", def.needs)
+		check_conditions(where .. " requires", def.requires)
 		-- "accepts" is asked of this card about the one arriving, so @self is
 		-- this card and @target the newcomer. "on_receive" answers the same way.
-		check_map(where .. " accepts", def.accepts)
+		check_conditions(where .. " accepts", def.accepts)
 		check_list(where .. " receive action", def.on_receive)
 		check_phases(where, def.phases)
 		-- card_stats declare new per-card stats, so only their values are checked.
@@ -1481,7 +1466,7 @@ function M.check(G)
 		if def.contents ~= nil and type(def.contents) ~= "table" then
 			warn('%s: contents should be a list like ["sword:3", "trap"]', where)
 		end
-		check_map(where .. " accepts", def.accepts)
+		check_conditions(where .. " accepts", def.accepts)
 		check_list(where .. " receive action", def.on_receive)
 		if def.applies ~= nil then
 			if type(def.applies) ~= "table" then
@@ -1602,7 +1587,7 @@ function M.check(G)
 				local saw_unconditional = false
 				for i, r in ipairs(pd.next) do
 					local rwhere = where .. " next[" .. i .. "]"
-					check_fields(rwhere, r, ROUTE_FIELDS)
+					if not check_cond(rwhere, r) then check_fields(rwhere, r, ROUTE_FIELDS) end
 					if saw_unconditional then
 						warn("%s: can never be reached — an earlier route always matches", rwhere)
 					end
@@ -1615,8 +1600,6 @@ function M.check(G)
 					end
 					if r.stat == nil and r.zone_empty == nil and r.when == nil then
 						saw_unconditional = true
-					else
-						check_cond(rwhere, r)
 					end
 				end
 			end
@@ -1636,8 +1619,7 @@ function M.check(G)
 	-- End conditions.
 	for i, cond in ipairs(G.end_conditions) do
 		local where = "end condition " .. i
-		check_fields(where, cond, END_FIELDS)
-		check_cond(where, cond)
+		if not check_cond(where, cond) then check_fields(where, cond, END_FIELDS) end
 		check_list(where, cond["then"])
 		if cond["then"] == nil then
 			warn("%s: has no 'then' — nothing happens when it fires", where)

@@ -1,10 +1,11 @@
--- A condition written as one string, beside the struct that says the same thing.
+-- A condition written as one string, which is now the only way it is written.
 --
--- Draft for ideas/17. The point of the pass is that six places take one
--- vocabulary in three shapes, so the test that matters is not "the new form
--- works" but **the two forms answer identically** — including the five rules
--- that were each paid for by a bug, which a grammar makes easier to lose than
--- to write.
+-- ideas/17. Six places took one vocabulary in three shapes; they take one. The
+-- matrix below used to check the new form against the old one, and the old one
+-- is gone — so its second opinion is written out here instead, as the rules say
+-- them rather than as the code under test implements them. The five rules each
+-- paid for by a bug are asserted separately, because a grammar reads like
+-- arithmetic and invites the reading that a missing number is zero.
 
 local entity = require("entity")
 local zones = require("zones")
@@ -34,10 +35,10 @@ local GAME = [==[{
     { "key": "two", "text": "Two", "tags": ["seat_two"], "card_stats": { "gold": 1 } },
     { "key": "beast", "text": "Beast", "tags": ["beast"], "card_stats": { "hp": 3 } },
     { "key": "ghost", "text": "Ghost", "tags": ["ghost"] },
-    { "key": "map_gate", "text": "Map gate",
-      "play": { "needs": { "gold": 3 }, "action": ["destroy_self"] } },
-    { "key": "string_gate", "text": "String gate",
-      "play": { "needs": ["gold >= 3", "count:beast <= 2"], "action": ["destroy_self"] } },
+    { "key": "one_gate", "text": "One gate",
+      "play": { "needs": ["gold >= 3"], "action": ["destroy_self"] } },
+    { "key": "range_gate", "text": "Range gate",
+      "play": { "needs": ["gold >= 3", "gold <= 8"], "action": ["destroy_self"] } },
     { "key": "loose", "text": "Loose", "play": { "action": ["destroy_self"] } }
   ],
   "setup": {
@@ -100,9 +101,32 @@ function M.test_conditions_refuse_what_cannot_be_meant(check)
 	check("and it is not one on the left", predicate.parse_condition("gold >= 3") ~= nil)
 end
 
--- The one that decides whether the migration is safe: the same question, asked
--- both ways, over every shape of subject the vocabulary has.
-function M.test_conditions_the_two_forms_agree(check)
+-- The second opinion, written as the rules read rather than as the parser
+-- implements them: absent is not zero, "each" asks of every member, and a
+-- measuring fn is asked of the pool. It answers over predicate.total and
+-- predicate.bearers, so a mistake in compiling a comparison shows up as a
+-- disagreement instead of as two copies of the same bug.
+local CMP = {
+	[">="] = function(a, b) return a >= b end,
+	["<="] = function(a, b) return a <= b end,
+	["=="] = function(a, b) return a == b end,
+}
+
+local function reference(s, op, n, ctx)
+	local p = predicate.parse_subject(s)
+	if p.fn == nil and #predicate.bearers(p, ctx) == 0 then return false end
+	if p.fn == nil and p.quant == "each" then
+		local ents = predicate.entities_in_scope(p.scope, ctx, p.owner)
+		if #ents == 0 then return false end
+		for _, e in ipairs(ents) do
+			if not CMP[op](tonumber((e.stats or {})[p.arg]) or 0, n) then return false end
+		end
+		return true
+	end
+	return CMP[op](predicate.total(s, ctx), n)
+end
+
+function M.test_conditions_every_subject_answers_as_the_rules_say(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local subjects = {
@@ -110,23 +134,22 @@ function M.test_conditions_the_two_forms_agree(check)
 			"sum:hp@board", "max:hp@board", "moves_made@beast", "hp@ghost",
 			"tagged:beast@board",
 		}
-		local ops = { { ">=", "at_least" }, { "<=", "at_most" }, { "==", "equals" } }
 		local agreed, total = true, 0
 		for _, s in ipairs(subjects) do
 			for _, n in ipairs({ 0, 1, 3, 9 }) do
-				for _, op in ipairs(ops) do
-					local struct = predicate.met({ stat = s, [op[2]] = n }, {})
-					local str = predicate.holds(s .. " " .. op[1] .. " " .. n, {})
+				for _, op in ipairs({ ">=", "<=", "==" }) do
+					local want = reference(s, op, n, {})
+					local got = predicate.holds(s .. " " .. op .. " " .. n, {})
 					total = total + 1
-					if struct ~= str then
+					if want ~= got then
 						agreed = false
-						check("DISAGREED on " .. s .. " " .. op[1] .. " " .. n,
-							false, tostring(struct) .. " vs " .. tostring(str))
+						check("DISAGREED on " .. s .. " " .. op .. " " .. n,
+							false, tostring(want) .. " vs " .. tostring(got))
 					end
 				end
 			end
 		end
-		check("every subject answers the same both ways", agreed, total .. " comparisons")
+		check("every subject answers as the rules say", agreed, total .. " comparisons")
 	end)
 end
 
@@ -170,23 +193,27 @@ function M.test_conditions_the_operators_the_struct_form_lacked(check)
 	end)
 end
 
--- A needs written as a list of conditions, gating a real card through the real
--- path, beside the map form doing the same job.
-function M.test_conditions_a_needs_may_be_a_list_of_them(check)
+-- A needs is a list, gating real cards through the real path — and a list is
+-- what a map keyed by its own subject could never be: "gold >= 3" with
+-- "gold <= 8" names one subject twice, which is how a range is written.
+function M.test_conditions_a_needs_is_a_list_of_them(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local hand = zones.all_with_key("hand")[1]
-		local mapped = zones.add(hand, "map_gate")
-		local strung = zones.add(hand, "string_gate")
+		local one = zones.add(hand, "one_gate")
+		local range = zones.add(hand, "range_gate")
 		-- Something else playable, or the escape hatch opens a gated card when
 		-- nothing in its zone is playable — and would open both of these.
 		zones.add(hand, "loose")
-		check("both gates open on five gold",
-			flow.can_play(mapped.id) and flow.can_play(strung.id))
+		check("both gates open on five gold", flow.can_play(one.id) and flow.can_play(range.id))
 
 		card("one").stats.gold = 2
-		check("and both shut when it drops", flow.can_play(mapped.id) == false
-			and flow.can_play(strung.id) == false)
+		check("and both shut when it drops",
+			flow.can_play(one.id) == false and flow.can_play(range.id) == false)
+
+		card("one").stats.gold = 12
+		check("only the range shuts at the top", flow.can_play(one.id)
+			and flow.can_play(range.id) == false)
 	end)
 end
 

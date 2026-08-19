@@ -265,9 +265,9 @@
     }
   ],
   "end_conditions": [
-    { "stat": "ritual", "at_least": 3, "then": ["push_phase:ascension"] },
-    { "stat": "health", "at_most": 0, "then": ["push_phase:death"] },
-    { "stat": "dread", "at_least": 10, "then": ["push_phase:madness"] },
-    { "stat": "round", "at_least": 15, "then": ["push_phase:too_slow"] }
+    { "when": "ritual >= 3", "then": ["push_phase:ascension"] },
+    { "when": "health <= 0", "then": ["push_phase:death"] },
+    { "when": "dread >= 10", "then": ["push_phase:madness"] },
+    { "when": "round >= 15", "then": ["push_phase:too_slow"] }
   ]
 }

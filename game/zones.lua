@@ -363,7 +363,7 @@ end
 -- the square, and "rank" counted from its owner's own side so that a pawn's
 -- home is rank 2 whichever colour it is. Conditions and computed tags then read
 -- a piece's position with the vocabulary they already have — "promoting" is
--- { "stat": "rank", "at_least": 8 } and needs nothing new at all.
+-- the computed tag { "stat": "rank", "at_least": 8 } and needs nothing new at all.
 --
 -- Only stamped on cards that already carry the stat, following the same rule as
 -- every other stat change: a board game declares them in card_stats, and a card

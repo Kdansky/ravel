@@ -1,9 +1,9 @@
 # 17 — A condition is one string
 
-**Status:** **the reading half is shipped** (`e2ded7d`) — steps 1, 2 and the
-reading half of 3 are in; see *The draft* below for what it decides and what it
-deliberately leaves open. What is left is the migration and then deleting the
-old shapes, which is the point findings 4, 5 and 6 are actually fixed ·
+**Status:** **done** — steps 1–4 are shipped and the struct spellings are gone,
+which is where findings 4, 5 and 6 are actually fixed rather than papered over.
+Step 5 (one parser for action value slots too) is not started and is ranked on
+its own ·
 **Size:** large — the engine change is small, the migration is every game file,
 and the design question is the format's biggest open one.
 
@@ -316,17 +316,53 @@ underneath:
 
 ## Build order
 
-1. ~~**The parser, alone.**~~ **Drafted.** `predicate.parse_condition`, pure and
-   memoised, and a test per rule in *the behaviour that must survive* above. It
-   came out as a table rather than a tree of closures: one comparison has nothing
-   to nest, so a closure would be a call where a lookup does.
-2. ~~**The object form learns the string**~~ — **drafted**: routing entries and
-   `end_conditions` take `"when"` beside the shape they take today, and the two
-   forms are held equal by a 120-case matrix.
-3. **`needs` as a list of expressions** — the *reading* half is drafted; what is
-   left is the migration, one game per commit, traces unchanged.
-4. **Delete the old shapes** and the branches in `predicate.met`/`meets_all`
-   that read them — which is the point at which findings 4, 5 and 6 are actually
-   fixed rather than papered over.
+1. ~~**The parser, alone.**~~ **Shipped** (`e2ded7d`). `predicate.parse_condition`,
+   pure and memoised. It came out as a table rather than a tree of closures: one
+   comparison has nothing to nest, so a closure would be a call where a lookup
+   does.
+2. ~~**The object form learns the string**~~ — **shipped** with it.
+3. ~~**`needs` as a list of expressions**~~ — **shipped**, migration included.
+4. ~~**Delete the old shapes**~~ — **shipped**. See below.
 5. **Only then**, position 2 above: one parser for action value slots too, and
-   `:x:` goes.
+   `:x:` goes. Not started.
+
+## What the deletion cost, and the three things it turned up
+
+**The migration was 112 conditions across ten game files and it was mechanical**
+— a script, brace-matching over the text so the hand formatting survived, then
+the golden traces to prove castle and kingdom still play move for move. The
+generator (`tools/make_lost_cities.py`) writes the new shape and regenerates to
+exactly the migrated file, which is the check that the two did not drift.
+
+- **The tooltip was the only presentation that read a condition.** `cost_text`
+  walked a map with `pairs` and called `:match` on the key, so a list of strings
+  handed it a number and took the interface down — the same crash the map form
+  caused when it first arrived, from the other direction. It renders prose from
+  the parsed condition now (`"at least 3 gold"`, not `"gold >= 3"`), because a
+  tooltip is read by somebody who has never seen the game file.
+- **A cost was using the condition door to ask its own question.**
+  `flow.can_afford` built `meets_all({ [subject] = n })` to mean "at least this
+  much", which is why deleting the map form made every cost free. It says
+  `subject .. " >= " .. n` now, which is the same sentence out loud.
+- **`bound_ok` in the validator had no callers left.** Its rule — a bare word on
+  the right is a typo, not a reading of zero — moved into the parser, where it is
+  an authoring-time error rather than a silent run-time failure. That is the
+  whole argument for the string form in one function's deletion.
+
+**Two error messages were worth keeping and had nowhere to live**: `exhaust` and
+`sacrifice:` written as conditions would now read as misspelled stats, so
+`condition_ok` names them specifically and says which block they belong in. Both
+are mistakes somebody actually made.
+
+**`computed_tags` are still their own vocabulary**, and this pass confirmed the
+draft's guess about why: they are asked of one entity on the per-frame path and
+reach things no subject can name (`less_than_max` reads `e.stat_max`). Folding
+them in wants a subject for "this card's ceiling" first. `AUTHORING.md` says so
+where the comparators are listed, because `at_least` surviving in exactly one
+node otherwise reads as a miss.
+
+**Finding 6 does not fully dissolve, and that is fine.** `ROUTE_FIELDS` and
+`END_FIELDS` were "the same table"; they are now four fields each and differ by
+one — `ends_round` against `fired` — which is a real difference between routing
+somewhere and firing once. Two tables that agree about the question and disagree
+about what to do with the answer.

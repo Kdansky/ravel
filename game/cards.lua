@@ -320,31 +320,37 @@ function M.reload()
 	return true
 end
 
--- How much of something a requirement asks for. A bare number means "at least
--- this many" and reads as itself; the comparison form the condition vocabulary
--- allows ({ "at_most": 6 }) has to be spelled out instead. This function renders
--- `needs` and `accepts` as well as `cost`, and only costs are always numbers —
--- concatenating the map form is what took the interface down when the first
--- card carrying one was hovered.
-local function amount_text(v)
-	if type(v) ~= "table" then return tostring(v), "" end
-	if v.equals   ~= nil then return tostring(v.equals),   "exactly " end
-	if v.at_least ~= nil then return tostring(v.at_least), "at least " end
-	if v.at_most  ~= nil then return tostring(v.at_most),  "at most " end
-	return "?", ""
+-- A condition as prose. "gold >= 3" is exact and is written for the game file;
+-- a tooltip is read by somebody who has never seen one, so the operator becomes
+-- a phrase and the two operands swap into English order.
+local WORDS = { [">="] = "at least ", ["<="] = "at most ", [">"] = "more than ",
+	["<"] = "fewer than ", ["=="] = "exactly ", ["!="] = "anything but " }
+
+local function condition_text(s)
+	-- Required here rather than at the top: predicate reaches zones, and zones
+	-- reaches this file. The parse is pure, so late is as good as early.
+	local c = require("predicate").parse_condition(s)
+	if not c then return tostring(s) end
+	return WORDS[c.op] .. (c.right.src or tostring(c.right.n)) .. " " .. (c.left.src or tostring(c.left.n))
 end
 
--- "2 gold, 1 food" for a cost table, stat keys sorted for stable display.
+-- "2 gold, 1 food" for a cost, "at least 3 gold" for a condition. One function
+-- because one tooltip row shows either: a cost is a map of what gets spent, and
+-- `needs` / `accepts` are lists of conditions.
 function M.cost_text(cost)
-	local keys = {}
-	for k in pairs(cost or {}) do keys[#keys + 1] = k end
-	table.sort(keys)
 	local parts = {}
+	if type(cost) ~= "table" then return "" end
+	if type(cost[1]) == "string" then
+		for _, s in ipairs(cost) do parts[#parts + 1] = condition_text(s) end
+		return table.concat(parts, ", ")
+	end
+	local keys = {}
+	for k in pairs(cost) do keys[#keys + 1] = k end
+	table.sort(keys)
 	for _, k in ipairs(keys) do
-		local n, qualifier = amount_text(cost[k])
 		local tag = k:match("^sacrifice:(.+)$")
-		parts[#parts + 1] = tag and ("sacrifice " .. n .. " " .. tag)
-			or (qualifier .. n .. " " .. k)
+		parts[#parts + 1] = tag and ("sacrifice " .. tostring(cost[k]) .. " " .. tag)
+			or (tostring(cost[k]) .. " " .. k)
 	end
 	return table.concat(parts, ", ")
 end

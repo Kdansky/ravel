@@ -57,8 +57,8 @@
       "label": "White to move",
       "seat": "next",
       "next": [
-        { "stat": "count:king@enemy.taken", "at_least": 1, "then": "white_won" },
-        { "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
+        { "when": "count:king@enemy.taken >= 1", "then": "white_won" },
+        { "when": "count:king@mine.reach >= 1", "then": "black_check" },
         { "then": "black_move" }
       ]
     },
@@ -68,8 +68,8 @@
       "label": "Black to move — in check",
       "seat": "next",
       "next": [
-        { "stat": "count:king@enemy.taken", "at_least": 1, "then": "black_won" },
-        { "stat": "count:king@mine.reach", "at_least": 1, "then": "white_check" },
+        { "when": "count:king@enemy.taken >= 1", "then": "black_won" },
+        { "when": "count:king@mine.reach >= 1", "then": "white_check" },
         { "then": "white_move" }
       ]
     },
@@ -79,8 +79,8 @@
       "label": "Black to move",
       "seat": "next",
       "next": [
-        { "stat": "count:king@enemy.taken", "at_least": 1, "then": "black_won" },
-        { "stat": "count:king@mine.reach", "at_least": 1, "then": "white_check" },
+        { "when": "count:king@enemy.taken >= 1", "then": "black_won" },
+        { "when": "count:king@mine.reach >= 1", "then": "white_check" },
         { "then": "white_move" }
       ]
     },
@@ -90,8 +90,8 @@
       "label": "White to move — in check",
       "seat": "next",
       "next": [
-        { "stat": "count:king@enemy.taken", "at_least": 1, "then": "white_won" },
-        { "stat": "count:king@mine.reach", "at_least": 1, "then": "black_check" },
+        { "when": "count:king@enemy.taken >= 1", "then": "white_won" },
+        { "when": "count:king@mine.reach >= 1", "then": "black_check" },
         { "then": "black_move" }
       ]
     },
@@ -137,7 +137,7 @@
       "tags": ["piece", "pawn"],
       "card_stats": { "rank": 0, "moves_made": 0 },
       "challenge": {
-        "needs": { "rank@self": { "equals": 8 } },
+        "needs": ["rank@self == 8"],
         "pass": ["options:to_queen,to_rook,to_bishop,to_knight"],
         "fail": ["next_phase"]
       },
@@ -150,7 +150,7 @@
             {
               "patterns": ["pawn_run"],
               "fill": "empty",
-              "needs": { "rank@self": { "equals": 2 } }
+              "needs": ["rank@self == 2"]
             },
             { "patterns": ["pawn_take"], "fill": "enemy" }
           ],
@@ -163,11 +163,11 @@
             {
               "patterns": ["pawn_take"],
               "fill": "empty",
-              "where": {
-                "tagged:last_acted@behind": 1,
-                "tagged:pawn@behind": 1,
-                "rank@behind": { "equals": 4 }
-              }
+              "where": [
+                "tagged:last_acted@behind >= 1",
+                "tagged:pawn@behind >= 1",
+                "rank@behind == 4"
+              ]
             }
           ],
           "action": ["move_to:target", "destroy:behind", "stat_gain:moves_made@self:1", "next_phase"]
@@ -244,12 +244,12 @@
             {
               "patterns": ["two_right"],
               "fill": "empty",
-              "needs": { "moves_made@self": { "equals": 0 } },
-              "where": {
-                "tagged:rook@one_right": 1,
-                "moves_made@one_right": { "equals": 0 },
-                "not_tagged:piece@one_left": 1
-              }
+              "needs": ["moves_made@self == 0"],
+              "where": [
+                "tagged:rook@one_right >= 1",
+                "moves_made@one_right == 0",
+                "not_tagged:piece@one_left >= 1"
+              ]
             }
           ],
           "action": [
@@ -268,13 +268,13 @@
             {
               "patterns": ["two_left"],
               "fill": "empty",
-              "needs": { "moves_made@self": { "equals": 0 } },
-              "where": {
-                "tagged:rook@two_left": 1,
-                "moves_made@two_left": { "equals": 0 },
-                "not_tagged:piece@one_right": 1,
-                "not_tagged:piece@one_left": 1
-              }
+              "needs": ["moves_made@self == 0"],
+              "where": [
+                "tagged:rook@two_left >= 1",
+                "moves_made@two_left == 0",
+                "not_tagged:piece@one_right >= 1",
+                "not_tagged:piece@one_left >= 1"
+              ]
             }
           ],
           "action": [

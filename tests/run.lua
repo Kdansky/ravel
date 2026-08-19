@@ -1105,14 +1105,14 @@ check("a non-number at_least fails closed instead of crashing",
 	predicate.met({ stat = "hp", at_least = "lots" }) == false)
 check("a non-number at_most fails closed instead of crashing",
 	predicate.met({ stat = "hp", at_most = {} }) == false)
-check("a non-number equals fails closed instead of crashing",
-	predicate.met({ stat = "hp", equals = "zero" }) == false)
-check("a condition with no stat/zone_empty is just false",
+check("a non-number bound fails closed instead of crashing",
+	predicate.met({ when = "hp == zero" }) == false)
+check("a condition with no when/zone_empty is just false",
 	predicate.met({}) == false)
 check("a zone_empty that isn't a list fails closed",
 	predicate.met({ zone_empty = "hand" }) == false)
 check("meets_all with a non-number requirement fails closed",
-	predicate.meets_all({ hp = "plenty" }) == false)
+	predicate.meets_all({ "hp >= plenty" }) == false)
 check("meets_all tolerates a non-table argument",
 	predicate.meets_all("garbage") == true)
 check("total tolerates a non-string subject",
@@ -1315,9 +1315,9 @@ check("count: can be scoped to a zone",       predicate.total("count:economic@bo
 check("a bare tag count is unchanged",        predicate.total("count:economic") == 3)
 check("a wider tag catches the throne too",
 	predicate.total("hp@building") == econ_hp + entity.get(find_card("throne_room").id).stats.hp)
-check("each: every farm has 3 hp",     predicate.met({ stat = "hp@each.economic", at_least = 3 }))
-check("each: not every farm has 4 hp", predicate.met({ stat = "hp@each.economic", at_least = 4 }) == false)
-check("any: the pool reaches 9",       predicate.met({ stat = "hp@any.economic", at_least = 9 }))
+check("each: every farm has 3 hp",     predicate.met("hp@each.economic >= 3"))
+check("each: not every farm has 4 hp", predicate.met("hp@each.economic >= 4") == false)
+check("any: the pool reaches 9",       predicate.met("hp@any.economic >= 9"))
 
 -- A tag reaches cards in play, never a hand: "@economic" is not "every farm I own".
 eval("fill:hand:farm:1")
@@ -1848,15 +1848,18 @@ check("and the rules gate agrees, so the shot actually lands",
 -- multiplication that repeated addition cannot stand in for.
 flow.init("castle.json", 7)
 eval("fill:board:watchtower:2")
-check("a bare number in a map still means at_least",
-	predicate.meets_all({ ["sum:defense@standing"] = 4 })
-	and predicate.meets_all({ ["sum:defense@standing"] = 5 }) == false)
-check("a comparison map can ask the other way",
-	predicate.meets_all({ ["sum:defense@standing"] = { at_most = 4 } })
-	and predicate.meets_all({ ["sum:defense@standing"] = { at_most = 3 } }) == false)
-check("and can ask for exactly", predicate.meets_all({ ["max:hp@building"] = { equals = 20 } }))
+check("a condition says which way it compares",
+	predicate.meets_all({ "sum:defense@standing >= 4" })
+	and predicate.meets_all({ "sum:defense@standing >= 5" }) == false)
+check("...and the other way",
+	predicate.meets_all({ "sum:defense@standing <= 4" })
+	and predicate.meets_all({ "sum:defense@standing <= 3" }) == false)
+check("and can ask for exactly", predicate.meets_all({ "max:hp@building == 20" }))
+check("every entry has to hold, which is what a range is",
+	predicate.meets_all({ "sum:defense@standing >= 4", "sum:defense@standing <= 4" })
+	and predicate.meets_all({ "sum:defense@standing >= 4", "sum:defense@standing <= 3" }) == false)
 check("a malformed comparison fails closed, it does not crash",
-	predicate.meets_all({ gold = { at_most = "lots" } }) == false)
+	predicate.meets_all({ "gold <= lots" }) == false)
 
 local throne = find_card("throne_room")
 throne.stats.gold = 0
@@ -2470,15 +2473,17 @@ check("a card-typed spec still means the card, not the square under it",
 targeting.clear()
 
 -- === a requirement is not always a plain number ===
--- cost_text renders needs and accepts as well as costs, and only a cost is
--- always a number. Hovering the first card whose needs carried a comparison map
--- concatenated a table and took the interface down.
-check("a comparison map renders instead of crashing",
-	cards.cost_text({ ["moves_made@w_king_home"] = { equals = 0 } })
-		== "exactly 0 moves_made@w_king_home"
-	and cards.cost_text({ hp = { at_most = 3 } })  == "at most 3 hp"
-	and cards.cost_text({ hp = { at_least = 3 } }) == "at least 3 hp")
-check("a plain number still reads as itself", cards.cost_text({ gold = 2 }) == "2 gold")
+-- cost_text renders needs and accepts as well as costs, and only a cost is a
+-- map of numbers. Hovering the first card whose needs was not one concatenated
+-- a table and took the interface down; the shapes changed, the hazard did not.
+check("a condition renders as prose, not as its own spelling",
+	cards.cost_text({ "moves_made@w_king_home == 0" }) == "exactly 0 moves_made@w_king_home"
+	and cards.cost_text({ "hp <= 3" }) == "at most 3 hp"
+	and cards.cost_text({ "hp >= 3" }) == "at least 3 hp"
+	and cards.cost_text({ "hp > 3", "hp != 5" }) == "more than 3 hp, anything but 5 hp")
+check("one that will not parse still renders as itself rather than crashing",
+	cards.cost_text({ "hp ?? 3" }) == "hp ?? 3")
+check("a cost still reads as itself", cards.cost_text({ gold = 2 }) == "2 gold")
 check("and a sacrifice still reads as one",
 	cards.cost_text({ ["sacrifice:farm"] = 2 }) == "sacrifice 2 farm")
 check("every shipped card's tooltip text can be built without crashing", (function()
@@ -2803,18 +2808,18 @@ flow.init("chess.json", 1)
 board = zones.find("board")
 local king = { card_id = on("e1").id }
 check("a piece that has never moved satisfies the gate",
-	predicate.meets_all({ ["moves_made@one_right"] = { equals = 0 } }, king))
+	predicate.meets_all({ "moves_made@one_right == 0" }, king))
 zones.destroy_card(on("f1").id)
 check("an empty square does not, though its absent stat would sum to zero",
-	predicate.meets_all({ ["moves_made@one_right"] = { equals = 0 } }, king) == false)
+	predicate.meets_all({ "moves_made@one_right == 0" }, king) == false)
 check("...and no comparison against it succeeds, not just equality",
-	predicate.meets_all({ ["moves_made@one_right"] = { at_most = 5 } }, king) == false
-	and predicate.meets_all({ ["moves_made@one_right"] = { at_least = 0 } }, king) == false)
+	predicate.meets_all({ "moves_made@one_right <= 5" }, king) == false
+	and predicate.meets_all({ "moves_made@one_right >= 0" }, king) == false)
 
 -- The counting forms keep meaning what they say: nothing there is a count of
 -- zero, and a yes/no about nothing is "no".
 check("a count of nothing is still zero",
-	predicate.meets_all({ ["count:piece@one_right"] = { equals = 0 } }, king)
+	predicate.meets_all({ "count:piece@one_right == 0" }, king)
 	and predicate.total("count:piece@nowhere_at_all") == 0)
 check("and an empty scope answers no to tagged and yes to not_tagged",
 	predicate.total("tagged:piece@one_right", king) == 0

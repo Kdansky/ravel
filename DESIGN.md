@@ -95,15 +95,14 @@ Presentation rules:
 
 ## JSON Schema Rules
 
-The JSON format must be writable by non-programmers. Three allowed value forms:
+The JSON format must be writable by non-programmers. Two allowed value forms:
 
 1. **Key/value objects** — `{ "key": "value", "min": 0 }`
 2. **Arrays of strings** — `["shuffle", "instanced"]`
-3. **A comparison object as a map value** — `{ "max:value@mine.red": { "at_most": 6 } }`
 
 No s-expressions, no command trees, no arbitrary expressions. Nested arrays are allowed where they are **a list of coordinates rather than structure**: a `per_seat` zone's `pos` (one rect per seat) and a movement pattern's `vectors` (one `[x, y]` direction per entry). Both carry no keys, no depth past two, and no evaluation order — which is what the rule is actually protecting against. Anywhere else a nested array is structure, and structure is what this list refuses.
 
-**Form 3 is a deliberate bend, recorded rather than assumed.** The rule started as "no code-like expressions", to stop a complexity explosion before anything needed one. Two things eventually did: asking a condition the *other* way (`at_most`), and measuring against another subject rather than a constant. Both are ordinary requirements for real card games, and neither is expressible in a flat `key: number` map. The bend is bounded — a comparison has exactly three possible keys and no nesting — and the reason it stays honest is that a bound must still look like a subject, so nothing silently becomes an expression by accident.
+**There used to be a third form, and its retraction is the more useful record.** A comparison object as a map value (`{ "max:value@mine.red": { "at_most": 6 } }`) was added as a bounded bend, because asking a condition the *other* way and measuring against another subject are ordinary requirements that a flat `key: number` map cannot express. Both are still requirements. What was wrong was the conclusion: the pressure was not for a richer *object*, it was for a condition to be one thing instead of a shape assembled out of fields. A condition is a string now — `"max:value@mine.red <= 6"` — and it lands on form 2 with nothing bent. **A bend that keeps needing more keys is usually the wrong axis**, and this one wanted three.
 
 ---
 
@@ -126,15 +125,15 @@ Every numeric slot accepts a number or `count:<tag>` — the number of cards on 
 
 ## Conditions Are One Vocabulary
 
-`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, and every `needs` — a card's, a challenge's, a destination's — all share it, and so do costs and the stat arguments of actions. A subject is `[<fn>:]<arg>[@<scope expression>]`: `gold`, `count:farm`, `sum:defense@board`, `hp@each.follower`, `hp@each.enemy.creature`, `hp@self`, `hp@target`. Comparisons are `equals` / `at_least` / `at_most` — against a number or another subject — or `zone_empty`. Map forms like `"requires": { "might": 8, "count:farm": 3 }` mean "each subject totals at least n".
+`predicate.lua` evaluates every condition in the engine — phase routing, `end_conditions`, and every `needs` — a card's, a challenge's, a destination's — all share it, and so do costs and the stat arguments of actions. A subject is `[<fn>:]<arg>[@<scope expression>]`: `gold`, `count:farm`, `sum:defense@board`, `hp@each.follower`, `hp@each.enemy.creature`, `hp@self`, `hp@target`. **A condition is one string**: `<subject> <op> <number-or-subject>`, with `>=`, `<=`, `>`, `<`, `==` and `!=`, one comparison per string and no booleans — a list already means *and*, and *or* is two abilities. A `needs`, an `accepts` and a target's `where` take a list of them (`["might >= 8", "count:farm >= 3"]`), which a map keyed by its own subject could not: a range names one subject twice. Routing and `end_conditions` take one under `when`; `zone_empty` stays beside it as the one question the comparison grammar cannot ask. A **cost** is not a condition and keeps its map — a cost is what gets spent.
 
 The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>`. The name is always a zone or a tag, never a seat — whose cards is a separate word (`mine` / `enemy` / `anyone`), so ownership composes with everything instead of doubling the vocabulary. A subject with no scope means the player's own cards. `predicate.parse_subject` is the only place the grammar is decided and `predicate.entities_in_scope` the only place a scope becomes entities, so a read, a cost and an effect can never disagree about who they mean.
 
-**A stat nobody carries is absent, not zero.** Every comparison against it fails, `equals: 0` and `at_most: n` included — because reading a missing value as zero makes "this rook has never moved" true of a rook captured twenty moves ago, a gate that opens precisely when the thing it guards stops existing. Nil and zero are different values and this vocabulary keeps them so. The measuring forms are the exception, and mean what they say: `count:`/`card:` over nothing is a count of zero, and `sum:`/`max:` are asked of a *pool*, whose empty measure is honestly zero.
+**A stat nobody carries is absent, not zero.** Every comparison against it fails, `== 0` and `<= n` included — because reading a missing value as zero makes "this rook has never moved" true of a rook captured twenty moves ago, a gate that opens precisely when the thing it guards stops existing. Nil and zero are different values and this vocabulary keeps them so. The measuring forms are the exception, and mean what they say: `count:`/`card:` over nothing is a count of zero, and `sum:`/`max:` are asked of a *pool*, whose empty measure is honestly zero.
 
-**A comparison may be measured against another subject, not only a constant.** This deliberately bends the no-expressions rule below: putting your own stat inside a condition is a genuine requirement (`{"value@target": {"at_least": "max:value@mine.red"}}`), and JSON and Lua both carry either type happily, so the type decides at run time. The rule the bend keeps: a subject used as a bound must *look* like one — name a scope or a measuring fn — so a bare word still fails closed instead of quietly reading as zero.
+**The right-hand side may be another subject, not only a constant** — `"value@target >= max:value@mine.red"`. The rule that keeps it from becoming an expression language: it must *look* like a subject, naming a scope or a measuring fn, so a bare word is refused at the door rather than quietly reading as zero. Being a string parsed before the game runs, that refusal is now an authoring-time error and not a silent failure at run time.
 
-**Legality between two cards lives on the destination.** `receive.needs` is a condition map asked of each candidate target, with itself as `@self` and the arriving card as `@target`. The block is what says *when* it is asked, which a bare field could not. Putting it there rather than on the acting card is what lets it name its own zone; a destination with no `receive` takes anything, which is what every game before it assumed.
+**Legality between two cards lives on the destination.** `receive.needs` is a condition list asked of each candidate target, with itself as `@self` and the arriving card as `@target`. The block is what says *when* it is asked, which a bare field could not. Putting it there rather than on the acting card is what lets it name its own zone; a destination with no `receive` takes anything, which is what every game before it assumed.
 
 ---
 
@@ -223,8 +222,8 @@ Phase types: `automatic` (runs `actions`, advances immediately), `player_input`,
 
 ```json
 "next": [
-  { "stat": "progress", "at_least": 20, "then": "trials_hard" },
-  { "stat": "round",    "at_least": 7,  "then": "trials_easy", "ends_round": true },
+  { "when": "progress >= 20", "then": "trials_hard" },
+  { "when": "round >= 7", "then": "trials_easy", "ends_round": true },
   { "then": "creation", "ends_round": true }
 ]
 ```
@@ -281,7 +280,7 @@ Games declare win/lose checks that run after every action:
 ]
 ```
 
-Comparisons: `equals`, `at_least`, `at_most` on a stat total, or `zone_empty` (all listed zones empty). The first matching condition fires; a game has exactly one outcome. Outcomes wait until any open overlay closes, so a pending choice always resolves first. Victory/defeat screens are just overlay phases dealing a fate card whose `play.action` loads the menu — no special engine mode.
+One condition under `when`, or `zone_empty` (all listed zones empty). The first matching condition fires; a game has exactly one outcome. Outcomes wait until any open overlay closes, so a pending choice always resolves first. Victory/defeat screens are just overlay phases dealing a fate card whose `play.action` loads the menu — no special engine mode.
 
 ---
 

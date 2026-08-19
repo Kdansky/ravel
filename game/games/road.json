@@ -265,7 +265,7 @@
       "tags": ["threat"],
       "card_stats": { "hp": [3, 3] },
       "challenge": {
-        "needs": { "card:torch": 1 },
+        "needs": ["card:torch >= 1"],
         "pass": ["move_to:graveyard", "stat_gain:distance:1", "stat_gain:morale:1"],
         "fail": ["stat_damage:morale:2"]
       },
@@ -280,7 +280,7 @@
       "tags": ["threat"],
       "card_stats": { "hp": [3, 3] },
       "challenge": {
-        "needs": { "supplies": 3 },
+        "needs": ["supplies >= 3"],
         "pass": ["move_to:graveyard", "stat_damage:supplies:2", "stat_gain:distance:2"],
         "fail": ["stat_damage:morale:1"]
       },
@@ -330,15 +330,15 @@
       "draw": 3,
       "pass_card": ["march", "hard_march"],
       "next": [
-        { "stat": "distance", "at_least": 6, "then": "dawn_far", "ends_round": true },
+        { "when": "distance >= 6", "then": "dawn_far", "ends_round": true },
         { "then": "dawn_near", "ends_round": true }
       ],
       "tags": ["discard_hand"]
     }
   ],
   "end_conditions": [
-    { "stat": "morale", "at_most": 0, "then": ["reveal:e_broken"] },
-    { "stat": "distance", "at_least": 12, "then": ["reveal:e_home"] },
-    { "stat": "round", "at_least": 16, "then": ["reveal:e_winter"] }
+    { "when": "morale <= 0", "then": ["reveal:e_broken"] },
+    { "when": "distance >= 12", "then": ["reveal:e_home"] },
+    { "when": "round >= 16", "then": ["reveal:e_winter"] }
   ]
 }

@@ -41,7 +41,7 @@
           "phases": ["declare_attack"],
           "target": {
             "type": "slot", "count": 1, "zones": ["battle"], "fill": "empty",
-            "where": { "row@target": { "equals": "side@mine.player" } }
+            "where": ["row@target == side@mine.player"]
           },
           "action": ["stat_set:attacking@self:1", "move_to:target"]
         },
@@ -52,10 +52,10 @@
           "phases": ["declare_block"],
           "target": {
             "type": "slot", "count": 1, "zones": ["battle"], "fill": "empty",
-            "where": {
-              "row@target": { "equals": "side@mine.player" },
-              "count:unit@across": { "at_least": 1 }
-            }
+            "where": [
+              "row@target == side@mine.player",
+              "count:unit@across >= 1"
+            ]
           },
           "action": ["move_to:target"]
         }
@@ -151,8 +151,8 @@
       "seat": "next",
       "zone": "hand",
       "next": [
-        { "stat": "attack_declared@anyone.player", "at_least": 1, "then": "declare_attack" },
-        { "stat": "count:passed", "at_least": 2, "then": "round_end" },
+        { "when": "attack_declared@anyone.player >= 1", "then": "declare_attack" },
+        { "when": "count:passed >= 2", "then": "round_end" },
         { "then": "hand_over" }
       ]
     },
@@ -162,8 +162,8 @@
       "label": "Play a unit, attack, or pass",
       "zone": "hand",
       "next": [
-        { "stat": "attack_declared@anyone.player", "at_least": 1, "then": "declare_attack" },
-        { "stat": "count:passed", "at_least": 2, "then": "round_end" },
+        { "when": "attack_declared@anyone.player >= 1", "then": "declare_attack" },
+        { "when": "count:passed >= 2", "then": "round_end" },
         { "then": "hand_over" }
       ]
     },
@@ -197,7 +197,7 @@
         "activate_zone:battle:by_column"
       ],
       "next": [
-        { "stat": "attacker@north_side", "at_least": 1, "then": "nexus_south" },
+        { "when": "attacker@north_side >= 1", "then": "nexus_south" },
         { "then": "nexus_north" }
       ]
     },
@@ -232,7 +232,7 @@
       "type": "automatic",
       "actions": [],
       "next": [
-        { "stat": "attacker@north_side", "at_least": 1, "then": "token_to_south" },
+        { "when": "attacker@north_side >= 1", "then": "token_to_south" },
         { "then": "token_to_north" }
       ]
     },
@@ -256,8 +256,8 @@
     }
   ],
   "end_conditions": [
-    { "stat": "nexus@north_side", "at_most": 0, "then": ["stat_gain:won@south_side:1", "reveal:south_wins"] },
-    { "stat": "nexus@south_side", "at_most": 0, "then": ["stat_gain:won@north_side:1", "reveal:north_wins"] }
+    { "when": "nexus@north_side <= 0", "then": ["stat_gain:won@south_side:1", "reveal:south_wins"] },
+    { "when": "nexus@south_side <= 0", "then": ["stat_gain:won@north_side:1", "reveal:north_wins"] }
   ],
   "cards": [
     {

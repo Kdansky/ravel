@@ -36,7 +36,7 @@
       "key": "c_leave",
       "text": "TODO: A gated choice",
       "tooltip": "TODO: this branch only opens once the key is carried — trying early reveals the failure page.",
-      "challenge": { "needs": { "card:the_key": 1 }, "pass": ["reveal:e_end"], "fail": ["reveal:p_locked"] },
+      "challenge": { "needs": ["card:the_key >= 1"], "pass": ["reveal:e_end"], "fail": ["reveal:p_locked"] },
       "play": { "action": ["resolve_challenge"] }
     },
     {
@@ -96,5 +96,5 @@
     { "key": "intro", "type": "automatic", "actions": ["reveal:p_start"] },
     { "key": "story", "type": "player_input", "label": "TODO: Your Story" }
   ],
-  "end_conditions": [{ "stat": "hp", "at_most": 0, "then": ["reveal:e_dead"] }]
+  "end_conditions": [{ "when": "hp <= 0", "then": ["reveal:e_dead"] }]
 }

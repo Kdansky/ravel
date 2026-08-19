@@ -468,7 +468,11 @@ function M.can_afford(cost, ctx)
 				return false
 			end
 		elseif not predicate.awaits_targets(subject, ctx)
-			and not predicate.meets_all({ [subject] = n }, ctx) then
+			-- A cost is "this subject, at least this much" and nothing else, so
+			-- it says so through the one condition door rather than carrying a
+			-- second comparison of its own. Parsed once per distinct string, and
+			-- the set of them is what the game file spends.
+			and not predicate.holds(subject .. " >= " .. tostring(n), ctx) then
 			return false
 		end
 	end

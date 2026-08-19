@@ -71,9 +71,7 @@
         "cost": {
           "<stat key or sacrifice:tag>": "number paid when the card is played. It gates the card and dims it when unaffordable. A scope is allowed, a measuring fn is not: counting things is asking, not spending, so count: and sum: belong in needs."
         },
-        "needs": {
-          "<subject>": "a condition that gates the card without consuming anything. A bare number means at least n; a map like {at_most: 6} asks the other way. See _conditions."
-        },
+        "needs": ["conditions gating the card without consuming anything, all of which must hold: [\"gold >= 3\"]. See _conditions."],
         "target": {
           "type": "card, slot or zone: what the player points at",
           "min": "number of targets that must be chosen",
@@ -88,9 +86,7 @@
           "moves": [
             "pattern names limiting the squares offered, written for you when the card declares moves"
           ],
-          "where": {
-            "<subject>": "a condition asked of each candidate, with the candidate as @target and as the anchor for any pattern inside — so it can say things about the destination that fill cannot. \"row@target\": 1 is the near row of a grid; {\"count:unit@across\": {\"at_least\": 1}} is a cell with something standing opposite it. See _conditions."
-          }
+          "where": ["conditions asked of each candidate, with the candidate as @target and as the anchor for any pattern inside — so they can say things about the destination that fill cannot. \"row@target == 1\" is the near row of a grid; \"count:unit@across >= 1\" is a cell with something standing opposite it. See _conditions."]
         },
         "phases": [
           "phase key or list: this card may be played only in those. Naming none means any phase."
@@ -131,14 +127,12 @@
       ],
       "menu_for": "engine-written, never authored: marks the card the engine generates to stand for one ability in a chooser. A card with several abilities gets one per ability, labelled with the ability's text and drawn with a shape generated from its name.",
       "challenge": {
-        "needs": "a condition deciding pass from fail. Unlike the blocks around it this is not a moment but a named test: any action list reaches it by running resolve_challenge, so one challenge can be asked from play and from activate both, which is what a crisis card that stays on the board when it fails needs.",
+        "needs": ["conditions deciding pass from fail. Unlike the blocks around it this is not a moment but a named test: any action list reaches it by running resolve_challenge, so one challenge can be asked from play and from activate both, which is what a crisis card that stays on the board when it fails needs."],
         "pass": ["action strings run when the condition holds"],
         "fail": ["action strings run when it does not"]
       },
       "receive": {
-        "needs": {
-          "<subject>": "a condition deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."
-        },
+        "needs": ["conditions deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."],
         "action": ["action strings run when a card lands here, with this card as @self and the newcomer as @target. What the destination does about an arrival, said once by the destination rather than by every card that might arrive."]
       },
       "turn": {
@@ -159,9 +153,7 @@
         "tags this zone hands to whatever lies in it, behaviour included. This is how a pile grants an ability no card knows about."
       ],
       "receive": {
-        "needs": {
-          "<subject>": "a condition deciding whether a card being played may be sent here. Same shape as a card's accepts, asked of the zone."
-        },
+        "needs": ["conditions deciding whether a card being played may be sent here. Same shape as a card's accepts, asked of the zone."],
         "action": ["action strings run when a card lands in this zone, with the zone as @self and the newcomer as @target. A discard pile anybody may take from says \"set_owner:target:none\" here, rather than every card that might be thrown into it saying it."]
       },
       "tooltip": "prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck — so this is what a player reads before clicking it.",
@@ -194,12 +186,8 @@
       "seat": "next hands over to the following seat on entry, which is the whole of turn-taking",
       "next": [
         {
-          "stat": "a subject, with equals, at_least or at_most beside it: the condition deciding whether this route is taken",
-          "when": "the same condition written as one string \u2014 \"count:king@taken >= 1\". One comparison, with a subject on the left and a number or another subject on the right; it replaces stat and its comparator, and only one of the two may be written.",
+          "when": "the condition deciding whether this route is taken, written as one string \u2014 \"count:king@taken >= 1\". One comparison, a subject on the left and a number or another subject on the right. See _conditions.",
           "zone_empty": ["zone keys that must all be empty for this route to be taken"],
-          "equals": "number the subject must equal",
-          "at_least": "number the subject must reach",
-          "at_most": "number the subject must not exceed",
           "then": "phase key to go to. An entry with no condition always matches, and the first match wins.",
           "ends_round": "true ticks the round here: the counter rises, exhausted cards ready, and every card's turn action runs. Nothing else does this, and it is never inferred from list position."
         }
@@ -211,12 +199,8 @@
   ],
   "end_conditions": [
     {
-      "stat": "a subject, with a comparator beside it, deciding whether the game is over",
-      "when": "the same condition written as one string \u2014 \"nexus@south_side <= 0\". One comparison, with a subject on the left and a number or another subject on the right; it replaces stat and its comparator, and only one of the two may be written.",
+      "when": "the condition deciding whether the game is over, written as one string \u2014 \"nexus@south_side <= 0\". See _conditions.",
       "zone_empty": ["zone keys that must all be empty"],
-      "equals": "number the subject must equal",
-      "at_least": "number the subject must reach",
-      "at_most": "number the subject must not exceed",
       "then": ["action strings run when it fires, usually push_phase to an ending overlay"],
       "fired": "engine bookkeeping: each condition fires once per game, first match wins, and open overlays are waited for"
     }
@@ -239,7 +223,7 @@
       "zone": "the home zone of every card carrying this tag, so a move_to with no zone, a gain, and a card whose start block names none all know where it goes without saying so",
       "play": {
         "cost": "what playing a card that lies here costs",
-        "needs": "a condition gating it",
+        "needs": ["conditions gating it"],
         "target": "a target spec for it, the same shape as a card's play.target",
         "phases": ["phase keys it works in"],
         "action": [
@@ -291,15 +275,14 @@
   },
   "_conditions": {
     "_what": "One vocabulary, used by every needs (a card's, a challenge's, a zone's receive), accepts, a phase's next entries and end_conditions. A subject is a stat key, count:<tag>, card:<key>, sum:<subject> or max:<subject>, optionally carrying a scope after an @.",
-    "_yes_no": "tagged:<tag> and not_tagged:<tag> answer a yes/no about a scope, as 1 or 0: { \"tagged:pawn@behind\": 1 } is \"there is a pawn there\". Prefer them to counting to one; count: is for when the number is the point. An empty scope has nothing tagged, so it answers no to the first and yes to the second.",
-    "_map_form": "{ <subject>: <number> } means at least n, which is much the commonest thing to ask.",
-    "_comparison_form": "{ <subject>: { at_most: n } } asks the other way. The three keys are equals, at_least and at_most, and there is no nesting below them.",
-    "_object_form": "{ stat: <subject>, at_least: n } says the same thing with the subject in a named field, which is the form routing and end_conditions use.",
-    "_measured_against_a_subject": "A bound may be another subject rather than a constant: { value@target: { at_least: max:value@mine.red } }. The type decides at run time, so a bound must LOOK like a subject — name a scope or a measuring fn — or it fails closed instead of reading as zero.",
+    "_yes_no": "tagged:<tag> and not_tagged:<tag> answer a yes/no about a scope, as 1 or 0: \"tagged:pawn@behind >= 1\" is \"there is a pawn there\". Prefer them to counting to one; count: is for when the number is the point. An empty scope has nothing tagged, so it answers no to the first and yes to the second.",
+    "_form": "One comparison, written as one string: <subject> <op> <number-or-subject>. The operators are >=, <=, >, <, == and !=, one per string. There are no boolean operators and no arithmetic: a list already means and, and or is two abilities.",
+    "_where_they_go": "A needs, an accepts and a target's where each take a LIST of them, all of which must hold — a list rather than a map keyed by its subject, because such a map cannot name one subject twice, and \"gold >= 3\" with \"gold <= 8\" is a range. A routing entry and an end condition take exactly one, under the key when.",
+    "_measured_against_a_subject": "The right-hand side may be another subject rather than a constant: \"value@target >= max:value@mine.red\". It must LOOK like a subject — name a scope or a measuring fn — or it is refused as a bare word, which would otherwise read as a stat worth nothing and quietly pass.",
     "_absent_is_not_zero": "A stat nobody carries fails every comparison, equals 0 included, because otherwise a gate opens exactly when the thing it guards stops existing. The measuring forms are exempt: count: and card: over nothing really is zero, and sum:/max: are asked of a pool.",
-    "_string_form": "The same comparison written as one string: \"gold >= 3\", \"max:value@mine.red <= 6\", \"score@north_side >= score@south_side\". The operators are >=, <=, >, <, == and !=, one per string, and both sides are ordinary subjects \u2014 it is a spelling for the comparison above, not a second vocabulary. A needs may be written as a LIST of them, which a map keyed by its subject cannot be: \"gold >= 3\" and \"gold <= 8\" is a range. Routing entries and end_conditions take one under the key when. There are no boolean operators: a list already means and, and or is two abilities.",
+    "_a_cost_is_not_one": "A cost stays a map of subject to number \u2014 { \"gold\": 2 } \u2014 because a cost is what gets SPENT, and \"mana >= 3\" says what to check rather than what to take away.",
     "_scopes": "After the @, [<quantifier>.][<owner>.]<name>, where the name is a zone key, a tag, a movement pattern, or one of self, target, all, reach. No scope at all means your own cards. A tag scope means cards in play, on grid zones — name the zone when a hand is what you meant.",
-    "_reach": "reach is the squares a set of pieces could move onto right now, answered as the things standing on them — computed from the moves each piece declares, never stored. The owner word picks whose pieces are asked, not what comes back, so { count:king@enemy.reach: { equals: 0 } } is \"not in check\". The engine has no notion of an attack: a piece may only land on an occupied square if its own move says so, so the game file has already drawn the line between moving and threatening. A move rule's own needs may not usefully ask for it — that is reach asking itself, and the circle names nothing.",
+    "_reach": "reach is the squares a set of pieces could move onto right now, answered as the things standing on them — computed from the moves each piece declares, never stored. The owner word picks whose pieces are asked, not what comes back, so \"count:king@enemy.reach == 0\" is \"not in check\". The engine has no notion of an attack: a piece may only land on an occupied square if its own move says so, so the game file has already drawn the line between moving and threatening. A move rule's own needs may not usefully ask for it — that is reach asking itself, and the circle names nothing.",
     "_owner_of": "owner_of.<scope> is the seats owning what the rest of it names, answered as their own cards: score@owner_of.target is the score of whoever owns the card the player chose, which no other scope can say \u2014 mine and enemy are relative to whoever is up, and a seat key reaches its card only because the file tagged it with its own name. What follows the prefix is an ordinary scope expression. On its own, @owner_of is the acting card's own seat. An owner word means whichever side of the prefix it stands on: inside it picks the cards (@owner_of.enemy.creature), before it it filters the seats that come back (@mine.owner_of.target). Each seat answers once however many cards it owns, and a card nobody owns names nobody.",
     "_owners": "mine (the seat whose turn it is), enemy (any other seat), anyone (no filter, said deliberately). A card's owner is the seat of the zone it sits in, or the seat whose key it carries as a tag.",
     "_quantifiers": "any (default: the pool reaches n), each (every member does, and an empty scope is false rather than vacuously true), random (as any, but one member is chosen by the seeded shuffle)."
