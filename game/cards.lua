@@ -226,14 +226,23 @@ function M.keywords(card_entity)
 	return out
 end
 
--- The zone a card's tags call home: the first of its tags whose tag
--- definition names a zone. nil when no tag does.
+-- The zone a card's tags call home, or nil when none does.
+--
+-- It reads the boolean map rather than the authored list, because there is
+-- nothing here to order — and when two tags disagree, which the validator
+-- reports, the answer is **nothing** rather than whichever the file happened to
+-- write first. An ambiguous home is no home: the callers' fallbacks say what
+-- they do, where a precedence nobody wrote down would only look decided.
 function M.home_zone(def)
-	if type(def.tags) ~= "table" then return nil end
-	for _, t in ipairs(def.tags) do
+	local home
+	for t in pairs(def.tags_set or {}) do
 		local td = declaration.G.tag_defs[t]
-		if td and td.zone then return td.zone end
+		if td and td.zone then
+			if home and home ~= td.zone then return nil end
+			home = td.zone
+		end
 	end
+	return home
 end
 
 -- Overwrite instance stats with the template's card_stats. Used when a

@@ -582,7 +582,7 @@ function M.parse(filename)
 			-- goes rather than onto a board it never asked for.
 			if cd.auto_play == nil then cd.auto_play = true end
 			local homed = false
-			for _, tg in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
+			for tg in pairs(cd.tags_set or {}) do
 				local td = G.tag_defs[tg]
 				if type(td) == "table" and td.zone then homed = true end
 			end

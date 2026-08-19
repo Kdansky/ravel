@@ -360,10 +360,22 @@ better.
 
 ---
 
-## Gap 5 — A tag is a boolean below the door, a list above it
+## Gap 5 — A tag is a boolean below the door, a list above it — **shipped**
 
 *Urgency: low · Difficulty: small · Usefulness: readability, and it finishes
 something already half done*
+
+**Done.** Both remaining card readers take `tags_set`, and the array survives
+only in `validate.lua` and `json.lua`, which meet the authored document. The
+measurement below was right about the shape and wrong about the deliverable: the
+validation error it proposed **already existed** (`validate.lua`, *its tags
+disagree about where it goes*) — what was missing was any statement of what the
+engine does *while* a game ignores it. `cards.home_zone` now answers **nothing**
+when two tags name different zones, so the callers' own fallbacks decide. That
+is what makes the map safe to read: it removes the file order the array
+encoded without inventing a precedence to replace it, and an ambiguous home is
+more honestly no home than whichever tag was typed first. The message is in
+`tests/integration/validator.lua`'s `CASES` now, where every message belongs.
 
 > *When parsing the tags, replace every single tag in memory with a boolean.
 > It's drastically simpler to code against, so `tags = [a, b, c]` just becomes

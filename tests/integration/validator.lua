@@ -340,6 +340,13 @@ local CASES = {
 		function(g) g.card_defs.c_flee.needs = "gold >= 3" end },
 	{ "exhaust asked as a condition", "a card cannot need itself spent",
 		function(g) g.card_defs.c_flee.needs = { "exhaust >= 1" } end },
+	{ "two tags disagreeing about where a card goes", "disagree about where it goes",
+		function(g)
+			g.tag_defs.handy = { zone = "hand" }
+			g.tag_defs.boardy = { zone = "board" }
+			g.card_defs.c_flee.tags = { "handy", "boardy" }
+			g.card_defs.c_flee.tags_set = { handy = true, boardy = true }
+		end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)

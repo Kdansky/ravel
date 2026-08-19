@@ -996,6 +996,22 @@ vg.card_defs.pearl.tags_set = { keepsake = true, relic = true }
 vp = validate.check(vg)
 check("tags that disagree about a card's home are flagged", has_problem(vp, "disagree"))
 
+-- ...and the engine answers *nothing* when they do. home_zone reads the boolean
+-- map, which has no order, so the file order it used to fall back on is not a
+-- rule any more — and an ambiguous home is better said as no home than as
+-- whichever tag happened to be written first.
+local G = declaration.G
+G.tag_defs.homely, G.tag_defs.alsohome, G.tag_defs.boardly =
+	{ zone = "hand" }, { zone = "hand" }, { zone = "board" }
+check("one tag naming a zone is the card's home",
+	cards.home_zone({ tags_set = { homely = true } }) == "hand")
+check("two tags agreeing are still that home",
+	cards.home_zone({ tags_set = { homely = true, alsohome = true } }) == "hand")
+check("two tags disagreeing are no home at all",
+	cards.home_zone({ tags_set = { homely = true, boardly = true } }) == nil)
+check("and a card with no tags at all has none", cards.home_zone({}) == nil)
+G.tag_defs.homely, G.tag_defs.alsohome, G.tag_defs.boardly = nil, nil, nil
+
 -- Write a temp game file, parse and validate it, and always clean up —
 -- even when the parse itself blows up.
 local function with_fixture(content)
