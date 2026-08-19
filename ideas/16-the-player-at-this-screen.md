@@ -1,6 +1,9 @@
 # 16 — The player at this screen
 
-**Status:** **gap 1 shipped** (`fb3d704`) · **Size:** gaps 2–4 are an afternoon
+**Status:** **gap 1 shipped** (`fb3d704`); **gaps 2–4 parked** (2026-08-20) —
+a name is only worth having when there is somebody to read it, which means
+networked play, and the same is true of the thing that would make it *earn* its
+place: see *Gap 5* · **Size:** gaps 2–4 are an afternoon
 each now that the concept exists, and they all want the same missing thing.
 
 Three notes from `todo.md`, and they turn out to be one subject: the engine
@@ -100,9 +103,9 @@ have one client.
 
 ---
 
-## Gap 2 — a player has no name
+## Gap 2 — a player has no name — **parked**
 
-*Urgency: medium · Difficulty: medium, and most of it is the store · Usefulness:
+*Urgency: low, until there is somebody at the other end · Difficulty: medium, and most of it is the store · Usefulness:
 medium — it is what makes every other message about a person readable*
 
 Nothing anywhere holds a player's name. `link.name` in `netlink.lua` is the
@@ -131,9 +134,9 @@ every other string that arrives from a peer — it is **untrusted display text**
 It names a person in your log; it may never be a key, a seat, or anything the
 engine looks up.
 
-## Gap 3 — a place to change it
+## Gap 3 — a place to change it — **parked**
 
-*Urgency: medium · Difficulty: medium — the whole difficulty is which surface ·
+*Urgency: low, with gap 2 · Difficulty: medium — the whole difficulty is which surface ·
 Usefulness: medium*
 
 The note says *this might be tricky*, and it is right: the engine has no text
@@ -199,6 +202,42 @@ a friend cannot forget they left it on.**
 
 ---
 
+## Gap 5 — arbitrary chat, which is what a name is for
+
+*Urgency: low · Difficulty: medium, and most of it is the same store and the
+same input surface · Usefulness: it is the thing that makes gap 2 worth having*
+
+**A name with nobody to read it is decoration.** Hot-seat is one person driving
+two seats, so *North* and *South* are as good as any two names. The only place a
+name means anything is a network game, where the other seat is a stranger — and
+in that setting the missing thing is not really the name, it is that **there is
+no way to say anything to them at all.**
+
+So the two belong together. The pieces overlap almost exactly:
+
+- **The transport is already there.** `net.lua` ships whole states and deltas
+  over any channel `netlink` can carry, and a chat line is far smaller than a
+  delta. [Assumption: it rides as its own message kind rather than as a field on
+  a state, because a line said while nothing is happening must still arrive, and
+  a state carries a fingerprint chain that a chat line has no business
+  disturbing.]
+- **The display is already there.** The event log is a scrolling column of
+  strings with an expand key, and `log.add` is one call. A line from a peer is
+  the same shape as *"— North to play —"*, differently coloured.
+- **The input is not**, and it is the same missing thing gap 3 is about: one
+  text field, on whichever surface gap 3 settles. Chat wants the field *during*
+  a game where a name wants it once, which is the harder version and is
+  therefore what should decide the route.
+
+**Everything a peer sends is untrusted display text** — the rule gap 2 already
+states for a name applies here word for word and matters more, because a chat
+line is longer, arrives more often, and is written by somebody who chose it.
+It is displayed, never parsed; never a key, a seat, an action or a filename.
+
+[Assumption: this is where the name lands too — a chat line is worth attributing,
+so the handshake field and the chat channel ship together, and neither is worth
+building on its own.]
+
 ## Refuse
 
 - **A player *entity*.** A seat is already a card (`DESIGN.md:27`), and a name
@@ -222,8 +261,14 @@ a friend cannot forget they left it on.**
    (`fb3d704`). It was a bug fix and it stood alone, as expected.
 2. **The store** — `conf.lua` identity, `settings.lua`, and the browser check.
    Nothing uses it yet.
-3. **The name**: settings entry, handshake field, and the places that print a
-   seat learn to print a name when there is one — the log, the netpanel, and
-   [07](07-presentation.md) gap 6's ending screen.
+3. **The name and the chat together** (gaps 2 and 5): settings entry, handshake
+   field, a message kind, and the places that print a seat learn to print a name
+   when there is one — the log, the netpanel, and [07](07-presentation.md) gap
+   6's ending screen. Chat is what decides the input surface, because it needs
+   the field *during* a game.
 4. **Debug mode**, last, because it is the one that wants both a store and a
    handshake field to already exist.
+
+**Steps 2–4 are parked**, and the reason is the reordering itself: none of it
+pays off at one screen, and the network game it does pay off in wants the chat
+as much as the name.
