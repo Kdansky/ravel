@@ -19,6 +19,9 @@ M.on_stat_change = nil   -- optional hook(entity, key, delta, ctx) for visual fe
 -- presentation can space them out. ordinal 0 with no card means the run is over.
 M.on_act         = nil
 M.on_effect      = nil   -- optional hook(name, ctx): presentation plays the named effect
+-- optional hook(): the turn changed hands, so whatever is scoped to a turn ends.
+-- Set by flow, which owns the undo history and may not be required from here.
+M.on_seat_change = nil
 
 function M.take_load()
 	local f = M.pending_load
@@ -745,6 +748,49 @@ HANDLERS["net_panel"]   = net_ui("panel")
 HANDLERS["net_seat"]    = net_ui("seat")
 HANDLERS["net_offline"] = net_ui("offline")
 
+-- set_active_seat:<scope>  — whoever the scope names becomes the seat whose turn
+-- it is. Every other way of naming a seat was settled before the game started —
+-- "mine" and "enemy" are relative to whoever is already up, a seat key is a
+-- constant — so this is the only one that can be read off what just happened:
+-- the trick winner leads the next trick, the attack token holder acts first.
+--
+-- **The scope names cards, and the seat is whose they are**, through the same
+-- `seat_of` that "mine" asks. A seat card answers for itself, so
+-- "set_active_seat:owner_of.target" and "set_active_seat:target" say the same
+-- thing about an ordinary card and both work — one rule rather than two ways to
+-- write it.
+--
+-- Naming two seats is refused: a rule that cannot say who is up has not decided
+-- anything, and picking the first would make turn order depend on file order.
+-- Naming none does nothing, which is an ordinary runtime state rather than a
+-- mistake — the trick is not won until somebody has won it.
+HANDLERS["set_active_seat"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	local G  = declaration.G
+	if not sc or #(G.seat_list or {}) < 2 then return end
+	local seat
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		local k = predicate.seat_of(e)
+		if k and k ~= seat then
+			if seat then
+				content_error("set_active_seat: '" .. p[2] .. "' names both " .. seat .. " and " .. k)
+				return
+			end
+			seat = k
+		end
+	end
+	local i = seat and (G.seat_index or {})[seat]
+	if not i or seat == zones.active_seat() then return end
+	local sys = zones.system_card()
+	if not sys then return end
+	sys.stats.turn = i
+	-- The undo history goes with the seat that had it, exactly as it does when a
+	-- turn ends normally: undoing across a handover rewrites somebody else's move.
+	if M.on_seat_change then M.on_seat_change() end
+	local def = G.card_defs[seat]
+	log.add("— " .. ((def and def.text) or seat) .. " to play —")
+end
+
 local SPEC = {
 	fill              = "zone card n",
 	shuffle           = "zone",
@@ -781,6 +827,7 @@ local SPEC = {
 	reveal_top        = "zone",
 	gain              = "card n",
 	effect            = "effect",
+	set_active_seat   = "scope",
 }
 
 -- The full op vocabulary, for the validator's suggestions — and for the test

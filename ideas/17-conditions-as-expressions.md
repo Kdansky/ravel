@@ -1,8 +1,9 @@
 # 17 — A condition is one string
 
-**Status:** **drafted, uncommitted** — steps 1–3 of the build order are written
-and green in the working tree; see *The draft* below for what it decides and
-what it deliberately leaves open ·
+**Status:** **the reading half is shipped** (`e2ded7d`) — steps 1, 2 and the
+reading half of 3 are in; see *The draft* below for what it decides and what it
+deliberately leaves open. What is left is the migration and then deleting the
+old shapes, which is the point findings 4, 5 and 6 are actually fixed ·
 **Size:** large — the engine change is small, the migration is every game file,
 and the design question is the format's biggest open one.
 
@@ -208,9 +209,9 @@ a rewrite of the condition vocabulary safe to do at all.
 
 ## The draft, and the four decisions in it
 
-*Written 2026-08-19, in the working tree and not committed. `luajit tests/run.lua`
-and `lua5.4 tests/run.lua` are green at 1643, and every shipped game still
-validates clean.*
+*Written 2026-08-19, shipped 2026-08-20 in `e2ded7d`. `luajit tests/run.lua` and
+`lua5.4 tests/run.lua` are green at 1643, and every shipped game still validates
+clean.*
 
 The whole of it is **additive**. No game file changes, no behaviour changes, and
 both spellings answer identically — which is the property the migration then

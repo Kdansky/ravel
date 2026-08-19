@@ -850,6 +850,25 @@ answer for); before it, it filters the seats that come back
 (`@mine.owner_of.target` — the target's owner, when that is me). Each seat
 answers once however many cards it owns, and a card nobody owns names nobody.
 
+That is the reading half. `set_active_seat:<scope>` is the writing one — it
+**makes that seat the one whose turn it is**, which is how the trick winner
+leads the next trick:
+
+```json
+{ "key": "score_trick", "type": "automatic",
+  "actions": ["stat_gain:tricks@owner_of.highest:1", "set_active_seat:owner_of.highest"] }
+```
+
+Cards, zones and phases all run ordinary action lists, so any of them may say
+it. The scope names cards and the seat is whose they are, through the same
+answer `mine` asks — so `set_active_seat:target` and
+`set_active_seat:owner_of.target` mean the same thing about an ordinary card,
+and naming a seat card outright picks that seat. A scope naming **two** seats is
+refused rather than resolved (picking the first would make turn order depend on
+the order cards sit in the file); one naming **none** does nothing, because the
+trick is not won until somebody has won it. Handing over ends the undo history,
+exactly as the end of a turn does.
+
 ### The player is a card
 
 There is no player object. A seat that names no card becomes an invisible one tagged
@@ -1668,6 +1687,7 @@ stat_damage:score:20:x:count:wager@mine.red            the same product, distrib
 | `stat_boost:<subject>:n` | Move the **ceiling** of a stat that has one (`card_stats` written `[current, max]`). Lowering it under the number standing there brings the current down with it; nothing else does |
 | `stat_set:<subject>:n` | Set directly, past every bound, silently. A dev and authoring tool — how a phase resets a counter, not how a rule changes a number |
 | `move:<scope>:<zone>` | Move every card the scope names into that zone. The scope-first sibling of the two above, for a set nobody picked: written twice with opposite owner words (`move:mine.battle:mine.bench`, then `enemy`) it covers both seats whoever is up |
+| `set_active_seat:<scope>` | Whoever the scope names becomes the seat whose turn it is — the trick winner leading, the attack token holder acting first. Every other way of naming a seat is settled before the game starts, so this is the only one that reads off what just happened. Two seats is refused, none does nothing, and the handover ends the undo history |
 | `set_owner:<scope>:<who>` | Hand those cards to a seat, to the one that is up (`mine`), or to nobody (`none`). Whose a card is is settled when it is dealt and stays settled, so this is the only thing that changes it: mind control, and a pile that disowns whatever lands in it |
 | `activate_zone:<zone>[:<order>]` | Every card lying there does what it does — how a *phase* makes cards act instead of waiting for a click. Put the rule on a card, the card in a hidden zone, and have the phase say so. **Ungated**: the phase has already decided it is time. The order is the game's to state — naming none acts in the order the cards are in, `by_column` reads a board left to right; any other word is refused |
 | `ready:<scope>` | Un-spend those cards, the counterpart to the `exhaust` cost. A phase's own actions run when it begins, so this is how a game says *when* being spent wears off rather than taking the engine's round boundary for it |

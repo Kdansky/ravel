@@ -40,18 +40,23 @@ end
 -- The seat an unqualified zone key means. Derived from the system card's
 -- "turn" rather than cached, so undo restores it along with everything else.
 -- One-seat games — every shipped game — never look past the first line.
+-- The engine's own card, injected into every game (declaration.lua). It holds
+-- the round and the turn, which is why whose turn it is undoes with everything
+-- else rather than living in a module.
+function M.system_card()
+	for e in entity.each("card") do
+		if e.def_key == "system" and e.zone_id then return e end
+	end
+end
+
 function M.active_seat()
 	if as_if then return as_if end
 	local seats = declaration.G.seat_list or {}
 	if #seats < 2 then return seats[1] end
-	for e in entity.each("card") do
-		if e.def_key == "system" and e.zone_id then
-			-- turn 0 is "nobody has taken one yet", which reads as the first
-			-- seat: a game that never hands over still has somebody playing.
-			return seats[e.stats.turn or 0] or seats[1]
-		end
-	end
-	return seats[1]
+	local sys = M.system_card()
+	-- turn 0 is "nobody has taken one yet", which reads as the first seat: a
+	-- game that never hands over still has somebody playing.
+	return sys and seats[sys.stats.turn or 0] or seats[1]
 end
 
 -- The seat in front of *this* screen, which is a different question from whose

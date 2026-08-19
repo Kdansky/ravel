@@ -910,4 +910,9 @@ function M.activate_zone(zone_id)
 	return true
 end
 
+-- An action may hand the turn over (set_active_seat), and the undo history goes
+-- with the seat that had it. Closed here rather than in actions, which may not
+-- require this file.
+actions.on_seat_change = M.forget_history
+
 return M

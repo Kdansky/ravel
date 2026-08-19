@@ -1,6 +1,6 @@
 # 22 — The Crew: The Quest for Planet Nine
 
-**Status:** not started, and **half of its one primitive has shipped** — see
+**Status:** not started, and **its one primitive has shipped whole** — see
 *What shipped* below · **Size:** medium · **Depends on:** none of the
 deckbuilder candidates — self-contained
 
@@ -21,7 +21,7 @@ seat list in file order.
 
 ---
 
-## What shipped — the reading half of the primitive
+## What shipped — the primitive, both halves
 
 **`@owner_of.<scope>` is a scope, and it answers with the seats.** The lookup
 this file identified as its one root — *convert "this entity's owner" into a seat
@@ -48,15 +48,30 @@ Four things the build settled:
   names nobody. A seat counted once per card would pay a player twice for
   holding two pieces, which reads as a rules decision rather than as a bug.
 
-**What is left is the writing half**: `set_active_seat:<scope>` (or `"seat":
-"owner_of:<scope>"` on a routing entry), which turns that seat into the one whose
-turn it is. That is the part The Crew cannot be built without — the trick winner
-leads the next trick — and it is now a `G.seat_index` lookup over an answer the
-scope already gives. [Assumption: it belongs on the routing entry as well as in
-an action, because the trick winner is decided at a phase boundary and a phase's
-`seat` field is where turn order is already written; but only the action has a
-customer today, so build that one and leave the routing spelling until a game
-asks for it.]
+**And the writing half is `set_active_seat:<scope>`**, an ordinary action, so
+cards, zones and phases all reach it. Three things it decided:
+
+- **The scope names cards and the seat is whose they are**, through the same
+  `seat_of`. So `set_active_seat:target` and `set_active_seat:owner_of.target`
+  say the same thing about an ordinary card, and naming a seat card picks that
+  seat. One rule rather than two spellings for one intent.
+- **Two seats is refused, none is not.** Picking the first of two would make
+  turn order depend on the order cards sit in the file; a scope matching nothing
+  is an ordinary state, because the trick is not won until somebody wins it.
+- **A handover ends the undo history**, exactly as the end of a turn does —
+  `actions.on_seat_change`, closed by `flow` at the bottom of the file, since
+  `actions` may not require it.
+
+It needed nothing from the network: the turn lives on the injected system card,
+which is in the snapshot with everything else, so the far end learns whose turn
+it is the way it learns the rest. `tests/integration/active_seat.lua` asserts
+that over a real delta rather than assuming it.
+
+The routing spelling — `"seat": "owner_of:<scope>"` on a phase's `next` entry —
+was **not** built: the action covers the trick winner from inside the phase that
+scores the trick, and nothing else asked. [Assumption: it stays unbuilt until a
+game wants the seat decided by the routing rather than by an action, which no
+researched game does.]
 
 ## Stage 1 — the rules document
 
