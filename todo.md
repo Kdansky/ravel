@@ -6,4 +6,4 @@ Remove fully completed entries when we have done them or moved them to other fil
 
 ## Open
 
-Chequer-index is pointless: A1 in any game that uses the chequered logic should always be whatever colour is listed first. If that ends up being the wrong one, the rules designer can always just switch the two colours.
+*(empty — everything open is ranked in `ideas/README.md`'s "What to do next")*

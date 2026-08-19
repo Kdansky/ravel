@@ -19,20 +19,28 @@ strike-through is only worth reading while something is half-done.
 
 ## 2. Read the plan
 
-Read `ideas/README.md` in full, then every numbered `ideas/NN-*.md` file in
-ascending order (currently 01, 04–24 — there is no 02 or 03).
-For each, note what it says is already shipped versus what it lists as still
-left. `ideas/DONE.md` and root-level `IDEAS.md` are historical records, not
-part of this pass — skip them unless a specific todo item needs cross-checking
-against something already built.
+Read `ideas/README.md` in full. It is the plan, and its per-track table already
+says what each `ideas/NN-*.md` has shipped and what it lists as still left —
+that summary is what this pass ranks from.
+
+**Do not sweep the numbered files.** Reading all of `ideas/01`–`24` costs more
+than the whole rest of the skill and re-derives what the README already states.
+Open a numbered file only when something actually needs it:
+
+- a `todo.md` note that lands in that track (step 3), or
+- the item that gets picked (step 6), read just before building it.
+
+`ideas/DONE.md` and root-level `IDEAS.md` are historical records, not part of
+this pass — skip them unless a specific todo item needs cross-checking against
+something already built.
 
 ## 3. Fold the inbox into the plan
 
 For each open `todo.md` note:
 
-- Check whether it's already covered by an existing numbered idea (a "left"
-  item, a listed gap). If so it doesn't need a new home — just carry it into
-  the ranking in step 4.
+- Check the README's table for a track it belongs to, and read that one file
+  to see whether it is already covered (a "left" item, a listed gap). If so it
+  doesn't need a new home — just carry it into the ranking in step 4.
 - Otherwise decide size, using the rule `todo.md` already states: **more than
   an afternoon → gets worked through in `ideas/`.** That means either a new
   gap appended to the relevant existing `ideas/NN-*.md`, or — if it fits no

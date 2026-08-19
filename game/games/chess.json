@@ -12,7 +12,7 @@
   },
   "styles": {
     "piece": { "title": false, "color": false, "border": false },
-    "chessboard": { "fit": "fill", "ratio": "grid", "chequer": ["#f0d9b5", "#b58863"], "cell_outline": false }
+    "chessboard": { "fit": "fill", "ratio": "grid", "chequer": ["#b58863", "#f0d9b5"], "cell_outline": false }
   },
   "patterns": {
     "line_ortho": { "vectors": [[1, 0], [-1, 0], [0, 1], [0, -1]], "class": ["ray"] },

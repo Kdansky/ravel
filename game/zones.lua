@@ -474,15 +474,13 @@ end
 -- Which of a chequered board's two colours a square takes, 1 or 2.
 --
 -- A fact about the board rather than about drawing, which is why it is here and
--- not in the renderer: **a1 is dark**, and that is the one square anybody can
--- check against a real chessboard. `row` is a rank counted from the bottom, so
--- a1 is (1,1) and *even* — reading the parity the other way round inverts every
--- board with an even number of rows, which is what happened when row flipped to
--- count upwards and this sum stayed where it was.
+-- not in the renderer. The rule is the one nobody has to check against a real
+-- chessboard: **a1 takes the first colour listed**, and a board wanting the
+-- other way round swaps its two strings.
 function M.chequer_index(slot)
 	local s = slot and slot.stats
 	if not (s and s.col and s.row) then return 1 end
-	return (s.col + s.row) % 2 == 1 and 1 or 2
+	return (s.col + s.row) % 2 == 0 and 1 or 2
 end
 
 -- The pixel rect of cell `idx` in a grid zone, 1-based and row-major. Shared

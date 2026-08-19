@@ -167,23 +167,22 @@ function M.test_layout_a_hidden_offer_swallows_no_clicks(check)
 		zones.slot_at(cx, cy, offer.id) == e4.id)
 end
 
--- A chessboard has a dark square in the bottom-left corner. It is the one thing
--- about a board anybody can check against the real object, and it was wrong: the
--- slot's `row` stat became a rank counted from the bottom, and the parity that
--- picks the colour was left summing the old one. Every board with an even number
--- of rows drew inverted, and no test could see it because the choice was made
--- inside the renderer.
-function M.test_layout_a_chessboard_is_dark_in_the_corner(check)
+-- A board's first colour goes on a1, and nothing else decides it. The rule used
+-- to be "a1 is dark", which is true of a chessboard and of nothing else — it
+-- made every other board's colours depend on a convention its author had to
+-- know, and it cost a paragraph in `zones.lua` explaining which parity was
+-- which. A designer who disagrees swaps two strings.
+function M.test_layout_the_first_colour_goes_on_a1(check)
 	flow.init("chess.json", 1)
 	local board = zones.find("board")
 	local function shade(name)
 		return zones.chequer_index(entity.get(geometry.slot_named(board, name)))
 	end
-	check("chess names its light colour first",
-		board.style.chequer[1] == "#f0d9b5" and board.style.chequer[2] == "#b58863",
+	check("chess names its dark colour first, because a1 is dark",
+		board.style.chequer[1] == "#b58863" and board.style.chequer[2] == "#f0d9b5",
 		table.concat(board.style.chequer, " "))
-	check("a1 is dark, and h1 beside it is light", shade("a1") == 2 and shade("h1") == 1)
-	check("and the far corners answer the other way", shade("a8") == 1 and shade("h8") == 2)
+	check("a1 takes it, and h1 beside it takes the other", shade("a1") == 1 and shade("h1") == 2)
+	check("and the far corners answer the other way", shade("a8") == 2 and shade("h8") == 1)
 	check("a square with no coordinates cannot pick a colour and says so",
 		zones.chequer_index(nil) == 1 and zones.chequer_index({}) == 1)
 end

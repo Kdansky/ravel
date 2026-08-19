@@ -14,7 +14,7 @@
   },
   "styles": {
     "unit": { "fit": "card", "badges": ["power", "health"] },
-    "lane": { "chequer": ["#2b3a55", "#243248"], "cell_outline": false }
+    "lane": { "chequer": ["#243248", "#2b3a55"], "cell_outline": false }
   },
   "patterns": {
     "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] }

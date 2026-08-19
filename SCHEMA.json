@@ -43,7 +43,7 @@
       "fan": "stack zones: show the whole stack instead of only its top card, each card laid over the one before and leaving a strip of it showing. The word is the direction the next card goes — up, down, left or right — so down is a solitaire tableau and up is a row growing away from its owner. The strip is what the layout protects: cards shrink to keep it readable rather than the other way round. Not for grid zones, which place by slot.",
       "ratio": "zones: the shape it keeps whatever the window is — width over height, so 1 is square, or the word grid to read it from the cell count. The zone takes the largest rect of that shape inside what pos allotted, centred.",
       "chequer": [
-        "grid zones: two colours alternated across the squares, palette names or #rrggbb, the top-left square taking the first"
+        "grid zones: two colours alternated across the squares, palette names or #rrggbb. The first is the colour of a1 — the bottom-left square — and a board wanting the other way round swaps the two strings; there is no flag for it"
       ],
       "paint": {
         "<absolute pattern name>": "grid zones: a colour or a picture for the squares that pattern names — terrain, goal rows, home rows"

@@ -1231,7 +1231,7 @@ A style carries everything about how a thing *looks*, for cards and zones alike:
 | `fit` | grid zones | `card` (default) keeps card proportions in a cell; `fill` stretches to the whole cell, for board tiles |
 | `fan` | stack zones | show the whole stack, not just its top card — `"up"`, `"down"`, `"left"` or `"right"`, the way the next card is laid. See below |
 | `ratio` | zones | the shape it keeps whatever the window is — width over height, or `"grid"` to read it from the cell count |
-| `chequer` | grid zones | two colours alternated across the squares |
+| `chequer` | grid zones | two colours alternated across the squares. **The first is a1's** — the bottom-left square — and a board wanting the other way round swaps the two strings. There is no flag for it |
 | `badges` | cards | the stat keys drawn as numbers along the bottom of the face, left to right: `["power", "health"]` is a creature card. Without it a card shows `hp` and nothing else — **a card that carries numbers and names none of them here shows none of them** |
 | `paint` | grid zones | `{ "<absolute pattern>": colour-or-filename }` — terrain, goal rows, home rows |
 | `cell_outline` | grid zones | `false` draws no outline on empty cells. Eligible squares still light up during a move |
@@ -1242,7 +1242,7 @@ one word:
 ```json
 "styles": {
   "chessboard": { "fit": "fill", "ratio": "grid",
-                  "chequer": ["#f0d9b5", "#b58863"], "cell_outline": false },
+                  "chequer": ["#b58863", "#f0d9b5"], "cell_outline": false },
   "piece":      { "title": false, "color": false }
 },
 "zones": [{ "key": "board", "type": "grid", "grid": [8, 8], "tags": ["activate", "chessboard"] }]
