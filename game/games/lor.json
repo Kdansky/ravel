@@ -16,7 +16,9 @@
     "unit": { "fit": "card", "badges": ["power", "health"] },
     "lane": { "chequer": ["#243248", "#2b3a55"], "cell_outline": false }
   },
-  "patterns": { "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] } },
+  "patterns": {
+    "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] }
+  },
   "tags": {
     "tough": { "tooltip": "Tough — takes 1 less damage from every source." },
     "overwhelm": {
@@ -26,9 +28,7 @@
           "key": "spill_over",
           "text": "Overwhelm",
           "phases": ["strike"],
-          "action": [
-            "stat_damage:spill@self:sum:health@across:x:count:overkilled@across:x:sum:attacking@self"
-          ]
+          "action": ["stat_damage:spill@self:sum:health@across:x:count:overkilled@across:x:sum:attacking@self"]
         }
       ]
     },
@@ -40,10 +40,7 @@
           "tooltip": "Send this unit into one of your lanes.",
           "phases": ["declare_attack"],
           "target": {
-            "type": "slot",
-            "count": 1,
-            "zones": ["battle"],
-            "fill": "empty",
+            "type": "slot", "count": 1, "zones": ["battle"], "fill": "empty",
             "where": ["row@target == side@mine.player"]
           },
           "action": ["stat_set:attacking@self:1", "move_to:target"]
@@ -54,11 +51,11 @@
           "tooltip": "Meet an attacker. A lane with nothing across it cannot be blocked into.",
           "phases": ["declare_block"],
           "target": {
-            "type": "slot",
-            "count": 1,
-            "zones": ["battle"],
-            "fill": "empty",
-            "where": ["row@target == side@mine.player", "count:unit@across >= 1"]
+            "type": "slot", "count": 1, "zones": ["battle"], "fill": "empty",
+            "where": [
+              "row@target == side@mine.player",
+              "count:unit@across >= 1"
+            ]
           },
           "action": ["move_to:target"]
         }
@@ -85,25 +82,18 @@
       "label": "Deck",
       "type": "deck",
       "tags": ["per_seat", "shuffle"],
-      "pos": [[0.84, 0.1, 0.98, 0.3], [0.84, 0.7, 0.98, 0.9]],
+      "pos": [[0.84, 0.10, 0.98, 0.30], [0.84, 0.70, 0.98, 0.90]],
       "contents": [
-        "plucky_poro:3",
-        "cithria:3",
-        "vanguard_defender:3",
-        "vanguard_lookout:3",
-        "ruthless_raider:3",
-        "loyal_badgerbear:3",
-        "mighty_poro:3",
-        "bull_elnuk:3",
-        "vanguard_cavalry:3",
-        "alpha_wildclaw:3"
+        "plucky_poro:3", "cithria:3", "vanguard_defender:3", "vanguard_lookout:3",
+        "ruthless_raider:3", "loyal_badgerbear:3", "mighty_poro:3", "bull_elnuk:3",
+        "vanguard_cavalry:3", "alpha_wildclaw:3"
       ]
     },
     {
       "key": "hand",
       "type": "hand",
       "tags": ["per_seat"],
-      "pos": [[0.04, 0.01, 0.8, 0.11], [0.04, 0.89, 0.8, 0.99]]
+      "pos": [[0.04, 0.01, 0.80, 0.11], [0.04, 0.89, 0.80, 0.99]]
     },
     {
       "key": "bench",
@@ -112,7 +102,7 @@
       "grid": [6, 1],
       "tags": ["per_seat", "activate"],
       "applies": ["on_bench"],
-      "pos": [[0.16, 0.13, 0.8, 0.28], [0.16, 0.72, 0.8, 0.87]]
+      "pos": [[0.16, 0.13, 0.80, 0.28], [0.16, 0.72, 0.80, 0.87]]
     },
     {
       "key": "controls",
@@ -127,14 +117,17 @@
       "grid": [6, 2],
       "tags": ["lane"],
       "applies": ["in_combat"],
-      "pos": [0.16, 0.31, 0.8, 0.69]
+      "pos": [0.16, 0.31, 0.80, 0.69]
     }
   ],
   "phases": [
     {
       "key": "setup",
       "type": "automatic",
-      "actions": ["draw_from:mine.deck:mine.hand:4", "draw_from:enemy.deck:enemy.hand:4"],
+      "actions": [
+        "draw_from:mine.deck:mine.hand:4",
+        "draw_from:enemy.deck:enemy.hand:4"
+      ],
       "next": [{ "then": "round_start" }]
     },
     {
@@ -188,8 +181,14 @@
     {
       "key": "strike",
       "type": "automatic",
-      "actions": ["stat_set:spill@each.battle:0", "activate_zone:battle:by_column"],
-      "next": [{ "when": "attacker@north_side >= 1", "then": "nexus_south" }, { "then": "nexus_north" }]
+      "actions": [
+        "stat_set:spill@each.battle:0",
+        "activate_zone:battle:by_column"
+      ],
+      "next": [
+        { "when": "attacker@north_side >= 1", "then": "nexus_south" },
+        { "then": "nexus_north" }
+      ]
     },
     {
       "key": "nexus_south",
@@ -229,25 +228,25 @@
     {
       "key": "token_to_south",
       "type": "automatic",
-      "actions": ["stat_set:attacker@north_side:0", "stat_set:attacker@south_side:1"],
+      "actions": [
+        "stat_set:attacker@north_side:0",
+        "stat_set:attacker@south_side:1"
+      ],
       "next": [{ "then": "round_start", "ends_round": true }]
     },
     {
       "key": "token_to_north",
       "type": "automatic",
-      "actions": ["stat_set:attacker@north_side:1", "stat_set:attacker@south_side:0"],
+      "actions": [
+        "stat_set:attacker@north_side:1",
+        "stat_set:attacker@south_side:0"
+      ],
       "next": [{ "then": "round_start", "ends_round": true }]
     }
   ],
   "end_conditions": [
-    {
-      "when": "nexus@north_side <= 0",
-      "then": ["stat_gain:won@south_side:1", "reveal:south_wins"]
-    },
-    {
-      "when": "nexus@south_side <= 0",
-      "then": ["stat_gain:won@north_side:1", "reveal:north_wins"]
-    }
+    { "when": "nexus@north_side <= 0", "then": ["stat_gain:won@south_side:1", "reveal:south_wins"] },
+    { "when": "nexus@south_side <= 0", "then": ["stat_gain:won@north_side:1", "reveal:north_wins"] }
   ],
   "cards": [
     {
@@ -262,17 +261,14 @@
       "tags": ["south_side"],
       "card_stats": { "nexus": 20, "mana": 0, "side": 1, "attacker": 0, "token": 0, "attack_declared": 0 }
     },
+
     {
       "key": "plucky_poro",
       "text": "Plucky Poro",
       "asset": "circle:1:silver",
       "tags": ["unit", "tough"],
       "card_stats": { "power": 1, "health": 1, "cost": 1, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 1 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "cithria",
@@ -280,11 +276,7 @@
       "asset": "circle:1:gold",
       "tags": ["unit"],
       "card_stats": { "power": 2, "health": 2, "cost": 1, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 1 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 1 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "vanguard_defender",
@@ -292,11 +284,7 @@
       "asset": "square:2:gold",
       "tags": ["unit", "tough"],
       "card_stats": { "power": 2, "health": 2, "cost": 2, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 2 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "vanguard_lookout",
@@ -304,11 +292,7 @@
       "asset": "square:2:silver",
       "tags": ["unit"],
       "card_stats": { "power": 1, "health": 4, "cost": 2, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 2 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "ruthless_raider",
@@ -316,11 +300,7 @@
       "asset": "triangle:2:crimson",
       "tags": ["unit", "tough", "overwhelm"],
       "card_stats": { "power": 3, "health": 1, "cost": 2, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 2 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 2 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "loyal_badgerbear",
@@ -328,11 +308,7 @@
       "asset": "square:3:gold",
       "tags": ["unit"],
       "card_stats": { "power": 3, "health": 4, "cost": 3, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 3 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "mighty_poro",
@@ -340,11 +316,7 @@
       "asset": "triangle:3:silver",
       "tags": ["unit", "overwhelm"],
       "card_stats": { "power": 3, "health": 3, "cost": 3, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 3 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 3 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "bull_elnuk",
@@ -352,11 +324,7 @@
       "asset": "square:4:silver",
       "tags": ["unit"],
       "card_stats": { "power": 4, "health": 5, "cost": 4, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 4 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 4 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "vanguard_cavalry",
@@ -364,11 +332,7 @@
       "asset": "square:5:gold",
       "tags": ["unit", "tough"],
       "card_stats": { "power": 5, "health": 5, "cost": 5, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 5 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 5 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
     {
       "key": "alpha_wildclaw",
@@ -376,12 +340,9 @@
       "asset": "triangle:6:crimson",
       "tags": ["unit", "overwhelm"],
       "card_stats": { "power": 7, "health": 6, "cost": 6, "attacking": 0, "spill": 0 },
-      "play": {
-        "cost": { "mana": 6 },
-        "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
-      }
+      "play": { "cost": { "mana": 6 }, "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" }, "action": ["move_to:target", "next_phase"] }
     },
+
     {
       "key": "north_wins",
       "text": "North wins",
