@@ -79,11 +79,57 @@ def contend():
     ]
 
 
+# --- the radio -----------------------------------------------------------
+#
+# One token a mission, spent to lay a card face up saying it is the highest, the
+# lowest or the only one of its colour you hold. Nothing else may be said.
+#
+# Twelve abilities on one button rather than three on each of forty cards,
+# because a target's `where` can pick the card out of the player's own hand:
+# only the cards carrying `v_<colour>` are that colour, so `max:` and `min:`
+# over the hand answer "highest" and "lowest" without a scope that could name a
+# tag inside a hand — which there is no such thing as.
+
+# "Only" is the two others agreeing: if the highest card of a colour I hold is
+# also the lowest, I hold exactly one. An ability takes no `needs` — only a
+# card's play moment does — so this had to be a comparison between two subjects,
+# and it turned out to be the better sentence anyway.
+POSITIONS = [
+    ("high", "highest", "{c}@target >= max:{c}@mine.hand"),
+    ("only", "only", "max:{c}@mine.hand <= min:{c}@mine.hand"),
+    ("low", "lowest", "{c}@target <= min:{c}@mine.hand"),
+]
+
+
+def radio_card():
+    abilities = []
+    for key, name, colour, _ in SUITS:
+        v = f"v_{key}"
+        for pos, word, where in POSITIONS:
+            abilities.append({
+                "key": f"say_{pos}_{key}",
+                "text": f"My {word} {name.lower()}",
+                "tooltip": f"Lay a {name.lower()} card face up, saying it is the {word}"
+                           f" {name.lower()} in your hand. One card, once a mission, and it stays"
+                           " where you put it even after it stops being true.",
+                "cost": {"radio@mine.player": 1},
+                "target": {"type": "card", "count": 1, "zones": ["hand"],
+                           "where": [f"{v}@target >= 1", where.format(c=v)]},
+                "action": ["move_target_to:open"],
+            })
+    return {"key": "radio", "text": "Radio", "asset": "circle:teal",
+            "tags": ["immutable"],
+            "tooltip": "Say one thing about one card, once a mission: lay a colour card face up"
+                       " and call it your highest, your lowest, or your only one of that colour."
+                       " Rockets can never be communicated, and nothing else may be said at all.",
+            "abilities": abilities}
+
+
 # --- cards ---------------------------------------------------------------
 
 def seat_cards():
     return [{"key": k, "text": t, "tags": [k + "_side"],
-             "card_stats": {"has_r4": 0, "tricks_won": 0}} for k, t in SEATS]
+             "card_stats": {"has_r4": 0, "tricks_won": 0, "radio": 1}} for k, t in SEATS]
 
 
 def playing_cards():
@@ -94,6 +140,12 @@ def playing_cards():
             rocket = key == "rocket"
             stats = {"suit": suit, "value": v, "trump": 1 if rocket else 0,
                      "live": 0, "over": 0, "contend": 0, "best": 0, "gap": 0}
+            # Its value, under a name only its own colour carries — so max: and
+            # min: over a hand answer "the highest pink I hold" and "the lowest",
+            # which no scope can ask, because a tag reaches grid zones only.
+            # Rockets get none: a rocket can never be communicated.
+            if not rocket:
+                stats[f"v_{key}"] = v
             card = {
                 "key": f"{key}_{v}",
                 "text": f"{name} {v}",
@@ -184,6 +236,8 @@ def zones():
     """
     half = (len(SEATS) + 1) // 2
 
+    # A seat's own strip: its closed hand, and its open one beside it — the card
+    # it has laid face up for everybody, which is where the radio puts things.
     def row(keys, y1, y2, reverse):
         """Split the full width between these seats, with a gutter between."""
         n = len(keys)
@@ -191,13 +245,15 @@ def zones():
         out = {}
         for i, k in enumerate(keys):
             x = 0.01 + (n - 1 - i if reverse else i) * (w + 0.01)
-            out[k] = [round(x, 3), y1, round(x + w, 3), y2]
+            out[k] = ([round(x, 3), y1, round(x + w - 0.10, 3), y2],
+                      [round(x + w - 0.09, 3), y1, round(x + w, 3), y2])
         return out
 
     order = [k for k, _ in SEATS]
-    seats = row(order[:half], 0.170, 0.310, False)
+    seats = row(order[:half], 0.195, 0.325, False)
     seats.update(row(order[half:], 0.755, 0.895, True))
-    hands = [seats[k] for k in order]
+    hands = [seats[k][0] for k in order]
+    opens = [seats[k][1] for k in order]
 
     # One task row per seat, stacked under the decks. They hold very few cards
     # in practice, so they are the smallest thing on the table.
@@ -207,6 +263,12 @@ def zones():
 
     return [
         {"key": "hand", "type": "hand", "tags": ["per_seat"], "pos": hands},
+        # Face up, so it is everybody's to read — which is the whole point of
+        # saying something, and what the tag has always claimed to mean.
+        {"key": "open", "label": "Said", "type": "hand", "tags": ["per_seat", "face_up"],
+         "pos": opens},
+        {"key": "controls", "type": "grid", "grid": [1, 1], "tags": ["activate", "optional"],
+         "pos": [0.685, 0.335, 0.790, 0.445]},
         {"key": "tasks", "label": "Tasks", "type": "grid", "grid": [MAX_TASKS, 1],
          "tags": ["per_seat"], "pos": tasks},
         {"key": "trick", "label": "Play area", "type": "grid", "grid": [len(SEATS), 1],
@@ -265,7 +327,7 @@ def phases():
     # everything else a crew member may do — the radio, and whatever comes after
     # it — leaves the trick alone and so leaves the turn alone.
     follow = [{"key": f"follow_{i}", "type": "player_input", "seat": "next",
-               "zone": "hand", "ends_when": f"count:play_card@trick >= {i + 1}",
+               "zone": ["hand", "open"], "ends_when": f"count:play_card@trick >= {i + 1}",
                "label": "Follow the suit that was led, if you can",
                "next": [{"then": f"follow_{i + 1}" if i < len(SEATS) - 1 else "resolve"}]}
               for i in range(1, len(SEATS))]
@@ -285,7 +347,7 @@ def phases():
          "next": [{"zone_empty": ["task_offer"], "then": "first_lead"}, {"then": "draft_on"}]},
         {"key": "first_lead", "type": "automatic", "actions": ["set_active_seat:commander"],
          "next": [{"then": "lead"}]},
-        {"key": "lead", "type": "player_input", "zone": "hand",
+        {"key": "lead", "type": "player_input", "zone": ["hand", "open"],
          "ends_when": "count:play_card@trick >= 1",
          "label": "Lead a card", "next": [{"then": "led"}]},
         # Once, between the lead and the follows. Written by any played card's
@@ -339,7 +401,10 @@ def build():
             {"key": "want", "min": 0, "max": 99, "tags": ["hidden"]},
             {"key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"]},
             {"key": "hit", "min": 0, "max": 99, "tags": ["hidden"]},
-        ] + [{"key": k, "min": 0, "max": 999, "tags": ["hidden"]} for k in SCRATCH],
+                {"key": "radio", "label": "Radio", "icon": "banner", "min": 0, "max": 1,
+             "subject": "radio@mine.player"},
+        ] + [{"key": f"v_{s[0]}", "min": 0, "max": 99, "tags": ["hidden"]} for s in SUITS]
+        + [{"key": k, "min": 0, "max": 999, "tags": ["hidden"]} for k in SCRATCH],
         "computed_tags": {
             "commander": {"stat": "has_r4", "at_least": 1},
             # The one card in the trick that fell short of the best by nothing.
@@ -355,9 +420,10 @@ def build():
         "zones": zones(),
         "phases": phases(),
         "end_conditions": [],
-        "cards": (seat_cards() + other_cards() + mission_cards()
+        "cards": (seat_cards() + other_cards() + mission_cards() + [radio_card()]
                   + playing_cards() + task_cards()),
-        "setup": {"place": [{"card": "flight_plan", "zone": "console", "at": ["a1"]}]},
+        "setup": {"place": [{"card": "flight_plan", "zone": "console", "at": ["a1"]},
+                            {"card": "radio", "zone": "controls", "at": ["a1"]}]},
     }
 
 

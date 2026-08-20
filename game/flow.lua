@@ -573,7 +573,24 @@ function M.can_play(card_id)
 	-- cards are the case — all four are gated most of the game, and "nothing
 	-- else here is playable" is their normal state rather than a trap.
 	if z and z.tags.optional then return false end
-	for _, cid in ipairs(z and z.cards or {}) do
+	-- **Everything the phase would let you play, not only this card's own zone.**
+	-- The hatch exists so a mandatory play cannot soft-lock a hand, and a hand is
+	-- whatever the phase says it is: with a closed hand and an open one, asking
+	-- only about the zone the card lies in would open the hatch for a lone gated
+	-- card lying beside a hand full of legal ones — which in a trick-taking game
+	-- is follow-suit quietly switching itself off.
+	local cur = phase.current()
+	local keys = cur and cur.zone_list
+	local pool = {}
+	if keys then
+		for _, key in ipairs(keys) do
+			local zz = zones.find(key)
+			for _, cid in ipairs(zz and zz.cards or {}) do pool[#pool + 1] = cid end
+		end
+	else
+		for _, cid in ipairs(z and z.cards or {}) do pool[#pool + 1] = cid end
+	end
+	for _, cid in ipairs(pool) do
 		if cid ~= card_id and playable(cards.def(entity.get(cid)), { card_id = cid }) then
 			return false
 		end
@@ -695,13 +712,19 @@ function M.usable_abilities(card_id)
 	if not (z and z.tags.activate) then return {} end
 	local out = {}
 	for i, a in ipairs(cards.abilities(c)) do
+		-- An ability that can reach nothing is not on offer. Without this a
+		-- chooser lists dead entries, and a piece with a conditional move looks
+		-- like it has two things to do when it has one. It used to ask only
+		-- about `moves`, which is one kind of target out of three: The Crew's
+		-- radio has twelve abilities and a hand answers two or three of them,
+		-- so the other nine were nine dead lines in the chooser.
+		local lo = a.target and select(1, targeting.bounds(a.target)) or 0
+		local reaches = lo == 0
+			or (a.target.moves and #targeting.moves_by(card_id, a.target.moves) > 0)
+			or (a.target.moves == nil and #targeting.candidates(card_id, a.target) >= lo)
 		if has_ability(a.action) and phase_ok(a.phases)
 			and M.can_afford(a.cost, { card_id = card_id })
-			-- A move that can reach nowhere is not on offer. Without this a
-			-- chooser lists dead entries, and a piece with a conditional move
-			-- looks like it has two things to do when it has one.
-			and (a.target == nil or a.target.moves == nil
-				or #targeting.moves_by(card_id, a.target.moves) > 0) then
+			and reaches then
 			out[#out + 1] = { index = i, ability = a }
 		end
 	end

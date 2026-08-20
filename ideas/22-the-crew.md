@@ -529,65 +529,58 @@ they shipped and drawn nothing. Fixed, laid down before the cards so an empty ro
 says what it is waiting for and a full one covers it — which is what the `fan`
 branch already said in a comment and only that branch did.
 
-### What is left, and what the radio actually costs
+### The radio, built — and the five things it needed
 
-**The radio token is the signature mechanic. Four of its five parts already
-work; the fifth is one small engine addition.** The rule is that you lay one
-card face up in front of you and flag it *highest*, *only* or *lowest* of its
-colour in your hand. Traced through the engine rather than guessed at:
+**It works, and none of the five was about trick-taking.** One token a mission,
+spent to lay a colour card face up and call it your highest, your lowest or your
+only one of that colour; the card stays playable, stays bound by follow-suit,
+and stays where you put it after it stops being true.
 
-- **The card cannot be *played* into a second hand.** Its `play.needs` carries
-  follow-suit and is judged before a destination is chosen, so a card you could
-  not legally follow with could not be radioed either; and a play is a play, so
-  it would spend the one `ends_after: 1` allows.
-- **Nor can the hand be tagged `activate` to offer an ability instead.**
-  `main.lua`'s click path returns as soon as it sees that tag: a card in an
-  `activate` zone can only ever be activated, never played, so the hand would
-  stop being able to feed the trick at all.
-- **A button works, and puts twelve clauses on one card instead of forty.** A
-  Radio card in a per-seat `activate` controls zone, with four colours × three
-  positions as `abilities`, each targeting a card in the player's own hand:
+- **`ends_when`, so that saying something is not spending your turn.**
+  `ends_after` counts plays and cannot tell one from another. The trick phases
+  now say `"ends_when": "count:play_card@trick >= n"` — the turn ends when a card
+  reaches the middle, and everything else a crew member may do leaves it alone.
+- **A phase's `zone` as a list.** The open hand is a second place to play from,
+  and `in_play_zone` took one zone. Normalised at the door into `zone_list`, with
+  the first still the singular one (where a phase deals, what an overlay offers).
+- **`min:`**, beside `sum:` and `max:`. It only ever sees the cards that carry
+  the stat, which is the whole trick: give a pink card a `v_pink` and give no
+  other card one, and `min:v_pink@mine.hand` is *the lowest pink I hold* — a
+  question no scope can ask, because a tag reads grid zones only.
+- **`face_up` on a hand.** The tag always claimed to override whatever the type
+  would do, and hiding a hand is the only thing the type does there.
+- **An ability that reaches nothing is not offered.** The rule existed for
+  `moves` only; the radio has twelve abilities and a hand answers two or three,
+  so the other nine were nine dead lines in the chooser.
 
-  ```json
-  { "key": "radio_high_pink", "text": "Radio — my highest pink",
-    "phases": ["radio"], "cost": { "radio@mine.player": 1 },
-    "target": { "type": "card", "count": 1, "zones": ["hand"],
-                "where": ["v_pink@target >= 1",
-                          "v_pink@target >= max:v_pink@mine.hand"] },
-    "action": ["move_target_to:open"] }
-  ```
+Two things fell out that are worth keeping:
 
-  `where` binds each candidate as `@target`, and naming a zone defaults the
-  owner word to `not_enemy`, so only your own hand is ever offered. The token is
-  an ordinary per-seat stat with an icon — a cost key is a full subject
-  (`can_afford` builds `subject .. " >= " .. n`), so no global counter is needed.
-- **The condition needs one value stat per colour.** A tag scope cannot see a
-  hand, but `max:v_pink@mine.hand` can, where `v_pink` is a card's value in its
-  own colour and 0 elsewhere. *Only* is `count:pink@mine.hand == 1`. **Lowest
-  has no spelling** — there is no `min:` measure — so it wants a second
-  inverted stat (`10 - value`) read through `max:`. Nine numbers a card, half
-  what Splendor carries, and a generator writes them.
-- **`face_up` is a lie for a hand, and it is two lines.** The tag is documented
-  as *cards here are shown, whatever the type would do*, but `zones.visible` and
-  `zones.peekable` never consult it — both short-circuit on `zone_type == "hand"`
-  and a seat. The open hand needs them to.
+**"Only" is the other two agreeing.** An ability takes no `needs` — only a
+card's `play` moment does — so `count:pink@mine.hand == 1` had nowhere to go,
+and it turned out not to be needed: `max:v_pink@mine.hand <= min:v_pink@mine.hand`
+is *I hold exactly one pink*, and it is the better sentence. (That an ability
+cannot carry a `needs` is still a hole; it just was not this one's.)
 
-**The one thing genuinely missing is playing from two zones.** `in_play_zone`
-takes the phase's single `zone`, so a card lying in the open hand cannot be put
-into the trick. `zone` also names where a phase deals, what an overlay offers
-and what the discard sweep clears — four jobs that each want exactly one zone —
-so widening it to a list is the wrong shape; it wants a field of its own. The
-alternative that needs no engine change is to leave the card in hand and deal a
-marker card into the open row, which costs 36 markers to keep the card's value
-visible.
+**The escape hatch was per-zone, and two hands made it wrong.** `can_play`'s
+hatch opens when nothing else in the card's own zone is playable. With a closed
+hand and an open one, a lone gated card lying in the open hand would always
+open it — which is follow-suit quietly switching itself off. It asks about
+every zone the phase allows now.
 
-Also left, and all of it content: the **order tokens** (`1`–`5`, `Ω`, `›`/`››`),
-which want a small authored graph and a fourth loss check; the **printed fifty
-missions**, which this file replaces with an opening overlay asking how many
-tasks the crew wants (one to five) rather than claiming to be the logbook;
-**three and five players**, which only the seat list and the rect arithmetic in
-`zones()` would have to agree about; and the **two-player JARVIS variant**,
-which is a different game.
+### What is still left
+
+The **order tokens** (`1`–`5`, `Ω`, `›`/`››`), which want a small authored graph
+and a fourth loss check; the **printed fifty missions**, which this file replaces
+with an opening overlay asking how many tasks the crew wants (one to five) rather
+than claiming to be the logbook; **three and five players**, which only the seat
+list and the rect arithmetic in `zones()` would have to agree about; and the
+**two-player JARVIS variant**, which is a different game.
+
+One deviation is deliberate and worth stating: the rulebook allows the radio
+*before* a trick and never during one, and here it is usable on your own turn
+until you play into the middle. That keeps every decision the token has — which
+card, which claim, and which trick to spend it on — at the cost of letting a
+later seat speak having seen the cards already played.
 
 ### The table has four sides, and the engine owns two corners
 

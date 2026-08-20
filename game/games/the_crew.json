@@ -22,6 +22,18 @@
     { "key": "want", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "hit", "min": 0, "max": 99, "tags": ["hidden"] },
+    {
+      "key": "radio",
+      "label": "Radio",
+      "icon": "banner",
+      "min": 0,
+      "max": 1,
+      "subject": "radio@mine.player"
+    },
+    { "key": "v_pink", "min": 0, "max": 99, "tags": ["hidden"] },
+    { "key": "v_blue", "min": 0, "max": 99, "tags": ["hidden"] },
+    { "key": "v_green", "min": 0, "max": 99, "tags": ["hidden"] },
+    { "key": "v_yellow", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "suit", "min": 0, "max": 999, "tags": ["hidden"] },
     { "key": "value", "min": 0, "max": 999, "tags": ["hidden"] },
     { "key": "trump", "min": 0, "max": 999, "tags": ["hidden"] },
@@ -71,11 +83,30 @@
       "type": "hand",
       "tags": ["per_seat"],
       "pos": [
-        [0.01, 0.17, 0.495, 0.31],
-        [0.505, 0.17, 0.99, 0.31],
-        [0.505, 0.755, 0.99, 0.895],
-        [0.01, 0.755, 0.495, 0.895]
+        [0.01, 0.195, 0.395, 0.325],
+        [0.505, 0.195, 0.89, 0.325],
+        [0.505, 0.755, 0.89, 0.895],
+        [0.01, 0.755, 0.395, 0.895]
       ]
+    },
+    {
+      "key": "open",
+      "label": "Said",
+      "type": "hand",
+      "tags": ["per_seat", "face_up"],
+      "pos": [
+        [0.405, 0.195, 0.495, 0.325],
+        [0.9, 0.195, 0.99, 0.325],
+        [0.9, 0.755, 0.99, 0.895],
+        [0.405, 0.755, 0.495, 0.895]
+      ]
+    },
+    {
+      "key": "controls",
+      "type": "grid",
+      "grid": [1, 1],
+      "tags": ["activate", "optional"],
+      "pos": [0.685, 0.335, 0.79, 0.445]
     },
     {
       "key": "tasks",
@@ -289,7 +320,7 @@
     {
       "key": "lead",
       "type": "player_input",
-      "zone": "hand",
+      "zone": ["hand", "open"],
       "ends_when": "count:play_card@trick >= 1",
       "label": "Lead a card",
       "next": [{ "then": "led" }]
@@ -357,7 +388,7 @@
       "key": "follow_1",
       "type": "player_input",
       "seat": "next",
-      "zone": "hand",
+      "zone": ["hand", "open"],
       "ends_when": "count:play_card@trick >= 2",
       "label": "Follow the suit that was led, if you can",
       "next": [{ "then": "follow_2" }]
@@ -366,7 +397,7 @@
       "key": "follow_2",
       "type": "player_input",
       "seat": "next",
-      "zone": "hand",
+      "zone": ["hand", "open"],
       "ends_when": "count:play_card@trick >= 3",
       "label": "Follow the suit that was led, if you can",
       "next": [{ "then": "follow_3" }]
@@ -375,7 +406,7 @@
       "key": "follow_3",
       "type": "player_input",
       "seat": "next",
-      "zone": "hand",
+      "zone": ["hand", "open"],
       "ends_when": "count:play_card@trick >= 4",
       "label": "Follow the suit that was led, if you can",
       "next": [{ "then": "resolve" }]
@@ -387,25 +418,25 @@
       "key": "north",
       "text": "North",
       "tags": ["north_side"],
-      "card_stats": { "has_r4": 0, "tricks_won": 0 }
+      "card_stats": { "has_r4": 0, "tricks_won": 0, "radio": 1 }
     },
     {
       "key": "east",
       "text": "East",
       "tags": ["east_side"],
-      "card_stats": { "has_r4": 0, "tricks_won": 0 }
+      "card_stats": { "has_r4": 0, "tricks_won": 0, "radio": 1 }
     },
     {
       "key": "south",
       "text": "South",
       "tags": ["south_side"],
-      "card_stats": { "has_r4": 0, "tricks_won": 0 }
+      "card_stats": { "has_r4": 0, "tricks_won": 0, "radio": 1 }
     },
     {
       "key": "west",
       "text": "West",
       "tags": ["west_side"],
-      "card_stats": { "has_r4": 0, "tricks_won": 0 }
+      "card_stats": { "has_r4": 0, "tricks_won": 0, "radio": 1 }
     },
     {
       "key": "flight_plan",
@@ -468,6 +499,171 @@
       "play": { "action": ["stat_set:want@plan:5"] }
     },
     {
+      "key": "radio",
+      "text": "Radio",
+      "asset": "circle:teal",
+      "tags": ["immutable"],
+      "tooltip": "Say one thing about one card, once a mission: lay a colour card face up and call it your highest, your lowest, or your only one of that colour. Rockets can never be communicated, and nothing else may be said at all.",
+      "abilities": [
+        {
+          "key": "say_high_pink",
+          "text": "My highest pink",
+          "tooltip": "Lay a pink card face up, saying it is the highest pink in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_pink@target >= 1", "v_pink@target >= max:v_pink@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_only_pink",
+          "text": "My only pink",
+          "tooltip": "Lay a pink card face up, saying it is the only pink in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_pink@target >= 1", "max:v_pink@mine.hand <= min:v_pink@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_low_pink",
+          "text": "My lowest pink",
+          "tooltip": "Lay a pink card face up, saying it is the lowest pink in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_pink@target >= 1", "v_pink@target <= min:v_pink@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_high_blue",
+          "text": "My highest blue",
+          "tooltip": "Lay a blue card face up, saying it is the highest blue in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_blue@target >= 1", "v_blue@target >= max:v_blue@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_only_blue",
+          "text": "My only blue",
+          "tooltip": "Lay a blue card face up, saying it is the only blue in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_blue@target >= 1", "max:v_blue@mine.hand <= min:v_blue@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_low_blue",
+          "text": "My lowest blue",
+          "tooltip": "Lay a blue card face up, saying it is the lowest blue in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_blue@target >= 1", "v_blue@target <= min:v_blue@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_high_green",
+          "text": "My highest green",
+          "tooltip": "Lay a green card face up, saying it is the highest green in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_green@target >= 1", "v_green@target >= max:v_green@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_only_green",
+          "text": "My only green",
+          "tooltip": "Lay a green card face up, saying it is the only green in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_green@target >= 1", "max:v_green@mine.hand <= min:v_green@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_low_green",
+          "text": "My lowest green",
+          "tooltip": "Lay a green card face up, saying it is the lowest green in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_green@target >= 1", "v_green@target <= min:v_green@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_high_yellow",
+          "text": "My highest yellow",
+          "tooltip": "Lay a yellow card face up, saying it is the highest yellow in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_yellow@target >= 1", "v_yellow@target >= max:v_yellow@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_only_yellow",
+          "text": "My only yellow",
+          "tooltip": "Lay a yellow card face up, saying it is the only yellow in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_yellow@target >= 1", "max:v_yellow@mine.hand <= min:v_yellow@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        },
+        {
+          "key": "say_low_yellow",
+          "text": "My lowest yellow",
+          "tooltip": "Lay a yellow card face up, saying it is the lowest yellow in your hand. One card, once a mission, and it stays where you put it even after it stops being true.",
+          "cost": { "radio@mine.player": 1 },
+          "target": {
+            "type": "card",
+            "count": 1,
+            "zones": ["hand"],
+            "where": ["v_yellow@target >= 1", "v_yellow@target <= min:v_yellow@mine.hand"]
+          },
+          "action": ["move_target_to:open"]
+        }
+      ]
+    },
+    {
       "key": "pink_1",
       "text": "Pink 1",
       "asset": "stripes:1:pink",
@@ -480,7 +676,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_pink": 1
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink1:1"] }]
@@ -498,7 +695,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_pink": 2
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink2:1"] }]
@@ -516,7 +714,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_pink": 3
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink3:1"] }]
@@ -534,7 +733,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_pink": 4
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink4:1"] }]
@@ -552,7 +752,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_pink": 5
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink5:1"] }]
@@ -570,7 +771,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_pink": 6
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink6:1"] }]
@@ -588,7 +790,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_pink": 7
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink7:1"] }]
@@ -606,7 +809,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_pink": 8
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink8:1"] }]
@@ -624,7 +828,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_pink": 9
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink9:1"] }]
@@ -642,7 +847,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_blue": 1
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue1:1"] }]
@@ -660,7 +866,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_blue": 2
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue2:1"] }]
@@ -678,7 +885,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_blue": 3
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue3:1"] }]
@@ -696,7 +904,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_blue": 4
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue4:1"] }]
@@ -714,7 +923,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_blue": 5
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue5:1"] }]
@@ -732,7 +942,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_blue": 6
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue6:1"] }]
@@ -750,7 +961,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_blue": 7
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue7:1"] }]
@@ -768,7 +980,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_blue": 8
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue8:1"] }]
@@ -786,7 +999,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_blue": 9
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue9:1"] }]
@@ -804,7 +1018,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_green": 1
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green1:1"] }]
@@ -822,7 +1037,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_green": 2
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green2:1"] }]
@@ -840,7 +1056,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_green": 3
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green3:1"] }]
@@ -858,7 +1075,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_green": 4
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green4:1"] }]
@@ -876,7 +1094,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_green": 5
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green5:1"] }]
@@ -894,7 +1113,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_green": 6
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green6:1"] }]
@@ -912,7 +1132,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_green": 7
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green7:1"] }]
@@ -930,7 +1151,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_green": 8
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green8:1"] }]
@@ -948,7 +1170,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_green": 9
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green9:1"] }]
@@ -966,7 +1189,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_yellow": 1
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow1:1"] }]
@@ -984,7 +1208,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_yellow": 2
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow2:1"] }]
@@ -1002,7 +1227,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_yellow": 3
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow3:1"] }]
@@ -1020,7 +1246,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_yellow": 4
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow4:1"] }]
@@ -1038,7 +1265,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_yellow": 5
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow5:1"] }]
@@ -1056,7 +1284,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_yellow": 6
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow6:1"] }]
@@ -1074,7 +1303,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_yellow": 7
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow7:1"] }]
@@ -1092,7 +1322,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_yellow": 8
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow8:1"] }]
@@ -1110,7 +1341,8 @@
         "over": 0,
         "contend": 0,
         "best": 0,
-        "gap": 0
+        "gap": 0,
+        "v_yellow": 9
       },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow9:1"] }]
@@ -1508,5 +1740,10 @@
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     }
   ],
-  "setup": { "place": [{ "card": "flight_plan", "zone": "console", "at": ["a1"] }] }
+  "setup": {
+    "place": [
+      { "card": "flight_plan", "zone": "console", "at": ["a1"] },
+      { "card": "radio", "zone": "controls", "at": ["a1"] }
+    ]
+  }
 }

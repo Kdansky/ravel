@@ -59,7 +59,10 @@ end
 -- ownership these tests need to state.
 local function set_hands(spec)
 	local sink = zones.find_id("won")
-	for _, z in ipairs(zones.all_with_key("hand")) do
+	local held = {}
+	for _, z in ipairs(zones.all_with_key("hand")) do held[#held + 1] = z end
+	for _, z in ipairs(zones.all_with_key("open")) do held[#held + 1] = z end
+	for _, z in ipairs(held) do
 		local ids = {}
 		for i, id in ipairs(z.cards) do ids[i] = id end
 		for _, id in ipairs(ids) do zones.move_card(id, sink) end
@@ -387,6 +390,96 @@ function M.test_crew_a_floor_of_zero_gives_both_clamps(check)
 		check(("min(%d, %d) is %d"):format(case[1], case[2], want),
 			c.stats.live == want, tostring(c.stats.live))
 	end
+end
+
+local function radio()
+	return zones.find("controls").cards[1]
+end
+
+local function says(name)
+	for _, u in ipairs(flow.usable_abilities(radio())) do
+		if u.ability.key == name then return u end
+	end
+end
+
+local function offers(name)
+	local u = says(name)
+	if not u then return {} end
+	local out = {}
+	for _, id in ipairs(require("targeting").candidates(radio(), u.ability.target)) do
+		out[#out + 1] = entity.get(id).def_key
+	end
+	table.sort(out)
+	return out
+end
+
+local function say(name, card)
+	local u = says(name)
+	return u ~= nil and flow.activate(radio(), { find(card).id }, u.index)
+end
+
+local function open_of(seat)
+	for _, z in ipairs(zones.all_with_key("open")) do
+		if z.seat == seat then return z end
+	end
+end
+
+-- One token a mission, spent to lay a card face up and say one thing about it.
+-- Which cards may be said is arithmetic over the hand: only the cards of a
+-- colour carry that colour's value stat, so max: and min: over the whole hand
+-- answer "highest" and "lowest" — a scope could not, because a tag reads grid
+-- zones only and a hand is not one.
+function M.test_crew_the_radio_says_one_thing_about_one_card(check)
+	mission(3, 1)
+	actions.execute("set_active_seat:north_side", {})
+	set_hands({ north = { "pink_2", "pink_5", "pink_9", "blue_4", "green_7" } })
+
+	check("the highest of a colour is the top one", #offers("say_high_pink") == 1
+		and offers("say_high_pink")[1] == "pink_9", table.concat(offers("say_high_pink"), " "))
+	check("and the lowest is the bottom one", #offers("say_low_pink") == 1
+		and offers("say_low_pink")[1] == "pink_2", table.concat(offers("say_low_pink"), " "))
+	-- "Only" is the two others agreeing, which is the whole of it: a colour held
+	-- once is a colour whose highest and lowest are the same card.
+	check("three of a colour is nobody's only one", #offers("say_only_pink") == 0,
+		table.concat(offers("say_only_pink"), " "))
+	check("and one of a colour is all three", #offers("say_only_blue") == 1
+		and #offers("say_high_blue") == 1 and #offers("say_low_blue") == 1)
+
+	-- A colour that is not in the hand answers nothing, and an ability that can
+	-- reach nothing is not offered at all — or the chooser is mostly dead lines.
+	check("a colour not held is not on offer", says("say_high_yellow") == nil)
+	check("nor is a rocket ever sayable", says("say_high_rocket") == nil)
+end
+
+function M.test_crew_saying_something_does_not_end_your_turn(check)
+	mission(3, 1)
+	actions.execute("set_active_seat:north_side", {})
+	set_hands({ north = { "pink_2", "pink_9", "blue_4" } })
+	local me = find("north")
+
+	check("the turn is a lead", phase.current().key == "lead")
+	check("with a token in hand", me.stats.radio == 1)
+	check("saying it works", say("say_high_pink", "pink_9"))
+	check("the token is spent", me.stats.radio == 0)
+	check("**and the turn has not ended**", phase.current().key == "lead", phase.current().key)
+	check("there is nothing left to say", #flow.usable_abilities(radio()) == 0)
+
+	local open = open_of("north")
+	check("the card is laid out in front of everybody", #open.cards == 1
+		and entity.get(open.cards[1]).def_key == "pink_9")
+	check("and everybody may read it", zones.visible(entity.get(open.cards[1])))
+
+	-- It is still a card in your hand as far as the rules go: playable, and
+	-- bound by follow-suit exactly as the one you kept back.
+	check("it can still be played", flow.can_play(open.cards[1]))
+	actions.execute("stat_set:led@plan:2", {})
+	check("a blue lead refuses the open pink", flow.can_play(open.cards[1]) == false)
+	check("and the hatch does not open for it, because a legal card is in hand",
+		flow.can_play(find("blue_4").id))
+	actions.execute("stat_set:led@plan:0", {})
+	flow.play_card(open.cards[1], {})
+	check("playing it is what ends the turn", phase.current().key == "led"
+		or phase.current().key:find("^follow"), phase.current().key)
 end
 
 return M

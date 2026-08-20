@@ -932,8 +932,10 @@ end
 
 -- A zone's name, laid across the top of it and under whatever it holds — so an
 -- empty one says what it is waiting for and a full one is covered by the cards.
--- Drawn for every kind that has room for it, which now includes grids: LoR's
--- bench, Splendor's nobles and its bank all named themselves and drew nothing.
+-- Drawn for every kind that has room for it, which now includes grids and
+-- hands: LoR's bench, Splendor's nobles and its bank all named themselves and
+-- drew nothing, and an empty hand with a name on it is the case that made it
+-- obvious — a box saying nothing is not a zone a player can learn.
 local function draw_zone_label(zone_e)
 	if not zone_e.label then return end
 	local p = zone_e.place
@@ -1062,6 +1064,7 @@ local function draw_zone(zone_e)
 		end
 	else
 		-- hand and other zones: show description text on the card
+		draw_zone_label(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
 			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
