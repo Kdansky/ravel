@@ -385,4 +385,33 @@ function M.test_lor_a_keyword_says_what_it_means_in_one_place(check)
 		#cards.keywords(entity.get(bench_put("north", "cithria", 3))) == 0)
 end
 
+-- The two numbers the whole game turns on used to be readable only in the HUD,
+-- and the HUD answers for the seat *watching* — so a hot-seat player could not
+-- see what they were attacking into. A seat card is an ordinary card and a zone
+-- is an ordinary zone; the only thing the engine had to be told is where.
+function M.test_lor_each_seat_has_a_nexus_on_the_table(check)
+	flow.init("lor.json", 5)
+	for _, seat in ipairs({ "north", "south" }) do
+		local z = zones.find("nexus_" .. seat)
+		check(seat .. " has a plate of its own", z ~= nil and #z.cards == 1)
+		local e = z and z.cards[1] and entity.get(z.cards[1])
+		check("holding that seat's card", e ~= nil and e.def_key == seat)
+		check("with the two numbers on it", e ~= nil and e.stats.nexus == 20 and e.stats.mana ~= nil)
+	end
+	-- Badges are drawn for a card in a grid zone and nowhere else, so a plate
+	-- that stopped being a grid would go blank without failing anything above.
+	check("the plates are grids, which is what draws a badge",
+		declaration.G.zone_defs.nexus_north.type == "grid")
+	check("and the card claims the style that names the badges",
+		declaration.G.card_defs.north.tags_set.nexus_plate == true)
+
+	-- The seats are placed by setup rather than by the engine's own prepend, and
+	-- that must not reorder the cards it creates: an entity ID is handed out in
+	-- creation order and a seed only replays a board built the same way twice.
+	local seats = {}
+	for _, e in ipairs(declaration.G.setup_place) do seats[#seats + 1] = e.card end
+	check("and they are still created before the buttons",
+		seats[2] == "north" and seats[3] == "south", table.concat(seats, ","))
+end
+
 return M

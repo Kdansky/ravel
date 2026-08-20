@@ -2,8 +2,8 @@
   "title": "Runeterra — vanilla combat",
   "players": [{ "card": "north" }, { "card": "south" }],
   "stats": [
-    { "key": "nexus", "label": "Nexus", "min": 0, "max": 99, "subject": "nexus@mine.player" },
-    { "key": "mana", "label": "Mana", "min": 0, "max": 10, "subject": "mana@mine.player" },
+    { "key": "nexus", "label": "Nexus", "icon": "heart", "min": 0, "max": 99, "subject": "nexus@mine.player" },
+    { "key": "mana", "label": "Mana", "icon": "diamond", "min": 0, "max": 10, "subject": "mana@mine.player" },
     { "key": "power", "icon": "blade", "tags": ["hidden"] },
     { "key": "health", "icon": "heart", "tags": ["hidden"] }
   ],
@@ -14,6 +14,7 @@
   },
   "styles": {
     "unit": { "fit": "card", "badges": ["power", "health"] },
+    "nexus_plate": { "fit": "card", "badges": ["nexus", "mana"], "cell_outline": false },
     "lane": { "chequer": ["#243248", "#2b3a55"], "cell_outline": false }
   },
   "patterns": {
@@ -77,6 +78,20 @@
     }
   },
   "zones": [
+    {
+      "key": "nexus_north",
+      "type": "grid",
+      "grid": [1, 1],
+      "tags": ["nexus_plate"],
+      "pos": [0.01, 0.18, 0.15, 0.45]
+    },
+    {
+      "key": "nexus_south",
+      "type": "grid",
+      "grid": [1, 1],
+      "tags": ["nexus_plate"],
+      "pos": [0.01, 0.55, 0.15, 0.82]
+    },
     {
       "key": "deck",
       "label": "Deck",
@@ -252,13 +267,15 @@
     {
       "key": "north",
       "text": "North",
-      "tags": ["north_side"],
+      "asset": "polygon:6:crimson",
+      "tags": ["north_side", "nexus_plate"],
       "card_stats": { "nexus": 20, "mana": 0, "side": 2, "attacker": 1, "token": 0, "attack_declared": 0 }
     },
     {
       "key": "south",
       "text": "South",
-      "tags": ["south_side"],
+      "asset": "polygon:6:teal",
+      "tags": ["south_side", "nexus_plate"],
       "card_stats": { "nexus": 20, "mana": 0, "side": 1, "attacker": 0, "token": 0, "attack_declared": 0 }
     },
 
@@ -396,6 +413,8 @@
   ],
   "setup": {
     "place": [
+      { "card": "north", "zone": "nexus_north" },
+      { "card": "south", "zone": "nexus_south" },
       { "card": "pass_button", "zone": "controls", "at": ["a1"] },
       { "card": "attack_button", "zone": "controls", "at": ["b1"] }
     ]
