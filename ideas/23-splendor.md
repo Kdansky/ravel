@@ -194,6 +194,11 @@ asks nothing unusual; it asks for clamped subtraction, and the engine has had
 it since stats had floors. `01` gap 5's `min(1, damage)` is a different
 shape — a clamp at *one*, not at zero — and is still missing.
 
+**Corrected by [22](22-the-crew.md).** It is not missing: `min(a, k)` is
+`a - max(0, a - k)`, which is the same floor used twice, and The Crew needs it
+to fold "followed the suit" and "is a rocket" back into one flag. The clamp at
+one was reachable all along.
+
 ### Two smaller things the build settled
 
 - **`seat: "next"` is ignored on an `automatic` phase.** `flow.settle` rotates

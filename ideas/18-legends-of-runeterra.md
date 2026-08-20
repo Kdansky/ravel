@@ -334,6 +334,23 @@ Until then: the approximation stays, the keyword's text says what the *rule* is
 rather than what the arithmetic does, and this paragraph is the record of the
 difference.
 
+**Corrected by [22](22-the-crew.md) (2026-08-20).** The diagnosis above is
+wrong, and expensively so: it sends this track at a replacement-effect subsystem
+for a rule that needs three ordinary lines. *Reduce incoming damage by 1, never
+below 0* is `max(0, power - tough)`, which is `stat_damage` against a floor of
+zero — [23](23-splendor.md)'s finding — done on a scratch number **before** the
+damage lands rather than healing after it:
+
+```json
+"stat_set:hurt@self:sum:power@self",
+"stat_damage:hurt@self:count:tough@across",
+"stat_damage:health@across:sum:hurt@self"
+```
+
+with `hurt` declared `min: 0`. What was really missing was not an operator but
+the habit of computing a number on the way in. `spill` reads `power@self` too,
+so the change belongs in a pass of this track's own with its tests around it.
+
 **Overwhelm went the other way and is now on the keyword itself.** A card's own
 tags grant abilities — the same thing a zone's `applies` has always done, and
 the same asymmetry the tooltip had — so the `overwhelm` tag def carries both the

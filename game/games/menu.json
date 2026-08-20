@@ -83,6 +83,14 @@
       "tags": ["immutable"]
     },
     {
+      "key": "play_the_crew",
+      "text": "The Crew",
+      "tooltip": "Cooperative trick-taking for three. Follow suit, rockets beat every colour, and the winner of a trick leads the next. Everyone has tasks to win, and one card taken by the wrong hand ends the mission. One device.",
+      "play": { "action": ["load_game:the_crew.json"] },
+      "asset": "stripes:4:silver",
+      "tags": ["immutable"]
+    },
+    {
       "key": "play_vigil",
       "text": "The Long Vigil",
       "asset": "witches_sabbath.jpg",
@@ -107,6 +115,7 @@
           "fill:menu:play_chess:1",
           "fill:menu:play_splendor:1",
           "fill:menu:play_lor:1",
+          "fill:menu:play_the_crew:1",
           "fill:menu:play_vigil:1",
           "fill:menu:m_back:1"
         ]

@@ -930,6 +930,19 @@ local function draw_grid_empty(zone_e)
 	love.graphics.pop()
 end
 
+-- A zone's name, laid across the top of it and under whatever it holds — so an
+-- empty one says what it is waiting for and a full one is covered by the cards.
+-- Drawn for every kind that has room for it, which now includes grids: LoR's
+-- bench, Splendor's nobles and its bank all named themselves and drew nothing.
+local function draw_zone_label(zone_e)
+	if not zone_e.label then return end
+	local p = zone_e.place
+	love.graphics.push("all")
+	love.graphics.setColor(0.30, 0.42, 0.60, 0.65)
+	printf(zone_e.label, p.x + 2, p.y + 3 * S, p.w - 4, "center")
+	love.graphics.pop()
+end
+
 local function draw_zone(zone_e)
 	local p  = zone_e.place
 	local zt = zone_e.zone_type
@@ -965,14 +978,7 @@ local function draw_zone(zone_e)
 	local fh     = love.graphics.getFont():getHeight()
 
 	if zone_e.style.fan then
-		-- The name goes down first, so an empty expedition says which colour it
-		-- is waiting for and a played one is covered by what was played.
-		if zone_e.label then
-			love.graphics.push("all")
-			love.graphics.setColor(0.30, 0.42, 0.60, 0.65)
-			printf(zone_e.label, p.x + 2, p.y + 3 * S, p.w - 4, "center")
-			love.graphics.pop()
-		end
+		draw_zone_label(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
 			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
@@ -1040,17 +1046,13 @@ local function draw_zone(zone_e)
 				end
 			end
 		end
-		if zone_e.label then
-			love.graphics.push("all")
-			love.graphics.setColor(0.30, 0.42, 0.60, 0.65)
-			printf(zone_e.label, p.x + 2, p.y + 3 * S, p.w - 4, "center")
-			love.graphics.pop()
-		end
+		draw_zone_label(zone_e)
 	elseif zt == "grid" then
 		draw_zone_art(zone_e)
 		draw_grid_squares(zone_e)
 		draw_painted_squares(zone_e)
 		draw_grid_empty(zone_e)
+		draw_zone_label(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
 			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)

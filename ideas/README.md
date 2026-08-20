@@ -33,7 +33,7 @@ about how it might go.
 | [19](19-mage-knight.md) | Mage Knight | large, research first | **researched, and ranked last of the three deckbuilders.** Two compounding engine gaps — hex geometry, and a map whose *extent* grows — plus a change to the arithmetic grammar. Buildable only as a stripped prototype, and the cuts are dishonest ones |
 | [20](20-puzzle-strike.md) | Puzzle Strike | medium | **researched — buildable now as a 2-player game, mostly content.** One real gap (`flow.reachable` refuses a card played out of turn) and it is cleanly cuttable. Found that `refill_when_empty` is the wrong tool for a personal pile, which pays for itself on 21 too |
 | [21](21-lost-ruins-of-arnak.md) | Lost Ruins of Arnak | large | **researched — zero new primitives, the largest content bill of the three.** Worker placement resolved into two shipped idioms (`exhaust` on the *space*, a capped counter for the workers), which is not what the stub predicted |
-| [22](22-the-crew.md) | The Crew: The Quest for Planet Nine | medium | **researched, and its one primitive is shipped whole**: `@owner_of.<scope>` reads whose a card is, `set_active_seat:<scope>` makes that seat the one whose turn it is. What is left is the game, which is content |
+| [22](22-the-crew.md) | The Crew: The Quest for Planet Nine | medium | **built and playing** — three seats, follow-suit, trump, the commander, the task draft and both instant-loss triggers. Everything downstream of `set_active_seat` was content, exactly as the research said. Left: the communication token (blocked on presentation, not rules) and the order tokens |
 | [23](23-splendor.md) | Splendor | small, mostly content | **built and playing.** The research checked five mechanics and skipped the purchase, which is the only one that was ever in doubt — and it turned out that `stat_damage` against a floor of zero *is* `max(0, a - b)`, which is the whole of Splendor's discount arithmetic |
 | [24](24-save-and-load.md) | Saving a game, and loading it back | small, on a store that did not exist | **shipped** — `save_game:<slot>`, `load_save:<slot>` and a `saved:<slot>` condition, over `net.snapshot` and `net.apply_full` with no second format. The store is `t.identity` and one `javascript:` line: love.js already mounts its save directory from IndexedDB, and only the flush was missing |
 
@@ -61,14 +61,17 @@ grammar that was already there. It is a spelling, not a second vocabulary — an
 until the struct forms it stands beside are deleted, it is a fourth spelling
 rather than the one.
 
-**Six games play now**, and the sixth is the one that tested the vocabulary
-hardest without asking it for anything: Splendor's price is its printed cost
-less what the buyer has already bought, with a wildcard covering the rest —
-three clamped subtractions per colour, against an amount grammar that has
-products and nothing else. It did not need more. **Subtracting a stat that has
-a floor of zero is `max(0, a - b)`**, and every line of that arithmetic is one
-action. What is genuinely still missing is a clamp anywhere *but* at zero:
-Runeterra's Tough wants `min(1, damage)` and cannot have it.
+**Six of the seven games that play now were built before The Crew**, and the
+sixth is the one that tested the vocabulary hardest without asking it for
+anything: Splendor's price is its printed cost less what the buyer has already
+bought, with a wildcard covering the rest — three clamped subtractions per
+colour, against an amount grammar that has products and nothing else. It did not
+need more. **Subtracting a stat that has a floor of zero is `max(0, a - b)`**,
+and every line of that arithmetic is one action. That was said to leave a clamp
+anywhere *but* at zero still missing — Runeterra's Tough — and
+[22](22-the-crew.md) has since shown it was never missing: **`min(a, k)` is
+`a - max(0, a - k)`**, the same floor used twice. Tough needs even less than
+that; see below.
 
 **Five games have now been researched rather than guessed at**, and the research
 kept paying before any of them was built: LoR's rules corrected *simultaneous
@@ -89,6 +92,36 @@ engine had nowhere to write at all, which is why a player's own name has been
 parked for three passes. The part expected to be hard was not: love.js mounts
 its save directory out of IndexedDB and reads it back before the game starts,
 and the only thing missing was the flush, which is one line.
+
+**Seven games play now, and the seventh is co-operative and takes tricks.** The
+Crew was the first target game whose turn order outgrew `"seat": "next"`, and
+`set_active_seat` — built for it a pass early — was the whole of what it needed:
+everything else is content, including the parts the write-up expected to be
+heavy. Follow-suit is one condition repeated on forty cards and read against
+flow's escape hatch; the trump rule is a hundred added to a number; the winner
+is the one card that fell short of the best by nothing. **The per-suit branching
+the research budgeted for never happened**, because the led suit is a *number* a
+card compares itself against rather than a scope name to choose between.
+
+**And it settled the arithmetic question this file had open.** Splendor found
+that a floor of zero is `max(0, a - b)` and left a clamp at *one* as the thing
+still missing. It was not missing: **`min(a, k)` is `a - max(0, a - k)`** — the
+same floor, used twice — and The Crew needs it to fold "followed the suit" and
+"is a rocket" into one flag. **Runeterra's Tough needs less than that again**:
+*reduce damage by 1, never below 0* is a plain clamped subtraction, and the only
+reason it looked impossible is that LoR does the arithmetic on the way *out*
+(strike, then heal) instead of on a scratch number on the way *in*. That is a
+two-line fix and no trigger subsystem, which [18](18-legends-of-runeterra.md)
+spent a page arguing it would take.
+
+**What did turn up is a scope that cannot see a hand.** `count:<tag>` searches
+grid zones only, so "whose hand holds the rocket 4" — the commander, and the
+whole opening of the game — has no single condition. It is asked once per seat
+instead, walking the seats to write an ordinary stat and making the answer a
+computed tag. That is [06](06-schema-and-types.md)'s unsearchable-deck gap in a
+new dress, and the two idioms that get round it are worth keeping: *narrow with
+the zone and count the tag*, and *walk the seats, write a stat, read a computed
+tag*.
 
 ## What to do next
 
@@ -120,17 +153,19 @@ things happen come first.
 | ~~3~~ | ~~[06](06-schema-and-types.md) gap 5 — **a tag is a boolean below the door**~~ | — | — | **shipped**, and the deliverable was not the one the measurement named: the validation error it proposed *already existed*. What was missing was what the engine does while a game ignores it, so `cards.home_zone` answers **nothing** when two tags disagree — which removes the file order the array encoded without inventing a precedence to replace it |
 | ~~4~~ | ~~[23](23-splendor.md) — **Splendor**~~ | — | — | **built and playing** (`splendor.json`, 90 cards + 10 nobles from a generator, `tests/integration/splendor.lua`). The research checked five mechanics and skipped the purchase — the only one in doubt, and three clamped subtractions per colour against an amount grammar with products only. **`stat_damage` against a floor of zero is `max(0, a - b)`**, which is the whole of it, and affordability falls out as `max(0, 1 + gold - bill)` so the gate is one number. Two seats is the only cut. It also found that `seat: "next"` is ignored on an automatic phase, and that the content-validation test named eight files by hand and had missed four |
 | ~~1~~ | ~~[24](24-save-and-load.md) — **save and load**~~ | — | — | **shipped.** `save.lua` sits beside `net.lua` and holds no serialisation at all: a save *is* a full network message, so `write` is `net.snapshot()` plus `gh` and `read` hands the decoded table to `net.apply_full`. The store was one line — `t.identity` — and the browser wanted one more: love.js already mounts `$HOME` as IDBFS and populates it before the game runs, but flushes only at exit, which a tab never reaches, so every write pushes itself across through the bridge netlink documents. The condition nobody had a spelling for turned out to be `tagged:`'s shape asked of the machine — `saved:<slot>`, answered through a hook — and the proof is two cards: a **Save** button in chess and a **Continue** on the menu that does not name a game |
-| 1 | [22](22-the-crew.md) — **The Crew, now that it can be built** | medium | medium | the primitive it was waiting on is in, and what is left is the game: a trick-taking hand, the trick winner leading the next trick, and the co-operative task cards. Researched in full, so it is content against a written rulebook rather than a design question |
+| ~~1~~ | ~~[22](22-the-crew.md) — **The Crew, now that it can be built**~~ | — | — | **built and playing** (`the_crew.json`, 1,483 lines from a 348-line generator, `tests/integration/the_crew.lua`). The research's verdict held to the letter: `set_active_seat` was the whole of what was missing and everything downstream of it was content — including the per-suit branching it budgeted for, which never happened, because the led suit is a number a card compares itself against rather than a scope name to choose between. It answered the arithmetic question too: **`min(a, k)` is `a - max(0, a - k)`**, so the clamp at one Splendor left open was never open. And it found a scope that cannot see a hand, and a grid zone that never drew its label |
+| 1 | [18](18-legends-of-runeterra.md) — **Tough, computed on the way in** | medium | small | a bug in a shipped game, and a wrong diagnosis costing more than the bug: LoR strikes for full power and then *heals* a tough blocker, which is a lie the moment a card deals damage equal to something. 18 concludes this needs a replacement effect; [22](22-the-crew.md) shows it needs `max(0, power - tough)` on a scratch number before the damage lands — three lines. `spill` reads `power@self` too, so it wants that track's tests around it, which is the only reason it is not already done |
 | 2 | [20](20-puzzle-strike.md) — **Puzzle Strike, two-player** | low | medium | researched and buildable now. Its one real gap — `flow.reachable` refuses a card played out of turn, which blocks counter-crashing — is cuttable without changing what the game is, and it is the *same* gap LoR's response stack names, so whichever is built second gets it for free |
-| 3 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | medium | worth re-opening, and the pause was a decision rather than a backlog: the collision rule wanted is union-with-identical-or-error, not override, and how far a path may reach touches the network — a peer's game text parses through the same door, so an include in it reads local files and forwards them. Splendor is the first game whose *generator* is the only reason its file is maintainable, which is the argument arriving from a new direction |
-| 4 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | a jump takes the piece it flies past, and nothing can name that square. Castling-through-check asks for the same word — en passant no longer does, having shipped as `where` |
-| 5 | [15](15-many-on-one-square.md) — **a number on a square** | low | small | a slot is already an entity whose stats a condition can read (`row@target`); it just cannot declare one, so `stat_gain` aimed at a square does nothing. One field on the grid. It has a **first honest customer at last** — Mage Knight's per-hex terrain cost — but that game is ranked last, so it stays cheap-and-unasked-for |
-| 6 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
-| 7 | [06](06-schema-and-types.md) — **a face-up deck is still unsearchable** | low | small | of the three exclusions the survey called incoherent, two went with `db0cbbd`: a deck can be clicked and browsed now. `tags.find_targets` (`tags.lua:76`) still skips deck zones outright, so `count:<tag>` cannot see a market — which Splendor would have wanted if its rows were decks rather than grids |
-| 8 | [17](17-conditions-as-expressions.md) step 5 — **one parser for amounts too** | low | medium | the last of 17, and it deletes a notation rather than adding one: an action's value slot is already arithmetic (`:x:`), spelled differently from everything else. Splendor is the argument for looking again at what the grammar should reach — its pricing is forty actions saying what four lines of arithmetic would |
-| 9 | [16](16-the-player-at-this-screen.md) gaps 2, 5 — **a name, and something to say with it** | low | medium | **parked, deliberately** — but a size cheaper than it was: [24](24-save-and-load.md) built the store both halves were waiting on, so what is left is the handshake field and the surface. A name is decoration at one screen, where *North* and *South* are as good as any two names; it means something only over a network, and there the missing thing is not really the name but that there is no way to say anything at all. So chat is now gap 5 and the two ship together — same store, same handshake, same input surface, and chat is the half that decides which surface, because it wants the field *during* a game |
-| 10 | [16](16-the-player-at-this-screen.md) gap 4 — **debug mode, announced** | low | small | the store exists now ([24](24-save-and-load.md) built it), so this wants only the handshake field. Says plainly what it does not buy: an honest client announcing itself is not a defence against a modified one |
-| 11 | [21](21-lost-ruins-of-arnak.md) — **Arnak** | low | large | needs nothing from the engine and the largest content bill of the five researched games. Worth doing when authoring volume is the thing there is appetite for, not when capability is |
+| 3 | [22](22-the-crew.md) gap 1 — **the radio, and the order tokens** | low | medium | what The Crew is still missing, and the write-up now says exactly what it costs. The *condition* is expressible with one value stat per colour (`max:v_pink@mine.hand`), except that there is no `min:`, so *lowest* wants an inverted stat. The blocker is presentation: a flagged card has to be visible to everybody and still playable, and **a phase bounds plays to one zone** — so it is a token card per playing card rather than moving the card |
+| 4 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | medium | worth re-opening, and the pause was a decision rather than a backlog: the collision rule wanted is union-with-identical-or-error, not override, and how far a path may reach touches the network — a peer's game text parses through the same door, so an include in it reads local files and forwards them. Two generated games now (Splendor, The Crew) whose files are only maintainable *because* of the generator, which is the argument arriving from a new direction |
+| 5 | [17](17-conditions-as-expressions.md) step 5 — **one parser for amounts too** | medium | medium | the last of 17, and it closes a track rather than opening one: an action's value slot is already arithmetic (`:x:`), spelled differently from everything else the engine reads. **Not** because a clamp is missing — [22](22-the-crew.md) settled that one — but because the spelling is expensive: Splendor's pricing is forty actions and The Crew's trick is sixteen, where each is four lines of arithmetic. Every content bill below it gets cheaper, Arnak's most of all |
+| 6 | [06](06-schema-and-types.md) — **a tag scope cannot see a hand, or a deck** | low | small | promoted, and widened by [22](22-the-crew.md): `tags.find_targets` searches grid zones only, so `count:<tag>` sees neither a market held as a deck nor anything in anybody's hand. The Crew works round it by walking the seats to write a stat, which is fine once per mission and would not be fine per trick. Two shipped games now want it |
+| 7 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | low | medium | a jump takes the piece it flies past, and nothing can name that square. Castling-through-check asks for the same word — en passant no longer does, having shipped as `where` |
+| 8 | [15](15-many-on-one-square.md) — **a number on a square** | low | small | a slot is already an entity whose stats a condition can read (`row@target`); it just cannot declare one, so `stat_gain` aimed at a square does nothing. One field on the grid. It has a **first honest customer at last** — Mage Knight's per-hex terrain cost — but that game is ranked last, so it stays cheap-and-unasked-for |
+| 9 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | low | small | free: answers "is turn-based CS fun" for the price of a game file |
+| 10 | [16](16-the-player-at-this-screen.md) gaps 2, 5 — **a name, and something to say with it** | low | medium | **parked, deliberately** — but a size cheaper than it was: [24](24-save-and-load.md) built the store both halves were waiting on, so what is left is the handshake field and the surface. A name is decoration at one screen; it means something only over a network, and there the missing thing is not really the name but that there is no way to say anything at all. So chat is now gap 5 and the two ship together — same store, same handshake, same input surface |
+| 11 | [16](16-the-player-at-this-screen.md) gap 4 — **debug mode, announced** | low | small | the store exists now ([24](24-save-and-load.md) built it), so this wants only the handshake field. Says plainly what it does not buy: an honest client announcing itself is not a defence against a modified one |
+| 12 | [21](21-lost-ruins-of-arnak.md) — **Arnak** | low | large | needs nothing from the engine and the largest content bill of the five researched games. Worth doing when authoring volume is the thing there is appetite for, not when capability is |
 | — | [18](18-legends-of-runeterra.md) stages 2–5, and [01](01-boardgames.md) gap 5 — **triggers, spells, the stack** | low | large | not ranked as one item on purpose, and the combat walk in row 1 is deliberately ahead of all of it. What stays missing: spell mana, the mulligan (the offer overlay picks exactly one, and a mulligan picks a subset), a hand bounded at ten, and a response stack that Burst and Focus never enter |
 | — | [19](19-mage-knight.md) — **Mage Knight** | low | large | **ranked last on evidence, not on taste.** Hex geometry and a map whose extent grows are two compounding gaps content cannot route around, and the cut that buys both back — a fixed, pre-placed, mostly-hidden map — stops it being Mage Knight. Worth revisiting only if hex geometry is wanted for its own sake |
 
