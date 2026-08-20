@@ -373,8 +373,12 @@ function love.mousepressed(x, y, button)
 	end
 end
 
+-- Only the *direction* of a wheel event is portable. Natively one notch is a
+-- small integer; under love.js it is the browser's pixel delta, so multiplying
+-- by it scrolled the inspector eighty rows a click and the middle of a dump
+-- could not be reached at all.
 function love.wheelmoved(_, dy)
-	if inspecting then inspect.scroll_by(-dy * 3) end
+	if inspecting and dy ~= 0 then inspect.scroll_by(dy > 0 and -6 or 6) end
 end
 
 function love.mousereleased(x, y, button)

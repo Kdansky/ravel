@@ -50,15 +50,10 @@ local function dismiss_mode()
 	end
 end
 
--- The menu is two levels now — New game, then the list — so a test that only
--- wants to start a game should not have to know that. Scoped to the zone
--- because a destroyed card is still an entity, and an unscoped find would keep
--- matching the screen we just left.
+-- Which of the menu's two lists a game is in is the menu's business, not a
+-- test's, so this asks for the card by key and does not name a zone.
 local function menu_play(def_key)
-	if not find_card(def_key, "menu") then
-		flow.play_card(find_card("m_new", "menu").id, {})
-	end
-	flow.play_card(find_card(def_key, "menu").id, {})
+	flow.play_card(find_card(def_key).id, {})
 end
 
 local function zone_count(key)
@@ -107,20 +102,13 @@ check("menu deals every game it lists",
 check("menu phase is waiting", phase.current().key == "waiting")
 
 -- === demo: basics ===
--- The menu is two levels now: the first screen offers New game / Join, and the
--- game list is built by playing "New game". That is ordinary card behaviour —
--- destroy the zone's contents, fill it with different cards — so navigating it
--- is just playing cards.
--- Scoped to the zone throughout: a destroyed card is still an entity, so an
--- unscoped find would keep matching the screen we just left.
-flow.play_card(find_card("m_new", "menu").id, {})
-check("New game reveals the game list", find_card("play_demo", "menu") ~= nil)
-check("...and a way back", find_card("m_back", "menu") ~= nil)
-flow.play_card(find_card("m_back", "menu").id, {})
-check("Back returns to the first screen",
-	find_card("m_new", "menu") ~= nil and find_card("play_demo", "menu") == nil)
-flow.play_card(find_card("m_new", "menu").id, {})
-flow.play_card(find_card("play_demo", "menu").id, {})
+-- The menu is one screen: two labelled lists of games, and a strip beside them
+-- of the buttons that are not games. There is nothing to navigate — starting a
+-- game is playing the card that is already on the table.
+check("the published list is dealt", find_card("play_chess", "published") ~= nil)
+check("the proof-of-concept list beside it", find_card("play_demo", "proof") ~= nil)
+check("and the buttons are in neither", find_card("m_join", "menu") ~= nil)
+flow.play_card(find_card("play_demo", "proof").id, {})
 check("menu card loads demo", declaration.G.title == "The Wandering Road")
 check("demo starts with 1 hand card", zone_count("hand") == 1)
 check("road holds the other 10 cards", zone_count("road") == 10)

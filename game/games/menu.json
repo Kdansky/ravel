@@ -2,10 +2,25 @@
   "title": "Ravel",
   "zones": [
     {
+      "key": "published",
+      "label": "Published games",
+      "type": "hand",
+      "pos": [0.06, 0.05, 0.94, 0.42],
+      "contents": ["play_lost_cities", "play_chess", "play_splendor", "play_lor", "play_the_crew"]
+    },
+    {
+      "key": "proof",
+      "label": "Proof of concept",
+      "type": "hand",
+      "pos": [0.06, 0.44, 0.94, 0.81],
+      "contents": ["play_demo", "play_castle", "play_kingdom", "play_tower", "play_road", "play_vigil"]
+    },
+    {
       "key": "menu",
       "type": "hand",
-      "pos": [0.07, 0.24, 0.93, 0.82],
-      "contents": ["m_new", "m_continue", "m_join"]
+      "tags": ["optional"],
+      "pos": [0.44, 0.83, 0.56, 0.99],
+      "contents": ["m_continue", "m_join"]
     }
   ],
   "players": [{}],
@@ -99,29 +114,6 @@
       "tags": ["immutable"]
     },
     {
-      "key": "m_new",
-      "text": "New game",
-      "tooltip": "Choose something to play.",
-      "tags": ["token", "immutable"],
-      "play": {
-        "action": [
-          "destroy:menu",
-          "fill:menu:play_demo:1",
-          "fill:menu:play_castle:1",
-          "fill:menu:play_kingdom:1",
-          "fill:menu:play_tower:1",
-          "fill:menu:play_road:1",
-          "fill:menu:play_lost_cities:1",
-          "fill:menu:play_chess:1",
-          "fill:menu:play_splendor:1",
-          "fill:menu:play_lor:1",
-          "fill:menu:play_the_crew:1",
-          "fill:menu:play_vigil:1",
-          "fill:menu:m_back:1"
-        ]
-      }
-    },
-    {
       "key": "m_continue",
       "text": "Continue",
       "tooltip": "Pick up the game you saved. It remembers which game it was, and refuses if that game file has changed since.",
@@ -134,13 +126,6 @@
       "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works even for a game you do not have.",
       "tags": ["token", "immutable"],
       "play": { "action": ["net_join"] }
-    },
-    {
-      "key": "m_back",
-      "text": "Back",
-      "tooltip": "Return to the first screen.",
-      "tags": ["token", "immutable"],
-      "play": { "action": ["destroy:menu", "fill:menu:m_new:1", "fill:menu:m_continue:1", "fill:menu:m_join:1"] }
     }
   ],
   "phases": [{ "key": "waiting", "type": "player_input" }]

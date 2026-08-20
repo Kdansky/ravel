@@ -419,7 +419,12 @@ local function card_places(zone_e)
 	-- hand and others: lay out left-to-right
 	if n == 0 then return {} end
 	local pad    = 6 * S
-	local card_h = p.h - pad * 2
+	-- A named zone stays named once there is something in it. The label draws
+	-- along the top edge, so the cards begin below it instead of over it —
+	-- without this a hand told you what it was only while it was empty, which
+	-- is exactly when there is least to work out.
+	local head   = zone_e.label and love.graphics.getFont():getHeight() + 3 * S or 0
+	local card_h = p.h - pad * 2 - head
 	local card_w = card_h / CARD_RATIO
 	local gap    = 4 * S
 	local needed = n * card_w + (n - 1) * gap
@@ -436,7 +441,7 @@ local function card_places(zone_e)
 	for i = 1, n do
 		places[i] = {
 			x = left + (i - 1) * (card_w + gap),
-			y = p.y + (p.h - card_h) / 2,
+			y = p.y + head + (p.h - head - card_h) / 2,
 			w = card_w,
 			h = card_h,
 		}
