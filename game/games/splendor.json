@@ -241,7 +241,7 @@
         }
       ],
       "play": {
-        "phases": ["act", "act_on"],
+        "phases": ["act"],
         "needs": ["buyable@self >= 1"],
         "action": [
           "stat_damage:t_white@mine.player:sum:due_white@self",
@@ -377,7 +377,7 @@
         "t3_black_20"
       ],
       "activate": {
-        "phases": ["act", "act_on"],
+        "phases": ["act"],
         "cost": { "reserve_slots": 1 },
         "action": [
           "draw_from:t3_deck:mine.reserve:1",
@@ -436,7 +436,7 @@
         "t2_black_30"
       ],
       "activate": {
-        "phases": ["act", "act_on"],
+        "phases": ["act"],
         "cost": { "reserve_slots": 1 },
         "action": [
           "draw_from:t2_deck:mine.reserve:1",
@@ -505,7 +505,7 @@
         "t1_black_40"
       ],
       "activate": {
-        "phases": ["act", "act_on"],
+        "phases": ["act"],
         "cost": { "reserve_slots": 1 },
         "action": [
           "draw_from:t1_deck:mine.reserve:1",
@@ -557,36 +557,12 @@
       "type": "player_input",
       "seat": "next",
       "label": "Take tokens, buy a card, or reserve one",
-      "actions": [
+      "on_enter": [
         "stat_set:takes@each.anyone.player:0",
         "stat_set:done@each.anyone.player:0",
         "stat_set:first_take@each.anyone.player:1",
-        "ready:supply",
-        "stat_set:plenty@pile_white:sum:bank@pile_white",
-        "stat_damage:plenty@pile_white:3",
-        "stat_set:plenty@pile_blue:sum:bank@pile_blue",
-        "stat_damage:plenty@pile_blue:3",
-        "stat_set:plenty@pile_green:sum:bank@pile_green",
-        "stat_damage:plenty@pile_green:3",
-        "stat_set:plenty@pile_red:sum:bank@pile_red",
-        "stat_damage:plenty@pile_red:3",
-        "stat_set:plenty@pile_black:sum:bank@pile_black",
-        "stat_damage:plenty@pile_black:3",
-        "activate_zone:t1_row",
-        "activate_zone:t2_row",
-        "activate_zone:t3_row",
-        "activate_zone:mine.reserve"
+        "ready:supply"
       ],
-      "next": [
-        { "when": "done@mine.player >= 1", "then": "noble_check" },
-        { "when": "takes@mine.player >= 3", "then": "noble_check" },
-        { "then": "act_on" }
-      ]
-    },
-    {
-      "key": "act_on",
-      "type": "player_input",
-      "label": "Take tokens, buy a card, or reserve one",
       "actions": [
         "stat_set:plenty@pile_white:sum:bank@pile_white",
         "stat_damage:plenty@pile_white:3",
@@ -606,7 +582,7 @@
       "next": [
         { "when": "done@mine.player >= 1", "then": "noble_check" },
         { "when": "takes@mine.player >= 3", "then": "noble_check" },
-        { "then": "act_on" }
+        { "then": "act", "seat": "same" }
       ]
     },
     {
@@ -761,7 +737,7 @@
         {
           "key": "take_white",
           "text": "Take one diamond",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 1 },
           "action": [
             "stat_gain:t_white@mine.player:1",
@@ -774,7 +750,7 @@
         {
           "key": "take2_white",
           "text": "Take two diamond",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_white@mine.player:2",
@@ -802,7 +778,7 @@
         {
           "key": "take_blue",
           "text": "Take one sapphire",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 1 },
           "action": [
             "stat_gain:t_blue@mine.player:1",
@@ -815,7 +791,7 @@
         {
           "key": "take2_blue",
           "text": "Take two sapphire",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_blue@mine.player:2",
@@ -843,7 +819,7 @@
         {
           "key": "take_green",
           "text": "Take one emerald",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 1 },
           "action": [
             "stat_gain:t_green@mine.player:1",
@@ -856,7 +832,7 @@
         {
           "key": "take2_green",
           "text": "Take two emerald",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_green@mine.player:2",
@@ -884,7 +860,7 @@
         {
           "key": "take_red",
           "text": "Take one ruby",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 1 },
           "action": [
             "stat_gain:t_red@mine.player:1",
@@ -897,7 +873,7 @@
         {
           "key": "take2_red",
           "text": "Take two ruby",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_red@mine.player:2",
@@ -925,7 +901,7 @@
         {
           "key": "take_black",
           "text": "Take one onyx",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 1 },
           "action": [
             "stat_gain:t_black@mine.player:1",
@@ -938,7 +914,7 @@
         {
           "key": "take2_black",
           "text": "Take two onyx",
-          "phases": ["act", "act_on"],
+          "phases": ["act"],
           "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_black@mine.player:2",
@@ -979,7 +955,7 @@
       "tooltip": "Hold a face-up card for later, and take a gold token if any are left. Three reserved cards at a time; buying one gives the slot back. To reserve the top of a deck unseen, click the deck itself.",
       "tags": ["immutable"],
       "play": {
-        "phases": ["act", "act_on"],
+        "phases": ["act"],
         "cost": { "reserve_slots": 1 },
         "target": { "type": "card", "count": 1, "zones": ["t1_row", "t2_row", "t3_row"] },
         "action": [
@@ -1001,7 +977,7 @@
       "tooltip": "Stop after one or two tokens. Taking a third ends your turn on its own.",
       "tags": ["immutable"],
       "play": {
-        "phases": ["act", "act_on"],
+        "phases": ["act"],
         "needs": ["takes@mine.player >= 1"],
         "action": ["stat_set:done@mine.player:1", "next_phase"]
       }

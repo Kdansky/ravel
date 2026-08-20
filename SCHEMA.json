@@ -188,13 +188,17 @@
       "pass_card": "a card key or a list of them, dealt with every hand so a forced play always has an out",
       "ends_after": "number of plays after which the phase advances itself. It counts plays and cannot tell one from another; use ends_when when only some of them should end the turn.",
   "ends_when": "a condition, asked every time the game comes to rest \u2014 after every action, not only after a play. When it holds the phase advances itself. One phase says one or the other, never both, and only a phase a player acts in: automatic and overlay phases end themselves.",
-      "seat": "next hands over to the following seat on entry, which is the whole of turn-taking",
+      "seat": "next hands over to the following seat on entry, which is the whole of turn-taking. A route may overrule it — see next.seat.",
+  "on_enter": [
+   "action strings run when the turn *begins* here, as against \"actions\", which run every time the phase is entered. A turn begins on an arrival from another phase, and on a loop that hands the turn on \u2014 both are the same moment, and a draft that passes round the table by looping must not skip it. What it is not is a loop that keeps the same player, which is the case the split exists for: a counter reset belongs here, since running it again on the way round would undo the turn it was counting, and a number recomputed from the board belongs in \"actions\". Runs after the seat has moved, so \"mine\" is the player about to act, and before \"actions\". A phase nothing leads back to has only one kind of entry, and writing on_enter on one is refused."
+  ],
       "next": [
         {
           "when": "the condition deciding whether this route is taken, written as one string \u2014 \"count:king@taken >= 1\". One comparison, a subject on the left and a number or another subject on the right. See _conditions.",
           "zone_empty": ["zone keys that must all be empty for this route to be taken"],
           "then": "phase key to go to. An entry with no condition always matches, and the first match wins.",
-          "ends_round": "true ticks the round here: the counter rises, exhausted cards ready, and every card's turn action runs. Nothing else does this, and it is never inferred from list position."
+          "ends_round": "true ticks the round here: the counter rises, exhausted cards ready, and every card's turn action runs. Nothing else does this, and it is never inferred from list position.",
+    "seat": "next or same, overruling the phase's own seat for this transition. It exists for the phase that leads back to itself, which different games ask opposite things of: a turn that carries on until the player is done says same, a draft passing round the table says next. Without it each of those needed two phase keys, the second a copy of the first with one word missing."
         }
       ],
       "tags": [

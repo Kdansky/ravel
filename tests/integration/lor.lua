@@ -228,7 +228,9 @@ function M.test_lor_an_unblocked_attacker_hits_the_nexus(check)
 	check("and the attacker comes home to its own bench",
 		on_bench("north", "cithria") ~= nil and #zone_of("bench", "south").cards == 0)
 	check("the battlefield is empty again", #zones.find("battle").cards == 0)
-	check("and it is the other seat's move", phase.current().key == "play_on"
+	-- Back in the play phase without the seat moving: after_combat routes there
+	-- with seat "same", where it used to need a second phase key to say so.
+	check("and it is the other seat's move", phase.current().key == "play"
 		and zones.active_seat() == "south")
 end
 

@@ -4,8 +4,13 @@ local M = {}
 
 M.on_leave = nil   -- hook(def) fired when a phase transitions away (flow discards its hand)
 
--- Stack frames are { def = phase_def, fresh = bool }. `fresh` is true until the
--- phase's entry work (dealing cards) has run, so resuming after a pop doesn't re-deal.
+-- Stack frames are { def, fresh, arrived, seat }. `fresh` is true until the
+-- phase's entry work (dealing cards) has run, so resuming after a pop doesn't
+-- re-deal. `arrived` says the entry came from a *different* phase, which is what
+-- separates beginning a turn from carrying on with one. `seat` is the route's
+-- override of the phase's own, since a phase that leads back to itself is asked
+-- for the opposite answer by different games: Splendor's turn continues with the
+-- same player, The Crew's draft passes to the next.
 local stack   = {}
 local G       = nil
 local wrapped = false   -- set when the phase list loops back to the start (= a full round)
@@ -19,7 +24,9 @@ end
 function M.push(key)
 	local pd = G.phase_by_key[key]
 	assert(pd, "Unknown phase: " .. tostring(key))
-	stack[#stack + 1] = { def = pd, fresh = true }
+	-- A push is always an arrival: whatever is underneath is a different phase,
+	-- or the same one being entered a second time over the top of itself.
+	stack[#stack + 1] = { def = pd, fresh = true, arrived = true }
 end
 
 function M.pop()
@@ -36,6 +43,21 @@ function M.take_fresh()
 	local top = stack[#stack]
 	if top and top.fresh then top.fresh = false; return true end
 	return false
+end
+
+-- Whether this entry arrived from a *different* phase, rather than the phase
+-- leading back to itself. Not taken: take_fresh already gates the one block that
+-- asks, and clearing it twice would only give it a second way to be wrong.
+function M.arrived()
+	local top = stack[#stack]
+	return top ~= nil and top.arrived == true
+end
+
+-- What the route that led here said about the seat, or nil if it said nothing
+-- and the phase's own answer stands.
+function M.route_seat()
+	local top = stack[#stack]
+	return top and top.seat
 end
 
 -- True exactly once after the phase list wraps around.
@@ -62,7 +84,8 @@ function M.next()
 				if pd then
 					if M.on_leave then M.on_leave(cur) end
 					if r.ends_round then wrapped = true end
-					stack[#stack] = { def = pd, fresh = true }
+					stack[#stack] = { def = pd, fresh = true,
+						arrived = pd.key ~= cur.key, seat = r.seat }
 				end
 				return
 			end
@@ -82,7 +105,7 @@ function M.next()
 	end
 	if nxt then
 		if M.on_leave then M.on_leave(cur) end
-		stack[#stack] = { def = G.phase_by_key[nxt], fresh = true }
+		stack[#stack] = { def = G.phase_by_key[nxt], fresh = true, arrived = nxt ~= cur.key }
 	end
 end
 
@@ -93,14 +116,18 @@ end
 
 function M.snapshot()
 	local s = { wrapped = wrapped, stack = {} }
-	for i, f in ipairs(stack) do s.stack[i] = { def = f.def, fresh = f.fresh } end
+	for i, f in ipairs(stack) do
+		s.stack[i] = { def = f.def, fresh = f.fresh, arrived = f.arrived, seat = f.seat }
+	end
 	return s
 end
 
 function M.restore(s)
 	wrapped = s.wrapped
 	stack   = {}
-	for i, f in ipairs(s.stack) do stack[i] = { def = f.def, fresh = f.fresh } end
+	for i, f in ipairs(s.stack) do
+		stack[i] = { def = f.def, fresh = f.fresh, arrived = f.arrived, seat = f.seat }
+	end
 end
 
 return M

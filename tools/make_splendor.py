@@ -254,7 +254,7 @@ def zones(rows):
          "pos": [0.02, 0.32, 0.11, 0.47],
          "tooltip": "Tier three. Click to reserve the top card without looking at it.",
          "contents": tier[3],
-         "activate": {"phases": ["act", "act_on"], "cost": {"reserve_slots": 1},
+         "activate": {"phases": ["act"], "cost": {"reserve_slots": 1},
                       "action": ["draw_from:t3_deck:mine.reserve:1"] + RESERVE_GOLD}},
         {"key": "t3_row", "type": "grid", "grid": [4, 1], "tags": ["optional", "market"],
          "pos": [0.13, 0.32, 0.55, 0.47]},
@@ -262,7 +262,7 @@ def zones(rows):
          "pos": [0.02, 0.49, 0.11, 0.64],
          "tooltip": "Tier two. Click to reserve the top card without looking at it.",
          "contents": tier[2],
-         "activate": {"phases": ["act", "act_on"], "cost": {"reserve_slots": 1},
+         "activate": {"phases": ["act"], "cost": {"reserve_slots": 1},
                       "action": ["draw_from:t2_deck:mine.reserve:1"] + RESERVE_GOLD}},
         {"key": "t2_row", "type": "grid", "grid": [4, 1], "tags": ["optional", "market"],
          "pos": [0.13, 0.49, 0.55, 0.64]},
@@ -270,7 +270,7 @@ def zones(rows):
          "pos": [0.02, 0.66, 0.11, 0.81],
          "tooltip": "Tier one. Click to reserve the top card without looking at it.",
          "contents": tier[1],
-         "activate": {"phases": ["act", "act_on"], "cost": {"reserve_slots": 1},
+         "activate": {"phases": ["act"], "cost": {"reserve_slots": 1},
                       "action": ["draw_from:t1_deck:mine.reserve:1"] + RESERVE_GOLD}},
         {"key": "t1_row", "type": "grid", "grid": [4, 1], "tags": ["optional", "market"],
          "pos": [0.13, 0.66, 0.55, 0.81]},
@@ -306,14 +306,14 @@ def piles():
             "card_stats": {"bank": SUPPLY, "plenty": 0},
             "abilities": [
                 {"key": f"take_{k}", "text": f"Take one {label.lower()}",
-                 "phases": ["act", "act_on"], "cost": {"exhaust": 1, "bank@self": 1},
+                 "phases": ["act"], "cost": {"exhaust": 1, "bank@self": 1},
                  "action": [f"stat_gain:t_{k}@mine.player:1",
                             "stat_gain:t_total@mine.player:1",
                             "stat_gain:takes@mine.player:1",
                             "stat_damage:first_take@mine.player:1",
                             "next_phase"]},
                 {"key": f"take2_{k}", "text": f"Take two {label.lower()}",
-                 "phases": ["act", "act_on"],
+                 "phases": ["act"],
                  "cost": {"exhaust": 1, "bank@self": 2, "plenty@self": 1,
                           "first_take@mine.player": 1},
                  "action": [f"stat_gain:t_{k}@mine.player:2",
@@ -352,7 +352,7 @@ def buttons():
                     "Three reserved cards at a time; buying one gives the slot back. "
                     "To reserve the top of a deck unseen, click the deck itself.",
          "tags": ["immutable"],
-         "play": {"phases": ["act", "act_on"], "cost": {"reserve_slots": 1},
+         "play": {"phases": ["act"], "cost": {"reserve_slots": 1},
                   "target": {"type": "card", "count": 1,
                              "zones": ["t1_row", "t2_row", "t3_row"]},
                   "action": ["set_owner:target:mine", "stat_set:reserved@target:1",
@@ -361,7 +361,7 @@ def buttons():
          "asset": "circle:slate",
          "tooltip": "Stop after one or two tokens. Taking a third ends your turn on its own.",
          "tags": ["immutable"],
-         "play": {"phases": ["act", "act_on"], "needs": ["takes@mine.player >= 1"],
+         "play": {"phases": ["act"], "needs": ["takes@mine.player >= 1"],
                   "action": ["stat_set:done@mine.player:1", "next_phase"]}},
     ]
 
@@ -432,13 +432,16 @@ def seat_cards():
 
 
 def phases():
+    # The last route leads back into the same phase with the seat held still:
+    # a turn carries on until the player is done with it. What resets once per
+    # turn is on_enter, what is recomputed after every take is actions.
     routes = [{"when": "done@mine.player >= 1", "then": "noble_check"},
               {"when": "takes@mine.player >= 3", "then": "noble_check"},
-              {"then": "act_on"}]
+              {"then": "act", "seat": "same"}]
     turn_top = ["stat_set:takes@each.anyone.player:0",
                 "stat_set:done@each.anyone.player:0",
                 "stat_set:first_take@each.anyone.player:1",
-                "ready:supply"] + plenty() + REPRICE
+                "ready:supply"]
     return [
         {"key": "setup", "type": "automatic",
          "actions": ["draw_from:noble_deck:nobles:3",
@@ -451,15 +454,14 @@ def phases():
         # hand the turn over and price the market for whoever it handed it to.
         # Only a phase a player acts in is asked to hand over, which is why this
         # is the turn's first *input* rather than an automatic step before it.
+        #
+        # A token changes what is affordable, so the row is priced again between
+        # one take and the next — every time round, where the counters reset on
+        # arrival and nowhere else. That split used to be two phase keys, the
+        # second a copy of the first with its first four lines and one word gone.
         {"key": "act", "type": "player_input", "seat": "next",
          "label": "Take tokens, buy a card, or reserve one",
-         "actions": turn_top, "next": routes},
-        # A token changes what is affordable, so the row is priced again between
-        # one take and the next. A second phase because re-entering the first
-        # would hand the turn on again — the counters reset there and only there.
-        {"key": "act_on", "type": "player_input",
-         "label": "Take tokens, buy a card, or reserve one",
-         "actions": plenty() + REPRICE, "next": routes},
+         "on_enter": turn_top, "actions": plenty() + REPRICE, "next": routes},
         {"key": "noble_check", "type": "automatic", "actions": ["activate_zone:nobles"],
          "next": [{"when": "count:noble_ready >= 1", "then": "noble_pick"},
                   {"then": "cleanup"}]},
@@ -554,7 +556,7 @@ def build(here):
             # carrying a copy for somebody to keep in step.
             "development": {
                 "abilities": [{"key": "price", "text": "Price", "action": pricing()}],
-                "play": {"phases": ["act", "act_on"], "needs": ["buyable@self >= 1"],
+                "play": {"phases": ["act"], "needs": ["buyable@self >= 1"],
                          "action": buying()},
             },
             "noble": {

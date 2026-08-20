@@ -352,6 +352,7 @@ function M.settle()
 				run_on_turn()
 			elseif cur and cur.type == "automatic" then
 				if phase.take_fresh() then
+					if phase.arrived() then actions.run(cur.on_enter, {}) end
 					actions.run(cur.actions, {})
 				end
 				-- The actions may have pushed an overlay (a revealed page):
@@ -364,9 +365,28 @@ function M.settle()
 				-- counter that resets and the hand that is dealt are the new
 				-- player's. The per-phase play counter resets here and only
 				-- here — resuming after a pop doesn't.
-				if cur.seat == "next" then rotate_seat() end
+				--
+				-- **The route may overrule the phase about the seat**, because a
+				-- phase leading back to itself is asked for opposite answers by
+				-- different games: Splendor's turn carries on with the same
+				-- player until they are done, The Crew's draft passes round the
+				-- table. Two phase keys for one turn is what that used to cost,
+				-- and the second was a copy of the first with one word missing.
+				local seat = phase.route_seat() or cur.seat
+				if seat == "next" then rotate_seat() end
 				local pl = player()
 				if pl then pl.stats.plays = 0 end
+				-- What a phase does when the turn *begins*, as against what it
+				-- does every time round: a reset that runs again on the way back
+				-- would undo the turn it was counting.
+				--
+				-- A turn begins on an arrival from another phase, and on a loop
+				-- that hands the turn on — those are two ways of writing the same
+				-- moment, and a draft that passes round the table by looping must
+				-- not skip it. What it is *not* is a loop that keeps the same
+				-- player, which is the case the whole split exists for. Run after
+				-- the seat has moved, so "mine" is the player about to act.
+				if phase.arrived() or seat == "next" then actions.run(cur.on_enter, {}) end
 				-- What a phase does when it begins, which used to be a thing only
 				-- automatic phases could say. The seat has changed by now, so
 				-- "mine" here is the player about to act; the hand is dealt after,

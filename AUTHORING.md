@@ -642,12 +642,13 @@ disk cache with no network at all.
 |---|---|
 | `key`, `label` | Identity, HUD label |
 | `type` | `automatic`, `player_input`, `draw_and_play`, `overlay` |
-| `actions` | Run on entry (automatic phases) |
+| `actions` | Run on every entry — including a loop back into the same phase |
+| `on_enter` | Run when the **turn** begins here, and not on a loop that keeps the same player. See *A phase that leads back to itself* |
 | `deck`, `draw`, `zone` | Deal `draw` cards from `deck` into `zone` (default `hand`) on fresh entry. **Naming `zone` also bounds what may be played**: only cards in it. `zone` may be **a list**, which is a player holding two hands — an open one beside a closed one; the *first* is where cards are dealt and what an overlay offers, because those are singular questions. A phase that names none lets any reachable card be played, which is what the menu relies on |
 | `pass_card` | Card key or array, dealt with every hand — forced plays always have an out |
 | `ends_after` | The phase advances itself after this many **plays** |
 | `ends_when` | A condition, asked every time the game comes to rest — **after every action, not only after a play**. See below |
-| `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*) |
+| `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*). A route may overrule it |
 | `tags` | `discard_hand` and `keep_hand` — see *Every tag the engine reads* |
 | `next` | Routing table (below) |
 
@@ -698,6 +699,46 @@ First matching entry wins; a condition-less entry always matches; no `next`
 means list order with an implicit round-ending wrap. `ends_round` is the only
 thing that ticks the round: round counter +1, exhausted cards ready, `turn.action`
 runs.
+
+#### A phase that leads back to itself
+
+A turn is often "do a thing, then decide again", which is one phase looping. Two
+games loop for opposite reasons, so the seat is a property of the **route**:
+
+```json
+"next": [
+  { "when": "done@mine.player >= 1", "then": "noble_check" },
+  { "then": "act", "seat": "same" }
+]
+```
+
+`"same"` keeps the player who is up — Splendor's turn carries on until they are
+done with it. `"next"` passes it along — The Crew's draft goes round the table.
+A route saying nothing leaves the phase's own `seat` to answer, which is what
+every arrival from elsewhere uses.
+
+Alongside it, `on_enter` against `actions`:
+
+```json
+{ "key": "act", "type": "player_input", "seat": "next",
+  "on_enter": ["stat_set:takes@each.anyone.player:0"],
+  "actions":  ["activate_zone:t1_row"],
+  "next": [ …, { "then": "act", "seat": "same" } ] }
+```
+
+`actions` run every time round; `on_enter` runs when the **turn** begins — an
+arrival from another phase, or a loop that hands the turn on. A counter reset
+belongs in `on_enter`, because running it again on the way round would undo the
+turn it was counting. A number recomputed from the board belongs in `actions`,
+because the board changed. Splendor needs exactly that split: what you have
+taken this turn resets once, and what you can afford is worked out after every
+token.
+
+Both of these used to cost a second phase key — `act` and `act_on`, `play` and
+`play_on` — where the second was a copy of the first with one word missing, and
+every edit to one had to be remembered for the other. A phase nothing leads back
+to has only one kind of entry, so `on_enter` on one is refused: it is what
+`actions` already means.
 
 ### Conditions (one vocabulary everywhere)
 

@@ -147,6 +147,39 @@ The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>
 
 ---
 
+## One Rule, Said Once — But Only When It Is One Rule
+
+**Cards that behave identically should share their behaviour. Cards that merely
+behave similarly should not.** The distinction is the whole of it, and getting
+it backwards is expensive in both directions.
+
+Splendor's ninety development cards are one rule: buying one moves the same
+numbers in the same order, and every number is read off the card that is being
+bought. Ninety copies of it were three thousand lines whose only job was to stay
+identical. The Crew's forty numbered cards are one rule: follow the led suit if
+you hold it, and the card's suit and value are the only things that differ.
+Those belong on the tag.
+
+Lightning Bolt deals 3 and Shock deals 2. They are not one rule with a number in
+it — they are two cards that resemble each other, and the resemblance is a fact
+about this printing rather than something the game promises. Folding them
+together buys a line and costs the ability to change one without touching the
+other, which is the thing a card game does constantly.
+
+The test is not "do these do the same thing today". It is **"is there one
+sentence here, or two that happen to rhyme"** — and the honest signal is what
+happens when one of them changes. If the answer is "then it stops being that
+tag", they were always two.
+
+Line count is the wrong measure of this, and it is worth saying because it reads
+as the obvious one. Fewer lines carrying the same number of distinct decisions is
+not a simplification; putting a long array on one line is a formatting
+preference, not a reduction. **What is being removed is repeated meaning, not
+repeated text** — which is also why reformatting a file nothing else is touching
+is effort spent on nothing.
+
+---
+
 ## Setup Is the Manual, Not the Cards
 
 **A card never says where it starts.** The `cards` section is the list of things that come out of the box; `setup.place` is the page that arranges them — which card, which zone, which cell. This is why a template can be a *kind* rather than a piece on a square: eight pawns are eight placements naming one card, not eight cards that each know their square.

@@ -149,7 +149,7 @@ local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
 	draw = true, zone = true, pass_card = true, next = true,
 	ends_after = true, ends_when = true, injected = true, tags = true, tags_set = true,
-	seat = true,
+	seat = true, on_enter = true,
 	-- derived: "zone" normalised to a list (declaration.parse)
 	zone_list = true,
 }
@@ -207,7 +207,13 @@ local FILL_WORDS      = { empty = true, enemy = true, open = true, any = true }
 -- A routing entry and an end condition ask the same question and do different
 -- things with the answer, which is the whole of what still separates them: one
 -- may end the round, the other remembers having fired.
-local ROUTE_FIELDS    = { when = true, zone_empty = true, ["then"] = true, ends_round = true }
+local ROUTE_FIELDS    = { when = true, zone_empty = true, ["then"] = true, ends_round = true,
+	seat = true }
+-- What a route may say about whose turn it becomes, overruling the phase's own.
+-- Two words rather than a boolean, because "same" is a decision a game makes and
+-- not the absence of one — a phase leading back to itself is asked for opposite
+-- answers by Splendor and by The Crew.
+local ROUTE_SEATS     = { next = true, same = true }
 local END_FIELDS      = { when = true, zone_empty = true, ["then"] = true, fired = true }
 local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_than_stat = true,
 	at_least = true, equals = true, less_than_max = true }
@@ -1666,6 +1672,21 @@ function M.check(G)
 			warn("%s: forces a play every turn but has no pass_card — players can get stuck with nothing playable", where)
 		end
 		check_list(where .. " actions", pd.actions)
+		check_list(where .. " on_enter", pd.on_enter)
+		-- on_enter is what a phase does when the turn *begins*, as against every
+		-- time round — so a phase nothing can lead back to has only one kind of
+		-- entry, and splitting its actions in two says a distinction that isn't
+		-- there. Cheap to spot and it always means the author meant "actions".
+		if pd.on_enter ~= nil then
+			local loops = false
+			for _, r in ipairs(type(pd.next) == "table" and pd.next or {}) do
+				if r["then"] == pd.key then loops = true end
+			end
+			if not loops then
+				warn("%s: has on_enter, but nothing leads back to it — every entry is an arrival,"
+					.. " so this is what \"actions\" already means", where)
+			end
+		end
 		if pd.next then
 			if type(pd.next) ~= "table" then
 				warn("%s: next should be a list of routes", where)
@@ -1694,6 +1715,11 @@ function M.check(G)
 							rwhere, tostring(r["then"]), suggest(r["then"], G.phase_by_key))
 					elseif target.type == "overlay" then
 						warn("%s: goes to '%s', which is an overlay — overlays can only be pushed", rwhere, r["then"])
+					end
+					if r.seat ~= nil and not ROUTE_SEATS[r.seat] then
+						warn('%s: says seat "%s", which is not a word here — "next" passes to the following'
+							.. ' seat, "same" keeps the one that is up%s',
+							rwhere, tostring(r.seat), suggest(r.seat, ROUTE_SEATS))
 					end
 					if r.stat == nil and r.zone_empty == nil and r.when == nil then
 						saw_unconditional = true
