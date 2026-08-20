@@ -380,9 +380,9 @@ cards already cost.
 
 ## What building it found
 
-`the_crew.json` is 1,483 lines from a 348-line generator: three seats, the
-40-card deck, the 36-card task deck, the commander, the draft, thirteen tricks
-and both instant-loss triggers. **The verdict above held exactly** —
+`the_crew.json` is 1,512 lines from a 365-line generator: four seats, the
+40-card deck, the 36-card task deck, the commander, the draft, ten tricks and
+both instant-loss triggers. **The verdict above held exactly** —
 `set_active_seat` was the only thing missing, and everything downstream of it
 turned out to be content. What follows is the part a document could not have
 predicted.
@@ -483,7 +483,7 @@ a stat, then make the answer a computed tag*.
 The walk is also the only way to deal: **there is no word for "every seat in
 turn" outside a phase**, and `seat: "next"` is ignored on an `automatic` one
 ([23](23-splendor.md) found that), so a three-way deal is three pairs of actions
-written out. Fine at three seats and clumsy at five.
+written out. Fine at four seats and clumsy at five.
 
 ### A card is born owned by where it was *created*, which a shared deck undoes
 
@@ -529,32 +529,77 @@ they shipped and drawn nothing. Fixed, laid down before the cards so an empty ro
 says what it is waiting for and a full one covers it — which is what the `fan`
 branch already said in a comment and only that branch did.
 
-### What is left, and why the communication token is not cheap
+### What is left, and what the radio actually costs
 
-**The radio token is the signature mechanic and it is blocked on presentation,
-not on rules.** The rule is that you lay one card face up in front of you and
-flag it *highest*, *only* or *lowest* of its colour in your hand. Both halves
-were worked through:
+**The radio token is the signature mechanic. Four of its five parts already
+work; the fifth is one small engine addition.** The rule is that you lay one
+card face up in front of you and flag it *highest*, *only* or *lowest* of its
+colour in your hand. Traced through the engine rather than guessed at:
 
-- **The condition is expressible, with one stat per colour.** A tag scope cannot
-  see a hand, but per-colour value stats can: give every card `v_pink`,
-  `v_blue`, … set to its value in its own colour and 0 elsewhere, and "the
-  highest pink I hold" is `max:v_pink@mine.hand`. *Only* is
-  `count:pink@mine.hand == 1`. **Lowest has no spelling** — there is no `min:`
-  measure — so it wants a second inverted stat (`10 - value`) read through
-  `max:`. Eight numbers a card, which is a generator's job and no worse than
-  Splendor's eighteen.
-- **Where the flagged card goes is the real blocker.** It must be visible to
-  everybody *and* still playable, and **a phase bounds plays to one `zone`** — so
-  the card cannot move to a radio pile and stay in the hand's phase. The way
-  round it is not to move the card at all but to deal a *token* naming it into a
-  per-seat radio row: one token card per playing card (36), fanned, with the
-  flag as a stat and three computed tags for the three positions. That is the
-  cost, and it is the next thing this file would build.
+- **The card cannot be *played* into a second hand.** Its `play.needs` carries
+  follow-suit and is judged before a destination is chosen, so a card you could
+  not legally follow with could not be radioed either; and a play is a play, so
+  it would spend the one `ends_after: 1` allows.
+- **Nor can the hand be tagged `activate` to offer an ability instead.**
+  `main.lua`'s click path returns as soon as it sees that tag: a card in an
+  `activate` zone can only ever be activated, never played, so the hand would
+  stop being able to feed the trick at all.
+- **A button works, and puts twelve clauses on one card instead of forty.** A
+  Radio card in a per-seat `activate` controls zone, with four colours × three
+  positions as `abilities`, each targeting a card in the player's own hand:
+
+  ```json
+  { "key": "radio_high_pink", "text": "Radio — my highest pink",
+    "phases": ["radio"], "cost": { "radio@mine.player": 1 },
+    "target": { "type": "card", "count": 1, "zones": ["hand"],
+                "where": ["v_pink@target >= 1",
+                          "v_pink@target >= max:v_pink@mine.hand"] },
+    "action": ["move_target_to:open"] }
+  ```
+
+  `where` binds each candidate as `@target`, and naming a zone defaults the
+  owner word to `not_enemy`, so only your own hand is ever offered. The token is
+  an ordinary per-seat stat with an icon — a cost key is a full subject
+  (`can_afford` builds `subject .. " >= " .. n`), so no global counter is needed.
+- **The condition needs one value stat per colour.** A tag scope cannot see a
+  hand, but `max:v_pink@mine.hand` can, where `v_pink` is a card's value in its
+  own colour and 0 elsewhere. *Only* is `count:pink@mine.hand == 1`. **Lowest
+  has no spelling** — there is no `min:` measure — so it wants a second
+  inverted stat (`10 - value`) read through `max:`. Nine numbers a card, half
+  what Splendor carries, and a generator writes them.
+- **`face_up` is a lie for a hand, and it is two lines.** The tag is documented
+  as *cards here are shown, whatever the type would do*, but `zones.visible` and
+  `zones.peekable` never consult it — both short-circuit on `zone_type == "hand"`
+  and a seat. The open hand needs them to.
+
+**The one thing genuinely missing is playing from two zones.** `in_play_zone`
+takes the phase's single `zone`, so a card lying in the open hand cannot be put
+into the trick. `zone` also names where a phase deals, what an overlay offers
+and what the discard sweep clears — four jobs that each want exactly one zone —
+so widening it to a list is the wrong shape; it wants a field of its own. The
+alternative that needs no engine change is to leave the card in hand and deal a
+marker card into the open row, which costs 36 markers to keep the card's value
+visible.
 
 Also left, and all of it content: the **order tokens** (`1`–`5`, `Ω`, `›`/`››`),
 which want a small authored graph and a fourth loss check; the **printed fifty
 missions**, which this file replaces with an opening overlay asking how many
 tasks the crew wants (one to five) rather than claiming to be the logbook;
-**four and five players**, which the layout and the `TRICKS` constant assume away
-at three; and the **two-player JARVIS variant**, which is a different game.
+**three and five players**, which only the seat list and the rect arithmetic in
+`zones()` would have to agree about; and the **two-player JARVIS variant**,
+which is a different game.
+
+### The table has four sides, and the engine owns two corners
+
+The first layout stacked three seats down the left with everything else beside
+them, and it read as a list rather than as a table. Four crew members round a
+rectangle is both the commoner game and the clearer picture: two hands along the
+top edge, two along the bottom in reverse, so **the seat that follows you is the
+one to your left on screen**. Four also divides forty, so the odd fourteenth card
+that three seats leave in somebody's hand is gone.
+
+Two rectangles are not the game's to use, and both were learnt by drawing them:
+**the HUD writes into the top right** (phase label, then one line per visible
+stat, growing downwards as stats are added) and **the event log into the bottom
+left**. Nothing in `zones()` reaches into either, which is why the top row starts
+at `y 0.17` and the bottom row stops at `y 0.895` rather than filling the edges.

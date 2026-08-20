@@ -1,8 +1,7 @@
 {
   "title": "The Crew",
   "seed": 31,
-  "players": [{ "card": "north" }, { "card": "east" }, { "card": "south" }],
-  "styles": { "stacked": { "fit": "fill", "fan": "right" } },
+  "players": [{ "card": "north" }, { "card": "east" }, { "card": "south" }, { "card": "west" }],
   "stats": [
     { "key": "tricks", "label": "Trick", "min": 0, "max": 99, "subject": "sum:tricks@plan" },
     {
@@ -71,7 +70,12 @@
       "key": "hand",
       "type": "hand",
       "tags": ["per_seat"],
-      "pos": [[0.01, 0.008, 0.755, 0.1], [0.01, 0.24, 0.755, 0.332], [0.01, 0.707, 0.755, 0.799]]
+      "pos": [
+        [0.01, 0.17, 0.495, 0.31],
+        [0.505, 0.17, 0.99, 0.31],
+        [0.505, 0.755, 0.99, 0.895],
+        [0.01, 0.755, 0.495, 0.895]
+      ]
     },
     {
       "key": "tasks",
@@ -79,29 +83,27 @@
       "type": "grid",
       "grid": [5, 1],
       "tags": ["per_seat"],
-      "pos": [[0.01, 0.108, 0.47, 0.228], [0.01, 0.34, 0.47, 0.46], [0.01, 0.575, 0.47, 0.695]]
-    },
-    {
-      "key": "archive",
-      "label": "Done",
-      "type": "pile",
-      "tags": ["per_seat", "stacked"],
-      "pos": [[0.482, 0.108, 0.6, 0.228], [0.482, 0.34, 0.6, 0.46], [0.482, 0.575, 0.6, 0.695]]
+      "pos": [
+        [0.805, 0.455, 0.995, 0.519],
+        [0.805, 0.527, 0.995, 0.592],
+        [0.805, 0.6, 0.995, 0.664],
+        [0.805, 0.672, 0.995, 0.737]
+      ]
     },
     {
       "key": "trick",
-      "label": "The trick",
+      "label": "Play area",
       "type": "grid",
-      "grid": [3, 1],
+      "grid": [4, 1],
       "applies": ["in_trick"],
-      "pos": [0.612, 0.35, 0.99, 0.56]
+      "pos": [0.33, 0.395, 0.67, 0.7]
     },
     {
       "key": "deck",
       "label": "Deck",
       "type": "deck",
       "tags": ["shuffle"],
-      "pos": [0.77, 0.24, 0.875, 0.332],
+      "pos": [0.805, 0.335, 0.895, 0.445],
       "tooltip": "Forty cards: four colours of nine, and four rockets.",
       "contents": [
         "pink_1",
@@ -151,7 +153,7 @@
       "label": "Tasks",
       "type": "deck",
       "tags": ["shuffle"],
-      "pos": [0.885, 0.24, 0.99, 0.332],
+      "pos": [0.905, 0.335, 0.995, 0.445],
       "tooltip": "One task card for every colour card. Rockets are never a task.",
       "contents": [
         "task_pink_1",
@@ -197,7 +199,14 @@
       "label": "On offer",
       "type": "grid",
       "grid": [5, 1],
-      "pos": [0.612, 0.572, 0.99, 0.695]
+      "pos": [0.01, 0.48, 0.32, 0.62]
+    },
+    {
+      "key": "archive",
+      "label": "Done",
+      "type": "pile",
+      "tooltip": "Tasks the crew has already fulfilled.",
+      "pos": [0.22, 0.34, 0.32, 0.46]
     },
     {
       "key": "won",
@@ -205,12 +214,12 @@
       "type": "pile",
       "tags": ["face_down"],
       "tooltip": "Tricks already taken, set aside face down.",
-      "pos": [0.01, 0.472, 0.15, 0.563]
+      "pos": [0.115, 0.34, 0.215, 0.46]
     },
     {
       "key": "rules",
       "type": "pile",
-      "pos": [0.165, 0.472, 0.305, 0.563],
+      "pos": [0.01, 0.34, 0.11, 0.46],
       "contents": ["how_to_play"]
     },
     { "key": "console", "type": "grid", "grid": [1, 1], "tags": ["hidden"] },
@@ -234,16 +243,20 @@
       "type": "automatic",
       "actions": [
         "set_active_seat:north_side",
-        "draw_from:deck:mine.hand:14",
+        "draw_from:deck:mine.hand:10",
         "set_active_seat:east_side",
-        "draw_from:deck:mine.hand:13",
+        "draw_from:deck:mine.hand:10",
         "set_active_seat:south_side",
-        "draw_from:deck:mine.hand:13",
+        "draw_from:deck:mine.hand:10",
+        "set_active_seat:west_side",
+        "draw_from:deck:mine.hand:10",
         "set_active_seat:north_side",
         "stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
         "set_active_seat:east_side",
         "stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
         "set_active_seat:south_side",
+        "stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
+        "set_active_seat:west_side",
         "stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
         "set_active_seat:commander",
         "draw_from:task_deck:task_offer:sum:want@plan"
@@ -311,7 +324,7 @@
       ],
       "next": [
         { "when": "count:task@tasks == 0", "then": "complete" },
-        { "when": "tricks@plan >= 13", "then": "failed" },
+        { "when": "tricks@plan >= 10", "then": "failed" },
         { "then": "lead" }
       ]
     },
@@ -322,6 +335,7 @@
         "stat_gain:won@north_side:1",
         "stat_gain:won@east_side:1",
         "stat_gain:won@south_side:1",
+        "stat_gain:won@west_side:1",
         "reveal:mission_complete"
       ],
       "next": [{ "then": "over" }]
@@ -355,6 +369,15 @@
       "zone": "hand",
       "ends_after": 1,
       "label": "Follow the suit that was led, if you can",
+      "next": [{ "then": "follow_3" }]
+    },
+    {
+      "key": "follow_3",
+      "type": "player_input",
+      "seat": "next",
+      "zone": "hand",
+      "ends_after": 1,
+      "label": "Follow the suit that was led, if you can",
       "next": [{ "then": "resolve" }]
     }
   ],
@@ -379,6 +402,12 @@
       "card_stats": { "has_r4": 0, "tricks_won": 0 }
     },
     {
+      "key": "west",
+      "text": "West",
+      "tags": ["west_side"],
+      "card_stats": { "has_r4": 0, "tricks_won": 0 }
+    },
+    {
       "key": "flight_plan",
       "text": "Flight plan",
       "tags": ["plan", "immutable"],
@@ -389,7 +418,7 @@
       "text": "How to play",
       "asset": "polygon:5:teal",
       "play": { "phases": [] },
-      "tooltip": "Cooperative trick-taking. Everyone plays one card; you must follow the suit that was led if you hold it, and may play anything if you do not. The highest card of the led suit wins the trick — except that any rocket beats every colour, however low, and the highest rocket beats the rest.\n\nThe winner of a trick leads the next one. Whoever was dealt the rocket 4 is the commander: they pick first from the tasks on offer and lead the first trick.\n\nA task is done when its owner wins a trick containing the card it names. If anybody else wins that card, the mission is lost at once — there is no second chance at it. Win by finishing every task before the thirteenth trick is over.\n\nYou may not say what is in your hand."
+      "tooltip": "Cooperative trick-taking. Everyone plays one card; you must follow the suit that was led if you hold it, and may play anything if you do not. The highest card of the led suit wins the trick — except that any rocket beats every colour, however low, and the highest rocket beats the rest.\n\nThe winner of a trick leads the next one. Whoever was dealt the rocket 4 is the commander: they pick first from the tasks on offer and lead the first trick.\n\nA task is done when its owner wins a trick containing the card it names. If anybody else wins that card, the mission is lost at once — there is no second chance at it. Win by finishing every task before the last trick is played.\n\nYou may not say what is in your hand."
     },
     {
       "key": "mission_complete",

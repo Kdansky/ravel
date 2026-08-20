@@ -15,6 +15,27 @@ local actions = require("actions")
 
 local M = {}
 
+-- Four crew members, in the order they play. Read from the game rather than
+-- written down twice: a trick is one card per seat, whatever that number is.
+local function seats()
+	return require("declaration").G.seat_list
+end
+
+-- Cards of a colour nothing in the scenario is using, for the seats whose play
+-- does not matter. Off-suit, so none of them ever contends.
+local function filler(n, named)
+	local used = {}
+	for _, k in ipairs(named) do used[k:match("^(%a+)_")] = true end
+	for _, colour in ipairs({ "pink", "blue", "green", "yellow" }) do
+		if not used[colour] then
+			local out = {}
+			for i = 1, n do out[i] = colour .. "_" .. i end
+			return out
+		end
+	end
+	error("no spare colour left for filler")
+end
+
 local function find(def_key)
 	for e in entity.each("card") do
 		if e.def_key == def_key and e.zone_id then return e end
@@ -74,10 +95,31 @@ local function play(key)
 	return flow.play_card(find(key).id, {})
 end
 
--- Lead from `seat`, then let the other two follow in seat order.
+-- Lead from `seat`, then let the rest follow in seat order. One card per seat,
+-- so a scenario names the cards it cares about and the rest is filler.
 local function trick(seat, plays)
+	assert(#plays == #seats(), "a trick is one card per seat")
 	actions.execute("set_active_seat:" .. seat .. "_side", {})
 	for _, k in ipairs(plays) do play(k) end
+end
+
+-- The hands a scenario names, plus a filler card each for the seats it does
+-- not, laid out so the named ones play in the order given.
+local function stage(lead, named)
+	local order, spec, plays = seats(), {}, {}
+	local at = nil
+	for i, k in ipairs(order) do if k == lead then at = i end end
+	local spare = filler(#order, named)
+	local s = 0
+	for i = 1, #order do
+		local seat = order[(at + i - 2) % #order + 1]
+		local card = named[i]
+		if not card then s = s + 1; card = spare[s] end
+		spec[seat] = { card }
+		plays[i] = card
+	end
+	set_hands(spec)
+	return plays
 end
 
 function M.test_crew_the_deck_is_the_published_one(check)
@@ -105,8 +147,11 @@ function M.test_crew_the_deck_is_the_published_one(check)
 	for _, z in ipairs(zones.all_with_key("hand")) do dealt = dealt + #z.cards end
 	check("then every card is dealt", dealt == 40, tostring(dealt))
 	check("and the deck is empty", #zones.find("deck").cards == 0)
-	check("one crew member holds the odd fourteenth", #hand_of("north").cards == 14,
-		tostring(#hand_of("north").cards))
+	local even = true
+	for _, z in ipairs(zones.all_with_key("hand")) do
+		even = even and #z.cards == dealt / #seats()
+	end
+	check("split evenly between the crew", even, tostring(#hand_of("north").cards))
 end
 
 -- The whole of follow-suit is one condition, the same on all forty cards, read
@@ -118,6 +163,7 @@ function M.test_crew_follow_the_suit_that_was_led(check)
 		north = { "pink_9", "pink_2", "blue_5", "rocket_1" },
 		east  = { "green_3", "green_8", "yellow_4" },
 		south = { "yellow_2", "blue_7" },
+		west  = { "green_1" },
 	})
 
 	actions.execute("set_active_seat:north_side", {})
@@ -137,6 +183,7 @@ function M.test_crew_follow_the_suit_that_was_led(check)
 		north = { "pink_2" },
 		east  = { "green_3", "green_8", "pink_4" },
 		south = { "yellow_2" },
+		west  = { "green_1" },
 	})
 	local bound = playable("east")
 	check("holding it, only it may be played",
@@ -151,6 +198,7 @@ function M.test_crew_the_rocket_is_trump_and_a_suit(check)
 		north = { "rocket_2" },
 		east  = { "rocket_1", "green_9" },
 		south = { "yellow_8" },
+		west  = { "yellow_7" },
 	})
 	actions.execute("set_active_seat:north_side", {})
 	play("rocket_2")
@@ -159,28 +207,19 @@ function M.test_crew_the_rocket_is_trump_and_a_suit(check)
 		#bound == 1 and bound[1] == "rocket_1", table.concat(bound, " "))
 	play("rocket_1")
 	play("yellow_8")
+	play("yellow_7")
 	check("and the higher rocket takes it", zones.active_seat() == "north",
 		tostring(zones.active_seat()))
 
 	-- The other half: the lowest rocket beats the highest colour card, and only
 	-- a seat with none of the led suit may play one.
 	mission(3, 1)
-	set_hands({
-		north = { "green_9" },
-		east  = { "green_1", "rocket_1" },
-		south = { "yellow_3" },
-	})
-	trick("north", { "green_9", "green_1", "yellow_3" })
+	trick("north", stage("north", { "green_9", "green_1" }))
 	check("without a rocket the highest of the led suit wins",
 		zones.active_seat() == "north", tostring(zones.active_seat()))
 
 	mission(3, 1)
-	set_hands({
-		north = { "green_9" },
-		east  = { "yellow_2" },
-		south = { "rocket_1" },
-	})
-	trick("north", { "green_9", "yellow_2", "rocket_1" })
+	trick("north", stage("north", { "green_9", "yellow_2", "rocket_1" }))
 	check("the lowest rocket beats the highest colour", zones.active_seat() == "south",
 		tostring(zones.active_seat()))
 	check("and an off-suit nine wins nothing", zones.active_seat() ~= "east")
@@ -194,8 +233,9 @@ function M.test_crew_the_winner_leads_the_next_trick(check)
 		north = { "blue_2", "pink_1" },
 		east  = { "blue_8", "pink_9" },
 		south = { "blue_5", "pink_3" },
+		west  = { "blue_4", "pink_6" },
 	})
-	trick("north", { "blue_2", "blue_8", "blue_5" })
+	trick("north", { "blue_2", "blue_8", "blue_5", "blue_4" })
 	check("the highest of the led suit took it", zones.active_seat() == "east",
 		tostring(zones.active_seat()))
 	check("and is the one asked to lead", phase.current().key == "lead")
@@ -241,9 +281,7 @@ function M.test_crew_a_task_is_won_by_the_right_seat_or_not_at_all(check)
 	-- The zones come back in seat order, so the first is the seat that took
 	-- every task on offer. Its card names one playing card; win that.
 	local want = entity.get(zones.all_with_key("tasks")[1].cards[1]).def_key:gsub("^task_", "")
-	local off = want:find("^pink") and "blue" or "pink"
-	set_hands({ north = { want }, east = { off .. "_9" }, south = { off .. "_8" } })
-	trick("north", { want, off .. "_9", off .. "_8" })
+	trick("north", stage("north", { want }))
 	check("the task's owner won its card", zones.active_seat() == "north",
 		tostring(zones.active_seat()))
 	check("so the task is done and filed", #zones.all_with_key("tasks")[1].cards == 0)
@@ -261,8 +299,12 @@ function M.test_crew_the_wrong_seat_winning_a_task_card_ends_it(check)
 	if high == want then high = want:gsub("_%d+$", "_8") end
 	-- south leads the card north needed; east has none of that colour and takes
 	-- the trick with a rocket, which is the loss the rules name.
-	set_hands({ north = { high }, east = { "rocket_4" }, south = { want } })
-	trick("south", { want, high, "rocket_4" })
+	-- Play order from south is south, west, north, east: south leads the card
+	-- north needs, north's own higher one would take it, and east's rocket
+	-- takes it instead — which is the loss the rules name.
+	local off = want:find("^pink") and "blue_2" or "pink_2"
+	set_hands({ south = { want }, west = { off }, north = { high }, east = { "rocket_4" } })
+	trick("south", { want, off, high, "rocket_4" })
 	check("the trick went to the wrong seat", zones.active_seat() == "east",
 		tostring(zones.active_seat()))
 	check("and the mission ended on the spot",
@@ -282,6 +324,7 @@ function M.test_crew_the_led_suit_is_written_once(check)
 		north = { "green_4", "green_6" },
 		east  = { "yellow_7", "green_2" },
 		south = { "blue_3", "green_5" },
+		west  = { "pink_8", "green_1" },
 	})
 	actions.execute("set_active_seat:north_side", {})
 	play("green_4")
@@ -292,6 +335,10 @@ function M.test_crew_the_led_suit_is_written_once(check)
 	check("so the third seat still has to follow green",
 		#bound == 1 and bound[1] == "green_5", table.concat(bound, " "))
 	play("green_5")
+	local last = playable("west")
+	check("and so does the last", #last == 1 and last[1] == "green_1",
+		table.concat(last, " "))
+	play("green_1")
 	check("and it is cleared for the next trick", find("flight_plan").stats.led == 0)
 end
 
@@ -301,12 +348,11 @@ end
 function M.test_crew_the_tricks_run_out(check)
 	mission(3, 1, "north")
 	local want = entity.get(zones.all_with_key("tasks")[1].cards[1]).def_key:gsub("^task_", "")
-	local off = want:find("^pink") and "blue" or "pink"
-	find("flight_plan").stats.tricks = 12
+	local last = 40 / #seats()
+	find("flight_plan").stats.tricks = last - 1
 	-- A trick that finishes nothing: the wanted card stays in a hand.
-	set_hands({ north = { off .. "_9" }, east = { off .. "_8" }, south = { off .. "_7" } })
-	trick("north", { off .. "_9", off .. "_8", off .. "_7" })
-	check("the thirteenth trick is the last", find("flight_plan").stats.tricks == 13,
+	trick("north", stage("north", { want:find("^pink") and "blue_9" or "pink_9" }))
+	check("the last trick is the deal's last", find("flight_plan").stats.tricks == last,
 		tostring(find("flight_plan").stats.tricks))
 	local r = zones.find("reveal")
 	local shown = r and r.cards[1] and entity.get(r.cards[1]).def_key

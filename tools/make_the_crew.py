@@ -6,9 +6,8 @@ numbers, is data. What is not data lives here in one readable place: the trick
 arithmetic, the phase walk that plays a trick, and the layout.
 
 The rules are transcribed in ideas/the_crew/rules.md, from the KOSMOS rulebook
-and mission logbook; nothing here invents one. Three seats, which is the
-smallest real crew — the two-player game is the JARVIS variant and a different
-thing.
+and mission logbook; nothing here invents one. Four seats, which divides forty
+evenly — ten each and ten tricks, with no odd card left in a hand.
 
     python3 tools/make_the_crew.py
 """
@@ -27,10 +26,13 @@ SUITS = [
 ]
 ROCKET = ("rocket", "Rocket", "silver", 5)
 
-SEATS = [("north", "North"), ("east", "East"), ("south", "South")]
+# Clockwise round a rectangular table: the first half of the list sits along the
+# top edge left to right, the rest along the bottom edge right to left. Four
+# divides forty, so every crew member gets ten and no card goes unplayed.
+SEATS = [("north", "North"), ("east", "East"), ("south", "South"), ("west", "West")]
 DECK = 40
-# Three seats do not divide forty, so one crew member holds a fourteenth card
-# that is never played: thirteen tricks and the deal is spent (rules.md §1).
+# Whatever is left over after an even deal is a card its holder never plays, so
+# the mission is over when the smallest hand is (rules.md §1).
 TRICKS = DECK // len(SEATS)
 MAX_TASKS = 5
 
@@ -155,7 +157,7 @@ def other_cards():
                     " the tasks on offer and lead the first trick.\n\nA task is done when its owner"
                     " wins a trick containing the card it names. If anybody else wins that card, the"
                     " mission is lost at once — there is no second chance at it. Win by finishing"
-                    " every task before the thirteenth trick is over.\n\nYou may not say what is in"
+                    " every task before the last trick is played.\n\nYou may not say what is in"
                     " your hand."},
         {"key": "mission_complete", "text": "Mission complete",
          "story": "Every task is done and the ship is where it should be. Log the attempt and take"
@@ -171,41 +173,62 @@ def other_cards():
 # --- zones ---------------------------------------------------------------
 
 def zones():
-    # Three seats stacked down the left, each with a hand, a task row and a
-    # done pile; the trick, the offer and the two decks down the right, clear of
-    # the top-right corner the HUD draws into.
-    hands = [[0.010, 0.008, 0.755, 0.100],
-             [0.010, 0.240, 0.755, 0.332],
-             [0.010, 0.707, 0.755, 0.799]]
-    tasks = [[0.010, 0.108, 0.470, 0.228],
-             [0.010, 0.340, 0.470, 0.460],
-             [0.010, 0.575, 0.470, 0.695]]
-    done = [[0.482, 0.108, 0.600, 0.228],
-            [0.482, 0.340, 0.600, 0.460],
-            [0.482, 0.575, 0.600, 0.695]]
+    """Four crew members round a rectangular table, and the play area between them.
+
+    Two hands along the top edge and two along the bottom, in clockwise order, so
+    the seat that follows you is the one to your left on screen. The middle band
+    is the play area, with the decks and everybody's tasks down the right and the
+    offer and the small piles down the left. Two corners are the engine's and
+    nothing reaches into either: the HUD writes into the top right, and the event
+    log into the bottom left.
+    """
+    half = (len(SEATS) + 1) // 2
+
+    def row(keys, y1, y2, reverse):
+        """Split the full width between these seats, with a gutter between."""
+        n = len(keys)
+        w = (0.98 - 0.01 * (n - 1)) / n
+        out = {}
+        for i, k in enumerate(keys):
+            x = 0.01 + (n - 1 - i if reverse else i) * (w + 0.01)
+            out[k] = [round(x, 3), y1, round(x + w, 3), y2]
+        return out
+
+    order = [k for k, _ in SEATS]
+    seats = row(order[:half], 0.170, 0.310, False)
+    seats.update(row(order[half:], 0.755, 0.895, True))
+    hands = [seats[k] for k in order]
+
+    # One task row per seat, stacked under the decks. They hold very few cards
+    # in practice, so they are the smallest thing on the table.
+    top, step = 0.455, 0.290 / len(SEATS)
+    tasks = [[0.805, round(top + i * step, 3), 0.995, round(top + (i + 1) * step - 0.008, 3)]
+             for i in range(len(SEATS))]
+
     return [
         {"key": "hand", "type": "hand", "tags": ["per_seat"], "pos": hands},
         {"key": "tasks", "label": "Tasks", "type": "grid", "grid": [MAX_TASKS, 1],
          "tags": ["per_seat"], "pos": tasks},
-        {"key": "archive", "label": "Done", "type": "pile",
-         "tags": ["per_seat", "stacked"], "pos": done},
-        {"key": "trick", "label": "The trick", "type": "grid", "grid": [len(SEATS), 1],
-         "applies": ["in_trick"], "pos": [0.612, 0.350, 0.990, 0.560]},
+        {"key": "trick", "label": "Play area", "type": "grid", "grid": [len(SEATS), 1],
+         "applies": ["in_trick"], "pos": [0.330, 0.395, 0.670, 0.700]},
         {"key": "deck", "label": "Deck", "type": "deck", "tags": ["shuffle"],
-         "pos": [0.770, 0.240, 0.875, 0.332],
+         "pos": [0.805, 0.335, 0.895, 0.445],
          "tooltip": "Forty cards: four colours of nine, and four rockets.",
          "contents": [f"{s[0]}_{v}" for s in SUITS for v in range(1, 10)]
                      + [f"rocket_{v}" for v in range(1, 5)]},
         {"key": "task_deck", "label": "Tasks", "type": "deck", "tags": ["shuffle"],
-         "pos": [0.885, 0.240, 0.990, 0.332],
+         "pos": [0.905, 0.335, 0.995, 0.445],
          "tooltip": "One task card for every colour card. Rockets are never a task.",
          "contents": [f"task_{s[0]}_{v}" for s in SUITS for v in range(1, 10)]},
         {"key": "task_offer", "label": "On offer", "type": "grid", "grid": [MAX_TASKS, 1],
-         "pos": [0.612, 0.572, 0.990, 0.695]},
+         "pos": [0.010, 0.480, 0.320, 0.620]},
+        {"key": "archive", "label": "Done", "type": "pile",
+         "tooltip": "Tasks the crew has already fulfilled.",
+         "pos": [0.220, 0.340, 0.320, 0.460]},
         {"key": "won", "label": "Taken", "type": "pile", "tags": ["face_down"],
          "tooltip": "Tricks already taken, set aside face down.",
-         "pos": [0.010, 0.472, 0.150, 0.563]},
-        {"key": "rules", "type": "pile", "pos": [0.165, 0.472, 0.305, 0.563],
+         "pos": [0.115, 0.340, 0.215, 0.460]},
+        {"key": "rules", "type": "pile", "pos": [0.010, 0.340, 0.110, 0.460],
          "contents": ["how_to_play"]},
         {"key": "console", "type": "grid", "grid": [1, 1], "tags": ["hidden"]},
         {"key": "mission", "type": "hand", "tags": ["hidden", "no_peek"],
@@ -302,9 +325,6 @@ def build():
         "title": "The Crew",
         "seed": 31,
         "players": [{"card": k} for k, _ in SEATS],
-        "styles": {
-            "stacked": {"fit": "fill", "fan": "right"},
-        },
         "stats": [
             {"key": "tricks", "label": "Trick", "min": 0, "max": 99, "subject": "sum:tricks@plan"},
             {"key": "tricks_won", "label": "Tricks won", "min": 0, "max": 99,

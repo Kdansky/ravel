@@ -85,7 +85,7 @@
     {
       "key": "play_the_crew",
       "text": "The Crew",
-      "tooltip": "Cooperative trick-taking for three. Follow suit, rockets beat every colour, and the winner of a trick leads the next. Everyone has tasks to win, and one card taken by the wrong hand ends the mission. One device.",
+      "tooltip": "Cooperative trick-taking for four. Follow suit, rockets beat every colour, and the winner of a trick leads the next. Everyone has tasks to win, and one card taken by the wrong hand ends the mission. One device.",
       "play": { "action": ["load_game:the_crew.json"] },
       "asset": "stripes:4:silver",
       "tags": ["immutable"]
