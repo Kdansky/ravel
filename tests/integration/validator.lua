@@ -347,6 +347,10 @@ local CASES = {
 			g.card_defs.c_flee.tags = { "handy", "boardy" }
 			g.card_defs.c_flee.tags_set = { handy = true, boardy = true }
 		end },
+	{ "a save slot that is a path", "which isn't a plain word",
+		function(g) g.card_defs.c_flee.on_play = { "save_game:../../elsewhere" } end },
+	{ "a condition asking about a save slot that is a path", "is not a save slot",
+		function(g) g.card_defs.c_flee.needs = { "saved:../../elsewhere >= 1" } end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)

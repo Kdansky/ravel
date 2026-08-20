@@ -13,7 +13,9 @@ local M = {}
 local EMPTY = {}
 
 M.pending_load   = nil   -- set by load_game, consumed by flow after the action list
+M.pending_slot   = nil   -- set by load_save, consumed the same way
 M.on_net         = nil   -- optional hook(what, arg): the networking layer's UI, if one is loaded
+M.on_save        = nil   -- optional hook(what, slot): the save layer, if one is loaded
 M.on_stat_change = nil   -- optional hook(entity, key, delta, ctx) for visual feedback
 -- optional hook(card_id, ordinal): a zone's cards acting in turn, so the
 -- presentation can space them out. ordinal 0 with no card means the run is over.
@@ -27,6 +29,12 @@ function M.take_load()
 	local f = M.pending_load
 	M.pending_load = nil
 	return f
+end
+
+function M.take_slot()
+	local s = M.pending_slot
+	M.pending_slot = nil
+	return s
 end
 
 -- Content errors surface in the event log (the GUI has no console) and on
@@ -791,6 +799,27 @@ HANDLERS["set_active_seat"] = function(p, ctx)
 	log.add("— " .. ((def and def.text) or seat) .. " to play —")
 end
 
+-- Saving, and picking the game back up. The same shape as the net_ ops above:
+-- the engine knows the words, so a game file naming them is validated like any
+-- other, and the behaviour lives entirely in save.lua and arrives only if that
+-- module is loaded. The slot is a plain word the game chooses — one autosave is
+-- one word, three saves are three — so nothing here has an opinion about how
+-- many saves a game keeps, and where they land is not the game's to say.
+HANDLERS["save_game"] = function(p)
+	if M.on_save then M.on_save("save", p[2]) end
+end
+
+-- Deferred like load_game, and for the same reason: what comes back replaces
+-- every entity in the game, so the actions written after it in the list would
+-- run against a world nobody wrote them for.
+HANDLERS["load_save"] = function(p)
+	if not p[2] then
+		content_error("load_save: no slot named")
+		return
+	end
+	M.pending_slot = p[2]
+end
+
 local SPEC = {
 	fill              = "zone card n",
 	shuffle           = "zone",
@@ -828,6 +857,8 @@ local SPEC = {
 	gain              = "card n",
 	effect            = "effect",
 	set_active_seat   = "scope",
+	save_game         = "save",
+	load_save         = "save",
 }
 
 -- The full op vocabulary, for the validator's suggestions — and for the test

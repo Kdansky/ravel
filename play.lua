@@ -21,6 +21,7 @@ local rng         = require("rng")
 -- with both files deleted.
 local ok_net, net = pcall(require, "net")
 local netlink     = ok_net and require("netlink") or nil
+pcall(require, "save")   -- likewise: loading it is what makes the save ops work
 
 local function wrap(text, width)
 	local out, line = {}, ""

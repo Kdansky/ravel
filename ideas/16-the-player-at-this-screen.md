@@ -105,8 +105,9 @@ have one client.
 
 ## Gap 2 — a player has no name — **parked**
 
-*Urgency: low, until there is somebody at the other end · Difficulty: medium, and most of it is the store · Usefulness:
-medium — it is what makes every other message about a person readable*
+*Urgency: low, until there is somebody at the other end · Difficulty: small now
+that [24](24-save-and-load.md) has built the store · Usefulness: medium — it is
+what makes every other message about a person readable*
 
 Nothing anywhere holds a player's name. `link.name` in `netlink.lua` is the
 *transport's* name (`"browser:ravel"`, `"webrtc"`), and `net.seat` is a seat key
@@ -115,16 +116,15 @@ move* or *North wins* is naming a chair.
 
 Two halves, and they are independent:
 
-**Where the name is kept.** There is no client-side persistence in this
-repository at all — no `love.filesystem.write` anywhere in `game/`, and
-`conf.lua` sets no `t.identity`.
-[Assumption: LÖVE needs an identity before the save directory exists, so this
-starts with one line in `conf.lua` and a small `settings.lua` that reads and
-writes one JSON file. The browser build is the part to check first rather than
-last: love.js keeps the save directory in IndexedDB and needs an explicit sync
-for a write to survive a reload, and if that turns out not to be wired up here,
-the browser falls back to remembering nothing — which is worth knowing before
-the UI is designed around it.]
+**Where the name is kept — answered, and built by somebody else.**
+[24](24-save-and-load.md) shipped the store this was waiting on: `conf.lua` sets
+`t.identity`, `save.lua` writes and reads through `love.filesystem`, and the
+browser question is settled — love.js already mounts its save directory out of
+IndexedDB and populates it before the game runs, so the only missing piece was
+the flush, and `save.lua` does that after every write. A name is one more small
+file beside a saved game, and the paragraph that used to stand here (an
+assumption about `settings.lua` and a browser check that might not pass) is
+gone because it has been done.
 
 **Where the name is sent.** The handshake already carries a game name and three
 hashes (`net.lua:107`, and the `pack` header). A name is one more field, and the
@@ -204,8 +204,9 @@ a friend cannot forget they left it on.**
 
 ## Gap 5 — arbitrary chat, which is what a name is for
 
-*Urgency: low · Difficulty: medium, and most of it is the same store and the
-same input surface · Usefulness: it is the thing that makes gap 2 worth having*
+*Urgency: low · Difficulty: medium, with the store half of it now built — what
+is left is the same input surface · Usefulness: it is the thing that makes gap 2
+worth having*
 
 **A name with nobody to read it is decoration.** Hot-seat is one person driving
 two seats, so *North* and *South* are as good as any two names. The only place a
@@ -259,8 +260,11 @@ building on its own.]
 
 1. ~~**The viewer** (gap 1), and the two-client visibility test~~ — **done**
    (`fb3d704`). It was a bug fix and it stood alone, as expected.
-2. **The store** — `conf.lua` identity, `settings.lua`, and the browser check.
-   Nothing uses it yet.
+2. ~~**The store** — `conf.lua` identity, `settings.lua`, and the browser
+   check.~~ **Built by [24](24-save-and-load.md)**: identity,
+   `love.filesystem`, and the browser flush, which turned out to be the whole
+   of the browser question. What is left here is one small file beside a saved
+   game.
 3. **The name and the chat together** (gaps 2 and 5): settings entry, handshake
    field, a message kind, and the places that print a seat learn to print a name
    when there is one — the log, the netpanel, and [07](07-presentation.md) gap

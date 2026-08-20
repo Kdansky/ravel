@@ -48,7 +48,14 @@
       "tags": ["per_seat"],
       "pos": [[0.76, 0.65, 0.97, 0.95], [0.76, 0.05, 0.97, 0.35]]
     },
-    { "key": "rules", "type": "pile", "pos": [0.76, 0.45, 0.97, 0.55] }
+    { "key": "rules", "type": "pile", "pos": [0.76, 0.45, 0.97, 0.55] },
+    {
+      "key": "controls",
+      "type": "hand",
+      "tags": ["optional"],
+      "pos": [0.03, 0.44, 0.24, 0.56],
+      "contents": ["save_button"]
+    }
   ],
   "phases": [
     {
@@ -337,6 +344,14 @@
       "text": "Black wins",
       "story": "The white king is taken. There is nothing left to defend with.",
       "play": { "action": ["load_game:menu.json"] }
+    },
+    {
+      "key": "save_button",
+      "text": "Save",
+      "asset": "circle:slate",
+      "tags": ["immutable"],
+      "tooltip": "Keep this position. Continue, on the menu, picks it up again. There is one save, so saving writes over the last one.",
+      "play": { "action": ["save_game:quick"] }
     }
   ]
 }

@@ -30,8 +30,12 @@ local M = {}
 -- 1 or 0, because a condition compares numbers. They exist because asking
 -- "is there a pawn on that square" by counting to one reads like arithmetic
 -- about a question that has no arithmetic in it.
+-- "saved" is the same yes/no shape asked of the machine rather than of a card:
+-- is there a game in that slot. It cannot be answered here — the save layer is
+-- outside the engine and nothing in here may require it — so it arrives through
+-- M.saved_slot below, and a build without one truthfully answers no.
 local FNS    = { count = true, card = true, sum = true, max = true,
-	tagged = true, not_tagged = true }
+	tagged = true, not_tagged = true, saved = true }
 local QUANTS = { any = true, each = true, random = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
 
@@ -304,9 +308,16 @@ function M.awaits_targets(subject, ctx)
 	return p ~= nil and p.scope == "target" and (ctx == nil or ctx.targets == nil)
 end
 
+-- hook(slot) -> boolean, set by save.lua when it is loaded.
+M.saved_slot = nil
+
 function M.total(subject, ctx)
 	local p = M.parse_subject(subject)
 	if not p then return 0 end
+
+	if p.fn == "saved" then
+		return (M.saved_slot and M.saved_slot(p.arg)) and 1 or 0
+	end
 
 	-- The counting forms keep their shipped meaning without a scope: "in play",
 	-- which is wider than the player's own cards. A bare stat falls through to

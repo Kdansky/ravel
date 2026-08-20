@@ -310,6 +310,21 @@ function M.settle()
 			return
 		end
 
+		-- A saved game replaces this one whole, so it lands between action lists
+		-- rather than inside one. What is in the slot is the save layer's
+		-- business — no engine module may require it — and a build without one
+		-- leaves the game exactly as it was. A refusal (an empty slot, a game
+		-- file edited since) says so and changes nothing; a save that blows up
+		-- partway *through* the restore leaves a half-wiped game, so that falls
+		-- back to the menu exactly as a failed load_game does.
+		local slot = actions.take_slot()
+		if slot then
+			if actions.on_save and not pcall(actions.on_save, "load", slot) then
+				pcall(M.init, "menu.json")
+			end
+			return
+		end
+
 		-- Outcomes wait until any open overlay (a pending choice) is closed.
 		if phase.is_overlay() or not fire_end_condition() then
 			local cur = phase.current()
@@ -361,6 +376,7 @@ function M.init(filename, seed)
 	cards.reset()
 	targeting.clear()
 	actions.take_load()
+	actions.take_slot()
 	history = {}
 	log.clear()
 	if M.on_reset then M.on_reset() end

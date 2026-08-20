@@ -1,8 +1,14 @@
 # 24 — Saving a game, and loading it back
 
-**Status:** not started · **Size:** small engine change sitting on top of a
-store that does not exist · **Depends on:** [16](16-the-player-at-this-screen.md)
-gap 2, which is the same missing store
+**Status:** **shipped** (`game/save.lua`, `tests/integration/save.lua`) ·
+**Size:** small, and it stayed small — the store was one line of `conf.lua` ·
+**Depends on:** nothing now. It *built* the store
+[16](16-the-player-at-this-screen.md) gap 2 was waiting for, so a name has one
+too whenever that is picked up.
+
+**The write-up's premise held and its one open question answered itself.** See
+*What building it found* at the bottom — in particular the browser, which turned
+out to need one line rather than a caveat.
 
 > *Add a safe/load functionality to the engine which produces what is
 > essentially an encoded json (just like what we send over the network for
@@ -113,3 +119,75 @@ behaviour the network already has and nobody has minded.
 3. **A test that an edited game file is refused**, since that is the half of
    the note that was uncertain and the half a silent failure would hurt most.
 4. **The two actions**, and a *continue* card in `menu.json` as the proof.
+
+---
+
+## What shipped
+
+`game/save.lua`, beside `net.lua` and required by nothing in the engine:
+
+| | |
+|---|---|
+| `save_game:<slot>` | write the position out |
+| `load_save:<slot>` | put it back, whichever game it was of |
+| `saved:<slot> >= 1` | a condition: is there anything in that slot |
+
+The proof is two cards and no third place to look: chess deals a **Save**
+button, `menu.json` deals **Continue**, and Continue does not name a game — the
+save names its own file and that file is loaded first. `t.identity` in
+`conf.lua` is the store; `.saves/` beside the process is where the headless shim
+puts one, so the tests exercise the real path rather than a mock.
+
+There is no serialisation code in the file at all. `M.write` is
+`net.snapshot()` plus `gh` handed to `json.encode`; `M.read` is `json.decode`
+handed to `net.apply_full`. Everything else in those 120 lines is refusals.
+
+## What building it found
+
+**The browser needed one line, not a caveat.** The write-up guessed the honest
+first version might be desktop-only. It is not: the love.js runtime this repo
+serves already mounts `$HOME` as IDBFS and populates it with `FS.syncfs(true)`
+before the game starts — so a save *is* read back after a reload. What it only
+does at exit is the flush, `FS.syncfs(false)` on `Module.done`, and a browser
+tab is never exited. So one `javascript:` snippet after every write pushes it
+across, through the bridge [netlink](../game/netlink.lua) already documents
+(player.js overrides `window.open`, so `love.system.openURL("javascript:…")`
+runs it). Fire and forget: syncfs is asynchronous, its value lands in
+`window._output` where the next snippet overwrites it, and there is nothing
+useful to do about a failure a whole tab away.
+
+**The condition had an obvious spelling after all**, and it was already in the
+grammar: `saved:<slot>` is `tagged:`'s shape — a yes/no written as 1 or 0
+because a condition compares numbers. The only new thing is *who answers*. It is
+a fact about the machine rather than about any card, so `predicate` cannot know
+it and asks through `M.saved_slot`, which `save.lua` sets; a build without the
+file answers 0, which is true there. Three lines in `predicate`, one branch in
+the validator.
+
+**"slot" was already taken, and the collision was worth avoiding.** The engine
+calls a square on a grid a slot (`entity.each("slot")`, a target's
+`type: "slot"`), so a new argument type spelled `slot` in `actions.lua`'s `SPEC`
+would read as "this action takes a square". The type is `save`; the word a game
+file and a player use stays *slot*, which is what every game that has ever had
+one calls it.
+
+**Loading is deferred exactly like `load_game`**, through
+`actions.pending_slot` and `flow.settle`, and for the same reason: it replaces
+every entity in the game, so the actions written after it in the same list would
+run against a world nobody wrote them for. A restore that *throws* partway falls
+back to the menu, as a failed `load_game` does; a restore that is *refused* —
+empty slot, edited game file — changes nothing and says so in the log.
+
+**The `gh` check needed its own sentence, not the network's.** `net`'s refusal
+reads *"different versions of chess.json — theirs 3f2a…, yours 91bc…. You both
+need the same file"*, which is a sentence about two people. `save.read` makes
+the identical comparison itself, first, and says *"chess.json has changed since
+this was saved"*; net's stays underneath as the backstop. Same check, twice,
+because the second one costs a line and the first one would confuse a player
+saving alone.
+
+**Nothing wanted a timestamp, an index, or a delete action.** A slot is a word
+and the game says which; how many saves there are is not a question the engine
+has an answer for. `M.forget` exists as module API — the tests clean up with
+it — and deliberately has no action word: a card that deletes your save is not a
+button anybody asked for.

@@ -686,6 +686,10 @@ zone's. Subjects: a stat key,
 `count:<tag>` (cards on grid zones with that tag), or `card:<key>` (instances
 of that specific template on grid zones — "does the player have the rusty key?").
 
+`saved:<slot>` is the same yes/no shape asked of the machine rather than of any
+card: 1 when that save slot holds a game and 0 when it does not, which is how a
+menu offers *Continue* only when there is something to continue.
+
 **A square on a grid carries `col` and `row` as ordinary stats**, 1-based and
 row-major, so where something is on the board is asked with the vocabulary
 already here: `"row@target == 8"` is "the far rank".
@@ -1743,6 +1747,7 @@ what a player reads.
 | `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
 | `destroy:<scope>` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A card cannot be partly destroyed, so only `random.` narrows — to one victim |
 | `load_game:file` | Switch games (menu items, endings). `file` must be a bare `name.json` — no path, no `..` — and is refused otherwise |
+| `save_game:<slot>` / `load_save:<slot>` | Write the position out, and put it back. The slot is a plain word your game picks; where it lands is the engine's business. See *Saving a game* below |
 
 ### Engine behaviors you get for free
 
@@ -1843,6 +1848,74 @@ was reached by a legal move. Both would need a referee the engine does not have
 (`ideas/DONE.md` says what that would cost). So: play with people you
 trust, and think twice before shipping a game whose whole tension is a secret
 hand.
+
+### Saving a game, and picking it up
+
+Two actions and one condition, and no format to learn:
+
+| | |
+|---|---|
+| `save_game:<slot>` | write the position out |
+| `load_save:<slot>` | put it back — whichever game it was of |
+| `saved:<slot> >= 1` | a condition: is there anything in that slot |
+
+**A slot is a word, not a path.** Your game says `quick` or `autosave` or
+`slot_3`; the engine decides where that lands, for the same reason `load_game`
+refuses a path — a game file can arrive from a stranger over the network and
+parses through the same door. One word is one save, so a game that wants a
+single autosave writes one and a game that wants three writes three; nothing in
+the engine has an opinion about how many that should be.
+
+**What a save contains is exactly what a networked opponent would be sent** —
+the same state, the same encoding, checked the same way. That is why there is
+nothing to say about the format here: anything that made a save different from a
+message would be a second thing to keep correct.
+
+The whole loop is two cards. Chess deals a button:
+
+```json
+{
+  "key": "save_button",
+  "text": "Save",
+  "tags": ["immutable"],
+  "play": { "action": ["save_game:quick"] }
+}
+```
+
+and the menu deals the card that picks it up, dimmed until there is something to
+pick up:
+
+```json
+{
+  "key": "m_continue",
+  "text": "Continue",
+  "tags": ["token", "immutable"],
+  "play": { "needs": ["saved:quick >= 1"], "action": ["load_save:quick"] }
+}
+```
+
+Note what *Continue* does not say: which game. A save names its own file and
+that file is loaded first, so one card on the menu resumes whatever was saved.
+
+Two refusals, both of which say so in the event log rather than failing quietly:
+
+- **The game file has changed since.** A position means something else against
+  different rules, and no amount of loading it fixes that — so a save carries a
+  hash of the file it was taken from and is refused when they disagree. Edit a
+  game you have saves of and those saves are gone; that is the honest answer
+  rather than a game that plays strangely.
+- **A network game is connected.** Two people saving one shared game write two
+  files that each claim to be it.
+
+**A loaded game keeps its log and loses its undo history.** Both are what the
+network already does with every state that arrives, and for the same reason: the
+moves before the save were made in a game this process never ran, so undoing
+into one of them would fork it.
+
+Where the file lands is the platform's business — LÖVE's save directory on a
+desktop, and in the browser a folder inside IndexedDB, which the engine pushes
+across after every write because the browser only flushes it on quit and a tab
+is never quit.
 
 ### Hardcoded conventions
 

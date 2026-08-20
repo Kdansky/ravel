@@ -276,6 +276,7 @@
   "_conditions": {
     "_what": "One vocabulary, used by every needs (a card's, a challenge's, a zone's receive), accepts, a phase's next entries and end_conditions. A subject is a stat key, count:<tag>, card:<key>, sum:<subject> or max:<subject>, optionally carrying a scope after an @.",
     "_yes_no": "tagged:<tag> and not_tagged:<tag> answer a yes/no about a scope, as 1 or 0: \"tagged:pawn@behind >= 1\" is \"there is a pawn there\". Prefer them to counting to one; count: is for when the number is the point. An empty scope has nothing tagged, so it answers no to the first and yes to the second.",
+    "_saved": "saved:<slot> is the same yes/no shape asked of the machine rather than of any card: 1 when that save slot holds a game, 0 when it does not — which is how a menu offers Continue only when there is something to continue. A build with no save layer in it answers 0, which is true there.",
     "_form": "One comparison, written as one string: <subject> <op> <number-or-subject>. The operators are >=, <=, >, <, == and !=, one per string. There are no boolean operators and no arithmetic: a list already means and, and or is two abilities.",
     "_where_they_go": "A needs, an accepts and a target's where each take a LIST of them, all of which must hold — a list rather than a map keyed by its subject, because such a map cannot name one subject twice, and \"gold >= 3\" with \"gold <= 8\" is a range. A routing entry and an end condition take exactly one, under the key when.",
     "_measured_against_a_subject": "The right-hand side may be another subject rather than a constant: \"value@target >= max:value@mine.red\". It must LOOK like a subject — name a scope or a measuring fn — or it is refused as a bare word, which would otherwise read as a stat worth nothing and quietly pass.",
@@ -324,7 +325,9 @@
     "net_join": "net_join — open the box to paste one into",
     "net_seat": "net_seat:<seat> — sit in a chair, or any to give it up",
     "net_panel": "net_panel — show the networking controls",
-    "net_offline": "net_offline — disconnect"
+    "net_offline": "net_offline — disconnect",
+    "save_game": "save_game:<slot> — write the position to a save, under a plain word the game chooses. The slot says which save, never where it goes: the engine decides that, because a game file can arrive from a stranger. What is written is exactly what a networked opponent would be sent, so there is no second format to keep correct. Refused while a network game is connected, since two people saving one game write two files that both claim to be it.",
+    "load_save": "load_save:<slot> — put a saved position back, whichever game it was of: the save names its own file and that file is loaded first. Refused if the game file has changed since it was written, because the same position means something else against different rules. The log comes back with it and the undo history does not, exactly as when a state arrives over the wire."
   },
   "_engine_tags": {
     "_what": "Tags are the game's own vocabulary and an unknown one is not an error. These are the words the engine itself reads, and they are reserved: a style, a tag with behaviour or a computed tag may not be named after one. A word naming an entry in styles claims a look; one naming an entry in tags claims behaviour.",

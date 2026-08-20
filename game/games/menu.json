@@ -5,7 +5,7 @@
       "key": "menu",
       "type": "hand",
       "pos": [0.07, 0.24, 0.93, 0.82],
-      "contents": ["m_new", "m_join"]
+      "contents": ["m_new", "m_continue", "m_join"]
     }
   ],
   "players": [{}],
@@ -113,6 +113,13 @@
       }
     },
     {
+      "key": "m_continue",
+      "text": "Continue",
+      "tooltip": "Pick up the game you saved. It remembers which game it was, and refuses if that game file has changed since.",
+      "tags": ["token", "immutable"],
+      "play": { "needs": ["saved:quick >= 1"], "action": ["load_save:quick"] }
+    },
+    {
       "key": "m_join",
       "text": "Join a friend",
       "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works even for a game you do not have.",
@@ -124,7 +131,7 @@
       "text": "Back",
       "tooltip": "Return to the first screen.",
       "tags": ["token", "immutable"],
-      "play": { "action": ["destroy:menu", "fill:menu:m_new:1", "fill:menu:m_join:1"] }
+      "play": { "action": ["destroy:menu", "fill:menu:m_new:1", "fill:menu:m_continue:1", "fill:menu:m_join:1"] }
     }
   ],
   "phases": [{ "key": "waiting", "type": "player_input" }]

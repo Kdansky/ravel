@@ -500,7 +500,12 @@ function M.check(G)
 				where, p.fn)
 			return
 		end
-		if p.fn == "count" or p.fn == "tagged" or p.fn == "not_tagged" then
+		if p.fn == "saved" then
+			if not tostring(p.arg):match("^[%w_%-]+$") then
+				warn("%s: '%s' is not a save slot — letters, digits, - and _, and the engine decides where it lands",
+					where, tostring(p.arg))
+			end
+		elseif p.fn == "count" or p.fn == "tagged" or p.fn == "not_tagged" then
 			if not known_tags[p.arg] then
 				warn("%s: %s the tag '%s', but no card has it%s", where,
 					p.fn == "count" and "counts" or "asks about",
@@ -733,6 +738,11 @@ function M.check(G)
 			elseif t == "effect" and not (G.effect_defs or {})[a] then
 				warn("%s: '%s' plays the effect '%s', but the game defines no such effect%s",
 					where, op, a, suggest(a, G.effect_defs))
+			elseif t == "save" then
+				if not tostring(a):match("^[%w_%-]+$") then
+					warn("%s: '%s' names the save '%s', which isn't a plain word — the engine decides where a save lands, and it will be refused when it runs",
+						where, op, tostring(a))
+				end
 			elseif t == "gamefile" then
 				if not tostring(a):match("^[%w_%-]+%.json$") then
 					warn("%s: '%s' names '%s', which isn't a plain name.json — no folders or '..' are allowed (and it will be refused when it runs)",

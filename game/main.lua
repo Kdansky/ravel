@@ -13,6 +13,10 @@ local rng         = require("rng")
 -- is inert until a transport is linked.
 local net         = require("net")
 local netpanel    = require("netpanel")
+-- Beside net and for the same reason: requiring it is what makes save_game and
+-- load_save do anything, and nothing in the engine requires it back. Nothing
+-- here calls into it, so nothing here holds it.
+require("save")
 local render      = require("render")
 local tooltip     = require("tooltip")
 local inspect     = require("inspect")

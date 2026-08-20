@@ -133,6 +133,8 @@ The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>
 
 **The right-hand side may be another subject, not only a constant** — `"value@target >= max:value@mine.red"`. The rule that keeps it from becoming an expression language: it must *look* like a subject, naming a scope or a measuring fn, so a bare word is refused at the door rather than quietly reading as zero. Being a string parsed before the game runs, that refusal is now an authoring-time error and not a silent failure at run time.
 
+**One subject is not about cards at all.** `saved:<slot>` asks whether a save exists, as 1 or 0 — the `tagged:` shape, put to the machine rather than to the board. It is answered through a hook (`predicate.saved_slot`) rather than by `predicate` itself, because the save layer sits outside the engine and no engine module may require it; a build without that layer answers 0, which is true there. Any future question about the *machine* rather than the game takes that shape or it does not get asked: the engine states the word, somebody outside supplies the answer, and the honest answer when nobody does is *no*.
+
 **Legality between two cards lives on the destination.** `receive.needs` is a condition list asked of each candidate target, with itself as `@self` and the arriving card as `@target`. The block is what says *when* it is asked, which a bare field could not. Putting it there rather than on the acting card is what lets it name its own zone; a destination with no `receive` takes anything, which is what every game before it assumed.
 
 ---
@@ -425,3 +427,4 @@ State is flat and serializable, so the engine runs headless (`headless.lua` is t
 - Dev: `docker compose up --build` — watches `game/` and repacks on change.
 - Prod: `docker build` + `docker run -p 8080:8080`.
 - Tests: `luajit tests/run.lua` (headless, no LÖVE needed).
+- Saved games go in LÖVE's own save directory (`t.identity`), one file per slot. The browser's is IndexedDB-backed and love.js flushes it only at exit, so `save.lua` pushes every write across itself.
