@@ -1,8 +1,11 @@
 # 07 — Presentation and the gestures on top of it
 
-**Status:** **closed** — gaps 1–5 shipped, and gap 6 with them. Chess and Lost
-Cities announce a winner, and the same card reads as a victory on one machine
-and a defeat on the other.
+**Status:** **reopened.** Gaps 1–6 shipped: chess and Lost Cities announce a
+winner, and the same card reads as a victory on one machine and a defeat on the
+other. Gaps 7 and 8 came back off `todo.md` after seven games had been laid out
+by hand — both are complaints about *where a thing sits on the screen*, which is
+what this track is, and neither existed as a question until there were enough
+games to see the same answer typed seven times.
 
 The rules are in better shape than the surface they are shown through. Every
 item here is something a player sees or does, not something the engine computes.
@@ -525,3 +528,208 @@ the screen but the **thing the screen reads**.
   ceremony was already refused ([DONE.md](DONE.md), stage A), so a hot-seat
   ending announces the winner by name to the room rather than pretending the
   loser is not looking.
+
+---
+
+## Gap 7 — Where a game puts its buttons — *half shipped*
+
+*From `todo.md`: "The save button in chess is not great, it should just be in the
+same area as the how to play button. We need a more elegant way to have menus,
+possibly most games should just reserve a right-hand column for menu-stuff."*
+
+Two things, and only the second is this gap.
+
+**The immediate one is a typo-sized content fix.** `chess.json` puts its
+`controls` hand at `[0.03, 0.44, 0.24, 0.56]` — the left edge — and its `rules`
+pile at `[0.76, 0.45, 0.97, 0.55]`, the right. So the two buttons a player is
+never in doubt about, *Save* and *How to play*, sit at opposite ends of the
+board with the game between them. Moving `controls` into the right column beside
+`rules` is one line in one game file and needs nothing from the engine.
+**Done** — both are now a narrow strip at `x` 0.82–0.92, stacked, and the
+validator caught the first attempt overlapping the captured-pieces pile, which
+is a rule (`validate.lua:1517`) worth knowing exists: the lower-left corner
+belongs to the undo button and the event log, and a zone reaching into it is
+refused rather than drawn over.
+
+**The rest of the gap is untouched**, and is what the table below is about.
+
+**The real one: seven games have each invented their own chrome.** The button
+strip is a zone, which is right — a button is a card and a card lies somewhere —
+but *where* it lies is retyped per game, in fractions, against no shared
+vocabulary:
+
+| game | the chrome it invented |
+|---|---|
+| `chess.json` | `controls` hand left, `rules` pile right, both hand-placed |
+| `lor.json` | `controls` grid `[0.82, 0.32, 0.98, 0.68]`, per seat, between the decks |
+| `splendor.json` | buttons in the play area with the cards they act on |
+| `menu.json` | one hand zone that *is* the whole screen |
+
+Nothing is wrong with any of them individually. What is wrong is that a game
+author has to answer "where do the buttons go" before they can put a button
+anywhere, and the answer is arithmetic rather than a word.
+
+### What it would need
+
+[Assumption: the shape below is inferred from how `pos` and per-seat zones
+already work — the todo note says only "reserve a right-hand column", not how.]
+
+The cheap version is a **named region**: a zone's `pos` takes a word instead of
+four fractions, out of a closed set (`"sidebar"`, and whatever the second
+customer asks for), and `zones.resize` (`zones.lua:342`) resolves it to a rect
+the same way `ratio` already post-processes one. That is one branch in one
+function, and it makes "the buttons go in the usual place" a thing a game can
+say.
+
+The expensive version is a **menu layer** — chrome that is not a zone at all,
+drawn outside the board rect, with the board given the remaining space. That
+buys a right-hand column every game gets for free, and charges for it
+everywhere: `pos` fractions are of the *window* today, so every existing game
+file's coordinates shift the moment something reserves part of it.
+
+**The cheap version first, and possibly only.** A word for a rect keeps the
+model — a button is a card in a zone — and the moment the engine draws chrome
+that is not made of entities, the inspector cannot inspect it, the network does
+not carry it and undo does not know about it.
+
+### What this is not
+
+- **Not a settings screen.** `save_game:<slot>` is a card with an action, as
+  [24](24-save-and-load.md) built it, and that is the right shape. The complaint
+  is where the card sits, not what it is.
+- **Not a per-seat question.** LoR's controls are per seat because each seat
+  passes and attacks; chess's *Save* is neither seat's. A named region has to
+  keep working for both, which the per-seat `pos` list already does.
+
+---
+
+## Gap 8 — A card's numbers in a column, and what colours them — **shipped**
+
+> **Three words, and a fourth thing that was the real find.** `badge_run:
+> "down"` runs a card's badges down the left edge instead of along the bottom;
+> `badge_zeros: false` leaves out a badge whose number is zero; and a stat
+> declares `color` beside its `icon`, in the palette vocabulary `art.colour`
+> already reads. Splendor's ninety market cards print their price as a column of
+> gems and their title is now what the card *gives* you.
+>
+> The find is underneath all three: **`badges` named on a zone's style is read
+> by nobody.** `cards.style` asks the card, and a style is claimed by carrying a
+> tag of its name — so `splendor.json` had `badges` on three zone styles
+> (`market`, `counter`, and `market` again through the nobles) and drew none of
+> them. Not one of the three was an error: the property is legal, the style
+> exists, and there is nothing to find by reading the file. The token piles have
+> shown their remaining count for the first time as a result — which decides
+> whether two of a colour may be taken, and had never been on screen.
+> `validate.lua` now refuses a style that names badges no card wears, and the
+> case is in `tests/integration/validator.lua` as *the one that cost a year*.
+>
+> The two questions the write-up said were the work were answered as it guessed
+> for one and against for the other. Zeros: **per style, not per stat** —
+> `badge_zeros` is a style property, because the alternative it pointed at
+> ([06](06-schema-and-types.md) gap 6) turned out to have nothing in it. Colour:
+> **on the stat, not on the style** — the HUD row and the badge draw the same
+> icon and would otherwise disagree, and Splendor's onyx was an orange sword in
+> both places.
+>
+> One thing left, and it is small: a badge always draws an icon, so the token
+> piles' `bank` count wears the fallback diamond on all six piles. The plate
+> colour and the label say which gem it is, so this reads as clutter rather than
+> as a lie — but a badge that is only a number has no spelling.
+
+### The original write-up
+
+
+*From `todo.md`: "Instead of cards having their stats at the bottom, for
+splendor it would make a lot of sense if we could list them as a column on the
+card, and have icons or even coloured fonts", and — the same complaint from the
+other side — "The cost shouldn't be part of the text, this makes it cumbersome
+to read. This should be displayed like we display stats."*
+
+Splendor's ninety development cards each carry their price twice. Once as
+`card_stats` — `cost_white`, `cost_blue`, `cost_green`, `cost_red`,
+`cost_black`, which is what the purchase arithmetic actually reads — and once as
+the card's **title**, the string `"2R 1K"`, which is what a player reads.
+`splendor.json`'s `market` style badges only `vp`, so the five numbers that
+decide every purchase in the game are drawn nowhere and the title is doing
+their job in an abbreviation nobody was taught.
+
+The engine already has every piece of this except the layout.
+
+- `draw_card_stats_overlay` (`render.lua:766`) draws a style's `badges` list as
+  icon-and-number pills **along the bottom edge, left to right**. Five of those
+  do not fit across a market card.
+- `draw_cost_badge` (`render.lua:470`) already draws icon-and-number pills for a
+  `play.cost` map — in the **top-left corner**, as a row. So the icon+number pill
+  keyed by stat name is a shipped idiom with two call sites and two hardcoded
+  placements.
+- `stat_icon` (`render.lua:266`) reads the stat's declared `icon`, out of the
+  closed set in `ICON_COLOR` (`render.lua:211`). A stat with none draws the
+  diamond.
+
+### What it needs
+
+**A style says which edge its badges run along.** `badges` stays the list of
+stat keys; the direction is a second field taking a word, the way `fan` already
+does for a stack ("The word is the direction the next card goes"). Adding it to
+`STYLE_FIELDS` (`validate.lua:225`) is append-only, and `SCHEMA.json` plus
+AUTHORING's style table take the same sentence.
+
+Two questions the note does not answer, and they are the whole of the work:
+
+- **A zero is a line of the price that isn't there.** Every Splendor development
+  card carries all five `cost_*` stats, most of them `0`, because the pricing
+  arithmetic needs the stat to exist on all ninety. A column that draws
+  `◆0 ◆0 ◆2 ◆0 ◆1` is worse than the abbreviation it replaces. But `power: 0`
+  on a Runeterra unit must still draw, so "skip zeros" cannot be the layout's
+  private rule. [Assumption: this wants to be said per style rather than per
+  stat, since it is a fact about *this card face* rather than about the number —
+  but the alternative, a word on the stat's own declaration, is exactly what
+  gap 6 of [06](06-schema-and-types.md) is about, and if that is built this
+  falls out of it instead.]
+- **The icon set is shapes, and Splendor's five gems are colours.** `ICON_COLOR`
+  fixes a colour per shape: `blade` is orange, so onyx would be an orange sword.
+  Splendor's stats already borrow the five shapes (`t_white` is `diamond`,
+  `t_black` is `blade`) and get five wrong colours. Either a stat declares its
+  colour beside its icon, or badges take their colour from the style — the
+  note's "or even coloured fonts" is asking for one of those and does not say
+  which.
+
+### What falls out for free
+
+`vp` on a Splendor card has no `icon` and draws the diamond, while `score` — the
+same number, on the seat — declares `banner`. That is the third `todo.md` note
+("Prestige is important enough that it needs an icon, right?") and it is one line
+in `tools/make_splendor.py`, not part of this gap. It stays on `todo.md`.
+
+### Refuse
+
+- **A per-card layout.** The direction belongs to the style, which is how
+  [11](11-styles-as-tags.md) settled every other look: ninety cards claim one
+  word, they do not each carry a rect.
+- **The engine knowing that `cost_white` is a cost.** It is a stat with an icon
+  and a place on the face. Whether the *format* should have a word for "this
+  number is a price" is [06](06-schema-and-types.md) gap 6, and it must not be
+  answered by the renderer noticing a prefix.
+
+---
+
+## What the same pass found on the way past
+
+Two things fixed because the work above could not be seen without them.
+
+**A named zone was named only while it was empty.** `draw_zone_label` prints
+along the top edge and `card_places` laid the first card over it, so a hand with
+anything in it lost its name — which is the half of the time a name is worth
+having. `card_places` now reserves the label's height at the top of a non-grid
+zone (`render.lua`, the hand branch) and centres the cards in what is left.
+Splendor's *Bought* and *Reserved*, The Crew's *Said*, and the menu's two lists
+all gained a label they had always declared. **A grid still covers its own** —
+its cells come from `zones.cell_rect` rather than from `card_places`, so LoR's
+*Bench* still disappears under the first unit played into it. Left, deliberately:
+it is the same fix in a different module and no game has complained.
+
+**The wheel scrolled by the browser's pixel delta.** `love.wheelmoved` passed
+`-dy * 3` into the inspector, and only the *sign* of `dy` is portable — natively
+a notch is a small integer, under love.js it is a pixel count, so one click
+scrolled a Splendor dump about eighty rows and the middle of it could not be
+reached at all. Six lines a click, in the direction of the wheel.

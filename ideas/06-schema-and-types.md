@@ -441,3 +441,81 @@ Neither group can become a tag, for a different reason each:
 So the tail of the note is refused on evidence rather than on taste: there are
 no stray booleans that want to be tags, because the format already put every
 boolean somewhere a tag cannot reach.
+
+---
+
+## Gap 6 — A stat that says what kind of number it is
+
+*From `todo.md`, alongside the Splendor cost note: "Possibly we can put the cost
+into a stat by default and then just reference it? Maybe have stats that are
+declared to be costs? Do we have a global stat registry where we can default
+behaviour of them? E.g. `stats: { name: mana, type: cost }` or similar? This
+needs some care on how we handle conflicts, where a stat could be both a cost
+and also have a different meaning. For example in MTG, 'red mana' is usually a
+cost, but some cards can also give you red mana, or do something else with it."*
+
+**The registry the note asks whether we have: we do.** `stats` is a top-level
+list in every game file and `declaration.G.stat_defs` is the map it becomes. A
+stat already declares `label`, `icon`, `min`, `max`, `subject`, `on` (which
+cards carry it, and where they start) and `tags`. So the question is not whether
+there is a place to put a default — there is — but **whether "this number is a
+price" is a fact about the number at all.**
+
+### The evidence says it is not, and the note's own example is why
+
+The note answers itself with MTG: red mana is a cost on most cards, a resource
+on some, and the subject of an effect on others. `t_red` in Splendor is the
+same — it is spent on a purchase, gained from the bank, and compared against a
+noble's threshold. A `type: cost` on the stat's declaration would be true in one
+of those three sentences and misleading in the other two, and the engine would
+then have to decide what it *does* with the label. Two candidates, and neither
+survives:
+
+- **It changes behaviour** — a `cost` stat is deducted automatically somewhere.
+  That is `play.cost` already, which is a map on the *moment*, not on the stat,
+  and is right to be: the same number costs 2 on one card and 5 on another.
+- **It changes presentation** — a `cost` stat is drawn in the price corner. Then
+  the word is a style question wearing a schema's clothes, and it belongs to
+  [07](07-presentation.md) gap 8, where a card face says which of its numbers it
+  shows and where.
+
+Which leaves a third reading that *is* worth something and is much smaller.
+
+### What is actually missing: a default a stat can hand its cards
+
+Splendor's five `cost_*` stats are declared with `on: ["development"]` and **no
+`start`**, so they grant nothing, and every one of the ninety generated cards
+carries all five in `card_stats` — three of them `0` on a typical card — because
+the arithmetic needs the stat to exist before `stat_damage` can reach it
+("an action skips a card that has none"). That is 450 numbers written down to
+make 450 subtractions legal, and it is the same shape as the complaint
+[07](07-presentation.md) gap 8 hits from the drawing side: a zero that is
+structurally required and visually noise.
+
+> **Checked, and the assumption was wrong.** The proposal here was `start: 0` on
+> those five declarations, with the zeros deleted from the generator. The
+> machinery does exist (`declaration.lua:671`), but the missing `start` is
+> **deliberate**, and `tools/make_splendor.py` says so where it declares them:
+> *"The ones with no `start` are the card's own to declare, and the validator
+> holds the generator to it — a development card without a white cost is a bug
+> in this file, not a card that costs nothing."* The 450 zeros are a checksum,
+> not duplication: granting them a default would turn a card that forgot its
+> price into a card that is free, silently. So the salvage is not this either,
+> and what the zeros cost — a column of `0`s on the face — was answered in
+> presentation instead, by [07](07-presentation.md) gap 8's `badge_zeros`.
+>
+> Which leaves gap 6 with nothing to build, and that is the finding: the whole
+> note, including the part that looked like a real measurement underneath it,
+> dissolves. A stat says its bounds, whose number it is, where they start, and
+> what it looks like. It does not say what it is *for*.
+
+### Refuse
+
+- **A vocabulary of stat kinds.** `cost`, `resource`, `counter`, `score` — a
+  closed set that is always missing somebody's, and every word in it is a
+  behaviour the engine would then own. Invariant: the engine does not know one
+  game's words, and "cost" is one game's word about one of its numbers, not a
+  property of numbers.
+- **Resolving the conflict the note names.** There is no conflict to resolve
+  once the label is not there: red mana is a stat, and what a card *does* with
+  it is written on the card.

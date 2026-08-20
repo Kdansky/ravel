@@ -451,3 +451,63 @@ game is worse than one that says where:
   game engine, and invariant 7 is gone.
 - **The client, the collection, the levelling, the art.** This is a rules
   implementation played from a fixed deck list.
+
+---
+
+## What `todo.md` sent back after milestone 1
+
+Three notes came off the inbox once the vanilla game was playable. Two of them
+are already this file's stage-2 table wearing different words; one is not, and
+it is content.
+
+**"It's also missing a zone for the spellstack."** Stage 2 already names the
+response stack, and [20](20-puzzle-strike.md) names the same engine gap from the
+other side (`flow.reachable` refuses a card played out of turn, which is what
+casting in response *is*). The zone is the last part of that, not the first:
+there is nothing to put in it until a spell exists, and a spell cannot exist
+until a card can be played when it is not your turn. Sequenced behind the stack,
+not beside it.
+
+**"Runeterra needs player cards for the nexus for both players which have their
+mana and their spell mana on it."** Half of this is buildable today and half is
+stage 2.
+
+> **Shipped.** Two `grid [1, 1]` zones down the left edge, `nexus_north` and
+> `nexus_south`, each holding its seat's card with a `nexus_plate` style badging
+> `nexus` and `mana`. Content only, as predicted — but a **grid**, not a pile,
+> and that is the thing worth writing down: `draw_card_stats_overlay` is called
+> from the grid branch of `draw_zone` and from the browse overlay, **and nowhere
+> else**, so a card lying in a hand or on a pile shows no badges at all. A
+> nameplate without its two numbers is a nameplate. The test says so, because a
+> plate that stopped being a grid would go blank without failing anything else.
+>
+> Two smaller things came with it. The validator refuses a zone reaching into
+> the lower-left corner, where the undo button and the event log live, which
+> bounded how low the south plate could sit and made the pair symmetric about
+> the halfway line rather than about the space available. And `nexus` and `mana`
+> now declare icons — a heart and a diamond — so the HUD rows they already had
+> stopped being two identical grey lozenges.
+
+The buildable half: `north` and `south` already exist as seat cards carrying
+`nexus: 20` and `mana: 0`, and they are drawn nowhere — `declaration.lua:635`
+sends a seat that names no home to the `system` zone, so the two most important
+numbers in the game are readable only in the corner HUD, and only for the seat
+watching. A game may place a seat card itself: `declaration.lua:693` skips the
+engine's own prepend for any card `setup.place` already names, and
+`flow.lua:463` honours that entry's `zone`. So two ordinary zones — one per
+side, *not* `per_seat`, since `zones.all_with_key` would otherwise drop a copy
+of the same seat card into both instances — plus a style badging `nexus` and
+`mana`, and both nexuses are on the table. Pure content, and it lands on the
+empty left column below.
+
+The stage-2 half: **there is no spell mana.** It is named in "What milestone 1
+deliberately does not do" and it is not a display question — unspent mana
+converting at end of round, capped at three, spendable only on spells, is a rule
+that needs the spells it pays for. The card gains a third badge when that ships.
+
+**"Runeterra wastes a lot of space on the left side where there is nothing."**
+True and measurable: `bench` and `battle` both start at `x = 0.16`, `hand` at
+`0.04`, and the decks and controls hold the right edge from `0.82` out. The band
+from `0.00` to `0.16` between the two hands is empty in every frame of every
+game. It is exactly where the two nexus cards go, which is why these two notes
+are one edit and not two.
