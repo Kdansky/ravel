@@ -12,6 +12,8 @@ local entity = require("entity")
 local cards = require("cards")
 local flow = require("flow")
 local actions = require("actions")
+local validate = require("validate")
+local declaration = require("declaration")
 
 local M = {}
 
@@ -203,109 +205,98 @@ function M.test_stats_the_bounds_travel_with_the_card(check)
 	end)
 end
 
--- **A tag may carry the numbers every card wearing it starts with.**
+-- **A stat says whose number it is, and where they start.**
 --
 -- Carrying a stat is how a card says it takes part in a number: an action skips
 -- a card that has none (predicate.bearers), and an absent stat fails every
--- comparison rather than reading as zero. Both rules are load-bearing and
--- neither is worth writing out forty times — The Crew had 282 zeros in 407
--- card_stats entries and Splendor 1256 in 1662, all of them one sentence
--- repeated. The tag says it once.
+-- comparison rather than reading as zero. Both rules are load-bearing, and both
+-- used to mean a deck of forty declared the same zero forty times — The Crew
+-- had 282 zeros in 407 card_stats entries and Splendor 1,256 in 1,662. Said in
+-- the stats section instead, beside the floor and the ceiling of the same
+-- number, which is where the rest of what a stat *is* already lives.
 local GRANTED = [==[{
   "title": "Granted",
   "stats": [
-    { "key": "wear", "min": 0, "max": 9, "tags": ["hidden"] },
-    { "key": "heat", "min": 0, "max": 9, "tags": ["hidden"] }
+    { "key": "wear", "min": 0, "max": 9, "tags": ["hidden"], "on": ["tool"], "start": 0 },
+    { "key": "heat", "min": 0, "max": 9, "tags": ["hidden"], "on": ["hot"], "start": 3 },
+    { "key": "edge", "min": 0, "max": 9, "tags": ["hidden"], "on": ["tool"] }
   ],
   "zones": [
     { "key": "board", "type": "grid", "grid": [6, 1], "pos": [0.1, 0.3, 0.9, 0.6] }
   ],
   "phases": [{ "key": "act", "type": "player_input" }],
-  "tags": {
-    "tool":  { "card_stats": { "wear": 0, "heat": 0 } },
-    "spare": { "card_stats": { "wear": 0 } },
-    "hot":   { "card_stats": { "heat": 3 } }
-  },
   "cards": [
     { "key": "plain", "text": "Plain" },
-    { "key": "hammer", "text": "Hammer", "tags": ["tool"] },
-    { "key": "worn", "text": "Worn", "tags": ["tool"], "card_stats": { "wear": 5 } },
-    { "key": "both", "text": "Both", "tags": ["tool", "spare"] },
-    { "key": "torch", "text": "Torch", "tags": ["spare", "hot"] }
+    { "key": "hammer", "text": "Hammer", "tags": ["tool"], "card_stats": { "edge": 1 } },
+    { "key": "worn", "text": "Worn", "tags": ["tool"], "card_stats": { "wear": 5, "edge": 2 } },
+    { "key": "torch", "text": "Torch", "tags": ["tool", "hot"], "card_stats": { "edge": 3 } }
   ],
   "setup": {
     "place": [
       { "card": "plain", "zone": "board", "at": ["a1"] },
       { "card": "hammer", "zone": "board", "at": ["b1"] },
       { "card": "worn", "zone": "board", "at": ["c1"] },
-      { "card": "both", "zone": "board", "at": ["d1"] },
-      { "card": "torch", "zone": "board", "at": ["e1"] }
+      { "card": "torch", "zone": "board", "at": ["d1"] }
     ]
   }
 }]==]
 
-local function with_granted(fn)
+local function with_granted(text, fn)
 	local path = "game/games/tmp_granted.json"
 	local f = assert(io.open(path, "w"))
-	f:write(GRANTED)
+	f:write(text)
 	f:close()
 	local ok, err = pcall(fn, "tmp_granted.json")
 	os.remove(path)
 	if not ok then error(err, 0) end
 end
 
-function M.test_stats_a_tag_may_carry_the_numbers_it_grants(check)
-	with_granted(function(name)
+function M.test_stats_a_stat_says_whose_number_it_is(check)
+	with_granted(GRANTED, function(name)
 		flow.init(name, 3)
-		local function card(key)
-			for e in entity.each("card") do
-				if e.def_key == key and e.zone_id then return e end
-			end
-		end
-
-		check("a card without the tag carries nothing", card("plain").stats.wear == nil)
-		check("a card with it starts where the tag says",
-			card("hammer").stats.wear == 0 and card("hammer").stats.heat == 0)
-		check("and its own always wins", card("worn").stats.wear == 5,
+		check("a card the stat never named carries nothing", card("plain").stats.wear == nil)
+		check("one it named starts where it said", card("hammer").stats.wear == 0)
+		check("and the card's own still wins", card("worn").stats.wear == 5,
 			tostring(card("worn").stats.wear))
-		check("two tags agreeing is fine", card("both").stats.wear == 0)
-		check("and a tag may start a stat anywhere, not only at zero",
-			card("torch").stats.heat == 3, tostring(card("torch").stats.heat))
+		check("a stat may start anywhere, not only at zero", card("torch").stats.heat == 3,
+			tostring(card("torch").stats.heat))
+		check("and only on the cards it named", card("hammer").stats.heat == nil)
 
 		-- The whole point of the rule the zeros were standing in for.
 		actions.execute("stat_gain:wear@each.board:1", {})
-		check("the change reaches the card the tag equipped", card("hammer").stats.wear == 1)
-		check("and skips the one nothing gave the stat to", card("plain").stats.wear == nil)
-
-		check("and every card the tag equipped moved together",
-			card("both").stats.wear == 1 and card("torch").stats.wear == 1)
+		check("the change reaches every card the stat equipped",
+			card("hammer").stats.wear == 1 and card("torch").stats.wear == 1)
+		check("and skips the one nothing gave it to", card("plain").stats.wear == nil)
 	end)
 end
 
--- Two tags that disagree hand over nothing at all, exactly as an ambiguous home
--- zone does: the stat is absent, which fails closed, and the parse says which
--- two to look at rather than picking whichever came first in the file.
-function M.test_stats_two_tags_disagreeing_grant_nothing(check)
-	local path = "game/games/tmp_granted_clash.json"
-	local text = GRANTED:gsub('"hot":   { "card_stats": { "heat": 3 } }',
-		'"hot":   { "card_stats": { "heat": 3 } },\n    "cold":  { "card_stats": { "heat": 1 } }')
-		:gsub('"tags": %["spare", "hot"%]', '"tags": ["hot", "cold"]')
-	local f = assert(io.open(path, "w"))
-	f:write(text)
-	f:close()
-	local ok, err = pcall(function()
-		local G = require("declaration").parse("tmp_granted_clash.json")
-		local said = table.concat(G.parse_problems or {}, "\n")
-		check("the parse says which two disagree",
-			said:find("start 'heat' differently") ~= nil, said)
-		flow.init("tmp_granted_clash.json", 3)
-		local torch
-		for e in entity.each("card") do if e.def_key == "torch" then torch = e end end
-		check("and the stat is absent rather than one of the two",
-			torch.stats.heat == nil, tostring(torch.stats.heat))
+-- A stat that names its cards and says no `start` is one each of them declares:
+-- "a creature has hp, and every creature says how much". Nothing is handed out,
+-- and forgetting is an authoring error rather than a card quietly absent from
+-- an arithmetic that is about it.
+function M.test_stats_a_stat_may_require_rather_than_grant(check)
+	with_granted(GRANTED, function(name)
+		flow.init(name, 3)
+		check("each card said its own", card("hammer").stats.edge == 1
+			and card("worn").stats.edge == 2 and card("torch").stats.edge == 3)
+		check("and nothing was handed out", card("plain").stats.edge == nil)
+		check("the file is clean", #validate.check(declaration.parse(name)) == 0)
 	end)
-	os.remove(path)
-	if not ok then error(err, 0) end
+
+	local missing = GRANTED:gsub('"tags": %["tool"%], "card_stats": { "edge": 1 }', '"tags": ["tool"]')
+	with_granted(missing, function(name)
+		local problems = table.concat(validate.check(declaration.parse(name)), "\n")
+		check("a card that forgets is named", problems:find("'hammer' never says") ~= nil, problems)
+		check("and only that one", select(2, problems:gsub("never says", "")) == 1, problems)
+	end)
+
+	-- Saying where a stat starts without saying whose it is knows nobody.
+	local orphan = GRANTED:gsub('"on": %["hot"%], "start": 3', '"start": 3')
+	with_granted(orphan, function(name)
+		local problems = table.concat(validate.check(declaration.parse(name)), "\n")
+		check("a start with nobody to start is refused",
+			problems:find("says where it starts but not whose it is") ~= nil, problems)
+	end)
 end
 
 return M

@@ -42,17 +42,6 @@ M.MOMENTS = MOMENTS
 -- may be standing on the square it lands on. A bare string is a rule of its
 -- own, which is what lets a rook be ["line_ortho"] and only the pawn — whose
 -- three rules differ in exactly that — pay for the long form.
--- Whether two tags say the same starting number. A stat may be written as a
--- bare value or as its bounds beside it, so this compares both shapes.
-local function same_start(a, b)
-	if type(a) ~= "table" or type(b) ~= "table" then return a == b end
-	if #a ~= #b then return false end
-	for i = 1, #a do
-		if a[i] ~= b[i] then return false end
-	end
-	return true
-end
-
 local function normalise_moves(moves)
 	local out = {}
 	for _, rule in ipairs(type(moves) == "table" and moves or {}) do
@@ -393,43 +382,6 @@ function M.parse(filename)
 			flatten_moments(cd, pp, "card '" .. cd.key .. "'")
 			cd.tags_set = tag_set(cd.tags)
 			cd.style = merge_styles(G, cd.tags_set)
-			-- **Numbers a tag hands to whatever wears it.** A card carrying a
-			-- stat is how it says it takes part in that number: it is what makes
-			-- "every beast loses hp" skip a card with no hp, and what makes an
-			-- absent stat fail every comparison rather than read as zero. Both
-			-- rules are worth keeping and neither is worth writing out forty
-			-- times, so the tag says it once — "a play_card is a card with these
-			-- numbers on it".
-			--
-			-- The card's own always wins, so one card may start somewhere else.
-			-- Two tags that disagree hand over nothing at all, exactly as an
-			-- ambiguous home zone does: the stat is then absent, which fails
-			-- closed, and the message below says which two to look at.
-			--
-			-- Only the card's *own* tags. A tag a zone hands out ("applies") is
-			-- what a card can do while it lies there; a stat is on the entity
-			-- from the moment it is made, and cannot arrive later.
-			local granted, said_by, clash = {}, {}, {}
-			for _, tg in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
-				local td = G.tag_defs[tg]
-				local from = type(td) == "table" and type(td.card_stats) == "table" and td.card_stats or {}
-				for k, v in pairs(from) do
-					if said_by[k] == nil then
-						granted[k], said_by[k] = v, tg
-					elseif not clash[k] and not same_start(granted[k], v) then
-						clash[k], granted[k] = true, nil
-						pp[#pp + 1] = ("card '%s' is tagged '%s' and '%s', which start '%s' differently"
-							.. " — one of them has to give, so it starts nowhere"):format(
-							cd.key, tostring(said_by[k]), tostring(tg), tostring(k))
-					end
-				end
-			end
-			if next(granted) ~= nil then
-				cd.card_stats = cd.card_stats or {}
-				for k, v in pairs(granted) do
-					if cd.card_stats[k] == nil then cd.card_stats[k] = v end
-				end
-			end
 			-- A piece that says how it moves is asking for the ordinary board
 			-- targeting, so the engine writes the spec rather than making every
 			-- piece repeat the same four fields.
@@ -487,7 +439,38 @@ function M.parse(filename)
 				G.stat_defs_list[#G.stat_defs_list + 1] = sd.key
 			end
 			sd.tags_set = tag_set(sd.tags)
+			if type(sd.on) == "string" then sd.on = { sd.on } end
 			G.stat_defs[sd.key] = sd
+		end
+	end
+
+	-- **A stat says which cards it is a number about, and where they start.**
+	--
+	-- Carrying a stat is how a card says it takes part in that number: an action
+	-- skips a card that has none, and an absent stat fails every comparison
+	-- rather than reading as zero. Both rules are load-bearing, and both used to
+	-- mean a card that is one of forty in a deck declared the same zero forty
+	-- times. Said here instead, beside the floor and the ceiling of the same
+	-- number, which is where the rest of what a stat *is* already lives.
+	--
+	-- The card's own value always wins, so one card may start somewhere else.
+	-- A stat naming its cards and saying no `start` is one they must each
+	-- declare — "a creature has hp, and every creature says how much" — which
+	-- the validator checks and this pass leaves alone.
+	for _, key in ipairs(G.stat_defs_list) do
+		local sd = G.stat_defs[key]
+		if type(sd.on) == "table" and sd.start ~= nil then
+			for _, ck in ipairs(G.card_list) do
+				local cd = G.card_defs[ck]
+				local wears = false
+				for _, tg in ipairs(sd.on) do
+					if cd.tags_set and cd.tags_set[tg] then wears = true; break end
+				end
+				if wears then
+					cd.card_stats = cd.card_stats or {}
+					if cd.card_stats[key] == nil then cd.card_stats[key] = sd.start end
+				end
+			end
 		end
 	end
 

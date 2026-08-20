@@ -151,7 +151,9 @@ local PHASE_FIELDS = {
 	zone_list = true,
 }
 local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subject = true,
-	tags = true, tags_set = true, icon = true }
+	tags = true, tags_set = true, icon = true,
+	-- Whose number this is, and where they start. See the check below.
+	on = true, start = true }
 -- A tag def is a mixin: it may carry a home zone, and the card behaviour a zone
 -- hands to whatever sits in it ("applies"). Kept to the fields a granted rule
 -- can honestly mean — nothing that would have to be re-derived as state moves.
@@ -160,10 +162,6 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 -- re-derived as state moves — so `activate` is the only block it takes.
 local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
 	abilities = true,
-	-- The numbers every card wearing it starts with, merged into the card's own
-	-- at parse. A card carrying a stat is how it says it takes part in that
-	-- number, and saying so on forty cards is the tag's job.
-	card_stats = true,
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
 	activate_phases = true, moves = true,
@@ -916,6 +914,45 @@ function M.check(G)
 		end
 	end
 
+	-- **Whose number a stat is.** Carrying a stat is how a card says it takes
+	-- part in one — an action skips a card that has none, and an absent stat
+	-- fails every comparison rather than reading as zero — so a deck of forty
+	-- used to declare the same zero forty times. A stat says it once instead,
+	-- beside the floor and the ceiling of the same number.
+	--
+	-- With `start`, every card carrying one of those tags is handed that value
+	-- and may still say its own. Without one, each of them has to say — "a
+	-- creature has hp, and every creature says how much" — and forgetting is
+	-- what the second loop catches. Walked in declared order, because a warning
+	-- per card is a list somebody reads.
+	for _, key in ipairs(G.stat_defs_list or {}) do
+		local def   = G.stat_defs[key] or {}
+		local where = "stat '" .. key .. "'"
+		if def.start ~= nil and def.on == nil then
+			warn('%s: says where it starts but not whose it is — name the cards with "on": ["<tag>"]', where)
+		end
+		for _, tg in ipairs(type(def.on) == "table" and def.on or {}) do
+			if not known_tags[tg] then
+				warn("%s: is a number about '%s', which nothing defines or wears%s",
+					where, tostring(tg), suggest(tg, known_tags))
+			end
+		end
+		if type(def.on) == "table" and def.start == nil then
+			for _, ck in ipairs(G.card_list) do
+				local cd = G.card_defs[ck] or {}
+				for _, tg in ipairs(def.on) do
+					if cd.tags_set and cd.tags_set[tg] then
+						if type(cd.card_stats) ~= "table" or cd.card_stats[key] == nil then
+							warn("%s: is a number every '%s' carries, and the card '%s' never says"
+								.. " what it starts at", where, tostring(tg), tostring(ck))
+						end
+						break
+					end
+				end
+			end
+		end
+	end
+
 	-- Tag behaviour.
 	for tag, td in pairs(tag_defs) do
 		local where = "tag '" .. tostring(tag) .. "'"
@@ -939,16 +976,12 @@ function M.check(G)
 			-- Reported rather than resolved: there is no precedence rule to
 			-- fall back on, and inventing one hides the mistake.
 			--
-			-- Two exceptions, and both because they *do* have a precedence
-			-- rule. Abilities are one: two answers is exactly what they are
-			-- for, so a card that can already do something and is handed
-			-- another can do both, and the player is asked which. `card_stats`
-			-- is the other: it merges per key, the card's own winning, which is
-			-- what lets a tag say the zeros forty cards share while each card
-			-- still says what is true of itself. Two *tags* disagreeing is
-			-- still an error, and declaration.parse reports it.
+			-- Abilities are the exception, and the only one: two answers is
+			-- exactly what they are for. A card that can already do something
+			-- and is handed another thing can do both, and the player is asked
+			-- which — where a granted ability used to hide the card's own.
 			for field in pairs(td) do
-				if field ~= "zone" and field ~= "abilities" and field ~= "card_stats" then
+				if field ~= "zone" and field ~= "abilities" then
 					for _, ck in ipairs(G.card_list) do
 						local cd = G.card_defs[ck]
 						if cd.tags_set and cd.tags_set[tag] and cd[field] ~= nil then

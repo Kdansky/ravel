@@ -40,6 +40,8 @@ MAX_TASKS = 5
 # arithmetic: **a floor of zero is what turns stat_damage into max(0, a - b)**,
 # which is the only clamp the amount grammar has.
 SCRATCH = ["suit", "value", "trump", "live", "over", "contend", "best", "gap"]
+# suit and value are this card's own and every playing card says them; the rest
+# start at zero on all forty, so the stats section says that once.
 
 
 # --- the trick arithmetic ------------------------------------------------
@@ -403,11 +405,22 @@ def build():
             {"key": "led", "min": 0, "max": 99, "tags": ["hidden"]},
             {"key": "want", "min": 0, "max": 99, "tags": ["hidden"]},
             {"key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"]},
-            {"key": "hit", "min": 0, "max": 99, "tags": ["hidden"]},
+            # Whose number each of these is, said once instead of on every card.
+            # A task starts unclaimed; a playing card says its own suit and value
+            # and starts the trick arithmetic at zero.
+            {"key": "hit", "min": 0, "max": 99, "tags": ["hidden"], "on": ["task"], "start": 0},
                 {"key": "radio", "label": "Radio", "icon": "banner", "min": 0, "max": 1,
              "subject": "radio@mine.player"},
-        ] + [{"key": f"v_{s[0]}", "min": 0, "max": 99, "tags": ["hidden"]} for s in SUITS]
-        + [{"key": k, "min": 0, "max": 999, "tags": ["hidden"]} for k in SCRATCH],
+        # A colour card's value under a name only its own colour carries, which
+        # is what lets max: and min: over a hand answer "my highest pink". Every
+        # card of the colour must say it, so the stat says so and the validator
+        # holds the generator to it.
+        ] + [{"key": f"v_{s[0]}", "min": 0, "max": 99, "tags": ["hidden"], "on": [s[0]]}
+             for s in SUITS]
+        + [{"key": k, "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"]}
+           for k in ("suit", "value")]
+        + [{"key": k, "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0}
+           for k in SCRATCH if k not in ("suit", "value")],
         "computed_tags": {
             "commander": {"stat": "has_r4", "at_least": 1},
             # The one card in the trick that fell short of the best by nothing.
@@ -415,13 +428,7 @@ def build():
             "hit_now": {"stat": "hit", "at_least": 1},
         },
         "tags": {
-            # The numbers every playing card takes part in, said once rather
-            # than forty times. A card carrying a stat is how it says it is one
-            # of the things this arithmetic is about, and the zeros were forty
-            # copies of that sentence.
-            "play_card": {"tooltip": "Follow the led suit if you hold it. Rockets beat every colour.",
-                          "card_stats": dict({"trump": 0}, **{k: 0 for k in SCRATCH if k not in ("suit", "value")})},
-            "task": {"card_stats": {"hit": 0}},
+            "play_card": {"tooltip": "Follow the led suit if you hold it. Rockets beat every colour."},
             # Never clicked: the trick is not tagged "activate", so this is
             # reachable only through activate_zone, which is ungated.
             "in_trick": {"abilities": [{"key": "weigh", "text": "Weigh", "action": contend()}]},

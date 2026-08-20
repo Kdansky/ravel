@@ -21,7 +21,7 @@
     { "key": "led", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "want", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "hit", "min": 0, "max": 99, "tags": ["hidden"] },
+    { "key": "hit", "min": 0, "max": 99, "tags": ["hidden"], "on": ["task"], "start": 0 },
     {
       "key": "radio",
       "label": "Radio",
@@ -30,18 +30,32 @@
       "max": 1,
       "subject": "radio@mine.player"
     },
-    { "key": "v_pink", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "v_blue", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "v_green", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "v_yellow", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "suit", "min": 0, "max": 999, "tags": ["hidden"] },
-    { "key": "value", "min": 0, "max": 999, "tags": ["hidden"] },
-    { "key": "trump", "min": 0, "max": 999, "tags": ["hidden"] },
-    { "key": "live", "min": 0, "max": 999, "tags": ["hidden"] },
-    { "key": "over", "min": 0, "max": 999, "tags": ["hidden"] },
-    { "key": "contend", "min": 0, "max": 999, "tags": ["hidden"] },
-    { "key": "best", "min": 0, "max": 999, "tags": ["hidden"] },
-    { "key": "gap", "min": 0, "max": 999, "tags": ["hidden"] }
+    { "key": "v_pink", "min": 0, "max": 99, "tags": ["hidden"], "on": ["pink"] },
+    { "key": "v_blue", "min": 0, "max": 99, "tags": ["hidden"], "on": ["blue"] },
+    { "key": "v_green", "min": 0, "max": 99, "tags": ["hidden"], "on": ["green"] },
+    { "key": "v_yellow", "min": 0, "max": 99, "tags": ["hidden"], "on": ["yellow"] },
+    { "key": "suit", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"] },
+    { "key": "value", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"] },
+    {
+      "key": "trump",
+      "min": 0,
+      "max": 999,
+      "tags": ["hidden"],
+      "on": ["play_card"],
+      "start": 0
+    },
+    { "key": "live", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 },
+    { "key": "over", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 },
+    {
+      "key": "contend",
+      "min": 0,
+      "max": 999,
+      "tags": ["hidden"],
+      "on": ["play_card"],
+      "start": 0
+    },
+    { "key": "best", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 },
+    { "key": "gap", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 }
   ],
   "computed_tags": {
     "commander": { "stat": "has_r4", "at_least": 1 },
@@ -49,11 +63,7 @@
     "hit_now": { "stat": "hit", "at_least": 1 }
   },
   "tags": {
-    "play_card": {
-      "tooltip": "Follow the led suit if you hold it. Rockets beat every colour.",
-      "card_stats": { "trump": 0, "live": 0, "over": 0, "contend": 0, "best": 0, "gap": 0 }
-    },
-    "task": { "card_stats": { "hit": 0 } },
+    "play_card": { "tooltip": "Follow the led suit if you hold it. Rockets beat every colour." },
     "in_trick": {
       "abilities": [
         {

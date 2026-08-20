@@ -131,13 +131,19 @@ a rule nobody chose.**
 carrying a stat is how it says it takes part in that number — an action skips a
 card that has none, and an absent stat fails every comparison rather than
 reading as zero — so the scratch registers an arithmetic writes had to be
-declared, at zero, on every card the arithmetic was about. **A tag carries them
-now**, with the card's own winning per key and two tags that disagree handing
-over nothing (an ambiguous number is no number, exactly as an ambiguous home is
-no home). Splendor went from 1,256 zeros in 1,662 `card_stats` entries to 336
-and Splendor's file from 6,453 lines to 5,476; The Crew from 282 in 407 to 10.
-What is left in both is real data — a card that costs no white, a noble that
-needs no green.
+declared, at zero, on every card the arithmetic was about. **A stat says whose
+number it is**, in the stats section beside its own floor and ceiling, which is
+where the rest of what a stat *is* already lived: `"on": ["play_card"]` and
+`"start": 0`. The card's own value still wins.
+
+**Saying `on` and no `start` is the other half, and it is a check rather than a
+default**: *a creature has hp, and every creature says how much*. That turns a
+whole class of silent bug into an authoring error — a card missing from an
+arithmetic that is about it used to be invisible, precisely because a stat
+nobody carries fails closed. Splendor went from 1,256 zeros in 1,662
+`card_stats` entries to 301 and from 6,453 lines to 5,505; The Crew from 282 in
+407 to 10. What is left in both is real data — a card that costs no white, a
+noble that needs no green.
 
 **What did turn up is a scope that cannot see a hand.** `count:<tag>` searches
 grid zones only, so "whose hand holds the rocket 4" — the commander, and the

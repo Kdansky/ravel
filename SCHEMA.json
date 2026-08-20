@@ -18,6 +18,10 @@
       "min": "number the stat is clamped to below. Usually 0.",
       "max": "number the stat is clamped to above.",
       "subject": "a subject expression the HUD row displays instead of the plain total, while the key still names what cards spend: sum:defense@standing shows the buildings still standing.",
+  "on": [
+   "tag names \u2014 whose number this is. Carrying a stat is how a card says it takes part in it: an action skips a card that has none, and an absent stat fails every comparison rather than reading as zero. Naming the cards here is how a deck of forty says that once instead of forty times."
+  ],
+  "start": "the number every card named by \"on\" starts with. Its own card_stats still wins, so one card may start somewhere else. Left out, the stat is one each of those cards must declare itself \u2014 \"a creature has hp, and every creature says how much\" \u2014 and the validator names the card that forgot. Saying start without on is refused, since it would not know whose number it is.",
       "icon": "the shape drawn beside this stat's number, on a card face and in the HUD: coin, heart, shield, banner, leaf, blade, or diamond. Named by shape rather than by meaning — what a game calls its currency is its own business — and a closed set, so a shape nobody draws is refused rather than silently becoming a diamond. Left out, it is the diamond.",
       "tags": [
         "a list of words; the engine knows hidden (keep it out of the HUD while cards may still read and change it)"
@@ -222,9 +226,6 @@
   "tags": {
     "<your tag name>": {
       "zone": "the home zone of every card carrying this tag, so a move_to with no zone, a gain, and a card whose start block names none all know where it goes without saying so",
-  "card_stats": {
-   "<stat key>": "the number every card carrying this tag starts with, in the same shapes a card's own card_stats takes. Carrying a stat is how a card says it takes part in that number \u2014 an action skips a card that has none, and an absent stat fails every comparison rather than reading as zero \u2014 so this is where a deck of forty says it once. The card's own card_stats wins; two tags that start the same stat differently hand over nothing, and the stat is then absent. Only the card's OWN tags: a tag a zone hands out through applies says what a card may do while it lies there, and a stat is on the card from the moment it is made."
-  },
       "play": {
         "cost": "what playing a card that lies here costs",
         "needs": ["conditions gating it"],

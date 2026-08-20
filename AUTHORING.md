@@ -1537,39 +1537,40 @@ fails *silently*: a board tagged `activaet` holds cards whose abilities can neve
 be used, and nothing else would ever say so. Short words are left alone, because
 `mage` is one edit from `page` and is nobody's mistake.
 
-### A tag can carry the numbers too
+### A stat says whose number it is
 
 **A card carrying a stat is how it says it takes part in that number.** An action
 skips a card that has none, and an absent stat fails every comparison rather than
-reading as zero — both rules are load-bearing, and both mean a card that is one
-of forty in a deck has to declare the same zeros forty times. It does not:
+reading as zero — both rules are load-bearing, and both used to mean a card that
+is one of forty in a deck declared the same zero forty times. The stat says it
+once instead, beside its own floor and ceiling:
 
 ```json
-"tags": {
-  "development": { "card_stats": { "due_white": 0, "short": 0, "buyable": 0 } }
-},
-"cards": [
-  { "key": "t1_white_01", "tags": ["development"],
-    "card_stats": { "cost_blue": 2, "vp": 0 } }
+"stats": [
+  { "key": "contend", "min": 0, "max": 999, "tags": ["hidden"],
+    "on": ["play_card"], "start": 0 },
+  { "key": "hp", "min": 0, "on": ["creature"] }
 ]
 ```
 
-Every card carrying the tag starts with those numbers, and **its own always
-wins**, so one card may start somewhere else without the tag knowing. A tag may
-start a stat anywhere, not only at zero.
+| Field | Meaning |
+|---|---|
+| `on` | tag names — whose number this is. A card carrying any of them takes part |
+| `start` | what those cards start at. **The card's own `card_stats` still wins**, so one card may start somewhere else |
 
-**Two tags that start the same stat differently hand over nothing**, and the
-parse says which two — the stat is then absent, which fails closed, exactly as
-an ambiguous home zone answers nothing rather than picking whichever tag came
-first in the file.
+**Left out, `start` means each of them says its own** — *a creature has hp, and
+every creature says how much* — and the validator names the card that forgot.
+That turns a whole class of silent bug into an authoring error: a card missing
+from an arithmetic that is about it used to be invisible, because a stat nobody
+carries fails closed.
 
-Only the card's **own** tags. A tag a zone hands out through `applies` says what
-a card may do while it lies there; a stat is on the card from the moment it is
-made and cannot arrive later.
+Saying `start` without `on` is refused: it would not know whose number it is.
 
-Splendor went from 1,256 zeros in 1,662 `card_stats` entries to 336, and The
-Crew from 282 in 407 to 10. What is left in both is real: a development card
-that costs no white, a noble that needs no green.
+`suit` and `value` in The Crew are the required form (every playing card says its
+own), and the eight scratch registers of the trick arithmetic are the granted
+one. Splendor went from 1,256 zeros in 1,662 `card_stats` entries to 301, and The
+Crew from 282 in 407 to 10. What is left in both is real: a development card that
+costs no white, a noble that needs no green.
 
 ### Computed tags
 

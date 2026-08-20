@@ -194,15 +194,33 @@ def stats():
     # Everything below is arithmetic. It is declared so that it has a floor of
     # zero — the floor is what makes subtraction mean "and no further" — and
     # hidden so that the HUD stays the seven numbers a player actually reads.
+    #
+    # A stat also says *whose* number it is. Carrying one is how a card says it
+    # takes part, so the scratch registers of the pricing used to be ten zeros
+    # written on all ninety development cards; "on" and "start" say it once.
+    # The ones with no "start" are the card's own to declare, and the validator
+    # holds the generator to it — a development card without a white cost is a
+    # bug in this file, not a card that costs nothing.
+    scratch = {"short": ["development", "noble"], "gold_due": ["development"],
+               "spent": ["development"], "buyable": ["development"],
+               "reserved": ["development"], "ok": ["noble"],
+               "vp": ["development", "noble"]}
+    for k in KEYS:
+        scratch[f"due_{k}"] = ["development"]
+    printed = {"tier": ["development"]}
+    for k in KEYS:
+        printed[f"cost_{k}"] = ["development"]
+        printed[f"n_{k}"] = ["noble"]
     hidden = ["t_total", "takes", "done", "first_take", "reserve_slots", "bought", "opens",
-              "ending", "short", "gold_due", "spent", "buyable", "vp", "bank",
-              "plenty", "ok", "reserved", "tier"]
+              "ending", "bank", "plenty"]
     hidden += [f"b_{k}" for k in KEYS]
-    hidden += [f"cost_{k}" for k in KEYS]
-    hidden += [f"due_{k}" for k in KEYS]
-    hidden += [f"n_{k}" for k in KEYS]
     for k in hidden:
         out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"]})
+    for k in sorted(scratch):
+        out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"],
+                    "on": scratch[k], "start": 0})
+    for k in sorted(printed):
+        out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"], "on": printed[k]})
     return out
 
 
@@ -364,7 +382,9 @@ def development(rows):
         # pricing writes are the same zero on all ninety, so the "development"
         # tag carries them — see the tags block.
         stats = {f"cost_{k}": cost[k] for k in KEYS}
-        stats.update({"vp": vp, "tier": tier})
+        stats["tier"] = tier
+        if vp:
+            stats["vp"] = vp
         out.append({
             "key": f"t{tier}_{bonus}_{seen[tier]:02d}",
             "text": letters,
@@ -386,6 +406,7 @@ def nobles(rows):
         # Every noble is worth three and starts unmet; only the threshold is
         # this card's. See the "noble" tag.
         stats = {f"n_{k}": cost[k] for k in KEYS}
+        stats["vp"] = 3
         out.append({
             "key": f"noble_{i + 1}", "text": words.replace(" + ", "  "),
             "tooltip": f"Visits you for free once your discounts reach {words}. "
@@ -530,18 +551,11 @@ def build(here):
         "tags": {
             # The ability is never clicked: neither zone is tagged "activate",
             # so it is reachable only through activate_zone, which is ungated.
-            # A card carrying a stat is how it says it takes part in that
-            # number: an action skips a card that has none, and an absent stat
-            # fails every comparison rather than reading as zero. Both rules are
-            # worth keeping; writing them out ninety times is not.
             "development": {
                 "abilities": [{"key": "price", "text": "Price", "action": pricing()}],
-                "card_stats": dict({f"due_{k}": 0 for k in KEYS},
-                                   short=0, gold_due=0, spent=0, buyable=0, reserved=0),
             },
             "noble": {
                 "abilities": [{"key": "check", "text": "Check", "action": noble_check()}],
-                "card_stats": {"ok": 0, "short": 0, "vp": 3},
             },
         },
         "zones": zones(rows),
