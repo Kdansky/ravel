@@ -422,7 +422,7 @@ file to check what may appear where.
 
 ### Stats
 
-`{ "key", "label", "min", "max", "subject", "icon", "tags" }`.
+`{ "key", "label", "min", "max", "subject", "icon", "color", "tags" }`.
 
 `icon` is the shape drawn beside the number, on a card face and in the HUD:
 `coin`, `heart`, `shield`, `banner`, `leaf`, `blade`, or `diamond`. **Named by
@@ -430,6 +430,12 @@ shape, not by meaning** — what your game calls its currency is your business,
 and the engine has no opinion about which word means money. A closed set: a
 shape nobody draws is refused rather than silently becoming a diamond. Left
 out, it *is* the diamond.
+
+`color` is what colour that shape is drawn in — a palette name or `#rrggbb`,
+the same vocabulary a zone paints its squares with. Left out, the shape's own
+colour is used, which is what makes an undeclared stat readable at a glance.
+Say it when the six shapes run out before your numbers do: Splendor has five
+gems, borrows five silhouettes, and its onyx came out an orange sword.
 
 `min` and `max` are the bounds every bearer of the stat is held between, and a
 card may narrow them for itself by writing `card_stats` as a list
@@ -1403,7 +1409,9 @@ A style carries everything about how a thing *looks*, for cards and zones alike:
 | `fan` | stack zones | show the whole stack, not just its top card — `"up"`, `"down"`, `"left"` or `"right"`, the way the next card is laid. See below |
 | `ratio` | zones | the shape it keeps whatever the window is — width over height, or `"grid"` to read it from the cell count |
 | `chequer` | grid zones | two colours alternated across the squares. **The first is a1's** — the bottom-left square — and a board wanting the other way round swaps the two strings. There is no flag for it |
-| `badges` | cards | the stat keys drawn as numbers along the bottom of the face, left to right: `["power", "health"]` is a creature card. Without it a card shows `hp` and nothing else — **a card that carries numbers and names none of them here shows none of them** |
+| `badges` | cards | the stat keys drawn as numbers along the bottom of the face, left to right: `["power", "health"]` is a creature card. Without it a card shows `hp` and nothing else — **a card that carries numbers and names none of them here shows none of them**. Read off the **card**, so a style only a zone claims draws nothing; the validator says so |
+| `badge_run` | cards | which way that list runs: `"right"` (default) along the bottom, or `"down"` the left edge from the top corner, for more numbers than go across a card. A column leaves the title its full width; a row makes way for it |
+| `badge_zeros` | cards | `false` leaves out a badge whose number is zero. A separate word from `badge_run` on purpose — a market card's cost of no rubies is not a line of the price, while a creature's zero power is a fact and must still draw |
 | `paint` | grid zones | `{ "<absolute pattern>": colour-or-filename }` — terrain, goal rows, home rows |
 | `cell_outline` | grid zones | `false` draws no outline on empty cells. Eligible squares still light up during a move |
 

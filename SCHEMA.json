@@ -23,6 +23,7 @@
   ],
   "start": "the number every card named by \"on\" starts with. Its own card_stats still wins, so one card may start somewhere else. Left out, the stat is one each of those cards must declare itself \u2014 \"a creature has hp, and every creature says how much\" \u2014 and the validator names the card that forgot. Saying start without on is refused, since it would not know whose number it is.",
       "icon": "the shape drawn beside this stat's number, on a card face and in the HUD: coin, heart, shield, banner, leaf, blade, or diamond. Named by shape rather than by meaning — what a game calls its currency is its own business — and a closed set, so a shape nobody draws is refused rather than silently becoming a diamond. Left out, it is the diamond.",
+  "color": "the colour of that shape, as a palette name or #rrggbb — the same vocabulary a zone paints its squares with. Left out, the shape's own colour is used, which is what makes an undeclared stat readable. Say it when the closed set of shapes has run out before a game's numbers have: Splendor has five gems and six silhouettes to borrow from, and onyx came out an orange sword.",
       "tags": [
         "a list of words; the engine knows hidden (keep it out of the HUD while cards may still read and change it)"
       ]
@@ -55,7 +56,9 @@
       "cell_outline": "grid zones: false draws no outline on empty cells, for a board that paints its own squares. Eligible squares still light up during a move.",
       "badges": [
         "cards: stat keys drawn as numbers along the bottom edge of the face, left to right — [\"power\", \"health\"] is a creature card. Without it a card shows hp (with its hp_max companion) as a coloured bar's worth and nothing else, which is the default every game before this was written against. A card that carries numbers and names none of them here shows none of them."
-      ]
+      ],
+      "badge_run": "cards: which way that list runs — \"right\", the default, along the bottom edge, or \"down\" the left edge from the top corner. A column is for more numbers than go across a card: a printed price of five gems is the case that asked for it, and it is also how the card being copied prints it. A column leaves the title its full width, where a row makes way for it.",
+      "badge_zeros": "cards: false leaves out a badge whose number is zero. A separate word from badge_run deliberately — a market card's cost of no rubies is not a line of the price, while a creature's zero power is a fact and must still draw."
     }
   },
   "cards": [

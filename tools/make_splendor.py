@@ -16,15 +16,19 @@ import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
 
-# key, label, one-letter shorthand printed on a card, plate colour, HUD icon.
+# key, label, one-letter shorthand, plate colour, HUD icon, icon colour.
 # The icons are named by *shape*, not by meaning, so each gem gets a different
-# silhouette in the row of six and none of them claims to be about money.
+# silhouette in the row of six and none of them claims to be about money. The
+# shapes carry colours of their own and five of them are wrong here — a blade is
+# orange, and onyx is not — so each gem says what colour it is. "silver" rather
+# than "white" for diamond and "grey" rather than "black" for onyx: both are
+# drawn on a dark pill, where the true colour of either would not be there.
 GEMS = [
-    ("white", "Diamond", "W", [0.86, 0.86, 0.82], "diamond"),
-    ("blue",  "Sapphire", "B", [0.22, 0.42, 0.78], "shield"),
-    ("green", "Emerald",  "G", [0.20, 0.56, 0.32], "leaf"),
-    ("red",   "Ruby",     "R", [0.76, 0.24, 0.24], "heart"),
-    ("black", "Onyx",     "K", [0.22, 0.22, 0.26], "blade"),
+    ("white", "Diamond", "W", [0.86, 0.86, 0.82], "diamond", "silver"),
+    ("blue",  "Sapphire", "B", [0.22, 0.42, 0.78], "shield", "blue"),
+    ("green", "Emerald",  "G", [0.20, 0.56, 0.32], "leaf", "green"),
+    ("red",   "Ruby",     "R", [0.76, 0.24, 0.24], "heart", "red"),
+    ("black", "Onyx",     "K", [0.22, 0.22, 0.26], "blade", "grey"),
 ]
 KEYS = [g[0] for g in GEMS]
 
@@ -189,9 +193,9 @@ def stats():
     seat = {"on": ["player"], "start": 0}
     out = [{"key": "score", "label": "Prestige", "icon": "banner", "min": 0, "max": 99,
             "subject": "score@mine.player", **seat}]
-    for k, label, _, _, icon in GEMS:
-        out.append({"key": f"t_{k}", "label": label, "icon": icon, "min": 0, "max": 10,
-                    "subject": f"t_{k}@mine.player", **seat})
+    for k, label, _, _, icon, tint in GEMS:
+        out.append({"key": f"t_{k}", "label": label, "icon": icon, "color": tint,
+                    "min": 0, "max": 10, "subject": f"t_{k}@mine.player", **seat})
     out.append({"key": "t_gold", "label": "Gold", "icon": "coin", "min": 0, "max": 10,
                 "subject": "t_gold@mine.player", **seat})
     # Everything below is arithmetic. It is declared so that it has a floor of
@@ -224,10 +228,23 @@ def stats():
     for k in hidden:
         out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"]})
     for k in sorted(scratch):
-        out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"],
+        # Prestige is the number the game is won on, so on a card it wears the
+        # same banner the seat's own score does rather than the anonymous
+        # diamond every undeclared stat falls back to.
+        icon = {"icon": "banner"} if k == "vp" else {}
+        out.append({"key": k, **icon, "min": 0, "max": 99, "tags": ["hidden"],
                     "on": scratch[k], "start": 0})
+    look = {}
+    for k, _, _, _, icon, tint in GEMS:
+        look[f"cost_{k}"] = (icon, tint)
+        look[f"n_{k}"] = (icon, tint)
     for k in sorted(printed):
-        out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"], "on": printed[k]})
+        # A printed cost wears the gem that pays it. "hidden" keeps a stat out
+        # of the HUD; what a card shows on its face is the style's business, so
+        # the two do not argue.
+        gem = look.get(k)
+        art = {"icon": gem[0], "color": gem[1]} if gem else {}
+        out.append({"key": k, **art, "min": 0, "max": 99, "tags": ["hidden"], "on": printed[k]})
     for k in sorted(seat_start):
         out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"],
                     "on": ["player"], "start": seat_start[k]})
@@ -235,11 +252,29 @@ def stats():
 
 
 def styles():
-    s = {f"plate_{k}": {"color": colour} for k, _, _, colour, _ in GEMS}
+    s = {f"plate_{k}": {"color": colour} for k, _, _, colour, _, _ in GEMS}
     s["plate_gold"] = {"color": [0.80, 0.66, 0.24]}
     s["plate_noble"] = {"color": [0.44, 0.34, 0.56]}
-    s["market"] = {"fit": "card", "badges": ["vp"], "cell_outline": False}
-    s["counter"] = {"fit": "card", "badges": ["bank"], "cell_outline": False}
+    s["market"] = {"fit": "card", "cell_outline": False}
+    # A style is claimed by carrying a tag of its name, and a *card* claims its
+    # own: badges named on the zone's style are read by nobody, which is where
+    # the old "badges": ["vp"] on market went. Both of these are worn by the
+    # cards, and both words already exist as behaviour tags — which is the whole
+    # of "styles are tags too".
+    #
+    # The price runs down the side, in the gems it is priced in: five will not
+    # go across a card and the zeros are most of them. Prestige leads, because
+    # it is what the game is won on and it is top-left on the printed card.
+    s["development"] = {"badges": ["vp"] + [f"cost_{k}" for k in KEYS],
+                        "badge_run": "down", "badge_zeros": False}
+    # A noble is the same card read the other way: a threshold rather than a
+    # price, and worth three whatever it asks for.
+    s["noble"] = {"badges": ["vp"] + [f"n_{k}" for k in KEYS],
+                  "badge_run": "down", "badge_zeros": False}
+    s["tray"] = {"fit": "card", "cell_outline": False}
+    # How many are left, on the pile itself: taking two of one colour needs four
+    # still there, so it is a number a player has to be able to count.
+    s["counter"] = {"badges": ["bank"]}
     return s
 
 
@@ -286,7 +321,7 @@ def zones(rows):
          "pos": [0.13, 0.66, 0.55, 0.81]},
 
         {"key": "supply", "label": "The bank", "type": "grid", "grid": [6, 1],
-         "tags": ["activate", "counter"], "pos": [0.57, 0.32, 0.98, 0.47]},
+         "tags": ["activate", "tray"], "pos": [0.57, 0.32, 0.98, 0.47]},
         {"key": "controls", "type": "hand", "tags": ["optional"],
          "pos": [0.57, 0.60, 0.98, 0.78],
          "contents": ["reserve_button", "done_button"]},
@@ -307,12 +342,12 @@ RESERVE_GOLD = [
 
 def piles():
     out = []
-    for k, label, _, _, _ in GEMS:
+    for k, label, _, _, _, _ in GEMS:
         out.append({
             "key": f"pile_{k}", "text": label,
             "tooltip": f"{label} tokens. Take one — up to three different colours a turn — "
                        "or take two of this colour alone, which needs four still here.",
-            "tags": [f"pile_{k}", f"plate_{k}", "immutable"],
+            "tags": [f"pile_{k}", f"plate_{k}", "counter", "immutable"],
             "card_stats": {"bank": SUPPLY, "plenty": 0},
             "abilities": [
                 {"key": f"take_{k}", "text": f"Take one {label.lower()}",
@@ -341,7 +376,7 @@ def piles():
         "key": "pile_gold", "text": "Gold",
         "tooltip": "Gold is wild: it pays for any colour. It is never taken directly — "
                    "reserving a card is what earns one.",
-        "tags": ["pile_gold", "plate_gold", "immutable"],
+        "tags": ["pile_gold", "plate_gold", "counter", "immutable"],
         "card_stats": {"bank": GOLD_SUPPLY, "plenty": 0},
         "abilities": [
             {"key": "back_gold", "text": "Put back a gold",
@@ -383,9 +418,6 @@ def development(rows):
     out, seen = [], {}
     for tier, bonus, vp, cost in rows:
         seen[tier] = seen.get(tier, 0) + 1
-        letters = " ".join(f"{n}{c}" for k, n, c in
-                           ((k, cost[k], dict((g[0], g[2]) for g in GEMS)[k]) for k in KEYS)
-                           if n)
         words = ", ".join(f"{cost[k]} {dict((g[0], g[1].lower()) for g in GEMS)[k]}"
                           for k in KEYS if cost[k])
         # Only what is printed on this card. The scratch numbers the pricing
@@ -397,8 +429,8 @@ def development(rows):
             stats["vp"] = vp
         out.append({
             "key": f"t{tier}_{bonus}_{seen[tier]:02d}",
-            "text": letters,
-            "tooltip": f"Costs {words}, less your {bonus} — sorry, less your discounts, "
+            "text": dict((g[0], g[1]) for g in GEMS)[bonus],
+            "tooltip": f"Costs {words}, less your discounts, "
                        f"with gold covering any shortfall. Gives a permanent {bonus} "
                        f"discount" + (f" and {vp} prestige." if vp else "."),
             "asset": f"{SHAPE[tier]}:{ART[bonus]}",
@@ -417,7 +449,7 @@ def nobles(rows):
         stats = {f"n_{k}": cost[k] for k in KEYS}
         stats["vp"] = 3
         out.append({
-            "key": f"noble_{i + 1}", "text": words.replace(" + ", "  "),
+            "key": f"noble_{i + 1}", "text": "Noble",
             "tooltip": f"Visits you for free once your discounts reach {words}. "
                        "Worth 3 prestige, and only one noble may arrive per turn.",
             "asset": "star:6:gold",

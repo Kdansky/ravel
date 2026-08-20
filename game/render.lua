@@ -225,8 +225,8 @@ function M.icons()
 	return out
 end
 
-local function draw_stat_icon(key, cx, cy, s)
-	local col = ICON_COLOR[key] or { 0.60, 0.70, 0.85 }
+local function draw_stat_icon(key, cx, cy, s, tint)
+	local col = tint or ICON_COLOR[key] or { 0.60, 0.70, 0.85 }
 	love.graphics.setColor(unpack(col))
 	if key == "coin" then
 		love.graphics.circle("fill", cx, cy, s * 0.42)
@@ -262,10 +262,18 @@ local function draw_stat_icon(key, cx, cy, s)
 	end
 end
 
--- The shape a stat asks for, or nothing, which draws the diamond.
+-- The shape a stat asks for, or nothing, which draws the diamond — and the
+-- colour it asks for, or nothing, which is the shape's own.
+--
+-- A shape carries a colour so that an undeclared stat still reads at a glance,
+-- but the shapes are a closed set of six and a game's numbers are not: Splendor
+-- has five gems and borrows five silhouettes, and onyx came out an orange
+-- sword. The colour is the stat's to say, in the same vocabulary a zone paints
+-- its squares with.
 local function stat_icon(key)
 	local def = declaration.G.stat_defs[key]
-	return def and def.icon or nil
+	if not def then return nil end
+	return def.icon, def.color and art.colour(def.color) or nil
 end
 
 local selected_id = nil
@@ -490,7 +498,8 @@ local function draw_cost_badge(pl, cost)
 	local x = pl.x + 2 + 4 * S
 	local y = pl.y + 2 + 2 * S
 	for _, k in ipairs(keys) do
-		draw_stat_icon(stat_icon(k), x + ih * 0.5, y + ih * 0.5, ih)
+		local icon, tint = stat_icon(k)
+		draw_stat_icon(icon, x + ih * 0.5, y + ih * 0.5, ih, tint)
 		love.graphics.setColor(unpack(C.cost))
 		print_at(tostring(cost[k]), x + ih + 2 * S, y)
 		x = x + ih + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
@@ -606,7 +615,10 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		-- A badge sits in the bottom-left corner, so the words start to its
 		-- right rather than under it.
 		local badges  = type(look.badges) == "table" and #look.badges or 0
-		local badge_w = (badges > 0 or (card_e.stats and card_e.stats.hp))
+		-- A row of badges shares the bottom edge with the title and the title
+		-- gives way; a column runs down the side and takes none of it.
+		local badge_w = look.badge_run ~= "down"
+			and (badges > 0 or (card_e.stats and card_e.stats.hp))
 			and (vis.w * (badges > 1 and 0.62 or 0.42)) or 0
 
 		local tf, shown, title_h = nil, nil, 0
@@ -751,7 +763,8 @@ local function draw_badge(key, txt, x, y, colour)
 	local w = fh + tw + 8 * S
 	love.graphics.setColor(0, 0, 0, 0.65)
 	love.graphics.rectangle("fill", x - 1, y - 1, w, fh + 2, 2 * S, 2 * S)
-	draw_stat_icon(stat_icon(key), x + fh * 0.5, y + fh * 0.5, fh * 0.9)
+	local icon, tint = stat_icon(key)
+	draw_stat_icon(icon, x + fh * 0.5, y + fh * 0.5, fh * 0.9, tint)
 	love.graphics.setColor(colour)
 	print_at(txt, x + fh + 3 * S, y)
 	return w
@@ -764,6 +777,13 @@ end
 -- unchanged. Anything else is the game's business — a creature game wants its
 -- attack beside its health and neither of them is `hp` — so a style names them
 -- and they are drawn left to right along the bottom edge.
+--
+-- **Or down the left edge, and then a zero may be left out.** Five of them will
+-- not fit across a card, which is a printed price: Splendor's ninety market
+-- cards carry five costs of which two or three are nothing, and a column
+-- reading `0 0 2 0 1` is worse than the abbreviation it replaced. `badge_run`
+-- says which way they go and `badge_zeros: false` leaves the empty lines out —
+-- separately, because a creature's zero power is a fact and must still draw.
 --
 -- Without this a card could carry any number of stats and show none of them,
 -- which is how a whole combat could resolve correctly and look like nothing had
@@ -778,10 +798,17 @@ local function draw_card_stats_overlay(pl, card_e)
 	local fh = get_small_font():getHeight()
 	local by = pl.y + pl.h - fh - 3 * S
 	if badges then
-		local x = pl.x + 2 * S
+		-- A column starts at the top, where a bottom-anchored row would run off
+		-- the card, and leaves the title band below it alone.
+		local down  = look.badge_run == "down"
+		local zeros = look.badge_zeros ~= false
+		local x, y  = pl.x + 2 * S, down and (pl.y + 3 * S) or by
 		for _, key in ipairs(badges) do
 			local v = stats[key]
-			if v then x = x + draw_badge(key, tostring(v), x, by, { 1, 1, 1 }) + 2 * S end
+			if v and (zeros or v ~= 0) then
+				local w = draw_badge(key, tostring(v), x, y, { 1, 1, 1 })
+				if down then y = y + fh + 3 * S else x = x + w + 2 * S end
+			end
 		end
 	elseif stats.hp then
 		local hp_max = (card_e.stat_max or {}).hp or stats.hp
@@ -1114,7 +1141,8 @@ local function draw_stats()
 				local txt   = label .. ": " .. tostring(predicate.total(def and def.subject or key))
 				local tw    = mf:getWidth(txt)
 				local row_x = x - tw - fh - 4 * S
-				draw_stat_icon(stat_icon(key), row_x + fh * 0.5, y + fh * 0.5, fh * 0.85)
+				local icon, tint = stat_icon(key)
+				draw_stat_icon(icon, row_x + fh * 0.5, y + fh * 0.5, fh * 0.85, tint)
 				love.graphics.setColor(unpack(C.stat))
 				print_at(txt, row_x + fh + 4 * S, y)
 				stat_hud[key] = { x = row_x + fh + tw * 0.5, y = y }

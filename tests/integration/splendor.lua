@@ -322,4 +322,49 @@ function M.test_splendor_a_scripted_game_never_deadlocks(check)
 		phase.current() and phase.current().key)
 end
 
+-- The price used to be printed twice: once as the five cost_* stats the
+-- purchase reads, and once as the card's *title*, the string "2R 1K", in an
+-- abbreviation nobody was taught. The title is now what the card gives you and
+-- the price is a column of badges — which means the numbers a player compares
+-- are the same numbers the rules subtract, rather than a transcription of them.
+function M.test_splendor_the_price_is_on_the_face_and_not_in_the_title(check)
+	flow.init("splendor.json", 7)
+	local declaration = require("declaration")
+	local G = declaration.G
+
+	local look = G.style_defs.development
+	check("the market cards' style names the price", look ~= nil and look.badges ~= nil)
+	check("running down the side, since five will not go across", look.badge_run == "down")
+	check("and leaving the empty lines out", look.badge_zeros == false)
+
+	-- A style is claimed by carrying a tag of its name, and badges are read off
+	-- the card. Naming them on the zone's style — which is where they were —
+	-- draws nothing at all, silently.
+	local one = G.card_defs.t1_white_01
+	check("a development card claims that style itself", one.tags_set.development == true)
+
+	for _, key in ipairs(look.badges) do
+		check("'" .. key .. "' is a stat the game declares", G.stat_defs[key] ~= nil)
+	end
+	for _, gem in ipairs(GEMS) do
+		local sd = G.stat_defs["cost_" .. gem]
+		check(gem .. "'s cost says what it looks like", sd.icon ~= nil and sd.color ~= nil)
+	end
+
+	check("the title is what the card gives, not what it costs",
+		one.text == "Diamond", tostring(one.text))
+	local letters = 0
+	for key, def in pairs(G.card_defs) do
+		if def.tags_set and def.tags_set.development and tostring(def.text):find("%d[WBGRK]") then
+			letters = letters + 1
+		end
+	end
+	check("and no development card still spells a price in its text", letters == 0, tostring(letters))
+
+	-- The same mistake in a third place: a pile's count is the number that
+	-- decides whether two of a colour may be taken, and it was drawn nowhere.
+	check("a token pile wears the style that shows its count",
+		G.card_defs.pile_white.tags_set.counter == true)
+end
+
 return M

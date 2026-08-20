@@ -365,6 +365,24 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "save_game:../../elsewhere" } end },
 	{ "a condition asking about a save slot that is a path", "is not a save slot",
 		function(g) g.card_defs.c_flee.needs = { "saved:../../elsewhere >= 1" } end },
+	{ "badges running in a direction nobody draws", 'badge_run should be "right" or "down"',
+		function(g)
+			g.style_defs = { priced = { badges = { "hp" }, badge_run = "sideways" } }
+			g.card_defs.c_flee.tags_set.priced = true
+		end },
+	{ "badge_zeros asked to be true", "badge_zeros takes only false",
+		function(g)
+			g.style_defs = { priced = { badges = { "hp" }, badge_zeros = true } }
+			g.card_defs.c_flee.tags_set.priced = true
+		end },
+	{ "a badge layout with no badges under it", "says how its badges are drawn but names none",
+		function(g) g.style_defs = { priced = { badge_run = "down" } } end },
+	-- The one that cost a year: legal property, real style, drawn by nobody,
+	-- because a badge is read off the card and only the zone was wearing it.
+	{ "badges on a style no card claims", "a badge is drawn from the card's own style",
+		function(g) g.style_defs = { priced = { badges = { "hp" } } } end },
+	{ "a stat asking for a colour that is not one", "is not a colour",
+		function(g) g.stat_defs.hp.color = "ultramarine" end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)

@@ -10,8 +10,19 @@
     "plate_black": { "color": [0.22, 0.22, 0.26] },
     "plate_gold": { "color": [0.8, 0.66, 0.24] },
     "plate_noble": { "color": [0.44, 0.34, 0.56] },
-    "market": { "fit": "card", "badges": ["vp"], "cell_outline": false },
-    "counter": { "fit": "card", "badges": ["bank"], "cell_outline": false }
+    "market": { "fit": "card", "cell_outline": false },
+    "development": {
+      "badges": ["vp", "cost_white", "cost_blue", "cost_green", "cost_red", "cost_black"],
+      "badge_run": "down",
+      "badge_zeros": false
+    },
+    "noble": {
+      "badges": ["vp", "n_white", "n_blue", "n_green", "n_red", "n_black"],
+      "badge_run": "down",
+      "badge_zeros": false
+    },
+    "tray": { "fit": "card", "cell_outline": false },
+    "counter": { "badges": ["bank"] }
   },
   "stats": [
     {
@@ -28,6 +39,7 @@
       "key": "t_white",
       "label": "Diamond",
       "icon": "diamond",
+      "color": "silver",
       "min": 0,
       "max": 10,
       "subject": "t_white@mine.player",
@@ -38,6 +50,7 @@
       "key": "t_blue",
       "label": "Sapphire",
       "icon": "shield",
+      "color": "blue",
       "min": 0,
       "max": 10,
       "subject": "t_blue@mine.player",
@@ -48,6 +61,7 @@
       "key": "t_green",
       "label": "Emerald",
       "icon": "leaf",
+      "color": "green",
       "min": 0,
       "max": 10,
       "subject": "t_green@mine.player",
@@ -58,6 +72,7 @@
       "key": "t_red",
       "label": "Ruby",
       "icon": "heart",
+      "color": "red",
       "min": 0,
       "max": 10,
       "subject": "t_red@mine.player",
@@ -68,6 +83,7 @@
       "key": "t_black",
       "label": "Onyx",
       "icon": "blade",
+      "color": "grey",
       "min": 0,
       "max": 10,
       "subject": "t_black@mine.player",
@@ -169,22 +185,103 @@
     },
     {
       "key": "vp",
+      "icon": "banner",
       "min": 0,
       "max": 99,
       "tags": ["hidden"],
       "on": ["development", "noble"],
       "start": 0
     },
-    { "key": "cost_black", "min": 0, "max": 99, "tags": ["hidden"], "on": ["development"] },
-    { "key": "cost_blue", "min": 0, "max": 99, "tags": ["hidden"], "on": ["development"] },
-    { "key": "cost_green", "min": 0, "max": 99, "tags": ["hidden"], "on": ["development"] },
-    { "key": "cost_red", "min": 0, "max": 99, "tags": ["hidden"], "on": ["development"] },
-    { "key": "cost_white", "min": 0, "max": 99, "tags": ["hidden"], "on": ["development"] },
-    { "key": "n_black", "min": 0, "max": 99, "tags": ["hidden"], "on": ["noble"] },
-    { "key": "n_blue", "min": 0, "max": 99, "tags": ["hidden"], "on": ["noble"] },
-    { "key": "n_green", "min": 0, "max": 99, "tags": ["hidden"], "on": ["noble"] },
-    { "key": "n_red", "min": 0, "max": 99, "tags": ["hidden"], "on": ["noble"] },
-    { "key": "n_white", "min": 0, "max": 99, "tags": ["hidden"], "on": ["noble"] },
+    {
+      "key": "cost_black",
+      "icon": "blade",
+      "color": "grey",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["development"]
+    },
+    {
+      "key": "cost_blue",
+      "icon": "shield",
+      "color": "blue",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["development"]
+    },
+    {
+      "key": "cost_green",
+      "icon": "leaf",
+      "color": "green",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["development"]
+    },
+    {
+      "key": "cost_red",
+      "icon": "heart",
+      "color": "red",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["development"]
+    },
+    {
+      "key": "cost_white",
+      "icon": "diamond",
+      "color": "silver",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["development"]
+    },
+    {
+      "key": "n_black",
+      "icon": "blade",
+      "color": "grey",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["noble"]
+    },
+    {
+      "key": "n_blue",
+      "icon": "shield",
+      "color": "blue",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["noble"]
+    },
+    {
+      "key": "n_green",
+      "icon": "leaf",
+      "color": "green",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["noble"]
+    },
+    {
+      "key": "n_red",
+      "icon": "heart",
+      "color": "red",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["noble"]
+    },
+    {
+      "key": "n_white",
+      "icon": "diamond",
+      "color": "silver",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["noble"]
+    },
     { "key": "tier", "min": 0, "max": 99, "tags": ["hidden"], "on": ["development"] },
     { "key": "b_black", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "b_blue", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
@@ -557,7 +654,7 @@
       "label": "The bank",
       "type": "grid",
       "grid": [6, 1],
-      "tags": ["activate", "counter"],
+      "tags": ["activate", "tray"],
       "pos": [0.57, 0.32, 0.98, 0.47]
     },
     {
@@ -707,7 +804,7 @@
       "key": "pile_white",
       "text": "Diamond",
       "tooltip": "Diamond tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_white", "plate_white", "immutable"],
+      "tags": ["pile_white", "plate_white", "counter", "immutable"],
       "card_stats": { "bank": 4, "plenty": 0 },
       "abilities": [
         {
@@ -748,7 +845,7 @@
       "key": "pile_blue",
       "text": "Sapphire",
       "tooltip": "Sapphire tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_blue", "plate_blue", "immutable"],
+      "tags": ["pile_blue", "plate_blue", "counter", "immutable"],
       "card_stats": { "bank": 4, "plenty": 0 },
       "abilities": [
         {
@@ -789,7 +886,7 @@
       "key": "pile_green",
       "text": "Emerald",
       "tooltip": "Emerald tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_green", "plate_green", "immutable"],
+      "tags": ["pile_green", "plate_green", "counter", "immutable"],
       "card_stats": { "bank": 4, "plenty": 0 },
       "abilities": [
         {
@@ -830,7 +927,7 @@
       "key": "pile_red",
       "text": "Ruby",
       "tooltip": "Ruby tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_red", "plate_red", "immutable"],
+      "tags": ["pile_red", "plate_red", "counter", "immutable"],
       "card_stats": { "bank": 4, "plenty": 0 },
       "abilities": [
         {
@@ -871,7 +968,7 @@
       "key": "pile_black",
       "text": "Onyx",
       "tooltip": "Onyx tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_black", "plate_black", "immutable"],
+      "tags": ["pile_black", "plate_black", "counter", "immutable"],
       "card_stats": { "bank": 4, "plenty": 0 },
       "abilities": [
         {
@@ -912,7 +1009,7 @@
       "key": "pile_gold",
       "text": "Gold",
       "tooltip": "Gold is wild: it pays for any colour. It is never taken directly — reserving a card is what earns one.",
-      "tags": ["pile_gold", "plate_gold", "immutable"],
+      "tags": ["pile_gold", "plate_gold", "counter", "immutable"],
       "card_stats": { "bank": 5, "plenty": 0 },
       "abilities": [
         {
@@ -960,8 +1057,8 @@
     },
     {
       "key": "t1_white_01",
-      "text": "2R 1K",
-      "tooltip": "Costs 2 ruby, 1 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
+      "text": "Diamond",
+      "tooltip": "Costs 2 ruby, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
       "asset": "circle:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -975,8 +1072,8 @@
     },
     {
       "key": "t1_white_02",
-      "text": "3B",
-      "tooltip": "Costs 3 sapphire, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
+      "text": "Diamond",
+      "tooltip": "Costs 3 sapphire, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
       "asset": "circle:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -990,8 +1087,8 @@
     },
     {
       "key": "t1_white_03",
-      "text": "1B 1G 1R 1K",
-      "tooltip": "Costs 1 sapphire, 1 emerald, 1 ruby, 1 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
+      "text": "Diamond",
+      "tooltip": "Costs 1 sapphire, 1 emerald, 1 ruby, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
       "asset": "circle:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1005,8 +1102,8 @@
     },
     {
       "key": "t1_white_04",
-      "text": "2B 2K",
-      "tooltip": "Costs 2 sapphire, 2 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
+      "text": "Diamond",
+      "tooltip": "Costs 2 sapphire, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
       "asset": "circle:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1020,8 +1117,8 @@
     },
     {
       "key": "t1_white_05",
-      "text": "1B 2G 1R 1K",
-      "tooltip": "Costs 1 sapphire, 2 emerald, 1 ruby, 1 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
+      "text": "Diamond",
+      "tooltip": "Costs 1 sapphire, 2 emerald, 1 ruby, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
       "asset": "circle:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1035,8 +1132,8 @@
     },
     {
       "key": "t1_white_06",
-      "text": "2B 2G 1K",
-      "tooltip": "Costs 2 sapphire, 2 emerald, 1 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
+      "text": "Diamond",
+      "tooltip": "Costs 2 sapphire, 2 emerald, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
       "asset": "circle:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1050,8 +1147,8 @@
     },
     {
       "key": "t1_white_07",
-      "text": "3W 1B 1K",
-      "tooltip": "Costs 3 diamond, 1 sapphire, 1 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
+      "text": "Diamond",
+      "tooltip": "Costs 3 diamond, 1 sapphire, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount.",
       "asset": "circle:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1065,8 +1162,8 @@
     },
     {
       "key": "t1_white_08",
-      "text": "4G",
-      "tooltip": "Costs 4 emerald, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 1 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 4 emerald, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 1 prestige.",
       "asset": "circle:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1081,8 +1178,8 @@
     },
     {
       "key": "t1_blue_09",
-      "text": "1W 2K",
-      "tooltip": "Costs 1 diamond, 2 onyx, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
+      "text": "Sapphire",
+      "tooltip": "Costs 1 diamond, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
       "asset": "circle:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1096,8 +1193,8 @@
     },
     {
       "key": "t1_blue_10",
-      "text": "3K",
-      "tooltip": "Costs 3 onyx, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
+      "text": "Sapphire",
+      "tooltip": "Costs 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
       "asset": "circle:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1111,8 +1208,8 @@
     },
     {
       "key": "t1_blue_11",
-      "text": "1W 1G 1R 1K",
-      "tooltip": "Costs 1 diamond, 1 emerald, 1 ruby, 1 onyx, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
+      "text": "Sapphire",
+      "tooltip": "Costs 1 diamond, 1 emerald, 1 ruby, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
       "asset": "circle:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1126,8 +1223,8 @@
     },
     {
       "key": "t1_blue_12",
-      "text": "2G 2K",
-      "tooltip": "Costs 2 emerald, 2 onyx, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
+      "text": "Sapphire",
+      "tooltip": "Costs 2 emerald, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
       "asset": "circle:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1141,8 +1238,8 @@
     },
     {
       "key": "t1_blue_13",
-      "text": "1W 1G 2R 1K",
-      "tooltip": "Costs 1 diamond, 1 emerald, 2 ruby, 1 onyx, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
+      "text": "Sapphire",
+      "tooltip": "Costs 1 diamond, 1 emerald, 2 ruby, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
       "asset": "circle:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1156,8 +1253,8 @@
     },
     {
       "key": "t1_blue_14",
-      "text": "1W 2G 2R",
-      "tooltip": "Costs 1 diamond, 2 emerald, 2 ruby, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
+      "text": "Sapphire",
+      "tooltip": "Costs 1 diamond, 2 emerald, 2 ruby, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
       "asset": "circle:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1171,8 +1268,8 @@
     },
     {
       "key": "t1_blue_15",
-      "text": "1B 3G 1R",
-      "tooltip": "Costs 1 sapphire, 3 emerald, 1 ruby, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
+      "text": "Sapphire",
+      "tooltip": "Costs 1 sapphire, 3 emerald, 1 ruby, less your discounts, with gold covering any shortfall. Gives a permanent blue discount.",
       "asset": "circle:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1186,8 +1283,8 @@
     },
     {
       "key": "t1_blue_16",
-      "text": "4R",
-      "tooltip": "Costs 4 ruby, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 1 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 4 ruby, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 1 prestige.",
       "asset": "circle:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1202,8 +1299,8 @@
     },
     {
       "key": "t1_green_17",
-      "text": "2W 1B",
-      "tooltip": "Costs 2 diamond, 1 sapphire, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
+      "text": "Emerald",
+      "tooltip": "Costs 2 diamond, 1 sapphire, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
       "asset": "circle:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1217,8 +1314,8 @@
     },
     {
       "key": "t1_green_18",
-      "text": "3R",
-      "tooltip": "Costs 3 ruby, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
+      "text": "Emerald",
+      "tooltip": "Costs 3 ruby, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
       "asset": "circle:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1232,8 +1329,8 @@
     },
     {
       "key": "t1_green_19",
-      "text": "1W 1B 1R 1K",
-      "tooltip": "Costs 1 diamond, 1 sapphire, 1 ruby, 1 onyx, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
+      "text": "Emerald",
+      "tooltip": "Costs 1 diamond, 1 sapphire, 1 ruby, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
       "asset": "circle:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1247,8 +1344,8 @@
     },
     {
       "key": "t1_green_20",
-      "text": "2B 2R",
-      "tooltip": "Costs 2 sapphire, 2 ruby, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
+      "text": "Emerald",
+      "tooltip": "Costs 2 sapphire, 2 ruby, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
       "asset": "circle:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1262,8 +1359,8 @@
     },
     {
       "key": "t1_green_21",
-      "text": "1W 1B 1R 2K",
-      "tooltip": "Costs 1 diamond, 1 sapphire, 1 ruby, 2 onyx, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
+      "text": "Emerald",
+      "tooltip": "Costs 1 diamond, 1 sapphire, 1 ruby, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
       "asset": "circle:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1277,8 +1374,8 @@
     },
     {
       "key": "t1_green_22",
-      "text": "1B 2R 2K",
-      "tooltip": "Costs 1 sapphire, 2 ruby, 2 onyx, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
+      "text": "Emerald",
+      "tooltip": "Costs 1 sapphire, 2 ruby, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
       "asset": "circle:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1292,8 +1389,8 @@
     },
     {
       "key": "t1_green_23",
-      "text": "1W 3B 1G",
-      "tooltip": "Costs 1 diamond, 3 sapphire, 1 emerald, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
+      "text": "Emerald",
+      "tooltip": "Costs 1 diamond, 3 sapphire, 1 emerald, less your discounts, with gold covering any shortfall. Gives a permanent green discount.",
       "asset": "circle:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1307,8 +1404,8 @@
     },
     {
       "key": "t1_green_24",
-      "text": "4K",
-      "tooltip": "Costs 4 onyx, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 1 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 4 onyx, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 1 prestige.",
       "asset": "circle:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1323,8 +1420,8 @@
     },
     {
       "key": "t1_red_25",
-      "text": "2B 1G",
-      "tooltip": "Costs 2 sapphire, 1 emerald, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
+      "text": "Ruby",
+      "tooltip": "Costs 2 sapphire, 1 emerald, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
       "asset": "circle:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1338,8 +1435,8 @@
     },
     {
       "key": "t1_red_26",
-      "text": "3W",
-      "tooltip": "Costs 3 diamond, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
+      "text": "Ruby",
+      "tooltip": "Costs 3 diamond, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
       "asset": "circle:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1353,8 +1450,8 @@
     },
     {
       "key": "t1_red_27",
-      "text": "1W 1B 1G 1K",
-      "tooltip": "Costs 1 diamond, 1 sapphire, 1 emerald, 1 onyx, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
+      "text": "Ruby",
+      "tooltip": "Costs 1 diamond, 1 sapphire, 1 emerald, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
       "asset": "circle:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1368,8 +1465,8 @@
     },
     {
       "key": "t1_red_28",
-      "text": "2W 2R",
-      "tooltip": "Costs 2 diamond, 2 ruby, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
+      "text": "Ruby",
+      "tooltip": "Costs 2 diamond, 2 ruby, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
       "asset": "circle:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1383,8 +1480,8 @@
     },
     {
       "key": "t1_red_29",
-      "text": "2W 1B 1G 1K",
-      "tooltip": "Costs 2 diamond, 1 sapphire, 1 emerald, 1 onyx, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
+      "text": "Ruby",
+      "tooltip": "Costs 2 diamond, 1 sapphire, 1 emerald, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
       "asset": "circle:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1398,8 +1495,8 @@
     },
     {
       "key": "t1_red_30",
-      "text": "2W 1G 2K",
-      "tooltip": "Costs 2 diamond, 1 emerald, 2 onyx, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
+      "text": "Ruby",
+      "tooltip": "Costs 2 diamond, 1 emerald, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
       "asset": "circle:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1413,8 +1510,8 @@
     },
     {
       "key": "t1_red_31",
-      "text": "1W 1R 3K",
-      "tooltip": "Costs 1 diamond, 1 ruby, 3 onyx, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
+      "text": "Ruby",
+      "tooltip": "Costs 1 diamond, 1 ruby, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent red discount.",
       "asset": "circle:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1428,8 +1525,8 @@
     },
     {
       "key": "t1_red_32",
-      "text": "4W",
-      "tooltip": "Costs 4 diamond, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 1 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 4 diamond, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 1 prestige.",
       "asset": "circle:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1444,8 +1541,8 @@
     },
     {
       "key": "t1_black_33",
-      "text": "2G 1R",
-      "tooltip": "Costs 2 emerald, 1 ruby, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
+      "text": "Onyx",
+      "tooltip": "Costs 2 emerald, 1 ruby, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
       "asset": "circle:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1459,8 +1556,8 @@
     },
     {
       "key": "t1_black_34",
-      "text": "3G",
-      "tooltip": "Costs 3 emerald, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
+      "text": "Onyx",
+      "tooltip": "Costs 3 emerald, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
       "asset": "circle:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1474,8 +1571,8 @@
     },
     {
       "key": "t1_black_35",
-      "text": "1W 1B 1G 1R",
-      "tooltip": "Costs 1 diamond, 1 sapphire, 1 emerald, 1 ruby, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
+      "text": "Onyx",
+      "tooltip": "Costs 1 diamond, 1 sapphire, 1 emerald, 1 ruby, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
       "asset": "circle:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1489,8 +1586,8 @@
     },
     {
       "key": "t1_black_36",
-      "text": "2W 2G",
-      "tooltip": "Costs 2 diamond, 2 emerald, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
+      "text": "Onyx",
+      "tooltip": "Costs 2 diamond, 2 emerald, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
       "asset": "circle:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1504,8 +1601,8 @@
     },
     {
       "key": "t1_black_37",
-      "text": "1W 2B 1G 1R",
-      "tooltip": "Costs 1 diamond, 2 sapphire, 1 emerald, 1 ruby, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
+      "text": "Onyx",
+      "tooltip": "Costs 1 diamond, 2 sapphire, 1 emerald, 1 ruby, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
       "asset": "circle:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1519,8 +1616,8 @@
     },
     {
       "key": "t1_black_38",
-      "text": "2W 2B 1R",
-      "tooltip": "Costs 2 diamond, 2 sapphire, 1 ruby, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
+      "text": "Onyx",
+      "tooltip": "Costs 2 diamond, 2 sapphire, 1 ruby, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
       "asset": "circle:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1534,8 +1631,8 @@
     },
     {
       "key": "t1_black_39",
-      "text": "1G 3R 1K",
-      "tooltip": "Costs 1 emerald, 3 ruby, 1 onyx, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
+      "text": "Onyx",
+      "tooltip": "Costs 1 emerald, 3 ruby, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent black discount.",
       "asset": "circle:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1549,8 +1646,8 @@
     },
     {
       "key": "t1_black_40",
-      "text": "4B",
-      "tooltip": "Costs 4 sapphire, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 1 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 4 sapphire, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 1 prestige.",
       "asset": "circle:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1565,8 +1662,8 @@
     },
     {
       "key": "t2_white_01",
-      "text": "3G 2R 2K",
-      "tooltip": "Costs 3 emerald, 2 ruby, 2 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 1 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 3 emerald, 2 ruby, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 1 prestige.",
       "asset": "square:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1581,8 +1678,8 @@
     },
     {
       "key": "t2_white_02",
-      "text": "2W 3B 3R",
-      "tooltip": "Costs 2 diamond, 3 sapphire, 3 ruby, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 1 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 2 diamond, 3 sapphire, 3 ruby, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 1 prestige.",
       "asset": "square:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1597,8 +1694,8 @@
     },
     {
       "key": "t2_white_03",
-      "text": "5R",
-      "tooltip": "Costs 5 ruby, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 2 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 5 ruby, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 2 prestige.",
       "asset": "square:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1613,8 +1710,8 @@
     },
     {
       "key": "t2_white_04",
-      "text": "1G 4R 2K",
-      "tooltip": "Costs 1 emerald, 4 ruby, 2 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 2 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 1 emerald, 4 ruby, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 2 prestige.",
       "asset": "square:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1629,8 +1726,8 @@
     },
     {
       "key": "t2_white_05",
-      "text": "5R 3K",
-      "tooltip": "Costs 5 ruby, 3 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 2 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 5 ruby, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 2 prestige.",
       "asset": "square:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1645,8 +1742,8 @@
     },
     {
       "key": "t2_white_06",
-      "text": "6W",
-      "tooltip": "Costs 6 diamond, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 3 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 6 diamond, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 3 prestige.",
       "asset": "square:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -1661,8 +1758,8 @@
     },
     {
       "key": "t2_blue_07",
-      "text": "2B 2G 3R",
-      "tooltip": "Costs 2 sapphire, 2 emerald, 3 ruby, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 1 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 2 sapphire, 2 emerald, 3 ruby, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 1 prestige.",
       "asset": "square:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1677,8 +1774,8 @@
     },
     {
       "key": "t2_blue_08",
-      "text": "2B 3G 3K",
-      "tooltip": "Costs 2 sapphire, 3 emerald, 3 onyx, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 1 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 2 sapphire, 3 emerald, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 1 prestige.",
       "asset": "square:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1693,8 +1790,8 @@
     },
     {
       "key": "t2_blue_09",
-      "text": "5B",
-      "tooltip": "Costs 5 sapphire, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 2 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 5 sapphire, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 2 prestige.",
       "asset": "square:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1709,8 +1806,8 @@
     },
     {
       "key": "t2_blue_10",
-      "text": "2W 1R 4K",
-      "tooltip": "Costs 2 diamond, 1 ruby, 4 onyx, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 2 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 2 diamond, 1 ruby, 4 onyx, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 2 prestige.",
       "asset": "square:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1725,8 +1822,8 @@
     },
     {
       "key": "t2_blue_11",
-      "text": "5W 3B",
-      "tooltip": "Costs 5 diamond, 3 sapphire, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 2 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 5 diamond, 3 sapphire, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 2 prestige.",
       "asset": "square:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1741,8 +1838,8 @@
     },
     {
       "key": "t2_blue_12",
-      "text": "6B",
-      "tooltip": "Costs 6 sapphire, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 3 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 6 sapphire, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 3 prestige.",
       "asset": "square:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -1757,8 +1854,8 @@
     },
     {
       "key": "t2_green_13",
-      "text": "2W 3B 2K",
-      "tooltip": "Costs 2 diamond, 3 sapphire, 2 onyx, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 1 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 2 diamond, 3 sapphire, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 1 prestige.",
       "asset": "square:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1773,8 +1870,8 @@
     },
     {
       "key": "t2_green_14",
-      "text": "3W 2G 3R",
-      "tooltip": "Costs 3 diamond, 2 emerald, 3 ruby, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 1 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 3 diamond, 2 emerald, 3 ruby, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 1 prestige.",
       "asset": "square:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1789,8 +1886,8 @@
     },
     {
       "key": "t2_green_15",
-      "text": "5G",
-      "tooltip": "Costs 5 emerald, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 2 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 5 emerald, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 2 prestige.",
       "asset": "square:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1805,8 +1902,8 @@
     },
     {
       "key": "t2_green_16",
-      "text": "4W 2B 1K",
-      "tooltip": "Costs 4 diamond, 2 sapphire, 1 onyx, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 2 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 4 diamond, 2 sapphire, 1 onyx, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 2 prestige.",
       "asset": "square:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1821,8 +1918,8 @@
     },
     {
       "key": "t2_green_17",
-      "text": "5B 3G",
-      "tooltip": "Costs 5 sapphire, 3 emerald, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 2 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 5 sapphire, 3 emerald, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 2 prestige.",
       "asset": "square:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1837,8 +1934,8 @@
     },
     {
       "key": "t2_green_18",
-      "text": "6G",
-      "tooltip": "Costs 6 emerald, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 3 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 6 emerald, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 3 prestige.",
       "asset": "square:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -1853,8 +1950,8 @@
     },
     {
       "key": "t2_red_19",
-      "text": "2W 2R 3K",
-      "tooltip": "Costs 2 diamond, 2 ruby, 3 onyx, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 1 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 2 diamond, 2 ruby, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 1 prestige.",
       "asset": "square:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1869,8 +1966,8 @@
     },
     {
       "key": "t2_red_20",
-      "text": "3B 2R 3K",
-      "tooltip": "Costs 3 sapphire, 2 ruby, 3 onyx, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 1 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 3 sapphire, 2 ruby, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 1 prestige.",
       "asset": "square:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1885,8 +1982,8 @@
     },
     {
       "key": "t2_red_21",
-      "text": "5K",
-      "tooltip": "Costs 5 onyx, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 2 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 5 onyx, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 2 prestige.",
       "asset": "square:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1901,8 +1998,8 @@
     },
     {
       "key": "t2_red_22",
-      "text": "1W 4B 2G",
-      "tooltip": "Costs 1 diamond, 4 sapphire, 2 emerald, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 2 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 1 diamond, 4 sapphire, 2 emerald, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 2 prestige.",
       "asset": "square:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1917,8 +2014,8 @@
     },
     {
       "key": "t2_red_23",
-      "text": "3W 5K",
-      "tooltip": "Costs 3 diamond, 5 onyx, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 2 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 3 diamond, 5 onyx, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 2 prestige.",
       "asset": "square:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1933,8 +2030,8 @@
     },
     {
       "key": "t2_red_24",
-      "text": "6R",
-      "tooltip": "Costs 6 ruby, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 3 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 6 ruby, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 3 prestige.",
       "asset": "square:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -1949,8 +2046,8 @@
     },
     {
       "key": "t2_black_25",
-      "text": "3W 2B 2G",
-      "tooltip": "Costs 3 diamond, 2 sapphire, 2 emerald, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 1 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 3 diamond, 2 sapphire, 2 emerald, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 1 prestige.",
       "asset": "square:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1965,8 +2062,8 @@
     },
     {
       "key": "t2_black_26",
-      "text": "3W 3G 2K",
-      "tooltip": "Costs 3 diamond, 3 emerald, 2 onyx, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 1 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 3 diamond, 3 emerald, 2 onyx, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 1 prestige.",
       "asset": "square:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1981,8 +2078,8 @@
     },
     {
       "key": "t2_black_27",
-      "text": "5W",
-      "tooltip": "Costs 5 diamond, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 2 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 5 diamond, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 2 prestige.",
       "asset": "square:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -1997,8 +2094,8 @@
     },
     {
       "key": "t2_black_28",
-      "text": "1B 4G 2R",
-      "tooltip": "Costs 1 sapphire, 4 emerald, 2 ruby, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 2 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 1 sapphire, 4 emerald, 2 ruby, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 2 prestige.",
       "asset": "square:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -2013,8 +2110,8 @@
     },
     {
       "key": "t2_black_29",
-      "text": "5G 3R",
-      "tooltip": "Costs 5 emerald, 3 ruby, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 2 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 5 emerald, 3 ruby, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 2 prestige.",
       "asset": "square:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -2029,8 +2126,8 @@
     },
     {
       "key": "t2_black_30",
-      "text": "6K",
-      "tooltip": "Costs 6 onyx, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 3 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 6 onyx, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 3 prestige.",
       "asset": "square:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -2045,8 +2142,8 @@
     },
     {
       "key": "t3_white_01",
-      "text": "3B 3G 5R 3K",
-      "tooltip": "Costs 3 sapphire, 3 emerald, 5 ruby, 3 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 3 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 3 sapphire, 3 emerald, 5 ruby, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 3 prestige.",
       "asset": "diamond:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -2061,8 +2158,8 @@
     },
     {
       "key": "t3_white_02",
-      "text": "7K",
-      "tooltip": "Costs 7 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 4 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 7 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 4 prestige.",
       "asset": "diamond:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -2077,8 +2174,8 @@
     },
     {
       "key": "t3_white_03",
-      "text": "3W 3R 6K",
-      "tooltip": "Costs 3 diamond, 3 ruby, 6 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 4 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 3 diamond, 3 ruby, 6 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 4 prestige.",
       "asset": "diamond:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -2093,8 +2190,8 @@
     },
     {
       "key": "t3_white_04",
-      "text": "3W 7K",
-      "tooltip": "Costs 3 diamond, 7 onyx, less your white — sorry, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 5 prestige.",
+      "text": "Diamond",
+      "tooltip": "Costs 3 diamond, 7 onyx, less your discounts, with gold covering any shortfall. Gives a permanent white discount and 5 prestige.",
       "asset": "diamond:silver",
       "tags": ["development", "gives_white", "plate_white"],
       "card_stats": {
@@ -2109,8 +2206,8 @@
     },
     {
       "key": "t3_blue_05",
-      "text": "3W 3G 3R 5K",
-      "tooltip": "Costs 3 diamond, 3 emerald, 3 ruby, 5 onyx, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 3 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 3 diamond, 3 emerald, 3 ruby, 5 onyx, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 3 prestige.",
       "asset": "diamond:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -2125,8 +2222,8 @@
     },
     {
       "key": "t3_blue_06",
-      "text": "7W",
-      "tooltip": "Costs 7 diamond, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 4 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 7 diamond, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 4 prestige.",
       "asset": "diamond:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -2141,8 +2238,8 @@
     },
     {
       "key": "t3_blue_07",
-      "text": "6W 3B 3K",
-      "tooltip": "Costs 6 diamond, 3 sapphire, 3 onyx, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 4 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 6 diamond, 3 sapphire, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 4 prestige.",
       "asset": "diamond:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -2157,8 +2254,8 @@
     },
     {
       "key": "t3_blue_08",
-      "text": "7W 3B",
-      "tooltip": "Costs 7 diamond, 3 sapphire, less your blue — sorry, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 5 prestige.",
+      "text": "Sapphire",
+      "tooltip": "Costs 7 diamond, 3 sapphire, less your discounts, with gold covering any shortfall. Gives a permanent blue discount and 5 prestige.",
       "asset": "diamond:blue",
       "tags": ["development", "gives_blue", "plate_blue"],
       "card_stats": {
@@ -2173,8 +2270,8 @@
     },
     {
       "key": "t3_green_09",
-      "text": "5W 3B 3R 3K",
-      "tooltip": "Costs 5 diamond, 3 sapphire, 3 ruby, 3 onyx, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 3 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 5 diamond, 3 sapphire, 3 ruby, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 3 prestige.",
       "asset": "diamond:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -2189,8 +2286,8 @@
     },
     {
       "key": "t3_green_10",
-      "text": "7B",
-      "tooltip": "Costs 7 sapphire, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 4 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 7 sapphire, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 4 prestige.",
       "asset": "diamond:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -2205,8 +2302,8 @@
     },
     {
       "key": "t3_green_11",
-      "text": "3W 6B 3G",
-      "tooltip": "Costs 3 diamond, 6 sapphire, 3 emerald, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 4 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 3 diamond, 6 sapphire, 3 emerald, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 4 prestige.",
       "asset": "diamond:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -2221,8 +2318,8 @@
     },
     {
       "key": "t3_green_12",
-      "text": "7B 3G",
-      "tooltip": "Costs 7 sapphire, 3 emerald, less your green — sorry, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 5 prestige.",
+      "text": "Emerald",
+      "tooltip": "Costs 7 sapphire, 3 emerald, less your discounts, with gold covering any shortfall. Gives a permanent green discount and 5 prestige.",
       "asset": "diamond:green",
       "tags": ["development", "gives_green", "plate_green"],
       "card_stats": {
@@ -2237,8 +2334,8 @@
     },
     {
       "key": "t3_red_13",
-      "text": "3W 5B 3G 3K",
-      "tooltip": "Costs 3 diamond, 5 sapphire, 3 emerald, 3 onyx, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 3 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 3 diamond, 5 sapphire, 3 emerald, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 3 prestige.",
       "asset": "diamond:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -2253,8 +2350,8 @@
     },
     {
       "key": "t3_red_14",
-      "text": "7G",
-      "tooltip": "Costs 7 emerald, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 4 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 7 emerald, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 4 prestige.",
       "asset": "diamond:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -2269,8 +2366,8 @@
     },
     {
       "key": "t3_red_15",
-      "text": "3B 6G 3R",
-      "tooltip": "Costs 3 sapphire, 6 emerald, 3 ruby, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 4 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 3 sapphire, 6 emerald, 3 ruby, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 4 prestige.",
       "asset": "diamond:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -2285,8 +2382,8 @@
     },
     {
       "key": "t3_red_16",
-      "text": "7G 3R",
-      "tooltip": "Costs 7 emerald, 3 ruby, less your red — sorry, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 5 prestige.",
+      "text": "Ruby",
+      "tooltip": "Costs 7 emerald, 3 ruby, less your discounts, with gold covering any shortfall. Gives a permanent red discount and 5 prestige.",
       "asset": "diamond:crimson",
       "tags": ["development", "gives_red", "plate_red"],
       "card_stats": {
@@ -2301,8 +2398,8 @@
     },
     {
       "key": "t3_black_17",
-      "text": "3W 3B 5G 3R",
-      "tooltip": "Costs 3 diamond, 3 sapphire, 5 emerald, 3 ruby, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 3 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 3 diamond, 3 sapphire, 5 emerald, 3 ruby, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 3 prestige.",
       "asset": "diamond:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -2317,8 +2414,8 @@
     },
     {
       "key": "t3_black_18",
-      "text": "7R",
-      "tooltip": "Costs 7 ruby, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 4 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 7 ruby, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 4 prestige.",
       "asset": "diamond:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -2333,8 +2430,8 @@
     },
     {
       "key": "t3_black_19",
-      "text": "3G 6R 3K",
-      "tooltip": "Costs 3 emerald, 6 ruby, 3 onyx, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 4 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 3 emerald, 6 ruby, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 4 prestige.",
       "asset": "diamond:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -2349,8 +2446,8 @@
     },
     {
       "key": "t3_black_20",
-      "text": "7R 3K",
-      "tooltip": "Costs 7 ruby, 3 onyx, less your black — sorry, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 5 prestige.",
+      "text": "Onyx",
+      "tooltip": "Costs 7 ruby, 3 onyx, less your discounts, with gold covering any shortfall. Gives a permanent black discount and 5 prestige.",
       "asset": "diamond:slate",
       "tags": ["development", "gives_black", "plate_black"],
       "card_stats": {
@@ -2365,7 +2462,7 @@
     },
     {
       "key": "noble_1",
-      "text": "4 white  4 blue",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 4 white + 4 blue. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
@@ -2373,7 +2470,7 @@
     },
     {
       "key": "noble_2",
-      "text": "4 blue  4 green",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 4 blue + 4 green. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
@@ -2381,7 +2478,7 @@
     },
     {
       "key": "noble_3",
-      "text": "4 green  4 red",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 4 green + 4 red. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
@@ -2389,7 +2486,7 @@
     },
     {
       "key": "noble_4",
-      "text": "4 red  4 black",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 4 red + 4 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
@@ -2397,7 +2494,7 @@
     },
     {
       "key": "noble_5",
-      "text": "4 white  4 black",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 4 white + 4 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
@@ -2405,7 +2502,7 @@
     },
     {
       "key": "noble_6",
-      "text": "3 white  3 blue  3 black",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 3 white + 3 blue + 3 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
@@ -2413,7 +2510,7 @@
     },
     {
       "key": "noble_7",
-      "text": "3 blue  3 green  3 red",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 3 blue + 3 green + 3 red. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
@@ -2421,7 +2518,7 @@
     },
     {
       "key": "noble_8",
-      "text": "3 white  3 red  3 black",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 3 white + 3 red + 3 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
@@ -2429,7 +2526,7 @@
     },
     {
       "key": "noble_9",
-      "text": "3 white  3 blue  3 green",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 3 white + 3 blue + 3 green. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
@@ -2437,7 +2534,7 @@
     },
     {
       "key": "noble_10",
-      "text": "3 green  3 red  3 black",
+      "text": "Noble",
       "tooltip": "Visits you for free once your discounts reach 3 green + 3 red + 3 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],

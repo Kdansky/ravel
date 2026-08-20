@@ -156,7 +156,9 @@ local PHASE_FIELDS = {
 local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subject = true,
 	tags = true, tags_set = true, icon = true,
 	-- Whose number this is, and where they start. See the check below.
-	on = true, start = true }
+	on = true, start = true,
+	-- The colour of that icon, when the shape's own is wrong for it.
+	color = true }
 -- A tag def is a mixin: it may carry a home zone, and the card behaviour a zone
 -- hands to whatever sits in it ("applies"). Kept to the fields a granted rule
 -- can honestly mean — nothing that would have to be re-derived as state moves.
@@ -224,7 +226,10 @@ local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_t
 -- moment a style could change a rule, every rules bug becomes a drawing bug.
 local STYLE_FIELDS    = { color = true, title = true, border = true, fit = true,
 	ratio = true, chequer = true, paint = true, cell_outline = true, fan = true,
-	badges = true }
+	badges = true, badge_run = true, badge_zeros = true }
+-- Which way a card's badges go. Two words rather than four: nothing has asked
+-- to run up or leftwards, and a direction nobody draws would be a silent shrug.
+local BADGE_RUNS      = { right = true, down = true }
 local FAN_DIRS        = { up = true, down = true, left = true, right = true }
 -- The orders activate_zone will walk a zone in. Naming none is the order the
 -- cards are in, which is why this set does not contain a word for it.
@@ -935,6 +940,13 @@ function M.check(G)
 			warn("%s: asks to be drawn as '%s', which is not a shape the engine has%s",
 				where, tostring(def.icon), suggest(def.icon, M.ICONS))
 		end
+		-- A colour without a shape colours the fallback diamond, which is legal
+		-- and is what a stat wanting a colour and no opinion on the silhouette
+		-- would write.
+		if def.color ~= nil and not art.colour(def.color) then
+			warn("%s: '%s' is not a colour — a palette name, or #rrggbb",
+				where, tostring(def.color))
+		end
 	end
 
 	-- **Whose number a stat is.** Carrying a stat is how a card says it takes
@@ -1107,6 +1119,17 @@ function M.check(G)
 			if sd.fan ~= nil and not FAN_DIRS[sd.fan] then
 				warn('%s: fan should be "up", "down", "left" or "right", not %s', where, tostring(sd.fan))
 			end
+			-- Which way this card's badges go: along the bottom, or down the
+			-- side when there are more of them than fit across.
+			if sd.badge_run ~= nil and not BADGE_RUNS[sd.badge_run] then
+				warn('%s: badge_run should be "right" or "down", not %s', where, tostring(sd.badge_run))
+			end
+			if sd.badge_zeros ~= nil and sd.badge_zeros ~= false then
+				warn("%s: badge_zeros takes only false, which means leave a zero out", where)
+			end
+			if (sd.badge_run or sd.badge_zeros ~= nil) and sd.badges == nil then
+				warn("%s: says how its badges are drawn but names none — add \"badges\"", where)
+			end
 			-- The shape a zone keeps whatever the window does: a number is width
 			-- over height, "grid" reads it from the cell count.
 			if sd.ratio ~= nil and sd.ratio ~= "grid" and not (tonumber(sd.ratio) and tonumber(sd.ratio) > 0) then
@@ -1141,6 +1164,24 @@ function M.check(G)
 			end
 		end
 	end
+	-- **Badges are read off the card, so a style only a zone claims draws none.**
+	-- A style is claimed by carrying a tag of its name, and `cards.style` asks
+	-- the card — not the zone the card is lying in. Splendor named badges on
+	-- three zone styles and drew all three nowhere, for a year, with no warning:
+	-- the property is legal, the style exists, and nothing was wrong to find.
+	do
+		local worn = {}
+		for _, def in pairs(G.card_defs) do
+			for tag in pairs(def.tags_set or {}) do worn[tag] = true end
+		end
+		for name, sd in pairs(G.style_defs or {}) do
+			if type(sd) == "table" and sd.badges ~= nil and not worn[name] then
+				warn("style '%s': names badges, but no card carries '%s' — a badge is drawn from the card's own style, so a look only a zone claims shows nothing",
+					tostring(name), tostring(name))
+			end
+		end
+	end
+
 	for key, def in pairs(G.card_defs) do
 		local claimed = {}
 		for tag in pairs(def.tags_set or {}) do
