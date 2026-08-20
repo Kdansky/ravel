@@ -1599,6 +1599,49 @@ A game can give tags meaning of their own — types, essentially:
 "tags": { "item": { "zone": "inventory" }, "unit": { "zone": "battlefield" } }
 ```
 
+### One `play`, however many cards have it
+
+A tag may carry a whole `play` block, and every card wearing the tag is played
+that way:
+
+```json
+"tags": {
+  "development": {
+    "play": { "phases": ["act"], "needs": ["buyable@self >= 1"], "action": [ … ] }
+  }
+}
+```
+
+```json
+{ "key": "t1_white_01", "text": "2R 1K", "tags": ["development"],
+  "card_stats": { "cost_red": 2, "cost_black": 1 } }
+```
+
+Splendor's ninety development cards differ in what they cost and in nothing
+else, and buying one is one sentence. Written on the cards it was ninety copies
+of twenty-seven actions — three thousand lines whose only job was to stay
+identical. Written on the tag it is said once, and the card is down to what is
+printed on it.
+
+**A card's own `play` wins, and wins whole.** The tag fills in for cards that
+say nothing; a card that writes its own block takes none of the tag's. Half a
+moment — the tag's action under the card's own cost — is the sort of thing that
+reads as cleverness and debugs as neither.
+
+**Two tags granting `play` is refused, and the card does neither.** Whichever
+won would be the order somebody typed the tags. The validator names both, the
+same way an ambiguous home is no home.
+
+Only `play`. A tag's `activate` already reaches its cards through their
+abilities, and one word with two roads into the engine is how a format grows
+synonyms.
+
+The zone route is a different question with the same spelling: a zone's
+`applies` hands a tag to whatever *lies there*, and that is looked up as a card
+moves. What a card's own tags say about it never changes, so it is settled once
+at load — which is also why `dump` shows you a card with the moment already on
+it.
+
 ### Keywords: a tag that means something to the player
 
 A tag with a `tooltip` is a **keyword**. The game says once what it does, and

@@ -378,9 +378,9 @@ def development(rows):
                            if n)
         words = ", ".join(f"{cost[k]} {dict((g[0], g[1].lower()) for g in GEMS)[k]}"
                           for k in KEYS if cost[k])
-        # Only what is printed on this card. The ten scratch numbers the
-        # pricing writes are the same zero on all ninety, so the "development"
-        # tag carries them — see the tags block.
+        # Only what is printed on this card. The scratch numbers the pricing
+        # writes start at the same zero on all ninety, so the stats node grants
+        # them, and buying is one sentence the "development" tag carries.
         stats = {f"cost_{k}": cost[k] for k in KEYS}
         stats["tier"] = tier
         if vp:
@@ -394,7 +394,6 @@ def development(rows):
             "asset": f"{SHAPE[tier]}:{ART[bonus]}",
             "tags": ["development", f"gives_{bonus}", f"plate_{bonus}"],
             "card_stats": stats,
-            "play": {"phases": ["act", "act_on"], "needs": ["buyable@self >= 1"], "action": buying()},
         })
     return out
 
@@ -403,8 +402,8 @@ def nobles(rows):
     out = []
     for i, cost in enumerate(rows):
         words = " + ".join(f"{cost[k]} {k}" for k in KEYS if cost[k])
-        # Every noble is worth three and starts unmet; only the threshold is
-        # this card's. See the "noble" tag.
+        # Every noble is worth three and starts unmet, and arriving is the same
+        # act for all ten; only the threshold is this card's. See the tag.
         stats = {f"n_{k}": cost[k] for k in KEYS}
         stats["vp"] = 3
         out.append({
@@ -414,8 +413,6 @@ def nobles(rows):
             "asset": "star:6:gold",
             "tags": ["noble", "plate_noble"],
             "card_stats": stats,
-            "play": {"phases": ["noble_pick"], "needs": ["ok@self >= 1"],
-                     "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]},
         })
     return out
 
@@ -551,11 +548,19 @@ def build(here):
         "tags": {
             # The ability is never clicked: neither zone is tagged "activate",
             # so it is reachable only through activate_zone, which is ungated.
+            # Ninety cards, one sentence. Buying a development card is the same
+            # act whatever it costs — the numbers it moves are all read off the
+            # card — so the tag says it once instead of ninety templates each
+            # carrying a copy for somebody to keep in step.
             "development": {
                 "abilities": [{"key": "price", "text": "Price", "action": pricing()}],
+                "play": {"phases": ["act", "act_on"], "needs": ["buyable@self >= 1"],
+                         "action": buying()},
             },
             "noble": {
                 "abilities": [{"key": "check", "text": "Check", "action": noble_check()}],
+                "play": {"phases": ["noble_pick"], "needs": ["ok@self >= 1"],
+                         "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]},
             },
         },
         "zones": zones(rows),

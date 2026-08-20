@@ -239,7 +239,40 @@
             "stat_damage:buyable@self:sum:gold_due@self"
           ]
         }
-      ]
+      ],
+      "play": {
+        "phases": ["act", "act_on"],
+        "needs": ["buyable@self >= 1"],
+        "action": [
+          "stat_damage:t_white@mine.player:sum:due_white@self",
+          "stat_damage:t_blue@mine.player:sum:due_blue@self",
+          "stat_damage:t_green@mine.player:sum:due_green@self",
+          "stat_damage:t_red@mine.player:sum:due_red@self",
+          "stat_damage:t_black@mine.player:sum:due_black@self",
+          "stat_damage:t_gold@mine.player:sum:gold_due@self",
+          "stat_damage:t_total@mine.player:sum:spent@self",
+          "stat_gain:bank@pile_white:sum:due_white@self",
+          "stat_gain:bank@pile_blue:sum:due_blue@self",
+          "stat_gain:bank@pile_green:sum:due_green@self",
+          "stat_gain:bank@pile_red:sum:due_red@self",
+          "stat_gain:bank@pile_black:sum:due_black@self",
+          "stat_gain:bank@pile_gold:sum:gold_due@self",
+          "stat_gain:score@mine.player:sum:vp@self",
+          "stat_gain:bought@mine.player:1",
+          "stat_gain:b_white@mine.player:count:gives_white@self",
+          "stat_gain:b_blue@mine.player:count:gives_blue@self",
+          "stat_gain:b_green@mine.player:count:gives_green@self",
+          "stat_gain:b_red@mine.player:count:gives_red@self",
+          "stat_gain:b_black@mine.player:count:gives_black@self",
+          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
+          "stat_set:reserved@self:0",
+          "stat_set:buyable@self:0",
+          "set_owner:self:mine",
+          "move_to:mine.tableau",
+          "stat_set:done@mine.player:1",
+          "next_phase"
+        ]
+      }
     },
     "noble": {
       "abilities": [
@@ -265,7 +298,12 @@
             "stat_damage:ok@self:sum:short@self"
           ]
         }
-      ]
+      ],
+      "play": {
+        "phases": ["noble_pick"],
+        "needs": ["ok@self >= 1"],
+        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
+      }
     }
   },
   "zones": [
@@ -981,39 +1019,6 @@
         "cost_red": 2,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1029,39 +1034,6 @@
         "cost_red": 0,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1077,39 +1049,6 @@
         "cost_red": 1,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1125,39 +1064,6 @@
         "cost_red": 0,
         "cost_black": 2,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1173,39 +1079,6 @@
         "cost_red": 1,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1221,39 +1094,6 @@
         "cost_red": 0,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1269,39 +1109,6 @@
         "cost_red": 0,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1318,39 +1125,6 @@
         "cost_black": 0,
         "tier": 1,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1366,39 +1140,6 @@
         "cost_red": 0,
         "cost_black": 2,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1414,39 +1155,6 @@
         "cost_red": 0,
         "cost_black": 3,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1462,39 +1170,6 @@
         "cost_red": 1,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1510,39 +1185,6 @@
         "cost_red": 0,
         "cost_black": 2,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1558,39 +1200,6 @@
         "cost_red": 2,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1606,39 +1215,6 @@
         "cost_red": 2,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1654,39 +1230,6 @@
         "cost_red": 1,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1703,39 +1246,6 @@
         "cost_black": 0,
         "tier": 1,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1751,39 +1261,6 @@
         "cost_red": 0,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1799,39 +1276,6 @@
         "cost_red": 3,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1847,39 +1291,6 @@
         "cost_red": 1,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1895,39 +1306,6 @@
         "cost_red": 2,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1943,39 +1321,6 @@
         "cost_red": 1,
         "cost_black": 2,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -1991,39 +1336,6 @@
         "cost_red": 2,
         "cost_black": 2,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2039,39 +1351,6 @@
         "cost_red": 0,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2088,39 +1367,6 @@
         "cost_black": 4,
         "tier": 1,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2136,39 +1382,6 @@
         "cost_red": 0,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2184,39 +1397,6 @@
         "cost_red": 0,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2232,39 +1412,6 @@
         "cost_red": 0,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2280,39 +1427,6 @@
         "cost_red": 2,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2328,39 +1442,6 @@
         "cost_red": 0,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2376,39 +1457,6 @@
         "cost_red": 0,
         "cost_black": 2,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2424,39 +1472,6 @@
         "cost_red": 1,
         "cost_black": 3,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2473,39 +1488,6 @@
         "cost_black": 0,
         "tier": 1,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2521,39 +1503,6 @@
         "cost_red": 1,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2569,39 +1518,6 @@
         "cost_red": 0,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2617,39 +1533,6 @@
         "cost_red": 1,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2665,39 +1548,6 @@
         "cost_red": 0,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2713,39 +1563,6 @@
         "cost_red": 1,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2761,39 +1578,6 @@
         "cost_red": 1,
         "cost_black": 0,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2809,39 +1593,6 @@
         "cost_red": 3,
         "cost_black": 1,
         "tier": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2858,39 +1609,6 @@
         "cost_black": 0,
         "tier": 1,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2907,39 +1625,6 @@
         "cost_black": 2,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -2956,39 +1641,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3005,39 +1657,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3054,39 +1673,6 @@
         "cost_black": 2,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3103,39 +1689,6 @@
         "cost_black": 3,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3152,39 +1705,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3201,39 +1721,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3250,39 +1737,6 @@
         "cost_black": 3,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3299,39 +1753,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3348,39 +1769,6 @@
         "cost_black": 4,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3397,39 +1785,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3446,39 +1801,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3495,39 +1817,6 @@
         "cost_black": 2,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3544,39 +1833,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3593,39 +1849,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3642,39 +1865,6 @@
         "cost_black": 1,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3691,39 +1881,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3740,39 +1897,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3789,39 +1913,6 @@
         "cost_black": 3,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3838,39 +1929,6 @@
         "cost_black": 3,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3887,39 +1945,6 @@
         "cost_black": 5,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3936,39 +1961,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -3985,39 +1977,6 @@
         "cost_black": 5,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4034,39 +1993,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4083,39 +2009,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4132,39 +2025,6 @@
         "cost_black": 2,
         "tier": 2,
         "vp": 1
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4181,39 +2041,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4230,39 +2057,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4279,39 +2073,6 @@
         "cost_black": 0,
         "tier": 2,
         "vp": 2
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4328,39 +2089,6 @@
         "cost_black": 6,
         "tier": 2,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4377,39 +2105,6 @@
         "cost_black": 3,
         "tier": 3,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4426,39 +2121,6 @@
         "cost_black": 7,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4475,39 +2137,6 @@
         "cost_black": 6,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4524,39 +2153,6 @@
         "cost_black": 7,
         "tier": 3,
         "vp": 5
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4573,39 +2169,6 @@
         "cost_black": 5,
         "tier": 3,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4622,39 +2185,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4671,39 +2201,6 @@
         "cost_black": 3,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4720,39 +2217,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 5
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4769,39 +2233,6 @@
         "cost_black": 3,
         "tier": 3,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4818,39 +2249,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4867,39 +2265,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4916,39 +2281,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 5
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -4965,39 +2297,6 @@
         "cost_black": 3,
         "tier": 3,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -5014,39 +2313,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -5063,39 +2329,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -5112,39 +2345,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 5
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -5161,39 +2361,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 3
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -5210,39 +2377,6 @@
         "cost_black": 0,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -5259,39 +2393,6 @@
         "cost_black": 3,
         "tier": 3,
         "vp": 4
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -5308,39 +2409,6 @@
         "cost_black": 3,
         "tier": 3,
         "vp": 5
-      },
-      "play": {
-        "phases": ["act", "act_on"],
-        "needs": ["buyable@self >= 1"],
-        "action": [
-          "stat_damage:t_white@mine.player:sum:due_white@self",
-          "stat_damage:t_blue@mine.player:sum:due_blue@self",
-          "stat_damage:t_green@mine.player:sum:due_green@self",
-          "stat_damage:t_red@mine.player:sum:due_red@self",
-          "stat_damage:t_black@mine.player:sum:due_black@self",
-          "stat_damage:t_gold@mine.player:sum:gold_due@self",
-          "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
-          "stat_gain:score@mine.player:sum:vp@self",
-          "stat_gain:bought@mine.player:1",
-          "stat_gain:b_white@mine.player:count:gives_white@self",
-          "stat_gain:b_blue@mine.player:count:gives_blue@self",
-          "stat_gain:b_green@mine.player:count:gives_green@self",
-          "stat_gain:b_red@mine.player:count:gives_red@self",
-          "stat_gain:b_black@mine.player:count:gives_black@self",
-          "stat_gain:reserve_slots@mine.player:sum:reserved@self",
-          "stat_set:reserved@self:0",
-          "stat_set:buyable@self:0",
-          "set_owner:self:mine",
-          "move_to:mine.tableau",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
       }
     },
     {
@@ -5349,12 +2417,7 @@
       "tooltip": "Visits you for free once your discounts reach 4 white + 4 blue. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 4, "n_blue": 4, "n_green": 0, "n_red": 0, "n_black": 0, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 4, "n_blue": 4, "n_green": 0, "n_red": 0, "n_black": 0, "vp": 3 }
     },
     {
       "key": "noble_2",
@@ -5362,12 +2425,7 @@
       "tooltip": "Visits you for free once your discounts reach 4 blue + 4 green. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 0, "n_blue": 4, "n_green": 4, "n_red": 0, "n_black": 0, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 0, "n_blue": 4, "n_green": 4, "n_red": 0, "n_black": 0, "vp": 3 }
     },
     {
       "key": "noble_3",
@@ -5375,12 +2433,7 @@
       "tooltip": "Visits you for free once your discounts reach 4 green + 4 red. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 0, "n_blue": 0, "n_green": 4, "n_red": 4, "n_black": 0, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 0, "n_blue": 0, "n_green": 4, "n_red": 4, "n_black": 0, "vp": 3 }
     },
     {
       "key": "noble_4",
@@ -5388,12 +2441,7 @@
       "tooltip": "Visits you for free once your discounts reach 4 red + 4 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 0, "n_blue": 0, "n_green": 0, "n_red": 4, "n_black": 4, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 0, "n_blue": 0, "n_green": 0, "n_red": 4, "n_black": 4, "vp": 3 }
     },
     {
       "key": "noble_5",
@@ -5401,12 +2449,7 @@
       "tooltip": "Visits you for free once your discounts reach 4 white + 4 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 4, "n_blue": 0, "n_green": 0, "n_red": 0, "n_black": 4, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 4, "n_blue": 0, "n_green": 0, "n_red": 0, "n_black": 4, "vp": 3 }
     },
     {
       "key": "noble_6",
@@ -5414,12 +2457,7 @@
       "tooltip": "Visits you for free once your discounts reach 3 white + 3 blue + 3 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 3, "n_blue": 3, "n_green": 0, "n_red": 0, "n_black": 3, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 3, "n_blue": 3, "n_green": 0, "n_red": 0, "n_black": 3, "vp": 3 }
     },
     {
       "key": "noble_7",
@@ -5427,12 +2465,7 @@
       "tooltip": "Visits you for free once your discounts reach 3 blue + 3 green + 3 red. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 0, "n_blue": 3, "n_green": 3, "n_red": 3, "n_black": 0, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 0, "n_blue": 3, "n_green": 3, "n_red": 3, "n_black": 0, "vp": 3 }
     },
     {
       "key": "noble_8",
@@ -5440,12 +2473,7 @@
       "tooltip": "Visits you for free once your discounts reach 3 white + 3 red + 3 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 3, "n_blue": 0, "n_green": 0, "n_red": 3, "n_black": 3, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 3, "n_blue": 0, "n_green": 0, "n_red": 3, "n_black": 3, "vp": 3 }
     },
     {
       "key": "noble_9",
@@ -5453,12 +2481,7 @@
       "tooltip": "Visits you for free once your discounts reach 3 white + 3 blue + 3 green. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 3, "n_blue": 3, "n_green": 3, "n_red": 0, "n_black": 0, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 3, "n_blue": 3, "n_green": 3, "n_red": 0, "n_black": 0, "vp": 3 }
     },
     {
       "key": "noble_10",
@@ -5466,12 +2489,7 @@
       "tooltip": "Visits you for free once your discounts reach 3 green + 3 red + 3 black. Worth 3 prestige, and only one noble may arrive per turn.",
       "asset": "star:6:gold",
       "tags": ["noble", "plate_noble"],
-      "card_stats": { "n_white": 0, "n_blue": 0, "n_green": 3, "n_red": 3, "n_black": 3, "vp": 3 },
-      "play": {
-        "phases": ["noble_pick"],
-        "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
-      }
+      "card_stats": { "n_white": 0, "n_blue": 0, "n_green": 3, "n_red": 3, "n_black": 3, "vp": 3 }
     },
     {
       "key": "north_wins",

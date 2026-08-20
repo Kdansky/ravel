@@ -94,15 +94,12 @@ def templates():
                 # a single image file; wagers get a star instead.
                 "asset": ("star:5:" + art) if value == 0 else ("stripes:%d:%s" % (value, art)),
                 "tooltip": tooltip,
-                "tags": ["expedition", look, *extra_tags],
+                # The colour tag is where the card goes, and it carries the
+                # play: twelve cards of a colour differ in their value and in
+                # nothing else. `look` beside it is the picture, and the two are
+                # separate words on purpose — see the note at the top.
+                "tags": ["expedition", look, c + "_dest", *extra_tags],
                 "card_stats": {"value": value},
-                # Two places it may go, and the player picks one. The
-                # expedition refuses a card worth less than what is already
-                # there; the discard refuses nothing.
-                "play": {
-                    "target": {"type": "zone", "count": 1, "zones": [c, c + "_discard"]},
-                    "action": ["move_to:target"],
-                },
             }
 
         for w in range(1, WAGERS + 1):
@@ -268,7 +265,17 @@ SCORING_CARDS = [c + suffix for suffix in ("_score", "_bonus") for c, _, _, _ in
 # a card-side phase restriction had to exist before a pickup could be safe.
 # It charges no exhaust, so it stays available: Lost Cities never wraps a round,
 # and a card spent once would never ready again to be taken from a pile twice.
+# Two places a card may go, and the player picks one. The expedition refuses a
+# card worth less than what is already there; the discard refuses nothing. Said
+# once per colour rather than once per card, since a red 4 and a red 9 differ in
+# their number and in nowhere they can be put.
 TAG_DEFS = {
+    **{c + "_dest": {
+        "play": {
+            "target": {"type": "zone", "count": 1, "zones": [c, c + "_discard"]},
+            "action": ["move_to:target"],
+        },
+    } for c, _, _, _ in COLOURS},
     "takeable": {
         "activate": {
             "action": ["move_to:hand", "next_phase"],

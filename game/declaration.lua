@@ -396,6 +396,51 @@ function M.parse(filename)
 		end
 	end
 
+	-- **A tag may carry "play", and every card wearing it inherits the moment.**
+	-- Splendor says once what buying a development card does, instead of ninety
+	-- templates each carrying a copy for somebody to keep in step.
+	--
+	-- Only "play". A tag's "activate" already reaches a card through its
+	-- abilities list, and a second road to one word is how a format grows
+	-- synonyms — which the pass before this one spent itself deleting.
+	--
+	-- Merged at load, where a zone's "applies" is looked up at play time, and the
+	-- difference is not an implementation choice: what lying *here* lets a card do
+	-- changes as it moves, and what its own tags say about it never does. So this
+	-- costs nothing per frame, and dump shows an author what the card really is.
+	--
+	-- Whole block or none, and a card's own wins outright: half a moment — the
+	-- tag's action under the card's own cost — reads as cleverness and debugs as
+	-- neither. Two tags granting it is refused rather than resolved, exactly as an
+	-- ambiguous home is no home: picking one would make what a card does depend on
+	-- the order somebody typed its tags.
+	for _, key in ipairs(G.card_list) do
+		local cd = G.card_defs[key]
+		local own = false
+		for _, internal in pairs(MOMENTS.play) do
+			if cd[internal] ~= nil then own = true; break end
+		end
+		if not own then
+			local from, granted
+			for _, tg in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
+				local td = G.tag_defs[tg]
+				if type(td) == "table" and type(td.play) == "table" then
+					if from then
+						pp[#pp + 1] = ("card '%s' is handed \"play\" by both '%s' and '%s', so it takes"
+							.. " neither — which one won would be the order the tags were typed")
+							:format(key, from, tg)
+						granted = nil
+						break
+					end
+					from, granted = tg, td
+				end
+			end
+			for _, internal in pairs(MOMENTS.play) do
+				if granted and granted[internal] ~= nil then cd[internal] = granted[internal] end
+			end
+		end
+	end
+
 	-- Zones may omit pos: every type has a sensible default spot, so a first
 	-- game needs no layout numbers at all (tune later). Hidden zones default
 	-- off-screen, which also gives dealt cards their fly-in.

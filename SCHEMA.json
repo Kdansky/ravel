@@ -227,12 +227,12 @@
     "<your tag name>": {
       "zone": "the home zone of every card carrying this tag, so a move_to with no zone, a gain, and a card whose start block names none all know where it goes without saying so",
       "play": {
-        "cost": "what playing a card that lies here costs",
+        "cost": "what playing one of these cards costs",
         "needs": ["conditions gating it"],
         "target": "a target spec for it, the same shape as a card's play.target",
         "phases": ["phase keys it works in"],
         "action": [
-          "what playing a card here does. This is how an offer says what choosing from it means, when the cards it deals already do something else when played from a hand."
+          "what playing one of these cards does. Two readings, and both are live. A tag a *card* carries hands the whole moment to every card wearing it — ninety Splendor development cards buy the same way, so the game says it once instead of ninety templates each keeping a copy in step. A tag a *zone* hands out with applies says what playing a card that lies *there* does, which is how an offer says what choosing from it means when the cards it deals already do something else from a hand. Whole block or none: a card writing its own play takes none of the tag's, since half a moment — the tag's action under the card's own cost — reads as cleverness and debugs as neither. Two tags granting it is refused rather than resolved, and the card does neither: which one won would be the order somebody typed the tags."
         ]
       },
       "activate": {

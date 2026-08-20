@@ -158,11 +158,6 @@ def playing_cards():
                 "asset": f"stripes:{v}:{colour}",
                 "tags": ["play_card", colour] + ([] if rocket else [f"c_{key}{v}"]),
                 "card_stats": stats,
-                # The whole of follow-suit, on every card in the game. Leading,
-                # no card matches a led suit of zero, so flow's escape hatch
-                # ("nothing else here is playable") opens the hand at once.
-                "play": {"needs": ["suit@self == led@plan"],
-                         "action": ["set_owner:self:mine", "move_to:trick"]},
             }
             if not rocket:
                 # A card marks the task that wanted it, by the tag the two
@@ -185,7 +180,6 @@ def task_cards():
                            " If anyone else wins that trick, the mission is lost on the spot.",
                 "asset": f"stripes:{v}:{colour}:slate",
                 "tags": ["task", f"c_{key}{v}"],
-                "play": {"action": ["set_owner:self:mine", "move_to:tasks"]},
             })
     return out
 
@@ -428,7 +422,17 @@ def build():
             "hit_now": {"stat": "hit", "at_least": 1},
         },
         "tags": {
-            "play_card": {"tooltip": "Follow the led suit if you hold it. Rockets beat every colour."},
+            # The whole of follow-suit, said once for all forty cards. Leading,
+            # no card matches a led suit of zero, so flow's escape hatch
+            # ("nothing else here is playable") opens the hand at once.
+            "play_card": {
+                "tooltip": "Follow the led suit if you hold it. Rockets beat every colour.",
+                "play": {"needs": ["suit@self == led@plan"],
+                         "action": ["set_owner:self:mine", "move_to:trick"]},
+            },
+            # Taking a task is one act; which card it wants is the tag it shares
+            # with that card, and nothing about picking it up depends on which.
+            "task": {"play": {"action": ["set_owner:self:mine", "move_to:tasks"]}},
             # Never clicked: the trick is not tagged "activate", so this is
             # reachable only through activate_zone, which is ungated.
             "in_trick": {"abilities": [{"key": "weigh", "text": "Weigh", "action": contend()}]},

@@ -17,6 +17,9 @@ local url_is_safe = require("cards").url_is_safe
 -- spec is caught at load time rather than as a blank card at play time.
 local art         = require("art")
 local geometry    = require("geometry")
+-- MOMENTS only: the table that says which flat fields a block becomes. Pure
+-- data, and the loader requires nothing back, so there is no cycle here.
+local MOMENTS     = require("declaration").MOMENTS
 
 local M = {}
 
@@ -160,6 +163,12 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 -- A tag def is a card mixin, so it speaks a card's moments. What a tag can
 -- honestly grant is an ability and a home — nothing that would have to be
 -- re-derived as state moves — so `activate` is the only block it takes.
+-- The flat names a tag's "play" block becomes, and which the loader then copies
+-- onto every card wearing the tag. Derived from the loader's own table rather
+-- than typed out again: a moment gaining a field must not need editing twice.
+local GRANTED_PLAY    = { play = true }
+for _, internal in pairs(MOMENTS.play) do GRANTED_PLAY[internal] = true end
+
 local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
 	abilities = true,
 	-- derived from the blocks, as on a card
@@ -980,8 +989,17 @@ function M.check(G)
 			-- exactly what they are for. A card that can already do something
 			-- and is handed another thing can do both, and the player is asked
 			-- which — where a granted ability used to hide the card's own.
+			--
+			-- "play" is the second exception, and unlike abilities it *does* have
+			-- a precedence rule: the card's own wins and the tag fills in for the
+			-- cards that say nothing. So the flat fields are skipped here — by the
+			-- time this runs the loader has already copied the tag's onto every
+			-- card that inherited it, and every one of them would look like a card
+			-- answering twice. A card writing its own is not a conflict at all:
+			-- it is one template opting out of the sentence the others share,
+			-- which is the whole point of there being a rule.
 			for field in pairs(td) do
-				if field ~= "zone" and field ~= "abilities" then
+				if field ~= "zone" and field ~= "abilities" and not GRANTED_PLAY[field] then
 					for _, ck in ipairs(G.card_list) do
 						local cd = G.card_defs[ck]
 						if cd.tags_set and cd.tags_set[tag] and cd[field] ~= nil then
