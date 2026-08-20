@@ -184,13 +184,16 @@ REPRICE = ["activate_zone:t1_row", "activate_zone:t2_row", "activate_zone:t3_row
 # ------------------------------------------------------------------- the file
 
 def stats():
+    # The seven a player reads. Each is a number every seat holds, so the stat
+    # says so itself rather than the seat cards each listing them.
+    seat = {"on": ["player"], "start": 0}
     out = [{"key": "score", "label": "Prestige", "icon": "banner", "min": 0, "max": 99,
-            "subject": "score@mine.player"}]
+            "subject": "score@mine.player", **seat}]
     for k, label, _, _, icon in GEMS:
         out.append({"key": f"t_{k}", "label": label, "icon": icon, "min": 0, "max": 10,
-                    "subject": f"t_{k}@mine.player"})
+                    "subject": f"t_{k}@mine.player", **seat})
     out.append({"key": "t_gold", "label": "Gold", "icon": "coin", "min": 0, "max": 10,
-                "subject": "t_gold@mine.player"})
+                "subject": "t_gold@mine.player", **seat})
     # Everything below is arithmetic. It is declared so that it has a floor of
     # zero — the floor is what makes subtraction mean "and no further" — and
     # hidden so that the HUD stays the seven numbers a player actually reads.
@@ -211,9 +214,13 @@ def stats():
     for k in KEYS:
         printed[f"cost_{k}"] = ["development"]
         printed[f"n_{k}"] = ["noble"]
-    hidden = ["t_total", "takes", "done", "first_take", "reserve_slots", "bought", "opens",
-              "ending", "bank", "plenty"]
-    hidden += [f"b_{k}" for k in KEYS]
+    # What every seat holds, said once instead of copied onto each seat card and
+    # then copied again for a third player. "player" is the tag the engine stamps
+    # from the players list, so a game never types it and every seat wears it.
+    seat_start = {"t_total": 0, "takes": 0, "done": 0, "first_take": 1,
+                  "reserve_slots": 3, "bought": 0, "ending": 0, "opens": 0}
+    seat_start.update({f"b_{k}": 0 for k in KEYS})
+    hidden = ["bank", "plenty"]
     for k in hidden:
         out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"]})
     for k in sorted(scratch):
@@ -221,6 +228,9 @@ def stats():
                     "on": scratch[k], "start": 0})
     for k in sorted(printed):
         out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"], "on": printed[k]})
+    for k in sorted(seat_start):
+        out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"],
+                    "on": ["player"], "start": seat_start[k]})
     return out
 
 
@@ -417,17 +427,13 @@ def nobles(rows):
     return out
 
 
+# Every number a seat holds is granted by the stats node through on: ["player"],
+# so a seat card carries only what makes it that seat. The one thing that does
+# is who goes first — which is a fact about north, not about players.
 def seat_cards():
-    stats = {"score": 0, "t_total": 0, "takes": 0, "done": 0, "first_take": 1,
-             "reserve_slots": 3, "bought": 0, "ending": 0}
-    stats.update({f"t_{k}": 0 for k in KEYS})
-    stats.update({"t_gold": 0})
-    stats.update({f"b_{k}": 0 for k in KEYS})
-    north, south = dict(stats), dict(stats)
-    north["opens"], south["opens"] = 1, 0
     return [
-        {"key": "north", "text": "North", "tags": ["north_side"], "card_stats": north},
-        {"key": "south", "text": "South", "tags": ["south_side"], "card_stats": south},
+        {"key": "north", "text": "North", "tags": ["north_side"], "card_stats": {"opens": 1}},
+        {"key": "south", "text": "South", "tags": ["south_side"]},
     ]
 
 

@@ -489,36 +489,6 @@ function M.parse(filename)
 		end
 	end
 
-	-- **A stat says which cards it is a number about, and where they start.**
-	--
-	-- Carrying a stat is how a card says it takes part in that number: an action
-	-- skips a card that has none, and an absent stat fails every comparison
-	-- rather than reading as zero. Both rules are load-bearing, and both used to
-	-- mean a card that is one of forty in a deck declared the same zero forty
-	-- times. Said here instead, beside the floor and the ceiling of the same
-	-- number, which is where the rest of what a stat *is* already lives.
-	--
-	-- The card's own value always wins, so one card may start somewhere else.
-	-- A stat naming its cards and saying no `start` is one they must each
-	-- declare — "a creature has hp, and every creature says how much" — which
-	-- the validator checks and this pass leaves alone.
-	for _, key in ipairs(G.stat_defs_list) do
-		local sd = G.stat_defs[key]
-		if type(sd.on) == "table" and sd.start ~= nil then
-			for _, ck in ipairs(G.card_list) do
-				local cd = G.card_defs[ck]
-				local wears = false
-				for _, tg in ipairs(sd.on) do
-					if cd.tags_set and cd.tags_set[tg] then wears = true; break end
-				end
-				if wears then
-					cd.card_stats = cd.card_stats or {}
-					if cd.card_stats[key] == nil then cd.card_stats[key] = sd.start end
-				end
-			end
-		end
-	end
-
 	for _, pd in ipairs(entries(parsed.phases, "phases")) do
 		if type(pd) ~= "table" or not pd.key then
 			pp[#pp + 1] = "a phase has no \"key\" — every phase needs a unique one"
@@ -666,6 +636,41 @@ function M.parse(filename)
 		else
 			pp[#pp + 1] = "player " .. tostring(#G.seat_list + 1) .. " names the card '"
 				.. tostring(seat.card) .. "', but no card has that key"
+		end
+	end
+
+	-- Run here rather than beside the stats themselves, because "player" is the
+	-- one tag a game never types: the engine stamps it from the players list,
+	-- and it has just done so. A stat that is every seat's — a purse, a score, a
+	-- hand size — is exactly the kind that used to be copied onto two seat cards
+	-- and then onto four, and drift apart.
+	-- **A stat says which cards it is a number about, and where they start.**
+	--
+	-- Carrying a stat is how a card says it takes part in that number: an action
+	-- skips a card that has none, and an absent stat fails every comparison
+	-- rather than reading as zero. Both rules are load-bearing, and both used to
+	-- mean a card that is one of forty in a deck declared the same zero forty
+	-- times. Said here instead, beside the floor and the ceiling of the same
+	-- number, which is where the rest of what a stat *is* already lives.
+	--
+	-- The card's own value always wins, so one card may start somewhere else.
+	-- A stat naming its cards and saying no `start` is one they must each
+	-- declare — "a creature has hp, and every creature says how much" — which
+	-- the validator checks and this pass leaves alone.
+	for _, key in ipairs(G.stat_defs_list) do
+		local sd = G.stat_defs[key]
+		if type(sd.on) == "table" and sd.start ~= nil then
+			for _, ck in ipairs(G.card_list) do
+				local cd = G.card_defs[ck]
+				local wears = false
+				for _, tg in ipairs(sd.on) do
+					if cd.tags_set and cd.tags_set[tg] then wears = true; break end
+				end
+				if wears then
+					cd.card_stats = cd.card_stats or {}
+					if cd.card_stats[key] == nil then cd.card_stats[key] = sd.start end
+				end
+			end
 		end
 	end
 

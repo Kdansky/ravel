@@ -9,7 +9,9 @@
       "label": "Tricks won",
       "min": 0,
       "max": 99,
-      "subject": "tricks_won@mine.player"
+      "subject": "tricks_won@mine.player",
+      "on": ["player"],
+      "start": 0
     },
     {
       "key": "todo",
@@ -20,7 +22,7 @@
     },
     { "key": "led", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "want", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"] },
+    { "key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "hit", "min": 0, "max": 99, "tags": ["hidden"], "on": ["task"], "start": 0 },
     {
       "key": "radio",
@@ -28,7 +30,9 @@
       "icon": "banner",
       "min": 0,
       "max": 1,
-      "subject": "radio@mine.player"
+      "subject": "radio@mine.player",
+      "on": ["player"],
+      "start": 1
     },
     { "key": "v_pink", "min": 0, "max": 99, "tags": ["hidden"], "on": ["pink"] },
     { "key": "v_blue", "min": 0, "max": 99, "tags": ["hidden"], "on": ["blue"] },
@@ -291,22 +295,8 @@
       "key": "deal",
       "type": "automatic",
       "actions": [
-        "set_active_seat:north_side",
-        "draw_from:deck:mine.hand:10",
-        "set_active_seat:east_side",
-        "draw_from:deck:mine.hand:10",
-        "set_active_seat:south_side",
-        "draw_from:deck:mine.hand:10",
-        "set_active_seat:west_side",
-        "draw_from:deck:mine.hand:10",
-        "set_active_seat:north_side",
-        "stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
-        "set_active_seat:east_side",
-        "stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
-        "set_active_seat:south_side",
-        "stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
-        "set_active_seat:west_side",
-        "stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
+        "each_seat:draw_from:deck:mine.hand:10",
+        "each_seat:stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
         "set_active_seat:commander",
         "draw_from:task_deck:task_offer:sum:want@plan"
       ],
@@ -432,30 +422,10 @@
   ],
   "end_conditions": [],
   "cards": [
-    {
-      "key": "north",
-      "text": "North",
-      "tags": ["north_side"],
-      "card_stats": { "has_r4": 0, "tricks_won": 0, "radio": 1 }
-    },
-    {
-      "key": "east",
-      "text": "East",
-      "tags": ["east_side"],
-      "card_stats": { "has_r4": 0, "tricks_won": 0, "radio": 1 }
-    },
-    {
-      "key": "south",
-      "text": "South",
-      "tags": ["south_side"],
-      "card_stats": { "has_r4": 0, "tricks_won": 0, "radio": 1 }
-    },
-    {
-      "key": "west",
-      "text": "West",
-      "tags": ["west_side"],
-      "card_stats": { "has_r4": 0, "tricks_won": 0, "radio": 1 }
-    },
+    { "key": "north", "text": "North", "tags": ["north_side"] },
+    { "key": "east", "text": "East", "tags": ["east_side"] },
+    { "key": "south", "text": "South", "tags": ["south_side"] },
+    { "key": "west", "text": "West", "tags": ["west_side"] },
     {
       "key": "flight_plan",
       "text": "Flight plan",

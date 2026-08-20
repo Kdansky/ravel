@@ -787,16 +787,60 @@ HANDLERS["set_active_seat"] = function(p, ctx)
 			seat = k
 		end
 	end
-	local i = seat and (G.seat_index or {})[seat]
-	if not i or seat == zones.active_seat() then return end
+	-- Two questions, and they used to be one. **Is the number already right** is
+	-- asked of the index, because two values of "turn" report the same seat:
+	-- nought means nobody has taken one yet and *reads* as the first seat, so
+	-- naming that seat before anybody had played looked like a no-op and left the
+	-- sentinel standing. The next handover then computed 0 % seats + 1, named the
+	-- first seat again, and a table of four took its second turn out of order.
 	local sys = zones.system_card()
-	if not sys then return end
+	local i   = seat and (G.seat_index or {})[seat]
+	if not i or not sys or i == (sys.stats.turn or 0) then return end
+	-- **Has anybody handed over** is asked of the seat, and settling the sentinel
+	-- is not a handover: nobody's turn ended, so the undo history is still theirs
+	-- and the log has nothing to announce.
+	local was = zones.active_seat()
 	sys.stats.turn = i
+	if seat == was then return end
 	-- The undo history goes with the seat that had it, exactly as it does when a
 	-- turn ends normally: undoing across a handover rewrites somebody else's move.
 	if M.on_seat_change then M.on_seat_change() end
 	local def = G.card_defs[seat]
 	log.add("— " .. ((def and def.text) or seat) .. " to play —")
+end
+
+-- each_seat:<action>  — run one action once per seat, in seat order, with each
+-- seat up in turn and whoever was up put back afterwards.
+--
+-- The engine knows how many seats there are and content used to write the
+-- number out: The Crew's deal was four "set_active_seat" lines and four deals,
+-- and a five-player variant meant editing the phase rather than the players
+-- list. "mine" is what makes it work — every scope a game already writes is
+-- relative to whoever is up, so the loop needs no vocabulary of its own and
+-- wraps any action at all.
+--
+-- The seat is moved by hand rather than through set_active_seat, and that is the
+-- point: a handover clears the undo history and writes a line in the log, and
+-- neither belongs to a rule that is dealing to everybody. Nobody's turn has
+-- changed by the time this returns.
+HANDLERS["each_seat"] = function(p, ctx)
+	local inner = table.concat(p, ":", 2)
+	if inner == "" then
+		content_error("each_seat: names no action to run")
+		return
+	end
+	local seats = declaration.G.seat_list or {}
+	local sys   = zones.system_card()
+	if #seats < 2 or not sys then
+		M.execute(inner, ctx)
+		return
+	end
+	local was = sys.stats.turn
+	for i = 1, #seats do
+		sys.stats.turn = i
+		M.execute(inner, ctx)
+	end
+	sys.stats.turn = was
 end
 
 -- Saving, and picking the game back up. The same shape as the net_ ops above:
@@ -857,6 +901,7 @@ local SPEC = {
 	gain              = "card n",
 	effect            = "effect",
 	set_active_seat   = "scope",
+	each_seat         = "action",
 	save_game         = "save",
 	load_save         = "save",
 }

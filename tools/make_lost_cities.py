@@ -71,10 +71,10 @@ CHOICE_POS  = [0.815, 0.536, 0.975, 0.924]
 
 def templates():
     out = []
-    # The two seats. Each holds its own score; nothing else distinguishes them.
+    # The two seats. Their numbers are every seat's, so the stats node grants
+    # them and nothing here distinguishes one from the other but its name.
     for key, text in (("north", "North"), ("south", "South")):
-        out.append({"key": key, "text": text, "tags": [key + "_side"],
-                    "card_stats": {"score": 0, "tallied": 0}})
+        out.append({"key": key, "text": text, "tags": [key + "_side"]})
 
     # There are no destination markers. Playing a card points at a *place* — the
     # expedition or the discard — and a place is a zone, so the zone is the
@@ -349,7 +349,14 @@ def build():
         # No "round": the turn loop is a routing cycle and nothing declares
         # ends_round, so the counter never moves. A stat that always reads 1 is
         # noise in the HUD, not information.
-        "stats": [{"key": "score", "label": "Your score", "subject": "score@mine.player"}],
+        # Both seats' numbers, said once. "tallied" is hidden: it is how the
+        # scoring step knows it has run, not something a player reads.
+        "stats": [
+            {"key": "score", "label": "Your score", "subject": "score@mine.player",
+             "on": ["player"], "start": 0},
+            {"key": "tallied", "min": 0, "max": 99, "tags": ["hidden"],
+             "on": ["player"], "start": 0},
+        ],
         "tags": TAG_DEFS,
         "zones": z,
         "cards": tpl,

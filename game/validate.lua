@@ -685,7 +685,8 @@ function M.check(G)
 	-- op's declared shape (actions.spec), so the validator can't drift from
 	-- the handlers.
 	local known_ops = actions.ops()
-	local function check_action(where, str)
+	local check_action
+	function check_action(where, str)
 		local p = {}
 		for w in str:gmatch("[^:]+") do p[#p + 1] = w end
 		local op   = p[1]
@@ -705,7 +706,14 @@ function M.check(G)
 				end
 				break
 			end
-			if t == "zone" then
+			if t == "action" then
+				-- A wrapping op: everything after it is an action of its own, so
+				-- the argument checks that matter are that one's. Rejoined
+				-- rather than taken word by word, since an action carries its
+				-- own colons.
+				check_action(where, table.concat(p, ":", i))
+				break
+			elseif t == "zone" then
 				-- A zone argument may say whose it is ("enemy.arena"), so the
 				-- key to check is the last word. An unknown owner word simply
 				-- stays part of the name and is caught as an unknown zone.

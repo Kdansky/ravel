@@ -20,7 +20,9 @@
       "icon": "banner",
       "min": 0,
       "max": 99,
-      "subject": "score@mine.player"
+      "subject": "score@mine.player",
+      "on": ["player"],
+      "start": 0
     },
     {
       "key": "t_white",
@@ -28,7 +30,9 @@
       "icon": "diamond",
       "min": 0,
       "max": 10,
-      "subject": "t_white@mine.player"
+      "subject": "t_white@mine.player",
+      "on": ["player"],
+      "start": 0
     },
     {
       "key": "t_blue",
@@ -36,7 +40,9 @@
       "icon": "shield",
       "min": 0,
       "max": 10,
-      "subject": "t_blue@mine.player"
+      "subject": "t_blue@mine.player",
+      "on": ["player"],
+      "start": 0
     },
     {
       "key": "t_green",
@@ -44,7 +50,9 @@
       "icon": "leaf",
       "min": 0,
       "max": 10,
-      "subject": "t_green@mine.player"
+      "subject": "t_green@mine.player",
+      "on": ["player"],
+      "start": 0
     },
     {
       "key": "t_red",
@@ -52,7 +60,9 @@
       "icon": "heart",
       "min": 0,
       "max": 10,
-      "subject": "t_red@mine.player"
+      "subject": "t_red@mine.player",
+      "on": ["player"],
+      "start": 0
     },
     {
       "key": "t_black",
@@ -60,7 +70,9 @@
       "icon": "blade",
       "min": 0,
       "max": 10,
-      "subject": "t_black@mine.player"
+      "subject": "t_black@mine.player",
+      "on": ["player"],
+      "start": 0
     },
     {
       "key": "t_gold",
@@ -68,23 +80,12 @@
       "icon": "coin",
       "min": 0,
       "max": 10,
-      "subject": "t_gold@mine.player"
+      "subject": "t_gold@mine.player",
+      "on": ["player"],
+      "start": 0
     },
-    { "key": "t_total", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "takes", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "done", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "first_take", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "reserve_slots", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "bought", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "opens", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "ending", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "bank", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "plenty", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "b_white", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "b_blue", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "b_green", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "b_red", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "b_black", "min": 0, "max": 99, "tags": ["hidden"] },
     {
       "key": "buyable",
       "min": 0,
@@ -184,7 +185,34 @@
     { "key": "n_green", "min": 0, "max": 99, "tags": ["hidden"], "on": ["noble"] },
     { "key": "n_red", "min": 0, "max": 99, "tags": ["hidden"], "on": ["noble"] },
     { "key": "n_white", "min": 0, "max": 99, "tags": ["hidden"], "on": ["noble"] },
-    { "key": "tier", "min": 0, "max": 99, "tags": ["hidden"], "on": ["development"] }
+    { "key": "tier", "min": 0, "max": 99, "tags": ["hidden"], "on": ["development"] },
+    { "key": "b_black", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "b_blue", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "b_green", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "b_red", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "b_white", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "bought", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "done", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "ending", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    {
+      "key": "first_take",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["player"],
+      "start": 1
+    },
+    { "key": "opens", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    {
+      "key": "reserve_slots",
+      "min": 0,
+      "max": 99,
+      "tags": ["hidden"],
+      "on": ["player"],
+      "start": 3
+    },
+    { "key": "t_total", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "takes", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 }
   ],
   "computed_tags": {
     "noble_ready": { "stat": "ok", "at_least": 1 },
@@ -673,60 +701,8 @@
   ],
   "end_conditions": [],
   "cards": [
-    {
-      "key": "north",
-      "text": "North",
-      "tags": ["north_side"],
-      "card_stats": {
-        "score": 0,
-        "t_total": 0,
-        "takes": 0,
-        "done": 0,
-        "first_take": 1,
-        "reserve_slots": 3,
-        "bought": 0,
-        "ending": 0,
-        "t_white": 0,
-        "t_blue": 0,
-        "t_green": 0,
-        "t_red": 0,
-        "t_black": 0,
-        "t_gold": 0,
-        "b_white": 0,
-        "b_blue": 0,
-        "b_green": 0,
-        "b_red": 0,
-        "b_black": 0,
-        "opens": 1
-      }
-    },
-    {
-      "key": "south",
-      "text": "South",
-      "tags": ["south_side"],
-      "card_stats": {
-        "score": 0,
-        "t_total": 0,
-        "takes": 0,
-        "done": 0,
-        "first_take": 1,
-        "reserve_slots": 3,
-        "bought": 0,
-        "ending": 0,
-        "t_white": 0,
-        "t_blue": 0,
-        "t_green": 0,
-        "t_red": 0,
-        "t_black": 0,
-        "t_gold": 0,
-        "b_white": 0,
-        "b_blue": 0,
-        "b_green": 0,
-        "b_red": 0,
-        "b_black": 0,
-        "opens": 0
-      }
-    },
+    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "opens": 1 } },
+    { "key": "south", "text": "South", "tags": ["south_side"] },
     {
       "key": "pile_white",
       "text": "Diamond",

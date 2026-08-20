@@ -636,6 +636,27 @@ disk cache with no network at all.
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
 | `where` | A condition asked of **each candidate**, with the candidate as `@target` and as the anchor for any pattern inside — so a target spec can say things about the destination that `fill` cannot. `"row@target == 1"` is the near row of a grid; `"count:unit@across >= 1"` is a cell with something standing opposite it. The same word a move rule carries, asked one level up so a destination nothing *walks* to can be narrowed too |
 
+### Every seat, once
+
+`each_seat:<action>` runs one action for each seat in turn, with that seat up:
+
+```json
+"actions": [
+  "each_seat:draw_from:deck:mine.hand:10",
+  "each_seat:stat_set:has_r4@mine.player:card:rocket_4@mine.hand"
+]
+```
+
+`mine` is what makes it work — every scope you write is already relative to
+whoever is up — so any action at all can be wrapped and no new words are needed.
+The Crew's deal was four `set_active_seat` lines and four draws before this, and
+a five-player variant meant editing the phase rather than the `players` list.
+
+Whoever was up is up again when it returns, and **nothing hands over**: no line
+in the log and no undo history cleared, because dealing to everybody is not
+anybody's turn. It runs the same action for each seat, so an *uneven* deal is
+the one thing it cannot say.
+
 ### Phases
 
 | Field | Meaning |
@@ -1606,6 +1627,23 @@ from an arithmetic that is about it used to be invisible, because a stat nobody
 carries fails closed.
 
 Saying `start` without `on` is refused: it would not know whose number it is.
+
+**`on: ["player"]` is the one every game wants.** `player` is stamped by the
+engine onto the cards your `players` list names, so it is the one tag you never
+type and every seat wears:
+
+```json
+{ "key": "reserve_slots", "min": 0, "max": 99, "on": ["player"], "start": 3 }
+```
+
+```json
+{ "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "opens": 1 } },
+{ "key": "south", "text": "South", "tags": ["south_side"] }
+```
+
+Splendor's two seats used to carry twenty numbers each, nineteen of them the
+same on both, and a third player would have meant a third copy. What is left on
+a seat card is what makes it *that* seat.
 
 `suit` and `value` in The Crew are the required form (every playing card says its
 own), and the eight scratch registers of the trick arithmetic are the granted

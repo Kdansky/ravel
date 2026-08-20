@@ -129,9 +129,11 @@ def radio_card():
 
 # --- cards ---------------------------------------------------------------
 
+# Everything a crew member holds is granted by the stats node through
+# on: ["player"], so a seat is its name and the tag other rules find it by. A
+# five-seat variant is then a longer SEATS list and nothing else.
 def seat_cards():
-    return [{"key": k, "text": t, "tags": [k + "_side"],
-             "card_stats": {"has_r4": 0, "tricks_won": 0, "radio": 1}} for k, t in SEATS]
+    return [{"key": k, "text": t, "tags": [k + "_side"]} for k, t in SEATS]
 
 
 def playing_cards():
@@ -303,21 +305,25 @@ def zones():
 def deal():
     """Deal, then find the commander, then hand them the table.
 
-    Both halves walk the seats by name, because there is no word for "every
-    seat in turn" outside a phase — and the second walk is the only way a card
-    sitting in a hand can be asked about at all: a tag reaches grid zones only,
-    so "who holds the rocket 4" has to be asked once per seat, of the seat that
-    holds it. What it writes is an ordinary stat, and the commander is then a
-    computed tag over it, which every later rule can name.
+    "each_seat" is what says "every seat in turn", so neither half writes the
+    seat count out. The second half is the only way a card sitting in a hand can
+    be asked about at all: a tag reaches grid zones only, so "who holds the
+    rocket 4" has to be asked once per seat, of the seat that holds it. What it
+    writes is an ordinary stat, and the commander is then a computed tag over it
+    that every later rule can name.
     """
-    out = []
-    for i, (key, _) in enumerate(SEATS):
-        n = TRICKS + (1 if i < DECK % len(SEATS) else 0)
-        out += [f"set_active_seat:{key}_side", f"draw_from:deck:mine.hand:{n}"]
-    for key, _ in SEATS:
-        out += [f"set_active_seat:{key}_side",
-                "stat_set:has_r4@mine.player:card:rocket_4@mine.hand"]
-    return out + ["set_active_seat:commander",
+    if DECK % len(SEATS):
+        # An uneven deal is the one thing each_seat cannot say — it runs the
+        # same action for everybody — so a deck that does not divide goes back
+        # to naming the seats, and only that half of it does.
+        out = []
+        for i, (key, _) in enumerate(SEATS):
+            n = TRICKS + (1 if i < DECK % len(SEATS) else 0)
+            out += [f"set_active_seat:{key}_side", f"draw_from:deck:mine.hand:{n}"]
+    else:
+        out = [f"each_seat:draw_from:deck:mine.hand:{TRICKS}"]
+    return out + ["each_seat:stat_set:has_r4@mine.player:card:rocket_4@mine.hand",
+                  "set_active_seat:commander",
                   "draw_from:task_deck:task_offer:sum:want@plan"]
 
 
@@ -393,18 +399,21 @@ def build():
         "stats": [
             {"key": "tricks", "label": "Trick", "min": 0, "max": 99, "subject": "sum:tricks@plan"},
             {"key": "tricks_won", "label": "Tricks won", "min": 0, "max": 99,
-             "subject": "tricks_won@mine.player"},
+             "subject": "tricks_won@mine.player", "on": ["player"], "start": 0},
             {"key": "todo", "label": "Your tasks", "min": 0, "max": 99,
              "subject": "count:task@mine.tasks"},
             {"key": "led", "min": 0, "max": 99, "tags": ["hidden"]},
             {"key": "want", "min": 0, "max": 99, "tags": ["hidden"]},
-            {"key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"]},
+            {"key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"],
+             "on": ["player"], "start": 0},
             # Whose number each of these is, said once instead of on every card.
             # A task starts unclaimed; a playing card says its own suit and value
             # and starts the trick arithmetic at zero.
             {"key": "hit", "min": 0, "max": 99, "tags": ["hidden"], "on": ["task"], "start": 0},
-                {"key": "radio", "label": "Radio", "icon": "banner", "min": 0, "max": 1,
-             "subject": "radio@mine.player"},
+            # One thing may be said per player per mission, which is a fact about
+            # being a player rather than about being north.
+            {"key": "radio", "label": "Radio", "icon": "banner", "min": 0, "max": 1,
+             "subject": "radio@mine.player", "on": ["player"], "start": 1},
         # A colour card's value under a name only its own colour carries, which
         # is what lets max: and min: over a hand answer "my highest pink". Every
         # card of the colour must say it, so the stat says so and the validator

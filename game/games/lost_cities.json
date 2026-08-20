@@ -10,7 +10,16 @@
     "stacked": { "fit": "fill", "fan": "down" }
   },
   "seed": 11,
-  "stats": [{ "key": "score", "label": "Your score", "subject": "score@mine.player" }],
+  "stats": [
+    {
+      "key": "score",
+      "label": "Your score",
+      "subject": "score@mine.player",
+      "on": ["player"],
+      "start": 0
+    },
+    { "key": "tallied", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 }
+  ],
   "tags": {
     "red_dest": {
       "play": {
@@ -230,18 +239,8 @@
     }
   ],
   "cards": [
-    {
-      "key": "north",
-      "text": "North",
-      "tags": ["north_side"],
-      "card_stats": { "score": 0, "tallied": 0 }
-    },
-    {
-      "key": "south",
-      "text": "South",
-      "tags": ["south_side"],
-      "card_stats": { "score": 0, "tallied": 0 }
-    },
+    { "key": "north", "text": "North", "tags": ["north_side"] },
+    { "key": "south", "text": "South", "tags": ["south_side"] },
     {
       "key": "red_w1",
       "text": "Red wager",

@@ -151,4 +151,28 @@ function M.test_active_seat_travels_over_the_wire(check)
 	end)
 end
 
+-- Nought is "nobody has taken a turn yet" and it *reads* as the first seat, so
+-- naming that seat looked like a no-op — and left the sentinel standing. The
+-- next handover computed 0 % seats + 1, named the first seat again, and the
+-- table took its second turn out of order. Found by writing The Crew's deal as
+-- one "each_seat" line, which restored the turn to nought where the old walk
+-- had left it at four and hidden this.
+function M.test_active_seat_naming_the_first_seat_settles_the_sentinel(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local sys = zones.system_card()
+		check("nobody has played", sys.stats.turn == 0, tostring(sys.stats.turn))
+		check("which reads as the first seat", zones.active_seat() == "one")
+
+		actions.execute("set_active_seat:owner_of.target", { targets = { at("a1").id } })
+		check("naming that seat writes the number down", sys.stats.turn == 1, tostring(sys.stats.turn))
+		check("and the seat is unchanged", zones.active_seat() == "one")
+
+		-- The whole point: the handover after it must reach somebody else.
+		actions.execute("set_active_seat:owner_of.target", { targets = { at("c1").id } })
+		check("so the next handover reaches the other seat", zones.active_seat() == "two",
+			tostring(zones.active_seat()))
+	end)
+end
+
 return M
