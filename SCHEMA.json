@@ -180,9 +180,10 @@
       "actions": ["action strings run when the phase begins — any phase, not only automatic ones. On a phase that hands over, the seat has already changed, so \"mine\" is the player about to act."],
       "deck": "zone key to deal from on fresh entry",
       "draw": "number of cards dealt on fresh entry",
-      "zone": "where they are dealt, default hand. Naming it also bounds what may be played to the cards in it; a phase naming none lets any reachable card be played, which is what the menu relies on.",
+      "zone": "a zone key, or a list of them. Naming it bounds what may be played to the cards in those zones; a phase naming none lets any reachable card be played, which is what the menu relies on. The FIRST is where cards are dealt and what an overlay offers, because those are singular questions \u2014 a list is a player holding two hands, an open one beside a closed one.",
       "pass_card": "a card key or a list of them, dealt with every hand so a forced play always has an out",
-      "ends_after": "number of plays after which the phase advances itself",
+      "ends_after": "number of plays after which the phase advances itself. It counts plays and cannot tell one from another; use ends_when when only some of them should end the turn.",
+  "ends_when": "a condition, asked every time the game comes to rest \u2014 after every action, not only after a play. When it holds the phase advances itself. One phase says one or the other, never both, and only a phase a player acts in: automatic and overlay phases end themselves.",
       "seat": "next hands over to the following seat on entry, which is the whole of turn-taking",
       "next": [
         {
@@ -274,13 +275,13 @@
     }
   },
   "_conditions": {
-    "_what": "One vocabulary, used by every needs (a card's, a challenge's, a zone's receive), accepts, a phase's next entries and end_conditions. A subject is a stat key, count:<tag>, card:<key>, sum:<subject> or max:<subject>, optionally carrying a scope after an @.",
+    "_what": "One vocabulary, used by every needs (a card's, a challenge's, a zone's receive), accepts, a phase's next entries and end_conditions. A subject is a stat key, count:<tag>, card:<key>, sum:<subject>, max:<subject> or min:<subject>, optionally carrying a scope after an @.",
     "_yes_no": "tagged:<tag> and not_tagged:<tag> answer a yes/no about a scope, as 1 or 0: \"tagged:pawn@behind >= 1\" is \"there is a pawn there\". Prefer them to counting to one; count: is for when the number is the point. An empty scope has nothing tagged, so it answers no to the first and yes to the second.",
     "_saved": "saved:<slot> is the same yes/no shape asked of the machine rather than of any card: 1 when that save slot holds a game, 0 when it does not — which is how a menu offers Continue only when there is something to continue. A build with no save layer in it answers 0, which is true there.",
     "_form": "One comparison, written as one string: <subject> <op> <number-or-subject>. The operators are >=, <=, >, <, == and !=, one per string. There are no boolean operators and no arithmetic: a list already means and, and or is two abilities.",
     "_where_they_go": "A needs, an accepts and a target's where each take a LIST of them, all of which must hold — a list rather than a map keyed by its subject, because such a map cannot name one subject twice, and \"gold >= 3\" with \"gold <= 8\" is a range. A routing entry and an end condition take exactly one, under the key when.",
     "_measured_against_a_subject": "The right-hand side may be another subject rather than a constant: \"value@target >= max:value@mine.red\". It must LOOK like a subject — name a scope or a measuring fn — or it is refused as a bare word, which would otherwise read as a stat worth nothing and quietly pass.",
-    "_absent_is_not_zero": "A stat nobody carries fails every comparison, equals 0 included, because otherwise a gate opens exactly when the thing it guards stops existing. The measuring forms are exempt: count: and card: over nothing really is zero, and sum:/max: are asked of a pool.",
+    "_absent_is_not_zero": "A stat nobody carries fails every comparison, equals 0 included, because otherwise a gate opens exactly when the thing it guards stops existing. The measuring forms are exempt: count: and card: over nothing really is zero, and sum:/max: are asked of a pool, whose empty measure is honestly 0. min: is NOT exempt — a pool with nothing in it has no smallest member, and answering 0 would put one below every real value.",
     "_a_cost_is_not_one": "A cost stays a map of subject to number \u2014 { \"gold\": 2 } \u2014 because a cost is what gets SPENT, and \"mana >= 3\" says what to check rather than what to take away.",
     "_scopes": "After the @, [<quantifier>.][<owner>.]<name>, where the name is a zone key, a tag, a movement pattern, or one of self, target, all, reach. No scope at all means your own cards. A tag scope means cards in play, on grid zones — name the zone when a hand is what you meant.",
     "_reach": "reach is the squares a set of pieces could move onto right now, answered as the things standing on them — computed from the moves each piece declares, never stored. The owner word picks whose pieces are asked, not what comes back, so \"count:king@enemy.reach == 0\" is \"not in check\". The engine has no notion of an attack: a piece may only land on an occupied square if its own move says so, so the game file has already drawn the line between moving and threatening. A move rule's own needs may not usefully ask for it — that is reach asking itself, and the circle names nothing.",

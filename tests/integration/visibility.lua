@@ -209,4 +209,55 @@ function M.test_visibility_a_seat_this_game_never_heard_of(check)
 	net.claim_seat(nil)
 end
 
+-- An open hand: cards a seat has laid face up in front of everybody, which is a
+-- move in several games and was unsayable while this rule only knew about
+-- seats. "face_up" is documented as overriding whatever the type would do, and
+-- hiding a hand is the only thing the type does here.
+local OPEN = [==[{
+  "title": "Open Hand",
+  "players": [{ "card": "one" }, { "card": "two" }],
+  "zones": [
+    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+      "pos": [[0.02, 0.80, 0.98, 0.95], [0.02, 0.05, 0.98, 0.20]] },
+    { "key": "open", "type": "hand", "tags": ["per_seat", "face_up"],
+      "pos": [[0.02, 0.60, 0.98, 0.75], [0.02, 0.25, 0.98, 0.40]] }
+  ],
+  "phases": [{ "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }],
+  "cards": [
+    { "key": "one", "text": "One" },
+    { "key": "two", "text": "Two" },
+    { "key": "chit", "text": "Chit" }
+  ],
+  "setup": { "place": [{ "card": "chit", "zone": "hand" }, { "card": "chit", "zone": "open" }] }
+}]==]
+
+function M.test_visibility_a_hand_may_be_laid_face_up(check)
+	local path = "game/games/tmp_open_hand.json"
+	local f = assert(io.open(path, "w"))
+	f:write(OPEN)
+	f:close()
+	local ok, err = pcall(function()
+		flow.init("tmp_open_hand.json", 3)
+		local function only(key, seat)
+			for _, z in ipairs(zones.all_with_key(key)) do
+				if z.seat == seat then return entity.get(z.cards[1]) end
+			end
+		end
+		check("a seat sees its own closed hand", zones.visible(only("hand", "one")))
+		check("and not the other seat's", zones.visible(only("hand", "two")) == false)
+		check("but an open hand is everybody's to read",
+			zones.visible(only("open", "one")) and zones.visible(only("open", "two")))
+		-- The container answers the same way, or the browser quietly undoes it.
+		local function zone(key, seat)
+			for _, z in ipairs(zones.all_with_key(key)) do
+				if z.seat == seat then return z end
+			end
+		end
+		check("and the zone agrees, so the browser cannot go behind it",
+			zones.peekable(zone("open", "two")) and zones.peekable(zone("hand", "two")) == false)
+	end)
+	os.remove(path)
+	if not ok then error(err, 0) end
+end
+
 return M

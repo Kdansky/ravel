@@ -233,4 +233,52 @@ function M.test_conditions_a_route_can_carry_one(check)
 	end)
 end
 
+-- `min:` — the smallest of a pool, and the one measuring form that is not
+-- exempt from *a stat nobody carries is absent, not zero*.
+--
+-- It only ever sees the cards that carry the stat, which is what makes "the
+-- lowest card of this colour in my hand" sayable at all: a tag scope reads grid
+-- zones only, so `@pink` cannot see a hand — but a stat only pink cards carry
+-- can, read through `@mine.hand`.
+function M.test_conditions_min_is_the_smallest_of_what_carries_it(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local board = zones.find("board")
+		local a, b = entity.get(board.cards[1]), entity.get(board.cards[2])
+		a.stats.hp, b.stats.hp = 4, 7
+
+		check("min takes the smaller", predicate.total("min:hp@board") == 4,
+			tostring(predicate.total("min:hp@board")))
+		check("and max still takes the larger", predicate.total("max:hp@board") == 7)
+		a.stats.hp = 9
+		check("min follows the numbers", predicate.total("min:hp@board") == 7)
+
+		-- The ghost on c1 carries no hp at all and must not drag the answer to
+		-- zero: bearers is what min walks, not the scope.
+		check("a card without the stat is not a zero in the pool",
+			predicate.total("min:hp@board") == 7)
+
+		check("a comparison reads it", predicate.holds("min:hp@board == 7"))
+		check("and reads it on the right too",
+			predicate.holds("hp@ghost >= min:hp@board") == false)
+	end)
+end
+
+-- Nothing is not *at least* nothing. `sum:` and `max:` of an empty pool are
+-- honestly 0 — nothing adds to nothing, nothing is at most nothing — but a zero
+-- minimum would sit *below* every real value, so a gate would open exactly when
+-- the thing it measures is not there at all.
+function M.test_conditions_the_smallest_of_nothing_is_absent(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		check("sum over an empty pool is zero", predicate.holds("sum:hp@hand == 0"))
+		check("and so is max", predicate.holds("max:hp@hand == 0"))
+		check("but min fails every comparison", predicate.holds("min:hp@hand == 0") == false
+			and predicate.holds("min:hp@hand <= 9") == false
+			and predicate.holds("min:hp@hand >= 0") == false)
+		check("including on the right-hand side",
+			predicate.holds("hp@beast >= min:hp@hand") == false)
+	end)
+end
+
 return M

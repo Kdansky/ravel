@@ -290,7 +290,7 @@
       "key": "lead",
       "type": "player_input",
       "zone": "hand",
-      "ends_after": 1,
+      "ends_when": "count:play_card@trick >= 1",
       "label": "Lead a card",
       "next": [{ "then": "led" }]
     },
@@ -358,7 +358,7 @@
       "type": "player_input",
       "seat": "next",
       "zone": "hand",
-      "ends_after": 1,
+      "ends_when": "count:play_card@trick >= 2",
       "label": "Follow the suit that was led, if you can",
       "next": [{ "then": "follow_2" }]
     },
@@ -367,7 +367,7 @@
       "type": "player_input",
       "seat": "next",
       "zone": "hand",
-      "ends_after": 1,
+      "ends_when": "count:play_card@trick >= 3",
       "label": "Follow the suit that was led, if you can",
       "next": [{ "then": "follow_3" }]
     },
@@ -376,7 +376,7 @@
       "type": "player_input",
       "seat": "next",
       "zone": "hand",
-      "ends_after": 1,
+      "ends_when": "count:play_card@trick >= 4",
       "label": "Follow the suit that was led, if you can",
       "next": [{ "then": "resolve" }]
     }

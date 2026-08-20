@@ -69,9 +69,13 @@ end
 
 local function in_play_zone(c)
 	local cur = phase.current()
-	if not cur or not cur.zone then return true end
-	local z = zones.find(cur.zone)
-	return z ~= nil and c ~= nil and c.zone_id == z.id
+	if not cur or not cur.zone_list then return true end
+	if not c then return false end
+	for _, key in ipairs(cur.zone_list) do
+		local z = zones.find(key)
+		if z and c.zone_id == z.id then return true end
+	end
+	return false
 end
 
 -- A stack is reached from the top, and only from the top. Decks and piles draw
@@ -246,10 +250,14 @@ end
 -- one exists (destroyed otherwise); tokens always just vanish. Fired by the
 -- phase.on_leave hook for phases marked discard_hand.
 local function discard_hand(ph)
-	local hand = zones.find(ph.zone or "hand")
-	if not hand then return end
 	local grave = zones.find_id("graveyard")
 	local n = 0
+	-- Every zone the phase played out of, not only the first: a hand it dealt
+	-- and an open hand beside it are both this phase's, and leaving one behind
+	-- would carry it into the next turn as cards nobody remembers dealing.
+	for _, key in ipairs(ph.zone_list or { "hand" }) do
+	local hand = zones.find(key)
+	if hand then
 	while #hand.cards > 0 do
 		local cid  = hand.cards[#hand.cards]
 		local cdef = cards.def(entity.get(cid))
@@ -259,6 +267,8 @@ local function discard_hand(ph)
 			if grave then zones.move_top(hand.id, grave) else zones.destroy_card(cid) end
 			n = n + 1
 		end
+	end
+	end
 	end
 	if n > 0 then log.add("Discarded " .. n .. " unplayed") end
 end
@@ -363,6 +373,20 @@ function M.settle()
 				-- so a phase can draw into the hand it is about to deal.
 				actions.run(cur.actions, {})
 				deal(cur)
+			elseif cur and cur.ends_when and cur.type ~= "overlay"
+				and predicate.holds(cur.ends_when, {}) then
+				-- **A phase says how it ends, and the answer is asked every time
+				-- the game comes to rest** — which is after every action rather
+				-- than only after a play. `ends_after` counts plays and cannot
+				-- tell one from another, which is true of the games written so
+				-- far and false of most: in a trick-taking game putting a card
+				-- into the middle ends your turn and everything else you may do
+				-- does not. Written as an ordinary condition, so it is the same
+				-- vocabulary a route or a cost is.
+				--
+				-- Overlays are excluded: they are resolved by choosing, and they
+				-- pop rather than advance.
+				phase.next()
 			else
 				return
 			end

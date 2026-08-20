@@ -643,9 +643,10 @@ disk cache with no network at all.
 | `key`, `label` | Identity, HUD label |
 | `type` | `automatic`, `player_input`, `draw_and_play`, `overlay` |
 | `actions` | Run on entry (automatic phases) |
-| `deck`, `draw`, `zone` | Deal `draw` cards from `deck` into `zone` (default `hand`) on fresh entry. **Naming `zone` also bounds what may be played**: only cards in it. A phase that names none lets any reachable card be played, which is what the menu relies on |
+| `deck`, `draw`, `zone` | Deal `draw` cards from `deck` into `zone` (default `hand`) on fresh entry. **Naming `zone` also bounds what may be played**: only cards in it. `zone` may be **a list**, which is a player holding two hands — an open one beside a closed one; the *first* is where cards are dealt and what an overlay offers, because those are singular questions. A phase that names none lets any reachable card be played, which is what the menu relies on |
 | `pass_card` | Card key or array, dealt with every hand — forced plays always have an out |
-| `ends_after` | The phase advances itself after this many plays |
+| `ends_after` | The phase advances itself after this many **plays** |
+| `ends_when` | A condition, asked every time the game comes to rest — **after every action, not only after a play**. See below |
 | `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*) |
 | `tags` | `discard_hand` and `keep_hand` — see *Every tag the engine reads* |
 | `next` | Routing table (below) |
@@ -663,10 +664,29 @@ afterwards is spent. **A choice costs nothing**: cost, needs and targeting are
 skipped, because they describe playing that card out of a hand later.
 
 Think of phases like Magic's turn structure: each phase declares what it
-deals on entry (`deck`/`draw`/`pass_card`), how it ends (`ends_after` N
-plays, a card whose actions say `next_phase`, or nothing — the player decides
-via a pass card), and whether leaving it sweeps the hand (`discard_hand` —
-the usual choice, so unpicked options don't pile up across turns).
+deals on entry (`deck`/`draw`/`pass_card`), how it ends, and whether leaving it
+sweeps the hand (`discard_hand` — the usual choice, so unpicked options don't
+pile up across turns).
+
+**How a phase ends is the phase's to say, and there are four ways.** A card
+whose actions say `next_phase`; nothing at all, so the player decides via a pass
+card; `ends_after` N plays; or `ends_when`, a condition.
+
+`ends_after` counts **plays** and cannot tell one from another. That is true of
+a game where a turn is one card and false of most others — in a trick-taking
+game, putting a card into the middle ends your turn and everything else you may
+do does not:
+
+```json
+{ "key": "lead", "type": "player_input", "zone": ["hand", "open"],
+  "ends_when": "count:play_card@trick >= 1" }
+```
+
+`ends_when` is an ordinary condition in the ordinary vocabulary, and it is asked
+every time the game comes to rest — after an activation, after a zone's
+`receive` moved something, after a play. A phase says one or the other, never
+both, and only a phase a player acts in: automatic and overlay phases end
+themselves.
 
 The engine provides a built-in overlay phase `reveal` over a built-in hidden
 zone `reveal`, used by the reveal actions. It renders cards as full-text story
@@ -729,7 +749,18 @@ existing. `nil` and `0` are different, here as in Lua.
 
 The measuring forms are exempt and mean what they say: `count:` and `card:` over
 nothing really is zero (which is how "these squares are empty" is written), and
-`sum:`/`max:` are asked *of a pool*, whose empty measure is honestly zero.
+`sum:`/`max:` are asked *of a pool*, whose empty measure is honestly zero —
+nothing adds to nothing, and nothing is at most nothing.
+
+**`min:` is the exception to the exception.** Nothing is not *at least* nothing:
+a zero answer would sit below every real value, so `min:value@mine.hand` over an
+empty hand would beat everything exactly when the hand is empty. An empty pool
+has no smallest member, so `min:` reads as absent and fails every comparison.
+
+**`min:` and `max:` only see the cards that carry the stat**, which is what
+makes "the lowest pink card in my hand" sayable without a scope that can name a
+tag inside a hand: give a pink card a `v_pink` stat and give no other card one,
+and `min:v_pink@mine.hand` is exactly that.
 
 A subject used this way must *look* like one — it has to name a scope (`@…`)
 or a measuring fn (`sum:`, `max:`, `count:`, `card:`). A bare word is treated
@@ -754,6 +785,7 @@ hp@self              the acting card
 hp@target            the cards the player chose for this card
 sum:defense@board    a stat summed over one zone
 max:rank@tableau     the largest value in one zone
+min:rank@tableau     the smallest — over the cards that carry the stat
 count:farm@board     count, narrowed to a zone
 count:king@enemy.reach  a king standing where an opponent could move — check
 score@owner_of.target   the score of whoever owns the card the player chose

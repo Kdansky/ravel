@@ -261,8 +261,11 @@ def deal():
 
 
 def phases():
+    # A turn ends when a card reaches the middle, not when a card is played:
+    # everything else a crew member may do — the radio, and whatever comes after
+    # it — leaves the trick alone and so leaves the turn alone.
     follow = [{"key": f"follow_{i}", "type": "player_input", "seat": "next",
-               "zone": "hand", "ends_after": 1,
+               "zone": "hand", "ends_when": f"count:play_card@trick >= {i + 1}",
                "label": "Follow the suit that was led, if you can",
                "next": [{"then": f"follow_{i + 1}" if i < len(SEATS) - 1 else "resolve"}]}
               for i in range(1, len(SEATS))]
@@ -282,7 +285,8 @@ def phases():
          "next": [{"zone_empty": ["task_offer"], "then": "first_lead"}, {"then": "draft_on"}]},
         {"key": "first_lead", "type": "automatic", "actions": ["set_active_seat:commander"],
          "next": [{"then": "lead"}]},
-        {"key": "lead", "type": "player_input", "zone": "hand", "ends_after": 1,
+        {"key": "lead", "type": "player_input", "zone": "hand",
+         "ends_when": "count:play_card@trick >= 1",
          "label": "Lead a card", "next": [{"then": "led"}]},
         # Once, between the lead and the follows. Written by any played card's
         # own actions it would be overwritten by the second player and the third

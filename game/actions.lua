@@ -75,9 +75,9 @@ local function zone_of(arg)
 end
 
 -- Every numeric slot accepts a number or a measuring fn over a subject —
--- "count:<tag>", "card:<key>", "sum:<subject>", "max:<subject>" — e.g.
+-- "count:<tag>", "card:<key>", "sum:<subject>", "max:<subject>", "min:<subject>" — e.g.
 -- "stat_gain:gold:count:economic". One rule everywhere.
-local FN_TERMS = { count = true, card = true, sum = true, max = true }
+local FN_TERMS = { count = true, card = true, sum = true, max = true, min = true }
 
 local function term(p, i, default, ctx)
 	if FN_TERMS[p[i] or ""] then

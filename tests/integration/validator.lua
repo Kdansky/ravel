@@ -142,10 +142,24 @@ local CASES = {
 		function(g) g.phase_by_key.story.type = nil end },
 	{ "a phase drawing from a missing deck", "draws from 'vault'",
 		function(g) g.phase_by_key.story.deck = "vault" end },
-	{ "a phase dealing into a missing zone", "deals into 'vault'",
+	{ "a phase naming a missing zone", "plays out of 'vault'",
 		function(g) g.phase_by_key.story.zone = "vault" end },
+	{ "a phase whose zone is neither a key nor a list", "zone should be a zone key or a list",
+		function(g) g.phase_by_key.story.zone = 7 end },
 	{ "a draw that isn't a number", "draw should be a number",
 		function(g) g.phase_by_key.story.draw = "two" end },
+	{ "an ends_when that is not a condition", "should be a comparison",
+		function(g) g.phase_by_key.story.ends_when = "gold" end },
+	{ "an ends_when on a phase that ends itself", "phases end themselves",
+		function(g)
+			g.phase_by_key.story.type = "automatic"
+			g.phase_by_key.story.ends_when = "gold >= 1"
+		end },
+	{ "a phase saying both ways of ending", "one phase, one way of ending",
+		function(g)
+			g.phase_by_key.story.ends_after = 1
+			g.phase_by_key.story.ends_when = "gold >= 1"
+		end },
 	{ "a pass card with no template", "its pass card 'excalibur'",
 		function(g) g.phase_by_key.story.pass_card = "excalibur" end },
 	{ "a forced-play phase without a pass card", "forces a play every turn",

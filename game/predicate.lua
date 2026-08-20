@@ -21,6 +21,7 @@ local M = {}
 --   hp@self                 the acting card
 --   hp@target               the cards the player chose for this card
 --   count:farm@board        the fn forms take a scope too
+--   min:value@mine.hand     the smallest one, over the cards that carry it
 --   score@owner_of.target   the seats owning the cards chosen — see below
 --
 -- The words are separated by "." because ":" cannot be: action strings are
@@ -34,7 +35,7 @@ local M = {}
 -- is there a game in that slot. It cannot be answered here — the save layer is
 -- outside the engine and nothing in here may require it — so it arrives through
 -- M.saved_slot below, and a build without one truthfully answers no.
-local FNS    = { count = true, card = true, sum = true, max = true,
+local FNS    = { count = true, card = true, sum = true, max = true, min = true,
 	tagged = true, not_tagged = true, saved = true }
 local QUANTS = { any = true, each = true, random = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
@@ -356,13 +357,20 @@ function M.total(subject, ctx)
 		return n
 	end
 
-	local sum, best = 0, 0
+	local sum, best, least = 0, 0, nil
 	for _, e in ipairs(M.bearers(p, ctx, ents)) do
 		local v = tonumber(e.stats[p.arg]) or 0
 		sum = sum + v
 		if v > best then best = v end
+		if least == nil or v < least then least = v end
 	end
-	return p.fn == "max" and best or sum
+	if p.fn == "max" then return best end
+	-- A pool with nothing in it has no smallest thing, and answering 0 would put
+	-- one *below* everything rather than beside nothing. Callers that need a
+	-- number get one; a condition asks through measure(), which reads the empty
+	-- pool as absent and so fails every comparison.
+	if p.fn == "min" then return least or 0 end
+	return sum
 end
 
 -- A condition written as one string: "<subject> <op> <number-or-subject>".
@@ -449,11 +457,19 @@ end
 -- The counting forms are exempt, and must be: no farms really is a count of
 -- zero, and "these squares are empty" is written that way. `sum:`/`max:` are
 -- exempt too — they are asked *of a pool*, and the measure of an empty pool is
--- honestly 0.
+-- honestly 0: nothing adds to nothing, and nothing is at most nothing.
+--
+-- **`min:` is not exempt**, and it is the one place the pool rule and the
+-- absent rule disagree. Nothing is not *at least* nothing — a zero answer would
+-- sit below every real value, so "the lowest card of this colour I hold" would
+-- read as beating everything precisely when the colour is not in the hand. An
+-- empty pool has no smallest member, which is absence, so it fails every
+-- comparison exactly as a stat nobody carries does.
 local function measure(o, ctx)
 	if o.n then return o.n end
 	local p = o.subject
-	if p.fn == nil and #M.bearers(p, ctx) == 0 then return nil end
+	local pooled = p.fn == nil or p.fn == "min"
+	if pooled and #M.bearers(p, ctx) == 0 then return nil end
 	return M.total(o.src, ctx)
 end
 

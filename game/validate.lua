@@ -54,7 +54,7 @@ M.ENGINE_TAGS = {
 	per_seat          = { on = "zone", what = "one copy per seat; pos then takes one rect each" },
 	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
 	refill_when_empty = { on = "zone", what = "recreates its contents when the last card leaves" },
-	face_up           = { on = "zone", what = "cards here are shown, whatever the type would do" },
+	face_up           = { on = "zone", what = "cards here are shown, whatever the type would do — including a per-seat hand, which is how an open hand is said" },
 	face_down         = { on = "zone", what = "cards here are hidden, whatever the type would do" },
 	no_peek           = { on = "zone", what = "no tooltip and no browsing the pile" },
 	activate          = { on = "zone", what = "cards here may use their abilities — without it an ability is unreachable" },
@@ -145,8 +145,10 @@ local ZONE_FIELDS = {
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
 	draw = true, zone = true, pass_card = true, next = true,
-	ends_after = true, injected = true, tags = true, tags_set = true,
+	ends_after = true, ends_when = true, injected = true, tags = true, tags_set = true,
 	seat = true,
+	-- derived: "zone" normalised to a list (declaration.parse)
+	zone_list = true,
 }
 local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subject = true,
 	tags = true, tags_set = true, icon = true }
@@ -251,7 +253,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_receive = true, on_turn = true,
+	on_receive = true, on_turn = true, zone_list = true,
 	auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
@@ -482,7 +484,7 @@ function M.check(G)
 	end
 
 	-- A subject: [<fn>:]<stat|tag|card>[@[<quant>.]<scope>]. allow_fn is false
-	-- for costs, where count:/card:/sum:/max: have nothing to spend.
+	-- for costs, where count:/card:/sum:/max:/min: have nothing to spend.
 	local function subject_ok(where, key, allow_fn)
 		if allow_fn == nil then allow_fn = true end
 		local p = predicate.parse_subject(key)
@@ -753,7 +755,7 @@ function M.check(G)
 			end
 		end
 		for j, w in ipairs(p) do
-			if (w == "sum" or w == "max") and p[j + 1] then
+			if (w == "sum" or w == "max" or w == "min") and p[j + 1] then
 				subject_ok(where .. ": " .. tostring(op), p[j + 1])
 			end
 			if (w == "count" or w == "card") and p[j + 1] and not (w == "card" and j == 1) then
@@ -1553,9 +1555,25 @@ function M.check(G)
 		if pd.deck and not G.zone_defs[pd.deck] then
 			warn("%s: draws from '%s', but no zone has that key%s", where, tostring(pd.deck), suggest(pd.deck, G.zone_defs))
 		end
-		if pd.zone and not G.zone_defs[pd.zone] then
-			warn("%s: deals into '%s', but no zone has that key%s", where, tostring(pd.zone), suggest(pd.zone, G.zone_defs))
+		-- Both the authored field and the list parse derived from it, deduped
+		-- and in order: a warning has to survive a game text the normaliser
+		-- never saw, which is what the debug API and this file's own tests do.
+		local seen_zone = {}
+		local function zone_named(zk)
+			if type(zk) ~= "string" or seen_zone[zk] then return end
+			seen_zone[zk] = true
+			if not G.zone_defs[zk] then
+				warn("%s: plays out of '%s', but no zone has that key%s", where, zk, suggest(zk, G.zone_defs))
+			end
 		end
+		if type(pd.zone) == "table" then
+			for _, zk in ipairs(pd.zone) do zone_named(zk) end
+		elseif pd.zone ~= nil and type(pd.zone) ~= "string" then
+			warn("%s: zone should be a zone key or a list of them", where)
+		else
+			zone_named(pd.zone)
+		end
+		for _, zk in ipairs(pd.zone_list or {}) do zone_named(zk) end
 		if pd.draw ~= nil and type(pd.draw) ~= "number" then
 			warn("%s: draw should be a number", where)
 		end
@@ -1564,6 +1582,16 @@ function M.check(G)
 				warn("%s: ends_after should be a number of plays", where)
 			elseif pd.type ~= "player_input" and pd.type ~= "draw_and_play" then
 				warn("%s: has ends_after, but only phases where cards are played count plays", where)
+			end
+		end
+		if pd.ends_when ~= nil then
+			check_cond(where .. " ends_when", { when = pd.ends_when })
+			if pd.type == "automatic" or pd.type == "overlay" then
+				warn("%s: has ends_when, but %s phases end themselves — the condition never decides",
+					where, pd.type)
+			end
+			if pd.ends_after ~= nil then
+				warn("%s: says both ends_after and ends_when — one phase, one way of ending", where)
 			end
 		end
 		if pd.discard_hand and pd.type == "overlay" then

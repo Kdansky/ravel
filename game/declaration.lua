@@ -704,6 +704,25 @@ function M.parse(filename)
 			injected = true, tags_set = {} }
 	end
 
+	-- The zones a phase's player may play out of. One is the common case and
+	-- stays a bare word; a list is a player holding two hands — an open one
+	-- beside a closed one — and it is normalised here so that nothing
+	-- downstream asks which form was written, exactly as "pass_card" and a
+	-- placement's "at" already do.
+	--
+	-- The first is still where the phase *deals* and what an overlay offers,
+	-- because those are singular questions: cards land in one place and an offer
+	-- is one offer. Run over every phase rather than inside the authoring loop,
+	-- so the engine's own two overlays are normalised with the rest.
+	for _, pd in pairs(G.phase_by_key) do
+		local zl = pd.zone
+		if type(zl) == "string" then zl = { zl } end
+		if type(zl) == "table" then
+			pd.zone_list = zl
+			pd.zone = zl[1]
+		end
+	end
+
 	return G
 end
 

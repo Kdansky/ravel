@@ -239,6 +239,12 @@ function M.visible(c)
 	if not c then return false end
 	local z = c.zone_id and entity.get(c.zone_id)
 	if not z or z.zone_type ~= "hand" or not z.seat then return true end
+	-- A seat's own hand it has chosen to show: "face_up" says *whatever the type
+	-- would do*, and hiding a hand is the only thing the type does here. That is
+	-- what an open hand is — a card laid in front of you for everybody to read,
+	-- which is a move in several games and was unsayable while this rule only
+	-- knew about seats.
+	if z.tags.face_up then return true end
 	return z.seat == (M.watching() or M.active_seat())
 end
 
@@ -276,6 +282,7 @@ end
 function M.peekable(z)
 	if not z or z.tags.no_peek then return false end
 	if z.zone_type ~= "hand" or not z.seat then return true end
+	if z.tags.face_up then return true end
 	return z.seat == (M.watching() or M.active_seat())
 end
 
