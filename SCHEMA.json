@@ -222,6 +222,9 @@
   "tags": {
     "<your tag name>": {
       "zone": "the home zone of every card carrying this tag, so a move_to with no zone, a gain, and a card whose start block names none all know where it goes without saying so",
+  "card_stats": {
+   "<stat key>": "the number every card carrying this tag starts with, in the same shapes a card's own card_stats takes. Carrying a stat is how a card says it takes part in that number \u2014 an action skips a card that has none, and an absent stat fails every comparison rather than reading as zero \u2014 so this is where a deck of forty says it once. The card's own card_stats wins; two tags that start the same stat differently hand over nothing, and the stat is then absent. Only the card's OWN tags: a tag a zone hands out through applies says what a card may do while it lies there, and a stat is on the card from the moment it is made."
+  },
       "play": {
         "cost": "what playing a card that lies here costs",
         "needs": ["conditions gating it"],

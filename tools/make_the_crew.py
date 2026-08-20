@@ -138,13 +138,17 @@ def playing_cards():
         top = 4 if key == "rocket" else 9
         for v in range(1, top + 1):
             rocket = key == "rocket"
-            stats = {"suit": suit, "value": v, "trump": 1 if rocket else 0,
-                     "live": 0, "over": 0, "contend": 0, "best": 0, "gap": 0}
-            # Its value, under a name only its own colour carries — so max: and
-            # min: over a hand answer "the highest pink I hold" and "the lowest",
-            # which no scope can ask, because a tag reaches grid zones only.
-            # Rockets get none: a rocket can never be communicated.
-            if not rocket:
+            # Only what is true of *this* card. The scratch numbers the trick
+            # arithmetic writes are the same zero on all forty, so the play_card
+            # tag carries them instead — see the tags block.
+            stats = {"suit": suit, "value": v}
+            if rocket:
+                stats["trump"] = 1
+            else:
+                # Its value, under a name only its own colour carries — so max:
+                # and min: over a hand answer "the highest pink I hold" and "the
+                # lowest", which no scope can ask, because a tag reaches grid
+                # zones only. Rockets get none: a rocket is never communicated.
                 stats[f"v_{key}"] = v
             card = {
                 "key": f"{key}_{v}",
@@ -179,7 +183,6 @@ def task_cards():
                            " If anyone else wins that trick, the mission is lost on the spot.",
                 "asset": f"stripes:{v}:{colour}:slate",
                 "tags": ["task", f"c_{key}{v}"],
-                "card_stats": {"hit": 0},
                 "play": {"action": ["set_owner:self:mine", "move_to:tasks"]},
             })
     return out
@@ -412,7 +415,13 @@ def build():
             "hit_now": {"stat": "hit", "at_least": 1},
         },
         "tags": {
-            "play_card": {"tooltip": "Follow the led suit if you hold it. Rockets beat every colour."},
+            # The numbers every playing card takes part in, said once rather
+            # than forty times. A card carrying a stat is how it says it is one
+            # of the things this arithmetic is about, and the zeros were forty
+            # copies of that sentence.
+            "play_card": {"tooltip": "Follow the led suit if you hold it. Rockets beat every colour.",
+                          "card_stats": dict({"trump": 0}, **{k: 0 for k in SCRATCH if k not in ("suit", "value")})},
+            "task": {"card_stats": {"hit": 0}},
             # Never clicked: the trick is not tagged "activate", so this is
             # reachable only through activate_zone, which is ungated.
             "in_trick": {"abilities": [{"key": "weigh", "text": "Weigh", "action": contend()}]},

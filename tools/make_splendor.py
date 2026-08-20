@@ -360,10 +360,11 @@ def development(rows):
                            if n)
         words = ", ".join(f"{cost[k]} {dict((g[0], g[1].lower()) for g in GEMS)[k]}"
                           for k in KEYS if cost[k])
+        # Only what is printed on this card. The ten scratch numbers the
+        # pricing writes are the same zero on all ninety, so the "development"
+        # tag carries them — see the tags block.
         stats = {f"cost_{k}": cost[k] for k in KEYS}
-        stats.update({f"due_{k}": 0 for k in KEYS})
-        stats.update({"vp": vp, "short": 0, "gold_due": 0, "spent": 0,
-                      "buyable": 0, "reserved": 0, "tier": tier})
+        stats.update({"vp": vp, "tier": tier})
         out.append({
             "key": f"t{tier}_{bonus}_{seen[tier]:02d}",
             "text": letters,
@@ -382,8 +383,9 @@ def nobles(rows):
     out = []
     for i, cost in enumerate(rows):
         words = " + ".join(f"{cost[k]} {k}" for k in KEYS if cost[k])
+        # Every noble is worth three and starts unmet; only the threshold is
+        # this card's. See the "noble" tag.
         stats = {f"n_{k}": cost[k] for k in KEYS}
-        stats.update({"ok": 0, "short": 0, "vp": 3})
         out.append({
             "key": f"noble_{i + 1}", "text": words.replace(" + ", "  "),
             "tooltip": f"Visits you for free once your discounts reach {words}. "
@@ -528,11 +530,18 @@ def build(here):
         "tags": {
             # The ability is never clicked: neither zone is tagged "activate",
             # so it is reachable only through activate_zone, which is ungated.
+            # A card carrying a stat is how it says it takes part in that
+            # number: an action skips a card that has none, and an absent stat
+            # fails every comparison rather than reading as zero. Both rules are
+            # worth keeping; writing them out ninety times is not.
             "development": {
                 "abilities": [{"key": "price", "text": "Price", "action": pricing()}],
+                "card_stats": dict({f"due_{k}": 0 for k in KEYS},
+                                   short=0, gold_due=0, spent=0, buyable=0, reserved=0),
             },
             "noble": {
                 "abilities": [{"key": "check", "text": "Check", "action": noble_check()}],
+                "card_stats": {"ok": 0, "short": 0, "vp": 3},
             },
         },
         "zones": zones(rows),

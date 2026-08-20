@@ -127,6 +127,18 @@ else. `ends_after` counting plays was true of every game written first and false
 of most, which is the pattern worth naming: **a default that was never stated is
 a rule nobody chose.**
 
+**And a deck of forty stopped saying the same thing forty times.** A card
+carrying a stat is how it says it takes part in that number — an action skips a
+card that has none, and an absent stat fails every comparison rather than
+reading as zero — so the scratch registers an arithmetic writes had to be
+declared, at zero, on every card the arithmetic was about. **A tag carries them
+now**, with the card's own winning per key and two tags that disagree handing
+over nothing (an ambiguous number is no number, exactly as an ambiguous home is
+no home). Splendor went from 1,256 zeros in 1,662 `card_stats` entries to 336
+and Splendor's file from 6,453 lines to 5,476; The Crew from 282 in 407 to 10.
+What is left in both is real data — a card that costs no white, a noble that
+needs no green.
+
 **What did turn up is a scope that cannot see a hand.** `count:<tag>` searches
 grid zones only, so "whose hand holds the rocket 4" — the commander, and the
 whole opening of the game — has no single condition. It is asked once per seat

@@ -1537,6 +1537,40 @@ fails *silently*: a board tagged `activaet` holds cards whose abilities can neve
 be used, and nothing else would ever say so. Short words are left alone, because
 `mage` is one edit from `page` and is nobody's mistake.
 
+### A tag can carry the numbers too
+
+**A card carrying a stat is how it says it takes part in that number.** An action
+skips a card that has none, and an absent stat fails every comparison rather than
+reading as zero — both rules are load-bearing, and both mean a card that is one
+of forty in a deck has to declare the same zeros forty times. It does not:
+
+```json
+"tags": {
+  "development": { "card_stats": { "due_white": 0, "short": 0, "buyable": 0 } }
+},
+"cards": [
+  { "key": "t1_white_01", "tags": ["development"],
+    "card_stats": { "cost_blue": 2, "vp": 0 } }
+]
+```
+
+Every card carrying the tag starts with those numbers, and **its own always
+wins**, so one card may start somewhere else without the tag knowing. A tag may
+start a stat anywhere, not only at zero.
+
+**Two tags that start the same stat differently hand over nothing**, and the
+parse says which two — the stat is then absent, which fails closed, exactly as
+an ambiguous home zone answers nothing rather than picking whichever tag came
+first in the file.
+
+Only the card's **own** tags. A tag a zone hands out through `applies` says what
+a card may do while it lies there; a stat is on the card from the moment it is
+made and cannot arrive later.
+
+Splendor went from 1,256 zeros in 1,662 `card_stats` entries to 336, and The
+Crew from 282 in 407 to 10. What is left in both is real: a development card
+that costs no white, a noble that needs no green.
+
 ### Computed tags
 
 Per-card derived tags from that card's own stats:

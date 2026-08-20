@@ -160,6 +160,10 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 -- re-derived as state moves — so `activate` is the only block it takes.
 local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
 	abilities = true,
+	-- The numbers every card wearing it starts with, merged into the card's own
+	-- at parse. A card carrying a stat is how it says it takes part in that
+	-- number, and saying so on forty cards is the tag's job.
+	card_stats = true,
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
 	activate_phases = true, moves = true,
@@ -935,12 +939,16 @@ function M.check(G)
 			-- Reported rather than resolved: there is no precedence rule to
 			-- fall back on, and inventing one hides the mistake.
 			--
-			-- Abilities are the exception, and the only one: two answers is
-			-- exactly what they are for. A card that can already do something
-			-- and is handed another thing can do both, and the player is asked
-			-- which — where a granted ability used to hide the card's own.
+			-- Two exceptions, and both because they *do* have a precedence
+			-- rule. Abilities are one: two answers is exactly what they are
+			-- for, so a card that can already do something and is handed
+			-- another can do both, and the player is asked which. `card_stats`
+			-- is the other: it merges per key, the card's own winning, which is
+			-- what lets a tag say the zeros forty cards share while each card
+			-- still says what is true of itself. Two *tags* disagreeing is
+			-- still an error, and declaration.parse reports it.
 			for field in pairs(td) do
-				if field ~= "zone" and field ~= "abilities" then
+				if field ~= "zone" and field ~= "abilities" and field ~= "card_stats" then
 					for _, ck in ipairs(G.card_list) do
 						local cd = G.card_defs[ck]
 						if cd.tags_set and cd.tags_set[tag] and cd[field] ~= nil then

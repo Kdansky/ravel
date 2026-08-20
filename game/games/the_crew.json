@@ -49,7 +49,11 @@
     "hit_now": { "stat": "hit", "at_least": 1 }
   },
   "tags": {
-    "play_card": { "tooltip": "Follow the led suit if you hold it. Rockets beat every colour." },
+    "play_card": {
+      "tooltip": "Follow the led suit if you hold it. Rockets beat every colour.",
+      "card_stats": { "trump": 0, "live": 0, "over": 0, "contend": 0, "best": 0, "gap": 0 }
+    },
+    "task": { "card_stats": { "hit": 0 } },
     "in_trick": {
       "abilities": [
         {
@@ -668,17 +672,7 @@
       "text": "Pink 1",
       "asset": "stripes:1:pink",
       "tags": ["play_card", "pink", "c_pink1"],
-      "card_stats": {
-        "suit": 1,
-        "value": 1,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_pink": 1
-      },
+      "card_stats": { "suit": 1, "value": 1, "v_pink": 1 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink1:1"] }]
     },
@@ -687,17 +681,7 @@
       "text": "Pink 2",
       "asset": "stripes:2:pink",
       "tags": ["play_card", "pink", "c_pink2"],
-      "card_stats": {
-        "suit": 1,
-        "value": 2,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_pink": 2
-      },
+      "card_stats": { "suit": 1, "value": 2, "v_pink": 2 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink2:1"] }]
     },
@@ -706,17 +690,7 @@
       "text": "Pink 3",
       "asset": "stripes:3:pink",
       "tags": ["play_card", "pink", "c_pink3"],
-      "card_stats": {
-        "suit": 1,
-        "value": 3,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_pink": 3
-      },
+      "card_stats": { "suit": 1, "value": 3, "v_pink": 3 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink3:1"] }]
     },
@@ -725,17 +699,7 @@
       "text": "Pink 4",
       "asset": "stripes:4:pink",
       "tags": ["play_card", "pink", "c_pink4"],
-      "card_stats": {
-        "suit": 1,
-        "value": 4,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_pink": 4
-      },
+      "card_stats": { "suit": 1, "value": 4, "v_pink": 4 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink4:1"] }]
     },
@@ -744,17 +708,7 @@
       "text": "Pink 5",
       "asset": "stripes:5:pink",
       "tags": ["play_card", "pink", "c_pink5"],
-      "card_stats": {
-        "suit": 1,
-        "value": 5,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_pink": 5
-      },
+      "card_stats": { "suit": 1, "value": 5, "v_pink": 5 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink5:1"] }]
     },
@@ -763,17 +717,7 @@
       "text": "Pink 6",
       "asset": "stripes:6:pink",
       "tags": ["play_card", "pink", "c_pink6"],
-      "card_stats": {
-        "suit": 1,
-        "value": 6,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_pink": 6
-      },
+      "card_stats": { "suit": 1, "value": 6, "v_pink": 6 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink6:1"] }]
     },
@@ -782,17 +726,7 @@
       "text": "Pink 7",
       "asset": "stripes:7:pink",
       "tags": ["play_card", "pink", "c_pink7"],
-      "card_stats": {
-        "suit": 1,
-        "value": 7,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_pink": 7
-      },
+      "card_stats": { "suit": 1, "value": 7, "v_pink": 7 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink7:1"] }]
     },
@@ -801,17 +735,7 @@
       "text": "Pink 8",
       "asset": "stripes:8:pink",
       "tags": ["play_card", "pink", "c_pink8"],
-      "card_stats": {
-        "suit": 1,
-        "value": 8,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_pink": 8
-      },
+      "card_stats": { "suit": 1, "value": 8, "v_pink": 8 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink8:1"] }]
     },
@@ -820,17 +744,7 @@
       "text": "Pink 9",
       "asset": "stripes:9:pink",
       "tags": ["play_card", "pink", "c_pink9"],
-      "card_stats": {
-        "suit": 1,
-        "value": 9,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_pink": 9
-      },
+      "card_stats": { "suit": 1, "value": 9, "v_pink": 9 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_pink9:1"] }]
     },
@@ -839,17 +753,7 @@
       "text": "Blue 1",
       "asset": "stripes:1:blue",
       "tags": ["play_card", "blue", "c_blue1"],
-      "card_stats": {
-        "suit": 2,
-        "value": 1,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_blue": 1
-      },
+      "card_stats": { "suit": 2, "value": 1, "v_blue": 1 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue1:1"] }]
     },
@@ -858,17 +762,7 @@
       "text": "Blue 2",
       "asset": "stripes:2:blue",
       "tags": ["play_card", "blue", "c_blue2"],
-      "card_stats": {
-        "suit": 2,
-        "value": 2,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_blue": 2
-      },
+      "card_stats": { "suit": 2, "value": 2, "v_blue": 2 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue2:1"] }]
     },
@@ -877,17 +771,7 @@
       "text": "Blue 3",
       "asset": "stripes:3:blue",
       "tags": ["play_card", "blue", "c_blue3"],
-      "card_stats": {
-        "suit": 2,
-        "value": 3,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_blue": 3
-      },
+      "card_stats": { "suit": 2, "value": 3, "v_blue": 3 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue3:1"] }]
     },
@@ -896,17 +780,7 @@
       "text": "Blue 4",
       "asset": "stripes:4:blue",
       "tags": ["play_card", "blue", "c_blue4"],
-      "card_stats": {
-        "suit": 2,
-        "value": 4,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_blue": 4
-      },
+      "card_stats": { "suit": 2, "value": 4, "v_blue": 4 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue4:1"] }]
     },
@@ -915,17 +789,7 @@
       "text": "Blue 5",
       "asset": "stripes:5:blue",
       "tags": ["play_card", "blue", "c_blue5"],
-      "card_stats": {
-        "suit": 2,
-        "value": 5,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_blue": 5
-      },
+      "card_stats": { "suit": 2, "value": 5, "v_blue": 5 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue5:1"] }]
     },
@@ -934,17 +798,7 @@
       "text": "Blue 6",
       "asset": "stripes:6:blue",
       "tags": ["play_card", "blue", "c_blue6"],
-      "card_stats": {
-        "suit": 2,
-        "value": 6,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_blue": 6
-      },
+      "card_stats": { "suit": 2, "value": 6, "v_blue": 6 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue6:1"] }]
     },
@@ -953,17 +807,7 @@
       "text": "Blue 7",
       "asset": "stripes:7:blue",
       "tags": ["play_card", "blue", "c_blue7"],
-      "card_stats": {
-        "suit": 2,
-        "value": 7,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_blue": 7
-      },
+      "card_stats": { "suit": 2, "value": 7, "v_blue": 7 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue7:1"] }]
     },
@@ -972,17 +816,7 @@
       "text": "Blue 8",
       "asset": "stripes:8:blue",
       "tags": ["play_card", "blue", "c_blue8"],
-      "card_stats": {
-        "suit": 2,
-        "value": 8,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_blue": 8
-      },
+      "card_stats": { "suit": 2, "value": 8, "v_blue": 8 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue8:1"] }]
     },
@@ -991,17 +825,7 @@
       "text": "Blue 9",
       "asset": "stripes:9:blue",
       "tags": ["play_card", "blue", "c_blue9"],
-      "card_stats": {
-        "suit": 2,
-        "value": 9,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_blue": 9
-      },
+      "card_stats": { "suit": 2, "value": 9, "v_blue": 9 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_blue9:1"] }]
     },
@@ -1010,17 +834,7 @@
       "text": "Green 1",
       "asset": "stripes:1:green",
       "tags": ["play_card", "green", "c_green1"],
-      "card_stats": {
-        "suit": 3,
-        "value": 1,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_green": 1
-      },
+      "card_stats": { "suit": 3, "value": 1, "v_green": 1 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green1:1"] }]
     },
@@ -1029,17 +843,7 @@
       "text": "Green 2",
       "asset": "stripes:2:green",
       "tags": ["play_card", "green", "c_green2"],
-      "card_stats": {
-        "suit": 3,
-        "value": 2,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_green": 2
-      },
+      "card_stats": { "suit": 3, "value": 2, "v_green": 2 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green2:1"] }]
     },
@@ -1048,17 +852,7 @@
       "text": "Green 3",
       "asset": "stripes:3:green",
       "tags": ["play_card", "green", "c_green3"],
-      "card_stats": {
-        "suit": 3,
-        "value": 3,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_green": 3
-      },
+      "card_stats": { "suit": 3, "value": 3, "v_green": 3 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green3:1"] }]
     },
@@ -1067,17 +861,7 @@
       "text": "Green 4",
       "asset": "stripes:4:green",
       "tags": ["play_card", "green", "c_green4"],
-      "card_stats": {
-        "suit": 3,
-        "value": 4,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_green": 4
-      },
+      "card_stats": { "suit": 3, "value": 4, "v_green": 4 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green4:1"] }]
     },
@@ -1086,17 +870,7 @@
       "text": "Green 5",
       "asset": "stripes:5:green",
       "tags": ["play_card", "green", "c_green5"],
-      "card_stats": {
-        "suit": 3,
-        "value": 5,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_green": 5
-      },
+      "card_stats": { "suit": 3, "value": 5, "v_green": 5 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green5:1"] }]
     },
@@ -1105,17 +879,7 @@
       "text": "Green 6",
       "asset": "stripes:6:green",
       "tags": ["play_card", "green", "c_green6"],
-      "card_stats": {
-        "suit": 3,
-        "value": 6,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_green": 6
-      },
+      "card_stats": { "suit": 3, "value": 6, "v_green": 6 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green6:1"] }]
     },
@@ -1124,17 +888,7 @@
       "text": "Green 7",
       "asset": "stripes:7:green",
       "tags": ["play_card", "green", "c_green7"],
-      "card_stats": {
-        "suit": 3,
-        "value": 7,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_green": 7
-      },
+      "card_stats": { "suit": 3, "value": 7, "v_green": 7 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green7:1"] }]
     },
@@ -1143,17 +897,7 @@
       "text": "Green 8",
       "asset": "stripes:8:green",
       "tags": ["play_card", "green", "c_green8"],
-      "card_stats": {
-        "suit": 3,
-        "value": 8,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_green": 8
-      },
+      "card_stats": { "suit": 3, "value": 8, "v_green": 8 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green8:1"] }]
     },
@@ -1162,17 +906,7 @@
       "text": "Green 9",
       "asset": "stripes:9:green",
       "tags": ["play_card", "green", "c_green9"],
-      "card_stats": {
-        "suit": 3,
-        "value": 9,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_green": 9
-      },
+      "card_stats": { "suit": 3, "value": 9, "v_green": 9 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_green9:1"] }]
     },
@@ -1181,17 +915,7 @@
       "text": "Yellow 1",
       "asset": "stripes:1:yellow",
       "tags": ["play_card", "yellow", "c_yellow1"],
-      "card_stats": {
-        "suit": 4,
-        "value": 1,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_yellow": 1
-      },
+      "card_stats": { "suit": 4, "value": 1, "v_yellow": 1 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow1:1"] }]
     },
@@ -1200,17 +924,7 @@
       "text": "Yellow 2",
       "asset": "stripes:2:yellow",
       "tags": ["play_card", "yellow", "c_yellow2"],
-      "card_stats": {
-        "suit": 4,
-        "value": 2,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_yellow": 2
-      },
+      "card_stats": { "suit": 4, "value": 2, "v_yellow": 2 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow2:1"] }]
     },
@@ -1219,17 +933,7 @@
       "text": "Yellow 3",
       "asset": "stripes:3:yellow",
       "tags": ["play_card", "yellow", "c_yellow3"],
-      "card_stats": {
-        "suit": 4,
-        "value": 3,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_yellow": 3
-      },
+      "card_stats": { "suit": 4, "value": 3, "v_yellow": 3 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow3:1"] }]
     },
@@ -1238,17 +942,7 @@
       "text": "Yellow 4",
       "asset": "stripes:4:yellow",
       "tags": ["play_card", "yellow", "c_yellow4"],
-      "card_stats": {
-        "suit": 4,
-        "value": 4,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_yellow": 4
-      },
+      "card_stats": { "suit": 4, "value": 4, "v_yellow": 4 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow4:1"] }]
     },
@@ -1257,17 +951,7 @@
       "text": "Yellow 5",
       "asset": "stripes:5:yellow",
       "tags": ["play_card", "yellow", "c_yellow5"],
-      "card_stats": {
-        "suit": 4,
-        "value": 5,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_yellow": 5
-      },
+      "card_stats": { "suit": 4, "value": 5, "v_yellow": 5 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow5:1"] }]
     },
@@ -1276,17 +960,7 @@
       "text": "Yellow 6",
       "asset": "stripes:6:yellow",
       "tags": ["play_card", "yellow", "c_yellow6"],
-      "card_stats": {
-        "suit": 4,
-        "value": 6,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_yellow": 6
-      },
+      "card_stats": { "suit": 4, "value": 6, "v_yellow": 6 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow6:1"] }]
     },
@@ -1295,17 +969,7 @@
       "text": "Yellow 7",
       "asset": "stripes:7:yellow",
       "tags": ["play_card", "yellow", "c_yellow7"],
-      "card_stats": {
-        "suit": 4,
-        "value": 7,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_yellow": 7
-      },
+      "card_stats": { "suit": 4, "value": 7, "v_yellow": 7 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow7:1"] }]
     },
@@ -1314,17 +978,7 @@
       "text": "Yellow 8",
       "asset": "stripes:8:yellow",
       "tags": ["play_card", "yellow", "c_yellow8"],
-      "card_stats": {
-        "suit": 4,
-        "value": 8,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_yellow": 8
-      },
+      "card_stats": { "suit": 4, "value": 8, "v_yellow": 8 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow8:1"] }]
     },
@@ -1333,17 +987,7 @@
       "text": "Yellow 9",
       "asset": "stripes:9:yellow",
       "tags": ["play_card", "yellow", "c_yellow9"],
-      "card_stats": {
-        "suit": 4,
-        "value": 9,
-        "trump": 0,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0,
-        "v_yellow": 9
-      },
+      "card_stats": { "suit": 4, "value": 9, "v_yellow": 9 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] },
       "abilities": [{ "key": "claim", "text": "Claim", "action": ["stat_set:hit@each.c_yellow9:1"] }]
     },
@@ -1352,16 +996,7 @@
       "text": "Rocket 1",
       "asset": "stripes:1:silver",
       "tags": ["play_card", "silver"],
-      "card_stats": {
-        "suit": 5,
-        "value": 1,
-        "trump": 1,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0
-      },
+      "card_stats": { "suit": 5, "value": 1, "trump": 1 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] }
     },
     {
@@ -1369,16 +1004,7 @@
       "text": "Rocket 2",
       "asset": "stripes:2:silver",
       "tags": ["play_card", "silver"],
-      "card_stats": {
-        "suit": 5,
-        "value": 2,
-        "trump": 1,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0
-      },
+      "card_stats": { "suit": 5, "value": 2, "trump": 1 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] }
     },
     {
@@ -1386,16 +1012,7 @@
       "text": "Rocket 3",
       "asset": "stripes:3:silver",
       "tags": ["play_card", "silver"],
-      "card_stats": {
-        "suit": 5,
-        "value": 3,
-        "trump": 1,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0
-      },
+      "card_stats": { "suit": 5, "value": 3, "trump": 1 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] }
     },
     {
@@ -1403,16 +1020,7 @@
       "text": "Rocket 4",
       "asset": "stripes:4:silver",
       "tags": ["play_card", "silver"],
-      "card_stats": {
-        "suit": 5,
-        "value": 4,
-        "trump": 1,
-        "live": 0,
-        "over": 0,
-        "contend": 0,
-        "best": 0,
-        "gap": 0
-      },
+      "card_stats": { "suit": 5, "value": 4, "trump": 1 },
       "play": { "needs": ["suit@self == led@plan"], "action": ["set_owner:self:mine", "move_to:trick"] }
     },
     {
@@ -1421,7 +1029,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the pink 1. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:1:pink:slate",
       "tags": ["task", "c_pink1"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1430,7 +1037,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the pink 2. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:2:pink:slate",
       "tags": ["task", "c_pink2"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1439,7 +1045,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the pink 3. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:3:pink:slate",
       "tags": ["task", "c_pink3"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1448,7 +1053,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the pink 4. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:4:pink:slate",
       "tags": ["task", "c_pink4"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1457,7 +1061,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the pink 5. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:5:pink:slate",
       "tags": ["task", "c_pink5"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1466,7 +1069,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the pink 6. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:6:pink:slate",
       "tags": ["task", "c_pink6"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1475,7 +1077,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the pink 7. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:7:pink:slate",
       "tags": ["task", "c_pink7"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1484,7 +1085,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the pink 8. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:8:pink:slate",
       "tags": ["task", "c_pink8"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1493,7 +1093,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the pink 9. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:9:pink:slate",
       "tags": ["task", "c_pink9"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1502,7 +1101,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the blue 1. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:1:blue:slate",
       "tags": ["task", "c_blue1"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1511,7 +1109,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the blue 2. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:2:blue:slate",
       "tags": ["task", "c_blue2"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1520,7 +1117,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the blue 3. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:3:blue:slate",
       "tags": ["task", "c_blue3"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1529,7 +1125,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the blue 4. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:4:blue:slate",
       "tags": ["task", "c_blue4"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1538,7 +1133,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the blue 5. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:5:blue:slate",
       "tags": ["task", "c_blue5"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1547,7 +1141,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the blue 6. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:6:blue:slate",
       "tags": ["task", "c_blue6"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1556,7 +1149,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the blue 7. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:7:blue:slate",
       "tags": ["task", "c_blue7"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1565,7 +1157,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the blue 8. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:8:blue:slate",
       "tags": ["task", "c_blue8"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1574,7 +1165,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the blue 9. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:9:blue:slate",
       "tags": ["task", "c_blue9"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1583,7 +1173,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the green 1. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:1:green:slate",
       "tags": ["task", "c_green1"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1592,7 +1181,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the green 2. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:2:green:slate",
       "tags": ["task", "c_green2"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1601,7 +1189,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the green 3. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:3:green:slate",
       "tags": ["task", "c_green3"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1610,7 +1197,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the green 4. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:4:green:slate",
       "tags": ["task", "c_green4"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1619,7 +1205,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the green 5. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:5:green:slate",
       "tags": ["task", "c_green5"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1628,7 +1213,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the green 6. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:6:green:slate",
       "tags": ["task", "c_green6"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1637,7 +1221,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the green 7. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:7:green:slate",
       "tags": ["task", "c_green7"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1646,7 +1229,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the green 8. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:8:green:slate",
       "tags": ["task", "c_green8"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1655,7 +1237,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the green 9. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:9:green:slate",
       "tags": ["task", "c_green9"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1664,7 +1245,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the yellow 1. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:1:yellow:slate",
       "tags": ["task", "c_yellow1"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1673,7 +1253,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the yellow 2. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:2:yellow:slate",
       "tags": ["task", "c_yellow2"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1682,7 +1261,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the yellow 3. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:3:yellow:slate",
       "tags": ["task", "c_yellow3"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1691,7 +1269,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the yellow 4. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:4:yellow:slate",
       "tags": ["task", "c_yellow4"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1700,7 +1277,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the yellow 5. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:5:yellow:slate",
       "tags": ["task", "c_yellow5"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1709,7 +1285,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the yellow 6. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:6:yellow:slate",
       "tags": ["task", "c_yellow6"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1718,7 +1293,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the yellow 7. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:7:yellow:slate",
       "tags": ["task", "c_yellow7"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1727,7 +1301,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the yellow 8. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:8:yellow:slate",
       "tags": ["task", "c_yellow8"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     },
     {
@@ -1736,7 +1309,6 @@
       "tooltip": "Fulfilled when its owner wins a trick holding the yellow 9. If anyone else wins that trick, the mission is lost on the spot.",
       "asset": "stripes:9:yellow:slate",
       "tags": ["task", "c_yellow9"],
-      "card_stats": { "hit": 0 },
       "play": { "action": ["set_owner:self:mine", "move_to:tasks"] }
     }
   ],
