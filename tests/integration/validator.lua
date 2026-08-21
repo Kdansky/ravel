@@ -388,6 +388,14 @@ local CASES = {
 	-- nothing, which is exactly the shape of bug a pipeline hides.
 	{ "a step no ability is keyed to", "which no ability is keyed to",
 		function(g) g.card_defs.c_flee.on_play = { "activate_zone:board:by_column:parry" } end },
+	-- The retired list form. Refused by name rather than read as something, since
+	-- a file written against it looks entirely reasonable and lands a zero.
+	{ "card_stats written as a list", "is a list — write",
+		function(g) g.card_defs.c_flee.card_stats = { hp = { 4, 6 } } end },
+	{ "bounds with nothing to hold between them", "names bounds but no value",
+		function(g) g.card_defs.c_flee.card_stats = { hp = { max = 6 } } end },
+	{ "a card stat with a field the engine doesn't read", "has a field 'ceiling'",
+		function(g) g.card_defs.c_flee.card_stats = { hp = { value = 4, ceiling = 6 } } end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)

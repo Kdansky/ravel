@@ -153,6 +153,9 @@ local PHASE_FIELDS = {
 	-- derived: "zone" normalised to a list (declaration.parse)
 	zone_list = true,
 }
+-- What a card writes when it carries its own bounds. The same three words the
+-- stat's own entry uses, so a reader learns them once.
+local CARD_STAT_FIELDS = { value = true, min = true, max = true }
 local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subject = true,
 	tags = true, tags_set = true, icon = true,
 	-- Whose number this is, and where they start. See the check below.
@@ -1441,27 +1444,39 @@ function M.check(G)
 		-- card_stats declare new per-card stats, so only their values are checked.
 		if def.card_stats ~= nil then
 			if type(def.card_stats) ~= "table" then
-				warn('%s: card_stats should be written like { "hp": 3 } or { "hp": [3, 3] }', where)
+				warn('%s: card_stats should be written like { "hp": 3 } or { "hp": { "value": 3, "max": 3 } }', where)
 			else
 				for k, v in pairs(def.card_stats) do
-					-- A number is a bare current value; a list is the bounds
-					-- beside it — [current, max], or [min, current, max].
+					-- A number is a bare current value; a card that carries its
+					-- own bounds names them, in the words the stat's own entry
+					-- uses. The list this used to be is refused by name, because
+					-- a game file written against it looks entirely reasonable.
 					if type(v) == "table" then
-						local n = #v
-						if n < 1 or n > 3 then
-							warn("%s card_stats: '%s' should be a number, [current, max], or [min, current, max]",
-								where, tostring(k))
-						end
-						for _, part in ipairs(v) do
-							if type(part) ~= "number" then
-								warn("%s card_stats: every number in '%s' should be a number", where, tostring(k))
+						if #v > 0 then
+							warn('%s card_stats: \'%s\' is a list — write { "value": %s, "max": %s } instead,'
+								.. " which is the same words the stat's own entry uses",
+								where, tostring(k), tostring(v[#v == 3 and 2 or 1]), tostring(v[#v]))
+						else
+							for f in pairs(v) do
+								if f ~= "value" and f ~= "min" and f ~= "max" then
+									warn("%s card_stats: '%s' has a field '%s' the engine doesn't read%s",
+										where, tostring(k), tostring(f), suggest(f, CARD_STAT_FIELDS))
+								end
+							end
+							if type(v.value) ~= "number" then
+								warn("%s card_stats: '%s' names bounds but no value to hold between them", where, tostring(k))
+							end
+							for _, f in ipairs({ "min", "max" }) do
+								if v[f] ~= nil and type(v[f]) ~= "number" then
+									warn("%s card_stats: '%s' has a %s that is not a number", where, tostring(k), f)
+								end
+							end
+							if type(v.min) == "number" and type(v.max) == "number" and v.min > v.max then
+								warn("%s card_stats: '%s' has a floor above its ceiling", where, tostring(k))
 							end
 						end
-						if n == 3 and type(v[1]) == "number" and type(v[3]) == "number" and v[1] > v[3] then
-							warn("%s card_stats: '%s' has a floor above its ceiling", where, tostring(k))
-						end
 					elseif type(v) ~= "number" then
-						warn("%s card_stats: the value of '%s' should be a number, or a list of them", where, tostring(k))
+						warn("%s card_stats: the value of '%s' should be a number, or the bounds it lives between", where, tostring(k))
 					end
 					if ENGINE_STATS[k] and not def.injected then
 						warn("%s card_stats: '%s' is the engine's own — it is %s, and whatever this card"

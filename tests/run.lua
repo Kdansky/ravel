@@ -565,11 +565,11 @@ do
 	local parts, txt = blocks(throne_e.id)
 	check("a card dumps its template, its live entity, its derived facts and its square",
 		#parts == 4 and txt:find("// live", 1, true) and txt:find("// derived", 1, true))
-	-- The template says what the file says: hp is written [current, max], the
-	-- bounds beside the number rather than as a second stat called hp_max.
+	-- The template says what the file says: hp carries its own ceiling, named,
+	-- rather than a second stat called hp_max standing in for the bound.
 	check("the template block is the template, derived fields and all",
 		parts[1].key == "throne_room"
-		and parts[1].card_stats.hp[1] == 20 and parts[1].card_stats.hp[2] == 20
+		and parts[1].card_stats.hp.value == 20 and parts[1].card_stats.hp.max == 20
 		and parts[1].tags_set == nil)
 	-- And the instance has it split: the current value where every reader
 	-- already looks, the ceiling in a table of its own.

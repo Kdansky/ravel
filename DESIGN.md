@@ -17,7 +17,7 @@ It is not enough that a rule *works*. Ask where it is written:
 
 | Written in the game file | Written in the engine |
 |---|---|
-| Tough hands a point back to whatever was struck, if it is tough | `if tag == "tough" then` |
+| Tough takes a point off the damage on its way in: one line on the `tough` tag | `if tag == "tough" then` |
 | A style names the numbers a card wears: `"badges": ["power", "health"]` | an icon keyed on the word `health` |
 | A phase says the order it resolves its board in | a sort in `activate_zone` that prefers columns |
 | `"cost": { "mana": 3 }` | a `mana` the engine spends |
@@ -95,7 +95,30 @@ Presentation rules:
 
 ## JSON Schema Rules
 
-The JSON format must be writable by non-programmers. Two allowed value forms:
+**A game file must be writable without reading the engine.** That is the test
+the rest of this section serves: everything a game says has to be legible from
+the file itself and from `AUTHORING.md`, and any rule a reader can only learn
+from `game/*.lua` is a defect in the format rather than a thing to document
+harder. Consistency is most of it — one question gets one spelling, everywhere
+it is asked.
+
+**A number is never positional.** `card_stats` used to take a list — `[current,
+max]`, or `[min, current, max]` — where the middle is the value and the middle
+of two is the first. That is a rule a reader has to be taught and cannot check,
+and it says the same thing as the `min`/`max` a stat's own entry already
+declares. A card names its bounds now, in those same words. The one place a list
+of numbers survives is a *coordinate*: a zone's `pos`, a grid's shape, a
+pattern's vectors — where the positions are the geometry rather than a
+convention.
+
+The reverse migration was measured and refused: the named form cannot become a
+list, because **an absent field is meaningful and an absent position is not**.
+A stat that declares `min` and `max` and deliberately no `start` is one every
+card must answer for — the validator names the card that forgot — and there is
+no way to write an absent middle in `[min, start, max]` without inventing a
+number.
+
+Two allowed value forms:
 
 1. **Key/value objects** — `{ "key": "value", "min": 0 }`
 2. **Arrays of strings** — `["shuffle", "instanced"]`

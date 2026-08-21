@@ -438,9 +438,10 @@ Say it when the six shapes run out before your numbers do: Splendor has five
 gems, borrows five silhouettes, and its onyx came out an orange sword.
 
 `min` and `max` are the bounds every bearer of the stat is held between, and a
-card may narrow them for itself by writing `card_stats` as a list
-(`"hp": [0, 4, 4]` — see *Cards*). A card that declares neither takes the
-global rule, and where there is no global rule there is no bound at all.
+card may narrow them for itself by writing the same two words beside its value
+(`"hp": { "value": 4, "min": 0, "max": 4 }` — see *Cards*). A card that declares
+neither takes the global rule, and where there is no global rule there is no
+bound at all.
 
 **Reserved:** `round` (starts 1, +1 per round boundary) and `plays` (per-hand
 play counter) are engine-managed — declare them only to display them.
@@ -632,7 +633,7 @@ sending `Cache-Control` (imgur sends a year) is answered from the browser's own
 disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
-| `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a list is the bounds beside it — `[current, max]`, or `[min, current, max]`. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
+| `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a card that carries its own bounds writes them by name — `{ "value": 4, "max": 4 }`, and `min` beside them — which are the same three words the `stats` entry uses. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
@@ -1927,7 +1928,7 @@ what a player reads.
 | `move_target_to:zone` | Move each targeted card |
 | `place:<who>:<where>` | Put every card the scope names on a square of the only board. `<where>` is a square by name (`"g1"`) or a **pattern pointing at one from the acting card** (`"one_left"`) — the second is how a rule works for both sides of a board, since a named square is only ever one player's. Refuses an occupied square |
 | `stat_gain:<subject>:n` / `stat_damage:<subject>:n` | Change the current value, held between its floor and its ceiling, logged, and floated on the card. Two words for one arithmetic, because "damage 2" and "gain −2" read differently to everybody but the engine. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |
-| `stat_boost:<subject>:n` | Move the **ceiling** of a stat that has one (`card_stats` written `[current, max]`). Lowering it under the number standing there brings the current down with it; nothing else does |
+| `stat_boost:<subject>:n` | Move the **ceiling** of a stat that has one (`card_stats` written `{ "value": n, "max": n }`). Lowering it under the number standing there brings the current down with it; nothing else does |
 | `stat_set:<subject>:n` | Set directly, past every bound, silently. A dev and authoring tool — how a phase resets a counter, not how a rule changes a number |
 | `move:<scope>:<zone>` | Move every card the scope names into that zone. The scope-first sibling of the two above, for a set nobody picked: written twice with opposite owner words (`move:mine.battle:mine.bench`, then `enemy`) it covers both seats whoever is up |
 | `set_active_seat:<scope>` | Whoever the scope names becomes the seat whose turn it is — the trick winner leading, the attack token holder acting first. Every other way of naming a seat is settled before the game starts, so this is the only one that reads off what just happened. Two seats is refused, none does nothing, and the handover ends the undo history |

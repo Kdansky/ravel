@@ -65,15 +65,20 @@ end
 
 -- Give a card a stat it does not have yet, from what the game file wrote.
 --
--- A number is a bare current value with no ceiling. A list is the bounds
--- written where a reader can see them:
+-- A number is a bare current value. A card that carries its own bounds writes
+-- them by name, in the same words the "stats" entry uses:
 --
---   "hp": 4               current 4, no floor and no ceiling
---   "hp": [4, 4]          current 4, ceiling 4
---   "hp": [0, 4, 4]       floor 0, current 4, ceiling 4
+--   "hp": 4                              current 4, bounds as the stat declares
+--   "hp": { "value": 4, "max": 4 }       current 4, its own ceiling of 4
+--   "hp": { "value": 4, "min": 0, "max": 4 }
 --
--- The floor left out is whatever the global "stats" entry says, and nothing if
--- it says nothing — so a card only writes a bound it actually differs on.
+-- The bound left out is whatever the global "stats" entry says, and nothing if
+-- it says nothing — so a card only writes one it actually differs on.
+--
+-- **It used to be a list**, `[current, max]` or `[min, current, max]`, which is
+-- a rule a reader had to be taught and could not check: the middle is the
+-- value, and the middle of two is the first. Named, it says itself. Nothing in
+-- the format is positional now except a zone's `pos`, which is a rectangle.
 --
 -- **The three live in three tables, and only this function knows that.** A
 -- stat is read as `e.stats[key]` everywhere it was before; the ceiling and the
@@ -86,14 +91,7 @@ end
 function M.attach_stat(e, key, value)
 	local lo, cur, hi
 	if type(value) == "table" then
-		local n = #value
-		if n >= 3 then
-			lo, cur, hi = tonumber(value[1]), tonumber(value[2]), tonumber(value[3])
-		elseif n == 2 then
-			cur, hi = tonumber(value[1]), tonumber(value[2])
-		else
-			cur = tonumber(value[1])
-		end
+		cur, lo, hi = tonumber(value.value), tonumber(value.min), tonumber(value.max)
 	else
 		cur = tonumber(value)
 	end
@@ -305,7 +303,19 @@ end
 
 local function stats_equal(a, b)
 	a, b = a or {}, b or {}
-	for k, v in pairs(a) do if b[k] ~= v then return false end end
+	for k, v in pairs(a) do
+		local w = b[k]
+		-- A card carrying its own bounds writes a table, and two parses of the
+		-- same file never produce the same one — so comparing them by identity
+		-- restamped those cards on every reload and put their live hp back.
+		if type(v) == "table" then
+			if not (type(w) == "table" and w.value == v.value and w.min == v.min and w.max == v.max) then
+				return false
+			end
+		elseif w ~= v then
+			return false
+		end
+	end
 	for k in pairs(b) do if a[k] == nil then return false end end
 	return true
 end

@@ -29,7 +29,7 @@
       "text": "Throne Room",
       "asset": "castle_hill.jpg",
       "tooltip": "Your seat of power. Taxes bring 1 gold each round. Pay 2 gold to inspire your people (+1 morale).",
-      "card_stats": { "hp": [20, 20], "gold": 20, "morale": 5, "defense": 0, "food": 0 },
+      "card_stats": { "hp": { "value": 20, "max": 20 }, "gold": 20, "morale": 5, "defense": 0, "food": 0 },
       "tags": ["building", "hero"],
       "activate": { "cost": { "exhaust": 1, "gold": 2 }, "action": ["stat_gain:morale:1"] },
       "turn": { "action": ["stat_gain:gold:1"] }
@@ -44,7 +44,7 @@
         "target": { "type": "slot", "min": 1, "max": 1, "zones": ["board"] },
         "action": ["move_to:board"]
       },
-      "card_stats": { "hp": [4, 4], "defense": 2 },
+      "card_stats": { "hp": { "value": 4, "max": 4 }, "defense": 2 },
       "tags": ["building", "military"]
     },
     {
@@ -58,7 +58,7 @@
         "action": ["move_to:board"]
       },
       "turn": { "action": ["stat_gain:food:1"] },
-      "card_stats": { "hp": [3, 3] },
+      "card_stats": { "hp": { "value": 3, "max": 3 } },
       "tags": ["building", "economic"]
     },
     {
@@ -72,7 +72,7 @@
         "action": ["move_to:board"]
       },
       "turn": { "action": ["stat_gain:gold:1"] },
-      "card_stats": { "hp": [3, 3] },
+      "card_stats": { "hp": { "value": 3, "max": 3 } },
       "tags": ["building", "economic"]
     },
     {

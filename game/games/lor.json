@@ -26,7 +26,7 @@
       "tooltip": "Tough — takes 1 less damage from every source.",
       "abilities": [
         {
-          "key": "shield",
+          "key": "armor",
           "phases": ["strike"],
           "action": ["stat_damage:incoming@self:1"]
         }
@@ -216,7 +216,7 @@
         "stat_set:spill@each.battle:0",
         "stat_set:incoming@each.battle:0",
         "activate_zone:battle:by_column:aim",
-        "activate_zone:battle:by_column:shield",
+        "activate_zone:battle:by_column:armor",
         "activate_zone:battle:by_column:land",
         "activate_zone:battle:by_column:spill"
       ],

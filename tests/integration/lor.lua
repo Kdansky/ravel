@@ -307,7 +307,7 @@ function M.test_lor_anything_that_writes_the_damage_meets_tough(check)
 		-- blocker, which is the shape a spell has.
 		actions.run({
 			"stat_gain:incoming@self:3",
-			"activate_zone:battle:by_column:shield",
+			"activate_zone:battle:by_column:armor",
 			"activate_zone:battle:by_column:land",
 		}, { card_id = blk })
 		hit = entity.get(blk).stats.health

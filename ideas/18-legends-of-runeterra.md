@@ -362,7 +362,7 @@ changes a number is one line on its own tag**, and it names neither the fight
 nor whatever dealt it:
 
 ```json
-"tough": { "abilities": [{ "key": "shield", "phases": ["strike"],
+"tough": { "abilities": [{ "key": "armor", "phases": ["strike"],
   "action": ["stat_damage:incoming@self:1"] }] }
 ```
 
@@ -377,13 +377,14 @@ keyed to that word, so a phase can walk the same zone several times:
 ```json
 "stat_set:incoming@each.battle:0",
 "activate_zone:battle:by_column:aim",
-"activate_zone:battle:by_column:shield",
+"activate_zone:battle:by_column:armor",
 "activate_zone:battle:by_column:land",
 "activate_zone:battle:by_column:spill"
 ```
 
-`aim`, `land` and `spill` are the battlefield's (`in_combat`); `shield` is the
-keyword's; Overwhelm's line is unchanged and simply joins the `spill` step. The
+`aim`, `land` and `spill` are the battlefield's (`in_combat`); `armor` is the
+keyword's — *reduce damage by x* is an ability half of gaming has, so the step is
+named for what it does rather than for the one keyword that uses it here; Overwhelm's line is unchanged and simply joins the `spill` step. The
 reason this needed a word at all is that **the only order there was ran down one
 card's abilities before the next card started**, and a rule that has to happen
 after *all* of one thing and before *all* of another had nowhere to live. Steps
@@ -397,7 +398,7 @@ hiding.
 
 ### Three things found on the way
 
-- **A tag ability rides on the card everywhere**, so `tough`'s `shield` would
+- **A tag ability rides on the card everywhere**, so `tough`'s `armor` would
   have appeared in the bench chooser beside *Attack* and *Block*. `phases:
   ["strike"]` is what keeps it out — and it is free, because `activate_zone`
   does not read `phases` at all. That asymmetry was already load-bearing:

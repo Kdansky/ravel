@@ -32,8 +32,8 @@ local GAME = [==[{
   "phases": [{ "key": "act", "type": "player_input" }],
   "cards": [
     { "key": "plain",   "text": "Plain",   "card_stats": { "hp": 4 } },
-    { "key": "capped",  "text": "Capped",  "card_stats": { "hp": [4, 6] } },
-    { "key": "floored", "text": "Floored", "card_stats": { "hp": [2, 4, 6] } },
+    { "key": "capped",  "text": "Capped",  "card_stats": { "hp": { "value": 4, "max": 6 } } },
+    { "key": "floored", "text": "Floored", "card_stats": { "hp": { "value": 2, "min": 2, "max": 6 } } },
     { "key": "gritty",  "text": "Gritty",  "card_stats": { "grit": 5 } }
   ],
   "setup": {
@@ -83,12 +83,12 @@ function M.test_stats_one_number_is_a_current_value(check)
 	end)
 end
 
-function M.test_stats_a_pair_is_current_and_ceiling(check)
+function M.test_stats_a_value_and_a_ceiling(check)
 	with_game(function(name)
 		flow.init(name, 1)
 		local e = card("capped")
-		check("the first number is the current value", e.stats.hp == 4)
-		check("the second is the ceiling, beside it rather than in it",
+		check("value is the current value", e.stats.hp == 4)
+		check("max is the ceiling, beside it rather than in it",
 			e.stat_max.hp == 6 and e.stats.hp_max == nil)
 
 		on(e, "stat_gain:hp@self:100")
@@ -99,12 +99,12 @@ function M.test_stats_a_pair_is_current_and_ceiling(check)
 	end)
 end
 
-function M.test_stats_a_triplet_is_floor_current_and_ceiling(check)
+function M.test_stats_all_three_bounds_by_name(check)
 	with_game(function(name)
 		flow.init(name, 1)
 		local e = card("floored")
 		check("all three land where they belong",
-			e.stat_min.hp == 2 and e.stats.hp == 4 and e.stat_max.hp == 6)
+			e.stat_min.hp == 2 and e.stats.hp == 2 and e.stat_max.hp == 6)
 
 		on(e, "stat_damage:hp@self:100")
 		check("and the floor holds", e.stats.hp == 2, tostring(e.stats.hp))

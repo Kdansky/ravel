@@ -77,7 +77,7 @@ local RETIRED = {
 	{ "lose_stat", "stat_damage" },
 	{ "spend_stat", "stat_damage — a cost is an ordinary reduction and never needed its own word" },
 	{ "set_stat", "stat_set" },
-	{ "hp_max", 'card_stats written as a list: "hp": [4, 4] is [current, max]' },
+	{ "hp_max", 'the bound beside the value: "hp": { "value": 4, "max": 4 }' },
 }
 
 local function read(path)

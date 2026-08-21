@@ -112,7 +112,7 @@
       "asset": "horseman_dusk.jpg",
       "tooltip": "Sabres at dusk: strikes a threat for 2, once per day.",
       "tags": ["unit"],
-      "card_stats": { "hp": [2, 2] },
+      "card_stats": { "hp": { "value": 2, "max": 2 } },
       "play": { "action": ["move_to"] },
       "activate": {
         "action": ["effect:sabre_hit", "stat_damage:hp@random.threat:2"],
@@ -125,7 +125,7 @@
       "asset": "pikemen_spears.jpg",
       "tooltip": "A wall that walks: strikes a threat for 1, once per day.",
       "tags": ["unit"],
-      "card_stats": { "hp": [4, 4] },
+      "card_stats": { "hp": { "value": 4, "max": 4 } },
       "play": { "action": ["move_to"] },
       "activate": {
         "action": ["effect:sabre_hit", "stat_damage:hp@random.threat:1"],
@@ -138,7 +138,7 @@
       "asset": "hunter_forest.jpg",
       "tooltip": "Knows what the land hides: +1 supply, once per day.",
       "tags": ["unit"],
-      "card_stats": { "hp": [2, 2] },
+      "card_stats": { "hp": { "value": 2, "max": 2 } },
       "play": { "action": ["move_to"] },
       "activate": { "action": ["stat_gain:supplies:1"], "cost": { "exhaust": 1 } }
     },
@@ -227,7 +227,7 @@
       "asset": "wolves_winter.jpg",
       "tooltip": "They pace the column after dark. -1 morale each day it lives.",
       "tags": ["threat"],
-      "card_stats": { "hp": [2, 2] },
+      "card_stats": { "hp": { "value": 2, "max": 2 } },
       "turn": { "action": ["effect:wolf_bite", "stat_damage:morale:1"] }
     },
     {
@@ -236,7 +236,7 @@
       "asset": "swamp_mire.jpg",
       "tooltip": "The road drowns and the wagons sink. -1 supply each day it lasts.",
       "tags": ["threat"],
-      "card_stats": { "hp": [2, 2] },
+      "card_stats": { "hp": { "value": 2, "max": 2 } },
       "turn": { "action": ["stat_damage:supplies:1"] }
     },
     {
@@ -245,7 +245,7 @@
       "asset": "dark_forest.jpg",
       "tooltip": "Never quite seen, never quite gone. -1 morale each day.",
       "tags": ["threat"],
-      "card_stats": { "hp": [3, 3] },
+      "card_stats": { "hp": { "value": 3, "max": 3 } },
       "turn": { "action": ["stat_damage:morale:1"] }
     },
     {
@@ -254,7 +254,7 @@
       "asset": "dark_riders.jpg",
       "tooltip": "Riders in burnt colors. -1 morale and -1 supply each day they shadow you.",
       "tags": ["threat"],
-      "card_stats": { "hp": [4, 4] },
+      "card_stats": { "hp": { "value": 4, "max": 4 } },
       "turn": { "action": ["stat_damage:morale:1", "stat_damage:supplies:1"] }
     },
     {
@@ -263,7 +263,7 @@
       "asset": "river_ford.jpg",
       "tooltip": "The water wants a light. Answer it with a torch in the wagons, or cut a way through.",
       "tags": ["threat"],
-      "card_stats": { "hp": [3, 3] },
+      "card_stats": { "hp": { "value": 3, "max": 3 } },
       "challenge": {
         "needs": ["card:torch >= 1"],
         "pass": ["move_to:graveyard", "stat_gain:distance:1", "stat_gain:morale:1"],
@@ -278,7 +278,7 @@
       "asset": "stone_bridge.jpg",
       "tooltip": "The keeper counts your sacks. Answer with 3 supplies in hand (2 are taken), or cut a way through.",
       "tags": ["threat"],
-      "card_stats": { "hp": [3, 3] },
+      "card_stats": { "hp": { "value": 3, "max": 3 } },
       "challenge": {
         "needs": ["supplies >= 3"],
         "pass": ["move_to:graveyard", "stat_damage:supplies:2", "stat_gain:distance:2"],

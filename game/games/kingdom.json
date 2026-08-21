@@ -45,7 +45,7 @@
       "asset": "merchant_portrait.jpg",
       "tooltip": "Born to ledgers and caravans. +6 gold.",
       "tags": ["holding", "origin", "economic"],
-      "card_stats": { "hp": [4, 4] },
+      "card_stats": { "hp": { "value": 4, "max": 4 } },
       "play": { "action": ["move_to:board", "stat_gain:progress:3", "stat_gain:gold:6"] }
     },
     {
@@ -54,7 +54,7 @@
       "asset": "knight_portrait.jpg",
       "tooltip": "Crowned on a battlefield. +3 might.",
       "tags": ["holding", "origin", "military", "soldier"],
-      "card_stats": { "hp": [5, 5] },
+      "card_stats": { "hp": { "value": 5, "max": 5 } },
       "play": { "action": ["move_to:board", "stat_gain:progress:3", "stat_gain:might:3"] }
     },
     {
@@ -63,7 +63,7 @@
       "asset": "archmage_tower",
       "tooltip": "The tower chose you. +2 mana now, +1 each round.",
       "tags": ["holding", "origin", "mystic"],
-      "card_stats": { "hp": [3, 3] },
+      "card_stats": { "hp": { "value": 3, "max": 3 } },
       "play": { "action": ["move_to:board", "stat_gain:progress:3", "stat_gain:mana:2"] },
       "turn": { "action": ["stat_gain:mana:1"] }
     },
@@ -130,7 +130,7 @@
       "asset": "farmhouse_fields.jpg",
       "tooltip": "A family stakes its claim. +1 food each round.",
       "tags": ["holding", "economic", "farm"],
-      "card_stats": { "hp": [3, 3] },
+      "card_stats": { "hp": { "value": 3, "max": 3 } },
       "play": { "action": ["move_to:board", "stat_gain:progress:1"] },
       "turn": { "action": ["stat_gain:food:1"] }
     },
@@ -142,7 +142,7 @@
       "play": { "cost": { "gold": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
       "turn": { "action": ["stat_gain:gold:1"] },
       "tags": ["holding", "economic"],
-      "card_stats": { "hp": [3, 3] }
+      "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
     {
       "key": "granary",
@@ -152,7 +152,7 @@
       "play": { "cost": { "food": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
       "turn": { "action": ["stat_gain:food:count:farm"] },
       "tags": ["holding", "economic"],
-      "card_stats": { "hp": [3, 3] }
+      "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
     {
       "key": "toll_roads",
@@ -162,7 +162,7 @@
       "play": { "cost": { "gold": 3 }, "action": ["move_to:board", "stat_gain:progress:1"] },
       "turn": { "action": ["stat_gain:gold:count:economic"] },
       "tags": ["holding", "economic"],
-      "card_stats": { "hp": [3, 3] }
+      "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
     {
       "key": "laborers",
@@ -180,7 +180,7 @@
       "play": { "cost": { "gold": 6 }, "action": ["move_to:board", "stat_gain:progress:3"] },
       "turn": { "action": ["stat_gain:gold:2"] },
       "tags": ["holding", "economic"],
-      "card_stats": { "hp": [4, 4] }
+      "card_stats": { "hp": { "value": 4, "max": 4 } }
     },
     {
       "key": "militia",
@@ -188,7 +188,7 @@
       "asset": "pikemen_spears.jpg",
       "tooltip": "Farmhands with spears. +1 might.",
       "tags": ["holding", "military", "soldier"],
-      "card_stats": { "hp": [2, 2] },
+      "card_stats": { "hp": { "value": 2, "max": 2 } },
       "play": { "action": ["move_to:board", "stat_gain:might:1", "stat_gain:progress:1"] }
     },
     {
@@ -201,7 +201,7 @@
         "action": ["move_to:board", "stat_gain:might:2", "stat_gain:progress:1"]
       },
       "tags": ["holding", "military", "soldier"],
-      "card_stats": { "hp": [4, 4] }
+      "card_stats": { "hp": { "value": 4, "max": 4 } }
     },
     {
       "key": "war_college",
@@ -214,7 +214,7 @@
         "action": ["effect:drill_rally", "stat_gain:might:count:soldier"]
       },
       "tags": ["holding", "military"],
-      "card_stats": { "hp": [3, 3] }
+      "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
     {
       "key": "mercenary_band",
@@ -245,7 +245,7 @@
         "action": ["move_to:board", "stat_gain:might:2", "stat_gain:progress:2"]
       },
       "tags": ["holding", "military"],
-      "card_stats": { "hp": [3, 3] }
+      "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
     {
       "key": "shrine",
@@ -253,7 +253,7 @@
       "asset": "chapel_altar.jpg",
       "tooltip": "A quiet altar. +1 mana.",
       "tags": ["holding", "mystic"],
-      "card_stats": { "hp": [2, 2] },
+      "card_stats": { "hp": { "value": 2, "max": 2 } },
       "play": {
         "action": ["move_to:board", "effect:blessing", "stat_gain:mana:1", "stat_gain:progress:1"]
       }
@@ -266,7 +266,7 @@
       "play": { "cost": { "gold": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
       "turn": { "action": ["stat_gain:mana:1"] },
       "tags": ["holding", "mystic"],
-      "card_stats": { "hp": [3, 3] }
+      "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
     {
       "key": "seer_tower",
@@ -276,7 +276,7 @@
       "play": { "cost": { "mana": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
       "turn": { "action": ["stat_gain:mana:count:mystic"] },
       "tags": ["holding", "mystic"],
-      "card_stats": { "hp": [3, 3] }
+      "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
     {
       "key": "eclipse_rite",
@@ -289,7 +289,7 @@
         "action": ["effect:eclipse_surge", "stat_gain:progress:2"]
       },
       "tags": ["holding", "mystic"],
-      "card_stats": { "hp": [2, 2] }
+      "card_stats": { "hp": { "value": 2, "max": 2 } }
     },
     {
       "key": "offering",
@@ -307,7 +307,7 @@
       "play": { "cost": { "mana": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
       "activate": { "cost": { "exhaust": 1, "mana": 2 }, "action": ["stat_gain:might:2"] },
       "tags": ["holding", "mystic"],
-      "card_stats": { "hp": [3, 3] }
+      "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
     {
       "key": "harvest_blight",
@@ -548,7 +548,7 @@
       "tooltip": "Five advisors, one ear. Each will tell you what the realm needs; you have time for one of them.",
       "asset": "auto",
       "tags": ["holding", "immutable"],
-      "card_stats": { "hp": [3, 3] },
+      "card_stats": { "hp": { "value": 3, "max": 3 } },
       "abilities": [
         {
           "key": "treasurer",
