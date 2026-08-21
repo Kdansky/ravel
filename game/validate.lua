@@ -690,6 +690,21 @@ function M.check(G)
 	-- op's declared shape (actions.spec), so the validator can't drift from
 	-- the handlers.
 	local known_ops = actions.ops()
+	-- Every word an ability is keyed to, gathered once: a step is answered by
+	-- whatever wears it, so there is no one place to look it up.
+	local keys_memo
+	local function ability_keys()
+		if keys_memo then return keys_memo end
+		keys_memo = {}
+		for _, defs in ipairs({ G.card_defs, G.tag_defs }) do
+			for _, def in pairs(defs or {}) do
+				for _, a in ipairs(type(def) == "table" and def.abilities or {}) do
+					if type(a) == "table" and a.key then keys_memo[a.key] = true end
+				end
+			end
+		end
+		return keys_memo
+	end
 	local check_action
 	function check_action(where, str)
 		local p = {}
@@ -748,6 +763,14 @@ function M.check(G)
 				-- An action's stat argument is a full subject: it may carry a
 				-- scope, and a scoped one may read a stat only cards have.
 				subject_ok(where .. ": " .. op, a)
+			elseif t == "step" then
+				-- A step names abilities across every card and tag that answers
+				-- to it, so the only mistake the engine can catch is a word
+				-- nothing answers to at all — which is the whole of the typo.
+				if not ability_keys()[a] then
+					warn("%s: '%s' runs the step '%s', which no ability is keyed to%s",
+						where, op, tostring(a), suggest(a, ability_keys()))
+				end
 			elseif t == "order" then
 				-- A closed set, and today it holds one word. Refusing the rest
 				-- is the point: an order the engine cannot honour must not look

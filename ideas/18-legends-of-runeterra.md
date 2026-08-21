@@ -124,7 +124,7 @@ different genre, not because it is unusually complex.
 | Play / Last Breath / Round Start abilities | **[01](01-boardgames.md) gap 5, triggers** — not started |
 | ~~**Blocking: which unit blocks which**~~ | **not missing — it is placement.** Six lanes a side, and a unit fights what is across. Strictly one to one, which is what a lane is. See below |
 | ~~**Combat damage, ~~simultaneous~~ left to right, then deaths**~~ | **built** — `activate_zone:battle` walks the lanes in slot order and every unit strikes what is `@across`; deaths are deferred to a `destroy:dead` after the walk, which is what makes a pair's strikes simultaneous while the pairs stay ordered |
-| ~~Tough, Overwhelm~~ | **built, and as arithmetic** — one term each in the zone's own formula, no engine word. See *What milestone 1 cost* below |
+| ~~Tough, Overwhelm~~ | **built, and as arithmetic** — Overwhelm is one term in the zone's own formula; Tough is one line on its own tag, over a damage channel (`incoming`) and a step. See *What milestone 1 cost* and *Tough is content* below |
 | ~~**The pass**~~, and responding to a spell | the pass **shipped** (`6e29b75`) as a card on the table with a flag on it. The response **stack** is still missing, and stage 1 narrows it: Burst and Focus never enter one |
 | Spell mana, spendable only on spells | **missing, and small** — a cost paid from either of two pools by a rule |
 | Mulligan: draw 4, replace any subset | **missing** — the offer overlay picks exactly one |
@@ -330,26 +330,98 @@ than reacting after it lands. That is the thing 01 warns is where a small engine
 becomes a large one, and it should be entered deliberately rather than by
 noticing that Tough nearly works.
 
-Until then: the approximation stays, the keyword's text says what the *rule* is
-rather than what the arithmetic does, and this paragraph is the record of the
-difference.
+That was true until 2026-08-21 and is now history; the section below is what was
+built. The keyword's text said what the *rule* was rather than what the
+arithmetic did, and the two agree at last.
 
 **Corrected by [22](22-the-crew.md) (2026-08-20).** The diagnosis above is
 wrong, and expensively so: it sends this track at a replacement-effect subsystem
 for a rule that needs three ordinary lines. *Reduce incoming damage by 1, never
 below 0* is `max(0, power - tough)`, which is `stat_damage` against a floor of
 zero — [23](23-splendor.md)'s finding — done on a scratch number **before** the
-damage lands rather than healing after it:
+damage lands rather than healing after it. What was really missing was not an
+operator but the habit of computing a number on the way in.
+
+### Shipped (2026-08-21), and the scratch number moved to the other card
+
+The correction above was right about the arithmetic and wrong about where it
+goes. It put `hurt` on the **striker** — `max(0, power@self - tough@across)` —
+which works and is still Tough written into whatever is hitting you. Every
+source of damage would have to carry the term, and LoR has sources that are not
+strikers at all: a spell deals damage without anything standing across the lane.
+
+So the number lives on the **card being hit**. `incoming` is one stat, declared
+once, `min: 0` and `on: ["unit"]`:
 
 ```json
-"stat_set:hurt@self:sum:power@self",
-"stat_damage:hurt@self:count:tough@across",
-"stat_damage:health@across:sum:hurt@self"
+{ "key": "incoming", "min": 0, "on": ["unit"], "start": 0, "tags": ["hidden"] }
 ```
 
-with `hurt` declared `min: 0`. What was really missing was not an operator but
-the habit of computing a number on the way in. `spill` reads `power@self` too,
-so the change belongs in a pass of this track's own with its tests around it.
+Damage is written there, reduced there, and only then taken. **A keyword that
+changes a number is one line on its own tag**, and it names neither the fight
+nor whatever dealt it:
+
+```json
+"tough": { "abilities": [{ "key": "shield", "phases": ["strike"],
+  "action": ["stat_damage:incoming@self:1"] }] }
+```
+
+`min: 0` is the whole of *never below zero*, so there is no clamp to write and
+no way to write it wrong.
+
+### What it cost: a step
+
+One engine word. `activate_zone:<zone>:<order>:<step>` runs only the abilities
+keyed to that word, so a phase can walk the same zone several times:
+
+```json
+"stat_set:incoming@each.battle:0",
+"activate_zone:battle:by_column:aim",
+"activate_zone:battle:by_column:shield",
+"activate_zone:battle:by_column:land",
+"activate_zone:battle:by_column:spill"
+```
+
+`aim`, `land` and `spill` are the battlefield's (`in_combat`); `shield` is the
+keyword's; Overwhelm's line is unchanged and simply joins the `spill` step. The
+reason this needed a word at all is that **the only order there was ran down one
+card's abilities before the next card started**, and a rule that has to happen
+after *all* of one thing and before *all* of another had nowhere to live. Steps
+give a phase that ordering without the engine learning what a strike is.
+
+Naming no step runs every ability, which is what Splendor's and The Crew's
+`activate_zone` calls have always meant, so nothing else in the corpus changed.
+The validator refuses a step no ability answers to — a mis-typed step is a pass
+that silently does nothing, which is the shape of bug a pipeline is best at
+hiding.
+
+### Three things found on the way
+
+- **A tag ability rides on the card everywhere**, so `tough`'s `shield` would
+  have appeared in the bench chooser beside *Attack* and *Block*. `phases:
+  ["strike"]` is what keeps it out — and it is free, because `activate_zone`
+  does not read `phases` at all. That asymmetry was already load-bearing:
+  Overwhelm's ability has carried `phases: ["strike"]` since it was written, for
+  exactly this reason and without saying so.
+- **A keyword runs after the rule it modifies, and that is already the order.**
+  `cards.abilities` returns the card's own, then what the *zone* grants, then
+  what its own tags do — "keywords come last on purpose". Steps did not have to
+  fight it.
+- **`on_act` now says which step it is announcing.** The presentation spaces
+  bursts out by the beat, and four passes over one zone is four beats a card;
+  the one a player actually sees is the landing. `tests/integration/lor.lua`
+  reads that argument rather than counting to four.
+
+### What is still owed, and it is spells
+
+`land` lives on `in_combat`, which the *battle* zone grants — so a unit on the
+bench has no way to take the damage written onto it. Combat is the only thing
+that deals damage today, so nothing is broken; the first spell that hits a
+benched unit is what pays for it. [Assumption: `land` moves onto the `unit` tag
+at that point, since taking damage is something a unit does wherever it stands,
+and the two passes a spell needs are then two ordinary lines in its own action
+list — which `test_lor_anything_that_writes_the_damage_meets_tough` already
+runs, outside the strike phase, with no striker anywhere in it.]
 
 **Overwhelm went the other way and is now on the keyword itself.** A card's own
 tags grant abilities — the same thing a zone's `applies` has always done, and

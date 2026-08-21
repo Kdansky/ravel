@@ -362,7 +362,7 @@ end
 -- destroyed, so the pooled quantifiers coincide here: only "random." narrows,
 -- to one victim. Ids are collected before anything is removed — destroying
 -- while walking a zone's own card list is how you skip half of it.
--- activate_zone:<zone>[:<order>]  — every card lying there does what it does.
+-- activate_zone:<zone>[:<order>[:<step>]]  — every card lying there does what it does.
 --
 -- **The order is the game's to state, not the engine's.** Without one the cards
 -- act in the order they are in, which is the order the game put them there.
@@ -387,6 +387,19 @@ end
 -- with the phase, the cost and whose card it is. A phase running its own rules
 -- has already decided it is time; a rules card that refused itself here would be
 -- a rule that silently did not happen.
+--
+-- **A step is one part of a resolution, and the phase runs the parts in order.**
+-- Name one and only the abilities keyed to that word run, so a phase can walk
+-- the same zone several times: every unit works out what it is dealt, *then*
+-- every keyword that reduces a number reduces it, *then* every unit takes it.
+-- Without it the only order there is runs down one card's abilities before the
+-- next card starts, which cannot say "after all of them" — and a rule that has
+-- to happen between two other rules had nowhere to live but the card it was
+-- about to happen to. Naming no step runs every ability, which is what a zone
+-- of rule cards wants and what every game written before this asked for.
+--
+-- A step wants an order named beside it: a resolution walked in several passes
+-- that does not say what order each takes is not one.
 HANDLERS["activate_zone"] = function(p, ctx)
 	local z = zone_of(p[2] or "")
 	if not z then
@@ -413,16 +426,17 @@ HANDLERS["activate_zone"] = function(p, ctx)
 		content_error("activate_zone: '" .. tostring(p[3]) .. "' is not an order the engine knows")
 		return
 	end
+	local step = p[4]
 	for i, id in ipairs(order) do
 		local e = entity.get(id)
 		if e and e.zone_id == z.id then
-			-- Which of the run this is. The rules resolve the whole zone in one
-			-- instant — they have to, or a snapshot could be taken halfway
-			-- through a combat — so this is the only thing the presentation has
-			-- to tell one act from the next and space them out.
-			if M.on_act then M.on_act(id, i) end
+			-- Which of the run this is, and which part of it. The rules resolve the
+			-- whole zone in one instant — they have to, or a snapshot could be taken
+			-- halfway through a combat — so this is the only thing the presentation
+			-- has to tell one act from the next and space them out.
+			if M.on_act then M.on_act(id, i, step) end
 			for _, a in ipairs(cards.abilities(e)) do
-				if type(a.action) == "table" then
+				if type(a.action) == "table" and (step == nil or a.key == step) then
 					M.run(a.action, { card_id = id, targets = {} })
 				end
 			end
@@ -891,7 +905,7 @@ local SPEC = {
 	load_game         = "gamefile",
 	destroy           = "scope",
 	ready             = "scope",
-	activate_zone     = "zone order?",
+	activate_zone     = "zone order? step?",
 	move              = "scope zone",
 	set_owner         = "scope seat",
 	destroy_self      = "",

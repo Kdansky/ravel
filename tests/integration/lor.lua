@@ -83,7 +83,11 @@ end
 -- One rigged combat: north attacks with `atk`, south blocks with `blk` or lets
 -- it through. Both seats' hands are emptied first, so nothing but the fight can
 -- move. North holds the attack token in round one.
-local function fight(atk_key, blk_key)
+--
+-- `before` runs with the two cards once both are in their lanes and before the
+-- last pass resolves them, which is the only moment a test can rig a number the
+-- strike is about to read.
+local function fight(atk_key, blk_key, before)
 	flow.init("lor.json", 5)
 	for _, seat in ipairs({ "north", "south" }) do
 		local h = zone_of("hand", seat)
@@ -96,7 +100,9 @@ local function fight(atk_key, blk_key)
 	flow.activate(a, { lanes(a)[1] })
 	flow.activate(button("pass_button", "north"), {})
 	if b then flow.activate(b, { lanes(b)[1] }) end
+	if before then before(a, b) end
 	flow.activate(button("pass_button", "south"), {})
+	return a, b
 end
 
 function M.test_lor_the_opening_deals_four_and_the_round_deals_one(check)
@@ -261,6 +267,54 @@ function M.test_lor_tough_takes_one_off_every_source(check)
 	check("and no spill, because it has no overwhelm", stat("south", "nexus") == 20)
 end
 
+-- The case the old arithmetic could not survive. Tough used to be a point handed
+-- *back* once the strike had landed, so a source with no power healed what it
+-- hit — right for every printed card, since none has zero power, and a lie the
+-- moment anything deals damage equal to a count. It is a number kept off on the
+-- way in now: the striker says what it deals, the keyword takes one off that,
+-- and only then does it land. Which is also why the keyword is one line on the
+-- `tough` tag and nothing at all on the ten templates or on whatever hit them.
+function M.test_lor_tough_never_heals_what_hits_it(check)
+	local atk = fight("cithria", "plucky_poro", function(a) entity.get(a).stats.power = 0 end)
+	local poro = on_bench("south", "plucky_poro")
+	check("a strike with no power behind it leaves a tough blocker exactly where it was",
+		poro ~= nil and poro.stats.health == 1, poro and tostring(poro.stats.health) or "dead")
+	check("and the blocker still hits back", (on_bench("north", "cithria") or {}).stats.health == 1,
+		tostring((on_bench("north", "cithria") or {}).stats.health))
+	check("nothing was healed past where it started",
+		poro.stats.health <= 1 and entity.get(atk).stats.health <= 2)
+
+	-- A keyword rides on the card wherever it goes, so the pass it belongs to is
+	-- the whole of what keeps it out of the player's way on the bench.
+	flow.init("lor.json", 5)
+	local benched = bench_put("north", "plucky_poro", 2)
+	flow.activate(button("attack_button", "north"), {})
+	local offered = flow.usable_abilities(benched)
+	check("a tough unit waiting to attack is offered one thing, not two",
+		#offered == 1 and offered[1].ability.key == "attack",
+		#offered .. " " .. tostring(offered[1] and offered[1].ability.key))
+end
+
+-- What the keyword is really keyed to is the *number*, not the fight. Attacking
+-- is one thing that writes damage onto a unit and LoR has spells that write it
+-- too, so Tough cannot be a term in the striker's formula without every one of
+-- those sources having to remember it. It reduces `incoming` — whatever put it
+-- there — and the pass that runs it is the phase's to call.
+function M.test_lor_anything_that_writes_the_damage_meets_tough(check)
+	local hit
+	fight("cithria", "plucky_poro", function(_, blk)
+		-- No striker anywhere in this: three points written straight onto the
+		-- blocker, which is the shape a spell has.
+		actions.run({
+			"stat_gain:incoming@self:3",
+			"activate_zone:battle:by_column:shield",
+			"activate_zone:battle:by_column:land",
+		}, { card_id = blk })
+		hit = entity.get(blk).stats.health
+	end)
+	check("three onto a tough one-health unit takes two of them", hit == -1, tostring(hit))
+end
+
 -- Overwhelm is the same shape: a tag, and one more line on the zone. What makes
 -- it expressible without a conditional is that the excess is *already* on the
 -- board — a blocker struck past zero carries it as negative health.
@@ -341,10 +395,14 @@ function M.test_lor_the_lanes_resolve_left_to_right(check)
 	flow.activate(b1, { lane(b1, 1) })
 	flow.activate(b2, { lane(b2, 2) })
 
+	-- The strike is four passes over the same zone and each of them is walked in
+	-- this order, so the pass to watch is the one a player sees: the landing.
 	local acted = {}
 	local was = actions.on_act
-	actions.on_act = function(id, ordinal)
-		if id then acted[#acted + 1] = { col = entity.get(entity.get(id).slot_id).stats.col, beat = ordinal } end
+	actions.on_act = function(id, ordinal, step)
+		if id and step == "land" then
+			acted[#acted + 1] = { col = entity.get(entity.get(id).slot_id).stats.col, beat = ordinal }
+		end
 	end
 	flow.activate(button("pass_button", "south"), {})
 	actions.on_act = was

@@ -383,6 +383,11 @@ local CASES = {
 		function(g) g.style_defs = { priced = { badges = { "hp" } } } end },
 	{ "a stat asking for a colour that is not one", "is not a colour",
 		function(g) g.stat_defs.hp.color = "ultramarine" end },
+	-- A step is answered by whatever wears it, so a word nothing answers to is
+	-- the only mistake there is to find — and it is a pass that quietly does
+	-- nothing, which is exactly the shape of bug a pipeline hides.
+	{ "a step no ability is keyed to", "which no ability is keyed to",
+		function(g) g.card_defs.c_flee.on_play = { "activate_zone:board:by_column:parry" } end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)

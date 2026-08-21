@@ -635,6 +635,23 @@ not carry it and undo does not know about it.
 > piles' `bank` count wears the fallback diamond on all six piles. The plate
 > colour and the label say which gem it is, so this reads as clutter rather than
 > as a lie — but a badge that is only a number has no spelling.
+>
+> **What it needs.** `stat_icon` (`render.lua:273`) returns the stat's declared
+> `icon` or nothing, and `draw_stat_icon` (`render.lua:228`) draws the diamond
+> for anything it does not recognise — deliberately, and `validate.lua` says so
+> where it allows a colour with no shape. So the missing thing is a way for a
+> stat to say it *has* no shape. [Assumption: this belongs on the stat and not
+> on the style, by this gap's own colour argument — the badge and the HUD row
+> (`render.lua:1144`) draw the same icon through the same call, and a style-side
+> switch would make them disagree. `badge_zeros` went the other way because a
+> zero is a fact about that card face; an icon is a fact about the number.]
+> [Assumption: the spelling is a seventh word in the closed set — `"icon":
+> "none"`, one line in `render.icons()` and one in `validate.M.ICONS`, keeping
+> the field one type — rather than `"icon": false`, though `color: false` in
+> [11](11-styles-as-tags.md) is a precedent for the other choice.] Both call
+> sites then have to close the gap the icon left: `draw_badge` sizes the pill
+> `fh + tw + 8 * S` and offsets its text by `fh + 3 * S`, and the HUD row
+> indents by `fh + 4 * S`, so without the shape both must drop the `fh`.
 
 ### The original write-up
 
@@ -727,6 +744,22 @@ all gained a label they had always declared. **A grid still covers its own** —
 its cells come from `zones.cell_rect` rather than from `card_places`, so LoR's
 *Bench* still disappears under the first unit played into it. Left, deliberately:
 it is the same fix in a different module and no game has complained.
+
+That fix is not quite the same shape, and the difference is worth having written
+down before starting. A grid's cards do not use `card_places` at all once the
+zone declares `grid`: `zones.build` registers a slot per cell and `zones.resize`
+gives each one `M.cell_rect(z, idx)`, which is also what hit-testing reads — so
+reserving the band anywhere else would move the picture and not the target.
+`cell_rect` is where it has to go, and that is the one obstacle: `zones.lua` has
+no font, and the headless stub in `headless.lua` gives `love.graphics` nothing
+but `getDimensions`, so a `getFont():getHeight()` call there breaks the whole
+test suite. [Assumption: the way round it is the one [16](16-the-player-at-this-screen.md)
+already took for `zones.viewer` — a field written from outside rather than a
+call into the layer above. The renderer sets a label height on `zones` once,
+`cell_rect` subtracts it from the top when `z.label` is set, and headless leaves
+it zero, so `tests/integration/layout.lua` is unchanged.] A grid with no label
+is untouched either way, which is chess's board and every square that has to
+tile edge to edge.
 
 **The wheel scrolled by the browser's pixel delta.** `love.wheelmoved` passed
 `-dy * 3` into the inspector, and only the *sign* of `dy` is portable — natively
