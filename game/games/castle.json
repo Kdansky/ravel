@@ -157,8 +157,7 @@
       "asset": "cavalry_raid.jpg",
       "tooltip": "Raiders attack! Need 3 defense or lose 2 morale.",
       "tags": ["challenge"],
-      "challenge": { "needs": ["sum:defense@standing >= 3"], "pass": [], "fail": ["stat_damage:morale:2"] },
-      "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
+      "challenge": { "needs": ["sum:defense@standing >= 3"], "pass": [], "fail": ["stat_damage:morale:2"] }
     },
     {
       "key": "drought",
@@ -166,8 +165,7 @@
       "asset": "blighted_tree.jpg",
       "tooltip": "Crops wither. Need 3 food or lose 1 morale.",
       "tags": ["challenge"],
-      "challenge": { "needs": ["food >= 3"], "pass": [], "fail": ["stat_damage:morale:1"] },
-      "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
+      "challenge": { "needs": ["food >= 3"], "pass": [], "fail": ["stat_damage:morale:1"] }
     },
     {
       "key": "merchant",
@@ -175,8 +173,7 @@
       "asset": "gold_coins.jpg",
       "tooltip": "A merchant arrives. Have 2 gold and earn 2 more.",
       "tags": ["challenge"],
-      "challenge": { "needs": ["gold >= 2"], "pass": ["stat_gain:gold:2"], "fail": [] },
-      "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
+      "challenge": { "needs": ["gold >= 2"], "pass": ["stat_gain:gold:2"], "fail": [] }
     },
     {
       "key": "siege",
@@ -188,8 +185,7 @@
         "needs": ["sum:defense@standing >= 5"],
         "pass": [],
         "fail": ["stat_damage:hp@random.building:2"]
-      },
-      "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
+      }
     },
     {
       "key": "triumph",
@@ -353,6 +349,9 @@
     { "when": "morale >= 10", "then": ["push_phase:victory"] }
   ],
   "tags": {
+    "challenge": {
+      "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
+    },
     "draft_pick": {
       "play": { "action": ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck"] }
     },

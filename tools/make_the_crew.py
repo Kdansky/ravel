@@ -39,7 +39,7 @@ MAX_TASKS = 5
 # Every scratch number the trick arithmetic writes, and the bound that makes it
 # arithmetic: **a floor of zero is what turns stat_damage into max(0, a - b)**,
 # which is the only clamp the amount grammar has.
-SCRATCH = ["suit", "value", "trump", "live", "over", "contend", "best", "gap"]
+SCRATCH = ["suit", "value", "trump", "contend", "best", "gap"]
 # suit and value are this card's own and every playing card says them; the rest
 # start at zero on all forty, so the stats section says that once.
 
@@ -51,33 +51,34 @@ SCRATCH = ["suit", "value", "trump", "live", "over", "contend", "best", "gap"]
 # with nothing, and the rest contend with their value, plus a hundred for being
 # a rocket — which is what "trump always wins, however low" is, written as a
 # number instead of a branch.
+#
+# **"Or" is two abilities**, which is the grammar's own answer and is what this
+# used to spell as arithmetic: following and trumping are two ways to be in the
+# running, so they are two `when`s rather than two clamped subtractions standing
+# in for an equality and a third pair standing in for min(a, 1). A rocket led is
+# both, and the trump pass runs second, so it wins by overwriting.
 
-def contend():
+COMPUTES = [
+    {"key": "trump_rank", "from": "value@self + 100",
+     "tooltip": "What a rocket is worth in the running: above every colour card however low it is."},
+    {"key": "behind", "from": "best@self - contend@self",
+     "tooltip": "How far short of the trick's best this card falls. Zero for exactly one card."},
+]
+
+
+def in_trick():
     return [
-        # live = 1 exactly when this card's suit is the led one. Two clamped
-        # subtractions, because |a - b| has no spelling and does not need one.
-        "stat_set:live@self:1",
-        "stat_set:gap@self:sum:suit@self",
-        "stat_damage:gap@self:sum:led@plan",
-        "stat_damage:live@self:sum:gap@self",
-        "stat_set:gap@self:sum:led@plan",
-        "stat_damage:gap@self:sum:suit@self",
-        "stat_damage:live@self:sum:gap@self",
-        # A rocket contends whether or not it followed, and a rocket *led* is
-        # both — so the two flags add to two and have to come back to one.
-        # min(a, k) is a - max(0, a - k): the same floor, used twice.
-        "stat_gain:live@self:sum:trump@self",
-        "stat_set:over@self:sum:live@self",
-        "stat_damage:over@self:1",
-        "stat_damage:live@self:sum:over@self",
-        "stat_set:contend@self:sum:value@self",
-        "stat_gain:contend@self:sum:trump@self:x:100",
-        "stat_set:contend@self:sum:contend@self:x:sum:live@self",
-        # How far short of the best this one is. Zero for exactly one card: the
-        # led card always contends, so the best is never zero, and everything
-        # that contends with nothing is short by all of it.
-        "stat_set:gap@self:sum:best@self",
-        "stat_damage:gap@self:sum:contend@self",
+        {"key": "follows", "text": "Weigh",
+         "when": ["suit@self == led@plan"],
+         "action": ["stat_set:contend@self:sum:value@self"]},
+        {"key": "trumps", "text": "Weigh", "compute": ["trump_rank"],
+         "when": ["trump@self >= 1"],
+         "action": ["stat_set:contend@self:trump_rank"]},
+        # The led card always contends, so the best is never zero and exactly one
+        # card is short by nothing. Its own pass, because it needs a number the
+        # trick produces rather than one this card knows.
+        {"key": "measure", "compute": ["behind"],
+         "action": ["stat_set:gap@self:behind"]},
     ]
 
 
@@ -364,12 +365,18 @@ def phases():
         {"key": "resolve", "type": "automatic",
          "actions": [
              "stat_set:hit@each.task:0",
-             # Twice over the same zone, because the second pass needs a number
-             # the first one produces: contend is a card's own business, best is
-             # the trick's.
-             "activate_zone:trick",
+             # A pass per part of the resolution, named. The last one needs a
+             # number the first two produce: contend is a card's own business,
+             # best is the trick's.
+             "stat_set:contend@each.trick:0",
+             "activate_zone:trick:by_column:follows",
+             "activate_zone:trick:by_column:trumps",
              "stat_set:best@each.trick:max:contend@trick",
-             "activate_zone:trick",
+             "activate_zone:trick:by_column:measure",
+             # Each card marks the task that wanted it. Its own pass because it
+             # is the card's own ability rather than the zone's, and a named pass
+             # runs only what answers to the name.
+             "activate_zone:trick:by_column:claim",
              "set_active_seat:taker",
          ],
          "next": [{"when": "count:hit_now@enemy.tasks >= 1", "then": "failed"},
@@ -424,6 +431,7 @@ def build():
            for k in ("suit", "value")]
         + [{"key": k, "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0}
            for k in SCRATCH if k not in ("suit", "value")],
+        "computes": COMPUTES,
         "computed_tags": {
             "commander": {"stat": "has_r4", "at_least": 1},
             # The one card in the trick that fell short of the best by nothing.
@@ -444,7 +452,7 @@ def build():
             "task": {"play": {"action": ["set_owner:self:mine", "move_to:tasks"]}},
             # Never clicked: the trick is not tagged "activate", so this is
             # reachable only through activate_zone, which is ungated.
-            "in_trick": {"abilities": [{"key": "weigh", "text": "Weigh", "action": contend()}]},
+            "in_trick": {"abilities": in_trick()},
         },
         "zones": zones(),
         "phases": phases(),

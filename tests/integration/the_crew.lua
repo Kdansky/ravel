@@ -367,8 +367,14 @@ end
 -- [23](../../ideas/23-splendor.md) found that a floor of zero makes
 -- stat_damage into max(0, a - b) and closed by saying a clamp at *one* was
 -- still missing. It is not: min(a, k) is a - max(0, a - k), the same floor used
--- twice, and that is what folds "followed the suit" and "is a rocket" back into
--- one flag. Asserted here because it is the arithmetic the whole game rests on.
+-- twice.
+--
+-- **This game no longer uses the second one**, and the reason is worth keeping:
+-- min(a, 1) was folding "followed the suit" and "is a rocket" back into one
+-- flag, which is an *or*, and an or is two abilities with a `when` each
+-- ([26](../../ideas/26-an-if-and-a-name.md)). The identity is still true and
+-- still the only clamp the amount grammar has, so it is asserted here over two
+-- ordinary floored stats rather than through a rule that needs it.
 function M.test_crew_a_floor_of_zero_gives_both_clamps(check)
 	mission(3, 1)
 	local c = find("pink_5")
@@ -382,13 +388,13 @@ function M.test_crew_a_floor_of_zero_gives_both_clamps(check)
 			c.stats.gap == want, tostring(c.stats.gap))
 	end
 	for _, case in ipairs({ { 0, 1 }, { 1, 1 }, { 2, 1 }, { 7, 1 }, { 7, 3 }, { 2, 3 } }) do
-		c.stats.live = case[1]
-		actions.execute("stat_set:over@self:sum:live@self", ctx)
-		actions.execute("stat_damage:over@self:" .. case[2], ctx)
-		actions.execute("stat_damage:live@self:sum:over@self", ctx)
+		c.stats.contend = case[1]
+		actions.execute("stat_set:gap@self:sum:contend@self", ctx)
+		actions.execute("stat_damage:gap@self:" .. case[2], ctx)
+		actions.execute("stat_damage:contend@self:sum:gap@self", ctx)
 		local want = math.min(case[1], case[2])
 		check(("min(%d, %d) is %d"):format(case[1], case[2], want),
-			c.stats.live == want, tostring(c.stats.live))
+			c.stats.contend == want, tostring(c.stats.contend))
 	end
 end
 

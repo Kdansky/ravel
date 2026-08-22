@@ -48,8 +48,6 @@
       "on": ["play_card"],
       "start": 0
     },
-    { "key": "live", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 },
-    { "key": "over", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 },
     {
       "key": "contend",
       "min": 0,
@@ -60,6 +58,18 @@
     },
     { "key": "best", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 },
     { "key": "gap", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 }
+  ],
+  "computes": [
+    {
+      "key": "trump_rank",
+      "from": "value@self + 100",
+      "tooltip": "What a rocket is worth in the running: above every colour card however low it is."
+    },
+    {
+      "key": "behind",
+      "from": "best@self - contend@self",
+      "tooltip": "How far short of the trick's best this card falls. Zero for exactly one card."
+    }
   ],
   "computed_tags": {
     "commander": { "stat": "has_r4", "at_least": 1 },
@@ -75,27 +85,19 @@
     "in_trick": {
       "abilities": [
         {
-          "key": "weigh",
+          "key": "follows",
           "text": "Weigh",
-          "action": [
-            "stat_set:live@self:1",
-            "stat_set:gap@self:sum:suit@self",
-            "stat_damage:gap@self:sum:led@plan",
-            "stat_damage:live@self:sum:gap@self",
-            "stat_set:gap@self:sum:led@plan",
-            "stat_damage:gap@self:sum:suit@self",
-            "stat_damage:live@self:sum:gap@self",
-            "stat_gain:live@self:sum:trump@self",
-            "stat_set:over@self:sum:live@self",
-            "stat_damage:over@self:1",
-            "stat_damage:live@self:sum:over@self",
-            "stat_set:contend@self:sum:value@self",
-            "stat_gain:contend@self:sum:trump@self:x:100",
-            "stat_set:contend@self:sum:contend@self:x:sum:live@self",
-            "stat_set:gap@self:sum:best@self",
-            "stat_damage:gap@self:sum:contend@self"
-          ]
-        }
+          "when": ["suit@self == led@plan"],
+          "action": ["stat_set:contend@self:sum:value@self"]
+        },
+        {
+          "key": "trumps",
+          "text": "Weigh",
+          "compute": ["trump_rank"],
+          "when": ["trump@self >= 1"],
+          "action": ["stat_set:contend@self:trump_rank"]
+        },
+        { "key": "measure", "compute": ["behind"], "action": ["stat_set:gap@self:behind"] }
       ]
     }
   },
@@ -344,9 +346,12 @@
       "type": "automatic",
       "actions": [
         "stat_set:hit@each.task:0",
-        "activate_zone:trick",
+        "stat_set:contend@each.trick:0",
+        "activate_zone:trick:by_column:follows",
+        "activate_zone:trick:by_column:trumps",
         "stat_set:best@each.trick:max:contend@trick",
-        "activate_zone:trick",
+        "activate_zone:trick:by_column:measure",
+        "activate_zone:trick:by_column:claim",
         "set_active_seat:taker"
       ],
       "next": [{ "when": "count:hit_now@enemy.tasks >= 1", "then": "failed" }, { "then": "collect" }]

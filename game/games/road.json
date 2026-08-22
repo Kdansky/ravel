@@ -7,7 +7,10 @@
     { "key": "supplies", "label": "Supplies", "min": 0 },
     { "key": "distance", "label": "Miles", "min": 0 }
   ],
-  "tags": { "unit": { "zone": "battlefield" }, "item": { "zone": "inventory" } },
+  "tags": {
+    "unit": { "zone": "battlefield", "play": { "action": ["move_to"] } },
+    "item": { "zone": "inventory", "play": { "action": ["move_to"] } }
+  },
   "computed_tags": { "slain": { "stat": "hp", "equals": "0" } },
   "effects": {
     "sabre_hit": { "base": "damage" },
@@ -113,7 +116,6 @@
       "tooltip": "Sabres at dusk: strikes a threat for 2, once per day.",
       "tags": ["unit"],
       "card_stats": { "hp": { "value": 2, "max": 2 } },
-      "play": { "action": ["move_to"] },
       "activate": {
         "action": ["effect:sabre_hit", "stat_damage:hp@random.threat:2"],
         "cost": { "exhaust": 1 }
@@ -126,7 +128,6 @@
       "tooltip": "A wall that walks: strikes a threat for 1, once per day.",
       "tags": ["unit"],
       "card_stats": { "hp": { "value": 4, "max": 4 } },
-      "play": { "action": ["move_to"] },
       "activate": {
         "action": ["effect:sabre_hit", "stat_damage:hp@random.threat:1"],
         "cost": { "exhaust": 1 }
@@ -139,7 +140,6 @@
       "tooltip": "Knows what the land hides: +1 supply, once per day.",
       "tags": ["unit"],
       "card_stats": { "hp": { "value": 2, "max": 2 } },
-      "play": { "action": ["move_to"] },
       "activate": { "action": ["stat_gain:supplies:1"], "cost": { "exhaust": 1 } }
     },
     {
@@ -147,8 +147,7 @@
       "text": "Pitch Torch",
       "asset": "torch_night.jpg",
       "tooltip": "Some things on the road fear fire. Keep it dry.",
-      "tags": ["item"],
-      "play": { "action": ["move_to"] }
+      "tags": ["item"]
     },
     {
       "key": "waybread",
@@ -156,7 +155,6 @@
       "asset": "bread_still.jpg",
       "tooltip": "Use it up: +2 supplies, then it is gone.",
       "tags": ["item"],
-      "play": { "action": ["move_to"] },
       "activate": { "action": ["stat_gain:supplies:2", "destroy_self"], "cost": { "exhaust": 1 } }
     },
     {
@@ -165,7 +163,6 @@
       "asset": "blacksmith_forge.jpg",
       "tooltip": "Nobody believes in it. +1 morale every day anyway.",
       "tags": ["item"],
-      "play": { "action": ["move_to"] },
       "turn": { "action": ["stat_gain:morale:1"] }
     },
     {
