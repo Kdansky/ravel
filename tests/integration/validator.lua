@@ -396,6 +396,36 @@ local CASES = {
 		function(g) g.card_defs.c_flee.card_stats = { hp = { max = 6 } } end },
 	{ "a card stat with a field the engine doesn't read", "has a field 'ceiling'",
 		function(g) g.card_defs.c_flee.card_stats = { hp = { value = 4, ceiling = 6 } } end },
+	-- A compute is a name for a number, so the mistakes are about the name and
+	-- about what it is made of.
+	{ "a compute with nothing to make it from", 'needs a "from"',
+		function(g) g.compute_list = { "spare" }; g.compute_defs = { spare = { key = "spare" } } end },
+	{ "a compute made of a misspelled stat", "uses the stat 'helth'",
+		function(g) g.compute_list = { "spare" }
+			g.compute_defs = { spare = { key = "spare", from = "0 - helth@board" } } end },
+	{ "a compute with two operators in it", "one operator per compute",
+		function(g) g.compute_list = { "spare" }
+			g.compute_defs = { spare = { key = "spare", from = "hp - 1 - 1" } } end },
+	{ "a compute sharing a stat's key", "a stat already has that key",
+		function(g) g.compute_list = { "hp" }
+			g.compute_defs = { hp = { key = "hp", from = "hp - 1" } } end },
+	{ "an ability computing something undeclared", "the game declares no such compute",
+		function(g) g.card_defs.c_flee.abilities = { { key = "a", compute = { "spare" },
+			action = { "stat_gain:hp:1" } } } end },
+	{ "computes listed out of order", "list 'base' first",
+		function(g)
+			g.compute_list = { "base", "spare" }
+			g.compute_defs = { base = { key = "base", from = "hp" },
+				spare = { key = "spare", from = "base - 1" } }
+			g.card_defs.c_flee.abilities = { { key = "a", compute = { "spare", "base" },
+				action = { "stat_gain:hp:1" } } }
+		end },
+	-- The amount slot used to read a bare word as zero, so a misspelling was a
+	-- line that ran and did nothing.
+	{ "a misspelled amount", "takes an amount, and 'lots' is not one",
+		function(g) g.card_defs.c_flee.on_play = { "stat_gain:hp:lots" } end },
+	{ "a misspelled factor in a product", "multiplies by 'lots', which is not an amount",
+		function(g) g.card_defs.c_flee.on_play = { "stat_gain:hp:2:x:lots" } end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)

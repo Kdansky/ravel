@@ -313,6 +313,10 @@ end
 M.saved_slot = nil
 
 function M.total(subject, ctx)
+	-- A compute the ability bound before it ran. Checked first because it is a
+	-- name and not a measurement: nothing about the board answers it.
+	local bound = ctx and ctx.let and ctx.let[subject]
+	if bound then return bound end
 	local p = M.parse_subject(subject)
 	if not p then return 0 end
 
@@ -371,6 +375,83 @@ function M.total(subject, ctx)
 	-- pool as absent and so fails every comparison.
 	if p.fn == "min" then return least or 0 end
 	return sum
+end
+
+-- A `computes` entry's `from`: "<term>", or "<term> <op> <term>" with one of
+-- + - *, spaces required around the operator. A term is a number or a subject.
+--
+-- **One operator, and no parentheses**, which is the same cap a condition keeps
+-- for the same reason: with one there is no precedence to remember, and with two
+-- there is a rule a reader has to be taught and cannot check. n-ary addition
+-- already has a spelling — successive stat_gain lines onto one stat — so what is
+-- missing here is subtraction into a value slot, and that is exactly one
+-- operator.
+--
+-- Pure grammar, so it splits without a game loaded and the validator reads one
+-- at authoring time.
+local ARITH = {
+	["+"] = function(a, b) return a + b end,
+	["-"] = function(a, b) return a - b end,
+	["*"] = function(a, b) return a * b end,
+}
+
+local split = {}
+
+function M.parse_value(s)
+	if type(s) ~= "string" or s:match("^%s*$") then return nil, "a compute needs a \"from\"" end
+	local hit = split[s]
+	if hit == nil then
+		local l, op, r = s:match("^%s*(.-)%s+([%+%-%*])%s+(.-)%s*$")
+		if not l then
+			hit = { left = s:match("^%s*(.-)%s*$") }
+		elseif r:find("[%+%-%*]%s") or r:match("^%s*$") then
+			hit = { err = "one operator per compute — say the rest in a second one" }
+		else
+			hit = { left = l, op = op, right = r }
+		end
+		if not hit.err then
+			for _, side in ipairs({ hit.left, hit.right }) do
+				if tonumber(side) == nil and not M.parse_subject(side) then
+					hit = { err = "'" .. side .. "' is not a number and not something the engine can measure" }
+					break
+				end
+			end
+		end
+		split[s] = hit
+	end
+	if hit.err then return nil, hit.err end
+	return hit
+end
+
+local function measure_term(s, ctx)
+	return tonumber(s) or M.total(s, ctx)
+end
+
+function M.value(s, ctx)
+	local v = M.parse_value(s)
+	if not v then return 0 end
+	local n = measure_term(v.left, ctx)
+	if v.op then n = ARITH[v.op](n, measure_term(v.right, ctx)) end
+	return n
+end
+
+-- Work the named computes out and hand back a ctx carrying them. Evaluated in
+-- the order the ability lists them, each seeing the ones before it — which is
+-- what makes "the line above ran first" the whole of the dependency rule, with
+-- no graph to walk and no cycle to find.
+--
+-- The original ctx is never written to: an ability's bindings are its own, and
+-- one that runs inside another's action list must not inherit or overwrite them.
+function M.bind(names, ctx)
+	if type(names) ~= "table" or #names == 0 then return ctx end
+	local out = { let = {} }
+	for k, v in pairs(ctx or {}) do out[k] = v end
+	for k, v in pairs((ctx or {}).let or {}) do out.let[k] = v end
+	for _, name in ipairs(names) do
+		local def = declaration.G.compute_defs[name]
+		if def then out.let[name] = M.value(def.from, out) end
+	end
+	return out
 end
 
 -- A condition written as one string: "<subject> <op> <number-or-subject>".
@@ -467,6 +548,7 @@ end
 -- comparison exactly as a stat nobody carries does.
 local function measure(o, ctx)
 	if o.n then return o.n end
+	if ctx and ctx.let and ctx.let[o.src] then return ctx.let[o.src] end
 	local p = o.subject
 	local pooled = p.fn == nil or p.fn == "min"
 	if pooled and #M.bearers(p, ctx) == 0 then return nil end

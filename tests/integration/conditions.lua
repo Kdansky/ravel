@@ -281,4 +281,53 @@ function M.test_conditions_the_smallest_of_nothing_is_absent(check)
 	end)
 end
 
+-- A compute's `from`: the same subject grammar, one operator, and no
+-- parentheses. Pure — a string in, a split out — so it is checked without a
+-- game loaded, exactly as parse_condition is.
+function M.test_conditions_a_compute_splits_on_one_operator(check)
+	local v = predicate.parse_value("0 - health@across")
+	check("a two-term expression splits into both sides and the operator",
+		v ~= nil and v.left == "0" and v.op == "-" and v.right == "health@across")
+
+	local one = predicate.parse_value("sum:power@self")
+	check("and a single term is a left with no operator",
+		one ~= nil and one.left == "sum:power@self" and one.op == nil)
+
+	check("all three operators are known",
+		predicate.parse_value("a + b").op == "+"
+		and predicate.parse_value("a - b").op == "-"
+		and predicate.parse_value("a * b").op == "*")
+
+	-- No parentheses means no precedence to remember, which is only true while
+	-- there is one operator to apply it to.
+	local _, err = predicate.parse_value("hp - 1 - 1")
+	check("two operators are refused, and say what to do instead",
+		err ~= nil and err:find("one operator per compute", 1, true) ~= nil, tostring(err))
+
+	local _, err2 = predicate.parse_value("hp - ")
+	check("and so is an operator with nothing after it", err2 ~= nil, tostring(err2))
+
+	-- A hyphen inside a name is not an operator: the spaces are what say so,
+	-- which is the same discipline a condition keeps.
+	check("spaces are what make an operator one",
+		predicate.parse_value("hp@each.enemy.creature").op == nil)
+end
+
+-- Bindings are read before a bare subject is judged absent, which is what lets
+-- a compute stand as an operand at all: nothing carries it, so the absent rule
+-- would otherwise fail every comparison against it.
+function M.test_conditions_a_bound_compute_answers_a_comparison(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local ctx = { let = { spare = 4 } }
+		check("a bound name measures its number", predicate.holds("spare >= 4", ctx))
+		check("and compares both ways", predicate.holds("spare < 5", ctx)
+			and predicate.holds("spare == 4", ctx))
+		check("unbound, the same string fails rather than reading as zero",
+			predicate.holds("spare == 0", {}) == false)
+		check("a stat that really is absent still fails every comparison",
+			predicate.holds("nosuchstat == 0", ctx) == false)
+	end)
+end
+
 return M

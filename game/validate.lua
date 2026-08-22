@@ -130,6 +130,7 @@ local CARD_FIELDS = {
 	-- cards that stand for them in a chooser.
 	menu_for = true,
 }
+local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
 	action = true }
 local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
@@ -258,6 +259,7 @@ M.FIELDS = {
 	assets        = ASSET_FIELDS,
 	patterns      = PATTERN_FIELDS,
 	computed_tags = COMPUTED_FIELDS,
+	computes      = COMPUTE_FIELDS,
 	styles        = STYLE_FIELDS,
 	end_conditions = END_FIELDS,
 	target        = TARGET_FIELDS,
@@ -557,7 +559,10 @@ function M.check(G)
 	-- the validator calls clean cannot be one the runtime silently drops — and
 	-- what it hands back names the two operands, which are ordinary subjects and
 	-- are checked as such.
-	local function condition_ok(where, s)
+	-- `bound` names the computes an ability worked out before its condition was
+	-- asked. They are not stats and nothing carries them, so they are legitimate
+	-- operands exactly there and nowhere else.
+	local function condition_ok(where, s, bound)
 		local c, err = predicate.parse_condition(s)
 		if not c then
 			warn('%s: "%s" — %s', where, tostring(s), err)
@@ -574,7 +579,7 @@ function M.check(G)
 			warn("%s: 'sacrifice:' belongs in cost or activate_cost, not here", where)
 			return
 		end
-		subject_ok(where, c.left.src or c.left.n)
+		if not (bound and bound[c.left.src]) then subject_ok(where, c.left.src or c.left.n) end
 		if c.right.subject then subject_ok(where, c.right.src) end
 	end
 
@@ -582,7 +587,7 @@ function M.check(G)
 	-- keyed by its own subject, which could not hold one subject twice — so a
 	-- range had nowhere to live — and which spelled the comparison in a nested
 	-- object. Both are gone; this is what says so to a file that still has one.
-	local function check_conditions(where, list)
+	local function check_conditions(where, list, bound)
 		if list == nil then return end
 		if type(list) ~= "table" then
 			warn('%s: should be a list of conditions like ["gold >= 3"]', where)
@@ -594,7 +599,7 @@ function M.check(G)
 			return
 		end
 		for i, entry in ipairs(list) do
-			condition_ok(where .. "[" .. i .. "]", entry)
+			condition_ok(where .. "[" .. i .. "]", entry, bound)
 		end
 	end
 
@@ -693,6 +698,15 @@ function M.check(G)
 	-- op's declared shape (actions.spec), so the validator can't drift from
 	-- the handlers.
 	local known_ops = actions.ops()
+	-- What may stand in a value slot. The measuring words take a subject in the
+	-- slot after them and are checked there, so here they only have to be let
+	-- through.
+	local AMOUNT_FNS = { count = true, card = true, sum = true, max = true, min = true }
+
+	local function amount_ok(a)
+		return tonumber(a) ~= nil or AMOUNT_FNS[a] or (G.compute_defs or {})[a] ~= nil
+	end
+
 	-- Every word an ability is keyed to, gathered once: a step is answered by
 	-- whatever wears it, so there is no one place to look it up.
 	local keys_memo
@@ -762,6 +776,15 @@ function M.check(G)
 			elseif t == "card" and not G.card_defs[a] then
 				warn("%s: '%s' names the card '%s', but no template has that key%s",
 					where, op, a, suggest(a, G.card_defs))
+			elseif t == "n" then
+				-- A value slot: a number, a measuring fn over a subject, or a
+				-- compute the ability bound. Anything else used to read as 0 and
+				-- say nothing, so a misspelled amount was a silent no-op.
+				if not amount_ok(a) then
+					warn("%s: '%s' takes an amount, and '%s' is not one — write a number, a measure "
+						.. '("count:farm", "sum:power@self"), or a compute this ability names%s',
+						where, op, tostring(a), suggest(a, G.compute_defs or {}))
+				end
 			elseif t == "stat" then
 				-- An action's stat argument is a full subject: it may carry a
 				-- scope, and a scoped one may read a stat only cards have.
@@ -811,6 +834,12 @@ function M.check(G)
 			end
 		end
 		for j, w in ipairs(p) do
+			-- The second and later factors of a product sit in no declared slot,
+			-- so they are checked where they are recognisable: after an "x".
+			if w == "x" and p[j + 1] and not amount_ok(p[j + 1]) then
+				warn("%s: '%s' multiplies by '%s', which is not an amount%s",
+					where, op, tostring(p[j + 1]), suggest(p[j + 1], G.compute_defs or {}))
+			end
 			if (w == "sum" or w == "max" or w == "min") and p[j + 1] then
 				subject_ok(where .. ": " .. tostring(op), p[j + 1])
 			end
@@ -938,6 +967,35 @@ function M.check(G)
 		check_cost(where .. " cost", ab.cost, "activate")
 		check_list(where .. " action", ab.action)
 		check_phases(where, ab.phases)
+		local bound = {}
+		if ab.compute ~= nil then
+			if type(ab.compute) ~= "table" or (next(ab.compute) ~= nil and #ab.compute == 0) then
+				warn('%s compute: should be a list of compute keys, like ["overkill"]', where)
+			else
+				local seen = {}
+				for _, name in ipairs(ab.compute) do
+					local def = G.compute_defs[name]
+					if not def then
+						warn("%s: computes '%s', but the game declares no such compute%s",
+							where, tostring(name), suggest(name, G.compute_defs))
+					else
+						-- Each compute sees the ones before it, so a list out of
+						-- order reads a number that has not been worked out yet
+						-- — which is zero, silently.
+						local v = predicate.parse_value(def.from)
+						for _, side in ipairs({ v and v.left, v and v.right }) do
+							if G.compute_defs[side] and not seen[side] then
+								warn("%s: computes '%s', which is made of '%s' — list '%s' first",
+									where, name, side, side)
+							end
+						end
+						seen[name] = true
+						bound[name] = true
+					end
+				end
+			end
+		end
+		check_conditions(where .. " when", ab.when, bound)
 		check_target(where, "target", ab.target)
 		check_moves(where, ab.moves)
 		if ab.moves and not ab.action then
@@ -1234,6 +1292,39 @@ function M.check(G)
 			if def.stat and not card_stats[def.stat] then
 				warn("%s: reads the card stat '%s', but no card carries it%s",
 					where, tostring(def.stat), suggest(def.stat, card_stats))
+			end
+		end
+	end
+
+	-- A number worked out where it is used. Declared like a stat and checked
+	-- like one, except that what it is made of is an expression rather than a
+	-- floor and a ceiling.
+	for _, key in ipairs(G.compute_list) do
+		local def   = G.compute_defs[key]
+		local where = "compute '" .. tostring(key) .. "'"
+		check_fields(where, def, COMPUTE_FIELDS)
+		-- A name that is also a stat is two answers to one word: the amount slot
+		-- reads the binding and every condition reads the stat, and which one a
+		-- line means would depend on where it was written.
+		if G.stat_defs[key] then
+			warn("%s: a stat already has that key — one name, one number", where)
+		end
+		if def.from == nil then
+			warn('%s: needs a "from" saying what it is made of, like "0 - health@across"', where)
+		else
+			local v, err = predicate.parse_value(def.from)
+			if not v then
+				warn("%s: %s", where, err)
+			else
+				-- A side naming another compute is legal and checked at the use
+				-- site instead: whether it is *already worked out* depends on the
+				-- order the ability lists them in, which a declaration cannot see.
+				for _, side in ipairs({ v.left, v.right }) do
+					if tonumber(side) == nil and not G.compute_defs[side] then subject_ok(where, side) end
+				end
+				if G.compute_defs[key] and (v.left == key or v.right == key) then
+					warn("%s: is made of itself", where)
+				end
 			end
 		end
 	end

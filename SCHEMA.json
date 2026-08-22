@@ -39,6 +39,13 @@
       "equals": "number: the tag holds while the stat is exactly it"
     }
   },
+  "computes": [
+    {
+      "key": "unique name, which may never be a stat key: the amount slot reads a compute and every condition reads a stat, and one word cannot be both",
+      "from": "what the number is made of: \"<term>\", or \"<term> <op> <term>\" with one of + - * and spaces around it. A term is a number or a subject (\"0 - health@across\", \"cost_white@self - b_white@mine.player\"). One operator and no parentheses, so there is no precedence to remember — n-ary addition is already successive stat_gain lines onto one stat. A term may name another compute, which the ability using it must list first.",
+      "tooltip": "prose saying what the number means. A compute is where a rule's arithmetic is written down once and given a name, so this is the sentence that would otherwise be a comment nobody can write in JSON."
+    }
+  ],
   "styles": {
     "<your style name>": {
       "color": "cards: [r, g, b] each 0 to 1 for the plate behind the art, or false for no plate at all — so a transparent PNG shows the board through it",
@@ -126,6 +133,8 @@
           },
           "target": "the same shape as play.target, for this ability alone",
           "phases": ["phase key or list: this ability works only in those"],
+          "compute": ["compute keys, worked out in this order before the ability is judged and again before it runs. Each sees the ones before it, which is the whole of the dependency rule. Their names then stand as amounts in the actions below and as operands in the when above."],
+          "when": ["conditions deciding whether this ability happens at all. Unlike phases and cost — which say whether a *player* may use it — this is part of the rule: \"damage past the blocker\" is a sentence with an if in it, and a phase running the zone honours it too. Without it the only way to write the if is multiplying by a stat that is 0 or 1."],
           "action": [
             "what this ability does. @self is the card carrying it, even when a chooser was shown in between."
           ],

@@ -742,8 +742,10 @@ function M.usable_abilities(card_id)
 		local reaches = lo == 0
 			or (a.target.moves and #targeting.moves_by(card_id, a.target.moves) > 0)
 			or (a.target.moves == nil and #targeting.candidates(card_id, a.target) >= lo)
+		local ctx = predicate.bind(a.compute, { card_id = card_id })
 		if has_ability(a.action) and phase_ok(a.phases)
-			and M.can_afford(a.cost, { card_id = card_id })
+			and predicate.meets_all(a.when, ctx)
+			and M.can_afford(a.cost, ctx)
 			and reaches then
 			out[#out + 1] = { index = i, ability = a }
 		end
@@ -869,7 +871,7 @@ function M.activate(card_id, targets, index)
 	local lo, hi = targeting.bounds(a.target)
 	if #(targets or {}) < lo or #(targets or {}) > hi then return false end
 	if not targets_legal(card_id, a.target, targets) then return false end
-	local ctx = { card_id = card_id, targets = targets or {} }
+	local ctx = predicate.bind(a.compute, { card_id = card_id, targets = targets or {} })
 	if not M.can_afford(a.cost, ctx) then return false end
 	checkpoint()
 	mark_acted(card_id)

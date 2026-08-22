@@ -584,3 +584,31 @@ True and measurable: `bench` and `battle` both start at `x = 0.16`, `hand` at
 from `0.00` to `0.16` between the two hands is empty in every frame of every
 game. It is exactly where the two nexus cards go, which is why these two notes
 are one edit and not two.
+
+## Overwhelm stopped being arithmetic (2026-08-23)
+
+The line this file shipped Overwhelm as —
+
+```
+stat_damage:spill@self:sum:health@across:x:count:overkilled@across:x:sum:attacking@self
+```
+
+— is gone, and the diagnosis was not "the arithmetic grammar is too weak". Two
+of its three terms were 0/1 stats multiplied in to fake an `if`, because an
+ability had nowhere to put a condition. [26](26-an-if-and-a-name.md) gave it
+one, plus a name for the value:
+
+```json
+{ "key": "spill", "text": "Overwhelm", "phases": ["strike"],
+  "compute": ["overkill"],
+  "when": ["attacking@self >= 1", "overkill >= 1"],
+  "action": ["stat_gain:spill@self:overkill"] }
+```
+
+Three things went with it. The `in_combat` spill step lost an action — "if
+blocked, zero it again" was a second line undoing the first, and a `when` says it
+once before either runs. The `overkilled` computed tag is deleted: it existed
+only to be that gate, and `overkill >= 1` says the thing directly. And the wart
+this file left standing — that the excess is read as a *negative* health and so
+had to be subtracted — is now named rather than clever: `overkill` is
+`0 - health@across`, declared once with a sentence saying why.

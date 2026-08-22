@@ -1470,6 +1470,71 @@ ability has not changed their mind about the card.
 grants an ability used to hide whatever the card could already do; now a card
 that can move and is handed "take me" can do both, and is asked which.
 
+### `when` — an ability with an if in it
+
+`phases` and `cost` say whether a **player** may use an ability. `when` says
+whether the ability **happens at all**, and it is a list of ordinary conditions:
+
+```json
+{ "key": "spill", "text": "Overwhelm",
+  "when": ["attacking@self >= 1", "count:unit@across == 0"],
+  "action": ["stat_set:spill@self:sum:power@self"] }
+```
+
+The difference matters because a phase walking a zone (`activate_zone`) is
+*ungated* — it has already decided it is time — but it still honours `when`.
+Permission is about the player; a `when` is part of the rule. "Damage past the
+blocker hits the Nexus" is a sentence with an *if* in it, and without somewhere
+to write that if, the only spelling left is multiplying by a stat that is 0 or 1:
+
+```
+before  stat_damage:spill@self:sum:health@across:x:count:overkilled@across:x:sum:attacking@self
+after   when   ["attacking@self >= 1", "overkill >= 1"]
+        action ["stat_gain:spill@self:overkill"]
+```
+
+Every rule about conditions holds here — a list means *and*, one comparison per
+string, and an absent stat fails every comparison.
+
+### `computes` — a number with a name
+
+A value worked out where it is used, rather than stored on anything. Declared at
+the top level, like a stat, because that is what it is minus the storing:
+
+```json
+"computes": [
+  { "key": "overkill", "from": "0 - health@across",
+    "tooltip": "How far past death the unit across this one was struck." }
+]
+```
+
+An ability names the ones it wants, and they are worked out just before it is
+judged and again before it runs:
+
+```json
+{ "key": "spill", "compute": ["overkill"],
+  "when": ["overkill >= 1"], "action": ["stat_gain:spill@self:overkill"] }
+```
+
+The name then stands **as an amount** in that ability's actions and **as an
+operand** in its `when`. Nowhere else: it is not a stat, nothing carries it, and
+a compute sharing a stat's key is refused — one word cannot be two numbers.
+
+`from` is `"<term>"`, or `"<term> <op> <term>"` with one of `+ - *` and spaces
+around it. A term is a number or a subject. **One operator and no parentheses**,
+so there is no precedence to remember. n-ary addition already has a spelling —
+successive `stat_gain` lines onto one stat — so what was missing was subtraction
+into a value slot, and that is exactly one operator.
+
+A term may name another compute, and then the ability using it must list that
+one **first**: they are worked out in the order the ability gives, each seeing
+the ones before it. That is the whole of the dependency rule — there is no graph
+to walk, and the validator says which line to move.
+
+**What a compute is for is the name.** `sum:health@across` does not say why it
+is being read; `overkill` does. Use one wherever an action list is passing a
+number through a hidden stat that nothing else reads.
+
 ### Asking a question
 
 Some moves end in a choice: a pawn reaching the far rank, a builder picking what
@@ -1933,7 +1998,7 @@ what a player reads.
 | `move:<scope>:<zone>` | Move every card the scope names into that zone. The scope-first sibling of the two above, for a set nobody picked: written twice with opposite owner words (`move:mine.battle:mine.bench`, then `enemy`) it covers both seats whoever is up |
 | `set_active_seat:<scope>` | Whoever the scope names becomes the seat whose turn it is — the trick winner leading, the attack token holder acting first. Every other way of naming a seat is settled before the game starts, so this is the only one that reads off what just happened. Two seats is refused, none does nothing, and the handover ends the undo history |
 | `set_owner:<scope>:<who>` | Hand those cards to a seat, to the one that is up (`mine`), or to nobody (`none`). Whose a card is is settled when it is dealt and stays settled, so this is the only thing that changes it: mind control, and a pile that disowns whatever lands in it |
-| `activate_zone:<zone>[:<order>[:<step>]]` | Every card lying there does what it does — how a *phase* makes cards act instead of waiting for a click. Put the rule on a card, the card in a hidden zone, and have the phase say so. **Ungated**: the phase has already decided it is time. The order is the game's to state — naming none acts in the order the cards are in, `by_column` reads a board left to right; any other word is refused. A **step** names abilities: give one and only the abilities keyed to that word run, so a phase can walk the same zone several times and order things *between* cards — every unit works out what it is dealt, then every keyword that reduces a number reduces it, then every unit takes it. Naming none runs every ability |
+| `activate_zone:<zone>[:<order>[:<step>]]` | Every card lying there does what it does — how a *phase* makes cards act instead of waiting for a click. Put the rule on a card, the card in a hidden zone, and have the phase say so. **Ungated** for permission — the phase has already decided it is time — but an ability's own `when` is honoured, because that is the rule and not the permission. The order is the game's to state — naming none acts in the order the cards are in, `by_column` reads a board left to right; any other word is refused. A **step** names abilities: give one and only the abilities keyed to that word run, so a phase can walk the same zone several times and order things *between* cards — every unit works out what it is dealt, then every keyword that reduces a number reduces it, then every unit takes it. Naming none runs every ability |
 | `ready:<scope>` | Un-spend those cards, the counterpart to the `exhaust` cost. A phase's own actions run when it begins, so this is how a game says *when* being spent wears off rather than taking the engine's round boundary for it |
 | `attach_to_target` | Attach the acting card under the first target |
 | `options:<source>` | Offer a choice and open it. `<source>` is a zone, whose cards name the choices, or a comma-separated list of card keys. The chosen card is played with **the asking card as its target** |

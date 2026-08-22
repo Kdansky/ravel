@@ -83,6 +83,11 @@ local function term(p, i, default, ctx)
 	if FN_TERMS[p[i] or ""] then
 		return predicate.total(p[i] .. ":" .. tostring(p[i + 1]), ctx), i + 2
 	end
+	-- A compute the ability bound before it ran, named here as the amount. This
+	-- is the only place a bare word in a value slot means anything: everywhere
+	-- else it is a typo, and the validator says so rather than reading it as 0.
+	local bound = ctx and ctx.let and ctx.let[p[i] or ""]
+	if bound then return bound, i + 1 end
 	return tonumber(p[i]) or default or 0, i + 1
 end
 
@@ -388,6 +393,12 @@ end
 -- has already decided it is time; a rules card that refused itself here would be
 -- a rule that silently did not happen.
 --
+-- An ability's own `when` is not that gate and is honoured here. Permission is
+-- about the player — may you, now, at this price — and a phase has already
+-- answered it. A `when` is part of the rule: *damage past the blocker* is a
+-- sentence with an "if" in it, and the alternative is multiplying by a 0/1 stat
+-- to fake one, which is how a line ends up with three @ in it.
+--
 -- **A step is one part of a resolution, and the phase runs the parts in order.**
 -- Name one and only the abilities keyed to that word run, so a phase can walk
 -- the same zone several times: every unit works out what it is dealt, *then*
@@ -437,7 +448,8 @@ HANDLERS["activate_zone"] = function(p, ctx)
 			if M.on_act then M.on_act(id, i, step) end
 			for _, a in ipairs(cards.abilities(e)) do
 				if type(a.action) == "table" and (step == nil or a.key == step) then
-					M.run(a.action, { card_id = id, targets = {} })
+					local c = predicate.bind(a.compute, { card_id = id, targets = {} })
+					if predicate.meets_all(a.when, c) then M.run(a.action, c) end
 				end
 			end
 		end

@@ -10,9 +10,12 @@
   ],
   "computed_tags": {
     "dead": { "stat": "health", "less_than": 1 },
-    "overkilled": { "stat": "health", "less_than": 0 },
     "passed": { "stat": "passed", "at_least": 1 }
   },
+  "computes": [
+    { "key": "overkill", "from": "0 - health@across",
+      "tooltip": "How far past death the unit across this one was struck. Health has no floor, so a blocker carries its own overkill as a negative number." }
+  ],
   "styles": {
     "unit": { "fit": "card", "badges": ["power", "health"] },
     "nexus_plate": { "fit": "card", "badges": ["nexus", "mana"], "cell_outline": false },
@@ -39,7 +42,9 @@
           "key": "spill",
           "text": "Overwhelm",
           "phases": ["strike"],
-          "action": ["stat_damage:spill@self:sum:health@across:x:count:overkilled@across:x:sum:attacking@self"]
+          "compute": ["overkill"],
+          "when": ["attacking@self >= 1", "overkill >= 1"],
+          "action": ["stat_gain:spill@self:overkill"]
         }
       ]
     },
@@ -85,10 +90,8 @@
         },
         {
           "key": "spill",
-          "action": [
-            "stat_set:spill@self:sum:power@self:x:sum:attacking@self",
-            "stat_damage:spill@self:sum:spill@self:x:count:unit@across"
-          ]
+          "when": ["attacking@self >= 1", "count:unit@across == 0"],
+          "action": ["stat_set:spill@self:sum:power@self"]
         }
       ]
     }

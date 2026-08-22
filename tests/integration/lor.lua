@@ -336,6 +336,55 @@ end
 
 -- The last thing milestone one owes: somebody wins, and the same state reads as
 -- a victory on one machine and a defeat on the other.
+-- The two fields that replaced the arithmetic. Overwhelm used to multiply by
+-- two stats that are 0 or 1 to say "only an attacker, and only past a corpse";
+-- it now says both out loud, and the value it deals has a name.
+function M.test_lor_a_when_is_the_rule_and_not_a_permission(check)
+	local G = declaration.G
+	flow.init("lor.json", 5)
+	local ab
+	for _, a in ipairs(G.tag_defs.overwhelm.abilities) do
+		if a.key == "spill" then ab = a end
+	end
+	check("overwhelm's spill carries a when and a compute",
+		ab ~= nil and type(ab.when) == "table" and #ab.when == 2
+		and type(ab.compute) == "table" and ab.compute[1] == "overkill")
+	check("and no colon-x arithmetic is left in the file",
+		#ab.action == 1 and ab.action[1]:find("x", 1, true) == nil, ab.action[1])
+
+	-- The gate is asked of each card as the zone is walked, so a unit that is
+	-- not attacking is skipped while its neighbour in the same pass is not.
+	local a, b = fight("mighty_poro", "plucky_poro")
+	check("the attacker spilled", (a and entity.get(a) or {}).stats == nil
+		or entity.get(a).stats.spill ~= nil)
+	check("and the blocker never did", b == nil or entity.get(b) == nil
+		or (entity.get(b).stats.spill or 0) == 0,
+		b and entity.get(b) and tostring(entity.get(b).stats.spill) or "gone")
+end
+
+-- A compute is a name for a number and nothing else knows it: it is bound where
+-- the ability runs, and a stat of the same name would be two answers to one
+-- word — which the validator refuses.
+function M.test_lor_a_compute_is_bound_only_where_it_is_named(check)
+	flow.init("lor.json", 5)
+	local def = declaration.G.compute_defs.overkill
+	check("overkill is declared once, with prose", def ~= nil and def.from == "0 - health@across"
+		and type(def.tooltip) == "string")
+	check("and it is nobody's stat", declaration.G.stat_defs.overkill == nil)
+
+	-- Unbound, the name measures nothing rather than something wrong.
+	check("outside an ability that names it, it is not a number anything answers",
+		predicate.total("overkill", { card_id = nil }) == 0)
+
+	local outer = { card_id = 1 }
+	local ctx = predicate.bind({ "overkill" }, outer)
+	check("bound, it is a number", type(ctx.let.overkill) == "number")
+	-- An ability's bindings are its own. One that ran inside another's action
+	-- list would otherwise leak a name back out of it.
+	check("and binding never writes the ctx it was handed", outer.let == nil)
+	check("while the card it was asked about comes along", ctx.card_id == 1)
+end
+
 function M.test_lor_a_nexus_at_zero_ends_it(check)
 	flow.init("lor.json", 5)
 	for e in entity.each("card") do

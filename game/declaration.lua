@@ -9,6 +9,7 @@ M.filename = nil  -- source file of the current game, for template reloads
 M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list",
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
+	"compute_defs", "compute_list",
 	"style_defs", "dynamic_styles", "seat_index",
 }
 
@@ -61,7 +62,8 @@ local function normalise_moves(moves)
 end
 
 local ABILITY_FIELDS = { key = true, text = true, tooltip = true, asset = true,
-	cost = true, target = true, phases = true, action = true, moves = true }
+	cost = true, target = true, phases = true, action = true, moves = true,
+	when = true, compute = true }
 
 -- Every activated ability a card has, as one list, whether it wrote one
 -- (`activate`) or several (`abilities`). Downstream never asks which form was
@@ -103,7 +105,8 @@ local function abilities_of(def, pp, where)
 				out[#out + 1] = { key = a.key or ("ability_" .. i), text = a.text,
 					tooltip = a.tooltip, asset = a.asset,
 					cost = a.cost, target = target, phases = a.phases,
-					action = a.action, moves = rules }
+					action = a.action, moves = rules,
+					when = a.when, compute = a.compute }
 			end
 		end
 	elseif def.on_activate then
@@ -169,7 +172,7 @@ end
 -- Exported as M.KNOWN_SECTIONS: SCHEMA.json describes the same list in prose,
 -- and a test compares them so a new section cannot arrive undocumented.
 local KNOWN_SECTIONS = {
-	title = true, seed = true, stats = true, computed_tags = true,
+	title = true, seed = true, stats = true, computed_tags = true, computes = true,
 	cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true, players = true,
 	patterns = true, assets = true, styles = true,
@@ -300,6 +303,11 @@ function M.parse(filename)
 		pattern_defs   = {},       -- named direction sets, for movement and neighbourhood
 		asset_defs     = {},       -- named pictures: name -> { src, max }
 		effect_defs    = parsed.effects or {},  -- named effects on the fx base vocabulary
+		-- A number worked out where it is used rather than stored on anything.
+		-- Declared like a stat because that is what it is, minus the storing: a
+		-- key, what it is made of, and prose saying what it means.
+		compute_defs   = {},
+		compute_list   = {},       -- ordered array of compute keys, for the validator
 		parse_problems = {},
 	}
 	local pp = G.parse_problems
@@ -486,6 +494,20 @@ function M.parse(filename)
 			sd.tags_set = tag_set(sd.tags)
 			if type(sd.on) == "string" then sd.on = { sd.on } end
 			G.stat_defs[sd.key] = sd
+		end
+	end
+
+	for _, cd in ipairs(entries(parsed.computes, "computes")) do
+		if type(cd) ~= "table" or not cd.key then
+			pp[#pp + 1] = "a compute has no \"key\" — every compute needs a unique one"
+		else
+			if G.compute_defs[cd.key] then
+				pp[#pp + 1] = "two computes share the key '" .. cd.key
+					.. "' — the second silently replaces the first"
+			else
+				G.compute_list[#G.compute_list + 1] = cd.key
+			end
+			G.compute_defs[cd.key] = cd
 		end
 	end
 
