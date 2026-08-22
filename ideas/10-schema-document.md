@@ -167,21 +167,6 @@ it, instead of into a comment where it cannot.
   game*; this file says *what may appear where*. The moment it grows worked
   examples they will disagree with the ones next door.
 
-## Build order — done
-
-1. ~~Export `validate.lua`'s field tables~~ — `M.FIELDS`, keyed by the JSON
-   section each belongs to, plus `M.DERIVED` for the four fields
-   `declaration.parse` adds that no author writes. `declaration.KNOWN_SECTIONS`
-   and `actions.ops()` are the other two sources of truth the test reads.
-2. ~~Write `SCHEMA.json`~~ — in `KNOWN_SECTIONS` order, one exemplar entry per
-   section. Three blocks are not mirrors and are prefixed with `_`:
-   `_conditions`, `_actions` (all 29 verbs) and `_engine_tags`.
-3. ~~The two-way key test~~ — `tests/integration/schema.lua`. Sections, fields,
-   the two nested shapes (`target`, a routing entry), and every action, each
-   checked in both directions. It also asserts no leaf is a real value: a number
-   or a boolean means somebody filled in an example instead of a description.
-4. ~~Write up what it found~~ — below.
-
 ## What it found
 
 Ten passes over the format, one sentence per field. The rule was that a

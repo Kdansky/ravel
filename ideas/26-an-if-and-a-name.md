@@ -156,6 +156,15 @@ slot, and that is exactly one operator.
   precisely why LoR declares `health` unfloored. What was missing was a *name*,
   and that is what a compute is.
 
+## What the games did with it
+
+A pass over all thirteen files afterwards (`bd6d9b9`). The Crew's `weigh` was
+the case this was built for and it collapsed from sixteen actions to three
+abilities of one action each — because what those sixteen lines computed was an
+**or**, and an or is two abilities with a `when`. `live` and `over` are deleted.
+The corpus went 845 action strings to 776, `:x:` 15 to 10, and nothing is left
+with four `@`.
+
 ## What Runeterra looks like now
 
 ```json
@@ -212,5 +221,17 @@ after an `x`, and a compute key is the one bare word that is legitimate there.
   keeps itself is worth anything once a formula can sit at its use site with a
   name on it. Answer it with the Crew's `weigh` migrated, which this pass did not
   do.
-- **The Crew's `weigh` is the next migration** — 16 actions on one ability, run
-  twice per trick, three formulas fighting over `live` / `gap` / `over`.
+- **`compute` and `when` live on an ability, and a card has six moments.**
+  Lost Cities' scoring is in a `play`, so it cannot use either, and its five
+  `(sum - 20) x wagers` pairs are the last real `:x:` in the corpus. The same
+  shape one level up: a tag grants `play` and `activate` and nothing else, which
+  is why kingdom's eleven trials share two blocks through the tag and still each
+  carry their own `turn`. Both are "one question, one spelling" gaps rather than
+  missing capability — the grant loop is written for `MOMENTS.play` specifically,
+  and `flow.run_on_turn` reads `def.on_turn` off the card.
+- **Splendor still cannot use a compute, and the reason is now measured.** Every
+  pair of lines in its pricing is `stat_set` to seed and `stat_damage` to
+  subtract, and the clamp is the point: `stat_set` writes past every bound by
+  design, so `max(0, a - b)` is already one action and a compute cannot make it
+  fewer. A compute is only ever *unclamped arithmetic*, which is why it fits The
+  Crew (where the subtraction cannot go negative) and not Splendor.

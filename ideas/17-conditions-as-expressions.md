@@ -1,9 +1,10 @@
 # 17 — A condition is one string
 
-**Status:** **done** — steps 1–4 are shipped and the struct spellings are gone,
+**Status:** **closed.** Steps 1–4 shipped and the struct spellings are gone,
 which is where findings 4, 5 and 6 are actually fixed rather than papered over.
-Step 5 (one parser for action value slots too) is not started and is ranked on
-its own ·
+**Step 5 — one parser for action value slots too — is closed by
+[26](26-an-if-and-a-name.md) rather than built**, and the reason is at *The
+arithmetic question* below ·
 **Size:** large — the engine change is small, the migration is every game file,
 and the design question is the format's biggest open one.
 
@@ -22,21 +23,14 @@ the same table) both dissolve into it.
 
 ---
 
-## What already exists, and it is most of it
+## What already existed, and it was most of it
 
-**The operands are built.** `predicate.parse_subject` (`predicate.lua:61`) reads
-`[<fn>:]<arg>[@<quant>.<owner>.<scope>]`, which is the whole of the left-hand
-side: `sum:value@mine.red`, `count:king@enemy.reach`, `hp@each.follower`,
-`moves_made@w_rook_h_home`. Nothing about that changes.
-
-**The right-hand side is already an operand too.** `bound()`
-(`predicate.lua:310`) takes a number *or* another subject, which is what lets a
-card compare itself to what it is being played onto. The comparison is therefore
-already `subject <op> subject`; it is just spelled as a map.
-
-**So what is actually being proposed is an infix spelling of a thing the engine
-already evaluates**, plus arithmetic, which it does not. Those two halves are
-worth deciding separately — see *The arithmetic question*.
+`predicate.parse_subject` already read `[<fn>:]<arg>[@<quant>.<owner>.<scope>]`,
+and `bound()` already took a number *or* another subject on the right. So the
+comparison was already `subject <op> subject`; it was only spelled as a map.
+**What was proposed was an infix spelling of a thing the engine already
+evaluated**, plus arithmetic, which it did not — and those two halves were worth
+deciding separately. See *The arithmetic question*.
 
 ## One thing the grammar is missing, found by building an ending screen
 
@@ -63,35 +57,18 @@ a patch: `parse_scope` is documented as pure and testable without a game, and
 consulting `seat_set` ends that. Either the grammar gains a game-state
 dependency, or seats keep wearing tags.]
 
-## The three shapes it collapses
+## The three shapes it collapsed
 
-| Shape | Written | Where it is legal today |
-|---|---|---|
-| map | `{ "gold": 3 }` | `needs`, `receive.needs`, `challenge.needs`, costs |
-| comparison | `{ "max:value@mine.red": { "at_most": 6 } }` | the same four |
-| object | `{ "stat": "count:king@taken", "at_least": 1 }` | routing entries, `end_conditions`, computed tags |
+A condition was legal in three spellings and the *site* decided which: a map
+(`{ "gold": 3 }`), a comparison object as a map value
+(`{ "max:value@mine.red": { "at_most": 6 } }`), and a `stat` + comparator struct
+on routing entries and `end_conditions`. Finding 5 of [10](10-schema-document.md)
+— *one condition, three spellings* — is the whole of why this track exists, and
+findings 4 (`stat` is a field name that does not mean a stat) and 6
+(`ROUTE_FIELDS` and `END_FIELDS` are the same table) dissolve into it.
 
-One expression form reads the same in all six places:
-
-```json
-"needs":  { "gold >= 3": true }                          ← the map form's shape fights it
-"needs":  ["gold >= 3", "max:value@mine.red <= 6"]       ← a list of expressions
-"end_conditions": [{ "when": "count:king@taken >= 1", "then": ["load_game:menu.json"] }]
-```
-
-[Assumption: a `needs` becomes a **list of strings** rather than a map with
-`true` values. A map keyed by an expression is the current shape wearing a new
-grammar, and it cannot hold the same subject twice — `gold >= 3` and `gold <= 8`
-is a range, and a range is an ordinary thing to want. A list also matches
-`DESIGN.md`'s allowed form 2, arrays of strings, which no other reading of this
-does.]
-
-That last point is the one to weigh honestly: **form 3 exists precisely because
-comparisons could not be written any other way**, and DESIGN.md records it as a
-deliberate bend with a stated bound. An expression string is a *different* bend
-— arguably a smaller one, since arrays of strings are already the format's
-second allowed form and action strings are already parsed vocabulary — but it is
-a bend, and the document has to be rewritten rather than quietly outgrown.
+All three are gone. `"needs": ["gold >= 3", "max:value@mine.red <= 6"]`, and
+`{ "when": "count:king@taken >= 1", "then": [...] }`.
 
 ## The behaviour that must survive, and it is not syntax
 
@@ -163,10 +140,22 @@ Three positions, and they should be chosen between rather than blurred:
    between a format and a language, and the moment it lands, every rules bug can
    be an arithmetic bug in a string.
 
-[Assumption: 1, then 2, and never 3 without a game that cannot be written
-otherwise — with the test for 2 being that it *replaces* `:x:` rather than
-sitting beside it. Two arithmetic notations is worse than either alone, and this
-repository has just spent a whole pass (the syntax pass) removing synonyms.]
+**Answered: 1 shipped, 2 and 3 refused** (2026-08-23, [26](26-an-if-and-a-name.md)).
+
+Position 2's test was that it must *replace* `:x:` rather than sit beside it, and
+it fails a stronger one. Measured across thirteen games, only 15 action strings
+use `:x:` at all and **five of those are a disguised `if`** — a stat that is 0 or
+1 multiplied in because an ability had nowhere to put a condition. So the pressure
+this position was reading as "the amount grammar is too weak" was mostly a missing
+`when`. Of the ten real ones, all are one Lost Cities formula written five times.
+
+And the notation cannot land without precedence. `sum:value@mine.red - 20 * count:wager`
+read left to right is a rule a reader must be *taught and cannot check*, which is
+exactly the defect the positional `card_stats` array was retired for; with
+parentheses it is position 3, which stays refused. What position 2 actually wanted
+— a formula with a name, somewhere a reader can check it — is a `computes` entry,
+where the expression sits alone on its own line with a sentence saying what it
+means.
 
 **Boolean operators are a separate refusal.** `and` is already what a `needs`
 list means — every entry must hold — and `or` is the thing that turns a
@@ -190,22 +179,6 @@ abilities, which the engine now has (`abilities`, shipped).
   and that word lives inside the subject where it already is. It is the one part
   of the grammar that is not arithmetic-shaped and it must not be lost in the
   translation.
-
-## What it costs
-
-Measured, not guessed: **51 comparison keys** (`equals` / `at_least` /
-`at_most`) and **46 `needs` blocks** across the ten game files, plus every map
-entry that is a bare number. Two of the files are generated
-(`tools/make_lost_cities.py`), so they regenerate. Also `SCHEMA.json`'s
-`_conditions` block and the two-way schema test, `validate.lua`'s
-`ROUTE_FIELDS`/`END_FIELDS`/`COMPUTED_FIELDS` and its comparison checks
-(`validate.lua:520-560`), `AUTHORING.md`'s condition section, and `DESIGN.md`'s
-form 3.
-
-**The golden traces are the proof**, exactly as they were for
-[12](12-card-moments.md): a faithful migration changes no behaviour, so
-`castle.log` and `kingdom.log` must come out byte-identical. That is what makes
-a rewrite of the condition vocabulary safe to do at all.
 
 ## The draft, and the four decisions in it
 
@@ -316,15 +289,12 @@ underneath:
 
 ## Build order
 
-1. ~~**The parser, alone.**~~ **Shipped** (`e2ded7d`). `predicate.parse_condition`,
-   pure and memoised. It came out as a table rather than a tree of closures: one
-   comparison has nothing to nest, so a closure would be a call where a lookup
-   does.
-2. ~~**The object form learns the string**~~ — **shipped** with it.
-3. ~~**`needs` as a list of expressions**~~ — **shipped**, migration included.
-4. ~~**Delete the old shapes**~~ — **shipped**. See below.
-5. **Only then**, position 2 above: one parser for action value slots too, and
-   `:x:` goes. Not started.
+Five steps: the parser alone; the object form learning the string; `needs` as a
+list; deleting the old shapes; and then arithmetic. The first four shipped in
+order (`e2ded7d` and the migration after it). The parser came out as a table
+rather than a tree of closures — one comparison has nothing to nest, so a closure
+would be a call where a lookup does. **Step 5 never happened and should not**; see
+above.
 
 ## What the deletion cost, and the three things it turned up
 

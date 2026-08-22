@@ -73,7 +73,7 @@ if e.stats and e.stats[p.arg] ~= nil then out[#out + 1] = e end
 ```
 
 A stat may only be *changed* on something that already has it, and a square has
-no way to declare a starting one. So `gain_stat:armies@target:5` aimed at a
+no way to declare a starting one. So `stat_gain:armies@target:5` aimed at a
 square silently does nothing.
 
 **The whole feature is therefore: let a grid declare per-square stats.** One

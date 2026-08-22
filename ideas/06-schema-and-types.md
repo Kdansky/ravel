@@ -1,11 +1,15 @@
 # 06 — Saying what things are
 
-**Status:** not started · **Size:** medium, and mostly mechanical once the first
-decision is made.
+**Status:** **all but one gap closed** — 1 surveyed and refused, 2 and 3 folded
+into [17](17-conditions-as-expressions.md), 4 and 5 shipped, 6 dissolved. **What
+is left is one sentence:** `tags.find_targets` searches grid zones only, so
+`count:<tag>` can see neither a market held as a deck nor anything in anybody's
+hand. Two shipped games want it — see gap 5's *second half*.
 
-Four requests that are the same request wearing different clothes: the engine
+Six requests that were the same request wearing different clothes: the engine
 should know the shape of its own data before it runs, instead of asking at every
-use — and should be able to say what it knows.
+use — and should be able to say what it knows. Most of the answer turned out to
+be "it already does, or it is a different question".
 
 ---
 
@@ -94,205 +98,32 @@ matters, so it is not evidence.
 - **`on_turn` on grids only** is undocumented and surprising; either widen it or
   say so in `AUTHORING.md`.
 
-### The original write-up
+## Gaps 2 and 3 — lists everywhere, then fewer type guards — **closed into [17](17-conditions-as-expressions.md)**
 
-*Urgency: medium (half-done already) · Difficulty: medium · Usefulness: high*
+Both were measured on 2026-08-16 and both came out much smaller than written.
 
-`type` is four words — `deck`, `pile`, `hand`, `grid` — and each is a bundle of
-unrelated decisions:
+**Gap 2, "anything tag-shaped is a list":** three fields are left, not six.
+`applies`, `tags`, `zones` and `zone_empty` were already array-only, and
+`patterns` had since been normalised at the door (`declaration.lua:57`) — which
+*is* this gap's proposal, already done once and the model for the rest. What
+remains is `pass_card` (the one with a duplicated coercion, `flow.lua:238` and
+again in `validate.lua:1374`), `phases`, and `at` on a `setup.place`.
 
-| | facing | reach | layout | slots | order |
-|---|---|---|---|---|---|
-| `deck` | backs | top only | one stack | no | fixed |
-| `pile` | faces | top only | one stack | no | fixed |
-| `hand` | faces | all | a row | no | none |
-| `grid` | faces | all | cells | yes | by slot |
+Two entries are decisions rather than tidy-ups and were left alone. A phase's
+`zone` as a list means "the player acts in all of these", which is a *feature* —
+and shipped as one for The Crew's open hand. And `pos` should stay as it is: a
+shared zone writing `[[…]]` to match a per-seat one is worse to read for the
+common case.
 
-`deck` and `pile` differ in **one column**, and it is the one already
-overridable by the `face_up` / `face_down` tags. Meanwhile the qualities that
-actually vary between games have had to be added as tags anyway, because no
-`type` predicted them: `shuffle`, `refill_when_empty`, `no_peek`, `hidden`,
-`page`, and now `activate`.
+**Gap 3, "fewer `type(x)` guards":** the count grew 106 → 184 and *all* of the
+growth is in the two files that must keep them — `declaration` and `validate`,
+which read the document and are the only places malformed input arrives. That is
+this gap's own goal happening by itself, so there is nothing left to do.
 
-**`activate` is the proof.** It shipped as a tag because the question it answers
-— may cards here use their abilities? — cuts straight across `type`: a board and
-a Lost Cities discard both say yes, a hand and an MTG graveyard both say no, and
-neither pair shares a type. Every other column above will eventually do the same.
-
-**Proposal**, matching the four styles already sketched — `stack`, `hand`,
-`tiled`, `free`:
-
-```json
-{ "type": "stack", "tags": ["face_down", "shuffle"] }        the deck
-{ "type": "stack", "tags": ["activate"] }                    a Lost Cities discard
-{ "type": "stack", "tags": [] }                              an MTG graveyard
-{ "type": "tiled", "grid": [5, 5], "tags": ["activate"] }    a board
-{ "type": "free",  "tags": ["activate"] }                    an MTG battlefield
-```
-
-`type` keeps only what genuinely changes the *layout algorithm* — one stack, a
-row, addressed cells, free placement — and every rule becomes a tag.
-
-**What it costs.** Every zone in nine game files, plus the generator, plus
-`zone_type ==` comparisons in `render.lua`, `zones.lua`, `targeting.lua`,
-`tags.lua`, `main.lua` and `flow.lua`. It is wide but shallow, and it is much
-cheaper before more games exist than after.
-
-**What is genuinely new:** `free` does not exist — `grid` is the only positional
-zone and it is slotted. Klondike's offset stack (gap 3 of
-[01](01-boardgames.md)) shipped as neither a fifth layout nor a tag on `stack`,
-but as a style property — see below.
-
-**~~Refuse:~~ letting a tag change the layout algorithm** — *withdrawn, and the
-`fan` property is what withdrew it.* The refusal was right about the danger and
-wrong about the mechanism, and its own stated reason is what expired: "every
-renderer question becomes a **search through a tag set**". Styles removed the
-search. A zone's tags are resolved into one flat `style` map at load
-(`declaration.lua`, `merge_styles`), so `z.style.fan` is a single table lookup —
-exactly what `z.zone_type` costs, and asked in exactly the same place.
-
-What survives is the *distinction*, sharpened by having to state it:
-
-> **`type` says what kind of container a zone is. A style says how it is
-> drawn.** A fan is drawing. The cards are one ordered list in one zone either
-> way — a pile is a pile whether or not you spread it out — and the fan only
-> decides where inside the zone each card sits.
-
-**`fit` was already the precedent** and had been for as long as styles existed:
-`fit: "fill"` versus `fit: "card"` decides where inside a *cell* a card lands.
-The fan says the same thing about a *run* of cards instead of one cell. If
-placing cards were genuinely `type`'s alone, `fit` was the violation and nobody
-noticed, because a flat resolved map is not the thing the refusal was guarding
-against.
-
-**The real line is drawn where the two would contradict each other**, and that
-is enforced rather than trusted: a `grid` wearing a fanning style is a
-validation error. A grid places by slot and a fan by order, both answer *where
-does this card go*, and a renderer taking whichever branch it reached first is
-precisely the unpredictability the refusal was written to prevent. One error
-message keeps the guarantee that the whole refusal was buying.
-
----
-
-## Gap 2 — Anything tag-shaped is a list, always
-
-*Urgency: medium · Difficulty: medium · Usefulness: medium*
-
-> **Measured 2026-08-16, and it is much smaller than what follows.** Three fields
-> are left, not six, and one of them the write-up itself argues against changing.
-> `applies`, `tags`, `zones` and `zone_empty` were already array-only, and
-> **`patterns` has since been normalised at the door** (`declaration.lua:57`) —
-> which is this gap's own proposal, already done once and worth copying.
->
-> | field | read at | note |
-> |---|---|---|
-> | `pass_card` | `flow.lua:238`, and the identical coercion again in `validate.lua:1374` | the only duplicated one |
-> | `phases` | `flow.lua:102-103` | one reader |
-> | `at` (setup.place) | `validate.lua:1471` | string or list, and not in the table below because it did not exist when this was written |
-> | `pos` | `zones.lua:153` and its twin in validate | changing it makes shared zones write `[[…]]`, which the section below already calls the likely mistake |
->
-> So this is an hour, not a track. **It is worth doing as
-> [17](17-conditions-as-expressions.md)'s first step** — that is the only thing
-> that needs the normalising door for its own sake — and not as an item ahead of
-> it.
-
-Several fields accept "a key, or a list of keys", and the engine re-derives
-which it got at every use:
-
-| field | forms today |
-|---|---|
-| `pass_card` | key or array |
-| `phases` | key or array |
-| `applies`, `tags`, `zones`, `zone_empty` | array only |
-| `zone` (phase) | key only |
-| `pos` | one rect, or one rect *per seat* |
-
-The request is to make every one of these an array, so a reader never asks. The
-right place to enforce it is **`declaration.parse`**, not the call sites: coerce
-once at load, and everything downstream indexes a list. That is already where
-`tags_set` is built and where the injected cards are stamped, so it is the
-established home for "normalise the document".
-
-Two carry real consequences and want deciding rather than sweeping:
-
-- **`zone` on a phase.** A list would mean "the player acts in all of these",
-  which the engine wanted three separate times (see `DONE.md` on `clicks`). It
-  is the one entry here that is a feature, not a tidy-up.
-- **`pos`.** A `per_seat` zone takes one rect per seat, a shared zone takes one
-  rect. Always-a-list means shared zones write `[[…]]`, which is worse to read
-  for the common case. This is the entry most likely to be a mistake.
-
-**Refuse, for now, the validation.** The request explicitly defers "which
-combinations are legal". Good — normalise the *shape* first and leave the
-*meaning* alone, because a rule about which tags may coexist is a much larger
-conversation than a rule about brackets.
-
----
-
-## Gap 3 — Fewer `type(x)` guards, because the type is known
-
-*Urgency: low · Difficulty: medium · Usefulness: medium (high for readability)*
-
-> **Measured 2026-08-16: the count has grown from 106 to 184, and that is the
-> gap working rather than rotting.** All of the growth is in the two files this
-> section says must keep every guard — `validate.lua` 52 → 90 and
-> `declaration.lua` 9 → 40 — and declaration growing is the stated goal, *move
-> them to the door*, happening on its own as the format gained fields.
->
-> The "~22 downstream" figure counted every `type(` in seven files, and most of
-> them are not re-asking a known type at all: `predicate` (8) parses subject
-> strings out of peer-suppliable content and says at `predicate.lua:75` why it
-> must, `cards.lua:630` accepts an entity *or* a key on purpose, and the rest are
-> deep copy, reflection and string guards on content. **Six would actually
-> disappear if gap 2 landed** — `flow.lua:102-103`, `flow.lua:238`,
-> `validate.lua:1374`, `zones.lua:153` and its validate twin, `cards.lua:574`.
->
-> There is no cleanup to do here on its own. What survives is the acceptance
-> criterion at the end of this section, which still holds.
->
-> **The shape the surviving guards should take** (from `todo.md`, 2026-08-16):
-> where a branch on `type(x)` has to stay, a module-local table reads better than
-> a chain — `TABLE[type(v)](v, ...)` rather than three `elseif`s.
-> [Assumption: this is a readability rule for the guards that *remain* rather
-> than a second cleanup pass, and it only pays where the branches are a real set.
-> `json.lua`'s encoder and `validate.lua`'s field checks are the two places with
-> enough arms to be worth a table; a lone `if type(x) == "string"` guarding one
-> coercion is worse as a table, not better, because the dispatch costs a name and
-> a lookup to replace one word.]
-
-There are 106 `type(` calls in `game/`:
-
-```
-validate.lua 52 · net.lua 18 · declaration.lua 9 · predicate.lua 8
-flow.lua 5 · json.lua 4 · cards.lua 4 · art.lua 2 · zones/targeting/entity/actions 1 each
-```
-
-They are not all the same, and cutting them all would be a mistake:
-
-- **`validate.lua` (52) and `json.lua` (4) must keep every one.** Their entire
-  job is meeting untrusted, possibly malformed content and saying what is wrong
-  with it. A validator that assumes its input is well-formed validates nothing.
-- **`net.lua` (18) must keep most.** It parses data that arrived from another
-  machine, which `DESIGN.md` is explicit about trusting only so far.
-- **`declaration.lua` (9) is the boundary.** These should *grow*, not shrink —
-  this is where the document becomes engine data, and it is the one place worth
-  paying to normalise.
-- **The remaining ~22, in `predicate`, `flow`, `cards`, `zones`, `targeting`,
-  `actions` and `art`, are the target.** Every one of them re-asks a question
-  `declaration` could have answered once at load.
-
-So the honest shape of this task is not "remove type checks" but **"move them
-all to the door"**: normalise in `declaration.parse`, then delete the
-downstream guards, which is only safe *after* gap 2 lands. Ordering matters —
-deleting a guard before the normaliser exists converts a warning into a crash,
-and `predicate.lua` says out loud why it fails closed today:
-
-> Everything below reads attacker-suppliable content … and must never let a
-> malformed value reach a raw Lua comparison or arithmetic op — that throws an
-> uncaught error and kills the process.
-
-That comment is the acceptance criterion. The guards may go once the same
-promise is kept somewhere earlier, and not before.
+An hour's work with nothing downstream of it but 17, so it became 17's first
+step. **Refused along the way:** validating which combinations of tags are
+*legal*. Normalise the shape, leave the meaning alone — a rule about which tags
+may coexist is a much larger conversation than a rule about brackets.
 
 ---
 
@@ -314,51 +145,6 @@ One thing measurement changed: the near-miss check as first written flagged
 and the reserved one must be six letters or longer — which still catches
 `activaet`, `stays_redy` and `discard_hnd`, the cases that actually fail
 silently.
-
-### The original write-up
-
-*Urgency: medium (it is the most-asked authoring question) · Difficulty: low for
-the document, medium for the check · Usefulness: high*
-
-**A tag is free vocabulary until it isn't.** Most tags are the author's own
-words, matched by targeting and counting, and that is the design. But a growing
-number of them mean something *to the engine*, and those are scattered across
-three documents and no code:
-
-| Where they are documented now | Which |
-|---|---|
-| AUTHORING's card-field table | `token`, `immutable`, `invisible_title_text`, `transparent_background` |
-| A paragraph under Zones | `shuffle`, `refill_when_empty`, `face_up`, `face_down`, `no_peek`, `hidden`, `activate`, `optional` |
-| Hardcoded conventions | `player` |
-| Nowhere as a list | whatever a reader of `render.lua` finds next |
-
-**Two things are wanted here and they should not be confused.**
-
-**The document.** One reference table: every engine-known tag, what it attaches
-to (card, zone, or either), and what it changes. This is the todo-list item as
-written, it is a couple of hours, and it needs no engine change. Grep for
-`entity_has`, `tags.` and the zone tag reads to build it; the answer is a
-half-dozen more than the lists above.
-
-**The check, which is the interesting half.** A tag the engine *thought* it
-knew, misspelled, is silently inert today — `"tags": ["activaet"]` gives a board
-whose cards can never be used, with no error anywhere. The fix is not to reject
-unknown tags (free vocabulary is the point) but to **warn on near-misses**:
-`validate.lua` already has `suggest()`, and an unknown tag within edit distance
-one of a known one is almost certainly the known one misspelled. That turns a
-silent dead board into a line of output.
-
-**Do the document first, because the check needs it.** The table *is* the
-registry the check reads — put it in the engine as a table with the description
-beside each entry, generate nothing, and let the two drift only as far as one
-edit.
-
-**Refuse:** a closed tag vocabulary. The moment unknown tags are an error, every
-game file has to declare its own words before using them, and the thing that
-makes targeting expressive dies to catch a typo that a suggestion catches
-better.
-
----
 
 ## Gap 5 — A tag is a boolean below the door, a list above it — **shipped**
 

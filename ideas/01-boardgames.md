@@ -195,7 +195,7 @@ express none of them. What it took:
   stand in for a multiplication. It distributes into two ordinary actions
   rather than needing a nested expression.
 - **Comparisons the other way and against another subject** — the winner is
-  `{ "stat": "score@north_side", "at_least": "score@south_side" }`.
+  `"score@north_side >= score@south_side"`.
 - **Seats**, which this document originally claimed the foundation already
   gave you. It did not: 00's *first* draft had seat-based `@me`/`@opponent`
   scopes and superseded itself, so nothing shipped modelled a seat at all.

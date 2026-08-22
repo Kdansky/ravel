@@ -77,7 +77,7 @@ collected in rules.md §13.
 | Research track: two tokens (notebook may never sit ahead of the magnifying glass), a **branching graph** of positions and cost-bearing edges, per-row effects, first-arrival-only bonus tiles | a small authored graph of position cards/edge-cards, not a spatial grid — **expressible**, see below |
 | Assistants: a separate per-player ability pool, exhausted (turned sideways) on use, refreshed for everyone automatically at round wrap | `activate.cost: {"exhaust": 1}` plus the engine's own round-wrap ready-sweep — **exists**, an exact match |
 | Fear cards: no effect, only travel value, -1 point each at game end, gained automatically at round cleanup | an ordinary token-tagged card plus a round-boundary gain and an end-scoring tally — **expressible** |
-| Endgame scoring: research-row position, temple tiles, idols + empty-slot bonus, guardians flat 5 each, printed card points, Fear penalty; **no leftover-resource or hand-size penalty at all** | a scoring phase chaining `gain_stat`/`lose_stat` per category, the Puzzle Strike/Lost Cities pattern — **exists/expressible** |
+| Endgame scoring: research-row position, temple tiles, idols + empty-slot bonus, guardians flat 5 each, printed card points, Fear penalty; **no leftover-resource or hand-size penalty at all** | a scoring phase chaining `stat_gain`/`stat_damage` per category, the Puzzle Strike/Lost Cities pattern — **exists/expressible** |
 
 ### Worker placement: the whole reason this file exists, worked through concretely
 

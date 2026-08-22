@@ -304,43 +304,26 @@ The golden traces are byte-identical across all of it.
   wrong way. That is [07](07-presentation.md) gap 6's finding again: a condition
   cannot name a seat, and tagging the seat card is the workaround.
 
-### Tough is content, and it is an approximation
+### Tough, and two wrong turns before it landed
 
-Worth stating plainly, because "it works" and "it is right" are not the same
-claim here. Nothing in the engine knows the word — `grep -rn tough game/*.lua`
-finds comments — and the behaviour is one line in the battlefield's own tag def:
+Kept short because the route matters and the wrong versions do not.
 
-```
-stat_gain:health@across:count:tough@across
-```
+Milestone 1 shipped Tough as `stat_gain:health@across:count:tough@across` — the
+striker deals full power and hands a point back. That is **a reaction, not a
+replacement**, and it *heals* against a zero-power source. This file then
+diagnosed the fix as needing a replacement effect ([01](01-boardgames.md) gap 5's
+harder half) because "the clamp needs `min(1, damage)` and the amount grammar has
+products only" — which sent the track at a subsystem for a rule that needs three
+ordinary lines.
 
-That is **a reaction, not a replacement**: the striker deals its full power and
-then hands one point back if what it hit is tough. The rule it stands for is
-*reduce incoming damage by 1, and never below 0*, and the two differ in exactly
-one case — a source with 0 power, where the reaction would **heal**. No card in
-the deck has 0 power, so it cannot happen today; it is a lie waiting for the
-first card that says "deal damage equal to the number of X you control".
+**[22](22-the-crew.md) corrected it (2026-08-20):** *reduce incoming damage by 1,
+never below 0* is `max(0, power - tough)`, which is `stat_damage` against a floor
+of zero — [23](23-splendor.md)'s finding — computed on a scratch number *before*
+the damage lands. What was missing was never an operator but the habit of working
+a number out on the way in.
 
-It cannot be written correctly with what exists. The clamp needs
-`min(1, damage)` and the amount grammar has products only — `count:` is 1 or 0
-and there is no way to take the smaller of two numbers. Saying it properly needs
-what [01](01-boardgames.md) gap 5 calls a trigger, and specifically the harder
-half of it: a **replacement** effect that changes a number on its way in rather
-than reacting after it lands. That is the thing 01 warns is where a small engine
-becomes a large one, and it should be entered deliberately rather than by
-noticing that Tough nearly works.
-
-That was true until 2026-08-21 and is now history; the section below is what was
-built. The keyword's text said what the *rule* was rather than what the
-arithmetic did, and the two agree at last.
-
-**Corrected by [22](22-the-crew.md) (2026-08-20).** The diagnosis above is
-wrong, and expensively so: it sends this track at a replacement-effect subsystem
-for a rule that needs three ordinary lines. *Reduce incoming damage by 1, never
-below 0* is `max(0, power - tough)`, which is `stat_damage` against a floor of
-zero — [23](23-splendor.md)'s finding — done on a scratch number **before** the
-damage lands rather than healing after it. What was really missing was not an
-operator but the habit of computing a number on the way in.
+That correction put the scratch number on the **striker**, which is the second
+wrong turn and the one the section below fixes.
 
 ### Shipped (2026-08-21), and the scratch number moved to the other card
 
@@ -529,61 +512,27 @@ game is worse than one that says where:
 
 ## What `todo.md` sent back after milestone 1
 
-Three notes came off the inbox once the vanilla game was playable. Two of them
-are already this file's stage-2 table wearing different words; one is not, and
-it is content.
+Three notes, two of them this file's stage-2 table wearing different words.
 
-**"It's also missing a zone for the spellstack."** Stage 2 already names the
-response stack, and [20](20-puzzle-strike.md) names the same engine gap from the
-other side (`flow.reachable` refuses a card played out of turn, which is what
-casting in response *is*). The zone is the last part of that, not the first:
-there is nothing to put in it until a spell exists, and a spell cannot exist
-until a card can be played when it is not your turn. Sequenced behind the stack,
-not beside it.
+**"A zone for the spellstack."** Already the response stack above, and
+[20](20-puzzle-strike.md) names the same engine gap from the other side
+(`flow.reachable` refuses a card played out of turn, which is what casting in
+response *is*). The zone is the last part of that, not the first: nothing goes in
+it until a spell exists, and a spell cannot exist until a card can be played out
+of turn.
 
-**"Runeterra needs player cards for the nexus for both players which have their
-mana and their spell mana on it."** Half of this is buildable today and half is
-stage 2.
+**"Player cards for the nexus, with mana and spell mana on them."** and **"the
+left side is wasted space"** — one edit, not two, and **shipped**. Two
+`grid [1, 1]` zones down the empty band from `x` 0.00 to 0.16, each holding its
+seat's card with a style badging `nexus` and `mana`. It had to be a *grid*:
+`draw_card_stats_overlay` runs from the grid branch of `draw_zone` and from the
+browse overlay **and nowhere else**, so a card lying in a hand or on a pile wears
+no badges at all — a nameplate without its numbers. The test says so, because a
+plate that stopped being a grid would go blank without failing anything else.
 
-> **Shipped.** Two `grid [1, 1]` zones down the left edge, `nexus_north` and
-> `nexus_south`, each holding its seat's card with a `nexus_plate` style badging
-> `nexus` and `mana`. Content only, as predicted — but a **grid**, not a pile,
-> and that is the thing worth writing down: `draw_card_stats_overlay` is called
-> from the grid branch of `draw_zone` and from the browse overlay, **and nowhere
-> else**, so a card lying in a hand or on a pile shows no badges at all. A
-> nameplate without its two numbers is a nameplate. The test says so, because a
-> plate that stopped being a grid would go blank without failing anything else.
->
-> Two smaller things came with it. The validator refuses a zone reaching into
-> the lower-left corner, where the undo button and the event log live, which
-> bounded how low the south plate could sit and made the pair symmetric about
-> the halfway line rather than about the space available. And `nexus` and `mana`
-> now declare icons — a heart and a diamond — so the HUD rows they already had
-> stopped being two identical grey lozenges.
-
-The buildable half: `north` and `south` already exist as seat cards carrying
-`nexus: 20` and `mana: 0`, and they are drawn nowhere — `declaration.lua:635`
-sends a seat that names no home to the `system` zone, so the two most important
-numbers in the game are readable only in the corner HUD, and only for the seat
-watching. A game may place a seat card itself: `declaration.lua:693` skips the
-engine's own prepend for any card `setup.place` already names, and
-`flow.lua:463` honours that entry's `zone`. So two ordinary zones — one per
-side, *not* `per_seat`, since `zones.all_with_key` would otherwise drop a copy
-of the same seat card into both instances — plus a style badging `nexus` and
-`mana`, and both nexuses are on the table. Pure content, and it lands on the
-empty left column below.
-
-The stage-2 half: **there is no spell mana.** It is named in "What milestone 1
-deliberately does not do" and it is not a display question — unspent mana
-converting at end of round, capped at three, spendable only on spells, is a rule
-that needs the spells it pays for. The card gains a third badge when that ships.
-
-**"Runeterra wastes a lot of space on the left side where there is nothing."**
-True and measurable: `bench` and `battle` both start at `x = 0.16`, `hand` at
-`0.04`, and the decks and controls hold the right edge from `0.82` out. The band
-from `0.00` to `0.16` between the two hands is empty in every frame of every
-game. It is exactly where the two nexus cards go, which is why these two notes
-are one edit and not two.
+Spell mana is the half that is still stage 2: unspent mana carrying over, capped
+at three, spendable only on spells, is a rule that needs the spells it pays for.
+The card gains a third badge then.
 
 ## Overwhelm stopped being arithmetic (2026-08-23)
 

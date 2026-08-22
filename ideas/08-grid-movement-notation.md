@@ -1,7 +1,7 @@
 # Idea 08 — How a piece says where it may go
 
 **Status: mostly shipped (`5c1875e`).** Option E was chosen and built; chess
-plays, castling included. The comparison below is kept because it is the record
+plays, castling included. The comparison below is compressed to the record
 of *why* directions beat destinations, and the **Build order** at the end of this
 file marks each step's state and what building it taught. Check shipped as the
 `@reach` scope and **promotion** as the `become` action — the latter needing no
@@ -56,247 +56,23 @@ taken material stays visible.
 
 ---
 
-## Option A — predicate scopes
+## The four that lost, and why
 
-Geometry arrives as new scope words (`@delta`, `@from`), and the existing
-condition language does the rest. A target spec gains `where`, evaluated per
-candidate with `@self` = the acting card and `@target` = the candidate slot.
+Written out in full once and compared; the record that matters is the reason,
+which is one sentence per option.
 
-`@delta` carries `dx dy` (signed, forward-oriented), `adx ady`, `dist`
-(Chebyshev), `walk` (Manhattan), `blockers`. A list of specs means "any of".
+| | The rook, written | Why it lost |
+|---|---|---|
+| **A — predicate scopes** | geometry as new scope words (`@delta` carrying `dx`, `dist`, `blockers`), filtered by a `where` on the target spec | says *which squares qualify* rather than *how the piece walks*, so blocking, leaping and range are four separate conditions. Survives as the thing E's scopes grew out of, and `where` shipped on its own for en passant |
+| **B — one string per destination** | 28 strings, `"x+1"` … `"y-7"` | board-size dependent: a rook on a 10-wide board is a different card |
+| **C — B with wildcards** | `["x±*", "y±*"]` | compact, but `*` and `±` are a parser, and a diagonal only works because `*` secretly means *the same distance on both axes* — a rule that has to be taught |
+| **D — integer pairs as directions** | `"range": "*", "moves": [[1,0],[-1,0],[0,1],[0,-1]]` | **won on mechanism** and lost on where it put the numbers: reading a pair as a *direction repeated* makes blocking, leaping and range one concept and costs a loop rather than a parser, but it puts coordinate pairs on every card def, which is the schema rule's bend |
+| **F — "neighbour" as a tag** | `count:neighbour@self` | rejected outright. Neighbourhood is a property of a *pair*, and nothing in a tag lookup has an asker; as a stamped tag it cannot gate a move, because the stamp is an action and the gate runs first. Its good half — positional computed tags — is kept |
 
-```json
-{ "key": "rook", "on_activate": ["move_to:target"],
-  "activate_target": [
-    { "type": "slot", "zones": ["board"], "fill": "open",
-      "where": { "dx@delta": { "equals": 0 }, "ady@delta": 1,
-                 "blockers@delta": { "equals": 0 } } },
-    { "type": "slot", "zones": ["board"], "fill": "open",
-      "where": { "dy@delta": { "equals": 0 }, "adx@delta": 1,
-                 "blockers@delta": { "equals": 0 } } } ] }
-
-{ "key": "bishop", "on_activate": ["move_to:target"],
-  "activate_target": [
-    { "type": "slot", "zones": ["board"], "fill": "open",
-      "where": { "adx@delta": { "equals": "ady@delta" }, "ady@delta": 1,
-                 "blockers@delta": { "equals": 0 } } } ] }
-
-{ "key": "queen", "on_activate": ["move_to:target"],
-  "activate_target": [
-    { "type": "slot", "zones": ["board"], "fill": "open",
-      "where": { "dx@delta": { "equals": 0 }, "ady@delta": 1,
-                 "blockers@delta": { "equals": 0 } } },
-    { "type": "slot", "zones": ["board"], "fill": "open",
-      "where": { "dy@delta": { "equals": 0 }, "adx@delta": 1,
-                 "blockers@delta": { "equals": 0 } } },
-    { "type": "slot", "zones": ["board"], "fill": "open",
-      "where": { "adx@delta": { "equals": "ady@delta" }, "ady@delta": 1,
-                 "blockers@delta": { "equals": 0 } } } ] }
-
-{ "key": "knight", "on_activate": ["move_to:target"],
-  "activate_target": [
-    { "type": "slot", "zones": ["board"], "fill": "open",
-      "where": { "adx@delta": { "equals": 1 }, "ady@delta": { "equals": 2 } } },
-    { "type": "slot", "zones": ["board"], "fill": "open",
-      "where": { "adx@delta": { "equals": 2 }, "ady@delta": { "equals": 1 } } } ] }
-
-{ "key": "pawn", "on_activate": ["move_to:target"],
-  "activate_target": [
-    { "type": "slot", "zones": ["board"], "fill": "empty",
-      "where": { "dx@delta": { "equals": 0 }, "dy@delta": { "equals": 1 } } },
-    { "type": "slot", "zones": ["board"], "fill": "empty",
-      "where": { "dx@delta": { "equals": 0 }, "dy@delta": { "equals": 2 },
-                 "rank@from": { "equals": 2 }, "blockers@delta": { "equals": 0 } } },
-    { "type": "slot", "zones": ["board"], "fill": "enemy",
-      "where": { "adx@delta": { "equals": 1 }, "dy@delta": { "equals": 1 } } } ] }
-```
-
-The king, for completeness, is one entry: `{ "dist@delta": { "equals": 1 } }`.
-
-**What the engine learns:** two scopes and a `where` filter. No new comparison
-code — `predicate.meets_all` runs unchanged, which is why `adx == ady` can be
-written at all.
-
-**Cost:** the boilerplate is brutal. `"type": "slot", "zones": ["board"],
-"fill": "open"` appears three times in a queen, and a reader has to hold
-`adx`/`ady`/`dist`/`blockers` in their head to see a diagonal.
-
----
-
-## Option B — a flat array of offsets, one string per destination
-
-One string names exactly one reachable square. `x+3`, `y-2`, `x+1;y+2`. An
-omitted axis is zero. `;` separates axis terms (`,` cannot: JSON arrays already
-use it, and every list in this engine is comma-separated).
-
-```json
-{ "key": "rook", "moves": [
-  "x+1","x+2","x+3","x+4","x+5","x+6","x+7",
-  "x-1","x-2","x-3","x-4","x-5","x-6","x-7",
-  "y+1","y+2","y+3","y+4","y+5","y+6","y+7",
-  "y-1","y-2","y-3","y-4","y-5","y-6","y-7" ] }
-
-{ "key": "bishop", "moves": [
-  "x+1;y+1","x+2;y+2","x+3;y+3","x+4;y+4","x+5;y+5","x+6;y+6","x+7;y+7",
-  "x+1;y-1","x+2;y-2","x+3;y-3","x+4;y-4","x+5;y-5","x+6;y-6","x+7;y-7",
-  "x-1;y+1","x-2;y+2","x-3;y+3","x-4;y+4","x-5;y+5","x-6;y+6","x-7;y+7",
-  "x-1;y-1","x-2;y-2","x-3;y-3","x-4;y-4","x-5;y-5","x-6;y-6","x-7;y-7" ] }
-
-{ "key": "queen", "moves": [ /* the rook's 28 and the bishop's 28: 56 strings */ ] }
-
-{ "key": "knight", "moves": [
-  "x+1;y+2","x+2;y+1","x+2;y-1","x+1;y-2",
-  "x-1;y-2","x-2;y-1","x-2;y+1","x-1;y+2" ] }
-
-{ "key": "king", "moves": [
-  "x+1","x-1","y+1","y-1","x+1;y+1","x+1;y-1","x-1;y+1","x-1;y-1" ] }
-```
-
-The pawn is where the flat form runs out. Its three rules differ in *what may be
-on the destination* and one of them has a precondition, and a string cannot carry
-either. So a rule may also be written long-hand, and a bare array is shorthand
-for a single rule with `fill: "open"`:
-
-```json
-{ "key": "pawn", "moves": [
-  { "offsets": ["y+1"], "fill": "empty" },
-  { "offsets": ["y+2"], "fill": "empty", "needs": { "rank@from": { "equals": 2 } } },
-  { "offsets": ["x+1;y+1","x-1;y+1"], "fill": "enemy" } ] }
-```
-
-**Blocking** has to be derived, because a string names where the piece lands and
-says nothing about how it got there. The rule: an offset is *aligned* when
-`dx == 0`, `dy == 0` or `|dx| == |dy|`; an aligned destination requires every
-slot strictly between to be empty, and a non-aligned one is a leap. That gets
-chess right — the knight needs no `jumps` flag and nothing else needs a `blocked`
-flag — but it is a guess about intent, and it guesses wrong for a piece that is
-meant to leap along a line (a 0,2 leaper), which then needs an override.
-
-**What the engine learns:** parse `x±n;y±n`, apply the offset to the actor's
-slot, check `fill`, test alignment, walk the path. Roughly forty lines and no new
-condition vocabulary at all.
-
-**Cost:** 56 strings for a queen, and every list is **written for an 8×8 board**.
-A 10×10 variant is a different rook.
-
----
-
-## Option C — the same flat strings, with two wildcards
-
-Identical to B, except a magnitude may be `*` and a sign may be `±`.
-
-- `*` means **any distance ≥ 1**, and where a string uses `*` on both axes it is
-  the *same* distance on each — which is exactly what makes a diagonal a
-  diagonal, and makes the notation board-size independent.
-- `±` means **both signs**, varying independently across axes.
-
-```json
-{ "key": "rook",   "moves": ["x±*", "y±*"] }
-{ "key": "bishop", "moves": ["x±*;y±*"] }
-{ "key": "queen",  "moves": ["x±*", "y±*", "x±*;y±*"] }
-{ "key": "knight", "moves": ["x±1;y±2", "x±2;y±1"] }
-{ "key": "king",   "moves": ["x±1", "y±1", "x±1;y±1"] }
-
-{ "key": "pawn", "moves": [
-  { "offsets": ["y+1"], "fill": "empty" },
-  { "offsets": ["y+2"], "fill": "empty", "needs": { "rank@from": { "equals": 2 } } },
-  { "offsets": ["x±1;y+1"], "fill": "enemy" } ] }
-```
-
-That is the whole of chess movement in nine lines, and it stays readable: `x±*`
-is "any distance sideways", `x±1;y±2` is visibly the knight's L.
-
-The two wildcards are independent — `±` could be dropped, costing a rook nothing
-(`["x+*","x-*","y+*","y-*"]`) and a knight six extra strings.
-
-**What the engine learns:** B's parser plus expanding `*` into a ray and `±` into
-sign combinations. Maybe fifteen lines more than B.
-
----
-
-## Option D — integer pairs, read as directions
-
-Drop the strings. A move is `[dx, dy]`, and `x`/`y` need no naming because every
-board has exactly two axes. The pair is a **direction, repeated up to `range`
-times** (default 1), and each repetition after the first must land on an empty
-slot.
-
-```json
-{ "key": "rook",   "range": "*",
-  "moves": [[1,0],[-1,0],[0,1],[0,-1]] }
-
-{ "key": "bishop", "range": "*",
-  "moves": [[1,1],[1,-1],[-1,1],[-1,-1]] }
-
-{ "key": "queen",  "range": "*",
-  "moves": [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]] }
-
-{ "key": "knight",
-  "moves": [[1,2],[2,1],[2,-1],[1,-2],[-1,-2],[-2,-1],[-2,1],[-1,2]] }
-
-{ "key": "king",
-  "moves": [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]] }
-
-{ "key": "pawn", "moves": [
-  { "vectors": [[0,1]], "fill": "empty" },
-  { "vectors": [[0,1]], "range": 2, "fill": "empty",
-    "needs": { "rank@from": { "equals": 2 } } },
-  { "vectors": [[1,1],[-1,1]], "fill": "enemy" } ] }
-```
-
-Five pieces, five lines, and a bare array of pairs is shorthand for one rule with
-`range: 1` and `fill: "open"` — the pawn is again the only piece that pays for
-the long form.
-
-**Blocking, leaping, sliding and limited range stop being four ideas.** Because
-the pair is a step that gets repeated, the cells "in between" are just the
-earlier repetitions:
-
-- The knight's `[1,2]` at range 1 has no earlier repetition, so **it leaps, and
-  there is nothing to flag.** No alignment test exists to guess wrong.
-- The rook's `[1,0]` at range `*` walks outward and stops at the first occupant,
-  so **blocking is by construction** rather than by a `blockers == 0` condition.
-- A 0,2 leaper is `[[0,2]]` at range 1 and correctly jumps; a short rook is
-  `range: 3`. Neither needs a new word.
-
-**What the engine learns:** walk a vector up to `range` times, stop on
-occupancy, check `fill` on the landing slot. No parser, no alignment rule, no
-wildcards — noticeably *less* than B or C.
-
-**Cost:** it breaks the letter of the "arrays of strings" schema rule, though not
-its intent (see below). And a direction cannot express a destination that isn't
-reachable by repeating a step — no such chess piece exists, but a "teleport to
-any corner" card would want a different field.
-
-| | A — predicate scopes | B — flat, exhaustive | C — flat, wildcards | D — integer pairs |
-|---|---|---|---|---|
-| Rook | 2 specs, 8 JSON lines | 28 strings | 2 strings | **4 pairs, 1 line** |
-| Bishop | 1 spec, 4 lines | 28 strings | 1 string | **4 pairs, 1 line** |
-| Queen | 3 specs, 12 lines | 56 strings | 3 strings | **8 pairs, 1 line** |
-| Knight | 2 specs, 6 lines | 8 strings | 2 strings | **8 pairs, 1 line** |
-| Pawn | 3 specs, 12 lines | 3 rules | 3 rules | 3 rules |
-| Readable at a glance | no | by the yard | yes | **yes** |
-| Survives a 10×10 board | yes | **no** | yes | yes |
-| Blocking | a `blockers` condition | derived from alignment | derived from alignment | **structural — free** |
-| Leaping | absence of a condition | derived from alignment | derived from alignment | **structural — free** |
-| Limited range (short rook) | `ady at_most 3` | more strings | not expressible | **`range: 3`** |
-| New engine vocabulary | 2 scopes + `where` | an offset parser | parser + 2 wildcards | **none** |
-| Fits the schema rule | yes | yes | yes | **bends it (see below)** |
-
-**Where they are not competitors.** A answers a question C cannot: *"how many
-allies are standing next to me"* — a support bonus is `count:ally@neighbours`
-with no movement involved, and that is a scope, not an offset list. C answers a
-question A only answers verbosely: *where may this piece go*. The two solve
-adjacent problems and a grid engine plausibly wants one of each: **offsets for
-movement, scopes for reading the neighbourhood.**
-
-**Where neither is enough.** Connect 4's "the piece falls to the lowest free cell
-in its column" is anchored on the *candidate*, not on a piece already standing
-somewhere — the actor is in hand and has no slot, so every offset in B and C is
-meaningless and `@delta` is undefined. It needs a rule about the destination
-itself ("the slot under this one is occupied, or this is the bottom row"), which
-is a third small thing: a directional scope anchored on the candidate. Worth
-noting, not worth building until a second game asks.
+E is D with the pairs declared once in a top-level `patterns` block and used by
+name, which is what removes D's bend: card defs go back to arrays of strings, one
+name serves a move list *and* a target filter *and* a scope, and `line_ortho`
+reads better than a vector list plus a `range` at the place it is read most.
 
 ## Option E — D, but the pairs are declared once and named
 

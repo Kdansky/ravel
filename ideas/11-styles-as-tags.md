@@ -226,22 +226,6 @@ saying which words the engine knows and what each changes — not the identifier
   beside `"tags": [...]` on the entity, no `style:` prefix on the word. One list
   in the file; the split happens at load, where it costs the author nothing.
 
-## Migration and build order
-
-1. **`entity_has` answers for zones.** No behaviour change, one test.
-2. **The `styles` section, and resolution with the flat per-entity cache.**
-   Nothing consumes it yet; the test is that a style resolves.
-3. **One property through the whole path** — `no_square_lines`, because it is
-   already a tag and so proves the mechanism without a migration.
-4. **Collapse the rest**, one field per commit, each with the game files it
-   touches. `fit` last: it has the most users and the least interesting
-   semantics.
-5. **The dynamic test** — a card that recolours when a stat crosses a threshold,
-   written entirely in JSON.
-
-**The generator regenerates**, so `make_lost_cities.py`
-change rather than their output.
-
 ## The debt this creates, stated plainly
 
 `ratio` and `invisible_slot_outlines` shipped just before this was designed.

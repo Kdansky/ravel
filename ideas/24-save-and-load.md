@@ -107,21 +107,6 @@ behaviour the network already has and nobody has minded.
   write primitive handed to a stranger. Slots are words; the engine decides
   where they land.
 
-## Build order
-
-1. **The store** — `t.identity`, `save.lua`, and the browser sync question
-   answered out loud. Shared with [16](16-the-player-at-this-screen.md) gap 2,
-   and whichever track gets there first builds it.
-2. **`save.write` / `save.read`** over `net.snapshot` / `net.apply_full`, with
-   `gh` carried and checked. A test that a save taken mid-game, loaded back,
-   produces the identical `net.fingerprint` — which is the strongest statement
-   available that nothing was lost, and it costs one assertion.
-3. **A test that an edited game file is refused**, since that is the half of
-   the note that was uncertain and the half a silent failure would hurt most.
-4. **The two actions**, and a *continue* card in `menu.json` as the proof.
-
----
-
 ## What shipped
 
 `game/save.lua`, beside `net.lua` and required by nothing in the engine:

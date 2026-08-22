@@ -82,47 +82,6 @@ nothing if you quit, so a canvas with `stencil = true` and a synchronous
 `newImageData():encode` is the thing that works. Every problem above was visible
 in the first screenshot and none of them was visible in the test suite.
 
-### The original write-up
-
-*Urgency: high (this is what players actually hit) · Difficulty: medium-high,
-because most of it is judgement rather than code · Usefulness: high*
-
-The complaints, each traceable to a specific decision:
-
-**Titles are nearly always cut off.** `truncate` (`render.lua:89`) drops
-characters until the string plus `"..."` fits one line, and card widths in a
-crowded game are 33 px. "Score Red" and "Score Green" both render as `S...`.
-Options, roughly in order of payoff: allow two lines for the title before
-truncating; shrink the font per-card rather than truncating; or drop the word
-that repeats across a set (every Lost Cities scoring card starts with "Score").
-
-**Colours do not contrast.** `C.card_text` and `C.card_body` are fixed light
-colours (`render.lua:22-23`) drawn over the card's own `color`, which content
-chooses freely — white on the green expedition is the example, and it is
-unreadable. The fix is not a palette, it is a **rule**: derive the text colour
-from the background's luminance at draw time. That also removes an entire class
-of authoring mistake, because no game file can then pick an unreadable pair.
-
-**Line breaks are ugly.** Body text is `printf` with a wrap width and no
-hyphenation, so a narrow card breaks mid-word. Now that the text band is
-clipped and skipped when it will not fit (this session), the remaining question
-is whether a card that small should carry prose at all, or whether the tooltip
-is the right home for everything but the title.
-
-**Tooltips want their own pass.** `tooltip.lua` composes up to six sections —
-card text, zone-granted text, cost, needs, per-entity stats, ability hint,
-attachments — into one `printf` with no hierarchy, no spacing and no ordering
-rule. It reads as a wall. It also duplicates work `render.lua` does differently
-in three other places (`:358` card face, `:502` detail panel, `:961` log), two
-of which do not show zone-granted text at all, so the same card explains itself
-differently depending on where you look.
-
-**Do this one first among the three**, and do it as a whole rather than
-symptom by symptom: every item above is really "there is no typographic system,
-only per-site decisions".
-
----
-
 ## Gap 2 — Drawing from the deck should be a gesture, not a token — **shipped**
 
 *And by a better route than the one designed below.*
@@ -159,63 +118,6 @@ describes itself, which a deck previously could not do at all.
 discard becomes takeable); `activate` is the zone's *own*. A discard pile has
 both, and they are different sentences.
 
-### The original write-up
-
-## Gap 2 — Drawing from the deck should be a gesture, not a token
-
-*Urgency: medium · Difficulty: low for the rules, medium for the visibility rule
-it needs · Usefulness: high (it removes the ugliest thing on the board)*
-
-Lost Cities' draw step deals a single card, "Draw from the deck", into a tray
-along the bottom edge. It is one card in a wide box, it is the only thing that
-zone holds outside the tally, and it exists only because the deck itself cannot
-be clicked.
-
-**The rules already allow the better version, and need no change.** The discard
-piles work by granting `takeable` to their contents:
-
-```json
-{ "key": "red_discard", "type": "pile", "tags": ["activate"],
-  "applies": ["takeable"] }
-```
-
-The deck is the same shape. Tag it the same way and its top card offers the
-same ability, gated to the same phase by the same tag. `on_top` already
-restricts a stack to its top card; `zone_empty: ["deck"]` routing is untouched;
-`draw_deck` and the `choice` zone's role in the draw step both disappear, leaving
-`choice` for the tally alone. The draw step becomes one sentence — *click the
-deck, or the top of any discard* — instead of a token that means the same thing.
-
-**A 2×1 zone showing "the deck plus an action card" is the harder road** for a
-worse result: it needs a layout mode no `type` has, and it puts a button on the
-board to stand in for a gesture the board could carry directly.
-
-**What it actually breaks is hidden information, and this is the real work.**
-`card_at` (`main.lua:36`) skips deck zones entirely:
-
-```lua
-if z.zone_type ~= "deck" and zones.contains(z.place, x, y) then
-```
-
-Allowing decks through makes the top card clickable — and also **hoverable and
-inspectable**, because `tooltip.update` and `inspect_at` are fed by the same
-`card_at`. Hovering a face-down deck would name its top card. So this needs a
-predicate the engine does not have:
-
-> **Can this player see this card?** — false for a face-down stack, false for
-> another seat's hand, true otherwise.
-
-Clicking must consult reachability; hovering and inspecting must consult
-*visibility*, and today one function answers for both.
-
-**That predicate is worth building for its own sake.** It is exactly what hidden
-hands need — the last open piece of multiplayer stage A, and the README's
-current number one — and the renderer is completely seat-blind today, so in
-hot-seat Lost Cities both players read each other's hands. One rule, two
-features, and the second one is already wanted.
-
----
-
 ## Gap 3 — Choosing between several abilities — **shipped** (`d27d18a`)
 
 *And by the route this section predicted: an ability is a thing with a name, and
@@ -224,42 +126,6 @@ where `activate` was one thing, normalised at the door so a card with one is the
 list with one entry — see [DONE.md](DONE.md), "A card that can do several
 things". The refusal below held right up to the card that needed it: Coronation's
 Small Council is five advisors on one card.*
-
-### The original write-up
-
-*Urgency: low (no shipped game needs it) · Difficulty: medium · Usefulness: low
-now, load-bearing for anything MTG-shaped*
-
-A card has one `on_activate`, and `begin_action` (`main.lua:78`) commits to one
-intent the moment it is called. Modern MTG cards routinely carry two or three
-activated abilities, and a card in hand may be both playable *and* activatable
-once hands are allowed to activate at all.
-
-**The engine already owns the answer:** a choice among cards is an overlay, and
-`page: true` runs the *picked card's* own `on_pick`. Lost Cities' opening
-question is exactly this shape. So an ability chooser is an overlay dealing one
-card per ability, and needs no new interaction model.
-
-What it needs is for an ability to be **a thing with a name**, which is the real
-change:
-
-```json
-"abilities": [
-  { "key": "tap_for_mana", "text": "Tap: add G", "on_activate": [...] },
-  { "key": "regenerate",   "text": "2G: regenerate", "activate_cost": {...} }
-]
-```
-
-`on_activate` becomes the one-ability shorthand for this list. Everything
-downstream that reads an ability — `flow.can_activate`, `flow.activate`,
-`cards.behaviour`, the tooltip hint, the render affordance — currently assumes
-exactly one, so each learns to ask "which".
-
-**Refuse until a game needs it.** The shorthand must keep working untouched, and
-a chooser that appears for a single ability is a click tax on every existing
-game. Build it with the first card that has two abilities, not before.
-
----
 
 ## Gap 4 — A thing that should not be drawn — **shipped**
 
@@ -460,65 +326,6 @@ sentence between them would be the same screen saying the same thing twice.
 in `8856432`, and wrote a trailing newline the checked-in file did not have — so
 the generator had not reproduced its own output for two commits. It does now.
 
-### The original write-up
-
-*Urgency: medium — two of the three games anyone would show somebody end with no
-screen at all · Difficulty: medium · Usefulness: high*
-
-> *We need a good win/lose screen. With fireworks for the player if they win,
-> and some sad effects if they lose. If multiple players are in the game, the
-> winner should get the fireworks, and the loser(s) should get the loss screen,
-> but also display in smaller text below who won.*
-
-**The flourish is already built and the screen is already there.** `fx.celebrate`
-(`fx.lua:141`) rains golden confetti for a victory and slow dark embers for a
-defeat, and `render.lua:1481` draws a banner, the run summary from
-`flow.summary()`, and fires the celebration once. So this gap is not "build a win
-screen" — it is that **the screen is single-player and the engine has no idea
-whose victory it is.**
-
-Two separate holes, and the second is the larger one:
-
-**1. The outcome is a word, not a seat.** `flow.outcome()` (`flow.lua:774`)
-walks the open overlay's cards and returns the first `outcome` field it finds —
-`"victory"` or `"defeat"`, a global fact. Six games write one, and every one of
-them is solo: you against the tower, the road, the vigil. In a game with two
-seats the same card would tell both players the same word, which is wrong for
-exactly one of them.
-
-**2. The two-seat games have no ending screen at all.** Chess ends with
-`"end_conditions": [{ "stat": "count:king@taken", "at_least": 1, "then":
-["load_game:menu.json"] }]` — the king is taken and you are dropped back to the
-menu, with no announcement that anything happened. Lost Cities' `end_conditions`
-is empty and its finish is a scoring pass. So the first thing to build is not
-the screen but the **thing the screen reads**.
-
-### What it needs
-
-- **An outcome that names a seat.** *— shipped as a stat on the seat, not a
-  field and not a subject; see above.* [Assumption: the smallest form that fits the
-  existing vocabulary is `"outcome": { "winner": "<subject>" }` on the ending
-  card — a subject, so a game says `"max:score@anyone"`-style *who* rather than
-  hardcoding a seat, and Lost Cities' winner is already written exactly that way
-  in a condition today (`{ "stat": "score@north_side", "at_least":
-  "score@south_side" }`). The plain `"victory"` / `"defeat"` strings must keep
-  working untouched, because six solo games are correct as they are and a seat is
-  meaningless in them.]
-- **A viewer**, which is [16](16-the-player-at-this-screen.md) gap 1 — **shipped**
-  (`fb3d704`). "The winner gets the fireworks" is a sentence about the person at
-  the screen, and the engine used to know only which seat was *up*, so in
-  networked play the loser would have got the confetti whenever the last move
-  happened to be theirs. `zones.viewer` is the seat to compare the winner
-  against; the blocker is gone.
-- **A name to print**, which is [16](16-the-player-at-this-screen.md) gap 2.
-  Without it the smaller line reads *player_white wins*, which is a chair's key.
-  It degrades honestly, so this is an ordering preference rather than a
-  dependency.
-- **The loser's screen says who won**, in the smaller line under the banner,
-  where `flow.summary()`'s run summary already sits. That is a layout question
-  the text pass (gap 1) already answered for every other panel: blocks with
-  weights, measured then drawn, not one `printf`.
-
 ### Refuse
 
 - **A second ending mechanism.** An ending is an overlay holding a card, and
@@ -652,64 +459,6 @@ not carry it and undo does not know about it.
 > sites then have to close the gap the icon left: `draw_badge` sizes the pill
 > `fh + tw + 8 * S` and offsets its text by `fh + 3 * S`, and the HUD row
 > indents by `fh + 4 * S`, so without the shape both must drop the `fh`.
-
-### The original write-up
-
-
-*From `todo.md`: "Instead of cards having their stats at the bottom, for
-splendor it would make a lot of sense if we could list them as a column on the
-card, and have icons or even coloured fonts", and — the same complaint from the
-other side — "The cost shouldn't be part of the text, this makes it cumbersome
-to read. This should be displayed like we display stats."*
-
-Splendor's ninety development cards each carry their price twice. Once as
-`card_stats` — `cost_white`, `cost_blue`, `cost_green`, `cost_red`,
-`cost_black`, which is what the purchase arithmetic actually reads — and once as
-the card's **title**, the string `"2R 1K"`, which is what a player reads.
-`splendor.json`'s `market` style badges only `vp`, so the five numbers that
-decide every purchase in the game are drawn nowhere and the title is doing
-their job in an abbreviation nobody was taught.
-
-The engine already has every piece of this except the layout.
-
-- `draw_card_stats_overlay` (`render.lua:766`) draws a style's `badges` list as
-  icon-and-number pills **along the bottom edge, left to right**. Five of those
-  do not fit across a market card.
-- `draw_cost_badge` (`render.lua:470`) already draws icon-and-number pills for a
-  `play.cost` map — in the **top-left corner**, as a row. So the icon+number pill
-  keyed by stat name is a shipped idiom with two call sites and two hardcoded
-  placements.
-- `stat_icon` (`render.lua:266`) reads the stat's declared `icon`, out of the
-  closed set in `ICON_COLOR` (`render.lua:211`). A stat with none draws the
-  diamond.
-
-### What it needs
-
-**A style says which edge its badges run along.** `badges` stays the list of
-stat keys; the direction is a second field taking a word, the way `fan` already
-does for a stack ("The word is the direction the next card goes"). Adding it to
-`STYLE_FIELDS` (`validate.lua:225`) is append-only, and `SCHEMA.json` plus
-AUTHORING's style table take the same sentence.
-
-Two questions the note does not answer, and they are the whole of the work:
-
-- **A zero is a line of the price that isn't there.** Every Splendor development
-  card carries all five `cost_*` stats, most of them `0`, because the pricing
-  arithmetic needs the stat to exist on all ninety. A column that draws
-  `◆0 ◆0 ◆2 ◆0 ◆1` is worse than the abbreviation it replaces. But `power: 0`
-  on a Runeterra unit must still draw, so "skip zeros" cannot be the layout's
-  private rule. [Assumption: this wants to be said per style rather than per
-  stat, since it is a fact about *this card face* rather than about the number —
-  but the alternative, a word on the stat's own declaration, is exactly what
-  gap 6 of [06](06-schema-and-types.md) is about, and if that is built this
-  falls out of it instead.]
-- **The icon set is shapes, and Splendor's five gems are colours.** `ICON_COLOR`
-  fixes a colour per shape: `blade` is orange, so onyx would be an orange sword.
-  Splendor's stats already borrow the five shapes (`t_white` is `diamond`,
-  `t_black` is `blade`) and get five wrong colours. Either a stat declares its
-  colour beside its icon, or badges take their colour from the style — the
-  note's "or even coloured fonts" is asking for one of those and does not say
-  which.
 
 ### What falls out for free
 

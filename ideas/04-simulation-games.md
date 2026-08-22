@@ -22,7 +22,7 @@ Cultist Simulator uses. It needs roughly **one** new subsystem, not five.
 | Verb (Work, Study, Dream) with slots | Grid zone with `grid: [n, 1]` slots — **exists** |
 | Dragging a card into a verb slot | Slot targeting (`targeting.lua`, `place_in_slot`) — **exists** |
 | A verb "running" for N seconds | A timer stat decremented on the round wrap — **expressible** |
-| Timer completion producing cards | `on_turn` + a computed tag — **expressible** |
+| Timer completion producing cards | a `turn` block + a computed tag — **expressible** |
 | Card decay / expiry | Same timer, ending in `destroy_self` — **expressible** |
 | Drawing from a weighted deck | `contents` with counts gives weights by duplication — **exists** |
 | Discovering a recipe you didn't know | The `reveal` overlay — **exists** |
@@ -38,13 +38,13 @@ Real time becomes a tick. Concretely:
   phase where you place and take cards, and an `automatic` phase that advances
   every running verb by one tick. That is the existing round machinery
   (`flow.settle`'s round boundary, `game/flow.lua:186`) doing exactly what it
-  already does — `run_on_turn` fires each board card's `on_turn`, and a verb in
+  already does — `run_on_turn` fires each board card's `turn` action, and a verb in
   progress *is* a board card.
 - **Book of Hours' day/night** is a phase list: `dawn → day×6 → dusk → night×4`,
   with routing (`"next"` tables) picking which recipes are available. `round`
   is already a player stat, so "it is day 14" is free and displayable.
 - **A "wait" button** is a card tagged `token` with
-  `on_play: ["destroy_self", "next_phase"]`. No engine work — this is exactly
+  `"play": { "action": ["destroy_self", "next_phase"] }`. No engine work — this is exactly
   the pass-card pattern already used by `draw_and_play` phases.
 
 So the temporal model needs **no new engine code at all**. That is the pleasant
@@ -62,7 +62,7 @@ N turns, consume some of them and produce some things.*
     { "requires": { "forge": 2, "count:tool@work": 1 },
       "turns": 4,
       "consumes": ["count:fuel@work:1"],
-      "then": ["gain:wrought_iron", "gain_stat:insight:1"],
+      "then": ["gain:wrought_iron", "stat_gain:insight:1"],
       "text": "You beat the metal until it yields." },
 
     { "requires": { "lantern": 1 },
@@ -89,8 +89,8 @@ wrong:
    are themselves subjects. Reusing `predicate.meets_all` unchanged is the
    whole point: no second condition dialect (invariant 6).
 3. **Running verbs are cards, not engine state.** When a recipe starts, create a
-   card into the zone carrying `card_stats: {timer: 4}` and an `on_turn` of
-   `["lose_stat:timer:1"]`, plus a computed tag `{"done": {"stat": "timer",
+   card into the zone carrying `card_stats: {timer: 4}` and a `turn` block of
+   `["stat_damage:timer:1"]`, plus a computed tag `{"done": {"stat": "timer",
    "equals": 0}}`. The tick machinery, the snapshot, undo, and the renderer all
    already handle cards. **Do not add a "pending recipe" list to game state** —
    it would have to join the snapshot protocol (ARCHITECTURE invariant, "if you

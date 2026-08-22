@@ -73,7 +73,7 @@ a verdict.
 | 3–4p free-for-all: the whole game ends the instant anyone crosses 10, winner is whoever holds the **lowest** total, not a last-survivor format | needs a `min:` measuring function; `predicate.lua`'s `FNS` table has `count`/`card`/`sum`/`max` only, no `min` | **small genuine gap** — irrelevant to the 2-player game, which the rulebook itself calls the tournament default |
 | Crash Gem: break one gem from your own pile, send that many 1-gems to a chosen opponent's pile | an ordinary `activate.target` into your own `gem_pile`, `destroy:target` plus `fill:enemy.gem_pile:gem_1:<value>` — **expressible**, and unambiguous with exactly one opponent |
 | Double Crash Gem: as above, up to two gems in one play | the same target spec with `count: 2` — **expressible** |
-| Combine: merge two gems in your own pile (sum ≤4) into one new gem of that value | `needs: {"sum:value@target": {"at_most": 4}}` on a two-card target (the DESIGN.md subject-vs-subject bend, used exactly as intended), then destroy both and create one — **expressible**, but which template to create is a small closed set (1+1→2, 1+2→3, 1+3→4, 2+2→4) authored per case, the same repetition-not-a-gap texture Mage Knight's sideways play already established |
+| Combine: merge two gems in your own pile (sum ≤4) into one new gem of that value | `"needs": ["sum:value@target <= 4"]` on a two-card target, then destroy both and create one — **expressible**, but which template to create is a small closed set (1+1→2, 1+2→3, 1+3→4, 2+2→4) authored per case, the same repetition-not-a-gap texture Mage Knight's sideways play already established |
 | 4-gems are immune to counter-crash entirely | a tag or `computed_tags` check gating whether the reaction is even offered — **expressible**, once reactions exist at all (next row) |
 | Counter-crash: the *non-active* seat plays a reaction chip from their own hand during the active seat's turn, without becoming the active seat | **genuine gap** — see below |
 | Choosing *which* opponent to crash, in 3–4p | no idiom routes a created card into a zone owned by a *player-chosen* target rather than a scope word (`mine`/`enemy`/`anyone`) | **small genuine gap**, 3–4p only — 2-player sidesteps it entirely, since `enemy` already names the only opponent |
@@ -108,7 +108,7 @@ the other reshuffling and looping back:
 ```json
 { "key": "draw_step", "type": "automatic", "actions": ["draw_from:bag:hand:1"],
   "next": [
-    { "stat": "count:chip@hand", "at_least": 5, "then": "buy" },
+    { "when": "count:chip@hand >= 5", "then": "buy" },
     { "zone_empty": ["bag"], "then": "reshuffle_step" },
     { "then": "draw_step" }
   ] },
@@ -133,15 +133,15 @@ optimistic reading.
 
 `end_conditions` are checked continuously — DESIGN.md is explicit that they
 "run after every action" — which is exactly wrong for a rule that is checked
-"only at the end of your own turn." Authoring `{"stat": "sum:value@gem_pile",
-"at_least": 10, "then": [...]}` as an ordinary `end_conditions` entry would end
+"only at the end of your own turn." Authoring `{ "when": "sum:value@gem_pile >= 10", "then": [...] }` as an ordinary
+`end_conditions` entry would end
 the game the instant an opponent's crash pushes your pile over 10, mid-turn,
 denying you the real rule's whole tactical layer — bringing your own pile back
 under 10 with your own Crash Gem or Combine before your turn formally ends.
 The fix costs nothing new: a `"next"` routing entry on the Cleanup phase's own
 transition already only evaluates at that one moment, which is precisely the
 tool DESIGN.md's phase-routing section describes and precisely what this rule
-needs. `{"stat": "sum:value@gem_pile", "at_least": 10, "then": "defeat"}` on
+needs. `{ "when": "sum:value@gem_pile >= 10", "then": "defeat" }` on
 Cleanup's `next` table, ahead of the unconditional entry that starts the next
 player's turn, is the whole of it.
 

@@ -56,7 +56,7 @@ list to keep in step.
   },
 
   "challenge": { "needs": { "might": 8 }, "pass": [...], "fail": [...] },
-  "receive":   { "needs": { "value@target": { "at_least": "value@self" } } },
+  "receive":   { "needs": ["value@target >= value@self"] },
   "turn":      { "action": [...] },
   "pick":      { "action": [...], "irreversible": true },
   "start":     { "zone": "table", "slot": 1 },
@@ -192,31 +192,6 @@ Under blocks, granting works at the **block** level: a zone grants a whole
 Field-level granting could mix a zone's action with the card's own cost, which
 is not a thing anyone wants and is currently possible. Block granting is both
 simpler and closer to the documented intent.
-
-## Migration
-
-~650 field occurrences across ten games. Two of the files are generated, so
-they regenerate; the other eight are rewritten by a script.
-
-**The golden traces are the proof.** A faithful migration changes no behaviour,
-so every recorded transcript must come out byte-identical — and `castle.log` and
-`kingdom.log` cover the two densest games, which is why this can be done a moment
-at a time and still be checked.
-
-Order, one commit each:
-
-1. ~~`declaration.parse` reads the new shape and nothing else~~ — **done**, and
-   the clean break held: the flat name is an error, not a fallback.
-2. ~~`challenge`~~ — **done.** 22 cards across five games.
-3. `receive` (`accepts`, on cards *and* zones), then `play`, then `activate`,
-   then `turn` / `pick` / `start`. Each adds one line to `MOMENTS`, one entry to
-   `validate.FIELDS` and one block to `SCHEMA.json` — which the schema test then
-   holds to the engine in both directions, and which is what makes a rename this
-   wide safe to do piecemeal.
-4. `cards.behaviour` resolves blocks; tag defs already flatten through the same
-   table, so their vocabulary cannot drift from a card's.
-5. Golden traces must be unchanged. If they are not, the migration is wrong —
-   not the traces.
 
 ## Refuse
 

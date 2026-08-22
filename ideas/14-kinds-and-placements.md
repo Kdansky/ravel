@@ -203,13 +203,3 @@ promotion.
 - **Per-instance overrides in `place`.** A placement says which kind, whose, and
   where. A piece that needs different *rules* is a different kind.
 
-## Build order
-
-1. `setup.place`, owner as entity state, `owner_of` reading it. Chess keeps its
-   32 templates and gains nothing yet — but the golden traces must not move,
-   which is what proves the placement path is equivalent.
-2. Castling by square. Delete the 32 self-tags. Traces unchanged again.
-3. [11](11-styles-as-tags.md), then presentation by owner.
-4. Collapse to six kinds and delete most of the generator. **The traces are the
-   proof**: the same opening moves, the same captures, the same transcript, from
-   a sixth of the file.
