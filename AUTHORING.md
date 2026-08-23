@@ -986,6 +986,27 @@ A **tag** scope means cards *in play* — on grid zones — exactly like
 that is what you want. Zone and tag names may never collide, and the validator
 refuses a file where they do.
 
+### `@everywhere` — every card, hands and decks included
+
+That board-only default is deliberate: most rules must not read a hand they
+cannot see, and a bare tag keeps that promise. When a rule genuinely does want a
+tag counted *wherever the card sits* — in play, in a hand, or still in the
+deck — and cannot name every zone one at a time, `@everywhere` is the opt-in:
+
+```
+count:gem@everywhere       every gem there is, in play or in hand or in the bag
+count:gem@mine.everywhere  the same, narrowed to the seat whose turn it is
+sum:value@enemy.everywhere an opponent's total, wherever they are holding it
+```
+
+It is the one search naming a single zone cannot do, because a card may be in
+any of several. Naming a zone still reaches a hand, a pile or a deck as it always
+has (`count:gem@hand`, `sum:value@mine.discard`) — `@everywhere` is only for
+when you mean *all of them at once*. The owner word narrows it like anywhere
+else, so a card in a shared deck belongs to nobody and drops out of both `mine`
+and `enemy`. (Distinct from `@all`, which takes every entity of every kind —
+zones and squares included — and is almost never what a rule wants.)
+
 **Owner words** say whose cards, and compose with everything else:
 
 ```
@@ -2445,8 +2466,9 @@ entries and anything else that is interface rather than game. Clicking a face-up
 card plays it; clicking a grid card, or the top of a pile, activates it; decks
 aren't clickable unless they carry an `activate` block, which is how a deck is drawn from.
 
-Reserved words that a zone or tag may never be named: `self` and `all` (the
-engine answers for them in scopes), plus the quantifiers `any` / `each` /
-`random` and the owner words `mine` / `enemy` / `anyone`, which are read as
-prefixes in a scope expression rather than as names. `player` is deliberately
-*not* reserved — it is an ordinary tag you put on a card.
+Reserved words that a zone or tag may never be named: `self`, `all`,
+`everywhere`, `reach` and `owner_of` (the engine answers for them in scopes),
+plus the quantifiers `any` / `each` / `random` and the owner words `mine` /
+`enemy` / `anyone`, which are read as prefixes in a scope expression rather than
+as names. `player` is deliberately *not* reserved — it is an ordinary tag you
+put on a card.

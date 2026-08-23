@@ -330,4 +330,71 @@ function M.test_conditions_a_bound_compute_answers_a_comparison(check)
 	end)
 end
 
+-- `@everywhere` — the one scope that reaches a hand and a deck. A bare tag, and
+-- a tag scope, see the board alone on purpose: most rules must not read a hand
+-- they cannot see. When a rule genuinely wants to count a tag wherever it sits —
+-- "how many gems does this player hold, in play or in hand or still in the bag" —
+-- and cannot name every zone one at a time, this is the deliberate opt-in.
+local EVERYWHERE = [==[{
+  "title": "Everywhere",
+  "players": [{ "card": "one" }, { "card": "two" }],
+  "stats": [{ "key": "gold", "label": "Gold", "subject": "gold@mine.player" }],
+  "zones": [
+    { "key": "board", "type": "grid", "grid": [4, 1], "tags": ["activate"],
+      "pos": [0.05, 0.30, 0.95, 0.55] },
+    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+      "pos": [[0.30, 0.05, 0.95, 0.25], [0.30, 0.70, 0.95, 0.90]] },
+    { "key": "vault", "type": "deck", "tags": ["hidden"] }
+  ],
+  "phases": [
+    { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }
+  ],
+  "cards": [
+    { "key": "one", "text": "One", "tags": ["seat_one"], "card_stats": { "gold": 5 } },
+    { "key": "two", "text": "Two", "tags": ["seat_two"], "card_stats": { "gold": 1 } },
+    { "key": "gem", "text": "Gem", "tags": ["gem"], "card_stats": { "value": 2 } }
+  ],
+  "setup": {
+    "place": [ { "card": "gem", "owner": "one", "zone": "board", "at": ["a1"] } ]
+  }
+}]==]
+
+function M.test_conditions_everywhere_reaches_a_hand_and_a_deck(check)
+	local path = "game/games/tmp_everywhere.json"
+	local f = assert(io.open(path, "w")); f:write(EVERYWHERE); f:close()
+	local ok, err = pcall(function()
+		flow.init("tmp_everywhere.json", 3)
+		-- One gem on the board (owned by seat one, from setup), one into the
+		-- active seat's hand, one into the shared deck.
+		require("actions").run({ "fill:mine.hand:gem:1", "fill:vault:gem:1" }, {})
+
+		-- The default is unchanged, and it is two spellings of the same board.
+		check("a bare tag still sees the board alone",
+			predicate.holds("count:gem == 1", {}),
+			tostring(predicate.total("count:gem")))
+		check("and a tag scope is the same board, not a wider search",
+			predicate.holds("count:gem@gem == 1", {}))
+
+		-- The opt-in reaches all three at once — the one thing naming a single
+		-- zone cannot do.
+		check("everywhere counts the board, the hand and the deck together",
+			predicate.holds("count:gem@everywhere == 3", {}),
+			tostring(predicate.total("count:gem@everywhere")))
+		check("a measuring fn reads over the same set",
+			predicate.holds("sum:value@everywhere == 6", {}),
+			tostring(predicate.total("sum:value@everywhere")))
+
+		-- The owner word narrows it exactly as it narrows anything else: the
+		-- board gem and the hand gem are seat one's; the deck gem is nobody's,
+		-- so it drops out of both mine and enemy.
+		check("mine keeps only this seat's, wherever they sit",
+			predicate.holds("count:gem@mine.everywhere == 2", {}),
+			tostring(predicate.total("count:gem@mine.everywhere")))
+		check("and a card in a shared deck belongs to neither seat",
+			predicate.holds("count:gem@enemy.everywhere == 0", {}))
+	end)
+	os.remove(path)
+	if not ok then error(err, 0) end
+end
+
 return M

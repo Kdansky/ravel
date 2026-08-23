@@ -75,12 +75,14 @@ M.ENGINE_TAGS = {
 M.ENGINE_TAGS_ALSO_ON_STATS = { hidden = "kept out of the HUD, while cards may still read and change it" }
 
 -- Names conditions answer for themselves, so a zone or tag may not take one.
--- "self" is the acting card, "all" is everything, "reach" is wherever a set of
--- pieces could move, and "owner_of" is the seat something belongs to; none can
--- be expressed as a tag, which is why they are the only four the engine claims.
--- "player" is deliberately NOT reserved — it is an ordinary tag that content
--- puts on one card, which is what makes finding that card trivial.
-local RESERVED_SCOPES = { "self", "all", "reach", "owner_of" }
+-- "self" is the acting card, "all" is every entity, "everywhere" is every card
+-- wherever it sits (a hand and a deck included, where a bare tag sees only the
+-- board), "reach" is wherever a set of pieces could move, and "owner_of" is the
+-- seat something belongs to; none can be expressed as a tag, which is why they
+-- are the five the engine claims. "player" is deliberately NOT reserved — it is
+-- an ordinary tag that content puts on one card, which is what makes finding
+-- that card trivial.
+local RESERVED_SCOPES = { "self", "all", "reach", "owner_of", "everywhere" }
 
 -- The shapes a stat may ask to be drawn with. Named by shape rather than by
 -- meaning, so a game's own word for its currency is its own business — and a
@@ -455,7 +457,7 @@ function M.check(G)
 			.. "could mean either, so rename one of them", c.name, c.a, c.b)
 	end
 
-	-- Walk the two reserved names, not every tag and zone: deterministic order
+	-- Walk the reserved names, not every tag and zone: deterministic order
 	-- without sorting, and the list is stated once.
 	for _, name in ipairs(RESERVED_SCOPES) do
 		local what = known_tags[name] and "tag" or G.zone_defs[name] and "zone"

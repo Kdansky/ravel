@@ -96,6 +96,14 @@ Shared docs — `AUTHORING.md`, `DESIGN.md`, `ARCHITECTURE.md` — are still not
 place to write a track's own findings while it is in flight: put those in its
 `ideas/NN-*.md`, and fold them into the shared docs in a pass of their own.
 
+**Keep idea files short.** An `ideas/NN-*.md` is a scratchpad for work in
+progress, not a permanent record. Once a section of it is done and its findings
+are captured in real docs (`AUTHORING.md`, `DESIGN.md`, `ARCHITECTURE.md`,
+code comments, etc.), **remove that content from the idea file** — don't leave
+it there as historical narrative. The ideas directory is read on every planning
+pass; bloated files that re-describe shipped work burn tokens for nothing.
+What's done belongs in the real documentation, not in `ideas/`.
+
 ## 7. After the task is done
 
 Once the work is complete and committed, tell the user this is a good point to

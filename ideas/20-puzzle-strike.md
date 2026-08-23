@@ -265,6 +265,15 @@ The card holding the global Panic number went the same way: a hidden
 workaround is now three-for-three across three games: **make it a grid**. The
 gap is row 1 of the plan and this is the third game to pay for it.
 
+> **Corrected when 06 shipped `@everywhere` (2026-08-23).** Half of this was a
+> misdiagnosis: `sum:value@mine.gem_pile` reads a **pile** perfectly well —
+> naming a zone by key never went through the grid-only path — so the gem pile
+> did not have to be a grid *for the scope*. It stays a grid for **display**,
+> which is a real and separate reason: gems laid out in a row so a player can see
+> the pile's height. Only a *bare* tag or a tag scope was ever board-only, and
+> that is what `@everywhere` opens up. The panic card at `@clock` is the same:
+> named, so it was always readable.
+
 **Only a phase a player acts in can hand the turn over.** `rotate_seat` sits on
 the fresh-entry path for non-automatic phases; an automatic phase never
 reaches it. So the ante could not be an automatic phase in front of the action

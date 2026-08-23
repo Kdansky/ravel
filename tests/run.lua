@@ -1332,6 +1332,17 @@ check("any: the pool reaches 9",       predicate.met("hp@any.economic >= 9"))
 -- A tag reaches cards in play, never a hand: "@economic" is not "every farm I own".
 eval("fill:hand:farm:1")
 check("a tag scope ignores cards in hand", predicate.total("hp@economic") == econ_hp)
+-- ...and @everywhere is the word that opts back in: same tag, every zone. The
+-- bare count is the three on the board; everywhere is every economic card there
+-- is, which castle keeps more of in its draw deck — so the number is larger and
+-- matches a plain walk of them all.
+local econ_all = 0
+for e in entity.each("card") do if tags.entity_has(e, "economic") then econ_all = econ_all + 1 end end
+check("everywhere reaches the hand and deck the bare tag skips",
+	predicate.total("count:economic") == 3
+	and predicate.total("count:economic@everywhere") == econ_all
+	and econ_all > 3,
+	predicate.total("count:economic") .. "/" .. predicate.total("count:economic@everywhere") .. " walk=" .. econ_all)
 
 eval("stat_damage:hp@each.economic:1")
 check("each: the effect reached all three", predicate.total("hp@economic") == econ_hp - 3)

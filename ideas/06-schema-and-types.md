@@ -1,10 +1,45 @@
 # 06 — Saying what things are
 
-**Status:** **all but one gap closed** — 1 surveyed and refused, 2 and 3 folded
-into [17](17-conditions-as-expressions.md), 4 and 5 shipped, 6 dissolved. **What
-is left is one sentence:** `tags.find_targets` searches grid zones only, so
-`count:<tag>` can see neither a market held as a deck nor anything in anybody's
-hand. Two shipped games want it — see gap 5's *second half*.
+**Status:** **closed.** 1 surveyed and refused, 2 and 3 folded into
+[17](17-conditions-as-expressions.md), 4 and 5 shipped, 6 dissolved, and the
+last one — a tag scope that could not reach a hand or a deck — **shipped as
+`@everywhere`** (see below). Every gap is now decided.
+
+## The last gap — a tag scope that sees a hand — **shipped as `@everywhere`**
+
+`count:<tag>` and a tag scope (`count:<tag>@<tag>`) search grid zones only, and
+that stays the default *on purpose*: most rules must not read a hand they cannot
+see. What was missing was the **opt-in** — a way to count a tag *wherever the
+card sits* without naming every zone one at a time. That is `@everywhere`: a
+reserved scope word resolving to every card in any zone, composing with the owner
+word and every measuring form (`count:gem@mine.everywhere` is one seat's gems in
+play, in hand and in the bag at once). It lives in `predicate.entities_in_scope`
+as one branch (`entity.each("card")`), is reserved in `validate.lua`'s
+`RESERVED_SCOPES` so no zone or tag may claim the name, and is proved by
+`tests/integration/conditions.lua`'s `everywhere` test.
+
+**The gap was narrower than three games' notes claimed, and measuring it is what
+showed so.** *Naming a zone by key already reaches a hand, a pile and a deck* —
+`count:gem@mine.discard` counts a pile, `count:gem@vault` a deck, `count:gem@hand`
+a hand, all today, because a zone scope goes through `zones.all_with_key` and
+never touches `find_targets`. The board-only limit is **only** the bare tag and
+the tag scope. So the two workarounds the plan recorded were not workarounds for
+*this*:
+
+- **The Crew's commander seat-walk is irreducibly per-seat.** "Whose hand holds
+  the rocket 4" needs to know *which* seat, and `@everywhere` answers *how many*,
+  not *whose* — `card:rocket_4@mine.hand` walked over the seats is still the
+  right shape.
+- **Puzzle Strike's gem pile did not need to be a grid for the scope.**
+  `sum:value@mine.gem_pile` reads a `pile` just as well (proved:
+  `sum:value@mine.discard` returns the pile's total). The grid is legitimate
+  *display* — gems laid out so a player can see the pile's height — not a scope
+  workaround, and it stays a grid for that reason.
+
+So there is **no game migration to make**: the shipped games already found
+sayable spellings, and `@everywhere` is the general answer for the one thing that
+was genuinely unsayable — a tag counted across hidden zones without enumerating
+them.
 
 Six requests that were the same request wearing different clothes: the engine
 should know the shape of its own data before it runs, instead of asking at every

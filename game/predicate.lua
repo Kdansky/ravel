@@ -21,6 +21,7 @@ local M = {}
 --   hp@self                 the acting card
 --   hp@target               the cards the player chose for this card
 --   count:farm@board        the fn forms take a scope too
+--   count:gem@everywhere    every card, hands and decks included (opt-in)
 --   min:value@mine.hand     the smallest one, over the cards that carry it
 --   score@owner_of.target   the seats owning the cards chosen — see below
 --
@@ -164,6 +165,18 @@ function M.entities_in_scope(scope, ctx, owner)
 		end
 	elseif scope == "all" then
 		for e in entity.each() do out[#out + 1] = e end
+	elseif scope == "everywhere" then
+		-- Every card, in whatever zone it sits — a hand, a deck, a pile or the
+		-- board. The deliberate opposite of a bare tag, which sees the board
+		-- alone: most rules must not read a hand they cannot see, so grid-only
+		-- stays the default and this is the word that says "look in the hidden
+		-- zones too, on purpose". `all` above is wider still and takes every
+		-- entity of every kind; this takes cards, so a measuring fn always has
+		-- something with a stat to read. The owner word narrows it as it does
+		-- anywhere else, so "count:gem@mine.everywhere" is one seat's gems
+		-- wherever they are — the one search a named zone cannot do, because it
+		-- would have to name every zone a card might be in.
+		for e in entity.each("card") do out[#out + 1] = e end
 	elseif scope == "self" then
 		local e = ctx and ctx.card_id and entity.get(ctx.card_id)
 		if e then out[1] = e end

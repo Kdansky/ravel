@@ -212,6 +212,13 @@ arriving from a new direction: the exclusion is not about decks, it is that
 keeping — *narrow with the zone and count the tag*, and *walk the seats to write
 a stat, then make the answer a computed tag*.
 
+> **06 shipped `@everywhere` for this (2026-08-23), and the seat-walk here still
+> stands.** The new word counts a tag across hidden zones — but it answers *how
+> many, anywhere*, not *whose*. The commander is a question about *which* seat
+> holds the card, which is per-seat by nature, so `card:rocket_4@mine.hand`
+> walked over the seats remains the right shape. `@everywhere` retires the *third*
+> idiom nobody wrote — enumerating every zone by hand — not this one.
+
 The walk is also the only way to deal: **there is no word for "every seat in
 turn" outside a phase**, and `seat: "next"` is ignored on an `automatic` one
 ([23](23-splendor.md) found that), so a three-way deal is three pairs of actions
