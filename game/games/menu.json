@@ -6,7 +6,7 @@
       "label": "Published games",
       "type": "hand",
       "pos": [0.06, 0.05, 0.94, 0.42],
-      "contents": ["play_lost_cities", "play_chess", "play_splendor", "play_lor", "play_the_crew"]
+      "contents": ["play_lost_cities", "play_chess", "play_splendor", "play_lor", "play_the_crew", "play_puzzle_strike"]
     },
     {
       "key": "proof",
@@ -111,6 +111,14 @@
       "asset": "witches_sabbath.jpg",
       "tooltip": "Fourteen nights to finish the work. Click the verbs on the table: work, study, dream, and pay what dreaming costs.",
       "play": { "action": ["load_game:vigil.json"] },
+      "tags": ["immutable"]
+    },
+    {
+      "key": "play_puzzle_strike",
+      "text": "Puzzle Strike",
+      "tooltip": "Sirlin's chip deckbuilder. Pick a character, buy gems, and crash them into the other player's pile — end your own turn holding ten and you lose. Two players, one device.",
+      "play": { "action": ["load_game:puzzle_strike.json"] },
+      "asset": "polygon:6:magenta",
       "tags": ["immutable"]
     },
     {

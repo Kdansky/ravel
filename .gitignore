@@ -13,3 +13,16 @@ luac.out
 
 # Where the headless shim puts saved games. Real LÖVE keeps its own elsewhere.
 .saves/
+
+# Source material for the games in ideas/ — photographs of physical components,
+# publishers' rulebooks and card archives. The transcription beside them (the
+# rules.md and chips.md files) is the content; these are somebody else's boxed
+# game and are not ours to ship.
+ideas/**/*.jpg
+ideas/**/*.jpeg
+ideas/**/*.png
+ideas/**/*.webp
+ideas/**/*.pdf
+ideas/**/*.docx
+ideas/**/*.psd
+

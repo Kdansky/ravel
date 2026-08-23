@@ -554,6 +554,75 @@ The engine places its own before any of this: the system card, the injected
 player, and any seat that named no place. A seat has to exist before it can act,
 so that is plumbing rather than setup, and a game never writes it down.
 
+### A choice before the game
+
+Some games ask a question before there is a board: which mission, which
+character, which variant. There is no setup-time question — `setup.place` lays
+out what comes out of the box and nothing else — so the answer is an ordinary
+**leading phase**, and what it decides is written by the picked card's own
+`play.action`.
+
+**One question for the table** is an overlay pushed from the first phase. The
+Crew asks how many tasks this way: five cards in a hidden zone, one of them
+played, and its action writes a number the deal then reads.
+
+```json
+{ "key": "setup", "type": "automatic", "actions": ["push_phase:mission"],
+  "next": [{ "then": "deal" }] },
+{ "key": "mission", "type": "overlay", "zone": "mission" }
+```
+
+**One question per seat** is a draft: a shared zone, one phase per seat, and
+each pick configures that seat.
+
+```json
+{ "key": "pick_1", "type": "player_input", "seat": "next", "zone": "roster",
+  "ends_after": 1, "label": "Choose your character", "next": [{ "then": "pick_2" }] },
+{ "key": "pick_2", "type": "player_input", "seat": "next", "zone": "roster",
+  "ends_after": 1, "label": "Choose your character", "next": [{ "then": "deal" }] }
+```
+
+```json
+{ "key": "char_jaina", "text": "Jaina", "tags": ["immutable"],
+  "play": { "action": ["fill:mine.bag:playing_with_fire:1",
+                       "fill:mine.bag:burning_vigor:1",
+                       "fill:mine.bag:unstable_power:1",
+                       "fill:mine.bag:crash_gem:1", "fill:mine.bag:gem_1:6",
+                       "set_owner:self:mine", "move_to:mine.ongoing"] } }
+```
+
+Three things about it are worth knowing before you write one:
+
+- **`seat: "next"` goes on the first pick as well.** The turn counter starts at
+  *nobody*, so the first handover in a game is what selects seat one. Leave it
+  off and both picks resolve to the same player.
+- **The deal comes after, not in `setup`.** Nothing about a character exists
+  until it is chosen, so shuffling and dealing belong in the automatic phase the
+  last pick routes to — `each_seat:shuffle:mine.bag`, then
+  `each_seat:draw_from:mine.bag:mine.hand:5`.
+- **Sweep the offer.** `move:roster:box` into a hidden zone, or the unchosen
+  options sit on the table for the rest of the game.
+
+Give the roster a band of screen neither seat owns; it is empty afterwards, and
+an empty zone still paints over whatever is under it (the validator says so).
+
+### A turn's opening bookkeeping
+
+**Only a phase a player acts in hands the turn over.** The seat changes on a
+fresh entry into a `player_input` phase, and an `automatic` phase never rotates
+— so a "start of turn" phase in front of the one the player acts in runs for
+the *previous* player.
+
+Put the resets, the upkeep and whatever the turn deals on the first phase the
+player acts in, using its own `actions`:
+
+```json
+{ "key": "action", "type": "player_input", "seat": "next", "zone": "hand",
+  "actions": ["stat_set:money@mine.player:0", "stat_set:acts@mine.player:1",
+              "activate_zone:mine.ongoing", "activate_zone:rules_ante"],
+  "ends_when": "acts@mine.player == 0", "next": [{ "then": "buy" }] }
+```
+
 ### Card templates
 
 | Field | Meaning |
