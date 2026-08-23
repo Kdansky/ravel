@@ -227,7 +227,7 @@ badly finishes a game in 13–17 turns, which is the right side of the
 rulebook's own floor of ten.
 
 What is in it: the bank (four gems, the three purples, Wounds, and ten of the
-twenty-four Puzzle chips), five characters with three chips each, the ante,
+twenty-four Puzzle chips), **all ten base characters** with three chips each, the ante,
 the action and buy phases, the must-buy-something rule with the Wound as the
 free fallback, the mid-draw reshuffle, the height bonus, Panic Time, crashing,
 combining, and a loss condition asked at the end of your own turn and nowhere
@@ -289,6 +289,36 @@ refund in `fail`. That is a second honest customer for `challenge` outside
 chess's promotion, and it is worth writing down as the rule: **a condition
 about the targets is a `challenge`; a condition about the card is a `needs`.**
 
+### Ten characters, and what the last five cost
+
+The roster is all ten base characters, which took a second source: the physical
+chips answer for five of them and an older printed sheet (**version 4.7, 2010**)
+fills the rest. The two disagree in sixteen places, and
+[puzzle_strike/chips.md](puzzle_strike/chips.md) tabulates every one — the
+photographed third-edition text wins wherever a photograph exists, and the five
+chips the sheet is the only source for are marked as such in the catalogue.
+Worth knowing before the next game with a component photograph behind it:
+**a printed reference sheet is a different edition until proved otherwise**, and
+the cheapest proof is one photo with two editions of the same chip in it, which
+this set happened to have.
+
+Three of the fifteen new chips needed something new, and all three were cheap:
+
+- **"Choose one" is an offer**, `options:<a>,<b>,<c>` with a card per branch —
+  the same mechanism chess promotes a pawn with, used here for the first time
+  by an ordinary played card rather than by a challenge. *Any different two of
+  four* is six cards, which is the exhaustive set and reads better than asking
+  twice would.
+- **An extra turn is one flag read at the handover.** `stat_gain:extra`, and a
+  route `{ "when": "extra@mine.player >= 1", "then": "again" }` ahead of the
+  unconditional one; `again` decrements it and routes back with `seat: "same"`.
+  The route overruling the phase about the seat is what makes it two lines.
+- **The upgrade rule got two more destinations.** "A gem one bigger than the one
+  you gave up" is asked by Risky Move (into the discard), Big Rocks (into the
+  hand) and Strength of Earth (into the pile) — same question, three answers,
+  three hidden zones. Which is the case-table-is-a-zone idiom paying off a
+  second time rather than a new problem.
+
 ### A case table is a zone
 
 Four rules here turn a number the action list just wrote into a *card*: which
@@ -319,10 +349,15 @@ count is load-bearing for a rule rather than for a cost.
 - **Counter-crashing**, and with it Bubble Shield, Unstable Power's reaction
   half, Rigorous Training, Gems to Lemonade, Stone Wall, Thinking Ahead — every
   blue banner in the game. Shared with [18](18-legends-of-runeterra.md).
-- **The other fourteen Puzzle chips and the other five characters.** Rook,
-  DeGrey, Grave, Geiger and Valerie each have at least one chip whose text was
-  never photographed; the full list is in
-  [puzzle_strike/chips.md](puzzle_strike/chips.md) under *Missing*.
+- **The other fourteen Puzzle chips**, and the whole Shadows expansion — ten
+  more characters and twenty-four more Puzzle chips. **The catalogue is now
+  complete**: every base chip, every Shadows chip and every one of the sixty
+  character chips is transcribed in
+  [puzzle_strike/chips.md](puzzle_strike/chips.md), from the owner's own
+  photographs and inventory. Three things are still open there and none of them
+  blocks a build: which Shadows character owns which trio (the grouping is
+  certain, the ten names are matched to it by guesswork), The Hammer's banner,
+  and Custom Combo's wordless arrow burst.
 - **Colour-restricted arrows.** A red arrow may only pay for a red-banner chip.
   Every arrow in the build is a plain action, which makes Gem Essence and
   One True Style better than printed.

@@ -75,7 +75,7 @@ def stack_key(chip):
 # five are listed in chips.md under *Incomplete* and are not offered here.
 CHARACTERS = [
     ("argagarg", "Argagarg", "teal",
-     "Defensive disruption: wounds that clog an opponent's bag, and a ward that taxes every combine at the table.",
+     "Defensive disruption: wounds that clog an opponent's bag, and a ward that taxes the whole table.",
      ["hex_of_murkwood", "bubble_shield", "protective_ward"]),
     ("jaina", "Jaina", "crimson",
      "Rushdown: burn your own wounds for tempo, ante gems at the other side, and finish with an uncounterable double crash.",
@@ -87,8 +87,23 @@ CHARACTERS = [
      "Speed: more actions, more buys, more chips, every turn.",
      ["double_take", "bag_of_tricks", "speed_of_the_fox"]),
     ("lum", "Lum", "white",
-     "A gambler who is happiest near the edge — the fuller your gem pile, the more you draw.",
+     "A gambler happiest near the edge — the fuller your gem pile, the more you draw.",
      ["living_on_the_edge", "pandas_bargain", "jackpot"]),
+    ("grave", "Grave", "navy",
+     "A generalist who takes whatever the turn needs, and answers a crash with a crash.",
+     ["reversal", "martial_mastery", "versatile_style"]),
+    ("rook", "Rook", "ash",
+     "Stone: turn small gems into big ones and hand the incoming ones straight back.",
+     ["stone_wall", "big_rocks", "strength_of_earth"]),
+    ("degrey", "DeGrey", "pink",
+     "A talker: thin your own deck, make the other player answer questions, and take what falls out.",
+     ["pilebunker", "no_more_lies", "troublesome_rhetoric"]),
+    ("valerie", "Valerie", "cyan",
+     "A painter of options — every chip is a choice, and one of them is another whole turn.",
+     ["burst_of_speed", "chromatic_orb", "creative_thoughts"]),
+    ("geiger", "Geiger", "yellow",
+     "Time: put the chips you want back where you will draw them, and pull the ones you need out of the past.",
+     ["research_development", "future_sight", "its_time_for_the_past"]),
 ]
 
 
@@ -115,7 +130,8 @@ def zones():
     # Each rule family is its own hidden zone rather than one zone walked with a
     # step word: a step needs an order named beside it, and these are decks with
     # no columns to order by. One zone per question is cheaper and reads better.
-    for key in ("rules_ante", "rules_combine", "rules_upgrade", "rules_height"):
+    for key in ("rules_ante", "rules_combine", "rules_upgrade", "rules_upgrade_hand",
+                "rules_upgrade_pile", "rules_height"):
         z.append({"key": key, "type": "deck", "tags": ["hidden"]})
     # Two seats facing each other: the far one under the bank, the near one
     # along the bottom, and the draft band between them.
@@ -173,6 +189,7 @@ def stats():
         player("to_draw", None, None, hidden=True),
         player("crashed", None, None, hidden=True),
         player("combined", None, None, hidden=True),
+        player("extra", None, None, hidden=True),
         # On the chips rather than on a seat: a gem says what it is worth, a
         # bank plate says how many are left, and neither is a HUD row.
         {"key": "value", "min": 0, "max": 4, "icon": "none", "color": "green", "tags": ["hidden"]},
@@ -339,11 +356,12 @@ def character_chips():
     ongoing = lambda: {"phases": ["action"], "cost": {"acts@mine.player": 1},
                        "action": ["move_to:mine.ongoing"]}
     hand_chip = {"type": "card", "tags": ["chip"], "zones": ["hand"], "count": 1, "owner": "anyone"}
+    hand_gem = {"type": "card", "tags": ["gem"], "zones": ["hand"], "count": 1, "owner": "anyone"}
     return [
         # Argagarg
         {"key": "hex_of_murkwood", "text": "Hex of Murkwood", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:teal",
-         "tooltip": "Each opponent gains a wound or discards two wounds. Here they gain one: choosing for them is the opponent's decision, and there is no way to ask yet.",
+         "tooltip": "+1 blue action. Each opponent gains a wound or discards two wounds. Here they gain one: choosing for them is the opponent's decision, and there is no way to ask yet.",
          "play": act(["stat_gain:acts@mine.player:1"] + gain_wound("enemy"))},
         {"key": "bubble_shield", "text": "Bubble Shield", "tags": ["chip", "character", "blue"],
          "asset": "circle:cyan",
@@ -351,7 +369,7 @@ def character_chips():
          "play": ongoing()},
         {"key": "protective_ward", "text": "Protective Ward", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:teal",
-         "tooltip": "Ongoing: nobody may combine without discarding a Puzzle chip first. The tax is not built; the action it gives back is.",
+         "tooltip": "+1 blue action. Ongoing: nobody may combine without discarding a Puzzle chip first. The tax is not built; the action it gives back is.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_gain:acts@mine.player:1", "move_to:mine.ongoing"]}},
         # Jaina
@@ -411,6 +429,97 @@ def character_chips():
          "asset": "polygon:7:amber",
          "tooltip": "Two actions and a chip.",
          "play": act(["stat_gain:acts@mine.player:2", "draw_from:mine.bag:mine.hand:1"])},
+        # Grave
+        {"key": "reversal", "text": "Reversal", "tags": ["chip", "character", "purple"],
+         "asset": "circle:navy",
+         "tooltip": "Main: two chips. Reaction: play this as a Crash Gem to counter gems sent to you — the reaction needs playing out of turn, which is not built.",
+         "play": act(["draw_from:mine.bag:mine.hand:2"])},
+        {"key": "martial_mastery", "text": "Martial Mastery", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:navy",
+         "tooltip": "Trash a non-purple chip from your hand then gain a chip costing exactly 2 more. Comparing two chips' prices is not built, so this trashes and gives the action back.",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": hand_chip,
+                  "action": ["move_target_to:void", "stat_gain:acts@mine.player:1",
+                             "move_to:mine.table"]}},
+        {"key": "versatile_style", "text": "Versatile Style", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:navy",
+         "tooltip": "Choose one: an action and a buy, or two gem power, or two chips.",
+         "play": act(["options:vs_tempo,vs_money,vs_chips"])},
+        # Rook
+        {"key": "stone_wall", "text": "Stone Wall", "tags": ["chip", "character", "purple"],
+         "asset": "circle:ash",
+         "tooltip": "Main: a chip and a buy. Reaction: reflect any gems sent to a player back to the bank — the reaction needs playing out of turn, which is not built.",
+         "play": act(["draw_from:mine.bag:mine.hand:1", "stat_gain:buys@mine.player:1"])},
+        {"key": "big_rocks", "text": "Big Rocks", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:ash",
+         "tooltip": "Trash a gem out of your hand and take one worth a point more straight back into it.",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": dict(hand_gem, tags=["upgradable"]),
+                  "action": ["stat_set:combined@mine.player:sum:value@target",
+                             "move_target_to:void",
+                             "activate_zone:rules_upgrade_hand",
+                             "move_to:mine.table"]}},
+        {"key": "strength_of_earth", "text": "Strength of Earth", "tags": ["chip", "character", "purple"],
+         "asset": "polygon:7:ash",
+         "tooltip": "Combine a 1-gem out of the bank with a gem already in your pile — which makes your pile heavier, and is the point: bigger gems crash harder.",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": {"type": "card", "tags": ["upgradable"], "zones": ["gem_pile"],
+                             "owner": "anyone", "count": 1},
+                  "action": ["stat_set:combined@mine.player:sum:value@target",
+                             "move_target_to:void",
+                             "activate_zone:rules_upgrade_pile",
+                             "stat_damage:stock@stack_gem_1:1",
+                             "stat_gain:acts@mine.player:1",
+                             "move_to:mine.table"]}},
+        # DeGrey
+        {"key": "pilebunker", "text": "Pilebunker", "tags": ["chip", "character", "red"],
+         "asset": "polygon:7:pink",
+         "tooltip": "A chip. Printed: opponents reveal their hands, trash their largest gem, then gain that many 1-gems — reading somebody else's hand is not built.",
+         "play": act(["draw_from:mine.bag:mine.hand:1"])},
+        {"key": "no_more_lies", "text": "No More Lies", "tags": ["chip", "character", "red"],
+         "asset": "polygon:7:pink",
+         "tooltip": "Trash up to two chips out of your hand. Character chips cannot be trashed.",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": dict(hand_chip, tags=["trashable"], min=0, max=2),
+                  "action": ["move_target_to:void", "stat_gain:acts@mine.player:1",
+                             "move_to:mine.table"]}},
+        {"key": "troublesome_rhetoric", "text": "Troublesome Rhetoric",
+         "tags": ["chip", "character", "brown"], "asset": "polygon:7:pink",
+         "tooltip": "Your opponent chooses which of the two you get: an action and a chip, or two gem power and a buy. Nothing makes them press the button — at one screen, hand it over.",
+         "play": act(["options:tr_tempo,tr_money"])},
+        # Valerie
+        {"key": "burst_of_speed", "text": "Burst of Speed", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:cyan",
+         "tooltip": "Trash this chip and take another whole turn after this one.",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "action": ["stat_gain:extra@mine.player:1", "move_to:void"]}},
+        {"key": "chromatic_orb", "text": "Chromatic Orb", "tags": ["chip", "character", "purple"],
+         "asset": "circle:cyan",
+         "tooltip": "A chip, and a 1-gem out of your pile and into theirs.",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
+                             "owner": "anyone", "count": 1},
+                  "action": ["draw_from:mine.bag:mine.hand:1"] + crash_action(1, 0)}},
+        {"key": "creative_thoughts", "text": "Creative Thoughts", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:cyan",
+         "tooltip": "Any different two of: an action, a buy, a gem power, a chip.",
+         "play": act(["options:ct_ab,ct_am,ct_ac,ct_bm,ct_bc,ct_mc"])},
+        # Geiger
+        {"key": "research_development", "text": "Research & Development",
+         "tags": ["chip", "character", "brown"], "asset": "polygon:7:yellow",
+         "tooltip": "Printed: exchange a chip in your hand with a purple from your bag. Searching a shaken bag is not built, so this gives the action back and nothing else.",
+         "play": act(["stat_gain:acts@mine.player:1"])},
+        {"key": "future_sight", "text": "Future Sight", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:yellow",
+         "tooltip": "Two chips, then put up to two out of your hand back on the bag. Which order they go back in is not yours to say here.",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": dict(hand_chip, min=0, max=2),
+                  "action": ["draw_from:mine.bag:mine.hand:2",
+                             "move_target_to:mine.bag", "move_to:mine.table"]}},
+        {"key": "its_time_for_the_past", "text": "It's Time for the Past",
+         "tags": ["chip", "character", "brown"], "asset": "polygon:7:yellow",
+         "tooltip": "Take the top chip of your discard pile back into your hand. Printed, you may choose which — a pile is reached from the top, so this takes the last one you threw away.",
+         "play": act(["stat_gain:acts@mine.player:1", "draw_from:mine.discard:mine.hand:1"])},
         # Lum
         {"key": "living_on_the_edge", "text": "Living on the Edge", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:white",
@@ -427,6 +536,34 @@ def character_chips():
          "asset": "polygon:7:white",
          "tooltip": "Reveal two chips at random from a chosen opponent's hand and take what they turn out to be worth. Reading somebody else's hand is not built.",
          "play": act(["stat_gain:money@mine.player:1", "stat_gain:acts@mine.player:1"])},
+    ] + choice_cards()
+
+
+# A "choose one" is an `options:` offer and a card per branch: the offer deals
+# them, clicking one plays it, and everything left is swept. Six cards for
+# "any different two of four" is the whole exhaustive set, which is cheaper to
+# read than two questions in a row would be to write.
+def choice_cards():
+    def choice(key, text, action):
+        return {"key": key, "text": text, "tags": ["token", "immutable"],
+                "asset": "square:slate", "play": {"action": action}}
+
+    A = "stat_gain:acts@mine.player:1"
+    B = "stat_gain:buys@mine.player:1"
+    Mo = "stat_gain:money@mine.player:1"
+    C = "draw_from:mine.bag:mine.hand:1"
+    return [
+        choice("vs_tempo", "An action and a buy", [A, B]),
+        choice("vs_money", "Two gem power", ["stat_gain:money@mine.player:2"]),
+        choice("vs_chips", "Two chips", ["draw_from:mine.bag:mine.hand:2"]),
+        choice("tr_tempo", "An action and a chip", [A, C]),
+        choice("tr_money", "Two gem power and a buy", ["stat_gain:money@mine.player:2", B]),
+        choice("ct_ab", "An action and a buy", [A, B]),
+        choice("ct_am", "An action and a gem power", [A, Mo]),
+        choice("ct_ac", "An action and a chip", [A, C]),
+        choice("ct_bm", "A buy and a gem power", [B, Mo]),
+        choice("ct_bc", "A buy and a chip", [B, C]),
+        choice("ct_mc", "A gem power and a chip", [Mo, C]),
     ]
 
 
@@ -463,10 +600,15 @@ def rule_cards():
     for n in (2, 3, 4):
         rule("rules_combine", "comb_%d" % n, ["combined@mine.player == %d" % n],
              take(n, "mine.gem_pile"))
-    # Risky Move's other half: the gem you gain is one bigger than the one you buried.
-    for n in (2, 3, 4):
-        rule("rules_upgrade", "up_%d" % n, ["combined@mine.player == %d" % (n - 1)],
-             take(n, "mine.discard"))
+    # A gem one bigger than the one you gave up — Risky Move's other half, Big
+    # Rocks', and Strength of Earth's. Same question, three different places
+    # for the answer to land.
+    for where, zone, suffix in [("rules_upgrade", "mine.discard", ""),
+                                ("rules_upgrade_hand", "mine.hand", "h"),
+                                ("rules_upgrade_pile", "mine.gem_pile", "p")]:
+        for n in (2, 3, 4):
+            rule(where, "up%s_%d" % (suffix, n), ["combined@mine.player == %d" % (n - 1)],
+                 take(n, zone))
     # The height bonus is cumulative, so three separate ifs add up to +1/+2/+3.
     for n in (3, 6, 9):
         rule("rules_height", "height_%d" % n, ["sum:value@mine.gem_pile >= %d" % n],
@@ -607,8 +749,14 @@ def phases():
          "actions": ["return_to:mine.discard:mine.bag", "shuffle:mine.bag"],
          "next": [{"zone_empty": ["bag"], "then": "handover"},
                   {"then": "draw_step"}]},
+        # An extra turn is one flag read at the handover: the route overrules the
+        # phase about the seat, which is the whole of "again, same player".
         {"key": "handover", "type": "automatic",
-         "next": [{"then": "action", "ends_round": True}]},
+         "next": [{"when": "extra@mine.player >= 1", "then": "again"},
+                  {"then": "action", "ends_round": True}]},
+        {"key": "again", "type": "automatic",
+         "actions": ["stat_damage:extra@mine.player:1"],
+         "next": [{"then": "action", "seat": "same"}]},
         {"key": "defeat", "type": "automatic",
          "actions": ["stat_gain:won@each.enemy.player:1", "reveal:game_over"],
          "next": [{"then": "over"}]},

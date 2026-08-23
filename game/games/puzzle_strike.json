@@ -47,6 +47,7 @@
     { "key": "to_draw", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "crashed", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "combined", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
+    { "key": "extra", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "value", "min": 0, "max": 4, "icon": "none", "color": "green", "tags": ["hidden"] },
     { "key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"] },
     { "key": "stock", "min": 0, "max": 99, "icon": "none", "tags": ["hidden"] },
@@ -77,6 +78,8 @@
     { "key": "rules_ante", "type": "deck", "tags": ["hidden"] },
     { "key": "rules_combine", "type": "deck", "tags": ["hidden"] },
     { "key": "rules_upgrade", "type": "deck", "tags": ["hidden"] },
+    { "key": "rules_upgrade_hand", "type": "deck", "tags": ["hidden"] },
+    { "key": "rules_upgrade_pile", "type": "deck", "tags": ["hidden"] },
     { "key": "rules_height", "type": "deck", "tags": ["hidden"] },
     {
       "key": "gem_pile",
@@ -213,7 +216,16 @@
     {
       "key": "handover",
       "type": "automatic",
-      "next": [{ "then": "action", "ends_round": true }]
+      "next": [
+        { "when": "extra@mine.player >= 1", "then": "again" },
+        { "then": "action", "ends_round": true }
+      ]
+    },
+    {
+      "key": "again",
+      "type": "automatic",
+      "actions": ["stat_damage:extra@mine.player:1"],
+      "next": [{ "then": "action", "seat": "same" }]
     },
     {
       "key": "defeat",
@@ -794,7 +806,7 @@
       "text": "Hex of Murkwood",
       "tags": ["chip", "character", "red"],
       "asset": "polygon:7:teal",
-      "tooltip": "Each opponent gains a wound or discards two wounds. Here they gain one: choosing for them is the opponent's decision, and there is no way to ask yet.",
+      "tooltip": "+1 blue action. Each opponent gains a wound or discards two wounds. Here they gain one: choosing for them is the opponent's decision, and there is no way to ask yet.",
       "play": {
         "phases": ["action"],
         "cost": { "acts@mine.player": 1 },
@@ -823,7 +835,7 @@
       "text": "Protective Ward",
       "tags": ["chip", "character", "brown"],
       "asset": "polygon:7:teal",
-      "tooltip": "Ongoing: nobody may combine without discarding a Puzzle chip first. The tax is not built; the action it gives back is.",
+      "tooltip": "+1 blue action. Ongoing: nobody may combine without discarding a Puzzle chip first. The tax is not built; the action it gives back is.",
       "play": {
         "phases": ["action"],
         "cost": { "acts@mine.player": 1 },
@@ -989,6 +1001,250 @@
       }
     },
     {
+      "key": "reversal",
+      "text": "Reversal",
+      "tags": ["chip", "character", "purple"],
+      "asset": "circle:navy",
+      "tooltip": "Main: two chips. Reaction: play this as a Crash Gem to counter gems sent to you — the reaction needs playing out of turn, which is not built.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["draw_from:mine.bag:mine.hand:2", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "martial_mastery",
+      "text": "Martial Mastery",
+      "tags": ["chip", "character", "brown"],
+      "asset": "polygon:7:navy",
+      "tooltip": "Trash a non-purple chip from your hand then gain a chip costing exactly 2 more. Comparing two chips' prices is not built, so this trashes and gives the action back.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "target": { "type": "card", "tags": ["chip"], "zones": ["hand"], "count": 1, "owner": "anyone" },
+        "action": ["move_target_to:void", "stat_gain:acts@mine.player:1", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "versatile_style",
+      "text": "Versatile Style",
+      "tags": ["chip", "character", "brown"],
+      "asset": "polygon:7:navy",
+      "tooltip": "Choose one: an action and a buy, or two gem power, or two chips.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["options:vs_tempo,vs_money,vs_chips", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "stone_wall",
+      "text": "Stone Wall",
+      "tags": ["chip", "character", "purple"],
+      "asset": "circle:ash",
+      "tooltip": "Main: a chip and a buy. Reaction: reflect any gems sent to a player back to the bank — the reaction needs playing out of turn, which is not built.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["draw_from:mine.bag:mine.hand:1", "stat_gain:buys@mine.player:1", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "big_rocks",
+      "text": "Big Rocks",
+      "tags": ["chip", "character", "brown"],
+      "asset": "polygon:7:ash",
+      "tooltip": "Trash a gem out of your hand and take one worth a point more straight back into it.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "target": {
+          "type": "card",
+          "tags": ["upgradable"],
+          "zones": ["hand"],
+          "count": 1,
+          "owner": "anyone"
+        },
+        "action": [
+          "stat_set:combined@mine.player:sum:value@target",
+          "move_target_to:void",
+          "activate_zone:rules_upgrade_hand",
+          "move_to:mine.table"
+        ]
+      }
+    },
+    {
+      "key": "strength_of_earth",
+      "text": "Strength of Earth",
+      "tags": ["chip", "character", "purple"],
+      "asset": "polygon:7:ash",
+      "tooltip": "Combine a 1-gem out of the bank with a gem already in your pile — which makes your pile heavier, and is the point: bigger gems crash harder.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "target": {
+          "type": "card",
+          "tags": ["upgradable"],
+          "zones": ["gem_pile"],
+          "owner": "anyone",
+          "count": 1
+        },
+        "action": [
+          "stat_set:combined@mine.player:sum:value@target",
+          "move_target_to:void",
+          "activate_zone:rules_upgrade_pile",
+          "stat_damage:stock@stack_gem_1:1",
+          "stat_gain:acts@mine.player:1",
+          "move_to:mine.table"
+        ]
+      }
+    },
+    {
+      "key": "pilebunker",
+      "text": "Pilebunker",
+      "tags": ["chip", "character", "red"],
+      "asset": "polygon:7:pink",
+      "tooltip": "A chip. Printed: opponents reveal their hands, trash their largest gem, then gain that many 1-gems — reading somebody else's hand is not built.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["draw_from:mine.bag:mine.hand:1", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "no_more_lies",
+      "text": "No More Lies",
+      "tags": ["chip", "character", "red"],
+      "asset": "polygon:7:pink",
+      "tooltip": "Trash up to two chips out of your hand. Character chips cannot be trashed.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "target": {
+          "type": "card",
+          "tags": ["trashable"],
+          "zones": ["hand"],
+          "count": 1,
+          "owner": "anyone",
+          "min": 0,
+          "max": 2
+        },
+        "action": ["move_target_to:void", "stat_gain:acts@mine.player:1", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "troublesome_rhetoric",
+      "text": "Troublesome Rhetoric",
+      "tags": ["chip", "character", "brown"],
+      "asset": "polygon:7:pink",
+      "tooltip": "Your opponent chooses which of the two you get: an action and a chip, or two gem power and a buy. Nothing makes them press the button — at one screen, hand it over.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["options:tr_tempo,tr_money", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "burst_of_speed",
+      "text": "Burst of Speed",
+      "tags": ["chip", "character", "brown"],
+      "asset": "polygon:7:cyan",
+      "tooltip": "Trash this chip and take another whole turn after this one.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["stat_gain:extra@mine.player:1", "move_to:void"]
+      }
+    },
+    {
+      "key": "chromatic_orb",
+      "text": "Chromatic Orb",
+      "tags": ["chip", "character", "purple"],
+      "asset": "circle:cyan",
+      "tooltip": "A chip, and a 1-gem out of your pile and into theirs.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "target": {
+          "type": "card",
+          "tags": ["gem_1"],
+          "zones": ["gem_pile"],
+          "owner": "anyone",
+          "count": 1
+        },
+        "action": [
+          "draw_from:mine.bag:mine.hand:1",
+          "stat_set:crashed@mine.player:sum:value@target",
+          "move_target_to:void",
+          "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
+          "stat_damage:stock@stack_gem_1:sum:crashed@mine.player",
+          "stat_gain:money@mine.player:0",
+          "move_to:mine.table"
+        ]
+      }
+    },
+    {
+      "key": "creative_thoughts",
+      "text": "Creative Thoughts",
+      "tags": ["chip", "character", "brown"],
+      "asset": "polygon:7:cyan",
+      "tooltip": "Any different two of: an action, a buy, a gem power, a chip.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["options:ct_ab,ct_am,ct_ac,ct_bm,ct_bc,ct_mc", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "research_development",
+      "text": "Research & Development",
+      "tags": ["chip", "character", "brown"],
+      "asset": "polygon:7:yellow",
+      "tooltip": "Printed: exchange a chip in your hand with a purple from your bag. Searching a shaken bag is not built, so this gives the action back and nothing else.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["stat_gain:acts@mine.player:1", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "future_sight",
+      "text": "Future Sight",
+      "tags": ["chip", "character", "brown"],
+      "asset": "polygon:7:yellow",
+      "tooltip": "Two chips, then put up to two out of your hand back on the bag. Which order they go back in is not yours to say here.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "target": {
+          "type": "card",
+          "tags": ["chip"],
+          "zones": ["hand"],
+          "count": 1,
+          "owner": "anyone",
+          "min": 0,
+          "max": 2
+        },
+        "action": ["draw_from:mine.bag:mine.hand:2", "move_target_to:mine.bag", "move_to:mine.table"]
+      }
+    },
+    {
+      "key": "its_time_for_the_past",
+      "text": "It's Time for the Past",
+      "tags": ["chip", "character", "brown"],
+      "asset": "polygon:7:yellow",
+      "tooltip": "Take the top chip of your discard pile back into your hand. Printed, you may choose which — a pile is reached from the top, so this takes the last one you threw away.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": [
+          "stat_gain:acts@mine.player:1",
+          "draw_from:mine.discard:mine.hand:1",
+          "move_to:mine.table"
+        ]
+      }
+    },
+    {
       "key": "living_on_the_edge",
       "text": "Living on the Edge",
       "tags": ["chip", "character", "brown"],
@@ -1026,11 +1282,88 @@
       }
     },
     {
+      "key": "vs_tempo",
+      "text": "An action and a buy",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:acts@mine.player:1", "stat_gain:buys@mine.player:1"] }
+    },
+    {
+      "key": "vs_money",
+      "text": "Two gem power",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:money@mine.player:2"] }
+    },
+    {
+      "key": "vs_chips",
+      "text": "Two chips",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["draw_from:mine.bag:mine.hand:2"] }
+    },
+    {
+      "key": "tr_tempo",
+      "text": "An action and a chip",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:acts@mine.player:1", "draw_from:mine.bag:mine.hand:1"] }
+    },
+    {
+      "key": "tr_money",
+      "text": "Two gem power and a buy",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:money@mine.player:2", "stat_gain:buys@mine.player:1"] }
+    },
+    {
+      "key": "ct_ab",
+      "text": "An action and a buy",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:acts@mine.player:1", "stat_gain:buys@mine.player:1"] }
+    },
+    {
+      "key": "ct_am",
+      "text": "An action and a gem power",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:acts@mine.player:1", "stat_gain:money@mine.player:1"] }
+    },
+    {
+      "key": "ct_ac",
+      "text": "An action and a chip",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:acts@mine.player:1", "draw_from:mine.bag:mine.hand:1"] }
+    },
+    {
+      "key": "ct_bm",
+      "text": "A buy and a gem power",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:buys@mine.player:1", "stat_gain:money@mine.player:1"] }
+    },
+    {
+      "key": "ct_bc",
+      "text": "A buy and a chip",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:buys@mine.player:1", "draw_from:mine.bag:mine.hand:1"] }
+    },
+    {
+      "key": "ct_mc",
+      "text": "A gem power and a chip",
+      "tags": ["token", "immutable"],
+      "asset": "square:slate",
+      "play": { "action": ["stat_gain:money@mine.player:1", "draw_from:mine.bag:mine.hand:1"] }
+    },
+    {
       "key": "char_argagarg",
       "text": "Argagarg",
       "tags": ["character_card", "immutable"],
       "asset": "star:6:teal",
-      "tooltip": "Defensive disruption: wounds that clog an opponent's bag, and a ward that taxes every combine at the table.",
+      "tooltip": "Defensive disruption: wounds that clog an opponent's bag, and a ward that taxes the whole table.",
       "play": {
         "action": [
           "fill:mine.bag:hex_of_murkwood:1",
@@ -1110,12 +1443,112 @@
       "text": "Lum",
       "tags": ["character_card", "immutable"],
       "asset": "star:6:white",
-      "tooltip": "A gambler who is happiest near the edge — the fuller your gem pile, the more you draw.",
+      "tooltip": "A gambler happiest near the edge — the fuller your gem pile, the more you draw.",
       "play": {
         "action": [
           "fill:mine.bag:living_on_the_edge:1",
           "fill:mine.bag:pandas_bargain:1",
           "fill:mine.bag:jackpot:1",
+          "fill:mine.bag:crash_gem:1",
+          "fill:mine.bag:gem_1:6",
+          "stat_damage:stock@stack_crash_gem:1",
+          "stat_damage:stock@stack_gem_1:6",
+          "set_owner:self:mine",
+          "move_to:mine.ongoing"
+        ]
+      }
+    },
+    {
+      "key": "char_grave",
+      "text": "Grave",
+      "tags": ["character_card", "immutable"],
+      "asset": "star:6:navy",
+      "tooltip": "A generalist who takes whatever the turn needs, and answers a crash with a crash.",
+      "play": {
+        "action": [
+          "fill:mine.bag:reversal:1",
+          "fill:mine.bag:martial_mastery:1",
+          "fill:mine.bag:versatile_style:1",
+          "fill:mine.bag:crash_gem:1",
+          "fill:mine.bag:gem_1:6",
+          "stat_damage:stock@stack_crash_gem:1",
+          "stat_damage:stock@stack_gem_1:6",
+          "set_owner:self:mine",
+          "move_to:mine.ongoing"
+        ]
+      }
+    },
+    {
+      "key": "char_rook",
+      "text": "Rook",
+      "tags": ["character_card", "immutable"],
+      "asset": "star:6:ash",
+      "tooltip": "Stone: turn small gems into big ones and hand the incoming ones straight back.",
+      "play": {
+        "action": [
+          "fill:mine.bag:stone_wall:1",
+          "fill:mine.bag:big_rocks:1",
+          "fill:mine.bag:strength_of_earth:1",
+          "fill:mine.bag:crash_gem:1",
+          "fill:mine.bag:gem_1:6",
+          "stat_damage:stock@stack_crash_gem:1",
+          "stat_damage:stock@stack_gem_1:6",
+          "set_owner:self:mine",
+          "move_to:mine.ongoing"
+        ]
+      }
+    },
+    {
+      "key": "char_degrey",
+      "text": "DeGrey",
+      "tags": ["character_card", "immutable"],
+      "asset": "star:6:pink",
+      "tooltip": "A talker: thin your own deck, make the other player answer questions, and take what falls out.",
+      "play": {
+        "action": [
+          "fill:mine.bag:pilebunker:1",
+          "fill:mine.bag:no_more_lies:1",
+          "fill:mine.bag:troublesome_rhetoric:1",
+          "fill:mine.bag:crash_gem:1",
+          "fill:mine.bag:gem_1:6",
+          "stat_damage:stock@stack_crash_gem:1",
+          "stat_damage:stock@stack_gem_1:6",
+          "set_owner:self:mine",
+          "move_to:mine.ongoing"
+        ]
+      }
+    },
+    {
+      "key": "char_valerie",
+      "text": "Valerie",
+      "tags": ["character_card", "immutable"],
+      "asset": "star:6:cyan",
+      "tooltip": "A painter of options — every chip is a choice, and one of them is another whole turn.",
+      "play": {
+        "action": [
+          "fill:mine.bag:burst_of_speed:1",
+          "fill:mine.bag:chromatic_orb:1",
+          "fill:mine.bag:creative_thoughts:1",
+          "fill:mine.bag:crash_gem:1",
+          "fill:mine.bag:gem_1:6",
+          "stat_damage:stock@stack_crash_gem:1",
+          "stat_damage:stock@stack_gem_1:6",
+          "set_owner:self:mine",
+          "move_to:mine.ongoing"
+        ]
+      }
+    },
+    {
+      "key": "char_geiger",
+      "text": "Geiger",
+      "tags": ["character_card", "immutable"],
+      "asset": "star:6:yellow",
+      "tooltip": "Time: put the chips you want back where you will draw them, and pull the ones you need out of the past.",
+      "play": {
+        "action": [
+          "fill:mine.bag:research_development:1",
+          "fill:mine.bag:future_sight:1",
+          "fill:mine.bag:its_time_for_the_past:1",
           "fill:mine.bag:crash_gem:1",
           "fill:mine.bag:gem_1:6",
           "stat_damage:stock@stack_crash_gem:1",
@@ -1256,6 +1689,84 @@
       ]
     },
     {
+      "key": "uph_2",
+      "text": "uph_2",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "uph_2",
+          "text": "uph_2",
+          "when": ["combined@mine.player == 1"],
+          "action": ["fill:mine.hand:gem_2:1", "stat_damage:stock@stack_gem_2:1"]
+        }
+      ]
+    },
+    {
+      "key": "uph_3",
+      "text": "uph_3",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "uph_3",
+          "text": "uph_3",
+          "when": ["combined@mine.player == 2"],
+          "action": ["fill:mine.hand:gem_3:1", "stat_damage:stock@stack_gem_3:1"]
+        }
+      ]
+    },
+    {
+      "key": "uph_4",
+      "text": "uph_4",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "uph_4",
+          "text": "uph_4",
+          "when": ["combined@mine.player == 3"],
+          "action": ["fill:mine.hand:gem_4:1", "stat_damage:stock@stack_gem_4:1"]
+        }
+      ]
+    },
+    {
+      "key": "upp_2",
+      "text": "upp_2",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "upp_2",
+          "text": "upp_2",
+          "when": ["combined@mine.player == 1"],
+          "action": ["fill:mine.gem_pile:gem_2:1", "stat_damage:stock@stack_gem_2:1"]
+        }
+      ]
+    },
+    {
+      "key": "upp_3",
+      "text": "upp_3",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "upp_3",
+          "text": "upp_3",
+          "when": ["combined@mine.player == 2"],
+          "action": ["fill:mine.gem_pile:gem_3:1", "stat_damage:stock@stack_gem_3:1"]
+        }
+      ]
+    },
+    {
+      "key": "upp_4",
+      "text": "upp_4",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "upp_4",
+          "text": "upp_4",
+          "when": ["combined@mine.player == 3"],
+          "action": ["fill:mine.gem_pile:gem_4:1", "stat_damage:stock@stack_gem_4:1"]
+        }
+      ]
+    },
+    {
       "key": "height_3",
       "text": "height_3",
       "tags": ["immutable"],
@@ -1323,6 +1834,11 @@
       { "card": "char_midori", "zone": "roster" },
       { "card": "char_setsuki", "zone": "roster" },
       { "card": "char_lum", "zone": "roster" },
+      { "card": "char_grave", "zone": "roster" },
+      { "card": "char_rook", "zone": "roster" },
+      { "card": "char_degrey", "zone": "roster" },
+      { "card": "char_valerie", "zone": "roster" },
+      { "card": "char_geiger", "zone": "roster" },
       { "card": "ante_1", "zone": "rules_ante" },
       { "card": "ante_2", "zone": "rules_ante" },
       { "card": "ante_3", "zone": "rules_ante" },
@@ -1333,6 +1849,12 @@
       { "card": "up_2", "zone": "rules_upgrade" },
       { "card": "up_3", "zone": "rules_upgrade" },
       { "card": "up_4", "zone": "rules_upgrade" },
+      { "card": "uph_2", "zone": "rules_upgrade_hand" },
+      { "card": "uph_3", "zone": "rules_upgrade_hand" },
+      { "card": "uph_4", "zone": "rules_upgrade_hand" },
+      { "card": "upp_2", "zone": "rules_upgrade_pile" },
+      { "card": "upp_3", "zone": "rules_upgrade_pile" },
+      { "card": "upp_4", "zone": "rules_upgrade_pile" },
       { "card": "height_3", "zone": "rules_height" },
       { "card": "height_6", "zone": "rules_height" },
       { "card": "height_9", "zone": "rules_height" }

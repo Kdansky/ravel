@@ -70,7 +70,7 @@ end
 -- different one.
 function M.test_puzzle_strike_a_character_is_picked_before_a_deck_exists(check)
 	flow.init("puzzle_strike.json", 7)
-	check("the roster offers every character whose chips are known", count_in("roster") == 5,
+	check("the roster offers all ten base characters", count_in("roster") == 10,
 		tostring(count_in("roster")))
 	check("and nobody has a bag yet", count_in("bag", "north") == 0 and count_in("bag", "south") == 0)
 
@@ -297,6 +297,54 @@ function M.test_puzzle_strike_the_ante_grows_as_the_bank_runs_dry(check)
 	flow.activate(loose("end_turn").id, {})
 	check("so the next seat antes a 2-gem", count_in("gem_pile", "south", "gem_2") == 1,
 		table.concat(keys_in("gem_pile", "south"), " "))
+end
+
+-- "Choose one" is an offer and a card per branch, which is the same mechanism
+-- chess promotes a pawn with. Six cards for "any different two of four" is the
+-- exhaustive set, and cheaper to read than two questions in a row.
+function M.test_puzzle_strike_a_choice_is_an_offer_of_its_branches(check)
+	opening(7)
+	actions.run({ "fill:mine.hand:versatile_style:1" }, {})
+	flow.play_card(find_in("hand", "versatile_style", "north").id, {})
+	check("the offer is open", phase.current().type == "overlay", phase.current().key)
+	check("with a card for each branch", count_in("options") == 3,
+		table.concat(keys_in("options"), " "))
+	local before = seat_card("north").stats.money or 0
+	flow.play_card(find_in("options", "vs_money").id, {})
+	check("taking the money branch pays two", (seat_card("north").stats.money or 0) == before + 2)
+	check("and the offer is swept", count_in("options") == 0)
+end
+
+-- An extra turn is one flag read at the handover, and the route overrules the
+-- phase about the seat — which is the whole of "again, same player".
+function M.test_puzzle_strike_an_extra_turn_keeps_the_same_seat(check)
+	opening(7)
+	actions.run({ "fill:mine.hand:burst_of_speed:1" }, {})
+	flow.play_card(find_in("hand", "burst_of_speed", "north").id, {})
+	check("the chip is gone rather than played to the table",
+		find_in("table", "burst_of_speed", "north") == nil)
+	flow.activate(loose("done_acting").id, {})
+	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("end_turn").id, {})
+	check("the same seat is up again", zones.active_seat() == "north")
+	check("with a second ante in the pile", count_in("gem_pile", "north") == 2,
+		table.concat(keys_in("gem_pile", "north"), " "))
+	flow.activate(loose("done_acting").id, {})
+	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("end_turn").id, {})
+	check("and the turn after that passes normally", zones.active_seat() == "south")
+end
+
+-- A gem one bigger than the one you gave up, asked three times over with three
+-- different places for the answer to land: the discard, the hand, the pile.
+function M.test_puzzle_strike_an_upgrade_lands_where_the_chip_says(check)
+	opening(7)
+	actions.run({ "fill:mine.hand:gem_2:1", "fill:mine.hand:big_rocks:1" }, {})
+	flow.play_card(find_in("hand", "big_rocks", "north").id,
+		{ find_in("hand", "gem_2", "north").id })
+	check("Big Rocks puts the bigger gem in your hand",
+		count_in("hand", "north", "gem_3") == 1, table.concat(keys_in("hand", "north"), " "))
+	check("and the one it ate is gone", count_in("hand", "north", "gem_2") == 0)
 end
 
 return M

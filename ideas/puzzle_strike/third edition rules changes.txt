@@ -1,0 +1,42 @@
+1st edition was a wooden box. You probably have 2nd Edition. The extra chips you have are the "upgrade pack" that re-balanced a few things, but are still part of 2nd Edition. Going from 2nd to 3rd is where you'll see all the rules changes.
+Here's the document I received from Sirlin, back when 3rd Edition+Shadows was up on Kickstarter:
+
+Puzzle Strike changes to the base game since 2nd edition (Upgrade Pack), version 3.2 (Mar 4, 2012) Chip text with emphasis is otherwise the same as the printed chip. Chip text without emphasis is completely different, so the entire chip is given. Wording changes to make chips work with new global rules or new multiplayer modes, which do not change the effect, are (in parentheses).
+Global rules
+
+    Character chips are not trashable.
+    Panic/Danger/Deadly Time: X is the number of players. When the number of empty bank stacks equals X, ante 2-gems instead of 1-gems. When it equals X+1, ante 3-gems instead. When it equals X+2, ante 4-gems instead. Empty stacks refilling does not revert the ante.
+    3 and 4-player: You may crash to anyone. When someone is crashed to, each person gets a chance to react in turn order starting with the person crashed to, effectively counter-crashing for them. Counter-crashed gems come from the reacter's gem pile. Other people's crashes do not give you money. When someone is eliminated, the person with the lowerst gem pile immediately wins. If there is a tie for lowest, the tied players continue one more round and check again. If you would send gems while your pile totals 10 or more, instead the gems float and wait until either your pile is 9 or less (at which point they really get sent) or end of turn (at which point they are destroyed and you lose the game.)
+
+Purples
+
+    Combine - -$1
+
+Puzzle Chips
+
+    Combinatorics - Purple Banner. +brown Ongoing: Whenever you play a Combine, you may Combine again and -$1. Discard when your gem pile totals 5 or less.
+    Combos Are Hard - ...chips from the bank, end your action phase, then trash this chip. ** Combo Practice - Now called Chip Damage +red You may put a chip...
+    Dashing Strike - ...(chosen opponent)...
+    Gems to Gemonade - Cost 4. Main: +chipchip Reaction: Negate up to three gems sent to a player. He gets +$1 for each one during his next buy phase.
+    Iron Defense - Cost 4. ...You may play it later as if from your hand.
+    Knockdown - +purple Chosen opponent discards a chip and can't play purple shield reactions this turn.
+    Mix Master - Red/Purple Banner (Split the largest gem in each opposing gem pile into that many 1-gems), then combine two gems in your gem pile.
+    One of Each - Cost 5.
+    One-Two Punch - Cost 4.
+    Really Annoying - Each opponent gains a wound. Reaction: The player who red fist attacked you gains a wound.
+    Secret Move - Cost 1. +black
+    Sneak Attack - +red (Ante a 1-gem into each opposing gem pile)
+    Stolen Purples - Chosen opponent reveals his hand... ** Thinking Ahead - Cost 2. Main: +$1 You may put any chips you buy this turn on top of your bag. Reaction: Trash this chip to become immune to a red fist chip.
+    Training Day - Trash a non-purple orb chip from your hand, then put a bank chip costing up to two more than the trashed chip into your hand.
+
+Character Chips
+
+    Burning Vigor - Trash a wound from your hand or discard pile. If you do, +black and (ante a 1-gem into each opposing gem pile).
+    Playing with Fire - Ante a 1-gem. +brown +red +chip
+    Purge Bad Habits - Trash a chip from your hand. Put a 2-gem from the bank into your hand.
+    Dragon Form - Ongoing: Each ante phase, ante a (gem of 1 higher than the usual) or discard this chip. Your purple orbs cannot by purple shield reacted to. You can't buy purple orbs.
+    Stone Wall - ...Reaction: Reflect any gems sent to a player to the bank.
+    Troublesome Rhetoric - (Chosen opponent)...
+    No More Lies - ...(up to two chips)...
+    Jackpot - Reveal two chips at random from (chosen) opponent's hand. If any are gem, +$1 +black. If both are purple orb, play and gain a purple orb from the bank.
+    Protective Ward - +blue Ongoing: Player's can't combine gems unless they discard a puzzle first. Discard this at the end of your next action phase. ** Hex of Murkwood - +blue Each opponent gains a wound or discards two wounds.
