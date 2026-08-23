@@ -426,6 +426,23 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "stat_gain:hp:lots" } end },
 	{ "a misspelled factor in a product", "multiplies by 'lots', which is not an amount",
 		function(g) g.card_defs.c_flee.on_play = { "stat_gain:hp:2:x:lots" } end },
+	-- A substitution that names nothing, and one the payment planner could get
+	-- wrong: two pools each paying for something the other does not while
+	-- sharing something, which is where "most constrained first" stops being
+	-- exact. Refused at the door rather than discovered at the table.
+	{ "a pays_for naming no stat", "pays_for names 'manna', which is not a stat",
+		function(g) g.stat_defs.hp.pays_for = { "manna" } end },
+	{ "two substitutions that overlap without nesting", "pay for some of the same things",
+		function(g)
+			g.stat_defs.a = { key = "a" }
+			g.stat_defs.b = { key = "b" }
+			g.stat_defs.c = { key = "c" }
+			g.stat_defs.ab = { key = "ab", pays_for = { "a", "b" } }
+			g.stat_defs.bc = { key = "bc", pays_for = { "b", "c" } }
+			for _, k in ipairs({ "a", "b", "c", "ab", "bc" }) do
+				g.stat_defs_list[#g.stat_defs_list + 1] = k
+			end
+		end },
 }
 
 function M.test_validator_names_every_problem_it_knows(check)

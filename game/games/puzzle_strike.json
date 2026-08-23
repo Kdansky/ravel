@@ -30,7 +30,8 @@
       "label": "Actions",
       "icon": "arrow",
       "subject": "acts@mine.player",
-      "color": "silver"
+      "color": "silver",
+      "pays_for": ["act_brown", "act_red", "act_blue", "act_purple"]
     },
     {
       "key": "act_brown",
@@ -681,7 +682,7 @@
       "tooltip": "Combine two gems in your gem pile into one, if the total is 4 or less. −$1. +1 action",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_purple@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_purple@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["gem"],
@@ -713,7 +714,7 @@
       "tooltip": "Break one gem in your gem pile and send that many 1-gems to a chosen opponent. +$1",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_purple@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_purple@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["gem"],
@@ -740,7 +741,7 @@
       "tooltip": "As Crash Gem, up to two gems. +$2",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_purple@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_purple@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["gem"],
@@ -775,7 +776,7 @@
       "tooltip": "Put a gem from your hand into your gem pile. If you do, gain a gem of 1 higher value and +$3.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["upgradable"],
@@ -801,7 +802,7 @@
       "tooltip": "Main: Each opponent gains a wound. Reaction: The player who red-attacked you gains a wound.\n\nDEV: the reaction half needs a chip played out of turn, which the engine refuses. Only the main half is built.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_red@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_red@mine.player": 1 },
         "action": ["fill:enemy.discard:wound:1", "stat_damage:stock@stack_wound:1", "move_to:mine.table"]
       },
       "card_stats": { "hits": 1, "react": 1 }
@@ -814,7 +815,7 @@
       "tooltip": "+3 chips",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["draw_from:mine.bag:mine.hand:3", "move_to:mine.table"]
       },
       "card_stats": { "plus_draw": 3 }
@@ -827,7 +828,7 @@
       "tooltip": "+4 actions. Gain a wound.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": [
           "stat_gain:acts@mine.player:4",
           "fill:mine.discard:wound:1",
@@ -845,7 +846,7 @@
       "tooltip": "+1 red action. Ante a 1-gem into each opposing gem pile.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_red@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_red@mine.player": 1 },
         "action": [
           "stat_gain:act_red@mine.player:1",
           "fill:enemy.gem_pile:gem_1:1",
@@ -863,7 +864,7 @@
       "tooltip": "Trash a gem from your hand. If you do, +1 brown action, +1 purple action, +1 red action, +1 blue action.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["gem"], "zones": ["hand"], "count": 1, "owner": "anyone" },
         "action": [
           "move_target_to:void",
@@ -884,7 +885,7 @@
       "tooltip": "+2 actions",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["stat_gain:acts@mine.player:2", "move_to:mine.table"]
       },
       "card_stats": { "plus_act": 2 }
@@ -897,7 +898,7 @@
       "tooltip": "+1 action, piggy bank, +$1, +1 chip",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": [
           "stat_gain:acts@mine.player:1",
           "stat_gain:piggy@mine.player:1",
@@ -916,7 +917,7 @@
       "tooltip": "+1 action, +2 chips",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["stat_gain:acts@mine.player:1", "draw_from:mine.bag:mine.hand:2", "move_to:mine.table"]
       },
       "card_stats": { "plus_act": 1, "plus_draw": 2 }
@@ -929,7 +930,7 @@
       "tooltip": "Put a 1-gem from your hand in your gem pile. If you do, +4 chips, +1 action.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["gem_1"], "zones": ["hand"], "count": 1, "owner": "anyone" },
         "action": [
           "move_target_to:mine.gem_pile",
@@ -948,7 +949,7 @@
       "tooltip": "+1 blue action. Each opponent gains a wound or discards two wounds.\n\nDEV: which of the two is the opponent's choice and there is no way to ask them yet, so they gain one.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_red@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_red@mine.player": 1 },
         "action": [
           "stat_gain:act_blue@mine.player:1",
           "fill:enemy.discard:wound:1",
@@ -966,7 +967,7 @@
       "tooltip": "Ongoing: Negate a gem sent to you, then discard this chip. Reaction: Become immune to a red chip.\n\nDEV: both halves are reactions, which need a chip played out of turn. Laying it out says you have it and nothing more.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_blue@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_blue@mine.player": 1 },
         "action": ["move_to:mine.ongoing"]
       },
       "card_stats": { "react": 1 }
@@ -979,7 +980,7 @@
       "tooltip": "+1 blue action. Ongoing: Players can't combine gems unless they discard a Puzzle chip first. Discard this at the end of your next action phase.\n\nDEV: the tax on combining is not built; the action it gives is.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["stat_gain:act_blue@mine.player:1", "move_to:mine.ongoing"]
       },
       "card_stats": { "plus_act": 1 }
@@ -992,7 +993,7 @@
       "tooltip": "Ante a 1-gem. +1 brown action, +1 red action, +1 chip.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": [
           "fill:mine.gem_pile:gem_1:1",
           "stat_damage:stock@stack_gem_1:1",
@@ -1012,7 +1013,7 @@
       "tooltip": "Trash a wound from your hand or discard pile. If you do, +1 action and ante a 1-gem into each opposing gem pile.\n\nDEV: only a wound in hand can be trashed — a pile is reached from the top.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_red@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_red@mine.player": 1 },
         "target": { "type": "card", "tags": ["wound"], "zones": ["hand"], "count": 1, "owner": "anyone" },
         "action": [
           "move_target_to:void",
@@ -1032,7 +1033,7 @@
       "tooltip": "Main or Reaction: Play this as if it were a Double Crash Gem, then gain two wounds.\n\nDEV: the reaction half needs a chip played out of turn, which the engine refuses.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_purple@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_purple@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["gem"],
@@ -1065,7 +1066,7 @@
       "abilities": [{ "key": "upkeep", "text": "Dragon Form", "action": ["stat_gain:panic@clock:1"] }],
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["move_to:mine.ongoing"]
       }
     },
@@ -1077,7 +1078,7 @@
       "tooltip": "Reaction: When an opponent buys a 4-cost or more chip, trash a non-purple chip from your hand then gain a chip costing up to 2 more than the trashed chip.\n\nDEV: reactions are not built.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_blue@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_blue@mine.player": 1 },
         "action": ["move_to:mine.ongoing"]
       },
       "card_stats": { "react": 1 }
@@ -1090,7 +1091,7 @@
       "tooltip": "Trash a chip from your hand. Put a 2-gem from the bank into your hand. (Character chips can't be trashed.)",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["trashable"],
@@ -1114,7 +1115,7 @@
       "tooltip": "Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.\n\nDEV: playing a chip twice is not built; this gives two actions instead.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["stat_gain:acts@mine.player:2", "move_to:mine.table"]
       },
       "card_stats": { "plus_act": 2 }
@@ -1127,7 +1128,7 @@
       "tooltip": "+1 brown action, piggy bank, +1 chip",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": [
           "stat_gain:act_brown@mine.player:1",
           "stat_gain:piggy@mine.player:1",
@@ -1145,7 +1146,7 @@
       "tooltip": "+2 brown actions, +1 chip",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": [
           "stat_gain:act_brown@mine.player:2",
           "draw_from:mine.bag:mine.hand:1",
@@ -1162,7 +1163,7 @@
       "tooltip": "Main: +2 chips. Reaction: Play this as a Crash Gem to counter gems sent to you.\n\nDEV: the reaction needs a chip played out of turn, which the engine refuses.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_purple@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_purple@mine.player": 1 },
         "action": ["draw_from:mine.bag:mine.hand:2", "move_to:mine.table"]
       },
       "card_stats": { "plus_draw": 2, "react": 1 }
@@ -1175,7 +1176,7 @@
       "tooltip": "+1 action. Trash a non-purple chip from your hand then gain a chip costing exactly 2 more.\n\nDEV: comparing two chips' prices is not built, so this trashes and gives the action.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["chip"], "zones": ["hand"], "count": 1, "owner": "anyone" },
         "action": ["move_target_to:void", "stat_gain:acts@mine.player:1", "move_to:mine.table"]
       },
@@ -1189,7 +1190,7 @@
       "tooltip": "Choose one: +1 action and piggy bank — or — +$2 — or — +2 chips.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["options:vs_tempo,vs_money,vs_chips", "move_to:mine.table"]
       }
     },
@@ -1201,7 +1202,7 @@
       "tooltip": "Main: +1 chip, piggy bank. Reaction: Reflect any gems sent to a player to the bank. (Just trash them.)\n\nDEV: the reaction needs a chip played out of turn, which the engine refuses.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_purple@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_purple@mine.player": 1 },
         "action": [
           "draw_from:mine.bag:mine.hand:1",
           "stat_gain:piggy@mine.player:1",
@@ -1218,7 +1219,7 @@
       "tooltip": "Trash a gem from your hand, then take a gem of 1 higher value and put it in your hand.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["upgradable"],
@@ -1242,7 +1243,7 @@
       "tooltip": "+1 brown action. Combine a 1-gem from the bank with a gem in your gem pile.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_purple@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_purple@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["upgradable"],
@@ -1268,7 +1269,7 @@
       "asset": "polygon:7:pink",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_red@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_red@mine.player": 1 },
         "action": ["draw_from:mine.bag:mine.hand:1", "show:enemy.hand:optional", "move_to:mine.table"]
       },
       "chosen": {
@@ -1290,7 +1291,7 @@
       "tooltip": "+1 red action. Trash up to two chips from your hand. (Character chips can't be trashed.)",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_red@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_red@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["trashable"],
@@ -1312,7 +1313,7 @@
       "tooltip": "Chosen opponent chooses your benefit: +1 action and +1 chip — OR — +$2 and piggy bank.\n\nDEV: nothing makes the opponent press the button — at one screen, hand it over.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["options:tr_tempo,tr_money", "move_to:mine.table"]
       }
     },
@@ -1324,7 +1325,7 @@
       "tooltip": "Trash this chip, then take an extra turn after this one.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["stat_gain:extra@mine.player:1", "move_to:void"]
       }
     },
@@ -1336,7 +1337,7 @@
       "tooltip": "+1 chip. Crash a 1-gem in your gem pile.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_purple@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_purple@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["gem_1"],
@@ -1364,7 +1365,7 @@
       "tooltip": "Choose any different two: +1 action / piggy bank / +$1 / +1 chip.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["options:ct_ab,ct_am,ct_ac,ct_bm,ct_bc,ct_mc", "move_to:mine.table"]
       }
     },
@@ -1376,7 +1377,7 @@
       "tooltip": "+1 action. Exchange a chip in your hand with a purple from your bag.\n\nDEV: searching a shaken bag is not built, so this gives the action and nothing else.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["stat_gain:acts@mine.player:1", "move_to:mine.table"]
       },
       "card_stats": { "plus_act": 1 }
@@ -1389,7 +1390,7 @@
       "tooltip": "+2 chips. Put two chips from your hand on top of your bag in any order.\n\nDEV: which order they go back in is not yours to say here.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "target": {
           "type": "card",
           "tags": ["chip"],
@@ -1411,7 +1412,7 @@
       "tooltip": "+1 action. Put a non-Puzzle chip from your discard pile into your hand.\n\nDEV: a pile is reached from the top, so this takes the last chip you threw away.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": [
           "stat_gain:acts@mine.player:1",
           "draw_from:mine.discard:mine.hand:1",
@@ -1428,7 +1429,7 @@
       "tooltip": "If your gem pile totals at least 10, +3 chips, +1 action.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "needs": ["sum:value@mine.gem_pile >= 10"],
         "action": ["draw_from:mine.bag:mine.hand:3", "stat_gain:acts@mine.player:1", "move_to:mine.table"]
       },
@@ -1442,7 +1443,7 @@
       "tooltip": "Ongoing: At the end of any turn you bought a Puzzle chip, +1 chip. Discard this when you buy a purple.\n\nDEV: the condition is not built; laying it out draws the chip once.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["move_to:mine.ongoing"]
       },
       "card_stats": { "plus_draw": 1 }
@@ -1455,7 +1456,7 @@
       "tooltip": "Reveal two chips at random from chosen opponent's hand. If any are gems, +$1 and +1 action. If both are purples, play and gain a purple from the bank.\n\nDEV: a random reveal is not built and neither is the purple clause; this pays the gem half unconditionally.",
       "play": {
         "phases": ["action"],
-        "cost": [{ "act_brown@mine.player": 1 }, { "acts@mine.player": 1 }],
+        "cost": { "act_brown@mine.player": 1 },
         "action": ["stat_gain:money@mine.player:1", "stat_gain:acts@mine.player:1", "move_to:mine.table"]
       },
       "card_stats": { "plus_act": 1, "plus_pow": 1 }

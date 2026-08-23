@@ -520,10 +520,7 @@ local function draw_card_back(pl)
 end
 
 -- Cost badge: one stat icon + number per cost entry, top-left of the card.
--- A cost may be a list of alternatives; the badge shows the first, which is the
--- one the author put first because it is the one they want spent.
 local function draw_cost_badge(pl, cost)
-	if type(cost) == "table" and type(cost[1]) == "table" then cost = cost[1] end
 	local sf   = get_small_font()
 	local ih   = sf:getHeight()
 	local keys = {}

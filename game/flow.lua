@@ -519,19 +519,91 @@ end
 -- ({ "hp@each.follower": 1 } — each follower must have one to give).
 -- Lives here rather than in cards because it reads the live entity graph and
 -- every caller is a legality gate, and because payment is right below it.
--- A cost written as a **list** is a list of alternatives, tried in order: the
--- first one the player can pay is the one they pay. Order is the whole
--- interface — a chip payable with a red arrow or a plain one puts red first, so
--- the restricted pool is spent while it still can be, and the plain one is left
--- for the chip that has no other way to be paid.
+-- **"A plain arrow can be spent as a red one."** The substitution is declared on
+-- the *stat* (`pays_for`), not on the cards that might use it, so a cost stays
+-- one map of what is owed and nothing has to say twice how it may be settled.
 --
--- A map is one cost, which is every cost written before this and most since.
-local function alternatives(cost)
-	if type(cost) ~= "table" or type(cost[1]) ~= "table" then return nil end
-	return cost
+-- Working out which pool pays which part of a cost is a matching, and this is
+-- the greedy that is exact for the shape games have:
+--
+--   **the most constrained demand first** — the one fewest pools can serve;
+--   **and its own stat before any substitute** — a substitute is by definition
+--   the more useful of the two elsewhere.
+--
+-- MTG's "4 generic and 3 red" is the case that needs both halves: against three
+-- red and two blue, spending red on the generic loses a cost that was payable.
+-- Red is served by one pool and generic by five, so red is settled first, out
+-- of red. `validate` refuses a substitution graph this greedy could get wrong —
+-- two pools whose sets overlap without nesting — so what the engine accepts, it
+-- pays correctly.
+local function stat_name(subject)
+	return subject:match("^([^@]+)") or subject
 end
 
-local function one_affordable(cost, ctx)
+local function same_scope(subject, stat)
+	return stat .. (subject:match("^[^@]+(@.*)$") or "")
+end
+
+-- What is owed, and out of which pools, in the order they should be drained.
+-- nil when some part of it cannot be paid.
+local function plan(cost, ctx)
+	local demands = {}
+	for subject, n in pairs(cost or {}) do
+		if subject ~= "exhaust" and not subject:match("^sacrifice:") then
+			local need = tonumber(n) or 0
+			local p    = predicate.parse_subject(subject)
+			-- Only a pool takes part in the matching. "each" asks a different
+			-- question — *every* member paying, not a total — and substituting
+			-- across members would answer neither; a cost the targets pay cannot
+			-- be judged before they are chosen. Both are owed exactly as
+			-- written, and checked the way they always were.
+			if not p or p.quant == "each" or p.fn or predicate.awaits_targets(subject, ctx) then
+				demands[#demands + 1] = { subject = subject, need = need, as_written = true }
+			else
+				local from = { subject }
+				for _, s in ipairs((declaration.G.pays_for_index or {})[stat_name(subject)] or {}) do
+					from[#from + 1] = same_scope(subject, s)
+				end
+				demands[#demands + 1] = { subject = subject, need = need, from = from }
+			end
+		end
+	end
+	-- Fewest pools first; the key breaks ties, so a seeded replay pays the same
+	-- way twice.
+	table.sort(demands, function(a, b)
+		local na, nb = a.from and #a.from or 1, b.from and #b.from or 1
+		if na ~= nb then return na < nb end
+		return a.subject < b.subject
+	end)
+	local left, out = {}, {}
+	for _, d in ipairs(demands) do
+		local owed = d.need
+		if d.as_written then
+			if not predicate.awaits_targets(d.subject, ctx)
+				and not predicate.holds(d.subject .. " >= " .. tostring(owed), ctx) then
+				return nil
+			end
+			out[#out + 1] = { subject = d.subject, n = owed }
+		else
+			for _, src in ipairs(d.from) do
+				if owed <= 0 then break end
+				if left[src] == nil then left[src] = predicate.total(src, ctx) end
+				local take = math.min(owed, left[src])
+				if take > 0 then
+					left[src] = left[src] - take
+					out[#out + 1] = { subject = src, n = take }
+					owed = owed - take
+				end
+			end
+			if owed > 0 then return nil end
+		end
+	end
+	return out
+end
+
+-- The parts of a cost that are not stats and so have no substitutes: a card
+-- spending itself, and a card spending somebody else.
+local function extras_afford(cost, ctx)
 	for subject, n in pairs(cost or {}) do
 		local tag = type(subject) == "string" and subject:match("^sacrifice:(.+)$")
 		-- Tapping, in the MTG sense: the card spends *itself* being ready. A
@@ -545,31 +617,13 @@ local function one_affordable(cost, ctx)
 			if #tags.find_targets({ tag }, { grid = true }) < (tonumber(n) or 0) then
 				return false
 			end
-		elseif not predicate.awaits_targets(subject, ctx)
-			-- A cost is "this subject, at least this much" and nothing else, so
-			-- it says so through the one condition door rather than carrying a
-			-- second comparison of its own. Parsed once per distinct string, and
-			-- the set of them is what the game file spends.
-			and not predicate.holds(subject .. " >= " .. tostring(n), ctx) then
-			return false
 		end
 	end
 	return true
 end
 
--- Which alternative is being paid, or nil when none of them can be. Asked by
--- can_afford and again by pay, so the two cannot disagree about which.
-function M.affordable(cost, ctx)
-	local alts = alternatives(cost)
-	if not alts then return one_affordable(cost, ctx) and (cost or {}) or nil end
-	for _, alt in ipairs(alts) do
-		if one_affordable(alt, ctx) then return alt end
-	end
-	return nil
-end
-
 function M.can_afford(cost, ctx)
-	return M.affordable(cost, ctx) ~= nil
+	return extras_afford(cost, ctx) and plan(cost, ctx) ~= nil
 end
 
 -- Pay a cost: stats are spent through their subject (so a scope and
@@ -578,9 +632,15 @@ end
 -- Keys are walked in sorted order, never pairs: clamping makes payment order
 -- observable, and a seeded replay has to pay identically.
 local function pay(cost, ctx)
-	cost = M.affordable(cost, ctx) or {}
+	-- The same planner can_afford asked, so the two cannot disagree about which
+	-- pool settles which part.
+	for _, step in ipairs(plan(cost, ctx) or {}) do
+		actions.spend(step.subject, step.n, ctx)
+	end
 	local subjects = {}
-	for k in pairs(cost) do subjects[#subjects + 1] = k end
+	for k in pairs(cost or {}) do
+		if k == "exhaust" or k:match("^sacrifice:") then subjects[#subjects + 1] = k end
+	end
 	table.sort(subjects)
 	for _, stat in ipairs(subjects) do
 		local n   = cost[stat]
@@ -597,8 +657,6 @@ local function pay(cost, ctx)
 				log.add("Sacrificed " .. (vdef and vdef.text or victim.def_key))
 				zones.destroy_card(victim.id)
 			end
-		else
-			actions.spend(stat, tonumber(n) or 0, ctx)
 		end
 	end
 end

@@ -65,9 +65,11 @@ BANNER = {"brown": "tan", "red": "red", "blue": "blue", "purple": "magenta"}
 # The four banner colours, plus the one that is not a colour. An arrow is an
 # extra action play; a **black** arrow will pay for any chip, a coloured one
 # only for a chip whose own banner matches it (rules.md §2). So an arrow is a
-# pool on the player card, one per colour, and playing a chip costs one out of
-# its own colour's pool *or* one out of black — in that order, because a red
-# arrow left unspent is a red arrow wasted.
+# pool on the player card, one per colour, and a chip costs one arrow of its own
+# colour — flatly, with no alternative written on it. That the plain arrow will
+# do instead is a fact about the plain arrow, said once where it lives:
+# `acts` declares `pays_for`, and the engine spends the restricted pool first
+# because it is the one that is worth less anywhere else.
 COLOURS = ["brown", "red", "blue", "purple"]
 
 
@@ -79,7 +81,7 @@ def arrow(colour):
 
 
 def act_cost(colour):
-    return [{arrow(colour): 1}, {arrow("black"): 1}]
+    return {arrow(colour): 1}
 
 
 def gem_key(n):
@@ -271,20 +273,20 @@ TEXT = {
 
 
 def by_colour(cards):
-    """Turn every action chip's cost into "an arrow of my colour, or a black one".
+    """A chip costs one arrow of its own banner colour.
 
-    Written here rather than on forty cards, because the colour is already a tag
-    and a cost copied beside it is a cost that drifts. Order is the rule: the
-    restricted pool goes first, so a red arrow is spent while it still can be
-    and the black one is left for the chip that has no other way to be paid."""
+    Nothing here says the plain arrow will do instead — `acts` says that itself,
+    with `pays_for`, once for the whole game. Written here rather than on forty
+    cards because the colour is already a tag, and a cost copied beside it is a
+    cost that drifts."""
     for c in cards:
         play = c.get("play")
         if not isinstance(play, dict) or play.get("cost", {}).get("acts@mine.player") != 1:
             continue
-        rest = {k: v for k, v in play["cost"].items() if k != "acts@mine.player"}
         colour = next((t for t in c.get("tags", []) if t in COLOURS), None)
-        alts = act_cost(colour) if colour else [{arrow("black"): 1}]
-        play["cost"] = [dict(alt, **rest) for alt in alts]
+        if colour:
+            play["cost"] = dict(play["cost"], **act_cost(colour))
+            del play["cost"]["acts@mine.player"]
     return cards
 
 
@@ -417,7 +419,8 @@ def stats():
         # One black arrow a turn, and whatever a chip adds. A coloured arrow is
         # its own pool because it can only pay for its own colour, and a pool
         # that could be spent on anything would not be that.
-        player("acts", "Actions", "arrow", "silver"),
+        dict(player("acts", "Actions", "arrow", "silver"),
+             pays_for=["act_%s" % c for c in COLOURS]),
         player("act_brown", "Brown", "arrow", "tan"),
         player("act_red", "Red", "arrow", "red"),
         player("act_blue", "Blue", "arrow", "blue"),

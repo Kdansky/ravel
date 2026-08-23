@@ -168,6 +168,9 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 	on = true, start = true,
 	-- The colour of that icon, when the shape's own is wrong for it.
 	color = true,
+	-- Other stats a unit of this one may be spent as ("a plain arrow can be
+	-- spent as a red one"), said here rather than on every card that might.
+	pays_for = true,
 	-- false when the badge is the shape alone. A banner meaning "this is an
 	-- attack" has no quantity, and the 1 carrying it is noise on the card.
 	number = true }
@@ -615,8 +618,7 @@ function M.check(G)
 	-- A cost: a map of subject to number, and it stays one. A cost is what gets
 	-- *spent*, which is a subject and an amount — "mana >= 3" says what to check
 	-- and not what to take away, so the two never wanted the same shape.
-	local check_cost
-	function check_cost(where, map, kind)
+	local function check_cost(where, map, kind)
 		if map == nil then return end
 		if type(map) ~= "table" then
 			warn('%s: should be written like { "gold": 2 }', where)
@@ -626,15 +628,9 @@ function M.check(G)
 			warn('%s: a cost is what gets spent, not a condition — write it as { "gold": 2 }', where)
 			return
 		end
-		-- A list of maps is a list of alternatives, checked one by one. One of
-		-- them is what gets paid, so each has to be a cost in its own right.
 		if type(map[1]) == "table" then
-			if #map < 2 then
-				warn("%s: is a list of one, which is not a choice — write the cost on its own", where)
-			end
-			for i, alt in ipairs(map) do
-				check_cost(where .. " alternative " .. i, alt, kind)
-			end
+			warn('%s: a cost is one map of what is owed. Two ways to settle it is a fact about the'
+				.. ' stats — say it with "pays_for" on the one that stands in', where)
 			return
 		end
 		for key, v in pairs(map) do
@@ -1046,6 +1042,19 @@ function M.check(G)
 		if type(def.min) == "number" and type(def.max) == "number" and def.min > def.max then
 			warn("%s: min (%s) is greater than max (%s)", where, def.min, def.max)
 		end
+		-- "A plain arrow can be spent as a red one", said once on the stat that
+		-- stands in rather than on every card that might use it.
+		if def.pays_for ~= nil and type(def.pays_for) ~= "table" then
+			warn('%s: pays_for is a list of stat keys, like ["act_red", "act_blue"]', where)
+		end
+		for _, d in ipairs(type(def.pays_for) == "table" and def.pays_for or {}) do
+			if type(d) ~= "string" or G.stat_defs[d] == nil then
+				warn("%s: pays_for names '%s', which is not a stat%s",
+					where, tostring(d), suggest(tostring(d), G.stat_defs))
+			elseif d == key then
+				warn("%s: pays_for names itself, which every stat already does", where)
+			end
+		end
 		if def.icon ~= nil and not M.ICONS[def.icon] then
 			warn("%s: asks to be drawn as '%s', which is not a shape the engine has%s",
 				where, tostring(def.icon), suggest(def.icon, M.ICONS))
@@ -1057,6 +1066,43 @@ function M.check(G)
 		if def.color ~= nil and not art.colour(def.color) then
 			warn("%s: '%s' is not a colour — a palette name, or #rrggbb",
 				where, tostring(def.color))
+		end
+	end
+
+	-- **The shape the payment planner can be trusted on.** Working out which pool
+	-- settles which part of a cost is a matching, and the engine solves it with
+	-- a greedy: most constrained demand first, own stat before any substitute.
+	-- That is exact when the substitution sets are *nested or disjoint* — one
+	-- pool being strictly more general than another, or the two having nothing
+	-- to do with each other, which is every real case (a wild token, generic
+	-- mana, a plain arrow). Two pools that overlap without nesting is where a
+	-- greedy can refuse a cost that was payable, so it is refused at the door
+	-- rather than paid wrongly at the table.
+	do
+		local wild = {}
+		for _, key in ipairs(G.stat_defs_list or {}) do
+			local list = G.stat_defs[key].pays_for
+			if type(list) == "table" and #list > 0 then wild[#wild + 1] = key end
+		end
+		for i = 1, #wild do
+			for j = i + 1, #wild do
+				local a, b = {}, {}
+				for _, d in ipairs(G.stat_defs[wild[i]].pays_for) do a[d] = true end
+				for _, d in ipairs(G.stat_defs[wild[j]].pays_for) do b[d] = true end
+				local shared, only_a, only_b = false, false, false
+				for d in pairs(a) do
+					if b[d] then shared = true else only_a = true end
+				end
+				for d in pairs(b) do
+					if not a[d] then only_b = true end
+				end
+				if shared and only_a and only_b then
+					warn("stats '%s' and '%s' both pay for some of the same things and each for "
+						.. "something the other does not — one has to be the more general of the "
+						.. "two, or they have to be about different things, or a cost they could "
+						.. "both settle has no order to settle it in", wild[i], wild[j])
+				end
+			end
 		end
 	end
 

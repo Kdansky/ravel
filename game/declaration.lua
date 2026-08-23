@@ -7,7 +7,7 @@ M.filename = nil  -- source file of the current game, for template reloads
 -- Template-ish fields swapped wholesale by cards.reload. Zones and phases
 -- are structural and need a full game load.
 M.TEMPLATE_FIELDS = {
-	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list",
+	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list", "pays_for_index",
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
 	"compute_defs", "compute_list",
 	"style_defs", "dynamic_styles", "seat_index",
@@ -695,6 +695,28 @@ function M.parse(filename)
 				end
 			end
 		end
+	end
+
+	-- Which pools may settle a debt in which stat, read off the stats' own
+	-- `pays_for` and inverted once here so the hot legality path does not walk
+	-- every stat per cost per frame. Least flexible substitute first: a pool
+	-- that stands in for two things is worth more elsewhere than one that
+	-- stands in for one, so it is drained last.
+	G.pays_for_index = {}
+	for _, key in ipairs(G.stat_defs_list) do
+		for _, demand in ipairs(G.stat_defs[key].pays_for or {}) do
+			local list = G.pays_for_index[demand] or {}
+			list[#list + 1] = key
+			G.pays_for_index[demand] = list
+		end
+	end
+	for _, list in pairs(G.pays_for_index) do
+		table.sort(list, function(a, b)
+			local na = #(G.stat_defs[a].pays_for or {})
+			local nb = #(G.stat_defs[b].pays_for or {})
+			if na ~= nb then return na < nb end
+			return a < b
+		end)
 	end
 
 	-- The round belongs to the game, not to a player: two seats must not get

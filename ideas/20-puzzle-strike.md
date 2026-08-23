@@ -435,12 +435,20 @@ hand the chip was kept out of belongs to the phase after.
 
 **Arrows have colours, and the restricted one must be spent first.** A black
 arrow pays for any chip; brown, red, blue and purple each pay only for a chip
-whose own banner matches (§2). One engine piece made it expressible: **a `cost`
-written as a list of maps is a list of alternatives**, tried in order, first
-affordable one paid. A chip's cost is then `[{its colour}, {plain}]`, written
-once in a post-pass over the card list rather than forty times, since the colour
-is already a tag. Ordering *is* the rule — nothing infers a preference, the
-author states it — and Splendor's gold is the same shape with the wild last.
+whose own banner matches (§2).
+
+The first build of this made a `cost` a list of *alternatives*, which the owner
+refused, and rightly: it put the same list on forty cards, made the order the
+author's problem, and said on the card a thing that is true of the resource.
+What replaced it is **`pays_for` on the stat** — `acts` declares that it may be
+spent as any of the four colours, once, and a chip's cost is flatly one arrow of
+its own colour. Which pool actually drains is a matching the engine solves: most
+constrained demand first, own stat before any substitute. Magic's *four generic
+and three red* is the case that proves the rule needs both halves, and
+[`tests/integration/substitution.lua`](../tests/integration/substitution.lua)
+is that case. The greedy is exact while the substitution sets are nested or
+disjoint, and the validator refuses any other shape, so what loads is paid
+correctly.
 
 Two consequences. The action phase lost its `ends_when`: "no actions left" is
 one comparison and there are now five pools, and it was the wrong question

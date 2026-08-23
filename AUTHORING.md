@@ -1758,28 +1758,54 @@ because that is what an offer is for.
 entry carries the rule and the asker is what it is about; here the entry is
 somebody else's property and carries nothing of ours.
 
-### A cost with two ways to pay it
+### `pays_for` — one thing spent as another
 
-A `cost` is normally one map — everything in it, all of it. Written as a **list
-of maps** it is a list of alternatives, tried in order, and the first one the
-player can pay is the one they pay:
+A cost is one map of **what is owed**, always. That some other pool will settle
+part of it is not a fact about the card — it is a fact about *that pool*, and it
+is said once, on the stat:
 
 ```json
-"play": { "phases": ["action"],
-          "cost": [{ "act_red@mine.player": 1 }, { "acts@mine.player": 1 }] }
+{ "key": "acts", "label": "Actions", "icon": "arrow",
+  "pays_for": ["act_brown", "act_red", "act_blue", "act_purple"] }
 ```
 
-Puzzle Strike's arrows are the case. An arrow is an extra action play; a plain
-one pays for any chip, a coloured one only for a chip whose own banner matches
-it. So there is a pool per colour, and a red chip is paid for out of red *or*
-out of plain.
+A Puzzle Strike chip then costs one arrow of its own banner colour and says
+nothing else:
 
-**Order is the whole interface.** Nothing infers a preference: the author says
-which pool should go first, and here the restricted one does — a red arrow left
-unspent is a red arrow wasted, while a plain one can still pay for anything.
-Splendor's gold is the same shape read the other way: the wild goes last.
+```json
+"play": { "phases": ["action"], "cost": { "act_red@mine.player": 1 } }
+```
 
-The badge on the card face shows the first alternative, for the same reason.
+Three games want this and want it in three directions. A **wild** pays for any
+colour (Splendor's gold, `pays_for` the five token stats). A **generic** demand
+is paid by any colour (Magic: each coloured mana `pays_for: ["generic"]`, and
+`generic` is a stat nobody ever holds). A **plain** resource pays for a
+restricted one (Puzzle Strike, above). All three are the same sentence — *a unit
+of this may be spent as that* — pointing different ways.
+
+**Nothing on the card says which pool to drain, because the engine works it
+out.** Deciding that is a matching, and the rule is two lines:
+
+- the **most constrained demand first** — the one fewest pools can serve;
+- and a demand's **own stat before any substitute** — a substitute is by
+  definition the more useful of the two elsewhere.
+
+Magic's *four generic and three red* is the case that needs both halves. Against
+three red and four blue it is payable; spend the red on the generic first and it
+is not. `red` is served by one pool and `generic` by several, so `red` settles
+first, out of red. Puzzle Strike gets the behaviour that used to be written by
+hand for free: a red arrow is spent before the plain one, because the plain one
+can still pay for anything and the red one cannot.
+
+**The validator refuses the shape the rule could get wrong.** The greedy is
+exact as long as the substitution sets are *nested or disjoint* — one pool
+strictly more general than another, or the two unrelated — which is every real
+case. Two pools that share something while each paying for something the other
+does not is the one shape where a greedy can refuse a payable cost, and it is
+refused at load rather than discovered mid-game.
+
+`each` is left alone: `{"hp@each.creature": 1}` asks that *every* one of them
+pays, which is not a total and has nothing to substitute across.
 
 ### A card with nothing to run is not a move
 
