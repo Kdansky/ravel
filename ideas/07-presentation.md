@@ -410,7 +410,7 @@ not carry it and undo does not know about it.
 
 ---
 
-## Gap 8 — A card's numbers in a column, and what colours them — **shipped**
+## Gap 8 — A card's numbers in a column, and what colours them — **shipped**, twice
 
 > **Three words, and a fourth thing that was the real find.** `badge_run:
 > "down"` runs a card's badges down the left edge instead of along the bottom;
@@ -438,27 +438,36 @@ not carry it and undo does not know about it.
 > icon and would otherwise disagree, and Splendor's onyx was an orange sword in
 > both places.
 >
-> One thing left, and it is small: a badge always draws an icon, so the token
-> piles' `bank` count wears the fallback diamond on all six piles. The plate
-> colour and the label say which gem it is, so this reads as clutter rather than
-> as a lie — but a badge that is only a number has no spelling.
+> **The one thing left is shipped too.** `"icon": "none"` is the seventh word in
+> the closed set — a shape name rather than `icon: false`, so the field stays one
+> type — and it draws nothing, closing the gap where the shape would have been.
+> On the stat and not the style, by this gap's own colour argument. Splendor's
+> `bank` claims it, and the six token plates read `4 Diamond` instead of
+> `◆ 4 Dia…`.
 >
-> **What it needs.** `stat_icon` (`render.lua:273`) returns the stat's declared
-> `icon` or nothing, and `draw_stat_icon` (`render.lua:228`) draws the diamond
-> for anything it does not recognise — deliberately, and `validate.lua` says so
-> where it allows a colour with no shape. So the missing thing is a way for a
-> stat to say it *has* no shape. [Assumption: this belongs on the stat and not
-> on the style, by this gap's own colour argument — the badge and the HUD row
-> (`render.lua:1144`) draw the same icon through the same call, and a style-side
-> switch would make them disagree. `badge_zeros` went the other way because a
-> zero is a fact about that card face; an icon is a fact about the number.]
-> [Assumption: the spelling is a seventh word in the closed set — `"icon":
-> "none"`, one line in `render.icons()` and one in `validate.M.ICONS`, keeping
-> the field one type — rather than `"icon": false`, though `color: false` in
-> [11](11-styles-as-tags.md) is a precedent for the other choice.] Both call
-> sites then have to close the gap the icon left: `draw_badge` sizes the pill
-> `fh + tw + 8 * S` and offsets its text by `fh + 3 * S`, and the HUD row
-> indents by `fh + 4 * S`, so without the shape both must drop the `fh`.
+> **And the second find is the better one: the title was clearing a fraction of
+> the card where there is a number to be had.** `draw_card_face` reserved
+> `vis.w * 0.62` for a row of badges and `0.42` for one — half a token plate for
+> a two-character count. `badge_size` now returns what `draw_badge` will actually
+> draw, the one formula with two callers, and the title starts clear of *that*.
+> It is what made "Diamond" fit where "Dia…" did not, and it is why every card in
+> the corpus recentred slightly.
+>
+> **"A column takes none of the title's line" was true only of tall cards.** A
+> noble is four requirements on a plate two thirds the height of a market card,
+> so the fourth badge lands in the corner the title starts from and printed a
+> `3` over the word — the same collision the hp badge caused in gap 1, one axis
+> round. The title now gives way to a column that reaches it, which is knowable
+> only after the title has a height, so it is fitted twice: a second fit can only
+> make it smaller, and smaller only makes the collision truer, so it cannot come
+> back. Beside it `badge_keys`, because the badges a card *shows* are the ones it
+> must clear — a title giving way to a badge that `badge_zeros` left out would be
+> off-centre for nothing.
+>
+> **And a noble is no longer titled.** Every one of them is called "Noble": the
+> word says nothing the plate has not said and it was costing four requirements
+> their room. `title: false` on the style, which [11](11-styles-as-tags.md)
+> already had for exactly this.
 
 ### What falls out for free
 
@@ -489,26 +498,33 @@ anything in it lost its name — which is the half of the time a name is worth
 having. `card_places` now reserves the label's height at the top of a non-grid
 zone (`render.lua`, the hand branch) and centres the cards in what is left.
 Splendor's *Bought* and *Reserved*, The Crew's *Said*, and the menu's two lists
-all gained a label they had always declared. **A grid still covers its own** —
-its cells come from `zones.cell_rect` rather than from `card_places`, so LoR's
-*Bench* still disappears under the first unit played into it. Left, deliberately:
-it is the same fix in a different module and no game has complained.
+all gained a label they had always declared. **A grid now keeps its own clear
+too** — the half left over, shipped in the same pass as `icon: "none"` below.
 
-That fix is not quite the same shape, and the difference is worth having written
-down before starting. A grid's cards do not use `card_places` at all once the
-zone declares `grid`: `zones.build` registers a slot per cell and `zones.resize`
-gives each one `M.cell_rect(z, idx)`, which is also what hit-testing reads — so
-reserving the band anywhere else would move the picture and not the target.
-`cell_rect` is where it has to go, and that is the one obstacle: `zones.lua` has
-no font, and the headless stub in `headless.lua` gives `love.graphics` nothing
-but `getDimensions`, so a `getFont():getHeight()` call there breaks the whole
-test suite. [Assumption: the way round it is the one [16](16-the-player-at-this-screen.md)
-already took for `zones.viewer` — a field written from outside rather than a
-call into the layer above. The renderer sets a label height on `zones` once,
-`cell_rect` subtracts it from the top when `z.label` is set, and headless leaves
-it zero, so `tests/integration/layout.lua` is unchanged.] A grid with no label
-is untouched either way, which is chess's board and every square that has to
-tile edge to edge.
+`zones.label_h` is the band, written from outside exactly as
+[16](16-the-player-at-this-screen.md) writes `zones.viewer`: `zones.lua` has no
+font and must not require the module that has, so the renderer measures it once
+in `rescale` and `cell_rect` subtracts it whenever `z.label` is set. Headless
+leaves it zero, so `tests/integration/layout.lua` is untouched and chess renders
+byte-identically. It had to go in `cell_rect` because `zones.resize` gives every
+slot its rect from there and that is what hit-testing reads — reserving the band
+anywhere else would move the picture and not the target. `keep_ratio` subtracts
+it too, and that was not in the plan: a named square board is a square with a
+line of text above it, not a square with a bite out of its top.
+
+**`love.resize` had to swap its two lines.** It called `zones.resize()` and then
+`render.rescale()`, and the band is measured in the second — so the first frame
+after every window change laid the cells out against last size's band. Fonts
+first, layout second.
+
+**The band comes out of the cards, and in a wide one-row grid it comes out
+sideways.** A plate there is height-bound — the cell is wider than the card, so
+the card's width is its height over the card ratio — and taking twenty pixels
+off the top took fifteen off the width of every token pile in Splendor. That is
+the honest cost of the fix, and the game file pays it: `supply` grew from
+`0.47` to `0.52` and got a row of gems that spell their names out. **A zone that
+declares a label wants more room than one that does not**, which is now in
+`AUTHORING.md` beside the field.
 
 **The wheel scrolled by the browser's pixel delta.** `love.wheelmoved` passed
 `-dy * 3` into the inspector, and only the *sign* of `dy` is portable — natively

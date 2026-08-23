@@ -425,11 +425,15 @@ file to check what may appear where.
 `{ "key", "label", "min", "max", "subject", "icon", "color", "tags" }`.
 
 `icon` is the shape drawn beside the number, on a card face and in the HUD:
-`coin`, `heart`, `shield`, `banner`, `leaf`, `blade`, or `diamond`. **Named by
-shape, not by meaning** — what your game calls its currency is your business,
-and the engine has no opinion about which word means money. A closed set: a
-shape nobody draws is refused rather than silently becoming a diamond. Left
-out, it *is* the diamond.
+`coin`, `heart`, `shield`, `banner`, `leaf`, `blade`, `diamond`, or `none`.
+**Named by shape, not by meaning** — what your game calls its currency is your
+business, and the engine has no opinion about which word means money. A closed
+set: a shape nobody draws is refused rather than silently becoming a diamond.
+Left out, it *is* the diamond.
+
+`none` draws no shape, and the number closes the gap where one would have been.
+Write it when the number needs no picture to be read — a pile that says how many
+are left, on a plate whose colour and label already say what it is a pile of.
 
 `color` is what colour that shape is drawn in — a palette name or `#rrggbb`,
 the same vocabulary a zone paints its squares with. Left out, the shape's own
@@ -458,7 +462,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 
 | Field | Meaning |
 |---|---|
-| `key`, `label` | Identity and optional on-screen label |
+| `key`, `label` | Identity and optional on-screen label. A label is written across the top of the zone and the cards keep clear of it, so a named zone is still named once something is in it — which costs a line of height, and a zone whose cards are sized by their height wants a little more room than an unnamed one |
 | `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots), `options` (an offer: empty and unreachable until something asks — see *Asking a question*). **Stacks are reached from the top**: only the top card of a deck or pile can be played, activated or targeted |
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]` for grid zones |

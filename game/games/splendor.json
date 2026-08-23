@@ -19,7 +19,8 @@
     "noble": {
       "badges": ["vp", "n_white", "n_blue", "n_green", "n_red", "n_black"],
       "badge_run": "down",
-      "badge_zeros": false
+      "badge_zeros": false,
+      "title": false
     },
     "tray": { "fit": "card", "cell_outline": false },
     "counter": { "badges": ["bank"] }
@@ -100,7 +101,7 @@
       "on": ["player"],
       "start": 0
     },
-    { "key": "bank", "min": 0, "max": 99, "tags": ["hidden"] },
+    { "key": "bank", "icon": "none", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "plenty", "min": 0, "max": 99, "tags": ["hidden"] },
     {
       "key": "buyable",
@@ -655,7 +656,7 @@
       "type": "grid",
       "grid": [6, 1],
       "tags": ["activate", "tray"],
-      "pos": [0.57, 0.32, 0.98, 0.47]
+      "pos": [0.57, 0.32, 0.98, 0.52]
     },
     {
       "key": "controls",

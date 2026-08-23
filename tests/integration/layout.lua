@@ -187,4 +187,32 @@ function M.test_layout_the_first_colour_goes_on_a1(check)
 		zones.chequer_index(nil) == 1 and zones.chequer_index({}) == 1)
 end
 
+-- A named grid keeps its name clear of its cards, which a hand has done since
+-- the text pass and a grid could not: its cells come from `cell_rect`, and that
+-- is also what hit-testing reads, so the band has to come off there or the
+-- picture moves and the target does not follow it.
+--
+-- The band is measured by the renderer and written onto `zones` — this module
+-- has no font — so headless it is zero and every rect is what it always was.
+-- Setting it here is what the renderer does, one frame earlier.
+function M.test_layout_a_named_grid_keeps_its_name_clear(check)
+	flow.init("lor.json", 1)
+	at(1600, 900, function()
+		-- The bench is named, the lanes it feeds are not: one game, both cases.
+		local bench, lanes = zones.all_with_key("bench")[1], zones.find("battle")
+		zones.resize()
+		local bare, lanes_bare = zones.cell_rect(bench, 1, 0), zones.cell_rect(lanes, 1, 0)
+		zones.label_h = 20
+		zones.resize()
+		local head, lanes_head = zones.cell_rect(bench, 1, 0), zones.cell_rect(lanes, 1, 0)
+		zones.label_h = 0
+		check("the cells of a named grid start below the band",
+			math.abs(head.y - bare.y - 20) < 0.01, ("%.2f vs %.2f"):format(head.y, bare.y))
+		check("and give up its height rather than overflowing",
+			math.abs((bare.h - head.h) - 20) < 0.01, ("%.2f vs %.2f"):format(head.h, bare.h))
+		check("a grid with no name is untouched, which is every chessboard",
+			lanes_head.y == lanes_bare.y and lanes_head.h == lanes_bare.h)
+	end)
+end
+
 return M

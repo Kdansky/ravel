@@ -97,6 +97,10 @@ function M.rescale()
 	font_small  = font_at(math.max(8, 8 * S))
 	font_banner = font_at(30 * S)
 	love.graphics.setFont(font_main)
+	-- The band a named grid keeps clear for its own name, matching what
+	-- `card_places` reserves on a hand and what `draw_zone_label` prints into.
+	-- zones.lua has no font, so the measurement is pushed to it from here.
+	zones.label_h = font_main:getHeight() + 3 * S
 	fx.set_scale(S)
 end
 
@@ -208,6 +212,13 @@ end
 -- knowing one game's vocabulary, and the next game's currency drew a diamond
 -- for no reason it could see or change. A stat declares its `icon` instead, out
 -- of this closed set; anything undeclared gets the diamond.
+--
+-- `"none"` is the seventh word and draws nothing: a badge that is only a number.
+-- Splendor's six token piles print how many are left and wore the fallback
+-- diamond beside every one of them, which says the shape of a gem it is not.
+-- It is a shape name rather than `icon: false` so the field stays one type, and
+-- it is on the stat rather than on the style because the badge and the HUD row
+-- draw the same icon through the same call and would otherwise disagree.
 local ICON_COLOR = {
 	coin   = { 0.95, 0.78, 0.25 },
 	heart  = { 0.92, 0.32, 0.32 },
@@ -220,12 +231,13 @@ local ICON_COLOR = {
 -- The vocabulary, for the validator: it must refuse a shape nobody draws rather
 -- than let a game ask for one and silently get a diamond.
 function M.icons()
-	local out = { diamond = true }
+	local out = { diamond = true, none = true }
 	for k in pairs(ICON_COLOR) do out[k] = true end
 	return out
 end
 
 local function draw_stat_icon(key, cx, cy, s, tint)
+	if key == "none" then return end
 	local col = tint or ICON_COLOR[key] or { 0.60, 0.70, 0.85 }
 	love.graphics.setColor(unpack(col))
 	if key == "coin" then
@@ -489,7 +501,8 @@ local function draw_cost_badge(pl, cost)
 
 	local w = 4 * S
 	for _, k in ipairs(keys) do
-		w = w + ih + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
+		local icon = stat_icon(k)
+		w = w + (icon ~= "none" and ih or 0) + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
 	end
 	love.graphics.setColor(0, 0, 0, 0.65)
 	love.graphics.rectangle("fill", pl.x + 2, pl.y + 2, w, ih + 4 * S, 2 * S, 2 * S)
@@ -499,11 +512,37 @@ local function draw_cost_badge(pl, cost)
 	local y = pl.y + 2 + 2 * S
 	for _, k in ipairs(keys) do
 		local icon, tint = stat_icon(k)
+		local ind = icon ~= "none" and ih or 0
 		draw_stat_icon(icon, x + ih * 0.5, y + ih * 0.5, ih, tint)
 		love.graphics.setColor(unpack(C.cost))
-		print_at(tostring(cost[k]), x + ih + 2 * S, y)
-		x = x + ih + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
+		print_at(tostring(cost[k]), x + ind + 2 * S, y)
+		x = x + ind + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
 	end
+end
+
+-- How wide the pill is, and how much of its front the shape takes — nothing,
+-- when the stat says it has none, and then the number closes the gap rather
+-- than sitting behind an empty square. Measured apart from the drawing because
+-- the title has to start clear of the badges, and it was clearing a fraction of
+-- the card where there is a number to be had.
+local function badge_size(key, txt)
+	local sf  = get_small_font()
+	local ind = stat_icon(key) ~= "none" and sf:getHeight() or 0
+	return ind + sf:getWidth(txt) + 8 * S, ind
+end
+
+-- The badges a card actually shows: the style's list, less any zero it asked to
+-- leave out. Asked by the drawing and by the title's layout both, because a
+-- title giving way to a badge that is not there would be off-centre for nothing.
+local function badge_keys(look, stats)
+	local out = {}
+	if not (type(look.badges) == "table" and stats) then return out end
+	local zeros = look.badge_zeros ~= false
+	for _, key in ipairs(look.badges) do
+		local v = stats[key]
+		if v and (zeros or v ~= 0) then out[#out + 1] = key end
+	end
+	return out
 end
 
 -- Draw a card face.
@@ -613,17 +652,42 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		local pad, gap = 3 * S, 2 * S
 		local avail    = vis.w - pad * 2
 		-- A badge sits in the bottom-left corner, so the words start to its
-		-- right rather than under it.
-		local badges  = type(look.badges) == "table" and #look.badges or 0
-		-- A row of badges shares the bottom edge with the title and the title
-		-- gives way; a column runs down the side and takes none of it.
-		local badge_w = look.badge_run ~= "down"
-			and (badges > 0 or (card_e.stats and card_e.stats.hp))
-			and (vis.w * (badges > 1 and 0.62 or 0.42)) or 0
+		-- right rather than under it — clear of what the badges measure rather
+		-- than of a fraction of the card, which on a token plate was half its
+		-- width for a two-character number. A row shares the bottom edge and
+		-- the title gives way from the start; a column's claim on it is decided
+		-- below, once the title has a height.
+		local stats = card_e.stats
+		local down  = look.badge_run == "down"
+		local keys  = badge_keys(look, stats)
+		local row_w, col_h = 0, 0
+		for i, key in ipairs(keys) do
+			local w = badge_size(key, tostring(stats[key]))
+			if down then
+				row_w = math.max(row_w, w)
+				col_h = col_h + get_small_font():getHeight() + 3 * S
+			else
+				row_w = row_w + w + (i > 1 and 2 * S or 0)
+			end
+		end
+		if #keys == 0 and stats and stats.hp then
+			row_w = badge_size("hp", stats.hp .. "/" .. ((card_e.stat_max or {}).hp or stats.hp))
+		end
+		local badge_w = down and 0 or row_w
 
 		local tf, shown, title_h = nil, nil, 0
 		if not no_title then
 			tf, shown, title_h = fit_title(title, avail - badge_w, 12 * S, 8 * S)
+			-- A column usually runs down the side and takes none of the title's
+			-- line. A short card is the exception — Splendor's nobles are four
+			-- requirements on a plate two thirds the height of a market card —
+			-- and there the last badge lands in the corner the title starts
+			-- from. Which is only knowable once the title has a size, and a
+			-- second fit can only make it smaller, so it cannot come back.
+			if down and col_h + title_h + pad * 2 > vis.h then
+				badge_w = row_w
+				tf, shown, title_h = fit_title(title, avail - badge_w, 12 * S, 8 * S)
+			end
 		end
 
 		-- Prose needs room to be prose. Below about a thumb's width a card can
@@ -759,14 +823,14 @@ end
 local function draw_badge(key, txt, x, y, colour)
 	local sf = get_small_font()
 	love.graphics.setFont(sf)
-	local tw, fh = sf:getWidth(txt), sf:getHeight()
-	local w = fh + tw + 8 * S
+	local fh = sf:getHeight()
+	local w, ind = badge_size(key, txt)
 	love.graphics.setColor(0, 0, 0, 0.65)
 	love.graphics.rectangle("fill", x - 1, y - 1, w, fh + 2, 2 * S, 2 * S)
 	local icon, tint = stat_icon(key)
 	draw_stat_icon(icon, x + fh * 0.5, y + fh * 0.5, fh * 0.9, tint)
 	love.graphics.setColor(colour)
-	print_at(txt, x + fh + 3 * S, y)
+	print_at(txt, x + ind + 3 * S, y)
 	return w
 end
 
@@ -799,16 +863,13 @@ local function draw_card_stats_overlay(pl, card_e)
 	local by = pl.y + pl.h - fh - 3 * S
 	if badges then
 		-- A column starts at the top, where a bottom-anchored row would run off
-		-- the card, and leaves the title band below it alone.
-		local down  = look.badge_run == "down"
-		local zeros = look.badge_zeros ~= false
-		local x, y  = pl.x + 2 * S, down and (pl.y + 3 * S) or by
-		for _, key in ipairs(badges) do
-			local v = stats[key]
-			if v and (zeros or v ~= 0) then
-				local w = draw_badge(key, tostring(v), x, y, { 1, 1, 1 })
-				if down then y = y + fh + 3 * S else x = x + w + 2 * S end
-			end
+		-- the card, and the title below it has already made room for whichever
+		-- of the two reaches it.
+		local down = look.badge_run == "down"
+		local x, y = pl.x + 2 * S, down and (pl.y + 3 * S) or by
+		for _, key in ipairs(badge_keys(look, stats)) do
+			local w = draw_badge(key, tostring(stats[key]), x, y, { 1, 1, 1 })
+			if down then y = y + fh + 3 * S else x = x + w + 2 * S end
 		end
 	elseif stats.hp then
 		local hp_max = (card_e.stat_max or {}).hp or stats.hp
@@ -1140,12 +1201,13 @@ local function draw_stats()
 				local label = def and (def.label or key) or key
 				local txt   = label .. ": " .. tostring(predicate.total(def and def.subject or key))
 				local tw    = mf:getWidth(txt)
-				local row_x = x - tw - fh - 4 * S
 				local icon, tint = stat_icon(key)
+				local ind   = icon ~= "none" and fh or 0
+				local row_x = x - tw - ind - 4 * S
 				draw_stat_icon(icon, row_x + fh * 0.5, y + fh * 0.5, fh * 0.85, tint)
 				love.graphics.setColor(unpack(C.stat))
-				print_at(txt, row_x + fh + 4 * S, y)
-				stat_hud[key] = { x = row_x + fh + tw * 0.5, y = y }
+				print_at(txt, row_x + ind + 4 * S, y)
+				stat_hud[key] = { x = row_x + ind + tw * 0.5, y = y }
 				y = y + fh + 5 * S
 			end
 		end

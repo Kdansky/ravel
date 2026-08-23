@@ -314,8 +314,10 @@ function love.load()
 end
 
 function love.resize()
-	zones.resize()
+	-- Fonts first: `rescale` measures the band a named grid keeps clear, and
+	-- `zones.resize` lays the cells out under it.
 	render.rescale()
+	zones.resize()
 end
 
 function love.keypressed(key)

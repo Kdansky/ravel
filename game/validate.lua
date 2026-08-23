@@ -89,7 +89,7 @@ local RESERVED_SCOPES = { "self", "all", "reach", "owner_of" }
 -- not require the presentation layer.
 M.ICONS = {
 	coin = true, heart = true, shield = true, banner = true, leaf = true,
-	blade = true, diamond = true,
+	blade = true, diamond = true, none = true,
 }
 
 -- The fx base-effect vocabulary. The test suite asserts this stays in step
@@ -1026,7 +1026,8 @@ function M.check(G)
 		end
 		-- A colour without a shape colours the fallback diamond, which is legal
 		-- and is what a stat wanting a colour and no opinion on the silhouette
-		-- would write.
+		-- would write. `icon: "none"` and a colour is not an error either: it
+		-- says nothing is drawn, and the colour is simply unused.
 		if def.color ~= nil and not art.colour(def.color) then
 			warn("%s: '%s' is not a colour — a palette name, or #rrggbb",
 				where, tostring(def.color))

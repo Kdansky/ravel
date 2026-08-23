@@ -224,9 +224,12 @@ def stats():
     seat_start = {"t_total": 0, "takes": 0, "done": 0, "first_take": 1,
                   "reserve_slots": 3, "bought": 0, "ending": 0, "opens": 0}
     seat_start.update({f"b_{k}": 0 for k in KEYS})
-    hidden = ["bank", "plenty"]
-    for k in hidden:
-        out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"]})
+    # "bank" is badged on the six token plates, whose plate colour and label
+    # already say which gem they hold — so the count needs no shape beside it,
+    # and the diamond it fell back to is the silhouette of a gem it is not.
+    hidden = {"bank": {"icon": "none"}, "plenty": {}}
+    for k, extra in sorted(hidden.items()):
+        out.append({"key": k, **extra, "min": 0, "max": 99, "tags": ["hidden"]})
     for k in sorted(scratch):
         # Prestige is the number the game is won on, so on a card it wears the
         # same banner the seat's own score does rather than the anonymous
@@ -268,9 +271,12 @@ def styles():
     s["development"] = {"badges": ["vp"] + [f"cost_{k}" for k in KEYS],
                         "badge_run": "down", "badge_zeros": False}
     # A noble is the same card read the other way: a threshold rather than a
-    # price, and worth three whatever it asks for.
+    # price, and worth three whatever it asks for. Untitled, because every one
+    # of them is called "Noble": the word says nothing the plate colour has not
+    # already said, and on a card two thirds the height of a market one it is
+    # four requirements' worth of room.
     s["noble"] = {"badges": ["vp"] + [f"n_{k}" for k in KEYS],
-                  "badge_run": "down", "badge_zeros": False}
+                  "badge_run": "down", "badge_zeros": False, "title": False}
     s["tray"] = {"fit": "card", "cell_outline": False}
     # How many are left, on the pile itself: taking two of one colour needs four
     # still there, so it is a number a player has to be able to count.
@@ -320,8 +326,11 @@ def zones(rows):
         {"key": "t1_row", "type": "grid", "grid": [4, 1], "tags": ["optional", "market"],
          "pos": [0.13, 0.66, 0.55, 0.81]},
 
+        # Tall enough for its own name and for six gems that spell theirs out:
+        # the plates are height-bound in a wide zone, so the band the label
+        # takes off the top comes off their width, and "Diamond" was "D...".
         {"key": "supply", "label": "The bank", "type": "grid", "grid": [6, 1],
-         "tags": ["activate", "tray"], "pos": [0.57, 0.32, 0.98, 0.47]},
+         "tags": ["activate", "tray"], "pos": [0.57, 0.32, 0.98, 0.52]},
         {"key": "controls", "type": "hand", "tags": ["optional"],
          "pos": [0.57, 0.60, 0.98, 0.78],
          "contents": ["reserve_button", "done_button"]},

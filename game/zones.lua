@@ -495,6 +495,17 @@ function M.chequer_index(slot)
 	return (s.col + s.row) % 2 == 0 and 1 or 2
 end
 
+-- The band at the top of a zone that its own name is written across, so that a
+-- grid stays named once there is something in it. A hand reserves the same band
+-- in the renderer's `card_places`; a grid cannot, because its cells come from
+-- `cell_rect` and are also what hit-testing reads, so reserving it anywhere else
+-- would move the picture and not the target.
+--
+-- Written from outside for the reason `viewer` is: this module has no font, and
+-- must not require the one that has. Headless leaves it zero and every rect is
+-- what it always was.
+M.label_h = 0
+
 -- The pixel rect of cell `idx` in a grid zone, 1-based and row-major. Shared
 -- with the renderer, which needs the same cell for a card that has no slot.
 -- `pad` is the gap that keeps cards from touching; pass 0 for the square
@@ -503,13 +514,14 @@ function M.cell_rect(z, idx, pad)
 	local g    = z.grid or { 4, 3 }
 	local cols = g[1]
 	pad        = pad or 4
+	local head = z.label and M.label_h or 0
 	local cw   = z.place.w / cols
-	local ch   = z.place.h / (g[2] or 3)
+	local ch   = (z.place.h - head) / (g[2] or 3)
 	local col  = (idx - 1) % cols
 	local row  = math.floor((idx - 1) / cols)
 	return {
 		x = z.place.x + col * cw + pad,
-		y = z.place.y + row * ch + pad,
+		y = z.place.y + head + row * ch + pad,
 		w = cw - pad * 2,
 		h = ch - pad * 2,
 	}
@@ -544,10 +556,15 @@ local function keep_ratio(z)
 	end
 	if not r or r <= 0 then return end
 	local p = z.place
-	local w = math.min(p.w, p.h * r)
+	-- The shape wanted is the shape of the cells, and the label's band is not
+	-- one of them: a named square board is a square with a line of text above
+	-- it, not a square with a bite out of the top. Grids only — every other kind
+	-- is laid out by the renderer, which takes the band off there instead.
+	local head = z.label and z.zone_type == "grid" and M.label_h or 0
+	local w = math.min(p.w, (p.h - head) * r)
 	local h = w / r
-	p.x, p.y = p.x + (p.w - w) / 2, p.y + (p.h - h) / 2
-	p.w, p.h = w, h
+	p.x, p.y = p.x + (p.w - w) / 2, p.y + (p.h - head - h) / 2
+	p.w, p.h = w, h + head
 end
 
 -- Recompute pixel rects for all zones and their slots.
