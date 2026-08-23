@@ -230,6 +230,7 @@ local ICON_COLOR = {
 	card   = { 0.72, 0.80, 0.92 },
 	fist   = { 0.95, 0.40, 0.35 },
 	orb    = { 0.60, 0.75, 0.95 },
+	pot    = { 0.95, 0.62, 0.72 },
 }
 
 -- The vocabulary, for the validator: it must refuse a shape nobody draws rather
@@ -290,6 +291,11 @@ local function draw_stat_icon(key, cx, cy, s, tint)
 		love.graphics.circle("fill", cx, cy, s * 0.40)
 		love.graphics.setColor(1, 1, 1, 0.55)
 		love.graphics.circle("fill", cx - s * 0.13, cy - s * 0.15, s * 0.11)
+	elseif key == "pot" then
+		love.graphics.polygon("fill",
+			cx - s * 0.38, cy - s * 0.14, cx + s * 0.38, cy - s * 0.14,
+			cx + s * 0.28, cy + s * 0.40, cx - s * 0.28, cy + s * 0.40)
+		love.graphics.rectangle("fill", cx - s * 0.16, cy - s * 0.34, s * 0.32, s * 0.10, s * 0.04, s * 0.04)
 	else
 		love.graphics.polygon("fill",
 			cx, cy - s * 0.42, cx + s * 0.36, cy, cx, cy + s * 0.42, cx - s * 0.36, cy)
@@ -514,7 +520,10 @@ local function draw_card_back(pl)
 end
 
 -- Cost badge: one stat icon + number per cost entry, top-left of the card.
+-- A cost may be a list of alternatives; the badge shows the first, which is the
+-- one the author put first because it is the one they want spent.
 local function draw_cost_badge(pl, cost)
+	if type(cost) == "table" and type(cost[1]) == "table" then cost = cost[1] end
 	local sf   = get_small_font()
 	local ih   = sf:getHeight()
 	local keys = {}

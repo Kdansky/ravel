@@ -29,14 +29,24 @@ almost everything:
 
 | Icon | Means |
 |---|---|
-| black arrow | +1 action this turn |
-| coloured arrow (yellow / red / blue / purple / brown) | +1 action, restricted to a chip whose banner is that colour |
-| piggy bank | +1 buy this turn |
+| black arrow | +1 action this turn, spendable on a chip of any colour |
+| coloured arrow (brown / red / blue / purple) | +1 action, restricted to a chip whose banner is that colour |
+| piggy bank | **the Piggy Bank option**: during cleanup you may keep one unplayed chip in your hand instead of discarding it, and draw one fewer at the end of the turn |
 | dark filled circle | +1 chip drawn |
 | green `$N` | +N gem power (money) this turn |
 | green square with a number | a gem of that value |
 | black puzzle piece | a Puzzle chip |
 | coloured dot | a chip with that banner colour |
+
+**Two corrections to an earlier reading of this table, both from the owner and
+both confirmed by [rules.md](rules.md).** The piggy bank was written here as
+"+1 buy": there is no such thing in Puzzle Strike — you buy one chip a turn and
+nothing raises it — and rules.md §4 quotes the rulebook on the real ability,
+*"During the cleanup phase, you may keep a chip in your hand that you didn't
+play rather than discard it. If you do, draw one less chip at the end of the
+turn."* Every `+1 buy` below is a piggy bank. And the arrow colours are
+brown/red/blue/purple with black for the unrestricted one (rules.md §2) —
+"yellow" was a misread of the tan arrow and is written **brown** below.
 
 Sirlin's own change document names the banner shapes, which the photographs
 only show: a **fist** is an attack (red), a **shield** is a reaction (blue, or
@@ -73,7 +83,7 @@ one game (rules.md §3).
 | Chip Damage | 3 | red | *(called Combo Practice in second edition.)* +1 red action. You may put a chip from your discard pile on your bag. Each opponent discards a purple or two chips. |
 | Combos Are Hard | 6 | brown | If this is the only action you play this turn, gain any two different non-Puzzle chips from the bank, end your action phase, then trash this chip. |
 | Draw Three | 3 | brown | +3 chips |
-| Gem Essence | 3 | brown | Trash a gem from your hand. If you do, +1 yellow action, +1 purple action, +1 red action, +1 blue action. |
+| Gem Essence | 3 | brown | Trash a gem from your hand. If you do, +1 brown action, +1 purple action, +1 red action, +1 blue action. |
 | Gems to Gemonade | 4 | purple | Main: +2 chips. Reaction: Negate up to three gems sent to a player. He gets +$1 for each one during his next buy phase. |
 | It's a Trap | 2 | brown | +1 action. Put a trap token on a stack in the bank, then trash this chip. Each token gives a wound to each player who buys from that stack. |
 | It's Combo Time | 8 | brown | Put a 1-gem from your hand in your gem pile. If you do, +4 chips, +1 action. |
@@ -81,19 +91,19 @@ one game (rules.md §3).
 | Knockdown | 2 | red | +1 purple action. Chosen opponent discards a chip and can't play purple *shield* reactions this turn — his own crashes are untouched. |
 | Master Puzzler | 12 | brown | Choose any number of different non-gem, non-Puzzle chips in the bank. Play them, gain them, then end your action phase. |
 | Mix-Master | 4 | red/purple | Split the largest gem in each opposing gem pile into that many 1-gems, then combine two gems in your gem pile. |
-| One of Each | 5 | brown | +1 action, +1 buy, +$1, +1 chip |
+| One of Each | 5 | brown | +1 action, piggy bank, +$1, +1 chip |
 | One-Two Punch | 4 | brown | +2 actions |
 | Really Annoying | 1 | red/blue | Main: Each opponent gains a wound. Reaction: The player who red-attacked you gains a wound. |
 | Recklessness | 3 | brown | +4 actions. Gain a wound. |
 | Risky Move | 1 | brown | Put a gem from your hand into your gem pile. If you do, gain a gem of 1 higher value and +$3. |
 | Roundhouse | 6 | brown | +1 action, +2 chips |
 | Sale Prices | 2 | brown | +$1. Chips in the bank cost 1 less this turn, to a minimum of 1. |
-| Secret Move | 1 | brown | +1 action. Ongoing: +1 buy each turn. Discard this when you buy a purple. |
+| Secret Move | 1 | brown | +1 action. Ongoing: piggy bank each turn. Discard this when you buy a purple. |
 | Self-Improvement | 4 | blue | Main: Trash a chip from your hand or discard pile. Reaction: After you're red-attacked, +3 chips. |
 | Sneak Attack | 3 | red | +1 red action. Ante a 1-gem into each opposing gem pile. |
 | Stolen Purples | 4 | red | Chosen opponent reveals his hand and discards all purples. Steal one of those purples (to your discard pile). If you do, trash this chip. |
 | Thinking Ahead | 2 | blue | Main: +$1. You may put any chips you buy this turn on top of your bag. Reaction: Trash this chip to become immune to a red chip. |
-| Training Day | 2 | brown | +1 buy. Trash a non-purple-orb chip from your hand, then put a bank chip costing up to 2 more than the trashed chip into your hand. |
+| Training Day | 2 | brown | Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing up to 2 more than the trashed chip into your hand. |
 
 ## The base characters — ten, three chips each
 
@@ -112,7 +122,7 @@ Every starting deck is the same ten chips but three: 3 character chips,
 
 | Chip | Banner | Text |
 |---|---|---|
-| Playing with Fire | brown | Ante a 1-gem. +1 yellow action, +1 red action, +1 chip. |
+| Playing with Fire | brown | Ante a 1-gem. +1 brown action, +1 red action, +1 chip. |
 | Burning Vigor | red | Trash a wound from your hand or discard pile. If you do, +1 action and ante a 1-gem into each opposing gem pile. |
 | Unstable Power | purple | Main or Reaction: Play this as if it were a Double Crash Gem, then gain two wounds. |
 
@@ -129,8 +139,8 @@ Every starting deck is the same ten chips but three: 3 character chips,
 | Chip | Banner | Text |
 |---|---|---|
 | Double-take | brown | Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase. |
-| Bag of Tricks | brown | +1 yellow action, +1 buy, +1 chip |
-| Speed of the Fox | brown | +2 yellow actions, +1 chip |
+| Bag of Tricks | brown | +1 brown action, piggy bank, +1 chip |
+| Speed of the Fox | brown | +2 brown actions, +1 chip |
 
 **Lum** — the gambler
 
@@ -146,15 +156,15 @@ Every starting deck is the same ten chips but three: 3 character chips,
 |---|---|---|
 | Reversal | purple | Main: +2 chips. Reaction: Play this as a Crash Gem to counter gems sent to you. **[2nd ed]** |
 | Martial Mastery | brown | +1 action. Trash a non-purple chip from your hand then gain a chip costing exactly 2 more. |
-| Versatile Style | brown | Choose one: +1 action and +1 buy — or — +$2 — or — +2 chips. |
+| Versatile Style | brown | Choose one: +1 action and piggy bank — or — +$2 — or — +2 chips. |
 
 **Rook** — stone
 
 | Chip | Banner | Text |
 |---|---|---|
-| Stone Wall | purple | Main: +1 chip, +1 buy. Reaction: Reflect any gems sent to a player to the bank. (Just trash them.) |
+| Stone Wall | purple | Main: +1 chip, piggy bank. Reaction: Reflect any gems sent to a player to the bank. (Just trash them.) |
 | Big Rocks | brown | Trash a gem from your hand, then take a gem of 1 higher value and put it in your hand. **[2nd ed]** |
-| Strength of Earth | purple | +1 yellow action. Combine a 1-gem from the bank with a gem in your gem pile. |
+| Strength of Earth | purple | +1 brown action. Combine a 1-gem from the bank with a gem in your gem pile. |
 
 **DeGrey** — the talker
 
@@ -162,7 +172,7 @@ Every starting deck is the same ten chips but three: 3 character chips,
 |---|---|---|
 | Pilebunker | red | +1 chip. Opponents reveal their hands, trash their largest gem, then gain that many 1-gems. **[2nd ed]** |
 | No More Lies | red | +1 red action. Trash up to two chips from your hand. (Character chips can't be trashed.) |
-| Troublesome Rhetoric | brown | Chosen opponent chooses your benefit: +1 action and +1 chip — OR — +$2 and +1 buy. |
+| Troublesome Rhetoric | brown | Chosen opponent chooses your benefit: +1 action and +1 chip — OR — +$2 and piggy bank. |
 
 **Valerie** — the painter
 
@@ -170,7 +180,7 @@ Every starting deck is the same ten chips but three: 3 character chips,
 |---|---|---|
 | Burst of Speed | brown | Trash this chip, then take an extra turn after this one. **[2nd ed]** |
 | Chromatic Orb | multi | +1 chip. Crash a 1-gem in your gem pile. **[2nd ed]** |
-| Creative Thoughts | brown | Choose any different two: +1 action / +1 buy / +$1 / +1 chip. |
+| Creative Thoughts | brown | Choose any different two: +1 action / piggy bank / +$1 / +1 chip. |
 
 **Geiger** — time
 
@@ -194,12 +204,12 @@ say which way the design moved:
 | Rigorous Training | …gain a chip costing up to **3** more | …up to **2** more |
 | Purge Bad Habits | Trash a chip from your hand. If you do, gain a 2-gem | …Put a 2-gem from the bank **into your hand** |
 | Troublesome Rhetoric | Ongoing: when an opponent buys a chip, you may gain a chip of equal or lesser value | Chosen opponent chooses your benefit, one of two |
-| Playing with Fire | +1 action. Put a gem from your hand into your gem pile | Ante a 1-gem. +1 yellow action, +1 red action, +1 chip |
+| Playing with Fire | +1 action. Put a gem from your hand into your gem pile | Ante a 1-gem. +1 brown action, +1 red action, +1 chip |
 | Burning Vigor | (no action bonus) | +1 action as well |
-| Stone Wall | Reflect any gems sent to you **back to the sender** | Reflect any gems sent to a player **to the bank** — and +1 buy |
+| Stone Wall | Reflect any gems sent to you **back to the sender** | Reflect any gems sent to a player **to the bank** — and piggy bank |
 | Martial Mastery | Trash *a chip* | Trash a **non-purple** chip |
-| Versatile Style | +1 buy — or — +$2 — or — +2 chips | +1 action **and** +1 buy — or — +$2 — or — +2 chips |
-| Strength of Earth | +1 yellow action **and +1 chip** | +1 yellow action |
+| Versatile Style | piggy bank — or — +$2 — or — +2 chips | +1 action **and** piggy bank — or — +$2 — or — +2 chips |
+| Strength of Earth | +1 brown action **and +1 chip** | +1 brown action |
 | It's Time for the Past | Exchange a chip in your hand with a **Puzzle** chip in your discard pile | Put a **non-Puzzle** chip from your discard pile into your hand |
 | Living on the Edge | at least **8**, +4 chips, +1 purple action | at least **10**, +3 chips, +1 action |
 | Panda's Bargain | +$1 for each 1-gem in your hand | Ongoing: +1 chip at the end of any turn you bought a Puzzle chip |
@@ -220,7 +230,7 @@ turn up instead in the tray photo `more character chips.jpg`.
 
 | Chip | Cost | Banner | Text |
 |---|---|---|---|
-| Axe Kick | 5 | brown | +1 yellow action, +2 chips |
+| Axe Kick | 5 | brown | +1 brown action, +2 chips |
 | Bang then Fizzle | 2 | brown | If your gem pile totals 4 or fewer, +2 actions, +2 chips. Once-per-turn. |
 | Blues Are Good | 3 | blue | Main: +1 blue action. Search your bag for a blue-banner chip and put it in your hand. Reaction: Become immune to a red chip. |
 | Button Mashing | 3 | brown | +2 actions, then trash this chip. |
@@ -233,14 +243,14 @@ turn up instead in the tray photo `more character chips.jpg`.
 | Just a Scratch | 1 | red | Choose one: each opponent gains a wound — OR — trash a wound from your hand or discard pile and +1 red action. |
 | Money for Nothing | 2 | blue | Main: Put a 2-gem from the bank into your hand. You may trash this chip. Reaction: Put a gem from the bank into your hand. |
 | Now or Later | 2 | brown | Choose one: +2 chips — OR — trash a gem, a wound, or both from your hand / discard pile. |
-| One True Style | 3 | purple | +1 yellow action, +1 red action, +1 blue action. Combine two 1-gems in your gem pile. |
+| One True Style | 3 | purple | +1 brown action, +1 red action, +1 blue action. Combine two 1-gems in your gem pile. |
 | Option Select | 6 | grey | Play this as if it were any bank chip of cost 5 or less, then trash this chip. |
 | Ouch! | 4 | red | Ante a 1-gem into each opposing gem pile. Then each opponent trashes a Combine from his discard pile, discards a chip, and gains a wound. Once-per-turn. |
-| Pick Your Poison | 4 | red | +1 red action, +1 chip, +1 buy. Each opponent chooses one: he antes a 1-gem — OR — he discards two chips. |
+| Pick Your Poison | 4 | red | +1 red action, +1 chip, piggy bank. Each opponent chooses one: he antes a 1-gem — OR — he discards two chips. |
 | Punch, Punch, Kick | 6 | brown | +2 actions, +1 chip |
 | Repeated Jabs | 2 | red | Ante a 1-gem into each opposing gem pile. You may put this chip on top of your bag. |
 | Risk to Riskonade | 3 | brown | Ante a 3-gem. All players draw two chips. You may trash this chip. |
-| Safe Keeping | 1 | brown | +1 action, +1 buy. You may put a 1-gem from your gem pile into your bag. |
+| Safe Keeping | 1 | brown | +1 action, piggy bank. You may put a 1-gem from your gem pile into your bag. |
 | Signature Move | 5 | brown | Search your bag or discard pile for a character chip and put it in your hand. You may play a character chip. |
 | **The Hammer** | 12 | brown | Ante up to three gems. +1 action and +1 chip as you ante each one. **Banner name read at low resolution — the text is legible, the title is not.** |
 | X-Copy | 6 | brown | Choose a Puzzle chip, Crash Gem, or Double Crash Gem in your hand and play it twice. |
@@ -264,7 +274,7 @@ not as sourced data.
 |---|---|---|
 | Two Truths | brown | Choose two different chips from your discard pile. Then chosen opponent selects one and you put it in your hand. You may play it. |
 | Flagstone Tax | brown | Ongoing: If your gem pile totals 3 or more, opponents can only buy chips with cost equal to or less than their gem pile total. Discard when you buy a purple. |
-| Patriot Mirror | brown | Ongoing: +1 action, +1 buy. Discard this at the start of your action phase if your gem pile totals an odd number. |
+| Patriot Mirror | brown | Ongoing: +1 action, piggy bank. Discard this at the start of your action phase if your gem pile totals an odd number. |
 
 **Onimaru** *[assumed — a swordsman's moves]*
 
@@ -272,14 +282,14 @@ not as sourced data.
 |---|---|---|
 | Wartime Tactics | brown | Reveal a Puzzle chip from your hand or discard pile, then play and trash a different Puzzle chip from the bank costing the same or less. |
 | Double Slash | purple | Crash exactly two 1-gems. (You don't get +$1.) |
-| Riposte | blue | Main: +1 action, +1 buy. Reaction: After you're red-attacked, return a chip from your discard pile to your hand. |
+| Riposte | blue | Main: +1 action, piggy bank. Reaction: After you're red-attacked, return a chip from your discard pile to your hand. |
 
 **Zane** *[assumed — the chaos]*
 
 | Chip | Banner | Text |
 |---|---|---|
 | Crash Bomb | purple | Trash a Crash Gem from your hand or discard pile. If you do, crash two gems in your gem pile, +$1 for each. |
-| Maximum Anarchy | brown | All players discard their hands, then draw that many chips. Draw a chip. Each player gets +1 yellow action, +1 purple action, +1 red action, +1 blue action on his turn. |
+| Maximum Anarchy | brown | All players discard their hands, then draw that many chips. Draw a chip. Each player gets +1 brown action, +1 purple action, +1 red action, +1 blue action on his turn. |
 | Crash Potato | purple | Choose one: Crash a 1-gem in your gem pile — OR — exchange this with a Crash Gem in any player's discard pile. |
 
 **Gloria** *[assumed — the healer]*
@@ -287,8 +297,8 @@ not as sourced data.
 | Chip | Banner | Text |
 |---|---|---|
 | Healing Touch | purple | Main: +1 action, +1 blue action. Reaction: When an opponent sends gems, trash a 1-gem from each gem pile. +1 chip. |
-| Radiant Healing | brown | +1 action, +1 chip, +1 buy. Each player may discard a Puzzle chip to trash a wound or a 1-gem in their hand or discard pile. |
-| Saving Grace | blue | Main: +1 buy, +$1. Each player draws a chip. You may put Saving Grace on top of your bag. Reaction: After you're red-attacked, +2 chips. |
+| Radiant Healing | brown | +1 action, +1 chip, piggy bank. Each player may discard a Puzzle chip to trash a wound or a 1-gem in their hand or discard pile. |
+| Saving Grace | blue | Main: piggy bank, +$1. Each player draws a chip. You may put Saving Grace on top of your bag. Reaction: After you're red-attacked, +2 chips. |
 
 **Vendetta** *[assumed — the shadows]*
 
@@ -296,22 +306,22 @@ not as sourced data.
 |---|---|---|
 | Shadow Plague | grey | Whenever you discard this chip, gain a wound. Action: Discard this without gaining a wound. |
 | Burnbarrow | brown | +1 action, +1 red action, +1 chip |
-| Shadowswarm | red | +1 yellow action, +2 chips. You may have each opponent discard a chip. |
+| Shadowswarm | red | +1 brown action, +2 chips. You may have each opponent discard a chip. |
 
 **Gwen** *[assumed — by elimination]*
 
 | Chip | Banner | Text |
 |---|---|---|
-| Acrobatics | brown | Choose any different two: +1 yellow action / +1 purple action / +1 red action / +1 blue action. |
+| Acrobatics | brown | Choose any different two: +1 brown action / +1 purple action / +1 red action / +1 blue action. |
 | Surgical Strike | red | +1 red action. Each opponent draws a chip, reveals his hand, then discards a chip of your choice. |
-| Stunlock | brown | +1 yellow action. Ongoing: Opponents can't combine gems unless they discard a Puzzle chip first. Discard this at the start of your next turn. |
+| Stunlock | brown | +1 brown action. Ongoing: Opponents can't combine gems unless they discard a Puzzle chip first. Discard this at the start of your next turn. |
 
 **Troq** *[assumed — the brute]*
 
 | Chip | Banner | Text |
 |---|---|---|
-| Giant Growth | brown | +1 yellow action. Ongoing: During your ante phase, you may put a gem from your hand into your gem pile. Discard this when you buy a purple. |
-| Beast Unleashed | brown | If your gem pile totals at least 6, +2 chips, +1 yellow action, +1 buy. |
+| Giant Growth | brown | +1 brown action. Ongoing: During your ante phase, you may put a gem from your hand into your gem pile. Discard this when you buy a purple. |
+| Beast Unleashed | brown | If your gem pile totals at least 6, +2 chips, +1 brown action, piggy bank. |
 | More Shiny | brown | Trash a 1-gem from your hand or gem pile. If you do, +$1 and gain a 2-gem. |
 
 **Persephone** *[assumed — the mistress]*
@@ -328,23 +338,23 @@ not as sourced data.
 |---|---|---|
 | Rocket Punch | purple | Main: Crash a 1-gem in your gem pile. Reaction: Before you're red-attacked or an opponent sends gems, crash a 1-gem at the attacker or sender. |
 | Upgrade | brown | +$1. Trash one or two chips from your hand, then for each chip trashed this way, gain a chip costing the same or 1 more. |
-| Cog Engine | brown | Ongoing: +$1, +1 buy. Discard this chip when you buy a purple or a chip costing 6 or more. |
+| Cog Engine | brown | Ongoing: +$1, piggy bank. Discard this chip when you buy a purple or a chip costing 6 or more. |
 
 **Menelker** *[assumed — Deathstrike Dragon is his]*
 
 | Chip | Banner | Text |
 |---|---|---|
 | Deathstrike Dragon | pink | Trash all 1-gems from your gem pile. Send half that many 1-gems (rounded down) to an opponent, then trash this chip. |
-| Bonecracker | red | +1 yellow action. Each opponent reveals his hand and discards his largest gem. |
+| Bonecracker | red | +1 brown action. Each opponent reveals his hand and discards his largest gem. |
 | Into Oblivion | brown | Remove a Puzzle bank stack from the game. If a stack was previously removed, return it to the game. |
 
 ## Promotional Puzzle chips
 
 | Chip | Cost | Banner | Text |
 |---|---|---|---|
-| Combinatorics | 4 | purple | +1 yellow action. Ongoing: Whenever you play a Combine, you may combine again and −$1. Discard when your gem pile totals 5 or less. |
+| Combinatorics | 4 | purple | +1 brown action. Ongoing: Whenever you play a Combine, you may combine again and −$1. Discard when your gem pile totals 5 or less. |
 | Custom Combo | 7 | brown | A burst of five multi-arrow bonuses and no words — see *Missing*. |
-| Dashing Strike | 4 | red | +1 yellow action. Trash a 1-gem from your gem pile. If you do, chosen opponent antes a 1-gem. |
+| Dashing Strike | 4 | red | +1 brown action. Trash a 1-gem from your gem pile. If you do, chosen opponent antes a 1-gem. |
 
 ## Missing
 

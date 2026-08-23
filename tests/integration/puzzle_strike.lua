@@ -425,6 +425,71 @@ function M.test_puzzle_strike_a_chip_that_draws_reshuffles_too(check)
 	check("out of a bag that shook itself", count_in("discard", "south") == 0)
 end
 
+-- An arrow is an extra action play, and a coloured one only pays for a chip
+-- whose own banner matches it. So a cost is a list of alternatives — this
+-- colour's pool, or the plain one — and the order is the rule: the restricted
+-- pool goes first, because a red arrow left unspent is a red arrow wasted.
+function M.test_puzzle_strike_a_coloured_arrow_only_pays_its_own_colour(check)
+	opening(7)
+	local me = seat_card("south")
+	check("a turn opens with one plain arrow and no coloured ones",
+		me.stats.acts == 1 and me.stats.act_red == 0 and me.stats.act_brown == 0)
+
+	actions.run({ "fill:mine.hand:sneak_attack:1", "fill:mine.hand:draw_three:1" }, {})
+	flow.play_card(find_in("hand", "sneak_attack", "south").id, {})
+	check("the plain arrow paid for the red chip", me.stats.acts == 0)
+	check("and it gave a red one back", me.stats.act_red == 1)
+
+	local brown = find_in("hand", "draw_three", "south")
+	check("which will not pay for a brown chip", not flow.can_play(brown.id))
+	actions.run({ "stat_gain:act_brown@mine.player:1" }, {})
+	check("a brown arrow will", flow.can_play(brown.id))
+	flow.play_card(brown.id, {})
+	check("and the brown one is what was spent, not the red",
+		me.stats.act_brown == 0 and me.stats.act_red == 1,
+		me.stats.act_brown .. "/" .. me.stats.act_red)
+end
+
+-- The piggy bank, which is what the icon read as "+1 buy" actually is: keep one
+-- unplayed chip out of the cleanup discard and draw one fewer for it. It is two
+-- halves a turn apart, so the chip kept back needs somewhere to sit.
+function M.test_puzzle_strike_a_piggy_bank_keeps_a_chip_for_next_turn(check)
+	opening(7)
+	actions.run({ "stat_gain:piggy@mine.player:1", "fill:mine.hand:gem_4:1" }, {})
+	flow.activate(loose("done_acting").id, {})
+	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("end_turn").id, {})
+
+	check("cleanup asks which chip to keep", phase.current().type == "overlay")
+	check("and keeping none is an answer", flow.can_dismiss())
+	flow.play_card(find_in("options", "gem_4").id, {})
+	check("the kept chip is on the shelf", count_in("stash", "south", "gem_4") == 1,
+		table.concat(keys_in("stash", "south"), " "))
+	check("and the hand it paid for is one short",
+		count_in("hand", "south") == 4, tostring(count_in("hand", "south")))
+
+	-- Round the table and back.
+	flow.activate(loose("done_acting").id, {})
+	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("end_turn").id, {})
+	if phase.current().type == "overlay" then flow.dismiss_offer() end
+	check("it is south's turn again", zones.active_seat() == "south")
+	check("the chip came back by itself", find_in("hand", "gem_4", "south") ~= nil,
+		table.concat(keys_in("hand", "south"), " "))
+	check("and the shelf is empty", count_in("stash", "south") == 0)
+end
+
+-- Without the ability nothing is asked: the cleanup runs straight through.
+function M.test_puzzle_strike_no_piggy_bank_no_question(check)
+	opening(7)
+	flow.activate(loose("done_acting").id, {})
+	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("end_turn").id, {})
+	check("no offer opened", phase.current().type ~= "overlay", phase.current().key)
+	check("and a full five were drawn", count_in("hand", "north") == 5,
+		tostring(count_in("hand", "north")))
+end
+
 -- A wound is the chip that cannot be played, and it says so by having no play
 -- at all. That has to *mean* something: a card with nothing to run used to be
 -- playable, cost nothing and change nothing, so a hand of wounds was a row of
@@ -447,10 +512,10 @@ function M.test_puzzle_strike_a_chip_wears_what_it_gives(check)
 	actions.run({ "fill:mine.hand:one_of_each:1", "fill:mine.hand:draw_three:1" }, {})
 	local one = find_in("hand", "one_of_each", "south").stats
 	check("one of each is one of each",
-		one.plus_act == 1 and one.plus_buy == 1 and one.plus_pow == 1 and one.plus_draw == 1)
+		one.plus_act == 1 and one.plus_piggy == 1 and one.plus_pow == 1 and one.plus_draw == 1)
 	local three = find_in("hand", "draw_three", "south").stats
 	check("draw three is three chips and nothing else",
-		three.plus_draw == 3 and three.plus_act == nil and three.plus_buy == nil)
+		three.plus_draw == 3 and three.plus_act == nil and three.plus_piggy == nil)
 	local gem = find_in("hand", "gem_1", "south").stats
 	check("a gem wears its value", gem.value == 1)
 end

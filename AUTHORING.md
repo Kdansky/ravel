@@ -1554,7 +1554,7 @@ disagree.
 
 The shapes are a closed set, so one nobody draws is refused rather than quietly
 becoming a diamond: `coin`, `heart`, `shield`, `banner`, `leaf`, `blade`,
-`arrow`, `card`, `fist`, `orb`, `diamond`, `none`. They are named by shape and
+`arrow`, `card`, `fist`, `orb`, `pot`, `diamond`, `none`. They are named by shape and
 not by meaning, because what a game calls its currency is its own business.
 
 ### A card that can do several things
@@ -1757,6 +1757,29 @@ because that is what an offer is for.
 `@self`. That is the `options:` relationship said the other way round: there the
 entry carries the rule and the asker is what it is about; here the entry is
 somebody else's property and carries nothing of ours.
+
+### A cost with two ways to pay it
+
+A `cost` is normally one map — everything in it, all of it. Written as a **list
+of maps** it is a list of alternatives, tried in order, and the first one the
+player can pay is the one they pay:
+
+```json
+"play": { "phases": ["action"],
+          "cost": [{ "act_red@mine.player": 1 }, { "acts@mine.player": 1 }] }
+```
+
+Puzzle Strike's arrows are the case. An arrow is an extra action play; a plain
+one pays for any chip, a coloured one only for a chip whose own banner matches
+it. So there is a pool per colour, and a red chip is paid for out of red *or*
+out of plain.
+
+**Order is the whole interface.** Nothing infers a preference: the author says
+which pool should go first, and here the restricted one does — a red arrow left
+unspent is a red arrow wasted, while a plain one can still pay for anything.
+Splendor's gold is the same shape read the other way: the wild goes last.
+
+The badge on the card face shows the first alternative, for the same reason.
 
 ### A card with nothing to run is not a move
 

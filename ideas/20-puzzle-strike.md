@@ -413,6 +413,41 @@ is not there when it is closed, so the pick is `options:` and the phase ends on
 a flag rather than on `ends_after` — choosing out of an overlay is deliberately
 not a play.
 
+## Stage 5 — two rules read wrong (2026-08-23)
+
+The owner caught both, and both were transcription rather than build.
+
+**The piggy bank is not "+1 buy".** There is no second buy in Puzzle Strike —
+you buy one chip a turn and nothing raises it — and the icon read here as a buy
+is the **Piggy Bank option**, which [rules.md](puzzle_strike/rules.md) §4 had
+quoted from the rulebook all along: *"During the cleanup phase, you may keep a
+chip in your hand that you didn't play rather than discard it. If you do, draw
+one less chip at the end of the turn."* Six chips in the catalogue said the
+wrong thing, and the game gave the wrong benefit.
+
+It builds out of what already exists and needed no engine work: a per-seat
+`stash` deck, a rule card gated on `piggy@mine.player >= 1` that runs
+`show:mine.hand:optional`, a `chosen` block that moves the pick to the stash and
+docks `to_draw`, and one `move:mine.stash:mine.hand` at the top of the next
+turn. **Cleanup had to become two phases** — an offer opens over the phase that
+ran it and the rest of that phase's list has already gone by, so discarding the
+hand the chip was kept out of belongs to the phase after.
+
+**Arrows have colours, and the restricted one must be spent first.** A black
+arrow pays for any chip; brown, red, blue and purple each pay only for a chip
+whose own banner matches (§2). One engine piece made it expressible: **a `cost`
+written as a list of maps is a list of alternatives**, tried in order, first
+affordable one paid. A chip's cost is then `[{its colour}, {plain}]`, written
+once in a post-pass over the card list rather than forty times, since the colour
+is already a tag. Ordering *is* the rule — nothing infers a preference, the
+author states it — and Splendor's gold is the same shape with the wild last.
+
+Two consequences. The action phase lost its `ends_when`: "no actions left" is
+one comparison and there are now five pools, and it was the wrong question
+anyway — the rulebook says play *up to* one chip, so declining to spend an arrow
+is a move. Done acting is the answer. And "yellow" throughout the catalogue was
+a misread of the tan arrow; the rulebook's colours are brown, red, blue, purple.
+
 ### Left
 
 - **Counter-crashing**, and with it Bubble Shield, Unstable Power's reaction
@@ -427,9 +462,6 @@ not a play.
   blocks a build: which Shadows character owns which trio (the grouping is
   certain, the ten names are matched to it by guesswork), The Hammer's banner,
   and Custom Combo's wordless arrow burst.
-- **Colour-restricted arrows.** A red arrow may only pay for a red-banner chip.
-  Every arrow in the build is a plain action, which makes Gem Essence and
-  One True Style better than printed.
 - **Ongoing chips that change somebody else's rules** — Protective Ward's
   combine tax, Flagstone Tax, Panda's Bargain's condition. An ongoing that
   changes *your own* ante works (Dragon Form), because the number it moves is

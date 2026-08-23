@@ -90,7 +90,7 @@ local RESERVED_SCOPES = { "self", "all", "reach", "owner_of" }
 M.ICONS = {
 	coin = true, heart = true, shield = true, banner = true, leaf = true,
 	blade = true, diamond = true, none = true,
-	arrow = true, card = true, fist = true, orb = true,
+	arrow = true, card = true, fist = true, orb = true, pot = true,
 }
 
 -- The fx base-effect vocabulary. The test suite asserts this stays in step
@@ -615,7 +615,8 @@ function M.check(G)
 	-- A cost: a map of subject to number, and it stays one. A cost is what gets
 	-- *spent*, which is a subject and an amount — "mana >= 3" says what to check
 	-- and not what to take away, so the two never wanted the same shape.
-	local function check_cost(where, map, kind)
+	local check_cost
+	function check_cost(where, map, kind)
 		if map == nil then return end
 		if type(map) ~= "table" then
 			warn('%s: should be written like { "gold": 2 }', where)
@@ -623,6 +624,17 @@ function M.check(G)
 		end
 		if type(map[1]) == "string" then
 			warn('%s: a cost is what gets spent, not a condition — write it as { "gold": 2 }', where)
+			return
+		end
+		-- A list of maps is a list of alternatives, checked one by one. One of
+		-- them is what gets paid, so each has to be a cost in its own right.
+		if type(map[1]) == "table" then
+			if #map < 2 then
+				warn("%s: is a list of one, which is not a choice — write the cost on its own", where)
+			end
+			for i, alt in ipairs(map) do
+				check_cost(where .. " alternative " .. i, alt, kind)
+			end
 			return
 		end
 		for key, v in pairs(map) do

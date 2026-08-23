@@ -62,6 +62,25 @@ PUZZLE_STOCK = 5
 
 BANNER = {"brown": "tan", "red": "red", "blue": "blue", "purple": "magenta"}
 
+# The four banner colours, plus the one that is not a colour. An arrow is an
+# extra action play; a **black** arrow will pay for any chip, a coloured one
+# only for a chip whose own banner matches it (rules.md §2). So an arrow is a
+# pool on the player card, one per colour, and playing a chip costs one out of
+# its own colour's pool *or* one out of black — in that order, because a red
+# arrow left unspent is a red arrow wasted.
+COLOURS = ["brown", "red", "blue", "purple"]
+
+
+def arrow(colour):
+    """The pool a chip of that colour is paid from. Black is the plain arrow —
+    it is `acts`, which every game before this called the action count, because
+    an unrestricted action is exactly what it always was."""
+    return "acts@mine.player" if colour == "black" else "act_%s@mine.player" % colour
+
+
+def act_cost(colour):
+    return [{arrow(colour): 1}, {arrow("black"): 1}]
+
 
 def gem_key(n):
     return "gem_%d" % n
@@ -90,7 +109,7 @@ CHARACTERS = [
      "An economy engine: trash the chips you have outgrown and buy bigger gems into your hand.",
      ["dragon_form", "rigorous_training", "purge_bad_habits"]),
     ("setsuki", "Setsuki", "amber",
-     "Speed: more actions, more buys, more chips, every turn.",
+     "Speed: more actions, more chips, and a chip kept back for next turn.",
      ["double_take", "bag_of_tricks", "speed_of_the_fox"]),
     ("lum", "Lum", "white",
      "A gambler happiest near the edge — the fuller your gem pile, the more you draw.",
@@ -150,15 +169,13 @@ TEXT = {
                         {"hits": 1, "react": 1}),
     "draw_three": ("+3 chips", None, {"plus_draw": 3}),
     "recklessness": ("+4 actions. Gain a wound.", None, {"plus_act": 4}),
-    "sneak_attack": ("+1 red action. Ante a 1-gem into each opposing gem pile.",
-                     "an action restricted to a colour is not built; the red action arrives as a plain one.",
+    "sneak_attack": ("+1 red action. Ante a 1-gem into each opposing gem pile.", None,
                      {"plus_act": 1, "hits": 1}),
-    "gem_essence": ("Trash a gem from your hand. If you do, +1 yellow action, +1 purple action, +1 red action, +1 blue action.",
-                    "actions restricted to a colour are not built; the four arrive as four plain actions.",
-                    {"plus_act": 4}),
+    "gem_essence": ("Trash a gem from your hand. If you do, +1 brown action, +1 purple action, +1 red action, +1 blue action.",
+                    None, {"plus_act": 4}),
     "one_two_punch": ("+2 actions", None, {"plus_act": 2}),
-    "one_of_each": ("+1 action, +1 buy, +$1, +1 chip", None,
-                    {"plus_act": 1, "plus_buy": 1, "plus_pow": 1, "plus_draw": 1}),
+    "one_of_each": ("+1 action, piggy bank, +$1, +1 chip", None,
+                    {"plus_act": 1, "plus_piggy": 1, "plus_pow": 1, "plus_draw": 1}),
     "roundhouse": ("+1 action, +2 chips", None, {"plus_act": 1, "plus_draw": 2}),
     "combo_time": ("Put a 1-gem from your hand in your gem pile. If you do, +4 chips, +1 action.",
                    None, {"plus_act": 1, "plus_draw": 4}),
@@ -174,8 +191,7 @@ TEXT = {
                         "the tax on combining is not built; the action it gives is.",
                         {"plus_act": 1}),
 
-    "playing_with_fire": ("Ante a 1-gem. +1 yellow action, +1 red action, +1 chip.",
-                          "actions restricted to a colour are not built; the two arrive as two plain ones.",
+    "playing_with_fire": ("Ante a 1-gem. +1 brown action, +1 red action, +1 chip.", None,
                           {"plus_act": 2, "plus_draw": 1}),
     "burning_vigor": ("Trash a wound from your hand or discard pile. If you do, +1 action and ante a 1-gem into each opposing gem pile.",
                       "only a wound in hand can be trashed \u2014 a pile is reached from the top.",
@@ -198,11 +214,9 @@ TEXT = {
     "double_take": ("Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.",
                     "playing a chip twice is not built; this gives two actions instead.",
                     {"plus_act": 2}),
-    "bag_of_tricks": ("+1 yellow action, +1 buy, +1 chip",
-                      "an action restricted to a colour is not built.",
-                      {"plus_act": 1, "plus_buy": 1, "plus_draw": 1}),
-    "speed_of_the_fox": ("+2 yellow actions, +1 chip",
-                         "actions restricted to a colour are not built.",
+    "bag_of_tricks": ("+1 brown action, piggy bank, +1 chip", None,
+                      {"plus_act": 1, "plus_piggy": 1, "plus_draw": 1}),
+    "speed_of_the_fox": ("+2 brown actions, +1 chip", None,
                          {"plus_act": 2, "plus_draw": 1}),
 
     "reversal": ("Main: +2 chips. Reaction: Play this as a Crash Gem to counter gems sent to you.",
@@ -211,14 +225,13 @@ TEXT = {
     "martial_mastery": ("+1 action. Trash a non-purple chip from your hand then gain a chip costing exactly 2 more.",
                         "comparing two chips' prices is not built, so this trashes and gives the action.",
                         {"plus_act": 1}),
-    "versatile_style": ("Choose one: +1 action and +1 buy \u2014 or \u2014 +$2 \u2014 or \u2014 +2 chips.", None, {}),
+    "versatile_style": ("Choose one: +1 action and piggy bank \u2014 or \u2014 +$2 \u2014 or \u2014 +2 chips.", None, {}),
 
-    "stone_wall": ("Main: +1 chip, +1 buy. Reaction: Reflect any gems sent to a player to the bank. (Just trash them.)",
+    "stone_wall": ("Main: +1 chip, piggy bank. Reaction: Reflect any gems sent to a player to the bank. (Just trash them.)",
                    "the reaction needs a chip played out of turn, which the engine refuses.",
-                   {"plus_draw": 1, "plus_buy": 1, "react": 1}),
+                   {"plus_draw": 1, "plus_piggy": 1, "react": 1}),
     "big_rocks": ("Trash a gem from your hand, then take a gem of 1 higher value and put it in your hand.", None, {}),
-    "strength_of_earth": ("+1 yellow action. Combine a 1-gem from the bank with a gem in your gem pile.",
-                          "an action restricted to a colour is not built.",
+    "strength_of_earth": ("+1 brown action. Combine a 1-gem from the bank with a gem in your gem pile.", None,
                           {"plus_act": 1}),
 
     "pilebunker": ("+1 chip. Opponents reveal their hands, trash their largest gem, then gain that many 1-gems.",
@@ -226,15 +239,14 @@ TEXT = {
                    "and nothing stops you picking something that is not a gem, which trashes it for no gems back.",
                    {"plus_draw": 1, "hits": 1}),
     "no_more_lies": ("+1 red action. Trash up to two chips from your hand. (Character chips can't be trashed.)",
-                     "an action restricted to a colour is not built.",
-                     {"plus_act": 1, "hits": 1}),
-    "troublesome_rhetoric": ("Chosen opponent chooses your benefit: +1 action and +1 chip \u2014 OR \u2014 +$2 and +1 buy.",
+                     None, {"plus_act": 1, "hits": 1}),
+    "troublesome_rhetoric": ("Chosen opponent chooses your benefit: +1 action and +1 chip \u2014 OR \u2014 +$2 and piggy bank.",
                              "nothing makes the opponent press the button \u2014 at one screen, hand it over.",
                              {}),
 
     "burst_of_speed": ("Trash this chip, then take an extra turn after this one.", None, {}),
     "chromatic_orb": ("+1 chip. Crash a 1-gem in your gem pile.", None, {"plus_draw": 1}),
-    "creative_thoughts": ("Choose any different two: +1 action / +1 buy / +$1 / +1 chip.", None, {}),
+    "creative_thoughts": ("Choose any different two: +1 action / piggy bank / +$1 / +1 chip.", None, {}),
 
     "research_development": ("+1 action. Exchange a chip in your hand with a purple from your bag.",
                              "searching a shaken bag is not built, so this gives the action and nothing else.",
@@ -256,6 +268,24 @@ TEXT = {
                 "a random reveal is not built and neither is the purple clause; this pays the gem half unconditionally.",
                 {"plus_act": 1, "plus_pow": 1}),
 }
+
+
+def by_colour(cards):
+    """Turn every action chip's cost into "an arrow of my colour, or a black one".
+
+    Written here rather than on forty cards, because the colour is already a tag
+    and a cost copied beside it is a cost that drifts. Order is the rule: the
+    restricted pool goes first, so a red arrow is spent while it still can be
+    and the black one is left for the chip that has no other way to be paid."""
+    for c in cards:
+        play = c.get("play")
+        if not isinstance(play, dict) or play.get("cost", {}).get("acts@mine.player") != 1:
+            continue
+        rest = {k: v for k, v in play["cost"].items() if k != "acts@mine.player"}
+        colour = next((t for t in c.get("tags", []) if t in COLOURS), None)
+        alts = act_cost(colour) if colour else [{arrow("black"): 1}]
+        play["cost"] = [dict(alt, **rest) for alt in alts]
+    return cards
 
 
 def say(cards):
@@ -310,7 +340,7 @@ def zones():
     # step word: a step needs an order named beside it, and these are decks with
     # no columns to order by. One zone per question is cheaper and reads better.
     for key in ("rules_ante", "rules_combine", "rules_upgrade", "rules_upgrade_hand",
-                "rules_upgrade_pile", "rules_height"):
+                "rules_upgrade_pile", "rules_height", "rules_piggy"):
         z.append({"key": key, "type": "deck", "tags": ["hidden"]})
     # South below, north above, mirrored through the middle line — and south's
     # rect is first in every pair because south is seat one. Read from the
@@ -324,7 +354,8 @@ def zones():
         "bag":      [[0.656, 0.830, 0.724, 0.995], [0.656, 0.005, 0.724, 0.170]],
         "fighter":  [[0.732, 0.830, 0.800, 0.995], [0.732, 0.005, 0.800, 0.170]],
         "table":    [[0.235, 0.620, 0.800, 0.822], [0.235, 0.178, 0.800, 0.380]],
-        "ongoing":  [[0.235, 0.505, 0.800, 0.612], [0.235, 0.388, 0.800, 0.495]],
+        "ongoing":  [[0.235, 0.505, 0.700, 0.612], [0.235, 0.388, 0.700, 0.495]],
+        "stash":    [[0.708, 0.505, 0.800, 0.612], [0.708, 0.388, 0.800, 0.495]],
         "gem_pile": [[0.808, 0.545, 0.995, 0.995], [0.808, 0.005, 0.995, 0.455]],
     }
     z += [
@@ -354,6 +385,11 @@ def zones():
          "pos": rects["bag"], "refill_from": "discard",
          "tooltip": "Your draw pile. The moment it runs out your discard goes back in and is shaken \u2014 mid-draw, mid-chip, wherever it happens."},
         {"key": "discard", "label": "Discard", "type": "pile", "tags": ["per_seat"], "pos": rects["discard"]},
+        # The piggy bank's shelf: one chip kept out of the cleanup discard, face
+        # down until it comes back at the start of the next turn.
+        {"key": "stash", "label": "Kept back", "type": "deck",
+         "tags": ["per_seat", "face_down"], "pos": rects["stash"],
+         "tooltip": "A chip you kept out of the discard. It returns to your hand at the start of your next turn."},
     ]
     return z
 
@@ -378,8 +414,19 @@ def stats():
         {"key": "pile", "label": "Gem pile", "icon": "diamond", "color": "green",
          "min": 0, "max": 99, "subject": "sum:value@mine.gem_pile"},
         player("money", "Gem power", "coin", "gold"),
-        player("acts", "Actions", "blade", "silver"),
-        player("buys", "Buys", "banner", "amber"),
+        # One black arrow a turn, and whatever a chip adds. A coloured arrow is
+        # its own pool because it can only pay for its own colour, and a pool
+        # that could be spent on anything would not be that.
+        player("acts", "Actions", "arrow", "silver"),
+        player("act_brown", "Brown", "arrow", "tan"),
+        player("act_red", "Red", "arrow", "red"),
+        player("act_blue", "Blue", "arrow", "blue"),
+        player("act_purple", "Purple", "arrow", "magenta"),
+        # Not a second buy — there is no such thing in this game. The piggy bank
+        # keeps one unplayed chip through cleanup, at the cost of drawing one
+        # fewer (rules.md §4).
+        player("piggy", "Piggy bank", "pot", "pink"),
+        player("buys", None, None, hidden=True),
         player("bought", None, None, hidden=True),
         player("to_draw", None, None, hidden=True),
         player("crashed", None, None, hidden=True),
@@ -398,7 +445,7 @@ def stats():
         {"key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"]},
         {"key": "stock", "min": 0, "max": 99, "icon": "card", "tags": ["hidden"]},
         {"key": "plus_act", "min": 0, "max": 9, "icon": "arrow", "tags": ["hidden"]},
-        {"key": "plus_buy", "min": 0, "max": 9, "icon": "banner", "color": "amber", "tags": ["hidden"]},
+        {"key": "plus_piggy", "min": 0, "max": 9, "icon": "pot", "color": "pink", "number": False, "tags": ["hidden"]},
         {"key": "plus_draw", "min": 0, "max": 9, "icon": "card", "tags": ["hidden"]},
         {"key": "plus_pow", "min": 0, "max": 9, "icon": "coin", "color": "green", "tags": ["hidden"]},
         # A banner shape, not a quantity: the chip either has a reaction half or
@@ -420,7 +467,7 @@ def styles():
     out = {name: {"color": rgb} for name, rgb in banner.items()}
     out["gem"] = {"color": [0.18, 0.46, 0.34]}
     out["wound"] = {"color": [0.34, 0.14, 0.14]}
-    out["chip"] = {"badges": ["value", "plus_pow", "plus_act", "plus_buy", "plus_draw", "hits", "react"],
+    out["chip"] = {"badges": ["value", "plus_pow", "plus_act", "plus_draw", "plus_piggy", "hits", "react"],
                    "badge_zeros": False}
     out["stack"] = {"badges": ["price", "stock"], "badge_run": "down", "badge_zeros": False}
     out["character_card"] = {"color": [0.24, 0.26, 0.36]}
@@ -539,14 +586,16 @@ def puzzle_cards():
         {"key": "sneak_attack", "text": "Sneak Attack", "tags": ["chip", "trashable", "puzzle", "red"],
          "asset": "polygon:6:red",
          "tooltip": "Ante a 1-gem into each opposing gem pile, and keep your action.",
-         "play": act(["stat_gain:acts@mine.player:1",
+         "play": act(["stat_gain:act_red@mine.player:1",
                       "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@stack_gem_1:1"])},
         {"key": "gem_essence", "text": "Gem Essence", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
          "tooltip": "Trash a gem out of your hand and take four actions for it.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": hand_gem,
-                  "action": ["move_target_to:void", "stat_gain:acts@mine.player:4", "move_to:mine.table"]}},
+                  "action": ["move_target_to:void"]
+                            + ["stat_gain:%s:1" % arrow(c) for c in COLOURS]
+                            + ["move_to:mine.table"]}},
         {"key": "one_two_punch", "text": "One-Two Punch", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
          "tooltip": "Two actions.",
@@ -554,7 +603,7 @@ def puzzle_cards():
         {"key": "one_of_each", "text": "One of Each", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
          "tooltip": "An action, a buy, a gem power and a chip — one of each of the four things a chip can give you.",
-         "play": act(["stat_gain:acts@mine.player:1", "stat_gain:buys@mine.player:1",
+         "play": act(["stat_gain:acts@mine.player:1", "stat_gain:piggy@mine.player:1",
                       "stat_gain:money@mine.player:1", "draw_from:mine.bag:mine.hand:1"])},
         {"key": "roundhouse", "text": "Roundhouse", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
@@ -590,7 +639,7 @@ def character_chips():
         {"key": "hex_of_murkwood", "text": "Hex of Murkwood", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:teal",
          "tooltip": "+1 blue action. Each opponent gains a wound or discards two wounds. Here they gain one: choosing for them is the opponent's decision, and there is no way to ask yet.",
-         "play": act(["stat_gain:acts@mine.player:1"] + gain_wound("enemy"))},
+         "play": act(["stat_gain:act_blue@mine.player:1"] + gain_wound("enemy"))},
         {"key": "bubble_shield", "text": "Bubble Shield", "tags": ["chip", "character", "blue"],
          "asset": "circle:cyan",
          "tooltip": "Ongoing: negate a gem sent to you, then discard this chip. Reactions are not built yet, so laying it out does nothing but say you have it.",
@@ -599,13 +648,14 @@ def character_chips():
          "asset": "polygon:7:teal",
          "tooltip": "+1 blue action. Ongoing: nobody may combine without discarding a Puzzle chip first. The tax is not built; the action it gives back is.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["stat_gain:acts@mine.player:1", "move_to:mine.ongoing"]}},
+                  "action": ["stat_gain:act_blue@mine.player:1", "move_to:mine.ongoing"]}},
         # Jaina
         {"key": "playing_with_fire", "text": "Playing with Fire", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:crimson",
          "tooltip": "Ante a 1-gem into your own pile, then take two actions and a chip for it.",
          "play": act(["fill:mine.gem_pile:gem_1:1", "stat_damage:stock@stack_gem_1:1",
-                      "stat_gain:acts@mine.player:2", "draw_from:mine.bag:mine.hand:1"])},
+                      "stat_gain:act_brown@mine.player:1", "stat_gain:act_red@mine.player:1",
+                      "draw_from:mine.bag:mine.hand:1"])},
         {"key": "burning_vigor", "text": "Burning Vigor", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:crimson",
          "tooltip": "Trash a wound out of your hand, and it turns into an action and a gem in every opposing pile.",
@@ -651,12 +701,12 @@ def character_chips():
         {"key": "bag_of_tricks", "text": "Bag of Tricks", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:amber",
          "tooltip": "An action, a buy and a chip.",
-         "play": act(["stat_gain:acts@mine.player:1", "stat_gain:buys@mine.player:1",
+         "play": act(["stat_gain:act_brown@mine.player:1", "stat_gain:piggy@mine.player:1",
                       "draw_from:mine.bag:mine.hand:1"])},
         {"key": "speed_of_the_fox", "text": "Speed of the Fox", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:amber",
          "tooltip": "Two actions and a chip.",
-         "play": act(["stat_gain:acts@mine.player:2", "draw_from:mine.bag:mine.hand:1"])},
+         "play": act(["stat_gain:act_brown@mine.player:2", "draw_from:mine.bag:mine.hand:1"])},
         # Grave
         {"key": "reversal", "text": "Reversal", "tags": ["chip", "character", "purple"],
          "asset": "circle:navy",
@@ -677,7 +727,7 @@ def character_chips():
         {"key": "stone_wall", "text": "Stone Wall", "tags": ["chip", "character", "purple"],
          "asset": "circle:ash",
          "tooltip": "Main: a chip and a buy. Reaction: reflect any gems sent to a player back to the bank — the reaction needs playing out of turn, which is not built.",
-         "play": act(["draw_from:mine.bag:mine.hand:1", "stat_gain:buys@mine.player:1"])},
+         "play": act(["draw_from:mine.bag:mine.hand:1", "stat_gain:piggy@mine.player:1"])},
         {"key": "big_rocks", "text": "Big Rocks", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:ash",
          "tooltip": "Trash a gem out of your hand and take one worth a point more straight back into it.",
@@ -697,7 +747,7 @@ def character_chips():
                              "move_target_to:void",
                              "activate_zone:rules_upgrade_pile",
                              "stat_damage:stock@stack_gem_1:1",
-                             "stat_gain:acts@mine.player:1",
+                             "stat_gain:act_brown@mine.player:1",
                              "move_to:mine.table"]}},
         # DeGrey
         # The chip that asked for `show:`. The opponent's hand comes up face up
@@ -717,7 +767,7 @@ def character_chips():
          "tooltip": "Trash up to two chips out of your hand. Character chips cannot be trashed.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["trashable"], min=0, max=2),
-                  "action": ["move_target_to:void", "stat_gain:acts@mine.player:1",
+                  "action": ["move_target_to:void", "stat_gain:act_red@mine.player:1",
                              "move_to:mine.table"]}},
         {"key": "troublesome_rhetoric", "text": "Troublesome Rhetoric",
          "tags": ["chip", "character", "brown"], "asset": "polygon:7:pink",
@@ -785,20 +835,20 @@ def choice_cards():
                 "asset": "square:slate", "play": {"action": action}}
 
     A = "stat_gain:acts@mine.player:1"
-    B = "stat_gain:buys@mine.player:1"
+    P = "stat_gain:piggy@mine.player:1"
     Mo = "stat_gain:money@mine.player:1"
     C = "draw_from:mine.bag:mine.hand:1"
     return [
-        choice("vs_tempo", "An action and a buy", [A, B]),
+        choice("vs_tempo", "An action and a piggy bank", [A, P]),
         choice("vs_money", "Two gem power", ["stat_gain:money@mine.player:2"]),
         choice("vs_chips", "Two chips", ["draw_from:mine.bag:mine.hand:2"]),
         choice("tr_tempo", "An action and a chip", [A, C]),
-        choice("tr_money", "Two gem power and a buy", ["stat_gain:money@mine.player:2", B]),
-        choice("ct_ab", "An action and a buy", [A, B]),
+        choice("tr_money", "Two gem power and a piggy bank", ["stat_gain:money@mine.player:2", P]),
+        choice("ct_ab", "An action and a piggy bank", [A, P]),
         choice("ct_am", "An action and a gem power", [A, Mo]),
         choice("ct_ac", "An action and a chip", [A, C]),
-        choice("ct_bm", "A buy and a gem power", [B, Mo]),
-        choice("ct_bc", "A buy and a chip", [B, C]),
+        choice("ct_bm", "A piggy bank and a gem power", [P, Mo]),
+        choice("ct_bc", "A piggy bank and a chip", [P, C]),
         choice("ct_mc", "A gem power and a chip", [Mo, C]),
     ]
 
@@ -845,6 +895,17 @@ def rule_cards():
         for n in (2, 3, 4):
             rule(where, "up%s_%d" % (suffix, n), ["combined@mine.player == %d" % (n - 1)],
                  take(n, zone))
+    # The piggy bank: your own hand comes up in the offer and you may keep one
+    # chip out of the discard, drawing one fewer for it. Declinable, because
+    # keeping nothing is the usual answer — and a `chosen` block rather than an
+    # action list, because what happens depends on which chip.
+    out.append(("rules_piggy", {
+        "key": "piggy_bank", "text": "Piggy bank", "tags": ["immutable"],
+        "abilities": [{"key": "piggy_bank", "text": "Piggy bank",
+                       "when": ["piggy@mine.player >= 1"],
+                       "action": ["show:mine.hand:optional"]}],
+        "chosen": {"action": ["move_target_to:mine.stash",
+                              "stat_damage:to_draw@mine.player:1"]}}))
     # The height bonus is cumulative, so three separate ifs add up to +1/+2/+3.
     for n in (3, 6, 9):
         rule("rules_height", "height_%d" % n, ["sum:value@mine.gem_pile >= %d" % n],
@@ -963,15 +1024,28 @@ def phases():
         # it, because only a phase a player acts in can hand the turn over: an
         # automatic one has nobody to hand it to. So everything a turn resets,
         # then the ongoing chips, then the ante, all on the way in.
+        #
+        # No `ends_when`. It used to be "no actions left", which cannot be asked
+        # once an arrow has four colours — a condition is one comparison, and a
+        # player holding a red arrow and no black one has actions left. It is
+        # also the wrong question: the rulebook says play *up to* one chip, so
+        # declining to spend an arrow is a move. The Done acting button is the
+        # answer to both.
         {"key": "action", "type": "player_input", "seat": "next", "zone": "hand",
-         "label": "Play an action chip", "ends_when": "acts@mine.player == 0",
+         "label": "Play an action chip",
          "actions": ["stat_set:money@mine.player:0",
-                     "stat_set:acts@mine.player:1",
-                     "stat_set:buys@mine.player:1",
-                     "stat_set:bought@mine.player:0",
-                     "stat_set:panic@clock:count:spent@bank",
-                     "activate_zone:mine.ongoing",
-                     "activate_zone:rules_ante"],
+                     "stat_set:acts@mine.player:1"]
+                    + ["stat_set:%s:0" % arrow(c) for c in COLOURS]
+                    + ["stat_set:piggy@mine.player:0",
+                       "stat_set:buys@mine.player:1",
+                       "stat_set:bought@mine.player:0",
+                       "stat_set:panic@clock:count:spent@bank",
+                       # Whatever was kept back last cleanup, back in hand — the
+                       # other half of the piggy bank, and the reason the stash
+                       # is a zone rather than a flag on a chip.
+                       "move:mine.stash:mine.hand",
+                       "activate_zone:mine.ongoing",
+                       "activate_zone:rules_ante"],
          "next": [{"then": "buy"}]},
         {"key": "buy", "type": "player_input", "zone": "hand",
          "label": "Play gems for money, then buy",
@@ -982,11 +1056,19 @@ def phases():
         # reshuffle had to happen between two draws; the zone knowing its own
         # discard deletes the loop and — the point — makes it work inside a
         # chip's action list too, where no phase could reach.
+        # Two phases, because the piggy bank asks a question in the middle of
+        # one. An offer opens over the phase that ran it and the rest of that
+        # phase's actions have already run by then, so anything that must happen
+        # *after* the answer belongs to the next phase — here, discarding the
+        # hand the chip was kept out of.
         {"key": "cleanup", "type": "automatic",
          "actions": ["move:mine.table:mine.discard",
-                     "move:mine.hand:mine.discard",
                      "stat_set:to_draw@mine.player:%d" % HAND,
                      "activate_zone:rules_height",
+                     "activate_zone:rules_piggy"],
+         "next": [{"then": "cleanup_draw"}]},
+        {"key": "cleanup_draw", "type": "automatic",
+         "actions": ["move:mine.hand:mine.discard",
                      "draw_from:mine.bag:mine.hand:sum:to_draw@mine.player"],
          "next": [{"when": "sum:value@mine.gem_pile >= %d" % LOSE_AT, "then": "defeat"},
                   {"then": "handover"}]},
@@ -1018,7 +1100,8 @@ def build():
         "phases": phases(),
         "players": [{"card": k} for k, _ in SEATS],
         "cards": (seat_cards() + other_cards() + button_cards() + bank_cards()
-                  + say(gem_cards() + purple_cards() + puzzle_cards() + character_chips())
+                  + by_colour(say(gem_cards() + purple_cards() + puzzle_cards()
+                                   + character_chips()))
                   + character_cards() + [c for _, c in rule_cards()]),
         "setup": {"place": [{"card": "clock", "zone": "sys"},
                             {"card": "done_acting", "zone": "controls", "at": ["a1"]},

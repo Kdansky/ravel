@@ -519,7 +519,19 @@ end
 -- ({ "hp@each.follower": 1 } — each follower must have one to give).
 -- Lives here rather than in cards because it reads the live entity graph and
 -- every caller is a legality gate, and because payment is right below it.
-function M.can_afford(cost, ctx)
+-- A cost written as a **list** is a list of alternatives, tried in order: the
+-- first one the player can pay is the one they pay. Order is the whole
+-- interface — a chip payable with a red arrow or a plain one puts red first, so
+-- the restricted pool is spent while it still can be, and the plain one is left
+-- for the chip that has no other way to be paid.
+--
+-- A map is one cost, which is every cost written before this and most since.
+local function alternatives(cost)
+	if type(cost) ~= "table" or type(cost[1]) ~= "table" then return nil end
+	return cost
+end
+
+local function one_affordable(cost, ctx)
 	for subject, n in pairs(cost or {}) do
 		local tag = type(subject) == "string" and subject:match("^sacrifice:(.+)$")
 		-- Tapping, in the MTG sense: the card spends *itself* being ready. A
@@ -545,14 +557,30 @@ function M.can_afford(cost, ctx)
 	return true
 end
 
+-- Which alternative is being paid, or nil when none of them can be. Asked by
+-- can_afford and again by pay, so the two cannot disagree about which.
+function M.affordable(cost, ctx)
+	local alts = alternatives(cost)
+	if not alts then return one_affordable(cost, ctx) and (cost or {}) or nil end
+	for _, alt in ipairs(alts) do
+		if one_affordable(alt, ctx) then return alt end
+	end
+	return nil
+end
+
+function M.can_afford(cost, ctx)
+	return M.affordable(cost, ctx) ~= nil
+end
+
 -- Pay a cost: stats are spent through their subject (so a scope and
 -- quantifier are honoured), "sacrifice:<tag>" entries destroy board cards
 -- carrying the tag (oldest first — affordability was already checked).
 -- Keys are walked in sorted order, never pairs: clamping makes payment order
 -- observable, and a seeded replay has to pay identically.
 local function pay(cost, ctx)
+	cost = M.affordable(cost, ctx) or {}
 	local subjects = {}
-	for k in pairs(cost or {}) do subjects[#subjects + 1] = k end
+	for k in pairs(cost) do subjects[#subjects + 1] = k end
 	table.sort(subjects)
 	for _, stat in ipairs(subjects) do
 		local n   = cost[stat]
