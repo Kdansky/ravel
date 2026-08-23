@@ -168,6 +168,9 @@ local function primary_action(x, y)
 	elseif btn == "cancel" then
 		if targeting.active() then cancel_targeting() end
 		return
+	elseif btn == "no_choice" then
+		flow.dismiss_offer()
+		return
 	end
 
 	local cur = phase.current()

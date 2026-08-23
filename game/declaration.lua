@@ -36,6 +36,7 @@ local MOMENTS = {
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts", action = "on_receive" },
 	turn      = { action = "on_turn" },
+	chosen    = { action = "on_chosen" },
 }
 M.MOMENTS = MOMENTS
 

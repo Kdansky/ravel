@@ -18,7 +18,13 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
 
-SEATS = [("north", "North"), ("south", "South")]
+# **South first, and south is the near edge.** A per-seat zone takes one rect
+# per seat in seat order, so seat one's rect is the first in every list below —
+# and seat one is who the game hands the first turn to. At one screen that is
+# the person sitting in front of it, which is the bottom of the board. Written
+# the other way round, the opening pick is made for the player across the table
+# and everything after it reads inside out.
+SEATS = [("south", "South"), ("north", "North")]
 HAND = 5
 LOSE_AT = 10
 
@@ -107,20 +113,193 @@ CHARACTERS = [
 ]
 
 
+# --- what the chips say ---------------------------------------------------
+#
+# Printed text, verbatim from ideas/puzzle_strike/chips.md, which is the owner's
+# third-edition set. Keeping it word for word matters more than it looks: a
+# paraphrase reads fine until somebody compares it with the chip in their hand
+# and cannot tell whether the difference is a typo or a rule.
+#
+# The second entry is the **DEV note**, and it is the only thing here that is
+# not on the physical chip. It goes at the end after a blank line, so the
+# printed words are never interrupted by ours — an aside in the middle of a
+# rule is the fastest way to make a rule unreadable.
+#
+# The third is what the chip wears on its face. A printed chip says what it
+# gives in symbols and reads at arm's length; a paragraph in a forty-pixel band
+# does not. These are those symbols.
+TEXT = {
+    "gem_1": ("A gem worth 1.", None, {}),
+    "gem_2": ("A gem worth 2.", None, {}),
+    "gem_3": ("A gem worth 3.", None, {}),
+    "gem_4": ("A gem worth 4.", None, {}),
+
+    "combine": ("Combine two gems in your gem pile into one, if the total is 4 or less. \u2212$1. +1 action",
+                None, {"plus_act": 1}),
+    "crash_gem": ("Break one gem in your gem pile and send that many 1-gems to a chosen opponent. +$1",
+                  None, {"plus_pow": 1}),
+    "double_crash": ("As Crash Gem, up to two gems. +$2", None, {"plus_pow": 2}),
+    "wound": ("This chip does nothing.",
+              "it is free, and it is the only thing you can always afford: you must buy something every turn.",
+              {}),
+
+    "risky_move": ("Put a gem from your hand into your gem pile. If you do, gain a gem of 1 higher value and +$3.",
+                   None, {"plus_pow": 3}),
+    "really_annoying": ("Main: Each opponent gains a wound. Reaction: The player who red-attacked you gains a wound.",
+                        "the reaction half needs a chip played out of turn, which the engine refuses. Only the main half is built.",
+                        {"hits": 1, "react": 1}),
+    "draw_three": ("+3 chips", None, {"plus_draw": 3}),
+    "recklessness": ("+4 actions. Gain a wound.", None, {"plus_act": 4}),
+    "sneak_attack": ("+1 red action. Ante a 1-gem into each opposing gem pile.",
+                     "an action restricted to a colour is not built; the red action arrives as a plain one.",
+                     {"plus_act": 1, "hits": 1}),
+    "gem_essence": ("Trash a gem from your hand. If you do, +1 yellow action, +1 purple action, +1 red action, +1 blue action.",
+                    "actions restricted to a colour are not built; the four arrive as four plain actions.",
+                    {"plus_act": 4}),
+    "one_two_punch": ("+2 actions", None, {"plus_act": 2}),
+    "one_of_each": ("+1 action, +1 buy, +$1, +1 chip", None,
+                    {"plus_act": 1, "plus_buy": 1, "plus_pow": 1, "plus_draw": 1}),
+    "roundhouse": ("+1 action, +2 chips", None, {"plus_act": 1, "plus_draw": 2}),
+    "combo_time": ("Put a 1-gem from your hand in your gem pile. If you do, +4 chips, +1 action.",
+                   None, {"plus_act": 1, "plus_draw": 4}),
+
+    "hex_of_murkwood": ("+1 blue action. Each opponent gains a wound or discards two wounds.",
+                        "which of the two is the opponent's choice and there is no way to ask them yet, so they gain one.",
+                        {"plus_act": 1, "hits": 1}),
+    "bubble_shield": ("Ongoing: Negate a gem sent to you, then discard this chip. Reaction: Become immune to a red chip.",
+                      "both halves are reactions, which need a chip played out of turn. Laying it out says you have it and nothing more.",
+                      {"react": 1}),
+    "protective_ward": ("+1 blue action. Ongoing: Players can't combine gems unless they discard a Puzzle chip first. "
+                        "Discard this at the end of your next action phase.",
+                        "the tax on combining is not built; the action it gives is.",
+                        {"plus_act": 1}),
+
+    "playing_with_fire": ("Ante a 1-gem. +1 yellow action, +1 red action, +1 chip.",
+                          "actions restricted to a colour are not built; the two arrive as two plain ones.",
+                          {"plus_act": 2, "plus_draw": 1}),
+    "burning_vigor": ("Trash a wound from your hand or discard pile. If you do, +1 action and ante a 1-gem into each opposing gem pile.",
+                      "only a wound in hand can be trashed \u2014 a pile is reached from the top.",
+                      {"plus_act": 1, "hits": 1}),
+    "unstable_power": ("Main or Reaction: Play this as if it were a Double Crash Gem, then gain two wounds.",
+                       "the reaction half needs a chip played out of turn, which the engine refuses.",
+                       {"plus_pow": 2, "react": 1}),
+
+    "dragon_form": ("Ongoing: Each ante phase, ante a gem of 1 higher than usual, or discard this chip. "
+                    "Your purples can't be reacted to. You can't buy purples.",
+                    "the bigger ante is built; the other two clauses need reactions, which are not.",
+                    {}),
+    "rigorous_training": ("Reaction: When an opponent buys a 4-cost or more chip, trash a non-purple chip from your hand "
+                          "then gain a chip costing up to 2 more than the trashed chip.",
+                          "reactions are not built.",
+                          {"react": 1}),
+    "purge_bad_habits": ("Trash a chip from your hand. Put a 2-gem from the bank into your hand. "
+                         "(Character chips can't be trashed.)", None, {}),
+
+    "double_take": ("Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.",
+                    "playing a chip twice is not built; this gives two actions instead.",
+                    {"plus_act": 2}),
+    "bag_of_tricks": ("+1 yellow action, +1 buy, +1 chip",
+                      "an action restricted to a colour is not built.",
+                      {"plus_act": 1, "plus_buy": 1, "plus_draw": 1}),
+    "speed_of_the_fox": ("+2 yellow actions, +1 chip",
+                         "actions restricted to a colour are not built.",
+                         {"plus_act": 2, "plus_draw": 1}),
+
+    "reversal": ("Main: +2 chips. Reaction: Play this as a Crash Gem to counter gems sent to you.",
+                 "the reaction needs a chip played out of turn, which the engine refuses.",
+                 {"plus_draw": 2, "react": 1}),
+    "martial_mastery": ("+1 action. Trash a non-purple chip from your hand then gain a chip costing exactly 2 more.",
+                        "comparing two chips' prices is not built, so this trashes and gives the action.",
+                        {"plus_act": 1}),
+    "versatile_style": ("Choose one: +1 action and +1 buy \u2014 or \u2014 +$2 \u2014 or \u2014 +2 chips.", None, {}),
+
+    "stone_wall": ("Main: +1 chip, +1 buy. Reaction: Reflect any gems sent to a player to the bank. (Just trash them.)",
+                   "the reaction needs a chip played out of turn, which the engine refuses.",
+                   {"plus_draw": 1, "plus_buy": 1, "react": 1}),
+    "big_rocks": ("Trash a gem from your hand, then take a gem of 1 higher value and put it in your hand.", None, {}),
+    "strength_of_earth": ("+1 yellow action. Combine a 1-gem from the bank with a gem in your gem pile.",
+                          "an action restricted to a colour is not built.",
+                          {"plus_act": 1}),
+
+    "pilebunker": ("+1 chip. Opponents reveal their hands, trash their largest gem, then gain that many 1-gems.",
+                   "the hand opens and you pick the chip to trash; nothing enforces that it is the largest, "
+                   "and nothing stops you picking something that is not a gem, which trashes it for no gems back.",
+                   {"plus_draw": 1, "hits": 1}),
+    "no_more_lies": ("+1 red action. Trash up to two chips from your hand. (Character chips can't be trashed.)",
+                     "an action restricted to a colour is not built.",
+                     {"plus_act": 1, "hits": 1}),
+    "troublesome_rhetoric": ("Chosen opponent chooses your benefit: +1 action and +1 chip \u2014 OR \u2014 +$2 and +1 buy.",
+                             "nothing makes the opponent press the button \u2014 at one screen, hand it over.",
+                             {}),
+
+    "burst_of_speed": ("Trash this chip, then take an extra turn after this one.", None, {}),
+    "chromatic_orb": ("+1 chip. Crash a 1-gem in your gem pile.", None, {"plus_draw": 1}),
+    "creative_thoughts": ("Choose any different two: +1 action / +1 buy / +$1 / +1 chip.", None, {}),
+
+    "research_development": ("+1 action. Exchange a chip in your hand with a purple from your bag.",
+                             "searching a shaken bag is not built, so this gives the action and nothing else.",
+                             {"plus_act": 1}),
+    "future_sight": ("+2 chips. Put two chips from your hand on top of your bag in any order.",
+                     "which order they go back in is not yours to say here.",
+                     {"plus_draw": 2}),
+    "its_time_for_the_past": ("+1 action. Put a non-Puzzle chip from your discard pile into your hand.",
+                              "a pile is reached from the top, so this takes the last chip you threw away.",
+                              {"plus_act": 1}),
+
+    "living_on_the_edge": ("If your gem pile totals at least 10, +3 chips, +1 action.", None,
+                           {"plus_act": 1, "plus_draw": 3}),
+    "pandas_bargain": ("Ongoing: At the end of any turn you bought a Puzzle chip, +1 chip. Discard this when you buy a purple.",
+                       "the condition is not built; laying it out draws the chip once.",
+                       {"plus_draw": 1}),
+    "jackpot": ("Reveal two chips at random from chosen opponent's hand. If any are gems, +$1 and +1 action. "
+                "If both are purples, play and gain a purple from the bank.",
+                "a random reveal is not built and neither is the purple clause; this pays the gem half unconditionally.",
+                {"plus_act": 1, "plus_pow": 1}),
+}
+
+
+def say(cards):
+    """Put the printed words and the badges onto the cards TEXT names."""
+    for c in cards:
+        entry = TEXT.get(c["key"])
+        if not entry:
+            continue
+        printed, dev, badges = entry
+        c["tooltip"] = printed + ("\n\nDEV: " + dev if dev else "")
+        if badges:
+            c.setdefault("card_stats", {}).update(badges)
+    return cards
+
+
 # --- layout ---------------------------------------------------------------
 #
-# The bank is one grid rather than eighteen stacked zones: eighteen rects would
-# be eighteen numbers to keep in step, and a grid lays its own cells out.
+# One column down the left for everything the table shares, and the rest split
+# in half with nothing between: the two players face each other across the
+# middle, and each half is the other one upside down.
+#
+# The bank is a two-wide column rather than a wide strip because a chip is
+# taller than it is wide — a row of eighteen plates gives each one a sliver, a
+# column of nine pairs gives each one a card shape.
 def zones():
     z = [
-        {"key": "bank", "label": "Bank", "type": "grid", "grid": [9, 2],
-         "tags": ["activate"], "pos": [0.02, 0.02, 0.98, 0.24],
+        # Two readouts nothing else can give: a board shows what is where and
+        # says nothing about whose turn it is or which part of it this is.
+        {"key": "whose_turn", "label": "current_player", "type": "grid", "grid": [1, 1],
+         "pos": [0.005, 0.005, 0.225, 0.045]},
+        {"key": "what_now", "label": "current_phase", "type": "grid", "grid": [1, 1],
+         "pos": [0.005, 0.049, 0.225, 0.089]},
+        # Stopping at 0.82: the lower-left corner is the undo button's and the
+        # log's, which is why this column ends above it rather than at the floor.
+        {"key": "bank", "label": "Bank", "type": "grid", "grid": [2, 9],
+         "tags": ["activate"], "pos": [0.005, 0.095, 0.225, 0.818],
          "tooltip": "Every chip you may buy. A stack says how many are left; when stacks run dry the ante grows."},
-        # The band this sits in is the draft's, and after the draft it is empty
-        # on purpose: it is the only strip of screen neither seat owns.
-        {"key": "roster", "type": "hand", "tags": ["optional"], "pos": [0.02, 0.52, 0.86, 0.66]},
-        {"key": "controls", "type": "grid", "grid": [1, 2], "tags": ["activate"],
-         "pos": [0.88, 0.52, 0.98, 0.66]},
+        # The two buttons sit on the middle line between the gem piles, where
+        # they belong to whoever is up rather than to either side of the table.
+        {"key": "controls", "type": "grid", "grid": [2, 1], "tags": ["activate"],
+         "pos": [0.808, 0.463, 0.995, 0.537]},
+        # The roster is the injected offer, positioned rather than declared: ten
+        # characters wants more of the screen than a choice between two.
+        {"key": "options", "type": "options", "pos": [0.06, 0.30, 0.94, 0.70]},
         {"key": "box", "type": "deck", "tags": ["hidden"]},
         {"key": "void", "type": "deck", "tags": ["hidden"]},
         # A grid, not a deck: a tag scope only searches grids, and every rule
@@ -133,31 +312,47 @@ def zones():
     for key in ("rules_ante", "rules_combine", "rules_upgrade", "rules_upgrade_hand",
                 "rules_upgrade_pile", "rules_height"):
         z.append({"key": key, "type": "deck", "tags": ["hidden"]})
-    # Two seats facing each other: the far one under the bank, the near one
-    # along the bottom, and the draft band between them.
+    # South below, north above, mirrored through the middle line — and south's
+    # rect is first in every pair because south is seat one. Read from the
+    # outside in, each seat has: its hand along the outer edge with the discard,
+    # the bag and its fighter beside it, then what it played this turn, then
+    # what it has standing — and the gem pile down the far side, where the
+    # number that ends the game is never covered by anything.
     rects = {
-        "gem_pile": [[0.02, 0.26, 0.36, 0.38], [0.02, 0.68, 0.36, 0.80]],
-        "ongoing":  [[0.38, 0.26, 0.62, 0.38], [0.38, 0.68, 0.62, 0.80]],
-        "table":    [[0.02, 0.39, 0.62, 0.50], [0.02, 0.81, 0.62, 0.92]],
-        "hand":     [[0.64, 0.26, 0.87, 0.50], [0.64, 0.68, 0.87, 0.97]],
-        "bag":      [[0.89, 0.26, 0.945, 0.37], [0.89, 0.68, 0.945, 0.79]],
-        "discard":  [[0.89, 0.38, 0.945, 0.50], [0.89, 0.80, 0.945, 0.92]],
+        "hand":     [[0.235, 0.830, 0.560, 0.995], [0.235, 0.005, 0.560, 0.170]],
+        "discard":  [[0.568, 0.830, 0.648, 0.995], [0.568, 0.005, 0.648, 0.170]],
+        "bag":      [[0.656, 0.830, 0.724, 0.995], [0.656, 0.005, 0.724, 0.170]],
+        "fighter":  [[0.732, 0.830, 0.800, 0.995], [0.732, 0.005, 0.800, 0.170]],
+        "table":    [[0.235, 0.620, 0.800, 0.822], [0.235, 0.178, 0.800, 0.380]],
+        "ongoing":  [[0.235, 0.505, 0.800, 0.612], [0.235, 0.388, 0.800, 0.495]],
+        "gem_pile": [[0.808, 0.545, 0.995, 0.995], [0.808, 0.005, 0.995, 0.455]],
     }
     z += [
-        # The gem pile is a grid for the same reason: `sum:value@mine.gem_pile`
-        # is the loss condition, the height bonus and half the crash rules,
-        # and a scope cannot see a hand.
-        {"key": "gem_pile", "label": "Gem pile", "type": "grid", "grid": [10, 2],
+        # The gem pile is a grid for the same reason the clock is:
+        # `sum:value@mine.gem_pile` is the loss condition, the height bonus and
+        # half the crash rules, and a scope cannot see a hand.
+        {"key": "gem_pile", "label": "Gem pile", "type": "grid", "grid": [4, 5],
          "tags": ["per_seat", "face_up"],
          "pos": rects["gem_pile"],
          "tooltip": "The gems that will end you. Ten or more at the end of your own turn and you lose."},
+        # Who you are, which is not something you played: it sits beside your bag
+        # rather than in the middle of the table, where it kept claiming the
+        # room a chip left standing would need.
+        {"key": "fighter", "type": "grid", "grid": [1, 1], "tags": ["per_seat", "face_up"],
+         "pos": rects["fighter"]},
+        # Chips that stay out after they are played, which is a short list — most
+        # turns this is empty, and it is a thin strip for that reason.
         {"key": "ongoing", "label": "In play", "type": "hand", "tags": ["per_seat", "face_up"],
-         "pos": rects["ongoing"]},
+         "pos": rects["ongoing"],
+         "tooltip": "Chips that keep working after the turn they were played."},
         {"key": "table", "label": "Played this turn", "type": "hand", "tags": ["per_seat", "face_up"],
          "pos": rects["table"]},
         {"key": "hand", "type": "hand", "tags": ["per_seat"], "pos": rects["hand"]},
-        {"key": "bag", "label": "Bag", "type": "deck", "tags": ["per_seat", "hidden"], "pos": rects["bag"],
-         "tooltip": "Your draw pile. When it runs out mid-draw the discard goes back in and is shaken."},
+        # face_down rather than hidden: a bag you cannot see is a bag you cannot
+        # count, and how many chips somebody has left to draw is public.
+        {"key": "bag", "label": "Bag", "type": "deck", "tags": ["per_seat", "face_down"],
+         "pos": rects["bag"], "refill_from": "discard",
+         "tooltip": "Your draw pile. The moment it runs out your discard goes back in and is shaken \u2014 mid-draw, mid-chip, wherever it happens."},
         {"key": "discard", "label": "Discard", "type": "pile", "tags": ["per_seat"], "pos": rects["discard"]},
     ]
     return z
@@ -190,13 +385,46 @@ def stats():
         player("crashed", None, None, hidden=True),
         player("combined", None, None, hidden=True),
         player("extra", None, None, hidden=True),
+        player("picked", None, None, hidden=True),
         # On the chips rather than on a seat: a gem says what it is worth, a
         # bank plate says how many are left, and neither is a HUD row.
-        {"key": "value", "min": 0, "max": 4, "icon": "none", "color": "green", "tags": ["hidden"]},
+        #
+        # **These are what a chip says in pictures**, and they are stats so the
+        # card can wear them. A printed chip tells you what it gives in four
+        # symbols and a colour, and reads at arm's length; a paragraph of
+        # English in a 40-pixel band does not. The paragraph stays in the
+        # tooltip, where the exact words belong.
+        {"key": "value", "min": 0, "max": 4, "icon": "diamond", "color": "green", "tags": ["hidden"]},
         {"key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"]},
-        {"key": "stock", "min": 0, "max": 99, "icon": "none", "tags": ["hidden"]},
+        {"key": "stock", "min": 0, "max": 99, "icon": "card", "tags": ["hidden"]},
+        {"key": "plus_act", "min": 0, "max": 9, "icon": "arrow", "tags": ["hidden"]},
+        {"key": "plus_buy", "min": 0, "max": 9, "icon": "banner", "color": "amber", "tags": ["hidden"]},
+        {"key": "plus_draw", "min": 0, "max": 9, "icon": "card", "tags": ["hidden"]},
+        {"key": "plus_pow", "min": 0, "max": 9, "icon": "coin", "color": "green", "tags": ["hidden"]},
+        # A banner shape, not a quantity: the chip either has a reaction half or
+        # it does not, and "shield 1" would be a number about nothing.
+        {"key": "react", "min": 0, "max": 1, "icon": "shield", "number": False, "tags": ["hidden"]},
+        {"key": "hits", "min": 0, "max": 1, "icon": "fist", "number": False, "tags": ["hidden"]},
         {"key": "panic", "min": 0, "max": 9, "tags": ["hidden"]},
     ]
+
+
+# --- how a chip looks -----------------------------------------------------
+#
+# A style per banner colour and one for the numbers, keyed by the tags the
+# chips already carry. They touch different fields, so a red chip is the red
+# plate and the chip badges both without either style knowing about the other.
+def styles():
+    banner = {"brown": [0.42, 0.33, 0.24], "red": [0.62, 0.22, 0.20],
+              "blue": [0.20, 0.36, 0.62], "purple": [0.44, 0.24, 0.56]}
+    out = {name: {"color": rgb} for name, rgb in banner.items()}
+    out["gem"] = {"color": [0.18, 0.46, 0.34]}
+    out["wound"] = {"color": [0.34, 0.14, 0.14]}
+    out["chip"] = {"badges": ["value", "plus_pow", "plus_act", "plus_buy", "plus_draw", "hits", "react"],
+                   "badge_zeros": False}
+    out["stack"] = {"badges": ["price", "stock"], "badge_run": "down", "badge_zeros": False}
+    out["character_card"] = {"color": [0.24, 0.26, 0.36]}
+    return out
 
 
 # --- the chips themselves -------------------------------------------------
@@ -472,10 +700,18 @@ def character_chips():
                              "stat_gain:acts@mine.player:1",
                              "move_to:mine.table"]}},
         # DeGrey
+        # The chip that asked for `show:`. The opponent's hand comes up face up
+        # in the offer, the pick is trashed, and they take that many 1-gems back
+        # — which is the printed rule with the "largest" left to the reader.
+        # Declinable, because a hand with no gem in it has nothing to trash and
+        # forcing a pick would trash something the chip never names.
         {"key": "pilebunker", "text": "Pilebunker", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:pink",
-         "tooltip": "A chip. Printed: opponents reveal their hands, trash their largest gem, then gain that many 1-gems — reading somebody else's hand is not built.",
-         "play": act(["draw_from:mine.bag:mine.hand:1"])},
+         "play": act(["draw_from:mine.bag:mine.hand:1", "show:enemy.hand:optional"]),
+         "chosen": {"action": ["stat_set:crashed@mine.player:sum:value@target",
+                               "move_target_to:void",
+                               "fill:enemy.discard:gem_1:sum:crashed@mine.player",
+                               "stat_damage:stock@stack_gem_1:sum:crashed@mine.player"]}},
         {"key": "no_more_lies", "text": "No More Lies", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:pink",
          "tooltip": "Trash up to two chips out of your hand. Character chips cannot be trashed.",
@@ -622,11 +858,11 @@ def bank_cards():
     The plate says what the chip says, because a player deciding whether to buy
     one cannot pick the chip up and read it."""
     words = {}
-    for c in gem_cards() + purple_cards() + puzzle_cards():
+    for c in say(gem_cards() + purple_cards() + puzzle_cards()):
         words[c["key"]] = c.get("tooltip", "")
     out = []
 
-    def plate(chip, name, cost, stock, asset):
+    def plate(chip, name, cost, stock, asset, value=None):
         buy = {"phases": ["buy"],
                "cost": {"buys@mine.player": 1, "stock@self": 1},
                "action": ["fill:mine.discard:%s:1" % chip, "stat_gain:bought@mine.player:1"]}
@@ -635,11 +871,12 @@ def bank_cards():
         out.append({"key": stack_key(chip), "text": name,
                     "tags": ["stack", stack_key(chip), "immutable"],
                     "asset": asset, "tooltip": words.get(chip, ""),
-                    "card_stats": {"price": cost, "stock": stock},
+                    "card_stats": dict({"price": cost, "stock": stock},
+                                       **({"value": value} if value else {})),
                     "activate": buy})
 
     for n, cost, stock in GEMS:
-        plate(gem_key(n), "%d-gem" % n, cost, stock, "diamond:green")
+        plate(gem_key(n), "%d-gem" % n, cost, stock, "diamond:green", value=n)
     for key, name, cost, stock in PURPLES:
         plate(key, name, cost, stock, "circle:magenta")
     plate("wound", "Wound", 0, 24, "circle:crimson")
@@ -659,7 +896,8 @@ def character_cards():
         deal.append("stat_damage:stock@stack_gem_1:6")
         out.append({"key": "char_" + key, "text": name, "tags": ["character_card", "immutable"],
                     "asset": "star:6:%s" % colour, "tooltip": tip,
-                    "play": {"action": deal + ["set_owner:self:mine", "move_to:mine.ongoing"]}})
+                    "play": {"action": deal + ["stat_gain:picked@mine.player:1",
+                                              "set_owner:self:mine", "move_to:mine.fighter"]}})
     return out
 
 
@@ -695,20 +933,30 @@ def seat_cards():
     return [{"key": k, "text": name, "tags": [k + "_side"]} for k, name in SEATS]
 
 
+def roster_offer():
+    return "options:" + ",".join("char_" + k for k, _, _, _, _ in CHARACTERS)
+
+
 def phases():
     return [
         {"key": "setup", "type": "automatic", "next": [{"then": "pick_1"}]},
-        # One question per seat over one shared roster, and the pick is what
-        # deals the deck: nothing about a character exists until it is chosen.
+        # One question per seat, asked as an offer rather than as a zone on the
+        # board: a roster is only looked at once, and a strip of screen kept
+        # empty for the rest of the game is the most expensive kind of strip.
+        # The offer is drawn over a dimmed board and takes the middle of it.
+        #
         # `seat: "next"` on the *first* pick as well, because the turn counter
-        # starts at nobody — the first handover is what selects seat one.
-        {"key": "pick_1", "type": "player_input", "seat": "next", "zone": "roster", "ends_after": 1,
-         "label": "Choose your character", "next": [{"then": "pick_2"}]},
-        {"key": "pick_2", "type": "player_input", "seat": "next", "zone": "roster", "ends_after": 1,
-         "label": "Choose your character", "next": [{"then": "deal"}]},
+        # starts at nobody — the first handover is what selects seat one. The
+        # phase ends on the flag the chosen character sets, not on a play
+        # counter: choosing out of an overlay is deliberately not a play.
+        {"key": "pick_1", "type": "player_input", "seat": "next", "zone": "hand",
+         "label": "Choose your character", "actions": [roster_offer()],
+         "ends_when": "picked@mine.player >= 1", "next": [{"then": "pick_2"}]},
+        {"key": "pick_2", "type": "player_input", "seat": "next", "zone": "hand",
+         "label": "Choose your character", "actions": [roster_offer()],
+         "ends_when": "picked@mine.player >= 1", "next": [{"then": "deal"}]},
         {"key": "deal", "type": "automatic",
-         "actions": ["move:roster:box",
-                     "each_seat:shuffle:mine.bag",
+         "actions": ["each_seat:shuffle:mine.bag",
                      "each_seat:draw_from:mine.bag:mine.hand:%d" % HAND],
          "next": [{"then": "action"}]},
         # The ante is the action phase's own business rather than a phase before
@@ -728,27 +976,20 @@ def phases():
         {"key": "buy", "type": "player_input", "zone": "hand",
          "label": "Play gems for money, then buy",
          "next": [{"then": "cleanup"}]},
+        # The bag refills itself from the discard the moment it empties, so the
+        # draw is one line and the height bonus can simply add to it. This was
+        # three phases in a loop, because an action list cannot branch and the
+        # reshuffle had to happen between two draws; the zone knowing its own
+        # discard deletes the loop and — the point — makes it work inside a
+        # chip's action list too, where no phase could reach.
         {"key": "cleanup", "type": "automatic",
          "actions": ["move:mine.table:mine.discard",
                      "move:mine.hand:mine.discard",
                      "stat_set:to_draw@mine.player:%d" % HAND,
-                     "activate_zone:rules_height"],
+                     "activate_zone:rules_height",
+                     "draw_from:mine.bag:mine.hand:sum:to_draw@mine.player"],
          "next": [{"when": "sum:value@mine.gem_pile >= %d" % LOSE_AT, "then": "defeat"},
-                  {"then": "draw_step"}]},
-        # The reshuffle the rulebook actually describes: when the bag runs out
-        # mid-draw the discard goes back in and the draw carries on. It is a
-        # loop rather than one action because an action list cannot branch.
-        {"key": "draw_step", "type": "automatic",
-         "next": [{"when": "to_draw@mine.player == 0", "then": "handover"},
-                  {"zone_empty": ["bag"], "then": "reshuffle"},
-                  {"then": "draw_one"}]},
-        {"key": "draw_one", "type": "automatic",
-         "actions": ["draw_from:mine.bag:mine.hand:1", "stat_damage:to_draw@mine.player:1"],
-         "next": [{"then": "draw_step"}]},
-        {"key": "reshuffle", "type": "automatic",
-         "actions": ["return_to:mine.discard:mine.bag", "shuffle:mine.bag"],
-         "next": [{"zone_empty": ["bag"], "then": "handover"},
-                  {"then": "draw_step"}]},
+                  {"then": "handover"}]},
         # An extra turn is one flag read at the handover: the route overrules the
         # phase about the seat, which is the whole of "again, same player".
         {"key": "handover", "type": "automatic",
@@ -769,6 +1010,7 @@ def build():
     return {
         "title": "Puzzle Strike",
         "stats": stats(),
+        "styles": styles(),
         # A stack nobody can buy from any more is what drives the ante up, and
         # it is the plate's own number read as a word.
         "computed_tags": {"spent": {"stat": "stock", "less_than": 1}},
@@ -776,16 +1018,15 @@ def build():
         "phases": phases(),
         "players": [{"card": k} for k, _ in SEATS],
         "cards": (seat_cards() + other_cards() + button_cards() + bank_cards()
-                  + gem_cards() + purple_cards() + puzzle_cards() + character_chips()
+                  + say(gem_cards() + purple_cards() + puzzle_cards() + character_chips())
                   + character_cards() + [c for _, c in rule_cards()]),
         "setup": {"place": [{"card": "clock", "zone": "sys"},
                             {"card": "done_acting", "zone": "controls", "at": ["a1"]},
-                            {"card": "end_turn", "zone": "controls", "at": ["a2"]}]
+                            {"card": "end_turn", "zone": "controls", "at": ["b1"]}]
                            + [{"card": stack_key(gem_key(n)), "zone": "bank"} for n, _, _ in GEMS]
                            + [{"card": stack_key(k), "zone": "bank"} for k, _, _, _ in PURPLES]
                            + [{"card": "stack_wound", "zone": "bank"}]
                            + [{"card": stack_key(k), "zone": "bank"} for k, _, _, _ in PUZZLE]
-                           + [{"card": "char_" + k, "zone": "roster"} for k, _, _, _, _ in CHARACTERS]
                            + [{"card": c["key"], "zone": z} for z, c in rule_cards()]},
     }
 

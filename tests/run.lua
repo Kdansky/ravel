@@ -1542,7 +1542,8 @@ play_fixture([==[{
   "cards": [
     { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "gold": 5 } },
     { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "gold": 2 } },
-    { "key": "wolf", "text": "Wolf", "tags": ["creature"], "card_stats": { "hp": 3 } },
+    { "key": "wolf", "text": "Wolf", "tags": ["creature"], "card_stats": { "hp": 3 },
+      "play": { "action": ["ready:self"] } },
     { "key": "statue", "text": "Statue", "tags": ["creature"], "card_stats": { "hp": 9 } },
     {
       "key": "banner",

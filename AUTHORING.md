@@ -462,13 +462,14 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 
 | Field | Meaning |
 |---|---|
-| `key`, `label` | Identity and optional on-screen label. A label is written across the top of the zone and the cards keep clear of it, so a named zone is still named once something is in it — which costs a line of height, and a zone whose cards are sized by their height wants a little more room than an unnamed one |
+| `key`, `label` | Identity and optional on-screen label. A label is written across the top of the zone and the cards keep clear of it, so a named zone is still named once something is in it — which costs a line of height, and a zone whose cards are sized by their height wants a little more room than an unnamed one. **Two labels are read off the engine instead of printed**: `current_phase` and `current_player`. A board shows what is where and says nothing about whose turn it is or which part of it this is, so an empty `grid [1, 1]` with one of those labels is a readout |
 | `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots), `options` (an offer: empty and unreachable until something asks — see *Asking a question*). **Stacks are reached from the top**: only the top card of a deck or pile can be played, activated or targeted |
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]` for grid zones |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
 | `tooltip` | Prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck |
 | `activate` | The zone's **own** ability, in a card's words: `cost`, `phases`, `action`, `target`. This is how a deck is drawn from — the box answers, rather than the card on top of it becoming clickable. Gated like a card's: the phase it works in, what it costs, and whose zone it is. Not to be confused with `applies`, which hands an ability to the cards *lying* there |
+| `refill_from` | The zone this one is rebuilt from when something tries to draw from it and finds it empty — a deckbuilder's draw pile naming its discard. Everything there moves in and the pile is shuffled; a per-seat zone takes the same seat's copy, so one line serves every player. **Asked for, not fired on emptying**: a rule that clears the pile on purpose is left alone, and the loop closes wherever it actually runs out — mid-draw, mid-action, inside a card that draws four, which is exactly where a phase loop cannot reach |
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
 | `receive` | What this zone does about an arrival. `needs`: whether a card being played may be sent **here** — the zone answers for itself, as a card does. `action`: what happens when one lands, with the zone as `@self` and the newcomer as `@target` (a discard pile anybody may take from says `set_owner:target:none` here, once, rather than every card that might be thrown into it saying it) |
 | `asset` | A picture behind the whole zone — the painted board most games have. Same asset rules as a card's: a filename in `games/assets/`, an `http(s)` URL, or a shape spec. Stretched to the zone's rect, since that rect is what the cells are computed from |
@@ -572,14 +573,18 @@ played, and its action writes a number the deal then reads.
 { "key": "mission", "type": "overlay", "zone": "mission" }
 ```
 
-**One question per seat** is a draft: a shared zone, one phase per seat, and
-each pick configures that seat.
+**One question per seat** is a draft: one phase per seat, each opening the same
+offer, and each pick configuring the seat that made it.
 
 ```json
-{ "key": "pick_1", "type": "player_input", "seat": "next", "zone": "roster",
-  "ends_after": 1, "label": "Choose your character", "next": [{ "then": "pick_2" }] },
-{ "key": "pick_2", "type": "player_input", "seat": "next", "zone": "roster",
-  "ends_after": 1, "label": "Choose your character", "next": [{ "then": "deal" }] }
+{ "key": "pick_1", "type": "player_input", "seat": "next",
+  "label": "Choose your character",
+  "actions": ["options:char_grave,char_jaina,char_midori,…"],
+  "ends_when": "picked@mine.player >= 1", "next": [{ "then": "pick_2" }] },
+{ "key": "pick_2", "type": "player_input", "seat": "next",
+  "label": "Choose your character",
+  "actions": ["options:char_grave,char_jaina,char_midori,…"],
+  "ends_when": "picked@mine.player >= 1", "next": [{ "then": "deal" }] }
 ```
 
 ```json
@@ -588,11 +593,20 @@ each pick configures that seat.
                        "fill:mine.bag:burning_vigor:1",
                        "fill:mine.bag:unstable_power:1",
                        "fill:mine.bag:crash_gem:1", "fill:mine.bag:gem_1:6",
-                       "set_owner:self:mine", "move_to:mine.ongoing"] } }
+                       "stat_gain:picked@mine.player:1",
+                       "set_owner:self:mine", "move_to:mine.fighter"] } }
 ```
 
-Three things about it are worth knowing before you write one:
+Four things about it are worth knowing before you write one:
 
+- **The roster is the offer, not a zone of its own.** A band of screen wide
+  enough for ten characters is a band kept empty for the rest of the game, and
+  an empty zone still paints over what is under it. The offer is drawn over a
+  dimmed board and is not there when it is not open; claim the `options` key
+  and give it the middle of the screen.
+- **`ends_when`, not `ends_after`.** Choosing out of an offer is deliberately
+  not a play — the play counter belongs to the phase *under* the overlay — so
+  the phase watches a flag the chosen card sets instead.
 - **`seat: "next"` goes on the first pick as well.** The turn counter starts at
   *nobody*, so the first handover in a game is what selects seat one. Leave it
   off and both picks resolve to the same player.
@@ -600,11 +614,8 @@ Three things about it are worth knowing before you write one:
   until it is chosen, so shuffling and dealing belong in the automatic phase the
   last pick routes to — `each_seat:shuffle:mine.bag`, then
   `each_seat:draw_from:mine.bag:mine.hand:5`.
-- **Sweep the offer.** `move:roster:box` into a hidden zone, or the unchosen
-  options sit on the table for the rest of the game.
 
-Give the roster a band of screen neither seat owns; it is empty afterwards, and
-an empty zone still paints over whatever is under it (the validator says so).
+Sweeping is free: an offer clears itself when the choice is made.
 
 ### A turn's opening bookkeeping
 
@@ -712,6 +723,7 @@ disk cache with no network at all.
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). `action`: what happens when one lands, read the same way. Zones take the same block |
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
+| `chosen` | `action`: run when somebody picks a card out of the offer **this** card opened with `show:`, with the pick as `@target` and this card as `@self`. The reverse of an `options:` offer, where the entry carries the rule and the asker is what it is about — here the entry is somebody else's property and carries nothing of ours |
 | `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
 | `where` | A condition asked of **each candidate**, with the candidate as `@target` and as the anchor for any pattern inside — so a target spec can say things about the destination that `fill` cannot. `"row@target == 1"` is the near row of a grid; `"count:unit@across >= 1"` is a cell with something standing opposite it. The same word a move rule carries, asked one level up so a destination nothing *walks* to can be narrowed too |
@@ -1505,6 +1517,46 @@ one word:
 plate behind it" were a field and a tag deciding the same thing; now the plate
 has a colour, or it has none.
 
+**Badges draw wherever a card's face does** — a grid cell, a hand, the browse
+view. A card in a hand shows its description *and* its numbers, with the numbers
+on the title's line rather than on the bottom edge, because the prose is under
+it.
+
+**What a card wears is what a printed card wears.** A physical card says what it
+gives in symbols and reads at arm's length; a paragraph of English in a
+forty-pixel band does not. So the things a card *gives* are stats, badged, and
+the exact words stay in the tooltip:
+
+```json
+"stats": [
+  { "key": "act",  "icon": "arrow",  "tags": ["hidden"] },
+  { "key": "draw", "icon": "card",   "tags": ["hidden"] },
+  { "key": "react", "icon": "shield", "number": false, "tags": ["hidden"] }
+],
+"styles": { "chip": { "badges": ["act", "draw", "react"], "badge_zeros": false } },
+"cards": [
+  { "key": "roundhouse", "text": "Roundhouse", "tags": ["chip"],
+    "tooltip": "+1 action, +2 chips",
+    "card_stats": { "act": 1, "draw": 2 } }
+]
+```
+
+`badge_zeros: false` is what keeps a card that gives no buys from printing a
+zero, and a stat a card never declares is simply absent — an absent stat draws
+nothing, which is what makes one style serve forty different chips.
+
+**`number: false` is a badge that is the shape alone.** Some facts have no
+quantity: a banner meaning *this is an attack*, a shield meaning *this has a
+reaction half*. The 1 that would carry it is noise. It is the mirror of
+`icon: "none"`, which is a number with no shape, and it sits on the stat for the
+same reason — the badge and the HUD row draw through the same call and must not
+disagree.
+
+The shapes are a closed set, so one nobody draws is refused rather than quietly
+becoming a diamond: `coin`, `heart`, `shield`, `banner`, `leaf`, `blade`,
+`arrow`, `card`, `fist`, `orb`, `diamond`, `none`. They are named by shape and
+not by meaning, because what a game calls its currency is its own business.
+
 ### A card that can do several things
 
 One `activate` is a card with one thing to do. A list of `abilities` is a card
@@ -1650,6 +1702,75 @@ somewhere else declares its own zone with that key. An `options` zone is hidden
 by its type rather than by a tag it has to remember — an offer that is not open
 is not on the board, and *that* is a rule worth having in the type, because a
 hidden zone holding cards is how clicks go missing.
+
+That last point is what makes an offer the right home for a **question asked
+before the game starts**. A roster of ten characters wants half the screen for
+one click and nothing at all for the rest of the game, and a zone declared for
+it is a strip of board kept empty for an hour. Puzzle Strike claims the
+`options` key, positions it across the middle, and asks each seat in turn:
+
+```json
+{ "key": "pick_1", "type": "player_input", "seat": "next",
+  "label": "Choose your character",
+  "actions": ["options:char_grave,char_jaina,…"],
+  "ends_when": "picked@mine.player >= 1", "next": [{ "then": "pick_2" }] }
+```
+
+`ends_when` rather than `ends_after`, because **choosing out of an offer is
+deliberately not a play** — the counter that bounds a hand belongs to the phase
+under the overlay, and counting a choice would end that phase early. So the
+chosen card sets a flag and the phase watches it.
+
+### A question that may go unanswered
+
+An offer the rules opened cannot normally be walked away from. Some questions
+are genuinely optional — *you may discard a chip*, *look at their hand and take
+one* — and those say so:
+
+```json
+"action": ["options:tr_tempo,tr_money:optional"]
+```
+
+The word puts a **No choice** button under the offer and changes nothing else.
+Right-click and Escape did this all along, and neither is discoverable; on a
+touch screen neither exists.
+
+### Reading somebody else's hand
+
+`options:` deals *copies* of the cards it names. That is right for a menu and
+wrong for a hand: reading an opponent's hand is about the cards they are
+actually holding, and a copy of one is a different card that cannot then be
+taken. `show:` borrows the real ones:
+
+```json
+"play": { "action": ["show:enemy.hand:optional"] },
+"chosen": { "action": ["move_target_to:void"] }
+```
+
+Each borrowed card remembers where it came from, and everything still lying in
+the offer when it closes goes home — including the pick, if the rule did not
+move it. While it is in the offer it is face up and clickable whoever owns it,
+because that is what an offer is for.
+
+**Choosing one does not play it.** It is not yours to play. The asking card's
+`chosen` block runs instead, with the pick as `@target` and the asker as
+`@self`. That is the `options:` relationship said the other way round: there the
+entry carries the rule and the asker is what it is about; here the entry is
+somebody else's property and carries nothing of ours.
+
+### A card with nothing to run is not a move
+
+A card whose `play` has no actions — or which has no `play` block at all —
+cannot be played. Playing it would change nothing, and a card that looks live
+and does nothing when clicked is worse than one that is plainly dead. Puzzle
+Strike's Wound is the case: the printed chip says *this chip does nothing*, and
+it says so in the file by having no `play`.
+
+It matters more than it looks, because of the escape hatch: a needs-gated card
+becomes playable when nothing else in its zone is, so that a mandatory play
+cannot soft-lock a hand. A card with no cost and no needs never reaches that
+gate — it is simply always playable — and a hand of them is a row of buttons
+that do nothing.
 
 ### `fan` — a stack you can read
 
@@ -2074,7 +2195,8 @@ what a player reads.
 | `activate_zone:<zone>[:<order>[:<step>]]` | Every card lying there does what it does — how a *phase* makes cards act instead of waiting for a click. Put the rule on a card, the card in a hidden zone, and have the phase say so. **Ungated** for permission — the phase has already decided it is time — but an ability's own `when` is honoured, because that is the rule and not the permission. The order is the game's to state — naming none acts in the order the cards are in, `by_column` reads a board left to right; any other word is refused. A **step** names abilities: give one and only the abilities keyed to that word run, so a phase can walk the same zone several times and order things *between* cards — every unit works out what it is dealt, then every keyword that reduces a number reduces it, then every unit takes it. Naming none runs every ability |
 | `ready:<scope>` | Un-spend those cards, the counterpart to the `exhaust` cost. A phase's own actions run when it begins, so this is how a game says *when* being spent wears off rather than taking the engine's round boundary for it |
 | `attach_to_target` | Attach the acting card under the first target |
-| `options:<source>` | Offer a choice and open it. `<source>` is a zone, whose cards name the choices, or a comma-separated list of card keys. The chosen card is played with **the asking card as its target** |
+| `options:<source>[:optional]` | Offer a choice and open it. `<source>` is a zone, whose cards name the choices, or a comma-separated list of card keys. The chosen card is played with **the asking card as its target**. `optional` puts a No choice button on the offer |
+| `show:<scope>[:optional]` | Put the **real** cards a scope names into the offer, face up, and open it — how one player reads another's hand. They go home when it closes. Choosing one runs the asking card's `chosen` block with the pick as `@target`, rather than playing it |
 | `transform:<scope>:<card>` | Replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own |
 | `resolve_challenge` | Ask the card's `challenge`: run its `pass` or its `fail`. The condition is asked with the acting card and its targets in hand, so it may say `@self` and `@target` |
 | `effect:name` | Play a named visual effect on the acting card (headless: skipped) |

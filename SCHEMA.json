@@ -22,8 +22,9 @@
    "tag names \u2014 whose number this is. Carrying a stat is how a card says it takes part in it: an action skips a card that has none, and an absent stat fails every comparison rather than reading as zero. Naming the cards here is how a deck of forty says that once instead of forty times. \"player\" is the useful one a game never types: the engine stamps it onto the cards the players list names, so a stat every seat holds \u2014 a purse, a score, a hand size \u2014 is declared here rather than copied onto each seat card and copied again when a third player is added."
   ],
   "start": "the number every card named by \"on\" starts with. Its own card_stats still wins, so one card may start somewhere else. Left out, the stat is one each of those cards must declare itself \u2014 \"a creature has hp, and every creature says how much\" \u2014 and the validator names the card that forgot. Saying start without on is refused, since it would not know whose number it is.",
-      "icon": "the shape drawn beside this stat's number, on a card face and in the HUD: coin, heart, shield, banner, leaf, blade, diamond, or none. Named by shape rather than by meaning — what a game calls its currency is its own business — and a closed set, so a shape nobody draws is refused rather than silently becoming a diamond. Left out, it is the diamond; \"none\" draws no shape at all, for a badge that is only a number.",
+      "icon": "the shape drawn beside this stat's number, on a card face and in the HUD: coin, heart, shield, banner, leaf, blade, arrow, card, fist, orb, diamond, or none. Named by shape rather than by meaning — what a game calls its currency is its own business — and a closed set, so a shape nobody draws is refused rather than silently becoming a diamond. Left out, it is the diamond; \"none\" draws no shape at all, for a badge that is only a number.",
   "color": "the colour of that shape, as a palette name or #rrggbb — the same vocabulary a zone paints its squares with. Left out, the shape's own colour is used, which is what makes an undeclared stat readable. Say it when the closed set of shapes has run out before a game's numbers have: Splendor has five gems and six silhouettes to borrow from, and onyx came out an orange sword.",
+      "number": "false when the badge is the shape alone, for a stat that is a fact rather than a quantity: a banner meaning \"this is an attack\" wears no number, and the 1 that carries it would be noise on the card. The mirror of icon \"none\", which is a number with no shape.",
       "tags": [
         "a list of words; the engine knows hidden (keep it out of the HUD while cards may still read and change it)"
       ]
@@ -154,6 +155,9 @@
       "turn": {
         "action": ["action strings run at each round boundary while the card is on a grid and not ruined"]
       },
+      "chosen": {
+        "action": ["action strings run when somebody picks a card out of the offer this card opened with show:. The pick is @target and this card is @self, which is the reverse of an options: offer — there the entry carries the rule, here the entry is somebody else's property and carries nothing of ours."]
+      },
       "outcome": "\"victory\" or \"defeat\" on an ending card, which gives a banner, a run summary and a flourish. It is a word about the only player there is, so a game with two seats says who won by setting the reserved \"won\" stat on a seat instead, and needs no field here"
     }
   ],
@@ -165,6 +169,7 @@
       "pos": "[x1, y1, x2, y2] as fractions of the window. Per-seat zones take one such list per seat instead, which is the only place a nested array is allowed outside a pattern's vectors. Each type has a default spot; hidden zones default off-screen, which is what gives dealt cards their fly-in.",
       "grid": "[cols, rows] for a grid zone",
       "contents": ["starting cards, each key or key:count"],
+      "refill_from": "the key of the zone this one is rebuilt from the moment its last card leaves — a deckbuilder's draw pile naming its discard. Everything there moves in and the pile is shuffled. Per-seat zones take the same seat's copy, so one line serves every player. Asked for rather than fired on emptying: the pile refills when something tries to draw from it and finds it empty, which is when a player would pick the discard up and shake it \u2014 so the loop closes wherever it runs out, mid-draw, mid-action, inside a card that draws four. A rule that empties the pile on purpose is left alone.",
       "applies": [
         "tags this zone hands to whatever lies in it, behaviour included. This is how a pile grants an ability no card knows about."
       ],
@@ -335,7 +340,8 @@
     "ready": "ready:<scope> — un-spend those cards, the counterpart to the \"exhaust\" cost. A phase's own actions run when it begins, so this is how a game says *when* being spent wears off rather than taking the engine's round boundary for it.",
     "destroy_self": "destroy_self — remove the acting card",
     "reveal": "reveal:<card> — conjure a card into the page overlay, where playing it continues the story",
-    "options": "options:<source> — offer a choice, and open the overlay showing it. The source is either a zone, whose cards name the choices, or a comma-separated list of card keys; either way a fresh card is dealt per choice. The offer remembers the card that asked, and whichever choice is played is played with that card as its target — so a promotion choice says transform:target:queen. Everything left in the offer is cleared when the choice is made.",
+    "options": "options:<source>[:optional] — offer a choice, and open the overlay showing it. The source is either a zone, whose cards name the choices, or a comma-separated list of card keys; either way a fresh card is dealt per choice. The offer remembers the card that asked, and whichever choice is played is played with that card as its target — so a promotion choice says transform:target:queen. Everything left in the offer is cleared when the choice is made. The word \"optional\" puts a No choice button on the offer, for a question that may go unanswered.",
+    "show": "show:<scope>[:optional] — put the REAL cards a scope names into the offer face up and open it, which is how one player reads another's hand. Each remembers where it came from and goes back there when the offer closes. Choosing one does not play it: the asking card's chosen block runs instead, with the pick as its target. The word \"optional\" puts a No choice button on the offer.",
     "reveal_top": "reveal_top:<zone> — turn a zone's top card into the page overlay",
     "resolve_challenge": "resolve_challenge — ask the card's challenge and run its pass or its fail",
     "effect": "effect:<name> — play a named visual effect on the acting card, skipped headless",

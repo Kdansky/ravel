@@ -18,7 +18,7 @@ local actions = require("actions")
 local NESTED = {
 	target = true, route = true,
 	play = true, activate = true, challenge = true, receive = true,
-	turn = true,
+	turn = true, chosen = true,
 }
 
 local M = {}

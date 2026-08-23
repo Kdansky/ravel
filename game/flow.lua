@@ -45,6 +45,12 @@ end
 -- of the zone it lies in, because a board can be shared while the pieces on it
 -- are not — otherwise white could move black's rook, both being "on the board".
 local function reachable(c)
+	-- A card lent to an offer is being looked at, not owned there. The offer was
+	-- opened for whoever is up, and asking whose chip it is would make `show:`
+	-- open a window nobody could reach through — an opponent's hand is never the
+	-- reader's, which is the whole point of reading it.
+	local z = c.zone_id and entity.get(c.zone_id)
+	if z and z.zone_type == "options" then return true end
 	local seat = predicate.owner_of(c)
 	return seat == nil or seat == zones.active_seat()
 end
@@ -583,6 +589,13 @@ function M.can_play(card_id)
 	local def = c and cards.def(c)
 	if not def or not reachable(c) or not in_play_zone(c) or not on_top(c) then return false end
 	if choosing(c) then return true end
+	-- A card with nothing to run is not a move. Playing it changes nothing at
+	-- all — flow runs on_play and stops — so it reads as a live card, does
+	-- nothing when clicked, and the escape hatch below will offer it forever
+	-- because it has no cost and no needs to fail. Asked through behaviour, so a
+	-- zone that grants a play still counts.
+	local on_play = cards.behaviour(c, "on_play")
+	if not (type(on_play) == "table" and #on_play > 0) then return false end
 	if not phase_ok(cards.behaviour(c, "phases")) then return false end
 	if not M.can_afford(def.cost, { card_id = card_id }) then return false end
 	if predicate.meets_all(def.needs, { card_id = card_id }) then return true end
@@ -618,6 +631,32 @@ function M.can_play(card_id)
 	return true
 end
 
+-- Emptying an offer. A card the offer *made* is spent by being chosen from — it
+-- existed to be a line on a list, and leaving it would leave invisible cards
+-- lying over the board, which is a bug this engine has already had once. A card
+-- the offer *borrowed* is somebody's property and goes home. That is the whole
+-- difference between `options:` and `show:`.
+--
+-- Both flags go together: they describe one offer, and leaving the second
+-- behind hands the *next* offer a permission it never asked for. A promotion
+-- opened after the pawn has already moved would then be declinable, and a pawn
+-- would sit on the eighth rank as a pawn.
+local function clear_offer(oz)
+	local left = {}
+	for i, cid in ipairs(oz.cards) do left[i] = cid end
+	for _, cid in ipairs(left) do
+		local c    = entity.get(cid)
+		local home = c and c.borrowed_from
+		if home and entity.get(home) then
+			c.borrowed_from = nil
+			zones.move_card(cid, home)
+		else
+			zones.destroy_card(cid)
+		end
+	end
+	oz.asked_by, oz.dismissable = nil, nil
+end
+
 -- Play a card: pay its cost and run on_play. A phase with a play limit then
 -- ends itself; discarding its hand is the on_leave hook's job.
 -- Playing a card out of an overlay's zone *is* choosing it: an overlay is a
@@ -650,7 +689,12 @@ function M.play_card(card_id, targets)
 	-- — a pawn becoming a queen — without the game marking it first and hunting
 	-- for the mark afterwards.
 	local asker   = offer and entity.get(offer) and entity.get(offer).asked_by
-	if asker and entity.get(asker) then targets = { asker } end
+	-- Which way round the offer works. An entry the engine dealt carries the
+	-- rule and the asker is what it is about, so the asker is its target. A card
+	-- the offer *borrowed* carries nothing of ours — it is somebody's chip — so
+	-- it is the answer and the asker is the actor.
+	local lent    = overlay and c.borrowed_from ~= nil
+	if asker and entity.get(asker) and not lent then targets = { asker } end
 	local ctx = { card_id = card_id, targets = targets or {} }
 	-- A cost the targets pay could not be judged before they were chosen.
 	if not overlay and not M.can_afford(def.cost, ctx) then return false end
@@ -669,26 +713,22 @@ function M.play_card(card_id, targets)
 	local before = phase.current()
 	-- Through behaviour, so a zone can grant what playing a card lying in it
 	-- does — which is how one offer deals a card the game has other plans for.
-	actions.run(cards.behaviour(c, "on_play"), ctx)
-	if offer and entity.get(card_id) and entity.get(card_id).zone_id == offer then
+	local lender = lent and asker and entity.get(asker)
+	if lender then
+		actions.run(cards.behaviour(lender, "on_chosen"), { card_id = asker, targets = { card_id } })
+	else
+		actions.run(cards.behaviour(c, "on_play"), ctx)
+	end
+	-- A borrowed card is not spent by being picked: clear_offer sends whatever
+	-- is left home, and that includes this one when the rule did not move it.
+	if offer and not lent and entity.get(card_id) and entity.get(card_id).zone_id == offer then
 		zones.destroy_card(card_id)
 	end
-	-- An offer outlives its question by nothing: the choices not taken go too,
-	-- and the offer forgets what it was for. Leaving them would leave invisible
-	-- cards lying over the board, which is a bug this engine has already had
-	-- once. Only an "options" zone is cleared — a page overlay deals its own
-	-- cards and decides for itself what stays.
+	-- An offer outlives its question by nothing. Only an "options" zone is
+	-- cleared — a page overlay deals its own cards and decides for itself what
+	-- stays.
 	local oz = offer and entity.get(offer)
-	if oz and oz.zone_type == "options" then
-		local left = {}
-		for i, cid in ipairs(oz.cards) do left[i] = cid end
-		for _, cid in ipairs(left) do zones.destroy_card(cid) end
-		-- Both flags, together: they describe one offer, and leaving the second
-		-- behind hands the *next* offer a permission it never asked for. A
-		-- promotion opened after the pawn has already moved would then be
-		-- declinable, and a pawn would sit on the eighth rank as a pawn.
-		oz.asked_by, oz.dismissable = nil, nil
-	end
+	if oz and oz.zone_type == "options" then clear_offer(oz) end
 	if tags.entity_has(c, "no_undo") then
 		history = {}
 		log.add("— no turning back —")
@@ -795,18 +835,25 @@ function M.offer_abilities(card_id)
 	return true
 end
 
+-- Whether the offer on screen may be walked away from. Asked by the renderer,
+-- which draws the button that says so — a permission nothing shows is one
+-- nobody uses, and this was right-click-only for its first two games.
+--
+-- The *open* overlay has to be the offer in question. "An overlay is open" is
+-- not the same thing: a reveal stacked on top of an options phase would
+-- otherwise be popped by a click meant for the chooser underneath it, taking
+-- the chooser's cards with it.
+function M.can_dismiss()
+	local z   = zones.find("options")
+	local cur = phase.current()
+	return z ~= nil and z.dismissable == true
+		and cur ~= nil and cur.type == "overlay" and cur.zone == "options"
+end
+
 -- Decline an offer that may be declined. Answers whether it did, so an input
 -- layer can fall through to whatever a right-click otherwise means.
 function M.dismiss_offer()
-	local z = zones.find("options")
-	-- The *open* overlay has to be the offer being dismissed. "An overlay is
-	-- open" is not the same question: a reveal stacked on top of an options
-	-- phase would otherwise be popped by a click meant for the chooser
-	-- underneath it, taking the chooser's cards with it.
-	local cur = phase.current()
-	if not (z and z.dismissable and cur and cur.type == "overlay" and cur.zone == "options") then
-		return false
-	end
+	if not M.can_dismiss() then return false end
 	M.close_offer()
 	return true
 end
@@ -832,10 +879,7 @@ end
 function M.close_offer()
 	local z = zones.find("options")
 	if not z then return end
-	local left = {}
-	for i, cid in ipairs(z.cards) do left[i] = cid end
-	for _, cid in ipairs(left) do zones.destroy_card(cid) end
-	z.asked_by, z.dismissable = nil, nil
+	clear_offer(z)
 	if phase.is_overlay() then phase.pop() end
 end
 

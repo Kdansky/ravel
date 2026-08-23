@@ -101,6 +101,12 @@ local function build(def, seat, pos)
 		cards     = {},
 		slots     = {},   -- slot_idx → slot entity ID (grid zones only)
 		contents  = def.contents,
+		-- The zone this one is rebuilt from when its last card leaves. A
+		-- deckbuilder's draw pile and its discard are one loop, and the loop has
+		-- to close wherever the last card is taken — a card's action list cannot
+		-- branch, so "draw three" on a bag of one would otherwise come up short
+		-- and say nothing.
+		refill_from = def.refill_from,
 		pos       = pos,
 		place     = { x = 0, y = 0, w = 0, h = 0 },
 		tooltip   = def.tooltip,   -- what it says when hovered
@@ -173,6 +179,29 @@ function M.add(z, def_key)
 	local e = cards.create(def_key, z.id)
 	M.auto_slot(e.id)
 	return e
+end
+
+-- Tip one zone into another and shake it, which is what a deckbuilder does when
+-- the draw pile runs out. Its own seat's copy, so "bag refills from discard"
+-- said once serves every player.
+--
+-- Fired the moment the last card leaves rather than checked before a draw, so
+-- it closes the loop wherever the loop runs out: mid-draw, mid-action, inside a
+-- card that draws four. The phase loop that used to do this could only do it
+-- between phases.
+function M.restock(z)
+	local from
+	for _, e in ipairs(M.all_with_key(z.refill_from)) do
+		-- The seat's own copy when there is one, a shared zone otherwise: a
+		-- per-seat bag refills from that seat's discard and nobody else's.
+		if e.seat == z.seat then from = e end
+		if from == nil and e.seat == nil then from = e end
+	end
+	if not from or from.id == z.id or #from.cards == 0 then return end
+	local moving = {}
+	for i, cid in ipairs(from.cards) do moving[i] = cid end
+	for _, cid in ipairs(moving) do M.move_card(cid, z.id) end
+	M.shuffle(z.id)
 end
 
 -- Create the zone's declared contents ("card_key" or "card_key:count" strings),
@@ -288,7 +317,14 @@ end
 
 function M.move_top(from_id, to_id)
 	local from = entity.get(from_id)
-	if not from or #from.cards == 0 then return false end
+	if not from then return false end
+	-- Asked for, not fired on emptying. A pile refills when somebody tries to
+	-- draw from it and finds it empty, which is when a player would pick the
+	-- discard up and shake it. Doing it the moment the last card left would
+	-- also fire when a rule *emptied* the pile on purpose, and pull everything
+	-- straight back in.
+	if #from.cards == 0 and from.refill_from then M.restock(from) end
+	if #from.cards == 0 then return false end
 	return M.move_card(from.cards[#from.cards], to_id)
 end
 

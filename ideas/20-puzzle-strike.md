@@ -344,6 +344,75 @@ tag (`spent` = `stock < 1`) and one condition (`count:spent@bank`). Splendor's
 token piles are the same idiom; this is its second use and the first where the
 count is load-bearing for a rule rather than for a cost.
 
+## Stage 4 — made readable (2026-08-23)
+
+Playing it found what a validator cannot: the board was correct and unreadable.
+Six things came out of that, five of them engine.
+
+**A chip says what it gives in symbols.** A printed chip reads at arm's length
+because it says `+1 action, +2 chips` in four shapes; a paragraph of English in
+a forty-pixel band does not. So the things a chip gives are **stats**, badged —
+`plus_act`, `plus_buy`, `plus_draw`, `plus_pow` — and the printed words stay in
+the tooltip where the exact wording belongs. Three engine pieces made that
+possible: four more icon shapes (`arrow`, `card`, `fist`, `orb`), a stat saying
+`number: false` for a badge that is a shape alone (a shield meaning *this has a
+reaction half* has no quantity), and **badges drawing on cards in a hand at
+all** — `draw_card_stats_overlay` ran from the grid branch and the browse view
+only, so a chip in hand wore a hole where its numbers belong. The face had
+already reserved the space.
+
+**The printed text, verbatim, and ours after a blank line.** The tooltips were
+paraphrases with parenthetical asides in the middle of them, which is the
+fastest way to make a rule unreadable and leaves nobody able to tell a typo
+from a rules change. They are now word for word from
+[puzzle_strike/chips.md](puzzle_strike/chips.md), and anything the build
+leaves out is a trailing `DEV:` line. A test asserts the shape.
+
+**Reading somebody else's hand** — `show:<scope>[:optional]`, which puts the
+**real** cards into the offer rather than the copies `options:` deals. A copy of
+a chip is a different chip and cannot be taken, which is the whole difference
+between a menu and a hand. Each borrowed card remembers where it came from and
+goes home when the offer closes; choosing one runs the *asker's* new `chosen`
+block with the pick as its target, because the pick is somebody else's property
+and carries none of our rules. Pilebunker is built on it.
+
+**A question that may go unanswered** — the word `optional` on an offer, which
+puts a **No choice** button under it. `dismissable` existed and was
+right-click-only, which is not discoverable and does not exist on a touch
+screen.
+
+**A card with nothing to run is not a move.** The Wound has no `play` block —
+that is what *this chip does nothing* means — and it was playable, cost nothing
+and changed nothing. Worse, it is exactly the card the soft-lock escape hatch
+would offer forever, since a card with no cost and no needs never reaches that
+gate. A bot ran 4000 moves in six rounds clicking one.
+
+**`refill_from` on a zone**, which deleted the three-phase draw loop and fixed a
+real bug at the same time. The loop reshuffled *between* phases, so the cleanup
+draw was right and **Draw Three on a short bag silently came up short** — a
+card's action list cannot branch, and no phase runs between two draws. A zone
+that knows its own discard closes the loop wherever it runs out, and the cleanup
+phase is one `draw_from` again. Fired on being *drawn from* and found empty
+rather than on emptying, so a rule that clears a pile on purpose is left alone.
+
+**Two labels read off the engine** — a zone whose `label` is `current_phase` or
+`current_player` prints what the engine says rather than a fixed word. A board
+shows what is where and cannot say whose turn it is.
+
+The layout was rebuilt around all of it: the bank a two-wide column down the
+left (a chip is taller than it is wide, so nine pairs beat one long strip), the
+two seats mirrored with nothing between them, the buttons on the middle line
+between the gem piles, and the character card beside its owner's bag instead of
+taking the middle of the table. **South is seat one and south is the near
+edge** — a per-seat zone takes its rects in seat order, and written the other
+way round the opening pick is made for the player across the table.
+
+The roster stopped being a zone. Ten characters want half the screen for one
+click and nothing at all afterwards; the offer is drawn over a dimmed board and
+is not there when it is closed, so the pick is `options:` and the phase ends on
+a flag rather than on `ends_after` — choosing out of an overlay is deliberately
+not a play.
+
 ### Left
 
 - **Counter-crashing**, and with it Bubble Shield, Unstable Power's reaction
@@ -361,10 +430,6 @@ count is load-bearing for a rule rather than for a cost.
 - **Colour-restricted arrows.** A red arrow may only pay for a red-banner chip.
   Every arrow in the build is a plain action, which makes Gem Essence and
   One True Style better than printed.
-- **Mid-turn draws do not reshuffle.** Draw Three on an empty bag comes up
-  short. The cleanup draw is correct; this one is a card's action list, which
-  cannot branch. Fixing it means a card being able to hand control to a phase
-  loop and get it back.
 - **Ongoing chips that change somebody else's rules** — Protective Ward's
   combine tax, Flagstone Tax, Panda's Bargain's condition. An ongoing that
   changes *your own* ante works (Dragon Form), because the number it moves is

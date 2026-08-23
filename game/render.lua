@@ -226,6 +226,10 @@ local ICON_COLOR = {
 	banner = { 0.78, 0.55, 0.95 },
 	leaf   = { 0.55, 0.85, 0.40 },
 	blade  = { 0.98, 0.72, 0.30 },
+	arrow  = { 0.90, 0.90, 0.95 },
+	card   = { 0.72, 0.80, 0.92 },
+	fist   = { 0.95, 0.40, 0.35 },
+	orb    = { 0.60, 0.75, 0.95 },
 }
 
 -- The vocabulary, for the validator: it must refuse a shape nobody draws rather
@@ -268,6 +272,24 @@ local function draw_stat_icon(key, cx, cy, s, tint)
 			cx + s * 0.10, cy - s * 0.18, cx + s * 0.01, cy - s * 0.46,
 			cx - s * 0.08, cy - s * 0.18)
 		love.graphics.rectangle("fill", cx - s * 0.28, cy + s * 0.16, s * 0.56, s * 0.10)
+	elseif key == "arrow" then
+		love.graphics.polygon("fill",
+			cx - s * 0.06, cy + s * 0.42, cx + s * 0.10, cy + s * 0.42,
+			cx + s * 0.10, cy - s * 0.10, cx - s * 0.06, cy - s * 0.10)
+		love.graphics.polygon("fill",
+			cx - s * 0.32, cy - s * 0.08, cx + s * 0.36, cy - s * 0.08, cx + s * 0.02, cy - s * 0.46)
+	elseif key == "card" then
+		love.graphics.rectangle("fill", cx - s * 0.26, cy - s * 0.40, s * 0.52, s * 0.80, s * 0.10, s * 0.10)
+		love.graphics.setColor(col[1] * 0.35, col[2] * 0.35, col[3] * 0.35)
+		love.graphics.rectangle("fill", cx - s * 0.15, cy - s * 0.28, s * 0.30, s * 0.34)
+	elseif key == "fist" then
+		love.graphics.rectangle("fill", cx - s * 0.34, cy - s * 0.20, s * 0.62, s * 0.56, s * 0.14, s * 0.14)
+		love.graphics.rectangle("fill", cx - s * 0.20, cy - s * 0.40, s * 0.44, s * 0.26, s * 0.10, s * 0.10)
+		love.graphics.rectangle("fill", cx + s * 0.20, cy - s * 0.06, s * 0.18, s * 0.30, s * 0.08, s * 0.08)
+	elseif key == "orb" then
+		love.graphics.circle("fill", cx, cy, s * 0.40)
+		love.graphics.setColor(1, 1, 1, 0.55)
+		love.graphics.circle("fill", cx - s * 0.13, cy - s * 0.15, s * 0.11)
 	else
 		love.graphics.polygon("fill",
 			cx, cy - s * 0.42, cx + s * 0.36, cy, cx, cy + s * 0.42, cx - s * 0.36, cy)
@@ -525,6 +547,15 @@ end
 -- than sitting behind an empty square. Measured apart from the drawing because
 -- the title has to start clear of the badges, and it was clearing a fraction of
 -- the card where there is a number to be had.
+-- A badge is an icon and a number, and a stat may say it has none: a banner
+-- shape meaning "this is an attack" is a fact without a quantity, and the 1
+-- that carries it is noise on the card. The mirror of `icon: "none"`, which is
+-- a number without a shape, and on the stat for the same reason.
+local function badge_text(key, v)
+	local def = declaration.G.stat_defs[key]
+	return (def and def.number == false) and "" or tostring(v)
+end
+
 local function badge_size(key, txt)
 	local sf  = get_small_font()
 	local ind = stat_icon(key) ~= "none" and sf:getHeight() or 0
@@ -573,6 +604,10 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	-- gives the space back to the art.
 	local body = show_text and def and def.tooltip or nil
 	if body == "" then body = nil end
+	-- Where the words ended up, reported to the caller: on a card wide enough
+	-- for prose the badges belong on the title's line, because the prose is
+	-- under it and a bottom-anchored row would print over it.
+	local title_y = nil
 
 	-- Three states, and the two unusable ones must be told apart: a spent
 	-- ability reads "exhausted" (wait for the round), an unpayable one reads
@@ -662,7 +697,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		local keys  = badge_keys(look, stats)
 		local row_w, col_h = 0, 0
 		for i, key in ipairs(keys) do
-			local w = badge_size(key, tostring(stats[key]))
+			local w = badge_size(key, badge_text(key, stats[key]))
 			if down then
 				row_w = math.max(row_w, w)
 				col_h = col_h + get_small_font():getHeight() + 3 * S
@@ -719,6 +754,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 
 		local y = top + pad
 		if not no_title then
+			title_y = y
 			love.graphics.setFont(tf)
 			outlined_printf(shown, vis.x + pad + badge_w, y, avail - badge_w, "center",
 				C.card_text, { 0, 0, 0, 0.9 })
@@ -817,6 +853,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	end
 
 	love.graphics.pop()
+	return title_y
 end
 
 -- One number in a dark pill, with its icon. Returns the width it took.
@@ -852,7 +889,11 @@ end
 -- Without this a card could carry any number of stats and show none of them,
 -- which is how a whole combat could resolve correctly and look like nothing had
 -- happened.
-local function draw_card_stats_overlay(pl, card_e)
+-- `by` is where the card's own title landed, when it has one and prose under
+-- it: the row then shares the title's line instead of printing over the words.
+-- Without it the row sits on the bottom edge, which is where the title is on a
+-- compact card and so is the same place.
+local function draw_card_stats_overlay(pl, card_e, by)
 	local stats = card_e and card_e.stats
 	if not stats then return end
 	local look   = cards.style(card_e)
@@ -860,7 +901,7 @@ local function draw_card_stats_overlay(pl, card_e)
 
 	love.graphics.push("all")
 	local fh = get_small_font():getHeight()
-	local by = pl.y + pl.h - fh - 3 * S
+	by = by or (pl.y + pl.h - fh - 3 * S)
 	if badges then
 		-- A column starts at the top, where a bottom-anchored row would run off
 		-- the card, and the title below it has already made room for whichever
@@ -868,7 +909,7 @@ local function draw_card_stats_overlay(pl, card_e)
 		local down = look.badge_run == "down"
 		local x, y = pl.x + 2 * S, down and (pl.y + 3 * S) or by
 		for _, key in ipairs(badge_keys(look, stats)) do
-			local w = draw_badge(key, tostring(stats[key]), x, y, { 1, 1, 1 })
+			local w = draw_badge(key, badge_text(key, stats[key]), x, y, { 1, 1, 1 })
 			if down then y = y + fh + 3 * S else x = x + w + 2 * S end
 		end
 	elseif stats.hp then
@@ -1029,12 +1070,32 @@ end
 -- hands: LoR's bench, Splendor's nobles and its bank all named themselves and
 -- drew nothing, and an empty hand with a name on it is the case that made it
 -- obvious — a box saying nothing is not a zone a player can learn.
+-- A zone's label is normally a fixed word, and two things a board most wants to
+-- say are not fixed: which phase it is in and whose turn it is. Both are read
+-- off the engine every frame, so they are reserved words rather than text a
+-- game could keep in step by hand. Only the drawing substitutes — the log still
+-- names the zone by what the file called it.
+local LIVE_LABEL = {
+	current_phase = function()
+		local cur = phase.current()
+		return cur and (cur.label or cur.key)
+	end,
+	current_player = function()
+		local seat = zones.active_seat()
+		local def  = seat and declaration.G.card_defs[seat]
+		return def and def.text or seat
+	end,
+}
+
 local function draw_zone_label(zone_e)
-	if not zone_e.label then return end
+	local text = zone_e.label
+	local live = text and LIVE_LABEL[text]
+	if live then text = live() end
+	if not text then return end
 	local p = zone_e.place
 	love.graphics.push("all")
 	love.graphics.setColor(0.30, 0.42, 0.60, 0.65)
-	printf(zone_e.label, p.x + 2, p.y + 3 * S, p.w - 4, "center")
+	printf(text, p.x + 2, p.y + 3 * S, p.w - 4, "center")
 	love.graphics.pop()
 end
 
@@ -1169,7 +1230,10 @@ local function draw_zone(zone_e)
 					-- card game — and the faces are not.
 					draw_card_back(places[i])
 				else
-					draw_card_face(places[i], c, true)
+					-- The face already left room for the badges; drawing them
+					-- was the half that only grids did, so a chip in hand wore
+					-- a hole where its numbers belong.
+					draw_card_stats_overlay(places[i], c, draw_card_face(places[i], c, true))
 				end
 			end
 		end
@@ -1640,6 +1704,17 @@ function M.draw()
 			for _, cid in ipairs(oz.cards) do
 				local vpl = anim.visual_place(cid, (entity.get(cid) or {}).place)
 				if vpl then draw_flying_card(vpl, entity.get(cid)) end
+			end
+			-- The way out of a question that may go unanswered, under the cards
+			-- it is about. Right-click and Escape do the same thing and always
+			-- did; neither is discoverable, and on a touch screen neither
+			-- exists.
+			if flow.can_dismiss() then
+				local mf = love.graphics.getFont()
+				local bw = mf:getWidth("No choice") + 24 * S
+				local bh = mf:getHeight() + 12 * S
+				draw_button("no_choice", "No choice",
+					oz.place.x + (oz.place.w - bw) * 0.5, oz.place.y + oz.place.h + 8 * S, bw, bh)
 			end
 		end
 

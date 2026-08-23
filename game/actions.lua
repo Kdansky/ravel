@@ -548,6 +548,50 @@ end
 -- reveal:card_key  — conjure the card into the built-in page overlay. The
 -- player commits blind, then reads the result; the revealed card's own
 -- on_pick continues the story.
+-- show:<scope>[:optional]  — put the cards a scope names into the offer face up
+-- and open it. The opponent's hand is what asked for it, and it is why these
+-- are the **real** cards rather than the copies `options:` deals: reading a
+-- hand is about the chips somebody is holding, and a copy of one is a different
+-- chip that cannot then be taken. Each remembers where it came from, and
+-- anything still lying in the offer when it closes goes back there.
+--
+-- Choosing one does not play it — it is not yours to play — so the *asker's*
+-- `chosen` block runs instead, with the pick as its target. That is the same
+-- relationship `options:` already has with the card that asked, said the other
+-- way round: there the choice carries the rule, here the asker does, because
+-- the choice is somebody else's property and carries nothing of ours.
+HANDLERS["show"] = function(p, ctx)
+	local zone_id = zones.find_id("options")
+	if not zone_id then
+		content_error("show: this game has no options zone")
+		return
+	end
+	local sc = predicate.parse_scope(p[2] or "")
+	if not sc then
+		content_error("show: '" .. tostring(p[2]) .. "' is not a scope")
+		return
+	end
+	-- Snapshot before moving, exactly as "move" does: the scope is recomputed
+	-- from live zones and a card that has already left would be counted twice.
+	local moving = {}
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		if e.kind == "card" and e.zone_id and e.zone_id ~= zone_id then moving[#moving + 1] = e.id end
+	end
+	table.sort(moving)
+	-- An empty hand is nothing to look at, and an empty overlay is a lock with
+	-- no key in it — the offer would open over a board nobody could act on.
+	if #moving == 0 then return end
+	for _, id in ipairs(moving) do
+		local e = entity.get(id)
+		e.borrowed_from = e.zone_id
+		zones.move_card(id, zone_id)
+	end
+	local z = entity.get(zone_id)
+	z.asked_by    = ctx and ctx.card_id or nil
+	z.dismissable = p[3] == "optional" or nil
+	phase.push("options")
+end
+
 HANDLERS["reveal"] = function(p)
 	local def     = declaration.G.card_defs[p[2] or ""]
 	local zone_id = zones.find_id("reveal")
@@ -559,9 +603,14 @@ HANDLERS["reveal"] = function(p)
 	phase.push("reveal")
 end
 
--- options:<source>  — offer a choice. The source is either a zone, whose cards
--- name the choices, or a comma-separated list of card keys. Either way a fresh
--- card is dealt per choice into the offer, and the overlay opens.
+-- options:<source>[:optional]  — offer a choice. The source is either a zone,
+-- whose cards name the choices, or a comma-separated list of card keys. Either
+-- way a fresh card is dealt per choice into the offer, and the overlay opens.
+--
+-- **"optional" is the word for a question that may go unanswered.** A choice
+-- the rules force has no way out, which is right for promotion and wrong for
+-- "you may discard a chip"; the word puts a No choice button on the offer and
+-- nothing else changes.
 --
 -- The offer remembers **who asked**, because a choice is almost always about
 -- something: a pawn asking what to become, a unit asking what to build. The
@@ -606,10 +655,10 @@ HANDLERS["options"] = function(p, ctx)
 	local z = entity.get(zone_id)
 	z.asked_by = ctx and ctx.card_id or nil
 	-- An offer the rules opened is not a question that can be taken back — the
-	-- thing that prompted it has already happened. Written every time rather
-	-- than left to whatever the last offer set, which is how a mandatory choice
-	-- inherited a stale permission to be declined.
-	z.dismissable = nil
+	-- thing that prompted it has already happened, unless the offer says
+	-- otherwise. Written every time rather than left to whatever the last offer
+	-- set, which is how a mandatory choice inherited a stale permission.
+	z.dismissable = p[3] == "optional" or nil
 	phase.push("options")
 end
 
@@ -921,7 +970,8 @@ local SPEC = {
 	move              = "scope zone",
 	set_owner         = "scope seat",
 	destroy_self      = "",
-	options           = "any",
+	options           = "any optional?",
+	show              = "scope optional?",
 	reveal            = "card",
 	reveal_top        = "zone",
 	gain              = "card n",

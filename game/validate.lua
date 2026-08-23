@@ -90,6 +90,7 @@ local RESERVED_SCOPES = { "self", "all", "reach", "owner_of" }
 M.ICONS = {
 	coin = true, heart = true, shield = true, banner = true, leaf = true,
 	blade = true, diamond = true, none = true,
+	arrow = true, card = true, fist = true, orb = true,
 }
 
 -- The fx base-effect vocabulary. The test suite asserts this stays in step
@@ -113,6 +114,7 @@ local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	tags = true, card_stats = true, outcome = true,
 	play = true, activate = true, challenge = true, receive = true, turn = true,
+	chosen = true,
 	-- Several activated abilities instead of one. Authored as a list, and
 	-- normalised in place into the same shape a lone "activate" produces, so
 	-- nothing downstream asks which form was written.
@@ -122,7 +124,7 @@ local CARD_FIELDS = {
 	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
-	accepts = true, on_receive = true, on_turn = true,
+	accepts = true, on_receive = true, on_turn = true, on_chosen = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 	style = true,
 	-- Written by the engine onto the menu entry it generates for each ability of
@@ -137,9 +139,12 @@ local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = t
 	moves = true }
 local RECEIVE_FIELDS   = { needs = true, action = true }
 local TURN_FIELDS      = { action = true }
+-- What a card does when somebody picks out of the offer it opened with `show:`.
+-- The pick is the target; the card that asked is the one acting.
+local CHOSEN_FIELDS    = { action = true }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, style = true,
-	contents = true, tooltip = true, tags = true, tags_set = true,
+	contents = true, tooltip = true, tags = true, tags_set = true, refill_from = true,
 	-- its own ability, and what declaration.parse derives from that block
 	activate = true, on_activate = true, activate_phases = true, activate_cost = true,
 	activate_target = true, moves = true,
@@ -162,7 +167,10 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 	-- Whose number this is, and where they start. See the check below.
 	on = true, start = true,
 	-- The colour of that icon, when the shape's own is wrong for it.
-	color = true }
+	color = true,
+	-- false when the badge is the shape alone. A banner meaning "this is an
+	-- attack" has no quantity, and the 1 carrying it is noise on the card.
+	number = true }
 -- A tag def is a mixin: it may carry a home zone, and the card behaviour a zone
 -- hands to whatever sits in it ("applies"). Kept to the fields a granted rule
 -- can honestly mean — nothing that would have to be re-derived as state moves.
@@ -269,6 +277,7 @@ M.FIELDS = {
 	challenge     = CHALLENGE_FIELDS,
 	receive       = RECEIVE_FIELDS,
 	turn          = TURN_FIELDS,
+	chosen        = CHOSEN_FIELDS,
 }
 
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
@@ -280,7 +289,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_receive = true, on_turn = true, zone_list = true,
+	on_receive = true, on_turn = true, on_chosen = true, zone_list = true,
 	auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
@@ -758,6 +767,11 @@ function M.check(G)
 				if not (sc and (G.zone_defs[sc.name] or sc.name == "target")) then
 					warn("%s: '%s' points at zone '%s', but no zone has that key%s",
 						where, op, a, suggest(sc and sc.name or a, G.zone_defs))
+				end
+			elseif t == "optional" then
+				if a ~= "optional" then
+					warn("%s: '%s' takes the word 'optional' in that slot, and '%s' is not it",
+						where, op, tostring(a))
 				end
 			elseif t == "occupied" then
 				-- Either of the two words, or the zone a taken piece goes to.
@@ -1463,7 +1477,8 @@ function M.check(G)
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
 		for moment, fields in pairs({ play = PLAY_FIELDS, activate = ACTIVATE_FIELDS,
-			receive = RECEIVE_FIELDS, turn = TURN_FIELDS, challenge = CHALLENGE_FIELDS }) do
+			receive = RECEIVE_FIELDS, turn = TURN_FIELDS, challenge = CHALLENGE_FIELDS,
+			chosen = CHOSEN_FIELDS }) do
 			if type(def[moment]) == "table" then
 				check_fields(where .. " " .. moment, def[moment], fields)
 			end
@@ -1581,6 +1596,7 @@ function M.check(G)
 		check_list(where .. " on_play", def.on_play)
 		check_list(where .. " on_activate", def.on_activate)
 		check_list(where .. " on_turn", def.on_turn)
+		check_list(where .. " on_chosen", def.on_chosen)
 		check_list(where .. " on_pass", def.on_pass)
 		check_list(where .. " on_fail", def.on_fail)
 
