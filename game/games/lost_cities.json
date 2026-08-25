@@ -134,12 +134,7 @@
       "tags": ["per_seat"],
       "pos": [[0.06, 0.01, 0.798, 0.108], [0.06, 0.826, 0.798, 0.924]]
     },
-    {
-      "key": "mode",
-      "type": "hand",
-      "pos": [0.3, 0.24, 0.7, 0.76],
-      "tags": ["hidden", "no_peek"]
-    },
+    { "key": "mode", "type": "hand", "pos": [0.3, 0.24, 0.7, 0.76], "tags": ["hidden"] },
     {
       "key": "rules",
       "type": "pile",

@@ -281,7 +281,7 @@
     {
       "key": "mission",
       "type": "hand",
-      "tags": ["hidden", "no_peek"],
+      "tags": ["hidden"],
       "pos": [0.22, 0.24, 0.78, 0.76],
       "contents": ["m_1", "m_2", "m_3", "m_4", "m_5"]
     }

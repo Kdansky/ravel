@@ -296,7 +296,7 @@ def zones():
         {"key": "rules", "type": "pile", "pos": [0.010, 0.340, 0.110, 0.460],
          "contents": ["how_to_play"]},
         {"key": "console", "type": "grid", "grid": [1, 1], "tags": ["hidden"]},
-        {"key": "mission", "type": "hand", "tags": ["hidden", "no_peek"],
+        {"key": "mission", "type": "hand", "tags": ["hidden"],
          "pos": [0.22, 0.24, 0.78, 0.76],
          "contents": [f"m_{n}" for n in range(1, MAX_TASKS + 1)]},
     ]

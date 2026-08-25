@@ -59,7 +59,6 @@ M.ENGINE_TAGS = {
 	refill_when_empty = { on = "zone", what = "recreates its contents when the last card leaves" },
 	face_up           = { on = "zone", what = "cards here are shown, whatever the type would do — including a per-seat hand, which is how an open hand is said" },
 	face_down         = { on = "zone", what = "cards here are hidden, whatever the type would do" },
-	no_peek           = { on = "zone", what = "no tooltip and no browsing the pile" },
 	activate          = { on = "zone", what = "cards here may use their abilities — without it an ability is unreachable" },
 	optional          = { on = "zone", what = "nothing here ever has to be played, so a gated card stays gated" },
 	page              = { on = "zone", what = "its cards are drawn as full-screen story pages" },

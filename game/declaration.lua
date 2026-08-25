@@ -966,7 +966,7 @@ function M.parse(filename)
 	if not G.zone_defs.reveal then
 		G.zone_defs.reveal = { key = "reveal", type = "hand", injected = true,
 			pos = { 0.22, 0.14, 0.78, 0.88 },
-			tags_set = { hidden = true, page = true, no_peek = true } }
+			tags_set = { hidden = true, page = true } }
 		G.zone_list[#G.zone_list + 1] = "reveal"
 	end
 	if not G.phase_by_key.reveal then

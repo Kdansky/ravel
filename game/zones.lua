@@ -328,8 +328,7 @@ end
 -- browser, the card detail, the ctrl+hover inspector — has to ask this too, or
 -- one of them quietly undoes the other.
 function M.peekable(z)
-	if not z or z.tags.no_peek then return false end
-	if z.zone_type ~= "hand" or not z.seat then return true end
+	if not z or z.zone_type ~= "hand" or not z.seat then return true end
 	if z.tags.face_up then return true end
 	return z.seat == (M.watching() or M.active_seat())
 end

@@ -150,8 +150,15 @@ function M.test_visibility_an_opponents_hand_cannot_be_read(check)
 	-- the game from both players.
 	local deck = zones.find("deck")
 	check("a shared zone is still open to everyone", zones.peekable(deck))
-	check("and a zone that asked not to be peeked at is not",
-		zones.peekable(zones.find("mode")) == false)
+	-- "no_peek" used to refuse the browser here, and never had to: every zone
+	-- that carried it was hidden as well, and a hidden zone is not drawn, so
+	-- `zone_at` never names it and no right-click ever reaches `peekable`. The
+	-- tag is gone; this is the rule that was doing the work all along.
+	zones.resize()
+	local mode = zones.find("mode")
+	check("a zone nobody can reach is not browsable", mode.tags.hidden
+		and zones.zone_at(mode.place.x + mode.place.w * 0.5,
+			mode.place.y + mode.place.h * 0.5) ~= mode.id)
 
 	-- Hand over, and the answers swap.
 	for e in entity.each("card") do

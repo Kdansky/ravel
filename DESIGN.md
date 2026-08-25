@@ -262,7 +262,6 @@ Zones declare behaviour through an open-ended string tag set. The engine checks 
 | `refill_when_empty` | Recreates `contents` when the zone empties |
 | `face_up` | Deck shows its top card's face (decks default to backs) |
 | `face_down` | Pile shows card backs (piles/hands default to faces) |
-| `no_peek` | No tooltip and no browsing, even when face-up |
 | `hidden` | Not drawn; used for overlay offer zones and fate decks |
 | `activate` | Cards here may use their abilities. Not inferred from the zone's shape: a board and a Lost Cities discard both allow it, a hand and an MTG graveyard both do not, and neither pair shares a type |
 

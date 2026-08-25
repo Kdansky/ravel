@@ -2254,7 +2254,6 @@ nineteen are the exceptions — the words the engine itself looks for:
 | `face_down` | zone | cards here are hidden, whatever the type would do |
 | `face_up` | zone | cards here are shown, whatever the type would do |
 | `hidden` | zone | not drawn and not clickable — offer zones, fate decks. **This is what keeps a deck's contents secret**: any other deck can be browsed |
-| `no_peek` | zone | no tooltip and no browsing the pile |
 | `optional` | zone | nothing here ever has to be played, so a gated card stays gated |
 | `page` | zone | its cards are drawn as full-screen story pages |
 | `per_seat` | zone | one copy per seat; pos then takes one rect each |

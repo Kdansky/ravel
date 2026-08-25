@@ -208,7 +208,7 @@ def zones():
            # Here the page flag lives on the phase instead — which is what makes
            # each card's own play block run — while the zone lays them side by side.
            {"key": "mode", "type": "hand", "pos": [0.30, 0.24, 0.70, 0.76],
-            "tags": ["hidden", "no_peek"]},
+            "tags": ["hidden"]},
            # Where every choice that is not a card in your hand is made — which
            # today is only the tally, eleven scoring cards at the end of the
            # game. It is fanned rather than laid in a row: eleven cards side by

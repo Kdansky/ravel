@@ -79,6 +79,10 @@ local RETIRED = {
 	{ "spend_stat", "stat_damage — a cost is an ordinary reduction and never needed its own word" },
 	{ "set_stat", "stat_set" },
 	{ "hp_max", 'the bound beside the value: "hp": { "value": 4, "max": 4 }' },
+	-- It refused a tooltip and the browse view, and every zone carrying it was
+	-- "hidden" as well — which zone_at skips outright, so there was never a
+	-- hover or a right-click for it to refuse.
+	{ "no_peek", "nothing — a zone nobody can reach is not browsable already" },
 }
 
 local function read(path)
