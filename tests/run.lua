@@ -71,7 +71,7 @@ local function board_hp()
 	local total = 0
 	for e in entity.each("card") do
 		local z = entity.get(e.zone_id)
-		if z and z.zone_type == "grid" then total = total + (e.stats.hp or 0) end
+		if z and z.layout == "grid" then total = total + (e.stats.hp or 0) end
 	end
 	return total
 end
@@ -435,7 +435,7 @@ check("playing the edict ended the turn", phase.current().key == "challenge")
 local expected_income = 0
 for e in entity.each("card") do
 	local z = entity.get(e.zone_id)
-	if z and z.zone_type == "grid" and (e.stats.hp or 1) > 0 then
+	if z and z.layout == "grid" and (e.stats.hp or 1) > 0 then
 		for _, a in ipairs(cards.def(e).on_turn or {}) do
 			local n = a:match("^stat_gain:gold:(%d+)$")
 			if n then expected_income = expected_income + tonumber(n) end
@@ -653,7 +653,7 @@ local farms = 0
 for e in entity.each("card") do
 	local z = entity.get(e.zone_id)
 	local d = cards.def(e)
-	if z and z.zone_type == "grid" and d.tags_set and d.tags_set.farm then
+	if z and z.layout == "grid" and d.tags_set and d.tags_set.farm then
 		farms = farms + 1
 	end
 end
@@ -977,7 +977,7 @@ local function has_problem(list, needle)
 end
 
 local vg = declaration.parse("tower.json")
-vg.zone_defs.battlefield = { key = "battlefield", type = "grid",
+vg.zone_defs.battlefield = { key = "battlefield", layout = "grid", status = "board",
 	grid = { 3, 1 }, pos = { 0, 0, 1, 1 }, tags_set = {} }
 vg.card_defs.c_flee.on_play = { "move_to" }
 local vp = validate.check(vg)
@@ -1035,7 +1035,7 @@ local bp = with_fixture([[{
   "zones": [
     {
       "key": "board",
-      "type": "gird",
+      "layout": "gird",
       "pos": [
         0,
         0,
@@ -1049,7 +1049,7 @@ local bp = with_fixture([[{
     },
     {
       "key": "hand",
-      "type": "hand",
+      "layout": "row",
       "pos": [
         0,
         0,
@@ -1099,8 +1099,13 @@ check("an unknown card field suggests the right one", has_problem(bp, "did you m
 check("an unknown stat suggests the right one", has_problem(bp, "did you mean 'gold'"))
 check("a non-number cost value is explained", has_problem(bp, "'gold' should be a number"))
 check("a lone string instead of an action list is explained", has_problem(bp, "list of actions"))
-check("unknown zone and phase types suggest the right ones",
-	has_problem(bp, "did you mean 'grid'") and has_problem(bp, "did you mean 'player_input'"))
+-- A phase's type is one word out of a list long enough to want a guess. A
+-- zone's layout is one of four, so the parse error names all four rather than
+-- picking one — and refuses the word rather than carrying it into the renderer.
+check("an unknown layout is refused with the words that are allowed",
+	has_problem(bp, "none of grid, page, row, stack"))
+check("and an unknown phase type still suggests the right one",
+	has_problem(bp, "did you mean 'player_input'"))
 
 -- === security: content from other people must never crash the engine ===
 -- Games are meant to be authored by people other than the engine's own
@@ -1173,9 +1178,9 @@ check("a stack-overflow JSON payload recovers to the menu, not a crash",
 local kp = with_fixture([[{
   "cards": [{ "text": "No Key" }, { "key": "twice", "text": "One" }, { "key": "twice", "text": "Two" }],
   "zones": [
-    { "type": "hand", "pos": [0, 0, 1, 1] },
-    { "key": "dup", "type": "hand", "pos": [0, 0, 1, 1] },
-    { "key": "dup", "type": "hand", "pos": [0, 0, 1, 1] }
+    { "layout": "row", "pos": [0, 0, 1, 1] },
+    { "key": "dup", "layout": "row", "pos": [0, 0, 1, 1] },
+    { "key": "dup", "layout": "row", "pos": [0, 0, 1, 1] }
   ],
   "stats": [{ "label": "No Key" }, { "key": "same" }, { "key": "same" }],
   "phases": [
@@ -1236,7 +1241,7 @@ local function legal_moves()
 		-- With the card, because a cost may be paid *with* it: "exhaust" asks
 		-- whether this one is still ready, and a cost asked in the abstract
 		-- has no answer.
-		if z and z.zone_type == "grid" and def and def.on_activate
+		if z and z.layout == "grid" and def and def.on_activate
 			and not e.exhausted and flow.can_afford(def.activate_cost, { card_id = e.id }) then
 			local id = e.id
 			moves[#moves + 1] = function() flow.activate(id) end
@@ -1449,12 +1454,12 @@ play_fixture([[{
   "zones": [
     {
       "key": "party",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
       "pos": [0.0, 0.0, 0.8, 0.5],
-      "grid": [4, 1],
-      "tags": ["activate"]
+      "grid": [4, 1]
     },
-    { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
   "phases": [{ "key": "adventuring", "type": "player_input", "label": "Adventuring" }],
   "setup": {
@@ -1532,18 +1537,19 @@ play_fixture([==[{
   "zones": [
     {
       "key": "arena",
-      "type": "grid",
+      "layout": "grid",
+      "copies": "per_seat",
       "grid": [3, 1],
-      "pos": [[0.02, 0.05, 0.6, 0.3], [0.02, 0.32, 0.6, 0.57]],
-      "tags": ["per_seat"]
+      "pos": [[0.02, 0.05, 0.6, 0.3], [0.02, 0.32, 0.6, 0.57]]
     },
     {
       "key": "hand",
-      "type": "hand",
-      "pos": [[0.19, 0.62, 0.97, 0.78], [0.19, 0.8, 0.97, 0.97]],
-      "tags": ["per_seat"]
+      "layout": "row",
+      "visibility": "owner",
+      "copies": "per_seat",
+      "pos": [[0.19, 0.62, 0.97, 0.78], [0.19, 0.8, 0.97, 0.97]]
     },
-    { "key": "commons", "type": "grid", "pos": [0.62, 0.05, 0.98, 0.3], "grid": [2, 1] }
+    { "key": "commons", "layout": "grid", "pos": [0.62, 0.05, 0.98, 0.3], "grid": [2, 1] }
   ],
   "phases": [
     { "key": "north_turn", "type": "player_input", "label": "North", "seat": "next" },
@@ -1667,13 +1673,13 @@ play_fixture([==[{
   "zones": [
     {
       "key": "board",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
       "grid": [3, 3],
-      "pos": [0.02, 0.05, 0.6, 0.6],
-      "tags": ["activate"]
+      "pos": [0.02, 0.05, 0.6, 0.6]
     },
-    { "key": "taken", "type": "pile", "pos": [0.62, 0.05, 0.98, 0.4] },
-    { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
+    { "key": "taken", "layout": "stack", "pos": [0.62, 0.05, 0.98, 0.4] },
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
   "phases": [{ "key": "battle", "type": "player_input", "label": "Battle" }],
   "setup": {
@@ -1790,9 +1796,10 @@ play_fixture([==[{
   "zones": [
     {
       "key": "system",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
+      "copies": "per_seat",
       "grid": [2, 1],
-      "tags": ["activate", "per_seat"],
       "pos": [
         [0.02, 0.05, 0.3, 0.3],
         [0.32, 0.05, 0.6, 0.3],
@@ -1800,7 +1807,7 @@ play_fixture([==[{
         [0.32, 0.32, 0.6, 0.57]
       ]
     },
-    { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.97, 0.97] }
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.97, 0.97] }
   ],
   "phases": [{ "key": "turn", "type": "player_input", "label": "Turn" }],
   "players": [{ "card": "p1" }, { "card": "p2" }, { "card": "p3" }, { "card": "p4" }],

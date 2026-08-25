@@ -99,14 +99,14 @@
   "zones": [
     {
       "key": "nexus_north",
-      "type": "grid",
+      "layout": "grid",
       "grid": [1, 1],
       "tags": ["nexus_plate"],
       "pos": [0.01, 0.18, 0.15, 0.45]
     },
     {
       "key": "nexus_south",
-      "type": "grid",
+      "layout": "grid",
       "grid": [1, 1],
       "tags": ["nexus_plate"],
       "pos": [0.01, 0.55, 0.15, 0.82]
@@ -114,8 +114,10 @@
     {
       "key": "deck",
       "label": "Deck",
-      "type": "deck",
-      "tags": ["per_seat", "shuffle"],
+      "layout": "stack",
+      "visibility": "secret",
+      "copies": "per_seat",
+      "tags": ["shuffle"],
       "pos": [[0.84, 0.10, 0.98, 0.30], [0.84, 0.70, 0.98, 0.90]],
       "contents": [
         "plucky_poro:3", "cithria:3", "vanguard_defender:3", "vanguard_lookout:3",
@@ -125,29 +127,33 @@
     },
     {
       "key": "hand",
-      "type": "hand",
-      "tags": ["per_seat"],
+      "layout": "row",
+      "visibility": "owner",
+      "copies": "per_seat",
       "pos": [[0.04, 0.01, 0.80, 0.11], [0.04, 0.89, 0.80, 0.99]]
     },
     {
       "key": "bench",
       "label": "Bench",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
+      "copies": "per_seat",
       "grid": [6, 1],
-      "tags": ["per_seat", "activate"],
       "applies": ["on_bench"],
       "pos": [[0.16, 0.13, 0.80, 0.28], [0.16, 0.72, 0.80, 0.87]]
     },
     {
       "key": "controls",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
+      "copies": "per_seat",
       "grid": [2, 1],
-      "tags": ["per_seat", "activate", "optional"],
+      "tags": ["optional"],
       "pos": [[0.82, 0.32, 0.98, 0.48], [0.82, 0.52, 0.98, 0.68]]
     },
     {
       "key": "battle",
-      "type": "grid",
+      "layout": "grid",
       "grid": [6, 2],
       "tags": ["lane"],
       "applies": ["in_combat"],

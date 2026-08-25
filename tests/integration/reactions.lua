@@ -19,7 +19,7 @@ local GAME = [==[{
   "players": [{ "card": "one" }, { "card": "two" }],
   "stats": [{ "key": "mana", "label": "Mana", "subject": "mana@mine.player" }],
   "zones": [
-    { "key": "board", "type": "grid", "grid": [4, 1], "tags": ["activate"],
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [4, 1],
       "pos": [0.05, 0.40, 0.95, 0.60] }
   ],
   "phases": [
@@ -99,7 +99,7 @@ function M.test_reactions_structural_mistakes_are_caught(check)
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Bad Reactions",
-		"zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "thing", "text": "Thing", "reactions": [
 			{ "where": ["hp@self >= 1"] },

@@ -159,89 +159,111 @@
     {
       "key": "whose_turn",
       "label": "current_player",
-      "type": "grid",
+      "layout": "grid",
       "grid": [1, 1],
       "pos": [0.005, 0.005, 0.225, 0.045]
     },
     {
       "key": "what_now",
       "label": "current_phase",
-      "type": "grid",
+      "layout": "grid",
       "grid": [1, 1],
       "pos": [0.005, 0.049, 0.225, 0.089]
     },
     {
       "key": "bank",
       "label": "Bank",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
       "grid": [3, 6],
-      "tags": ["activate"],
       "applies": ["buyable"],
       "pos": [0.005, 0.095, 0.225, 0.7],
       "tooltip": "Every chip you may buy. A stack says how many are left; when stacks run dry the ante grows."
     },
     {
       "key": "controls",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
       "grid": [5, 1],
-      "tags": ["activate"],
       "pos": [0.808, 0.463, 0.995, 0.537]
     },
-    { "key": "options", "type": "options", "pos": [0.06, 0.3, 0.94, 0.7] },
-    { "key": "box", "type": "deck", "tags": ["hidden"] },
-    { "key": "chip_box", "type": "deck", "tags": ["hidden"] },
-    { "key": "void", "type": "deck", "tags": ["hidden"] },
-    { "key": "sys", "type": "grid", "grid": [1, 1], "tags": ["hidden"] },
-    { "key": "rules_ante", "type": "deck", "tags": ["hidden"] },
-    { "key": "rules_combine", "type": "deck", "tags": ["hidden"] },
-    { "key": "rules_upgrade", "type": "deck", "tags": ["hidden"] },
-    { "key": "rules_upgrade_hand", "type": "deck", "tags": ["hidden"] },
-    { "key": "rules_upgrade_pile", "type": "deck", "tags": ["hidden"] },
-    { "key": "rules_height", "type": "deck", "tags": ["hidden"] },
-    { "key": "rules_piggy", "type": "deck", "tags": ["hidden"] },
+    { "key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.3, 0.94, 0.7] },
+    { "key": "box", "layout": "stack", "visibility": "secret", "display": "offscreen" },
+    { "key": "chip_box", "layout": "stack", "visibility": "secret", "display": "offscreen" },
+    { "key": "void", "layout": "stack", "visibility": "secret", "display": "offscreen" },
+    { "key": "sys", "layout": "grid", "display": "offscreen", "grid": [1, 1] },
+    { "key": "rules_ante", "layout": "stack", "visibility": "secret", "display": "offscreen" },
+    {
+      "key": "rules_combine",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen"
+    },
+    {
+      "key": "rules_upgrade",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen"
+    },
+    {
+      "key": "rules_upgrade_hand",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen"
+    },
+    {
+      "key": "rules_upgrade_pile",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen"
+    },
+    { "key": "rules_height", "layout": "stack", "visibility": "secret", "display": "offscreen" },
+    { "key": "rules_piggy", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     {
       "key": "gem_pile",
       "label": "Gem pile",
-      "type": "grid",
+      "layout": "grid",
+      "copies": "per_seat",
       "grid": [4, 5],
-      "tags": ["per_seat", "face_up"],
       "pos": [[0.808, 0.545, 0.995, 0.995], [0.808, 0.005, 0.995, 0.455]],
       "tooltip": "The gems that will end you. Ten or more at the end of your own turn and you lose."
     },
     {
       "key": "fighter",
-      "type": "grid",
+      "layout": "grid",
+      "copies": "per_seat",
       "grid": [1, 1],
-      "tags": ["per_seat", "face_up"],
       "pos": [[0.732, 0.83, 0.8, 0.995], [0.732, 0.005, 0.8, 0.17]]
     },
     {
       "key": "ongoing",
       "label": "In play",
-      "type": "hand",
+      "layout": "row",
       "status": "board",
-      "tags": ["per_seat", "face_up"],
+      "copies": "per_seat",
       "pos": [[0.235, 0.505, 0.7, 0.612], [0.235, 0.388, 0.7, 0.495]],
       "tooltip": "Chips that keep working after the turn they were played."
     },
     {
       "key": "table",
       "label": "Played this turn",
-      "type": "hand",
-      "tags": ["per_seat", "face_up"],
+      "layout": "row",
+      "copies": "per_seat",
       "pos": [[0.235, 0.62, 0.8, 0.822], [0.235, 0.178, 0.8, 0.38]]
     },
     {
       "key": "hand",
-      "type": "hand",
-      "tags": ["per_seat"],
+      "layout": "row",
+      "visibility": "owner",
+      "copies": "per_seat",
       "pos": [[0.235, 0.83, 0.56, 0.995], [0.235, 0.005, 0.56, 0.17]]
     },
     {
       "key": "bag",
       "label": "Bag",
-      "type": "deck",
-      "tags": ["per_seat", "face_down"],
+      "layout": "stack",
+      "visibility": "secret",
+      "copies": "per_seat",
       "pos": [[0.656, 0.83, 0.724, 0.995], [0.656, 0.005, 0.724, 0.17]],
       "refill_from": "discard",
       "tooltip": "Your draw pile. The moment it runs out your discard goes back in and is shaken — mid-draw, mid-chip, wherever it happens."
@@ -249,23 +271,24 @@
     {
       "key": "discard",
       "label": "Discard",
-      "type": "pile",
-      "tags": ["per_seat"],
+      "layout": "stack",
+      "copies": "per_seat",
       "pos": [[0.568, 0.83, 0.648, 0.995], [0.568, 0.005, 0.648, 0.17]]
     },
     {
       "key": "pending",
       "label": "Announced",
-      "type": "pile",
-      "tags": ["stack", "face_up"],
+      "layout": "stack",
+      "tags": ["stack"],
       "pos": [0.005, 0.712, 0.225, 0.818],
       "tooltip": "A crash that has been announced and not yet answered. It sits under the bank because it belongs to neither player."
     },
     {
       "key": "stash",
       "label": "Kept back",
-      "type": "deck",
-      "tags": ["per_seat", "face_down"],
+      "layout": "stack",
+      "visibility": "secret",
+      "copies": "per_seat",
       "pos": [[0.708, 0.505, 0.8, 0.612], [0.708, 0.388, 0.8, 0.495]],
       "tooltip": "A chip you kept out of the discard. It returns to your hand at the start of your next turn."
     }
@@ -2385,6 +2408,7 @@
         {
           "to": "crash",
           "when": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
+          "from": "board",
           "action": [
             "destroy:mine.gem_1:1",
             "stat_gain:stock@stack_gem_1:1",

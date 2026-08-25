@@ -26,13 +26,13 @@ local GAME = [==[{
   "players": [{ "card": "one" }, { "card": "two" }],
   "stats": [{ "key": "landed", "label": "Landed", "subject": "landed@mine.player" }],
   "zones": [
-    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.20, 0.80, 0.50, 0.95], [0.20, 0.05, 0.50, 0.20]] },
-    { "key": "board", "type": "grid", "grid": [4, 1], "tags": ["activate"],
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [4, 1],
       "pos": [0.20, 0.35, 0.50, 0.50] },
-    { "key": "table", "type": "pile", "tags": ["per_seat"],
+    { "key": "table", "layout": "stack", "copies": "per_seat",
       "pos": [[0.60, 0.80, 0.70, 0.95], [0.60, 0.05, 0.70, 0.20]] },
-    { "key": "stack", "type": "pile", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
+    { "key": "stack", "layout": "stack", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "next": [{ "then": "act" }] }

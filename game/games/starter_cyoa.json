@@ -6,15 +6,17 @@
     {
       "key": "board",
       "label": "Keepsakes",
-      "type": "grid",
-      "grid": [5, 1],
-      "tags": ["activate"]
+      "layout": "grid",
+      "use": "abilities",
+      "grid": [5, 1]
     },
-    { "key": "hand", "type": "hand" },
+    { "key": "hand", "layout": "row" },
     {
       "key": "secret_deck",
-      "type": "deck",
-      "tags": ["hidden", "shuffle"],
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
+      "tags": ["shuffle"],
       "contents": ["p_good_luck", "p_bad_luck"]
     }
   ],

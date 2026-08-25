@@ -3,7 +3,8 @@
   "zones": [
     {
       "key": "road",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "pos": [0.04, 0.08, 0.2, 0.55],
       "tags": ["shuffle"],
       "contents": [
@@ -16,47 +17,50 @@
         "crossroads:1"
       ]
     },
-    { "key": "hand", "type": "hand", "pos": [0.19, 0.62, 0.96, 0.96] },
-    { "key": "past", "type": "pile", "pos": [0.8, 0.08, 0.96, 0.55] },
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.96, 0.96] },
+    { "key": "past", "layout": "stack", "pos": [0.8, 0.08, 0.96, 0.55] },
     {
       "key": "offer",
-      "type": "hand",
+      "layout": "row",
+      "display": "offscreen",
       "pos": [0.32, 0.3, 0.68, 0.72],
-      "tags": ["hidden"],
       "applies": ["path_choice_pick"]
     },
     {
       "key": "paths",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
       "pos": [0.42, -0.4, 0.58, -0.08],
-      "tags": ["hidden"],
       "contents": ["mountain_pass", "forest_trail", "old_bridge"]
     },
     {
       "key": "fate_victory",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
       "pos": [0.42, -0.4, 0.58, -0.08],
-      "tags": ["hidden"],
       "contents": ["journeys_end"]
     },
     {
       "key": "fate_defeat",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
       "pos": [0.42, -0.4, 0.58, -0.08],
-      "tags": ["hidden"],
       "contents": ["perished"]
     },
     {
       "key": "victory_offer",
-      "type": "hand",
-      "pos": [0.32, 0.3, 0.68, 0.72],
-      "tags": ["hidden"]
+      "layout": "row",
+      "display": "offscreen",
+      "pos": [0.32, 0.3, 0.68, 0.72]
     },
     {
       "key": "defeat_offer",
-      "type": "hand",
-      "pos": [0.32, 0.3, 0.68, 0.72],
-      "tags": ["hidden"]
+      "layout": "row",
+      "display": "offscreen",
+      "pos": [0.32, 0.3, 0.68, 0.72]
     }
   ],
   "players": [{ "stats": { "hp": 5 } }],

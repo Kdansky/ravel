@@ -83,6 +83,13 @@ local RETIRED = {
 	-- "hidden" as well — which zone_at skips outright, so there was never a
 	-- hover or a right-click for it to refuse.
 	{ "no_peek", "nothing — a zone nobody can reach is not browsable already" },
+	-- A zone's shape and its rules are seven fields now, not one word and a
+	-- handful of tags overriding it. Only the words that went entirely are
+	-- listed: "per_seat" and "page" are values on the new fields, "activate" is
+	-- still a zone's own ability block and "hidden" is still a stat tag, so the
+	-- word turning up is not evidence of the old meaning.
+	{ "face_up", '"visibility": "public"' },
+	{ "face_down", '"visibility": "secret"' },
 }
 
 local function read(path)

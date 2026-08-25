@@ -76,8 +76,8 @@ end
 local function find_slots(zone_set, fill)
 	local res, active = {}, zones.active_seat()
 	for z in entity.each("zone") do
-		if z.zone_type == "grid" and z.slots then
-			local zone_ok = not zone_set or zone_set[z.key] or zone_set[z.zone_type]
+		if z.layout == "grid" and z.slots then
+			local zone_ok = not zone_set or zone_set[z.key] or zone_set[z.layout]
 			if zone_ok then
 				for _, slot_id in pairs(z.slots) do
 					local slot = entity.get(slot_id)
@@ -113,7 +113,7 @@ end
 local function find_zones(zone_set)
 	local res = {}
 	for z in entity.each("zone") do
-		if zone_set and zone_set[z.key] and not z.tags.hidden then res[#res + 1] = z.id end
+		if zone_set and zone_set[z.key] and z.display ~= "offscreen" then res[#res + 1] = z.id end
 	end
 	return res
 end
@@ -204,8 +204,7 @@ function M.candidates(card_id, spec)
 	for _, id in ipairs(out) do
 		local e = entity.get(id)
 		local z = e and e.kind == "card" and e.zone_id and entity.get(e.zone_id)
-		if not z or (z.zone_type ~= "deck" and z.zone_type ~= "pile")
-			or z.cards[#z.cards] == id then
+		if not z or z.reach ~= "top" or z.cards[#z.cards] == id then
 			reachable[#reachable + 1] = id
 		end
 	end

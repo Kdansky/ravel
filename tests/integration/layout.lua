@@ -113,7 +113,7 @@ local function has(problems, needle)
 end
 
 -- The shape is a style the zone tags, so what is checked is the style.
-local BOARD = '{ "key": "board", "type": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "tags": ["shaped"] }'
+local BOARD = '{ "key": "board", "layout": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "tags": ["shaped"] }'
 
 function M.test_layout_a_ratio_is_checked(check)
 	check("a number passes", #fixture(BOARD, '{ "ratio": 1.5 }') == 0)

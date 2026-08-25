@@ -17,9 +17,8 @@ local M = {}
 
 local GAME = [==[{
   "title": "Two Sources",
-  "zones": [{ "key": "board", "type": "grid", "grid": [2, 2],
-    "tags": ["activate"], "applies": ["takeable"] },
-    { "key": "hand", "type": "hand" }],
+  "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2], "applies": ["takeable"] },
+    { "key": "hand", "layout": "row" }],
   "phases": [{ "key": "turn", "type": "player_input" }],
   "tags": {
     "takeable": { "abilities": [
@@ -99,7 +98,7 @@ function M.test_abilities_a_list_entry_is_validated_like_a_block(check)
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "Bad Abilities",
-  "zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+  "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
   "phases": [{ "key": "turn", "type": "player_input" }],
   "patterns": { "hop": { "vectors": [[0, 1]] } },
   "cards": [{ "key": "thing", "text": "Thing", "abilities": [
@@ -163,7 +162,7 @@ function M.test_abilities_two_with_the_same_key_are_refused(check)
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "Same Key",
-  "zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+  "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
   "phases": [{ "key": "turn", "type": "player_input" }],
   "cards": [{ "key": "thing", "text": "Thing", "abilities": [
     { "key": "go", "text": "One", "action": ["next_phase"] },

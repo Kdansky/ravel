@@ -381,9 +381,10 @@ do
 	end
 	assert(#red.cards == 5, "expected the five cards played above")
 
-	-- And the other way: the same zone without the style draws one card, which
-	-- is what every other pile does and what this one did before.
-	red.style = { fit = "fill" }
+	-- And the other way: the same cards as a stack draw one card, which is what
+	-- every other stack does. Which way a row fans is the zone's own field now,
+	-- so this is two words rather than a style being taken off it.
+	red.layout, red.row = "stack", nil
 	render.sync_places()
 	local top = entity.get(red.cards[#red.cards]).place
 	assert(top.h > last.h * 2,

@@ -23,9 +23,8 @@ local EMPTY = {}
 -- the game marks hidden outright. Everything else — a board, a discard, a table,
 -- a bank — is on the table, and an inference may be drawn from it.
 local function secret(z)
-	if z.tags.face_up then return false end
-	if z.tags.hidden then return true end
-	return z.zone_type == "hand" or z.zone_type == "deck"
+	if z.display == "offscreen" then return true end
+	return z.visibility ~= "public"
 end
 
 -- Where the card has to be for this reaction to answer. A played reaction leaves
@@ -58,7 +57,7 @@ local function placed(e, reaction, strict)
 		-- face-up zones count as in play gets a discard pile wrong, so the game
 		-- says which zone it means, the way it names a zone everywhere else.
 		if z.key == reaction.from then return true end
-	elseif z.zone_type == "hand" then
+	elseif z.visibility == "owner" then
 		return true
 	end
 	if strict then return false end

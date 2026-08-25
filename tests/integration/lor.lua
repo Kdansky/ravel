@@ -508,7 +508,7 @@ function M.test_lor_each_seat_has_a_nexus_on_the_table(check)
 	-- Badges are drawn for a card in a grid zone and nowhere else, so a plate
 	-- that stopped being a grid would go blank without failing anything above.
 	check("the plates are grids, which is what draws a badge",
-		declaration.G.zone_defs.nexus_north.type == "grid")
+		declaration.G.zone_defs.nexus_north.layout == "grid")
 	check("and the card claims the style that names the badges",
 		declaration.G.card_defs.north.tags_set.nexus_plate == true)
 

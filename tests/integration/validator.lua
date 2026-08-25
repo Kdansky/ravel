@@ -499,7 +499,7 @@ function M.test_validator_catches_a_typo_inside_an_ability(check)
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Typo",
-		"zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "thing", "text": "Thing",
 			"abilities": [{ "key": "go", "assset": "circle:red", "action": ["next_phase"] }] }]
@@ -526,7 +526,7 @@ function M.test_validator_an_absolute_square_is_on_the_board_at_both_ends(check)
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "Off Board",
-  "zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+  "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
   "phases": [{ "key": "turn", "type": "player_input" }],
   "patterns": {
     "under": { "vectors": ["a0"], "class": ["absolute"] },

@@ -43,12 +43,13 @@ copies it, so a dump can go straight back into the game file.
   "zones": [
     {
       "key": "deck",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "pos": [0.05, 0.1, 0.25, 0.6],
       "tags": ["shuffle"],
       "contents": ["sword:3", "trap:2"]
     },
-    { "key": "hand", "type": "hand", "pos": [0.19, 0.65, 0.95, 0.98] }
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.65, 0.95, 0.98] }
   ],
   "players": [{ "stats": { "hp": 5 } }],
   "cards": [
@@ -108,7 +109,7 @@ from this two-page story:
     { "key": "intro", "type": "automatic", "actions": ["reveal:p_door"] },
     { "key": "story", "type": "player_input", "label": "The Cellar" }
   ],
-  "zones": [{ "key": "hand", "type": "hand" }],
+  "zones": [{ "key": "hand", "layout": "row" }],
   "cards": [
     {
       "key": "p_door",
@@ -173,9 +174,10 @@ rulebook open alongside.
    written. Two or more: declare one card per seat, tagged `player`, each with
    the stats that rulebook calls "your" something (score, gold, life).
 2. **Inventory the components** and turn each into a zone. A draw deck is a
-   `deck` with `contents`; a hand is a `hand` zone (`per_seat` when there are
-   seats); a personal tableau is a `grid` (`per_seat`); a shared board, market
-   row or discard pile is the same without `per_seat`.
+   `layout: "stack"` with `visibility: "secret"` and `contents`; a hand is a
+   `row` that is `visibility: "owner"` and `copies: "per_seat"`; a personal
+   tableau is a `grid` with `copies: "per_seat"`; a shared board, market row or
+   discard pile is the same without the copies.
 3. **Inventory the card types** and write one template each. Numbers printed on
    a card become `card_stats`; categories printed on it (suit, colour, faction)
    become `tags`. If the deck runs past ~20 distinct cards, write a generator
@@ -210,7 +212,7 @@ rulebook open alongside.
 | "Deal each player 8 cards" | an `automatic` setup phase: `draw_from:deck:mine.hand:8`, `draw_from:deck:enemy.hand:8` |
 | "On your turn, do X then Y" | two phases, the first tagged `"seat": "next"` |
 | "Play a card from your hand" | phase `"zone": "hand"`, `"ends_after": 1` |
-| "…to your own area" | a `per_seat` grid zone; `move_to:<zone>` resolves to yours |
+| "…to your own area" | a grid zone with `copies: "per_seat"`; `move_to:<zone>` resolves to yours |
 | "…or discard it instead" | a second destination in the same `target` spec |
 | "Cards must be played in ascending order" | `receive.needs` on the destination |
 | "Costs 2 gold" | `"play": { "cost": { "gold": 2 } }` |
@@ -321,8 +323,7 @@ confetti or falling embers. A hidden deck holding one ending card + an
 overlay phase:
 
 ```json
-{ "key": "fate_win", "type": "deck", "pos": [0.42, -0.4, 0.58, -0.08],
-  "tags": ["hidden"], "contents": ["victory_card"] }
+{ "key": "fate_win", "layout": "stack", "visibility": "secret", "display": "offscreen", "pos": [0.42, -0.4, 0.58, -0.08], "contents": ["victory_card"] }
 
 { "key": "victory", "type": "overlay", "label": "Victory",
   "deck": "fate_win", "zone": "offer", "draw": 1,
@@ -451,7 +452,7 @@ bound at all.
 play counter) are engine-managed — declare them only to display them.
 
 A stat a game keeps on its *cards* rather than its players still wants an entry
-here, tagged `hidden`: that is where its bounds and its icon are said, without
+here, `display: "offscreen"`: that is where its bounds and its icon are said, without
 it becoming a row in the HUD.
 
 `subject` overrides what the HUD row *reads* while the key still names what
@@ -463,10 +464,17 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | Field | Meaning |
 |---|---|
 | `key`, `label` | Identity and optional on-screen label. A label is written across the top of the zone and the cards keep clear of it, so a named zone is still named once something is in it — which costs a line of height, and a zone whose cards are sized by their height wants a little more room than an unnamed one. **Two labels are read off the engine instead of printed**: `current_phase` and `current_player`. A board shows what is where and says nothing about whose turn it is or which part of it this is, so an empty `grid [1, 1]` with one of those labels is a readout |
-| `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots), `options` (an offer: empty and unreachable until something asks — see *Asking a question*). **Stacks are reached from the top**: only the top card of a deck or pile can be played, activated or targeted |
+| `layout` | Where the cards are drawn. `stack` (one on top of another — only the top shows), `row` (side by side, each showing its text), `grid` (addressed cells), `page` (each card fills the zone, for a story panel) |
+| `visibility` | Who may read them, and **nothing else** — a card in play may be unreadable and a card nobody can touch may be plain to see. `public` (default), `owner` (the seat whose zone it is; a zone with no seat is nobody's secret and stays public), `secret` (nobody — backs out, and a stack's order is scrambled in the browser, because the order is the secret and the contents usually are not) |
+| `reach` | Which of the cards here exist as far as the rules go: `all`, or `top` — only the last one. A `stack` is `top` unless it says otherwise |
+| `use` | What may be done with a card lying here **at all** — the ceiling, which a phase's `zone` then narrows: playing needs both to agree. `play` (default), `abilities` (its own `activate` blocks work here — what a board means), `none` (a box you use rather than reach into, which is how a trash or an exile is made untouchable). A `secret` zone is `none` unless it says otherwise, which is what makes a deck a deck |
+| `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `exile` is everything else and is the default. A `grid` is `board` unless it says otherwise. See *What counts as in play* |
+| `display` | `onscreen` (default) or `offscreen` — not drawn, and nothing in it clickable. For offers, fate decks and rules pages. Not the same as `secret`, which is a zone you can see and cannot read |
+| `copies` | `one` (default) or `per_seat` — one zone each, and `pos` then takes one rect per seat |
 | `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `exile` is everything else and is the default. A `grid` is `board` and an `options` zone is `offer` without saying so. See *What counts as in play* |
-| `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
-| `grid` | `[cols, rows]` for grid zones |
+| `pos` | `[x1, y1, x2, y2]` window fractions — optional; each layout has a default spot (an `offscreen` zone defaults off the edge, giving dealt cards their fly-in) |
+| `grid` | `[cols, rows]`. Legal only where `layout` is `grid` — **a value names its own parameter field**, and every word on every one of the seven is reserved against being a field name for anything else |
+| `row` | Which way a row fans, so every card in it can be read at once: `down` or `right`. Legal only where `layout` is `row`; left out, the cards sit side by side and do not overlap |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
 | `tooltip` | Prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck |
 | `activate` | The zone's **own** ability, in a card's words: `cost`, `phases`, `action`, `target`. This is how a deck is drawn from — the box answers, rather than the card on top of it becoming clickable. Gated like a card's: the phase it works in, what it costs, and whose zone it is. Not to be confused with `applies`, which hands an ability to the cards *lying* there |
@@ -540,7 +548,7 @@ box; `setup` is the page of the manual that arranges it:
 |---|---|
 | `card` | the key of a card that starts already in play |
 | `owner` | which player this one belongs to. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus; a shared board has no such seat, so pieces on one say whose they are here |
-| `zone` | where it goes. Leave it out and its home tag decides, then the only board. A `per_seat` zone gets one copy in **each** seat's — a marker declared once appears on every player's board |
+| `zone` | where it goes. Leave it out and its home tag decides, then the only board. A zone with `copies: "per_seat"` gets one copy in **each** seat's — a marker declared once appears on every player's board |
 | `at` | the square, named the way a player would say it: a column letter and a rank counted from the near edge, so `"e1"` is the white king's. Grid zones only; without it the card takes the first free cell |
 
 **`at` may be a list, and then it is that many cards.** Eight pawns are one
@@ -1017,8 +1025,8 @@ engine, so a chip on it was not counted, could not be sacrificed, was never aske
 to act, and no reaction could answer from it. A row that is in play says so:
 
 ```json
-{ "key": "ongoing", "label": "In play", "type": "hand", "status": "board",
-  "tags": ["per_seat", "face_up"] }
+{ "key": "ongoing", "label": "In play", "layout": "row",
+  "status": "board", "copies": "per_seat" }
 ```
 
 Note the default is `exile`, not `board`: a zone is inert until it says
@@ -1191,19 +1199,19 @@ A seat with no `start.zone` goes into the hidden `system` zone — an
 invisible stat holder. Place it (a `setup.place` entry) when the seat should
 be a visible hero on the table.
 
-**Zones that belong to a seat** declare `per_seat`, and are then created once
+**Zones that belong to a seat** say `"copies": "per_seat"`, and are then created once
 per seat with one rect each:
 
 ```json
-{ "key": "hand",  "type": "hand", "tags": ["per_seat"],
+{ "key": "hand",  "layout": "row", "visibility": "owner", "copies": "per_seat",
   "pos": [[0.02, 0.75, 0.78, 0.87], [0.02, 0.88, 0.78, 0.99]] },
-{ "key": "arena", "type": "grid", "grid": [5, 1], "tags": ["per_seat"],
+{ "key": "arena", "layout": "grid", "copies": "per_seat", "grid": [5, 1],
   "pos": [[0.02, 0.05, 0.60, 0.30], [0.02, 0.32, 0.60, 0.57]] }
 ```
 
 An unqualified zone key means **the active seat's** copy — `move_to:arena`
 puts the card in your own arena, `draw_from:deck:hand:1` deals into your own
-hand. Say `enemy.arena` for the other. A `per_seat` zone also receives its own
+hand. Say `enemy.arena` for the other. A per-seat zone also receives its own
 copy of every card `setup.place` puts there, so a marker placed once appears in each
 seat's copy.
 
@@ -1594,7 +1602,7 @@ one word:
                   "chequer": ["#b58863", "#f0d9b5"], "cell_outline": false },
   "piece":      { "title": false, "color": false }
 },
-"zones": [{ "key": "board", "type": "grid", "grid": [8, 8], "tags": ["activate", "chessboard"] }]
+"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [8, 8], "tags": ["chessboard"] }]
 ```
 
 **`color: false` is where two ideas became one.** A card's colour and "draw no
@@ -1714,7 +1722,7 @@ game that writes none of them plays exactly as it always did.
 **1. A zone tagged `stack`, which is where announcements wait.**
 
 ```json
-{ "key": "stack", "type": "pile", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
+{ "key": "stack", "layout": "stack", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
 ```
 
 Nothing on it is a game card. Each entry is a *record* of something announced,
@@ -2226,7 +2234,7 @@ which way it spreads:
 
 ```json
 "styles": { "expedition": { "fit": "fill", "fan": "down" } },
-"zones":  [{ "key": "red", "type": "pile", "label": "Red", "tags": ["expedition"] }]
+"zones":  [{ "key": "red", "layout": "stack", "label": "Red", "tags": ["expedition"] }]
 ```
 
 Every card is drawn, each over the one before, leaving a **strip** of it showing.
@@ -2285,13 +2293,7 @@ nineteen are the exceptions — the words the engine itself looks for:
 | `no_undo` | card | playing or picking it clears the undo stack — the choice is final |
 | `player` | card | this card is a seat. Stamped by the engine from the players section, not written by hand |
 | `token` | card | vanishes when a hand is swept, instead of joining the discard |
-| `activate` | zone | cards here may use their abilities — without it an ability is unreachable |
-| `face_down` | zone | cards here are hidden, whatever the type would do |
-| `face_up` | zone | cards here are shown, whatever the type would do |
-| `hidden` | zone | not drawn and not clickable — offer zones, fate decks. **This is what keeps a deck's contents secret**: any other deck can be browsed |
 | `optional` | zone | nothing here ever has to be played, so a gated card stays gated |
-| `page` | zone | its cards are drawn as full-screen story pages |
-| `per_seat` | zone | one copy per seat; pos then takes one rect each |
 | `refill_when_empty` | zone | recreates its contents when the last card leaves |
 | `shuffle` | zone | shuffled when its contents are created, and on every refill |
 | `stack` | zone | announcements wait here to be answered — see *Reactions*. A game with no such zone has no response window |

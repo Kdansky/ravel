@@ -20,9 +20,9 @@ local GAME = [==[{
   "players": [{ "card": "one" }, { "card": "two" }],
   "stats": [{ "key": "mana", "label": "Mana", "subject": "mana@mine.player" }],
   "zones": [
-    { "key": "board", "type": "grid", "grid": [4, 1], "tags": ["activate"],
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [4, 1],
       "pos": [0.05, 0.40, 0.95, 0.60] },
-    { "key": "bin", "type": "pile", "pos": [0.30, 0.70, 0.45, 0.90] }
+    { "key": "bin", "layout": "stack", "pos": [0.30, 0.70, 0.45, 0.90] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": "board", "next": [{ "then": "act" }] }

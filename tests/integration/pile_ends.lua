@@ -21,10 +21,10 @@ local GAME = [==[{
   "title": "Pile Ends",
   "players": [{ "card": "one" }],
   "zones": [
-    { "key": "hand", "type": "hand", "pos": [0.20, 0.80, 0.50, 0.95] },
-    { "key": "bag", "type": "deck", "tags": ["face_down"], "pos": [0.55, 0.80, 0.65, 0.95] },
-    { "key": "spare", "type": "deck", "tags": ["face_down"], "pos": [0.55, 0.55, 0.65, 0.70] },
-    { "key": "table", "type": "pile", "pos": [0.75, 0.80, 0.85, 0.95] }
+    { "key": "hand", "layout": "row", "pos": [0.20, 0.80, 0.50, 0.95] },
+    { "key": "bag", "layout": "stack", "visibility": "secret", "pos": [0.55, 0.80, 0.65, 0.95] },
+    { "key": "spare", "layout": "stack", "visibility": "secret", "pos": [0.55, 0.55, 0.65, 0.70] },
+    { "key": "table", "layout": "stack", "pos": [0.75, 0.80, 0.85, 0.95] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "next": [{ "then": "act" }] }

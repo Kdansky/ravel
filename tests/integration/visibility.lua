@@ -66,7 +66,7 @@ function M.test_visibility_only_hands_hide(check)
 	-- lets you take from an opponent's.
 	local pile = zones.find("red_discard")
 	if pile then
-		check("a pile is public", pile.zone_type == "pile")
+		check("a pile is public", pile.visibility == "public")
 	end
 end
 
@@ -89,7 +89,7 @@ function M.test_visibility_a_deck_shows_what_not_when(check)
 	flow.init("lost_cities.json", 11)
 	local deck = zones.find("deck")
 	check("the deck is a face-down stack with cards in it",
-		deck.zone_type == "deck" and #deck.cards > 1 and not deck.tags.face_up)
+		deck.visibility == "secret" and #deck.cards > 1)
 
 	local shown = zones.browse_order(deck)
 	check("browsing shows every card", #shown == #deck.cards)
@@ -156,7 +156,7 @@ function M.test_visibility_an_opponents_hand_cannot_be_read(check)
 	-- tag is gone; this is the rule that was doing the work all along.
 	zones.resize()
 	local mode = zones.find("mode")
-	check("a zone nobody can reach is not browsable", mode.tags.hidden
+	check("a zone nobody can reach is not browsable", mode.display == "offscreen"
 		and zones.zone_at(mode.place.x + mode.place.w * 0.5,
 			mode.place.y + mode.place.h * 0.5) ~= mode.id)
 
@@ -224,9 +224,9 @@ local OPEN = [==[{
   "title": "Open Hand",
   "players": [{ "card": "one" }, { "card": "two" }],
   "zones": [
-    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.02, 0.80, 0.98, 0.95], [0.02, 0.05, 0.98, 0.20]] },
-    { "key": "open", "type": "hand", "tags": ["per_seat", "face_up"],
+    { "key": "open", "layout": "row", "copies": "per_seat",
       "pos": [[0.02, 0.60, 0.98, 0.75], [0.02, 0.25, 0.98, 0.40]] }
   ],
   "phases": [{ "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }],

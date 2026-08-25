@@ -30,13 +30,13 @@ local GAME = [==[{
     { "key": "woke", "label": "Woke", "subject": "woke@mine.player" }
   ],
   "zones": [
-    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.20, 0.80, 0.50, 0.95], [0.20, 0.05, 0.50, 0.20]] },
-    { "key": "board", "type": "grid", "grid": [4, 1], "tags": ["activate"],
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [4, 1],
       "pos": [0.20, 0.35, 0.50, 0.50] },
-    { "key": "table", "type": "pile", "tags": ["per_seat"],
+    { "key": "table", "layout": "stack", "copies": "per_seat",
       "pos": [[0.60, 0.80, 0.70, 0.95], [0.60, 0.05, 0.70, 0.20]] },
-    { "key": "stack", "type": "pile", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
+    { "key": "stack", "layout": "stack", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "seat": "next",
@@ -175,7 +175,7 @@ function M.test_phase_emits_an_unknown_moment_is_refused(check)
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Bad Phase Emits",
-		"zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
 		"phases": [{ "key": "turn", "type": "player_input", "emits": { "midday": "noon" } }],
 		"cards": [{ "key": "thing", "text": "Thing" }]
 	}]==])

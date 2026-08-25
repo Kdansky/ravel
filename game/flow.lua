@@ -113,10 +113,9 @@ end
 -- marker as a legal target long after it was buried under a card no click
 -- could see past, and a script or a network peer could name anything in the
 -- pile. This is the rule the renderer has always followed.
-local STACKED = { deck = true, pile = true }
 local function on_top(c)
 	local z = c and c.zone_id and entity.get(c.zone_id)
-	if not z or not STACKED[z.zone_type] then return true end
+	if not z or z.reach ~= "top" then return true end
 	return z.cards[#z.cards] == c.id
 end
 
@@ -973,7 +972,7 @@ function M.usable_abilities(card_id)
 	-- from its shape: a board and a Lost Cities discard both allow it, a hand
 	-- and an MTG graveyard both do not, and neither pair shares a zone type.
 	local z = entity.get(c.zone_id)
-	if not (z and z.tags.activate) then return {} end
+	if not (z and z.use == "abilities") then return {} end
 	local out = {}
 	for i, a in ipairs(cards.abilities(c)) do
 		-- An ability that can reach nothing is not on offer. Without this a

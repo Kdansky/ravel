@@ -19,15 +19,15 @@ local GAME = [==[{
     { "key": "hits", "label": "Hits", "subject": "hits@mine.player" }
   ],
   "zones": [
-    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.20, 0.80, 0.50, 0.95], [0.20, 0.05, 0.50, 0.20]] },
-    { "key": "ongoing", "type": "hand", "tags": ["per_seat"],
+    { "key": "ongoing", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.20, 0.60, 0.50, 0.75], [0.20, 0.25, 0.50, 0.40]] },
-    { "key": "discard", "type": "pile", "tags": ["per_seat"],
+    { "key": "discard", "layout": "stack", "copies": "per_seat",
       "pos": [[0.75, 0.80, 0.90, 0.95], [0.75, 0.05, 0.90, 0.20]] },
-    { "key": "board", "type": "grid", "grid": [3, 1], "tags": ["per_seat"],
+    { "key": "board", "layout": "grid", "copies": "per_seat", "grid": [3, 1],
       "pos": [[0.05, 0.60, 0.18, 0.75], [0.05, 0.25, 0.18, 0.40]] },
-    { "key": "stack", "type": "pile", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
+    { "key": "stack", "layout": "stack", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "next": [{ "then": "act" }] }

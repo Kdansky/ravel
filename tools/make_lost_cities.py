@@ -35,10 +35,10 @@ STYLES = {
     "azure":   {"color": [0.30, 0.50, 0.90]},
     "ivory":   {"color": [0.85, 0.85, 0.80]},
     "amber":   {"color": [0.90, 0.75, 0.25]},
-    # An expedition is read down its whole length, so the stack is fanned out
-    # rather than showing only the card played last. "fill" because these are
-    # tiles in a column, not cards with margins around them.
-    "stacked": {"fit": "fill", "fan": "down"},
+    # "fill" because these are tiles in a column, not cards with margins around
+    # them. Which way they fan is the zone's own business now: a row that
+    # overlaps is a layout, and it says so where its layout is said.
+    "stacked": {"fit": "fill"},
 }
 VALUES = list(range(2, 11))
 WAGERS = 3
@@ -189,7 +189,7 @@ def templates():
 
 
 def zones():
-    out = [{"key": "deck", "label": "Expedition Deck", "type": "deck",
+    out = [{"key": "deck", "label": "Expedition Deck", "layout": "stack", "visibility": "secret",
             "pos": DECK_POS, "tags": ["shuffle"],
             "tooltip": "Take the top card. Ends your turn.",
             # The box answers, not the card on top of it. A deck has no
@@ -199,7 +199,7 @@ def zones():
                          "action": ["draw_from:deck:hand:1", "next_phase"]},
             "contents": ["%s_w%d" % (c, w) for c, _, _, _ in COLOURS for w in range(1, WAGERS + 1)]
                         + ["%s_%d" % (c, v) for c, _, _, _ in COLOURS for v in VALUES]},
-           {"key": "hand", "type": "hand", "tags": ["per_seat"], "pos": HAND_POS},
+           {"key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": HAND_POS},
            # The opening question, as an overlay of its own. Hidden, so it costs
            # no board space and the layout check ignores it, but an overlay
            # phase draws its zone over the dim regardless. Deliberately *not*
@@ -207,8 +207,7 @@ def zones():
            # every card fills the whole panel and two choices would stack.
            # Here the page flag lives on the phase instead — which is what makes
            # each card's own play block run — while the zone lays them side by side.
-           {"key": "mode", "type": "hand", "pos": [0.30, 0.24, 0.70, 0.76],
-            "tags": ["hidden"]},
+           {"key": "mode", "layout": "row", "display": "offscreen", "pos": [0.30, 0.24, 0.70, 0.76]},
            # Where every choice that is not a card in your hand is made — which
            # today is only the tally, eleven scoring cards at the end of the
            # game. It is fanned rather than laid in a row: eleven cards side by
@@ -223,9 +222,9 @@ def zones():
            # tokens are not in your hand. No engine gate is needed for either.
            # A shelf for the rulebook, above the deck it sits beside. A pile
            # rather than a hand: nothing is ever dealt here and nothing leaves.
-           {"key": "rules", "type": "pile", "pos": RULES_POS,
+           {"key": "rules", "layout": "stack", "pos": RULES_POS,
             "contents": ["how_to_play"]},
-           {"key": "choice", "type": "hand", "tags": ["stacked"], "pos": CHOICE_POS}]
+           {"key": "choice", "layout": "row", "row": "down", "tags": ["stacked"], "pos": CHOICE_POS}]
     for i, (c, label, _, _) in enumerate(COLOURS):
         # A stack, not a grid of slots: an expedition is a run of cards in the
         # order they were played, which is what a pile is, and "stacked" fans it
@@ -236,8 +235,14 @@ def zones():
         # The expedition's own legality, asked of it when a card is aimed here:
         # worth at least what is already on it, which is the ascending rule.
         # Wagers are worth 0, so the same line puts them before every number.
-        out.append({"key": c, "label": label, "type": "pile",
-                    "tags": ["stacked", "per_seat"], "pos": EXPEDITION_POS[i],
+        # A row read down its whole length, and reached from the top: every card
+        # played onto it stays visible, and only the last one is in play. Two
+        # fields, because they are two facts — the fan used to imply the first
+        # and the word "pile" the second, which is how a fanned pile came to show
+        # five cards and answer for one.
+        out.append({"key": c, "label": label, "layout": "row", "row": "down",
+                    "reach": "top", "copies": "per_seat",
+                    "tags": ["stacked"], "pos": EXPEDITION_POS[i],
                     "receive": {"needs": ["value@target >= max:value@mine." + c]}})
         # A pile hands "takeable" to whatever lands on it — so its top card can
         # be picked up during the draw step without any card knowing about piles.
@@ -250,8 +255,8 @@ def zones():
         # say so — here, once, rather than in every card that might be thrown
         # away. It changes nothing today, since these cards come from one shared
         # deck and were never anybody's; it is the rule rather than the accident.
-        out.append({"key": c + "_discard", "label": label + " discard", "type": "pile",
-                    "pos": DISCARD_POS[i], "tags": ["activate"],
+        out.append({"key": c + "_discard", "label": label + " discard", "layout": "stack", "use": "abilities",
+                    "pos": DISCARD_POS[i],
                     "applies": ["takeable"],
                     "receive": {"action": ["set_owner:target:none"]}})
     return out

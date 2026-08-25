@@ -29,16 +29,16 @@ local GAME = [==[{
     { "key": "seen", "label": "Seen", "subject": "seen@mine.player" }
   ],
   "zones": [
-    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.20, 0.80, 0.50, 0.95], [0.20, 0.05, 0.50, 0.20]] },
-    { "key": "ongoing", "type": "hand", "status": "board", "tags": ["per_seat", "face_up"],
+    { "key": "ongoing", "layout": "row", "status": "board", "copies": "per_seat", "status": "board",
       "pos": [[0.55, 0.80, 0.95, 0.95], [0.55, 0.05, 0.95, 0.20]] },
-    { "key": "shelf", "type": "hand", "tags": ["per_seat", "face_up"],
+    { "key": "shelf", "layout": "row", "copies": "per_seat",
       "pos": [[0.55, 0.60, 0.95, 0.75], [0.55, 0.25, 0.95, 0.40]] },
-    { "key": "board", "type": "grid", "grid": [4, 1], "tags": ["activate"],
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [4, 1],
       "pos": [0.20, 0.35, 0.50, 0.50] },
-    { "key": "trash", "type": "pile", "pos": [0.05, 0.45, 0.15, 0.60] },
-    { "key": "stack", "type": "pile", "tags": ["stack"], "pos": [0.05, 0.20, 0.15, 0.35] }
+    { "key": "trash", "layout": "stack", "pos": [0.05, 0.45, 0.15, 0.60] },
+    { "key": "stack", "layout": "stack", "tags": ["stack"], "pos": [0.05, 0.20, 0.15, 0.35] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "seat": "next",
@@ -202,8 +202,8 @@ function M.test_status_an_unknown_standing_is_refused(check)
 	f:write([==[{
 		"title": "Bad Standing",
 		"zones": [
-			{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] },
-			{ "key": "limbo", "type": "pile", "status": "purgatory" }
+			{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] },
+			{ "key": "limbo", "layout": "stack", "status": "purgatory", "status": "purgatory" }
 		],
 		"cards": [{ "key": "thing", "text": "Thing" }]
 	}]==])

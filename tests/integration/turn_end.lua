@@ -28,12 +28,12 @@ local GAME = [==[{
     { "key": "purse", "min": 0, "max": 99, "tags": ["hidden"] }
   ],
   "zones": [
-    { "key": "hand", "type": "hand", "tags": ["per_seat"], "pos": [[0.02, 0.80, 0.60, 0.95]] },
-    { "key": "open", "type": "hand", "tags": ["per_seat", "face_up"], "pos": [[0.02, 0.60, 0.60, 0.75]] },
-    { "key": "table", "type": "grid", "grid": [4, 1], "pos": [0.02, 0.30, 0.98, 0.50] },
-    { "key": "levers", "type": "grid", "grid": [1, 1], "tags": ["activate", "optional"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": [[0.02, 0.80, 0.60, 0.95]] },
+    { "key": "open", "layout": "row", "copies": "per_seat", "pos": [[0.02, 0.60, 0.60, 0.75]] },
+    { "key": "table", "layout": "grid", "grid": [4, 1], "pos": [0.02, 0.30, 0.98, 0.50] },
+    { "key": "levers", "layout": "grid", "use": "abilities", "grid": [1, 1], "tags": ["optional"],
       "pos": [0.65, 0.80, 0.80, 0.95] },
-    { "key": "bank", "type": "grid", "grid": [1, 1], "tags": ["hidden"] }
+    { "key": "bank", "layout": "grid", "display": "offscreen", "grid": [1, 1] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": ["hand", "open"],

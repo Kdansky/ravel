@@ -104,8 +104,9 @@
   "zones": [
     {
       "key": "hand",
-      "type": "hand",
-      "tags": ["per_seat"],
+      "layout": "row",
+      "visibility": "owner",
+      "copies": "per_seat",
       "pos": [
         [0.01, 0.195, 0.395, 0.325],
         [0.505, 0.195, 0.89, 0.325],
@@ -116,8 +117,8 @@
     {
       "key": "open",
       "label": "Said",
-      "type": "hand",
-      "tags": ["per_seat", "face_up"],
+      "layout": "row",
+      "copies": "per_seat",
       "pos": [
         [0.405, 0.195, 0.495, 0.325],
         [0.9, 0.195, 0.99, 0.325],
@@ -127,17 +128,18 @@
     },
     {
       "key": "controls",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
       "grid": [1, 1],
-      "tags": ["activate", "optional"],
+      "tags": ["optional"],
       "pos": [0.685, 0.335, 0.79, 0.445]
     },
     {
       "key": "tasks",
       "label": "Tasks",
-      "type": "grid",
+      "layout": "grid",
+      "copies": "per_seat",
       "grid": [5, 1],
-      "tags": ["per_seat"],
       "pos": [
         [0.805, 0.455, 0.995, 0.519],
         [0.805, 0.527, 0.995, 0.592],
@@ -148,7 +150,7 @@
     {
       "key": "trick",
       "label": "Play area",
-      "type": "grid",
+      "layout": "grid",
       "grid": [4, 1],
       "applies": ["in_trick"],
       "pos": [0.33, 0.395, 0.67, 0.7]
@@ -156,7 +158,8 @@
     {
       "key": "deck",
       "label": "Deck",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "tags": ["shuffle"],
       "pos": [0.805, 0.335, 0.895, 0.445],
       "tooltip": "Forty cards: four colours of nine, and four rockets.",
@@ -206,7 +209,8 @@
     {
       "key": "task_deck",
       "label": "Tasks",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "tags": ["shuffle"],
       "pos": [0.905, 0.335, 0.995, 0.445],
       "tooltip": "One task card for every colour card. Rockets are never a task.",
@@ -252,36 +256,37 @@
     {
       "key": "task_offer",
       "label": "On offer",
-      "type": "grid",
+      "layout": "grid",
       "grid": [5, 1],
       "pos": [0.01, 0.48, 0.32, 0.62]
     },
     {
       "key": "archive",
       "label": "Done",
-      "type": "pile",
+      "layout": "stack",
       "tooltip": "Tasks the crew has already fulfilled.",
       "pos": [0.22, 0.34, 0.32, 0.46]
     },
     {
       "key": "won",
       "label": "Taken",
-      "type": "pile",
-      "tags": ["face_down"],
+      "layout": "stack",
+      "visibility": "secret",
+      "use": "play",
       "tooltip": "Tricks already taken, set aside face down.",
       "pos": [0.115, 0.34, 0.215, 0.46]
     },
     {
       "key": "rules",
-      "type": "pile",
+      "layout": "stack",
       "pos": [0.01, 0.34, 0.11, 0.46],
       "contents": ["how_to_play"]
     },
-    { "key": "console", "type": "grid", "grid": [1, 1], "tags": ["hidden"] },
+    { "key": "console", "layout": "grid", "display": "offscreen", "grid": [1, 1] },
     {
       "key": "mission",
-      "type": "hand",
-      "tags": ["hidden"],
+      "layout": "row",
+      "display": "offscreen",
       "pos": [0.22, 0.24, 0.78, 0.76],
       "contents": ["m_1", "m_2", "m_3", "m_4", "m_5"]
     }

@@ -248,7 +248,7 @@ local function primary_action(x, y)
 		-- A zone tagged "activate" is where abilities are used; anywhere else,
 		-- clicking a card plays it. The zone says which, so a board, a discard
 		-- you may take from and a hand need no special cases here.
-		if z and z.tags.activate then
+		if z and z.use == "abilities" then
 			local sole = flow.sole_ability(cid)
 			if sole then
 				begin_action(cid, sole.ability.target, "activate", sole.index)

@@ -158,10 +158,74 @@ local WHOSE = { mine = true, enemy = true, anyone = true }
 -- word fails closed. The two types that carry a standing of their own supply it,
 -- which is what keeps every game written before the field unchanged.
 M.STATUS = { board = true, exile = true, offer = true }
-local STATUS_BY_TYPE = { grid = "board", options = "offer" }
 
-function M.zone_status(zd)
-	return zd.status or STATUS_BY_TYPE[zd.type] or "exile"
+-- Seven questions a zone answers, where "type" answered all of them at once and
+-- a game could only have the five bundles somebody had thought of. Each field is
+-- one question, so a combination nobody anticipated — a face-up row of cards
+-- that are in play, a searchable face-up deck, a trash nothing can touch — is
+-- written rather than worked around.
+--
+--   layout      where the cards are drawn: stack, row, grid, page
+--   visibility  who may read them: public, owner, secret. Rendering only
+--   reach       which of them exist to the rules: all, or only the top
+--   use         what may be done with one here: play, abilities, none
+--   status      what standing they have: board, exile, offer
+--   display     whether the zone is drawn at all: onscreen, offscreen
+--   copies      one zone, or one per seat
+--
+-- A value names its own parameter field, which is how the format already worked
+-- for "grid": layout "grid" makes "grid" legal, holding [cols, rows], and layout
+-- "row" makes "row" legal, holding the direction it fans in. Every value on
+-- every field is therefore reserved as a field name.
+M.LAYOUT     = { stack = true, row = true, grid = true, page = true }
+M.VISIBILITY = { public = true, owner = true, secret = true }
+M.REACH      = { all = true, top = true }
+M.USE        = { play = true, abilities = true, none = true }
+M.DISPLAY    = { onscreen = true, offscreen = true }
+M.COPIES     = { one = true, per_seat = true }
+
+local ZONE_WORDS = {
+	{ "layout",     "LAYOUT" },
+	{ "visibility", "VISIBILITY" },
+	{ "reach",      "REACH" },
+	{ "use",        "USE" },
+	{ "status",     "STATUS" },
+	{ "display",    "DISPLAY" },
+	{ "copies",     "COPIES" },
+}
+
+-- Fill in the seven, from what the zone said and from the tags that used to say
+-- it. A word the engine does not have is refused here — the last place the
+-- authored value exists — and falls back to the default rather than to whatever
+-- was typed, so one typo does not cascade.
+function M.normalise_zone(zd, pp)
+	local where = "zone '" .. tostring(zd.key) .. "'"
+	for _, entry in ipairs(ZONE_WORDS) do
+		local field, set = entry[1], M[entry[2]]
+		if zd[field] ~= nil and not set[zd[field]] then
+			local words = {}
+			for w in pairs(set) do words[#words + 1] = w end
+			table.sort(words)
+			pp[#pp + 1] = where .. ": \"" .. field .. "\" is '" .. tostring(zd[field])
+				.. "', which is none of " .. table.concat(words, ", ")
+			zd[field] = nil
+		end
+	end
+
+	zd.layout     = zd.layout or "stack"
+	zd.visibility = zd.visibility or "public"
+	-- Three defaults a neighbouring field supplies, so the common shapes stay
+	-- short: a stack is reached from the top, cards nobody can see cannot be
+	-- picked out of it, and a board is in play. Each is a default and not a rule
+	-- — a fanned row says reach "top", a readout grid says status "exile" —
+	-- which is the whole difference between this and reading the rules off the
+	-- shape, which is what "type" did and what this replaced.
+	zd.reach   = zd.reach   or (zd.layout == "stack" and "top") or "all"
+	zd.use     = zd.use     or (zd.visibility == "secret" and "none") or "play"
+	zd.status  = zd.status  or (zd.layout == "grid" and "board") or "exile"
+	zd.display = zd.display or "onscreen"
+	zd.copies  = zd.copies  or "one"
+	return zd
 end
 
 local function reactions_of(def, pp, where)
@@ -610,12 +674,15 @@ function M.parse(filename)
 	-- Zones may omit pos: every type has a sensible default spot, so a first
 	-- game needs no layout numbers at all (tune later). Hidden zones default
 	-- off-screen, which also gives dealt cards their fly-in.
+	-- A stack keeps two default spots, since a deck and a discard sat in
+	-- different corners and both are stacks now: a box you cannot see into takes
+	-- the upper one.
 	local DEFAULT_POS = {
-		hand   = { 0.19, 0.62, 0.97, 0.97 },
-		grid   = { 0.03, 0.05, 0.60, 0.55 },
-		deck   = { 0.75, 0.05, 0.95, 0.40 },
-		pile   = { 0.75, 0.45, 0.95, 0.80 },
-		hidden = { 0.42, -0.40, 0.58, -0.08 },
+		row       = { 0.19, 0.62, 0.97, 0.97 },
+		grid      = { 0.03, 0.05, 0.60, 0.55 },
+		stack     = { 0.75, 0.45, 0.95, 0.80 },
+		box       = { 0.75, 0.05, 0.95, 0.40 },
+		offscreen = { 0.42, -0.40, 0.58, -0.08 },
 	}
 
 	for _, zd in ipairs(entries(parsed.zones, "zones")) do
@@ -629,17 +696,13 @@ function M.parse(filename)
 				G.zone_list[#G.zone_list + 1] = zd.key
 			end
 			flatten_moments(zd, pp, "zone '" .. zd.key .. "'")
-			if zd.status ~= nil and not M.STATUS[zd.status] then
-				pp[#pp + 1] = "zone '" .. zd.key .. "': \"status\" is '" .. tostring(zd.status)
-					.. "', which is none of board, exile, offer"
-				zd.status = nil
-			end
-			zd.status = M.zone_status(zd)
 			zd.tags_set = tag_set(zd.tags)
 			zd.style = merge_styles(G, zd.tags_set)
+			M.normalise_zone(zd, pp)
 			if not zd.pos then
-				zd.pos = zd.tags_set.hidden and DEFAULT_POS.hidden
-					or DEFAULT_POS[zd.type] or DEFAULT_POS.pile
+				zd.pos = zd.display == "offscreen" and DEFAULT_POS.offscreen
+					or (zd.layout == "stack" and zd.use == "none" and DEFAULT_POS.box)
+					or DEFAULT_POS[zd.layout] or DEFAULT_POS.stack
 			end
 			G.zone_defs[zd.key] = zd
 		end
@@ -703,9 +766,9 @@ function M.parse(filename)
 	-- anything that sweeps a zone. A game may claim the key to put them
 	-- somewhere else.
 	if not G.zone_defs.system then
-		G.zone_defs.system = { key = "system", type = "grid", grid = { 2, 1 },
-			injected = true, pos = DEFAULT_POS.hidden,
-			tags_set = { hidden = true } }
+		G.zone_defs.system = { key = "system", layout = "grid", grid = { 2, 1 },
+			injected = true, pos = DEFAULT_POS.offscreen,
+			display = "offscreen", status = "board", tags_set = {} }
 		G.zone_list[#G.zone_list + 1] = "system"
 	end
 
@@ -967,20 +1030,20 @@ function M.parse(filename)
 	-- An "options" zone is hidden by its own type rather than by a tag it has to
 	-- remember: an offer that is not open is not on the board, and forgetting to
 	-- say so is how a zone ends up invisible and still clickable.
+	-- An offer that is not open is not on the board, and forgetting to say so is
+	-- how a zone ends up invisible and still clickable. The standing implies it,
+	-- so a game says "offer" once rather than "offer" and "offscreen".
 	for _, zd in pairs(G.zone_defs) do
-		if zd.type == "options" then
-			zd.tags_set = zd.tags_set or {}
-			zd.tags_set.hidden = true
-		end
+		if zd.status == "offer" then zd.display = "offscreen" end
 	end
 
 	-- The offer, and the phase that shows it — the same pair "reveal" gets, and
 	-- for the same reason: a game that never mentions either still has one, and
 	-- a game that wants it drawn somewhere else claims the key.
 	if not G.zone_defs.options then
-		G.zone_defs.options = { key = "options", type = "options", injected = true,
-			pos = { 0.12, 0.38, 0.88, 0.62 },
-			tags_set = { hidden = true } }
+		G.zone_defs.options = { key = "options", layout = "row", status = "offer",
+			injected = true, pos = { 0.12, 0.38, 0.88, 0.62 },
+			display = "offscreen", tags_set = {} }
 		G.zone_list[#G.zone_list + 1] = "options"
 	end
 	if not G.phase_by_key.options then
@@ -989,15 +1052,17 @@ function M.parse(filename)
 	end
 
 	if not G.zone_defs.reveal then
-		G.zone_defs.reveal = { key = "reveal", type = "hand", injected = true,
+		G.zone_defs.reveal = { key = "reveal", layout = "page", injected = true,
 			pos = { 0.22, 0.14, 0.78, 0.88 },
-			tags_set = { hidden = true, page = true } }
+			display = "offscreen", tags_set = {} }
 		G.zone_list[#G.zone_list + 1] = "reveal"
 	end
 	if not G.phase_by_key.reveal then
 		G.phase_by_key.reveal = { key = "reveal", type = "overlay", zone = "reveal",
 			injected = true, tags_set = {} }
 	end
+
+	for _, zd in pairs(G.zone_defs) do M.normalise_zone(zd, pp) end
 
 	-- The zones a phase's player may play out of. One is the common case and
 	-- stays a bare word; a list is a player holding two hands — an open one

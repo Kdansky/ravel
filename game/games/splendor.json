@@ -436,29 +436,33 @@
     {
       "key": "tableau",
       "label": "Bought",
-      "type": "hand",
-      "tags": ["per_seat"],
+      "layout": "row",
+      "visibility": "owner",
+      "copies": "per_seat",
       "pos": [[0.02, 0.01, 0.55, 0.15], [0.02, 0.85, 0.55, 0.99]]
     },
     {
       "key": "reserve",
       "label": "Reserved",
-      "type": "hand",
-      "tags": ["per_seat"],
+      "layout": "row",
+      "visibility": "owner",
+      "copies": "per_seat",
       "pos": [[0.57, 0.01, 0.8, 0.15], [0.57, 0.85, 0.8, 0.99]]
     },
     {
       "key": "nobles",
       "label": "Nobles",
-      "type": "grid",
+      "layout": "grid",
       "grid": [3, 1],
       "tags": ["optional", "market"],
       "pos": [0.02, 0.17, 0.4, 0.3]
     },
     {
       "key": "noble_deck",
-      "type": "deck",
-      "tags": ["hidden", "shuffle"],
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
+      "tags": ["shuffle"],
       "pos": [0.42, 0.17, 0.5, 0.3],
       "contents": [
         "noble_1",
@@ -476,8 +480,10 @@
     {
       "key": "t3_deck",
       "label": "III",
-      "type": "deck",
-      "tags": ["shuffle", "activate"],
+      "layout": "stack",
+      "visibility": "secret",
+      "use": "abilities",
+      "tags": ["shuffle"],
       "pos": [0.02, 0.32, 0.11, 0.47],
       "tooltip": "Tier three. Click to reserve the top card without looking at it.",
       "contents": [
@@ -517,7 +523,7 @@
     },
     {
       "key": "t3_row",
-      "type": "grid",
+      "layout": "grid",
       "grid": [4, 1],
       "tags": ["optional", "market"],
       "pos": [0.13, 0.32, 0.55, 0.47]
@@ -525,8 +531,10 @@
     {
       "key": "t2_deck",
       "label": "II",
-      "type": "deck",
-      "tags": ["shuffle", "activate"],
+      "layout": "stack",
+      "visibility": "secret",
+      "use": "abilities",
+      "tags": ["shuffle"],
       "pos": [0.02, 0.49, 0.11, 0.64],
       "tooltip": "Tier two. Click to reserve the top card without looking at it.",
       "contents": [
@@ -576,7 +584,7 @@
     },
     {
       "key": "t2_row",
-      "type": "grid",
+      "layout": "grid",
       "grid": [4, 1],
       "tags": ["optional", "market"],
       "pos": [0.13, 0.49, 0.55, 0.64]
@@ -584,8 +592,10 @@
     {
       "key": "t1_deck",
       "label": "I",
-      "type": "deck",
-      "tags": ["shuffle", "activate"],
+      "layout": "stack",
+      "visibility": "secret",
+      "use": "abilities",
+      "tags": ["shuffle"],
       "pos": [0.02, 0.66, 0.11, 0.81],
       "tooltip": "Tier one. Click to reserve the top card without looking at it.",
       "contents": [
@@ -645,7 +655,7 @@
     },
     {
       "key": "t1_row",
-      "type": "grid",
+      "layout": "grid",
       "grid": [4, 1],
       "tags": ["optional", "market"],
       "pos": [0.13, 0.66, 0.55, 0.81]
@@ -653,14 +663,15 @@
     {
       "key": "supply",
       "label": "The bank",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
       "grid": [6, 1],
-      "tags": ["activate", "tray"],
+      "tags": ["tray"],
       "pos": [0.57, 0.32, 0.98, 0.52]
     },
     {
       "key": "controls",
-      "type": "hand",
+      "layout": "row",
       "tags": ["optional"],
       "pos": [0.57, 0.6, 0.98, 0.78],
       "contents": ["reserve_button", "done_button"]

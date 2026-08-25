@@ -110,8 +110,14 @@ local function build(def, seat, pos)
 		key       = def.key,
 		seat      = seat,   -- nil for a shared zone: its cards have no owner
 		label     = def.label,
-		zone_type = def.type or "pile",
-		status    = declaration.zone_status(def),
+		layout     = def.layout,
+		row        = def.row,          -- which way a row fans, when it fans at all
+		visibility = def.visibility,
+		reach      = def.reach,
+		use        = def.use,
+		status     = def.status,
+		display    = def.display,
+		copies     = def.copies,
 		tags      = def.tags_set or {},
 		grid      = def.grid,
 		-- How this zone looks, merged from the styles its tags name: the shape it
@@ -145,7 +151,7 @@ local function build(def, seat, pos)
 		key_map[e.key] = e.id
 	end
 
-	if e.zone_type == "grid" and e.grid then
+	if e.layout == "grid" and e.grid then
 		local cols, rows = e.grid[1], e.grid[2]
 		for idx = 1, cols * rows do
 			local slot = {
@@ -178,7 +184,7 @@ end
 -- the def's list of positions. Everything downstream sees ordinary zones that
 -- happen to carry a seat, so only the lookup below has to know the difference.
 function M.create(def)
-	if not (def.tags_set and def.tags_set.per_seat) then return build(def, nil, def.pos) end
+	if def.copies ~= "per_seat" then return build(def, nil, def.pos) end
 	-- One rect per seat: "pos" is a list of rects here, not the single rect a
 	-- shared zone declares. Two seats sharing one rect would draw on top of
 	-- each other, so the author names both — the validator insists.
@@ -287,13 +293,7 @@ end
 function M.visible(c)
 	if not c then return false end
 	local z = c.zone_id and entity.get(c.zone_id)
-	if not z or z.zone_type ~= "hand" or not z.seat then return true end
-	-- A seat's own hand it has chosen to show: "face_up" says *whatever the type
-	-- would do*, and hiding a hand is the only thing the type does here. That is
-	-- what an open hand is — a card laid in front of you for everybody to read,
-	-- which is a move in several games and was unsayable while this rule only
-	-- knew about seats.
-	if z.tags.face_up then return true end
+	if not z or z.visibility ~= "owner" or not z.seat then return true end
 	return z.seat == (M.watching() or M.active_seat())
 end
 
@@ -308,7 +308,7 @@ end
 function M.browse_order(z)
 	local out = {}
 	for i, cid in ipairs(z and z.cards or {}) do out[i] = cid end
-	if not (z and z.zone_type == "deck" and not z.tags.face_up) then return out end
+	if not (z and z.visibility == "secret") then return out end
 	local function name(id)
 		local e = entity.get(id)
 		local d = declaration.G.card_defs[e.def_key]
@@ -329,8 +329,7 @@ end
 -- browser, the card detail, the ctrl+hover inspector — has to ask this too, or
 -- one of them quietly undoes the other.
 function M.peekable(z)
-	if not z or z.zone_type ~= "hand" or not z.seat then return true end
-	if z.tags.face_up then return true end
+	if not z or z.visibility ~= "owner" or not z.seat then return true end
 	return z.seat == (M.watching() or M.active_seat())
 end
 
@@ -350,7 +349,7 @@ end
 -- True when a card can take a place in the zone: grids are bounded by their
 -- free slots, every other zone type is unbounded.
 function M.has_room(z)
-	if not z or z.zone_type ~= "grid" then return true end
+	if not z or z.layout ~= "grid" then return true end
 	for _, sid in ipairs(z.slots) do
 		local s = entity.get(sid)
 		if s and not s.occupant then return true end
@@ -452,7 +451,7 @@ end
 function M.auto_slot(card_id)
 	local c = entity.get(card_id)
 	local z = c and entity.get(c.zone_id)
-	if not z or z.zone_type ~= "grid" or c.slot_id then return end
+	if not z or z.layout ~= "grid" or c.slot_id then return end
 	for _, sid in ipairs(z.slots) do
 		local s = entity.get(sid)
 		if s and not s.occupant then
@@ -529,7 +528,7 @@ end
 function M.sole_grid()
 	local found
 	for z in entity.each("zone") do
-		if z.zone_type == "grid" and not z.tags.hidden then
+		if z.layout == "grid" and z.display ~= "offscreen" then
 			if found then return nil end
 			found = z
 		end
@@ -620,7 +619,7 @@ local function keep_ratio(z)
 	-- one of them: a named square board is a square with a line of text above
 	-- it, not a square with a bite out of the top. Grids only — every other kind
 	-- is laid out by the renderer, which takes the band off there instead.
-	local head = z.label and z.zone_type == "grid" and M.label_h or 0
+	local head = z.label and z.layout == "grid" and M.label_h or 0
 	local w = math.min(p.w, (p.h - head) * r)
 	local h = w / r
 	p.x, p.y = p.x + (p.w - w) / 2, p.y + (p.h - head - h) / 2
@@ -639,7 +638,7 @@ function M.resize()
 			h = (p[4] - p[2]) * H,
 		}
 		keep_ratio(z)
-		if z.zone_type == "grid" and z.grid and next(z.slots) then
+		if z.layout == "grid" and z.grid and next(z.slots) then
 			for idx, slot_id in pairs(z.slots) do
 				local slot = entity.get(slot_id)
 				if slot then slot.place = M.cell_rect(z, idx) end
@@ -655,7 +654,7 @@ end
 function M.zone_at(x, y)
 	local result = nil
 	for z in entity.each("zone") do
-		if not z.tags.hidden and M.contains(z.place, x, y) then result = z.id end
+		if z.display ~= "offscreen" and M.contains(z.place, x, y) then result = z.id end
 	end
 	return result
 end
@@ -674,17 +673,16 @@ end
 -- is why this went unnoticed: only a zone that overrides that — an overlay,
 -- which must be somewhere visible when it opens — can cover anything.
 local function reachable(z, open_id)
-	return not z.tags.hidden or z.id == open_id
+	return z.display ~= "offscreen" or z.id == open_id
 end
 
 function M.card_at(x, y, open_id)
 	local result
 	for z in entity.each("zone") do
-		if z.zone_type ~= "deck" and reachable(z, open_id) and M.contains(z.place, x, y) then
+		if z.use ~= "none" and reachable(z, open_id) and M.contains(z.place, x, y) then
 			-- Last match wins, and a fan is drawn in order, so a click in the
 			-- overlap lands on the card actually showing there.
-			local list = z.zone_type == "pile" and not z.style.fan
-				and { z.cards[#z.cards] } or z.cards
+			local list = z.layout == "stack" and { z.cards[#z.cards] } or z.cards
 			for _, cid in ipairs(list) do
 				local c = entity.get(cid)
 				if c and c.place and M.contains(c.place, x, y) then result = cid end

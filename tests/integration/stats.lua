@@ -26,8 +26,8 @@ local GAME = [==[{
     "damaged": { "stat": "hp", "less_than_max": true }
   },
   "zones": [
-    { "key": "board", "type": "grid", "grid": [5, 1], "tags": ["activate"], "pos": [0.2, 0.1, 0.9, 0.4] },
-    { "key": "hand", "type": "hand", "pos": [0.2, 0.6, 0.9, 0.9] }
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [5, 1], "pos": [0.2, 0.1, 0.9, 0.4] },
+    { "key": "hand", "layout": "row", "pos": [0.2, 0.6, 0.9, 0.9] }
   ],
   "phases": [{ "key": "act", "type": "player_input" }],
   "cards": [
@@ -222,7 +222,7 @@ local GRANTED = [==[{
     { "key": "edge", "min": 0, "max": 9, "tags": ["hidden"], "on": ["tool"] }
   ],
   "zones": [
-    { "key": "board", "type": "grid", "grid": [6, 1], "pos": [0.1, 0.3, 0.9, 0.6] }
+    { "key": "board", "layout": "grid", "grid": [6, 1], "pos": [0.1, 0.3, 0.9, 0.6] }
   ],
   "phases": [{ "key": "act", "type": "player_input" }],
   "cards": [

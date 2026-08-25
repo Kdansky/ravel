@@ -54,16 +54,10 @@ M.ENGINE_TAGS = {
 	no_undo      = { on = "card", what = "playing or picking it clears the undo stack — the choice is final" },
 	generate_art = { on = "card", what = "with no asset, draws a shape derived from its key rather than a bare colour" },
 	-- zones
-	per_seat          = { on = "zone", what = "one copy per seat; pos then takes one rect each" },
 	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
 	refill_when_empty = { on = "zone", what = "recreates its contents when the last card leaves" },
-	face_up           = { on = "zone", what = "cards here are shown, whatever the type would do — including a per-seat hand, which is how an open hand is said" },
-	face_down         = { on = "zone", what = "cards here are hidden, whatever the type would do" },
-	activate          = { on = "zone", what = "cards here may use their abilities — without it an ability is unreachable" },
 	optional          = { on = "zone", what = "nothing here ever has to be played, so a gated card stays gated" },
-	page              = { on = "zone", what = "its cards are drawn as full-screen story pages" },
 	last_acted        = { on = "card", what = "the card a player most recently played or activated. Written by the engine, one at a time, and it lingers until the next thing a player does" },
-	hidden            = { on = "zone", what = "not drawn and not clickable — offer zones, fate decks" },
 	-- phases
 	discard_hand = { on = "phase", what = "leaving it discards the unplayed hand; tokens vanish" },
 	keep_hand    = { on = "phase", what = "a draw_and_play phase opting out of the discard it would otherwise get" },
@@ -151,7 +145,10 @@ local TURN_FIELDS      = { action = true }
 -- The pick is the target; the card that asked is the one acting.
 local CHOSEN_FIELDS    = { where = true, action = true }
 local ZONE_FIELDS = {
-	key = true, label = true, type = true, status = true, pos = true, grid = true, style = true,
+	key = true, label = true, pos = true, style = true,
+	-- the seven, and the two parameters a layout value makes legal
+	layout = true, visibility = true, reach = true, use = true, status = true,
+	display = true, copies = true, grid = true, row = true,
 	contents = true, tooltip = true, tags = true, tags_set = true, refill_from = true,
 	-- its own ability, and what declaration.parse derives from that block
 	activate = true, on_activate = true, activate_phases = true, activate_cost = true,
@@ -264,7 +261,10 @@ local ASSET_FIELDS    = { src = true, max = true }
 -- why they are one block rather than three fields that can be half-written.
 local CHALLENGE_FIELDS = { needs = true, pass = true, fail = true }
 local PATTERN_FIELDS  = { vectors = true, class = true, zone = true }
-local ZONE_TYPES      = { deck = true, pile = true, hand = true, grid = true, options = true }
+-- A value names its own parameter field, so every word on every one of the seven
+-- is reserved: "layout": "grid" is what makes "grid" a legal field, and a
+-- parameter whose value was not chosen is a zone that thinks it is two shapes.
+local ZONE_PARAMS     = { grid = "layout", row = "layout" }
 local PHASE_TYPES     = { automatic = true, player_input = true, draw_and_play = true, overlay = true }
 
 -- The same tables, reachable. Named for the JSON section each belongs to, since
@@ -502,7 +502,7 @@ function M.check(G)
 	-- not among them, exactly as actions.sole_grid decides at runtime.
 	local grids = {}
 	for key, zd in pairs(G.zone_defs) do
-		if zd.type == "grid" and not (zd.tags_set and zd.tags_set.hidden) then
+		if zd.layout == "grid" and zd.display ~= "offscreen" then
 			grids[#grids + 1] = key
 		end
 	end
@@ -1255,7 +1255,7 @@ function M.check(G)
 	do
 		local can_use = false
 		for _, zd in pairs(G.zone_defs) do
-			if zd.tags_set and zd.tags_set.activate then can_use = true end
+			if zd.use == "abilities" then can_use = true end
 		end
 		if not can_use then
 			local who
@@ -1768,19 +1768,21 @@ function M.check(G)
 	for key, def in pairs(G.zone_defs) do
 		local where = "zone '" .. key .. "'"
 		check_fields(where, def, ZONE_FIELDS)
-		if def.type and not ZONE_TYPES[def.type] then
-			warn("%s: '%s' is not a zone type (deck, pile, hand, grid or options)%s",
-				where, tostring(def.type), suggest(def.type, ZONE_TYPES))
+		for param, field in pairs(ZONE_PARAMS) do
+			if def[param] ~= nil and def[field] ~= param then
+				warn('%s: writes "%s", which belongs to "%s": "%s" — it is %s here, so the two disagree about what shape this is',
+					where, param, field, param, tostring(def[field]))
+			end
 		end
 		-- A grid puts each card in an addressed slot; a fan lays them in a run.
-		-- Both answer "where does this card go", so a zone wearing both has two
+		-- Both answer "where does this card go", so a zone saying both has two
 		-- answers and the renderer would take whichever it read last.
-		if def.type == "grid" then
+		if def.layout == "grid" then
 			for tag in pairs(def.tags_set or {}) do
 				local sd = G.style_defs and G.style_defs[tag]
 				if type(sd) == "table" and sd.fan then
 					warn("%s: is a grid and wears '%s', which fans — a grid places by slot and a fan by order, "
-						.. "and they cannot both decide. Make it a pile, or drop the style", where, tag)
+						.. 'and they cannot both decide. Make it a row, or drop the style', where, tag)
 				end
 			end
 		end
@@ -1790,7 +1792,7 @@ function M.check(G)
 				warn('%s: has an "activate" block with no action — nothing would happen', where)
 			end
 		end
-		if def.tags_set and def.tags_set.per_seat then
+		if def.copies == "per_seat" then
 			local seats = #(G.seat_list or {})
 			if seats > 1 then
 				if type(def.pos) ~= "table" or #def.pos ~= seats then
@@ -1808,11 +1810,11 @@ function M.check(G)
 		-- The lower-left corner belongs to the undo button and event log.
 		if type(def.pos) == "table" and #def.pos == 4
 			and type(def.pos[1]) == "number" and type(def.pos[4]) == "number"
-			and not (def.tags_set and def.tags_set.hidden)
+			and def.display ~= "offscreen"
 			and def.pos[1] < 0.17 and def.pos[4] > 0.82 then
 			warn("%s: covers the lower-left corner where the undo button and event log live — start it at x 0.19 or higher", where)
 		end
-		if def.type == "grid" then
+		if def.layout == "grid" then
 			if def.grid == nil then
 				warn('%s: a board needs "grid": [columns, rows]', where)
 			else
@@ -1873,8 +1875,8 @@ function M.check(G)
 		local rects = {}
 		for _, key in ipairs(G.zone_list) do
 			local def = G.zone_defs[key]
-			if def and not (def.tags_set and def.tags_set.hidden) and type(def.pos) == "table" then
-				local per_seat = def.tags_set and def.tags_set.per_seat
+			if def and def.display ~= "offscreen" and type(def.pos) == "table" then
+				local per_seat = def.copies == "per_seat"
 				local list = per_seat and def.pos or { def.pos }
 				-- A per_seat zone declaring one rect shares it between seats,
 				-- which the check above already warns about; skip it here so one

@@ -260,12 +260,24 @@ Zones declare behaviour through an open-ended string tag set. The engine checks 
 |---|---|
 | `shuffle` | Shuffled when contents are created (setup and refill) |
 | `refill_when_empty` | Recreates `contents` when the zone empties |
-| `face_up` | Deck shows its top card's face (decks default to backs) |
-| `face_down` | Pile shows card backs (piles/hands default to faces) |
-| `hidden` | Not drawn; used for overlay offer zones and fate decks |
-| `activate` | Cards here may use their abilities. Not inferred from the zone's shape: a board and a Lost Cities discard both allow it, a hand and an MTG graveyard both do not, and neither pair shares a type |
 
 Decks are finite by default; drawing removes the card.
+
+**A zone's shape and its rules are separate fields, not one word.** `type` used
+to answer seven questions at once — where the cards are drawn, who may read
+them, how many of them the rules can see, what may be done with one, what
+standing they have, whether the zone is drawn at all, and whether there is one
+per seat — so a game could only have the five bundles somebody had thought of.
+Each is its own field now (`layout`, `visibility`, `reach`, `use`, `status`,
+`display`, `copies`), and the tags that used to override half of them —
+`face_up`, `face_down`, `hidden`, `per_seat`, `activate`, `page` — are gone,
+because a value belongs in a field and a quality in a tag.
+
+**A value names its own parameter field.** `"layout": "grid"` is what makes
+`"grid": [cols, rows]` legal, and `"layout": "row"` makes `"row": "down"` legal.
+This is how the format already worked for grids; making it a rule means a
+parameter never needs a name invented for it, at the price of reserving every
+enum value against being used as a field name for anything else.
 
 ---
 

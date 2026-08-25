@@ -432,11 +432,11 @@ end
 local function card_places(zone_e)
 	local p  = zone_e.place
 	local n  = #zone_e.cards
-	local zt = zone_e.zone_type
+	local zt = zone_e.layout
 
 	-- Page zones (the built-in reveal overlay): every card fills the zone,
 	-- so the whole story panel is the tap target.
-	if zone_e.tags.page then
+	if zt == "page" then
 		local pad, places = 6 * S, {}
 		for i = 1, n do
 			places[i] = { x = p.x + pad, y = p.y + pad, w = p.w - pad * 2, h = p.h - pad * 2 }
@@ -447,9 +447,9 @@ local function card_places(zone_e)
 	-- A stack asked to show its whole length. It answers before `type` does,
 	-- because the question it settles — where does each card go — is the one
 	-- `type` was otherwise the only one answering.
-	if zone_e.style.fan then return fan_places(zone_e, zone_e.style.fan) end
+	if zone_e.row then return fan_places(zone_e, zone_e.row) end
 
-	if zt == "deck" or zt == "pile" then
+	if zt == "stack" then
 		local pad = 3 * S
 		return { fit_card({ x = p.x + pad, y = p.y + pad,
 			w = p.w - pad * 2, h = p.h - pad * 2 }) }
@@ -635,9 +635,9 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		dim = false
 	elseif card_e.exhausted then
 		dim, dim_label = true, "exhausted"
-	elseif z and z.zone_type == "hand" then
+	elseif z and z.use == "play" then
 		dim = not flow.can_play(card_e.id)
-	elseif z and z.tags.activate and #cards.abilities(card_e) > 0 then
+	elseif z and z.use == "abilities" and #cards.abilities(card_e) > 0 then
 		dim, dim_label = not flow.can_activate(card_e.id), "not now"
 	end
 
@@ -1117,7 +1117,7 @@ end
 
 local function draw_zone(zone_e)
 	local p  = zone_e.place
-	local zt = zone_e.zone_type
+	local zt = zone_e.layout
 
 	love.graphics.push("all")
 	-- A zone can be a target in its own right, and eligibility never rides on
@@ -1149,20 +1149,20 @@ local function draw_zone(zone_e)
 	local places = card_places(zone_e)
 	local fh     = love.graphics.getFont():getHeight()
 
-	if zone_e.style.fan then
+	if zone_e.row then
 		draw_zone_label(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
 			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
-				if zone_e.tags.face_down or not zones.visible(c) then
+				if zone_e.visibility == "secret" or not zones.visible(c) then
 					draw_card_back(places[i])
 				else
 					draw_card_face(places[i], c, false,
-						fan_visible(places[i], places[i + 1], zone_e.style.fan))
+						fan_visible(places[i], places[i + 1], zone_e.row))
 				end
 			end
 		end
-	elseif zt == "deck" and zone_e.label then
+	elseif zt == "stack" and zone_e.use == "none" and zone_e.label then
 		local cur = phase.current()
 		if cur and cur.deck == zone_e.key then
 			love.graphics.push("all")
@@ -1194,10 +1194,10 @@ local function draw_zone(zone_e)
 		printf(tostring(#zone_e.cards),
 			p.x + 5 * S, band_y + fh + 5 * S, p.w - 10 * S, "center")
 		love.graphics.pop()
-	elseif zt == "deck" then
+	elseif zt == "stack" and zone_e.use == "none" then
 		if #zone_e.cards > 0 then
 			local top = entity.get(zone_e.cards[#zone_e.cards])
-			if zone_e.tags.face_up then
+			if zone_e.visibility ~= "secret" then
 				draw_card_face(places[1], top, false)
 			else
 				draw_card_back(places[1])
@@ -1207,11 +1207,11 @@ local function draw_zone(zone_e)
 			printf(tostring(#zone_e.cards), p.x, p.y + p.h - fh - 5 * S, p.w, "center")
 			love.graphics.pop()
 		end
-	elseif zt == "pile" then
+	elseif zt == "stack" then
 		if #zone_e.cards > 0 then
 			local top = entity.get(zone_e.cards[#zone_e.cards])
 			if not anim.visual_place(top.id, top.place) then
-				if zone_e.tags.face_down then
+				if zone_e.visibility == "secret" then
 					draw_card_back(places[1])
 				else
 					draw_card_face(places[1], top, false)
@@ -1238,7 +1238,7 @@ local function draw_zone(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
 			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
-				if zone_e.tags.page then
+				if zt == "page" then
 					draw_page(places[i], c)
 				elseif not zones.visible(c) then
 					-- Somebody else's hand. Backs, so the cards are still there
@@ -1526,9 +1526,8 @@ end
 
 local function draw_animated_cards()
 	for z in entity.each("zone") do
-		if not z.tags.hidden then
-			local zt   = z.zone_type
-			local list = (zt == "deck" or zt == "pile") and { z.cards[#z.cards] } or z.cards
+		if z.display ~= "offscreen" then
+			local list = z.layout == "stack" and { z.cards[#z.cards] } or z.cards
 			for _, cid in ipairs(list or {}) do
 				local vpl = cid and anim.visual_place(cid, (entity.get(cid) or {}).place)
 				if vpl then draw_flying_card(vpl, entity.get(cid)) end
@@ -1726,7 +1725,7 @@ function M.draw()
 	love.graphics.translate(shx, shy)
 
 	for z in entity.each("zone") do
-		if not z.tags.hidden then draw_zone(z) end
+		if z.display ~= "offscreen" then draw_zone(z) end
 	end
 	draw_animated_cards()
 	fx.draw()
@@ -1816,15 +1815,14 @@ end
 function M.sync_places()
 	for z in entity.each("zone") do
 		local places = card_places(z)
-		local zt     = z.zone_type
+		local zt     = z.layout
 		local kind   = zt == "grid" and "slam"
-			or (zt == "deck" or zt == "pile") and "drop" or "glide"
+			or zt == "stack" and "drop" or "glide"
 		-- A stack keeps one place, because only its top card is ever drawn or
 		-- clicked. A fanned one shows every card, so every card needs one — miss
 		-- this and the fan draws correctly and answers the mouse from wherever
 		-- its cards used to be.
-		local list   = (zt == "deck" or zt == "pile") and not z.style.fan
-			and { z.cards[#z.cards] } or z.cards
+		local list   = zt == "stack" and { z.cards[#z.cards] } or z.cards
 		for i, cid in ipairs(list) do
 			local c   = cid and entity.get(cid)
 			local new = places[i]

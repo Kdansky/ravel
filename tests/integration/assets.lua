@@ -15,7 +15,7 @@ local function fixture(assets, asset_field)
 	f:write(([[{
 		"title": "Assets",
 		"assets": %s,
-		"zones": [{ "key": "hand", "type": "hand", "pos": [0.2, 0, 1, 0.9] }],
+		"zones": [{ "key": "hand", "layout": "row", "pos": [0.2, 0, 1, 0.9] }],
 		"cards": [{ "key": "hero", "text": "Hero", "asset": %s }],
 		"phases": [{ "key": "play", "type": "player_input" }]
 	}]]):format(assets, asset_field))
@@ -57,7 +57,7 @@ function M.test_assets_two_cards_naming_one_picture_share_it(check)
 	f:write([[{
 		"title": "Shared",
 		"assets": { "shared": "crown_royal.jpg" },
-		"zones": [{ "key": "hand", "type": "hand", "pos": [0.2, 0, 1, 0.9] }],
+		"zones": [{ "key": "hand", "layout": "row", "pos": [0.2, 0, 1, 0.9] }],
 		"cards": [
 			{ "key": "a", "text": "A", "asset": "shared" },
 			{ "key": "b", "text": "B", "asset": "shared" }

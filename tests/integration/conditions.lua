@@ -20,9 +20,9 @@ local GAME = [==[{
   "players": [{ "card": "one" }, { "card": "two" }],
   "stats": [{ "key": "gold", "label": "Gold", "subject": "gold@mine.player" }],
   "zones": [
-    { "key": "board", "type": "grid", "grid": [3, 1], "tags": ["activate"],
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [3, 1],
       "pos": [0.05, 0.30, 0.95, 0.55] },
-    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.30, 0.05, 0.95, 0.25], [0.30, 0.70, 0.95, 0.90]] }
   ],
   "phases": [
@@ -340,11 +340,11 @@ local EVERYWHERE = [==[{
   "players": [{ "card": "one" }, { "card": "two" }],
   "stats": [{ "key": "gold", "label": "Gold", "subject": "gold@mine.player" }],
   "zones": [
-    { "key": "board", "type": "grid", "grid": [4, 1], "tags": ["activate"],
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [4, 1],
       "pos": [0.05, 0.30, 0.95, 0.55] },
-    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.30, 0.05, 0.95, 0.25], [0.30, 0.70, 0.95, 0.90]] },
-    { "key": "vault", "type": "deck", "tags": ["hidden"] }
+    { "key": "vault", "layout": "stack", "visibility": "secret", "display": "offscreen" }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }

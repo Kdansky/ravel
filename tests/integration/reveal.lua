@@ -24,11 +24,11 @@ local GAME = [==[{
     { "key": "worth", "min": 0, "max": 9, "tags": ["hidden"] }
   ],
   "zones": [
-    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.20, 0.80, 0.50, 0.95], [0.20, 0.05, 0.50, 0.20]] },
-    { "key": "table", "type": "pile", "tags": ["per_seat"],
+    { "key": "table", "layout": "stack", "copies": "per_seat",
       "pos": [[0.60, 0.80, 0.70, 0.95], [0.60, 0.05, 0.70, 0.20]] },
-    { "key": "options", "type": "options", "pos": [0.06, 0.30, 0.94, 0.70] }
+    { "key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.30, 0.94, 0.70] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "next": [{ "then": "act" }] }

@@ -1,6 +1,6 @@
 # 28 — A zone by its parts
 
-**Status:** design, not started · **Size:** large, mechanical ·
+**Status:** **shipped** (2026-08-26) · **Size:** large, mechanical ·
 **Reopens:** [06](06-schema-and-types.md) gap 1, refused 2026-08-13 on a
 condition that has now fired.
 
@@ -47,11 +47,11 @@ one question the engine asks and `type` currently answers by proxy.
 
 | Field | Values | Default | What it decides | Read at |
 |---|---|---|---|---|
-| `layout` | `stack` · `row` · `grid` · `page` | — | Where each card is drawn, the arrival animation (`drop`/`glide`/`slam`), whether an empty box draws its cells, whether the label takes a band off the top, whether there are addressable slots — and therefore whether capacity is bounded | `render.lua:435,1120,1530,1819`, `zones.lua:147,353,455,623,642` |
+| `layout` | `stack` · `row` · `grid` · `page` | `stack` | Where each card is drawn, the arrival animation (`drop`/`glide`/`slam`), whether an empty box draws its cells, whether the label takes a band off the top, whether there are addressable slots — and therefore whether capacity is bounded | `render.lua:435,1120,1530,1819`, `zones.lua:147,353,455,623,642` |
 | `visibility` | `public` · `owner` · `secret` | `public` | Purely what is drawn and what may be read: card faces or backs, whether the browser scrambles the order, whether a tooltip answers | `zones.lua:289,310,332`, `render.lua:1157,1205,1243` |
-| `reach` | `all` · `top` | `all` | Which of the zone's cards exist as far as the rules go: what may be played, activated, targeted or clicked | `flow.lua:116`, `targeting.lua:207`, `zones.lua:683`, `tags.lua:84` |
-| `use` | `play` · `abilities` · `none` | `none` | What may be done with a card here **at all** — the ceiling, which a phase's `zone` then narrows. One at a time: no game has wanted both | `main.lua:251`, `flow.lua:976`, `render.lua:640` (today: the `activate` tag) |
-| `status` | `board` · `exile` · `offer` | `exile` | What standing a card here has in the rules: tag scopes, `count:`, `card:`, `sacrifice:`, `on_turn` and `from: "board"` all mean `board`. `offer` is a card lent to a question — nobody's while it is there, and gone when the question is answered | the nine sites listed above, plus `flow.lua:54,931` |
+| `reach` | `all` · `top` | `top` on a stack, else `all` | Which of the zone's cards exist as far as the rules go: what may be played, activated, targeted or clicked | `flow.lua:116`, `targeting.lua:207`, `zones.lua:683`, `tags.lua:84` |
+| `use` | `play` · `abilities` · `none` | `play`, or `none` where nothing can be seen | What may be done with a card here **at all** — the ceiling, which a phase's `zone` then narrows. One at a time: no game has wanted both | `main.lua:251`, `flow.lua:976`, `render.lua:640` (today: the `activate` tag) |
+| `status` | `board` · `exile` · `offer` | `board` on a grid, else `exile` | What standing a card here has in the rules: tag scopes, `count:`, `card:`, `sacrifice:`, `on_turn` and `from: "board"` all mean `board`. `offer` is a card lent to a question — nobody's while it is there, and gone when the question is answered | the nine sites listed above, plus `flow.lua:54,931` |
 | `display` | `onscreen` · `offscreen` | `onscreen` | Whether the zone is drawn and whether anything in it can be clicked | today's `hidden` tag |
 | `copies` | `one` · `per_seat` | `one` | One zone, or one per seat — and therefore whether `visibility: owner` means anything | today's `per_seat` tag |
 
@@ -198,3 +198,41 @@ shape — that one moved 112 conditions across ten games and was worth it.
    at `validate.lua:1771`: an unknown value on any of the seven fields, and a
    parameter field whose value was not chosen — `grid: [4, 1]` beside
    `layout: "row"` is a zone that thinks it is two shapes.
+
+## What shipped, and what changed on the way
+
+Three commits: `no_peek` deleted, `status` alone, then the split. The suite was
+green at each, and every shipped game reads identically to a player.
+
+**`use` defaults to `play`, not to `none`.** The file argued for inert-until-it-
+says-otherwise, and that is right for `status`, where a forgotten word leaves a
+card uncounted. For `use` it fails the wrong way: a game whose zones are all
+`none` has nothing clickable and no way to tell why. What made the default cheap
+anyway is the second half — **cards nobody can see cannot be picked out of the
+zone**, so a secret zone is `none` unless it says otherwise, and that alone is
+what makes a deck a deck. A deck is now two words.
+
+**Two more defaults come from a neighbouring field**, for the same reason: a
+`stack` is reached from the top, and a `grid` is in play. Without them the corpus
+would write `"reach": "top"` seventy-three times and the change would have
+delivered exactly the "five or six words a game must keep consistent" that
+[06](06-schema-and-types.md) refused it for. Each is a default and not a rule —
+Lost Cities' expedition is a `row` that says `reach: "top"`, and a scoreboard is
+a `grid` that says `status: "exile"` — which is the whole difference between this
+and reading the rules off the shape.
+
+**`use: "abilities"` rather than the value colliding with `activate`.** The
+parameter rule settled it mechanically, as predicted.
+
+**One latent bug fell out.** Puzzle Strike's Bubble Shield answers a crash from
+the ongoing row and never said `from: "board"` — it was caught by the *default*,
+"a reaction played out of a hand", because that row was a `hand` as far as the
+engine was concerned. Once the row said what it actually is, the default stopped
+covering for it. That is the same class of bug as the four this idea opened on,
+found by the fix rather than by a player.
+
+**Refused on the way:** `no_peek` as an eighth field. Every use of it sat on a
+zone that was already offscreen, and an offscreen zone cannot be hovered or
+browsed, so it had never refused anything. What went with it is a combination
+nothing has asked for — the top card public and the rest unsearchable — because
+browsing deliberately reaches past `reach: "top"`.

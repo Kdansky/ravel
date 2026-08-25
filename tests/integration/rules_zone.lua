@@ -20,10 +20,10 @@ local M = {}
 local GAME = [==[{
   "title": "Rules Zone",
   "zones": [
-    { "key": "board", "type": "grid", "grid": [3, 1], "tags": ["activate"], "pos": [0.05, 0.05, 0.95, 0.30] },
-    { "key": "rules", "type": "grid", "grid": [2, 1], "tags": ["hidden"] },
-    { "key": "lane", "type": "grid", "grid": [3, 1], "tags": ["activate"], "pos": [0.05, 0.35, 0.95, 0.60] },
-    { "key": "hand", "type": "hand", "pos": [0.25, 0.65, 0.95, 0.85] }
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [3, 1], "pos": [0.05, 0.05, 0.95, 0.30] },
+    { "key": "rules", "layout": "grid", "display": "offscreen", "grid": [2, 1] },
+    { "key": "lane", "layout": "grid", "use": "abilities", "grid": [3, 1], "pos": [0.05, 0.35, 0.95, 0.60] },
+    { "key": "hand", "layout": "row", "pos": [0.25, 0.65, 0.95, 0.85] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "next": [{ "then": "upkeep" }] },
@@ -71,7 +71,7 @@ function M.test_rules_zone_a_phase_can_make_cards_act(check)
 		flow.init(name, 3)
 		local counter = card("counter")
 		check("the rules are on the table but out of sight",
-			#zones.find("rules").cards == 2 and zones.find("rules").tags.hidden == true)
+			#zones.find("rules").cards == 2 and zones.find("rules").display == "offscreen")
 		check("and the counter starts at nothing", counter.stats.ticks == 0)
 
 		-- The upkeep phase runs the rules zone. Two of the four cards act: the

@@ -572,38 +572,37 @@ def zones():
     z = [
         # Two readouts nothing else can give: a board shows what is where and
         # says nothing about whose turn it is or which part of it this is.
-        {"key": "whose_turn", "label": "current_player", "type": "grid", "grid": [1, 1],
+        {"key": "whose_turn", "label": "current_player", "layout": "grid", "grid": [1, 1],
          "pos": [0.005, 0.005, 0.225, 0.045]},
-        {"key": "what_now", "label": "current_phase", "type": "grid", "grid": [1, 1],
+        {"key": "what_now", "label": "current_phase", "layout": "grid", "grid": [1, 1],
          "pos": [0.005, 0.049, 0.225, 0.089]},
         # Stopping at 0.82: the lower-left corner is the undo button's and the
         # log's, which is why this column ends above it rather than at the floor.
-        {"key": "bank", "label": "Bank", "type": "grid", "grid": [3, 6],
-         "tags": ["activate"], "applies": ["buyable"], "pos": [0.005, 0.095, 0.225, 0.7],
+        {"key": "bank", "label": "Bank", "layout": "grid", "use": "abilities", "grid": [3, 6], "applies": ["buyable"], "pos": [0.005, 0.095, 0.225, 0.7],
          "tooltip": "Every chip you may buy. A stack says how many are left; when stacks run dry the ante grows."},
         # The two buttons sit on the middle line between the gem piles, where
         # they belong to whoever is up rather than to either side of the table.
-        {"key": "controls", "type": "grid", "grid": [5, 1], "tags": ["activate"],
+        {"key": "controls", "layout": "grid", "use": "abilities", "grid": [5, 1],
          "pos": [0.808, 0.463, 0.995, 0.537]},
         # The roster is the injected offer, positioned rather than declared: ten
         # characters wants more of the screen than a choice between two.
-        {"key": "options", "type": "options", "pos": [0.06, 0.30, 0.94, 0.70]},
-        {"key": "box", "type": "deck", "tags": ["hidden"]},
+        {"key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.30, 0.94, 0.70]},
+        {"key": "box", "layout": "stack", "visibility": "secret", "display": "offscreen"},
         # Every Puzzle chip plate that is not in the bank. Hidden, because it is
         # forty-one plates and nobody needs them on the table \u2014 the draft opens
         # them face up in the offer, which is what an offer is for.
-        {"key": "chip_box", "type": "deck", "tags": ["hidden"]},
-        {"key": "void", "type": "deck", "tags": ["hidden"]},
+        {"key": "chip_box", "layout": "stack", "visibility": "secret", "display": "offscreen"},
+        {"key": "void", "layout": "stack", "visibility": "secret", "display": "offscreen"},
         # A grid, not a deck: a tag scope only searches grids, and every rule
         # about the ante reads this card's number.
-        {"key": "sys", "type": "grid", "grid": [1, 1], "tags": ["hidden"]},
+        {"key": "sys", "layout": "grid", "display": "offscreen", "grid": [1, 1]},
     ]
     # Each rule family is its own hidden zone rather than one zone walked with a
     # step word: a step needs an order named beside it, and these are decks with
     # no columns to order by. One zone per question is cheaper and reads better.
     for key in ("rules_ante", "rules_combine", "rules_upgrade", "rules_upgrade_hand",
                 "rules_upgrade_pile", "rules_height", "rules_piggy"):
-        z.append({"key": key, "type": "deck", "tags": ["hidden"]})
+        z.append({"key": key, "layout": "stack", "visibility": "secret", "display": "offscreen"})
     # South below, north above, mirrored through the middle line — and south's
     # rect is first in every pair because south is seat one. Read from the
     # outside in, each seat has: its hand along the outer edge with the discard,
@@ -624,39 +623,37 @@ def zones():
         # The gem pile is a grid for the same reason the clock is:
         # `sum:value@mine.gem_pile` is the loss condition, the height bonus and
         # half the crash rules, and a scope cannot see a hand.
-        {"key": "gem_pile", "label": "Gem pile", "type": "grid", "grid": [4, 5],
-         "tags": ["per_seat", "face_up"],
+        {"key": "gem_pile", "label": "Gem pile", "layout": "grid", "copies": "per_seat", "grid": [4, 5],
          "pos": rects["gem_pile"],
          "tooltip": "The gems that will end you. Ten or more at the end of your own turn and you lose."},
         # Who you are, which is not something you played: it sits beside your bag
         # rather than in the middle of the table, where it kept claiming the
         # room a chip left standing would need.
-        {"key": "fighter", "type": "grid", "grid": [1, 1], "tags": ["per_seat", "face_up"],
+        {"key": "fighter", "layout": "grid", "copies": "per_seat", "grid": [1, 1],
          "pos": rects["fighter"]},
         # Chips that stay out after they are played, which is a short list — most
         # turns this is empty, and it is a thin strip for that reason.
-        {"key": "ongoing", "label": "In play", "type": "hand", "status": "board", "tags": ["per_seat", "face_up"],
+        {"key": "ongoing", "label": "In play", "layout": "row", "status": "board", "copies": "per_seat", "status": "board",
          "pos": rects["ongoing"],
          "tooltip": "Chips that keep working after the turn they were played."},
-        {"key": "table", "label": "Played this turn", "type": "hand", "tags": ["per_seat", "face_up"],
+        {"key": "table", "label": "Played this turn", "layout": "row", "copies": "per_seat",
          "pos": rects["table"]},
-        {"key": "hand", "type": "hand", "tags": ["per_seat"], "pos": rects["hand"]},
+        {"key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": rects["hand"]},
         # face_down rather than hidden: a bag you cannot see is a bag you cannot
         # count, and how many chips somebody has left to draw is public.
-        {"key": "bag", "label": "Bag", "type": "deck", "tags": ["per_seat", "face_down"],
+        {"key": "bag", "label": "Bag", "layout": "stack", "visibility": "secret", "copies": "per_seat",
          "pos": rects["bag"], "refill_from": "discard",
          "tooltip": "Your draw pile. The moment it runs out your discard goes back in and is shaken \u2014 mid-draw, mid-chip, wherever it happens."},
-        {"key": "discard", "label": "Discard", "type": "pile", "tags": ["per_seat"], "pos": rects["discard"]},
+        {"key": "discard", "label": "Discard", "layout": "stack", "copies": "per_seat", "pos": rects["discard"]},
         # Where an announcement waits. It holds records, never chips, so it sits
         # under the bank rather than beside either player: a crash that has been
         # said out loud and not yet answered belongs to neither of them.
-        {"key": "pending", "label": "Announced", "type": "pile", "tags": ["stack", "face_up"],
+        {"key": "pending", "label": "Announced", "layout": "stack", "tags": ["stack"],
          "pos": [0.005, 0.712, 0.225, 0.818],
          "tooltip": "A crash that has been announced and not yet answered. It sits under the bank because it belongs to neither player."},
         # The piggy bank's shelf: one chip kept out of the cleanup discard, face
         # down until it comes back at the start of the next turn.
-        {"key": "stash", "label": "Kept back", "type": "deck",
-         "tags": ["per_seat", "face_down"], "pos": rects["stash"],
+        {"key": "stash", "label": "Kept back", "layout": "stack", "visibility": "secret", "copies": "per_seat", "pos": rects["stash"],
          "tooltip": "A chip you kept out of the discard. It returns to your hand at the start of your next turn."},
     ]
     return z
@@ -1157,7 +1154,11 @@ def character_chips():
                         "action": ["counterspell"], "spent": "mine.discard"}]},
         {"key": "bubble_shield_up", "text": "Bubble Shield", "tags": ["chip", "character", "blue"],
          "asset": "circle:cyan",
-         "reactions": [{"to": "crash", "when": ANSWERABLE,
+         # From the board, like its three siblings on the ongoing row. It went
+         # without saying while that row was a "hand" as far as the engine was
+         # concerned, and the default — a reaction played out of a hand — caught
+         # it by accident.
+         "reactions": [{"to": "crash", "when": ANSWERABLE, "from": "board",
                         "action": ["destroy:mine.gem_1:1", "stat_gain:stock@stack_gem_1:1",
                                    "move_to:mine.discard", "transform:self:bubble_shield"]}]},
         {"key": "protective_ward", "text": "Protective Ward", "tags": ["chip", "character", "brown"],

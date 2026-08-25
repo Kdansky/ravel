@@ -43,13 +43,13 @@ local function resolve(token)
 	local slot_idx = token:match("^slot:(%d+)$")
 	if slot_idx then
 		for z in entity.each("zone") do
-			if z.zone_type == "grid" then return z.slots[tonumber(slot_idx)] end
+			if z.layout == "grid" then return z.slots[tonumber(slot_idx)] end
 		end
 		return nil
 	end
 	for e in entity.each("card") do
 		local z = entity.get(e.zone_id)
-		if e.def_key == token and z and z.zone_type ~= "deck" then return e.id end
+		if e.def_key == token and z and z.use ~= "none" then return e.id end
 	end
 end
 

@@ -83,16 +83,16 @@ end
 M.IN_PLAY = {}
 
 -- Return array of card entity IDs matching ALL filter_tags.
--- zone_set: {zone_type=true} restricts which zones to search; M.IN_PLAY means
--- wherever cards are in play; nil = any non-deck.
+-- zone_set: {layout=true} restricts which zones to search; M.IN_PLAY means
+-- wherever cards are in play; nil = anywhere cards can be used at all.
 function M.find_targets(filter_tags, zone_set)
     local res = {}
     for e in entity.each("card") do
         local z = entity.get(e.zone_id)
-        if z and z.zone_type ~= "deck" then
+        if z and z.use ~= "none" then
             local zone_ok
             if zone_set == M.IN_PLAY then zone_ok = z.status == "board"
-            else zone_ok = not zone_set or zone_set[z.zone_type] or zone_set[z.key] end
+            else zone_ok = not zone_set or zone_set[z.layout] or zone_set[z.key] end
             if zone_ok then
                 local match = true
                 for _, tag in ipairs(filter_tags) do
