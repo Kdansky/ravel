@@ -286,9 +286,8 @@ TEXT = {
                     "one \u2014 so nothing can make the bank cheaper for a turn.",
                     {"plus_pow": 1}),
     "secret_move": ("+1 action. Ongoing: piggy bank each turn. Discard this when you buy a purple.",
-                    "the action and the piggy bank every turn are built. Discarding it when *you* buy a purple "
-                    "would be a reaction to your own controller's action, which the response window skips on purpose.",
-                    {"plus_act": 1, "plus_piggy": 1}),
+     None,
+     {'plus_act': 1, 'plus_piggy': 1}),
     "self_improvement": ("Main: Trash a chip from your hand or discard pile. Reaction: After you're red-attacked, +3 chips.",
                          "both halves are built; the trash reaches your hand only, and reaching the discard pile "
                          "as well is content work \u2014 show:mine.discard opens its real cards.",
@@ -296,11 +295,9 @@ TEXT = {
     "stolen_purples": ("Chosen opponent reveals his hand and discards all purples. Steal one of those purples (to your discard pile). If you do, trash this chip.",
      "you take one purple out of their revealed hand. The rest of their purples are not discarded, which would want a scope that reaches inside a hand.",
      {'hits': 1}),
-    "thinking_ahead": ("Main: +$1. You may put any chips you buy this turn on top of your bag. "
-                       "Reaction: Trash this chip to become immune to a red chip.",
-                       "the gem power and the immunity are built. Redirecting what you buy onto your bag would "
-                       "mean answering your own purchase, which the window skips.",
-                       {"plus_pow": 1, "react": 1}),
+    "thinking_ahead": ("Main: +$1. You may put any chips you buy this turn on top of your bag. Reaction: Trash this chip to become immune to a red chip.",
+     "the gem power and the immunity are built. Redirecting what you buy onto your bag is answerable now, but the event names the *plate*, not the chip it dealt into your discard, so there is nothing to move.",
+     {'plus_pow': 1, 'react': 1}),
     "training_day": ("Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing "
                      "up to 2 more than the trashed chip into your hand.",
                      "built whole. The allowance is handed over as money and the ordinary price of every pile "
@@ -332,11 +329,9 @@ TEXT = {
     "ebb_or_flow": ("Main or Reaction: Choose one: all players trash a 1-gem from their gem piles "
                     "\u2014 OR \u2014 you ante a 2-gem.",
                     None, {"react": 1}),
-    "hundred_fist": ("Ongoing: After you red-attack, you may crash a gem in your gem pile. "
-                     "Discard if an opponent skips his action phase.",
-                     "laying it out says you have it. Both clauses watch your own actions, and a card cannot "
-                     "answer its own controller.",
-                     {}),
+    "hundred_fist": ("Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.",
+     "the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase going by announces nothing, so there is no moment to hang it on.",
+     {}),
     "improvisation": ("Main: +2 chips. Discard 2 drawn and play the other drawn chips. "
                       "Reaction: After you're red-attacked, you may play a chip as if it were your turn.",
                       "the two chips are drawn. \"The other drawn chips\" needs the set a draw just produced, "
@@ -391,11 +386,9 @@ TEXT = {
                {}),
 
     # --- promotional --------------------------------------------------------
-    "combinatorics": ("+1 brown action. Ongoing: Whenever you play a Combine, you may combine again and "
-                      "\u2212$1. Discard when your gem pile totals 5 or less.",
-                      "the action is built and laying it out says you have it. Both ongoing clauses watch "
-                      "your own play, and a card cannot answer its own controller.",
-                      {"plus_act": 1}),
+    "combinatorics": ("+1 brown action. Ongoing: Whenever you play a Combine, you may combine again and −$1. Discard when your gem pile totals 5 or less.",
+     "the action is built and laying it out says you have it. Nothing announces a Combine being played, so there is no verb for the ongoing half to answer; the gem-pile discard clause is a state rather than an event.",
+     {'plus_act': 1}),
     "custom_combo": ("A burst of five multi-arrow bonuses and no words.",
                      "not playable, and not transcribed: chips.md reports the arrow rows are legible as "
                      "shapes and not as amounts, so what this chip gives is unknown. Guessing it would be "
@@ -489,8 +482,8 @@ TEXT = {
     "living_on_the_edge": ("If your gem pile totals at least 10, +3 chips, +1 action.", None,
                            {"plus_act": 1, "plus_draw": 3}),
     "pandas_bargain": ("Ongoing: At the end of any turn you bought a Puzzle chip, +1 chip. Discard this when you buy a purple.",
-                       "the condition is not built; laying it out draws the chip once.",
-                       {"plus_draw": 1}),
+     "the chip comes as you buy the Puzzle chip rather than at the end of the turn — a turn ending announces nothing, so there is no later moment to hang it on.",
+     {'plus_draw': 1}),
     "jackpot": ("Reveal two chips at random from chosen opponent's hand. If any are gems, +$1 and +1 action. If both are purples, play and gain a purple from the bank.",
      "pays the gem half unconditionally. A random reveal is built now (\"show:random.enemy.hand\"), but it shows one card and nothing branches on what came up, which is the rest of the chip.",
      {'plus_act': 1, 'plus_pow': 1}),
@@ -983,6 +976,10 @@ def puzzle_cards():
         {"key": "secret_move", **shape("secret_move", "brown"),
          "abilities": [{"key": "upkeep", "text": "Secret Move",
                         "action": ["stat_gain:piggy@mine.player:1"]}],
+         # It watches its *own* controller, which is what "whose": "mine" is for.
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+                        "where": ["tagged:purple@event >= 1"],
+                        "action": [], "spent": "mine.discard"}],
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_gain:acts@mine.player:1"], "spent": "mine.ongoing"}},
         {"key": "self_improvement", **shape("self_improvement", "blue"),
@@ -1040,7 +1037,12 @@ def puzzle_cards():
          "play": act(["options:ef_trash,ef_ante"]),
          "reactions": [{"to": "attack", "text": "Choose one",
                         "action": ["options:ef_trash,ef_ante"], "spent": "mine.discard"}]},
-        {"key": "hundred_fist", **shape("hundred_fist", "brown"), "play": ongoing_play()},
+        {"key": "hundred_fist", **shape("hundred_fist", "brown"), "play": ongoing_play(),
+         "reactions": [{"to": "attack", "whose": "mine", "from": "board",
+                        "text": "Crash a gem of your own",
+                        "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
+                                   "owner": "mine", "count": 1},
+                        "action": crash_action(1, 0)}]},
         {"key": "improvisation", **shape("improvisation", "blue"),
          "play": act(["draw_from:mine.bag:mine.hand:2"])},
         {"key": "just_a_scratch", **shape("just_a_scratch", "red"),
@@ -1377,8 +1379,13 @@ def character_chips():
                              "stat_gain:acts@mine.player:1", "move_to:mine.table"]}},
         {"key": "pandas_bargain", "text": "Panda's Bargain", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:white",
-         "tooltip": "Ongoing: a chip at the end of any turn you bought a Puzzle chip. The condition is not built; laying it out draws you the chip once.",
-         "play": ongoing()},
+         # It watches its own controller buying, which "whose": "mine" is for. The
+         # chip comes as the purchase is made rather than at the end of the turn:
+         # a turn ending announces nothing, so there is no later moment to hang it on.
+         "play": ongoing(),
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+                        "where": ["tagged:puzzle_stack@event >= 1"],
+                        "action": ["draw_from:mine.bag:mine.hand:1"]}]},
         {"key": "jackpot", "text": "Jackpot", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:white",
          "tooltip": "Reveal two chips at random from a chosen opponent's hand and take what they turn out to be worth. Reading somebody else's hand is not built.",
