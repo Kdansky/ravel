@@ -9,7 +9,7 @@ M.filename = nil  -- source file of the current game, for template reloads
 M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list", "pays_for_index",
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
-	"compute_defs", "compute_list",
+	"compute_defs", "compute_list", "react_index",
 	"style_defs", "dynamic_styles", "seat_index",
 }
 
@@ -30,13 +30,13 @@ M.TEMPLATE_FIELDS = {
 -- parser accepted while the validator rejected it would be worse than no block.
 local MOMENTS = {
 	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
-		action = "on_play" },
+		action = "on_play", spent = "spent" },
 	activate  = { cost = "activate_cost", target = "activate_target", phases = "activate_phases",
 		action = "on_activate", moves = "moves" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts", action = "on_receive" },
 	turn      = { action = "on_turn" },
-	chosen    = { action = "on_chosen" },
+	chosen    = { where = "chosen_where", action = "on_chosen" },
 }
 M.MOMENTS = MOMENTS
 
@@ -114,6 +114,108 @@ local function abilities_of(def, pp, where)
 		out[1] = { key = "activate", text = def.text, cost = def.activate_cost,
 			target = def.activate_target, phases = def.activate_phases,
 			action = def.on_activate, moves = def.move_rules }
+	end
+	return out
+end
+
+-- A reaction is a subscription: a card answering another player's action. It is
+-- shaped like an ability — a list, each entry with its own cost, target and
+-- action — plus the three things that make it a reaction: the verb it answers
+-- ("to"), a condition over the event's subject ("where", read through @event),
+-- and whether the controller is prompted ("forced": "optional") or it fires on
+-- its own ("forced": "mandatory", Magic's mandatory triggered ability). "from"
+-- says where the card acts from — a played reaction out of a hand, an activation
+-- or a static effect on the board — which decides what answering it does.
+--
+-- Normalised here, the last place the authored entry exists, exactly as
+-- abilities_of is and for the same reason: a typo inside one is caught now, since
+-- what leaves this function cannot carry an unknown field.
+local REACTION_FIELDS = { key = true, text = true, tooltip = true, to = true,
+	where = true, ["when"] = true, forced = true, from = true,
+	cost = true, target = true, action = true, moves = true, compute = true, spent = true }
+local FORCED = { optional = true, mandatory = true }
+
+local function reactions_of(def, pp, where)
+	if def.reactions == nil then return nil end
+	if type(def.reactions) ~= "table" then
+		pp[#pp + 1] = where .. ": \"reactions\" should be a list of reactions"
+		return nil
+	end
+	local out = {}
+	for i, r in ipairs(def.reactions) do
+		if type(r) ~= "table" then
+			pp[#pp + 1] = where .. ": reaction " .. i .. " should be an object"
+		else
+			for k in pairs(r) do
+				if not REACTION_FIELDS[k] then
+					pp[#pp + 1] = ("%s reaction %d: has a field '%s' the engine doesn't read")
+						:format(where, i, tostring(k))
+				end
+			end
+			if type(r.to) ~= "string" or r.to == "" then
+				pp[#pp + 1] = where .. ": reaction " .. i
+					.. " has no \"to\" — a reaction names the verb it answers"
+			end
+			local forced = r.forced or "optional"
+			if not FORCED[forced] then
+				pp[#pp + 1] = ("%s reaction %d: forced \"%s\" is neither \"optional\" nor \"mandatory\"")
+					:format(where, i, tostring(r.forced))
+			end
+			-- A reaction that says how it moves writes its own target, the same
+			-- shorthand a moving ability gets.
+			local rules  = r.moves and normalise_moves(r.moves) or nil
+			local target = r.target
+			if rules and not target then
+				target = { type = "slot", count = 1, moves = rules }
+			end
+			out[#out + 1] = { key = r.key or ("reaction_" .. i), text = r.text, tooltip = r.tooltip,
+				to = r.to, where = r.where, ["when"] = r["when"], forced = forced, from = r.from,
+				cost = r.cost, target = target, action = r.action,
+				moves = rules, compute = r.compute, spent = r.spent }
+		end
+	end
+	return out
+end
+
+-- What a card announces, and *when*: { "play": "cast", "activate": "ability" }.
+-- Announcing is the whole of what makes an interaction answerable — a reaction
+-- subscribes to the verb, and a card that emits nothing behaves exactly as it
+-- always did.
+--
+-- Keyed by the moment because one card is often both. A spell played from hand
+-- that stays on the board and is used from there is answered as two different
+-- things, and a reaction watching for one must not catch the other.
+--
+-- Written *beside* the moment blocks rather than inside them, which is the one
+-- structural decision here. A "play" block is granted whole or not at all and two
+-- tags granting one is refused, so a "spell" tag that wants only to add an
+-- announcement could never live inside "play" without taking the card's own play
+-- action away from it. Beside them, it composes: a card keeps its own play and
+-- gains the tag's word for it.
+local EMIT_MOMENTS = { play = true, activate = true }
+
+local function emits_of(def, pp, where)
+	if def.emits == nil then return nil end
+	if type(def.emits) ~= "table" then
+		pp[#pp + 1] = where .. ': "emits" says when as well as what, like { "play": "cast" }'
+		return nil
+	end
+	local out = {}
+	for moment, v in pairs(def.emits) do
+		if not EMIT_MOMENTS[moment] then
+			pp[#pp + 1] = ("%s: emits at '%s', which is not a moment that can be answered"
+				.. " — the engine announces \"play\" and \"activate\""):format(where, tostring(moment))
+		else
+			local verbs = {}
+			for _, verb in ipairs(type(v) == "table" and v or { v }) do
+				if type(verb) ~= "string" or verb == "" then
+					pp[#pp + 1] = ("%s: emits at '%s', but the verb is not a word"):format(where, moment)
+				else
+					verbs[#verbs + 1] = verb
+				end
+			end
+			out[moment] = verbs
+		end
 	end
 	return out
 end
@@ -346,6 +448,10 @@ function M.parse(filename)
 			-- A granted ability is an ability: same shape, so a card that has
 			-- one of its own and is handed another simply has two.
 			td.abilities = abilities_of(td, pp, "tag '" .. tostring(name) .. "'")
+			-- A keyword that announces itself. "spell" is the one every game with a
+			-- stack wants, and it is one line rather than one per card. Beside the
+			-- moment blocks and not inside them, so a card keeps its own play.
+			td.emits = emits_of(td, pp, "tag '" .. tostring(name) .. "'")
 		end
 		G.tag_defs[name] = td
 	end
@@ -401,6 +507,8 @@ function M.parse(filename)
 				end
 			end
 			cd.abilities = abilities_of(cd, pp, "card '" .. cd.key .. "'")
+			cd.reactions = reactions_of(cd, pp, "card '" .. cd.key .. "'")
+			cd.emits = emits_of(cd, pp, "card '" .. cd.key .. "'")
 			G.card_defs[cd.key] = cd
 		end
 	end
@@ -794,6 +902,11 @@ function M.parse(filename)
 	end
 	for _, key in ipairs(G.card_list) do mint(key, G.card_defs[key].abilities, "card") end
 	for key, td in pairs(G.tag_defs) do mint(key, td.abilities, "tag") end
+	-- Reactions want entries for the same reason abilities do: a card answering
+	-- one event two different ways has to be asked which, and the chooser deals
+	-- cards. Minted from the same function because a reaction *is* an ability
+	-- with a subscription on the front, down to carrying its own text.
+	for _, key in ipairs(G.card_list) do mint(key, G.card_defs[key].reactions, "card") end
 
 	-- An "options" zone is hidden by its own type rather than by a tag it has to
 	-- remember: an offer that is not open is not on the board, and forgetting to
@@ -847,6 +960,39 @@ function M.parse(filename)
 			pd.zone_list = zl
 			pd.zone = zl[1]
 		end
+	end
+
+	-- The reaction index: which reactions answer which verb, built once so a
+	-- response window never scans every card in the game. This is Filter A — a
+	-- verb no card answers opens no window, and upstream need not even be emitted.
+	-- Verb, then card, so the walk over the board asks each card one question and
+	-- the entry it finds is already what would be offered: where the reaction sits
+	-- in that card's own list, and the reaction itself. The position is what an
+	-- input layer names the reaction by, the way an ability is named by its index.
+	G.react_index = {}
+	for key, cd in pairs(G.card_defs) do
+		for i, r in ipairs(cd.reactions or {}) do
+			-- A reaction whose "to" is missing or malformed was already reported by
+			-- reactions_of, and parse problems do not stop a game loading.
+			if type(r.to) == "string" and r.to ~= "" then
+				local by_card = G.react_index[r.to] or {}
+				local hits = by_card[key] or {}
+				hits[#hits + 1] = { index = i, reaction = r }
+				by_card[key] = hits
+				G.react_index[r.to] = by_card
+			end
+		end
+	end
+
+	-- A stack entry for an event that is not a card being played — a crash, a
+	-- summon, a buy raised by "emit". It has nothing of its own to put up and
+	-- still has to hold the window open while it is answered, and a card is the
+	-- unit of everything here, so the engine writes the one card it needs. Only
+	-- where something answers something: a game with no reactions gains no def.
+	if next(G.react_index) and not G.card_defs.event then
+		G.card_defs.event = { key = "event", injected = true, text = "Event",
+			asset = "auto", tags = {}, tags_set = { token = true },
+			abilities = {}, style = merge_styles(G, { token = true }) }
 	end
 
 	return G

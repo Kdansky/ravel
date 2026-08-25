@@ -109,6 +109,13 @@ function M.next()
 	end
 end
 
+-- How deep the phase stack is. One is the game's own phase and nothing over it;
+-- more means something was interjected — an offer, a buy handed to the player who
+-- just reacted — and whoever was up when it was pushed is still up.
+function M.depth()
+	return #stack
+end
+
 function M.is_overlay()
 	local cur = M.current()
 	return cur ~= nil and cur.type == "overlay"

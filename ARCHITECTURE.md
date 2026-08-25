@@ -31,7 +31,8 @@ inspect ─ ctrl+hover: the JSON behind whatever is under the cursor
 anim ─ flight tweens    fx ─ particles/shake/floats
 art ─ procedural placeholder shapes (its pure `parse` is shared with validate)
 ────────────────────────────────────────────────────────────── presentation
-flow ─ THE game driver: init/settle/play/activate/undo, costs, legality
+flow ─ THE game driver: init/settle/play/activate/undo, costs, legality, the stack
+reactions ─ who may answer an event, and whether a window opens at all
 validate ─ whole-file checks: schema, references, conflicts
 actions ─ the op vocabulary (HANDLERS table)
 phase ─ phase stack, routing, round/fresh flags
@@ -132,7 +133,9 @@ Treat it as disposable.
    calls itself), the phase's declared zone, and the acting seat. `targeting`
    holds what a player was *offered*; flow decides what the rules allow, so a
    script or the debug API is bound by exactly the same checks the GUI is.
-3. **`settle` is the only driver.** It loops: pending `load_game` → end
+3. **`settle` is the only driver.** It loops: pending `load_game` → the response
+   window (`flow.react_step`: a seat must answer → stop; a record resolved →
+   loop) → end
    conditions (deferred while an overlay is open) → round boundaries
    (counter, ready, every card's `turn.action` — always before the new round's phases act) →
    automatic phases → dealing fresh phases. It carries a
@@ -223,6 +226,49 @@ square when the spec wants a square — and it lives in `targeting` rather than 
 exactly as long as that rule was written inline in the input layer: every test
 reached `targeting.candidates` directly and passed. When a rule about *what a
 click means* has to be added, it belongs below the presentation line.
+
+## The response window
+
+A game with a zone tagged `stack` can let one player answer another's action.
+Three ideas carry the whole of it, and a game without that zone pays for none of
+them.
+
+**Priority is not the turn.** `zones.turn_seat()` is whose turn it is;
+`zones.active_seat()` is who may act *right now*, and they differ only inside a
+window. Priority lives in one stat (`priority` on the system card), 0 meaning
+"nobody but the turn" — so every game that has never heard of reactions reads
+exactly the turn, as it always did. Everything downstream — `mine`, costs, the
+plays counter, reachability — already reads `active_seat`, which is why moving
+priority is the entire out-of-turn unlock.
+
+**Nothing on the stack is a game card.** Each entry is an `event` record
+standing for something announced; the card that announced it stays in the hand or
+on the table it was played from. A counter therefore removes a record and has
+nothing to put back, and where the announcing card lands was already said by its
+own `spent`. The record carries what it needs to resolve later (`re_action`,
+`re_event`, `re_subject`, `re_actor`, `re_targets`, `re_spent`) as ordinary
+entity fields, so undo and the network snapshot carry it for free.
+
+> Which is also the trap: entity state is JSON on its way to a save file and to
+> the other client, and a table keyed by a **number** comes back keyed by a
+> string. Card ids are numbers. `re_answered` is a *list* of ids for that reason,
+> and anything else remembering cards on an entity must be too.
+
+**Two filters, so an unanswerable action never prompts.** `reactions.lua` owns
+both. Filter A is `G.react_index`, built once at parse — verb → card → the
+reactions on it — so a verb no card in the game answers short-circuits before a
+single card is looked at. Filter B walks the board and asks each candidate
+whether it matches: `where` against the event, `when` against the reactor (asked
+as their seat), and *where the card is*. That last one is asked two ways —
+strictly when the answer is acted on, loosely when it merely decides whether to
+open a window, because a hand and the bag behind it are the same place from
+across the table. Opening on what is publicly possible costs a pass now and then
+and keeps the prompt from being evidence about a hidden hand.
+
+`flow.react_step` is the scheduler and runs inside `settle`: it returns
+`waiting` (a seat must answer), `resolved` (a record ran) or `idle` (no stack —
+every existing game). An interjected phase counts as `waiting`, because a phase
+pushed for the answering seat is part of resolving the record that opened it.
 
 ## Extending the engine
 

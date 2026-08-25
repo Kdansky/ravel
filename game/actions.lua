@@ -97,6 +97,8 @@ end
 -- expedition as (sum - 20) x wagers, written as the two actions
 -- "stat_gain:score:sum:value@mine.red:x:count:wager" and
 -- "stat_damage:score:20:x:count:wager", which is the same arithmetic distributed.
+-- Returns where it stopped as well as what it read: an amount is one slot or
+-- five, so an argument written after one cannot be found by counting colons.
 local function amount(p, i, default, ctx)
 	local v, j = term(p, i, default, ctx)
 	while p[j] == "x" do
@@ -104,7 +106,7 @@ local function amount(p, i, default, ctx)
 		w, j = term(p, j + 1, 1, ctx)
 		v = v * w
 	end
-	return v
+	return v, j
 end
 
 -- The floor and the ceiling a stat is held between on this card: its own if it
@@ -215,12 +217,13 @@ HANDLERS["shuffle"] = function(p)
 end
 
 HANDLERS["draw_from"] = function(p)
-	-- draw_from:from:to:n  (n defaults to 1)
+	-- draw_from:from:to:n[:top|bottom]  (n defaults to 1)
 	local from_id = zone_id(p[2])
 	local to_id   = zone_id(p[3] or "hand")
 	if not from_id or not to_id then return end
-	for _ = 1, amount(p, 4, 1) do
-		if not zones.move_top(from_id, to_id) then break end
+	local n, next_arg = amount(p, 4, 1)
+	for _ = 1, n do
+		if not zones.move_top(from_id, to_id, p[next_arg]) then break end
 	end
 end
 
@@ -290,10 +293,10 @@ HANDLERS["gain"] = function(p)
 end
 
 HANDLERS["add_to"] = function(p, ctx)
-	-- add_to:zone  —  same as move_to but never slot-targeted (overlay on_pick context)
+	-- add_to:zone[:top|bottom]  —  same as move_to but never slot-targeted (overlay on_pick context)
 	local to_id = zone_id(p[2])
 	if to_id and ctx and ctx.card_id then
-		zones.move_card(ctx.card_id, to_id)
+		zones.move_card(ctx.card_id, to_id, p[3])
 	end
 end
 
@@ -470,6 +473,18 @@ HANDLERS["ready"] = function(p, ctx)
 	end
 end
 
+-- destroy:<scope>[:<n>]  — every card the scope names, or that many of them.
+--
+-- The count is what "trash three of these" needs and repeating the line cannot
+-- give: how many is usually known only as the game runs — the size of a crash,
+-- what an attack got through — so it takes the same amount grammar every other
+-- count does ("sum:crashed@enemy.player", "count:gem", a plain number).
+--
+-- Which ones, when there are more than asked for: the earliest, unless the scope
+-- says "random". Deterministic by default because most pools are identical cards
+-- and burning rng on a choice that does not matter costs a reproducible game for
+-- nothing. Left out, the count is every one of them — except after "random",
+-- which has always meant one and still does.
 HANDLERS["destroy"] = function(p, ctx)
 	local sc = predicate.parse_scope(p[2] or "")
 	if not sc then return end
@@ -478,10 +493,14 @@ HANDLERS["destroy"] = function(p, ctx)
 		if e.kind == "card" and e.zone_id then doomed[#doomed + 1] = e.id end
 	end
 	table.sort(doomed)
-	if sc.quant == "random" and #doomed > 0 then
-		doomed = { doomed[rng.int(#doomed)] }
+	local n = p[3] and amount(p, 3, 0, ctx) or (sc.quant == "random" and 1 or #doomed)
+	if n > #doomed then n = #doomed end
+	local taken = {}
+	for _ = 1, n do
+		local i = sc.quant == "random" and rng.int(#doomed) or 1
+		taken[#taken + 1] = table.remove(doomed, i)
 	end
-	for _, id in ipairs(doomed) do zones.destroy_card(id) end
+	for _, id in ipairs(taken) do zones.destroy_card(id) end
 end
 
 -- move:<scope>:<zone>  — every card the scope names goes to that zone.
@@ -507,7 +526,7 @@ HANDLERS["move"] = function(p, ctx)
 	if sc.quant == "random" and #moving > 0 then
 		moving = { moving[rng.int(#moving)] }
 	end
-	for _, id in ipairs(moving) do zones.move_card(id, to_id) end
+	for _, id in ipairs(moving) do zones.move_card(id, to_id, p[4]) end
 end
 
 -- set_owner:<scope>:<who>  — hand those cards to a seat, or to nobody.
@@ -578,9 +597,29 @@ HANDLERS["show"] = function(p, ctx)
 		if e.kind == "card" and e.zone_id and e.zone_id ~= zone_id then moving[#moving + 1] = e.id end
 	end
 	table.sort(moving)
+	-- "random." narrows it to one, the same word and the same meaning it has in
+	-- move and destroy. That is the whole of "reveal a card from their hand":
+	-- the scope says whose hand and the quantifier says how much of it.
+	if sc.quant == "random" and #moving > 0 then
+		moving = { moving[rng.int(#moving)] }
+	end
 	-- An empty hand is nothing to look at, and an empty overlay is a lock with
 	-- no key in it — the offer would open over a board nobody could act on.
 	if #moving == 0 then return end
+	-- The same lock, one step further in. The asking card may say which of the
+	-- borrowed cards it will take (`chosen.where`), and an offer where *none* of
+	-- them qualifies is a question with no answer: it opens over a hand full of
+	-- cards none of which can be clicked, and a mandatory offer then never
+	-- closes. Nothing to take is nothing to look at.
+	local asker = ctx and ctx.card_id and entity.get(ctx.card_id)
+	local rule  = asker and (declaration.G.card_defs[asker.def_key] or EMPTY).chosen_where
+	if rule then
+		local any = false
+		for _, id in ipairs(moving) do
+			if predicate.meets_all(rule, { card_id = asker.id, targets = { id } }) then any = true; break end
+		end
+		if not any then return end
+	end
 	for _, id in ipairs(moving) do
 		local e = entity.get(id)
 		e.borrowed_from = e.zone_id
@@ -705,16 +744,16 @@ HANDLERS["return_to"] = function(p)
 	local to_id = zone_id(p[3])
 	if not from or not to_id then return end
 	for _ = 1, #from.cards do
-		if not zones.move_top(from.id, to_id) then break end
+		if not zones.move_top(from.id, to_id, p[4]) then break end
 	end
 end
 
--- move_target_to:zone  — move each targeted card to zone.
+-- move_target_to:zone[:top|bottom]  — move each targeted card to zone.
 HANDLERS["move_target_to"] = function(p, ctx)
 	local to_id = zone_id(p[2])
 	if not to_id then return end
 	for _, tid in ipairs(ctx and ctx.targets or {}) do
-		zones.move_card(tid, to_id)
+		zones.move_card(tid, to_id, p[3])
 	end
 end
 
@@ -783,6 +822,77 @@ HANDLERS["transform"] = function(p, ctx)
 		log.add(((cards.def(e) or {}).text or e.def_key) .. " became "
 			.. (declaration.G.card_defs[key].text or key))
 	end
+end
+
+-- copy:<scope>[:<moment>[:<n>]]  — every card the scope names does what it does,
+-- n times over, without being played and without moving.
+--
+-- The card is not copied; its *effects* are. Nothing is created, nothing is
+-- spent, no cost is paid and the card stays exactly where it lies — which is
+-- what "play it twice" means on a card that then trashes the thing it copied,
+-- and what a clone verb would get wrong by leaving a second card behind. The
+-- copied card is the one acting, so its own action reads @self as itself.
+--
+-- The moment says which of its two action lists to run: "play" (the default)
+-- or "activate", the first ability it offers. A card with neither is a copy of
+-- nothing, which is not an error — a rule that says "copy the chosen chip" has
+-- no opinion about what the player chose.
+--
+-- What it does not carry over is targets. The copy was not aimed by anybody, so
+-- a copied action that says @target finds nothing; a card meant to be copied
+-- should say what it acts on rather than wait to be pointed.
+local copying = 0
+
+HANDLERS["copy"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	if not sc then
+		content_error("copy: '" .. tostring(p[2]) .. "' is not a scope")
+		return
+	end
+	local moment = p[3] or "play"
+	if moment ~= "play" and moment ~= "activate" then
+		content_error("copy: '" .. moment .. "' is neither \"play\" nor \"activate\"")
+		return
+	end
+	-- The same bound, and for the same reason, as a zone passing cards round in
+	-- a circle: a card that copies itself is a rule that runs away, and it must
+	-- say so rather than take the process with it.
+	if copying >= 8 then
+		content_error("copy: a card is copying itself round in a circle — stopped")
+		return
+	end
+	-- Snapshot before running: an action may move or destroy what the scope
+	-- names, and the second time round would then read a different set.
+	local doing = {}
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		if e.kind == "card" then doing[#doing + 1] = e.id end
+	end
+	table.sort(doing)
+	if sc.quant == "random" and #doing > 0 then
+		doing = { doing[rng.int(#doing)] }
+	end
+
+	copying = copying + 1
+	local ok, err = pcall(function()
+		for _ = 1, amount(p, 4, 1, ctx) do
+			for _, id in ipairs(doing) do
+				local e = entity.get(id)
+				local list
+				if moment == "play" then
+					list = e and cards.behaviour(e, "on_play")
+				else
+					local a = e and cards.abilities(e)[1]
+					list = a and a.action
+				end
+				if list then
+					log.add("Copied " .. ((cards.def(e) or {}).text or e.def_key))
+					M.run(list, { card_id = id, targets = {} })
+				end
+			end
+		end
+	end)
+	copying = copying - 1
+	if not ok then error(err, 0) end
 end
 
 -- attach_to_target  — attach ctx.card_id as a child of ctx.targets[1].
@@ -884,6 +994,81 @@ HANDLERS["set_active_seat"] = function(p, ctx)
 	log.add("— " .. ((def and def.text) or seat) .. " to play —")
 end
 
+-- set_priority:<scope>  — whoever the scope names may act right now, without the
+-- turn moving. Priority is who is up *inside a response window*: the seat
+-- answering another player's action, which the turn owner's action opened for
+-- them. active_seat reads priority over turn (zones.lua), and "mine", costs, the
+-- plays counter and reachability all read active_seat — so this is the whole of
+-- letting a card be played out of turn.
+--
+-- Written the same way set_active_seat is: the scope names cards and the seat is
+-- whose they are, through the same seat_of. Naming two seats is refused; naming
+-- none does nothing. It does not clear the undo history the way a handover does —
+-- the turn has not changed, and how far undo may reach back into a window is the
+-- window's own question, not this primitive's.
+HANDLERS["set_priority"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	local G  = declaration.G
+	if not sc or #(G.seat_list or {}) < 2 then return end
+	local seat
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		local k = predicate.seat_of(e)
+		if k and k ~= seat then
+			if seat then
+				content_error("set_priority: '" .. p[2] .. "' names both " .. seat .. " and " .. k)
+				return
+			end
+			seat = k
+		end
+	end
+	local sys = zones.system_card()
+	local i   = seat and (G.seat_index or {})[seat]
+	if not i or not sys then return end
+	sys.stats.priority = i
+end
+
+-- clear_priority  — the window is over; the seat that acts is the seat that was
+-- acting before it opened. 0 is "nobody holds priority but the turn", which is
+-- what active_seat falls back to.
+HANDLERS["clear_priority"] = function()
+	local sys = zones.system_card()
+	if sys then sys.stats.priority = 0 end
+end
+
+-- emit:<verb>[:<action>]  — announce that something happened, so anybody holding
+-- a reaction to <verb> may answer it before it stands. The subject is the acting
+-- card, which is what carries the tags a reaction reads ("tagged:gem@event"), so
+-- the emitter never names who might answer — the whole point of the shape.
+--
+-- The action after the verb is what waits: the rest of the crash, held until the
+-- window closes unanswered. Written here rather than after the emit because a
+-- ravel action list runs to completion — there is no pausing one, so what must
+-- happen *later* has to be handed over rather than left in the list.
+--
+-- Nothing answers this verb, or no game has a stack: it runs now, exactly as if
+-- the emit were not written. That is what makes an emit free to sprinkle about.
+HANDLERS["emit"] = function(p, ctx)
+	local verb = p[2]
+	if not verb or verb == "" then
+		content_error("emit: names no verb")
+		return
+	end
+	local tail = table.concat(p, ":", 3)
+	local rest = tail ~= "" and { tail } or {}
+	local subject = ctx and ctx.card_id and { ctx.card_id } or {}
+	if not (M.on_emit and M.on_emit(verb, subject, rest, ctx and ctx.card_id, ctx)) then
+		M.run(rest, ctx)
+	end
+end
+
+-- counterspell  — the event this reaction answers does not happen. Written in a
+-- reaction's action, and the counterpart of emit. Named for the thing every
+-- player already knows: "cancel" means six other things, one of them the button
+-- that abandons a targeting session.
+HANDLERS["counterspell"] = function(_, ctx)
+	if M.on_counter then M.on_counter(ctx) end
+end
+
 -- each_seat:<action>  — run one action once per seat, in seat order, with each
 -- seat up in turn and whoever was up put back afterwards.
 --
@@ -942,17 +1127,18 @@ end
 local SPEC = {
 	fill              = "zone card n",
 	shuffle           = "zone",
-	draw_from         = "zone zone n",
-	return_to         = "zone zone",
+	draw_from         = "zone zone n pos?",
+	return_to         = "zone zone pos?",
 	move_to           = "zone? occupied?",
-	add_to            = "zone",
-	move_target_to    = "zone",
+	add_to            = "zone pos?",
+	move_target_to    = "zone pos?",
 	place             = "scope any",
 	stat_gain         = "stat n",
 	stat_damage       = "stat n",
 	stat_boost        = "stat n",
 	stat_set          = "stat n",
 	transform         = "scope card",
+	copy              = "scope moment? n?",
 	attach_to_target  = "",
 	net_invite        = "",
 	net_join          = "",
@@ -964,10 +1150,10 @@ local SPEC = {
 	push_phase        = "phase",
 	pop_phase         = "",
 	load_game         = "gamefile",
-	destroy           = "scope",
+	destroy           = "scope n?",
 	ready             = "scope",
 	activate_zone     = "zone order? step?",
-	move              = "scope zone",
+	move              = "scope zone pos?",
 	set_owner         = "scope seat",
 	destroy_self      = "",
 	options           = "any optional?",
@@ -977,6 +1163,10 @@ local SPEC = {
 	gain              = "card n",
 	effect            = "effect",
 	set_active_seat   = "scope",
+	set_priority      = "scope",
+	clear_priority    = "",
+	emit              = "any action?",
+	counterspell      = "",
 	each_seat         = "action",
 	save_game         = "save",
 	load_save         = "save",

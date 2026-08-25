@@ -121,12 +121,19 @@ local CARD_FIELDS = {
 	-- normalised in place into the same shape a lone "activate" produces, so
 	-- nothing downstream asks which form was written.
 	abilities = true,
+	-- Reactions: a list of subscriptions to another player's action, each with a
+	-- verb it answers ("to"), a condition over the event ("where"), and whether
+	-- the controller is prompted ("forced"). Normalised like abilities.
+	reactions = true,
+	-- What playing this announces, so a reaction may answer it. Usually inherited
+	-- from a tag rather than written here.
+	emits = true,
 	-- derived by declaration.parse from the blocks above
-	cost = true, needs = true, target = true, phases = true, on_play = true,
+	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
-	accepts = true, on_receive = true, on_turn = true, on_chosen = true,
+	accepts = true, on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 	style = true,
 	-- Written by the engine onto the menu entry it generates for each ability of
@@ -136,14 +143,14 @@ local CARD_FIELDS = {
 }
 local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
-	action = true }
+	action = true, spent = true }
 local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
 	moves = true }
 local RECEIVE_FIELDS   = { needs = true, action = true }
 local TURN_FIELDS      = { action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
 -- The pick is the target; the card that asked is the one acting.
-local CHOSEN_FIELDS    = { action = true }
+local CHOSEN_FIELDS    = { where = true, action = true }
 local ZONE_FIELDS = {
 	key = true, label = true, type = true, pos = true, grid = true, style = true,
 	contents = true, tooltip = true, tags = true, tags_set = true, refill_from = true,
@@ -189,11 +196,11 @@ local GRANTED_PLAY    = { play = true }
 for _, internal in pairs(MOMENTS.play) do GRANTED_PLAY[internal] = true end
 
 local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
-	abilities = true,
+	abilities = true, emits = true,
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
 	activate_phases = true, moves = true,
-	on_play = true, cost = true, needs = true, target = true, phases = true }
+	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it
 -- overwritten and no error — which is the shape of bug that costs an afternoon,
 -- because the number is right in the file and wrong in the game.
@@ -205,6 +212,7 @@ local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = t
 local ENGINE_STATS    = {
 	owner      = "which seat a piece belongs to, from where it was placed",
 	turn       = "whose go it is, on the system card",
+	priority   = "who may act right now, on the system card — the turn, except inside a response window",
 	round      = "the round counter, on the system card",
 	plays      = "how many cards have been played this phase",
 	last_acted = "the card a player most recently played or activated",
@@ -290,12 +298,12 @@ M.FIELDS = {
 -- the schema document must not describe them.
 M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true, style = true,
 	-- flattened out of the moment blocks by declaration.parse, never authored
-	cost = true, needs = true, target = true, phases = true, on_play = true,
+	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	activate_cost = true, activate_target = true,
 	activate_phases = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_receive = true, on_turn = true, on_chosen = true, zone_list = true,
-	auto_play = true, to_zone = true, to_slot = true }
+	on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
+	zone_list = true, auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
 -- "did you mean" suggestions.
@@ -506,7 +514,7 @@ function M.check(G)
 	end
 
 	-- Everything a scope may name, for checking and for suggestions.
-	local scope_names = { target = true }
+	local scope_names = { target = true, event = true }
 	for _, k in ipairs(RESERVED_SCOPES) do scope_names[k] = true end
 	for k in pairs(G.zone_defs) do scope_names[k] = true end
 	for k in pairs(known_tags) do scope_names[k] = true end
@@ -741,6 +749,18 @@ function M.check(G)
 		end
 		return keys_memo
 	end
+	-- The verbs anything in this game announces. "play" is the engine's own, raised
+	-- whenever a card is put up to be answered; the rest are collected below, from
+	-- what cards and tags emit and from every emit: action walked.
+	local emitted_verbs = { play = true }
+	for _, defs in ipairs({ G.card_defs, tag_defs }) do
+		for _, def in pairs(defs or {}) do
+			for _, verbs in pairs(type(def) == "table" and def.emits or {}) do
+				for _, v in ipairs(type(verbs) == "table" and verbs or {}) do emitted_verbs[v] = true end
+			end
+		end
+	end
+
 	local check_action
 	function check_action(where, str)
 		local p = {}
@@ -751,6 +771,9 @@ function M.check(G)
 			warn("%s: '%s' is not an action the engine knows%s", where, tostring(op), suggest(op, known_ops))
 			return
 		end
+		-- Every verb the game raises, gathered as the actions go past, so a
+		-- reaction answering one nothing emits can be told so at the end.
+		if op == "emit" and p[2] then emitted_verbs[p[2]] = true end
 		local i = 1
 		for word in spec:gmatch("%S+") do
 			i = i + 1
@@ -778,6 +801,19 @@ function M.check(G)
 					warn("%s: '%s' points at zone '%s', but no zone has that key%s",
 						where, op, a, suggest(sc and sc.name or a, G.zone_defs))
 				end
+			elseif t == "pos" then
+				-- Where in the destination the card lands. Two words, because a
+				-- list has two ends and a deck is the only zone where the
+				-- difference is a rule rather than a detail.
+				if a ~= "top" and a ~= "bottom" then
+					warn("%s: '%s' says the card lands '%s' — it should be 'top' or 'bottom'",
+						where, op, tostring(a))
+				end
+			elseif t == "moment" then
+				if a ~= "play" and a ~= "activate" then
+					warn("%s: '%s' copies '%s', and a card has two action lists to copy: 'play' and 'activate'",
+						where, op, tostring(a))
+				end
 			elseif t == "optional" then
 				if a ~= "optional" then
 					warn("%s: '%s' takes the word 'optional' in that slot, and '%s' is not it",
@@ -801,6 +837,15 @@ function M.check(G)
 				warn("%s: '%s' names the card '%s', but no template has that key%s",
 					where, op, a, suggest(a, G.card_defs))
 			elseif t == "n" then
+				-- An amount is one slot or five ("sum:x@y:x:count:z"), so the
+				-- argument after one is not found by counting colons. Walked the
+				-- same way actions.lua walks it and left on the last slot the
+				-- amount used, or a trailing word would be checked against
+				-- whatever the measure left standing.
+				while true do
+					if AMOUNT_FNS[p[i]] then i = i + 1 end
+					if p[i + 1] == "x" then i = i + 2 else break end
+				end
 				-- A value slot: a number, a measuring fn over a subject, or a
 				-- compute the ability bound. Anything else used to read as 0 and
 				-- say nothing, so a misspelled amount was a silent no-op.
@@ -1657,6 +1702,7 @@ function M.check(G)
 		check_list(where .. " on_activate", def.on_activate)
 		check_list(where .. " on_turn", def.on_turn)
 		check_list(where .. " on_chosen", def.on_chosen)
+		check_conditions(where .. " chosen where", def.chosen_where)
 		check_list(where .. " on_pass", def.on_pass)
 		check_list(where .. " on_fail", def.on_fail)
 
@@ -2126,6 +2172,36 @@ function M.check(G)
 				seen[cur.key] = true
 				cur = G.phase_by_key[auto_successor(cur) or ""]
 			end
+		end
+	end
+
+	-- Reactions. A reaction is an ability with a subscription on the front, so it
+	-- is checked as one and then for the three things only it has: the verb it
+	-- answers, the condition it reads the event through, and where it answers from.
+	--
+	-- Last, because the verb check needs every action in the game already walked:
+	-- what a game emits is only knowable once the emit: actions have gone past.
+	local reacting = {}
+	for key, def in pairs(G.card_defs) do
+		for i, r in ipairs(type(def) == "table" and def.reactions or {}) do
+			local rw = ("card '%s' reaction %d ('%s')"):format(key, i, tostring(r.key))
+			check_ability(rw, r)
+			check_conditions(rw .. " where", r.where)
+			if r.from ~= nil and r.from ~= "hand" and r.from ~= "board" then
+				warn('%s: is answered "from": \'%s\', which is neither "hand" (played out of one) '
+					.. 'nor "board" (used where it lies)', rw, tostring(r.from))
+			end
+			reacting[#reacting + 1] = { where = rw, to = r.to }
+		end
+	end
+	-- A reaction to a verb nothing raises can never fire, and looks exactly like
+	-- one that works. This is the whole of the typo: the two halves of an event
+	-- are written in different files and nothing else holds them together.
+	for _, r in ipairs(reacting) do
+		if not emitted_verbs[r.to] then
+			warn("%s: answers '%s', but nothing in this game emits that — a card or tag says "
+				.. '"emits", or an action says "emit:%s"%s', r.where, tostring(r.to),
+				tostring(r.to), suggest(r.to, emitted_verbs))
 		end
 	end
 

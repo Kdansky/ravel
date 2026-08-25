@@ -20,6 +20,7 @@ local M = {}
 --   hp@each.enemy.creature  every creature an opponent owns
 --   hp@self                 the acting card
 --   hp@target               the cards the player chose for this card
+--   hp@event                the card an event is about, for a reaction to read
 --   count:farm@board        the fn forms take a scope too
 --   count:gem@everywhere    every card, hands and decks included (opt-in)
 --   min:value@mine.hand     the smallest one, over the cards that carry it
@@ -60,8 +61,9 @@ function M.parse_scope(s)
 	if rest == "" then return nil end
 	-- Choosing two targets means both of them; a tag that happens to match
 	-- several cards means the pool. Different defaults because they are
-	-- different intents, not an inconsistency.
-	return { quant = quant or (rest == "target" and "each" or "any"),
+	-- different intents, not an inconsistency. An event's subject is the same
+	-- intent as a target — all of what it names, not one of them.
+	return { quant = quant or ((rest == "target" or rest == "event") and "each" or "any"),
 		owner = owner, name = rest }
 end
 
@@ -182,6 +184,17 @@ function M.entities_in_scope(scope, ctx, owner)
 		if e then out[1] = e end
 	elseif scope == "target" then
 		for _, id in ipairs(ctx and ctx.targets or {}) do
+			local e = entity.get(id)
+			if e then out[#out + 1] = e end
+		end
+	elseif scope == "event" then
+		-- The subject of the event a reaction is answering: the card that was
+		-- played, activated, or emitted about. Like `target` it is a list the
+		-- engine puts in the ctx, not a scope of the board — so a reaction reads
+		-- the tags and stats of what it reacts to (`tagged:fireball@event`,
+		-- `value@event`) through the one grammar, and a fireball never has to
+		-- name what answers it.
+		for _, id in ipairs(ctx and ctx.event or {}) do
 			local e = entity.get(id)
 			if e then out[#out + 1] = e end
 		end

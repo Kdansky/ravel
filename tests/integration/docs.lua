@@ -13,6 +13,7 @@
 local declaration = require("declaration")
 local validate = require("validate")
 local json = require("json")
+local actions = require("actions")
 
 local M = {}
 
@@ -86,6 +87,34 @@ local function read(path)
 	local text = f:read("*a")
 	f:close()
 	return text
+end
+
+-- Every action the engine runs, named in the manual's own table.
+--
+-- SCHEMA.json is already held to this list, and a schema is what a machine
+-- reads. The table in AUTHORING is what a *person* reads, and it had quietly
+-- fallen six verbs behind — each_seat and the five net_ ops were in the engine,
+-- in the schema, and nowhere a reader would look. A verb you cannot look up may
+-- as well not exist, so the manual is held to the same list the schema is.
+--
+-- Looked for as `op` in code ticks anywhere in the section, not as a whole row:
+-- several verbs are documented as a pair on one line, which is how they read
+-- best and is nobody's mistake.
+function M.test_docs_the_manual_lists_every_action(check)
+	local text = read("AUTHORING.md")
+	check("AUTHORING.md is there", text ~= nil)
+	local from = text:find("### Actions", 1, true)
+	local to   = text:find("### Engine behaviors", from or 1, true)
+	check("it has an Actions section that ends", from ~= nil and to ~= nil)
+	local section = text:sub(from, to)
+
+	local missing = {}
+	for op in pairs(actions.ops()) do
+		if not section:find("`" .. op, 1, true) then missing[#missing + 1] = op end
+	end
+	table.sort(missing)
+	check("every action the engine runs is in the manual's table", #missing == 0,
+		table.concat(missing, ", ") .. " — a verb nobody can look up may as well not exist")
 end
 
 function M.test_docs_no_retired_word_is_still_on_offer(check)

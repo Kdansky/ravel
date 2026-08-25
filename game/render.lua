@@ -321,6 +321,11 @@ local detail_id   = nil   -- card or zone shown in the full-screen detail overla
 local can_undo    = false
 local celebrated  = false -- the ending flourish fires once per ending screen
 local buttons     = {}    -- name → rect, rebuilt every frame for hit-testing
+-- Which cards may answer what is announced, worked out once a frame. Asked per
+-- card it would walk every card in the game once per card drawn, which on a
+-- hundred-chip board is ten thousand predicate reads a frame for a window that
+-- is usually not even open.
+local react_offer = {}
 local stat_hud    = {}    -- stat key → {x, y}, where the HUD drew it last frame
 
 function M.set_can_undo(b) can_undo = b end
@@ -623,7 +628,12 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	-- you may take from has to say so, or the only discoverable thing about it
 	-- is that clicking sometimes does nothing.
 	local dim, dim_label
-	if card_e.exhausted then
+	if react_offer[card_e.id] then
+		-- Being asked for beats everything below: inside a window a reaction is
+		-- neither playable nor activatable, and it may well be spent as well, so
+		-- every other rule here would draw the one live card as dead.
+		dim = false
+	elseif card_e.exhausted then
 		dim, dim_label = true, "exhausted"
 	elseif z and z.zone_type == "hand" then
 		dim = not flow.can_play(card_e.id)
@@ -1382,6 +1392,40 @@ local function draw_button(name, label, x, y, w, h)
 		y + (h - mf:getHeight()) * 0.5)
 end
 
+-- What is announced and waiting to be answered, across the top. Nothing else on
+-- screen says a window is open — the turn has not moved and the phase has not
+-- changed — and the seat it is open for is being asked a question they never
+-- clicked for, so it is stated and given a way out.
+--
+-- The top, because the bottom bar belongs to targeting and a reaction that aims
+-- at something raises one while this is still up.
+local function draw_react_hint()
+	local top = flow.pending_event()
+	if not top then return end
+	local W     = love.graphics.getWidth()
+	local mf    = love.graphics.getFont()
+	local bar_h = mf:getHeight() + 14 * S
+	local names = {}
+	for _, id in ipairs(top.re_subject) do
+		local c = entity.get(id)
+		if c then names[#names + 1] = (cards.def(c) or {}).text or c.def_key end
+	end
+	local msg = table.concat(names, ", ") .. ": " .. top.re_verb
+		.. "   —   " .. tostring(zones.active_seat()) .. " to answer"
+	-- As wide as it needs and no wider. A full-width bar would lie across the
+	-- stat row in the far corner, which is exactly what a player weighing whether
+	-- to answer is reading.
+	local pw = mf:getWidth("Pass") + 20 * S
+	local bw = math.min(W, mf:getWidth(msg) + pw + 32 * S)
+	love.graphics.push("all")
+	love.graphics.setColor(0.00, 0.00, 0.00, 0.82)
+	love.graphics.rectangle("fill", 0, 0, bw, bar_h)
+	love.graphics.setColor(1.00, 0.88, 0.55)
+	print_at(msg, 12 * S, 7 * S)
+	draw_button("pass", "Pass", bw - pw - 8 * S, 3 * S, pw, bar_h - 6 * S)
+	love.graphics.pop()
+end
+
 local function draw_targeting_hint()
 	if not targeting.active() then return end
 	local W, H  = love.graphics.getDimensions()
@@ -1673,6 +1717,8 @@ function M.draw()
 	if not font_main then M.rescale() end
 	love.graphics.clear(unpack(C.bg))
 	buttons = {}
+	react_offer = {}
+	for _, u in ipairs(flow.usable_reactions()) do react_offer[u.card] = true end
 
 	-- Impacts kick the whole scene; UI overlays below stay put.
 	local shx, shy = fx.shake_offset()
@@ -1757,6 +1803,7 @@ function M.draw()
 
 	fx.draw_celebration()
 	draw_targeting_arrow()
+	draw_react_hint()
 	draw_targeting_hint()
 	draw_log()
 	draw_undo_button()

@@ -121,6 +121,45 @@ COMMANDS["click"] = function(args)
 	local s = summary(); s.ok = ok; return s
 end
 
+-- react <card> [#<n>] [targets...]  — answer what is announced, out of turn.
+-- Named apart from "play" for the same reason the CLI names it apart: the card
+-- answers the top of the stack rather than being played, and which of its
+-- reactions is meant is part of the choice.
+COMMANDS["react"] = function(args)
+	local cid = resolve(args[1])
+	local targets, index = {}, nil
+	for i = 2, #args do
+		local n = tostring(args[i]):match("^#(%d+)$")
+		if n then index = tonumber(n) else targets[#targets + 1] = resolve(args[i]) end
+	end
+	local sole = cid and flow.sole_reaction(cid)
+	local ok = cid and flow.react(cid, index or (sole and sole.index) or 1, targets) or false
+	local s = summary(); s.ok = ok; return s
+end
+
+COMMANDS["pass"] = function()
+	local ok = flow.pass_react()
+	local s = summary(); s.ok = ok; return s
+end
+
+-- What is waiting to be answered and who may answer it with what — the one
+-- thing a summary cannot show, because a window moves neither turn nor phase.
+COMMANDS["pending"] = function()
+	local top = flow.pending_event()
+	if not top then return { pending = false } end
+	local subject = {}
+	for _, id in ipairs(top.re_subject) do
+		local c = entity.get(id)
+		if c then subject[#subject + 1] = c.def_key end
+	end
+	local answers = {}
+	for _, u in ipairs(flow.usable_reactions()) do
+		answers[#answers + 1] = { card = entity.get(u.card).def_key, index = u.index }
+	end
+	return { pending = true, verb = top.re_verb, subject = subject,
+		seat = zones.active_seat(), answers = answers }
+end
+
 COMMANDS["eval"] = function(args)
 	actions.execute(table.concat(args, " "), {})
 	flow.settle()
@@ -149,6 +188,15 @@ COMMANDS["reload"] = function()
 	local ok, err = cards.reload()
 	if not ok then return { error = err } end
 	local s = summary(); s.ok = true; return s
+end
+
+-- A picture of the window, so a change to the drawing can be checked from a
+-- terminal. LÖVE hands the pixels over a frame later, so this answers where the
+-- file will be rather than waiting for it: the save directory, beside the saves.
+COMMANDS["screenshot"] = function(args)
+	local name = (args[1] or "shot") .. ".png"
+	love.graphics.captureScreenshot(function(img) img:encode("png", name) end)
+	return { file = love.filesystem.getSaveDirectory() .. "/" .. name }
 end
 
 COMMANDS["help"] = function()

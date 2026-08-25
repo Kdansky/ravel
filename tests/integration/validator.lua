@@ -344,6 +344,16 @@ local CASES = {
 			g.zone_defs.hand.pos = { 0.3, 0.3, 0.8, 0.8 } end },
 	{ "an order the engine does not know", "is not an order the engine knows",
 		function(g) g.card_defs.c_flee.on_play = { "activate_zone:board:widdershins" } end },
+	{ "a third word for which end of a pile", "it should be 'top' or 'bottom'",
+		function(g) g.card_defs.c_flee.on_play = { "move:hand:board:sideways" } end },
+	-- The one that needed the validator to count the way the engine does: an
+	-- amount is one slot or five, so the end has to be looked for past the measure.
+	{ "the same mistake written after a measured amount", "it should be 'top' or 'bottom'",
+		function(g) g.card_defs.c_flee.on_play = { "draw_from:hand:board:count:keepsake:sideways" } end },
+	{ "a copy of something a card does not have", "a card has two action lists to copy",
+		function(g) g.card_defs.c_flee.on_play = { "copy:target:sing" } end },
+	{ "a chosen where that names nothing", "neither a zone nor a tag",
+		function(g) g.card_defs.c_flee.chosen_where = { "hp@nowhere >= 1" } end },
 	-- The shapes a condition used to have. Both are what a game file written
 	-- before the migration carries, so both say what to write instead.
 	{ "a gate still written as a map", "is written as a map",
@@ -443,7 +453,33 @@ local CASES = {
 				g.stat_defs_list[#g.stat_defs_list + 1] = k
 			end
 		end },
+	-- Reactions. The two halves of an event are written in different files, so a
+	-- reaction answering a verb nothing raises reads exactly like one that works
+	-- — and is checked as an ability besides, since that is what it is.
+	{ "a reaction to a verb nothing emits", "answers 'crash', but nothing in this game emits that",
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "crash", action = { "destroy_self" } } } end },
+	{ "a reaction answered from nowhere", 'is answered "from": \'pocket\'',
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", from = "pocket", action = { "destroy_self" } } } end },
+	{ "an unknown action inside a reaction", "'moove_to' is not an action",
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", action = { "moove_to:board" } } } end },
 }
+
+-- The verb check runs last for a reason: what a game emits is only known once
+-- every action has gone past, and an emit may be written anywhere — including
+-- inside another reaction. Ordering this wrong reports a working pair as broken,
+-- which is the one thing a validator must never do.
+function M.test_validator_finds_a_verb_emitted_from_anywhere(check)
+	local g = declaration.parse("tower.json")
+	g.card_defs.c_flee.emits = { play = { "cast" } }
+	g.card_defs.c_flee.reactions = {
+		{ key = "r", to = "summon", action = { "destroy_self" } },
+		{ key = "s", to = "cast", action = { "emit:summon" } },
+	}
+	local said = table.concat(validate.check(g), "\n")
+	check("a verb a card emits is answerable", said:find("answers 'cast'", 1, true) == nil, said)
+	check("and so is one emitted by another reaction",
+		said:find("answers 'summon'", 1, true) == nil, said)
+end
 
 function M.test_validator_names_every_problem_it_knows(check)
 	for _, c in ipairs(CASES) do

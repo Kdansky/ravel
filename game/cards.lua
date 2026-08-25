@@ -173,6 +173,45 @@ function M.abilities(card_entity)
 	return out
 end
 
+-- Every reaction a card carries, in the order it is asked. Its own, written on
+-- the card, come first; tag-granted and zone-applied reactions are a later
+-- refinement (a keyword that reacts, a zone that makes what lies in it react).
+function M.reactions(card_entity)
+	local out = {}
+	local def = M.def(card_entity)
+	for _, r in ipairs((def and def.reactions) or EMPTY) do out[#out + 1] = r end
+	return out
+end
+
+-- Every verb this card announces at one moment ("play", "activate"): its own, its
+-- zone's through "applies", and its tags'. A tag is the useful place to write one
+-- — "spell" says cast once, for the whole game — and these are the same three
+-- sources abilities come from, for the same reason.
+--
+-- Asked per moment, because a card is often answered as two different things. A
+-- spell that resolves onto the board and is used from there is a cast when it is
+-- played and something else entirely when it is activated, and the two must not
+-- be confused for each other. Verbs from several sources at one moment all count:
+-- a creature spell is a cast and a summon both, and nothing has to choose.
+function M.emits(card_entity, moment)
+	local out, seen = {}, {}
+	local function take(map)
+		for _, v in ipairs((map or EMPTY)[moment] or EMPTY) do
+			if not seen[v] then seen[v] = true; out[#out + 1] = v end
+		end
+	end
+	local def = M.def(card_entity)
+	take(def and def.emits)
+	local z = card_entity and card_entity.zone_id and entity.get(card_entity.zone_id)
+	for _, tag in ipairs(z and z.applies or EMPTY) do
+		take((declaration.G.tag_defs[tag] or EMPTY).emits)
+	end
+	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
+		take((declaration.G.tag_defs[tag] or EMPTY).emits)
+	end
+	return out
+end
+
 -- Only what the zone a card lies in hands it, through "applies". Prose wants
 -- this on its own: "advance the expedition" and "take this into your hand"
 -- describe different acts, and the tooltip shows both.

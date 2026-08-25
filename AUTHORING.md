@@ -720,6 +720,9 @@ disk cache with no network at all.
 | `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a card that carries its own bounds writes them by name — `{ "value": 4, "max": 4 }`, and `min` beside them — which are the same three words the `stats` entry uses. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
+| `reactions` | A list of subscriptions to another player's action — each with the verb it answers (`to`), a condition about the event (`where`), a condition about the reactor (`when`), and the `cost`, `target` and `action` an ability has. `spent` says where the card lands once its answer is over. See *Reactions* |
+| `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
+| `play.spent` | Where the card goes once its play is over, **however it ends** — resolved, or countered before it ever ran. Opt-in; without it the action list is answerable for its own card |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). `action`: what happens when one lands, read the same way. Zones take the same block |
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
@@ -926,8 +929,8 @@ run their `then` actions — usually `push_phase:` to an ending overlay.
 
 **Scopes: which cards a subject is about.** The part after `@` is a *scope
 expression*: `[<quant>.][<owner>.]<zone-or-tag>`, where the name is a zone key,
-a tag, a movement pattern, or one of `self` / `target` / `all` / `reach` /
-`owner_of.<scope>`.
+a tag, a movement pattern, or one of `self` / `target` / `event` / `all` /
+`reach` / `owner_of.<scope>`.
 Without any scope, a subject means **your own cards** — see *The player is a
 card* below.
 
@@ -937,6 +940,7 @@ hp@each.follower     every follower, individually
 hp@random.follower   one follower, chosen by the seeded shuffle
 hp@self              the acting card
 hp@target            the cards the player chose for this card
+hp@event             what an announcement is about, for a reaction to read
 sum:defense@board    a stat summed over one zone
 max:rank@tableau     the largest value in one zone
 min:rank@tableau     the smallest — over the cards that carry the stat
@@ -1321,6 +1325,30 @@ three ask the same question now. The rule is one function — a hand with a seat
 is its owner's alone — and the board, the decks and a seatless hand stay open to
 everybody.
 
+### Which end of a deck a card lands on
+
+Every zone is a list, and the **top of a pile is the end of it**: a draw takes
+from there, and an arrival lands there. So "put it on top of your deck" is what
+every move already does, and needs saying only when you want to be sure:
+
+```json
+"play": { "action": ["move_target_to:mine.bag:top"] }
+```
+
+The word worth knowing is the other one. `bottom` **buries** a card, and nothing
+else can:
+
+```
+move:mine.hand:mine.bag:bottom          the whole hand, underneath
+move_target_to:enemy.bag:bottom         the one they chose, out of their way
+draw_from:mine.bag:mine.bag:1:bottom    the top card of a deck, put under it
+```
+
+It is the last argument of `move`, `move_target_to`, `add_to`, `draw_from` and
+`return_to` — every op that names a destination. It means something in any zone,
+since every zone is a list, but it only *reads* as anything in a deck, which is
+where somebody is about to draw.
+
 ### `last_acted` — the card a player touched last
 
 The engine marks whichever card was most recently **played or activated**, one
@@ -1642,6 +1670,153 @@ after   when   ["attacking@self >= 1", "overkill >= 1"]
 Every rule about conditions holds here — a list means *and*, one comparison per
 string, and an absent stat fails every comparison.
 
+### Reactions — answering another player's action
+
+A reaction is an ability with a subscription on the front: it names the thing it
+answers, and it may be used **out of turn**. Three pieces make it work, and a
+game that writes none of them plays exactly as it always did.
+
+**1. A zone tagged `stack`, which is where announcements wait.**
+
+```json
+{ "key": "stack", "type": "pile", "tags": ["stack"], "pos": [0.55, 0.45, 0.70, 0.65] }
+```
+
+Nothing on it is a game card. Each entry is a *record* of something announced,
+and the card that announced it stays where it was — in the hand, on the table.
+That is what keeps a counter from having to know the rules: it removes a record,
+and nothing was ever moved.
+
+**2. `emits`, which is a card saying its play is answerable.**
+
+```json
+"emits": { "play": "cast" }
+```
+
+The word is yours: `cast`, `summon`, `crash`, `buy`. Playing the card now puts a
+record up under that verb instead of happening at once, and it happens only when
+nobody answers. Written on a **tag** nearly always, because that is one line for
+a whole game instead of one per card:
+
+```json
+"tags": { "spell": { "emits": { "play": "cast" } } }
+```
+
+`activate` is the other moment, and it is kept apart from `play` on purpose: a
+spell cast from hand that resolves onto the board and is used from there is
+answered as two different things, and a reaction watching for one must not catch
+the other.
+
+**3. `reactions`, a list shaped like `abilities`:**
+
+```json
+"reactions": [
+  { "to": "cast", "text": "Counter it",
+    "where": ["tagged:fire@event >= 1"],
+    "when":  ["mana@mine.player >= 1"],
+    "cost":  { "mana@mine.player": 1 },
+    "action": ["counterspell"],
+    "spent": "mine.graveyard" }
+]
+```
+
+| Field | Says |
+|---|---|
+| `to` | the verb answered — the only required one |
+| `where` | a condition about **the event**, read through `@event` |
+| `when` | a condition about **the reactor**, asked as their seat |
+| `from` | `hand` (played out of one) or `board` (used where it lies). Left out, the zone decides |
+| `forced` | `optional` (the player is asked, the default) or `mandatory` (it fires on its own) |
+| `cost`, `target`, `action`, `text` | exactly as on an ability |
+| `spent` | where the reacting card goes once its answer is over |
+
+**The card acted on never names what answers it.** A fireball announces `cast`
+carrying its own tags; a counter says which events it wants. That is the whole
+shape, and it is why adding a counter to a game touches no other card.
+
+#### What the player sees
+
+Casting puts the record up and **priority** — who may act — moves to the seat
+who can answer, *while the turn stays where it was*. They answer or pass; an
+answer goes on the stack above what it answers, so it too can be answered.
+Records resolve last-in-first-out, and when the stack empties priority goes
+home. `counterspell`, written in a reaction's action, means the record it
+answered never happens.
+
+Nothing about this shows up in a game with no reactions to a verb. **A window
+opens only when somebody could actually answer**, so a game that emits `cast`
+with no counter in the box plays every spell the instant it is clicked.
+
+**Ordinary play is locked while a window is open.** Priority was the whole of the
+out-of-turn unlock, and without the lock it would unlock everything — the
+reactor could empty their hand into your turn. A card playable out of turn says
+so with `reactions` and no other way.
+
+#### `spent` — where a card lands however it ends
+
+```json
+"play": { "action": ["stat_gain:damage@enemy.player:3"], "spent": "mine.graveyard" }
+```
+
+Resolved, or countered before it ever ran: either way the card goes there. An
+MTG sorcery reaches the graveyard both ways and a deck-builder's chip the table
+both ways, and neither the action list nor the card that countered it should be
+the one that remembers. Opt-in — leave it out and the action list is answerable
+for its own card, as before. It is run as the card's **owner**, so `mine` means
+whose card it is and not whoever answered.
+
+#### `emit:` — announcing something that is not a card being played
+
+A crash, a summon, a purchase:
+
+```json
+"action": ["emit:crash:move_target_to:enemy.pile"]
+```
+
+The verb is announced and **what follows it is the part that waits** — the rest
+of the crash, held until the window closes unanswered. That is the only way to
+defer half an action, because a ravel action list runs to completion; there is no
+pausing one. Nothing answers that verb, or the game has no stack zone: it runs
+now, so an emit costs a game without reactions exactly nothing.
+
+The subject is the acting card, which carries the tags a reaction reads —
+`"where": ["tagged:gem@event >= 1"]` — so the emitter names nobody who might
+answer.
+
+#### A mandatory reaction is how you ask somebody else a question
+
+An action list cannot wait for another player. A reaction can, because the engine
+already stopped to ask them:
+
+```json
+{ "to": "hex", "from": "board", "forced": "mandatory",
+  "action": ["options:take_a_wound,discard_two"] }
+```
+
+Put that on a card in each seat's own board zone and *each opponent chooses* is
+finally sayable: priority is theirs while the offer is open, so the choice and
+its consequences are read as them. A mandatory reaction that has to be aimed is
+a question after all, so it is offered rather than fired.
+
+**A reaction may hand its player a whole phase**, with `push_phase`. Puzzle
+Strike's Rigorous Training answers an opponent's buy by handing *you* a buy; the
+game returns to where it was when the phase pops. Play inside an interjected
+phase is not locked, because a phase pushed for a seat is a hand-over and playing
+in it is the point.
+
+#### What it will not do yet
+
+- **Answering your own controller's action.** The seat that announced something
+  is skipped when the window looks for who may answer — that is what makes
+  "everybody has passed" a state that arrives. So *whenever you cast a spell,
+  draw a card* has no spelling here; a reaction always belongs to somebody else.
+- **Replacement effects** — "if it would die, exile it instead". Those do not use
+  a stack; they rewrite the event before it happens.
+- **Saying an event cannot be answered.** There is no way for a card to make its
+  own announcements unanswerable.
+- **Reactions from a tag or a zone.** `abilities` come from three places;
+  `reactions` are the card's own only.
+
 ### `computes` — a number with a name
 
 A value worked out where it is used, rather than stored on anything. Declared at
@@ -1756,6 +1931,39 @@ The word puts a **No choice** button under the offer and changes nothing else.
 Right-click and Escape did this all along, and neither is discoverable; on a
 touch screen neither exists.
 
+### Doing what another card does
+
+`copy:` runs a card's action list without playing the card:
+
+```json
+"play": {
+  "target": { "type": "card", "zones": ["hand", "discard"], "count": 1 },
+  "action": ["copy:target:play:2", "destroy:target"]
+}
+```
+
+That is *Play it twice, then trash it* — one line, and the line says it. What is
+copied is the **effect**, not the card: nothing is created, nothing is spent, no
+cost is paid, and the copied card does not move. A verb that duplicated the card
+instead would leave a second one lying about for somebody to find.
+
+`copy:<scope>:activate` runs the first ability a card offers instead of its
+play, which is the same rule aimed at a card already on the board.
+
+Two things it does not do, both on purpose:
+
+- **It carries no targets.** Nobody aimed the copy, so a copied action that
+  waits to be pointed at something finds nothing. A card meant to be copied
+  should say what it acts on rather than wait to be told.
+- **It does not change whose turn it is.** The copied card is the one acting, so
+  its action reads `@self` as itself — but `mine` still means whoever is *up*.
+  Copying an opponent's card gives *you* the benefit, which is what a card that
+  copies wants and a trap for a card that meant to make them do something. For
+  that, see *Making them choose* below.
+
+A card that copies itself is a rule that runs away; it is bounded, stops, and
+says so in the log.
+
 ### Reading somebody else's hand
 
 `options:` deals *copies* of the cards it names. That is right for a menu and
@@ -1778,6 +1986,71 @@ because that is what an offer is for.
 `@self`. That is the `options:` relationship said the other way round: there the
 entry carries the rule and the asker is what it is about; here the entry is
 somebody else's property and carries nothing of ours.
+
+#### `chosen.where` — which of the revealed cards may be taken
+
+An offer of somebody's hand is a whole hand, and a rule is usually about part of
+one: *their largest gem*, *a blue-banner chip*, *a non-Puzzle chip*. The asking
+card says which part, beside the block that says what happens:
+
+```json
+"play": { "action": ["show:enemy.hand:optional"] },
+"chosen": {
+  "where": ["tagged:gem@target >= 1", "sum:value@target >= max:value@options"],
+  "action": ["move_target_to:void"]
+}
+```
+
+Same word and same vocabulary as a target's `where`, asked the same way: the
+candidate is `@target` and the asking card is `@self`. **The whole scope still
+comes up** — revealing a hand is usually half the rule — and only the cards that
+qualify can be clicked; the rest are shown and dimmed.
+
+"Largest" is the second condition and it is worth reading twice: `@options` is
+the offer itself, so the candidate is being compared with what it is lying
+beside. Any question you can ask of a scope, you can ask here.
+
+Two things fall out of it, both on purpose:
+
+- **An offer where nothing qualifies does not open.** A question with no answer
+  is a mandatory offer that never closes, so `show:` checks first and skips it
+  entirely — the same rule as an empty hand being nothing to look at.
+- **Only borrowed cards are asked.** An entry `options:` dealt is a line you
+  wrote from your own list, and narrowing a list you wrote is writing a shorter
+  list.
+
+#### Only one of them: `random.`
+
+The scope may say `random.`, and then one card comes up rather than the whole
+hand — the same quantifier `move` and `destroy` take, meaning the same thing:
+
+```json
+"play": { "action": ["show:random.enemy.hand"] },
+"chosen": { "action": ["stat_gain:seen@mine.player:1"] }
+```
+
+That is the whole of "reveal a card from their hand". The seeded generator picks
+it, so a replay and a networked opponent see the same card.
+
+#### Making *them* choose
+
+Everything above shows their hand to **you**. The other sentence — *they* reveal
+a card, of their choosing, to you — needs no new verb either. `set_priority`
+makes the other seat the one who is up without the turn moving, and every scope
+is relative to whoever is up, so from inside that window `mine.hand` is theirs:
+
+```json
+"play": { "action": ["set_priority:enemy.player", "show:mine.hand"] },
+"chosen": { "action": ["move_target_to:enemy.table", "clear_priority"] }
+```
+
+Read it as the seat being asked and it says what it means: their hand comes up,
+they pick, the pick goes to the other player's table — `enemy` is *you* now —
+and priority goes home. Nothing about the turn moved, so whatever your card was
+doing carries on afterwards.
+
+The trap is that both readings look right from one side of the screen. Say the
+scope out loud as **the seat who is up**, and check who that is at that line.
 
 ### `pays_for` — one thing spent as another
 
@@ -1901,7 +2174,7 @@ become a drawing bug too.
 ### Every tag the engine reads
 
 Tags are your own vocabulary and an unknown one is never an error. These
-eighteen are the exceptions — the words the engine itself looks for:
+nineteen are the exceptions — the words the engine itself looks for:
 
 | Tag | On | What it does |
 |---|---|---|
@@ -1920,6 +2193,7 @@ eighteen are the exceptions — the words the engine itself looks for:
 | `per_seat` | zone | one copy per seat; pos then takes one rect each |
 | `refill_when_empty` | zone | recreates its contents when the last card leaves |
 | `shuffle` | zone | shuffled when its contents are created, and on every refill |
+| `stack` | zone | announcements wait here to be answered — see *Reactions*. A game with no such zone has no response window |
 | `discard_hand` | phase | leaving it discards the unplayed hand; tokens vanish |
 | `keep_hand` | phase | a draw_and_play phase opting out of the discard it would otherwise get |
 | `hidden` | stat | kept out of the HUD, while cards may still read and change it |
@@ -2211,6 +2485,12 @@ a card losing hp gets a small damage burst automatically.
 
 Colon-separated strings; unknown ops log and skip.
 
+**Every action the engine runs is in the table below** — all forty-five of them,
+with nothing kept back for a later section. The test suite holds it that way: a
+handler the engine gains and this table does not describe fails the build, for
+the same reason SCHEMA.json is held to the same list. A verb you cannot find
+here is a verb the engine does not have.
+
 **Numeric slots** take a number, or a measuring fn over a subject —
 `count:<tag>`, `card:<key>`, `sum:<subject>`, `max:<subject>` — optionally
 multiplied by a second such term with `:x:`, left to right:
@@ -2255,6 +2535,7 @@ what a player reads.
 | `gain:card:n` | Create n instances of a card in its home zone (or the hand) |
 | `add_to:zone` | Move the acting card (overlay picks) |
 | `move_target_to:zone` | Move each targeted card |
+| `…:top` / `…:bottom` | **Which end of the destination a card lands on**, as a last argument to `move`, `move_target_to`, `add_to`, `draw_from` and `return_to`. Every zone is a list and the top of a pile is the end of it, so an arrival lands on top unless told otherwise — `bottom` is the word that buries a card, and `draw_from:bag:bag:1:bottom` puts the top card of a deck underneath it |
 | `place:<who>:<where>` | Put every card the scope names on a square of the only board. `<where>` is a square by name (`"g1"`) or a **pattern pointing at one from the acting card** (`"one_left"`) — the second is how a rule works for both sides of a board, since a named square is only ever one player's. Refuses an occupied square |
 | `stat_gain:<subject>:n` / `stat_damage:<subject>:n` | Change the current value, held between its floor and its ceiling, logged, and floated on the card. Two words for one arithmetic, because "damage 2" and "gain −2" read differently to everybody but the engine. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |
 | `stat_boost:<subject>:n` | Move the **ceiling** of a stat that has one (`card_stats` written `{ "value": n, "max": n }`). Lowering it under the number standing there brings the current down with it; nothing else does |
@@ -2266,15 +2547,21 @@ what a player reads.
 | `ready:<scope>` | Un-spend those cards, the counterpart to the `exhaust` cost. A phase's own actions run when it begins, so this is how a game says *when* being spent wears off rather than taking the engine's round boundary for it |
 | `attach_to_target` | Attach the acting card under the first target |
 | `options:<source>[:optional]` | Offer a choice and open it. `<source>` is a zone, whose cards name the choices, or a comma-separated list of card keys. The chosen card is played with **the asking card as its target**. `optional` puts a No choice button on the offer |
-| `show:<scope>[:optional]` | Put the **real** cards a scope names into the offer, face up, and open it — how one player reads another's hand. They go home when it closes. Choosing one runs the asking card's `chosen` block with the pick as `@target`, rather than playing it |
+| `show:<scope>[:optional]` | Put the **real** cards a scope names into the offer, face up, and open it — how one player reads another's hand. They go home when it closes. Choosing one runs the asking card's `chosen` block with the pick as `@target`, rather than playing it. The scope may say `random.`, and then one of them comes up rather than all: `show:random.enemy.hand` is the whole of "reveal a card from their hand" |
 | `transform:<scope>:<card>` | Replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own |
+| `copy:<scope>[:play\|activate[:<n>]]` | Every card the scope names **does what it does**, n times over, without being played and without moving. The card is not copied, its effects are: nothing is created, nothing is spent, no cost is paid, and it stays where it lies — which is what "play it twice, then trash it" means and what duplicating the card would get wrong. The moment picks which list to run, `play` (the default) or `activate` (the first ability it offers). The copied card is the one acting, so its action reads `@self` as itself — but `mine` still means whoever is *up*, so copying somebody else's card benefits the copier. Targets are not carried over: nobody aimed the copy |
 | `resolve_challenge` | Ask the card's `challenge`: run its `pass` or its `fail`. The condition is asked with the acting card and its targets in hand, so it may say `@self` and `@target` |
 | `effect:name` | Play a named visual effect on the acting card (headless: skipped) |
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
 | `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
-| `destroy:<scope>` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A card cannot be partly destroyed, so only `random.` narrows — to one victim |
+| `destroy:<scope>[:<n>]` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`destroy:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.` |
+| `emit:<verb>[:<action>]` | Announce that something happened, so anybody holding a reaction to that verb may answer it first. What follows the verb is the part that **waits**. Nothing answers it, or the game has no `stack` zone: it runs now. See *Reactions* |
+| `counterspell` | Written in a reaction: the event it answers does not happen. **It names no zone** — the stack holds records, not cards, so nothing moved and there is nothing to put back |
+| `set_priority:<scope>` / `clear_priority` | Whoever the scope names may act right now, without the turn moving. The response window does this for itself; write it only for an out-of-turn moment of your own |
 | `load_game:file` | Switch games (menu items, endings). `file` must be a bare `name.json` — no path, no `..` — and is refused otherwise |
+| `each_seat:<action>` | Run one action once per seat, in seat order, with each seat up in turn — so `mine` does the work and a four-seat deal is one line rather than four. Whoever was up is up again when it returns, and no handover happens: the undo history is not cleared, because dealing to everybody is not anybody's turn. See *Every seat, once* |
+| `net_invite` / `net_join` / `net_panel` / `net_seat:<who>` / `net_offline` | The networking layer's own UI, offered as actions so a game may put "Host" and "Join" on its own menu cards. The engine knows the words; the behaviour arrives only if the net module is loaded, and a game without one is unaffected. See *Playing over a network* |
 | `save_game:<slot>` / `load_save:<slot>` | Write the position out, and put it back. The slot is a plain word your game picks; where it lands is the engine's business. See *Saving a game* below |
 
 ### Engine behaviors you get for free

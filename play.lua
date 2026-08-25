@@ -112,6 +112,27 @@ local function show()
 	end
 	if #counts > 0 then print(table.concat(counts, "  ")) end
 
+	-- A response window looks like nothing from the outside — the turn has not
+	-- moved and the phase is the same one — so it is said out loud, above the
+	-- hand, or the prompt is indistinguishable from the turn player's own.
+	local top = flow.pending_event()
+	if top then
+		local names = {}
+		for _, id in ipairs(top.re_subject) do
+			local c = entity.get(id)
+			if c then names[#names + 1] = cards.def(c).text or c.def_key end
+		end
+		print("")
+		print("!! " .. table.concat(names, ", ") .. ": " .. top.re_verb
+			.. " — " .. tostring(zones.active_seat()) .. " may answer")
+		for i, u in ipairs(flow.usable_reactions()) do
+			local c = entity.get(u.card)
+			print("  [r " .. i .. "] " .. (cards.def(c).text or c.def_key)
+				.. (u.reaction.text and (" - " .. u.reaction.text) or ""))
+		end
+		print("  [p] pass")
+	end
+
 	local h = hand_zone()
 	if h and cur and cur.page then
 		for i, cid in ipairs(h.cards) do
@@ -176,14 +197,15 @@ local function play_index(n)
 		local choice = flow.menu_choice(cid)
 		if choice then
 			flow.close_offer()
+			local spec = (choice.reaction or choice.ability).target
 			local targets = {}
-			if select(2, targeting.bounds(choice.ability.target)) > 0 then
-				targets = prompt_targets(entity.get(choice.source), choice.ability.target)
+			if select(2, targeting.bounds(spec)) > 0 then
+				targets = prompt_targets(entity.get(choice.source), spec)
 				if not targets then return end
 			end
-			if not flow.activate(choice.source, targets, choice.index) then
-				print("Can't use that ability.")
-			end
+			local ok = choice.reaction and flow.react(choice.source, choice.index, targets)
+				or (not choice.reaction and flow.activate(choice.source, targets, choice.index))
+			if not ok then print(choice.reaction and "Can't answer with that." or "Can't use that ability.") end
 			return
 		end
 		flow.play_card(cid)
@@ -261,6 +283,21 @@ local function activate_slot(idx)
 	print("No such slot.")
 end
 
+-- Answer what is announced with reaction n, out of turn. Named separately from
+-- playing a card because it is a different act: the card answers the top of the
+-- stack rather than being played, and which of its reactions is meant is part of
+-- the choice — the same reason activating names an ability.
+local function react_index(n)
+	local pick = flow.usable_reactions()[n]
+	if not pick then print("No reaction [" .. n .. "]."); return end
+	local targets = {}
+	if select(2, targeting.bounds(pick.reaction.target)) > 0 then
+		targets = prompt_targets(entity.get(pick.card), pick.reaction.target)
+		if not targets then return end
+	end
+	if not flow.react(pick.card, pick.index, targets) then print("Can't answer with that.") end
+end
+
 local function inspect(n)
 	local h   = hand_zone()
 	local cid = h and h.cards[n]
@@ -280,6 +317,8 @@ end
 local HELP = [[
   <n>          play (or pick) card n
   a <slot>     activate the board card in that slot
+  r <n>        answer what is announced with reaction n
+  p            pass on answering it
   i <n>        inspect card n
   u            undo
   e <action>   run a raw action string, e.g. "e stat_gain:gold:5"
@@ -393,6 +432,10 @@ while true do
 		play_index(tonumber(cmd))
 	elseif cmd == "a" and tonumber(rest) then
 		activate_slot(tonumber(rest))
+	elseif cmd == "r" and tonumber(rest) then
+		react_index(tonumber(rest))
+	elseif cmd == "p" then
+		if not flow.pass_react() then print("Nothing is waiting to be answered.") end
 	elseif cmd == "i" and tonumber(rest) then
 		inspect(tonumber(rest))
 	elseif cmd == "u" then

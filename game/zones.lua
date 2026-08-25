@@ -49,13 +49,32 @@ function M.system_card()
 	end
 end
 
-function M.active_seat()
-	if as_if then return as_if end
+-- The seat whose turn it is, ignoring any response window. The turn stays put
+-- while a reaction runs inside it: Puzzle Strike's loss is checked "at the end of
+-- your own turn" and Magic is thick with "until end of turn", so who is answering
+-- must not be mistaken for whose turn it is.
+function M.turn_seat()
 	local seats = declaration.G.seat_list or {}
 	if #seats < 2 then return seats[1] end
 	local sys = M.system_card()
 	-- turn 0 is "nobody has taken one yet", which reads as the first seat: a
 	-- game that never hands over still has somebody playing.
+	return sys and seats[sys.stats.turn or 0] or seats[1]
+end
+
+-- Who is acting right now. The same seat as the turn, except inside a response
+-- window, where priority is held by whoever is answering another player's action
+-- without the turn moving. "mine", costs, the plays counter and reachability all
+-- read this — so setting priority is the whole of letting a card be played out of
+-- turn. Priority is 0 (unset) everywhere but inside a window, so every existing
+-- game reads exactly the turn, as it always did.
+function M.active_seat()
+	if as_if then return as_if end
+	local seats = declaration.G.seat_list or {}
+	if #seats < 2 then return seats[1] end
+	local sys = M.system_card()
+	local pr  = sys and (sys.stats.priority or 0) or 0
+	if pr > 0 and seats[pr] then return seats[pr] end
 	return sys and seats[sys.stats.turn or 0] or seats[1]
 end
 
@@ -315,7 +334,7 @@ function M.peekable(z)
 	return z.seat == (M.watching() or M.active_seat())
 end
 
-function M.move_top(from_id, to_id)
+function M.move_top(from_id, to_id, where)
 	local from = entity.get(from_id)
 	if not from then return false end
 	-- Asked for, not fired on emptying. A pile refills when somebody tries to
@@ -325,7 +344,7 @@ function M.move_top(from_id, to_id)
 	-- straight back in.
 	if #from.cards == 0 and from.refill_from then M.restock(from) end
 	if #from.cards == 0 then return false end
-	return M.move_card(from.cards[#from.cards], to_id)
+	return M.move_card(from.cards[#from.cards], to_id, where)
 end
 
 -- True when a card can take a place in the zone: grids are bounded by their
@@ -371,7 +390,12 @@ local function fire_receive(to, card_id)
 	if not ok then error(err, 0) end
 end
 
-function M.move_card(card_id, to_id)
+-- The top of a pile is the end of its list: move_top draws from there, and an
+-- arrival lands there. "where" is the one word that says otherwise — "bottom"
+-- puts the card under the pile, which is where a rule that buries something
+-- wants it, and which no other spelling could reach. Every zone is a list, so
+-- this means something everywhere; it only *reads* as anything in a deck.
+function M.move_card(card_id, to_id, where)
 	local c  = entity.get(card_id)
 	local to = entity.get(to_id)
 	-- A full board refuses new arrivals (checked before any mutation, so a
@@ -395,7 +419,7 @@ function M.move_card(card_id, to_id)
 		end
 	end
 
-	table.insert(to.cards, card_id)
+	if where == "bottom" then table.insert(to.cards, 1, card_id) else table.insert(to.cards, card_id) end
 	c.zone_id = to_id
 	M.auto_slot(card_id)
 	fire_receive(to, card_id)

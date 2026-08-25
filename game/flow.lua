@@ -15,6 +15,7 @@ local geometry    = require("geometry")
 -- An entry that names no square still places one card, wherever there is room.
 local NOWHERE     = { true }
 local predicate   = require("predicate")
+local reactions   = require("reactions")
 local tags        = require("tags")
 local validate    = require("validate")
 local log         = require("log")
@@ -71,6 +72,28 @@ local function choosing(c)
 	local cur = phase.current()
 	local z = zones.find(cur.zone or "hand")
 	return z ~= nil and c ~= nil and c.zone_id == z.id
+end
+
+-- Whether a card in an open offer may be the answer.
+--
+-- `show:` borrows the *real* cards a scope names, so the offer is somebody's
+-- hand and not a list the engine wrote — and a rule about part of a hand ("a
+-- gem", "a non-purple chip", "the largest one") has to say which part. The
+-- asking card says it, as `chosen.where`, in the same condition vocabulary a
+-- target's `where` already uses and asked the same way: the candidate is
+-- @target, and the asker is @self.
+--
+-- Only borrowed cards are asked. An entry the offer *dealt* is a line the
+-- engine wrote from the asker's own list, and narrowing a list you wrote is
+-- writing a shorter list.
+local function pickable(c)
+	if not c.borrowed_from then return true end
+	local oz = entity.get(c.zone_id)
+	local asker = oz and oz.asked_by and entity.get(oz.asked_by)
+	local rule = asker and cards.def(asker)
+	rule = rule and rule.chosen_where
+	if not rule then return true end
+	return predicate.meets_all(rule, { card_id = asker.id, targets = { c.id } })
 end
 
 local function in_play_zone(c)
@@ -154,6 +177,42 @@ local function targets_legal(card_id, spec, targets)
 		if not ok[id] then return false end
 	end
 	return true
+end
+
+-- Where a card goes once its play is over, said by the play block rather than by
+-- the action list. **However it ends**: resolved, or countered before it ever
+-- ran. An MTG sorcery goes to the graveyard either way, and a Puzzle Strike chip
+-- to the table either way, and neither the action nor the counter should have to
+-- be the one that remembers.
+--
+-- Opt-in, so nothing changes for a card that does not say it: declare it and
+-- that is where the card lands, leave it out and the action list is answerable
+-- for its own card as it always was.
+-- Run as the card's *owner*, not as whoever is up. A counter resolves while the
+-- answering seat holds priority, and "mine.table" written on my chip has to mean
+-- my table however it ended — otherwise being countered posts the card to the
+-- player who countered it.
+local function send_spent(card_id, spent)
+	if not spent then return end
+	local c = card_id and entity.get(card_id)
+	if not c or not c.zone_id then return end
+	zones.as_seat(predicate.seat_of(c), function()
+		actions.execute("move_to:" .. spent, { card_id = card_id })
+	end)
+end
+
+-- Whether a response window is what is holding things up. A record waiting to be
+-- answered locks ordinary play for the seat holding priority: priority is the
+-- whole of the out-of-turn unlock, and without the lock it unlocked *everything*
+-- — the reactor could empty their hand into the turn player's turn. A card that
+-- may be played out of turn says so with "reactions", ravel's only spelling for
+-- it.
+--
+-- An interjected phase is the exception, and the reason is the same one: a phase
+-- pushed for this seat is a hand-over, not a window. Playing in it is the point,
+-- so the lock lifts even though records are still stacked underneath.
+local function window_locked()
+	return M.pending_event() ~= nil and phase.depth() <= 1
 end
 
 local function fired_flags()
@@ -341,8 +400,16 @@ function M.settle()
 			return
 		end
 
+		-- The response window comes first. A stack waiting to be answered holds up
+		-- outcomes and phases both, and settle is where anything "after an action"
+		-- belongs (invariant 3). "waiting" means a seat must answer, so the loop
+		-- stops and waits for input exactly as a fresh player_input phase does;
+		-- "resolved" means a stack item ran, so loop again; "idle" is every game
+		-- without a stack and every moment its stack is empty — unchanged.
+		local rstate = M.react_step()
+		if rstate == "waiting" then return end
 		-- Outcomes wait until any open overlay (a pending choice) is closed.
-		if phase.is_overlay() or not fire_end_condition() then
+		if rstate ~= "resolved" and (phase.is_overlay() or not fire_end_condition()) then
 			local cur = phase.current()
 			if phase.take_wrapped() then
 				-- A round completed: advance the counter, ready exhausted
@@ -674,7 +741,20 @@ function M.can_play(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
 	if not def or not reachable(c) or not in_play_zone(c) or not on_top(c) then return false end
-	if choosing(c) then return true end
+	-- A card lying in an open offer is the answer to the question the offer is,
+	-- and the gates below are about playing a card from a hand. The one thing
+	-- that may still refuse it is the asking card saying which of them it will
+	-- take — "trash their *largest gem*" opens the whole hand and accepts one
+	-- card out of it, and without this the whole hand was acceptable.
+	if choosing(c) then return pickable(c) end
+	-- A window is open, so the only move is to answer it. The same shape as the
+	-- overlay lock in activate below — a pending question locks other actions —
+	-- and it bites only the seat holding priority, since nobody else is reachable
+	-- anyway. Priority was the whole of the out-of-turn unlock, and without this
+	-- it unlocked everything: the reactor could empty their hand into the turn
+	-- player's turn. A card that may be played out of turn says so with
+	-- "reactions", which is ravel's only spelling for it.
+	if window_locked() then return false end
 	-- A card with nothing to run is not a move. Playing it changes nothing at
 	-- all — flow runs on_play and stops — so it reads as a live card, does
 	-- nothing when clicked, and the escape hatch below will offer it forever
@@ -802,8 +882,11 @@ function M.play_card(card_id, targets)
 	local lender = lent and asker and entity.get(asker)
 	if lender then
 		actions.run(cards.behaviour(lender, "on_chosen"), { card_id = asker, targets = { card_id } })
-	else
+	elseif not M.defer_play(card_id, targets) then
+		-- Unless the play was put up to be answered, in which case it happens when
+		-- the stack says so and not before — and the spending goes with it.
 		actions.run(cards.behaviour(c, "on_play"), ctx)
+		send_spent(card_id, cards.behaviour(c, "spent"))
 	end
 	-- A borrowed card is not spent by being picked: clear_offer sends whatever
 	-- is left home, and that includes this one when the rule did not move it.
@@ -851,6 +934,10 @@ end
 function M.usable_abilities(card_id)
 	local c = entity.get(card_id)
 	if not c or not cards.def(c) or not reachable(c) or not on_top(c) then return {} end
+	-- Locked while something waits to be answered, for the reason can_play is: a
+	-- reactive ability is a "reactions" entry, not an ability that happens to be
+	-- reachable because priority moved.
+	if window_locked() then return {} end
 	-- Whether abilities work here is the zone's to say, not something to infer
 	-- from its shape: a board and a Lost Cities discard both allow it, a hand
 	-- and an MTG graveyard both do not, and neither pair shares a zone type.
@@ -890,23 +977,23 @@ function M.sole_ability(card_id)
 	return #u == 1 and u[1] or nil
 end
 
--- Open the chooser for a card that has more than one thing to do. The offer is
--- the same one `options` deals, and it remembers the card that asked, so the
--- menu entry chosen knows whose ability it was.
-function M.offer_abilities(card_id)
-	local usable = M.usable_abilities(card_id)
-	if #usable < 2 then return false end
+-- Deal one menu entry per choice into the offer and open it. Two things a card
+-- gets asked about — which of its abilities to use, and which of its reactions
+-- to answer with — and they differ only in the word written on the entry.
+--
+-- Which one an entry means is written on the entry, not baked into its
+-- definition: *which number* an ability is depends on the zone the card is lying
+-- in, because a zone's "applies" adds to the list. The same menu card dealt for a
+-- rook in a pile and a rook on the board would otherwise resolve to two
+-- different abilities.
+local function offer_choices(card_id, picks, stat)
+	if #picks < 2 then return false end
 	local zone_id = zones.find_id("options")
 	if not zone_id then return false end
 	local owner = (entity.get(card_id).stats or {}).owner
-	for _, u in ipairs(usable) do
-		local made = cards.create(u.ability.menu_card, zone_id)
-		-- Which ability this entry means is written on the entry, not baked into
-		-- its definition: *which number* an ability is depends on the zone the
-		-- card is lying in, because a zone's "applies" adds to the list. The same
-		-- menu card dealt for a rook in a pile and a rook on the board would
-		-- otherwise resolve to two different abilities.
-		made.stats.ability = u.index
+	for _, p in ipairs(picks) do
+		local made = cards.create(p.menu_card, zone_id)
+		made.stats[stat] = p.index
 		if owner then made.stats.owner = owner end
 	end
 	local z = entity.get(zone_id)
@@ -919,6 +1006,31 @@ function M.offer_abilities(card_id)
 	z.dismissable = true
 	phase.push("options")
 	return true
+end
+
+-- Open the chooser for a card that has more than one thing to do. The offer is
+-- the same one `options` deals, and it remembers the card that asked, so the
+-- menu entry chosen knows whose ability it was.
+function M.offer_abilities(card_id)
+	local picks = {}
+	for _, u in ipairs(M.usable_abilities(card_id)) do
+		picks[#picks + 1] = { menu_card = u.ability.menu_card, index = u.index }
+	end
+	return offer_choices(card_id, picks, "ability")
+end
+
+-- The same for a card that answers the open window more than one way. Rare, and
+-- the reason the chooser is reused rather than a second surface invented: a
+-- window is a player_input phase so the board stays visible, and only the one
+-- card that needs a question asked about it opens an overlay.
+function M.offer_reactions(card_id)
+	local picks = {}
+	for _, u in ipairs(M.usable_reactions()) do
+		if u.card == card_id then
+			picks[#picks + 1] = { menu_card = u.reaction.menu_card, index = u.index }
+		end
+	end
+	return offer_choices(card_id, picks, "reaction")
 end
 
 -- Whether the offer on screen may be walked away from. Asked by the renderer,
@@ -953,6 +1065,13 @@ function M.menu_choice(card_id)
 	local z = c.zone_id and entity.get(c.zone_id)
 	local source = z and z.asked_by
 	if not (source and entity.get(source)) then return nil end
+	-- Which list the entry points into is the entry's own word. The two indices
+	-- are into different lists and would collide if one stat carried both.
+	local ridx = (c.stats or {}).reaction
+	if ridx and ridx > 0 then
+		local r = (cards.reactions(entity.get(source)) or {})[ridx]
+		return r and { source = source, index = ridx, reaction = r } or nil
+	end
 	local idx = (c.stats or {}).ability
 	local a = idx and (cards.abilities(entity.get(source)) or {})[idx]
 	return a and { source = source, index = idx, ability = a } or nil
@@ -1008,7 +1127,11 @@ function M.activate(card_id, targets, index)
 	log.add("Activated " .. (def.text or c.def_key)
 		.. (a.text and #usable > 1 and (" — " .. a.text) or ""))
 	pay(a.cost, ctx)
-	actions.run(a.action, ctx)
+	if not M.defer_activation(card_id, a, ctx) then
+		-- Unless using it was put up to be answered, in which case it happens when
+		-- the stack says so and not before.
+		actions.run(a.action, ctx)
+	end
 	M.settle()
 	return true
 end
@@ -1109,6 +1232,7 @@ function M.can_activate_zone(zone_id)
 	-- card. A shared zone belongs to nobody and answers to whoever is playing.
 	if z.seat and z.seat ~= zones.active_seat() then return false end
 	if not phase_ok(z.activate_phases) then return false end
+	if window_locked() then return false end
 	return M.can_afford(z.activate_cost, { zone_id = zone_id })
 end
 
@@ -1129,9 +1253,378 @@ function M.activate_zone(zone_id)
 	return true
 end
 
+-- The response window, driven by settle.
+--
+-- The stack is a zone tagged "stack", top (last) first. **Nothing on it is a game
+-- card.** Every entry is an "event" record standing for something announced, and
+-- the card that announced it stays where it was — in a hand, on a table, wherever
+-- the play found it. That is the whole of what keeps a counter from having to
+-- know the rules: it removes a record, and the card it was about was never moved
+-- in the first place, so there is nothing to put back.
+--
+-- The record carries what it needs to resolve later (re_action, re_event,
+-- re_subject, re_actor, re_targets, re_spent), which the deep-copy snapshot keeps
+-- across undo for free. Priority — who is acting right now — moves to whoever may
+-- answer while the turn stays put, so the reactor pays from their own pool and
+-- acts on their own cards (see zones.active_seat).
+local function stack_zone()
+	for z in entity.each("zone") do
+		if z.tags.stack then return z end
+	end
+end
+
+-- Put an effect up to be answered instead of running it, as a record of its own.
+-- Two things that read alike and are not the same ride on it: re_event is what
+-- the deferred action reads as @event (a spell answers itself, a counter answers
+-- what it was played on), and re_subject is what *answering this record* would be
+-- about. They differ exactly where the record stands for an answer rather than a
+-- move — a reaction is answered as itself and acts on what it replied to.
+--
+-- re_source is the card that announced it, which is what "self" means to the
+-- deferred action, and re_spent is where that card goes once this is over,
+-- however it ends.
+local function push_event(z, verb, action, subject, event, targets, source, spent, let)
+	local c = zones.add(z, "event")
+	if not c then return end
+	c.re_action, c.re_verb    = action or {}, verb
+	c.re_subject, c.re_event  = subject, event
+	c.re_targets, c.re_let    = targets or {}, let
+	c.re_source, c.re_spent   = source, spent
+	c.re_actor, c.re_passed   = zones.active_seat(), {}
+	-- Which cards have already answered this. The stack no longer holds the cards
+	-- played to it, so nothing takes a reaction out of the hand it came from and
+	-- it would otherwise answer the same announcement forever.
+	--
+	-- A list, not a set keyed by card: a state goes through JSON on its way to a
+	-- save file and to the other client, and there a number key comes back a
+	-- string. A set would quietly forget who had answered exactly when the game
+	-- was reloaded or resynced.
+	c.re_answered = {}
+	return c
+end
+
+local function has_answered(top, card_id)
+	for _, id in ipairs(top.re_answered) do
+		if id == card_id then return true end
+	end
+	return false
+end
+
+-- Move priority (who acts) to a seat, dropping undo history at the boundary the
+-- way a handover does: a reaction is not the turn player's move to take back, and
+-- undoing across it would rewrite a decision that was not theirs.
+local function react_priority(seat)
+	local sys = system_card()
+	if not sys then return end
+	local i = (seat and declaration.G.seat_index[seat]) or 0
+	if (sys.stats.priority or 0) ~= i then
+		sys.stats.priority = i
+		history = {}
+	end
+end
+
+-- Which record is running right now, so "counterspell" written in a reaction can
+-- find what that reaction was an answer to. Transient by design: it lives for one
+-- action run and never reaches a snapshot, because there is no moment between two
+-- players' inputs at which anything is resolving.
+local resolving = nil
+
+-- The top of the stack resolves: run what it deferred, spend the card that
+-- announced it, and the record is done. Its action reads @event as what it
+-- answered (a spell answers itself), so a counter whose action reads the event
+-- reaches the thing it was played on. Resolved as its own controller, so "mine"
+-- in the effect is the caster rather than whoever answered last.
+--
+-- "self" is the card that raised it: a record stands for something a card did,
+-- and "destroy_self" in a deferred crash means the chip that crashed, not the
+-- record standing in for it.
+--
+-- The record always goes, with no question about whether it moved itself —
+-- nothing on the stack is a game card, so there is nothing a game action could
+-- have moved.
+local function resolve_top(top)
+	react_priority(top.re_actor)
+	mark_acted(nil)
+	local prev = resolving
+	resolving  = top
+	actions.run(top.re_action, { card_id = top.re_source,
+		event = top.re_event, targets = top.re_targets, let = top.re_let })
+	resolving  = prev
+	send_spent(top.re_source, top.re_spent)
+	zones.destroy_card(top.id)
+end
+
+-- counterspell — what this reaction answers does not happen: its record comes off
+-- the stack and the deferred action never runs.
+--
+-- **It names no zone, and that is the point.** The card that was countered never
+-- went anywhere — the stack holds records, not cards — so there is nothing to put
+-- back, and where a spent card lands was already said by its own "spent". A
+-- counter that had to know where chips go would need half the rules of every game
+-- it appears in.
+function M.counterspell()
+	local answered = resolving and resolving.re_answering and entity.get(resolving.re_answering)
+	if not answered then return end
+	send_spent(answered.re_source, answered.re_spent)
+	zones.destroy_card(answered.id)
+end
+
+-- A forced reaction is not a question: it fires the moment it matches, and only
+-- its own cost and "when" can stop it. Magic's mandatory triggered ability, and
+-- the reason "forced" is an enum rather than a boolean: "you may" and "it must"
+-- are both triggered abilities, and the difference is all this field says.
+--
+-- Fired here rather than through M.react, which checkpoints and settles — this
+-- runs inside settle already. One thing it declines to do on its own: a reaction
+-- that has to be aimed is a question after all, so it is offered like any other
+-- rather than the engine choosing a target for the player.
+local function fire_forced(z, top, r)
+	local c = entity.get(r.card)
+	if not reactions.matches(r.reaction, c, top.re_subject, true) then return false end
+	if not M.can_afford(r.reaction.cost, { card_id = r.card }) then return false end
+	if r.reaction.target and select(1, targeting.bounds(r.reaction.target)) > 0 then return false end
+	pay(r.reaction.cost, { card_id = r.card })
+	log.add(((cards.def(c) or {}).text or c.def_key) .. " triggers")
+	local rec = push_event(z, "play", r.reaction.action, { r.card }, top.re_subject, {},
+		r.card, r.reaction.spent)
+	if rec then rec.re_answering = top.id end
+	top.re_answered[#top.re_answered + 1] = r.card
+	return true
+end
+
+-- One step of the response protocol, called by settle each loop. Returns
+-- "waiting" (a seat must answer — stop and wait), "resolved" (an item ran — loop
+-- again), or "idle" (no stack; proceed as normal, which is every existing game).
+function M.react_step()
+	local z = stack_zone()
+	if not z then return "idle" end
+	-- Something is interjected — an offer, a phase a reaction handed to the seat
+	-- that played it — and resolving the rest of the stack under it would run the
+	-- turn player's deferred effects while somebody else is still mid-answer. The
+	-- interjection is *part* of resolving the record that opened it, so nothing
+	-- below it moves until it pops.
+	if phase.depth() > 1 then return "waiting" end
+	local top_id = z.cards[#z.cards]
+	if not top_id then
+		-- The window is closed, but priority is not the stack's to give back while
+		-- something else still holds it. A phase interjected mid-answer — an offer,
+		-- a buy handed to the seat that just reacted — is up because *they* are, and
+		-- popping the last record out from under it would hand their phase to the
+		-- turn player. Priority is released when nothing wants it, and that is the
+		-- whole of the rule: one seat stat, no second answer to "who is acting".
+		if phase.depth() <= 1 then react_priority(nil) end
+		return "idle"
+	end
+	local top = entity.get(top_id)
+	-- Anyone who may still answer this top: a responder who has not passed on it
+	-- and is not its own controller. The controller does not answer their own
+	-- effect here, which is what keeps two seats from an endless back-and-forth
+	-- of the same card and what makes "everyone passed" a state that arrives.
+	for _, r in ipairs(reactions.responders(top.re_verb, top.re_subject)) do
+		if r.seat ~= top.re_actor and not top.re_passed[r.seat] and not has_answered(top, r.card) then
+			react_priority(r.seat)
+			-- Forced first, and as that seat: it costs them and acts on their
+			-- cards, so priority has to have moved before it fires. A forced one
+			-- that cannot pay falls through and the seat is asked as usual, which
+			-- is the honest answer — it did not fire, and they may still have
+			-- something else.
+			if r.reaction.forced == "mandatory" and fire_forced(z, top, r) then return "resolved" end
+			return "waiting"
+		end
+	end
+	resolve_top(top)
+	return "resolved"
+end
+
+-- Cast a card's effect onto the stack instead of running it now — a spell put up
+-- to be answered before it lands. The deferral is the whole of what gives a
+-- reaction something to react to; a game with no stack zone never calls this and
+-- plays exactly as before.
+function M.cast(card_id, targets, verb)
+	local c = entity.get(card_id)
+	local z = stack_zone()
+	if not c or not z then return false end
+	checkpoint()
+	log.add("Cast " .. ((cards.def(c) or {}).text or c.def_key))
+	push_event(z, verb or "play", cards.behaviour(c, "on_play") or {}, { card_id }, { card_id },
+		targets, card_id, cards.behaviour(c, "spent"))
+	M.settle()
+	return true
+end
+
+-- Whether playing this card is put up to be answered rather than done. A card
+-- announces itself through "emits" at the "play" moment — its own word or, far
+-- more usefully, a tag's — and until an announcement is settled the play has not
+-- happened.
+--
+-- What goes up is a record, never the card. The card stays in the hand it was
+-- played from until the record resolves, which is the honest state: it has been
+-- announced and nothing has happened yet. Where it lands afterwards is its "spent"
+-- and nothing else's, so a counter can end this without knowing where chips go.
+--
+-- Only when a reply actually exists. Nobody able to answer means the play is the
+-- play it always was, which is every card in every game that emits nothing, and
+-- the caster is not counted: answering your own spell here would open a window
+-- react_step then finds nobody to hold.
+function M.defer_play(card_id, targets)
+	local c = entity.get(card_id)
+	local z = c and stack_zone()
+	if not z then return false end
+	for _, verb in ipairs(cards.emits(c, "play")) do
+		if reactions.anyone_answers(verb, { card_id }, zones.active_seat()) then
+			push_event(z, verb, cards.behaviour(c, "on_play") or {}, { card_id }, { card_id },
+				targets, card_id, cards.behaviour(c, "spent"))
+			return true
+		end
+	end
+	return false
+end
+
+-- The same for using an ability, and the difference is only what is spent. Both
+-- put up a record and neither moves the card; an activated card was not played,
+-- only used, so nothing is spent when the record resolves. That is the whole of
+-- why the two moments are asked separately: one card can be a "cast" from hand
+-- and an "ability" from the board, and a reaction to one must not catch the other.
+function M.defer_activation(card_id, ability, ctx)
+	for _, verb in ipairs(cards.emits(entity.get(card_id), "activate")) do
+		if M.emit(verb, { card_id }, ability.action, card_id, ctx) then return true end
+	end
+	return false
+end
+
+-- Raise an event nothing was played to cause: a crash, a summon, a buy. The verb
+-- says what happened and the subject carries the tags a reaction reads, so the
+-- emitter still names nobody who might answer.
+--
+-- What is deferred is whatever the emitter handed over — the rest of the crash,
+-- the ability's effect — waiting to see whether it is countered. Nothing answers
+-- → false, and the caller simply runs it now, which is Filter A and is why an
+-- emit costs a game with no reactions exactly nothing.
+--
+-- The ctx rides along, because an action deferred is the same action: its targets
+-- were chosen before the window opened, and any compute it bound was worked out
+-- against the board as it stood then.
+function M.emit(verb, subject, action, source, ctx)
+	local z = stack_zone()
+	if not z or not reactions.anyone_answers(verb, subject, zones.active_seat()) then return false end
+	return push_event(z, verb, action, subject, subject, ctx and ctx.targets, source, nil,
+		ctx and ctx.let) ~= nil
+end
+
+-- What is waiting to be answered, if anything. An input layer has to ask,
+-- because a response window looks like nothing from the outside: the turn has
+-- not moved and the phase has not changed, and the only thing that did is who
+-- may act. nil is every game without a stack and every moment its stack is empty.
+function M.pending_event()
+	local z = stack_zone()
+	local top = z and z.cards[#z.cards]
+	return top and entity.get(top)
+end
+
+-- What the seat holding priority may answer the top of the stack with, as
+-- { card, index, reaction }. This is usable_abilities for the response window,
+-- and it is asked for the same reason: an interface offers what this returns and
+-- refuses to guess past it.
+--
+-- Cost is weighed here rather than in reactions.matches, which answers a
+-- different question — whether the reaction answers this event at all. The
+-- window opens on that; what is on offer inside it is this.
+function M.usable_reactions()
+	local top = M.pending_event()
+	local seat = zones.active_seat()
+	-- Nobody answers their own announcement, and the seat that made it is holding
+	-- priority for most of a window's life — so this is the frame the renderer
+	-- asks about most often, and it is answered without walking the board.
+	if not top or seat == top.re_actor then return {} end
+	local out = {}
+	-- Strict: this is what the answering seat is offered, and they can see their
+	-- own cards. The window may have opened on a card that only *might* be in
+	-- their hand — that is what keeps the prompt from being evidence — but
+	-- offering them one that is really in their bag would be a lie to their face.
+	for _, r in ipairs(reactions.responders(top.re_verb, top.re_subject, true)) do
+		if r.seat == seat and not has_answered(top, r.card)
+			and M.can_afford(r.reaction.cost, { card_id = r.card }) then
+			out[#out + 1] = { card = r.card, index = r.index, reaction = r.reaction }
+		end
+	end
+	return out
+end
+
+-- Whether this card is one of the answers on offer. The renderer asks, because a
+-- card that may answer must not be drawn dead: inside a window it is neither
+-- playable nor activatable, and both of those say "dim" at the very moment it is
+-- being asked for.
+function M.can_react(card_id)
+	for _, u in ipairs(M.usable_reactions()) do
+		if u.card == card_id then return true end
+	end
+	return false
+end
+
+-- The reaction a bare click means: the only one this card offers. With several
+-- the caller has to have chosen, exactly as with abilities — and nothing yet
+-- asks, so a card offering two is unreachable from the GUI.
+function M.sole_reaction(card_id)
+	local only
+	for _, u in ipairs(M.usable_reactions()) do
+		if u.card == card_id then
+			if only then return nil end
+			only = u
+		end
+	end
+	return only
+end
+
+-- Answer the top of the stack with one of this card's reactions, played out of
+-- turn under priority. It goes on the stack above what it answers, so it too can
+-- be answered before it resolves — which is arbitrary depth, LOR and Magic both,
+-- for free.
+function M.react(card_id, index, targets)
+	local z = stack_zone()
+	if not z then return false end
+	local top_id = z.cards[#z.cards]
+	local top = top_id and entity.get(top_id)
+	local c = entity.get(card_id)
+	if not top or not c then return false end
+	-- The same three questions the window asked before it offered this: whose card
+	-- it is, that it is not the announcing seat answering itself, and that it has
+	-- not already answered this record. Asked again because this is the door every
+	-- input layer comes through, and only the offer upstream knew them.
+	local seat = zones.active_seat()
+	if predicate.seat_of(c) ~= seat or seat == top.re_actor or has_answered(top, card_id) then
+		return false
+	end
+	local r = cards.reactions(c)[index or 1]
+	if not r or not reactions.matches(r, c, top.re_subject, true) then return false end
+	if not M.can_afford(r.cost, { card_id = card_id }) then return false end
+	checkpoint()
+	pay(r.cost, { card_id = card_id })
+	log.add(((cards.def(c) or {}).text or c.def_key) .. " in response")
+	local rec = push_event(z, "play", r.action, { card_id }, top.re_subject, targets, card_id, r.spent)
+	if rec then rec.re_answering = top.id end
+	top.re_answered[#top.re_answered + 1] = card_id
+	M.settle()
+	return true
+end
+
+-- Decline to answer. The passing seat is marked on the top it declined, so the
+-- window can tell "everyone able has passed" from "nobody has been asked yet" —
+-- and only the first is a resolution.
+function M.pass_react()
+	local top = M.pending_event()
+	local seat = zones.active_seat()
+	if not top or not seat then return false end
+	checkpoint()
+	top.re_passed[seat] = true
+	M.settle()
+	return true
+end
+
 -- An action may hand the turn over (set_active_seat), and the undo history goes
 -- with the seat that had it. Closed here rather than in actions, which may not
--- require this file.
+-- require this file. The same for "emit", which needs the stack and the window.
 actions.on_seat_change = M.forget_history
+actions.on_emit = M.emit
+actions.on_counter = M.counterspell
 
 return M
