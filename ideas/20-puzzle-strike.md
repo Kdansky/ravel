@@ -851,3 +851,53 @@ so nothing can answer them; and **an event carries its cause, not its effect**,
 so a reaction cannot reach what the thing it answered created. Panda's Bargain
 and Hundred-Fist Frenzy are both approximations for the first reason.
 
+## Stage 11 — a phase announces itself (2026-08-25)
+
+Stage 10 ended on a pair of sentences that were the same sentence twice: **a turn
+ending, a phase going by and a number crossing a line announce nothing**, so
+nothing can answer them. The first of those is now false.
+
+A phase carries `emits` the way a card does, keyed by the two hooks it already
+had — `begin` beside the actions it runs on entry, `end` beside the hand it
+discards on the way out. The subject is the player card of whoever the phase
+belongs to, so `whose: "mine"` reads there exactly as it does everywhere else,
+and *"at the end of your turn"* has somewhere to be said at last. Nothing is
+deferred: a phase has no action list waiting on the answer, so the announcement
+goes up, the phase carries on, and whatever answers it resolves beside it —
+which is how the sentence reads at a table.
+
+`cleanup_draw` emits `turn_end`, since it is the last thing a turn does.
+
+### Two bugs the ongoing row had been hiding
+
+Writing an ongoing chip that reacts turned up two things that had been broken
+since the `spent` migration and that nothing had caught:
+
+- **`"from": "board"` meant "on a grid".** Puzzle Strike lays ongoing chips in a
+  per-seat face-up zone, which is a *hand* as far as zone types go, so every
+  reaction on a laid-out chip was unreachable. `from` takes a zone by name now.
+  Guessing which face-up zones count as in play was the alternative, and it gets
+  a discard pile wrong.
+- **A card whose whole play was going somewhere could not be played.** Once
+  `spent` took over the going, its action list was empty, and *"a card with
+  nothing to run is not a move"* refused it outright. **Dragon Form has been
+  unplayable since reactions shipped.** A card that says where it lands does
+  exactly one thing when clicked, and that one thing is the move.
+
+### What it closed
+
+| Chip | Now |
+|---|---|
+| **Panda's Bargain** | built whole — the buy sets a flag, the turn ending pays the chip, exactly as printed |
+| **Dragon Form**, **Hundred-Fist Frenzy**, **Secret Move**, **Combinatorics** | playable again, which they had not been |
+
+### Still open
+
+The other half of Stage 10's pair stands: **an event carries its cause, not its
+effect**, so Thinking Ahead's buy names the plate and not the chip it dealt.
+Combinatorics still wants a verb for *a Combine was played* that nothing emits —
+a tag on the purple chips would give it one, which is content work now rather
+than engine work. And Hundred-Fist Frenzy's *"discard if an opponent skips his
+action phase"* is not a phase beginning or ending but a phase passing
+**unused**, which is a different fact and still announces nothing.
+

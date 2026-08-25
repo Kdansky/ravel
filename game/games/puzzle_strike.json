@@ -97,6 +97,7 @@
     { "key": "combined", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "extra", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "picked", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
+    { "key": "owed", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     {
       "key": "value",
       "min": 0,
@@ -359,6 +360,7 @@
     {
       "key": "cleanup_draw",
       "type": "automatic",
+      "emits": { "end": "turn_end" },
       "actions": ["move:mine.hand:mine.discard", "draw_from:mine.bag:mine.hand:sum:to_draw@mine.player"],
       "next": [{ "when": "sum:value@mine.gem_pile >= 10", "then": "defeat" }, { "then": "handover" }]
     },
@@ -982,7 +984,7 @@
       "text": "Hundred-Fist Frenzy",
       "tags": ["stack", "stack_hundred_fist", "immutable", "puzzle_stack"],
       "asset": "polygon:6:tan",
-      "tooltip": "Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.\n\nDEV: the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase going by announces nothing, so there is no moment to hang it on.",
+      "tooltip": "Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.\n\nDEV: the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase *going by* announces its own beginning and end, not what somebody declined to do inside it.",
       "card_stats": { "price": 4, "stock": 5 },
       "activate": {
         "phases": ["buy", "react_buy"],
@@ -1709,7 +1711,7 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "board",
+          "from": "ongoing",
           "where": ["tagged:purple@event >= 1"],
           "action": [],
           "spent": "mine.discard"
@@ -1979,7 +1981,7 @@
         {
           "to": "attack",
           "whose": "mine",
-          "from": "board",
+          "from": "ongoing",
           "text": "Crash a gem of your own",
           "target": {
             "type": "card",
@@ -1999,7 +2001,7 @@
           ]
         }
       ],
-      "tooltip": "Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.\n\nDEV: the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase going by announces nothing, so there is no moment to hang it on.",
+      "tooltip": "Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.\n\nDEV: the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase *going by* announces its own beginning and end, not what somebody declined to do inside it.",
       "card_stats": { "price": 4 }
     },
     {
@@ -2942,12 +2944,20 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "board",
+          "from": "ongoing",
           "where": ["tagged:puzzle_stack@event >= 1"],
-          "action": ["draw_from:mine.bag:mine.hand:1"]
+          "action": ["stat_set:owed@mine.player:1"]
+        },
+        {
+          "to": "turn_end",
+          "whose": "mine",
+          "forced": "mandatory",
+          "from": "ongoing",
+          "when": ["owed@mine.player >= 1"],
+          "action": ["draw_from:mine.bag:mine.hand:1", "stat_set:owed@mine.player:0"]
         }
       ],
-      "tooltip": "Ongoing: At the end of any turn you bought a Puzzle chip, +1 chip. Discard this when you buy a purple.\n\nDEV: the chip comes as you buy the Puzzle chip rather than at the end of the turn — a turn ending announces nothing, so there is no later moment to hang it on.",
+      "tooltip": "Ongoing: At the end of any turn you bought a Puzzle chip, +1 chip. Discard this when you buy a purple.",
       "card_stats": { "plus_draw": 1 }
     },
     {
