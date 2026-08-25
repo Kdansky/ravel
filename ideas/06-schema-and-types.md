@@ -48,7 +48,12 @@ be "it already does, or it is a different question".
 
 ---
 
-## Gap 1 — What a zone's `type` decides — **surveyed, and refused**
+## Gap 1 — What a zone's `type` decides — **refused, and reopened as [28](28-a-zone-by-its-parts.md)**
+
+**The condition below has fired** (2026-08-25). Puzzle Strike's ongoing row wants a
+combination no type offers — an unbounded face-up row of cards that are *in play* — and
+taking `hand` for it cost four unplayable chips and nine rules that could not see them.
+The survey stands; the decision is superseded. See [28](28-a-zone-by-its-parts.md).
 
 *Urgency: none · Difficulty: high in the honest sense — the code is shallow, the
 design is not · Usefulness: unproven*
