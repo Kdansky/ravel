@@ -92,8 +92,8 @@ function M.test_reactions_are_accepted_and_indexed(check)
 	end)
 end
 
--- The three structural mistakes are caught at parse, the last moment the
--- authored entry exists — the same as a typo inside an ability.
+-- The structural mistakes are caught at parse, the last moment the authored
+-- entry exists — the same as a typo inside an ability.
 function M.test_reactions_structural_mistakes_are_caught(check)
 	local path = "game/games/tmp_bad_reactions.json"
 	local f = assert(io.open(path, "w"))
@@ -104,6 +104,7 @@ function M.test_reactions_structural_mistakes_are_caught(check)
 		"cards": [{ "key": "thing", "text": "Thing", "reactions": [
 			{ "where": ["hp@self >= 1"] },
 			{ "to": "play", "forced": "maybe" },
+			{ "to": "play", "whose": "somebody" },
 			{ "to": "play", "wat": 1 }
 		] }]
 	}]==])
@@ -116,8 +117,10 @@ function M.test_reactions_structural_mistakes_are_caught(check)
 		has(said, 'reaction 1 has no "to"'), table.concat(said, "; "))
 	check("a \"forced\" that is neither word is refused",
 		has(said, 'forced "maybe" is neither'), table.concat(said, "; "))
+	check("a \"whose\" that is none of the three words is refused",
+		has(said, 'whose "somebody" is none of'), table.concat(said, "; "))
 	check("a field the engine does not read is refused",
-		has(said, "reaction 3: has a field 'wat'"), table.concat(said, "; "))
+		has(said, "reaction 4: has a field 'wat'"), table.concat(said, "; "))
 end
 
 return M

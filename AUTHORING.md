@@ -1752,6 +1752,37 @@ out-of-turn unlock, and without the lock it would unlock everything — the
 reactor could empty their hand into your turn. A card playable out of turn says
 so with `reactions` and no other way.
 
+#### `whose` — whose announcement it answers
+
+A shield answers the other player. Half of Magic does not: you put a spell on
+the stack and then cast your own instant that copies it, and no opponent is
+involved. Three readings, so a word, and the words are the ones a scope already
+uses:
+
+| `whose` | Answers |
+|---|---|
+| `enemy` | somebody else's announcement — **the default**, and what every reaction meant before the word existed |
+| `mine` | your own, and only your own |
+| `anyone` | either |
+
+```json
+"reactions": [
+  { "to": "cast", "whose": "mine", "text": "Copy it",
+    "action": ["copy:event:play"], "spent": "mine.graveyard" }
+]
+```
+
+The seat that announced is asked **first** when `anyone` or `mine` applies,
+because it is already holding priority — which is the order Magic uses and the
+order the window already had.
+
+**What keeps this from looping is not the seat check.** It is that one card
+answers one record once: an answer is a *new* record with its own memory, so a
+chain gets longer rather than going round. The one shape that could still run
+away — a mandatory reaction on a card that never leaves the board, answering the
+verb its own answers go up as — is bounded: the stack has a depth it will not
+pass, and it says so in the log rather than hanging.
+
 #### `spent` — where a card lands however it ends
 
 ```json
@@ -1806,10 +1837,6 @@ in it is the point.
 
 #### What it will not do yet
 
-- **Answering your own controller's action.** The seat that announced something
-  is skipped when the window looks for who may answer — that is what makes
-  "everybody has passed" a state that arrives. So *whenever you cast a spell,
-  draw a card* has no spelling here; a reaction always belongs to somebody else.
 - **Replacement effects** — "if it would die, exile it instead". Those do not use
   a stack; they rewrite the event before it happens.
 - **Saying an event cannot be answered.** There is no way for a card to make its

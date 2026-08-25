@@ -127,13 +127,21 @@ end
 -- says where the card acts from — a played reaction out of a hand, an activation
 -- or a static effect on the board — which decides what answering it does.
 --
+-- "whose" says whose announcement it may answer, in the words a scope already
+-- uses: "enemy" (somebody else's, the default and what a shield means), "mine"
+-- (your own, which is Magic answering your own spell on the stack), or "anyone".
+-- A word rather than a flag, because three readings do not fit in a yes or no.
+--
 -- Normalised here, the last place the authored entry exists, exactly as
 -- abilities_of is and for the same reason: a typo inside one is caught now, since
 -- what leaves this function cannot carry an unknown field.
 local REACTION_FIELDS = { key = true, text = true, tooltip = true, to = true,
-	where = true, ["when"] = true, forced = true, from = true,
+	where = true, ["when"] = true, forced = true, from = true, whose = true,
 	cost = true, target = true, action = true, moves = true, compute = true, spent = true }
 local FORCED = { optional = true, mandatory = true }
+-- The owner words a scope already takes, meaning here what they mean there:
+-- whose event it is, judged from the reacting card.
+local WHOSE = { mine = true, enemy = true, anyone = true }
 
 local function reactions_of(def, pp, where)
 	if def.reactions == nil then return nil end
@@ -161,6 +169,13 @@ local function reactions_of(def, pp, where)
 				pp[#pp + 1] = ("%s reaction %d: forced \"%s\" is neither \"optional\" nor \"mandatory\"")
 					:format(where, i, tostring(r.forced))
 			end
+			-- Somebody else's, which is what a shield is for and what every
+			-- reaction meant before this field existed.
+			local whose = r.whose or "enemy"
+			if not WHOSE[whose] then
+				pp[#pp + 1] = ("%s reaction %d: whose \"%s\" is none of \"mine\", \"enemy\", \"anyone\"")
+					:format(where, i, tostring(r.whose))
+			end
 			-- A reaction that says how it moves writes its own target, the same
 			-- shorthand a moving ability gets.
 			local rules  = r.moves and normalise_moves(r.moves) or nil
@@ -170,6 +185,7 @@ local function reactions_of(def, pp, where)
 			end
 			out[#out + 1] = { key = r.key or ("reaction_" .. i), text = r.text, tooltip = r.tooltip,
 				to = r.to, where = r.where, ["when"] = r["when"], forced = forced, from = r.from,
+				whose = whose,
 				cost = r.cost, target = target, action = r.action,
 				moves = rules, compute = r.compute, spent = r.spent }
 		end

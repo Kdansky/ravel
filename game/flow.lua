@@ -1283,7 +1283,22 @@ end
 -- re_source is the card that announced it, which is what "self" means to the
 -- deferred action, and re_spent is where that card goes once this is over,
 -- however it ends.
+-- Deep enough that no real game reaches it, shallow enough to stop before
+-- settle's own budget does — so a runaway says what it is rather than "phase
+-- routing". A reaction that answers its own controller ("whose": "mine") is
+-- what makes this reachable at all: one card may answer a record once, but the
+-- answer is a new record, and a mandatory one that never leaves the board would
+-- answer its own answer forever.
+local STACK_LIMIT = 32
+
 local function push_event(z, verb, action, subject, event, targets, source, spent, let)
+	if #z.cards >= STACK_LIMIT then
+		local msg = "!! the stack reached " .. STACK_LIMIT
+			.. " — a reaction is answering its own answer; stopped"
+		log.add(msg)
+		print(msg)
+		return
+	end
 	local c = zones.add(z, "event")
 	if not c then return end
 	c.re_action, c.re_verb    = action or {}, verb
@@ -1387,8 +1402,13 @@ local function fire_forced(z, top, r)
 	log.add(((cards.def(c) or {}).text or c.def_key) .. " triggers")
 	local rec = push_event(z, "play", r.reaction.action, { r.card }, top.re_subject, {},
 		r.card, r.reaction.spent)
-	if rec then rec.re_answering = top.id end
+	-- Marked as having had its go either way. A refused push is the stack at its
+	-- limit, and a trigger that fires again on the record it just failed on is
+	-- the runaway this bound exists to stop: saying it has answered lets the
+	-- window move past it and unwind, instead of burning settle's budget too.
 	top.re_answered[#top.re_answered + 1] = r.card
+	if not rec then return false end
+	rec.re_answering = top.id
 	return true
 end
 
@@ -1416,12 +1436,15 @@ function M.react_step()
 		return "idle"
 	end
 	local top = entity.get(top_id)
-	-- Anyone who may still answer this top: a responder who has not passed on it
-	-- and is not its own controller. The controller does not answer their own
-	-- effect here, which is what keeps two seats from an endless back-and-forth
-	-- of the same card and what makes "everyone passed" a state that arrives.
+	-- Anyone who may still answer this top: a responder that answers this seat's
+	-- announcements at all ("whose"), has not passed on it, and has not already
+	-- answered it. The last of those three is what makes "everyone passed" a
+	-- state that arrives — one card, one answer, per record — and it is what
+	-- lets a reaction answer its own controller without the two of them going
+	-- back and forth forever.
 	for _, r in ipairs(reactions.responders(top.re_verb, top.re_subject)) do
-		if r.seat ~= top.re_actor and not top.re_passed[r.seat] and not has_answered(top, r.card) then
+		if reactions.answers_seat(r.reaction, r.seat, top.re_actor)
+			and not top.re_passed[r.seat] and not has_answered(top, r.card) then
 			react_priority(r.seat)
 			-- Forced first, and as that seat: it costs them and acts on their
 			-- cards, so priority has to have moved before it fires. A forced one
@@ -1532,17 +1555,15 @@ end
 function M.usable_reactions()
 	local top = M.pending_event()
 	local seat = zones.active_seat()
-	-- Nobody answers their own announcement, and the seat that made it is holding
-	-- priority for most of a window's life — so this is the frame the renderer
-	-- asks about most often, and it is answered without walking the board.
-	if not top or seat == top.re_actor then return {} end
+	if not top then return {} end
 	local out = {}
 	-- Strict: this is what the answering seat is offered, and they can see their
 	-- own cards. The window may have opened on a card that only *might* be in
 	-- their hand — that is what keeps the prompt from being evidence — but
 	-- offering them one that is really in their bag would be a lie to their face.
 	for _, r in ipairs(reactions.responders(top.re_verb, top.re_subject, true)) do
-		if r.seat == seat and not has_answered(top, r.card)
+		if r.seat == seat and reactions.answers_seat(r.reaction, seat, top.re_actor)
+			and not has_answered(top, r.card)
 			and M.can_afford(r.reaction.cost, { card_id = r.card }) then
 			out[#out + 1] = { card = r.card, index = r.index, reaction = r.reaction }
 		end
@@ -1586,16 +1607,16 @@ function M.react(card_id, index, targets)
 	local top = top_id and entity.get(top_id)
 	local c = entity.get(card_id)
 	if not top or not c then return false end
-	-- The same three questions the window asked before it offered this: whose card
-	-- it is, that it is not the announcing seat answering itself, and that it has
-	-- not already answered this record. Asked again because this is the door every
-	-- input layer comes through, and only the offer upstream knew them.
+	-- The same questions the window asked before it offered this: whose card it
+	-- is, that this reaction answers announcements by the seat that made this one
+	-- ("whose"), and that it has not already answered this record. Asked again
+	-- because this is the door every input layer comes through, and only the offer
+	-- upstream knew them.
 	local seat = zones.active_seat()
-	if predicate.seat_of(c) ~= seat or seat == top.re_actor or has_answered(top, card_id) then
-		return false
-	end
+	if predicate.seat_of(c) ~= seat or has_answered(top, card_id) then return false end
 	local r = cards.reactions(c)[index or 1]
-	if not r or not reactions.matches(r, c, top.re_subject, true) then return false end
+	if not r or not reactions.answers_seat(r, seat, top.re_actor) then return false end
+	if not reactions.matches(r, c, top.re_subject, true) then return false end
 	if not M.can_afford(r.cost, { card_id = card_id }) then return false end
 	checkpoint()
 	pay(r.cost, { card_id = card_id })

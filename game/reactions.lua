@@ -103,16 +103,33 @@ function M.responders(verb, subject, strict)
 	return out
 end
 
+-- Whose announcement this reaction may answer, asked of one candidate.
+--
+-- "enemy" is the default and is what every reaction meant before the word
+-- existed: somebody else's action, which is what a shield answers. "mine" is
+-- the other half Magic has always had — a spell of your own on the stack, and
+-- an instant of your own answering it — and "anyone" is both.
+--
+-- It is a word in a closed set rather than a flag because there are three
+-- readings, and it is *these* words because a scope already uses them to mean
+-- the same thing: whose, judged from the card asking.
+function M.answers_seat(reaction, seat, actor)
+	local whose = reaction.whose or "enemy"
+	if whose == "anyone" then return true end
+	if whose == "mine" then return seat == actor end
+	return seat ~= actor
+end
+
 -- Whether opening a window for this event is worth it at all. The scheduler asks
 -- this first, and only when it is true does it work out whose window to open.
 --
--- "except" is the seat whose own event it is: a player does not answer themselves
--- here (the same rule react_step enforces when it picks who is up), so counting
--- their reactions would put a card on the stack for a window that then finds
--- nobody to open for.
-function M.anyone_answers(verb, subject, except)
+-- "actor" is the seat whose own event it is. Each candidate is asked whether it
+-- answers that seat's announcements at all (the same rule react_step enforces
+-- when it picks who is up), so a verb only shields answer does not put a card on
+-- the stack for a window that then finds nobody to open for.
+function M.anyone_answers(verb, subject, actor)
 	for _, r in ipairs(M.responders(verb, subject)) do
-		if r.seat ~= except then return true end
+		if M.answers_seat(r.reaction, r.seat, actor) then return true end
 	end
 	return false
 end
