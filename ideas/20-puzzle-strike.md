@@ -753,3 +753,55 @@ Thirty-three unfinished chips, and only eight things are missing:
 condition list a target already takes, asked of each borrowed card — closes nine
 chips on its own and finishes Pilebunker, which has been the standing example of
 the gap since Stage 4.
+
+## Stage 9 — `chosen.where`, and the gap it closed (2026-08-25)
+
+Stage 8 ended by saying that if one thing got built next it should be a `where`
+on `show:`, because it was the only missing feature costing more than two chips.
+It is built, and it needed no new grammar: the asking card's `chosen` block
+takes the same `where` a target already takes, asked the same way — candidate as
+`@target`, asker as `@self`.
+
+**The whole scope still comes up.** Revealing a hand is half of what Pilebunker
+and Stolen Purples say, so what is narrowed is the *pick*, not what is shown: the
+cards that do not qualify are revealed and dimmed. Two things fall out of that —
+an offer where nothing qualifies is a mandatory question with no answer, so it is
+not asked at all; and an entry `options:` *dealt* is never narrowed, since it came
+off the asker's own list and writing a shorter list is how you narrow one of
+those.
+
+"The largest" turned out to be the interesting case and needed nothing special:
+`sum:value@target >= max:value@options` compares the candidate with the offer it
+is lying in.
+
+### What it closed
+
+| Chip | Now |
+|---|---|
+| **Pilebunker** | built whole — their hand is revealed, and only the largest gem may be taken |
+| **Blues Are Good** | built whole — the bag opens, and only a blue chip comes out |
+| **Burning Vigor** | built whole — the discard pile opens, and only a wound |
+| **It's Time for the Past** | built whole — a *chosen* chip out of the discard, not the top one |
+| **Research & Development** | the bag opens and a purple comes out; the chip given back in exchange is still not asked for |
+| **Signature Move** | narrowed to a character chip; playing one free afterwards is still not built |
+| **Stolen Purples** | you take a purple rather than any card; the rest are still not discarded |
+
+Nineteen chips built whole, up from eighteen, and four of the seven above went
+from a caveat to none.
+
+### Still open
+
+Three of the nine are not about narrowing after all:
+
+- **Mix-Master** wants *the largest gem in each opposing gem pile* with no offer
+  involved — a scope that picks by a number rather than a player, which is a
+  different feature.
+- **Color Panic** narrows by a colour the player picks *as the chip runs*, and a
+  `where` is written before the game starts.
+- **Ouch!** and **Chip Damage** want the opponent to pick out of their own zone
+  narrowed — both are now sayable (priority crosses, and their offer takes its
+  own `where`) and neither is written yet.
+
+The next most expensive gap is the one under it: **a card cannot answer its own
+controller's action**, which is five chips.
+
