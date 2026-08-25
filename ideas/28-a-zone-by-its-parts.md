@@ -47,10 +47,10 @@ one question the engine asks and `type` currently answers by proxy.
 
 | Field | Values | Default | What it decides | Read at |
 |---|---|---|---|---|
-| `layout` | `stack` · `row` · `grid` · `fan` · `page` | — | Where each card is drawn, the arrival animation (`drop`/`glide`/`slam`), whether an empty box draws its cells, whether the label takes a band off the top, whether there are addressable slots — and therefore whether capacity is bounded | `render.lua:435,1120,1530,1819`, `zones.lua:147,353,455,623,642` |
+| `layout` | `stack` · `row` · `grid` · `page` | — | Where each card is drawn, the arrival animation (`drop`/`glide`/`slam`), whether an empty box draws its cells, whether the label takes a band off the top, whether there are addressable slots — and therefore whether capacity is bounded | `render.lua:435,1120,1530,1819`, `zones.lua:147,353,455,623,642` |
 | `visibility` | `public` · `owner` · `secret` | `public` | Purely what is drawn and what may be read: card faces or backs, whether the browser scrambles the order, whether a tooltip answers | `zones.lua:289,310,332`, `render.lua:1157,1205,1243` |
 | `reach` | `all` · `top` | `all` | Which of the zone's cards exist as far as the rules go: what may be played, activated, targeted or clicked | `flow.lua:116`, `targeting.lua:207`, `zones.lua:683`, `tags.lua:84` |
-| `use` | `play` · `activate` · `none` | `none` | What may be done with a card here **at all** — the ceiling, which a phase's `zone` then narrows. One at a time: no game has wanted both | `main.lua:251`, `flow.lua:976`, `render.lua:640` (today: the `activate` tag) |
+| `use` | `play` · `abilities` · `none` | `none` | What may be done with a card here **at all** — the ceiling, which a phase's `zone` then narrows. One at a time: no game has wanted both | `main.lua:251`, `flow.lua:976`, `render.lua:640` (today: the `activate` tag) |
 | `in_play` | `board` · `exile` | `exile` | Whether the rules can see it: tag scopes, `count:`, `card:`, `sacrifice:`, `on_turn`, `from: "board"` | the nine sites listed above |
 | `display` | `onscreen` · `offscreen` | `onscreen` | Whether the zone is drawn and whether anything in it can be clicked | today's `hidden` tag |
 | `copies` | `one` · `per_seat` | `one` | One zone, or one per seat — and therefore whether `visibility: owner` means anything | today's `per_seat` tag |
@@ -61,10 +61,29 @@ the next one. MTG's graveyard is the case waiting — not in play, and read
 constantly by rules that name it — which is `exile` plus naming the zone today,
 with a slot free if it ever needs its own word.
 
-**Two layouts take a parameter**, as `grid` takes `[cols, rows]`: `fan` takes a
-direction (`"down"`, as Lost Cities writes it in `style` today) and `page` takes
-nothing but exists — it is the engine's own reveal overlay, no game uses it, and
-it is a layout wearing a tag exactly as `fan` was.
+**A value names its own parameter field.** `layout: "grid"` makes `grid:` a legal
+field holding `[cols, rows]`; `layout: "row"` makes `row:` legal holding the fan
+direction. This is not new — `type: "grid"` + `grid: [4, 1]` is how the format
+already works — it is that idiom made a rule, so a parameter never needs a name
+invented for it and never needs a home in `style`.
+
+Every enum value on every one of the seven fields is therefore **reserved**:
+nothing else may take that field name. Checked against `ZONE_FIELDS`, `activate`
+is the only live collision and `grid` is the intended one.
+
+**Row absorbs fan.** A row is a fan whose overlap is off, so they are one layout
+with a direction: `layout: "row"` for a hand, `layout: "row", "row": "down"` for
+a Lost Cities expedition column. Named `row` rather than `fan` because the
+absent parameter must be the common case — call it `fan` and every hand in every
+game writes `"fan": "none"` to say it is not one.
+
+`page` stays its own value: the engine's reveal overlay, no game uses it, and it
+is a layout wearing a tag exactly as `fan` was.
+
+`stack` stays its own value too, though it is strictly the far end of the same
+overlap continuum — 73 of the corpus's 137 zones are stacks, and
+`"layout": "row", "row": "stacked"` is a worse spelling of the commonest thing
+in the format.
 
 `use` defaults to `none` for the same reason `in_play` defaults to `exile`: a
 zone is inert until it says otherwise, so exile costs nothing to write and a
@@ -85,14 +104,14 @@ separated them — which is now `visibility`, one axis over.
 deck    = stack · secret · top · none      · exile
 pile    = stack · public · top · play      · exile
 hand    = row   · owner  · all · play      · exile · per_seat
-grid    = grid  · public · all · activate  · board
+grid    = grid  · public · all · abilities · board
 options = row   · public · all · play      · exile · offer
 ```
 
 Which is the point: the bundles were never wrong, only closed. What the split
 buys is the combinations nobody was allowed to write.
 
-- **The ongoing row** — `row · public · all · activate · board · per_seat`. The case
+- **The ongoing row** — `row · public · all · abilities · board · per_seat`. The case
   that reopened this.
 - **An infinite board** — the same thing without the activation. Capacity is
   bounded by `grid: [cols, rows]` being present at all, so a board that is a row
@@ -144,11 +163,17 @@ shape — that one moved 112 conditions across ten games and was worth it.
 2. **Playability needs zone *and* phase to agree** — a creature is castable when
    it is your turn *and* it is in your hand. `use` is the ceiling, the phase's
    `zone`/`zone_list` is the gate, and neither alone is permission.
-3. **`style.fan` becomes `layout: "fan"`.** It is a layout and always was: today
-   it silently overrides the `type` row at `render.lua:450` and hit-tests every
-   card while `flow.on_top` refuses all but the top. Under the split that is
-   `layout: fan` + `reach: top`, said on purpose. Check no other style is doing
-   the same trick.
+3. **`style.fan` becomes the `row` layout's parameter.** It is a layout and
+   always was: today it silently overrides the `type` row at `render.lua:450`
+   and hit-tests every card while `flow.on_top` refuses all but the top. Under
+   the split that is `layout: "row", "row": "down"` + `reach: "top"`, said on
+   purpose. Check no other style is doing the same trick.
+4. **`use: "activate"` renamed to `"abilities"`.** The parameter rule settles
+   this mechanically rather than by taste: the value would reserve `activate:`,
+   which a zone already uses for its *own* ability — how a deck gets drawn from
+   — and that is not a parameter of anything. The value moves, not the block:
+   `activate:` appears in 116 places and the value in none yet.
+5. **`row` absorbs `fan`; `stack` and `page` stay.** See above.
 
 ## Open
 
@@ -161,9 +186,7 @@ shape — that one moved 112 conditions across ten games and was worth it.
    empties itself when the question is answered (`flow.lua:931`). Neither fact
    is a layout, a visibility, a reach, a use, an in-play or a display. Either an
    eighth field or it stays a role.
-3. **`use: "activate"` collides with a zone's own `activate:` block** — its
-   ability, which is how a deck gets drawn from. Two meanings of one word in one
-   object. Rename one of them before this ships, not after.
-4. **Does `row` survive beside `fan`?** A row is a fan that does not overlap. If
-   the fan direction can be "none" they are one layout, and the corpus would
-   lose a word rather than gain one.
+3. **What the validator must refuse**, beyond the existing `check_fields` walk
+   at `validate.lua:1771`: an unknown value on any of the seven fields, and a
+   parameter field whose value was not chosen — `grid: [4, 1]` beside
+   `layout: "row"` is a zone that thinks it is two shapes.
