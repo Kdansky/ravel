@@ -805,3 +805,49 @@ Three of the nine are not about narrowing after all:
 The next most expensive gap is the one under it: **a card cannot answer its own
 controller's action**, which is five chips.
 
+## Stage 10 — a reaction says whose announcement it answers (2026-08-25)
+
+Stage 9 ended by naming the next most expensive gap: **a card cannot answer its
+own controller's action**, five chips. That was never a rule anybody wanted — it
+was what the window did in order to make "everybody has passed" a state that
+arrives, and it is half of what a stack is for. You put a spell up and then
+answer it yourself; no opponent is involved.
+
+`whose` says which, in a scope's own words: **`enemy`** (the default, and what
+every reaction meant before), **`mine`**, **`anyone`**. A word rather than a
+flag, the same shape `forced` and `from` already have, and the same closed set
+the scope grammar already reads.
+
+Termination was never the seat check's job. **One card answers one record once**,
+and an answer is a *new* record with its own memory — so a chain gets longer
+rather than going round. The one shape that could still run away, a mandatory
+reaction on a card that never leaves the board answering the verb its own
+answers go up as, hits a stack depth it will not pass, is marked as having had
+its go, and unwinds on the next pass.
+
+### What it closed
+
+| Chip | Now |
+|---|---|
+| **Secret Move** | built whole — it discards itself when *you* buy a purple |
+| **Hundred-Fist Frenzy** | you may crash a gem after your own red attack. "Discard if an opponent skips his action phase" is still not built |
+| **Panda's Bargain** | the chip comes as you buy the Puzzle chip rather than at the end of the turn |
+
+### And what it did not
+
+Two of the five turned out to be waiting on something else:
+
+- **Combinatorics** wants *whenever you play a Combine*, and nothing announces a
+  Combine being played — there is no verb for it to answer. Its other clause,
+  *discard when your gem pile totals 5 or less*, is a **state** rather than an
+  event, and a reaction subscribes to events.
+- **Thinking Ahead** wants what you buy to land on your bag. The buy is
+  answerable now, but the event names the *plate* and not the chip it dealt into
+  your discard, so there is nothing to move.
+
+Two things fall out of that pair, and they are the same thing said twice: **a
+turn ending, a phase going by, and a number crossing a line announce nothing**,
+so nothing can answer them; and **an event carries its cause, not its effect**,
+so a reaction cannot reach what the thing it answered created. Panda's Bargain
+and Hundred-Fist Frenzy are both approximations for the first reason.
+

@@ -800,7 +800,7 @@
       "text": "Secret Move",
       "tags": ["stack", "stack_secret_move", "immutable", "puzzle_stack"],
       "asset": "polygon:6:tan",
-      "tooltip": "+1 action. Ongoing: piggy bank each turn. Discard this when you buy a purple.\n\nDEV: the action and the piggy bank every turn are built. Discarding it when *you* buy a purple would be a reaction to your own controller's action, which the response window skips on purpose.",
+      "tooltip": "+1 action. Ongoing: piggy bank each turn. Discard this when you buy a purple.",
       "card_stats": { "price": 1, "stock": 5 },
       "activate": {
         "phases": ["buy", "react_buy"],
@@ -852,7 +852,7 @@
       "text": "Thinking Ahead",
       "tags": ["stack", "stack_thinking_ahead", "immutable", "puzzle_stack"],
       "asset": "polygon:6:blue",
-      "tooltip": "Main: +$1. You may put any chips you buy this turn on top of your bag. Reaction: Trash this chip to become immune to a red chip.\n\nDEV: the gem power and the immunity are built. Redirecting what you buy onto your bag would mean answering your own purchase, which the window skips.",
+      "tooltip": "Main: +$1. You may put any chips you buy this turn on top of your bag. Reaction: Trash this chip to become immune to a red chip.\n\nDEV: the gem power and the immunity are built. Redirecting what you buy onto your bag is answerable now, but the event names the *plate*, not the chip it dealt into your discard, so there is nothing to move.",
       "card_stats": { "price": 2, "stock": 5 },
       "activate": {
         "phases": ["buy", "react_buy"],
@@ -982,7 +982,7 @@
       "text": "Hundred-Fist Frenzy",
       "tags": ["stack", "stack_hundred_fist", "immutable", "puzzle_stack"],
       "asset": "polygon:6:tan",
-      "tooltip": "Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.\n\nDEV: laying it out says you have it. Both clauses watch your own actions, and a card cannot answer its own controller.",
+      "tooltip": "Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.\n\nDEV: the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase going by announces nothing, so there is no moment to hang it on.",
       "card_stats": { "price": 4, "stock": 5 },
       "activate": {
         "phases": ["buy", "react_buy"],
@@ -1190,7 +1190,7 @@
       "text": "Combinatorics",
       "tags": ["stack", "stack_combinatorics", "immutable", "puzzle_stack"],
       "asset": "polygon:6:magenta",
-      "tooltip": "+1 brown action. Ongoing: Whenever you play a Combine, you may combine again and −$1. Discard when your gem pile totals 5 or less.\n\nDEV: the action is built and laying it out says you have it. Both ongoing clauses watch your own play, and a card cannot answer its own controller.",
+      "tooltip": "+1 brown action. Ongoing: Whenever you play a Combine, you may combine again and −$1. Discard when your gem pile totals 5 or less.\n\nDEV: the action is built and laying it out says you have it. Nothing announces a Combine being played, so there is no verb for the ongoing half to answer; the gem-pile discard clause is a state rather than an event.",
       "card_stats": { "price": 4, "stock": 5 },
       "activate": {
         "phases": ["buy", "react_buy"],
@@ -1704,13 +1704,24 @@
       "tags": ["chip", "trashable", "puzzle", "brown"],
       "asset": "polygon:6:tan",
       "abilities": [{ "key": "upkeep", "text": "Secret Move", "action": ["stat_gain:piggy@mine.player:1"] }],
+      "reactions": [
+        {
+          "to": "buy",
+          "whose": "mine",
+          "forced": "mandatory",
+          "from": "board",
+          "where": ["tagged:purple@event >= 1"],
+          "action": [],
+          "spent": "mine.discard"
+        }
+      ],
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": ["stat_gain:acts@mine.player:1"],
         "spent": "mine.ongoing"
       },
-      "tooltip": "+1 action. Ongoing: piggy bank each turn. Discard this when you buy a purple.\n\nDEV: the action and the piggy bank every turn are built. Discarding it when *you* buy a purple would be a reaction to your own controller's action, which the response window skips on purpose.",
+      "tooltip": "+1 action. Ongoing: piggy bank each turn. Discard this when you buy a purple.",
       "card_stats": { "plus_act": 1, "plus_piggy": 1, "price": 1 }
     },
     {
@@ -1769,7 +1780,7 @@
         "spent": "mine.table"
       },
       "reactions": [{ "to": "attack", "text": "Become immune", "action": ["counterspell"], "spent": "void" }],
-      "tooltip": "Main: +$1. You may put any chips you buy this turn on top of your bag. Reaction: Trash this chip to become immune to a red chip.\n\nDEV: the gem power and the immunity are built. Redirecting what you buy onto your bag would mean answering your own purchase, which the window skips.",
+      "tooltip": "Main: +$1. You may put any chips you buy this turn on top of your bag. Reaction: Trash this chip to become immune to a red chip.\n\nDEV: the gem power and the immunity are built. Redirecting what you buy onto your bag is answerable now, but the event names the *plate*, not the chip it dealt into your discard, so there is nothing to move.",
       "card_stats": { "plus_pow": 1, "react": 1, "price": 2 }
     },
     {
@@ -1964,7 +1975,31 @@
         "action": [],
         "spent": "mine.ongoing"
       },
-      "tooltip": "Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.\n\nDEV: laying it out says you have it. Both clauses watch your own actions, and a card cannot answer its own controller.",
+      "reactions": [
+        {
+          "to": "attack",
+          "whose": "mine",
+          "from": "board",
+          "text": "Crash a gem of your own",
+          "target": {
+            "type": "card",
+            "tags": ["gem"],
+            "zones": ["gem_pile"],
+            "owner": "mine",
+            "count": 1
+          },
+          "action": [
+            "stat_set:crashed@mine.player:sum:value@target",
+            "stat_set:broke@mine.player:max:value@target",
+            "move_target_to:void",
+            "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
+            "stat_damage:stock@stack_gem_1:sum:crashed@mine.player",
+            "stat_gain:money@mine.player:0",
+            "emit:crash"
+          ]
+        }
+      ],
+      "tooltip": "Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.\n\nDEV: the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase going by announces nothing, so there is no moment to hang it on.",
       "card_stats": { "price": 4 }
     },
     {
@@ -2242,7 +2277,7 @@
         "action": ["stat_gain:act_brown@mine.player:1"],
         "spent": "mine.ongoing"
       },
-      "tooltip": "+1 brown action. Ongoing: Whenever you play a Combine, you may combine again and −$1. Discard when your gem pile totals 5 or less.\n\nDEV: the action is built and laying it out says you have it. Both ongoing clauses watch your own play, and a card cannot answer its own controller.",
+      "tooltip": "+1 brown action. Ongoing: Whenever you play a Combine, you may combine again and −$1. Discard when your gem pile totals 5 or less.\n\nDEV: the action is built and laying it out says you have it. Nothing announces a Combine being played, so there is no verb for the ongoing half to answer; the gem-pile discard clause is a state rather than an event.",
       "card_stats": { "plus_act": 1, "price": 4 }
     },
     {
@@ -2896,13 +2931,23 @@
       "text": "Panda's Bargain",
       "tags": ["chip", "character", "brown"],
       "asset": "polygon:7:white",
-      "tooltip": "Ongoing: At the end of any turn you bought a Puzzle chip, +1 chip. Discard this when you buy a purple.\n\nDEV: the condition is not built; laying it out draws the chip once.",
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": [],
         "spent": "mine.ongoing"
       },
+      "reactions": [
+        {
+          "to": "buy",
+          "whose": "mine",
+          "forced": "mandatory",
+          "from": "board",
+          "where": ["tagged:puzzle_stack@event >= 1"],
+          "action": ["draw_from:mine.bag:mine.hand:1"]
+        }
+      ],
+      "tooltip": "Ongoing: At the end of any turn you bought a Puzzle chip, +1 chip. Discard this when you buy a purple.\n\nDEV: the chip comes as you buy the Puzzle chip rather than at the end of the turn — a turn ending announces nothing, so there is no later moment to hang it on.",
       "card_stats": { "plus_draw": 1 }
     },
     {
