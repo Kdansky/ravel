@@ -219,6 +219,7 @@
       "key": "ongoing",
       "label": "In play",
       "type": "hand",
+      "status": "board",
       "tags": ["per_seat", "face_up"],
       "pos": [[0.235, 0.505, 0.7, 0.612], [0.235, 0.388, 0.7, 0.495]],
       "tooltip": "Chips that keep working after the turn they were played."
@@ -1711,7 +1712,7 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "ongoing",
+          "from": "board",
           "where": ["tagged:purple@event >= 1"],
           "action": [],
           "spent": "mine.discard"
@@ -1981,7 +1982,7 @@
         {
           "to": "attack",
           "whose": "mine",
-          "from": "ongoing",
+          "from": "board",
           "text": "Crash a gem of your own",
           "target": {
             "type": "card",
@@ -2944,7 +2945,7 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "ongoing",
+          "from": "board",
           "where": ["tagged:puzzle_stack@event >= 1"],
           "action": ["stat_set:owed@mine.player:1"]
         },
@@ -2952,7 +2953,7 @@
           "to": "turn_end",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "ongoing",
+          "from": "board",
           "when": ["owed@mine.player >= 1"],
           "action": ["draw_from:mine.bag:mine.hand:1", "stat_set:owed@mine.player:0"]
         }

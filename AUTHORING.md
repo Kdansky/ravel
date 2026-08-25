@@ -464,6 +464,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 |---|---|
 | `key`, `label` | Identity and optional on-screen label. A label is written across the top of the zone and the cards keep clear of it, so a named zone is still named once something is in it — which costs a line of height, and a zone whose cards are sized by their height wants a little more room than an unnamed one. **Two labels are read off the engine instead of printed**: `current_phase` and `current_player`. A board shows what is where and says nothing about whose turn it is or which part of it this is, so an empty `grid [1, 1]` with one of those labels is a readout |
 | `type` | `deck` (face-down stack), `pile` (face-up stack), `hand` (row, shows card text), `grid` (board with slots), `options` (an offer: empty and unreachable until something asks — see *Asking a question*). **Stacks are reached from the top**: only the top card of a deck or pile can be played, activated or targeted |
+| `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `exile` is everything else and is the default. A `grid` is `board` and an `options` zone is `offer` without saying so. See *What counts as in play* |
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each type has a default spot (hidden zones default off-screen, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]` for grid zones |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
@@ -860,8 +861,8 @@ to has only one kind of entry, so `on_enter` on one is refused: it is what
 
 Used by `next`, `end_conditions`, and every `needs` — a card's, a challenge's, a
 zone's. Subjects: a stat key,
-`count:<tag>` (cards on grid zones with that tag), or `card:<key>` (instances
-of that specific template on grid zones — "does the player have the rusty key?").
+`count:<tag>` (cards **in play** with that tag), or `card:<key>` (instances of
+that specific template in play — "does the player have the rusty key?").
 
 `saved:<slot>` is the same yes/no shape asked of the machine rather than of any
 card: 1 when that save slot holds a game and 0 when it does not, which is how a
@@ -985,10 +986,44 @@ the feature on the game's side:
            { "then": "black_move" }] }
 ```
 
-A **tag** scope means cards *in play* — on grid zones — exactly like
-`count:<tag>`. A card in hand is not on the board; name the zone (`@hand`) when
-that is what you want. Zone and tag names may never collide, and the validator
-refuses a file where they do.
+A **tag** scope means cards *in play* — zones whose `status` is `board` —
+exactly like `count:<tag>`. A card in hand is not in play; name the zone
+(`@hand`) when that is what you want. Zone and tag names may never collide, and
+the validator refuses a file where they do.
+
+### What counts as in play
+
+A pile of rules mean *in play* and none of them say which zones those are:
+`count:<tag>`, `card:<key>`, `tagged:`, a bare tag scope, `sacrifice:<tag>` as a
+cost, a card's `turn` block acting by itself, and a reaction answered
+`"from": "board"`. The zone answers for all of them at once, with `status`:
+
+| `status` | Means |
+|---|---|
+| `board` | **In play.** Every rule above means these cards. A `grid` is this without saying so |
+| `offer` | A card lent to a question — nobody's while it is there, and gone when the question is answered. An `options` zone is this without saying so |
+| `exile` | Everything else, and the default: a deck, a discard, a bag, a trash |
+
+**Exile is not oblivion.** Naming a zone has always reached inside it, so
+`@trash` finds what is there and `count:cursed@mine.trash` counts it. What an
+exiled card is not is counted by a rule that *didn't* name the zone, sacrificed,
+or asked to act. That is how MTG's exile and Slay the Spire's trash are said: a
+place a rule can point at and nothing else can reach.
+
+**Why it is not just the layout.** It was, and the layout was `grid`, which held
+until a game laid its ongoing effects in a face-up row in front of one player.
+That row is in play by every rule of the game and a `hand` by every rule of the
+engine, so a chip on it was not counted, could not be sacrificed, was never asked
+to act, and no reaction could answer from it. A row that is in play says so:
+
+```json
+{ "key": "ongoing", "label": "In play", "type": "hand", "status": "board",
+  "tags": ["per_seat", "face_up"] }
+```
+
+Note the default is `exile`, not `board`: a zone is inert until it says
+otherwise, so a forgotten word leaves a card unreachable rather than quietly
+countable.
 
 ### `@everywhere` — every card, hands and decks included
 

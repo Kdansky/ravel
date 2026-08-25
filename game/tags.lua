@@ -75,14 +75,24 @@ function M.owner_of(e)
 	return z and z.seat
 end
 
+-- The rules that mean "in play" ask for it by name. They used to pass
+-- { grid = true } — the shape a board happened to have — which is why a row of
+-- ongoing effects laid face up in front of one player could not be counted,
+-- sacrificed or asked to act. A sentinel rather than a key, so no zone can
+-- collide with it by being called the wrong thing.
+M.IN_PLAY = {}
+
 -- Return array of card entity IDs matching ALL filter_tags.
--- zone_set: {zone_type=true} restricts which zones to search; nil = any non-deck.
+-- zone_set: {zone_type=true} restricts which zones to search; M.IN_PLAY means
+-- wherever cards are in play; nil = any non-deck.
 function M.find_targets(filter_tags, zone_set)
     local res = {}
     for e in entity.each("card") do
         local z = entity.get(e.zone_id)
         if z and z.zone_type ~= "deck" then
-            local zone_ok = not zone_set or zone_set[z.zone_type] or zone_set[z.key]
+            local zone_ok
+            if zone_set == M.IN_PLAY then zone_ok = z.status == "board"
+            else zone_ok = not zone_set or zone_set[z.zone_type] or zone_set[z.key] end
             if zone_ok then
                 local match = true
                 for _, tag in ipairs(filter_tags) do

@@ -635,7 +635,7 @@ def zones():
          "pos": rects["fighter"]},
         # Chips that stay out after they are played, which is a short list — most
         # turns this is empty, and it is a thin strip for that reason.
-        {"key": "ongoing", "label": "In play", "type": "hand", "tags": ["per_seat", "face_up"],
+        {"key": "ongoing", "label": "In play", "type": "hand", "status": "board", "tags": ["per_seat", "face_up"],
          "pos": rects["ongoing"],
          "tooltip": "Chips that keep working after the turn they were played."},
         {"key": "table", "label": "Played this turn", "type": "hand", "tags": ["per_seat", "face_up"],
@@ -978,7 +978,7 @@ def puzzle_cards():
          "abilities": [{"key": "upkeep", "text": "Secret Move",
                         "action": ["stat_gain:piggy@mine.player:1"]}],
          # It watches its *own* controller, which is what "whose": "mine" is for.
-         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "ongoing",
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
                         "where": ["tagged:purple@event >= 1"],
                         "action": [], "spent": "mine.discard"}],
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1039,7 +1039,7 @@ def puzzle_cards():
          "reactions": [{"to": "attack", "text": "Choose one",
                         "action": ["options:ef_trash,ef_ante"], "spent": "mine.discard"}]},
         {"key": "hundred_fist", **shape("hundred_fist", "brown"), "play": ongoing_play(),
-         "reactions": [{"to": "attack", "whose": "mine", "from": "ongoing",
+         "reactions": [{"to": "attack", "whose": "mine", "from": "board",
                         "text": "Crash a gem of your own",
                         "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
                                    "owner": "mine", "count": 1},
@@ -1387,10 +1387,10 @@ def character_chips():
          # and the turn ending is when it pays. A stat carries the answer from one
          # to the other, because an event knows what it is and not what came before.
          "play": ongoing(),
-         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "ongoing",
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
                         "where": ["tagged:puzzle_stack@event >= 1"],
                         "action": ["stat_set:owed@mine.player:1"]},
-                       {"to": "turn_end", "whose": "mine", "forced": "mandatory", "from": "ongoing",
+                       {"to": "turn_end", "whose": "mine", "forced": "mandatory", "from": "board",
                         "when": ["owed@mine.player >= 1"],
                         "action": ["draw_from:mine.bag:mine.hand:1",
                                    "stat_set:owed@mine.player:0"]}]},

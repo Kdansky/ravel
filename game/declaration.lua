@@ -145,6 +145,25 @@ local FORCED = { optional = true, mandatory = true }
 -- whose event it is, judged from the reacting card.
 local WHOSE = { mine = true, enemy = true, anyone = true }
 
+-- What standing a card in this zone has in the rules, which is a different
+-- question from what the zone looks like. "board" is in play: the tag scopes,
+-- count:, card:, sacrifice: and on_turn all mean it, and so does a reaction
+-- answered "from": "board". "offer" is a card lent to a question — nobody's
+-- while it is there, and gone once the question is answered. "exile" is
+-- everything else: a deck, a discard, a bag, a trash. Cards there are still
+-- *nameable*, because naming a zone has always reached it; what they are not is
+-- counted, sacrificed, or asked to act.
+--
+-- Default "exile", so a zone is inert until it says otherwise and a forgotten
+-- word fails closed. The two types that carry a standing of their own supply it,
+-- which is what keeps every game written before the field unchanged.
+M.STATUS = { board = true, exile = true, offer = true }
+local STATUS_BY_TYPE = { grid = "board", options = "offer" }
+
+function M.zone_status(zd)
+	return zd.status or STATUS_BY_TYPE[zd.type] or "exile"
+end
+
 local function reactions_of(def, pp, where)
 	if def.reactions == nil then return nil end
 	if type(def.reactions) ~= "table" then
@@ -610,6 +629,12 @@ function M.parse(filename)
 				G.zone_list[#G.zone_list + 1] = zd.key
 			end
 			flatten_moments(zd, pp, "zone '" .. zd.key .. "'")
+			if zd.status ~= nil and not M.STATUS[zd.status] then
+				pp[#pp + 1] = "zone '" .. zd.key .. "': \"status\" is '" .. tostring(zd.status)
+					.. "', which is none of board, exile, offer"
+				zd.status = nil
+			end
+			zd.status = M.zone_status(zd)
 			zd.tags_set = tag_set(zd.tags)
 			zd.style = merge_styles(G, zd.tags_set)
 			if not zd.pos then

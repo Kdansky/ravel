@@ -51,7 +51,7 @@ local function reachable(c)
 	-- open a window nobody could reach through — an opponent's hand is never the
 	-- reader's, which is the whole point of reading it.
 	local z = c.zone_id and entity.get(c.zone_id)
-	if z and z.zone_type == "options" then return true end
+	if z and z.status == "offer" then return true end
 	local seat = predicate.owner_of(c)
 	return seat == nil or seat == zones.active_seat()
 end
@@ -370,7 +370,7 @@ local function run_on_turn()
 	for e in entity.each("card") do
 		local def = cards.def(e)
 		local z   = entity.get(e.zone_id)
-		if def.on_turn and z and z.zone_type == "grid" and (e.stats.hp or 1) > 0 then
+		if def.on_turn and z and z.status == "board" and (e.stats.hp or 1) > 0 then
 			actions.run(def.on_turn, { card_id = e.id, targets = {} })
 		end
 	end
@@ -705,7 +705,7 @@ local function extras_afford(cost, ctx)
 			local c = ctx and ctx.card_id and entity.get(ctx.card_id)
 			if not c or c.exhausted then return false end
 		elseif tag then
-			if #tags.find_targets({ tag }, { grid = true }) < (tonumber(n) or 0) then
+			if #tags.find_targets({ tag }, tags.IN_PLAY) < (tonumber(n) or 0) then
 				return false
 			end
 		end
@@ -741,7 +741,7 @@ local function pay(cost, ctx)
 			if c then c.exhausted = true end
 		elseif tag then
 			for _ = 1, n do
-				local ids = tags.find_targets({ tag }, { grid = true })
+				local ids = tags.find_targets({ tag }, tags.IN_PLAY)
 				if #ids == 0 then break end
 				local victim = entity.get(ids[1])
 				local vdef   = cards.def(victim)
@@ -928,7 +928,7 @@ function M.play_card(card_id, targets)
 	-- cleared — a page overlay deals its own cards and decides for itself what
 	-- stays.
 	local oz = offer and entity.get(offer)
-	if oz and oz.zone_type == "options" then clear_offer(oz) end
+	if oz and oz.status == "offer" then clear_offer(oz) end
 	if tags.entity_has(c, "no_undo") then
 		history = {}
 		log.add("— no turning back —")

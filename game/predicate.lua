@@ -157,7 +157,7 @@ function M.entities_in_scope(scope, ctx, owner)
 		-- it survived this long. A seatless game has no active seat and every
 		-- player card answers to nobody, so it is unchanged.
 		local active, seen = zones.active_seat(), {}
-		for _, id in ipairs(tags.find_targets({ "player" }, { grid = true })) do
+		for _, id in ipairs(tags.find_targets({ "player" }, tags.IN_PLAY)) do
 			local e = entity.get(id)
 			seen[id] = true
 			if M.seat_of(e) == active then out[#out + 1] = e end
@@ -302,7 +302,7 @@ function M.entities_in_scope(scope, ctx, owner)
 			-- exactly what bare "count:<tag>" has always meant. A card in hand
 			-- is not on the board and must not be reachable by "@beast"; name
 			-- the zone (@hand) when that is what you want.
-			for _, id in ipairs(tags.find_targets({ scope }, { grid = true })) do
+			for _, id in ipairs(tags.find_targets({ scope }, tags.IN_PLAY)) do
 				out[#out + 1] = entity.get(id)
 			end
 		end
@@ -355,13 +355,13 @@ function M.total(subject, ctx)
 	-- the default scope below.
 	if not p.scope then
 		if p.fn == "count" then
-			return #tags.find_targets({ p.arg }, { grid = true })
+			return #tags.find_targets({ p.arg }, tags.IN_PLAY)
 		elseif p.fn == "tagged" or p.fn == "not_tagged" then
-			local any = #tags.find_targets({ p.arg }, { grid = true }) > 0
+			local any = #tags.find_targets({ p.arg }, tags.IN_PLAY) > 0
 			return (p.fn == "tagged") == any and 1 or 0
 		elseif p.fn == "card" then
 			local n = 0
-			for _, id in ipairs(tags.find_targets({}, { grid = true })) do
+			for _, id in ipairs(tags.find_targets({}, tags.IN_PLAY)) do
 				if entity.get(id).def_key == p.arg then n = n + 1 end
 			end
 			return n

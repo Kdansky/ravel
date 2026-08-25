@@ -49,7 +49,7 @@ local function placed(e, reaction, strict)
 	local z = e.zone_id and entity.get(e.zone_id)
 	if not z then return false end
 	if reaction.from == "board" then
-		if z.zone_type == "grid" then return true end
+		if z.status == "board" then return true end
 	elseif reaction.from and reaction.from ~= "hand" then
 		-- **A zone by name.** "board" is every grid and "hand" is every hand,
 		-- which covers the two shapes a game usually has and not the third: a

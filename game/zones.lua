@@ -111,6 +111,7 @@ local function build(def, seat, pos)
 		seat      = seat,   -- nil for a shared zone: its cards have no owner
 		label     = def.label,
 		zone_type = def.type or "pile",
+		status    = declaration.zone_status(def),
 		tags      = def.tags_set or {},
 		grid      = def.grid,
 		-- How this zone looks, merged from the styles its tags name: the shape it

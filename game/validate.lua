@@ -151,7 +151,7 @@ local TURN_FIELDS      = { action = true }
 -- The pick is the target; the card that asked is the one acting.
 local CHOSEN_FIELDS    = { where = true, action = true }
 local ZONE_FIELDS = {
-	key = true, label = true, type = true, pos = true, grid = true, style = true,
+	key = true, label = true, type = true, status = true, pos = true, grid = true, style = true,
 	contents = true, tooltip = true, tags = true, tags_set = true, refill_from = true,
 	-- its own ability, and what declaration.parse derives from that block
 	activate = true, on_activate = true, activate_phases = true, activate_cost = true,
