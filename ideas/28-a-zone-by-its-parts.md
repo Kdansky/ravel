@@ -51,15 +51,17 @@ one question the engine asks and `type` currently answers by proxy.
 | `visibility` | `public` · `owner` · `secret` | `public` | Purely what is drawn and what may be read: card faces or backs, whether the browser scrambles the order, whether a tooltip answers | `zones.lua:289,310,332`, `render.lua:1157,1205,1243` |
 | `reach` | `all` · `top` | `all` | Which of the zone's cards exist as far as the rules go: what may be played, activated, targeted or clicked | `flow.lua:116`, `targeting.lua:207`, `zones.lua:683`, `tags.lua:84` |
 | `use` | `play` · `abilities` · `none` | `none` | What may be done with a card here **at all** — the ceiling, which a phase's `zone` then narrows. One at a time: no game has wanted both | `main.lua:251`, `flow.lua:976`, `render.lua:640` (today: the `activate` tag) |
-| `in_play` | `board` · `exile` | `exile` | Whether the rules can see it: tag scopes, `count:`, `card:`, `sacrifice:`, `on_turn`, `from: "board"` | the nine sites listed above |
+| `status` | `board` · `exile` · `offer` | `exile` | What standing a card here has in the rules: tag scopes, `count:`, `card:`, `sacrifice:`, `on_turn` and `from: "board"` all mean `board`. `offer` is a card lent to a question — nobody's while it is there, and gone when the question is answered | the nine sites listed above, plus `flow.lua:54,931` |
 | `display` | `onscreen` · `offscreen` | `onscreen` | Whether the zone is drawn and whether anything in it can be clicked | today's `hidden` tag |
 | `copies` | `one` · `per_seat` | `one` | One zone, or one per seat — and therefore whether `visibility: owner` means anything | today's `per_seat` tag |
 
-**Enums, never booleans.** `in_play: "board"` and `display: "onscreen"` rather
+**Enums, never booleans.** `status: "board"` and `display: "onscreen"` rather
 than two flags: a word says which of several things it is, and leaves room for
-the next one. MTG's graveyard is the case waiting — not in play, and read
-constantly by rules that name it — which is `exile` plus naming the zone today,
-with a slot free if it ever needs its own word.
+the next one. The room was wanted immediately — `offer` is the third `status`,
+and it is why the field is not called `in_play`: a question that stops being a
+yes/no must stop wearing a yes/no's name. MTG's graveyard is the next one
+waiting — not in play, and read constantly by rules that name it — which is
+`exile` plus naming the zone today, with a slot free if it ever needs a word.
 
 **A value names its own parameter field.** `layout: "grid"` makes `grid:` a legal
 field holding `[cols, rows]`; `layout: "row"` makes `row:` legal holding the fan
@@ -85,7 +87,7 @@ overlap continuum — 73 of the corpus's 137 zones are stacks, and
 `"layout": "row", "row": "stacked"` is a worse spelling of the commonest thing
 in the format.
 
-`use` defaults to `none` for the same reason `in_play` defaults to `exile`: a
+`use` defaults to `none` for the same reason `status` defaults to `exile`: a
 zone is inert until it says otherwise, so exile costs nothing to write and a
 mistake fails closed. The corpus agrees — 73 stack zones that are inert against
 116 `activate` tags and 32 hands.
@@ -105,7 +107,7 @@ deck    = stack · secret · top · none      · exile
 pile    = stack · public · top · play      · exile
 hand    = row   · owner  · all · play      · exile · per_seat
 grid    = grid  · public · all · abilities · board
-options = row   · public · all · play      · exile · offer
+options = row   · public · all · play      · offer
 ```
 
 Which is the point: the bundles were never wrong, only closed. What the split
@@ -139,8 +141,13 @@ shape — that one moved 112 conditions across ten games and was worth it.
   today**, not a zone's: `zone`/`zone_list` on the phase says where you may play
   from. `use` is the ceiling and the phase stays the gate, so a phase naming an
   exile zone still gets nothing.
-- `in_play` — nine call sites, all spelling `{ grid = true }` for a question that
-  has nothing to do with cells.
+- `status` — nine call sites, all spelling `{ grid = true }` for a question that
+  has nothing to do with cells, plus the two that make an offer an offer
+  (`flow.lua:54,931`).
+- **`no_peek` is deleted, not migrated** — and can go ahead of all of this. All
+  three uses (Lost Cities' `mode`, The Crew's `mission`, the engine's injected
+  reveal overlay) sit on zones that are also `hidden`, and `zones.zone_at:683`
+  skips a hidden zone outright, so it has never had anything to refuse.
 - `display`, `copies` — renames of the `hidden` and `per_seat` tags.
 - The files: **137 zone declarations across the four games, 155 more in tests and
   fixtures**, plus four generators and the AUTHORING/SCHEMA sections.
@@ -174,19 +181,20 @@ shape — that one moved 112 conditions across ten games and was worth it.
    — and that is not a parameter of anything. The value moves, not the block:
    `activate:` appears in 116 places and the value in none yet.
 5. **`row` absorbs `fan`; `stack` and `page` stay.** See above.
+6. **`no_peek` is deleted rather than given a field.** It refuses a tooltip and
+   the browse view, and all three of its uses are on zones already hidden, which
+   cannot be hovered or browsed at all. What goes with it is a combination
+   nothing has asked for — *the top card is public and you may not search the
+   rest* — since browsing deliberately reaches past `reach: "top"`, so no
+   arrangement of the seven says it. A known hole rather than an oversight.
+7. **The offer role is the third `status`.** Both of its loose facts follow from
+   one word: a lent card is reachable regardless of owner *because* it is
+   nobody's while it is there, and the zone empties *because* the standing is
+   transient. Which is what renamed the field from `in_play`.
 
 ## Open
 
-1. **`no_peek` has no home.** It means no tooltip and no browsing the *buried*
-   cards, which is a different question from what is drawn — a pile with it is
-   public on top and secret underneath. Two uses in the corpus, so it can stay a
-   tag, but then `visibility` is not quite the one axis it claims to be.
-2. **The offer role is none of the seven.** An `options` zone lends a card that
-   whoever is up may reach *regardless of who owns it* (`flow.lua:54`), and
-   empties itself when the question is answered (`flow.lua:931`). Neither fact
-   is a layout, a visibility, a reach, a use, an in-play or a display. Either an
-   eighth field or it stays a role.
-3. **What the validator must refuse**, beyond the existing `check_fields` walk
+1. **What the validator must refuse**, beyond the existing `check_fields` walk
    at `validate.lua:1771`: an unknown value on any of the seven fields, and a
    parameter field whose value was not chosen — `grid: [4, 1]` beside
    `layout: "row"` is a zone that thinks it is two shapes.
