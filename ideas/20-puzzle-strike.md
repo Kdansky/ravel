@@ -488,3 +488,268 @@ a misread of the tan arrow; the rulebook's colours are brown, red, blue, purple.
 - **Bank exchanges** — Training Day, Purge Bad Habits' full text, Chips for
   Free: "trash a chip, take one costing up to 2 more" needs a cost comparison
   between two cards, which nothing says yet.
+
+## Stage 6 — what reactions unblocked, and what is still left (2026-08-25)
+
+[27](27-reactions-and-the-stack.md) shipped the response window, so the "Left"
+list above is out of date in one direction and more precise in the other. Every
+chip carrying a `DEV:` note in `puzzle_strike.json` was re-read against the
+engine as it now stands.
+
+### Now buildable — content work, not engine work
+
+- **Unstable Power's reaction half.** "The engine refuses a chip played out of
+  turn" was the reason, and it is exactly the thing that was built. The chip
+  wants a second entry under `reactions` answering `crash`, running what its
+  `play` already runs.
+- **Hex of Murkwood** — *each opponent gains a wound or discards two wounds*.
+  Verified with a throwaway game: a **mandatory reaction on a card in the
+  opponent's own board zone**, whose action is `options:…`, opens the offer for
+  *them* — priority is theirs while it is up, so both the choice and its
+  consequences read as the opponent, and the turn never moves. The chip emits a
+  verb; the answer lives on a card each seat has on the board. The seat cards
+  (`south`/`north`) sit in the injected `sys` grid and are the natural home;
+  each character card in `fighter` is the alternative.
+- **Troublesome Rhetoric** — *chosen opponent chooses your benefit* — is the same
+  pattern, and its DEV note ("nothing makes the opponent press the button") is
+  the same stale reason.
+
+The awkwardness in both is that **a reaction cannot be granted by a tag**, the
+way an ability can. The rule for one chip has to be written on whatever card
+each seat keeps on the board, rather than on the chip that has it.
+
+### Still blocked, by feature
+
+**A card cannot answer its own controller's action.** The window skips the
+announcing seat, which is what makes "everybody passed" a state that arrives.
+Verified: the opponent's copy of a mandatory reaction fires and yours does not.
+This is Magic's *whenever you cast a spell* and it is not sayable.
+→ **Panda's Bargain** (*at the end of any turn you bought a Puzzle chip, +1
+chip*), and every ongoing that watches its own owner.
+
+**No way to make an announcement unanswerable.**
+→ **Dragon Form**, *your purples can't be reacted to*.
+
+**No gate on which piles may be bought from.** An `activate` block has no
+`needs`, and money gates *at most*, never *exactly* or *not that one*.
+→ **Dragon Form**, *you can't buy purples*; **Martial Mastery**, *costing exactly
+2 more*; the bank exchanges from Stage 5 (Training Day, Chips for Free).
+
+**Nothing runs after an interjected phase closes.** A reaction can hand a phase
+to a player (Rigorous Training does), but the action list that pushed it has
+already run to completion, so it cannot branch on what they did in there.
+→ **Protective Ward**, *players can't combine unless they discard a Puzzle chip
+first* — the tax has to be offered to somebody else and then checked.
+
+**No "play this card's action" primitive.**
+→ **Double-take**, *play it twice*.
+
+**A pile and a bag are reached from the top.**
+→ **Burning Vigor** (a wound from hand *or discard pile*), **It's Time for the
+Past** (a chosen chip out of the discard), **Research & Development** (a purple
+found in a shaken bag).
+
+**`show:` cannot narrow what may be picked.** It opens a real hand and takes any
+card back; there is no `where` on it the way a `target` has one.
+→ **Pilebunker**, *trash their largest gem* — nothing enforces largest, or gem.
+
+**No random reveal, and no branch on what was revealed.**
+→ **Jackpot**, *reveal two at random; if both are purples…*.
+
+**The order cards go back in is not the player's to say.**
+→ **Future Sight**, *put two chips on top of your bag in any order*.
+
+## Stage 7 — copy, the ends of a pile, and one card of a hand (2026-08-25)
+
+Four small primitives, and a re-read of Stage 6's blocked list that found two
+entries were never true.
+
+### What was built
+
+- **`copy:<scope>[:play|activate[:<n>]]`** — a card's action list runs without
+  the card being played: nothing created, nothing spent, no cost paid, the card
+  does not move. Bounded against a card that copies itself.
+- **`:top` / `:bottom`** on `move`, `move_target_to`, `add_to`, `draw_from` and
+  `return_to`. The top of a pile was always the end of its list and always where
+  an arrival landed; `bottom` is the end that could not be reached at all.
+- **`show:random.<scope>`** — the quantifier `move` and `destroy` already take,
+  meaning here what it means there: one of them, by the seeded generator.
+- The validator learned that **an amount is one slot or five**, so a word written
+  after `sum:value@spare` is no longer checked against whatever the measure left
+  standing. That is what made a trailing argument possible at all.
+
+### Unblocked
+
+- **Double-take** — *play it twice, trash it*. `copy:target:play:2` then
+  `destroy:target`. The Stage 6 entry ("no play-this-card's-action primitive")
+  is closed.
+- **Future Sight** — *put two chips on top of your bag in any order*. Verified:
+  targets arrive in the order they were picked, and `move_target_to:mine.bag:top`
+  puts them back in that order. The Stage 6 entry was **wrong**, not blocked —
+  the order was the player's all along and nothing said so.
+- **Burning Vigor**, **It's Time for the Past** — *from your discard pile*. Also
+  wrong rather than blocked: `show:` opens the **real** cards of any zone, a
+  deck and a pile included, and `chosen` takes the pick. Verified with a
+  throwaway game reaching into a face-down bag. "A pile is reached from the top"
+  was true of `draw_from` and of nothing else.
+- **Jackpot's first clause** — *reveal at random from their hand* —
+  `show:random.enemy.hand`. Two at once, and branching on what came up, are still
+  missing, so the chip is not finished.
+
+### Still blocked, and one that never was
+
+The Stage 6 list stands otherwise. One correction to its framing: **making the
+opponent choose does not need a reaction at all.** Verified —
+`set_priority:enemy.player` followed by `show:mine.hand` opens *their* hand to
+*them*, because every scope is relative to whoever is up; the pick runs `chosen`
+and `clear_priority` sends priority home, with the turn never moving. The
+mandatory-reaction route from Stage 6 works too, but it is the long way round
+and it needs a card on their board to hang the rule on.
+
+That leaves, unchanged: no way to make an announcement unanswerable (Dragon
+Form); no gate on which piles may be bought (Dragon Form, Martial Mastery, the
+bank exchanges); nothing running after an interjected phase closes (Protective
+Ward); a card cannot answer its own controller's action (Panda's Bargain); and
+`show:` cannot narrow what may be picked (Pilebunker, Research & Development) —
+which, now that reaching into a pile turns out to be free, is the one missing
+piece doing the most damage.
+
+### Not a bug: the bank is the same every game
+
+The bank does not shuffle because **nothing asks it to**. `setup.place` names all
+eighteen chip stacks explicitly and the bank grid holds exactly eighteen, so
+there is no draw to randomise — the RNG is seeded from the clock and is working.
+Puzzle Strike proper deals ten piles out of a much larger set; that needs more
+chip stacks written than the bank has room for, and then a hidden pool zone,
+`shuffle`, and `draw_from:pool:bank:n`. Content work, and it cannot start until
+there are more chips than slots.
+
+## Stage 8 — the whole box, and a bank you build (2026-08-25)
+
+### First, a landmine that had already been armed
+
+`tools/make_puzzle_strike.py` had drifted **seventy-six cards** behind
+`game/games/puzzle_strike.json`. Running it would have silently deleted the
+entire reaction feature — the `react_buy` phase, the `pending` stack zone, the
+`spent` migration, every `reactions` block, the `price` on every chip — and
+nothing would have failed, because a generated file that has been hand-edited
+looks exactly like one that has not.
+
+The generator now reproduces the shipped game exactly, and
+`tests/integration/generators.lua` holds all four generated games to their
+scripts so this cannot happen again. The other three (Lost Cities, Splendor, The
+Crew) were already in sync.
+
+**The rule this establishes: hand-edit the generator, never the game file.**
+
+### The box
+
+All fifty-one Puzzle chips are now defined — twenty-four base, twenty-four
+Shadows, three promotional — transcribed from `ideas/puzzle_strike/chips.md`
+with printed text, cost, banner and stock. Ten of them make a bank, so the other
+forty-one live in a hidden `chip_box` zone.
+
+- **18 are built whole**, with no note: Axe Kick, Button Mashing, Dashing Strike,
+  Degenerate Trasher, Draw Three, Ebb or Flow, Gem Essence, It's Combo Time,
+  One of Each, One-Two Punch, Punch Punch Kick, Really Annoying, Recklessness,
+  Risky Move, Roundhouse, Safe Keeping, Sneak Attack, The Hammer.
+- **31 are built in part**, each carrying a DEV note saying exactly what is
+  missing. Three of those notes now say *built whole* for a clause that used to
+  be impossible — Training Day, Chips for Free and Pick Your Poison.
+- **2 are not playable at all**: Option Select and Custom Combo.
+
+### The bank is drafted
+
+The old complaint — *"I get the exact same bank every game"* — was never an RNG
+bug. The generator named the ten and the RNG was never asked for anything. It
+is a draft now, and it needed no new engine anything:
+
+- **Choose a chip** opens the box face up in the offer, all fifty-one plates, and
+  the pick goes into the bank. Press it as often as you like.
+- **Randomise the rest** shuffles what is left and deals the shortfall — ten less
+  however many Puzzle chips are already standing there, floored at nothing,
+  which is one subtraction rather than a branch.
+
+The phase ends when the bank holds ten of them. The eight that are always there
+(four gems, Combine, Crash Gem, Double Crash, Wound) never enter the count.
+
+### What each unfinished chip is still missing
+
+| Chip | What is built, and what is not |
+|---|---|
+| **Bang then Fizzle** | the gem-pile gate is built. Once-per-turn is not: nothing marks a chip as already used this turn. |
+| **Blues Are Good** | the search and the immunity are built — the bag really opens, face up, and you take one. Nothing narrows the pick to a blue chip. |
+| **Chip Damage** | the action and the chip off the discard pile are built. "A purple or two chips" is their choice narrowed to one banner colour, and show: cannot narrow what may be picked. |
+| **Chips for Free** | built whole, the same way Training Day is: the allowance is money and the piles price themselves. |
+| **Color Panic** | the action is built. The discard is narrowed by a colour the player picks as the chip runs, and neither the narrowing nor a branch on whether they could is sayable. |
+| **Combinatorics** | the action is built and laying it out says you have it. Both ongoing clauses watch your own play, and a card cannot answer its own controller. |
+| **Combos Are Hard** | it ends your action phase and trashes itself. "The only action you play this turn" cannot be asked — nothing counts the actions a player has played — so the two chips are not given. |
+| **Custom Combo** | not playable, and not transcribed: chips.md reports the arrow rows are legible as shapes and not as amounts, so what this chip gives is unknown. Guessing it would be the one invented chip in the box. |
+| **Gems to Gemonade** | both halves fire; the +$1 per gem is owed in a later phase, and nothing defers a payment. |
+| **Hundred-Fist Frenzy** | laying it out says you have it. Both clauses watch your own actions, and a card cannot answer its own controller. |
+| **Improvisation** | the two chips are drawn. "The other drawn chips" needs the set a draw just produced, which nothing keeps. |
+| **Iron Defense** | the Crash Gem arrives in your gem pile. Playing a card out of a gem pile is not built — a zone can grant what lying in it lets a card do, and this one does not. |
+| **It's a Trap** | the action is built and the chip trashes itself. A token that sits on a bank stack and changes what buying from it does is a rule on somebody else's card, which nothing writes. |
+| **Just a Scratch** | built, with the trash reaching your hand rather than the discard pile. |
+| **Knockdown** | the action and their discard are built, and the discard really is their pick: priority goes to them while the offer is up. Barring an announcement from being answered has no spelling. |
+| **Master Puzzler** | it ends your action phase and trashes itself. "Play them" would be copy:, but the bank holds plates rather than chips and there is no instance to copy. |
+| **Mix-Master** | the combine is built. "The largest gem" needs a pick chosen by a number rather than by a player, which no scope says. |
+| **Money for Nothing** | both halves are built; the chip is not offered the choice of trashing itself. |
+| **Now or Later** | built, with the trash reaching your hand rather than the discard pile. |
+| **One True Style** | the three actions are built; the combine is not, since it would want its own pair of targets alongside them. |
+| **Option Select** | not playable. copy: runs a card's action list, and the bank holds plates rather than chips — there is no instance of the thing being copied. |
+| **Ouch!** | the ante and the wound are built. Trashing a named chip out of their discard needs a pick narrowed to one card, and once-per-turn is not marked. |
+| **Pick Your Poison** | built whole, and the choice really is theirs: priority goes across while the offer is up and comes home when it closes. |
+| **Repeated Jabs** | it always goes back on top of your bag rather than to the table. "You may" would be an offer of two landings, and where a chip lands is one word. |
+| **Risk to Riskonade** | the ante and the draw are built; the chip is not offered the choice of trashing itself. |
+| **Sale Prices** | the gem power is built. A cost is a fixed number in this engine — no measure may stand in one — so nothing can make the bank cheaper for a turn. |
+| **Secret Move** | the action and the piggy bank every turn are built. Discarding it when *you* buy a purple would be a reaction to your own controller's action, which the response window skips on purpose. |
+| **Self-Improvement** | both halves are built; the trash reaches your hand only, and reaching the discard pile as well is content work — show:mine.discard opens its real cards. |
+| **Signature Move** | the bag opens face up and you take one. Nothing narrows the pick to a character chip, and the free play afterwards is not built. |
+| **Stolen Purples** | their hand opens and you take one card to your discard. Nothing enforces that it is a purple, and the rest of their purples are not discarded. |
+| **Thinking Ahead** | the gem power and the immunity are built. Redirecting what you buy onto your bag would mean answering your own purchase, which the window skips. |
+| **Training Day** | built whole. The allowance is handed over as money and the ordinary price of every pile does the gating, so "up to 2 more" needed nothing new. |
+| **X-Copy** | built with copy:, which runs the chosen chip's play twice without playing the chip. Nothing narrows the pick to those three kinds. |
+
+### The same list, grouped by the missing feature
+
+Thirty-three unfinished chips, and only eight things are missing:
+
+1. **`show:` cannot narrow what may be picked.** It opens a zone's real cards and
+   takes any of them; a `target` has a `where`, an offer does not. **Nine chips**
+   — Blues Are Good, Chip Damage, Color Panic, Mix-Master, Ouch!, Pilebunker,
+   Research & Development, Signature Move, Stolen Purples. By a distance the
+   most expensive gap in the game, and it got worse rather than better when
+   reaching into a bag and a discard pile turned out to be free.
+2. **A card cannot answer its own controller's action.** The window skips the
+   announcing seat, which is what makes "everybody passed" a state that arrives.
+   **Five chips** — Combinatorics, Hundred-Fist Frenzy, Panda's Bargain, Secret
+   Move, Thinking Ahead.
+3. **No gate on which piles may be bought, and no exact price.** Money gates *at
+   most*, never *exactly* or *not that one*, and a cost is a fixed number so
+   nothing can discount the bank. **Three chips** — Dragon Form, Martial Mastery,
+   Sale Prices.
+4. **No instance of a bank chip to copy.** `copy:` runs a card's action list and
+   the bank holds *plates*; the chip itself is still in the box. **Two chips** —
+   Master Puzzler, Option Select. X-Copy works because it copies a chip in a
+   *hand*.
+5. **Nothing marks a chip as used this turn.** **Two chips** — Bang then Fizzle,
+   Ouch!.
+6. **Nothing offers a choice of where a card lands, or defers a payment, or
+   remembers what a draw just produced, or counts the actions a player has
+   played.** One chip each — Repeated Jabs, Gems to Gemonade, Improvisation,
+   Combos Are Hard. Also Money for Nothing and Risk to Riskonade, which only
+   want "you may trash this".
+7. **No way to make an announcement unanswerable** (Dragon Form), **nothing runs
+   after an interjected phase closes** (Protective Ward), **a zone cannot grant
+   play to what lies in it here** (Iron Defense), **and nothing writes a token
+   onto a bank stack** (It's a Trap).
+8. **One chip cannot be transcribed at all.** Custom Combo is five rows of arrows
+   that `chips.md` reports are legible as shapes and not as amounts. Guessing it
+   would be the one invented chip in the box, so it is present, priced, and
+   unplayable.
+
+**If one thing gets built next, it is (1).** A `where` on `show:` — the same
+condition list a target already takes, asked of each borrowed card — closes nine
+chips on its own and finishes Pilebunker, which has been the standing example of
+the gap since Stage 4.

@@ -16,6 +16,7 @@ local zones   = require("zones")
 local phase   = require("phase")
 local flow    = require("flow")
 local actions = require("actions")
+local reactions = require("reactions")
 
 local M = {}
 
@@ -56,11 +57,29 @@ local function seat_card(seat)
 	for e in entity.each("card") do if e.def_key == seat then return e end end
 end
 
--- Two seats and two characters, stopping at the first player's action phase.
-local function opening(seed, first, second)
+-- The ten base-game chips this game was built and tested against, chosen one at
+-- a time through the draft rather than randomised — so every test below reads
+-- the same bank, and the picking half of the draft is exercised on every run.
+local DEFAULT_BANK = { "risky_move", "really_annoying", "draw_three", "recklessness",
+	"sneak_attack", "gem_essence", "one_two_punch", "one_of_each", "roundhouse", "combo_time" }
+
+local function draft(chips)
+	local button = find_in("controls", "pick_chip")
+	for _, chip in ipairs(chips or DEFAULT_BANK) do
+		flow.activate(button.id, {})
+		local plate = find_in("options", "stack_" .. chip)
+		assert(plate, "the box should be offering stack_" .. chip)
+		flow.play_card(plate.id, {})
+	end
+end
+
+-- Two seats, two characters and a bank, stopping at the first player's action
+-- phase.
+local function opening(seed, first, second, chips)
 	flow.init("puzzle_strike.json", seed or 7)
 	flow.play_card(find_in("options", "char_" .. (first or "jaina")).id, {})
 	flow.play_card(find_in("options", "char_" .. (second or "setsuki")).id, {})
+	draft(chips)
 end
 
 -- Nothing about a character exists until somebody picks it: the roster is one
@@ -84,6 +103,11 @@ function M.test_puzzle_strike_a_character_is_picked_before_a_deck_exists(check)
 		count_in("bag", "south") .. "/" .. count_in("bag", "north"))
 
 	flow.play_card(find_in("options", "char_setsuki").id, {})
+	-- The bank is drafted between the last pick and the deal, so nothing is in
+	-- anybody's hand until it has been built.
+	check("the bank has still to be built", count_in("hand", "south") == 0,
+		count_in("hand", "south"))
+	draft()
 	check("both seats hold the same ten chips but three",
 		count_in("bag", "south") + count_in("hand", "south") == 10
 		and count_in("bag", "north") + count_in("hand", "north") == 10)
@@ -96,6 +120,134 @@ function M.test_puzzle_strike_a_character_is_picked_before_a_deck_exists(check)
 	check("with its own three chips, and nobody else's",
 		count_in("bag", "south", "burning_vigor") + count_in("hand", "south", "burning_vigor") == 1
 		and count_in("bag", "south", "speed_of_the_fox") + count_in("hand", "south", "speed_of_the_fox") == 0)
+end
+
+-- The bank is drafted, and that is the whole of "why is it the same every game".
+--
+-- It never was random: fifty-one Puzzle chips are printed, ten of them make a
+-- bank, and the game file used to name the ten. Nothing was wrong with the
+-- generator \u2014 nothing asked it for a shuffle. The draft is two buttons and no
+-- new engine anything: one opens the box face up and takes what is picked, the
+-- other shuffles what is left and deals the shortfall.
+function M.test_puzzle_strike_the_bank_is_drafted_from_the_whole_box(check)
+	flow.init("puzzle_strike.json", 7)
+	flow.play_card(find_in("options", "char_jaina").id, {})
+	flow.play_card(find_in("options", "char_setsuki").id, {})
+
+	check("the bank opens with the eight that are always in it",
+		count_in("bank") == 8, count_in("bank"))
+	check("and every Puzzle chip ever printed is in the box",
+		count_in("chip_box") == 51, count_in("chip_box"))
+
+	local button = find_in("controls", "pick_chip")
+	flow.activate(button.id, {})
+	check("the box opens face up, all of it", count_in("options") == 51, count_in("options"))
+	local plate = find_in("options", "stack_the_hammer")
+	check("including a Shadows chip that was never in the bank before", plate ~= nil)
+
+	flow.play_card(plate.id, {})
+	check("the pick lands in the bank", find_in("bank", "stack_the_hammer") ~= nil)
+	check("the offer is cleared and the rest went home",
+		count_in("options") == 0 and count_in("chip_box") == 50,
+		count_in("options") .. "/" .. count_in("chip_box"))
+	check("the bank is nine chips short of a game", count_in("bank") == 9, count_in("bank"))
+end
+
+-- The button that fills the rest. It is one subtraction and a deal: ten less
+-- however many Puzzle chips are already standing there, floored at nothing.
+function M.test_puzzle_strike_randomising_fills_the_rest_of_the_bank(check)
+	flow.init("puzzle_strike.json", 7)
+	flow.play_card(find_in("options", "char_jaina").id, {})
+	flow.play_card(find_in("options", "char_setsuki").id, {})
+	draft({ "risky_move", "draw_three" })
+	check("two were chosen by hand", count_in("bank") == 10, count_in("bank"))
+
+	flow.activate(find_in("controls", "randomize_bank").id, {})
+	check("and the rest arrived", count_in("bank") == 18, count_in("bank"))
+	check("both of the chosen ones are still there",
+		find_in("bank", "stack_risky_move") ~= nil and find_in("bank", "stack_draw_three") ~= nil)
+	check("the box is short exactly ten", count_in("chip_box") == 41, count_in("chip_box"))
+	check("and the game moved on to dealing",
+		count_in("hand", "south") == 5, count_in("hand", "south"))
+end
+
+-- The same seed, the same bank: the draft draws from the engine's own generator,
+-- so a replay and a networked opponent build the same game.
+function M.test_puzzle_strike_a_random_bank_is_reproducible(check)
+	local function banked(seed)
+		flow.init("puzzle_strike.json", seed)
+		flow.play_card(find_in("options", "char_jaina").id, {})
+		flow.play_card(find_in("options", "char_setsuki").id, {})
+		flow.activate(find_in("controls", "randomize_bank").id, {})
+		local out = keys_in("bank")
+		table.sort(out)
+		return table.concat(out, ",")
+	end
+	local a, b = banked(3), banked(3)
+	check("the same seed builds the same bank", a == b, a)
+	check("and it is a full one", select(2, a:gsub(",", ",")) == 17, a)
+	local c = banked(99)
+	check("a different seed may build a different one", c ~= nil)
+end
+
+-- Three of the chips the box gained, each standing for one thing that used to
+-- be unsayable. X-Copy is copy:, Training Day is the money trick, and Pick Your
+-- Poison hands the choice across the table without moving the turn.
+function M.test_puzzle_strike_x_copy_plays_a_chip_twice(check)
+	opening(7, "jaina", "setsuki", { "x_copy", "draw_three", "risky_move", "really_annoying",
+		"recklessness", "sneak_attack", "gem_essence", "one_two_punch", "one_of_each", "roundhouse" })
+	local hand = zone_of("hand", "south")
+	local xc   = zones.add(hand, "x_copy")
+	local d3   = zones.add(hand, "draw_three")
+	-- Enough in the bag to draw six, so the count says how many were drawn
+	-- rather than how many were left.
+	for _ = 1, 6 do zones.add(zone_of("bag", "south"), "gem_1") end
+	local held = count_in("hand", "south")
+
+	seat_card("south").stats.act_brown = 1
+	check("X-Copy is played on the Draw Three in hand", flow.play_card(xc.id, { d3.id }))
+	-- Six chips arrive and X-Copy itself leaves for the table.
+	check("three chips came twice", count_in("hand", "south") == held + 5,
+		held .. " -> " .. count_in("hand", "south"))
+	check("and the copied chip is still in the hand it was chosen from",
+		entity.get(d3.id).zone_id == hand.id)
+end
+
+-- "Gain a chip costing up to 2 more than the one you trashed" is money, and the
+-- ordinary price of every pile does the gating. The borrowed buy phase is where
+-- it gets spent, so the shopping happens inside an action phase.
+function M.test_puzzle_strike_training_day_pays_an_allowance(check)
+	opening(7, "jaina", "setsuki", { "training_day", "draw_three", "risky_move", "really_annoying",
+		"recklessness", "sneak_attack", "gem_essence", "one_two_punch", "one_of_each", "roundhouse" })
+	local hand = zone_of("hand", "south")
+	local td   = zones.add(hand, "training_day")
+	local gem  = zones.add(hand, "gem_3")
+
+	seat_card("south").stats.act_brown = 1
+	check("it is played on the 3-gem", flow.play_card(td.id, { gem.id }))
+	check("the gem was trashed", entity.get(gem.id).zone_id == nil
+		or entity.get(gem.id).zone_id == zones.find_id("void"))
+	check("and the allowance is its price plus two",
+		seat_card("south").stats.money == 7, seat_card("south").stats.money)
+	check("with a buy to spend it on", seat_card("south").stats.buys == 1)
+end
+
+-- The opponent's choice, and it really is theirs: priority crosses the table
+-- while the offer is up and each branch hands it back.
+function M.test_puzzle_strike_pick_your_poison_asks_the_other_seat(check)
+	opening(7, "jaina", "setsuki", { "pick_your_poison", "draw_three", "risky_move", "really_annoying",
+		"recklessness", "sneak_attack", "gem_essence", "one_two_punch", "one_of_each", "roundhouse" })
+	local pyp = zones.add(zone_of("hand", "south"), "pick_your_poison")
+	seat_card("south").stats.act_red = 1
+
+	check("south plays it", flow.play_card(pyp.id, {}))
+	check("and north is the one being asked", zones.active_seat() == "north", zones.active_seat())
+	check("with both branches on offer", count_in("options") == 2, count_in("options"))
+
+	flow.play_card(find_in("options", "pp_ante").id, {})
+	check("north's own pile took the gem", count_in("gem_pile", "north") == 1,
+		count_in("gem_pile", "north"))
+	check("and priority came home", zones.active_seat() == "south", zones.active_seat())
 end
 
 -- The ante is mandatory and it lands in the gem pile rather than the deck,
@@ -382,6 +534,55 @@ function M.test_puzzle_strike_an_opponents_hand_opens_in_the_offer(check)
 	check("and the overlay is closed", phase.current().type ~= "overlay")
 end
 
+-- "Trash their *largest* gem" — the clause that has been the standing example of
+-- what an offer could not say since Stage 4.
+--
+-- The whole hand still comes up, because revealing it is half the printed rule.
+-- What changed is which of the revealed cards may be taken: the asking card says
+-- so with `chosen.where`, in the same condition vocabulary a target already uses,
+-- and "largest" is the candidate compared with the offer it is lying in.
+function M.test_puzzle_strike_pilebunker_takes_only_the_largest_gem(check)
+	opening(7)
+	actions.run({ "fill:mine.hand:pilebunker:1" }, {})
+	actions.run({ "fill:enemy.hand:gem_3:1" }, {})
+	actions.run({ "fill:enemy.hand:wound:1" }, {})
+	local held = count_in("hand", "north")
+
+	flow.play_card(find_in("hand", "pilebunker", "south").id, {})
+	check("their whole hand is revealed, wound and all",
+		count_in("options") == held, count_in("options") .. "/" .. held)
+	check("the wound came up too", find_in("options", "wound") ~= nil)
+
+	check("but a wound is not a gem, so it cannot be taken",
+		not flow.can_play(find_in("options", "wound").id))
+	check("and neither is a 1-gem, because it is not the largest",
+		not flow.can_play(find_in("options", "gem_1").id))
+	check("the 3-gem is the one the chip names",
+		flow.can_play(find_in("options", "gem_3").id))
+
+	check("and taking it is accepted", flow.play_card(find_in("options", "gem_3").id, {}))
+	check("everything else went home", count_in("hand", "north") == held - 1,
+		count_in("hand", "north"))
+end
+
+-- An offer whose every card the asker refuses is a question with no answer, and
+-- a mandatory one would never close. Nothing to take is nothing to look at.
+function M.test_puzzle_strike_an_offer_nothing_qualifies_for_does_not_open(check)
+	opening(7)
+	actions.run({ "fill:mine.hand:pilebunker:1" }, {})
+	-- Their hand emptied of gems and filled with wounds: a full hand, and not one
+	-- card in it that Pilebunker will take.
+	actions.run({ "move:enemy.hand:enemy.discard" }, {})
+	actions.run({ "fill:enemy.hand:wound:3" }, {})
+
+	flow.play_card(find_in("hand", "pilebunker", "south").id, {})
+	check("no offer opened over a hand with nothing in it to take",
+		count_in("options") == 0, count_in("options"))
+	check("their hand was not disturbed", count_in("hand", "north") == 3,
+		count_in("hand", "north"))
+	check("and play carried on", phase.current().type ~= "overlay")
+end
+
 -- The way out of a question that may go unanswered. Pilebunker says "optional"
 -- because a hand with no gem in it has nothing the chip names, and a forced
 -- pick would trash something it never asked for.
@@ -539,6 +740,441 @@ function M.test_puzzle_strike_the_printed_text_comes_first(check)
 	local rev = declaration.G.card_defs.reversal.tooltip
 	check("and the chip's own words come first",
 		rev:sub(1, 15) == "Main: +2 chips.", rev:sub(1, 30))
+end
+
+-- Bubble Shield, both legs of it. Laying the chip out does not leave the chip
+-- lying there: it becomes a card of its own, because the printed chip is two
+-- reactions answered from two different zones and one card cannot say which of
+-- its reactions belongs to which. "transform" was already the word for a card
+-- becoming another card, so the split costs no vocabulary.
+function M.test_puzzle_strike_bubble_shield_becomes_its_ongoing_half(check)
+	opening(7, "argagarg", "jaina")
+	local one = zones.turn_seat()
+	local chip = loose("bubble_shield")
+	zones.move_card(chip.id, zone_of("hand", one).id)
+	local pl = seat_card(one)
+	pl.stats.act_blue = (pl.stats.act_blue or 0) + 1
+
+	flow.play_card(chip.id, {})
+	check("the chip it was is off the board", entity.get(chip.id).zone_id == nil)
+	check("and its ongoing half is out", count_in("ongoing", one, "bubble_shield_up") == 1,
+		table.concat(keys_in("ongoing", one), " "))
+	check("nothing was left in hand", count_in("hand", one, "bubble_shield") == 0)
+end
+
+-- The crash announces itself, and the announcement is what the shield hears.
+-- Nothing waits on it — the gems have already landed — so the window is a pure
+-- question, and answering takes one back off the pile.
+function M.test_puzzle_strike_bubble_shield_takes_a_gem_back_off(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("gem_pile")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	local shield = zones.add(zone_of("ongoing", two), "bubble_shield_up")
+
+	local crash = loose("crash_gem")
+	zones.move_card(crash.id, zone_of("hand", one).id)
+	local pl = seat_card(one)
+	pl.stats.act_purple = (pl.stats.act_purple or 0) + 1
+	-- Something of one's own to break, so the crash has a size at all.
+	local mine = zones.add(zone_of("gem_pile", one), "gem_1")
+
+	local before = count_in("gem_pile", two, "gem_1")
+	local stock = find_in("bank", "stack_gem_1").stats.stock
+	flow.play_card(crash.id, { mine.id })
+
+	check("the defender was asked", zones.active_seat() == two, zones.active_seat())
+	check("while the turn stayed with the crasher", zones.turn_seat() == one, zones.turn_seat())
+	check("one gem arrived", count_in("gem_pile", two, "gem_1") == before + 1,
+		count_in("gem_pile", two, "gem_1"))
+
+	-- What an interface has to be told, since a window moves neither turn nor
+	-- phase and so looks like nothing at all from the outside.
+	check("the crash is named as what waits", flow.pending_event() ~= nil
+		and flow.pending_event().re_verb == "crash")
+	local offer = flow.usable_reactions()
+	check("and the shield is the one answer offered", #offer == 1 and offer[1].card == shield.id,
+		#offer)
+	check("so a click on it means answering", (flow.sole_reaction(shield.id) or {}).card == shield.id)
+	check("and it is not drawn dead", flow.can_react(shield.id))
+
+	flow.react(shield.id, 1, {})
+	check("and the shield took it straight back off",
+		count_in("gem_pile", two, "gem_1") == before, count_in("gem_pile", two, "gem_1"))
+	check("the bank is whole again", find_in("bank", "stack_gem_1").stats.stock == stock, stock)
+	-- It walks to the discard and turns back into the chip you buy, so the bag it
+	-- comes back in holds a Bubble Shield rather than the laid-out half of one.
+	check("the shield is spent", entity.get(shield.id).zone_id == nil)
+	check("and a Bubble Shield is in the discard",
+		count_in("discard", two, "bubble_shield") == 1, count_in("discard", two, "bubble_shield"))
+	check("and recycles as the plain chip", count_in("discard", two, "bubble_shield") == 1,
+		table.concat(keys_in("discard", two), " "))
+	check("priority went back to the crasher", zones.active_seat() == one, zones.active_seat())
+end
+
+-- One gem, not every gem. "any" in a scope means the whole pool it matches, so a
+-- shield written with it emptied the pile instead of negating the one that
+-- arrived — and the first test could not see it, because the pile it defended
+-- was empty to begin with.
+function M.test_puzzle_strike_bubble_shield_negates_one_gem_only(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("gem_pile")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	local shield = zones.add(zone_of("ongoing", two), "bubble_shield_up")
+	-- Gems already standing there, which is the ordinary case: a pile is what a
+	-- crash lands on and it is rarely empty.
+	zones.add(zone_of("gem_pile", two), "gem_1")
+	zones.add(zone_of("gem_pile", two), "gem_1")
+
+	local crash = loose("crash_gem")
+	zones.move_card(crash.id, zone_of("hand", one).id)
+	seat_card(one).stats.act_purple = (seat_card(one).stats.act_purple or 0) + 1
+	local mine = zones.add(zone_of("gem_pile", one), "gem_1")
+
+	flow.play_card(crash.id, { mine.id })
+	check("three gems stand there", count_in("gem_pile", two, "gem_1") == 3,
+		count_in("gem_pile", two, "gem_1"))
+	flow.react(shield.id, 1, {})
+	check("and the shield took exactly one back off",
+		count_in("gem_pile", two, "gem_1") == 2, count_in("gem_pile", two, "gem_1"))
+end
+
+-- Red is attack, and the rule is written once on the colour rather than on each
+-- red chip. Playing one announces itself, so Really Annoying's reaction half —
+-- unbuildable while a chip could not be played out of turn — answers by wounding
+-- whoever swung.
+function M.test_puzzle_strike_a_red_chip_announces_an_attack(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("hand")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	-- Bought chips rather than character ones, so they are minted into the hands
+	-- that need them instead of hunted for in a deal.
+	local answer = zones.add(zone_of("hand", two), "really_annoying")
+	local red = zones.add(zone_of("hand", one), "sneak_attack")
+	seat_card(one).stats.act_red = (seat_card(one).stats.act_red or 0) + 1
+
+	local wounds = count_in("discard", one, "wound")
+	flow.play_card(red.id, {})
+	check("the attack is announced, not resolved", zones.active_seat() == two, zones.active_seat())
+	check("with the turn still the attacker's", zones.turn_seat() == one, zones.turn_seat())
+
+	flow.react(answer.id, 1, {})
+	check("the attacker took a wound", count_in("discard", one, "wound") == wounds + 1,
+		count_in("discard", one, "wound"))
+	-- The window re-opens rather than closing on one answer: Argagarg starts with
+	-- a Bubble Shield, and from across the table a bag and a hand are one place.
+	check("and the same seat is asked again", zones.active_seat() == two, zones.active_seat())
+	flow.pass_react()
+	check("and the answer recycles into its own discard",
+		count_in("discard", two, "really_annoying") == 1,
+		table.concat(keys_in("discard", two), " "))
+	check("the red chip then resolved to the table", count_in("table", one, "sneak_attack") == 1,
+		table.concat(keys_in("table", one), " "))
+	check("and priority went back", zones.active_seat() == one, zones.active_seat())
+end
+
+-- The other half of Bubble Shield, and the other thing a reaction can be: not an
+-- effect of its own but the refusal of somebody else's. Answered from hand, it
+-- counterspells the attack, so the red chip's action never runs at all — the gem
+-- it would have anted never leaves the bank and the attacker keeps the red action
+-- it would have gained.
+--
+-- The counter names no zone. Where the attack goes once it is stopped is written
+-- on the attack, and that is the whole reason a card this small can exist: it
+-- refuses without knowing a single rule about what it refused.
+function M.test_puzzle_strike_bubble_shield_makes_you_immune_to_a_red_chip(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("hand")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	local shield = zones.add(zone_of("hand", two), "bubble_shield")
+	local red = zones.add(zone_of("hand", one), "sneak_attack")
+	seat_card(one).stats.act_red = (seat_card(one).stats.act_red or 0) + 1
+
+	local gems = count_in("gem_pile", two, "gem_1")
+	local stock = find_in("bank", "stack_gem_1").stats.stock
+	flow.play_card(red.id, {})
+	check("the attack is announced, not resolved", zones.active_seat() == two, zones.active_seat())
+	-- Read with the cost already paid and the action not yet run, which is exactly
+	-- what a window is.
+	local reds = seat_card(one).stats.act_red
+
+	local offer = flow.usable_reactions()
+	check("and the shield is the answer offered", #offer == 1 and offer[1].card == shield.id, #offer)
+
+	flow.react(shield.id, 1, {})
+	check("no gem was anted", count_in("gem_pile", two, "gem_1") == gems,
+		count_in("gem_pile", two, "gem_1"))
+	check("so the bank never paid one out", find_in("bank", "stack_gem_1").stats.stock == stock,
+		find_in("bank", "stack_gem_1").stats.stock)
+	check("and the attacker never got the action it grants", seat_card(one).stats.act_red == reds,
+		seat_card(one).stats.act_red)
+	-- Stopped, not undone: the chip was still played and still goes where playing
+	-- it sends it.
+	check("the red chip is spent to the table either way",
+		count_in("table", one, "sneak_attack") == 1, table.concat(keys_in("table", one), " "))
+	check("the shield is spent to its own discard",
+		count_in("discard", two, "bubble_shield") == 1, table.concat(keys_in("discard", two), " "))
+	check("and priority went back", zones.active_seat() == one, zones.active_seat())
+end
+
+-- Stone Wall sends the whole crash back, not one gem of it. How many is the size
+-- of the crash and nothing else, which is why repeating a line could never say it
+-- — the count is only known as the game runs, so "destroy" takes one.
+function M.test_puzzle_strike_stone_wall_reflects_the_whole_crash(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("gem_pile")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	local wall = zones.add(zone_of("hand", two), "stone_wall")
+	-- A gem already standing there, which the reflection must leave alone: it was
+	-- not sent by this crash.
+	zones.add(zone_of("gem_pile", two), "gem_1")
+
+	local crash = loose("crash_gem")
+	zones.move_card(crash.id, zone_of("hand", one).id)
+	seat_card(one).stats.act_purple = (seat_card(one).stats.act_purple or 0) + 1
+	-- A 3-gem broken is three 1-gems sent.
+	local mine = zones.add(zone_of("gem_pile", one), "gem_3")
+	local stock = find_in("bank", "stack_gem_1").stats.stock
+
+	flow.play_card(crash.id, { mine.id })
+	check("three gems arrived on top of the one already there",
+		count_in("gem_pile", two, "gem_1") == 4, count_in("gem_pile", two, "gem_1"))
+
+	flow.react(wall.id, 1, {})
+	check("the three sent went back and the one standing stayed",
+		count_in("gem_pile", two, "gem_1") == 1, count_in("gem_pile", two, "gem_1"))
+	check("the bank has them again", find_in("bank", "stack_gem_1").stats.stock == stock, stock)
+	check("and the wall recycles into its own discard",
+		count_in("discard", two, "stone_wall") == 1, table.concat(keys_in("discard", two), " "))
+end
+
+-- Counter-crashing is mutual annihilation, not two independent halves: the
+-- smaller of the two crashes is struck off both, and only the remainder arrives.
+-- Both gems are broken either way, which is what makes answering a big crash with
+-- a small one still cost you.
+--
+-- Three into a counter of two: two cancel, so one of the three stands and nothing
+-- goes back the other way. The both-halves reading sent all three home and two
+-- more besides, and the difference is the whole rule.
+function M.test_puzzle_strike_reversal_counter_crashes(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("gem_pile")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	local rev = zones.add(zone_of("hand", two), "reversal")
+	local back = zones.add(zone_of("gem_pile", two), "gem_2")
+
+	local crash = loose("crash_gem")
+	zones.move_card(crash.id, zone_of("hand", one).id)
+	seat_card(one).stats.act_purple = (seat_card(one).stats.act_purple or 0) + 1
+	local mine = zones.add(zone_of("gem_pile", one), "gem_3")
+
+	flow.play_card(crash.id, { mine.id })
+	check("three gems arrived", count_in("gem_pile", two, "gem_1") == 3,
+		count_in("gem_pile", two, "gem_1"))
+	-- A seat opens with a gem of its own, so the counter is counted from there.
+	local held = count_in("gem_pile", one, "gem_1")
+	local stock = find_in("bank", "stack_gem_1").stats.stock
+
+	flow.react(rev.id, 1, { back.id })
+	check("two of the three were cancelled and one stands",
+		count_in("gem_pile", two, "gem_1") == 1, count_in("gem_pile", two, "gem_1"))
+	check("and nothing went the other way", count_in("gem_pile", one, "gem_1") == held,
+		count_in("gem_pile", one, "gem_1"))
+	check("the two cancelled gems went home to the bank",
+		find_in("bank", "stack_gem_1").stats.stock == stock + 2,
+		find_in("bank", "stack_gem_1").stats.stock)
+	check("the broken gem is out of play", entity.get(back.id).zone_id == zones.find_id("void"))
+	-- Nothing is left in flight, so there is nothing for the attacker to answer
+	-- and priority comes straight back.
+	check("the counter sent nothing, so nobody is asked about it",
+		zones.active_seat() == one, zones.active_seat())
+end
+
+-- The counter that is bigger than the crash: the remainder turns round. Three at
+-- me, four back, three cancel — I take none and the attacker takes one, both of
+-- us having spent the gem. This is the case a both-halves reading gets loudest
+-- wrong, sending four where the rule sends one.
+function M.test_puzzle_strike_a_bigger_counter_sends_the_remainder_back(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("gem_pile")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	local rev = zones.add(zone_of("hand", two), "reversal")
+	local back = zones.add(zone_of("gem_pile", two), "gem_4")
+
+	local crash = loose("crash_gem")
+	zones.move_card(crash.id, zone_of("hand", one).id)
+	seat_card(one).stats.act_purple = (seat_card(one).stats.act_purple or 0) + 1
+	local mine = zones.add(zone_of("gem_pile", one), "gem_3")
+
+	flow.play_card(crash.id, { mine.id })
+	local held = count_in("gem_pile", one, "gem_1")
+
+	flow.react(rev.id, 1, { back.id })
+	check("the defender takes nothing", count_in("gem_pile", two, "gem_1") == 0,
+		count_in("gem_pile", two, "gem_1"))
+	check("and the attacker takes the one left over",
+		count_in("gem_pile", one, "gem_1") == held + 1, count_in("gem_pile", one, "gem_1"))
+	-- Countered with a four, and a broken four is unanswerable — which is exactly
+	-- what ends a counter-crash chain rather than any depth limit.
+	check("a four cannot be answered, so the chain stops here",
+		zones.active_seat() == one, zones.active_seat())
+end
+
+-- A broken 4-gem is immune outright: no window opens, for anybody, however many
+-- answers are held. The counter-crash chain terminates because of this and for no
+-- other reason.
+function M.test_puzzle_strike_a_crashed_four_cannot_be_answered(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("gem_pile")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	zones.add(zone_of("hand", two), "reversal")
+	zones.add(zone_of("gem_pile", two), "gem_2")
+
+	local crash = loose("crash_gem")
+	zones.move_card(crash.id, zone_of("hand", one).id)
+	seat_card(one).stats.act_purple = (seat_card(one).stats.act_purple or 0) + 1
+	local mine = zones.add(zone_of("gem_pile", one), "gem_4")
+
+	flow.play_card(crash.id, { mine.id })
+	check("four gems arrived", count_in("gem_pile", two, "gem_1") == 4,
+		count_in("gem_pile", two, "gem_1"))
+	check("and nobody was asked", zones.active_seat() == one, zones.active_seat())
+	check("nothing waits to be answered", #zone_of("pending").cards == 0)
+end
+
+-- A Double Crash that breaks a four shields the gem beside it: the rule reads the
+-- biggest gem broken, not the size of the crash, so a 4+1 sends five gems that
+-- nobody may answer.
+function M.test_puzzle_strike_a_four_in_a_double_crash_shields_the_whole_crash(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("gem_pile")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	zones.add(zone_of("hand", two), "reversal")
+	zones.add(zone_of("gem_pile", two), "gem_2")
+
+	local crash = zones.add(zone_of("hand", one), "double_crash")
+	seat_card(one).stats.act_purple = (seat_card(one).stats.act_purple or 0) + 1
+	local four = zones.add(zone_of("gem_pile", one), "gem_4")
+	local lone = zones.add(zone_of("gem_pile", one), "gem_1")
+
+	flow.play_card(crash.id, { four.id, lone.id })
+	check("five gems arrived", count_in("gem_pile", two, "gem_1") == 5,
+		count_in("gem_pile", two, "gem_1"))
+	check("and the four shielded the one beside it",
+		zones.active_seat() == one, zones.active_seat())
+end
+
+-- Nobody holds one, so the crash never asks. This is Filter A doing its job on
+-- a real game: the emit is written on four chips and costs the other ninety
+-- nothing at all.
+function M.test_puzzle_strike_a_crash_nobody_answers_asks_nothing(check)
+	opening(7, "jaina", "setsuki")
+	local one = zones.turn_seat()
+	local crash = loose("crash_gem")
+	zones.move_card(crash.id, zone_of("hand", one).id)
+	seat_card(one).stats.act_purple = (seat_card(one).stats.act_purple or 0) + 1
+	local mine = zones.add(zone_of("gem_pile", one), "gem_1")
+
+	flow.play_card(crash.id, { mine.id })
+	check("the turn seat is still acting", zones.active_seat() == one, zones.active_seat())
+	check("and nothing is waiting to be answered", #zone_of("pending").cards == 0)
+end
+
+
+-- Rigorous Training: an opponent buying a purple hands *you* a shopping trip.
+--
+-- Two things the engine had to grow for it, and one it did not. The bank hands
+-- whatever lies in it a "buy" announcement through "applies", so the piles say
+-- nothing about being answerable and the tag says it once. The answer interjects
+-- a phase, and priority stays with the seat it was interjected for while the
+-- turn never moves. What it did *not* need is a way to filter a shop by price:
+-- the allowance is handed over as money and the ordinary price of every pile
+-- does the gating.
+function M.test_puzzle_strike_rigorous_training_buys_out_of_turn(check)
+	opening(7, "jaina", "argagarg")
+	local one = zones.turn_seat()
+	local two
+	for _, z in ipairs(zones.all_with_key("hand")) do
+		if z.seat ~= one then two = z.seat end
+	end
+	local rt = zones.add(zone_of("hand", two), "rigorous_training")
+	-- Something non-purple to trash, priced, so the allowance is a real sum.
+	local fodder = zones.add(zone_of("hand", two), "draw_three")
+	flow.activate(loose("done_acting").id, {})
+	seat_card(one).stats.money = 9
+	seat_card(one).stats.buys  = 1
+
+	-- The rule is the colour, not the price: an eight-cost brown chip is not a
+	-- purple and opens no window, which is the check a price test would pass by
+	-- accident.
+	check("a cheap buy is answered by nobody",
+		not reactions.anyone_answers("buy", { find_in("bank", "stack_risky_move").id }, one))
+	check("and an expensive one that is not purple is not either",
+		not reactions.anyone_answers("buy", { find_in("bank", "stack_combo_time").id }, one))
+
+	local pile = find_in("bank", "stack_double_crash")
+	flow.activate(pile.id, {}, 1)
+	check("the purple buy is announced", zones.active_seat() == two, zones.active_seat())
+	check("while the turn stays the buyer's", zones.turn_seat() == one, zones.turn_seat())
+
+	local offer = flow.usable_reactions()
+	check("and the training is the answer offered",
+		#offer == 1 and offer[1].card == rt.id, #offer)
+
+	flow.react(rt.id, 1, { fodder.id })
+	check("the trashed chip is gone", entity.get(fodder.id).zone_id == zones.find_id("void"))
+	-- 3 for the Draw Three, plus the two the card gives.
+	check("the allowance is the price plus two", seat_card(two).stats.money == 5,
+		seat_card(two).stats.money)
+	check("the shopping phase is up", phase.current().key == "react_buy", phase.current().key)
+	check("and it belongs to the reactor", zones.active_seat() == two, zones.active_seat())
+
+	-- What the allowance is *for*: it gates the shop without anything filtering it.
+	check("a pile within the allowance is buyable",
+		flow.can_activate(find_in("bank", "stack_one_of_each").id))
+	check("one over it is not",
+		not flow.can_activate(find_in("bank", "stack_roundhouse").id))
+
+	flow.activate(find_in("bank", "stack_one_of_each").id, {}, 1)
+	check("the gained chip is in the reactor's discard",
+		count_in("discard", two, "one_of_each") == 1,
+		table.concat(keys_in("discard", two), " "))
+
+	flow.activate(find_in("controls", "finish_shopping").id, {}, 1)
+	check("the interjection is over", phase.current().key ~= "react_buy", phase.current().key)
+	check("nothing is left over", seat_card(two).stats.money == 0, seat_card(two).stats.money)
+	check("the turn player's buy landed", count_in("discard", one, "double_crash") == 1,
+		table.concat(keys_in("discard", one), " "))
+	check("and priority went home", zones.active_seat() == one, zones.active_seat())
+	check("the training went to its own discard",
+		count_in("discard", two, "rigorous_training") == 1,
+		table.concat(keys_in("discard", two), " "))
 end
 
 return M
