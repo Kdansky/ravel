@@ -633,7 +633,7 @@ def zones():
          "pos": rects["fighter"]},
         # Chips that stay out after they are played, which is a short list — most
         # turns this is empty, and it is a thin strip for that reason.
-        {"key": "ongoing", "label": "In play", "layout": "row", "status": "board", "copies": "per_seat", "status": "board",
+        {"key": "ongoing", "label": "In play", "layout": "row", "status": "board", "copies": "per_seat",
          "pos": rects["ongoing"],
          "tooltip": "Chips that keep working after the turn they were played."},
         {"key": "table", "label": "Played this turn", "layout": "row", "copies": "per_seat",

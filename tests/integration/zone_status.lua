@@ -31,7 +31,7 @@ local GAME = [==[{
   "zones": [
     { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.20, 0.80, 0.50, 0.95], [0.20, 0.05, 0.50, 0.20]] },
-    { "key": "ongoing", "layout": "row", "status": "board", "copies": "per_seat", "status": "board",
+    { "key": "ongoing", "layout": "row", "status": "board", "copies": "per_seat",
       "pos": [[0.55, 0.80, 0.95, 0.95], [0.55, 0.05, 0.95, 0.20]] },
     { "key": "shelf", "layout": "row", "copies": "per_seat",
       "pos": [[0.55, 0.60, 0.95, 0.75], [0.55, 0.25, 0.95, 0.40]] },
@@ -203,7 +203,7 @@ function M.test_status_an_unknown_standing_is_refused(check)
 		"title": "Bad Standing",
 		"zones": [
 			{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] },
-			{ "key": "limbo", "layout": "stack", "status": "purgatory", "status": "purgatory" }
+			{ "key": "limbo", "layout": "stack", "status": "purgatory" }
 		],
 		"cards": [{ "key": "thing", "text": "Thing" }]
 	}]==])
