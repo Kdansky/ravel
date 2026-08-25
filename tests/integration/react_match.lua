@@ -117,6 +117,29 @@ function M.test_react_match_filter_a_short_circuits_an_unanswered_verb(check)
 	end)
 end
 
+-- The third shape. "board" is every grid and "hand" is every hand, which covers
+-- the two a game usually has; a row of ongoing effects laid face up in front of
+-- one player is in play, and is a *hand* as far as a zone type goes. Guessing
+-- which face-up zones count as in play gets a discard pile wrong, so the game
+-- names the zone the way it names one everywhere else.
+function M.test_react_match_from_may_name_a_zone(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local c = at("c1")
+		-- Its reaction is answered from the board, and the bin is not one.
+		actions.execute("move_target_to:bin", { targets = { c.id } })
+		check("in the bin it does not answer",
+			#reactions.responders("play", { at("a1").id }) == 0)
+
+		-- The same card, the same zone, with the reaction naming that zone.
+		local def = require("declaration").G.card_defs[c.def_key]
+		def.reactions[1].from = "bin"
+		check("and once the reaction names the bin, it does",
+			#reactions.responders("play", { at("a1").id }) == 1)
+		def.reactions[1].from = "board"
+	end)
+end
+
 -- "when" is about the reactor: no mana, no answer, even for the right event.
 function M.test_react_match_when_gates_the_reactor(check)
 	with_game(function(name)

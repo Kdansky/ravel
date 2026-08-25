@@ -2187,9 +2187,14 @@ function M.check(G)
 			local rw = ("card '%s' reaction %d ('%s')"):format(key, i, tostring(r.key))
 			check_ability(rw, r)
 			check_conditions(rw .. " where", r.where)
-			if r.from ~= nil and r.from ~= "hand" and r.from ~= "board" then
-				warn('%s: is answered "from": \'%s\', which is neither "hand" (played out of one) '
-					.. 'nor "board" (used where it lies)', rw, tostring(r.from))
+			-- "hand" and "board" are the two shapes a game usually has; a zone by
+			-- name is the third, for a row of ongoing effects that is in play and
+			-- is a hand as far as a zone type goes. Anything else is a typo.
+			if r.from ~= nil and r.from ~= "hand" and r.from ~= "board"
+				and not G.zone_defs[r.from] then
+				warn('%s: is answered "from": \'%s\', which is neither "hand" (played out of one), '
+					.. '"board" (used where it lies), nor a zone this game declares%s',
+					rw, tostring(r.from), suggest(r.from, G.zone_defs))
 			end
 			reacting[#reacting + 1] = { where = rw, to = r.to }
 		end

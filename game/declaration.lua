@@ -125,7 +125,9 @@ end
 -- and whether the controller is prompted ("forced": "optional") or it fires on
 -- its own ("forced": "mandatory", Magic's mandatory triggered ability). "from"
 -- says where the card acts from — a played reaction out of a hand, an activation
--- or a static effect on the board — which decides what answering it does.
+-- or a static effect on the board — which decides what answering it does. It
+-- takes "hand", "board", or a zone by name, for the row of ongoing effects that
+-- is in play and is a hand as far as a zone type is concerned.
 --
 -- "whose" says whose announcement it may answer, in the words a scope already
 -- uses: "enemy" (somebody else's, the default and what a shield means), "mine"

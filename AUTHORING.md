@@ -1725,7 +1725,8 @@ the other.
 | `to` | the verb answered — the only required one |
 | `where` | a condition about **the event**, read through `@event` |
 | `when` | a condition about **the reactor**, asked as their seat |
-| `from` | `hand` (played out of one) or `board` (used where it lies). Left out, the zone decides |
+| `from` | `hand` (played out of one), `board` (used where it lies), or **a zone by name** — a row of ongoing effects laid face up in front of a player is in play and is a *hand* as far as zone types go, so `"from": "ongoing"` is how it says so. Left out, the zone decides |
+| `whose` | `enemy` (somebody else's announcement — the default), `mine` (your own), or `anyone`. See below |
 | `forced` | `optional` (the player is asked, the default) or `mandatory` (it fires on its own) |
 | `cost`, `target`, `action`, `text` | exactly as on an ability |
 | `spent` | where the reacting card goes once its answer is over |

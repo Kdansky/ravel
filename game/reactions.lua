@@ -50,6 +50,14 @@ local function placed(e, reaction, strict)
 	if not z then return false end
 	if reaction.from == "board" then
 		if z.zone_type == "grid" then return true end
+	elseif reaction.from and reaction.from ~= "hand" then
+		-- **A zone by name.** "board" is every grid and "hand" is every hand,
+		-- which covers the two shapes a game usually has and not the third: a
+		-- row of ongoing effects laid face up in front of one player is in play,
+		-- and it is a *hand* as far as the engine's zone types go. Guessing which
+		-- face-up zones count as in play gets a discard pile wrong, so the game
+		-- says which zone it means, the way it names a zone everywhere else.
+		if z.key == reaction.from then return true end
 	elseif z.zone_type == "hand" then
 		return true
 	end

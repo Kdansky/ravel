@@ -784,8 +784,15 @@ function M.can_play(card_id)
 	-- nothing when clicked, and the escape hatch below will offer it forever
 	-- because it has no cost and no needs to fail. Asked through behaviour, so a
 	-- zone that grants a play still counts.
+	--
+	-- **Unless it says where it lands.** A card whose whole play is going
+	-- somewhere — an ongoing effect laid out in front of you — does exactly one
+	-- thing when clicked, and that one thing is the move. Its action list is
+	-- empty because "spent" is where the going lives now, and reading the empty
+	-- list as "nothing happens" made every such card unplayable.
 	local on_play = cards.behaviour(c, "on_play")
-	if not (type(on_play) == "table" and #on_play > 0) then return false end
+	local lands   = cards.behaviour(c, "spent")
+	if not ((type(on_play) == "table" and #on_play > 0) or lands) then return false end
 	if not phase_ok(cards.behaviour(c, "phases")) then return false end
 	if not M.can_afford(def.cost, { card_id = card_id }) then return false end
 	if predicate.meets_all(def.needs, { card_id = card_id }) then return true end
