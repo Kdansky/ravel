@@ -187,7 +187,7 @@
       "grid": [5, 1],
       "pos": [0.808, 0.463, 0.995, 0.537]
     },
-    { "key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.3, 0.94, 0.7] },
+    { "key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.18, 0.94, 0.82] },
     { "key": "box", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "chip_box", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "void", "layout": "stack", "visibility": "secret", "display": "offscreen" },

@@ -391,6 +391,54 @@ do
 		"a stack that is not fanned shows its top card whole, not a strip")
 end
 
+-- A row too long for one line takes another line rather than thinner cards.
+-- Puzzle Strike's bank draft opens forty-one chip plates in one offer, and a
+-- row that only ever shrinks gave each of them 23px of picture — a strip with
+-- no room for the name, which is the one thing a row exists to show.
+do
+	flow.init("puzzle_strike.json", 11)
+	render.rescale()
+	local offer = zones.find("options")
+	local box = zones.find("chip_box")
+	-- init lands in the character pick, whose roster is sitting in the offer.
+	for i = #offer.cards, 1, -1 do zones.move_card(offer.cards[i], zones.find_id("void")) end
+	for _ = 1, 41 do
+		local cid = box.cards[#box.cards]
+		if not cid then break end
+		zones.move_card(cid, offer.id)
+	end
+	assert(#offer.cards == 41, "expected the whole chip box in the offer, got " .. #offer.cards)
+	render.sync_places()
+
+	local first = entity.get(offer.cards[1]).place
+	local rows = 1
+	for i, cid in ipairs(offer.cards) do
+		local pl = entity.get(cid).place
+		assert(pl and pl.w > 0, "every card in the offer needs a place, card " .. i)
+		assert(pl.x >= offer.place.x - 1 and pl.y >= offer.place.y - 1
+			and pl.x + pl.w <= offer.place.x + offer.place.w + 1
+			and pl.y + pl.h <= offer.place.y + offer.place.h + 1,
+			"an offered card must stay inside its zone, card " .. i)
+		assert(math.abs(pl.w - first.w) < 0.01 and math.abs(pl.h - first.h) < 0.01,
+			"cards in one row are one size, card " .. i)
+		if pl.y > first.y + 1 then rows = math.max(rows, math.floor((pl.y - first.y) / (pl.h + 4)) + 1) end
+	end
+	assert(rows > 1, "forty-one cards across one line is the fault this replaced")
+	-- Measured against the line it replaced rather than against a pixel count, so
+	-- the floor means the same thing at any window size.
+	local wire = offer.place.w / #offer.cards
+	assert(first.w > wire * 2, ("a drafted chip is %.1fpx wide against a wire's %.1f"):format(first.w, wire))
+
+	-- And the short question is unchanged: what fits on one line stays on one
+	-- line, because one line is among the shapes the arithmetic tries.
+	for i = #offer.cards, 4, -1 do zones.move_card(offer.cards[i], box.id) end
+	render.sync_places()
+	local y = entity.get(offer.cards[1]).place.y
+	for _, cid in ipairs(offer.cards) do
+		assert(math.abs(entity.get(cid).place.y - y) < 0.01, "three cards belong on one line")
+	end
+end
+
 -- A bump is a displacement laid over a card standing still: the rules put it
 -- somewhere and it stays there, so the rect the renderer asks for moves and
 -- nothing else does. It also has to settle back to exactly where it started,

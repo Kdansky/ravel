@@ -585,8 +585,12 @@ def zones():
         {"key": "controls", "layout": "grid", "use": "abilities", "grid": [5, 1],
          "pos": [0.808, 0.463, 0.995, 0.537]},
         # The roster is the injected offer, positioned rather than declared: ten
-        # characters wants more of the screen than a choice between two.
-        {"key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.30, 0.94, 0.70]},
+        # characters wants more of the screen than a choice between two. Nearly
+        # the whole screen, because the widest question this game asks is the
+        # bank draft \u2014 forty-one chip plates at once, which needs the height to
+        # wrap into a block rather than a wire. The margins are what the prompt
+        # above and the "No choice" button below stand in.
+        {"key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.18, 0.94, 0.82]},
         {"key": "box", "layout": "stack", "visibility": "secret", "display": "offscreen"},
         # Every Puzzle chip plate that is not in the bank. Hidden, because it is
         # forty-one plates and nobody needs them on the table \u2014 the draft opens

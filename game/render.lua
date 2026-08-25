@@ -477,27 +477,31 @@ local function card_places(zone_e)
 	-- without this a hand told you what it was only while it was empty, which
 	-- is exactly when there is least to work out.
 	local head   = zone_e.label and love.graphics.getFont():getHeight() + 3 * S or 0
-	local card_h = p.h - pad * 2 - head
-	local card_w = card_h / CARD_RATIO
 	local gap    = 4 * S
-	local needed = n * card_w + (n - 1) * gap
-	if needed > p.w - pad * 2 then
-		card_w = (p.w - pad * 2 - (n - 1) * gap) / n
-		card_h = card_w * CARD_RATIO
+	local room_w = p.w - pad * 2
+	local room_h = p.h - pad * 2 - head
+	-- One line for as long as one line reads, then more lines rather than
+	-- narrower cards. A row is the layout that promises every card shows its
+	-- text, and forty-one chips across a strip are 23px of picture each, which
+	-- is a promise broken quietly. One line is among the shapes tried, so the
+	-- winner is never smaller than the single line would have been.
+	local cols, card_h = n, 0
+	for c = 1, n do
+		local r = math.ceil(n / c)
+		local h = math.min((room_h - (r - 1) * gap) / r, (room_w - (c - 1) * gap) / c * CARD_RATIO)
+		if h > card_h then cols, card_h = c, h end
 	end
-	-- Centred, not left-aligned. A row that fills its zone looks the same
-	-- either way; a row that does not — two choices on a menu built for eight —
-	-- looks deliberate one way and abandoned the other.
-	local row  = n * card_w + (n - 1) * gap
-	local left = p.x + (p.w - row) / 2
+	local card_w = card_h / CARD_RATIO
+	local rows   = math.ceil(n / cols)
+	local top    = p.y + head + (p.h - head - (rows * card_h + (rows - 1) * gap)) / 2
 	local places = {}
 	for i = 1, n do
-		places[i] = {
-			x = left + (i - 1) * (card_w + gap),
-			y = p.y + head + (p.h - head - card_h) / 2,
-			w = card_w,
-			h = card_h,
-		}
+		local col, row = (i - 1) % cols, math.floor((i - 1) / cols)
+		-- Every line centred on its own count, so eleven above three reads as a
+		-- block with a short last line rather than as a block hanging off the left.
+		local wide = math.min(cols, n - row * cols)
+		local left = p.x + (p.w - (wide * card_w + (wide - 1) * gap)) / 2
+		places[i] = { x = left + col * (card_w + gap), y = top + row * (card_h + gap), w = card_w, h = card_h }
 	end
 	return places
 end
