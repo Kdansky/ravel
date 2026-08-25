@@ -249,6 +249,10 @@
   "on_enter": [
    "action strings run when the turn *begins* here, as against \"actions\", which run every time the phase is entered. A turn begins on an arrival from another phase, and on a loop that hands the turn on \u2014 both are the same moment, and a draft that passes round the table by looping must not skip it. What it is not is a loop that keeps the same player, which is the case the split exists for: a counter reset belongs here, since running it again on the way round would undo the turn it was counting, and a number recomputed from the board belongs in \"actions\". Runs after the seat has moved, so \"mine\" is the player about to act, and before \"actions\". A phase nothing leads back to has only one kind of entry, and writing on_enter on one is refused."
   ],
+      "emits": {
+        "begin": "the verb this phase announces when it begins, or a list of them \u2014 beside \"actions\", which is what it *does* when it begins. Announcing is what makes a moment answerable, and a phase was the one moment nothing could announce: a turn beginning caused nothing, so \"at the start of your turn\" had nowhere to be said and every rule that wanted it settled for a worse moment. The subject is the player card of whoever the phase belongs to, so a reaction reads @event as whose turn it is and \"whose\": \"mine\" means what it means everywhere else. Nothing is deferred \u2014 a phase has no action list waiting on the answer \u2014 so the announcement goes up, the phase carries on, and whatever answers resolves beside it.",
+        "end": "the verb this phase announces as it hands over, the same way. This is \"at the end of your turn\": written on the last phase of a turn, it is the moment a chip that pays out at end of turn has been waiting for. It fires as the phase leaves, beside the hand it discards, so a reaction to it acts once that phase is over."
+      },
       "next": [
         {
           "when": "the condition deciding whether this route is taken, written as one string \u2014 \"count:king@taken >= 1\". One comparison, a subject on the left and a number or another subject on the right. See _conditions.",

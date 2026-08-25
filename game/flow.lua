@@ -338,8 +338,30 @@ local function discard_hand(ph)
 	if n > 0 then log.add("Discarded " .. n .. " unplayed") end
 end
 
+-- A phase announcing itself. The two moments a phase already has: "begin",
+-- beside the actions it runs on the way in, and "end", beside the hand it
+-- discards on the way out.
+--
+-- The subject is the player card of whoever the phase belongs to, so a reaction
+-- reads @event as *whose* turn ended — which is the only question anybody asks
+-- about a phase — and "whose": "mine" means what it means everywhere else.
+--
+-- Nothing is deferred, because a phase has no action list waiting on the
+-- answer: the announcement goes up, the phase carries on, and whatever answers
+-- it resolves on the other side. "At the end of your turn" is a rule about a
+-- moment that has passed, which is exactly how it reads at a table.
+local function announce(pd, moment)
+	local verbs = pd and pd.emits and pd.emits[moment]
+	if not verbs then return end
+	local pl = player()
+	for _, verb in ipairs(verbs) do
+		M.emit(verb, pl and { pl.id } or {}, nil, pl and pl.id or nil, nil)
+	end
+end
+
 phase.on_leave = function(pd)
 	if pd.tags_set and pd.tags_set.discard_hand then discard_hand(pd) end
+	announce(pd, "end")
 end
 
 -- A full round completed: each card on a grid zone runs its on_turn actions.
@@ -427,6 +449,7 @@ function M.settle()
 				if phase.take_fresh() then
 					if phase.arrived() then actions.run(cur.on_enter, {}) end
 					actions.run(cur.actions, {})
+					announce(cur, "begin")
 				end
 				-- The actions may have pushed an overlay (a revealed page):
 				-- advance only once this phase is back on top.
@@ -465,6 +488,7 @@ function M.settle()
 				-- "mine" here is the player about to act; the hand is dealt after,
 				-- so a phase can draw into the hand it is about to deal.
 				actions.run(cur.actions, {})
+				announce(cur, "begin")
 				deal(cur)
 			elseif cur and cur.ends_when and cur.type ~= "overlay"
 				and predicate.holds(cur.ends_when, {}) then

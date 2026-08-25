@@ -270,6 +270,22 @@ and keeps the prompt from being evidence about a hidden hand.
 every existing game). An interjected phase counts as `waiting`, because a phase
 pushed for the answering seat is part of resolving the record that opened it.
 
+**What may answer whom** is one word on the reaction, `whose`, in the scope
+grammar's own vocabulary: `enemy` (the default), `mine`, `anyone`. It is not
+what makes the protocol terminate — that is `re_answered`, which lets one card
+answer one record once. An answer is a *new* record with its own memory, so a
+chain gets longer rather than going round, and the only shape that can still run
+away — a mandatory board reaction answering the verb answers themselves go up as
+— hits `STACK_LIMIT`, is marked as having had its go, and unwinds.
+
+**A phase announces itself** through the same `emits` a card carries, keyed by
+the two hooks a phase already had: `begin` beside the actions it runs on entry,
+`end` beside the hand it discards on the way out. Nothing is deferred, because a
+phase has no action list waiting on the answer. This is the only announcement in
+the engine that nobody caused, and it is what "at the end of your turn" is made
+of: the subject is the player card of whoever the phase belongs to, so `whose`
+and `@event` read there exactly as they do anywhere else.
+
 ## Extending the engine
 
 **An optional layer with its own vocabulary**: declare the words in actions.lua

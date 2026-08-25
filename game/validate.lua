@@ -164,7 +164,7 @@ local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
 	draw = true, zone = true, pass_card = true, next = true,
 	ends_after = true, ends_when = true, injected = true, tags = true, tags_set = true,
-	seat = true, on_enter = true,
+	seat = true, on_enter = true, emits = true,
 	-- derived: "zone" normalised to a list (declaration.parse)
 	zone_list = true,
 }
@@ -753,7 +753,7 @@ function M.check(G)
 	-- whenever a card is put up to be answered; the rest are collected below, from
 	-- what cards and tags emit and from every emit: action walked.
 	local emitted_verbs = { play = true }
-	for _, defs in ipairs({ G.card_defs, tag_defs }) do
+	for _, defs in ipairs({ G.card_defs, tag_defs, G.phase_by_key }) do
 		for _, def in pairs(defs or {}) do
 			for _, verbs in pairs(type(def) == "table" and def.emits or {}) do
 				for _, v in ipairs(type(verbs) == "table" and verbs or {}) do emitted_verbs[v] = true end

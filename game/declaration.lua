@@ -209,18 +209,30 @@ end
 -- action away from it. Beside them, it composes: a card keeps its own play and
 -- gains the tag's word for it.
 local EMIT_MOMENTS = { play = true, activate = true }
+-- A phase announces itself too, and for the same reason a card does: a rule that
+-- happens *at* a moment needs a moment to happen at. Everything else in this
+-- engine is caused by somebody — a card played, an ability used, an action that
+-- emits — and a phase beginning or ending is caused by nobody, so "at the end of
+-- your turn" had nowhere to be said and every rule that wanted it settled for a
+-- worse moment. These are the two hooks a phase already had: "begin" beside the
+-- actions it runs on the way in, "end" beside the hand it discards on the way out.
+local PHASE_EMIT_MOMENTS = { begin = true, ["end"] = true }
 
-local function emits_of(def, pp, where)
+local function emits_of(def, pp, where, moments)
+	moments = moments or EMIT_MOMENTS
 	if def.emits == nil then return nil end
 	if type(def.emits) ~= "table" then
 		pp[#pp + 1] = where .. ': "emits" says when as well as what, like { "play": "cast" }'
 		return nil
 	end
+	local named = {}
+	for m in pairs(moments) do named[#named + 1] = '"' .. m .. '"' end
+	table.sort(named)
 	local out = {}
 	for moment, v in pairs(def.emits) do
-		if not EMIT_MOMENTS[moment] then
+		if not moments[moment] then
 			pp[#pp + 1] = ("%s: emits at '%s', which is not a moment that can be answered"
-				.. " — the engine announces \"play\" and \"activate\""):format(where, tostring(moment))
+				.. " — it announces %s"):format(where, tostring(moment), table.concat(named, " and "))
 		else
 			local verbs = {}
 			for _, verb in ipairs(type(v) == "table" and v or { v }) do
@@ -648,6 +660,7 @@ function M.parse(filename)
 				G.phase_list[#G.phase_list + 1] = pd.key
 			end
 			pd.tags_set = tag_set(pd.tags)
+			pd.emits = emits_of(pd, pp, "phase '" .. tostring(pd.key) .. "'", PHASE_EMIT_MOMENTS)
 			-- draw_and_play is shorthand: play once, discard the rest, advance.
 			if pd.type == "draw_and_play" then
 				if pd.ends_after == nil then pd.ends_after = 1 end

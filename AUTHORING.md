@@ -1796,6 +1796,45 @@ the one that remembers. Opt-in — leave it out and the action list is answerabl
 for its own card, as before. It is run as the card's **owner**, so `mine` means
 whose card it is and not whoever answered.
 
+#### A phase announces itself
+
+Everything else here is caused by somebody: a card is played, an ability is
+used, an action emits. **A phase beginning and ending is caused by nobody**, so
+it announced nothing — and *"at the end of your turn"*, which half the ongoing
+effects in every deck-builder are written as, had nowhere to be said.
+
+A phase says it the same way a card does, with the two moments it already has:
+
+```json
+{ "key": "cleanup", "type": "automatic",
+  "emits": { "end": "turn_end" },
+  "next": [{ "then": "handover", "ends_round": true }] }
+```
+
+| Moment | Fires |
+|---|---|
+| `begin` | every time the phase is entered, beside the `actions` it runs there |
+| `end` | as it hands over, beside the hand it discards there |
+
+**The subject is the player card of whoever the phase belongs to**, so a
+reaction reads `@event` as whose turn it is, and `whose: "mine"` means what it
+means everywhere else — which is how *"at the end of **your** turn"* is written:
+
+```json
+"reactions": [
+  { "to": "turn_end", "whose": "mine", "forced": "mandatory", "from": "board",
+    "action": ["draw_from:mine.bag:mine.hand:1"] }
+]
+```
+
+Nothing is deferred: a phase has no action list waiting on the answer, so the
+announcement goes up, the phase carries on, and whatever answers it resolves
+beside it. That is how the sentence reads at a table — the turn is over, and
+*then* the thing that triggers on it happens.
+
+Filter A applies as it does everywhere: a game that writes `emits` on every
+phase and holds no reaction to any of them pays exactly nothing for it.
+
 #### `emit:` — announcing something that is not a card being played
 
 A crash, a summon, a purchase:
