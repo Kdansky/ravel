@@ -15,6 +15,7 @@ sourcing. Nothing here invents a number.
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
+import guard
 
 # key, label, one-letter shorthand, plate colour, HUD icon, icon colour.
 # The icons are named by *shape*, not by meaning, so each gem gets a different
@@ -624,7 +625,9 @@ def build(here):
 
 if __name__ == "__main__":
     here = os.path.dirname(os.path.abspath(__file__))
-    out = os.path.join(here, "..", "game", "games", "splendor.json")
+    out = guard.destination(os.path.join(here, "..", "game", "games", "splendor.json"))
+    if out is None:
+        sys.exit(1)
     with open(out, "w", encoding="utf-8") as f:
         f.write(jsonfmt.dump(build(here)))
     print("wrote", os.path.relpath(out, os.path.join(here, "..")))

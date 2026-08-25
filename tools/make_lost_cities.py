@@ -12,6 +12,7 @@ Everything structural lives here in one readable place; the output is data.
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
+import guard
 
 # The fourth entry is the placeholder-art palette name. Note that the art is
 # *decoration that happens to agree* with the rules — the engine reads
@@ -367,7 +368,9 @@ def build():
 
 if __name__ == "__main__":
     root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-    path = os.path.join(root, "game", "games", "lost_cities.json")
+    path = guard.destination(os.path.join(root, "game", "games", "lost_cities.json"))
+    if path is None:
+        sys.exit(1)
     with open(path, "w", encoding="utf-8") as f:
         f.write(jsonfmt.dump(build()))
     print("wrote", os.path.relpath(path, root))

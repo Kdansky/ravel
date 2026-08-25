@@ -15,6 +15,7 @@ evenly — ten each and ten tricks, with no odd card left in a hand.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
+import guard
 
 # key, printed name, palette colour, suit number. Rocket is a suit like any
 # other, because it is one: led first, it must be followed (rules.md §2 step 4).
@@ -466,7 +467,9 @@ def build():
 
 if __name__ == "__main__":
     here = os.path.dirname(os.path.abspath(__file__))
-    out = os.path.join(here, "..", "game", "games", "the_crew.json")
+    out = guard.destination(os.path.join(here, "..", "game", "games", "the_crew.json"))
+    if out is None:
+        sys.exit(1)
     with open(out, "w", encoding="utf-8") as f:
         f.write(jsonfmt.dump(build()))
     print("wrote", os.path.relpath(out, os.path.join(here, "..")))
