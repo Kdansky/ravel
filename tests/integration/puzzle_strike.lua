@@ -250,6 +250,34 @@ function M.test_puzzle_strike_pick_your_poison_asks_the_other_seat(check)
 	check("and priority came home", zones.active_seat() == "south", zones.active_seat())
 end
 
+-- Panda's Bargain, whole: "at the end of any turn you bought a Puzzle chip, +1
+-- chip". Two halves and two reactions — the buy is what it watches for, the turn
+-- ending is when it pays — with a stat carrying the answer between them, because
+-- an event knows what it is and not what came before it.
+function M.test_puzzle_strike_pandas_bargain_pays_at_the_end_of_the_turn(check)
+	opening(7)
+	local pb = zones.add(zone_of("hand", "south"), "pandas_bargain")
+	seat_card("south").stats.act_brown = 1
+	check("it is laid out", flow.play_card(pb.id, {}))
+	check("and it is on the table in front of them",
+		find_in("ongoing", "pandas_bargain", "south") ~= nil)
+
+	-- Buy a Puzzle chip, which is what it is watching for.
+	actions.run({ "next_phase" }, {})
+	seat_card("south").stats.money = 9
+	local held = count_in("hand", "south")
+	flow.activate(find_in("bank", "stack_draw_three").id, {})
+	check("nothing is owed until the turn is over", count_in("hand", "south") == held,
+		count_in("hand", "south"))
+
+	-- End the turn. The chip is owed now.
+	local bag = count_in("bag", "south")
+	flow.activate(find_in("controls", "end_turn").id, {})
+	check("the turn changed hands", zones.active_seat() == "north", zones.active_seat())
+	check("and the bargain paid its chip on the way out",
+		count_in("hand", "south") == 6, count_in("hand", "south"))
+end
+
 -- The ante is mandatory and it lands in the gem pile rather than the deck,
 -- which is the structural fact easiest to get wrong when modelling this off
 -- Dominion: the two piles never mix.

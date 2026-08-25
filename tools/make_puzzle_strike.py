@@ -330,7 +330,7 @@ TEXT = {
                     "\u2014 OR \u2014 you ante a 2-gem.",
                     None, {"react": 1}),
     "hundred_fist": ("Ongoing: After you red-attack, you may crash a gem in your gem pile. Discard if an opponent skips his action phase.",
-     "the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase going by announces nothing, so there is no moment to hang it on.",
+     "the crash after your own attack is built. \"Discard if an opponent skips his action phase\" is not: a phase *going by* announces its own beginning and end, not what somebody declined to do inside it.",
      {}),
     "improvisation": ("Main: +2 chips. Discard 2 drawn and play the other drawn chips. "
                       "Reaction: After you're red-attacked, you may play a chip as if it were your turn.",
@@ -482,7 +482,7 @@ TEXT = {
     "living_on_the_edge": ("If your gem pile totals at least 10, +3 chips, +1 action.", None,
                            {"plus_act": 1, "plus_draw": 3}),
     "pandas_bargain": ("Ongoing: At the end of any turn you bought a Puzzle chip, +1 chip. Discard this when you buy a purple.",
-     "the chip comes as you buy the Puzzle chip rather than at the end of the turn — a turn ending announces nothing, so there is no later moment to hang it on.",
+     None,
      {'plus_draw': 1}),
     "jackpot": ("Reveal two chips at random from chosen opponent's hand. If any are gems, +$1 and +1 action. If both are purples, play and gain a purple from the bank.",
      "pays the gem half unconditionally. A random reveal is built now (\"show:random.enemy.hand\"), but it shows one card and nothing branches on what came up, which is the rest of the chip.",
@@ -707,6 +707,7 @@ def stats():
         player("combined", None, None, hidden=True),
         player("extra", None, None, hidden=True),
         player("picked", None, None, hidden=True),
+        player("owed", None, None, hidden=True),
         # On the chips rather than on a seat: a gem says what it is worth, a
         # bank plate says how many are left, and neither is a HUD row.
         #
@@ -977,7 +978,7 @@ def puzzle_cards():
          "abilities": [{"key": "upkeep", "text": "Secret Move",
                         "action": ["stat_gain:piggy@mine.player:1"]}],
          # It watches its *own* controller, which is what "whose": "mine" is for.
-         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "ongoing",
                         "where": ["tagged:purple@event >= 1"],
                         "action": [], "spent": "mine.discard"}],
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1038,7 +1039,7 @@ def puzzle_cards():
          "reactions": [{"to": "attack", "text": "Choose one",
                         "action": ["options:ef_trash,ef_ante"], "spent": "mine.discard"}]},
         {"key": "hundred_fist", **shape("hundred_fist", "brown"), "play": ongoing_play(),
-         "reactions": [{"to": "attack", "whose": "mine", "from": "board",
+         "reactions": [{"to": "attack", "whose": "mine", "from": "ongoing",
                         "text": "Crash a gem of your own",
                         "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
                                    "owner": "mine", "count": 1},
@@ -1382,10 +1383,17 @@ def character_chips():
          # It watches its own controller buying, which "whose": "mine" is for. The
          # chip comes as the purchase is made rather than at the end of the turn:
          # a turn ending announces nothing, so there is no later moment to hang it on.
+         # Two halves, and they are two reactions: the buy is what it watches for
+         # and the turn ending is when it pays. A stat carries the answer from one
+         # to the other, because an event knows what it is and not what came before.
          "play": ongoing(),
-         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "ongoing",
                         "where": ["tagged:puzzle_stack@event >= 1"],
-                        "action": ["draw_from:mine.bag:mine.hand:1"]}]},
+                        "action": ["stat_set:owed@mine.player:1"]},
+                       {"to": "turn_end", "whose": "mine", "forced": "mandatory", "from": "ongoing",
+                        "when": ["owed@mine.player >= 1"],
+                        "action": ["draw_from:mine.bag:mine.hand:1",
+                                   "stat_set:owed@mine.player:0"]}]},
         {"key": "jackpot", "text": "Jackpot", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:white",
          "tooltip": "Reveal two chips at random from a chosen opponent's hand and take what they turn out to be worth. Reading somebody else's hand is not built.",
@@ -1710,7 +1718,10 @@ def phases():
                      "activate_zone:rules_height",
                      "activate_zone:rules_piggy"],
          "next": [{"then": "cleanup_draw"}]},
-        {"key": "cleanup_draw", "type": "automatic",
+        # The last thing a turn does, so this is the moment "at the end of your
+        # turn" means. It announces on the way out rather than on the way in,
+        # because a chip that pays out then is owed it once the hand is redrawn.
+        {"key": "cleanup_draw", "type": "automatic", "emits": {"end": "turn_end"},
          "actions": ["move:mine.hand:mine.discard",
                      "draw_from:mine.bag:mine.hand:sum:to_draw@mine.player"],
          "next": [{"when": "sum:value@mine.gem_pile >= %d" % LOSE_AT, "then": "defeat"},
