@@ -32,7 +32,7 @@ local MOMENTS = {
 	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
 		action = "on_play", spent = "spent" },
 	activate  = { cost = "activate_cost", target = "activate_target", phases = "activate_phases",
-		action = "on_activate", moves = "moves" },
+		action = "on_activate", moves = "moves", merge = "activate_merge" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts", action = "on_receive" },
 	turn      = { action = "on_turn" },
@@ -62,9 +62,14 @@ local function normalise_moves(moves)
 	return out
 end
 
+-- "merge" says what this ability does when it meets the others on the same
+-- card: "both" (the default — a card can do two things and the player is asked
+-- which), "this" (mine alone, the rest of the card goes quiet) or "other" (mine
+-- only when the card offers nothing else). A word rather than a flag, for the
+-- same reason "whose" is one below: three readings do not fit in a yes or no.
 local ABILITY_FIELDS = { key = true, text = true, tooltip = true, asset = true,
 	cost = true, target = true, phases = true, action = true, moves = true,
-	when = true, compute = true }
+	when = true, compute = true, merge = true }
 
 -- Every activated ability a card has, as one list, whether it wrote one
 -- (`activate`) or several (`abilities`). Downstream never asks which form was
@@ -107,13 +112,13 @@ local function abilities_of(def, pp, where)
 					tooltip = a.tooltip, asset = a.asset,
 					cost = a.cost, target = target, phases = a.phases,
 					action = a.action, moves = rules,
-					when = a.when, compute = a.compute }
+					when = a.when, compute = a.compute, merge = a.merge }
 			end
 		end
 	elseif def.on_activate then
 		out[1] = { key = "activate", text = def.text, cost = def.activate_cost,
 			target = def.activate_target, phases = def.activate_phases,
-			action = def.on_activate, moves = def.move_rules }
+			action = def.on_activate, moves = def.move_rules, merge = def.activate_merge }
 	end
 	return out
 end

@@ -206,4 +206,102 @@ function M.test_abilities_a_cards_own_tag_gives_it_one(check)
 	end)
 end
 
+-- "merge": what an ability says when it meets the others on the same card.
+--
+-- Adding is the default and stays it — that is the rook above, which can be
+-- taken *and* moved. A shop is the case that wants the old substituting
+-- behaviour back: a chip lying in the bank is merchandise, and its own upkeep
+-- ability paying out on a click is money from the shop window. The word is on
+-- the ability rather than on the zone because a card's own tag needs it too —
+-- "this card's abilities do not work" is the same conflict with no zone in it.
+local SHOP = [==[{
+  "title": "Merge",
+  "zones": [
+    { "key": "shop", "layout": "grid", "use": "abilities", "grid": [2, 2], "applies": ["for_sale"],
+      "pos": [0.02, 0.02, 0.3, 0.4] },
+    { "key": "yard", "layout": "grid", "use": "abilities", "grid": [2, 2], "applies": ["odd_job"],
+      "pos": [0.35, 0.02, 0.3, 0.4] },
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2], "applies": ["takeable"],
+      "pos": [0.68, 0.02, 0.3, 0.4] },
+    { "key": "hand", "layout": "row", "pos": [0.02, 0.5, 0.96, 0.2] }],
+  "phases": [{ "key": "turn", "type": "player_input" }],
+  "tags": {
+    "for_sale": { "abilities": [
+      { "key": "buy", "text": "Buy it", "merge": "this", "action": ["stat_gain:bought@self:1"] }] },
+    "odd_job": { "abilities": [
+      { "key": "scrap", "text": "Scrap it", "merge": "other", "action": ["stat_gain:scrapped@self:1"] }] },
+    "takeable": { "abilities": [
+      { "key": "take", "text": "Take it", "action": ["move_to:hand"] }] }
+  },
+  "cards": [
+    { "key": "widget", "text": "Widget", "card_stats": { "ticks": 0, "bought": 0, "scrapped": 0 },
+      "abilities": [{ "key": "tick", "text": "Tick", "action": ["stat_gain:ticks@self:1"] }] },
+    { "key": "brick", "text": "Brick", "card_stats": { "scrapped": 0 } }
+  ],
+  "setup": { "place": [
+    { "card": "widget", "zone": "shop", "at": ["a1"] },
+    { "card": "widget", "zone": "yard", "at": ["a1"] },
+    { "card": "widget", "zone": "board", "at": ["a1"] },
+    { "card": "brick", "zone": "yard", "at": ["b1"] }
+  ] }
+}]==]
+
+local function with_shop(fn)
+	local path = "game/games/tmp_merge.json"
+	local f = assert(io.open(path, "w"))
+	f:write(SHOP)
+	f:close()
+	local ok, err = pcall(fn, "tmp_merge.json")
+	os.remove(path)
+	if not ok then error(err, 0) end
+end
+
+local function in_zone(zone_key, def_key)
+	local z = zones.find(zone_key)
+	for _, id in ipairs(z and z.cards or {}) do
+		local e = entity.get(id)
+		if e.def_key == def_key then return e end
+	end
+end
+
+local function ability_keys(e)
+	local out = {}
+	for _, a in ipairs(cards.abilities(e)) do out[#out + 1] = a.key end
+	return out
+end
+
+-- The bank case. The same card, in three zones, is three different offers.
+function M.test_abilities_merge_this_silences_the_cards_own(check)
+	with_shop(function(name)
+		flow.init(name, 3)
+		local shelf = ability_keys(in_zone("shop", "widget"))
+		check("merchandise is only merchandise: the shop's ability, and nothing else",
+			#shelf == 1 and shelf[1] == "buy", table.concat(shelf, ", "))
+
+		local out = ability_keys(in_zone("board", "widget"))
+		check("the same card elsewhere keeps both, because adding is still the default",
+			#out == 2 and out[1] == "tick" and out[2] == "take", table.concat(out, ", "))
+
+		-- Precedence is settled in cards.abilities, before anything asks what is
+		-- affordable — so a shopper with no money still sees a shop and not a
+		-- card with a spare ability going free.
+		check("and the chooser has nothing to ask about in the shop",
+			#flow.usable_abilities(in_zone("shop", "widget").id) == 1)
+	end)
+end
+
+-- The understudy. It plays only when the card has nothing else to say.
+function M.test_abilities_merge_other_yields_to_anything_else(check)
+	with_shop(function(name)
+		flow.init(name, 3)
+		local w = ability_keys(in_zone("yard", "widget"))
+		check("a card with its own ability never offers the fallback",
+			#w == 1 and w[1] == "tick", table.concat(w, ", "))
+
+		local b = ability_keys(in_zone("yard", "brick"))
+		check("a card with nothing of its own does, or the zone said nothing at all",
+			#b == 1 and b[1] == "scrap", table.concat(b, ", "))
+	end)
+end
+
 return M

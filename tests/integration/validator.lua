@@ -562,4 +562,74 @@ function M.test_every_action_declares_its_argument_shape(check)
 		table.concat(unspecced, ", "))
 end
 
+-- "merge" is a word, not a flag, so a word nobody defined has to be caught:
+-- reading an unknown one as the default would hide the typo behind behaviour
+-- that looks deliberate.
+function M.test_validator_refuses_a_merge_it_does_not_know(check)
+	local path = "game/games/tmp_merge_typo.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Merge typo",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "thing", "text": "Thing",
+			"abilities": [{ "key": "go", "merge": "mine", "action": ["next_phase"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_merge_typo.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	check("it says which three words there are",
+		has_problem(validate.check(G), 'merge is "both"'),
+		table.concat(validate.check(G), "; "))
+end
+
+-- Two abilities each demanding the other go quiet is not a precedence rule but
+-- the absence of one. Reported rather than resolved, exactly as two tags
+-- granting one field are: inventing a winner hides the mistake.
+function M.test_validator_catches_two_abilities_claiming_merge_this(check)
+	local path = "game/games/tmp_merge_clash.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Merge clash",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"tags": { "loud": { "abilities": [
+			{ "key": "shout", "merge": "this", "action": ["next_phase"] }] } },
+		"cards": [{ "key": "thing", "text": "Thing", "tags": ["loud"],
+			"abilities": [{ "key": "go", "merge": "this", "action": ["next_phase"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_merge_clash.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	check("the card's own and its keyword's are named as the pair",
+		has_problem(validate.check(G), 'both say merge "this"'),
+		table.concat(validate.check(G), "; "))
+end
+
+-- A zone hands out everything it names at once, so the same contradiction can
+-- be written across two tags that never meet on a card.
+function M.test_validator_catches_a_zone_granting_two_merge_this(check)
+	local path = "game/games/tmp_merge_zone.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Merge zone",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2],
+			"applies": ["shop", "vault"] }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"tags": {
+			"shop":  { "abilities": [{ "key": "buy",  "merge": "this", "action": ["next_phase"] }] },
+			"vault": { "abilities": [{ "key": "lock", "merge": "this", "action": ["next_phase"] }] } },
+		"cards": [{ "key": "thing", "text": "Thing", "action": ["next_phase"] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_merge_zone.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	check("the zone is told it would hand a card two whole answers",
+		has_problem(validate.check(G), 'both say merge "this"'),
+		table.concat(validate.check(G), "; "))
+end
+
 return M

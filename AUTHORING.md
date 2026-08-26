@@ -1687,6 +1687,41 @@ ability has not changed their mind about the card.
 grants an ability used to hide whatever the card could already do; now a card
 that can move and is handed "take me" can do both, and is asked which.
 
+### `merge` — what an ability says to the others on its card
+
+Adding is right far more often than not, but not always. A shop is the case that
+wants substituting back: a chip lying in the bank is *merchandise*, and its own
+upkeep ability paying out on a click is money from the shop window. So an
+ability may say what it does when it meets the others:
+
+| `merge` | |
+|---|---|
+| `both` | the default, and what every ability said before this existed: added to whatever else the card can do, and the player is asked which |
+| `this` | mine alone — everything else the card offers goes quiet |
+| `other` | the understudy: mine only when the card offers nothing else |
+
+```json
+"tags": {
+  "for_sale": { "abilities": [
+    { "key": "buy", "text": "Buy it", "merge": "this",
+      "cost": { "money": 3 }, "action": ["gain:widget:1"] }] }
+},
+"zones": [{ "key": "shop", "layout": "grid", "use": "abilities", "applies": ["for_sale"] }]
+```
+
+**The word is on the ability, not on the zone that granted it.** The zone's whole
+say is naming the tag in `applies`; what applying it *means* belongs to the tag,
+and a card's own tag needs the same word — "this card's abilities do not work" is
+the same conflict with no zone anywhere in it.
+
+**It is settled before anything asks what is usable**, so it says what a card *is*
+where it lies rather than what it can afford this instant: merchandise stays
+merchandise to a player with no money, instead of turning back into a card with a
+spare ability going free.
+
+Two abilities both claiming `this` is a contradiction — each wants the other
+silent — and the validator refuses it rather than picking a winner.
+
 ### `when` — an ability with an if in it
 
 `phases` and `cost` say whether a **player** may use an ability. `when` says

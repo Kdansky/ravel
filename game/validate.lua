@@ -124,7 +124,7 @@ local CARD_FIELDS = {
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	activate_cost = true, activate_target = true,
-	activate_phases = true, on_activate = true, moves = true,
+	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
 	accepts = true, on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
@@ -138,7 +138,7 @@ local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
 	action = true, spent = true }
 local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
-	moves = true }
+	moves = true, merge = true }
 local RECEIVE_FIELDS   = { needs = true, action = true }
 local TURN_FIELDS      = { action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
@@ -195,7 +195,7 @@ local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = t
 	abilities = true, emits = true,
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
-	activate_phases = true, moves = true,
+	activate_phases = true, activate_merge = true, moves = true,
 	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it
 -- overwritten and no error — which is the shape of bug that costs an afternoon,
@@ -299,7 +299,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	-- flattened out of the moment blocks by declaration.parse, never authored
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	activate_cost = true, activate_target = true,
-	activate_phases = true, on_activate = true, moves = true,
+	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
 	zone_list = true, auto_play = true, to_zone = true, to_slot = true }
@@ -1063,6 +1063,12 @@ function M.check(G)
 				end
 			end
 		end
+		-- What this ability says when it meets the others on the same card.
+		if ab.merge ~= nil and ab.merge ~= "both" and ab.merge ~= "this" and ab.merge ~= "other" then
+			warn('%s: merge is "both" (the default — the player is asked which), "this" (mine alone) '
+				.. 'or "other" (mine only when the card offers nothing else), not \'%s\'',
+				where, tostring(ab.merge))
+		end
 		check_conditions(where .. " when", ab.when, bound)
 		check_target(where, "target", ab.target)
 		check_moves(where, ab.moves)
@@ -1217,7 +1223,10 @@ function M.check(G)
 			-- Abilities are the exception, and the only one: two answers is
 			-- exactly what they are for. A card that can already do something
 			-- and is handed another thing can do both, and the player is asked
-			-- which — where a granted ability used to hide the card's own.
+			-- which — where a granted ability used to hide the card's own. An
+			-- ability that means to hide it says so, in "merge", and is checked
+			-- where the abilities are rather than here among the fields that
+			-- have no precedence rule at all.
 			--
 			-- "play" is the second exception, and unlike abilities it *does* have
 			-- a precedence rule: the card's own wins and the tag fills in for the
@@ -1723,6 +1732,32 @@ function M.check(G)
 			end
 		end
 
+		-- Everything this card carries wherever it lies: its own abilities and
+		-- its keywords'. Two of them claiming "this" is two abilities each saying
+		-- the other should go quiet, which is not a precedence rule but the
+		-- absence of one. What a *zone* hands it is not counted — nothing says
+		-- which zones a card may lie in, so that pairing is only knowable as the
+		-- game runs, and the engine lets both through rather than picking.
+		local sole
+		local function claims(list, from)
+			for _, ab in ipairs(type(list) == "table" and list or {}) do
+				if type(ab) == "table" and ab.merge == "this" then
+					if sole then
+						warn("%s: %s and %s both say merge \"this\" — each wants the other silent, "
+							.. "and only one of them can be the card's whole answer",
+							where, sole, from .. " '" .. tostring(ab.key) .. "'")
+					else
+						sole = from .. " '" .. tostring(ab.key) .. "'"
+					end
+				end
+			end
+		end
+		claims(def.abilities, "its ability")
+		for _, t in ipairs(type(def.tags) == "table" and def.tags or {}) do
+			local td = tag_defs[t]
+			if type(td) == "table" then claims(td.abilities, "the tag '" .. tostring(t) .. "' ability") end
+		end
+
 		-- Placement: where does this card go? Its tags may disagree (a
 		-- conflict), or nothing may say (ambiguous once there are several
 		-- boards).
@@ -1791,6 +1826,13 @@ function M.check(G)
 			if def.activate.action == nil then
 				warn('%s: has an "activate" block with no action — nothing would happen', where)
 			end
+			-- A zone has one ability and nothing to meet, so precedence between
+			-- abilities is a card's word. Refused rather than ignored: a field
+			-- that quietly does nothing is worse than one that is not allowed.
+			if def.activate.merge ~= nil then
+				warn('%s: says "merge" on its own ability, which only settles precedence '
+					.. "between the several a card can have", where)
+			end
 		end
 		if def.copies == "per_seat" then
 			local seats = #(G.seat_list or {})
@@ -1851,6 +1893,9 @@ function M.check(G)
 			if type(def.applies) ~= "table" then
 				warn('%s: applies should be a list of tag names like ["takeable"]', where)
 			else
+				-- A zone hands out every tag it names at once, so two of them
+				-- claiming "this" is the same contradiction a card's own two are.
+				local sole
 				for _, tag in ipairs(def.applies) do
 					if G.computed_tags[tag] then
 						warn("%s: hands out '%s', which is a computed tag — those are "
@@ -1858,6 +1903,17 @@ function M.check(G)
 					elseif not tag_defs[tag] and not card_tags[tag] and not M.ENGINE_TAGS[tag] then
 						warn("%s: hands out '%s', which nothing defines or reads%s",
 							where, tostring(tag), suggest(tag, known_tags))
+					end
+					local td = tag_defs[tag]
+					for _, ab in ipairs(type(td) == "table" and type(td.abilities) == "table" and td.abilities or {}) do
+						if type(ab) == "table" and ab.merge == "this" then
+							if sole then
+								warn("%s: hands out '%s' and '%s', and both say merge \"this\" — "
+									.. "a card lying here would be handed two whole answers", where, sole, tostring(tag))
+							else
+								sole = tostring(tag)
+							end
+						end
 					end
 				end
 			end

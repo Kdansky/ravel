@@ -121,6 +121,7 @@
         "action": [
           "action strings run when the card is clicked on the board. Being spent is a cost, not a consequence: an ability exhausts its card only if its cost says so."
         ],
+        "merge": "what this ability says when it meets the others on the same card. \"both\" (the default) adds it to whatever else the card can do and the player is asked which \u2014 a rook lying in a discard pile can be taken *and* still moved. \"this\" is mine alone: everything else the card offers goes quiet, which is what a shop wants, since a chip lying in the bank is merchandise and its own ability paying out on a click is money from the shop window. \"other\" is the understudy \u2014 mine only when the card offers nothing else. Written on the ability rather than on the zone that granted it, because a card's own tag needs the same word: \"this card's abilities do not work\" is the same conflict with no zone in it. Two abilities claiming \"this\" is a contradiction the validator refuses.",
         "moves": [
           "how a piece moves on a grid: pattern names, or rules carrying their own fill and needs. Declaring this writes the activate target for you, so clicking the piece opens targeting."
         ]
@@ -141,6 +142,7 @@
           "action": [
             "what this ability does. @self is the card carrying it, even when a chooser was shown in between."
           ],
+          "merge": "what this ability says when it meets the others on the same card. \"both\" (the default) adds it to whatever else the card can do and the player is asked which \u2014 a rook lying in a discard pile can be taken *and* still moved. \"this\" is mine alone: everything else the card offers goes quiet, which is what a shop wants, since a chip lying in the bank is merchandise and its own ability paying out on a click is money from the shop window. \"other\" is the understudy \u2014 mine only when the card offers nothing else. Written on the ability rather than on the zone that granted it, because a card's own tag needs the same word: \"this card's abilities do not work\" is the same conflict with no zone in it. Two abilities claiming \"this\" is a contradiction the validator refuses.",
           "moves": ["how a piece moves, if this ability is a move"]
         }
       ],
