@@ -270,6 +270,16 @@ and keeps the prompt from being evidence about a hidden hand.
 every existing game). An interjected phase counts as `waiting`, because a phase
 pushed for the answering seat is part of resolving the record that opened it.
 
+**It walks the responders twice, forced first and all of them.** A trigger is
+not the seat's to decline, so a pass does not silence it and a card standing
+ahead of it in the list cannot spend its turn: one fires per step and `settle`
+comes straight back for the next, which is how a record with three answers owed
+runs all three. Only then are the questions asked, and only the optional ones —
+a forced reaction that cannot fire is not a question, and offering it as one is
+how a trigger got lost. That is what `forced_verdict` is for: `fire` on its own,
+`ask` when it has to be aimed after all, `no` when the loose reading found a
+card that is not really where it could answer from.
+
 **What may answer whom** is one word on the reaction, `whose`, in the scope
 grammar's own vocabulary: `enemy` (the default), `mine`, `anyone`. It is not
 what makes the protocol terminate — that is `re_answered`, which lets one card

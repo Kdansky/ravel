@@ -1414,20 +1414,35 @@ function M.counterspell()
 	zones.destroy_card(answered.id)
 end
 
+-- What the window does when it reaches a forced reaction: "fire" on its own,
+-- "ask" after all, or "no" — stand aside and let the window carry on past it.
+--
+-- The three are separate because only the middle one is a question, and treating
+-- the last one as a question is how a trigger got lost. `responders` reads
+-- *loosely* — a card face down in a bag might be the same card in a hand, and
+-- opening on what is publicly possible is what keeps a prompt from being
+-- evidence. A forced reaction fires by itself and leaks nothing either way, so a
+-- maybe-there one is not a question: it is nothing, and asking the seat about it
+-- spends the answer they had not been offered yet.
+local function forced_verdict(top, r)
+	local c = entity.get(r.card)
+	if not reactions.matches(r.reaction, c, top.re_subject, true) then return "no" end
+	if not M.can_afford(r.reaction.cost, { card_id = r.card }) then return "no" end
+	-- A forced reaction that has to be aimed is a question after all, so it is
+	-- offered like any other rather than the engine choosing a target.
+	if r.reaction.target and select(1, targeting.bounds(r.reaction.target)) > 0 then return "ask" end
+	return "fire"
+end
+
 -- A forced reaction is not a question: it fires the moment it matches, and only
 -- its own cost and "when" can stop it. Magic's mandatory triggered ability, and
 -- the reason "forced" is an enum rather than a boolean: "you may" and "it must"
 -- are both triggered abilities, and the difference is all this field says.
 --
 -- Fired here rather than through M.react, which checkpoints and settles — this
--- runs inside settle already. One thing it declines to do on its own: a reaction
--- that has to be aimed is a question after all, so it is offered like any other
--- rather than the engine choosing a target for the player.
+-- runs inside settle already. Its verdict is `forced_verdict`'s, asked first.
 local function fire_forced(z, top, r)
 	local c = entity.get(r.card)
-	if not reactions.matches(r.reaction, c, top.re_subject, true) then return false end
-	if not M.can_afford(r.reaction.cost, { card_id = r.card }) then return false end
-	if r.reaction.target and select(1, targeting.bounds(r.reaction.target)) > 0 then return false end
 	pay(r.reaction.cost, { card_id = r.card })
 	log.add(((cards.def(c) or {}).text or c.def_key) .. " triggers")
 	local rec = push_event(z, "play", r.reaction.action, { r.card }, top.re_subject, {},
@@ -1467,21 +1482,46 @@ function M.react_step()
 	end
 	local top = entity.get(top_id)
 	-- Anyone who may still answer this top: a responder that answers this seat's
-	-- announcements at all ("whose"), has not passed on it, and has not already
-	-- answered it. The last of those three is what makes "everyone passed" a
-	-- state that arrives — one card, one answer, per record — and it is what
-	-- lets a reaction answer its own controller without the two of them going
-	-- back and forth forever.
-	for _, r in ipairs(reactions.responders(top.re_verb, top.re_subject)) do
-		if reactions.answers_seat(r.reaction, r.seat, top.re_actor)
+	-- announcements at all ("whose") and has not already answered it. The second
+	-- is what makes "everyone passed" a state that arrives — one card, one
+	-- answer, per record — and it is what lets a reaction answer its own
+	-- controller without the two of them going back and forth forever.
+	local responders = reactions.responders(top.re_verb, top.re_subject)
+
+	-- **Every forced reaction, before any question.** A trigger is not the
+	-- seat's to decline, so passing does not silence it and a card standing
+	-- ahead of it in the list cannot spend its turn. One fires per step and
+	-- settle comes straight back for the next, which is what queues them: an
+	-- announcement with three answers owed runs all three rather than one and a
+	-- shrug. As that seat, because it costs them and acts on their cards.
+	for _, r in ipairs(responders) do
+		if r.reaction.forced == "mandatory"
+			and reactions.answers_seat(r.reaction, r.seat, top.re_actor)
+			and not has_answered(top, r.card) then
+			local verdict = forced_verdict(top, r)
+			if verdict == "ask" then
+				react_priority(r.seat)
+				return "waiting"
+			elseif verdict == "fire" then
+				react_priority(r.seat)
+				-- A refused fire is the stack at its limit. It has been marked as
+				-- having had its go, so the window moves past it rather than
+				-- burning settle's budget on the record it just failed on.
+				if fire_forced(z, top, r) then return "resolved" end
+			end
+		end
+	end
+
+	-- Then the questions, and those a seat may decline for the whole record.
+	-- Nothing forced is left to ask about: the pass above either fired it, asked
+	-- for it and returned, or found it was never there. A forced reaction is not
+	-- a question, so it must not be offered as one here either — offering it is
+	-- what let a card that could not answer eat the seat's answer.
+	for _, r in ipairs(responders) do
+		if r.reaction.forced ~= "mandatory"
+			and reactions.answers_seat(r.reaction, r.seat, top.re_actor)
 			and not top.re_passed[r.seat] and not has_answered(top, r.card) then
 			react_priority(r.seat)
-			-- Forced first, and as that seat: it costs them and acts on their
-			-- cards, so priority has to have moved before it fires. A forced one
-			-- that cannot pay falls through and the seat is asked as usual, which
-			-- is the honest answer — it did not fire, and they may still have
-			-- something else.
-			if r.reaction.forced == "mandatory" and fire_forced(z, top, r) then return "resolved" end
 			return "waiting"
 		end
 	end

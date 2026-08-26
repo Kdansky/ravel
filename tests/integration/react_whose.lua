@@ -65,6 +65,16 @@ local GAME = [==[{
       "reactions": [
         { "to": "play", "whose": "anyone", "forced": "mandatory", "from": "board",
           "action": ["stat_gain:landed@mine.player:1"] }
+      ] },
+    { "key": "bell", "text": "Bell", "tags": ["engine"],
+      "reactions": [
+        { "to": "cast", "whose": "anyone", "forced": "mandatory", "from": "board",
+          "action": ["stat_gain:landed@mine.player:1"] }
+      ] },
+    { "key": "chime", "text": "Chime", "tags": ["engine"],
+      "reactions": [
+        { "to": "cast", "whose": "anyone", "forced": "mandatory", "from": "board",
+          "action": ["stat_gain:landed@mine.player:1"] }
       ] }
   ]
 }]==]
@@ -228,12 +238,56 @@ function M.test_whose_a_reaction_answering_its_own_answer_is_bounded(check)
 
 		flow.play_card(siren.id, {})
 		check("it stopped rather than hanging", stack_count() <= 32, stack_count())
-		-- At the limit the trigger is marked as having had its go, so the seat is
-		-- asked as usual and a single pass unwinds the whole chain.
-		check("the seat is asked rather than the game hanging", flow.pass_react())
+		-- At the limit the trigger is marked as having had its go, and a trigger
+		-- that cannot fire is not a question — so nobody is asked and the chain
+		-- unwinds on its own rather than waiting for a pass it never earned.
+		check("nothing is left to answer", flow.pending_event() == nil)
 		check("and the stack unwound", stack_count() == 0, stack_count())
 		check("with the echo having fired all the way down",
 			seat("one").stats.landed > 1, seat("one").stats.landed)
+	end)
+end
+
+-- Two triggers owed on one announcement, and both are owed. The window used to
+-- take the first responder it found and stop there, so the second was thrown
+-- away with the record — one answer per announcement however many were due.
+function M.test_whose_every_forced_reaction_on_one_record_fires(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local bell = give("two", "bell")
+		local chime = give("two", "chime")
+		zones.move_card(bell.id, zones.find_id("board"))
+		zones.move_card(chime.id, zones.find_id("board"))
+		local bolt = give("one", "bolt")
+
+		flow.play_card(bolt.id, {})
+		check("both triggers paid", seat("two").stats.landed == 2, seat("two").stats.landed)
+		check("and the announcement still resolved", seat("one").stats.landed == 1,
+			seat("one").stats.landed)
+		check("with nothing left on the stack", stack_count() == 0, stack_count())
+	end)
+end
+
+-- A trigger is not the seat's to decline, so passing does not silence it. The
+-- pass is about the questions, and a forced reaction was never one.
+function M.test_whose_passing_does_not_silence_a_forced_reaction(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		-- A copy face down in a hand, made *first*, so it stands ahead of the real
+		-- one in the responder list. The window opens on what is publicly possible
+		-- — a hand and the bag behind it are one place from across the table — so
+		-- this copy is a candidate and cannot actually answer. It used to take the
+		-- seat's turn to answer with it, and a single pass then covered both.
+		give("two", "bell")
+		local out = give("two", "bell")
+		zones.move_card(out.id, zones.find_id("board"))
+		local bolt = give("one", "bolt")
+
+		flow.play_card(bolt.id, {})
+		check("the one really in play fired", seat("two").stats.landed == 1,
+			seat("two").stats.landed)
+		check("nobody was left holding a question", flow.pending_event() == nil)
+		check("and the bolt landed", seat("one").stats.landed == 1, seat("one").stats.landed)
 	end)
 end
 
