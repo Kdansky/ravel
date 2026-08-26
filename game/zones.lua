@@ -426,6 +426,17 @@ end
 function M.move_card(card_id, to_id, where)
 	local c  = entity.get(card_id)
 	local to = entity.get(to_id)
+	-- **Into a supply, a card stops being one.** A stock counts rather than
+	-- keeps, so putting a gem back in the box is the number going up and the
+	-- gem going away — which is what "the cards in it are interchangeable"
+	-- means from the other direction. Written here rather than only in `add` so
+	-- that every way of moving a card lands right: a draw, a return_to, a rule
+	-- that sends what it trashes to the box.
+	if c and to and to.status == "supply" then
+		local key = c.def_key
+		M.destroy_card(card_id)
+		return M.add(to, key) ~= nil
+	end
 	-- A full board refuses new arrivals (checked before any mutation, so a
 	-- refused move leaves the card exactly where it was).
 	if not c or not to or not M.has_room(to) then return false end

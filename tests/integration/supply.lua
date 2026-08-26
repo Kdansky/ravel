@@ -28,6 +28,7 @@ local GAME = [==[{
   "players": [{ "card": "one" }],
   "stats": [
     { "key": "coin", "min": 0, "max": 99, "on": ["player"], "start": 5, "label": "Coin" },
+    { "key": "price", "min": 0, "max": 99, "label": "Price" },
     { "key": "stock", "min": 0, "max": 99, "label": "Left" }],
   "zones": [
     { "key": "shop", "layout": "grid", "grid": [3, 1], "status": "supply", "use": "abilities",
@@ -39,14 +40,14 @@ local GAME = [==[{
   "tags": {
     "for_sale": { "abilities": [
       { "key": "buy", "text": "Buy it", "merge": "this",
-        "cost": { "coin@mine.player": 1, "stock@self": 1 },
+        "cost": { "coin@mine.player": "price@self", "stock@self": 1 },
         "action": ["fill:mine.hand:@self:1"] }] }
   },
   "cards": [
     { "key": "one", "text": "One" },
-    { "key": "gem", "text": "Gem", "tags": ["thing", "gem"], "card_stats": { "value": 1 } },
-    { "key": "relic", "text": "Relic", "tags": ["thing", "relic"], "card_stats": { "value": 5 } },
-    { "key": "idol", "text": "Idol", "tags": ["thing", "relic"], "card_stats": { "value": 9 } }
+    { "key": "gem", "text": "Gem", "tags": ["thing", "gem"], "card_stats": { "value": 1, "price": 1 } },
+    { "key": "relic", "text": "Relic", "tags": ["thing", "relic"], "card_stats": { "value": 5, "price": 3 } },
+    { "key": "idol", "text": "Idol", "tags": ["thing", "relic"], "card_stats": { "value": 9, "price": 3 } }
   ],
   "setup": { "place": [{ "card": "idol", "zone": "table", "at": ["a1"] }] }
 }]==]
@@ -179,6 +180,32 @@ function M.test_supply_an_empty_shelf_is_still_something(check)
 		check("so it can be counted", predicate.total("count:relic@shop", {}) == 1)
 		check("and it cannot be bought", not flow.activate(shelf("relic").id, {}, 1))
 		check("while its neighbour still can", flow.activate(shelf("gem").id, {}, 1))
+	end)
+end
+
+-- A shared buy cannot type a price: the ability lives on the tag the zone hands
+-- out, and every shelf wants a different number. So the cost is measured off the
+-- card being bought, which is the same "price@self" a rule elsewhere already
+-- reads to say "costing one more than the chip you trashed".
+function M.test_supply_a_shared_buy_prices_itself_off_the_shelf(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local seat
+		for e in entity.each("card") do if e.def_key == "one" then seat = e end end
+		check("the purse opens at five", seat.stats.coin == 5)
+
+		check("a gem costs its own one", flow.activate(shelf("gem").id, {}, 1))
+		check("and one is what was paid", seat.stats.coin == 4, tostring(seat.stats.coin))
+
+		check("a relic costs its own three", flow.activate(shelf("relic").id, {}, 1))
+		check("and three is what was paid", seat.stats.coin == 1, tostring(seat.stats.coin))
+
+		-- The refusal is the half that matters: a measured cost that could not be
+		-- afforded has to fail the same way a typed one does.
+		check("with one coin left the relic refuses", not flow.activate(shelf("relic").id, {}, 1))
+		check("and its stock is untouched", shelf("relic").stats.stock == 1,
+			tostring(shelf("relic").stats.stock))
+		check("while the gem still sells", flow.activate(shelf("gem").id, {}, 1))
 	end)
 end
 

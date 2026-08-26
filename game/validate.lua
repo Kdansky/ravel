@@ -695,8 +695,21 @@ function M.check(G)
 				-- A cost's subjects may carry a scope, but not a measuring fn.
 				subject_ok(where, key, false)
 			end
-			if type(v) ~= "number" then
-				warn("%s: the value of '%s' should be a number", where, tostring(key))
+			if type(v) == "string" then
+				-- Measured rather than typed: the amount is read off the board when
+				-- the cost is judged. Checked as the subject it is; a bare word
+				-- would otherwise read as a stat worth nothing and quietly make the
+				-- whole thing free.
+				if tonumber(v) then
+					warn('%s: the value of \'%s\' is the text "%s" rather than the number %s — '
+						.. "a quoted amount is read as a subject to measure, and measures nothing",
+						where, tostring(key), v, v)
+				else
+					subject_ok(where, v, true)
+				end
+			elseif type(v) ~= "number" then
+				warn("%s: the value of '%s' should be a number, or a subject to measure it by",
+					where, tostring(key))
 			elseif v < 0 then
 				warn("%s: '%s' is negative — costs and requirements must be zero or more",
 					where, tostring(key))

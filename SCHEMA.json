@@ -112,7 +112,7 @@
       },
       "activate": {
         "cost": {
-          "<stat key, sacrifice:tag, or exhaust>": "number paid when the ability is used, same rules as play.cost. \"exhaust\": 1 is MTG's tap symbol — the ability spends the card being ready, so it may be used once a round and a card already spent cannot pay it. An ability that does not charge it stays available. Only an activate cost may ask for it."
+          "<stat key, sacrifice:tag, or exhaust>": "number paid when the ability is used, same rules as play.cost. It may be a subject instead of a number, measured when the cost is judged \u2014 \"price@self\" is a shop whose buy lives on the tag its zone hands out and so cannot type a price. A compute the ability bound before it ran stands here too, which is where a price with something taken off it is said, since a compute has arithmetic a cost has no room for. \"exhaust\": 1 is MTG's tap symbol — the ability spends the card being ready, so it may be used once a round and a card already spent cannot pay it. An ability that does not charge it stays available. Only an activate cost may ask for it."
         },
         "target": "the same shape as play.target, for the board ability rather than the play",
         "phases": [

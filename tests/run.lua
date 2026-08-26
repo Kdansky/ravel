@@ -1097,7 +1097,7 @@ check("a typo'd section name is reported", has_problem(bp, "templats"))
 check("duplicate keys are reported as conflicts", has_problem(bp, "share the key 'dagger'") and has_problem(bp, "share the key 'gold'"))
 check("an unknown card field suggests the right one", has_problem(bp, "did you mean 'on_play'"))
 check("an unknown stat suggests the right one", has_problem(bp, "did you mean 'gold'"))
-check("a non-number cost value is explained", has_problem(bp, "'gold' should be a number"))
+check("a quoted number in a cost is explained", has_problem(bp, 'is the text "2" rather than the number 2'))
 check("a lone string instead of an action list is explained", has_problem(bp, "list of actions"))
 -- A phase's type is one word out of a list long enough to want a guess. A
 -- zone's layout is one of four, so the parse error names all four rather than

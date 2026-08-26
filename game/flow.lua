@@ -640,7 +640,14 @@ local function plan(cost, ctx)
 	local demands = {}
 	for subject, n in pairs(cost or {}) do
 		if subject ~= "exhaust" and not subject:match("^sacrifice:") then
-			local need = tonumber(n) or 0
+			-- **A cost may be measured rather than typed.** A shop whose buy lives
+			-- on the tag its zone hands out cannot write a number: the price is
+			-- on the chip, and the ability is shared by everything on the shelf.
+			-- Read through the same total() a condition uses, so a compute an
+			-- ability bound before it ran stands here too — which is how a price
+			-- with something taken off it is said, since a compute has the
+			-- arithmetic a cost has no room for.
+			local need = tonumber(n) or predicate.total(tostring(n), ctx)
 			local p    = predicate.parse_subject(subject)
 			-- Only a pool takes part in the matching. "each" asks a different
 			-- question — *every* member paying, not a total — and substituting

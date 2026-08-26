@@ -1058,9 +1058,17 @@ apart would find out there is only one.
 **Buying is a cost and a fill, not a draw:**
 
 ```json
-{ "key": "buy", "cost": { "coin@mine.player": 1, "stock@self": 1 },
+{ "key": "buy", "cost": { "coin@mine.player": "price@self", "stock@self": 1 },
   "action": ["fill:mine.discard:@self:1"] }
 ```
+
+**A cost amount may be measured rather than typed.** A shared buy cannot write a
+number — the ability lives on the tag the zone hands out, and every shelf wants a
+different one — so it reads the price off the card being bought. Any subject
+works, and so does a `compute` the ability bound before it ran, which is where a
+price with something taken off it is said: a compute has the arithmetic a cost
+has no room for. A *quoted* number (`"3"`) is refused rather than read, since it
+measures nothing.
 
 The shelf card never moves. `stock@self` running out is what makes a sold-out
 stack refuse, with no rule written for it. Drawing *from* a supply is refused by
