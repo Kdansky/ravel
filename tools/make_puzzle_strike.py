@@ -303,8 +303,12 @@ TEXT = {
                   {"plus_act": 1, "hits": 1}),
     "master_puzzler": ("Choose any number of different non-gem, non-Puzzle chips in the bank. "
                        "Play them, gain them, then end your action phase.",
-                       "it ends your action phase and trashes itself. \"Play them\" would be copy:, but the bank "
-                       "holds plates rather than chips and there is no instance to copy.",
+                       "one chip is gained off the shelf, and it ends your action phase and trashes itself. Two things are short "
+                       "of the print. \"Any number of different\" is one, because an offer takes one answer. And they are gained "
+                       "rather than played: these four are the purples and Wound, whose plays resolve a challenge, and a "
+                       "challenge's pass is an ordinary action list that moves the card it belongs to — which would drag the shelf "
+                       "out of the bank. copy: promises not to move a card; it cannot promise that about what the card's own rules "
+                       "do once they are running.",
                        {}),
     "mix_master": ("Split the largest gem in each opposing gem pile into that many 1-gems, then combine two "
                    "gems in your gem pile.",
@@ -376,8 +380,9 @@ TEXT = {
                        "targets alongside them.",
                        {"plus_act": 3}),
     "option_select": ("Play this as if it were any bank chip of cost 5 or less, then trash this chip.",
-                      "not playable. copy: runs a card's action list, and the bank holds plates rather than "
-                      "chips \u2014 there is no instance of the thing being copied.",
+                      "built whole, now that the bank holds chips and not plates: the shelf comes up as an offer, and copy: runs "
+                      "what the chosen chip does. A copy carries no targets, so a chip that waits to be aimed — a Crash Gem — is "
+                      "played and goes off at nothing.",
                       {}),
     "ouch": ("Ante a 1-gem into each opposing gem pile. Then each opponent trashes a Combine from his discard "
              "pile, discards a chip, and gains a wound. Once-per-turn.",
@@ -518,7 +523,11 @@ TEXT = {
      {'plus_act': 1, 'plus_piggy': 1}),
 
     "wartime_tactics": ("Reveal a Puzzle chip from your hand or discard pile, then play and trash a different Puzzle chip from the bank costing the same or less.",
-     "the revealed chip stays in your hand and its price is handed over as money, so the ordinary price of every pile does the gating. You gain the bank chip rather than playing and trashing it: the bank holds plates, and there is no instance to copy.",
+     "built, now that the bank holds chips: the revealed chip stays in your hand, its price is written on the "
+     "clock rather than into your purse, and the shelf it may reach is gated on that number. The bank chip is "
+     "played and the stack pays one for it, which is what trashing it comes to. \"A different Puzzle chip\" is not "
+     "said — nothing compares a pick against an earlier one — and the reveal is from your hand only, since a "
+     "discard is a stack and a stack offers its top card.",
      {}),
     "double_slash": ("Crash exactly two 1-gems. (You don't get +$1.)", None, {}),
     "riposte": ("Main: +1 action, piggy bank. Reaction: After you're red-attacked, return a chip from your discard pile to your hand.",
@@ -1097,8 +1106,19 @@ def puzzle_cards():
                       "set_priority:enemy.player", "show:mine.hand"]),
          "chosen": {"action": ["move_target_to:mine.discard", "clear_priority"]}},
         {"key": "master_puzzler", **shape("master_puzzler", "brown"),
+         # "Non-gem, non-Puzzle in the bank" is the three purples and Wound, and
+         # the two not_tagged conditions are how the sentence is said.
+         #
+         # Gained but not played. Copying one of these would be copy: on a card
+         # whose play is a challenge, and a challenge's pass is an ordinary action
+         # list that moves the card it belongs to — which drags the shelf out of
+         # the bank. copy: promises not to move a card; it cannot promise that
+         # about what the card's own rules do once they are running.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["next_phase"], "spent": "void"}},
+                  "action": ["show:bank:optional"], "spent": "void"},
+         "chosen": {"where": ["not_tagged:gem@target >= 1", "not_tagged:puzzle@target >= 1"],
+                    "action": ["fill:mine.discard:@target:1",
+                               "stat_damage:stock@target:1", "next_phase"]}},
         {"key": "mix_master", **shape("mix_master", "red"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(own_gems, count=2),
@@ -1196,9 +1216,15 @@ def puzzle_cards():
          "play": act(["stat_gain:act_brown@mine.player:1", "stat_gain:act_red@mine.player:1",
                       "stat_gain:act_blue@mine.player:1"])},
         # No play at all, and that is the honest shape: copy: needs a card to
-        # copy and the bank holds plates. A chip you cannot pick up is exactly
-        # what Wound is, and this says why in its tooltip.
-        {"key": "option_select", **shape("option_select", None)},
+        # The bank holds chips now, so there is an instance to copy at last. It
+        # comes up as an offer rather than as a target because nothing may point
+        # at a supply — an offer borrows the real card, which is exactly what
+        # copy: needs and exactly what a target could never get.
+        {"key": "option_select", **shape("option_select", None),
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "action": ["show:bank:optional"], "spent": "void"},
+         "chosen": {"where": ["sum:price@target <= 5"],
+                    "action": ["copy:target:play"]}},
         {"key": "ouch", **shape("ouch", "red"),
          "play": act(["fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"]
                      + gain_wound("enemy"))},
@@ -1591,13 +1617,20 @@ def character_chips():
         {"key": "wartime_tactics", "text": "Wartime Tactics", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:orange",
          # Revealed, not spent: the chip stays in hand and only its price is
-         # read, which is what turns "costing the same or less" into money.
+         # read. The number goes on the clock rather than into the purse, because
+         # the bank chip is played now rather than bought, and the player's own
+         # money has no business being spent on saying so.
+         #
+         # Two picks on one card: the reveal is the target, the bank chip is the
+         # offer the action opens. "@target" means the pick once the offer is up,
+         # which is why the price had to be written down first.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["puzzle"]),
-                  "action": ["stat_set:money@mine.player:sum:price@target",
-                             "stat_set:buys@mine.player:1",
-                             "push_phase:react_buy"],
-                  "spent": "mine.table"}},
+                  "action": ["stat_set:shown@clock:sum:price@target", "show:bank:optional"],
+                  "spent": "mine.table"},
+         "chosen": {"where": ["tagged:puzzle@target >= 1",
+                              "sum:price@target <= shown@clock"],
+                    "action": ["copy:target:play", "stat_damage:stock@target:1"]}},
         {"key": "double_slash", "text": "Double Slash", "tags": ["chip", "character", "purple"],
          "asset": "circle:orange",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -2022,7 +2055,7 @@ def button_cards():
 def other_cards():
     return [
         {"key": "clock", "text": "The bank", "tags": ["clock", "immutable"],
-         "card_stats": {"panic": 0, "to_pick": 0}},
+         "card_stats": {"panic": 0, "to_pick": 0, "shown": 0}},
         {"key": "game_over", "text": "The gem pile filled up",
          "story": "A gem pile reached ten at the end of its owner's turn, and that is the game. "
                   "Whoever kept theirs lower wins.",

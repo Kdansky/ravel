@@ -451,7 +451,7 @@
       "key": "clock",
       "text": "The bank",
       "tags": ["clock", "immutable"],
-      "card_stats": { "panic": 0, "to_pick": 0 }
+      "card_stats": { "panic": 0, "to_pick": 0, "shown": 0 }
     },
     {
       "key": "game_over",
@@ -935,10 +935,14 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["next_phase"],
+        "action": ["show:bank:optional"],
         "spent": "void"
       },
-      "tooltip": "Choose any number of different non-gem, non-Puzzle chips in the bank. Play them, gain them, then end your action phase.\n\nDEV: it ends your action phase and trashes itself. \"Play them\" would be copy:, but the bank holds plates rather than chips and there is no instance to copy.",
+      "chosen": {
+        "where": ["not_tagged:gem@target >= 1", "not_tagged:puzzle@target >= 1"],
+        "action": ["fill:mine.discard:@target:1", "stat_damage:stock@target:1", "next_phase"]
+      },
+      "tooltip": "Choose any number of different non-gem, non-Puzzle chips in the bank. Play them, gain them, then end your action phase.\n\nDEV: one chip is gained off the shelf, and it ends your action phase and trashes itself. Two things are short of the print. \"Any number of different\" is one, because an offer takes one answer. And they are gained rather than played: these four are the purples and Wound, whose plays resolve a challenge, and a challenge's pass is an ordinary action list that moves the card it belongs to — which would drag the shelf out of the bank. copy: promises not to move a card; it cannot promise that about what the card's own rules do once they are running.",
       "card_stats": { "price": 12 }
     },
     {
@@ -1377,7 +1381,14 @@
       "text": "Option Select",
       "tags": ["chip", "trashable", "puzzle", "option_select"],
       "asset": "polygon:6:slate",
-      "tooltip": "Play this as if it were any bank chip of cost 5 or less, then trash this chip.\n\nDEV: not playable. copy: runs a card's action list, and the bank holds plates rather than chips — there is no instance of the thing being copied.",
+      "play": {
+        "phases": ["action"],
+        "cost": { "acts@mine.player": 1 },
+        "action": ["show:bank:optional"],
+        "spent": "void"
+      },
+      "chosen": { "where": ["sum:price@target <= 5"], "action": ["copy:target:play"] },
+      "tooltip": "Play this as if it were any bank chip of cost 5 or less, then trash this chip.\n\nDEV: built whole, now that the bank holds chips and not plates: the shelf comes up as an offer, and copy: runs what the chosen chip does. A copy carries no targets, so a chip that waits to be aimed — a Crash Gem — is played and goes off at nothing.",
       "card_stats": { "price": 6 }
     },
     {
@@ -2314,14 +2325,14 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["puzzle"], "zones": ["hand"], "count": 1, "owner": "anyone" },
-        "action": [
-          "stat_set:money@mine.player:sum:price@target",
-          "stat_set:buys@mine.player:1",
-          "push_phase:react_buy"
-        ],
+        "action": ["stat_set:shown@clock:sum:price@target", "show:bank:optional"],
         "spent": "mine.table"
       },
-      "tooltip": "Reveal a Puzzle chip from your hand or discard pile, then play and trash a different Puzzle chip from the bank costing the same or less.\n\nDEV: the revealed chip stays in your hand and its price is handed over as money, so the ordinary price of every pile does the gating. You gain the bank chip rather than playing and trashing it: the bank holds plates, and there is no instance to copy."
+      "chosen": {
+        "where": ["tagged:puzzle@target >= 1", "sum:price@target <= shown@clock"],
+        "action": ["copy:target:play", "stat_damage:stock@target:1"]
+      },
+      "tooltip": "Reveal a Puzzle chip from your hand or discard pile, then play and trash a different Puzzle chip from the bank costing the same or less.\n\nDEV: built, now that the bank holds chips: the revealed chip stays in your hand, its price is written on the clock rather than into your purse, and the shelf it may reach is gated on that number. The bank chip is played and the stack pays one for it, which is what trashing it comes to. \"A different Puzzle chip\" is not said — nothing compares a pick against an earlier one — and the reveal is from your hand only, since a discard is a stack and a stack offers its top card."
     },
     {
       "key": "double_slash",

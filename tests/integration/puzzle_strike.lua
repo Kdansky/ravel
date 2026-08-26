@@ -1228,6 +1228,7 @@ function M.test_puzzle_strike_double_take_plays_a_chip_twice_and_trashes_it(chec
 		held .. " -> " .. count_in("hand", "south"))
 	check("the copied chip was trashed", entity.get(bot.id).zone_id == nil
 		or entity.get(bot.id).zone_id == zones.find_id("void"))
+	check("the bank kept every stack", count_in("bank") == 18, count_in("bank"))
 	check("and the action phase is over", phase.current().key ~= "action", phase.current().key)
 end
 
@@ -1417,8 +1418,9 @@ function M.test_puzzle_strike_bonecracker_takes_only_the_largest_gem(check)
 		count_in("discard", "north", "gem_3"))
 end
 
--- Into Oblivion reaches the bank, which nothing may point at: a plate is
--- "immutable" — scenery — so the bank comes up as an offer instead.
+-- Into Oblivion reaches the bank, which nothing may point at: a supply's cards
+-- are stock, so one of them standing for a whole stack is out of every candidate
+-- list. The bank comes up as an offer instead, which borrows the real card.
 function M.test_puzzle_strike_into_oblivion_removes_a_bank_stack(check)
 	opening(7, "menelker", "jaina")
 	local io_ = find_in("hand", "into_oblivion", "south")
@@ -1428,11 +1430,87 @@ function M.test_puzzle_strike_into_oblivion_removes_a_bank_stack(check)
 
 	check("it opens the bank", flow.play_card(io_.id, {}) and count_in("options") == banked,
 		count_in("options") .. " of " .. banked)
-	check("a gem plate is not one of the answers",
+	check("a gem stack is not one of the answers",
 		not flow.play_card(find_in("options", "gem_1").id, {}))
 	flow.play_card(find_in("options", "draw_three").id, {})
 	check("the stack is out of the bank", count_in("bank") == banked - 1, count_in("bank"))
 	check("and back in the box", find_in("chip_box", "draw_three") ~= nil)
+end
+
+-- The three chips the plate made unbuildable. Every one of them failed on the
+-- same sentence — "the bank holds plates rather than chips and there is no
+-- instance to copy" — and the supply is what put an instance there.
+--
+-- All three reach it through an offer rather than a target, because nothing may
+-- point at a supply. An offer borrows the *real* card, which is exactly what
+-- copy: needs and exactly what a target could never have got.
+function M.test_puzzle_strike_option_select_plays_a_chip_off_the_shelf(check)
+	opening(7, "jaina", "setsuki")
+	local os_ = zones.add(zone_of("hand", "south"), "option_select")
+	seat_card("south").stats.acts = 3
+	local hand = count_in("hand", "south")
+
+	check("it opens the bank", flow.play_card(os_.id, {}) and count_in("options") > 0)
+	check("a 9-gem chip is over the five it allows",
+		not flow.play_card(find_in("options", "double_crash").id, {}))
+
+	local drawn = count_in("hand", "south")
+	flow.play_card(find_in("options", "draw_three").id, {})
+	check("the chip it copied did what it does", count_in("hand", "south") == drawn + 3,
+		count_in("hand", "south") .. " from " .. drawn)
+	check("nothing was gained: a copy is not a card",
+		count_in("discard", "south", "draw_three") == 0)
+	check("the stack is untouched", find_in("bank", "draw_three").stats.stock == 5,
+		find_in("bank", "draw_three").stats.stock)
+	check("and Option Select is out of the game", count_in("hand", "south") < hand + 3
+		and find_in("hand", "option_select", "south") == nil)
+end
+
+function M.test_puzzle_strike_master_puzzler_gains_a_purple_off_the_shelf(check)
+	opening(7, "jaina", "setsuki")
+	local mp = zones.add(zone_of("hand", "south"), "master_puzzler")
+	seat_card("south").stats.act_brown = 1
+	local stock = find_in("bank", "combine").stats.stock
+
+	check("it opens the bank", flow.play_card(mp.id, {}) and count_in("options") > 0)
+	check("a gem is not one of the answers",
+		not flow.play_card(find_in("options", "gem_1").id, {}))
+	check("nor is a Puzzle chip",
+		not flow.play_card(find_in("options", "draw_three").id, {}))
+
+	flow.play_card(find_in("options", "combine").id, {})
+	check("the purple is gained", count_in("discard", "south", "combine") == 1,
+		count_in("discard", "south", "combine"))
+	check("and the stack paid for it", find_in("bank", "combine").stats.stock == stock - 1,
+		find_in("bank", "combine").stats.stock .. " from " .. stock)
+	check("the bank kept every stack", count_in("bank") == 18, count_in("bank"))
+	check("and the action phase is over", phase.current().key ~= "action", phase.current().key)
+end
+
+function M.test_puzzle_strike_wartime_tactics_plays_what_it_can_afford(check)
+	opening(7, "onimaru", "jaina")
+	local wt = find_in("hand", "wartime_tactics", "south")
+		or zones.add(zone_of("hand", "south"), "wartime_tactics")
+	local cheap = zones.add(zone_of("hand", "south"), "draw_three")
+	seat_card("south").stats.act_brown = 1
+
+	-- Reveal a 3-cost chip, and the shelf it may play is gated on that number
+	-- rather than on the purse: the bank chip is played, not bought.
+	local purse = seat_card("south").stats.money or 0
+	check("revealing opens the bank", flow.play_card(wt.id, { cheap.id })
+		and count_in("options") > 0)
+	check("the purse was not touched", (seat_card("south").stats.money or 0) == purse)
+
+	check("a dearer Puzzle chip is refused",
+		not flow.play_card(find_in("options", "one_of_each").id, {}))
+	local stock = find_in("options", "draw_three").stats.stock
+	local drawn = count_in("hand", "south")
+	flow.play_card(find_in("options", "draw_three").id, {})
+	check("one costing the same is played", count_in("hand", "south") > drawn,
+		count_in("hand", "south") .. " from " .. drawn)
+	check("and trashed rather than gained",
+		count_in("discard", "south", "draw_three") == 0
+		and find_in("bank", "draw_three").stats.stock == stock - 1)
 end
 
 return M

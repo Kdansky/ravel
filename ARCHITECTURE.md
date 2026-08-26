@@ -296,6 +296,49 @@ the engine that nobody caused, and it is what "at the end of your turn" is made
 of: the subject is the player card of whoever the phase belongs to, so `whose`
 and `@event` read there exactly as they do anywhere else.
 
+## Supply zones — one card standing for a stock
+
+`status: "supply"` is the only place the engine keeps something the game file
+did not ask for and does not see. It is worth reading once, because the reason
+it is safe is not obvious from either end.
+
+**What the format promises.** A supply's cards are *interchangeable*. Sixty-four
+identical gems differ in nothing a rule may ask about, and the promise is
+enforced by `targeting.candidates`, which drops them the way it drops
+`immutable` scenery: **nothing may point at one.** That is the load-bearing
+part. A rule that could aim at a particular gem would be able to find out there
+is only one.
+
+**What the engine does with it.** `zones.add` counts instead of creating: the
+first card of a kind becomes the shelf's face card, stamped with a `stock` the
+game never declares, and every one after it is that number going up. `contents`
+of `["gem_1:64"]` therefore yields one entity, and so does `fill:bank:gem_1:8`
+and a rule putting a gem back in the box. `zones.move_card` funnels into the
+same place, so every route in lands right — and it reads the incoming card's own
+`stock` as its worth, because an offer borrows the *real* card and a stack lent
+to a question has to come home as deep as it left.
+
+**Three places a supply is not a zone like the others**, each found by pointing
+the word at a real game rather than a fixture:
+
+- **It is not in play.** `status` is not `board`, so bare tag scopes, `count:`,
+  `sacrifice:` and `on_turn` all walk past it. Name the zone to reach it —
+  `stock@bank.gem_1`, which is what the `<zone>.<tag>` scope is for.
+- **Its cards answer nothing.** `reactions.placed` refuses them outright.
+  Merchandise is not a card anybody is holding, and letting the shelves into the
+  responder list opened windows for shields nobody owned.
+- **Nothing is drawn out of one.** Taking from a supply would move the card
+  standing for the whole stock, so the validator refuses `draw_from`, and
+  `reach`/`refill_from` besides: a stock has no order to have a top or to run
+  out in. Buying is a `stock@self` cost beside a `fill:<somewhere>:@self`.
+
+**Why the face card is kept rather than dropped when the stock hits zero.** An
+empty shelf is what lets a game count how many stacks have run out —
+`count:spent@bank`, where `spent` is a computed tag over `stock`. An absence
+carries no tag, so a heap of real cards could never answer that. It is the
+reason both games that needed a supply reached for a counter card before the
+word existed.
+
 ## Extending the engine
 
 **An optional layer with its own vocabulary**: declare the words in actions.lua
