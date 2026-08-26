@@ -1033,6 +1033,27 @@ Note the default is `exile`, not `board`: a zone is inert until it says
 otherwise, so a forgotten word leaves a card unreachable rather than quietly
 countable.
 
+### `<zone>.<tag>` — one place, one kind
+
+A zone key may be narrowed by a tag written after it. It reads left to right,
+widest first — whose, where, which:
+
+```
+count:purple@enemy.hand    the purples in one opponent's hand
+sum:value@mine.hand.gem    what your gems in hand are worth
+destroy:mine.discard.wound every wound in your own discard pile
+```
+
+This is the search a bare tag refuses to do. A bare `count:gem` means the board,
+on purpose, so that most rules cannot read a hand they are not allowed to see;
+naming the zone is how a rule says it means to. It is also the pair a **target
+spec has always been able to write** — `"tags"` beside `"zones"` in the same
+block — so this is one question finally having one spelling rather than two.
+
+**Both halves must exist.** A zone that is not there answers nothing rather than
+falling back to the tag alone: a typo must not quietly widen a search. The
+validator names whichever half is wrong.
+
 ### `@everywhere` — every card, hands and decks included
 
 That board-only default is deliberate: most rules must not read a hand they

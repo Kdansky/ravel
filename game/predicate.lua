@@ -286,17 +286,34 @@ function M.entities_in_scope(scope, ctx, owner)
 			if occ then out[#out + 1] = entity.get(occ) end
 		end
 	else
+		-- "<zone>.<tag>" — the cards in one place that are also one kind. A target
+		-- spec has always been able to say this, with "zones" beside "tags"; a
+		-- scope could not, which was one question with two spellings. It narrows
+		-- left to right, widest first, exactly as "each.enemy.creature" does, and
+		-- it is what lets a rule reach inside a hand it may not otherwise read:
+		-- "count:purple@enemy.hand" is a sentence a scope could not say before.
+		--
+		-- Split structurally rather than by lookup, because parse_scope is pure
+		-- and the validator reads one with no game loaded. The zone comes first
+		-- because a place is the wider of the two, and a tag that happened to
+		-- name a zone would otherwise decide which reading a line got.
+		local place, kind = scope:match("^([%w_]+)%.([%w_]+)$")
 		-- A zone key reaches every instance of it — both arenas, not just the
 		-- active seat's. Narrowing to one is what the owner word is for, and a
 		-- set may be wide where a destination may not.
-		local instances = zones.all_with_key(scope)
+		local instances = zones.all_with_key(place or scope)
 		if #instances > 0 then
 			for _, z in ipairs(instances) do
 				for _, id in ipairs(z.cards) do
 					local e = entity.get(id)
-					if e then out[#out + 1] = e end
+					if e and (kind == nil or tags.entity_has(e, kind)) then out[#out + 1] = e end
 				end
 			end
+		elseif kind then
+			-- The left word named no zone, so there is nothing for the right one
+			-- to narrow. Answering with every card carrying the tag would be the
+			-- opposite of what was asked.
+			return out
 		else
 			-- A tag means the cards in play carrying it — grid zones only,
 			-- exactly what bare "count:<tag>" has always meant. A card in hand

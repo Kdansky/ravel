@@ -531,6 +531,23 @@ function M.check(G)
 		return sc and scope_named(sc.name) or inner
 	end
 
+	-- "<zone>.<tag>" is two names, and both have to exist. Reported as the half
+	-- that is wrong rather than as the whole expression, since "no zone called
+	-- gem_pyle" is the sentence somebody can act on.
+	local function scope_pair_ok(where, what, expr, name)
+		if type(name) ~= "string" then return false end
+		local place, kind = name:match("^([%w_]+)%.([%w_]+)$")
+		if not place then return false end
+		if not G.zone_defs[place] then
+			warn("%s: %s '%s' looks in '%s', but no zone has that key%s",
+				where, what, expr, place, suggest(place, G.zone_defs))
+		elseif not known_tags[kind] then
+			warn("%s: %s '%s' asks for '%s' in '%s', but no card carries that tag%s",
+				where, what, expr, kind, place, suggest(kind, known_tags))
+		end
+		return true
+	end
+
 	-- A subject: [<fn>:]<stat|tag|card>[@[<quant>.]<scope>]. allow_fn is false
 	-- for costs, where count:/card:/sum:/max:/min: have nothing to spend.
 	local function subject_ok(where, key, allow_fn)
@@ -541,7 +558,9 @@ function M.check(G)
 			return
 		end
 		local named = p.scope and scope_named(p.scope)
-		if p.scope and not scope_names[named] then
+		if p.scope and not scope_names[named] and scope_pair_ok(where, "the subject", key, named) then
+			-- said already, as the half that is wrong
+		elseif p.scope and not scope_names[named] then
 			warn("%s: '@%s' is neither a zone nor a tag%s",
 				where, p.scope, suggest(named, scope_names))
 		end
@@ -828,7 +847,7 @@ function M.check(G)
 			elseif t == "scope" then
 				local sc = predicate.parse_scope(a)
 				local named = sc and scope_named(sc.name)
-				if not (sc and scope_names[named]) then
+				if not (sc and scope_names[named]) and not scope_pair_ok(where, "'" .. op .. "'", a, named) then
 					warn("%s: '%s' names '%s', which is neither a zone nor a tag%s",
 						where, op, a, suggest(named or a, scope_names))
 				end
@@ -838,7 +857,7 @@ function M.check(G)
 				-- until something is lying there.
 				local sc = predicate.parse_scope(a:sub(2))
 				local named = sc and scope_named(sc.name)
-				if not (sc and scope_names[named]) then
+				if not (sc and scope_names[named]) and not scope_pair_ok(where, "'" .. op .. "'", a, named) then
 					warn("%s: '%s' takes its card from '%s', which is neither a zone nor a tag%s",
 						where, op, a, suggest(named or a:sub(2), scope_names))
 				end

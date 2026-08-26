@@ -661,4 +661,35 @@ function M.test_validator_reads_fills_scope_form(check)
 		has_problem(said, "names the card 'thign'"), table.concat(said, "; "))
 end
 
+-- "<zone>.<tag>" is two names, and both have to exist. The complaint says which
+-- half is wrong, because "no zone called that" is a sentence somebody can act on
+-- and "that is not a scope" is not.
+function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
+	local path = "game/games/tmp_zone_tag_bad.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Zone tag",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] },
+			{ "key": "vault", "layout": "stack" }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem"], "abilities": [
+			{ "key": "a", "action": ["destroy:vualt.gem"] },
+			{ "key": "b", "action": ["destroy:vault.gme"] },
+			{ "key": "c", "when": ["count:gem@vualt.gem >= 1"], "action": ["next_phase"] },
+			{ "key": "d", "action": ["destroy:vault.gem"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_zone_tag_bad.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = table.concat(validate.check(G), "; ")
+	check("a misspelled place is named as a place, with the near miss",
+		said:find("looks in 'vualt'", 1, true) and said:find("did you mean 'vault'", 1, true), said)
+	check("a misspelled kind is named as a kind, and where it was looked for",
+		said:find("asks for 'gme' in 'vault'", 1, true), said)
+	check("a subject says it too, not only an action",
+		said:find("the subject 'count:gem@vualt.gem' looks in 'vualt'", 1, true), said)
+	check("and a good one says nothing", not said:find("vault.gem'", 1, true), said)
+end
+
 return M
