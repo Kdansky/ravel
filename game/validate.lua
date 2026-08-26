@@ -989,16 +989,32 @@ function M.check(G)
 		end
 	end
 
+	-- Whose game it is, frozen while a question stands. The engine refuses these
+	-- at runtime (actions.lua); this is the same rule read off the file, because a
+	-- list that opens an offer and then ends the phase reads as if it worked and
+	-- leaves the offer’s cards where nobody can reach them.
+	local FREEZES = { next_phase = true, push_phase = true, pop_phase = true,
+		set_active_seat = true, set_priority = true, clear_priority = true, each_seat = true }
+
 	local function check_list(where, list)
 		if list == nil then return end
 		if type(list) ~= "table" then
 			warn('%s: should be a list of actions like ["stat_gain:gold:1"], not a single value', where)
 			return
 		end
+		local opened
 		for _, str in ipairs(list) do
 			if type(str) ~= "string" then
 				warn("%s: every action must be a text string", where)
 			else
+				local op = str:match("^[^:]+")
+				if opened and FREEZES[op] then
+					warn("%s: '%s' opens an offer and then '%s' — a phase, seat or priority may not "
+						.. "move while a question is on the table, so it is refused and the offer stays open. "
+						.. "Put it in the card’s “chosen” list, which runs once the offer has closed",
+						where, opened, op)
+				end
+				if op == "show" or op == "options" then opened = str end
 				check_action(where, str)
 			end
 		end

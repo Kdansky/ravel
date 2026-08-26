@@ -2271,6 +2271,42 @@ doing carries on afterwards.
 The trap is that both readings look right from one side of the screen. Say the
 scope out loud as **the seat who is up**, and check who that is at that line.
 
+#### Nothing moves while an offer is open
+
+Notice where the `clear_priority` above sits: in `chosen`, not beside the
+`show:`. That is not a stylistic choice. **While an offer is open, the phase, the
+seat and priority are frozen**, and the seven actions that would move one of them
+are refused where they stand:
+
+`next_phase` · `push_phase` · `pop_phase` · `set_active_seat` · `set_priority` ·
+`clear_priority` · `each_seat`
+
+An offer was asked in a phase, of a seat, holding priority. Move any of the three
+and the answer lands somewhere the question never was — the cards the offer
+borrowed have nowhere to come home to, and the player is left staring at a
+chooser over a board that has moved on. This is not theoretical: it is how Puzzle
+Strike's whole eighteen-chip bank came to be stranded in an overlay nobody could
+reach.
+
+So this does not work, and the validator says so before you run it:
+
+```json
+"play": { "action": ["show:bank:optional", "next_phase"] }
+```
+
+And this does, because `chosen` runs **after** the offer has closed:
+
+```json
+"play":   { "action": ["show:bank:optional"] },
+"chosen": { "action": ["fill:mine.discard:@target:1", "next_phase"] }
+```
+
+The refusal is deliberate rather than the engine tidying up for you. A rule that
+opens a question and then walks away from it has not decided what should happen
+to the question, and closing it on the rule's behalf would withdraw an answer the
+player was owed. Setting a seat or priority *before* the `show:` is fine — that
+is the setup for the offer, not a change made underneath it.
+
 ### `pays_for` — one thing spent as another
 
 A cost is one map of **what is owed**, always. That some other pool will settle

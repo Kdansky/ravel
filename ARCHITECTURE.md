@@ -296,6 +296,22 @@ the engine that nobody caused, and it is what "at the end of your turn" is made
 of: the subject is the player card of whoever the phase belongs to, so `whose`
 and `@event` read there exactly as they do anywhere else.
 
+**An open offer freezes whose game it is.** A question on the table was asked in
+a phase, of a seat, holding priority, and the three actions that would move one
+of those (`next_phase`/`push_phase`/`pop_phase`, `set_active_seat`,
+`set_priority`/`clear_priority`, plus `each_seat`, which moves the seat by hand)
+refuse while an offer-status zone is the current overlay's zone. `offer_open` in
+`actions.lua` is the whole test; `validate.lua` reads the same rule off the file,
+so a list that opens an offer and then ends the phase is caught before it runs.
+
+Refused, not closed on the rule's behalf: a list that walks away from a question
+it asked has not decided what happens to it, and choosing for it would withdraw
+an answer somebody was owed. The place for the change is `chosen`, which runs
+after `play_card` has popped the overlay. The engine side already obeyed this —
+`react_step` returns `waiting` while `phase.depth() > 1`, and `settle` defers end
+conditions and `ends_when` under an overlay — so this closes the one hole left,
+which was content driving it directly.
+
 ## Supply zones — one card standing for a stock
 
 `status: "supply"` is the only place the engine keeps something the game file

@@ -365,15 +365,44 @@ HANDLERS["stat_set"] = function(p, ctx)
 	for _, e in ipairs(designated(sp, ctx)) do e.stats[sp.arg] = v end
 end
 
+-- An open offer freezes whose game it is. A question on the table was asked in a
+-- phase, of a seat, holding priority — move any of the three while it stands and
+-- the answer lands somewhere the question never was: the offer's phase is gone by
+-- the time the borrowed cards try to come home, and the eighteen chips of a bank
+-- lent to a chooser are stranded in an overlay nobody can reach.
+--
+-- Refused rather than closed on the rule's behalf. A list that opens an offer and
+-- then walks away has not said what should happen to it, and choosing for it would
+-- withdraw a question the player was owed. Close it first and then change — which
+-- is what a "chosen" list is, and where the three chips that hand priority to the
+-- other seat put their clear_priority.
+--
+-- Only an *offer* counts. A page overlay deals its own cards and clears up after
+-- itself, and reveals stack over one another by design.
+local function offer_open()
+	if not phase.is_overlay() then return false end
+	local z = zones.find(phase.current().zone or "")
+	return z ~= nil and z.status == "offer"
+end
+
+local function frozen(verb)
+	if not offer_open() then return false end
+	content_error(verb .. ": refused, an offer is open")
+	return true
+end
+
 HANDLERS["next_phase"] = function()
+	if frozen("next_phase") then return end
 	phase.next()
 end
 
 HANDLERS["push_phase"] = function(p)
+	if frozen("push_phase") then return end
 	phase.push(p[2])
 end
 
 HANDLERS["pop_phase"] = function()
+	if frozen("pop_phase") then return end
 	phase.pop()
 end
 
@@ -981,6 +1010,7 @@ HANDLERS["net_offline"] = net_ui("offline")
 -- Naming none does nothing, which is an ordinary runtime state rather than a
 -- mistake — the trick is not won until somebody has won it.
 HANDLERS["set_active_seat"] = function(p, ctx)
+	if frozen("set_active_seat") then return end
 	local sc = predicate.parse_scope(p[2] or "")
 	local G  = declaration.G
 	if not sc or #(G.seat_list or {}) < 2 then return end
@@ -1030,6 +1060,7 @@ end
 -- the turn has not changed, and how far undo may reach back into a window is the
 -- window's own question, not this primitive's.
 HANDLERS["set_priority"] = function(p, ctx)
+	if frozen("set_priority") then return end
 	local sc = predicate.parse_scope(p[2] or "")
 	local G  = declaration.G
 	if not sc or #(G.seat_list or {}) < 2 then return end
@@ -1054,6 +1085,7 @@ end
 -- acting before it opened. 0 is "nobody holds priority but the turn", which is
 -- what active_seat falls back to.
 HANDLERS["clear_priority"] = function()
+	if frozen("clear_priority") then return end
 	local sys = zones.system_card()
 	if sys then sys.stats.priority = 0 end
 end
@@ -1107,6 +1139,7 @@ end
 -- neither belongs to a rule that is dealing to everybody. Nobody's turn has
 -- changed by the time this returns.
 HANDLERS["each_seat"] = function(p, ctx)
+	if frozen("each_seat") then return end
 	local inner = table.concat(p, ":", 2)
 	if inner == "" then
 		content_error("each_seat: names no action to run")

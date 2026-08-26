@@ -8,8 +8,6 @@ Remove fully completed entries when we have done them or moved them to other fil
 
 Puzzle strike: the bank should be where trashed cards go by default, in all cases — so if Argagarg's Bubble Shield takes a gem off a pile it goes back to the bank without extra logic. The zone half of this is done (`status: "supply"`, and moving a card into one already turns it back into stock); what is missing is the default destination, so nothing has to name the bank.
 
-Engine: `next_phase` while an offer is open abandons the cards the offer borrowed — they end up wherever the phase change leaves them rather than going home. Master Puzzler hit it: the borrowed shelf ended in `table` instead of back in the bank. Either the phase machinery should close an open offer first, or opening one should bar a phase change until it is answered.
-
 Puzzle strike: Kept back zone should be called "piggybank". The buttons for end turn and end action are too small (we could allow different card shapes or styles, such as "fill" and then two cards in one zone actually use the whole zone. Would look way better for this.
 
 Puzzle strike: The stats on the top right are overlaid over one player's gem pile. That isn't very nice. It would be better if we could assign the stats window to any zone and it would be displayed there. In this case this would work perfectly for "played this turn" if right-aligned. Also it should not show 0 values (this should be a toggleable feature of whether we want to show 0 values)
