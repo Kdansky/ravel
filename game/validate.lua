@@ -832,6 +832,16 @@ function M.check(G)
 					warn("%s: '%s' names '%s', which is neither a zone nor a tag%s",
 						where, op, a, suggest(named or a, scope_names))
 				end
+			elseif t == "card" and a:sub(1, 1) == "@" then
+				-- The template read off a card instead of named here. Checked as
+				-- the scope it is, since the key it will produce is not knowable
+				-- until something is lying there.
+				local sc = predicate.parse_scope(a:sub(2))
+				local named = sc and scope_named(sc.name)
+				if not (sc and scope_names[named]) then
+					warn("%s: '%s' takes its card from '%s', which is neither a zone nor a tag%s",
+						where, op, a, suggest(named or a:sub(2), scope_names))
+				end
 			elseif t == "card" and not G.card_defs[a] then
 				warn("%s: '%s' names the card '%s', but no template has that key%s",
 					where, op, a, suggest(a, G.card_defs))

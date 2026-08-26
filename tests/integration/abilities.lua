@@ -227,7 +227,8 @@ local SHOP = [==[{
   "phases": [{ "key": "turn", "type": "player_input" }],
   "tags": {
     "for_sale": { "abilities": [
-      { "key": "buy", "text": "Buy it", "merge": "this", "action": ["stat_gain:bought@self:1"] }] },
+      { "key": "buy", "text": "Buy it", "merge": "this",
+        "action": ["stat_gain:bought@self:1", "fill:hand:@self:1"] }] },
     "odd_job": { "abilities": [
       { "key": "scrap", "text": "Scrap it", "merge": "other", "action": ["stat_gain:scrapped@self:1"] }] },
     "takeable": { "abilities": [
@@ -301,6 +302,30 @@ function M.test_abilities_merge_other_yields_to_anything_else(check)
 		local b = ability_keys(in_zone("yard", "brick"))
 		check("a card with nothing of its own does, or the zone said nothing at all",
 			#b == 1 and b[1] == "scrap", table.concat(b, ", "))
+	end)
+end
+
+-- A shop sells what it is. The buy lives on the tag the zone hands out, so it
+-- cannot name a card key — the only thing that knows which chip is being bought
+-- is the chip lying there, and "@self" is how the action asks it.
+function M.test_abilities_a_shop_sells_a_copy_of_what_is_on_the_shelf(check)
+	with_shop(function(name)
+		flow.init(name, 3)
+		local shelf = in_zone("shop", "widget")
+		check("the shop offers one thing", #flow.usable_abilities(shelf.id) == 1)
+		check("and using it works", flow.activate(shelf.id, {}, 1))
+
+		local hand, bought = zones.find("hand"), nil
+		for _, id in ipairs(hand.cards) do bought = entity.get(id) end
+		check("a widget arrives in the hand", bought and bought.def_key == "widget",
+			bought and bought.def_key or "nothing")
+		-- Not a clone: what arrives is off the template, with the numbers the
+		-- game declared and no memory of the card that named it.
+		check("it is a different card from the one on the shelf", bought.id ~= shelf.id)
+		check("with its own stats, not the shelf's",
+			bought.stats.bought == 0 and shelf.stats.bought == 1,
+			tostring(bought.stats.bought) .. " / " .. tostring(shelf.stats.bought))
+		check("and the shelf keeps its card", in_zone("shop", "widget") ~= nil)
 	end)
 end
 

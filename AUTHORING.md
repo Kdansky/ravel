@@ -2663,7 +2663,7 @@ what a player reads.
 
 | Action | Effect |
 |---|---|
-| `fill:zone:card:n` | Create n instances of card in zone |
+| `fill:zone:card:n` | Create n instances of card in zone. The card slot takes a template key, or `@<scope>` to read the template off a card that is already lying somewhere — `fill:mine.discard:@self:1` is a shop selling what it is. Not a clone: what arrives is fresh off the template, with the stats the game declared |
 | `shuffle:zone` | Shuffle |
 | `draw_from:from:to:n` | Move n cards off the top |
 | `return_to:from:to` | Move all cards (bounded; safe with refilling zones) |

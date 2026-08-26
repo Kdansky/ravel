@@ -632,4 +632,33 @@ function M.test_validator_catches_a_zone_granting_two_merge_this(check)
 		table.concat(validate.check(G), "; "))
 end
 
+-- fill's card slot takes a template key or "@<scope>", and the second is checked
+-- as the scope it is: the key it will produce is not knowable until something is
+-- lying there, so all that can be read at authoring time is whether the scope
+-- names anything.
+function M.test_validator_reads_fills_scope_form(check)
+	local path = "game/games/tmp_fill_scope.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Fill scope",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] },
+			{ "key": "hand", "layout": "row" }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "thing", "text": "Thing", "abilities": [
+			{ "key": "ok",   "action": ["fill:hand:@self:1"] },
+			{ "key": "bad",  "action": ["fill:hand:@nowhere:1"] },
+			{ "key": "typo", "action": ["fill:hand:thign:1"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_fill_scope.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = validate.check(G)
+	check("@self is accepted", not has_problem(said, "@self"), table.concat(said, "; "))
+	check("a scope naming nothing is caught",
+		has_problem(said, "takes its card from '@nowhere'"), table.concat(said, "; "))
+	check("and a misspelled key still is",
+		has_problem(said, "names the card 'thign'"), table.concat(said, "; "))
+end
+
 return M

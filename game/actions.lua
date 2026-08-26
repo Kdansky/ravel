@@ -195,19 +195,42 @@ end
 
 local HANDLERS = {}
 
-HANDLERS["fill"] = function(p)
-	-- fill:zone:card_key:n
+-- fill:<zone>:<card_key>:<n>, or fill:<zone>:@<scope>:<n> — n more of what the
+-- scope is already holding, rather than of something named here.
+--
+-- **Which is not a clone.** What arrives is a fresh card off the template, with
+-- its stats at the numbers the game declared and no memory of the one that named
+-- it. "@self" is a shop selling what it is: the ability lives on the tag its zone
+-- hands out, so it cannot name a key, and the card it is asked about is the only
+-- thing that knows which. Every card in scope contributes its n, so a wider one
+-- deals a set rather than picking a winner out of it.
+HANDLERS["fill"] = function(p, ctx)
 	local zone = zone_of(p[2] or "")
 	if not zone then
 		content_error("fill: unknown zone " .. tostring(p[2]))
 		return
 	end
-	if not declaration.G.card_defs[p[3] or ""] then
-		content_error("fill: unknown card " .. tostring(p[3]))
+	local keys, named = {}, p[3] or ""
+	if named:sub(1, 1) == "@" then
+		local sc = predicate.parse_scope(named:sub(2))
+		if not sc then
+			content_error("fill: '" .. named .. "' is not a scope")
+			return
+		end
+		for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+			if e.kind == "card" and declaration.G.card_defs[e.def_key] then keys[#keys + 1] = e.def_key end
+		end
+	elseif declaration.G.card_defs[named] then
+		keys[1] = named
+	else
+		content_error("fill: unknown card " .. tostring(named))
 		return
 	end
-	for _ = 1, amount(p, 4, 1) do
-		if not zones.add(zone, p[3]) then break end
+	local n = amount(p, 4, 1, ctx)
+	for _, key in ipairs(keys) do
+		for _ = 1, n do
+			if not zones.add(zone, key) then break end
+		end
 	end
 end
 
