@@ -67,9 +67,9 @@ local function draft(chips)
 	local button = find_in("controls", "pick_chip")
 	for _, chip in ipairs(chips or DEFAULT_BANK) do
 		flow.activate(button.id, {})
-		local plate = find_in("options", "stack_" .. chip)
-		assert(plate, "the box should be offering stack_" .. chip)
-		flow.play_card(plate.id, {})
+		local shelf = find_in("options", chip)
+		assert(shelf, "the box should be offering " .. chip)
+		flow.play_card(shelf.id, {})
 	end
 end
 
@@ -142,11 +142,11 @@ function M.test_puzzle_strike_the_bank_is_drafted_from_the_whole_box(check)
 	local button = find_in("controls", "pick_chip")
 	flow.activate(button.id, {})
 	check("the box opens face up, all of it", count_in("options") == 51, count_in("options"))
-	local plate = find_in("options", "stack_the_hammer")
-	check("including a Shadows chip that was never in the bank before", plate ~= nil)
+	local shelf = find_in("options", "the_hammer")
+	check("including a Shadows chip that was never in the bank before", shelf ~= nil)
 
-	flow.play_card(plate.id, {})
-	check("the pick lands in the bank", find_in("bank", "stack_the_hammer") ~= nil)
+	flow.play_card(shelf.id, {})
+	check("the pick lands in the bank", find_in("bank", "the_hammer") ~= nil)
 	check("the offer is cleared and the rest went home",
 		count_in("options") == 0 and count_in("chip_box") == 50,
 		count_in("options") .. "/" .. count_in("chip_box"))
@@ -165,7 +165,7 @@ function M.test_puzzle_strike_randomising_fills_the_rest_of_the_bank(check)
 	flow.activate(find_in("controls", "randomize_bank").id, {})
 	check("and the rest arrived", count_in("bank") == 18, count_in("bank"))
 	check("both of the chosen ones are still there",
-		find_in("bank", "stack_risky_move") ~= nil and find_in("bank", "stack_draw_three") ~= nil)
+		find_in("bank", "risky_move") ~= nil and find_in("bank", "draw_three") ~= nil)
 	check("the box is short exactly ten", count_in("chip_box") == 41, count_in("chip_box"))
 	check("and the game moved on to dealing",
 		count_in("hand", "south") == 5, count_in("hand", "south"))
@@ -266,7 +266,7 @@ function M.test_puzzle_strike_pandas_bargain_pays_at_the_end_of_the_turn(check)
 	actions.run({ "next_phase" }, {})
 	seat_card("south").stats.money = 9
 	local held = count_in("hand", "south")
-	flow.activate(find_in("bank", "stack_draw_three").id, {})
+	flow.activate(find_in("bank", "draw_three").id, {})
 	check("nothing is owed until the turn is over", count_in("hand", "south") == held,
 		count_in("hand", "south"))
 
@@ -374,8 +374,8 @@ function M.test_puzzle_strike_a_turn_cannot_end_before_something_is_bought(check
 	flow.activate(loose("done_acting").id, {})
 	check("nothing bought yet", (seat_card("south").stats.bought or 0) == 0)
 	check("so the turn cannot be ended", not flow.can_activate(loose("end_turn").id))
-	check("and a Wound is always affordable", flow.can_activate(loose("stack_wound").id))
-	flow.activate(loose("stack_wound").id, {})
+	check("and a Wound is always affordable", flow.can_activate(loose("wound").id))
+	flow.activate(loose("wound").id, {})
 	check("taking one counts as the buy", (seat_card("south").stats.bought or 0) == 1)
 	check("it went to the discard, not the hand", count_in("discard", "south", "wound") == 1)
 	check("and now the turn may end", flow.can_activate(loose("end_turn").id))
@@ -386,7 +386,7 @@ end
 function M.test_puzzle_strike_cleanup_sweeps_and_hands_over(check)
 	opening(7)
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	check("the other seat is up", zones.active_seat() == "north")
 	check("in their action phase", phase.current().key == "action")
@@ -406,7 +406,7 @@ function M.test_puzzle_strike_the_bag_refills_from_the_discard_mid_draw(check)
 	actions.run({ "return_to:mine.bag:mine.discard", "fill:mine.discard:gem_4:1" }, {})
 	check("the bag is empty", count_in("bag", "south") == 0)
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	check("the draw still filled a hand", count_in("hand", "south") == 5,
 		tostring(count_in("hand", "south")))
@@ -429,7 +429,7 @@ function M.test_puzzle_strike_ten_is_only_fatal_at_your_own_turns_end(check)
 		table.concat(keys_in("gem_pile", "south"), " "))
 	check("and the game has not ended", phase.current().key == "action")
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	check("ending the turn there is what loses it", flow.winner() == "North",
 		tostring(flow.winner()))
@@ -447,7 +447,7 @@ function M.test_puzzle_strike_crashing_back_under_ten_saves_the_turn(check)
 		require("predicate").holds("sum:value@mine.gem_pile <= 9", {}),
 		table.concat(keys_in("gem_pile", "south"), " "))
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	check("so nobody has won", flow.winner() == nil, tostring(flow.winner()))
 	check("and play carried on", zones.active_seat() == "north")
@@ -461,7 +461,7 @@ function M.test_puzzle_strike_a_fuller_pile_draws_more_chips(check)
 	check("the pile stands at nine", require("predicate").holds("sum:value@mine.gem_pile == 9", {}),
 		table.concat(keys_in("gem_pile", "south"), " "))
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	check("nine draws eight, not five", count_in("hand", "south") == 8,
 		tostring(count_in("hand", "south")))
@@ -473,10 +473,10 @@ function M.test_puzzle_strike_the_ante_grows_as_the_bank_runs_dry(check)
 	opening(7)
 	check("no stack is spent yet", require("predicate").holds("count:spent@bank == 0", {}))
 	-- Two empty stacks at a two-player table is Panic Time.
-	actions.run({ "stat_set:stock@stack_recklessness:0", "stat_set:stock@stack_roundhouse:0" }, {})
+	actions.run({ "stat_set:stock@bank.recklessness:0", "stat_set:stock@bank.roundhouse:0" }, {})
 	check("two stacks are spent", require("predicate").holds("count:spent@bank == 2", {}))
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	check("so the next seat antes a 2-gem", count_in("gem_pile", "north", "gem_2") == 1,
 		table.concat(keys_in("gem_pile", "north"), " "))
@@ -507,13 +507,13 @@ function M.test_puzzle_strike_an_extra_turn_keeps_the_same_seat(check)
 	check("the chip is gone rather than played to the table",
 		find_in("table", "burst_of_speed", "south") == nil)
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	check("the same seat is up again", zones.active_seat() == "south")
 	check("with a second ante in the pile", count_in("gem_pile", "south") == 2,
 		table.concat(keys_in("gem_pile", "south"), " "))
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	check("and the turn after that passes normally", zones.active_seat() == "north")
 end
@@ -686,7 +686,7 @@ function M.test_puzzle_strike_a_piggy_bank_keeps_a_chip_for_next_turn(check)
 	opening(7)
 	actions.run({ "stat_gain:piggy@mine.player:1", "fill:mine.hand:gem_4:1" }, {})
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 
 	check("cleanup asks which chip to keep", phase.current().type == "overlay")
@@ -699,7 +699,7 @@ function M.test_puzzle_strike_a_piggy_bank_keeps_a_chip_for_next_turn(check)
 
 	-- Round the table and back.
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	if phase.current().type == "overlay" then flow.dismiss_offer() end
 	check("it is south's turn again", zones.active_seat() == "south")
@@ -712,7 +712,7 @@ end
 function M.test_puzzle_strike_no_piggy_bank_no_question(check)
 	opening(7)
 	flow.activate(loose("done_acting").id, {})
-	flow.activate(loose("stack_wound").id, {})
+	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
 	check("no offer opened", phase.current().type ~= "overlay", phase.current().key)
 	check("and a full five were drawn", count_in("hand", "north") == 5,
@@ -810,7 +810,7 @@ function M.test_puzzle_strike_bubble_shield_takes_a_gem_back_off(check)
 	local mine = zones.add(zone_of("gem_pile", one), "gem_1")
 
 	local before = count_in("gem_pile", two, "gem_1")
-	local stock = find_in("bank", "stack_gem_1").stats.stock
+	local stock = find_in("bank", "gem_1").stats.stock
 	flow.play_card(crash.id, { mine.id })
 
 	check("the defender was asked", zones.active_seat() == two, zones.active_seat())
@@ -831,7 +831,7 @@ function M.test_puzzle_strike_bubble_shield_takes_a_gem_back_off(check)
 	flow.react(shield.id, 1, {})
 	check("and the shield took it straight back off",
 		count_in("gem_pile", two, "gem_1") == before, count_in("gem_pile", two, "gem_1"))
-	check("the bank is whole again", find_in("bank", "stack_gem_1").stats.stock == stock, stock)
+	check("the bank is whole again", find_in("bank", "gem_1").stats.stock == stock, stock)
 	-- It walks to the discard and turns back into the chip you buy, so the bag it
 	-- comes back in holds a Bubble Shield rather than the laid-out half of one.
 	check("the shield is spent", entity.get(shield.id).zone_id == nil)
@@ -930,7 +930,7 @@ function M.test_puzzle_strike_bubble_shield_makes_you_immune_to_a_red_chip(check
 	seat_card(one).stats.act_red = (seat_card(one).stats.act_red or 0) + 1
 
 	local gems = count_in("gem_pile", two, "gem_1")
-	local stock = find_in("bank", "stack_gem_1").stats.stock
+	local stock = find_in("bank", "gem_1").stats.stock
 	flow.play_card(red.id, {})
 	check("the attack is announced, not resolved", zones.active_seat() == two, zones.active_seat())
 	-- Read with the cost already paid and the action not yet run, which is exactly
@@ -943,8 +943,8 @@ function M.test_puzzle_strike_bubble_shield_makes_you_immune_to_a_red_chip(check
 	flow.react(shield.id, 1, {})
 	check("no gem was anted", count_in("gem_pile", two, "gem_1") == gems,
 		count_in("gem_pile", two, "gem_1"))
-	check("so the bank never paid one out", find_in("bank", "stack_gem_1").stats.stock == stock,
-		find_in("bank", "stack_gem_1").stats.stock)
+	check("so the bank never paid one out", find_in("bank", "gem_1").stats.stock == stock,
+		find_in("bank", "gem_1").stats.stock)
 	check("and the attacker never got the action it grants", seat_card(one).stats.act_red == reds,
 		seat_card(one).stats.act_red)
 	-- Stopped, not undone: the chip was still played and still goes where playing
@@ -976,7 +976,7 @@ function M.test_puzzle_strike_stone_wall_reflects_the_whole_crash(check)
 	seat_card(one).stats.act_purple = (seat_card(one).stats.act_purple or 0) + 1
 	-- A 3-gem broken is three 1-gems sent.
 	local mine = zones.add(zone_of("gem_pile", one), "gem_3")
-	local stock = find_in("bank", "stack_gem_1").stats.stock
+	local stock = find_in("bank", "gem_1").stats.stock
 
 	flow.play_card(crash.id, { mine.id })
 	check("three gems arrived on top of the one already there",
@@ -985,7 +985,7 @@ function M.test_puzzle_strike_stone_wall_reflects_the_whole_crash(check)
 	flow.react(wall.id, 1, {})
 	check("the three sent went back and the one standing stayed",
 		count_in("gem_pile", two, "gem_1") == 1, count_in("gem_pile", two, "gem_1"))
-	check("the bank has them again", find_in("bank", "stack_gem_1").stats.stock == stock, stock)
+	check("the bank has them again", find_in("bank", "gem_1").stats.stock == stock, stock)
 	check("and the wall recycles into its own discard",
 		count_in("discard", two, "stone_wall") == 1, table.concat(keys_in("discard", two), " "))
 end
@@ -1018,7 +1018,7 @@ function M.test_puzzle_strike_reversal_counter_crashes(check)
 		count_in("gem_pile", two, "gem_1"))
 	-- A seat opens with a gem of its own, so the counter is counted from there.
 	local held = count_in("gem_pile", one, "gem_1")
-	local stock = find_in("bank", "stack_gem_1").stats.stock
+	local stock = find_in("bank", "gem_1").stats.stock
 
 	flow.react(rev.id, 1, { back.id })
 	check("two of the three were cancelled and one stands",
@@ -1026,8 +1026,8 @@ function M.test_puzzle_strike_reversal_counter_crashes(check)
 	check("and nothing went the other way", count_in("gem_pile", one, "gem_1") == held,
 		count_in("gem_pile", one, "gem_1"))
 	check("the two cancelled gems went home to the bank",
-		find_in("bank", "stack_gem_1").stats.stock == stock + 2,
-		find_in("bank", "stack_gem_1").stats.stock)
+		find_in("bank", "gem_1").stats.stock == stock + 2,
+		find_in("bank", "gem_1").stats.stock)
 	check("the broken gem is out of play", entity.get(back.id).zone_id == zones.find_id("void"))
 	-- Nothing is left in flight, so there is nothing for the attacker to answer
 	-- and priority comes straight back.
@@ -1162,11 +1162,11 @@ function M.test_puzzle_strike_rigorous_training_buys_out_of_turn(check)
 	-- purple and opens no window, which is the check a price test would pass by
 	-- accident.
 	check("a cheap buy is answered by nobody",
-		not reactions.anyone_answers("buy", { find_in("bank", "stack_risky_move").id }, one))
+		not reactions.anyone_answers("buy", { find_in("bank", "risky_move").id }, one))
 	check("and an expensive one that is not purple is not either",
-		not reactions.anyone_answers("buy", { find_in("bank", "stack_combo_time").id }, one))
+		not reactions.anyone_answers("buy", { find_in("bank", "combo_time").id }, one))
 
-	local pile = find_in("bank", "stack_double_crash")
+	local pile = find_in("bank", "double_crash")
 	flow.activate(pile.id, {}, 1)
 	check("the purple buy is announced", zones.active_seat() == two, zones.active_seat())
 	check("while the turn stays the buyer's", zones.turn_seat() == one, zones.turn_seat())
@@ -1185,11 +1185,11 @@ function M.test_puzzle_strike_rigorous_training_buys_out_of_turn(check)
 
 	-- What the allowance is *for*: it gates the shop without anything filtering it.
 	check("a pile within the allowance is buyable",
-		flow.can_activate(find_in("bank", "stack_one_of_each").id))
+		flow.can_activate(find_in("bank", "one_of_each").id))
 	check("one over it is not",
-		not flow.can_activate(find_in("bank", "stack_roundhouse").id))
+		not flow.can_activate(find_in("bank", "roundhouse").id))
 
-	flow.activate(find_in("bank", "stack_one_of_each").id, {}, 1)
+	flow.activate(find_in("bank", "one_of_each").id, {}, 1)
 	check("the gained chip is in the reactor's discard",
 		count_in("discard", two, "one_of_each") == 1,
 		table.concat(keys_in("discard", two), " "))
@@ -1319,7 +1319,7 @@ function M.test_puzzle_strike_hex_of_murkwood_antes_one_per_wound(check)
 	seat_card("south").stats.act_red = 1
 	local piled  = count_in("gem_pile", "north", "gem_1")
 	local bagged = count_in("bag", "north")
-	local stock  = find_in("bank", "stack_gem_1").stats.stock
+	local stock  = find_in("bank", "gem_1").stats.stock
 
 	check("south plays it", flow.play_card(hex.id, {}))
 	-- A red chip announces an attack before it does anything, so the hex lands
@@ -1336,8 +1336,8 @@ function M.test_puzzle_strike_hex_of_murkwood_antes_one_per_wound(check)
 		count_in("gem_pile", "north", "gem_1") == piled + 3,
 		count_in("gem_pile", "north", "gem_1"))
 	check("the bank paid all three out",
-		find_in("bank", "stack_gem_1").stats.stock == stock - 3,
-		find_in("bank", "stack_gem_1").stats.stock)
+		find_in("bank", "gem_1").stats.stock == stock - 3,
+		find_in("bank", "gem_1").stats.stock)
 end
 
 -- The Shadows ten, and the shapes they needed. Nothing new was asked of the
@@ -1355,7 +1355,7 @@ function M.test_puzzle_strike_flagstone_tax_prices_an_opponent_out(check)
 		seat_card("south").stats.act_brown = 1
 		flow.play_card(ft.id, {})
 		flow.activate(find_in("controls", "done_acting").id, {})
-		flow.activate(find_in("bank", "stack_wound").id, {}, 1)
+		flow.activate(find_in("bank", "wound").id, {}, 1)
 		flow.activate(find_in("controls", "end_turn").id, {})
 		flow.activate(find_in("controls", "done_acting").id, {})
 		for _, seat in ipairs({ "south", "north" }) do
@@ -1367,7 +1367,7 @@ function M.test_puzzle_strike_flagstone_tax_prices_an_opponent_out(check)
 		for _ = 1, north_pile do zones.add(zone_of("gem_pile", "north"), "gem_1") end
 		seat_card("north").stats.money, seat_card("north").stats.buys = 20, 1
 		local before = count_in("discard", "north", "roundhouse")
-		flow.activate(find_in("bank", "stack_roundhouse").id, {}, 1)
+		flow.activate(find_in("bank", "roundhouse").id, {}, 1)
 		if zones.active_seat() ~= "north" then flow.pass_react() end
 		return count_in("discard", "north", "roundhouse") > before
 	end
@@ -1429,10 +1429,10 @@ function M.test_puzzle_strike_into_oblivion_removes_a_bank_stack(check)
 	check("it opens the bank", flow.play_card(io_.id, {}) and count_in("options") == banked,
 		count_in("options") .. " of " .. banked)
 	check("a gem plate is not one of the answers",
-		not flow.play_card(find_in("options", "stack_gem_1").id, {}))
-	flow.play_card(find_in("options", "stack_draw_three").id, {})
+		not flow.play_card(find_in("options", "gem_1").id, {}))
+	flow.play_card(find_in("options", "draw_three").id, {})
 	check("the stack is out of the bank", count_in("bank") == banked - 1, count_in("bank"))
-	check("and back in the box", find_in("chip_box", "stack_draw_three") ~= nil)
+	check("and back in the box", find_in("chip_box", "draw_three") ~= nil)
 end
 
 return M

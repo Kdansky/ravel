@@ -1444,15 +1444,25 @@ function M.check(G)
 			end
 		end
 	end
-	-- **Badges are read off the card, so a style only a zone claims draws none.**
+	-- **Badges are read off the card, so a style nothing wears draws none.**
 	-- A style is claimed by carrying a tag of its name, and `cards.style` asks
-	-- the card — not the zone the card is lying in. Splendor named badges on
-	-- three zone styles and drew all three nowhere, for a year, with no warning:
-	-- the property is legal, the style exists, and nothing was wrong to find.
+	-- the card. Splendor named badges on three zone styles and drew all three
+	-- nowhere, for a year, with no warning: the property is legal, the style
+	-- exists, and nothing was wrong to find.
+	--
+	-- A tag a *zone* hands out through "applies" counts, because `entity_has`
+	-- counts it — which is how a chip shows what it does in a hand and what it
+	-- costs on the shelf, wearing one style of its own and one of the shop's. A
+	-- style the zone claims for *itself* is the case above and still draws none.
 	do
 		local worn = {}
 		for _, def in pairs(G.card_defs) do
 			for tag in pairs(def.tags_set or {}) do worn[tag] = true end
+		end
+		for _, zd in pairs(G.zone_defs) do
+			for _, tag in ipairs(type(zd) == "table" and type(zd.applies) == "table" and zd.applies or {}) do
+				worn[tag] = true
+			end
 		end
 		for name, sd in pairs(G.style_defs or {}) do
 			if type(sd) == "table" and sd.badges ~= nil and not worn[name] then

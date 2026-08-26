@@ -434,8 +434,15 @@ function M.move_card(card_id, to_id, where)
 	-- that sends what it trashes to the box.
 	if c and to and to.status == "supply" then
 		local key = c.def_key
+		-- What it is worth as stock. One for an ordinary card being put in the
+		-- box; its own number for a card that *was* a shelf and is coming back —
+		-- an offer borrows the real card, and a stack lent to a question has to
+		-- return as deep as it left.
+		local worth = tonumber(c.stats and c.stats.stock) or 1
 		M.destroy_card(card_id)
-		return M.add(to, key) ~= nil
+		local e = M.add(to, key)
+		if e and worth > 1 then e.stats.stock = e.stats.stock + worth - 1 end
+		return e ~= nil
 	end
 	-- A full board refuses new arrivals (checked before any mutation, so a
 	-- refused move leaves the card exactly where it was).

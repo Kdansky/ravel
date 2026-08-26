@@ -47,6 +47,13 @@ end
 local function placed(e, reaction, strict)
 	local z = e.zone_id and entity.get(e.zone_id)
 	if not z then return false end
+	-- **Merchandise answers nothing.** A card in a supply is stock: one entity
+	-- standing for a whole shelf of identical ones, owned by nobody and in play
+	-- nowhere. The loose reading below exists so that a card face down in a bag
+	-- *might* be the same card in a hand — but a chip on the shelf might not be
+	-- anywhere else, it is simply not a card anybody is holding, and letting it
+	-- into the list opened windows for shields nobody owned.
+	if z.status == "supply" then return false end
 	if reaction.from == "board" then
 		if z.status == "board" then return true end
 	elseif reaction.from and reaction.from ~= "hand" then
@@ -61,7 +68,13 @@ local function placed(e, reaction, strict)
 		return true
 	end
 	if strict then return false end
-	return secret(z)
+	-- The loose reading, and the one thing it still has to know: *whose*. A card
+	-- face down in your bag might be the same card in your hand, which is why a
+	-- prompt is never evidence about a hidden hand. A card nobody owns is in
+	-- nobody's hand — there is no seat for the window to open for, and offering
+	-- it put the scheduler on a reactor that did not exist. The shared box a
+	-- draft picks from is full of them.
+	return secret(z) and predicate.seat_of(e) ~= nil
 end
 
 -- Does this reaction, on this card, answer this event? "where" is about the

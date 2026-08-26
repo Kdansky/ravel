@@ -150,10 +150,6 @@ def gem_key(n):
     return "gem_%d" % n
 
 
-def stack_key(chip):
-    return "stack_" + chip
-
-
 # --- characters -----------------------------------------------------------
 #
 # Every starting deck is the same ten chips but three: 3 character chips, a
@@ -654,6 +650,23 @@ def priced(cards):
     return cards
 
 
+def named(cards):
+    """A buyable chip wears its own key as a tag.
+
+    A supply is not in play, so a bare tag walks past it; naming the stack means
+    naming the zone and the kind together — "stock@bank.gem_1". The right half of
+    that is a tag, and this is where a chip gets one. It is what the plate's
+    "stack_gem_1" was for, said on the chip instead of on a stand-in for it."""
+    buyable = {gem_key(n) for n, _, _ in GEMS}
+    buyable |= {k for k, _, _, _ in PURPLES}
+    buyable |= {k for k, _, _, _ in PUZZLE_ALL}
+    buyable.add("wound")
+    for c in cards:
+        if c["key"] in buyable and c["key"] not in c.setdefault("tags", []):
+            c["tags"].append(c["key"])
+    return cards
+
+
 def say(cards):
     """Put the printed words and the badges onto the cards TEXT names."""
     for c in cards:
@@ -686,7 +699,14 @@ def zones():
          "pos": [0.005, 0.049, 0.225, 0.089]},
         # Stopping at 0.82: the lower-left corner is the undo button's and the
         # log's, which is why this column ends above it rather than at the floor.
-        {"key": "bank", "label": "Bank", "layout": "grid", "use": "abilities", "grid": [3, 6], "applies": ["buyable"], "pos": [0.005, 0.095, 0.225, 0.7],
+        # A supply, so the box is a number and not four hundred cards. What lies
+        # here are the chips themselves — the plate that used to stand in for one
+        # is gone, and with it the reason Option Select had nothing to copy.
+        {"key": "bank", "label": "Bank", "layout": "grid", "use": "abilities", "grid": [3, 6],
+         "status": "supply", "applies": ["buyable", "for_sale"], "pos": [0.005, 0.095, 0.225, 0.7],
+         "contents": ([f"{gem_key(n)}:{stock}" for n, _, stock in GEMS]
+                      + [f"{k}:{stock}" for k, _, _, stock in PURPLES]
+                      + ["wound:24"]),
          "tooltip": "Every chip you may buy. A stack says how many are left; when stacks run dry the ante grows."},
         # The two buttons sit on the middle line between the gem piles, where
         # they belong to whoever is up rather than to either side of the table.
@@ -760,6 +780,8 @@ def zones():
         # Where an announcement waits. It holds records, never chips, so it sits
         # under the bank rather than beside either player: a crash that has been
         # said out loud and not yet answered belongs to neither of them.
+        # "stack" here is the engine's word for the response stack, not the
+        # layout and not a style — this is the zone a window's records sit in.
         {"key": "pending", "label": "Announced", "layout": "stack", "tags": ["stack"],
          "pos": [0.005, 0.712, 0.225, 0.818],
          "tooltip": "A crash that has been announced and not yet answered. It sits under the bank because it belongs to neither player."},
@@ -858,7 +880,10 @@ def styles():
     out["wound"] = {"color": [0.34, 0.14, 0.14]}
     out["chip"] = {"badges": ["value", "plus_pow", "plus_act", "plus_draw", "plus_piggy", "hits", "react"],
                    "badge_zeros": False}
-    out["stack"] = {"badges": ["price", "stock"], "badge_run": "down", "badge_zeros": False}
+    # What a chip wears only while it is on the shelf. Claimed by the tag the
+    # bank hands out, so the same chip in a hand shows what it does and the one
+    # in the shop shows what it costs and how many are left.
+    out["for_sale"] = {"badges": ["price", "stock"], "badge_run": "down", "badge_zeros": False}
     out["character_card"] = {"color": [0.24, 0.26, 0.36]}
     return out
 
@@ -903,7 +928,7 @@ def crash_action(n_targets, bonus):
         "stat_set:broke@mine.player:max:value@target",
         "move_target_to:void",
         "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-        "stat_damage:stock@stack_gem_1:sum:crashed@mine.player",
+        "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
         "stat_gain:money@mine.player:%d" % bonus,
         "emit:crash",
     ]
@@ -962,7 +987,7 @@ ANSWERABLE = ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"]
 # A wound is gained rather than bought when a chip inflicts one, and both go to
 # the discard: taking one out of the bank is the same two lines everywhere.
 def gain_wound(who="mine"):
-    return ["fill:%s.discard:wound:1" % who, "stat_damage:stock@stack_wound:1"]
+    return ["fill:%s.discard:wound:1" % who, "stat_damage:stock@bank.wound:1"]
 
 
 # The names, banners and pictures of a Puzzle chip, which are the same three
@@ -1025,7 +1050,7 @@ def puzzle_cards():
          "asset": "polygon:6:red",
          "tooltip": "Ante a 1-gem into each opposing gem pile, and keep your action.",
          "play": act(["stat_gain:act_red@mine.player:1",
-                      "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@stack_gem_1:1"])},
+                      "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"])},
         {"key": "gem_essence", "text": "Gem Essence", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
          "tooltip": "Trash a gem out of your hand and take four actions for it.",
@@ -1058,13 +1083,13 @@ def puzzle_cards():
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
          "reactions": [{"to": "crash", "text": "Negate the gems", "when": ANSWERABLE,
                         "action": ["destroy:mine.gem_1:sum:crashed@enemy.player",
-                                   "stat_gain:stock@stack_gem_1:sum:crashed@enemy.player"],
+                                   "stat_gain:stock@bank.gem_1:sum:crashed@enemy.player"],
                         "spent": "mine.discard"}]},
         {"key": "its_a_trap", **shape("its_a_trap", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_gain:acts@mine.player:1"], "spent": "void"}},
         {"key": "iron_defense", **shape("iron_defense", "brown"),
-         "play": act(["fill:mine.gem_pile:crash_gem:1", "stat_damage:stock@stack_crash_gem:1"])},
+         "play": act(["fill:mine.gem_pile:crash_gem:1", "stat_damage:stock@bank.crash_gem:1"])},
         # Their discard, chosen by them: priority crosses the table while the
         # offer is up, so "mine.hand" in here is the opponent's own hand.
         {"key": "knockdown", **shape("knockdown", "red"),
@@ -1161,9 +1186,9 @@ def puzzle_cards():
         {"key": "just_a_scratch", **shape("just_a_scratch", "red"),
          "play": act(["options:js_wound,js_trash"])},
         {"key": "money_for_nothing", **shape("money_for_nothing", "blue"),
-         "play": act(["fill:mine.hand:gem_2:1", "stat_damage:stock@stack_gem_2:1"]),
+         "play": act(["fill:mine.hand:gem_2:1", "stat_damage:stock@bank.gem_2:1"]),
          "reactions": [{"to": "attack", "text": "Take a gem from the bank",
-                        "action": ["fill:mine.hand:gem_1:1", "stat_damage:stock@stack_gem_1:1"],
+                        "action": ["fill:mine.hand:gem_1:1", "stat_damage:stock@bank.gem_1:1"],
                         "spent": "mine.discard"}]},
         {"key": "now_or_later", **shape("now_or_later", "brown"),
          "play": act(["options:nl_chips,nl_trash"])},
@@ -1175,7 +1200,7 @@ def puzzle_cards():
         # what Wound is, and this says why in its tooltip.
         {"key": "option_select", **shape("option_select", None)},
         {"key": "ouch", **shape("ouch", "red"),
-         "play": act(["fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@stack_gem_1:1"]
+         "play": act(["fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"]
                      + gain_wound("enemy"))},
         # The offer opens for them, and each branch hands priority back.
         {"key": "pick_your_poison", **shape("pick_your_poison", "red"),
@@ -1186,10 +1211,10 @@ def puzzle_cards():
          "play": act(["stat_gain:acts@mine.player:2", "draw_from:mine.bag:mine.hand:1"])},
         {"key": "repeated_jabs", **shape("repeated_jabs", "red"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@stack_gem_1:1"],
+                  "action": ["fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"],
                   "spent": "mine.bag"}},
         {"key": "risk_to_riskonade", **shape("risk_to_riskonade", "brown"),
-         "play": act(["fill:mine.gem_pile:gem_3:1", "stat_damage:stock@stack_gem_3:1",
+         "play": act(["fill:mine.gem_pile:gem_3:1", "stat_damage:stock@bank.gem_3:1",
                       "each_seat:draw_from:mine.bag:mine.hand:2"])},
         {"key": "safe_keeping", **shape("safe_keeping", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1224,8 +1249,8 @@ def puzzle_cards():
                   "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
                              "owner": "mine", "count": 1},
                   "action": ["stat_gain:act_brown@mine.player:1", "move_target_to:void",
-                             "stat_gain:stock@stack_gem_1:1",
-                             "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@stack_gem_1:1"],
+                             "stat_gain:stock@bank.gem_1:1",
+                             "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"],
                   "spent": "mine.table"}},
         {"key": "combo_time", "text": "It's Combo Time", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
@@ -1261,10 +1286,10 @@ def character_chips():
          # keeps it out of the count on the next line — and the shuffle is why
          # it is not simply the next chip they draw.
          "play": act(["stat_gain:act_blue@mine.player:1",
-                      "fill:enemy.bag:wound:1", "stat_damage:stock@stack_wound:1",
+                      "fill:enemy.bag:wound:1", "stat_damage:stock@bank.wound:1",
                       "shuffle:enemy.bag",
                       "fill:enemy.gem_pile:gem_1:count:wound@enemy.discard",
-                      "stat_damage:stock@stack_gem_1:count:wound@enemy.discard"])},
+                      "stat_damage:stock@bank.gem_1:count:wound@enemy.discard"])},
         # Two cards. Laying it out turns it into the ongoing half; answering
         # from hand instead cancels the attack outright, which is what immunity
         # means with two players at the table.
@@ -1281,7 +1306,7 @@ def character_chips():
          # concerned, and the default — a reaction played out of a hand — caught
          # it by accident.
          "reactions": [{"to": "crash", "when": ANSWERABLE, "from": "board",
-                        "action": ["destroy:mine.gem_1:1", "stat_gain:stock@stack_gem_1:1",
+                        "action": ["destroy:mine.gem_1:1", "stat_gain:stock@bank.gem_1:1",
                                    "move_to:mine.discard", "transform:self:bubble_shield"]}]},
         {"key": "protective_ward", "text": "Protective Ward", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:teal",
@@ -1292,7 +1317,7 @@ def character_chips():
         {"key": "playing_with_fire", "text": "Playing with Fire", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:crimson",
          "tooltip": "Ante a 1-gem into your own pile, then take two actions and a chip for it.",
-         "play": act(["fill:mine.gem_pile:gem_1:1", "stat_damage:stock@stack_gem_1:1",
+         "play": act(["fill:mine.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1",
                       "stat_gain:act_brown@mine.player:1", "stat_gain:act_red@mine.player:1",
                       "draw_from:mine.bag:mine.hand:1"])},
         {"key": "burning_vigor", "text": "Burning Vigor", "tags": ["chip", "character", "red"],
@@ -1301,7 +1326,7 @@ def character_chips():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["wound"]),
                   "action": ["move_target_to:void", "stat_gain:acts@mine.player:1",
-                             "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@stack_gem_1:1",
+                             "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1",
                              "move_to:mine.table"]}},
         {"key": "unstable_power", "text": "Unstable Power", "tags": ["chip", "character", "purple"],
          "asset": "dots:2:crimson",
@@ -1351,7 +1376,7 @@ def character_chips():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["trashable"]),
                   "action": ["move_target_to:void",
-                             "fill:mine.hand:gem_2:1", "stat_damage:stock@stack_gem_2:1",
+                             "fill:mine.hand:gem_2:1", "stat_damage:stock@bank.gem_2:1",
                              "move_to:mine.table"]}},
         # Setsuki
         {"key": "double_take", "text": "Double-take", "tags": ["chip", "character", "brown"],
@@ -1390,15 +1415,15 @@ def character_chips():
                                    # because both numbers are needed at once and a
                                    # stat cannot be read after it has been changed.
                                    "destroy:mine.gem_1:sum:crashed@enemy.player",
-                                   "stat_gain:stock@stack_gem_1:sum:crashed@enemy.player",
+                                   "stat_gain:stock@bank.gem_1:sum:crashed@enemy.player",
                                    "stat_set:sent@mine.player:sum:crashed@mine.player",
                                    "stat_damage:sent@mine.player:sum:crashed@enemy.player",
                                    "stat_damage:crashed@enemy.player:sum:crashed@mine.player",
                                    "stat_set:crashed@mine.player:sum:sent@mine.player",
                                    "fill:mine.gem_pile:gem_1:sum:crashed@enemy.player",
-                                   "stat_damage:stock@stack_gem_1:sum:crashed@enemy.player",
+                                   "stat_damage:stock@bank.gem_1:sum:crashed@enemy.player",
                                    "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-                                   "stat_damage:stock@stack_gem_1:sum:crashed@mine.player",
+                                   "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
                                    "emit:crash"],
                         "spent": "mine.discard"}]},
         {"key": "martial_mastery", "text": "Martial Mastery", "tags": ["chip", "character", "brown"],
@@ -1419,7 +1444,7 @@ def character_chips():
          "reactions": [{"to": "crash", "text": "Send the gems back to the bank",
                         "when": ANSWERABLE,
                         "action": ["destroy:mine.gem_1:sum:crashed@enemy.player",
-                                   "stat_gain:stock@stack_gem_1:sum:crashed@enemy.player"],
+                                   "stat_gain:stock@bank.gem_1:sum:crashed@enemy.player"],
                         "spent": "mine.discard"}]},
         {"key": "big_rocks", "text": "Big Rocks", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:ash",
@@ -1439,7 +1464,7 @@ def character_chips():
                   "action": ["stat_set:combined@mine.player:sum:value@target",
                              "move_target_to:void",
                              "activate_zone:rules_upgrade_pile",
-                             "stat_damage:stock@stack_gem_1:1",
+                             "stat_damage:stock@bank.gem_1:1",
                              "stat_gain:act_brown@mine.player:1",
                              "move_to:mine.table"]}},
         # DeGrey
@@ -1461,7 +1486,7 @@ def character_chips():
                                "stat_set:broke@mine.player:max:value@target",
                                "move_target_to:void",
                                "fill:enemy.discard:gem_1:sum:crashed@mine.player",
-                               "stat_damage:stock@stack_gem_1:sum:crashed@mine.player",
+                               "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
                                "emit:crash"]}},
         {"key": "no_more_lies", "text": "No More Lies", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:pink",
@@ -1620,8 +1645,8 @@ def character_chips():
          "asset": "circle:silver",
          "play": act(["stat_gain:acts@mine.player:1", "stat_gain:act_blue@mine.player:1"]),
          "reactions": [{"to": "crash", "text": "Trim a gem off every pile",
-                        "action": ["destroy:mine.gem_1:1", "stat_gain:stock@stack_gem_1:1",
-                                   "destroy:enemy.gem_1:1", "stat_gain:stock@stack_gem_1:1",
+                        "action": ["destroy:mine.gem_1:1", "stat_gain:stock@bank.gem_1:1",
+                                   "destroy:enemy.gem_1:1", "stat_gain:stock@bank.gem_1:1",
                                    "draw_from:mine.bag:mine.hand:1"],
                         "spent": "mine.discard"}]},
         {"key": "radiant_healing", "text": "Radiant Healing", "tags": ["chip", "character", "brown"],
@@ -1686,7 +1711,7 @@ def character_chips():
                   "target": {"type": "card", "tags": ["gem_1"], "zones": ["hand", "gem_pile"],
                              "owner": "mine", "count": 1},
                   "action": ["move_target_to:void", "stat_gain:money@mine.player:1",
-                             "fill:mine.discard:gem_2:1", "stat_damage:stock@stack_gem_2:1"],
+                             "fill:mine.discard:gem_2:1", "stat_damage:stock@bank.gem_2:1"],
                   "spent": "mine.table"}},
         # Persephone
         {"key": "pleasure_and_pain", "text": "Pleasure & Pain", "tags": ["chip", "character", "red"],
@@ -1695,7 +1720,7 @@ def character_chips():
          # count asked of it counts the zone rather than what is lying in it.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_gain:act_red@mine.player:1",
-                             "fill:enemy.bag:wound:1", "stat_damage:stock@stack_wound:1",
+                             "fill:enemy.bag:wound:1", "stat_damage:stock@bank.wound:1",
                              "shuffle:enemy.bag",
                              "draw_from:mine.bag:mine.hand:count:wound@enemy.discard"],
                   "spent": "mine.table"}},
@@ -1757,7 +1782,7 @@ def character_chips():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_set:crashed@mine.player:count:gem_1@mine.gem_pile",
                              "destroy:mine.gem_1",
-                             "stat_gain:stock@stack_gem_1:sum:crashed@mine.player"],
+                             "stat_gain:stock@bank.gem_1:sum:crashed@mine.player"],
                   "spent": "void"}},
         {"key": "bonecracker", "text": "Bonecracker", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:maroon",
@@ -1771,7 +1796,7 @@ def character_chips():
          # The draft button already reaches the box the other way, with `show:`,
          # and an offer is the only thing a plate answers to.
          "play": act(["show:bank:optional"]),
-         "chosen": {"where": ["tagged:puzzle_stack@target >= 1"],
+         "chosen": {"where": ["tagged:puzzle@target >= 1"],
                     "action": ["move_target_to:chip_box"]}},
         # Lum
         {"key": "living_on_the_edge", "text": "Living on the Edge", "tags": ["chip", "character", "brown"],
@@ -1791,7 +1816,7 @@ def character_chips():
          # to the other, because an event knows what it is and not what came before.
          "play": ongoing(),
          "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
-                        "where": ["tagged:puzzle_stack@event >= 1"],
+                        "where": ["tagged:puzzle@event >= 1"],
                         "action": ["stat_set:owed@mine.player:1"]},
                        {"to": "turn_end", "whose": "mine", "forced": "mandatory", "from": "board",
                         "when": ["owed@mine.player >= 1"],
@@ -1848,12 +1873,12 @@ def choice_cards():
         choice("ac_red_blue", "A red and a blue arrow",
                ["stat_gain:act_red@mine.player:1", "stat_gain:act_blue@mine.player:1"]),
         choice("ef_trash", "Everybody trashes a 1-gem",
-               ["each_seat:destroy:mine.gem_1:1", "stat_gain:stock@stack_gem_1:%d" % len(SEATS)]),
+               ["each_seat:destroy:mine.gem_1:1", "stat_gain:stock@bank.gem_1:%d" % len(SEATS)]),
         choice("ef_ante", "You ante a 2-gem",
-               ["fill:mine.gem_pile:gem_2:1", "stat_damage:stock@stack_gem_2:1"]),
+               ["fill:mine.gem_pile:gem_2:1", "stat_damage:stock@bank.gem_2:1"]),
         choice("js_wound", "Each opponent gains a wound", gain_wound("enemy")),
         choice("js_trash", "Trash a wound and take a red action",
-               ["destroy:mine.hand:1", "stat_gain:stock@stack_wound:1",
+               ["destroy:mine.hand:1", "stat_gain:stock@bank.wound:1",
                 "stat_gain:act_red@mine.player:1"]),
         choice("nl_chips", "Two chips", ["draw_from:mine.bag:mine.hand:2"]),
         choice("nl_trash", "Trash a gem and a wound from your hand",
@@ -1861,7 +1886,7 @@ def choice_cards():
         # Both of Pick Your Poison's branches hand priority back, because the
         # seat reading them is the one who was given it.
         choice("pp_ante", "Ante a 1-gem",
-               ["fill:mine.gem_pile:gem_1:1", "stat_damage:stock@stack_gem_1:1",
+               ["fill:mine.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1",
                 "clear_priority"]),
         choice("pp_discard", "Discard two chips",
                ["move:mine.hand:mine.discard", "clear_priority"]),
@@ -1886,7 +1911,7 @@ def rule_cards():
                            "abilities": [{"key": key, "text": key, "when": when, "action": action}]}))
 
     def take(n, where):
-        return ["fill:%s:%s:1" % (where, gem_key(n)), "stat_damage:stock@%s:1" % stack_key(gem_key(n))]
+        return ["fill:%s:%s:1" % (where, gem_key(n)), "stat_damage:stock@bank.%s:1" % gem_key(n)]
 
     # The ante grows as the bank empties: Panic, Danger and Deadly Time, at one
     # empty stack per player and then two and three more (rules.md §9).
@@ -1928,54 +1953,6 @@ def rule_cards():
     return out
 
 
-def bank_cards():
-    """One plate per stack: what it costs, how many are left, and the buy.
-
-    The plate says what the chip says, because a player deciding whether to buy
-    one cannot pick the chip up and read it."""
-    words = {}
-    for c in say(gem_cards() + purple_cards() + puzzle_cards()):
-        words[c["key"]] = c.get("tooltip", "")
-    out = []
-
-    def plate(chip, name, cost, stock, asset, value=None, banner=None, puzzle=False):
-        # "react_buy" beside "buy": a reaction that hands somebody an allowance
-        # pushes that phase, and a plate that only worked in the turn owner's
-        # own buy phase would leave them holding money and nothing to spend it
-        # on. The cost is unchanged, so nothing is cheaper for being borrowed.
-        buy = {"phases": ["buy", "react_buy"],
-               "cost": {"buys@mine.player": 1, "stock@self": 1},
-               "action": ["fill:mine.discard:%s:1" % chip, "stat_gain:bought@mine.player:1"]}
-        if cost > 0:
-            buy["cost"]["money@mine.player"] = cost
-        # A plate wears the banner colour of what it sells only where a rule
-        # reads it: buying is an event, and a reaction to a purple being bought
-        # asks the plate, since the chip itself is still in the box.
-        tags = ["stack", stack_key(chip), "immutable"] + ([banner] if banner else [])
-        # What the bank draft counts. Eight plates are always in the bank and
-        # ten Puzzle chips join them, so "is the bank full" is one number and
-        # the basics never enter into it.
-        if puzzle:
-            tags.append("puzzle_stack")
-        out.append({"key": stack_key(chip), "text": name,
-                    "tags": tags,
-                    "asset": asset, "tooltip": words.get(chip, ""),
-                    "card_stats": dict({"price": cost, "stock": stock},
-                                       **({"value": value} if value else {})),
-                    "activate": buy})
-
-    for n, cost, stock in GEMS:
-        plate(gem_key(n), "%d-gem" % n, cost, stock, "diamond:green", value=n)
-    for key, name, cost, stock in PURPLES:
-        plate(key, name, cost, stock, "circle:magenta", banner="purple")
-    plate("wound", "Wound", 0, 24, "circle:crimson")
-    for key, name, cost, banner in PUZZLE_ALL:
-        plate(key, name, cost, PUZZLE_STOCK,
-              "polygon:6:%s" % (BANNER[banner] if banner else "slate"),
-              puzzle=True)
-    return out
-
-
 def character_cards():
     """The roster. Picking one is what deals your starting ten."""
     out = []
@@ -1983,8 +1960,8 @@ def character_cards():
         deal = ["fill:mine.bag:%s:1" % c for c in chips]
         deal.append("fill:mine.bag:crash_gem:1")
         deal.append("fill:mine.bag:gem_1:6")
-        deal.append("stat_damage:stock@stack_crash_gem:1")
-        deal.append("stat_damage:stock@stack_gem_1:6")
+        deal.append("stat_damage:stock@bank.crash_gem:1")
+        deal.append("stat_damage:stock@bank.gem_1:6")
         out.append({"key": "char_" + key, "text": name, "tags": ["character_card", "immutable"],
                     "asset": "star:6:%s" % colour, "tooltip": tip,
                     "play": {"action": deal + ["stat_gain:picked@mine.player:1",
@@ -2010,7 +1987,11 @@ def button_cards():
          "asset": "square:teal",
          "tooltip": "Open the box and put one Puzzle chip into the bank. Ten of them make a game.",
          "activate": {"phases": ["build_bank"], "action": ["show:chip_box:optional"]},
-         "chosen": {"action": ["move_target_to:bank"]}},
+         # A card moved into a supply becomes a number, so the pick arrives as a
+         # stack of one; this is what makes it a stack of five. Said over every
+         # Puzzle chip in the bank rather than the one just picked, because at
+         # draft time nothing has been bought and the rest are already five.
+         "chosen": {"action": ["move_target_to:bank", "stat_set:stock@each.bank.puzzle:%d" % PUZZLE_STOCK]}},
         {"key": "randomize_bank", "text": "Randomise the rest", "tags": ["immutable"],
          "asset": "square:amber",
          "tooltip": "Fill whatever is left of the bank at random. Press it first for a random bank, or after "
@@ -2018,8 +1999,9 @@ def button_cards():
          "activate": {"phases": ["build_bank"],
                       "action": ["shuffle:chip_box",
                                  "stat_set:to_pick@clock:10",
-                                 "stat_damage:to_pick@clock:count:puzzle_stack@bank",
-                                 "draw_from:chip_box:bank:sum:to_pick@clock"]}},
+                                 "stat_damage:to_pick@clock:count:puzzle@bank",
+                                 "draw_from:chip_box:bank:sum:to_pick@clock",
+                                 "stat_set:stock@each.bank.puzzle:%d" % PUZZLE_STOCK]}},
         # The way out of a borrowed buy phase. No cost: buying at least one chip
         # is a rule about your own turn, and this is not one.
         {"key": "finish_shopping", "text": "Done", "tags": ["immutable"],
@@ -2079,7 +2061,7 @@ def phases():
         # the table \u2014 so it is a phase, with two buttons and no hurry.
         {"key": "build_bank", "type": "player_input", "zone": "hand",
          "label": "Build the bank: ten Puzzle chips, chosen or at random",
-         "ends_when": "count:puzzle_stack@bank >= 10", "next": [{"then": "deal"}]},
+         "ends_when": "count:puzzle@bank >= 10", "next": [{"then": "deal"}]},
         {"key": "deal", "type": "automatic",
          "actions": ["each_seat:shuffle:mine.bag",
                      "each_seat:draw_from:mine.bag:mine.hand:%d" % HAND],
@@ -2177,13 +2159,32 @@ def build():
         # bank hands "buyable" to whatever lies in it through `applies`, so
         # *buying* announces itself without a single plate knowing.
         "tags": {"red": {"emits": {"play": "attack"}},
-                 "buyable": {"emits": {"activate": "buy"}}},
+                 "buyable": {"emits": {"activate": "buy"}},
+                 # One buy for fifty-nine stacks. It can say the price because a
+                 # cost may be measured, and the chip has carried its own price
+                 # since a rule needed to read one off a card in a hand.
+                 #
+                 # "merge": "this" is the whole reason this is safe: an ongoing
+                 # chip has an upkeep ability, and a shop window that pays out on
+                 # a click is free money. Merchandise is only merchandise.
+                 #
+                 # The empty "play" says the same thing about the other half —
+                 # nothing lying in the bank is played, so nobody spends an action
+                 # on the shop's Crash Gem.
+                 "for_sale": {"play": {"phases": []},
+                              "abilities": [
+                                  {"key": "buy", "text": "Buy it", "merge": "this",
+                                   "phases": ["buy", "react_buy"],
+                                   "cost": {"buys@mine.player": 1, "stock@self": 1,
+                                            "money@mine.player": "price@self"},
+                                   "action": ["fill:mine.discard:@self:1",
+                                              "stat_gain:bought@mine.player:1"]}]}},
         "zones": zones(),
         "phases": phases(),
         "players": [{"card": k} for k, _ in SEATS],
-        "cards": (seat_cards() + other_cards() + button_cards() + bank_cards()
-                  + by_colour(priced(lands(say(gem_cards() + purple_cards() + puzzle_cards()
-                                                 + character_chips()))))
+        "cards": (seat_cards() + other_cards() + button_cards()
+                  + by_colour(priced(named(lands(say(gem_cards() + purple_cards() + puzzle_cards()
+                                                     + character_chips())))))
                   + character_cards() + [c for _, c in rule_cards()]),
         "setup": {"place": [{"card": "clock", "zone": "sys"},
                             {"card": "done_acting", "zone": "controls", "at": ["a1"]},
@@ -2191,10 +2192,7 @@ def build():
                             {"card": "finish_shopping", "zone": "controls", "at": ["c1"]},
                             {"card": "pick_chip", "zone": "controls", "at": ["d1"]},
                             {"card": "randomize_bank", "zone": "controls", "at": ["e1"]}]
-                           + [{"card": stack_key(gem_key(n)), "zone": "bank"} for n, _, _ in GEMS]
-                           + [{"card": stack_key(k), "zone": "bank"} for k, _, _, _ in PURPLES]
-                           + [{"card": "stack_wound", "zone": "bank"}]
-                           + [{"card": stack_key(k), "zone": "chip_box"} for k, _, _, _ in PUZZLE_ALL]
+                           + [{"card": k, "zone": "chip_box"} for k, _, _, _ in PUZZLE_ALL]
                            + [{"card": c["key"], "zone": z} for z, c in rule_cards()]},
     }
 

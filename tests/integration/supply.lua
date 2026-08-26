@@ -209,4 +209,42 @@ function M.test_supply_a_shared_buy_prices_itself_off_the_shelf(check)
 	end)
 end
 
+-- An offer borrows the *real* card, and in a supply the real card is a whole
+-- shelf. A stack lent to a question has to come back as deep as it left, or
+-- declining an offer quietly empties the box.
+function M.test_supply_a_shelf_lent_to_an_offer_comes_home_whole(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		check("the shelf starts deep", shelf("gem").stats.stock == 64)
+		actions.run({ "show:shop:optional" }, {})
+		check("the offer borrowed the real cards", count_in("shop") == 0)
+		check("and it is the shelf that is standing in it",
+			#zones.find("options").cards == 2, tostring(#zones.find("options").cards))
+
+		flow.dismiss_offer()
+		check("declining sends them home", count_in("shop") == 2, tostring(count_in("shop")))
+		check("with the whole stock, not one of it", shelf("gem").stats.stock == 64,
+			tostring(shelf("gem").stats.stock))
+		check("and the other shelf too", shelf("relic").stats.stock == 2)
+	end)
+end
+
+-- The other direction: an ordinary card put into the box is worth one, however
+-- it got there.
+function M.test_supply_an_ordinary_card_put_back_is_worth_one(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		actions.run({ "fill:table:gem:1" }, {})
+		local loose
+		for _, id in ipairs(zones.find("table").cards) do
+			if entity.get(id).def_key == "gem" then loose = entity.get(id) end
+		end
+		check("a loose gem exists and carries no stock", loose and loose.stats.stock == nil)
+		zones.move_card(loose.id, zones.find("shop").id)
+		check("putting it in the box raises the number by one",
+			shelf("gem").stats.stock == 65, tostring(shelf("gem").stats.stock))
+		check("and does not leave a second gem lying there", count_in("shop", "gem") == 1)
+	end)
+end
+
 return M
