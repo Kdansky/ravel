@@ -132,9 +132,9 @@ def buying():
     a = [f"stat_damage:t_{k}@mine.player:sum:due_{k}@self" for k in KEYS]
     a += ["stat_damage:t_gold@mine.player:sum:gold_due@self",
           "stat_damage:t_total@mine.player:sum:spent@self"]
-    a += [f"stat_gain:bank@pile_{k}:sum:due_{k}@self" for k in KEYS]
+    a += [f"stat_gain:stock@supply.pile_{k}:sum:due_{k}@self" for k in KEYS]
     a += [
-        "stat_gain:bank@pile_gold:sum:gold_due@self",
+        "stat_gain:stock@supply.pile_gold:sum:gold_due@self",
         "stat_gain:score@mine.player:sum:vp@self",
         "stat_gain:bought@mine.player:1",
     ]
@@ -177,8 +177,8 @@ def noble_check():
 def plenty():
     out = []
     for k in KEYS:
-        out += [f"stat_set:plenty@pile_{k}:sum:bank@pile_{k}",
-                f"stat_damage:plenty@pile_{k}:3"]
+        out += [f"stat_set:plenty@supply.pile_{k}:sum:stock@supply.pile_{k}",
+                f"stat_damage:plenty@supply.pile_{k}:3"]
     return out
 
 
@@ -225,10 +225,10 @@ def stats():
     seat_start = {"t_total": 0, "takes": 0, "done": 0, "first_take": 1,
                   "reserve_slots": 3, "bought": 0, "ending": 0, "opens": 0}
     seat_start.update({f"b_{k}": 0 for k in KEYS})
-    # "bank" is badged on the six token plates, whose plate colour and label
+    # "stock" is badged on the six token plates, whose plate colour and label
     # already say which gem they hold — so the count needs no shape beside it,
     # and the diamond it fell back to is the silhouette of a gem it is not.
-    hidden = {"bank": {"icon": "none"}, "plenty": {}}
+    hidden = {"stock": {"icon": "none"}, "plenty": {}}
     for k, extra in sorted(hidden.items()):
         out.append({"key": k, **extra, "min": 0, "max": 99, "tags": ["hidden"]})
     for k in sorted(scratch):
@@ -281,7 +281,7 @@ def styles():
     s["tray"] = {"fit": "card", "cell_outline": False}
     # How many are left, on the pile itself: taking two of one colour needs four
     # still there, so it is a number a player has to be able to count.
-    s["counter"] = {"badges": ["bank"]}
+    s["counter"] = {"badges": ["stock"]}
     return s
 
 
@@ -330,8 +330,12 @@ def zones(rows):
         # Tall enough for its own name and for six gems that spell theirs out:
         # the plates are height-bound in a wide zone, so the band the label
         # takes off the top comes off their width, and "Diamond" was "D...".
+        # A supply: the six plates *are* the tokens, and how many are left is
+        # the stock the engine keeps on them. Nothing may point at one, which is
+        # what a plate used to say for itself by wearing "immutable".
         {"key": "supply", "label": "The bank", "layout": "grid", "use": "abilities", "grid": [6, 1],
-         "tags": ["tray"], "pos": [0.57, 0.32, 0.98, 0.52]},
+         "status": "supply", "tags": ["tray"], "pos": [0.57, 0.32, 0.98, 0.52],
+         "contents": [f"pile_{k}:{SUPPLY}" for k in KEYS] + [f"pile_gold:{GOLD_SUPPLY}"]},
         {"key": "controls", "layout": "row", "tags": ["optional"],
          "pos": [0.57, 0.60, 0.98, 0.78],
          "contents": ["reserve_button", "done_button"]},
@@ -342,9 +346,9 @@ def zones(rows):
 # yes/no the computed tag "has_gold" answers as a 1 or a 0, so it multiplies
 # into the amount instead of needing a branch the format does not have.
 RESERVE_GOLD = [
-    "stat_gain:t_gold@mine.player:count:has_gold@pile_gold",
-    "stat_gain:t_total@mine.player:count:has_gold@pile_gold",
-    "stat_damage:bank@pile_gold:count:has_gold@pile_gold",
+    "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
+    "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
+    "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
     "stat_set:done@mine.player:1",
     "next_phase",
 ]
@@ -357,11 +361,11 @@ def piles():
             "key": f"pile_{k}", "text": label,
             "tooltip": f"{label} tokens. Take one — up to three different colours a turn — "
                        "or take two of this colour alone, which needs four still here.",
-            "tags": [f"pile_{k}", f"plate_{k}", "counter", "immutable"],
-            "card_stats": {"bank": SUPPLY, "plenty": 0},
+            "tags": [f"pile_{k}", f"plate_{k}", "counter"],
+            "card_stats": {"plenty": 0},
             "abilities": [
                 {"key": f"take_{k}", "text": f"Take one {label.lower()}",
-                 "phases": ["act"], "cost": {"exhaust": 1, "bank@self": 1},
+                 "phases": ["act"], "cost": {"exhaust": 1, "stock@self": 1},
                  "action": [f"stat_gain:t_{k}@mine.player:1",
                             "stat_gain:t_total@mine.player:1",
                             "stat_gain:takes@mine.player:1",
@@ -369,7 +373,7 @@ def piles():
                             "next_phase"]},
                 {"key": f"take2_{k}", "text": f"Take two {label.lower()}",
                  "phases": ["act"],
-                 "cost": {"exhaust": 1, "bank@self": 2, "plenty@self": 1,
+                 "cost": {"exhaust": 1, "stock@self": 2, "plenty@self": 1,
                           "first_take@mine.player": 1},
                  "action": [f"stat_gain:t_{k}@mine.player:2",
                             "stat_gain:t_total@mine.player:2",
@@ -377,7 +381,7 @@ def piles():
                             "next_phase"]},
                 {"key": f"back_{k}", "text": f"Put back a {label.lower()}",
                  "phases": ["discard"], "cost": {f"t_{k}@mine.player": 1},
-                 "action": ["stat_gain:bank@self:1",
+                 "action": ["stat_gain:stock@self:1",
                             "stat_damage:t_total@mine.player:1",
                             "next_phase"]},
             ],
@@ -386,12 +390,12 @@ def piles():
         "key": "pile_gold", "text": "Gold",
         "tooltip": "Gold is wild: it pays for any colour. It is never taken directly — "
                    "reserving a card is what earns one.",
-        "tags": ["pile_gold", "plate_gold", "counter", "immutable"],
-        "card_stats": {"bank": GOLD_SUPPLY, "plenty": 0},
+        "tags": ["pile_gold", "plate_gold", "counter"],
+        "card_stats": {"plenty": 0},
         "abilities": [
             {"key": "back_gold", "text": "Put back a gold",
              "phases": ["discard"], "cost": {"t_gold@mine.player": 1},
-             "action": ["stat_gain:bank@self:1",
+             "action": ["stat_gain:stock@self:1",
                         "stat_damage:t_total@mine.player:1",
                         "next_phase"]},
         ],
@@ -593,7 +597,7 @@ def build(here):
             # Both are yes/no questions asked as a number, so an amount can
             # multiply by them: the engine has no branch and needs none.
             "noble_ready": {"stat": "ok", "at_least": 1},
-            "has_gold": {"stat": "bank", "at_least": 1},
+            "has_gold": {"stat": "stock", "at_least": 1},
         },
         "tags": {
             # The ability is never clicked: neither zone is tagged "activate",
@@ -618,8 +622,7 @@ def build(here):
         "end_conditions": [],
         "cards": (seat_cards() + piles() + buttons()
                   + development(rows) + nobles(noble_rows) + endings()),
-        "setup": {"place": [{"card": f"pile_{k}", "zone": "supply", "at": [chr(ord('a') + i) + "1"]}
-                            for i, k in enumerate(KEYS + ["gold"])]},
+        "setup": {"place": []},
     }
 
 

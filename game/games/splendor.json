@@ -23,7 +23,7 @@
       "title": false
     },
     "tray": { "fit": "card", "cell_outline": false },
-    "counter": { "badges": ["bank"] }
+    "counter": { "badges": ["stock"] }
   },
   "stats": [
     {
@@ -101,8 +101,8 @@
       "on": ["player"],
       "start": 0
     },
-    { "key": "bank", "icon": "none", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "plenty", "min": 0, "max": 99, "tags": ["hidden"] },
+    { "key": "stock", "icon": "none", "min": 0, "max": 99, "tags": ["hidden"] },
     {
       "key": "buyable",
       "min": 0,
@@ -314,7 +314,7 @@
   ],
   "computed_tags": {
     "noble_ready": { "stat": "ok", "at_least": 1 },
-    "has_gold": { "stat": "bank", "at_least": 1 }
+    "has_gold": { "stat": "stock", "at_least": 1 }
   },
   "tags": {
     "development": {
@@ -377,12 +377,12 @@
           "stat_damage:t_black@mine.player:sum:due_black@self",
           "stat_damage:t_gold@mine.player:sum:gold_due@self",
           "stat_damage:t_total@mine.player:sum:spent@self",
-          "stat_gain:bank@pile_white:sum:due_white@self",
-          "stat_gain:bank@pile_blue:sum:due_blue@self",
-          "stat_gain:bank@pile_green:sum:due_green@self",
-          "stat_gain:bank@pile_red:sum:due_red@self",
-          "stat_gain:bank@pile_black:sum:due_black@self",
-          "stat_gain:bank@pile_gold:sum:gold_due@self",
+          "stat_gain:stock@supply.pile_white:sum:due_white@self",
+          "stat_gain:stock@supply.pile_blue:sum:due_blue@self",
+          "stat_gain:stock@supply.pile_green:sum:due_green@self",
+          "stat_gain:stock@supply.pile_red:sum:due_red@self",
+          "stat_gain:stock@supply.pile_black:sum:due_black@self",
+          "stat_gain:stock@supply.pile_gold:sum:gold_due@self",
           "stat_gain:score@mine.player:sum:vp@self",
           "stat_gain:bought@mine.player:1",
           "stat_gain:b_white@mine.player:count:gives_white@self",
@@ -513,9 +513,9 @@
         "cost": { "reserve_slots": 1 },
         "action": [
           "draw_from:t3_deck:mine.reserve:1",
-          "stat_gain:t_gold@mine.player:count:has_gold@pile_gold",
-          "stat_gain:t_total@mine.player:count:has_gold@pile_gold",
-          "stat_damage:bank@pile_gold:count:has_gold@pile_gold",
+          "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
+          "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
+          "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
           "stat_set:done@mine.player:1",
           "next_phase"
         ]
@@ -574,9 +574,9 @@
         "cost": { "reserve_slots": 1 },
         "action": [
           "draw_from:t2_deck:mine.reserve:1",
-          "stat_gain:t_gold@mine.player:count:has_gold@pile_gold",
-          "stat_gain:t_total@mine.player:count:has_gold@pile_gold",
-          "stat_damage:bank@pile_gold:count:has_gold@pile_gold",
+          "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
+          "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
+          "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
           "stat_set:done@mine.player:1",
           "next_phase"
         ]
@@ -645,9 +645,9 @@
         "cost": { "reserve_slots": 1 },
         "action": [
           "draw_from:t1_deck:mine.reserve:1",
-          "stat_gain:t_gold@mine.player:count:has_gold@pile_gold",
-          "stat_gain:t_total@mine.player:count:has_gold@pile_gold",
-          "stat_damage:bank@pile_gold:count:has_gold@pile_gold",
+          "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
+          "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
+          "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
           "stat_set:done@mine.player:1",
           "next_phase"
         ]
@@ -666,8 +666,17 @@
       "layout": "grid",
       "use": "abilities",
       "grid": [6, 1],
+      "status": "supply",
       "tags": ["tray"],
-      "pos": [0.57, 0.32, 0.98, 0.52]
+      "pos": [0.57, 0.32, 0.98, 0.52],
+      "contents": [
+        "pile_white:4",
+        "pile_blue:4",
+        "pile_green:4",
+        "pile_red:4",
+        "pile_black:4",
+        "pile_gold:5"
+      ]
     },
     {
       "key": "controls",
@@ -701,16 +710,16 @@
         "ready:supply"
       ],
       "actions": [
-        "stat_set:plenty@pile_white:sum:bank@pile_white",
-        "stat_damage:plenty@pile_white:3",
-        "stat_set:plenty@pile_blue:sum:bank@pile_blue",
-        "stat_damage:plenty@pile_blue:3",
-        "stat_set:plenty@pile_green:sum:bank@pile_green",
-        "stat_damage:plenty@pile_green:3",
-        "stat_set:plenty@pile_red:sum:bank@pile_red",
-        "stat_damage:plenty@pile_red:3",
-        "stat_set:plenty@pile_black:sum:bank@pile_black",
-        "stat_damage:plenty@pile_black:3",
+        "stat_set:plenty@supply.pile_white:sum:stock@supply.pile_white",
+        "stat_damage:plenty@supply.pile_white:3",
+        "stat_set:plenty@supply.pile_blue:sum:stock@supply.pile_blue",
+        "stat_damage:plenty@supply.pile_blue:3",
+        "stat_set:plenty@supply.pile_green:sum:stock@supply.pile_green",
+        "stat_damage:plenty@supply.pile_green:3",
+        "stat_set:plenty@supply.pile_red:sum:stock@supply.pile_red",
+        "stat_damage:plenty@supply.pile_red:3",
+        "stat_set:plenty@supply.pile_black:sum:stock@supply.pile_black",
+        "stat_damage:plenty@supply.pile_black:3",
         "activate_zone:t1_row",
         "activate_zone:t2_row",
         "activate_zone:t3_row",
@@ -816,14 +825,14 @@
       "key": "pile_white",
       "text": "Diamond",
       "tooltip": "Diamond tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_white", "plate_white", "counter", "immutable"],
-      "card_stats": { "bank": 4, "plenty": 0 },
+      "tags": ["pile_white", "plate_white", "counter"],
+      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_white",
           "text": "Take one diamond",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 1 },
+          "cost": { "exhaust": 1, "stock@self": 1 },
           "action": [
             "stat_gain:t_white@mine.player:1",
             "stat_gain:t_total@mine.player:1",
@@ -836,7 +845,7 @@
           "key": "take2_white",
           "text": "Take two diamond",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_white@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -849,7 +858,7 @@
           "text": "Put back a diamond",
           "phases": ["discard"],
           "cost": { "t_white@mine.player": 1 },
-          "action": ["stat_gain:bank@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
+          "action": ["stat_gain:stock@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
         }
       ]
     },
@@ -857,14 +866,14 @@
       "key": "pile_blue",
       "text": "Sapphire",
       "tooltip": "Sapphire tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_blue", "plate_blue", "counter", "immutable"],
-      "card_stats": { "bank": 4, "plenty": 0 },
+      "tags": ["pile_blue", "plate_blue", "counter"],
+      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_blue",
           "text": "Take one sapphire",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 1 },
+          "cost": { "exhaust": 1, "stock@self": 1 },
           "action": [
             "stat_gain:t_blue@mine.player:1",
             "stat_gain:t_total@mine.player:1",
@@ -877,7 +886,7 @@
           "key": "take2_blue",
           "text": "Take two sapphire",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_blue@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -890,7 +899,7 @@
           "text": "Put back a sapphire",
           "phases": ["discard"],
           "cost": { "t_blue@mine.player": 1 },
-          "action": ["stat_gain:bank@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
+          "action": ["stat_gain:stock@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
         }
       ]
     },
@@ -898,14 +907,14 @@
       "key": "pile_green",
       "text": "Emerald",
       "tooltip": "Emerald tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_green", "plate_green", "counter", "immutable"],
-      "card_stats": { "bank": 4, "plenty": 0 },
+      "tags": ["pile_green", "plate_green", "counter"],
+      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_green",
           "text": "Take one emerald",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 1 },
+          "cost": { "exhaust": 1, "stock@self": 1 },
           "action": [
             "stat_gain:t_green@mine.player:1",
             "stat_gain:t_total@mine.player:1",
@@ -918,7 +927,7 @@
           "key": "take2_green",
           "text": "Take two emerald",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_green@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -931,7 +940,7 @@
           "text": "Put back a emerald",
           "phases": ["discard"],
           "cost": { "t_green@mine.player": 1 },
-          "action": ["stat_gain:bank@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
+          "action": ["stat_gain:stock@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
         }
       ]
     },
@@ -939,14 +948,14 @@
       "key": "pile_red",
       "text": "Ruby",
       "tooltip": "Ruby tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_red", "plate_red", "counter", "immutable"],
-      "card_stats": { "bank": 4, "plenty": 0 },
+      "tags": ["pile_red", "plate_red", "counter"],
+      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_red",
           "text": "Take one ruby",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 1 },
+          "cost": { "exhaust": 1, "stock@self": 1 },
           "action": [
             "stat_gain:t_red@mine.player:1",
             "stat_gain:t_total@mine.player:1",
@@ -959,7 +968,7 @@
           "key": "take2_red",
           "text": "Take two ruby",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_red@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -972,7 +981,7 @@
           "text": "Put back a ruby",
           "phases": ["discard"],
           "cost": { "t_red@mine.player": 1 },
-          "action": ["stat_gain:bank@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
+          "action": ["stat_gain:stock@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
         }
       ]
     },
@@ -980,14 +989,14 @@
       "key": "pile_black",
       "text": "Onyx",
       "tooltip": "Onyx tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
-      "tags": ["pile_black", "plate_black", "counter", "immutable"],
-      "card_stats": { "bank": 4, "plenty": 0 },
+      "tags": ["pile_black", "plate_black", "counter"],
+      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_black",
           "text": "Take one onyx",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 1 },
+          "cost": { "exhaust": 1, "stock@self": 1 },
           "action": [
             "stat_gain:t_black@mine.player:1",
             "stat_gain:t_total@mine.player:1",
@@ -1000,7 +1009,7 @@
           "key": "take2_black",
           "text": "Take two onyx",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "bank@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_black@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -1013,7 +1022,7 @@
           "text": "Put back a onyx",
           "phases": ["discard"],
           "cost": { "t_black@mine.player": 1 },
-          "action": ["stat_gain:bank@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
+          "action": ["stat_gain:stock@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
         }
       ]
     },
@@ -1021,15 +1030,15 @@
       "key": "pile_gold",
       "text": "Gold",
       "tooltip": "Gold is wild: it pays for any colour. It is never taken directly — reserving a card is what earns one.",
-      "tags": ["pile_gold", "plate_gold", "counter", "immutable"],
-      "card_stats": { "bank": 5, "plenty": 0 },
+      "tags": ["pile_gold", "plate_gold", "counter"],
+      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "back_gold",
           "text": "Put back a gold",
           "phases": ["discard"],
           "cost": { "t_gold@mine.player": 1 },
-          "action": ["stat_gain:bank@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
+          "action": ["stat_gain:stock@self:1", "stat_damage:t_total@mine.player:1", "next_phase"]
         }
       ]
     },
@@ -1047,9 +1056,9 @@
           "set_owner:target:mine",
           "stat_set:reserved@target:1",
           "move_target_to:mine.reserve",
-          "stat_gain:t_gold@mine.player:count:has_gold@pile_gold",
-          "stat_gain:t_total@mine.player:count:has_gold@pile_gold",
-          "stat_damage:bank@pile_gold:count:has_gold@pile_gold",
+          "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
+          "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
+          "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
           "stat_set:done@mine.player:1",
           "next_phase"
         ]
@@ -2571,14 +2580,5 @@
       "play": { "action": ["load_game:menu.json"] }
     }
   ],
-  "setup": {
-    "place": [
-      { "card": "pile_white", "zone": "supply", "at": ["a1"] },
-      { "card": "pile_blue", "zone": "supply", "at": ["b1"] },
-      { "card": "pile_green", "zone": "supply", "at": ["c1"] },
-      { "card": "pile_red", "zone": "supply", "at": ["d1"] },
-      { "card": "pile_black", "zone": "supply", "at": ["e1"] },
-      { "card": "pile_gold", "zone": "supply", "at": ["f1"] }
-    ]
-  }
+  "setup": { "place": [] }
 }

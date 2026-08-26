@@ -239,7 +239,12 @@ function M.normalise_zone(zd, pp)
 	-- — a fanned row says reach "top", a readout grid says status "exile" —
 	-- which is the whole difference between this and reading the rules off the
 	-- shape, which is what "type" did and what this replaced.
-	zd.reach   = zd.reach   or (zd.layout == "stack" and "top") or "all"
+	-- A supply is left without one on purpose: a stock has no order, so it has no
+	-- top and "all" would be a claim about cards that are a number. Left nil, the
+	-- reach tests downstream read it as "not top", which is the honest answer.
+	if zd.status ~= "supply" then
+		zd.reach = zd.reach or (zd.layout == "stack" and "top") or "all"
+	end
 	zd.use     = zd.use     or (zd.visibility == "secret" and "none") or "play"
 	zd.status  = zd.status  or (zd.layout == "grid" and "board") or "exile"
 	zd.display = zd.display or "onscreen"

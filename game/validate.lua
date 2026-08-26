@@ -1472,7 +1472,8 @@ function M.check(G)
 			warn('%s: should be written like { "stat": "hp", "equals": "0" }', where)
 		else
 			check_fields(where, def, COMPUTED_FIELDS)
-			if def.stat and not card_stats[def.stat] then
+			if def.stat and not card_stats[def.stat]
+				and not (has_supply and SUPPLY_STATS[def.stat]) then
 				warn("%s: reads the card stat '%s', but no card carries it%s",
 					where, tostring(def.stat), suggest(def.stat, card_stats))
 			end
@@ -1919,10 +1920,17 @@ function M.check(G)
 			end
 			if type(def.grid) == "table" and type(def.grid[1]) == "number"
 				and type(def.grid[2]) == "number" and type(def.contents) == "table" then
+				-- A supply's cells hold *kinds*: sixty-four gems are one card and a
+				-- number, so what has to fit is how many different things it sells.
 				local cap, total = def.grid[1] * def.grid[2], 0
+				local kinds = {}
 				for _, entry in ipairs(def.contents) do
-					local _, n = tostring(entry):match("^([^:]+):?(%d*)$")
-					total = total + (tonumber(n) or 1)
+					local key, n = tostring(entry):match("^([^:]+):?(%d*)$")
+					if def.status == "supply" then
+						if not kinds[key] then kinds[key] = true; total = total + 1 end
+					else
+						total = total + (tonumber(n) or 1)
+					end
 				end
 				if total > cap then
 					warn("%s: starts with %d cards but the board only has %d slots — the extras are dropped",
