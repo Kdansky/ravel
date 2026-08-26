@@ -219,10 +219,18 @@ function M.candidates(card_id, spec)
 	-- anything that is furniture rather than a game object. Nothing may target
 	-- it and nothing may edit it, so a stray "destroy every card here" or a
 	-- misaimed spell cannot eat the interface.
+	--
+	-- A supply's cards are out for the same reason said the other way round. One
+	-- card there stands for a whole stock of identical ones, so there is no
+	-- single thing to point at — and it is that nobody can point that lets the
+	-- engine keep one card where the game file wrote sixty-four. Two games said
+	-- this by hand, tagging every counter "immutable"; the zone says it now.
 	local visible = {}
 	for _, id in ipairs(out) do
 		local e = entity.get(id)
-		if not (e and e.kind == "card" and tags.entity_has(e, "immutable")) then
+		local z = e and e.zone_id and entity.get(e.zone_id)
+		if not (e and e.kind == "card"
+			and (tags.entity_has(e, "immutable") or (z and z.status == "supply"))) then
 			visible[#visible + 1] = id
 		end
 	end

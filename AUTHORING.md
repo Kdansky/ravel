@@ -1010,6 +1010,7 @@ cost, a card's `turn` block acting by itself, and a reaction answered
 |---|---|
 | `board` | **In play.** Every rule above means these cards. A `grid` is this without saying so |
 | `offer` | A card lent to a question — nobody's while it is there, and gone when the question is answered. An `options` zone is this without saying so |
+| `supply` | **Stock.** A shop's shelves, a bank of tokens, the box a game deals from: visible and countable, but nobody's and not in play |
 | `exile` | Everything else, and the default: a deck, a discard, a bag, a trash |
 
 **Exile is not oblivion.** Naming a zone has always reached inside it, so
@@ -1032,6 +1033,50 @@ to act, and no reaction could answer from it. A row that is in play says so:
 Note the default is `exile`, not `board`: a zone is inert until it says
 otherwise, so a forgotten word leaves a card unreachable rather than quietly
 countable.
+
+### `supply` — a stock the engine counts for you
+
+The word a `supply` adds to "not in play" is **interchangeable**. Sixty-four
+identical gems differ in nothing a rule may ask about, so the engine keeps one of
+each kind as a real card and a number for the rest:
+
+```json
+{ "key": "bank", "layout": "grid", "grid": [3, 6], "status": "supply",
+  "use": "abilities", "applies": ["for_sale"],
+  "contents": ["gem_1:64", "gem_2:20", "wound:24"] }
+```
+
+That declares 108 cards and creates three, each stamped with a `stock` — a stat
+the engine writes, which you never declare and may read and spend like any other.
+Nothing else in the game file knows, and nothing else has to.
+
+**It is safe because nothing may point at one.** A supply's cards are out of every
+candidate list, exactly as `immutable` scenery is — and it is that nobody can
+point which lets one card stand for sixty-four. A rule able to tell two gems
+apart would find out there is only one.
+
+**Buying is a cost and a fill, not a draw:**
+
+```json
+{ "key": "buy", "cost": { "coin@mine.player": 1, "stock@self": 1 },
+  "action": ["fill:mine.discard:@self:1"] }
+```
+
+The shelf card never moves. `stock@self` running out is what makes a sold-out
+stack refuse, with no rule written for it. Drawing *from* a supply is refused by
+the validator, since it would move the one card standing for the whole stock —
+and so are `reach` and `refill_from`, because a stock has no order to have a top
+or to run out in. Filling a supply raises the number instead of minting a card,
+so `contents`, `fill:` and a rule returning something to the box all land right
+without knowing.
+
+**An empty shelf keeps its card.** That is what lets a game count how many stacks
+have run out — `count:spent@bank` where `spent` is a computed tag on `stock` —
+which a heap of real cards could never answer, because an absence carries no tag.
+
+Two games built this by hand before it existed: Splendor's token piles and Puzzle
+Strike's bank are the same counter card tagged `immutable`, with the take written
+as its `activate`. If you find yourself writing that, this is the word for it.
 
 ### `<zone>.<tag>` — one place, one kind
 

@@ -31,6 +31,12 @@ local RESERVED = { round = true, plays = true }
 -- stands, which is how "rank" already works.
 local SLOT_STATS = { col = true, row = true }
 
+-- Stamped by the engine on the one card a supply keeps of each kind: how many of
+-- that kind the stock holds. Legitimate in a scoped subject although no card
+-- declares it, for the same reason col and row are — the zone declared it, on
+-- behalf of every card that lands there.
+local SUPPLY_STATS = { stock = true }
+
 -- Every tag the engine itself reads, what it attaches to, and what it does.
 --
 -- One table because there were four half-lists: a set in this file that only
@@ -493,6 +499,13 @@ function M.check(G)
 		end
 	end
 
+	-- Whether any zone is a supply, which is what makes "stock" a stat the engine
+	-- writes rather than a word nobody declared.
+	local has_supply = false
+	for _, zd in pairs(G.zone_defs) do
+		if type(zd) == "table" and zd.status == "supply" then has_supply = true end
+	end
+
 	local all_stats = {}
 	for k in pairs(G.stat_defs) do all_stats[k] = true end
 	for k in pairs(RESERVED) do all_stats[k] = true end
@@ -588,7 +601,8 @@ function M.check(G)
 		elseif not stat_ok(p.arg) then
 			-- A scoped subject reads a stat off the cards it names, so a stat
 			-- only ever carried by cards is legitimate there.
-			if not (p.scope and (card_stats[p.arg] or SLOT_STATS[p.arg])) then
+			if not (p.scope and (card_stats[p.arg] or SLOT_STATS[p.arg]
+				or (has_supply and SUPPLY_STATS[p.arg]))) then
 				warn("%s: uses the stat '%s', but it is never declared or set up%s",
 					where, tostring(p.arg), suggest(p.arg, all_stats))
 			end
@@ -779,6 +793,10 @@ function M.check(G)
 		end
 	end
 
+	-- Which argument of a moving op is the place cards come *out* of, so a supply
+	-- can be refused there and allowed everywhere else.
+	local MOVES_FROM = { draw_from = 2, return_to = 2 }
+
 	local check_action
 	function check_action(where, str)
 		local p = {}
@@ -818,6 +836,14 @@ function M.check(G)
 				if not (sc and (G.zone_defs[sc.name] or sc.name == "target")) then
 					warn("%s: '%s' points at zone '%s', but no zone has that key%s",
 						where, op, a, suggest(sc and sc.name or a, G.zone_defs))
+				elseif MOVES_FROM[op] == i and (G.zone_defs[sc.name] or {}).status == "supply" then
+					-- Taking *from* a supply would move the one card standing for
+					-- the whole stock. Spend it and make a new one instead: a
+					-- "stock@self" cost beside "fill:<somewhere>:@self", which is
+					-- how both games that invented this by hand already wrote it.
+					warn('%s: "%s" draws out of the supply \'%s\', which would move the card '
+						.. 'standing for the whole stock — spend "stock" and fill from it instead',
+						where, op, sc.name)
 				end
 			elseif t == "pos" then
 				-- Where in the destination the card lands. Two words, because a
@@ -1918,6 +1944,19 @@ function M.check(G)
 		end
 		check_conditions(where .. " accepts", def.accepts)
 		check_list(where .. " receive action", def.on_receive)
+		-- What a supply cannot also be. Its cards are a number, so anything that
+		-- reads an order or moves the card standing for the stock is asking a
+		-- question the zone has promised nobody would ask.
+		if def.status == "supply" then
+			if def.reach ~= nil then
+				warn('%s: is a supply and also says reach "%s" — a stock has no order and no top, '
+					.. "since every card of a kind in it is the same card", where, tostring(def.reach))
+			end
+			if def.refill_from ~= nil then
+				warn("%s: is a supply and refills from '%s' — a stock does not run out in an order, "
+					.. "so there is no moment to refill at", where, tostring(def.refill_from))
+			end
+		end
 		if def.applies ~= nil then
 			if type(def.applies) ~= "table" then
 				warn('%s: applies should be a list of tag names like ["takeable"]', where)

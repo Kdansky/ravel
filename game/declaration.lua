@@ -159,10 +159,24 @@ local WHOSE = { mine = true, enemy = true, anyone = true }
 -- *nameable*, because naming a zone has always reached it; what they are not is
 -- counted, sacrificed, or asked to act.
 --
+-- "supply" is stock: a shop's shelves, a bank of tokens, the box a game deals
+-- from. Visible and countable, but nobody's and not in play, and — the part that
+-- earns it a word of its own — **the cards in it are interchangeable**. Sixty-four
+-- identical gems differ in nothing a rule can ask about, so the engine keeps one
+-- of each as a real card and a number for the rest, and the game file never
+-- learns which. That is a promise the format makes on the game's behalf, which is
+-- why it is a standing and not a hint: nothing may point at one, so nothing can
+-- tell the copies apart and find out.
+--
+-- Two games had already built it by hand before it existed. Splendor's token
+-- piles and Puzzle Strike's bank are both a counter card tagged "immutable" with
+-- the take written as its activate — the same shape twice, with no shared
+-- authoring, which is what a missing word in an enum looks like from outside.
+--
 -- Default "exile", so a zone is inert until it says otherwise and a forgotten
 -- word fails closed. The two types that carry a standing of their own supply it,
 -- which is what keeps every game written before the field unchanged.
-M.STATUS = { board = true, exile = true, offer = true }
+M.STATUS = { board = true, exile = true, offer = true, supply = true }
 
 -- Seven questions a zone answers, where "type" answered all of them at once and
 -- a game could only have the five bundles somebody had thought of. Each field is

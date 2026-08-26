@@ -692,4 +692,39 @@ function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
 	check("and a good one says nothing", not said:find("vault.gem'", 1, true), said)
 end
 
+-- A supply promises its cards are interchangeable, and the validator holds the
+-- game to it: anything that reads an order, or moves the one card standing for
+-- the stock, is asking the question the zone said nobody would ask.
+function M.test_validator_holds_a_supply_to_its_promise(check)
+	local path = "game/games/tmp_supply_bad.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Supply promise",
+		"zones": [
+			{ "key": "shop", "layout": "grid", "grid": [2, 1], "status": "supply",
+			  "reach": "top", "refill_from": "bin", "contents": ["gem:9"] },
+			{ "key": "bin", "layout": "stack" },
+			{ "key": "hand", "layout": "row" }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "gem", "text": "Gem", "tags": ["gem"], "abilities": [
+			{ "key": "a", "action": ["draw_from:shop:hand:1"] },
+			{ "key": "b", "cost": { "stock@self": 1 }, "action": ["fill:hand:@self:1"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_supply_bad.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = table.concat(validate.check(G), "; ")
+	check("reach is refused: a stock has no top",
+		said:find("a stock has no order and no top", 1, true), said)
+	check("refill_from is refused: there is no moment to refill at",
+		said:find("no moment to refill at", 1, true), said)
+	check("and drawing out of one is refused, with the way to write it instead",
+		said:find("standing for the whole stock", 1, true), said)
+	check("while spending the stock and filling from it says nothing",
+		not said:find("'b'", 1, true), said)
+	check("and \"stock\" needs no declaring, because the zone declared it",
+		not said:find("uses the stat 'stock'", 1, true), said)
+end
+
 return M

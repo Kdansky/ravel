@@ -200,8 +200,37 @@ end
 -- Create a card into a zone and give it a slot, or return nil when a grid is
 -- full. move_card guards arrivals, but creation bypasses it entirely, so the
 -- capacity bound lives here rather than being restated at every creation site.
+-- The one card of a kind a supply keeps real. Everything else of that kind is a
+-- number written on it, so this is what "the 1-gem stack" means to every rule
+-- that asks: it is targeted by nothing, but it is counted, tagged and clicked.
+local function face_card(z, def_key)
+	for _, id in ipairs(z.cards or {}) do
+		local e = entity.get(id)
+		if e and e.def_key == def_key then return e end
+	end
+end
+
+-- Put one card of this kind here.
+--
+-- **A supply counts instead.** Its cards are interchangeable by declaration, so
+-- the second one is not a card at all — it is the first one's "stock" going up.
+-- Every existing way of filling a zone therefore lands right without knowing:
+-- a "contents" line of "gem_1:64", a "fill:bank:gem_1:8", a rule returning a gem
+-- to the box. What a supply refuses is running out of room, since a number has
+-- no capacity.
 function M.add(z, def_key)
-	if not z or not M.has_room(z) then return nil end
+	if not z then return nil end
+	if z.status == "supply" then
+		local e = face_card(z, def_key)
+		if not e then
+			e = cards.create(def_key, z.id)
+			M.auto_slot(e.id)
+			cards.attach_stat(e, "stock", 0)
+		end
+		e.stats.stock = (e.stats.stock or 0) + 1
+		return e
+	end
+	if not M.has_room(z) then return nil end
 	local e = cards.create(def_key, z.id)
 	M.auto_slot(e.id)
 	return e
