@@ -160,8 +160,10 @@ def stack_key(chip):
 # Crash Gem and six 1-gems (rules.md §4). Only the three change, which is why
 # choosing one is a draft over a shared roster rather than five game files.
 #
-# Five of the ten base characters have all three chips photographed; the other
-# five are listed in chips.md under *Incomplete* and are not offered here.
+# Twenty characters: the base ten and the Shadows ten. Which Shadows trio
+# belonged to which name was guesswork in chips.md until the character-select
+# screen turned up — every chip wears its owner's portrait, and the screen names
+# the portraits.
 CHARACTERS = [
     ("argagarg", "Argagarg", "teal",
      "Defensive disruption: wounds that clog an opponent's bag, and a ward that taxes the whole table.",
@@ -193,6 +195,40 @@ CHARACTERS = [
     ("geiger", "Geiger", "yellow",
      "Time: put the chips you want back where you will draw them, and pull the ones you need out of the past.",
      ["research_development", "future_sight", "its_time_for_the_past"]),
+
+    # Shadows. Which trio belongs to which name was guesswork in chips.md until
+    # the character-select screen turned up: the portrait on every chip is the
+    # portrait on the roster, and all ten attributions read straight off it.
+    ("quince", "Quince", "gold",
+     "Flagstone's mayor: a tax that prices the other side out of the bank, and a question they have to answer for you.",
+     ["two_truths", "flagstone_tax", "patriot_mirror"]),
+    ("onimaru", "Onimaru", "orange",
+     "A swordsman's economy: an exact double crash, and a chip pulled back out of the discard the moment you are hit.",
+     ["wartime_tactics", "double_slash", "riposte"]),
+    ("zane", "Zane", "magenta",
+     "Chaos: every hand at the table thrown away and drawn again, and crashes paid for in gem power.",
+     ["crash_bomb", "maximum_anarchy", "crash_potato"]),
+    ("gloria", "Gloria", "silver",
+     "The healer: a gem trimmed off every pile at once, and chips dealt round the table.",
+     ["healing_touch", "radiant_healing", "saving_grace"]),
+    ("vendetta", "Vendetta", "slate",
+     "The shadows: a chip that wounds you for being discarded, and a swarm that empties the other hand.",
+     ["shadow_plague", "burnbarrow", "shadowswarm"]),
+    ("gwen", "Gwen", "forest",
+     "Precision: any two arrows you like, and a strike that picks what they throw away.",
+     ["acrobatics", "surgical_strike", "stunlock"]),
+    ("troq", "Troq", "brown",
+     "The brute: paid for a heavy gem pile, and small gems traded up for bigger ones.",
+     ["giant_growth", "beast_unleashed", "more_shiny"]),
+    ("persephone", "Persephone", "violet",
+     "Control: wounds pushed into their bag, and a chip drawn for every one already lying in a discard pile.",
+     ["pleasure_and_pain", "mistress_command", "always_in_control"]),
+    ("bbb", "Bal-Bas-Beta", "olive",
+     "A machine: a punch that answers being punched, and an engine that pays a little every turn.",
+     ["rocket_punch", "upgrade", "cog_engine"]),
+    ("menelker", "Menelker", "maroon",
+     "Death: their largest gem taken out of their hand, and a bank stack removed from the game.",
+     ["deathstrike_dragon", "bonecracker", "into_oblivion"]),
 ]
 
 
@@ -222,9 +258,7 @@ TEXT = {
     "crash_gem": ("Break one gem in your gem pile and send that many 1-gems to a chosen opponent. +$1",
                   None, {"plus_pow": 1}),
     "double_crash": ("As Crash Gem, up to two gems. +$2", None, {"plus_pow": 2}),
-    "wound": ("This chip does nothing.",
-              "it is free, and it is the only thing you can always afford: you must buy something every turn.",
-              {}),
+    "wound": ("This chip does nothing.", None, {}),
 
     "risky_move": ("Put a gem from your hand into your gem pile. If you do, gain a gem of 1 higher value and +$3.",
                    None, {"plus_pow": 3}),
@@ -299,10 +333,7 @@ TEXT = {
      "the gem power and the immunity are built. Redirecting what you buy onto your bag is answerable now, but the event names the *plate*, not the chip it dealt into your discard, so there is nothing to move.",
      {'plus_pow': 1, 'react': 1}),
     "training_day": ("Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing "
-                     "up to 2 more than the trashed chip into your hand.",
-                     "built whole. The allowance is handed over as money and the ordinary price of every pile "
-                     "does the gating, so \"up to 2 more\" needed nothing new.",
-                     {"plus_piggy": 1}),
+                     "up to 2 more than the trashed chip into your hand.", None, {"plus_piggy": 1}),
 
     # --- Shadows ------------------------------------------------------------
     "axe_kick": ("+1 brown action, +2 chips", None, {"plus_act": 1, "plus_draw": 2}),
@@ -315,10 +346,7 @@ TEXT = {
      {'plus_act': 1, 'react': 1}),
     "button_mashing": ("+2 actions, then trash this chip.", None, {"plus_act": 2}),
     "chips_for_free": ("+2 chips. Trash a chip from your hand. If you do, gain a chip costing up to 2 more "
-                       "than the trashed chip.",
-                       "built whole, the same way Training Day is: the allowance is money and the piles price "
-                       "themselves.",
-                       {"plus_draw": 2}),
+                       "than the trashed chip.", None, {"plus_draw": 2}),
     "color_panic": ("+1 red action. Choose blue, red, purple or brown. Each opponent discards a chip of that "
                     "banner colour, or reveals his hand if he can't. If any can't, +1 action.",
                     "the action is built. The discard is narrowed by a colour the player picks as the chip "
@@ -361,10 +389,7 @@ TEXT = {
              "narrowed to one card, and once-per-turn is not marked.",
              {"hits": 1}),
     "pick_your_poison": ("+1 red action, +1 chip, piggy bank. Each opponent chooses one: he antes a 1-gem "
-                         "\u2014 OR \u2014 he discards two chips.",
-                         "built whole, and the choice really is theirs: priority goes across while the offer "
-                         "is up and comes home when it closes.",
-                         {"plus_act": 1, "plus_draw": 1, "plus_piggy": 1, "hits": 1}),
+                         "\u2014 OR \u2014 he discards two chips.", None, {"plus_act": 1, "plus_draw": 1, "plus_piggy": 1, "hits": 1}),
     "punch_punch_kick": ("+2 actions, +1 chip", None, {"plus_act": 2, "plus_draw": 1}),
     "repeated_jabs": ("Ante a 1-gem into each opposing gem pile. You may put this chip on top of your bag.",
                       "it always goes back on top of your bag rather than to the table. \"You may\" would be "
@@ -398,13 +423,14 @@ TEXT = {
                        "antes a 1-gem.",
                        None, {"plus_act": 1, "hits": 1}),
 
-    "hex_of_murkwood": ("+1 blue action. Each opponent gains a wound or discards two wounds.",
-     "they gain one. Asking them is now sayable — a mandatory reaction on their own board card opens the offer for them — and is not yet written.",
+    # The v1 wording rather than the third edition's. The third edition offers
+    # each opponent a choice, and the branch worth taking — "discard two wounds"
+    # — wants a pick narrowed inside a hand, which an offer's entry cannot
+    # carry. v1 asks nobody anything and is buildable whole.
+    "hex_of_murkwood": ("+1 blue action. Each opponent puts a wound in his bag, then antes a 1-gem for each wound in his discard pile.",
+     "built whole, from the v1 sheet rather than the third edition. The wound goes into the bag, so it is not one of the ones counted a line later, and the bag is shuffled after — a bag is a bag, not a deck with a top.",
      {'plus_act': 1, 'hits': 1}),
-    "bubble_shield_up": ("Ongoing: Negate a gem sent to you, then discard this chip.",
-                         "what Bubble Shield becomes once it is out. A separate card because the two halves "
-                         "answer from different zones, and one card cannot say which of its reactions belongs to which.",
-                         {"react": 1}),
+    "bubble_shield_up": ("Ongoing: Negate a gem sent to you, then discard this chip.", None, {"react": 1}),
     "bubble_shield": ("Ongoing: Negate a gem sent to you, then discard this chip. Reaction: Become immune to a red chip.",
      "laying it out turns it into the ongoing half, which is a card of its own. Answering from hand instead cancels the attack outright, which is the two-player reading of immunity.",
      {'react': 1}),
@@ -419,22 +445,19 @@ TEXT = {
      None,
      {'plus_act': 1, 'hits': 1}),
     "unstable_power": ("Main or Reaction: Play this as if it were a Double Crash Gem, then gain two wounds.",
-                       "the main half only. A chip played out of turn is what \"reactions\" is for now, "
-                       "so the other half is a second entry waiting to be written.",
-                       {"plus_pow": 2, "react": 1}),
+                       None, {"plus_pow": 2, "react": 1}),
 
     "dragon_form": ("Ongoing: Each ante phase, ante a gem of 1 higher than usual, or discard this chip. Your purples can't be reacted to. You can't buy purples.",
      "the bigger ante is built. Nothing can say an announcement may not be answered, and nothing can bar a pile from being bought, so the other two clauses have no spelling.",
      {}),
     "rigorous_training": ("Reaction: When an opponent buys a purple chip, trash a non-purple chip from your hand then gain a chip costing up to 2 more than the trashed chip.",
-     "the allowance is handed over as money, so the ordinary price of every pile does the gating and nothing new had to be invented. A chip nobody can buy carries no price, so trashing a character chip allows 2.",
-     {'react': 1}),
+     None, {'react': 1}),
     "purge_bad_habits": ("Trash a chip from your hand. Put a 2-gem from the bank into your hand. "
                          "(Character chips can't be trashed.)", None, {}),
 
     "double_take": ("Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.",
-     "not written yet, and now sayable: \"copy:target:play:2\" runs the chosen chip's play twice without playing the chip, then \"destroy:target\" trashes it.",
-     {'plus_act': 2}),
+     "built: \"copy:target:play:2\" runs the chosen chip's play twice without playing the chip, and \"destroy:target\" trashes it. Two things are short of the print. The pick is your hand alone \u2014 a discard is a stack, and a stack offers only the card on top of it. And a copy carries no targets, so a chip that waits to be aimed \u2014 a Crash Gem \u2014 is trashed without going off.",
+     {}),
     "bag_of_tricks": ("+1 brown action, piggy bank, +1 chip", None,
                       {"plus_act": 1, "plus_piggy": 1, "plus_draw": 1}),
     "speed_of_the_fox": ("+2 brown actions, +1 chip", None,
@@ -457,13 +480,10 @@ TEXT = {
                           {"plus_act": 1}),
 
     "pilebunker": ("+1 chip. Opponents reveal their hands, trash their largest gem, then gain that many 1-gems.",
-     "built whole. Their whole hand is revealed — that is half the printed rule — and \"chosen.where\" is what says only the largest gem may be taken out of it.",
-     {'plus_draw': 1, 'hits': 1}),
+     None, {'plus_draw': 1, 'hits': 1}),
     "no_more_lies": ("+1 red action. Trash up to two chips from your hand. (Character chips can't be trashed.)",
                      None, {"plus_act": 1, "hits": 1}),
-    "troublesome_rhetoric": ("Chosen opponent chooses your benefit: +1 action and +1 chip — OR — +$2 and piggy bank.",
-     "at one screen, hand it over. Handing the choice to them is now sayable — a mandatory reaction on their own board card — and is not yet written.",
-     {}),
+    "troublesome_rhetoric": ("Chosen opponent chooses your benefit: +1 action and +1 chip — OR — +$2 and piggy bank.", None, {}),
 
     "burst_of_speed": ("Trash this chip, then take an extra turn after this one.", None, {}),
     "chromatic_orb": ("+1 chip. Crash a 1-gem in your gem pile.", None, {"plus_draw": 1}),
@@ -472,9 +492,7 @@ TEXT = {
     "research_development": ("+1 action. Exchange a chip in your hand with a purple from your bag.",
      "the bag opens and a purple comes out of it. The chip you give back in exchange is not asked for.",
      {'plus_act': 1}),
-    "future_sight": ("+2 chips. Put two chips from your hand on top of your bag in any order.",
-     "not written yet, and now sayable: targets arrive in the order they were picked and \"move_target_to:mine.bag:top\" puts them back in that order, so the order really is the player's.",
-     {'plus_draw': 2}),
+    "future_sight": ("+2 chips. Put two chips from your hand on top of your bag in any order.", None, {'plus_draw': 2}),
     "its_time_for_the_past": ("+1 action. Put a non-Puzzle chip from your discard pile into your hand.",
      None,
      {'plus_act': 1}),
@@ -487,6 +505,96 @@ TEXT = {
     "jackpot": ("Reveal two chips at random from chosen opponent's hand. If any are gems, +$1 and +1 action. If both are purples, play and gain a purple from the bank.",
      "pays the gem half unconditionally. A random reveal is built now (\"show:random.enemy.hand\"), but it shows one card and nothing branches on what came up, which is the rest of the chip.",
      {'plus_act': 1, 'plus_pow': 1}),
+
+    # --- Shadows character chips ------------------------------------------
+    #
+    # Printed text from chips.md's Shadows tables, which the character-select
+    # screen has now confirmed the ownership of. The DEV notes say the same
+    # thing they say everywhere else: what is built, and what the sentence
+    # would need that no word here has.
+    "two_truths": ("Choose two different chips from your discard pile. Then chosen opponent selects one and you put it in your hand. You may play it.",
+     "your whole discard pile is offered rather than two chips out of it, and the pick really is theirs: priority crosses the table while the offer is up. Narrowing it to two would want a choice made before the offer, and playing the chip for free afterwards is not built.",
+     {}),
+    "flagstone_tax": ("Ongoing: If your gem pile totals 3 or more, opponents can only buy chips with cost equal to or less than their gem pile total. Discard when you buy a purple.",
+     None, {}),
+    "patriot_mirror": ("Ongoing: +1 action, piggy bank. Discard this at the start of your action phase if your gem pile totals an odd number.",
+     "the action and the piggy bank are paid every action phase, by the same upkeep every ongoing chip uses. Odd is not sayable \u2014 a condition is one comparison and there is no remainder \u2014 so it never discards itself.",
+     {'plus_act': 1, 'plus_piggy': 1}),
+
+    "wartime_tactics": ("Reveal a Puzzle chip from your hand or discard pile, then play and trash a different Puzzle chip from the bank costing the same or less.",
+     "the revealed chip stays in your hand and its price is handed over as money, so the ordinary price of every pile does the gating. You gain the bank chip rather than playing and trashing it: the bank holds plates, and there is no instance to copy.",
+     {}),
+    "double_slash": ("Crash exactly two 1-gems. (You don't get +$1.)", None, {}),
+    "riposte": ("Main: +1 action, piggy bank. Reaction: After you're red-attacked, return a chip from your discard pile to your hand.",
+     None, {'plus_act': 1, 'plus_piggy': 1, 'react': 1}),
+
+    "crash_bomb": ("Trash a Crash Gem from your hand or discard pile. If you do, crash two gems in your gem pile, +$1 for each.",
+     "the Crash Gem is what you point at, and it comes out of your hand. One card has one target block, so the two gems it breaks are taken off your pile rather than chosen \u2014 which makes them two 1-gems.",
+     {'plus_pow': 2}),
+    "maximum_anarchy": ("All players discard their hands, then draw that many chips. Draw a chip. Each player gets +1 brown action, +1 purple action, +1 red action, +1 blue action on his turn.",
+     "the redraw is built for every seat, counted before the hand goes and drawn after. The four arrows for everybody on their own turn are not: nothing hands a seat an effect that waits for a turn that has not started.",
+     {'plus_draw': 1}),
+    "crash_potato": ("Choose one: Crash a 1-gem in your gem pile — OR — exchange this with a Crash Gem in any player's discard pile.",
+     "the crash is built. The exchange is not: a discard is a stack, and a stack offers only the card on top of it \u2014 so there is no way to point at a Crash Gem lying in one. With one branch left there is no choice to open.",
+     {}),
+
+    "healing_touch": ("Main: +1 action, +1 blue action. Reaction: When an opponent sends gems, trash a 1-gem from each gem pile. +1 chip.",
+     None, {'plus_act': 2, 'react': 1}),
+    "radiant_healing": ("+1 action, +1 chip, piggy bank. Each player may discard a Puzzle chip to trash a wound or a 1-gem in their hand or discard pile.",
+     "the top line is built. The offer to every player is not: an entry in an offer is played with the asking card as its target, so it cannot carry a pick of its own.",
+     {'plus_act': 1, 'plus_draw': 1, 'plus_piggy': 1}),
+    "saving_grace": ("Main: piggy bank, +$1. Each player draws a chip. You may put Saving Grace on top of your bag. Reaction: After you're red-attacked, +2 chips.",
+     "both halves are built, and it always goes back on top of your bag rather than to the table \u2014 \"you may\" would be an offer of two landings, and where a chip lands is one word.",
+     {'plus_piggy': 1, 'plus_pow': 1, 'plus_draw': 1, 'react': 1}),
+
+    "shadow_plague": ("Whenever you discard this chip, gain a wound. Action: Discard this without gaining a wound.",
+     "the action that ducks the wound is built. The wound itself is not: nothing announces a chip being discarded, so there is no verb for the other half to answer.",
+     {}),
+    "burnbarrow": ("+1 action, +1 red action, +1 chip", None, {'plus_act': 2, 'plus_draw': 1}),
+    "shadowswarm": ("+1 brown action, +2 chips. You may have each opponent discard a chip.",
+     "built, with the discard theirs to choose: priority crosses the table while their hand is up. The \"may\" is yours and is not built \u2014 the only word an offer has for it puts the refusal on their side.",
+     {'plus_act': 1, 'plus_draw': 2, 'hits': 1}),
+
+    "acrobatics": ("Choose any different two: +1 brown action / +1 purple action / +1 red action / +1 blue action.", None, {'plus_act': 2}),
+    "surgical_strike": ("+1 red action. Each opponent draws a chip, reveals his hand, then discards a chip of your choice.",
+     None, {'plus_act': 1, 'hits': 1}),
+    "stunlock": ("+1 brown action. Ongoing: Opponents can't combine gems unless they discard a Puzzle chip first. Discard this at the start of your next turn.",
+     "the action is built and laying it out says you have it. The tax on their combining is a rule on somebody else's card, which nothing writes; \"at the start of your next turn\" is a moment nothing announces.",
+     {'plus_act': 1}),
+
+    "giant_growth": ("+1 brown action. Ongoing: During your ante phase, you may put a gem from your hand into your gem pile. Discard this when you buy a purple.",
+     "the action and the discard-on-purple are built \u2014 a buy is an announcement, so the chip answers your own. The gem out of hand is not: an ongoing card cannot open an offer in a phase it is only being walked by.",
+     {'plus_act': 1}),
+    "beast_unleashed": ("If your gem pile totals at least 6, +2 chips, +1 brown action, piggy bank.", None,
+     {'plus_act': 1, 'plus_draw': 2, 'plus_piggy': 1}),
+    "more_shiny": ("Trash a 1-gem from your hand or gem pile. If you do, +$1 and gain a 2-gem.", None,
+     {'plus_pow': 1}),
+
+    "pleasure_and_pain": ("+1 red action. Each opponent discards a wound or puts a wound in his bag. Choose a discard pile, then +1 chip for each wound in it.",
+     "the wound goes into their bag \u2014 the branch that asks nobody anything \u2014 and the pile counted is theirs rather than one you pick: a zone target names the place, and a count asked of it counts the zone and not what is lying in it. Handing them the choice would want a pick narrowed inside a hand, and an offer's entry cannot carry one.",
+     {'plus_act': 1, 'hits': 1}),
+    "mistress_command": ("If chosen opponent's gem pile totals 6 or 9, reveal his hand. Put a non-Puzzle bank chip into his hand and make him play up to two chips in his hand as you wish.",
+     "the reveal is built and nothing else is. \"6 or 9\" is two comparisons and a condition is one; making somebody else play their own chips has no spelling, since a copied action benefits whoever is up.",
+     {}),
+    "always_in_control": ("Main: +2 buys. At end of turn, +1 chip for each of these buys you used. Reaction: Become immune to a red chip.",
+     "the buys and the immunity are built. The chip per buy used is not: nothing counts how many of a particular grant were spent.",
+     {'react': 1}),
+
+    "rocket_punch": ("Main: Crash a 1-gem in your gem pile. Reaction: Before you're red-attacked or an opponent sends gems, crash a 1-gem at the attacker or sender.",
+     None, {'react': 1}),
+    "upgrade": ("+$1. Trash one or two chips from your hand, then for each chip trashed this way, gain a chip costing the same or 1 more.",
+     "built the way Training Day is: the allowance is money and the piles price themselves. It is one purse rather than one per chip, so a big trash and a small one can be spent as a single sum.",
+     {'plus_pow': 1}),
+    "cog_engine": ("Ongoing: +$1, piggy bank. Discard this chip when you buy a purple or a chip costing 6 or more.",
+     None, {'plus_pow': 1, 'plus_piggy': 1}),
+
+    "deathstrike_dragon": ("Trash all 1-gems from your gem pile. Send half that many 1-gems (rounded down) to an opponent, then trash this chip.",
+     "the pile is emptied of 1-gems and the chip trashes itself. Half of them is not sent: the amount grammar multiplies and does not divide, so there is no way to write half of a number that is only known as the game runs.",
+     {}),
+    "bonecracker": ("+1 brown action. Each opponent reveals his hand and discards his largest gem.", None, {'plus_act': 1, 'hits': 1}),
+    "into_oblivion": ("Remove a Puzzle bank stack from the game. If a stack was previously removed, return it to the game.",
+     "the stack goes back into the box, which is as near as a zone gets to out of the game. The bank comes up as an offer rather than as a target, because a bank plate is scenery and nothing may point at one. Returning a stack is not built: nothing remembers which one left.",
+     {}),
 }
 
 
@@ -709,6 +817,7 @@ def stats():
         player("extra", None, None, hidden=True),
         player("picked", None, None, hidden=True),
         player("owed", None, None, hidden=True),
+        player("redraw", None, None, hidden=True),
         # On the chips rather than on a seat: a gem says what it is worth, a
         # bank plate says how many are left, and neither is a HUD row.
         #
@@ -821,7 +930,9 @@ def purple_cards():
                                 "stat_gain:acts@mine.player:1",
                                 "move_to:mine.table"],
                        "fail": ["stat_gain:acts@mine.player:1"]}},
-        {"key": "crash_gem", "text": "Crash Gem", "tags": ["chip", "trashable", "purple"],
+        # The "crash_gem" tag is what lets a card point at one lying in a hand:
+        # a card key is not a scope, and a target's tag filter is.
+        {"key": "crash_gem", "text": "Crash Gem", "tags": ["chip", "trashable", "purple", "crash_gem"],
          "asset": "circle:magenta",
          "tooltip": "Break one gem in your own pile and send that many 1-gems across the table. A 3-gem becomes three 1-gems in their pile.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1145,8 +1256,15 @@ def character_chips():
         # Argagarg
         {"key": "hex_of_murkwood", "text": "Hex of Murkwood", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:teal",
-         "tooltip": "+1 blue action. Each opponent gains a wound or discards two wounds. Here they gain one: choosing for them is the opponent's decision, and there is no way to ask yet.",
-         "play": act(["stat_gain:act_blue@mine.player:1"] + gain_wound("enemy"))},
+         "tooltip": "+1 blue action. Each opponent puts a wound in his bag, then antes a 1-gem for each wound already in his discard pile.",
+         # The wound lands in the bag rather than the discard, which is what
+         # keeps it out of the count on the next line — and the shuffle is why
+         # it is not simply the next chip they draw.
+         "play": act(["stat_gain:act_blue@mine.player:1",
+                      "fill:enemy.bag:wound:1", "stat_damage:stock@stack_wound:1",
+                      "shuffle:enemy.bag",
+                      "fill:enemy.gem_pile:gem_1:count:wound@enemy.discard",
+                      "stat_damage:stock@stack_gem_1:count:wound@enemy.discard"])},
         # Two cards. Laying it out turns it into the ongoing half; answering
         # from hand instead cancels the attack outright, which is what immunity
         # means with two players at the table.
@@ -1187,12 +1305,21 @@ def character_chips():
                              "move_to:mine.table"]}},
         {"key": "unstable_power", "text": "Unstable Power", "tags": ["chip", "character", "purple"],
          "asset": "dots:2:crimson",
-         "tooltip": "A Double Crash Gem that costs you two wounds. Its reaction half needs playing out of turn, which is not built.",
+         "tooltip": "A Double Crash Gem that costs you two wounds, on your turn or in answer to a red chip.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
                              "owner": "anyone", "min": 1, "max": 2},
                   "action": crash_action(2, 2)[:-1] + ["move_to:mine.table"]
-                            + gain_wound() + gain_wound() + ["emit:crash"]}},
+                            + gain_wound() + gain_wound() + ["emit:crash"]},
+         # "Main or Reaction" is two entries for one chip: the same crash,
+         # answering a red chip instead of costing an action. `spent` is what
+         # says where it lands, so the reaction drops the play's move_to.
+         "reactions": [{"to": "attack", "text": "Crash as a Double Crash Gem",
+                        "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
+                                   "owner": "anyone", "min": 1, "max": 2},
+                        "action": crash_action(2, 2)[:-1]
+                                  + gain_wound() + gain_wound() + ["emit:crash"],
+                        "spent": "mine.discard"}]},
         # Midori
         # The panic level is recomputed at the start of every ante, so a seat
         # nudging it after that reads only on its own ante — which is exactly
@@ -1229,8 +1356,16 @@ def character_chips():
         # Setsuki
         {"key": "double_take", "text": "Double-take", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:amber",
-         "tooltip": "Choose a non-Puzzle chip in your hand or discard, play it twice, trash it, then end your action phase. Playing a chip twice is not built; the extra actions are.",
-         "play": act(["stat_gain:acts@mine.player:2"])},
+         "tooltip": "Choose a non-Puzzle chip in your hand, play it twice, trash it, then end your action phase.",
+         # copy: runs the chip's play twice without playing it, so nothing is
+         # spent and it does not move — which is what leaves it there to trash.
+         # Hand only: a discard is a stack and a stack offers its top card, so
+         # a chip buried in one cannot be pointed at.
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": {"type": "card", "tags": ["chip"], "zones": ["hand"], "owner": "anyone",
+                             "count": 1, "where": ["not_tagged:puzzle@target >= 1"]},
+                  "action": ["copy:target:play:2", "destroy:target", "next_phase"],
+                  "spent": "mine.table"}},
         {"key": "bag_of_tricks", "text": "Bag of Tricks", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:amber",
          "tooltip": "An action, a buy and a chip.",
@@ -1337,8 +1472,11 @@ def character_chips():
                              "move_to:mine.table"]}},
         {"key": "troublesome_rhetoric", "text": "Troublesome Rhetoric",
          "tags": ["chip", "character", "brown"], "asset": "polygon:7:pink",
-         "tooltip": "Your opponent chooses which of the two you get: an action and a chip, or two gem power and a buy. Nothing makes them press the button — at one screen, hand it over.",
-         "play": act(["options:tr_tempo,tr_money"])},
+         "tooltip": "Your opponent chooses which of the two you get: an action and a chip, or two gem power and a buy.",
+         # Priority goes across while the offer is up, so the seat reading the
+         # two lines is the one being asked — and from in there the benefit is
+         # "enemy", which is you. Each branch hands priority back.
+         "play": act(["set_priority:enemy.player", "options:tr_tempo,tr_money"])},
         # Valerie
         {"key": "burst_of_speed", "text": "Burst of Speed", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:cyan",
@@ -1365,16 +1503,276 @@ def character_chips():
                     "action": ["move_target_to:mine.hand"]}},
         {"key": "future_sight", "text": "Future Sight", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:yellow",
-         "tooltip": "Two chips, then put up to two out of your hand back on the bag. Which order they go back in is not yours to say here.",
+         "tooltip": "Two chips, then put up to two out of your hand back on the bag, in the order you picked them.",
+         # Targets arrive in the order they were picked and each lands on the
+         # end of the bag, so the last one named is the first one drawn — which
+         # is the whole of "in any order".
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, min=0, max=2),
                   "action": ["draw_from:mine.bag:mine.hand:2",
-                             "move_target_to:mine.bag", "move_to:mine.table"]}},
+                             "move_target_to:mine.bag:top", "move_to:mine.table"]}},
         {"key": "its_time_for_the_past", "text": "It's Time for the Past",
          "tags": ["chip", "character", "brown"], "asset": "polygon:7:yellow",
          "play": act(["stat_gain:acts@mine.player:1", "show:mine.discard:optional"]),
          "chosen": {"where": ["not_tagged:puzzle@target >= 1"],
                     "action": ["move_target_to:mine.hand"]}},
+
+        # --- Shadows --------------------------------------------------------
+        #
+        # Ten more characters, thirty more chips. Nothing new is asked of the
+        # engine here: the shapes are the ones the base ten already needed —
+        # priority across the table for a question that is theirs, a mandatory
+        # board reaction for an ongoing that watches a buy, an allowance handed
+        # over as money, `show:` for a hand or a pile read face up.
+        #
+        # Quince
+        {"key": "two_truths", "text": "Two Truths", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:gold",
+         # Their pick out of your own pile, so priority crosses and every scope
+         # in here is read from their seat: "enemy" is the chip's owner.
+         # The `needs` is not flavour — an offer with nothing in it never opens,
+         # and priority handed across an offer that never opens never comes home.
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "needs": ["count:chip@mine.discard >= 1"],
+                  "action": ["set_priority:enemy.player", "show:enemy.discard"],
+                  "spent": "mine.table"},
+         "chosen": {"action": ["move_target_to:enemy.hand", "clear_priority"]}},
+        {"key": "flagstone_tax", "text": "Flagstone Tax", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:gold",
+         "play": ongoing(),
+         # A rule about somebody else's buying, said as an answer to it rather
+         # than as a rule written on their card. The price is on the plate and
+         # the pile is theirs, so both halves of the comparison are subjects.
+         #
+         # Both conditions are `when` rather than `where`, and the difference is
+         # not decoration: `where` is about the event and is read from wherever
+         # the window happens to be standing, `when` is read as the reactor's own
+         # seat. "Their pile" is only a fixed thing to compare against in the
+         # second, so a seat word in a `where` would mean whatever the moment did.
+         "reactions": [{"to": "buy", "forced": "mandatory", "from": "board",
+                        "when": ["sum:value@mine.gem_pile >= 3",
+                                 "sum:price@event > sum:value@enemy.gem_pile"],
+                        "action": ["counterspell"]},
+                       {"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+                        "where": ["tagged:purple@event >= 1"],
+                        "action": [], "spent": "mine.discard"}]},
+        {"key": "patriot_mirror", "text": "Patriot Mirror", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:gold",
+         "abilities": [{"key": "upkeep", "text": "Patriot Mirror",
+                        "action": ["stat_gain:acts@mine.player:1",
+                                   "stat_gain:piggy@mine.player:1"]}],
+         "play": ongoing()},
+        # Onimaru
+        {"key": "wartime_tactics", "text": "Wartime Tactics", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:orange",
+         # Revealed, not spent: the chip stays in hand and only its price is
+         # read, which is what turns "costing the same or less" into money.
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": dict(hand_chip, tags=["puzzle"]),
+                  "action": ["stat_set:money@mine.player:sum:price@target",
+                             "stat_set:buys@mine.player:1",
+                             "push_phase:react_buy"],
+                  "spent": "mine.table"}},
+        {"key": "double_slash", "text": "Double Slash", "tags": ["chip", "character", "purple"],
+         "asset": "circle:orange",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
+                             "owner": "anyone", "count": 2},
+                  "action": crash_action(2, 0), "spent": "mine.table"}},
+        {"key": "riposte", "text": "Riposte", "tags": ["chip", "character", "blue"],
+         "asset": "circle:orange",
+         "play": act(["stat_gain:acts@mine.player:1", "stat_gain:piggy@mine.player:1"]),
+         "reactions": [{"to": "attack", "text": "Take a chip back out of your discard",
+                        "action": ["show:mine.discard:optional"], "spent": "mine.discard"}],
+         "chosen": {"action": ["move_target_to:mine.hand"]}},
+        # Zane
+        {"key": "crash_bomb", "text": "Crash Bomb", "tags": ["chip", "character", "purple"],
+         "asset": "circle:magenta",
+         # One card has one target block, so the Crash Gem is what is pointed at
+         # and the two gems it breaks come off the pile rather than being chosen.
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": {"type": "card", "tags": ["crash_gem"], "zones": ["hand"],
+                             "owner": "anyone", "count": 1},
+                  "action": ["move_target_to:void",
+                             "stat_set:crashed@mine.player:2",
+                             "stat_set:broke@mine.player:1",
+                             "destroy:mine.gem_1:2",
+                             "fill:enemy.gem_pile:gem_1:2",
+                             "stat_gain:money@mine.player:2",
+                             "emit:crash"],
+                  "spent": "mine.table"}},
+        {"key": "maximum_anarchy", "text": "Maximum Anarchy", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:magenta",
+         # Counted before the hand goes, because after it there is nothing left
+         # to count. One line per seat is what each_seat is for.
+         "play": act(["each_seat:stat_set:redraw@mine.player:count:chip@mine.hand",
+                      "each_seat:move:mine.hand:mine.discard",
+                      "each_seat:draw_from:mine.bag:mine.hand:sum:redraw@mine.player",
+                      "draw_from:mine.bag:mine.hand:1"])},
+        {"key": "crash_potato", "text": "Crash Potato", "tags": ["chip", "character", "purple"],
+         "asset": "circle:magenta",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
+                             "owner": "anyone", "count": 1},
+                  "action": crash_action(1, 0), "spent": "mine.table"}},
+        # Gloria
+        {"key": "healing_touch", "text": "Healing Touch", "tags": ["chip", "character", "purple"],
+         "asset": "circle:silver",
+         "play": act(["stat_gain:acts@mine.player:1", "stat_gain:act_blue@mine.player:1"]),
+         "reactions": [{"to": "crash", "text": "Trim a gem off every pile",
+                        "action": ["destroy:mine.gem_1:1", "stat_gain:stock@stack_gem_1:1",
+                                   "destroy:enemy.gem_1:1", "stat_gain:stock@stack_gem_1:1",
+                                   "draw_from:mine.bag:mine.hand:1"],
+                        "spent": "mine.discard"}]},
+        {"key": "radiant_healing", "text": "Radiant Healing", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:silver",
+         "play": act(["stat_gain:acts@mine.player:1", "draw_from:mine.bag:mine.hand:1",
+                      "stat_gain:piggy@mine.player:1"])},
+        {"key": "saving_grace", "text": "Saving Grace", "tags": ["chip", "character", "blue"],
+         "asset": "circle:silver",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "action": ["stat_gain:piggy@mine.player:1", "stat_gain:money@mine.player:1",
+                             "each_seat:draw_from:mine.bag:mine.hand:1"],
+                  "spent": "mine.bag"},
+         "reactions": [{"to": "attack", "text": "+2 chips",
+                        "action": ["draw_from:mine.bag:mine.hand:2"], "spent": "mine.discard"}]},
+        # Vendetta. No banner colour, like Option Select: the plain arrow pays.
+        {"key": "shadow_plague", "text": "Shadow Plague", "tags": ["chip", "character"],
+         "asset": "polygon:7:slate",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "action": [], "spent": "mine.discard"}},
+        {"key": "burnbarrow", "text": "Burnbarrow", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:slate",
+         "play": act(["stat_gain:acts@mine.player:1", "stat_gain:act_red@mine.player:1",
+                      "draw_from:mine.bag:mine.hand:1"])},
+        {"key": "shadowswarm", "text": "Shadowswarm", "tags": ["chip", "character", "red"],
+         "asset": "polygon:7:slate",
+         "play": act(["stat_gain:act_brown@mine.player:1", "draw_from:mine.bag:mine.hand:2",
+                      "set_priority:enemy.player", "show:mine.hand"]),
+         "chosen": {"action": ["move_target_to:mine.discard", "clear_priority"]}},
+        # Gwen
+        {"key": "acrobatics", "text": "Acrobatics", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:forest",
+         "play": act(["options:ac_brown_purple,ac_brown_red,ac_brown_blue,"
+                      "ac_purple_red,ac_purple_blue,ac_red_blue"])},
+        {"key": "surgical_strike", "text": "Surgical Strike", "tags": ["chip", "character", "red"],
+         "asset": "polygon:7:forest",
+         "play": act(["stat_gain:act_red@mine.player:1",
+                      "draw_from:enemy.bag:enemy.hand:1", "show:enemy.hand"]),
+         "chosen": {"action": ["move_target_to:enemy.discard"]}},
+        {"key": "stunlock", "text": "Stunlock", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:forest",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "action": ["stat_gain:act_brown@mine.player:1"], "spent": "mine.ongoing"}},
+        # Troq
+        {"key": "giant_growth", "text": "Giant Growth", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:brown",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "action": ["stat_gain:act_brown@mine.player:1"], "spent": "mine.ongoing"},
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+                        "where": ["tagged:purple@event >= 1"],
+                        "action": [], "spent": "mine.discard"}]},
+        {"key": "beast_unleashed", "text": "Beast Unleashed", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:brown",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "needs": ["sum:value@mine.gem_pile >= 6"],
+                  "action": ["draw_from:mine.bag:mine.hand:2",
+                             "stat_gain:act_brown@mine.player:1",
+                             "stat_gain:piggy@mine.player:1"],
+                  "spent": "mine.table"}},
+        {"key": "more_shiny", "text": "More Shiny", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:brown",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": {"type": "card", "tags": ["gem_1"], "zones": ["hand", "gem_pile"],
+                             "owner": "mine", "count": 1},
+                  "action": ["move_target_to:void", "stat_gain:money@mine.player:1",
+                             "fill:mine.discard:gem_2:1", "stat_damage:stock@stack_gem_2:1"],
+                  "spent": "mine.table"}},
+        # Persephone
+        {"key": "pleasure_and_pain", "text": "Pleasure & Pain", "tags": ["chip", "character", "red"],
+         "asset": "polygon:7:violet",
+         # Their pile, not one you pick: a zone target names the place and a
+         # count asked of it counts the zone rather than what is lying in it.
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "action": ["stat_gain:act_red@mine.player:1",
+                             "fill:enemy.bag:wound:1", "stat_damage:stock@stack_wound:1",
+                             "shuffle:enemy.bag",
+                             "draw_from:mine.bag:mine.hand:count:wound@enemy.discard"],
+                  "spent": "mine.table"}},
+        {"key": "mistress_command", "text": "Mistress's Command", "tags": ["chip", "character", "red"],
+         "asset": "polygon:7:violet",
+         "play": act(["show:enemy.hand:optional"])},
+        {"key": "always_in_control", "text": "Always in Control", "tags": ["chip", "character", "blue"],
+         "asset": "circle:violet",
+         "play": act(["stat_gain:buys@mine.player:2"]),
+         "reactions": [{"to": "attack", "text": "Become immune",
+                        "action": ["counterspell"], "spent": "mine.discard"}]},
+        # Bal-Bas-Beta
+        {"key": "rocket_punch", "text": "Rocket Punch", "tags": ["chip", "character", "purple"],
+         "asset": "circle:olive",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
+                             "owner": "anyone", "count": 1},
+                  "action": crash_action(1, 0), "spent": "mine.table"},
+         # Two announcements, two entries. One reaction cannot answer both,
+         # because a reaction names the one verb it is about.
+         "reactions": [{"to": "attack", "text": "Crash a 1-gem at them",
+                        "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
+                                   "owner": "anyone", "count": 1},
+                        "action": crash_action(1, 0), "spent": "mine.discard"},
+                       {"to": "crash", "text": "Crash a 1-gem back", "when": ANSWERABLE,
+                        "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
+                                   "owner": "anyone", "count": 1},
+                        "action": crash_action(1, 0), "spent": "mine.discard"}]},
+        {"key": "upgrade", "text": "Upgrade", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:olive",
+         # One purse for both chips rather than one each: the allowance is money,
+         # and money does not remember what it was given for.
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "target": dict(hand_chip, tags=["trashable"], min=1, max=2),
+                  "action": ["stat_set:money@mine.player:sum:price@target",
+                             "stat_gain:money@mine.player:count:chip@target",
+                             "stat_gain:money@mine.player:1",
+                             "stat_set:buys@mine.player:count:chip@target",
+                             "move_target_to:void",
+                             "push_phase:react_buy"],
+                  "spent": "mine.table"}},
+        {"key": "cog_engine", "text": "Cog Engine", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:olive",
+         "abilities": [{"key": "upkeep", "text": "Cog Engine",
+                        "action": ["stat_gain:money@mine.player:1",
+                                   "stat_gain:piggy@mine.player:1"]}],
+         "play": ongoing(),
+         # Two reactions is how a card says "or": conditions written on one are
+         # read together, and these two are alternatives.
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+                        "where": ["tagged:purple@event >= 1"],
+                        "action": [], "spent": "mine.discard"},
+                       {"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+                        "where": ["sum:price@event >= 6"],
+                        "action": [], "spent": "mine.discard"}]},
+        # Menelker
+        {"key": "deathstrike_dragon", "text": "Deathstrike Dragon",
+         "tags": ["chip", "character", "purple"], "asset": "circle:maroon",
+         "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
+                  "action": ["stat_set:crashed@mine.player:count:gem_1@mine.gem_pile",
+                             "destroy:mine.gem_1",
+                             "stat_gain:stock@stack_gem_1:sum:crashed@mine.player"],
+                  "spent": "void"}},
+        {"key": "bonecracker", "text": "Bonecracker", "tags": ["chip", "character", "red"],
+         "asset": "polygon:7:maroon",
+         "play": act(["stat_gain:act_brown@mine.player:1", "show:enemy.hand"]),
+         "chosen": {"where": ["tagged:gem@target >= 1",
+                              "sum:value@target >= max:value@options"],
+                    "action": ["move_target_to:enemy.discard"]}},
+        {"key": "into_oblivion", "text": "Into Oblivion", "tags": ["chip", "character", "brown"],
+         "asset": "polygon:7:maroon",
+         # A bank plate is scenery — "immutable", so nothing may point at it.
+         # The draft button already reaches the box the other way, with `show:`,
+         # and an offer is the only thing a plate answers to.
+         "play": act(["show:bank:optional"]),
+         "chosen": {"where": ["tagged:puzzle_stack@target >= 1"],
+                    "action": ["move_target_to:chip_box"]}},
         # Lum
         {"key": "living_on_the_edge", "text": "Living on the Edge", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:white",
@@ -1423,14 +1821,32 @@ def choice_cards():
         choice("vs_tempo", "An action and a piggy bank", [A, P]),
         choice("vs_money", "Two gem power", ["stat_gain:money@mine.player:2"]),
         choice("vs_chips", "Two chips", ["draw_from:mine.bag:mine.hand:2"]),
-        choice("tr_tempo", "An action and a chip", [A, C]),
-        choice("tr_money", "Two gem power and a piggy bank", ["stat_gain:money@mine.player:2", P]),
+        # Troublesome Rhetoric's two, read by the opponent: priority is theirs
+        # while the offer is up, so the seat that gets the benefit is "enemy"
+        # from in here, and each branch hands priority home.
+        choice("tr_tempo", "Give them an action and a chip",
+               ["stat_gain:acts@enemy.player:1", "draw_from:enemy.bag:enemy.hand:1", "clear_priority"]),
+        choice("tr_money", "Give them two gem power and a piggy bank",
+               ["stat_gain:money@enemy.player:2", "stat_gain:piggy@enemy.player:1", "clear_priority"]),
         choice("ct_ab", "An action and a piggy bank", [A, P]),
         choice("ct_am", "An action and a gem power", [A, Mo]),
         choice("ct_ac", "An action and a chip", [A, C]),
         choice("ct_bm", "A piggy bank and a gem power", [P, Mo]),
         choice("ct_bc", "A piggy bank and a chip", [P, C]),
         choice("ct_mc", "A gem power and a chip", [Mo, C]),
+        # Acrobatics: any different two of four arrows, written out.
+        choice("ac_brown_purple", "A brown and a purple arrow",
+               ["stat_gain:act_brown@mine.player:1", "stat_gain:act_purple@mine.player:1"]),
+        choice("ac_brown_red", "A brown and a red arrow",
+               ["stat_gain:act_brown@mine.player:1", "stat_gain:act_red@mine.player:1"]),
+        choice("ac_brown_blue", "A brown and a blue arrow",
+               ["stat_gain:act_brown@mine.player:1", "stat_gain:act_blue@mine.player:1"]),
+        choice("ac_purple_red", "A purple and a red arrow",
+               ["stat_gain:act_purple@mine.player:1", "stat_gain:act_red@mine.player:1"]),
+        choice("ac_purple_blue", "A purple and a blue arrow",
+               ["stat_gain:act_purple@mine.player:1", "stat_gain:act_blue@mine.player:1"]),
+        choice("ac_red_blue", "A red and a blue arrow",
+               ["stat_gain:act_red@mine.player:1", "stat_gain:act_blue@mine.player:1"]),
         choice("ef_trash", "Everybody trashes a 1-gem",
                ["each_seat:destroy:mine.gem_1:1", "stat_gain:stock@stack_gem_1:%d" % len(SEATS)]),
         choice("ef_ante", "You ante a 2-gem",
