@@ -14,6 +14,7 @@ local declaration = require("declaration")
 local validate = require("validate")
 local json = require("json")
 local actions = require("actions")
+local predicate = require("predicate")
 
 local M = {}
 
@@ -150,6 +151,103 @@ function M.test_docs_no_retired_word_is_still_on_offer(check)
 		table.sort(found)
 		check("nothing still offers '" .. word .. "'", #found == 0,
 			table.concat(found, ", ") .. " — write " .. instead .. " instead")
+	end
+end
+
+-- The index at the top, against the headings it indexes.
+--
+-- Sixty-eight reference sections is a document you search rather than read, and
+-- an index is what lets somebody search it who does not yet know the word to
+-- search for. One that has fallen behind is worse than none: it says a section
+-- is not there.
+local function split(s, sep)
+	local out, at = {}, 1
+	while true do
+		local i = s:find(sep, at, true)
+		if not i then out[#out + 1] = s:sub(at); return out end
+		out[#out + 1] = s:sub(at, i - 1)
+		at = i + #sep
+	end
+end
+
+function M.test_docs_the_index_lists_every_reference_heading(check)
+	local text = read("AUTHORING.md")
+	local from = text:find("## 5. Reference", 1, true)
+	check("the reference section is there", from ~= nil)
+
+	local heads, is_head = {}, {}
+	for line in text:sub(from):gmatch("[^\n]+") do
+		if line:match("^###") then
+			local h = line:match("^#+%s+(.+)$")
+			heads[#heads + 1] = h
+			is_head[h] = true
+		end
+	end
+	check("there are headings to index", #heads > 40, tostring(#heads))
+
+	-- The index block alone: §3's list of rules that do not fit is bulleted the
+	-- same way, and its entries are not headings of anything.
+	local at = text:find("**The reference index.**", 1, true)
+	check("the index is there", at ~= nil)
+	local ends = text:find("\n---\n", at or 1, true)
+	check("and it ends", ends ~= nil)
+
+	local listed, seen = 0, {}
+	for line in text:sub(at, ends):gmatch("[^\n]+") do
+		local tail = line:match("^%- %*%*.-%*%* — (.+)$")
+		for _, name in ipairs(tail and split(tail, " · ") or {}) do
+			listed = listed + 1
+			check("'" .. name .. "' is a real heading", is_head[name] == true)
+			check("'" .. name .. "' is indexed once", seen[name] == nil)
+			seen[name] = true
+		end
+	end
+	for _, h in ipairs(heads) do check("'" .. h .. "' is in the index", seen[h] == true) end
+	check("nothing is indexed twice or left out", listed == #heads,
+		listed .. " listed against " .. #heads .. " headings")
+end
+
+-- The condition vocabulary, held the way the action table is.
+--
+-- Three closed sets — the measuring fns, the quantifiers, the owner words — and
+-- after the field names they are the largest thing an author writes. Both
+-- documents teach them and neither was tied to the engine, so a fourth
+-- quantifier could have arrived and been written down nowhere. That is the hole
+-- each_seat and the five net_ ops fell into, one vocabulary over.
+--
+-- Looked for as a whole word inside a code span, because these are words
+-- ordinary prose uses too: "count the cards" is not documentation of `count:`.
+local function whole_word(hay, w)
+	for a, b in hay:gmatch("()" .. w .. "()") do
+		local before = a > 1 and hay:sub(a - 1, a - 1) or " "
+		local after  = hay:sub(b, b)
+		if after == "" then after = " " end
+		if not before:match("[%w_]") and not after:match("[%w_]") then return true end
+	end
+	return false
+end
+
+function M.test_docs_both_documents_teach_the_condition_vocabulary(check)
+	local ticks = {}
+	for span in read("AUTHORING.md"):gmatch("`([^`\n]+)`") do ticks[#ticks + 1] = span end
+	local ticked = table.concat(ticks, " ")
+
+	local prose = {}
+	local function gather(t)
+		for _, v in pairs(t) do
+			if type(v) == "table" then gather(v) else prose[#prose + 1] = v end
+		end
+	end
+	gather(json.decode(read("SCHEMA.json"))._conditions)
+	local described = table.concat(prose, " ")
+	check("both documents have something to say about conditions",
+		#ticked > 1000 and #described > 1000)
+
+	for kind, set in pairs(predicate.WORDS) do
+		for word in pairs(set) do
+			check("the manual writes '" .. word .. "' (" .. kind .. ")", whole_word(ticked, word))
+			check("the schema describes '" .. word .. "'", whole_word(described, word))
+		end
 	end
 end
 

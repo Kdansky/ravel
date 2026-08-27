@@ -418,6 +418,16 @@ file as output.
   malformed draw as happily as a good one, which is how a crash in the browser
   build survived a green suite. **Add a game here when you add a game** —
   layouts differ far more than draw code does.
+- **The documents are held to the engine, both ways.** `tests/integration/schema.lua`
+  matches `SCHEMA.json` against `validate.FIELDS`, `actions.ops()` and the
+  reserved-tag registry; `tests/integration/docs.lua` runs every whole-file
+  example in `AUTHORING.md` through the validator, holds its action table to
+  `actions.ops()` and its condition vocabulary to `predicate.WORDS`, holds its
+  reference index to its own headings, and refuses a retired word anywhere a
+  game is copied from. A document cannot fail on its own, which is why a word
+  the engine dropped outlived it by three passes in the manual and by a whole
+  generator in a shipped game file. **A field, action or scope word arrives in
+  the engine and both documents, or it fails the build.**
 - `RAVEL_DEBUG=1` + `nc` — poke a live GUI process; `echo state | nc` dumps
   full entity state as JSON.
 - Balance questions: write a scratch script over `headless.lua` + `flow` and

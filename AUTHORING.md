@@ -5,9 +5,11 @@ A game is one JSON file in `game/games/`, plus optional images in
 `assets/CREDITS.md` — keep it that way when adding art). No code.
 
 This document is meant to be complete: two walkthroughs, a procedure for
-**translating a published rulebook into a game file** (§3), the patterns worth
-copying (§4), and a full reference for every field the engine reads (§5). If
-something is not here, the engine does not read it. `DESIGN.md` explains *why*
+**translating a published rulebook into a game file** (§3), a recipe for every
+common case (§4), and a full reference for every field the engine reads (§5). If
+something is not here, the engine does not read it. Every whole-file example is
+run through the validator by the test suite, and the index below is held to the
+headings it indexes, so this document fails a build rather than your afternoon. `DESIGN.md` explains *why*
 things are shaped this way; `ARCHITECTURE.md` explains the engine internals.
 
 The shipped games are the worked examples: `starter_cyoa.json` (a skeleton
@@ -31,6 +33,34 @@ made of it, and the things the engine works out rather than stores anywhere
 right now, including the ones its zone grants and the computed ones that are
 true only while a stat holds). The mouse wheel scrolls the panel and ctrl+C
 copies it, so a dump can go straight back into the game file.
+
+---
+
+## Where to look
+
+| If you want | Go to |
+|---|---|
+| the shortest file that runs | §1, and copy it |
+| a story with no board | §2, or copy `starter_cyoa.json` |
+| to turn a rulebook into a file | §3, which is a procedure rather than a feature list |
+| a working two-player game | §4, first recipe — it is a whole file, and the suite runs it |
+| "how do I say *X*" | §4, which is a list of those questions |
+| what a field means | §5, indexed below |
+| every field there is, alphabetically | `SCHEMA.json` |
+
+**The reference index.** §5 is long because the format is large, not because it
+says anything twice. These are its headings, grouped by the question each one
+answers; a test holds this list to them, so a section that exists is listed here
+and a line here names a section that exists:
+
+- **What a file holds** — Top-level fields · Stats · Zones · Players · Setup · Card templates · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
+- **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does
+- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Only one of them: `random.` · Making *them* choose · Nothing moves while an offer is open
+- **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · A mandatory reaction is how you ask somebody else a question · What it will not do yet
+- **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `fan` — a stack you can read
+- **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
 
 ---
 
@@ -315,77 +345,376 @@ identically drawn in grey.
   that will notice when an engine change breaks your game.
   `luajit tests/run.lua my_game` runs just that one.
 
-## 4. Common patterns
+## 4. Common cases
 
-**Ending screens.** Give the ending card an `outcome` and the engine adds the
-pizzazz: a Victory/Defeat banner, a summary of the run's visible stats, and
-confetti or falling embers. A hidden deck holding one ending card + an
-overlay phase:
+Every entry below is a question authors actually ask and the shortest true
+answer. The first is a whole file; the rest are the few lines that carry the
+rule, with the reference section that holds the detail.
+
+### A two-player game, whole
+
+Nothing here is scenery. Two seats, a shared deck, a hand each, one card a turn,
+first to ten:
 
 ```json
-{ "key": "fate_win", "layout": "stack", "visibility": "secret", "display": "offscreen", "pos": [0.42, -0.4, 0.58, -0.08], "contents": ["victory_card"] }
+{
+  "title": "Two-Player Skeleton",
+  "stats": [{ "key": "score", "label": "Score", "min": 0 }],
+  "players": [{ "card": "north" }, { "card": "south" }],
+  "zones": [
+    { "key": "deck", "layout": "stack", "visibility": "secret", "tags": ["shuffle"],
+      "pos": [0.05, 0.35, 0.2, 0.65], "refill_from": "discard",
+      "contents": ["coin:12", "gem:8"] },
+    { "key": "discard", "layout": "stack", "pos": [0.8, 0.35, 0.95, 0.65] },
+    { "key": "hand", "layout": "row", "copies": "per_seat", "visibility": "owner",
+      "pos": [[0.25, 0.7, 0.75, 0.95], [0.25, 0.05, 0.75, 0.3]] }
+  ],
+  "cards": [
+    { "key": "north", "text": "North", "card_stats": { "score": 0 } },
+    { "key": "south", "text": "South", "card_stats": { "score": 0 } },
+    { "key": "coin", "text": "Coin", "tooltip": "Score 1.",
+      "play": { "action": ["stat_gain:score:1"], "spent": "discard" } },
+    { "key": "gem", "text": "Gem", "tooltip": "Score 2.",
+      "play": { "action": ["stat_gain:score:2"], "spent": "discard" } }
+  ],
+  "phases": [
+    { "key": "deal", "type": "automatic", "actions": ["each_seat:draw_from:deck:mine.hand:3"] },
+    { "key": "turn", "type": "player_input", "label": "Play one", "zone": "hand",
+      "seat": "next", "ends_after": 1,
+      "actions": ["draw_from:deck:mine.hand:1"],
+      "next": [{ "then": "turn", "ends_round": true }] }
+  ],
+  "end_conditions": [{ "when": "max:score@anyone.player >= 10", "then": ["load_game:menu.json"] }]
+}
+```
 
-{ "key": "victory", "type": "overlay", "label": "Victory",
-  "deck": "fate_win", "zone": "offer", "draw": 1,
+Five decisions, and everything else follows from them:
+
+- **`players` declares the seats**, and each names a card. That is what makes a
+  score a number *on* something — `card_stats` on `north` — rather than a global
+  the engine would have to keep a table of.
+- **`copies: "per_seat"` gives one hand each**, and `pos` then takes one rect per
+  seat. `mine.hand` reaches whoever is up, so no rule is written twice.
+- **`seat: "next"` hands over and `ends_after: 1` says when.** The route back to
+  `turn` says nothing about the seat, so the phase's own word answers. Saying
+  `"seat": "same"` on that route is the other game entirely: a turn that carries
+  on until the player is done with it.
+- **`refill_from` closes the loop.** The deck rebuilds from the discard when
+  somebody draws and finds it empty — not when it empties, which is a different
+  moment and the wrong one.
+- **`max:` in the end condition is load-bearing.** Drop it and the game ends at
+  five points each. See *Somebody has reached ten* below.
+
+### Dealing and drawing
+
+**Deal a hand to everybody.**
+
+```json
+{ "key": "deal", "type": "automatic", "actions": ["each_seat:draw_from:deck:mine.hand:5"] }
+```
+
+`each_seat` runs the action once per seat with that seat up, so `mine.hand` is a
+different hand each time and four players cost the same line as two.
+→ *Every seat, once*
+
+**Draw one at the start of every turn.** Phase `actions` run on every entry,
+including the loop back into the same phase:
+
+```json
+{ "key": "turn", "type": "player_input", "seat": "next", "ends_after": 1,
+  "actions": ["draw_from:deck:mine.hand:1"] }
+```
+
+A counter that must reset *once a turn* and not on the way round goes in
+`on_enter` instead. → *A phase that leads back to itself*
+
+**A deck that never runs out.** The draw pile names the pile it is rebuilt from:
+
+```json
+{ "key": "deck", "layout": "stack", "visibility": "secret", "refill_from": "discard" }
+```
+
+**Where a played card ends up.** Once, on the play block, rather than a
+`move_to` at the end of every action list it has:
+
+```json
+"play": { "action": ["stat_gain:score:1"], "spent": "discard" }
+```
+
+→ *`spent` — where a card lands however it ends*
+
+### Permission and cost
+
+**"Costs 2 gold."**
+
+```json
+"play": { "cost": { "gold": 2 }, "action": ["stat_gain:might:1"] }
+```
+
+A `cost` is **spent**; a `needs` is only **checked**. Two words because they do
+two things, and `"gold >= 2"` in a cost would say the wrong one.
+
+**"Only if you have three farms."**
+
+```json
+"play": { "needs": ["count:farm >= 3"], "action": ["stat_gain:gold:2"] }
+```
+
+**"Once a turn."** Being spent is itself the cost:
+
+```json
+"activate": { "cost": { "exhaust": 1 }, "action": ["stat_gain:gold:3"] }
+```
+
+An ability that charges no `exhaust` stays available all round, which is how a
+permanent button works. Only an *activate* cost may ask for it — a card leaving
+a hand has nothing left to stay spent.
+
+**"Sacrifice a militia."** A cost paid in cards rather than numbers. The word
+after the colon is a **tag**, not a card key, so one line prices a whole class:
+
+```json
+"play": { "cost": { "sacrifice:unit": 1 }, "action": ["gain:garrison:1"] }
+```
+
+It destroys that many of your board cards carrying the tag, oldest first.
+Upgrade chains, trials payable in blood and story dilemmas are all this one
+line.
+
+**"Costs what it says on the card."** A cost amount may be measured rather than
+typed, which is the whole of a shop:
+
+```json
+"activate": { "cost": { "coin@mine.player": "price@self", "stock@self": 1 },
+              "action": ["fill:mine.discard:@self:1"] }
+```
+
+One ability, on the tag the shelf hands out, reading each shelf's own price. A
+*quoted* number is refused rather than read, since it measures nothing.
+→ *`supply` — a stock the engine counts for you*
+
+### Whose turn it is
+
+**Alternate.** `"seat": "next"` on the phase, and let the route say nothing.
+
+**Carry on until they are done.** The route overrules the phase:
+
+```json
+"next": [{ "when": "done@mine.player >= 1", "then": "score" },
+         { "then": "act", "seat": "same" }]
+```
+
+**Whoever won the trick leads next.** The only seat named by what just happened
+rather than settled before the game began:
+
+```json
+{ "key": "collect", "type": "automatic",
+  "actions": ["stat_gain:tricks@owner_of.taker:1", "set_active_seat:taker"] }
+```
+
+`taker` is a tag the game put on the winning card a moment earlier. Naming the
+*card* is enough for `set_active_seat`, which reads a card as its owner;
+`owner_of` is only needed where the seat is what carries the number.
+→ *`@owner_of` — the seat a card belongs to*
+
+### Numbers
+
+**A score each seat carries.** A seat is a card, so it is `card_stats` on that
+card, and a bare `score` in a condition means the seat that is up.
+→ *A stat says whose number it is*
+
+**Somebody has reached ten.** ⚠ **`score@anyone.player >= 10` is the wrong
+spelling and passes the validator.** A bare stat over several cards is their
+**sum**, so that fires when two seats hold five each. Three readings, all legal,
+all different:
+
+| Written | Holds when |
+|---|---|
+| `score@anyone.player >= 10` | the **total** across every seat reaches 10 |
+| `max:score@anyone.player >= 10` | **some** seat has reached 10 |
+| `score@each.anyone.player >= 10` | **every** seat has reached 10 |
+
+The middle one is nearly always what an end condition means. The rule behind it
+is under *`@everywhere`*, in the **Quantifiers** table: `any` — the default —
+asks of the pool, and a pool of stats is a total.
+
+**A number worked out from other numbers.** `computes` binds a name before the
+action list runs, and holds the one arithmetic operator a cost has no room for.
+→ *`computes` — a number with a name*
+
+**A working number the player should not see.** Declare it `"tags": ["hidden"]`
+with `"min": 0`. The floor is what gives you `max(0, a - b)`, and that single
+piece of arithmetic is how a five-way check collapses into one comparison.
+→ *Actions*, under **Numeric slots**
+
+### Making somebody choose
+
+**One of three named cards.**
+
+```json
+"play": { "action": ["options:tempo,money,tricks"] }
+```
+
+The chosen card is played with the asking card as its target. `:optional` adds a
+No button. → *Asking a question*
+
+**One card out of a real zone.** `options:<zone>` deals *fresh* entry cards from
+it; `show:<scope>` lends the **real** cards and sends them home when the offer
+closes. Reading an opponent's hand is the second one:
+
+```json
+"play":   { "action": ["show:enemy.hand:optional"] },
+"chosen": { "action": ["move_target_to:enemy.discard"] }
+```
+
+**Anything that moves the phase, the seat or priority belongs in `chosen`,
+never beside the `show:`.** All three are frozen while an offer stands, and the
+change is refused where it is written. → *Nothing moves while an offer is open*
+
+### Boards and pieces
+
+**A board with squares.**
+
+```json
+{ "key": "board", "layout": "grid", "grid": [8, 8], "pos": [0.2, 0.05, 0.8, 0.95] }
+```
+
+A `grid` is `status: "board"` — in play — without saying so, and a card arriving
+without slot targeting takes the first free cell.
+
+**Pieces laid out like the diagram in the rulebook.**
+
+```json
+"setup": { "place": [
+  { "card": "pawn", "owner": "player_white", "zone": "board",
+    "at": ["a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"] }] }
+```
+
+`at` taking a list is what makes chess six cards rather than thirty-two.
+
+**A piece that moves, and takes what it lands on.**
+
+```json
+{ "key": "rook", "activate": { "moves": ["line_ortho"],
+                               "action": ["move_to:target:destroy"] } }
+```
+
+`moves` writes the targeting for you. The `:destroy` is what makes aiming at a
+*piece* mean taking its square; without it an occupied square refuses the move.
+→ *Pieces that move*
+
+### Ending
+
+**When a pile runs out.** The one question the comparison grammar cannot ask
+keeps a word of its own:
+
+```json
+"end_conditions": [{ "zone_empty": ["deck", "hand"], "then": ["push_phase:victory"] }]
+```
+
+**With a screen rather than a jump to the menu.** An ending is an overlay
+dealing one card, and the card carries an `outcome`:
+
+```json
+{ "key": "fate_win", "layout": "stack", "visibility": "secret",
+  "display": "offscreen", "contents": ["journeys_end"] }
+
+{ "key": "victory", "type": "overlay", "label": "Journey's End",
+  "deck": "fate_win", "zone": "victory_offer", "draw": 1 }
+
+{ "key": "journeys_end", "outcome": "victory", "text": "Journey's End",
   "play": { "action": ["load_game:menu.json"] } }
 ```
 
-**Turn cycle with forced plays** (Castle Lord): `draw_and_play` phases in list
-order; playing one card discards the hand and advances; the list wraps to the
-first non-automatic phase, which ends the round. Always give these a `pass_card`.
+`outcome` buys the banner, the summary of the run's visible stats, and the
+confetti or the falling embers. End conditions fire once per game, wait for an
+open overlay, and then run their `then`.
 
-**Free-play draft hands** (Coronation): a `player_input` phase with `deck`,
-`draw` and a `pass_card` deals a hand you play freely from; a Done/router token
-with `"play": { "needs": ["plays >= 1"], "action": ["destroy_self", "next_phase"] }` ends the hand.
+**Reachable at all.** A game the menu does not offer is a game only the CLI has:
+add a card to `menu.json` with `"play": { "action": ["load_game:mygame.json"] }`.
 
-**Sub-card choices**: options live in a hidden internal deck; the parent card
-pushes an overlay over it, and the offer zone `applies` a tag whose `play.action`
-sends the chosen card to hand and returns the rest — behaviour that belongs to
-the offer, not to the buildings it deals.
-Option cards can carry their own `cost` (a priced transformation).
+### Arrangements worth copying whole
 
-**Classical CYOA** (The Drowned Tower): pages are cards with a `story` field;
-choice cards `reveal:` them. A revealed page fills the screen; clicking it runs
-the page's own `play.action` — typically `destroy:hand` then `fill:hand:...` with
-the next choices, so the story chains without any phase plumbing. Secret
-conditional branches are `resolve_challenge` choices whose `challenge.pass`/`challenge.fail`
-reveal different pages; shuffle-decided secrets are `reveal_top:` over a hidden
-deck; the inventory is just a board — keepsakes carry a tag whose home is that
-board, so `gain:rusty_key` puts them there, and `card:<key>` tests for them;
-endings are pages whose `play.action` is `load_game:menu.json`.
-Tag the point of no return `no_undo`. Note that a choice card's
-consequences are invisible until played — the tooltip tells the player exactly
-as much as you write into it.
+Longer shapes, each named with the game that already does it.
 
-**Draft one of three from a real deck** (Architect):
-`pick.action: ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck", "pop_phase"]`.
+**Forced plays, one card a turn** (`castle.json`). `draw_and_play` phases in
+list order: playing one card discards the hand and advances, and the list wraps
+to the first non-automatic phase, which ends the round. Always give these a
+`pass_card` — a forced play needs an out.
 
-**Challenges/trials**: `play.action: ["resolve_challenge"]` with a `challenge` block —
-`challenge.pass` / `challenge.fail` on the card. Make passes cost tribute (`pass` starts
-with `move_to:graveyard` plus the toll) and make failures *persist*: `on_fail`
-starts with `move_to:board`, the card carries `turn.action: ["stat_damage:…"]` so an
-unanswered crisis drains you every round, and `activate.action:
-["resolve_challenge"]` lets the player answer it later — failure becomes
+**A free hand with a Done button** (`kingdom.json`). A `player_input` phase with
+`deck`, `draw` and a `pass_card`, ended by a router token:
+
+```json
+"play": { "needs": ["plays >= 1"], "action": ["destroy_self", "next_phase"] }
+```
+
+**A shop** (`splendor.json`). A `supply` zone whose `applies` tag carries the
+buy, priced off the shelf being bought. Nothing may point at a supply's cards,
+and it is exactly that which lets one card stand for sixty-four.
+
+**A story with no board** (`starter_cyoa.json`). Pages are cards with `story`,
+choices are cards with `tooltip`, and there is no phase plumbing at all — §2.
+
+**A trick-taking round** (`the_crew.json`). `ends_when` rather than
+`ends_after`, because putting a card in the middle ends your turn and everything
+else you may do does not:
+
+```json
+{ "key": "lead", "type": "player_input", "zone": ["hand", "open"],
+  "ends_when": "count:play_card@trick >= 1" }
+```
+
+**A crisis that persists** (`castle.json`). `resolve_challenge` with a
+`challenge` block, where `fail` starts with `move_to:board`, the card carries a
+`turn.action` that drains you every round, and `activate.action:
+["resolve_challenge"]` lets the player answer it later. Failure becomes
 escalating pressure instead of a slap.
 
-**Stat-driven structure** (tiers, acts, loops): `next` routing on phases — see
-the reference below. Progress trackers are just stats that cards raise in their
-own `play.action`.
+**Tiers, acts and loops** (`kingdom.json`). Structure driven by a number is
+`next` routing plus a stat that cards raise in their own `play.action` — there is
+no separate progression machinery, and there does not need to be.
 
-**Synergies**: `count:<tag>` amounts (`stat_gain:gold:count:economic`),
-`needs` on counts (a card's own, or a challenge's), computed tags for thresholds, `turn.action` engines,
-and exhaust-limited `activate.action` bursts.
+**An engine that ticks** (`kingdom.json`). `turn.action` on a board card runs
+once a round. Synergy is `count:<tag>` in an amount
+(`stat_gain:gold:count:economic`), a threshold is a computed tag, and a burst is
+an `exhaust`-limited `activate`.
 
-**A card as its own currency**: `"exhaust": 1` in an `activate.cost` is MTG's
-tap symbol — the ability spends the card *being ready*, and a card already spent
-cannot pay it, which is the whole of "once a round". An ability that does not
-charge it stays available all round. Only an activate cost may ask for it: a
-card leaving a hand has nothing to stay spent.
+**Sub-card choices** (`demo.json`). The options live in a hidden deck, the
+parent card pushes an overlay over it, and the *offer zone* `applies` a tag
+whose `play.action` sends the pick to hand and returns the rest. That behaviour
+belongs to the offer, not to the cards being offered — which is why every game
+that deals a choice writes it once. Taking one and putting the rest back is the
+whole of that tag:
 
-**Cards as currency**: a `"sacrifice:<tag>"` cost destroys one of your board
-cards to pay for the play — upgrade chains (sacrifice a Militia to field a
-Garrison), trials payable in blood instead of coin, and story dilemmas (give
-up the lantern or the pearl). The oldest matching card is taken.
+```json
+"play": { "action": ["add_to:hand", "return_to:offer:build_deck",
+                     "shuffle:build_deck", "pop_phase"] }
+```
+
+### When the JSON starts to fight you
+
+The format is meant to hold the whole rule, and a few shapes are the file
+telling you it does not hold this one. Say so rather than building a tower:
+
+- **The same list written twice with `mine` and `enemy` swapped.** That is one
+  rule about both seats, spelled as two. `move:<scope>:<zone>` and `each_seat:`
+  cover most of it; where they do not, the missing thing is a word in the
+  format.
+- **A condition wanting *or*.** There is none, deliberately — a list means
+  *and*, and *or* is usually two abilities. Where it genuinely is not (one card,
+  one click, two ways to qualify) it is an open question on `todo.md` rather
+  than something to encode.
+- **A number you can only reach by adding three things.** `computes` takes one
+  operator and no parentheses on purpose. Two chained is the intended answer;
+  four means the rule wants a word of its own.
+- **A phase that exists only to run one action.** Check `on_enter` against
+  `actions` first: that split already removed a whole class of near-duplicate
+  phases, and the second one is usually the first with a word missing.
+
+An engine change is cheap next to a game file nobody can read. The validator,
+`SCHEMA.json` and this document are all held to the engine by tests, so a word
+that gets added arrives in all three or not at all.
 
 ---
 
@@ -468,10 +797,9 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `visibility` | Who may read them, and **nothing else** — a card in play may be unreadable and a card nobody can touch may be plain to see. `public` (default), `owner` (the seat whose zone it is; a zone with no seat is nobody's secret and stays public), `secret` (nobody — backs out, and a stack's order is scrambled in the browser, because the order is the secret and the contents usually are not) |
 | `reach` | Which of the cards here exist as far as the rules go: `all`, or `top` — only the last one. A `stack` is `top` unless it says otherwise |
 | `use` | What may be done with a card lying here **at all** — the ceiling, which a phase's `zone` then narrows: playing needs both to agree. `play` (default), `abilities` (its own `activate` blocks work here — what a board means), `none` (a box you use rather than reach into, which is how a trash or an exile is made untouchable). A `secret` zone is `none` unless it says otherwise, which is what makes a deck a deck |
-| `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `exile` is everything else and is the default. A `grid` is `board` unless it says otherwise. See *What counts as in play* |
+| `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `exile` is everything else and is the default. A `grid` is `board` and an `options` zone is `offer` without saying so. See *What counts as in play* |
 | `display` | `onscreen` (default) or `offscreen` — not drawn, and nothing in it clickable. For offers, fate decks and rules pages. Not the same as `secret`, which is a zone you can see and cannot read |
 | `copies` | `one` (default) or `per_seat` — one zone each, and `pos` then takes one rect per seat |
-| `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `exile` is everything else and is the default. A `grid` is `board` and an `options` zone is `offer` without saying so. See *What counts as in play* |
 | `pos` | `[x1, y1, x2, y2]` window fractions — optional; each layout has a default spot (an `offscreen` zone defaults off the edge, giving dealt cards their fly-in) |
 | `grid` | `[cols, rows]`. Legal only where `layout` is `grid` — **a value names its own parameter field**, and every word on every one of the seven is reserved against being a field name for anything else |
 | `row` | Which way a row fans, so every card in it can be read at once: `down` or `right`. Legal only where `layout` is `row`; left out, the cards sit side by side and do not overlap |
@@ -817,7 +1145,7 @@ themselves.
 The engine provides a built-in overlay phase `reveal` over a built-in hidden
 zone `reveal`, used by the reveal actions. It renders cards as full-text story
 pages (title, `story` prose, click to continue), runs the picked card's own
-its `play.action`, and destroys the read page unless its actions moved it somewhere.
+`play.action`, and destroys the read page unless its actions moved it somewhere.
 
 Routing: `"next": [ { <condition>, "then": "phase_key", "ends_round": true }, ... ]`.
 First matching entry wins; a condition-less entry always matches; no `next`

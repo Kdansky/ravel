@@ -42,6 +42,12 @@ local FNS    = { count = true, card = true, sum = true, max = true, min = true,
 local QUANTS = { any = true, each = true, random = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
 
+-- The three closed vocabularies, reachable. Both documents teach them, and a
+-- word gained here that neither names is a word nobody can look up — the same
+-- hole the action table was falling into. tests/integration/docs.lua holds
+-- SCHEMA.json and AUTHORING.md to this table.
+M.WORDS = { fns = FNS, quants = QUANTS, owners = OWNERS }
+
 -- A scope expression: [<quant>.][<owner>.]<zone-or-tag>. It is the part after
 -- "@" in a subject, and it also stands alone as an action's zone argument, so
 -- "destroy:each.enemy.creature" and "hp@each.enemy.creature" read the same.
