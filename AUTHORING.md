@@ -55,7 +55,7 @@ and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · Stats · Zones · Players · Setup · Card templates · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
-- **Asking the board a question** — Conditions (one vocabulary everywhere) · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Only one of them: `random.` · Making *them* choose · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · A mandatory reaction is how you ask somebody else a question · What it will not do yet
@@ -1060,7 +1060,7 @@ disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
 | `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a card that carries its own bounds writes them by name — `{ "value": 4, "max": 4 }`, and `min` beside them — which are the same three words the `stats` entry uses. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
-| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate — escape hatch: playable anyway if nothing else in the zone is. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
+| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate, asked once before targeting opens and so blind to targets — see *`needs` and `where`*, which also carries the escape hatch. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action` (no `needs` — an ability is gated by its cost and its phase). **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `reactions` | A list of subscriptions to another player's action — each with the verb it answers (`to`), a condition about the event (`where`), a condition about the reactor (`when`), and the `cost`, `target` and `action` an ability has. `spent` says where the card lands once its answer is over. See *Reactions* |
 | `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
@@ -1290,6 +1290,65 @@ count:farm@board     count, narrowed to a zone
 count:king@enemy.reach  a king standing where an opponent could move — check
 score@owner_of.target   the score of whoever owns the card the player chose
 ```
+
+### `needs` and `where` — asked once, or asked of each
+
+One vocabulary, two moments. **`needs` is asked once, before there is anything
+to choose. `where` is asked once per candidate, and is the only one that can
+tell them apart.**
+
+| Written on | Asked | About |
+|---|---|---|
+| `play.needs` | once, before targeting opens | the card. It **cannot see targets** — none have been chosen yet |
+| `challenge.needs` | once, when `resolve_challenge` runs | the card and the targets it already has |
+| `receive.needs` | once per candidate destination | that destination as `@self`, the arriving card as `@target` |
+| `target.where` | once per candidate | the candidate, as `@target` |
+| `chosen.where` | once per revealed card | that card |
+| a move rule's `needs` | once for the rule | the piece |
+| a move rule's `where` | once per candidate square | that square, as `@target` **and** as the anchor for any pattern inside it |
+
+The rule underneath: **`needs` asks about the thing it is written on; `where`
+asks about each option that thing is offering.** `receive.needs` looks like the
+exception and is not — it is written on the destination, the destination is what
+it asks about, and it runs again for each one because each one is a different
+destination answering for itself.
+
+**Why both words exist.** They are two moments, and neither can do the other's
+work. A card has to be judged playable before the player commits to anything —
+that is what dims it in the hand — and at that moment there are no candidates,
+so `needs` is asked with nothing chosen. Once targeting opens the question
+changes from *may this card be played* to *may it be played at that*, which has
+a different answer for every square on the board and cannot be asked once. One
+word covering both would have to be re-asked per candidate, which makes the
+first question unanswerable, or asked once, which makes the second one a lie.
+
+**A move rule is the only block carrying both**, because it is the only one that
+does both jobs: decide whether the rule applies at all, then filter the squares
+it produced.
+
+```json
+{ "patterns": ["two_right"], "fill": "empty",
+  "needs": ["moves_made@self == 0"],
+  "where": ["tagged:rook@one_right >= 1", "moves_made@one_right == 0"] }
+```
+
+*Has this king moved?* is one answer for the whole rule, and asking it per
+square would get the same answer every time. *Is there an unmoved rook beyond
+**this** square?* has no answer until there is a square, so it cannot be asked
+in `needs`. `fill` sits between the two — also per square, but it knows only
+what is standing there, and `where` is for everything else about it.
+
+Everywhere else the format offers one word and not the other, and **which one
+you are given says what is being asked**. A `play` block has no `where` because
+nothing has been chosen yet. A `target` block has no `needs` because the card's
+own gate has already happened.
+
+**The escape hatch on `needs`.** A `needs`-gated card becomes playable anyway
+when nothing else the phase would let you play is playable, so a mandatory play
+can never soft-lock a hand. `cost` is checked *before* the hatch, so an
+unaffordable card is never opened by it — only a gated one. A zone tagged
+`optional` opts out: chess's four castling cards are gated most of the game, and
+"nothing else here is playable" is their ordinary state rather than a trap.
 
 ### `@reach` — wherever a set of pieces could move
 
@@ -2698,8 +2757,8 @@ Strike's Wound is the case: the printed chip says *this chip does nothing*, and
 it says so in the file by having no `play`.
 
 It matters more than it looks, because of the escape hatch: a needs-gated card
-becomes playable when nothing else in its zone is, so that a mandatory play
-cannot soft-lock a hand. A card with no cost and no needs never reaches that
+becomes playable when nothing else the phase would let you play is playable, so
+that a mandatory play cannot soft-lock a hand. A card with no cost and no needs never reaches that
 gate — it is simply always playable — and a hand of them is a row of buttons
 that do nothing.
 
