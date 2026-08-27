@@ -251,4 +251,209 @@ function M.test_docs_both_documents_teach_the_condition_vocabulary(check)
 	end
 end
 
+-- Every fragment in the manual, held to the words the engine reads.
+--
+-- The whole-game examples above are validated outright, and that used to be the
+-- end of it: a hundred-odd fragments — a card here, a phase there, the three
+-- lines that make a shop — were read far more often than the whole files and
+-- checked by nobody. "setup" carried a "player" map in the manual and in
+-- SCHEMA.json that the engine has never read, and anyone copying the Setup
+-- example got a validator complaint for their trouble.
+--
+-- A fragment cannot be run: it names zones, cards and stats it does not carry,
+-- and always will. What it *can* be held to is its own vocabulary — every field
+-- a word the engine reads for that shape, every action a verb the engine runs.
+-- Both come off the tables the validator itself uses, so this cannot drift from
+-- the engine the way prose does.
+--
+-- The shape is worked out rather than declared, by trying the fragment against
+-- each field table and keeping the reading that fits. A fragment that fits none
+-- has a word in it that nothing reads, which is the whole point.
+
+-- A nested block's fields, where the name of the key and the name of the shape
+-- differ only for "next".
+local NESTED = { play = "play", activate = "activate", challenge = "challenge",
+	receive = "receive", turn = "turn", chosen = "chosen", target = "target", next = "route" }
+-- Keys holding a list of actions. "then" holds one only when it is a list: on a
+-- routing entry it is a phase key.
+local RUNS = { action = true, actions = true, pass = true, fail = true, ["then"] = true }
+-- The two shapes the engine has no field table for. Named here rather than
+-- passed over quietly, so a third cannot arrive without somebody deciding it
+-- should: their verbs are held, their field names are held by nothing.
+local NO_TABLE = { abilities = true, reactions = true }
+
+local function walk(where, def, fields, found)
+	if type(def) ~= "table" then return end
+	for k, v in pairs(def) do
+		if fields and type(k) == "string" then
+			found.checked = found.checked + 1
+			if not fields[k] then found[#found + 1] = where .. ": '" .. k .. "'" end
+		end
+		if RUNS[k] and type(v) == "table" then
+			for _, str in ipairs(v) do
+				local op = type(str) == "string" and str:match("^[^:]+")
+				if op and not actions.ops()[op] then
+					found[#found + 1] = where .. "." .. k .. ": '" .. op .. "' is no action"
+				end
+			end
+		end
+		local shape = type(k) == "string" and NESTED[k]
+		if shape == "route" and type(v) == "table" then
+			for i, e in ipairs(v) do walk(where .. ".next[" .. i .. "]", e, validate.FIELDS.route, found) end
+		elseif shape then
+			walk(where .. "." .. k, v, validate.FIELDS[shape], found)
+		elseif NO_TABLE[k] and type(v) == "table" then
+			for i, e in ipairs(v) do walk(where .. "." .. k .. "[" .. i .. "]", e, nil, found) end
+		elseif k == "moves" and type(v) == "table" then
+			for i, e in ipairs(v) do walk(where .. ".moves[" .. i .. "]", e, validate.SHAPES.move_rule, found) end
+		end
+	end
+end
+
+-- Every reading of a fragment worth trying, with the table each one holds it to.
+local function readings(frag)
+	local out = {}
+	local function fits(t)
+		for k in pairs(frag) do if not t[k] then return false end end
+		return next(frag) ~= nil
+	end
+	local function add(name, fn) out[#out + 1] = { name, fn } end
+
+	if fits(declaration.KNOWN_SECTIONS) then
+		add("sections", function(found)
+			for sec, body in pairs(frag) do
+				local t = validate.FIELDS[sec] or validate.SHAPES[sec]
+				if sec == "setup" then
+					walk("setup", body, validate.SHAPES.setup, found)
+					for i, e in ipairs(type(body) == "table" and body.place or {}) do
+						walk("setup.place[" .. i .. "]", e, validate.SHAPES.place, found)
+					end
+				elseif sec == "players" then
+					for i, e in ipairs(type(body) == "table" and body or {}) do
+						walk("player " .. i, e, validate.SHAPES.player, found)
+					end
+				elseif type(body) == "table" and t then
+					if body[1] ~= nil then
+						for i, e in ipairs(body) do walk(sec .. "[" .. i .. "]", e, t, found) end
+					else
+						for name, e in pairs(body) do walk(sec .. "." .. name, e, t, found) end
+					end
+				end
+			end
+		end)
+	end
+	-- A whole entry, or the handful of its fields a paragraph is about: a
+	-- fragment showing what "next" looks like is a phase with one field written.
+	for _, sec in ipairs({ "cards", "zones", "phases", "stats" }) do
+		local t = validate.FIELDS[sec]
+		if fits(t) then
+			add((frag.key and "a " or "the fields of a ") .. sec:sub(1, #sec - 1),
+				function(found) walk(sec, frag, t, found) end)
+		end
+	end
+	if fits(validate.SHAPES.setup) then
+		add("the fields of setup", function(found)
+			walk("setup", frag, validate.SHAPES.setup, found)
+			for i, e in ipairs(type(frag.place) == "table" and frag.place or {}) do
+				walk("setup.place[" .. i .. "]", e, validate.SHAPES.place, found)
+			end
+		end)
+	end
+	for _, shape in ipairs({ "target", "route", "play", "activate", "chosen", "challenge" }) do
+		if fits(validate.FIELDS[shape]) then
+			add("a " .. shape, function(found) walk(shape, frag, validate.FIELDS[shape], found) end)
+		end
+	end
+	if fits(validate.SHAPES.place) then
+		add("a setup.place entry", function(found) walk("place", frag, validate.SHAPES.place, found) end)
+	end
+	if fits(validate.SHAPES.move_rule) then
+		add("a move rule", function(found) walk("move", frag, validate.SHAPES.move_rule, found) end)
+	end
+	-- An entry of an "abilities" or "reactions" list: verbs only, since the
+	-- engine reads no field set for either.
+	if frag.action ~= nil or frag.to ~= nil then
+		add("an ability or a reaction", function(found)
+			walk("ability", frag, nil, found)
+			found.checked = found.checked + 1
+		end)
+	end
+	-- The inside of a named-map section, written without its wrapper.
+	for _, sec in ipairs({ "tags", "styles", "computed_tags", "patterns", "effects", "assets" }) do
+		add("inside " .. sec, function(found)
+			for name, e in pairs(frag) do walk(sec .. "." .. name, e, validate.FIELDS[sec], found) end
+		end)
+	end
+	return out
+end
+
+-- The objects in one block: the whole of it, the whole of it wrapped in braces
+-- (a fragment written as the fields it would sit among), or a run of top-level
+-- objects side by side.
+local function objects(body)
+	local ok, d = pcall(json.decode, body)
+	if ok and type(d) == "table" then return { d } end
+	local ok2, d2 = pcall(json.decode, "{" .. body .. "}")
+	if ok2 and type(d2) == "table" then return { d2 } end
+	local out, depth, start, instr, esc = {}, 0, nil, false, false
+	for i = 1, #body do
+		local ch = body:sub(i, i)
+		if instr then
+			if esc then esc = false elseif ch == "\\" then esc = true elseif ch == '"' then instr = false end
+		elseif ch == '"' then instr = true
+		elseif ch == "{" then
+			if depth == 0 then start = i end
+			depth = depth + 1
+		elseif ch == "}" then
+			depth = depth - 1
+			if depth == 0 and start then
+				local o, d3 = pcall(json.decode, body:sub(start, i))
+				if not o then return nil end
+				out[#out + 1] = d3
+				start = nil
+			end
+		end
+	end
+	return #out > 0 and out or nil
+end
+
+function M.test_docs_every_fragment_uses_words_the_engine_reads(check)
+	local text = read("AUTHORING.md")
+	local n, held, abridged = 0, 0, 0
+	for body in text:gmatch("```json\n(.-)```") do
+		n = n + 1
+		local objs = objects(body)
+		local whole = objs and #objs == 1 and objs[1].cards and objs[1].zones and objs[1].phases
+		if whole then
+			-- Already run through the validator entire, above.
+		elseif not objs then
+			-- A block with an ellipsis is abridged and says so; one with no
+			-- object in it is a line of grammar rather than a thing to paste.
+			local shown = body:find("…", 1, true) or body:find("...", 1, true)
+			check("an unparseable block is marked abridged: " .. body:sub(1, 50):gsub("\\n", " "),
+				shown ~= nil or not body:find("{", 1, true))
+			abridged = abridged + 1
+		else
+			for _, frag in ipairs(objs) do
+				local best, name
+				for _, r in ipairs(readings(frag)) do
+					local found = { checked = 0 }
+					r[2](found)
+					if found.checked == 0 then found[#found + 1] = "reads nothing" end
+					if best == nil or #found < #best then best, name = found, r[1] end
+				end
+				local keys = {}
+				for k in pairs(frag) do keys[#keys + 1] = tostring(k) end
+				table.sort(keys)
+				check("a fragment reading '" .. table.concat(keys, ",") .. "' is words the engine reads",
+					best ~= nil and #best == 0,
+					"best reading was " .. tostring(name) .. ": " .. table.concat(best or {}, ", "))
+				held = held + 1
+			end
+		end
+	end
+	check("the manual is full of fragments and they are all held", held > 80,
+		held .. " held, " .. abridged .. " abridged, out of " .. n .. " blocks")
+end
+
 return M

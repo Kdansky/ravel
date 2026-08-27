@@ -863,7 +863,6 @@ box; `setup` is the page of the manual that arranges it:
 
 ```json
 "setup": {
-  "player": { "hp": 5 },
   "place": [
     { "card": "throne_room", "zone": "board", "at": "c3" },
     { "card": "pawn", "owner": "player_white", "zone": "board",
@@ -878,6 +877,12 @@ box; `setup` is the page of the manual that arranges it:
 | `owner` | which player this one belongs to. Without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus; a shared board has no such seat, so pieces on one say whose they are here |
 | `zone` | where it goes. Leave it out and its home tag decides, then the only board. A zone with `copies: "per_seat"` gets one copy in **each** seat's — a marker declared once appears on every player's board |
 | `at` | the square, named the way a player would say it: a column letter and a rank counted from the near edge, so `"e1"` is the white king's. Grid zones only; without it the card takes the first free cell |
+
+`place` is the only thing `setup` holds. **Starting numbers are the seat's, not
+setup's** — `players[].stats` for an injected seat, `card_stats` on the card for
+one a game named. `setup` used to take a `player` map beside `place`, and read
+it nowhere; the field set is asked for now rather than written out at the call
+site, so the manual and `SCHEMA.json` are held to it like any other.
 
 **`at` may be a list, and then it is that many cards.** Eight pawns are one
 entry naming eight squares. That is what makes the placement list read like the

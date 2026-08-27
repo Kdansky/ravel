@@ -419,15 +419,33 @@ file as output.
   build survived a green suite. **Add a game here when you add a game** —
   layouts differ far more than draw code does.
 - **The documents are held to the engine, both ways.** `tests/integration/schema.lua`
-  matches `SCHEMA.json` against `validate.FIELDS`, `actions.ops()` and the
-  reserved-tag registry; `tests/integration/docs.lua` runs every whole-file
-  example in `AUTHORING.md` through the validator, holds its action table to
-  `actions.ops()` and its condition vocabulary to `predicate.WORDS`, holds its
-  reference index to its own headings, and refuses a retired word anywhere a
-  game is copied from. A document cannot fail on its own, which is why a word
-  the engine dropped outlived it by three passes in the manual and by a whole
-  generator in a shipped game file. **A field, action or scope word arrives in
-  the engine and both documents, or it fails the build.**
+  matches `SCHEMA.json` against `validate.FIELDS`, `validate.SHAPES`,
+  `actions.ops()` and the reserved-tag registry; `tests/integration/docs.lua`
+  runs every whole-file example in `AUTHORING.md` through the validator, holds
+  its action table to `actions.ops()` and its condition vocabulary to
+  `predicate.WORDS`, holds its reference index to its own headings, and refuses
+  a retired word anywhere a game is copied from. A document cannot fail on its
+  own, which is why a word the engine dropped outlived it by three passes in the
+  manual and by a whole generator in a shipped game file. **A field, action or
+  scope word arrives in the engine and both documents, or it fails the build.**
+- **The fragments are held too, to their vocabulary rather than to a game.** A
+  hundred-odd fragments — a card here, a phase there, the three lines that make
+  a shop — are read far more often than the whole files and used to be checked
+  by nobody. A fragment cannot be run: it names zones and stats it does not
+  carry, and always will. So `docs.lua` works out what shape it is by trying it
+  against each field table and keeping the reading that fits, then holds every
+  field to that table and every action to `actions.ops()`. A fragment fitting no
+  table has a word in it that nothing reads. Blocks that cannot parse are
+  allowed only where they say so — an ellipsis, or no object at all.
+- **A field set written as a literal at its call site cannot be asked about**,
+  and that is how `setup` came to carry a `player` map that the engine never
+  read, `SCHEMA.json` described in full, the manual put in its Setup example,
+  and the validator refused. `validate.SHAPES` is where the four shapes reached
+  *through* a section now live — `setup`, a `setup.place` entry, a `players`
+  entry, a move rule — so both documents are held to them like anything else. A
+  move rule had no field set at all until then, so a misspelt `fil` was ignored
+  rather than reported. **`abilities` and `reactions` entries still have none**,
+  which is the remaining hole of this kind.
 - `RAVEL_DEBUG=1` + `nc` — poke a live GUI process; `echo state | nc` dumps
   full entity state as JSON.
 - Balance questions: write a scratch script over `headless.lua` + `flow` and

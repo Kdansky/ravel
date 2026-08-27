@@ -267,6 +267,16 @@ local ASSET_FIELDS    = { src = true, max = true }
 -- why they are one block rather than three fields that can be half-written.
 local CHALLENGE_FIELDS = { needs = true, pass = true, fail = true }
 local PATTERN_FIELDS  = { vectors = true, class = true, zone = true }
+-- Shapes reached through a section rather than declared beside one. These were
+-- written as literals at their call sites, which is why "setup" grew a second
+-- field nothing read: an inline set is checked but cannot be *asked*, so no
+-- document could be held to it and SCHEMA.json described "setup.player" for as
+-- long as it took somebody to copy it. A move rule had no set at all, so a
+-- misspelt "fil" was ignored rather than reported.
+local SETUP_FIELDS = { place = true }
+local PLACE_FIELDS = { card = true, zone = true, at = true, owner = true }
+local MOVE_RULE_FIELDS = { patterns = true, fill = true, needs = true, where = true }
+local PLAYER_FIELDS = { card = true, stats = true, text = true }
 -- A value names its own parameter field, so every word on every one of the seven
 -- is reserved: "layout": "grid" is what makes "grid" a legal field, and a
 -- parameter whose value was not chosen is a zone that thinks it is two shapes.
@@ -297,6 +307,11 @@ M.FIELDS = {
 	turn          = TURN_FIELDS,
 	chosen        = CHOSEN_FIELDS,
 }
+
+-- The shapes above, reachable for the same reason M.FIELDS is: a set nobody can
+-- ask about is a set no document can be held to.
+M.SHAPES = { setup = SETUP_FIELDS, place = PLACE_FIELDS, move_rule = MOVE_RULE_FIELDS,
+	player = PLAYER_FIELDS }
 
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
 -- entry the engine hands around and are not things an author ever writes, so
@@ -1090,6 +1105,7 @@ function M.check(G)
 	-- standing on the square it lands on.
 	local function check_moves(where, rules)
 		for _, rule in ipairs(rules or {}) do
+			check_fields(where, rule, MOVE_RULE_FIELDS)
 			for _, pname in ipairs(rule.patterns or {}) do
 				if not G.pattern_defs[pname] then
 					warn("%s: moves by the pattern '%s', but none is declared under \"patterns\"%s",
@@ -2224,7 +2240,7 @@ function M.check(G)
 
 	-- Setup.
 	if G.setup then
-		check_fields("setup", G.setup, { place = true })
+		check_fields("setup", G.setup, SETUP_FIELDS)
 		-- Setup arranges the box: every entry names a card, and may say which
 		-- zone, which squares, and whose it is. A square outside the grid is
 		-- silently ignored at init, which reads as a piece that simply is not
@@ -2232,7 +2248,7 @@ function M.check(G)
 		for i, e in ipairs(type(G.setup.place) == "table" and G.setup.place or {}) do
 			local where = ("setup.place entry %d"):format(i)
 			if type(e) == "table" then
-				check_fields(where, e, { card = true, zone = true, at = true, owner = true })
+				check_fields(where, e, PLACE_FIELDS)
 				if not G.card_defs[e.card] then
 					warn("%s: places '%s', but no card has that key%s", where, tostring(e.card),
 						suggest(e.card, G.card_defs))
@@ -2277,7 +2293,7 @@ function M.check(G)
 		if type(e) ~= "table" then
 			warn('%s: should be an object, like { "card": "north" }', where)
 		else
-			check_fields(where, e, { card = true, stats = true, text = true })
+			check_fields(where, e, PLAYER_FIELDS)
 			if e.card ~= nil and type(e.card) ~= "string" then
 				warn("%s: its \"card\" should be the key of a card", where)
 			end
