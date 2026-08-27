@@ -1,338 +1,127 @@
 # 17 — A condition is one string
 
-**Status:** **closed.** Steps 1–4 shipped and the struct spellings are gone,
-which is where findings 4, 5 and 6 are actually fixed rather than papered over.
-**Step 5 — one parser for action value slots too — is closed by
-[26](26-an-if-and-a-name.md) rather than built**, and the reason is at *The
-arithmetic question* below ·
-**Size:** large — the engine change is small, the migration is every game file,
-and the design question is the format's biggest open one.
+**Closed.** `"gold >= 3"` is the only way a condition is written; the map form,
+the comparison-object form and the `stat`+comparator struct are gone, and 112
+conditions across ten game files went with them.
 
-> *Consider instead of complex `{stat "at_least": 8}` struct to just use small
-> eval blocks, which look more like `"a.b@c.d > e.f@g.h"`, allowing simple math
-> and lookup logic. This might just be easier, and we can parse this on
-> validation and generate lambda functions for it all instead of having to write
-> unique special cases for every field type.*
+## The decision: comparison only
 
-This is the same finding [10](10-schema-document.md) measured from the outside,
-arriving from the inside. Finding 5 — *one condition, three spellings, and the
-site decides which is legal* — is the biggest thing the schema pass turned up
-and the one it recommended starting from, and finding 4 (`stat` is a field name
-that does not mean a stat) and finding 6 (`ROUTE_FIELDS` and `END_FIELDS` are
-the same table) both dissolve into it.
+`<subject> <op> <number-or-subject>`, six operators, no arithmetic, no nesting,
+no booleans. It adds no expressive power at all — which is its strength: nothing
+new can be written, so nothing new can be wrong. `>`, `<` and `!=` are new only
+in the sense that the struct form had no field name for them; the engine could
+always evaluate them.
 
----
+**Most of it already existed.** `parse_subject` already read
+`[<fn>:]<arg>[@<quant>.<owner>.<scope>]`, and the right-hand side already took a
+number or another subject. What shipped was an infix spelling of a thing the
+engine already evaluated.
 
-## What already existed, and it was most of it
+**`needs` is a list, `cost` is still a map.** A map keyed by its own condition
+cannot hold one subject twice, and `"gold >= 3"` with `"gold <= 8"` is a range.
+Costs did not move, and the validator says why out loud: *a cost is what gets
+spent, not a condition*.
 
-`predicate.parse_subject` already read `[<fn>:]<arg>[@<quant>.<owner>.<scope>]`,
-and `bound()` already took a number *or* another subject on the right. So the
-comparison was already `subject <op> subject`; it was only spelled as a map.
-**What was proposed was an infix spelling of a thing the engine already
-evaluated**, plus arithmetic, which it did not — and those two halves were worth
-deciding separately. See *The arithmetic question*.
+**Refusals happen at the door.** A string can be parsed before the game runs, so
+`gold = 3`, `3 <= gold <= 8` and `gold >= reserve` are all authoring-time errors
+now. The operands are ordinary subjects, so every check the validator already
+had came along for free.
 
-## One thing the grammar is missing, found by building an ending screen
+**Nothing is compiled to Lua, ever.** A game file arrives from a peer through
+the same door, so compiling attacker-supplied text would be remote code
+execution in a program that accepts game files from strangers by design. The
+parser produces a table and `predicate` memoises per distinct string.
 
-**A condition cannot name a seat.** The owner word is `mine` / `enemy` /
-`anyone` (`OWNERS`, `predicate.lua:33`), all three relative to
-`zones.active_seat()`. That is right for a rule a player is playing — and there
-is no way to write *white's*, absolutely, at a moment when nobody in particular
-is to move.
+## Arithmetic: refused, and the reason changed
 
-It cost twice in one afternoon ([07](07-presentation.md) gap 6). Chess's ending
-could not be an `end_condition`, because at the moment a king is taken "mine" is
-whoever moved last, which is an accident of turn order; it became phase routing
-instead, since a phase called `white_move` does know its colour. And writing the
-winner down needed an absolute handle too, so chess's seat cards gained a tag
-each — the trick Lost Cities was already using for `score@north_side`.
+The note asked for *simple math*. Three positions were on the table: comparison
+only; comparison plus the `:x:` product that action value slots already have;
+and general expressions with parentheses and precedence. The third is what
+DESIGN refuses outright — the difference between a format and a language.
 
-**Tagging a seat card is the workaround, and it is a good one**, which is why
-this is a paper cut rather than a blocker. But it means every game with seats
-writes two words that mean the same thing as the seat key it already declared.
-[Assumption: the fix is one line in `owned_by` — an owner word that is not one
-of the three known ones and *is* a key in `G.seat_set` matches that seat — plus
-the same lookup in `parse_scope`, which is what makes it a decision rather than
-a patch: `parse_scope` is documented as pure and testable without a game, and
-consulting `seat_set` ends that. Either the grammar gains a game-state
-dependency, or seats keep wearing tags.]
+The second looked strongest, because one parser serving both would **delete** a
+notation rather than add one. It lost on measurement: across thirteen games only
+15 action strings use `:x:` and **five are a disguised `if`** — a 0-or-1 stat
+multiplied in because an ability had nowhere to put a condition. The pressure
+reading as "the amount grammar is too weak" was mostly a missing `when`. Of the
+ten real uses, all are one Lost Cities formula written five times.
 
-## The three shapes it collapsed
+And the notation cannot land without precedence: `sum:value@mine.red - 20 *
+count:wager` read left to right is a rule a reader must be *taught and cannot
+check*, which is the defect the positional `card_stats` array was retired for.
+What position 2 actually wanted — a formula with a name, on its own line, with a
+sentence saying what it means — is a `computes` entry.
+See [26](26-an-if-and-a-name.md).
 
-A condition was legal in three spellings and the *site* decided which: a map
-(`{ "gold": 3 }`), a comparison object as a map value
-(`{ "max:value@mine.red": { "at_most": 6 } }`), and a `stat` + comparator struct
-on routing entries and `end_conditions`. Finding 5 of [10](10-schema-document.md)
-— *one condition, three spellings* — is the whole of why this track exists, and
-findings 4 (`stat` is a field name that does not mean a stat) and 6
-(`ROUTE_FIELDS` and `END_FIELDS` are the same table) dissolve into it.
+**Boolean operators are a separate refusal.** `and` is what a `needs` list
+already means, and `or` turns a condition into a program. A card needing
+*either* of two things is two abilities.
 
-All three are gone. `"needs": ["gold >= 3", "max:value@mine.red <= 6"]`, and
-`{ "when": "count:king@taken >= 1", "then": [...] }`.
+## The five rules that are behaviour, not spelling
 
-## The behaviour that must survive, and it is not syntax
+Each was paid for by a bug, and each is asserted against the string form
+specifically in `tests/integration/conditions.lua` — a grammar reads like
+arithmetic and invites the reading that a missing number is zero.
 
-This is the acceptance criterion, and it is where a rewrite of `predicate.lua`
-would go wrong. Every one of these is a *rule*, not a spelling, and each was
-paid for by a bug:
-
-| Rule | Where it is written | What it prevents |
-|---|---|---|
-| **An absent stat fails every comparison**, `equals: 0` included | `predicate.met` (`predicate.lua:355`), `DESIGN.md:99` | "this rook has never moved" being true of a captured rook |
-| **The measuring forms are exempt** — `count:`/`card:` over nothing is 0, `sum:`/`max:` of an empty pool is 0 | same | "these squares are empty" has to be writable |
-| **A bare word on the right is a typo, not zero** | `bound()` (`predicate.lua:310`) | every misspelling silently comparing against 0 and passing |
-| **An empty `each` scope fails rather than passing vacuously** | `predicate.met` (`predicate.lua:359`) | a cost being free exactly when nothing can pay it |
-| **Nothing malformed reaches a raw Lua comparison** | the comment at `predicate.lua:75` | an uncaught error killing the process on peer-supplied content |
-
-A grammar makes those *harder* to state, not easier: `a > b` reads like
-arithmetic and invites the reading that a missing `a` is 0. Whatever the parser
-produces has to keep answering "absent" differently from "zero", which means the
-evaluator still returns a tri-state internally however the string looks.
-
-## Compile at the door, and never with `loadstring`
-
-The note's own suggestion — *parse on validation and generate lambda functions*
-— is right about the place and must be careful about the mechanism.
-
-**The place is `declaration.parse`**, which [06](06-schema-and-types.md) gap 3
-already names as the boundary worth paying to normalise, and which
-[11](11-styles-as-tags.md) used for exactly this shape: resolve once at load,
-leave a flat thing behind for the hot path. A condition parsed once into a
-closure is strictly better than `parse_subject` running on every read, which is
-what happens today — `predicate.total` re-parses its subject string every time a
-card's gate is re-derived, which is every frame for every dimmable card in a
-hand.
-
-**The mechanism must be a closure built from a fixed grammar, never Lua source
-handed to `load`.** A game file arrives from a peer through `net.accept_game`
-and is parsed through the very same door (`declaration.lua`), which is the trap
-[09](09-composition.md) found for includes and it is sharper here: compiling
-attacker-supplied text into Lua would be remote code execution in a program that
-already accepts game files from strangers by design. The grammar is small enough
-that this costs nothing — a recursive-descent parse into a tree of closures over
-`predicate.total` is maybe eighty lines. [Assumption: the parser lives beside
-`predicate.parse_subject` rather than in `declaration`, so it stays testable
-without a game loaded, and `declaration` only calls it.]
-
-## The arithmetic question, which is the real decision
-
-The note asks for *simple math*, and that is the half that is genuinely new.
-`DESIGN.md:66` says: **no s-expressions, no command trees, no arbitrary
-expressions**, and the whole schema section exists to keep the format writable
-by non-programmers.
-
-Three positions, and they should be chosen between rather than blurred:
-
-1. **Comparison only.** `<subject> <op> <subject|number>`, one operator, no
-   nesting. This is exactly what the engine evaluates today, spelled infix. It
-   collapses three shapes into one, fixes findings 4, 5 and 6, and adds no
-   expressive power at all — which is its strength: nothing new can be written,
-   so nothing new can be wrong.
-2. **Comparison plus the arithmetic that already exists elsewhere.** Action
-   value slots already take a product (`actions.lua:78`'s `amount`):
-   `"gain_stat:score:sum:value@mine.red:x:count:wager"`. That `:x:` is arithmetic
-   in colon-separated clothing, and it exists because Lost Cities needed
-   `(sum − 20) × wagers`. One parser serving both would **delete** a notation
-   rather than add one, and that is the strongest argument in this file for going
-   past position 1.
-3. **General expressions** — `+ - * /`, parentheses, precedence. This is the one
-   DESIGN.md refuses, and the refusal has not expired: it is the difference
-   between a format and a language, and the moment it lands, every rules bug can
-   be an arithmetic bug in a string.
-
-**Answered: 1 shipped, 2 and 3 refused** (2026-08-23, [26](26-an-if-and-a-name.md)).
-
-Position 2's test was that it must *replace* `:x:` rather than sit beside it, and
-it fails a stronger one. Measured across thirteen games, only 15 action strings
-use `:x:` at all and **five of those are a disguised `if`** — a stat that is 0 or
-1 multiplied in because an ability had nowhere to put a condition. So the pressure
-this position was reading as "the amount grammar is too weak" was mostly a missing
-`when`. Of the ten real ones, all are one Lost Cities formula written five times.
-
-And the notation cannot land without precedence. `sum:value@mine.red - 20 * count:wager`
-read left to right is a rule a reader must be *taught and cannot check*, which is
-exactly the defect the positional `card_stats` array was retired for; with
-parentheses it is position 3, which stays refused. What position 2 actually wanted
-— a formula with a name, somewhere a reader can check it — is a `computes` entry,
-where the expression sits alone on its own line with a sentence saying what it
-means.
-
-**Boolean operators are a separate refusal.** `and` is already what a `needs`
-list means — every entry must hold — and `or` is the thing that turns a
-condition into a program. A card that needs *either* of two things is two
-abilities, which the engine now has (`abilities`, shipped).
-
-## What does not become an expression
-
-- **Costs.** `{ "mana": 3 }` on a `play.cost` is not a gate, it is a
-  *payment*: it names the stat to subtract and by how much. `mana >= 3` says
-  what to check and not what to spend, and inventing a "pay this expression"
-  rule is how a cost silently stops being reversible by undo. Costs stay a map,
-  and the fact that they *look* like the map form of a condition is worth
-  writing down as a difference rather than leaving as a resemblance.
-- **`zone_empty`.** It is a list of zone keys, not a comparison, and
-  `count:card@road == 0` is not the same question — a zone with cards nobody can
-  see is still not empty. [Assumption: it survives as its own entry rather than
-  being folded in; the alternative is a subject that means "how many cards are in
-  this container regardless of tags", which does not exist today.]
-- **The quantifier.** `hp@each.follower >= 1` still means *of every follower*,
-  and that word lives inside the subject where it already is. It is the one part
-  of the grammar that is not arithmetic-shaped and it must not be lost in the
-  translation.
-
-## The draft, and the four decisions in it
-
-*Written 2026-08-19, shipped 2026-08-20 in `e2ded7d`. `luajit tests/run.lua` and
-`lua5.4 tests/run.lua` are green at 1643, and every shipped game still validates
-clean.*
-
-The whole of it is **additive**. No game file changes, no behaviour changes, and
-both spellings answer identically — which is the property the migration then
-leans on, so it is what the tests are pointed at rather than at the new form
-working.
-
-### What it is
-
-```json
-"needs": ["gold >= 3", "max:value@mine.red <= 6"]
-
-{ "when": "count:king@taken >= 1", "then": ["load_game:menu.json"] }
-{ "when": "nexus@south_side <= 0", "then": "north_end" }
-```
-
-| Where | Added | Kept |
-|---|---|---|
-| `predicate.parse_condition(s)` | string → `{ left, op, right }`, pure, memoised per distinct string | `parse_subject` untouched — both operands are subjects |
-| `predicate.holds(c, ctx)` | evaluates one | `met` / `meets_all` / `total` all unchanged underneath |
-| `met` | `cond.when`, and a bare string | the object form, exactly as it was |
-| `meets_all` | a **list** of strings | the map and comparison forms |
-| routing, `end_conditions` | `when` as a field | `stat` + comparator, `zone_empty` |
-| `validate` | `condition_ok`, which parses and then checks both operands as subjects | every existing message |
-| `phase.next` | a `when` entry is a condition, not the unconditional fallback | — |
-
-### Decision 1 — comparison only, and six operators
-
-Position 1 of the three this file lists: `<subject> <op> <number-or-subject>`,
-no arithmetic, no nesting, no booleans. What is new is `>`, `<` and `!=`, which
-the struct form never had and which cost one line each — the engine could always
-*evaluate* them, it just had no field name for them.
-
-**Arithmetic stays refused for now, and the reason is that it belongs to the
-other half of the job.** The argument for it in this file is that `:x:` in an
-action value slot is arithmetic already, and one parser serving both would
-*delete* a notation. That is true — and it means `*` earns its place in step 5,
-where the amount grammar comes through the same door, not here, where it would
-only add power to conditions and leave `:x:` standing.
-
-### Decision 2 — `needs` is a list, `cost` is still a map
-
-A map keyed by its own condition cannot hold one subject twice, and
-`"gold >= 3"` with `"gold <= 8"` is a range. A list also lands on `DESIGN.md`'s
-allowed form 2, arrays of strings, which no other reading of this does.
-
-Costs do not move, and the validator now says so out loud: a list where a cost
-is expected is refused with *a cost is what gets spent, not a condition*. A cost
-names the stat to subtract and by how much; `mana >= 3` says what to check and
-not what to spend.
-
-### Decision 3 — refusals happen at the door, not at run time
-
-The struct form's protections are all *fail-closed at evaluation*: a bare word
-on the right reads as an unknown stat and the comparison quietly fails. A string
-can do better, because a string can be parsed before the game runs:
-
-| Written | Answered |
+| Rule | What it prevents |
 |---|---|
-| `gold = 3` | `'=' is not a comparison — write >=, <=, >, <, == or !=` |
-| `3 <= gold <= 8` | `one comparison per condition — two of them are two entries` |
-| `gold >= reserve` | `'reserve' is a bare word, so it would read as a stat worth nothing` |
-| `count:kingg@taken >= 1` | `counts the tag 'kingg', but no card has it — did you mean 'king'?` |
-| `when` *and* `stat` on one entry | `says its condition twice — keep one` |
+| **An absent stat fails every comparison**, `== 0` included | "this rook has never moved" being true of a captured rook |
+| **The measuring forms are exempt** — `count:`/`card:` over nothing is 0, `sum:`/`max:` of an empty pool is 0 | "these squares are empty" has to be writable |
+| **A bare word on the right is a typo, not zero** | every misspelling silently comparing against 0 and passing |
+| **An empty `each` scope fails** rather than passing vacuously | a cost being free exactly when nothing can pay it |
+| **Nothing malformed reaches a raw Lua comparison** | an uncaught error killing the process on peer-supplied content |
 
-The last two are the ones that matter: the operands are ordinary subjects, so
-**every check the validator already had comes along for free**, and the two-form
-entry is the one mistake the additive step makes possible.
-
-### Decision 4 — the five rules are asserted against the new spelling
-
-*A grammar reads like arithmetic and invites the reading that a missing number
-is zero.* So `tests/integration/conditions.lua` asserts each of this file's five
-rules against the string form specifically, rather than trusting the shared code
-underneath:
-
-- an absent stat fails every comparison — `== 0`, `<= 9` and `!= 1` included;
-- `count:` / `sum:` / `max:` stay exempt;
-- `each` over an empty scope is false;
-- a condition that will not parse is *false*, never an error;
-- and the equivalence matrix: ten subjects × four bounds × three operators,
-  asked as a struct and as a string, all 120 agreeing.
-
-### What the draft does not do
-
-- **No migration.** Not one game file changed. That is step 3's second half and
-  the golden traces are its proof.
-- **`computed_tags` are untouched**, and they are the one site that does not fit
-  the sentence *one vocabulary, six places*: `tags.entity_has` evaluates them
-  against a single entity on the per-frame path, with its own comparator set
-  (`less_than_max` reads `e.stat_max`, which no subject can name). Folding them
-  in wants either a way to say "this card's ceiling" as a subject or an
-  admission that they are a different question. Worth deciding before step 4,
-  because step 4 is where the old shapes die.
-- **The seat a condition cannot name** — this file's own finding — is untouched
-  and is *not* fixed by the spelling. `@owner_of` (shipped, see
-  [22](22-the-crew.md)) answers the relative question; naming `white` absolutely
-  still means tagging the seat card with its own key.
-- **Nothing is compiled at `declaration.parse`.** The memo in `predicate` gives
-  the same "parse once per distinct string" for a tenth of the wiring, and it
-  keeps the parser reachable from the validator, which has no `G`. If profiling
-  ever wants it earlier, the door is where it moves.
-
-## Build order
-
-Five steps: the parser alone; the object form learning the string; `needs` as a
-list; deleting the old shapes; and then arithmetic. The first four shipped in
-order (`e2ded7d` and the migration after it). The parser came out as a table
-rather than a tree of closures — one comparison has nothing to nest, so a closure
-would be a call where a lookup does. **Step 5 never happened and should not**; see
-above.
-
-## What the deletion cost, and the three things it turned up
-
-**The migration was 112 conditions across ten game files and it was mechanical**
-— a script, brace-matching over the text so the hand formatting survived, then
-the golden traces to prove castle and kingdom still play move for move. The
-generator (`tools/make_lost_cities.py`) writes the new shape and regenerates to
-exactly the migrated file, which is the check that the two did not drift.
+## What the deletion turned up
 
 - **The tooltip was the only presentation that read a condition.** `cost_text`
   walked a map with `pairs` and called `:match` on the key, so a list of strings
-  handed it a number and took the interface down — the same crash the map form
-  caused when it first arrived, from the other direction. It renders prose from
-  the parsed condition now (`"at least 3 gold"`, not `"gold >= 3"`), because a
-  tooltip is read by somebody who has never seen the game file.
+  took the interface down. It renders prose from the parsed condition now — *"at
+  least 3 gold"*, not `"gold >= 3"` — because a tooltip is read by somebody who
+  has never seen the game file.
 - **A cost was using the condition door to ask its own question.**
-  `flow.can_afford` built `meets_all({ [subject] = n })` to mean "at least this
-  much", which is why deleting the map form made every cost free. It says
-  `subject .. " >= " .. n` now, which is the same sentence out loud.
-- **`bound_ok` in the validator had no callers left.** Its rule — a bare word on
-  the right is a typo, not a reading of zero — moved into the parser, where it is
-  an authoring-time error rather than a silent run-time failure. That is the
-  whole argument for the string form in one function's deletion.
+  `can_afford` built `meets_all({ [subject] = n })` to mean "at least this
+  much", which is why deleting the map form made every cost free.
+- **`bound_ok` had no callers left.** Its rule — a bare word on the right is a
+  typo — moved into the parser, where it is an authoring-time error rather than
+  a silent run-time failure. That is the whole argument for the string form, in
+  one function's deletion.
+- **Two error messages had nowhere to live.** `exhaust` and `sacrifice:` written
+  as conditions would read as misspelled stats, so `condition_ok` names them and
+  says which block they belong in. Both are mistakes somebody actually made.
 
-**Two error messages were worth keeping and had nowhere to live**: `exhaust` and
-`sacrifice:` written as conditions would now read as misspelled stats, so
-`condition_ok` names them specifically and says which block they belong in. Both
-are mistakes somebody actually made.
+## Two things it did not fix
 
-**`computed_tags` are still their own vocabulary**, and this pass confirmed the
-draft's guess about why: they are asked of one entity on the per-frame path and
-reach things no subject can name (`less_than_max` reads `e.stat_max`). Folding
-them in wants a subject for "this card's ceiling" first. `AUTHORING.md` says so
-where the comparators are listed, because `at_least` surviving in exactly one
-node otherwise reads as a miss.
+**A condition still cannot name a seat absolutely.** The owner words are
+`mine`/`enemy`/`anyone`, all relative to whoever is up, and there is no way to
+write *white's* at a moment when nobody in particular is to move. It cost twice
+in one afternoon: chess's ending could not be an `end_condition`, because when a
+king is taken "mine" is whoever moved last, and it became phase routing instead.
+Tagging a seat card with its own key is the workaround and a good one — which is
+why this is a paper cut — but every game with seats writes two words meaning the
+same thing as the seat key it already declared. The fix is one line in
+`owned_by` plus the same lookup in `parse_scope`, and *that* is the decision:
+`parse_scope` is documented as pure and testable without a game, and consulting
+`seat_set` ends that. Either the grammar gains a game-state dependency, or seats
+keep wearing tags. `@owner_of` answers the relative question and not this one.
 
-**Finding 6 does not fully dissolve, and that is fine.** `ROUTE_FIELDS` and
-`END_FIELDS` were "the same table"; they are now four fields each and differ by
+**`computed_tags` are still their own vocabulary.** They are asked of one entity
+on the per-frame path and reach things no subject can name — `less_than_max`
+reads that card's own ceiling. Folding them in wants a subject for "this card's
+ceiling" first. AUTHORING says so where the comparators are listed, because
+`at_least` surviving in exactly one node otherwise reads as a miss.
+
+**Finding 6 did not fully dissolve, and that is fine.** `ROUTE_FIELDS` and
+`END_FIELDS` were "the same table"; they are four fields each now and differ by
 one — `ends_round` against `fired` — which is a real difference between routing
-somewhere and firing once. Two tables that agree about the question and disagree
-about what to do with the answer.
+somewhere and firing once.
+
+## What does not become an expression
+
+- **Costs.** A cost names the stat to subtract and by how much; `mana >= 3` says
+  what to check and not what to spend. Inventing a "pay this expression" rule is
+  how a cost silently stops being reversible by undo.
+- **`zone_empty`.** A zone with cards nobody can see is still not empty, so
+  `count:card@road == 0` is not the same question.
+- **The quantifier.** `hp@each.follower >= 1` still means *of every follower*,
+  and that word lives inside the subject. It is the one part of the grammar that
+  is not arithmetic-shaped and it must not be lost in translation.

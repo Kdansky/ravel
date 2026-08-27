@@ -137,6 +137,12 @@ function M.test_docs_no_retired_word_is_still_on_offer(check)
 	for path in ls:lines() do sources[path] = read(path) end
 	ls:close()
 	sources["SCHEMA.json"] = read("SCHEMA.json")
+	-- The idea files too: they carry worked examples, and a worked example in a
+	-- spelling the format has deleted is the same lie as one in the manual. They
+	-- are also where somebody looks to find out how a thing was done.
+	local ids = io.popen("ls ideas/*.md 2>/dev/null")
+	for path in ids:lines() do sources[path] = read(path) end
+	ids:close()
 	for i, ex in ipairs(examples()) do
 		sources[("AUTHORING.md example %d (%s)"):format(i, ex.title)] = ex.text
 	end
@@ -146,7 +152,15 @@ function M.test_docs_no_retired_word_is_still_on_offer(check)
 		local word, instead = entry[1], entry[2]
 		local found = {}
 		for path, text in pairs(sources) do
-			if text:find('"' .. word .. '"', 1, true) then found[#found + 1] = path end
+			-- Quoted whole, which is a key or a value; and quoted as the head of a
+			-- colon-separated action, which is the only other way a game can be
+			-- carrying one. Four of the words below are *verbs* — an action reads
+			-- "gain_stat:gold:3", so looking for "gain_stat" with its closing quote
+			-- never matched, and the guard could not fire for the entries it was
+			-- most obviously written for.
+			if text:find('"' .. word .. '"', 1, true) or text:find('"' .. word .. ':', 1, true) then
+				found[#found + 1] = path
+			end
 		end
 		table.sort(found)
 		check("nothing still offers '" .. word .. "'", #found == 0,

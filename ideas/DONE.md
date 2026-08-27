@@ -910,8 +910,8 @@ one is **asked which** — through the offer that already existed.
 ```json
 "abilities": [
   { "key": "levy", "text": "Raise a levy", "cost": { "exhaust": 1 },
-    "action": ["gain_stat:gold:3", "lose_stat:stability:1"] },
-  { "key": "rest", "text": "A day of rest", "action": ["gain_stat:stability:1"] }
+    "action": ["stat_gain:gold:3", "stat_damage:stability:1"] },
+  { "key": "rest", "text": "A day of rest", "action": ["stat_gain:stability:1"] }
 ]
 ```
 
@@ -1093,9 +1093,9 @@ question inside its own move:
 
 ```json
 "activate": { "moves": [...], "action": ["move_to:target:taken",
-              "gain_stat:moves_made@self:1", "resolve_challenge"] },
+              "stat_gain:moves_made@self:1", "resolve_challenge"] },
 "challenge": { "needs": { "rank@self": { "equals": 8 } },
-               "pass":  ["set_stat:promotion@self:1", "push_phase:promote"],
+               "pass":  ["stat_set:promotion@self:1", "push_phase:promote"],
                "fail":  ["next_phase"] }
 ```
 
@@ -1206,7 +1206,7 @@ became references to **squares**, via absolute patterns:
 ```json
 "needs":  { "count:rook@w_rook_h_home": { "equals": 1 },
             "moves_made@w_rook_h_home": { "equals": 0 } },
-"action": ["gain_stat:moves_made@w_king_home:1",
+"action": ["stat_gain:moves_made@w_king_home:1",
            "place:w_king_home:7:8", "place:w_rook_h_home:6:8", "next_phase"]
 ```
 
@@ -1252,7 +1252,8 @@ up, and only then do the cards themselves shrink.
 
 ```json
 "styles": { "stacked": { "fit": "fill", "fan": "down" } },
-"zones":  [{ "key": "red", "type": "pile", "label": "Red", "tags": ["stacked", "per_seat"] }]
+"zones":  [{ "key": "red", "layout": "row", "row": "down", "label": "Red",
+            "copies": "per_seat", "tags": ["stacked"] }]
 ```
 
 **The card's name moves to the bottom of the visible strip**, not the bottom of

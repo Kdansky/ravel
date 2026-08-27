@@ -1,480 +1,145 @@
-# Idea 08 — How a piece says where it may go
+# 08 — How a piece says where it may go
 
-**Status: mostly shipped (`5c1875e`).** Option E was chosen and built; chess
-plays, castling included. The comparison below is compressed to the record
-of *why* directions beat destinations, and the **Build order** at the end of this
-file marks each step's state and what building it taught. Check shipped as the
-`@reach` scope and **promotion** as the `become` action — the latter needing no
-movement machinery at all, since `rank` was already counted from a piece's own
-side. **En passant shipped** as `where` (a rule about the candidate square — the very
-thing this file deferred for Connect 4 until a second game asked) plus
-`last_acted`. Still open: the scope anchor word for *reading* a neighbourhood
-(step 3), and checkmate with the legality filter that goes with it (step 5).
+**Mostly shipped** (`5c1875e`). Chess plays: patterns, capture, castling, check,
+promotion, en passant. **Still open: the scope anchor word, and checkmate.**
 
-Three notations for the same five chess pieces, written out so they can be
-compared rather than argued about.
+The question was narrow: a card on a grid names its legal destinations without
+the engine learning the word "bishop".
 
-The question is narrow: **a card on a grid needs to name its legal
-destinations, without the engine learning the word "bishop".** Everything else
-already exists — `activate_target` selects, `move_to:target` moves the acting
-card into the chosen slot (`actions.lua:216`), and `targets_legal`
-(`flow.lua:119`) re-derives candidates so the constraint *is* the rule, not a UI
-courtesy.
+## Still open
 
----
-
-## Shared machinery (every option needs it)
-
-These are not what the options differ on, so they are settled once here.
-
-**Axes.** `x` is the column, increasing rightward. `y` is the row, **increasing
-forward for whoever is acting**. Both seats therefore write `y+1` for "one step
-ahead", so there is one `pawn` template rather than a white one and a black one.
-
-**Two readings of a row.** `row` is absolute (1–8, fixed to the board). `rank` is
-counted from the acting seat's own back line, so a pawn's home is `rank 2` for
-both colours and promotion is `rank 8` for both.
-
-**What may be landed on** — a `fill` word on the target spec, because "empty" is
-not enough once capture exists:
-
-| `fill` | Means |
-|---|---|
-| `empty` | an unoccupied slot — today's only behaviour, so it stays the default |
-| `enemy` | a slot holding a card owned by another seat |
-| `open` | empty *or* enemy — "anywhere I'm not blocked by my own" |
-| `any` | any slot at all |
-
-**Blocking is the one thing that is not shared**, and it is what separates the
-options. A notation that names *destinations* (A, B, C) has to reconstruct the
-path and decide when there is one; a notation that names *directions* (D) never
-has a path to reconstruct. See each option.
-
-**Capture** is `place_in_slot(card, slot, on_occupied)` with `on_occupied` being
-`refuse` (default, unchanged), `destroy`, or a zone key — chess names a tray, so
-taken material stays visible.
-
----
-
-## The four that lost, and why
-
-Written out in full once and compared; the record that matters is the reason,
-which is one sentence per option.
-
-| | The rook, written | Why it lost |
-|---|---|---|
-| **A — predicate scopes** | geometry as new scope words (`@delta` carrying `dx`, `dist`, `blockers`), filtered by a `where` on the target spec | says *which squares qualify* rather than *how the piece walks*, so blocking, leaping and range are four separate conditions. Survives as the thing E's scopes grew out of, and `where` shipped on its own for en passant |
-| **B — one string per destination** | 28 strings, `"x+1"` … `"y-7"` | board-size dependent: a rook on a 10-wide board is a different card |
-| **C — B with wildcards** | `["x±*", "y±*"]` | compact, but `*` and `±` are a parser, and a diagonal only works because `*` secretly means *the same distance on both axes* — a rule that has to be taught |
-| **D — integer pairs as directions** | `"range": "*", "moves": [[1,0],[-1,0],[0,1],[0,-1]]` | **won on mechanism** and lost on where it put the numbers: reading a pair as a *direction repeated* makes blocking, leaping and range one concept and costs a loop rather than a parser, but it puts coordinate pairs on every card def, which is the schema rule's bend |
-| **F — "neighbour" as a tag** | `count:neighbour@self` | rejected outright. Neighbourhood is a property of a *pair*, and nothing in a tag lookup has an asker; as a stamped tag it cannot gate a move, because the stamp is an action and the gate runs first. Its good half — positional computed tags — is kept |
-
-E is D with the pairs declared once in a top-level `patterns` block and used by
-name, which is what removes D's bend: card defs go back to arrays of strings, one
-name serves a move list *and* a target filter *and* a scope, and `line_ortho`
-reads better than a vector list plus a `range` at the place it is read most.
-
-## Option E — D, but the pairs are declared once and named
-
-A top-level `patterns` block. A bare array of pairs is a set of directions used
-once; the long form adds tags saying how they are walked.
-
-```json
-"patterns": {
-  "adjacent":   { "vectors": [[1,0],[0,1],[1,1]], "class": ["step", "mirrored"] },
-  "knight":     { "vectors": [[1,2],[2,1]],       "class": ["step", "mirrored"] },
-  "line_ortho": { "vectors": [[1,0],[0,1]],       "class": ["ray",  "mirrored"] },
-  "line_diag":  { "vectors": [[1,1]],             "class": ["ray",  "mirrored"] },
-  "forward":    { "vectors": [[0,1]],             "class": ["step"] },
-  "run_fwd":    { "vectors": [[0,1]],             "class": ["ray:2"] },
-  "diag_fwd":   { "vectors": [[1,1],[-1,1]],      "class": ["step"] }
-}
-```
-
-A bare array of pairs is shorthand for `"class": ["step"]`, which is the common
-case.
-
-**It is `class`, not `tags`.** Card and zone tags are a different thing that
-happens to share the shape — a game's own vocabulary, matched by `count:<tag>`
-and granted by zones — and one word for both would make them
-indistinguishable at a glance. This list is a closed set the engine defines, so
-it gets its own name; renaming the one that does not exist yet is free, and
-refactoring the one that does is not.
-
-Chess is then pattern names, and **every card def goes back to being an array of
-strings** — schema form 2, no bend at all:
-
-```json
-{ "key": "rook",   "moves": ["line_ortho"] }
-{ "key": "bishop", "moves": ["line_diag"] }
-{ "key": "queen",  "moves": ["line_ortho", "line_diag"] }
-{ "key": "knight", "moves": ["knight"] }
-{ "key": "king",   "moves": ["adjacent"] }
-
-{ "key": "pawn", "moves": [
-  { "patterns": ["forward"],  "fill": "empty" },
-  { "patterns": ["run_fwd"],  "fill": "empty",
-    "needs": { "rank@from": { "equals": 2 } } },
-  { "patterns": ["diag_fwd"], "fill": "enemy" } ] }
-```
-
-The coordinate pairs now exist in exactly one block in the whole game file, which
-is where the schema rule's existing exception already points.
-
-### The class vocabulary
-
-`range: "*"` was doing two unrelated jobs — how far the vector repeats, and
-whether anything on the way stops you. Those vary independently, so they are two
-words rather than one number.
-
-| Class | Means | Default |
-|---|---|---|
-| `step` | the vector applies exactly once | **yes** |
-| `ray` | the vector repeats until something stops it | |
-| `ray:n` | …up to `n` times (`ray:2` is the pawn's opening run) | |
-| `phasing` | nothing on the way stops it — the path is not consulted | |
-| `mirrored` | each axis is negated independently, so one vector stands for its whole family | |
-
-`ray:n` is the `op:param` form the engine already uses for zone `contents`
-(`"card_key:count"`), so the parameterised word is not a new idea.
-
-**`phasing` is what `step` gets for free.** A single step has no intermediate
-cells, so nothing can obstruct it — the knight leaps because of its geometry, not
-because it was declared to. `phasing` therefore only means something on a `ray`,
-where it describes a piece that slides along a line regardless of what stands in
-it. (`unblocked` is the plainer name if `phasing` reads as jargon.)
-
-**`mirrored` negates each axis independently**, which is one sentence and cuts
-every symmetric list by a factor of four:
-
-```
-[[1,0],[0,1]]  + mirrored  →  the 4 orthogonals
-[[1,1]]        + mirrored  →  the 4 diagonals
-[[1,2],[2,1]]  + mirrored  →  the knight's 8
-```
-
-It is opt-in for a reason, and the pawn is the reason: `diag_fwd` is
-`[[1,1],[-1,1]]` written out, because mirroring `[[1,1]]` would hand it two
-backward captures.
-
-**Deliberately not in the set yet:** `hopper` (must jump exactly one piece —
-Xiangqi's cannon), `transposed` (swap the axes, so `[[1,2]]` alone covers the
-knight), and `must_capture` (checkers' forced jump). Each is one word in a list
-when a game asks, which is the point of making this a list rather than a scalar.
-
-### The same names become scopes
-
-A pattern names a shape, and a shape is equally an answer to *"where may I go"*
-and *"what is standing near me"*. So `entities_in_scope` learns pattern names,
-and the whole existing condition and action vocabulary reaches the neighbourhood
-with no new syntax:
-
-```
-count:piece@mine.adjacent        my pieces standing next to me
-sum:atk@enemy.adjacent           the attack of everything hostile beside me
-max:hp@line_ortho                the toughest thing on my rank or file
-```
-
-One grammar addition: an **anchor** word, alongside the existing quantifier and
-owner words, saying whose neighbourhood is meant. It defaults to `self`.
+**1. The anchor word.** `entities_in_scope` resolves a pattern name to the cards
+standing on the squares it picks out, so `count:piece@adjacent` (anchored on the
+acting card) and `count:piece@castle_k_path` (named cells) both work. What
+cannot be said is *whose* neighbourhood is meant:
 
 ```
 @mine.adjacent          my pieces next to me         (anchor: self, implied)
-@mine.target.adjacent   my pieces next to the target
+@mine.target.adjacent   my pieces next to the target  ← not sayable
 ```
 
 `parse_scope` already takes leading known words in any order and treats the
 remainder as the name; this is a third word class and a loop bound of 3 instead
 of 2.
 
-### The worked example
+**2. Checkmate, and refusing a move that leaves your own king attacked.** Both
+need the position *after* a hypothetical move, which is
+`entity.snapshot`/`restore`. Castling through check needs the same.
 
-> *Deal `self.ATK` damage to a neighbouring enemy piece, +1 for every
-> neighbouring friendly piece, and +2 for every friendly piece neighbouring the
-> attacked target.*
+## Why directions beat destinations
 
-```json
-{ "key": "warrior", "tags": ["piece"],
-  "card_stats": { "atk": 3, "hp": 5, "power": 0 },
-  "moves": ["adjacent"],
-  "activate_target": { "type": "card", "pattern": "adjacent",
-                       "owner": "enemy", "tags": ["piece"], "count": 1 },
-  "on_activate": [
-    "set_stat:power@self:sum:atk@self",
-    "gain_stat:power@self:count:piece@mine.adjacent",
-    "gain_stat:power@self:2:x:count:piece@mine.target.adjacent",
-    "lose_stat:hp@target:sum:power@self" ] }
-```
+Five notations were written out in full and compared. The record that matters is
+one sentence each:
 
-Every one of those four verbs already exists and is unchanged. `2:x:count:…` is
-the product form `amount()` already parses (`actions.lua:78`), and accumulating
-into a scratch stat before spending it is the same shape Lost Cities uses to
-distribute `(sum − 20) × wagers` across two actions.
+| | Why it lost |
+|---|---|
+| **A — predicate scopes** | says *which squares qualify* rather than *how the piece walks*, so blocking, leaping and range are four separate conditions. Survives as what E's scopes grew out of, and `where` shipped on its own for en passant |
+| **B — one string per destination** | board-size dependent: a rook on a 10-wide board is a different card |
+| **C — B with wildcards** | `*` and `±` are a parser, and a diagonal only works because `*` secretly means *the same distance on both axes* — a rule that has to be taught |
+| **D — integer pairs as directions** | **won on mechanism**, lost on where it put the numbers: coordinate pairs on every card def |
+| **F — "neighbour" as a tag** | neighbourhood is a property of a *pair*, and nothing in a tag lookup has an asker; as a stamped tag it cannot gate a move, because the stamp is an action and the gate runs first |
 
-Three things this example settles:
+**E is D with the pairs declared once in a top-level `patterns` block and used
+by name.** Reading a pair as a *direction repeated* makes blocking, leaping and
+range one concept and costs a loop rather than a parser; naming it puts the
+coordinates in one block, and **one name serves three consumers** — a move list,
+a target filter, and a scope. That is why the neighbourhood needs no new verbs:
+the shape that says where a piece may walk is the shape that says what stands
+beside it.
 
-- **It has to be four lines, not one.** `amount()` multiplies but does not add,
-  and adding `+` would make the value slot an expression language — the thing
-  `DESIGN.md` refuses. Accumulating into `power` is the existing idiom and it is
-  also *more* correct: one `lose_stat` is one hit, so a future "when damaged"
-  trigger fires once rather than three times.
-- **The scratch stat must be declared** (`"power": 0` in `card_stats`), because
-  `bearers` deliberately refuses to invent a stat on a card that never had one.
-- **`@mine.target.adjacent` includes the attacker**, which is standing next to
-  its own victim. Whether that +2 counts is a rules decision, and the notation is
-  precise enough to force it into the open rather than leave it to chance. Give
-  the attacker a tag the count excludes, or accept it.
+## The class vocabulary
 
-**What the engine learns:** the `patterns` block and its five class words, one
-anchor word in `parse_scope`, one branch in `entities_in_scope`, and `pattern` on
-a target spec. The vector-walking loop is the same one D needed — `step`, `ray`,
-`ray:n` and `phasing` are its loop bound and its one `break`.
+`range: "*"` was doing two unrelated jobs — how far the vector repeats, and
+whether anything on the way stops you — so they are two words rather than one
+number: `step`, `ray`, `ray:n`, `phasing`, `mirrored`, `absolute`.
 
-## Option F — "neighbour" as a dynamic tag (rejected, with the part worth keeping)
+**`phasing` is what `step` gets for free.** A single step has no intermediate
+cells, so the knight leaps because of its geometry, not because it was declared
+to. `phasing` only means something on a `ray`.
 
-The appeal is obvious: `count:<tag>` already works everywhere, so if a card next
-to me carried a `neighbour` tag, the whole ability would need no new vocabulary
-at all. Two versions, and they fail differently.
+**`mirrored` negates each axis independently**, cutting every symmetric list by
+four. It is opt-in, and the pawn is the reason: `diag_fwd` is `[[1,1],[-1,1]]`
+written out, because mirroring `[[1,1]]` would hand it two backward captures.
 
-**As a computed tag** — no. `tags.entity_has` derives a computed tag from the
-card's *own stats* (`computed_tags[tag]` against `less_than` / `at_least` /
-`equals`). Neighbourhood is not a property of a card, it is a property of a
-*pair*: neighbour of whom? Every such tag would be true or false depending on who
-is asking, and nothing in the tag lookup has an asker.
+**`absolute` is a class word, not a marker in the pair.** `[1,1]` cannot be told
+apart from `[1,1]` by looking, so the label sits one level up and covers the
+whole list. It is a *kind* — no path, nothing to repeat — so the walking words
+are refused beside it, and it names its `zone`, because a square belongs to a
+board where a direction belongs to whoever is moving.
 
-**As a stamped tag** — an action that writes the tag onto whatever the pattern
-reaches, then reads it back:
+Deliberately not in the set yet: `hopper` (Xiangqi's cannon), `transposed`, and
+`must_capture` (checkers' forced jump). Each is one word in a list when a game
+asks, which is the point of making this a list rather than a scalar.
 
-```
-"mark:adjacent:near", "gain_stat:power@self:count:near", "unmark:near"
-```
+## What building it taught
 
-This does work, and it dissolves the anchor problem, because `mark` runs inside
-an action context that already knows `@self` and `@target`. It fails on three
-other counts:
+- **The pawn's opening run is not a special case.** It is `ray:2`, so a piece in
+  front stops it by the same rule that stops a rook.
+- **`rank` wanted to be a stat on the piece, not a scope.** Stamping `col`, `row`
+  and `rank` as a piece takes a square makes `rank@self` work with no new scope,
+  and hands promotion to an ordinary computed tag. The `@from` scope the design
+  reserved for it was not needed — and promotion then needed no movement
+  machinery at all.
+- **Pieces needed owners before `fill` could mean anything.** A chessboard is one
+  shared zone, so every piece was unowned and `enemy` named nothing.
+- **Ownership then had to reach `flow.reachable`**, which asked the *zone* whose
+  card it was — so white could move black's rook, both being "on the board".
+  Asking the card exposed the split between "whose piece is this" (`owner_of`)
+  and "who does this card answer for" (`seat_of`): a party game tags four
+  characters `player`, and all four must stay clickable on one turn. **You are
+  not among the things you own.**
+- **Activation is not a play**, so `ends_after` cannot end a turn made of moves.
+  The move ends it, and what bounds a turn to one move is the handover, not the
+  piece being spent.
+- **A pattern being a scope removed a condition the plan needed.** It called for
+  a `slot_empty` sibling to `zone_empty`; `count:piece@castle_k_path` says it
+  with what already existed.
+- **`can_play`'s escape hatch had to learn a limit.** All four castling cards are
+  illegal most of the game, and that is their normal state, not a soft-lock.
+  Zones tagged `optional` opt out.
+- **The captured-rook trap was an engine bug, not a rule for authors.** A stat
+  nobody carries summed to zero, so `moves_made@w_rook_h == 0` was *true* of a
+  rook taken twenty moves ago. The first fix was a presence term beside every
+  such gate — a footgun waiting for the one author who forgets. The real fix is
+  that an absent stat fails every comparison, and the presence terms came back
+  out.
 
-- **It cannot gate.** `needs`, costs and `can_activate` all run *before* any
-  action, so nothing has been marked yet. "Only attack if two friendly pieces are
-  beside you" is unwritable — and that is half of what neighbourhood is for.
-- **It leaks.** A forgotten `unmark` makes every later `count:near` quietly
-  wrong. Silent wrong answers are precisely what `predicate.lua`'s fail-closed
-  discipline exists to prevent, and a tag that is usually correct is worse than
-  one that is absent.
-- **It needs per-entity tags, which don't exist.** A card's tags live on its
-  *def* (`tags_set`), shared by every instance of that card; there is no
-  per-instance tag set to write into.
+## Check shipped by neither proposed route
 
-And underneath all three: `tags.lua:8` says the zone-`applies` mechanism is
-"bounded on purpose to a fixed list declared on the zone, so this stays one
-lookup and never becomes the recomputation problem that auras are." A neighbour
-tag *is* that recomputation problem — one move invalidates it for up to eight
-cards — arriving through the door that comment was written to hold shut.
+A computed tag was correctly refused: it reads one card's own stats, and "am I
+attacked" depends on every enemy piece's reachable set. But the fallback —
+*stamp a `threat` count on every square, recomputed after each move* — is also
+wrong, and for a reason worth keeping: **it is the engine deciding chess is
+special.** A number the engine writes after every move, whose meaning no game
+file states, keyed by side and generalising badly past two seats.
 
-**The part worth keeping.** The idea is exactly right for board facts that belong
-to *one* card and need no anchor. Give a card on a grid the stats `col`, `row`
-and `rank`, and computed tags work today, unchanged:
+What shipped is a scope word. `@reach` is the squares a set of pieces could move
+onto, answered as the things standing there, so check is something the game file
+*says*: `count:king@enemy.reach == 0`. Nothing is stored, so there is no
+recompute timing to get wrong; the owner word does the side-keying the stat would
+have needed a second field for, and it already works for four seats. The engine
+gained one `elseif`, and it needed **no new computation at all** — `find_moves`
+was already answering "where can this piece go", and it honours `fill`, which is
+where the game file draws the line between moving and threatening.
 
-```json
-"computed_tags": { "promoting": { "stat": "rank", "at_least": 8 } }
-```
+## What only playing it found
 
-That is pawn promotion with no new machinery whatsoever — **and it shipped that
-way.** The detection is exactly the `rank@self` this section predicted; the only
-verb that had to be added was `transform:<scope>:<card>`, which swaps a card for
-another keeping its square, zone and owner, and is a general one (a crowned
-checker, a levelled unit, a flipped tile). The choice of piece is the engine's
-`options` offer — see [DONE.md](DONE.md) — which deals a card per choice, opens
-over the board, remembers the pawn that asked, and hands it to the chosen card
-as its target. Chess writes `transform:target:queen` and nothing else.
+Both passed every test in the suite and were obvious within a minute of a human
+at a mouse:
 
-Two things drafting it turned up, both in the engine's favour: `resolve_challenge`
-is the conditional (no new one was needed), and `flow.play_card` **already pops an
-overlay before the chosen card's action runs**, so a card that pops again takes
-the phase underneath with it. The first draft did exactly that.
+- **Capture was unclickable.** Hit-testing returns the topmost *card*; a
+  slot-typed spec's eligible list holds *slots*; the two never met. Every test
+  called `targeting.candidates` directly and so never crossed the seam. The fix
+  is in `targeting` rather than `main`, so a rule about what a click *means*
+  sits where the tests can reach it.
+- **Hovering a castling card crashed the game.** `cost_text` renders `needs` as
+  well as `cost`, and only a cost is always a plain number.
 
-So: **relational
-questions are scopes, positional ones are tags** — and the split is not a
-compromise, it is the same line the engine already draws between what a card *is*
-and what a card is *near*.
-
-## The schema question D raises
-
-`DESIGN.md:68`: *"Nested arrays are allowed in exactly one place — a `per_seat`
-zone's `pos`, which is one rect per seat — and that is a list of coordinates, not
-structure."*
-
-A list of `[dx, dy]` pairs is the same category as the exception already granted:
-coordinates, not structure. It carries no keys, no nesting beyond depth two, and
-no evaluation order — the thing the rule exists to prevent. So D is a second
-instance of an existing exception rather than a new bend, and the rule's wording
-should be widened to say so: *coordinate pairs, wherever a position or a
-direction is meant.*
-
-The non-programmer test also passes better than the strings do. `[1,2]` beside a
-picture of a knight explains itself; `"x±1;y±2"` has to be learned.
-
-## Recommendation
-
-**E** — D's integer pairs, declared once in a top-level `patterns` block and used
-by name.
-
-D already won on mechanism: reading a pair as a *direction* rather than a
-destination makes blocking, leaping and range one concept instead of four, and
-costs a loop rather than a parser. Naming the pattern adds the three things D
-lacked:
-
-1. **Card defs go back to arrays of strings.** The coordinate pairs exist in one
-   block, which is where the schema rule's existing exception already points.
-   D's bend disappears.
-2. **One name serves three consumers** — a move list, a target filter, and a
-   scope. That is the whole reason the ability above needs no new verbs: the
-   shape that says where a piece may walk is the shape that says what stands
-   beside it.
-3. **`line_ortho` beats a raw vector list and a `range`** at the place it is read
-   most, which is the card. And because the *how* is a `class` list rather than a
-   scalar, `hopper` or `must_capture` arrive later as one word rather than as a
-   new field.
-
-Rejected: **F**, tags for neighbourhood — relational, so it cannot gate and
-cannot be written per-instance; its good half (positional computed tags) is kept.
-**A** survives only as the thing E's scopes grew out of.
-
-### Build order
-
-1. ~~**Shared machinery**~~ — **done.** `fill` on a slot target spec, `col`/`row`
-   as slot stats, `place_in_slot(card, slot, on_occupied)`, and the third
-   argument to `move_to`. Two things the plan had not foreseen, both forced by
-   the first test:
-
-   - **Pieces needed owners before `fill` could mean anything.** A chessboard is
-     one shared zone, so every piece on it was unowned and `enemy` named nothing.
-     A card tagged with a seat's key now belongs to that seat
-     (`predicate.owner_of`), which costs no new field because a seat is already
-     a card key.
-   - **Ownership then had to reach `flow.reachable`**, which asked the *zone*
-     whose card it was — so white could move black's rook, both being "on the
-     board". Asking the card instead exposed the split between "whose piece is
-     this" (`owner_of`) and "who does this card answer for" (`seat_of`): a party
-     game tags four characters `player`, making four seats, and all four must
-     stay clickable on one turn. You are not among the things you own.
-
-   `rank` (a row counted from the acting seat's own side) is *not* built. It has
-   no meaning until a pattern is walked with a facing, so it belongs to step 2.
-2. ~~**`patterns` + the walk**~~ — **done.** `geometry.lua` (slot_at, facing,
-   rank, reach), the `patterns` section, `moves` on a card def, and `moves` on a
-   target spec. `game/games/chess.json` is written by hand and
-   plays: 32 pieces, blocking, leaping, capture into a per-seat tray, alternating
-   turns. Movement is six pattern entries shared by both colours.
-
-   What the build taught, beyond the design:
-
-   - **The pawn's opening run is not a special case.** It is `ray:2`, so a piece
-     directly in front stops it by the same rule that stops a rook. The design
-     had it as a `range: 2` exception; it is just a short ray.
-   - **`rank` wanted to be a stat on the piece, not a scope.** Stamping `col`,
-     `row` and `rank` as the piece takes a square makes `rank@self` work with no
-     new scope at all, and hands promotion to an ordinary computed tag. The
-     `@from` scope the design reserved for this is not needed.
-   - **Ownership had to move out of `predicate.lua`.** `zones` stamps `rank`,
-     which counts from the owner's side, and `predicate` is built on top of
-     `zones` — so `owner_of` lives in `tags.lua`, which both can reach.
-   - **Activation is not a play**, so `ends_after` cannot end a turn made of
-     moves. The move ends it: `on_activate` is `["move_to:target:taken",
-     "next_phase"]`. `exhausts: false` for the same reason — what bounds a turn
-     to one move is the handover, not the piece being spent.
-
-   Not built, and not needed for the milestone: castling, en passant, promotion
-   (the computed tag exists; nothing consumes it yet), check and checkmate.
-3. **Patterns as scopes** — **half done**, and castling is what asked for it.
-   `entities_in_scope` now resolves a pattern name to the cards standing on the
-   squares it picks out, so `count:piece@adjacent` (a neighbourhood, anchored on
-   the acting card) and `count:piece@castle_k_path` (named cells) both work.
-   Still missing: the **anchor word**, so `count:piece@mine.target.adjacent` —
-   "my pieces next to the one I am attacking" — cannot yet be said. That is the
-   `warrior` example's third line and the only part of it still unbuilt.
-
-4. **Absolute patterns and castling** — **done.** Castling has four
-   destinations that never change, so it is a card rather than a move:
-
-   - **`absolute` is a class word, not a marker in the pair.** `[1,1]` cannot be
-     told apart from `[1,1]` by looking, so the label sits one level up and
-     covers the whole list. It is a *kind* — no path, nothing to repeat — so the
-     walking words are refused beside it. An absolute pattern names its `zone`,
-     because a square belongs to a board where a direction belongs to whoever is
-     moving. Mixing both in one piece is just two rules.
-   - **`place:<who>:<col>:<row>`** — the move that names *where*, not *how*.
-   - **A pattern being a scope removed the condition this step was going to
-     need.** The plan called for a `slot_empty` sibling to `zone_empty`;
-     `count:piece@castle_k_path` says it with what already existed.
-   - **`can_play`'s escape hatch had to learn a limit.** A gated card becomes
-     playable when nothing else in its zone is, so a mandatory play cannot
-     soft-lock a hand — but all four castling cards are illegal most of the game,
-     and that is their normal state, not a lock. Zones tagged `optional` opt out.
-   - **The captured-rook trap was a bug in the engine, not a rule for authors.**
-     A stat nobody carries summed to zero, so `moves_made@w_rook_h equals 0` was
-     *true* of a rook taken twenty moves ago. The first fix was a `card:<key>`
-     presence term beside every such gate — which is a footgun waiting for the
-     one author who forgets. The real fix is in `predicate.met`: an absent stat
-     now fails every comparison, `equals: 0` included, and the presence terms
-     came back out. The counting and aggregate forms stay exempt, because a
-     count of nothing genuinely is zero and that is how "these squares are
-     empty" is written.
-
-   Not built: castling through check (needs check), promotion (the `rank` stat
-   and a computed tag exist; nothing consumes them yet), en passant.
-
-5. **What only playing it found.** Both of these passed every test in the suite
-   and were obvious within a minute of a human at a mouse:
-
-   - **Capture was unclickable.** Hit-testing returns the topmost *card*; a
-     slot-typed spec's eligible list holds *slots*; the two never met. Every test
-     called `targeting.candidates` directly and so never crossed the seam. The
-     fix is `targeting.aim` — pointing at a piece means pointing at its square —
-     placed in `targeting` rather than in `main` so that a rule about what a
-     click *means* sits where the tests can reach it.
-   - **Hovering a castling card crashed the game.** `cards.cost_text` renders
-     `needs` and `accepts` as well as `cost`, and only a cost is always a plain
-     number; the comparison form has been legal since Lost Cities, but no card
-     had ever carried one *and* been hovered. It concatenated a table.
-
-   The lesson is not "write more tests" but where to aim them: both bugs lived in
-   the gap between the rules layer, which the suite covers thoroughly, and the
-   presentation layer, which it barely touches.
-
-5. **Check** — **shipped, and by neither route this list proposed.** A computed
-   tag was correctly refused here: it reads one card's own stats, and "am I
-   attacked" depends on every enemy piece's reachable set.
-
-   But the fallback proposed above — *stamp a `threat` count on every square,
-   recomputed after each move* — is also wrong, and for a reason worth keeping:
-   **it is the engine deciding chess is special.** A number the engine writes
-   after every move, whose meaning no game file states, that has to be keyed by
-   side and generalises badly past two seats.
-
-   What shipped is a **scope word**: `@reach`, the squares a set of pieces could
-   move onto, answered as the things standing there. Check is then something the
-   game file *says*:
-
-   ```json
-   { "count:king@enemy.reach": { "equals": 0 } }
-   ```
-
-   Nothing is stored, so there is no recompute timing to get wrong; the owner
-   word (`mine.` / `enemy.`) does the side-keying that the stat would have needed
-   a second field for, and it already works for four seats. The engine gained one
-   `elseif`.
-
-   **It needed no new computation at all** — `find_moves` was already answering
-   "where can this piece go" to offer the squares, and it honours `fill`, which
-   is where the game file draws the line between moving and threatening. A pawn's
-   step is `"fill": "empty"` and so cannot reach an occupied square; its take is
-   `"fill": "enemy"` and can.
-
-   Checkmate is strictly harder and stays its own milestone, along with refusing
-   a move that leaves your own king attacked — that one needs the position
-   *after* a hypothetical move, which is `entity.snapshot`/`restore`.
+The lesson is not "write more tests" but where to aim them: both lived in the gap
+between the rules layer, which the suite covers thoroughly, and the presentation
+layer, which it barely touches.
 
 **Settled:** `moves` sits top-level on the card def and the engine writes the
-`activate_target` from it. The alternative — spelling the spec out on every piece
-— would have cost four repeated fields per template for a distinction that only
-matters on a board with two grids, which no game has.
+`activate_target` from it. Spelling the spec out on every piece would have cost
+four repeated fields per template for a distinction that only matters on a board
+with two grids, which no game has.

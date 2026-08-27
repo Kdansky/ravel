@@ -1,9 +1,11 @@
 # 19 — Mage Knight
 
-**Status:** not started · **Size:** large, research first · **Depends on:**
-[01](01-boardgames.md) gap 1 (the square a move passes over, for combat
-blocking), gap 5 (triggers, for card interactions and end-of-round effects) —
-likely more once the rules are actually written down
+**Researched, and ranked last of the three deckbuilders.** Not started, and
+should not be: two compounding engine gaps — hex geometry, and a map whose
+*extent* grows — plus a change to the arithmetic grammar. Buildable only as a
+stripped prototype, and the cuts are dishonest ones. Also depends on
+[01](01-boardgames.md) gap 1 (the square a move passes over) and gap 5
+(triggers).
 
 > *One of three deckbuilder candidates — Mage Knight, Puzzle Strike, Lost
 > Ruins of Arnak. Research all three, write down their rules, and find out
