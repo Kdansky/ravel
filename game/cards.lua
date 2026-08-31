@@ -422,10 +422,23 @@ local function condition_text(s)
 	return WORDS[c.op] .. (c.right.src or tostring(c.right.n)) .. " " .. (c.left.src or tostring(c.left.n))
 end
 
+-- What one entry of a cost comes to. **A cost amount may be a subject rather
+-- than a number** — `"price@self"` is a card charging what is printed on it,
+-- which is the only way one `play` block can serve ninety cards that cost
+-- different things — and everything that *spends* a cost has always measured it.
+-- Everything that *shows* one printed the string, so a card whose price was
+-- measured wore the expression on its face. Measured against the card the cost
+-- is about, since `@self` names it; with no card to ask, the expression is all
+-- there is to say.
+function M.cost_amount(v, card_id)
+	if type(v) ~= "string" or not card_id then return v end
+	return require("predicate").total(v, { card_id = card_id })
+end
+
 -- "2 gold, 1 food" for a cost, "at least 3 gold" for a condition. One function
 -- because one tooltip row shows either: a cost is a map of what gets spent, and
 -- `needs` / `accepts` are lists of conditions.
-function M.cost_text(cost)
+function M.cost_text(cost, card_id)
 	local parts = {}
 	if type(cost) ~= "table" then return "" end
 	if type(cost[1]) == "string" then
@@ -437,8 +450,8 @@ function M.cost_text(cost)
 	table.sort(keys)
 	for _, k in ipairs(keys) do
 		local tag = k:match("^sacrifice:(.+)$")
-		parts[#parts + 1] = tag and ("sacrifice " .. tostring(cost[k]) .. " " .. tag)
-			or (tostring(cost[k]) .. " " .. k)
+		local n   = tostring(M.cost_amount(cost[k], card_id))
+		parts[#parts + 1] = tag and ("sacrifice " .. n .. " " .. tag) or (n .. " " .. k)
 	end
 	return table.concat(parts, ", ")
 end

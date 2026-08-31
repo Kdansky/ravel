@@ -398,6 +398,47 @@ M.run_actions = nil
 -- taking the process with it.
 local receiving = 0
 
+-- **Leaving play**, which is where a card game keeps most of its triggers and
+-- the engine had no word for. It fires on the way out of a `status: board` zone
+-- into one that is not: a unit walking from the bench to the front line has not
+-- left anything, and a unit going to a discard, a hand, a trash or a command
+-- zone has. `into` on the card's block names which of those, so death, exile and
+-- bounce are one sentence pointed at three places and the engine learns none of
+-- their names.
+--
+-- **`destroy:` does not fire it, deliberately.** A destroyed card lands nowhere,
+-- so there is no zone to name, and `destroy_card` clears its stats — a rule
+-- asked to run after that has no numbers left to read. The rule an author needs
+-- instead is one sentence: *if you want a removal answered, give it a zone*,
+-- which is what naming one has always been for. `destroy:` stays the verb for
+-- things nobody may ask about.
+--
+-- Fired after the move so the card is standing where it landed and `into` is
+-- answerable, and before the destination's own `receive`, because a card leaves
+-- and then the place does something about it.
+local function fire_leaves(from, to, card_id)
+	if not (from and to and M.run_actions) then return end
+	if from.status ~= "board" or to.status == "board" then return end
+	local c   = entity.get(card_id)
+	local def = c and declaration.G.card_defs[c.def_key]
+	if not (def and def.on_leaves) then return end
+	local want = def.leaves_into
+	if want and want ~= to.key then return end
+	-- The same depth guard receive keeps, for the same reason: a rule that moves
+	-- the card it just watched leave says so in the log rather than taking the
+	-- process with it.
+	if receiving >= 8 then
+		local msg = "! leaves: '" .. tostring(c.def_key) .. "' is moving cards round in a circle — stopped"
+		log.add(msg)
+		print(msg)
+		return
+	end
+	receiving = receiving + 1
+	local ok, err = pcall(M.run_actions, def.on_leaves, { card_id = card_id, targets = {} })
+	receiving = receiving - 1
+	if not ok then error(err, 0) end
+end
+
 local function fire_receive(to, card_id)
 	local def = to and declaration.G.zone_defs[to.key]
 	if not (def and def.on_receive and M.run_actions) then return end
@@ -468,6 +509,7 @@ function M.move_card(card_id, to_id, where)
 	if where == "bottom" then table.insert(to.cards, 1, card_id) else table.insert(to.cards, card_id) end
 	c.zone_id = to_id
 	M.auto_slot(card_id)
+	fire_leaves(from, to, card_id)
 	fire_receive(to, card_id)
 	return true
 end

@@ -207,7 +207,7 @@ cards.edit("play_castle", "text", "Castle Lord")
 -- the only board where a card is drawn on a square another card may be aiming
 -- at.
 for _, g in ipairs({ "lost_cities.json", "kingdom.json", "road.json", "vigil.json",
-	"chess.json", "the_crew.json", "puzzle_strike.json", "menu.json" }) do
+	"chess.json", "the_crew.json", "puzzle_strike.json", "codex.json", "menu.json" }) do
 	flow.init(g, 4)
 	render.rescale()
 	for _ = 1, 4 do frame(0.016) end

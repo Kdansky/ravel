@@ -32,6 +32,10 @@ local CASES = {
 		function(g) g.end_conditions[2] = { zone_empty = { "vault" }, ["then"] = {} } end },
 	{ "an art spec the engine can't draw", "isn't a shape the engine can draw",
 		function(g) g.card_defs.c_flee.asset = "hexagram:red" end },
+	{ "a leaves block pointed at no zone", "but no zone has that key",
+		function(g) g.card_defs.c_flee.leaves_into = "vault"; g.card_defs.c_flee.on_leaves = { "destroy_self" } end },
+	{ "a leaves block that says where and not what", "does nothing when it gets there",
+		function(g) g.card_defs.c_flee.leaves_into = "hand" end },
 	{ "a comparison against a bare word", "is a bare word",
 		function(g) g.end_conditions[2] = { when = "hp >= lots", ["then"] = {} } end },
 	{ "a condition with no comparison in it", "should be a comparison",
@@ -725,6 +729,42 @@ function M.test_validator_holds_a_supply_to_its_promise(check)
 		not said:find("'b'", 1, true), said)
 	check("and \"stock\" needs no declaring, because the zone declared it",
 		not said:find("uses the stat 'stock'", 1, true), said)
+end
+
+-- A compute is a number with a name, and one comparison has two sides. The
+-- grammar cannot tell a bound name from a misspelling — it is cached across
+-- games and does not know what any one ability bound — so this is where the two
+-- are told apart, and it has to get both answers right in the same file.
+function M.test_validator_reads_a_compute_on_either_side(check)
+	local path = "game/games/tmp_compute_operand.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Compute operands",
+		"stats": [{ "key": "gold", "min": 0 }],
+		"computes": [{ "key": "spare", "from": "gold - 2" }],
+		"zones": [
+			{ "key": "board", "layout": "grid", "grid": [1, 1], "use": "abilities" },
+			{ "key": "hand", "layout": "row" }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "clerk", "text": "Clerk", "abilities": [
+			{ "key": "right", "compute": ["spare"], "when": ["gold >= spare"],
+			  "action": ["stat_gain:gold:1"] },
+			{ "key": "left", "compute": ["spare"], "when": ["spare >= gold"],
+			  "action": ["stat_gain:gold:1"] },
+			{ "key": "typo", "when": ["gold >= resreve"], "action": ["stat_gain:gold:1"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_compute_operand.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = table.concat(validate.check(G), "; ")
+
+	check("a compute on the right is read as the number it is",
+		not said:find("'spare'", 1, true), said)
+	check("and the misspelling beside it is still a typo",
+		said:find("'resreve' is a bare word", 1, true), said)
+	check("which says a compute is one of the things it could have been",
+		said:find("a compute this ability lists", 1, true), said)
 end
 
 return M

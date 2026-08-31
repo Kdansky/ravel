@@ -37,6 +37,12 @@ local MOMENTS = {
 	receive   = { needs = "accepts", action = "on_receive" },
 	turn      = { action = "on_turn" },
 	chosen    = { where = "chosen_where", action = "on_chosen" },
+	-- Leaving play, which is the moment a card game keeps most of its triggers
+	-- at and the engine had no word for. `into` is the zone it landed in, and
+	-- naming one is how death, exile and bounce are told apart without the
+	-- engine learning what any of them means: they are one sentence pointed at
+	-- three different places.
+	leaves    = { into = "leaves_into", action = "on_leaves" },
 }
 M.MOMENTS = MOMENTS
 
@@ -668,29 +674,34 @@ function M.parse(filename)
 	-- neither. Two tags granting it is refused rather than resolved, exactly as an
 	-- ambiguous home is no home: picking one would make what a card does depend on
 	-- the order somebody typed its tags.
-	for _, key in ipairs(G.card_list) do
-		local cd = G.card_defs[key]
-		local own = false
-		for _, internal in pairs(MOMENTS.play) do
-			if cd[internal] ~= nil then own = true; break end
-		end
-		if not own then
-			local from, granted
-			for _, tg in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
-				local td = G.tag_defs[tg]
-				if type(td) == "table" and type(td.play) == "table" then
-					if from then
-						pp[#pp + 1] = ("card '%s' is handed \"play\" by both '%s' and '%s', so it takes"
-							.. " neither — which one won would be the order the tags were typed")
-							:format(key, from, tg)
-						granted = nil
-						break
-					end
-					from, granted = tg, td
-				end
+	-- Two moments a tag may hand over whole, and the same rule for both: "leaves"
+	-- is the one a keyword most wants, since "every unit of ours announces its
+	-- death" is one line on the tag and one per card everywhere else.
+	for _, moment in ipairs({ "play", "leaves" }) do
+		for _, key in ipairs(G.card_list) do
+			local cd = G.card_defs[key]
+			local own = false
+			for _, internal in pairs(MOMENTS[moment]) do
+				if cd[internal] ~= nil then own = true; break end
 			end
-			for _, internal in pairs(MOMENTS.play) do
-				if granted and granted[internal] ~= nil then cd[internal] = granted[internal] end
+			if not own then
+				local from, granted
+				for _, tg in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
+					local td = G.tag_defs[tg]
+					if type(td) == "table" and type(td[moment]) == "table" then
+						if from then
+							pp[#pp + 1] = ("card '%s' is handed \"%s\" by both '%s' and '%s', so it takes"
+								.. " neither — which one won would be the order the tags were typed")
+								:format(key, moment, from, tg)
+							granted = nil
+							break
+						end
+						from, granted = tg, td
+					end
+				end
+				for _, internal in pairs(MOMENTS[moment]) do
+					if granted and granted[internal] ~= nil then cd[internal] = granted[internal] end
+				end
 			end
 		end
 	end

@@ -158,7 +158,7 @@ The part after `@` is a **scope expression**: `[<quant>.][<owner>.]<zone-or-tag>
 
 **A stat nobody carries is absent, not zero.** Every comparison against it fails, `== 0` and `<= n` included — because reading a missing value as zero makes "this rook has never moved" true of a rook captured twenty moves ago, a gate that opens precisely when the thing it guards stops existing. Nil and zero are different values and this vocabulary keeps them so. The measuring forms are the exception, and mean what they say: `count:`/`card:` over nothing is a count of zero, and `sum:`/`max:` are asked of a *pool*, whose empty measure is honestly zero.
 
-**The right-hand side may be another subject, not only a constant** — `"value@target >= max:value@mine.red"`. The rule that keeps it from becoming an expression language: it must *look* like a subject, naming a scope or a measuring fn, so a bare word is refused at the door rather than quietly reading as zero. Being a string parsed before the game runs, that refusal is now an authoring-time error and not a silent failure at run time.
+**The right-hand side may be another subject, not only a constant** — `"value@target >= max:value@mine.red"`. The rule that keeps it from becoming an expression language: it must *look* like a subject, naming a scope or a measuring fn, or name a **compute the ability listed** — a number with a name reads on either side of a comparison. Anything else is a bare word, and reads as *absent* rather than as zero, so it fails every comparison instead of quietly passing. **The refusal belongs to the validator and not to the grammar**: `predicate` is pure and cached across games, and which computes are bound is one ability's decision, so a parser that refused every bare word refused half the feature the docs promised.
 
 **One subject is not about cards at all.** `saved:<slot>` asks whether a save exists, as 1 or 0 — the `tagged:` shape, put to the machine rather than to the board. It is answered through a hook (`predicate.saved_slot`) rather than by `predicate` itself, because the save layer sits outside the engine and no engine module may require it; a build without that layer answers 0, which is true there. Any future question about the *machine* rather than the game takes that shape or it does not get asked: the engine states the word, somebody outside supplies the answer, and the honest answer when nobody does is *no*.
 
@@ -327,6 +327,30 @@ A card can fork into specific sub-cards: play it, choose one option, the chosen 
 The parent card is just `"play": { "action": ["move_to:graveyard", "push_phase:decree"] }`, and the offer zone grants what choosing from it means — behaviour belonging to the place, so the option cards need say nothing about being offered. While an overlay is open, all other actions (plays, activations, end conditions) are locked until the choice resolves. `destroy:zone` and `destroy_self` remove cards from play entirely — the flat array keeps the husks (IDs stay valid) but they hold no zone and no stats, so nothing renders, targets or counts them; undo restores them.
 
 ---
+
+## Leaving Play Is a Moment, and Destroying Is Not
+
+**A card game keeps most of its triggers at the moment a card leaves.** The
+engine fires `leaves` on the way out of a `status: board` zone into one that is
+not, with the departing card as `@self` — and `into` names where it landed,
+which is the whole of how death, exile and bounce are told apart. The engine
+learns none of those three words: they are one sentence pointed at three zones,
+and which zone means which is the game's to say.
+
+It is fired by the engine rather than walked by the game on purpose. The same
+rule can be written as a hidden zone of rules cards that a phase walks, and that
+works — but it only runs where the file remembers to walk it, and a game has as
+many routes out of play as it has ways to kill something. Missing one is a
+trigger that silently does not happen, which is the failure a death trigger is
+least likely to be noticed missing.
+
+**`destroy:` fires nothing, and that is what the verb is for.** A destroyed card
+lands in no zone, so there is no `into` to name, and `destroy_card` clears its
+stats, so a rule asked to run afterwards would have nothing left to read. Rather
+than invent a name for landing nowhere, the format keeps the pair: `destroy:`
+removes what nobody may ask about — a token vanishing, a swept husk — and a
+removal that *is* answerable is a move into a zone. Naming a zone has always been
+how a rule reaches something, and this is that rule once more.
 
 ## Costs
 

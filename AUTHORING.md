@@ -56,7 +56,7 @@ and a line here names a section that exists:
 - **What a file holds** — Top-level fields · Stats · Zones · Players · Setup · Card templates · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does
+- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Only one of them: `random.` · Making *them* choose · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `fan` — a stack you can read
@@ -1068,6 +1068,7 @@ disk cache with no network at all.
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). `action`: what happens when one lands, read the same way. Zones take the same block |
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
+| `leaves` | `action`: run when this card **leaves play** — out of a `status: board` zone into one that is not. `into` names the zone it landed in, and is what tells death from exile from bounce (see *`leaves` — a card on its way out*) |
 | `chosen` | `action`: run when somebody picks a card out of the offer **this** card opened with `show:`, with the pick as `@target` and this card as `@self`. The reverse of an `options:` offer, where the entry carries the rule and the asker is what it is about — here the entry is somebody else's property and carries nothing of ours |
 | `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
@@ -1236,9 +1237,11 @@ decides at run time — a number is a number, anything else is measured:
 "value@target >= max:value@mine.red"
 ```
 
-It has to *look* like a subject — name a scope or a measuring fn — or it is
-refused as a bare word, which would otherwise read as a stat worth nothing and
-quietly pass.
+It has to *look* like a subject — name a scope or a measuring fn — **or be a
+compute the ability listed**, which is a number with a name and belongs on either
+side. Anything else is a bare word: it fails the comparison closed rather than
+quietly reading as a stat worth nothing, and the validator names it, since the
+grammar alone cannot tell a bound name from a misspelling.
 
 **A stat nobody carries is absent, not zero**, and every comparison against it
 fails — including `== 0` and `<= n`. Without that rule "this rook has
@@ -1262,9 +1265,10 @@ tag inside a hand: give a pink card a `v_pink` stat and give no other card one,
 and `min:v_pink@mine.hand` is exactly that.
 
 A subject used this way must *look* like one — it has to name a scope (`@…`)
-or a measuring fn (`sum:`, `max:`, `count:`, `card:`). A bare word is treated
-as a typo and fails the comparison closed, rather than quietly reading as an
-unknown stat worth nothing.
+or a measuring fn (`sum:`, `max:`, `count:`, `card:`) — or name a compute the
+ability listed. A bare word that is neither fails the comparison closed and is
+reported as a typo, rather than quietly reading as an unknown stat worth
+nothing.
 
 `end_conditions` fire once per game (first match), wait for open overlays, and
 run their `then` actions — usually `push_phase:` to an ending overlay.
@@ -2699,6 +2703,54 @@ to the question, and closing it on the rule's behalf would withdraw an answer th
 player was owed. Setting a seat or priority *before* the `show:` is fine — that
 is the setup for the offer, not a change made underneath it.
 
+### `leaves` — a card on its way out
+
+**Most of a card game's triggers are about a card leaving**, and this is the
+moment for them. It fires when a card goes out of a `status: board` zone into
+one that is not, with `@self` as the departing card:
+
+```json
+"leaves": { "into": "discard", "action": ["stat_damage:hp@enemy.hero:1"] }
+```
+
+`into` names the zone it landed in, and **that is what tells one kind of leaving
+from another**. The engine learns none of their names:
+
+| The rulebook says | `into` |
+|---|---|
+| "when this dies" | the discard your units go to |
+| "when this is exiled" / trashed | the trash you send them to |
+| "when this is returned to your hand" | `hand` |
+| "when this leaves play" | leave `into` out — any departure |
+
+Moving between two board zones is not leaving anything, so a unit walking off a
+patrol slot and into your army fires nothing.
+
+**Write it on a tag and a whole class announces itself.** The other half of a
+trigger is usually a card *watching*, and that is an ordinary reaction — so one
+line makes every unit's death answerable and no unit knows it is being watched:
+
+```json
+"tags":  { "unit": { "leaves": { "into": "discard", "action": ["emit:died"] } } }
+```
+
+```json
+"reactions": [{ "to": "died", "whose": "anyone", "forced": "mandatory", "from": "board",
+                "action": ["stat_damage:hp@enemy.hero:1"] }]
+```
+
+A tag hands the block over whole, and a card writing its own takes none of the
+tag's — the same rule `play` keeps, and for the same reason. So a card with its
+own `leaves` that still wants the announcement writes `emit:` into its own list.
+
+**`destroy:` does not fire it, and that is the point of the verb.** A destroyed
+card lands in no zone, so there is no `into` to name, and its stats are cleared
+along with it, so a rule asked to run afterwards would have nothing left to
+read. The rule is one sentence: **if you want a removal answered, give it a
+zone** — which is what naming one has always been for. `destroy:` stays the way
+to take something off the table that nobody may ask about, which is what a token
+vanishing and a swept husk both want.
+
 ### `pays_for` — one thing spent as another
 
 A cost is one map of **what is owed**, always. That some other pool will settle
@@ -3195,7 +3247,7 @@ what a player reads.
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
 | `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
-| `destroy:<scope>[:<n>]` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`destroy:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.` |
+| `destroy:<scope>[:<n>]` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`destroy:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **Nothing is triggered by it**: a destroyed card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
 | `emit:<verb>[:<action>]` | Announce that something happened, so anybody holding a reaction to that verb may answer it first. What follows the verb is the part that **waits**. Nothing answers it, or the game has no `stack` zone: it runs now. See *Reactions* |
 | `counterspell` | Written in a reaction: the event it answers does not happen. **It names no zone** — the stack holds records, not cards, so nothing moved and there is nothing to put back |
 | `set_priority:<scope>` / `clear_priority` | Whoever the scope names may act right now, without the turn moving. The response window does this for itself; write it only for an out-of-turn moment of your own |

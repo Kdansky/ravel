@@ -94,11 +94,29 @@ function M.test_conditions_refuse_what_cannot_be_meant(check)
 		why("3 <= gold <= 8"))
 	check("nothing on one side", why("gold >=") ~= "", why("gold >="))
 	check("no comparison at all", why("gold"):find("comparison", 1, true) ~= nil, why("gold"))
-	-- The rule bound() keeps today, moved to the door: a misspelling on the
-	-- right would otherwise read as an unknown stat worth nothing and pass.
-	check("a bare word on the right is a typo", why("gold >= reserve"):find("bare word", 1, true) ~= nil,
-		why("gold >= reserve"))
 	check("and it is not one on the left", predicate.parse_condition("gold >= 3") ~= nil)
+end
+
+-- A bare word on the right is a compute the ability bound, or a misspelling
+-- that would read as an unknown stat worth nothing. The grammar cannot tell
+-- them apart — it is cached across games and knows nothing of one ability's
+-- `compute` list — so it marks the word, the measure reads it as *absent*, and
+-- the validator, which does know the bound names, is what calls it a typo.
+function M.test_conditions_a_bare_word_on_the_right(check)
+	local c = predicate.parse_condition("gold >= reserve")
+	check("it parses rather than being refused at the door", c ~= nil)
+	check("and says the word answers to nobody yet", c and c.right.bare == true)
+
+	with_game(function(name)
+		flow.init(name, 3)
+		check("nothing bound it, so the comparison fails closed",
+			predicate.holds("gold >= reserve", {}) == false)
+		check("even the other way round", predicate.holds("gold <= reserve", {}) == false)
+		check("a compute the ability bound answers it",
+			predicate.holds("gold >= reserve", { let = { reserve = 4 } }) == true)
+		check("and answers it as the number it is",
+			predicate.holds("gold >= reserve", { let = { reserve = 6 } }) == false)
+	end)
 end
 
 -- The second opinion, written as the rules read rather than as the parser

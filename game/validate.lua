@@ -115,7 +115,7 @@ local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	tags = true, card_stats = true, outcome = true,
 	play = true, activate = true, challenge = true, receive = true, turn = true,
-	chosen = true,
+	chosen = true, leaves = true,
 	-- Several activated abilities instead of one. Authored as a list, and
 	-- normalised in place into the same shape a lone "activate" produces, so
 	-- nothing downstream asks which form was written.
@@ -129,6 +129,7 @@ local CARD_FIELDS = {
 	emits = true,
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
+	on_leaves = true, leaves_into = true,
 	activate_cost = true, activate_target = true,
 	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
@@ -194,11 +195,15 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 -- The flat names a tag's "play" block becomes, and which the loader then copies
 -- onto every card wearing the tag. Derived from the loader's own table rather
 -- than typed out again: a moment gaining a field must not need editing twice.
-local GRANTED_PLAY    = { play = true }
-for _, internal in pairs(MOMENTS.play) do GRANTED_PLAY[internal] = true end
+-- The moments a tag may hand a card whole. Named here so the clash check below
+-- knows a granted field is not a card and its tag both defining one.
+local GRANTED_PLAY    = { play = true, leaves = true }
+for _, moment in ipairs({ "play", "leaves" }) do
+	for _, internal in pairs(MOMENTS[moment]) do GRANTED_PLAY[internal] = true end
+end
 
 local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
-	abilities = true, emits = true,
+	abilities = true, emits = true, leaves = true, on_leaves = true, leaves_into = true,
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
 	activate_phases = true, activate_merge = true, moves = true,
@@ -323,6 +328,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
+	on_leaves = true, leaves_into = true,
 	zone_list = true, auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
@@ -649,7 +655,16 @@ function M.check(G)
 			return
 		end
 		if not (bound and bound[c.left.src]) then subject_ok(where, c.left.src or c.left.n) end
-		if c.right.subject then subject_ok(where, c.right.src) end
+		if bound and bound[c.right.src] then
+			-- A compute, named where the ability bound it. Legitimate on either
+			-- side: it is a number with a name, and one comparison is two operands.
+		elseif c.right.bare then
+			warn("%s: '%s' is a bare word, so it would read as a stat worth nothing — write a number, "
+				.. 'a compute this ability lists, or say which cards you mean ("value@target", '
+				.. '"max:value@mine.red")', where, tostring(c.right.src))
+		elseif c.right.subject then
+			subject_ok(where, c.right.src)
+		end
 	end
 
 	-- A gate: a list of conditions, every one of which must hold. It was a map
@@ -1821,6 +1836,19 @@ function M.check(G)
 		check_list(where .. " on_activate", def.on_activate)
 		check_list(where .. " on_turn", def.on_turn)
 		check_list(where .. " on_chosen", def.on_chosen)
+		-- Leaving play, and the zone that says which kind of leaving it was. A
+		-- name that is not a zone is the whole of what can go wrong here: it
+		-- would match nothing and the rule would silently never run, which is
+		-- the failure a "dies" trigger is least likely to be noticed missing.
+		check_list(where .. " leaves action", def.on_leaves)
+		if def.leaves_into ~= nil then
+			if not G.zone_defs[def.leaves_into] then
+				warn("%s leaves: goes \"into\" '%s', but no zone has that key%s",
+					where, tostring(def.leaves_into), suggest(def.leaves_into, G.zone_defs))
+			elseif def.on_leaves == nil then
+				warn('%s leaves: says where it goes but does nothing when it gets there — add "action"', where)
+			end
+		end
 		check_conditions(where .. " chosen where", def.chosen_where)
 		check_list(where .. " on_pass", def.on_pass)
 		check_list(where .. " on_fail", def.on_fail)

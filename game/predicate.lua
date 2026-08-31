@@ -554,13 +554,14 @@ local function compile(s)
 	local l, r = operand(left), operand(right)
 	if not l then return nil, "'" .. left .. "' is not something the engine can measure" end
 	if not r then return nil, "'" .. right .. "' is not something the engine can measure" end
-	-- The rule bound() keeps for the struct form, kept here at the door instead:
-	-- a bare word on the right would read as an unknown stat worth nothing and
-	-- quietly pass, so it is a typo until it says which cards it means.
-	if r.subject and not (r.subject.scope or r.subject.fn) then
-		return nil, "'" .. right .. "' is a bare word, so it would read as a stat worth nothing — "
-			.. "write a number, or say which cards you mean (\"value@target\", \"max:value@mine.red\")"
-	end
+	-- A bare word on the right is a compute the ability bound before it was
+	-- asked, or a typo that would read as an unknown stat worth nothing. **The
+	-- grammar cannot tell them apart**: this is pure and cached across games,
+	-- while which computes are bound is one ability's decision. So it parses and
+	-- is marked, `measure` reads it as absent when nothing bound it — failing
+	-- closed, which is what the refusal was protecting — and the validator, which
+	-- does know the bound names, is what reports the typo at authoring time.
+	if r.subject and not (r.subject.scope or r.subject.fn) then r.bare = true end
 	return { left = l, op = op, right = r, src = s }
 end
 
@@ -598,6 +599,10 @@ end
 local function measure(o, ctx)
 	if o.n then return o.n end
 	if ctx and ctx.let and ctx.let[o.src] then return ctx.let[o.src] end
+	-- A bare word nothing bound is absent, not zero, and so fails every
+	-- comparison — the same answer the left-hand side has always given a stat
+	-- nobody carries. The validator is where it is a typo rather than a nil.
+	if o.bare then return nil end
 	local p = o.subject
 	local pooled = p.fn == nil or p.fn == "min"
 	if pooled and #M.bearers(p, ctx) == 0 then return nil end

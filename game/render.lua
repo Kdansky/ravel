@@ -529,17 +529,27 @@ local function draw_card_back(pl)
 end
 
 -- Cost badge: one stat icon + number per cost entry, top-left of the card.
-local function draw_cost_badge(pl, cost)
+--
+-- **A measured cost is drawn as the number it comes to**, not as the expression
+-- that finds it. A cost amount may be a subject rather than a number — which is
+-- the whole of a card whose price is printed on itself, and the only way a play
+-- block shared by ninety cards can charge each of them its own — and printing
+-- the string put "price@self" on the face of every card in the game. Measured
+-- against this card, because "@self" is what the expression is about.
+local function draw_cost_badge(pl, cost, card_e)
 	local sf   = get_small_font()
 	local ih   = sf:getHeight()
-	local keys = {}
-	for k in pairs(cost) do keys[#keys + 1] = k end
+	local keys, shown = {}, {}
+	for k, v in pairs(cost) do
+		keys[#keys + 1] = k
+		shown[k] = tostring(cards.cost_amount(v, card_e and card_e.id))
+	end
 	table.sort(keys)
 
 	local w = 4 * S
 	for _, k in ipairs(keys) do
 		local icon = stat_icon(k)
-		w = w + (icon ~= "none" and ih or 0) + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
+		w = w + (icon ~= "none" and ih or 0) + 2 * S + sf:getWidth(shown[k]) + 4 * S
 	end
 	love.graphics.setColor(0, 0, 0, 0.65)
 	love.graphics.rectangle("fill", pl.x + 2, pl.y + 2, w, ih + 4 * S, 2 * S, 2 * S)
@@ -552,8 +562,8 @@ local function draw_cost_badge(pl, cost)
 		local ind = icon ~= "none" and ih or 0
 		draw_stat_icon(icon, x + ih * 0.5, y + ih * 0.5, ih, tint)
 		love.graphics.setColor(unpack(C.cost))
-		print_at(tostring(cost[k]), x + ind + 2 * S, y)
-		x = x + ind + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
+		print_at(shown[k], x + ind + 2 * S, y)
+		x = x + ind + 2 * S + sf:getWidth(shown[k]) + 4 * S
 	end
 end
 
@@ -790,7 +800,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	love.graphics.setStencilTest()
 
 	if def and def.cost and next(def.cost) then
-		draw_cost_badge(pl, def.cost)
+		draw_cost_badge(pl, def.cost, card_e)
 	end
 
 	-- The art was already tinted for a plateless card, and "not now" written
@@ -1617,7 +1627,7 @@ local function draw_card_detail(card_e)
 
 		if def and def.cost and next(def.cost) then
 			love.graphics.setColor(unpack(C.cost))
-			print_at("Cost: " .. cards.cost_text(def.cost), info_x, y)
+			print_at("Cost: " .. cards.cost_text(def.cost, card_e and card_e.id), info_x, y)
 			y = y + main_font:getHeight() + 8 * S
 		end
 
