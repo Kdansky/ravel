@@ -1,7 +1,7 @@
 -- Codex, and the three things about it that had to be proved rather than argued.
 --
--- **Combat is one action list**, so the exchange, the armor and the deaths all
--- happen inside one click; **who may be attacked** is a `when` over computes
+-- **Combat is a zone walked in steps**, so a keyword can speak between the blow
+-- and the damage; **who may be attacked** is a `when` over computes
 -- rather than a rule in the engine; and **the draw** is min(hand + 2, 5), which
 -- is the floor used twice. Those are what these tests are pointed at.
 
@@ -11,6 +11,7 @@ local phase   = require("phase")
 local flow    = require("flow")
 local actions = require("actions")
 local declaration = require("declaration")
+local tags    = require("tags")
 
 local M = {}
 
@@ -20,15 +21,22 @@ local function seat(key)
 	end
 end
 
+-- "enemy.base" the way a game file writes it, since half of what these tests
+-- look at is on the other side of the table.
+local function find_zone(zone_key)
+	local owner, name = zone_key:match("^(%a+)%.(.+)$")
+	return zones.find(name or zone_key, owner)
+end
+
 local function in_zone(zone_key, def_key)
-	for _, cid in ipairs((zones.find(zone_key) or {}).cards or {}) do
+	for _, cid in ipairs((find_zone(zone_key) or {}).cards or {}) do
 		local c = entity.get(cid)
 		if def_key == nil or c.def_key == def_key then return c end
 	end
 end
 
 local function count_in(zone_key)
-	return #((zones.find(zone_key) or {}).cards or {})
+	return #((find_zone(zone_key) or {}).cards or {})
 end
 
 local function use(card, key, targets)
@@ -55,6 +63,21 @@ local function start(south_hero, north_hero)
 		flow.settle()
 	end
 	flow.settle()
+end
+
+-- A patroller in a named post. The patrol zone is one row of five squares now,
+-- so a test that wants the squad leader has to say which square, and stamp what
+-- taking the post would have stamped.
+local function post(def_key, owner, n)
+	local z = zones.find("patrol", owner)
+	local c = require("cards").create(def_key, z.id)
+	zones.place_in_slot(c.id, z.slots[n])
+	c.stats.ready_since, c.stats.slot = 1, n
+	if n == 1 then c.stats.guard = 1 end
+	-- The elite post's point of attack is not stamped here any more: "at_elite"
+	-- buffs it for as long as the unit stands on square two, so setting the slot
+	-- is the whole of taking the post.
+	return c
 end
 
 -- Put a card straight onto the table, past its cost and its tech gate: these
@@ -102,9 +125,8 @@ end
 function M.test_codex_combat(check)
 	start("pick_zane", "pick_argagarg")
 	local mine  = summon("mad_man", "army")                 -- 1/1
-	local yours = summon("tiger_cub", "enemy.patrol_lead")  -- 2/2, and 1 armor as leader
-	yours.stats.guard = 1
-
+	local yours = post("tiger_cub", "enemy", 1)  -- 2/2, and 1 armor as leader
+	
 	check("only the squad leader may be struck", offers(mine, "strike_lead"))
 	check("nothing else is on offer", not offers(mine, "strike_free"))
 
@@ -124,7 +146,7 @@ end
 function M.test_codex_patrol_rules(check)
 	start("pick_zane", "pick_argagarg")
 	local ground = summon("mad_man", "army")
-	local flier  = summon("shoddy_glider", "enemy.patrol_lead")
+	local flier  = post("shoddy_glider", "enemy", 1)
 
 	check("a ground unit cannot strike a flying leader", not offers(ground, "strike_lead"))
 	check("but it may walk past one", offers(ground, "strike_free"))
@@ -135,6 +157,221 @@ function M.test_codex_patrol_rules(check)
 	flier.stats.alt = 0
 	check("grounded, the leader stops the ground unit too", not offers(ground, "strike_free"))
 	check("which is then the only thing it may hit", offers(ground, "strike_lead"))
+end
+
+-- The fight happens somewhere. Both sides step into the duel zone, the steps
+-- run, and "origin" puts each of them back where it stood — which for a
+-- patroller is its own slot and not the army.
+function M.test_codex_combat_happens_in_a_zone(check)
+	start("pick_zane", "pick_argagarg")
+	local mine  = summon("tiger_cub", "army")               -- 2/2
+	local yours = post("mad_man", "enemy", 3)   -- 1/1, and the scavenger post lends nothing
+
+	check("the duel zone starts empty", count_in("duel") == 0)
+	use(mine, "strike_patrol", { yours.id })
+	flow.settle()
+
+	check("and is empty again", count_in("duel") == 0, tostring(count_in("duel")))
+	check("the survivor went back to the army", in_zone("army", "tiger_cub") ~= nil)
+	check("the dead patroller was swept from its own slot", count_in("enemy.patrol") == 0)
+	check("into its owner's discard", count_in("enemy.discard") == 1, tostring(count_in("enemy.discard")))
+end
+
+-- A patroller that survives keeps its post. Under the old action list the
+-- attacker was posted to the army whatever it had been doing.
+function M.test_codex_a_patroller_keeps_its_slot(check)
+	start("pick_zane", "pick_argagarg")
+	local mine  = summon("mad_man", "army")                -- 1/1
+	local yours = post("bombaster", "enemy", 3) -- survives a 1
+	yours.stats.slot = 3
+
+	use(mine, "strike_patrol", { yours.id })
+	flow.settle()
+	check("it is still in the scavenger slot", count_in("enemy.patrol") == 1,
+		tostring(count_in("enemy.patrol")))
+end
+
+-- Overpower: what the blow had left over goes past the patroller to the base.
+-- It needs a step, because there is nothing left over until the blow has landed.
+function M.test_codex_overpower(check)
+	start("pick_zane", "pick_argagarg")
+	local ram   = summon("crashbarrow", "army")           -- 6/2, overpower
+	local guard = post("mad_man", "enemy", 1)  -- 1/1
+	guard.stats.slot = 1
+	local base  = in_zone("enemy.base")
+
+	use(ram, "strike_lead", { guard.id })
+	flow.settle()
+	check("the leader's armor ate one and four went past it", base.stats.integrity == 16,
+		tostring(base.stats.integrity))
+end
+
+-- Overpower is only for patrollers, so a unit standing in the army soaks it all.
+function M.test_codex_overpower_stops_at_the_army(check)
+	start("pick_zane", "pick_argagarg")
+	local ram  = summon("crashbarrow", "army")
+	local prey = summon("mad_man", "enemy.army")
+	local base = in_zone("enemy.base")
+
+	use(ram, "strike_free", { prey.id })
+	flow.settle()
+	check("the base is untouched", base.stats.integrity == 20, tostring(base.stats.integrity))
+end
+
+-- Deathtouch kills whatever it scratches, which is a rule about the *victim*
+-- reading the card across it — a sentence an action list on the attacker had
+-- nowhere to put.
+function M.test_codex_deathtouch(check)
+	start("pick_zane", "pick_argagarg")
+	local snake = summon("tiny_basilisk", "army")        -- 1/2, deathtouch
+	local ogre  = summon("bloodrage_ogre", "enemy.army") -- 3/2
+
+	use(snake, "strike_free", { ogre.id })
+	flow.settle()
+	check("one point of deathtouch killed it", count_in("enemy.discard") == 1,
+		tostring(count_in("enemy.discard")))
+end
+
+-- Long-range: the defender never gets to swing back.
+function M.test_codex_long_range(check)
+	start("pick_zane", "pick_argagarg")
+	local ship = summon("doubleshot_archer", "army")  -- 4/3, long-range
+	local prey = summon("bloodrage_ogre", "enemy.army")  -- 3/2
+
+	use(ship, "strike_free", { prey.id })
+	flow.settle()
+	check("the archer took nothing back", entity.get(ship.id).stats.hp == 3,
+		tostring(entity.get(ship.id).stats.hp))
+	check("and the ogre is dead", count_in("enemy.discard") == 1)
+end
+
+-- Frenzy is +1 ATK on your turn, and it is added to a per-combat number rather
+-- than to the printed one, so nothing has to be put back afterwards.
+function M.test_codex_frenzy(check)
+	start("pick_zane", "pick_argagarg")
+	local dog  = summon("nautical_dog", "army")       -- 1/1, frenzy 1
+	local prey = summon("tiger_cub", "enemy.army")    -- 2/2
+
+	use(dog, "strike_free", { prey.id })
+	flow.settle()
+	check("it hit for two, not one", count_in("enemy.discard") == 1, tostring(count_in("enemy.discard")))
+	check("and its printed attack is untouched", entity.get(dog.id).stats.atk == 1,
+		tostring(entity.get(dog.id).stats.atk))
+end
+
+-- "Attacks:" is an ability at the aim step, which is the whole reason the steps
+-- exist: it has to run after the target is chosen and before the damage lands.
+function M.test_codex_attacks_trigger(check)
+	start("pick_zane", "pick_argagarg")
+	local archer = summon("doubleshot_archer", "army")
+	local prey   = summon("tiger_cub", "enemy.army")
+	local base   = in_zone("enemy.base")
+
+	use(archer, "strike_free", { prey.id })
+	flow.settle()
+	check("three damage went to the base as it swung", base.stats.integrity == 17,
+		tostring(base.stats.integrity))
+end
+
+-- A trigger that fires on the far side of the damage, which needs the step
+-- after "land" and cannot be written before it.
+function M.test_codex_kills_trigger(check)
+	start("pick_zane", "pick_argagarg")
+	local man   = summon("gunpoint_taxman", "army")       -- 3/3
+	local guard = post("mad_man", "enemy", 1)  -- 1/1
+	guard.stats.slot = 1
+	seat("north").stats.gold = 3
+	local gold, theirs = seat("south").stats.gold, seat("north").stats.gold
+
+	use(man, "strike_lead", { guard.id })
+	flow.settle()
+	check("a gold was stolen", seat("south").stats.gold == gold + 1, tostring(seat("south").stats.gold))
+	check("from the other player", seat("north").stats.gold == theirs - 1,
+		tostring(seat("north").stats.gold))
+end
+
+-- "+4 ATK when attacking buildings" — nothing could ask what a strike was
+-- aimed at until the target stood in the same zone as the attacker.
+function M.test_codex_siege_bonus(check)
+	start("pick_zane", "pick_argagarg")
+	local tank = summon("steam_tank", "army")   -- 3/6
+	local base = in_zone("enemy.base")
+
+	use(tank, "strike_free", { base.id })
+	flow.settle()
+	check("it hit the base for seven", base.stats.integrity == 13, tostring(base.stats.integrity))
+end
+
+-- A ground defender with no anti-air cannot touch a flier, even the one that is
+-- hitting it. The same condition reads on both sides of the fight.
+function M.test_codex_a_flier_takes_nothing_back(check)
+	start("pick_zane", "pick_argagarg")
+	local bird = summon("shoddy_glider", "army")           -- 3/1, flying
+	local prey = summon("bloodrage_ogre", "enemy.army")    -- 3/2, ground
+
+	use(bird, "strike_free", { prey.id })
+	flow.settle()
+	check("the flier is unhurt", entity.get(bird.id).stats.hp == 1, tostring(entity.get(bird.id).stats.hp))
+	check("though it would have died to the blow it never took", count_in("enemy.discard") == 1)
+end
+
+-- The squad leader's armor is spent by the first blow and does not come back
+-- when it walks home from the duel. Only the upkeep refreshes it.
+function M.test_codex_the_leaders_armor_is_spent_once(check)
+	start("pick_zane", "pick_argagarg")
+	local first  = summon("mad_man", "army")
+	local second = summon("mad_man", "army")
+	local lead   = post("tiger_cub", "enemy", 1)
+	lead.stats.guard, lead.stats.slot = 1, 1
+
+	use(first, "strike_lead", { lead.id })
+	flow.settle()
+	check("the armor took the first point", entity.get(lead.id).stats.hp == 2,
+		tostring(entity.get(lead.id).stats.hp))
+	check("and is gone", entity.get(lead.id).stats.guard == 0, tostring(entity.get(lead.id).stats.guard))
+
+	use(second, "strike_lead", { lead.id })
+	flow.settle()
+	check("so the second blow lands", entity.get(lead.id).stats.hp == 1,
+		tostring(entity.get(lead.id).stats.hp))
+end
+
+-- Sparkshot: 1 damage to a patroller beside the one struck. Adjacency is the
+-- reason the five patrol zones became one row — a pattern needs squares, and
+-- five zones of one square each have no neighbours. The row is asked before
+-- anybody moves, because the defender leaves it the moment the fight starts.
+function M.test_codex_sparkshot(check)
+	start("pick_zane", "pick_argagarg")
+	local hawk  = summon("huntress", "army")          -- 3/3, sparkshot
+	local left  = post("bombaster", "enemy", 2)       -- 2/2 + the elite point
+	local mid   = post("bombaster", "enemy", 3)
+	local right = post("bombaster", "enemy", 4)
+	local far   = post("bombaster", "enemy", 5)
+
+	use(hawk, "strike_patrol", { mid.id })
+	flow.settle()
+	check("the neighbour on one side was sparked", entity.get(left.id).stats.hp == 1,
+		tostring(entity.get(left.id).stats.hp))
+	check("and the one on the other", entity.get(right.id).stats.hp == 1,
+		tostring(entity.get(right.id).stats.hp))
+	check("two posts along is not beside", entity.get(far.id).stats.hp == 2,
+		tostring(entity.get(far.id).stats.hp))
+	check("the one it actually hit took the whole blow", count_in("enemy.patrol") == 3,
+		tostring(count_in("enemy.patrol")))
+end
+
+-- A gap in the row breaks adjacency, which is the rulebook's own wording and
+-- something the pattern gets for nothing.
+function M.test_codex_sparkshot_skips_a_gap(check)
+	start("pick_zane", "pick_argagarg")
+	local hawk = summon("huntress", "army")
+	local mid  = post("bombaster", "enemy", 3)
+	local gap  = post("bombaster", "enemy", 5)
+
+	use(hawk, "strike_patrol", { mid.id })
+	flow.settle()
+	check("the post two along is untouched", entity.get(gap.id).stats.hp == 2,
+		tostring(entity.get(gap.id).stats.hp))
 end
 
 -- Arrival fatigue is a stat the turn's opening sets, not a rule the engine
@@ -267,21 +504,29 @@ function M.test_codex_turn(check)
 	check("six workers paid six gold", seat("south").stats.gold == 9, tostring(seat("south").stats.gold))
 end
 
--- The elite slot's +1 is written on the zone, and the zone a card leaves for
--- takes it off again — which is why the bonus needs a mark of its own.
+-- One patrol ability and five squares. Which post a card took is read off the
+-- square it stands on and kept as a mark of its own, because the fight takes it
+-- out of the row and the square stops answering.
 function M.test_codex_slots(check)
 	start("pick_zane", "pick_argagarg")
-	local unit = summon("tiger_cub", "army")
+	local posts = zones.find("patrol", "mine")
+	local unit  = summon("tiger_cub", "army")
 	check("it starts at its printed attack", unit.stats.atk == 2, tostring(unit.stats.atk))
 
-	use(unit, "go_elite")
-	check("the elite slot lends it a point", unit.stats.atk == 3, tostring(unit.stats.atk))
+	use(unit, "go_patrol", { posts.slots[2] })
+	check("the elite square lends it a point", tags.stat(unit, "atk") == 3, tostring(tags.stat(unit, "atk")))
+	check("without writing on the card", unit.stats.atk == 2, tostring(unit.stats.atk))
+	check("and it knows which post it took", unit.stats.slot == 2, tostring(unit.stats.slot))
 	zones.move_card(unit.id, zones.find_id("army", "mine"))
-	check("and takes it back on the way out", unit.stats.atk == 2, tostring(unit.stats.atk))
+	check("leaving takes both back", tags.stat(unit, "atk") == 2 and unit.stats.slot == 0,
+		tostring(unit.stats.atk) .. "/" .. tostring(unit.stats.slot))
 
 	local lead = summon("mad_man", "army")
-	use(lead, "go_lead")
+	use(lead, "go_patrol", { posts.slots[1] })
 	check("the squad leader is given its armor", lead.stats.guard == 1, tostring(lead.stats.guard))
+	local look = summon("mad_man", "army")
+	use(look, "go_patrol", { posts.slots[5] })
+	check("the lookout gets neither", look.stats.guard == 0 and look.stats.atk == 1)
 end
 
 -- Burning the base down is the only way to win, and it is an end condition
@@ -424,15 +669,15 @@ end
 -- reaction cannot give: an emit names the emitter.
 function M.test_codex_dies_moment(check)
 	start("pick_drakk", "pick_argagarg")
-	local bomber = summon("crash_bomber", "enemy.patrol_lead")   -- 2/2, theirs
+	local bomber = post("crash_bomber", "enemy", 1)   -- 2/2, theirs
 	local ram    = summon("crashbarrow", "army")                 -- 6 attack, mine
 	local mybase = entity.get(entity.get(zones.find_id("base", "mine")).cards[1])
 
 	use(ram, "strike_lead", { bomber.id })
 	flow.settle()
 
-	check("their bomber died", #entity.get(zones.find_id("patrol_lead", "enemy")).cards == 0,
-		tostring(#entity.get(zones.find_id("patrol_lead", "enemy")).cards))
+	check("their bomber died", #entity.get(zones.find_id("patrol", "enemy")).cards == 0,
+		tostring(#entity.get(zones.find_id("patrol", "enemy")).cards))
 	check("and it went off in the face of whoever killed it",
 		mybase.stats.integrity == 19, tostring(mybase.stats.integrity))
 	check("landing in its owner's discard all the same",
@@ -468,14 +713,14 @@ function M.test_codex_a_witness_answers_a_death(check)
 	start("pick_drakk", "pick_argagarg")
 	local watcher = summon("captured_bugblatter", "army")        -- 4/2, watching only
 	local ox      = summon("land_octopus", "army")               -- 8/7, does the killing
-	local prey    = summon("tiger_cub", "enemy.patrol_lead")     -- 2/2
+	local prey    = post("tiger_cub", "enemy", 1)     -- 2/2
 	prey.stats.guard = 0
 	local mybase = entity.get(entity.get(zones.find_id("base", "mine")).cards[1])
 
 	use(ox, "strike_lead", { prey.id })
 	flow.settle()
-	check("the cub died", #entity.get(zones.find_id("patrol_lead", "enemy")).cards == 0,
-		tostring(#entity.get(zones.find_id("patrol_lead", "enemy")).cards))
+	check("the cub died", #entity.get(zones.find_id("patrol", "enemy")).cards == 0,
+		tostring(#entity.get(zones.find_id("patrol", "enemy")).cards))
 	check("the octopus lived through it", entity.get(watcher.id).zone_id ~= nil
 		and entity.get(ox.id).stats.hp == 5, tostring(entity.get(ox.id).stats.hp))
 	check("and the bugblatter answered an announcement no unit knew it was making",

@@ -207,7 +207,8 @@ local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = t
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
 	activate_phases = true, activate_merge = true, moves = true,
-	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true }
+	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true,
+	buffs = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it
 -- overwritten and no error — which is the shape of bug that costs an afternoon,
 -- because the number is right in the file and wrong in the game.
@@ -489,6 +490,17 @@ function M.check(G)
 	for _, c in ipairs(conflicts) do
 		warn("'%s' is the name of both a %s and a %s — a condition pointing at it "
 			.. "could mean either, so rename one of them", c.name, c.a, c.b)
+	end
+
+	-- The two words a destination may be instead of a zone. A zone under either
+	-- name could never be moved to: the word is read first and the zone would
+	-- sit there unreachable, which is worse than being told.
+	for _, name in ipairs({ "target", "origin" }) do
+		if G.zone_defs[name] then
+			warn("zone '%s' uses a name a move already means — \"move_to:%s\" would send the card "
+				.. "%s rather than to this zone, so rename it", name, name,
+				name == "target" and "where the player pointed" or "back where it came from")
+		end
 	end
 
 	-- Walk the reserved names, not every tag and zone: deterministic order
@@ -840,6 +852,10 @@ function M.check(G)
 	-- can be refused there and allowed everywhere else.
 	local MOVES_FROM = { draw_from = 2, return_to = 2 }
 
+	-- And which is the place they go, so "origin" — one destination per card,
+	-- not a zone — can be allowed there and nowhere else.
+	local MOVES_TO = { move_to = 2, move_target_to = 2, return_to = 3, move = 3 }
+
 	local check_action
 	function check_action(where, str)
 		local p = {}
@@ -876,7 +892,13 @@ function M.check(G)
 				-- key to check is the last word. An unknown owner word simply
 				-- stays part of the name and is caught as an unknown zone.
 				local sc = predicate.parse_scope(a)
-				if not (sc and (G.zone_defs[sc.name] or sc.name == "target")) then
+				if sc and sc.name == "origin" then
+					if MOVES_TO[op] ~= i then
+						warn("%s: '%s' cannot take cards out of 'origin' — it is where each card came "
+							.. "from, a different place for every one of them, so it only reads as a "
+							.. "destination", where, op)
+					end
+				elseif not (sc and (G.zone_defs[sc.name] or sc.name == "target")) then
 					warn("%s: '%s' points at zone '%s', but no zone has that key%s",
 						where, op, a, suggest(sc and sc.name or a, G.zone_defs))
 				elseif MOVES_FROM[op] == i and (G.zone_defs[sc.name] or {}).status == "supply" then
@@ -1362,14 +1384,72 @@ function M.check(G)
 					end
 				end
 			end
-			if G.computed_tags[tag] then
-				warn("%s: is defined under both 'tags' and 'computed_tags' — computed tags can't carry behaviour", where)
+			-- A buff is not behaviour. It is a property of wearing the word, the
+			-- same as a style is, and a style has always been allowed to be a
+			-- computed tag — that is the whole of conditional rendering. So a
+			-- computed tag may say what it shifts and nothing else: "damaged
+			-- units hit harder" is one line, and there is no card for the
+			-- behaviour version of it to belong to.
+			-- The loader always leaves an "abilities" and an "emits" behind, so
+			-- an empty one is not something the game said.
+			local buff_only = td.buffs ~= nil
+			for field, v in pairs(td) do
+				if field ~= "buffs" and not (type(v) == "table" and next(v) == nil) then buff_only = false end
 			end
-			if not carried_tags[tag] then
+			if G.computed_tags[tag] and not buff_only then
+				warn("%s: is defined under both 'tags' and 'computed_tags' — a computed tag can carry "
+					.. "\"buffs\" and nothing else, since there is no card for behaviour to belong to", where)
+			end
+			if not carried_tags[tag] and not G.computed_tags[tag] then
 				warn("%s: has behaviour defined, but no card carries this tag%s",
 					where, suggest(tag, carried_tags))
 			end
+			for stat, n in pairs(type(td.buffs) == "table" and td.buffs or {}) do
+				if tonumber(n) == nil then
+					warn("%s: buffs '%s' by '%s', which is not a number — a buff is a plain shift, and "
+						.. "anything worked out belongs in a compute", where, tostring(stat), tostring(n))
+				elseif not card_stats[stat] and not G.stat_defs[stat] then
+					warn("%s: buffs '%s', but no card carries a stat by that name%s",
+						where, tostring(stat), suggest(stat, card_stats))
+				end
+			end
+			if td.buffs ~= nil and type(td.buffs) ~= "table" then
+				warn('%s: "buffs" should be written like { "atk": 1 }', where)
+			end
 		end
+	end
+
+	-- **A buff may not depend on itself.** A computed tag reads a stat, and if
+	-- that tag buffs a stat some other computed tag reads, and so on back round,
+	-- then working out what a card's attack *is* needs to know what its attack
+	-- is. The engine answers nought and carries on rather than running out of
+	-- stack, but an answer nobody can predict is not an answer, so the shape is
+	-- refused here instead: "damaged units get +1 hp" is the one-line version,
+	-- and it is a card that is damaged only while it is not.
+	do
+		local reads = {}
+		for tag, td in pairs(tag_defs) do
+			local cd = G.computed_tags[tag]
+			if cd and cd.stat and type(td) == "table" and type(td.buffs) == "table" then
+				for stat in pairs(td.buffs) do
+					reads[stat] = reads[stat] or {}
+					reads[stat][#reads[stat] + 1] = { tag = tag, stat = cd.stat }
+				end
+			end
+		end
+		local seen, path = {}, {}
+		local function walk(stat, trail)
+			if path[stat] then
+				warn("computed tag '%s': its buff leads back to '%s', which is the stat deciding whether "
+					.. "the tag holds — working out the shift would need to know its own answer", trail, stat)
+				return
+			end
+			if seen[stat] then return end
+			seen[stat], path[stat] = true, true
+			for _, r in ipairs(reads[stat] or {}) do walk(r.stat, r.tag) end
+			path[stat] = nil
+		end
+		for stat in pairs(reads) do walk(stat, "") end
 	end
 
 	-- Abilities need somewhere to be used. Activation is the zone's to allow,

@@ -55,11 +55,11 @@ and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · Stats · Zones · Players · Setup · Card templates · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
-- **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Only one of them: `random.` · Making *them* choose · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · A mandatory reaction is how you ask somebody else a question · What it will not do yet
-- **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `fan` — a stack you can read
+- **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
 
 ---
@@ -1862,6 +1862,52 @@ It is the last argument of `move`, `move_target_to`, `add_to`, `draw_from` and
 since every zone is a list, but it only *reads* as anything in a deck, which is
 where somebody is about to draw.
 
+### `origin` — back where it came from
+
+Every destination names one place, which is wrong for a set of cards gathered
+from all over. A combat pulls a unit out of one of ten zones, and the survivor
+has to return to the one *it* left, not to the one its neighbour left. The
+engine records where each card was immediately before its last move, and
+`origin` reads it back:
+
+```json
+"action": ["return_to:duel:origin"]
+```
+
+One line, and each card goes somewhere different. That is the whole of it —
+`origin` is not a place, it is a different place per card, which is why nothing
+else could say this.
+
+It is a **destination and never a source**. `return_to:origin:hand` is refused,
+because there is no one zone to drain.
+
+**On a grid it is the square, not the zone.** A row of five patrol posts that
+sends three cards into a fight gets each of them back into its own post; a post
+somebody else has taken since is not one to evict them from, so that card comes
+home to the zone the ordinary way.
+
+```
+move_to:origin                   the acting card, home
+move_target_to:origin            the ones the player chose, each to its own
+move:duel:origin                 empty a zone, sending everything back
+return_to:duel:origin            the same, said the other way round
+```
+
+Three things worth knowing:
+
+- It means **immediately before**, not "where this lives". A card that was
+  played from a hand, sent to a duel and bounced remembers the duel. For "where
+  this lives", give the card's tag a `zone` and write `move_to` with nothing
+  after it.
+- A card that has **never moved** — dealt by `setup`, and still where it was
+  dealt — has no origin, and stays where it is.
+- Going home **from home** is not a move, so a card already standing in its
+  origin is left alone rather than pulled out and put back.
+
+If the origin is a bounded zone that has since filled up, the move refuses like
+any other and the card stays where it is. A duel zone big enough for what it
+holds is the answer; the engine will not evict somebody to make room.
+
 ### `last_acted` — the card a player touched last
 
 The engine marks whichever card was most recently **played or activated**, one
@@ -1916,6 +1962,70 @@ A piece on a square also carries `col`, `row` and `rank` as stats (declare them
 in `card_stats` to opt in) — `rank` counts from the piece's *owner's* side, which
 is why "home rank" is 2 for both colours above, and why promotion is one
 computed tag: `{ "promoting": { "stat": "rank", "at_least": 8 } }`.
+
+### `across` and `beside` — pointing at the other cards
+
+A pattern is the only way to say **"not me, over there"**. No scope means it: a
+zone name includes the card asking, and `mine`/`enemy` answer for the *active
+seat*, not for whoever is speaking. So a rule about the card opposite, or the
+card next along, is a pattern used as a scope.
+
+Two that earn their keep, both one line:
+
+```json
+"patterns": {
+  "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] },
+  "beside": { "vectors": [[1, 0], [-1, 0]], "class": ["step"] }
+}
+```
+
+**`across` in a `grid: [1, 2]`** is "the other card here", and that is what makes
+a fight writable. Two cards step into a duel zone, a phase or an action list
+walks it, and one ability serves both sides:
+
+```json
+{ "key": "aim", "action": ["stat_gain:incoming@across:sum:power@self"] }
+```
+
+Each card in turn deals its own damage to whoever is opposite. Nothing says who
+is fighting whom, and nothing needs to: the geometry says it.
+
+**`beside` in a `grid: [5, 1]`** is "the next post along", which is how a row of
+five patrol slots answers *sparkshot* — 1 damage to a patroller adjacent to the
+one struck:
+
+```json
+{ "key": "sparked", "when": ["count:marked@beside >= 1"],
+  "action": ["stat_damage:hp@self:1"] }
+```
+
+Read it from the neighbour's side: each card in the row asks whether the marked
+one is next to it. **A gap breaks adjacency for free** — the pattern names the
+immediate squares and nothing beyond, so an empty post between two cards makes
+them not adjacent, which is usually exactly what a rulebook means.
+
+**What a pattern anchors on.** The acting card's *square* — so it names nothing
+for a card that is not standing on one — or, inside a target's `where`, the
+candidate square being considered. Inside `activate_zone` the context is rebuilt
+for each card as the walk reaches it, which is why one ability written once
+speaks for every card in the zone.
+
+**`y` is forward for whoever owns the anchor**, so a one-way pattern reads the
+same from both sides of a board. `across` and `beside` list both directions
+precisely because they are *not* one-way: they should mean the same thing to
+either player.
+
+Three things to know before reaching for one:
+
+- **A pattern needs squares**, which means `layout: "grid"`. A `row` has none, so
+  a row of cards has no neighbours. If you want adjacency, make it a grid one
+  row tall.
+- **Range is 1 unless you say otherwise**, and a longer ray stops at the first
+  occupied square — a rook takes the first piece on the file and nothing behind
+  it. `phasing` is the piece that ignores that.
+- **A card that leaves the grid stops having neighbours.** If a rule needs to
+  know where something *was* after it has moved, ask the row before it goes and
+  keep the answer as a stat.
 
 ### Moves with fixed destinations (castling)
 
@@ -3024,6 +3134,87 @@ The zone route is a different question with the same spelling: a zone's
 moves. What a card's own tags say about it never changes, so it is settled once
 at load — which is also why `dump` shows you a card with the moment already on
 it.
+
+### `buffs` — a tag that changes a number
+
+Every continuous effect in every card game is the same sentence: *while this is
+true, that number is different*. `buffs` is that sentence.
+
+```json
+"tags": {
+  "elite":  { "buffs": { "atk": 1 } },
+  "raging": { "buffs": { "atk": 3, "hp": 1 } }
+}
+```
+
+A card wearing `elite` reads one higher, for as long as it wears it. **Nothing
+is written to the card.** The shift is worked out on every read, so it arrives
+and leaves with the tag, and the printed number underneath is never touched.
+
+That is the whole reason for the word. Written as an action instead:
+
+```json
+"receive": ["stat_gain:atk@target:1"]
+```
+
+— and now something has to take it away again, on every path the card can
+leave by. Codex kept a hidden `elited` stat for no other purpose and undid it in
+ten places, because a unit can leave the elite post ten ways: promoted, killed,
+bounced to hand, sent to the duel and back. Miss one and a unit keeps a bonus
+for the rest of the game, silently, and the file that says `+1` is not the file
+that is wrong.
+
+**All three tag sources work**, which is what makes it worth having:
+
+```
+"tags": { "elite": ... }                  what a card IS      a printed keyword
+"applies": ["raging"]  (on a zone)        where it STANDS     "+3 while in the arena"
+"computed_tags": { "damaged": ... }       how it is DOING     "+2 while damaged"
+```
+
+The last is the single exception to the rule that a computed tag carries no
+behaviour. A buff is not behaviour — it is a property of wearing the word, the
+same as a style is — and there is no card for the behaviour version to belong
+to. So a computed tag may write `buffs` and nothing else:
+
+```json
+"computed_tags": { "damaged": { "stat": "hp", "less_than_max": true } },
+"tags":          { "damaged": { "buffs": { "atk": 2 } } }
+```
+
+**The ceiling rises with the value; the floor stays.** Both ends matter and they
+want opposite treatment. A 1/1 handed +1 hp has to be able to reach 2, or the
+clamp eats the buff the moment it is granted — and it has to be able to reach 0,
+or two damage leaves it standing at the one point it was printed with. So:
+
+```
+a 1/1 in the arena         reads 2/2, and is not damaged
+take 1                     reads 1/2, and is
+leave the arena            reads 0/1 — the wound is what is left, and it is dead
+```
+
+Which is what the physical cards do. Damage comes off what the card *is*, and
+when the buff goes what remains is the printed number with the hurt still on it.
+
+**A write addresses the card's own number; a read and a clamp see the whole.**
+What a buff adds is not the card's to set — it belongs to the tag and goes when
+the tag does — so a hero levelled to `"stat_set:atk@self:2"` is printed at 2 and
+still reads 3 in the elite post. A level-up cannot eat a bonus it has never
+heard of.
+
+Everything reads through it — every condition, `compute`, cost, amount and
+badge — so a price with a tag on it is simply dearer and nothing in the cost
+machinery learned a new word:
+
+```json
+"play": { "cost": { "gold@mine.player": "price@self" } }
+```
+
+Two limits. The amount is a **plain number**, never a subject: anything worked
+out belongs in a `compute`. And a buff may not lead back to itself — a computed
+tag shifting the very stat that decides whether it holds is refused, since
+working out the shift would need to know its own answer. `"damaged units get +1
+hp"` is a card that is damaged only while it is not.
 
 ### Keywords: a tag that means something to the player
 

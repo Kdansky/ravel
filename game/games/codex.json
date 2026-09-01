@@ -92,7 +92,6 @@
       "tags": ["hidden"]
     },
     { "key": "guard", "min": 0, "max": 9, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
-    { "key": "elited", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     {
       "key": "alt",
       "min": 0,
@@ -115,11 +114,64 @@
       "key": "incoming",
       "min": 0,
       "max": 99,
-      "on": ["fighter"],
+      "on": ["fighter", "building"],
       "start": 0,
       "tags": ["hidden"]
     },
-    { "key": "back", "min": 0, "max": 99, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    {
+      "key": "back",
+      "min": 0,
+      "max": 99,
+      "on": ["fighter", "building"],
+      "start": 0,
+      "tags": ["hidden"]
+    },
+    {
+      "key": "raw",
+      "min": 0,
+      "max": 99,
+      "on": ["fighter", "building"],
+      "start": 0,
+      "tags": ["hidden"]
+    },
+    {
+      "key": "power",
+      "min": 0,
+      "max": 99,
+      "on": ["fighter", "building"],
+      "start": 0,
+      "tags": ["hidden"]
+    },
+    {
+      "key": "spill",
+      "min": 0,
+      "max": 99,
+      "on": ["fighter", "building"],
+      "start": 0,
+      "tags": ["hidden"]
+    },
+    {
+      "key": "left",
+      "min": 0,
+      "max": 99,
+      "on": ["fighter", "building"],
+      "start": 99,
+      "tags": ["hidden"]
+    },
+    {
+      "key": "attacking",
+      "min": 0,
+      "max": 1,
+      "on": ["fighter", "building"],
+      "start": 0,
+      "tags": ["hidden"]
+    },
+    { "key": "col", "min": 0, "max": 9, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "mark", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "sparking", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
+    { "key": "slot", "min": 0, "max": 5, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "rage", "min": 0, "max": 9, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "fought", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "picked", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "hired", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "teched", "min": 0, "max": 2, "on": ["player"], "start": 0, "tags": ["hidden"] },
@@ -143,7 +195,17 @@
   "computed_tags": {
     "dead": { "stat": "hp", "less_than": 1 },
     "fallen": { "stat": "life", "less_than": 1 },
-    "rubble": { "stat": "integrity", "less_than": 1 }
+    "rubble": { "stat": "integrity", "less_than": 1 },
+    "slain": { "stat": "left", "less_than": 1 },
+    "at_lead": { "stat": "slot", "equals": 1 },
+    "at_elite": { "stat": "slot", "equals": 2 },
+    "at_scav": { "stat": "slot", "equals": 3 },
+    "at_tech": { "stat": "slot", "equals": 4 },
+    "marked": { "stat": "mark", "at_least": 1 }
+  },
+  "patterns": {
+    "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] },
+    "beside": { "vectors": [[1, 0], [-1, 0]], "class": ["step"] }
   },
   "computes": [
     {
@@ -162,13 +224,18 @@
       "tooltip": "One when this attacker may slip past patrollers unseen."
     },
     {
+      "key": "lead_alt",
+      "from": "sum:alt@enemy.patrol.at_lead",
+      "tooltip": "One when their squad leader is flying."
+    },
+    {
       "key": "lead_seen",
-      "from": "sum:alt@enemy.patrol_lead * sum:aa@self",
+      "from": "lead_alt * sum:aa@self",
       "tooltip": "A flying squad leader this attacker can reach."
     },
     {
       "key": "lead_air",
-      "from": "sum:alt@enemy.patrol_lead - lead_seen",
+      "from": "lead_alt - lead_seen",
       "tooltip": "A flying squad leader this attacker cannot reach."
     },
     {
@@ -177,64 +244,59 @@
       "tooltip": "How many squad leaders this attacker is allowed to walk past."
     },
     {
-      "key": "elite_seen",
-      "from": "sum:alt@enemy.patrol_elite * sum:aa@self",
-      "tooltip": "A flying elite this attacker can reach."
+      "key": "pat_all",
+      "from": "count:fighter@enemy.patrol",
+      "tooltip": "How many patrollers they have."
     },
     {
-      "key": "elite_air",
-      "from": "sum:alt@enemy.patrol_elite - elite_seen",
-      "tooltip": "A flying elite this attacker cannot reach."
+      "key": "pat_lead",
+      "from": "count:at_lead@enemy.patrol",
+      "tooltip": "One when the squad leader post is filled."
     },
     {
-      "key": "elite_skip",
-      "from": "elite_air + sneak_ok",
-      "tooltip": "How many elites this attacker may walk past."
+      "key": "pat_rest",
+      "from": "pat_all - pat_lead",
+      "tooltip": "Their patrollers other than the squad leader."
     },
     {
-      "key": "scav_seen",
-      "from": "sum:alt@enemy.patrol_scav * sum:aa@self",
-      "tooltip": "A flying scavenger this attacker can reach."
+      "key": "air_all",
+      "from": "sum:alt@enemy.patrol",
+      "tooltip": "How many of their patrollers are flying."
     },
     {
-      "key": "scav_air",
-      "from": "sum:alt@enemy.patrol_scav - scav_seen",
-      "tooltip": "A flying scavenger this attacker cannot reach."
+      "key": "air_rest",
+      "from": "air_all - lead_alt",
+      "tooltip": "Flying patrollers other than the squad leader."
     },
     {
-      "key": "scav_skip",
-      "from": "scav_air + sneak_ok",
-      "tooltip": "How many scavengers this attacker may walk past."
+      "key": "rest_seen",
+      "from": "air_rest * sum:aa@self",
+      "tooltip": "Those fliers this attacker can reach."
     },
     {
-      "key": "tech_seen",
-      "from": "sum:alt@enemy.patrol_tech * sum:aa@self",
-      "tooltip": "A flying technician this attacker can reach."
+      "key": "rest_air",
+      "from": "air_rest - rest_seen",
+      "tooltip": "Those fliers this attacker cannot reach."
     },
     {
-      "key": "tech_air",
-      "from": "sum:alt@enemy.patrol_tech - tech_seen",
-      "tooltip": "A flying technician this attacker cannot reach."
+      "key": "rest_sneak",
+      "from": "sneak_ok * pat_rest",
+      "tooltip": "Every other patroller, when this attacker is unseen."
     },
     {
-      "key": "tech_skip",
-      "from": "tech_air + sneak_ok",
-      "tooltip": "How many technicians this attacker may walk past."
+      "key": "rest_skip",
+      "from": "rest_air + rest_sneak",
+      "tooltip": "How many other patrollers this attacker may walk past."
     },
     {
-      "key": "look_seen",
-      "from": "sum:alt@enemy.patrol_look * sum:aa@self",
-      "tooltip": "A flying lookout this attacker can reach."
+      "key": "lr_them",
+      "from": "count:long_range@across * sum:attacking@across",
+      "tooltip": "One when the card across this one is attacking with long-range."
     },
     {
-      "key": "look_air",
-      "from": "sum:alt@enemy.patrol_look - look_seen",
-      "tooltip": "A flying lookout this attacker cannot reach."
-    },
-    {
-      "key": "look_skip",
-      "from": "look_air + sneak_ok",
-      "tooltip": "How many lookouts this attacker may walk past."
+      "key": "lr_block",
+      "from": "lr_them - count:long_range@self",
+      "tooltip": "One when long-range keeps this card from striking back."
     }
   ],
   "styles": {
@@ -298,68 +360,73 @@
             "type": "card",
             "count": 1,
             "owner": "enemy",
-            "zones": ["patrol_lead"],
-            "where": ["alt@target <= sum:aa@self"]
+            "zones": ["patrol"],
+            "where": ["slot@target == 1", "alt@target <= sum:aa@self"]
           },
           "action": [
-            "stat_set:incoming@self:sum:atk@self",
-            "stat_set:back@self:sum:atk@target",
-            "stat_damage:incoming@self:sum:armor@target",
-            "stat_damage:incoming@self:sum:guard@target",
-            "stat_damage:back@self:sum:armor@self",
-            "stat_damage:back@self:sum:guard@self",
-            "stat_damage:armor@target:sum:atk@self",
-            "stat_damage:guard@target:sum:atk@self",
-            "stat_damage:armor@self:sum:atk@target",
-            "stat_damage:guard@self:sum:atk@target",
-            "stat_damage:hp@target:sum:incoming@self",
-            "stat_damage:life@target:sum:incoming@self",
-            "stat_damage:integrity@target:sum:incoming@self",
-            "stat_damage:hp@self:sum:back@self",
-            "stat_damage:life@self:sum:back@self",
-            "stat_damage:hp@self:count:detector@enemy.addon",
-            "stat_damage:life@self:count:detector@enemy.addon",
-            "move_to:mine.army",
+            "stat_set:sparking@mine.player:count:sparkshot@self",
+            "stat_set:mark@target:1",
+            "activate_zone:enemy.patrol:by_column:sparked",
+            "stat_set:mark@target:0",
+            "stat_set:sparking@mine.player:0",
+            "stat_set:attacking@self:1",
+            "move_to:duel",
+            "move_target_to:duel",
+            "activate_zone:duel:by_column:clear",
+            "activate_zone:duel:by_column:rage",
+            "activate_zone:duel:by_column:attacks",
+            "activate_zone:duel:by_column:aim",
+            "activate_zone:duel:by_column:armor",
+            "activate_zone:duel:by_column:land",
+            "activate_zone:duel:by_column:venom",
+            "activate_zone:duel:by_column:tally",
+            "activate_zone:duel:by_column:spill",
+            "activate_zone:duel:by_column:kills",
+            "stat_set:attacking@each.duel:0",
+            "return_to:duel:origin",
             "activate_zone:rules_death"
-          ]
+          ],
+          "compute": ["det", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"]
         },
         {
           "key": "strike_patrol",
           "text": "Attack a patroller",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "compute": ["det", "no_det", "sneak_ok", "lead_seen", "lead_air", "lead_skip"],
+          "compute": ["det", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"],
           "when": [
             "ready_since@self >= 1",
             "not_tagged:cant_attack@self >= 1",
-            "count:fighter@enemy.patrol_lead <= lead_skip"
+            "count:at_lead@enemy.patrol <= lead_skip"
           ],
           "target": {
             "type": "card",
             "count": 1,
             "owner": "enemy",
-            "zones": ["patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"],
-            "where": ["alt@target <= sum:aa@self"]
+            "zones": ["patrol"],
+            "where": ["slot@target >= 2", "alt@target <= sum:aa@self"]
           },
           "action": [
-            "stat_set:incoming@self:sum:atk@self",
-            "stat_set:back@self:sum:atk@target",
-            "stat_damage:incoming@self:sum:armor@target",
-            "stat_damage:incoming@self:sum:guard@target",
-            "stat_damage:back@self:sum:armor@self",
-            "stat_damage:back@self:sum:guard@self",
-            "stat_damage:armor@target:sum:atk@self",
-            "stat_damage:guard@target:sum:atk@self",
-            "stat_damage:armor@self:sum:atk@target",
-            "stat_damage:guard@self:sum:atk@target",
-            "stat_damage:hp@target:sum:incoming@self",
-            "stat_damage:life@target:sum:incoming@self",
-            "stat_damage:integrity@target:sum:incoming@self",
-            "stat_damage:hp@self:sum:back@self",
-            "stat_damage:life@self:sum:back@self",
-            "stat_damage:hp@self:count:detector@enemy.addon",
-            "stat_damage:life@self:count:detector@enemy.addon",
-            "move_to:mine.army",
+            "stat_set:sparking@mine.player:count:sparkshot@self",
+            "stat_set:mark@target:1",
+            "activate_zone:enemy.patrol:by_column:sparked",
+            "stat_set:mark@target:0",
+            "stat_set:sparking@mine.player:0",
+            "stat_set:attacking@self:1",
+            "move_to:duel",
+            "move_target_to:duel",
+            "activate_zone:duel:by_column:clear",
+            "activate_zone:duel:by_column:rage",
+            "activate_zone:duel:by_column:attacks",
+            "activate_zone:duel:by_column:aim",
+            "activate_zone:duel:by_column:armor",
+            "activate_zone:duel:by_column:land",
+            "activate_zone:duel:by_column:venom",
+            "activate_zone:duel:by_column:tally",
+            "activate_zone:duel:by_column:spill",
+            "activate_zone:duel:by_column:kills",
+            "stat_set:attacking@each.duel:0",
+            "return_to:duel:origin",
             "activate_zone:rules_death"
           ]
         },
@@ -372,30 +439,25 @@
             "det",
             "no_det",
             "sneak_ok",
+            "lead_alt",
             "lead_seen",
             "lead_air",
             "lead_skip",
-            "elite_seen",
-            "elite_air",
-            "elite_skip",
-            "scav_seen",
-            "scav_air",
-            "scav_skip",
-            "tech_seen",
-            "tech_air",
-            "tech_skip",
-            "look_seen",
-            "look_air",
-            "look_skip"
+            "pat_all",
+            "pat_lead",
+            "pat_rest",
+            "air_all",
+            "air_rest",
+            "rest_seen",
+            "rest_air",
+            "rest_sneak",
+            "rest_skip"
           ],
           "when": [
             "ready_since@self >= 1",
             "not_tagged:cant_attack@self >= 1",
-            "count:fighter@enemy.patrol_lead <= lead_skip",
-            "count:fighter@enemy.patrol_elite <= elite_skip",
-            "count:fighter@enemy.patrol_scav <= scav_skip",
-            "count:fighter@enemy.patrol_tech <= tech_skip",
-            "count:fighter@enemy.patrol_look <= look_skip"
+            "count:at_lead@enemy.patrol <= lead_skip",
+            "pat_rest <= rest_skip"
           ],
           "target": {
             "type": "card",
@@ -405,69 +467,154 @@
             "where": ["alt@target <= sum:aa@self", "not_tagged:untargetable@target >= 1"]
           },
           "action": [
-            "stat_set:incoming@self:sum:atk@self",
-            "stat_set:back@self:sum:atk@target",
-            "stat_damage:incoming@self:sum:armor@target",
-            "stat_damage:incoming@self:sum:guard@target",
-            "stat_damage:back@self:sum:armor@self",
-            "stat_damage:back@self:sum:guard@self",
-            "stat_damage:armor@target:sum:atk@self",
-            "stat_damage:guard@target:sum:atk@self",
-            "stat_damage:armor@self:sum:atk@target",
-            "stat_damage:guard@self:sum:atk@target",
-            "stat_damage:hp@target:sum:incoming@self",
-            "stat_damage:life@target:sum:incoming@self",
-            "stat_damage:integrity@target:sum:incoming@self",
-            "stat_damage:hp@self:sum:back@self",
-            "stat_damage:life@self:sum:back@self",
-            "stat_damage:hp@self:count:detector@enemy.addon",
-            "stat_damage:life@self:count:detector@enemy.addon",
-            "move_to:mine.army",
+            "stat_set:attacking@self:1",
+            "move_to:duel",
+            "move_target_to:duel",
+            "activate_zone:duel:by_column:clear",
+            "activate_zone:duel:by_column:rage",
+            "activate_zone:duel:by_column:attacks",
+            "activate_zone:duel:by_column:aim",
+            "activate_zone:duel:by_column:armor",
+            "activate_zone:duel:by_column:land",
+            "activate_zone:duel:by_column:venom",
+            "activate_zone:duel:by_column:tally",
+            "activate_zone:duel:by_column:spill",
+            "activate_zone:duel:by_column:kills",
+            "stat_set:attacking@each.duel:0",
+            "return_to:duel:origin",
             "activate_zone:rules_death"
           ]
         },
         {
-          "key": "go_lead",
-          "text": "Patrol: squad leader",
+          "key": "go_patrol",
+          "text": "Patrol",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "when": ["count:fighter@mine.patrol_lead == 0", "not_tagged:cant_patrol@self >= 1"],
-          "action": ["move_to:mine.patrol_lead"]
-        },
-        {
-          "key": "go_elite",
-          "text": "Patrol: elite",
-          "phases": ["main"],
-          "cost": { "exhaust": 1 },
-          "when": ["count:fighter@mine.patrol_elite == 0", "not_tagged:cant_patrol@self >= 1"],
-          "action": ["move_to:mine.patrol_elite"]
-        },
-        {
-          "key": "go_scav",
-          "text": "Patrol: scavenger",
-          "phases": ["main"],
-          "cost": { "exhaust": 1 },
-          "when": ["count:fighter@mine.patrol_scav == 0", "not_tagged:cant_patrol@self >= 1"],
-          "action": ["move_to:mine.patrol_scav"]
-        },
-        {
-          "key": "go_tech",
-          "text": "Patrol: technician",
-          "phases": ["main"],
-          "cost": { "exhaust": 1 },
-          "when": ["count:fighter@mine.patrol_tech == 0", "not_tagged:cant_patrol@self >= 1"],
-          "action": ["move_to:mine.patrol_tech"]
-        },
-        {
-          "key": "go_look",
-          "text": "Patrol: lookout",
-          "phases": ["main"],
-          "cost": { "exhaust": 1 },
-          "when": ["count:fighter@mine.patrol_look == 0", "not_tagged:cant_patrol@self >= 1"],
-          "action": ["move_to:mine.patrol_look"]
+          "tooltip": "Take a post. Left to right: squad leader, elite, scavenger, technician, lookout.",
+          "when": ["not_tagged:cant_patrol@self >= 1"],
+          "target": { "type": "slot", "count": 1, "owner": "mine", "zones": ["patrol"], "fill": "empty" },
+          "action": [
+            "move_to:target",
+            "stat_set:guard@self:0",
+            "stat_set:slot@self:sum:col@self",
+            "stat_gain:guard@self:count:at_lead@self"
+          ]
         }
       ]
-    }
+    },
+    "in_combat": {
+      "abilities": [
+        {
+          "key": "clear",
+          "phases": [],
+          "text": "Ready",
+          "action": [
+            "stat_set:incoming@self:0",
+            "stat_set:raw@self:0",
+            "stat_set:back@self:0",
+            "stat_set:spill@self:0",
+            "stat_set:power@self:sum:atk@self"
+          ]
+        },
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Attacks",
+          "when": ["attacking@self >= 1"],
+          "action": ["stat_set:fought@self:1"]
+        },
+        {
+          "key": "aim",
+          "phases": [],
+          "text": "Strike",
+          "compute": ["lr_them", "lr_block"],
+          "when": ["sum:alt@across <= sum:aa@self", "lr_block <= 0"],
+          "action": [
+            "stat_gain:incoming@across:sum:power@self",
+            "stat_gain:raw@across:sum:power@self",
+            "stat_gain:back@across:sum:power@self"
+          ]
+        },
+        {
+          "key": "armor",
+          "phases": [],
+          "text": "Armor",
+          "when": ["back@self >= 1"],
+          "action": [
+            "stat_damage:incoming@self:sum:guard@self",
+            "stat_damage:back@self:sum:guard@self",
+            "stat_set:guard@self:0",
+            "stat_damage:incoming@self:sum:armor@self",
+            "stat_damage:armor@self:sum:back@self"
+          ]
+        },
+        {
+          "key": "land",
+          "phases": [],
+          "text": "Damage",
+          "action": [
+            "stat_set:spill@self:sum:incoming@self",
+            "stat_damage:spill@self:sum:hp@self",
+            "stat_damage:spill@self:sum:life@self",
+            "stat_damage:spill@self:sum:integrity@self",
+            "stat_damage:hp@self:sum:incoming@self",
+            "stat_damage:life@self:sum:incoming@self",
+            "stat_damage:integrity@self:sum:incoming@self"
+          ]
+        },
+        {
+          "key": "venom",
+          "phases": [],
+          "text": "Deathtouch",
+          "when": ["raw@self >= 1", "count:deathtouch@across >= 1"],
+          "action": ["stat_set:hp@self:0", "stat_set:life@self:0"]
+        },
+        {
+          "key": "tally",
+          "phases": [],
+          "text": "The count",
+          "action": [
+            "stat_set:left@self:sum:hp@self",
+            "stat_gain:left@self:sum:life@self",
+            "stat_gain:left@self:sum:integrity@self"
+          ]
+        }
+      ]
+    },
+    "frenzy": {
+      "abilities": [
+        {
+          "key": "rage",
+          "phases": [],
+          "text": "Frenzy",
+          "when": ["attacking@self >= 1"],
+          "action": ["stat_gain:power@self:sum:rage@self"]
+        }
+      ]
+    },
+    "overpower": {
+      "abilities": [
+        {
+          "key": "spill",
+          "phases": [],
+          "text": "Overpower",
+          "when": ["attacking@self >= 1", "sum:slot@across >= 1", "sum:spill@across >= 1"],
+          "action": ["stat_damage:integrity@enemy.base:sum:spill@across"]
+        }
+      ]
+    },
+    "on_patrol": {
+      "abilities": [
+        {
+          "key": "sparked",
+          "phases": [],
+          "text": "Sparkshot",
+          "when": ["sparking@mine.player >= 1", "count:marked@beside >= 1"],
+          "action": ["stat_damage:hp@self:1", "stat_damage:life@self:1"]
+        }
+      ]
+    },
+    "at_elite": { "buffs": { "atk": 1 } }
   },
   "zones": [
     { "key": "options", "layout": "row", "status": "offer", "pos": [0.04, 0.1, 0.96, 0.9] },
@@ -477,6 +624,17 @@
       "tags": ["stack"],
       "display": "offscreen",
       "tooltip": "What has just been announced and not yet answered. Codex has no instants, so nothing waits here for long."
+    },
+    {
+      "key": "duel",
+      "label": "Combat",
+      "layout": "grid",
+      "grid": [1, 2],
+      "status": "board",
+      "use": "abilities",
+      "applies": ["in_combat"],
+      "display": "offscreen",
+      "tooltip": "Where an attacker and its target stand while the blows land. Nothing waits here: a combat begins and ends inside one action."
     },
     { "key": "rules_death", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "rules_upkeep", "layout": "stack", "visibility": "secret", "display": "offscreen" },
@@ -520,84 +678,16 @@
       "tooltip": "Upgrades and ongoing spells. They cannot be attacked."
     },
     {
-      "key": "patrol_lead",
-      "label": "Leader",
+      "key": "patrol",
+      "label": "Patrol",
       "layout": "grid",
-      "grid": [1, 1],
+      "grid": [5, 1],
       "status": "board",
       "use": "abilities",
       "copies": "per_seat",
-      "pos": [[0.19, 0.505, 0.262, 0.645], [0.19, 0.355, 0.262, 0.495]],
-      "receive": { "action": ["stat_set:guard@target:1"] },
-      "tooltip": "Squad leader: 1 armor while patrolling, and an attacker that can reach it must."
-    },
-    {
-      "key": "patrol_elite",
-      "label": "Elite",
-      "layout": "grid",
-      "grid": [1, 1],
-      "status": "board",
-      "use": "abilities",
-      "copies": "per_seat",
-      "pos": [[0.266, 0.505, 0.338, 0.645], [0.266, 0.355, 0.338, 0.495]],
-      "receive": {
-        "action": ["stat_set:guard@target:0", "stat_gain:atk@target:1", "stat_set:elited@target:1"]
-      },
-      "tooltip": "Elite: +1 attack while patrolling."
-    },
-    {
-      "key": "patrol_scav",
-      "label": "Scavenger",
-      "layout": "grid",
-      "grid": [1, 1],
-      "status": "board",
-      "use": "abilities",
-      "copies": "per_seat",
-      "pos": [[0.342, 0.505, 0.414, 0.645], [0.342, 0.355, 0.414, 0.495]],
-      "receive": {
-        "action": [
-          "stat_set:guard@target:0",
-          "stat_damage:atk@target:sum:elited@target",
-          "stat_set:elited@target:0"
-        ]
-      },
-      "tooltip": "Scavenger: finds you 1 gold if it dies while patrolling."
-    },
-    {
-      "key": "patrol_tech",
-      "label": "Technician",
-      "layout": "grid",
-      "grid": [1, 1],
-      "status": "board",
-      "use": "abilities",
-      "copies": "per_seat",
-      "pos": [[0.418, 0.505, 0.49, 0.645], [0.418, 0.355, 0.49, 0.495]],
-      "receive": {
-        "action": [
-          "stat_set:guard@target:0",
-          "stat_damage:atk@target:sum:elited@target",
-          "stat_set:elited@target:0"
-        ]
-      },
-      "tooltip": "Technician: you draw a card if it dies while patrolling."
-    },
-    {
-      "key": "patrol_look",
-      "label": "Lookout",
-      "layout": "grid",
-      "grid": [1, 1],
-      "status": "board",
-      "use": "abilities",
-      "copies": "per_seat",
-      "pos": [[0.494, 0.505, 0.566, 0.645], [0.494, 0.355, 0.566, 0.495]],
-      "receive": {
-        "action": [
-          "stat_set:guard@target:0",
-          "stat_damage:atk@target:sum:elited@target",
-          "stat_set:elited@target:0"
-        ]
-      },
-      "tooltip": "Lookout: resist 1 in the printed game, which this file does not model."
+      "applies": ["on_patrol"],
+      "pos": [[0.19, 0.505, 0.566, 0.645], [0.19, 0.355, 0.566, 0.495]],
+      "tooltip": "Squad leader, elite, scavenger, technician, lookout — left to right. The leader has 1 armor and must be dealt with first; the elite has +1 ATK; a scavenger finds its owner a gold when it dies and a technician a card."
     },
     {
       "key": "structures",
@@ -638,13 +728,7 @@
       "use": "abilities",
       "copies": "per_seat",
       "pos": [[0.005, 0.65, 0.75, 0.8], [0.005, 0.2, 0.75, 0.35]],
-      "receive": {
-        "action": [
-          "stat_set:guard@target:0",
-          "stat_damage:atk@target:sum:elited@target",
-          "stat_set:elited@target:0"
-        ]
-      }
+      "receive": { "action": ["stat_set:guard@target:0", "stat_set:slot@target:0"] }
     },
     {
       "key": "site",
@@ -771,13 +855,9 @@
         "move:mine.site.tech_building:mine.tech",
         "move:mine.site.attachment:mine.addon",
         "stat_gain:gold@mine.player:sum:workers@mine.player",
-        "stat_set:guard@each.mine.patrol_lead:1",
+        "stat_set:guard@each.mine.patrol.at_lead:1",
         "activate_zone:mine.army:by_column:upkeep",
-        "activate_zone:mine.patrol_lead:by_column:upkeep",
-        "activate_zone:mine.patrol_elite:by_column:upkeep",
-        "activate_zone:mine.patrol_scav:by_column:upkeep",
-        "activate_zone:mine.patrol_tech:by_column:upkeep",
-        "activate_zone:mine.patrol_look:by_column:upkeep",
+        "activate_zone:mine.patrol:by_column:upkeep",
         "activate_zone:mine.structures:by_column:upkeep",
         "activate_zone:mine.ongoing:by_column:upkeep",
         "activate_zone:mine.addon:by_column:upkeep",
@@ -789,6 +869,8 @@
       "key": "draw",
       "type": "automatic",
       "actions": [
+        "activate_zone:mine.army:by_column:endturn",
+        "activate_zone:mine.patrol:by_column:endturn",
         "activate_zone:rules_endturn",
         "stat_set:to_draw@mine.player:count:deck_card@mine.hand",
         "stat_gain:to_draw@mine.player:2",
@@ -1156,28 +1238,28 @@
           "key": "mine",
           "text": "Scavenger",
           "phases": [],
-          "when": ["count:dead@mine.patrol_scav >= 1"],
+          "when": ["count:dead@mine.patrol.at_scav >= 1"],
           "action": ["stat_gain:gold@mine.player:1"]
         },
         {
           "key": "theirs",
           "text": "Scavenger",
           "phases": [],
-          "when": ["count:dead@enemy.patrol_scav >= 1"],
+          "when": ["count:dead@enemy.patrol.at_scav >= 1"],
           "action": ["stat_gain:gold@enemy.player:1"]
         },
         {
           "key": "mine_h",
           "text": "Scavenger",
           "phases": [],
-          "when": ["count:fallen@mine.patrol_scav >= 1"],
+          "when": ["count:fallen@mine.patrol.at_scav >= 1"],
           "action": ["stat_gain:gold@mine.player:1"]
         },
         {
           "key": "theirs_h",
           "text": "Scavenger",
           "phases": [],
-          "when": ["count:fallen@enemy.patrol_scav >= 1"],
+          "when": ["count:fallen@enemy.patrol.at_scav >= 1"],
           "action": ["stat_gain:gold@enemy.player:1"]
         }
       ]
@@ -1191,28 +1273,28 @@
           "key": "mine",
           "text": "Technician",
           "phases": [],
-          "when": ["count:dead@mine.patrol_tech >= 1"],
+          "when": ["count:dead@mine.patrol.at_tech >= 1"],
           "action": ["draw_from:mine.deck:mine.hand:1"]
         },
         {
           "key": "theirs",
           "text": "Technician",
           "phases": [],
-          "when": ["count:dead@enemy.patrol_tech >= 1"],
+          "when": ["count:dead@enemy.patrol.at_tech >= 1"],
           "action": ["draw_from:enemy.deck:enemy.hand:1"]
         },
         {
           "key": "mine_h",
           "text": "Technician",
           "phases": [],
-          "when": ["count:fallen@mine.patrol_tech >= 1"],
+          "when": ["count:fallen@mine.patrol.at_tech >= 1"],
           "action": ["draw_from:mine.deck:mine.hand:1"]
         },
         {
           "key": "theirs_h",
           "text": "Technician",
           "phases": [],
-          "when": ["count:fallen@enemy.patrol_tech >= 1"],
+          "when": ["count:fallen@enemy.patrol.at_tech >= 1"],
           "action": ["draw_from:enemy.deck:enemy.hand:1"]
         }
       ]
@@ -1500,7 +1582,7 @@
       "text": "Captain Zane",
       "tags": ["hero", "fighter", "h_anarchy", "red", "haste", "flame", "hero_face"],
       "asset": "star:5:crimson",
-      "tooltip": "Blood Guard Anarchist. Levels 1-3 haste, 2/2. Levels 4-5 3/3: whenever Zane kills a scavenger get 1 gold, a technician draws you a card (NOT MODELLED). Level 6 4/4: shove a patroller to an empty slot in its patrol zone, then deal 1 damage to it (the shove is NOT MODELLED).",
+      "tooltip": "Blood Guard Anarchist. Levels 1-3 haste, 2/2. Levels 4-5 3/3: whenever Zane kills a scavenger get 1 gold, a technician draws you a card (the technician half is NOT MODELLED: one card may not carry two abilities under one name). Level 6 4/4: shove a patroller to an empty slot in its patrol zone, then deal 1 damage to it (the shove is NOT MODELLED: it needs a card and a square chosen together, and an ability takes one kind of target).",
       "card_stats": { "price": 2, "atk": 2, "life": { "value": 2, "max": 4 }, "level": 1, "ready_since": 1 },
       "abilities": [
         {
@@ -1515,7 +1597,6 @@
             "stat_set:life@self:2",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:elited@self:0",
             "stat_set:ready_since@self:1",
             "move_to:mine.army"
           ]
@@ -1570,10 +1651,17 @@
             "type": "card",
             "count": 1,
             "owner": "enemy",
-            "zones": ["patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"],
+            "zones": ["patrol"],
             "where": ["not_tagged:untargetable@target >= 1"]
           },
           "action": ["stat_damage:hp@target:1", "stat_damage:life@target:1", "activate_zone:rules_death"]
+        },
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Zane",
+          "when": ["level@self >= 4", "sum:slot@across == 3", "count:slain@across >= 1"],
+          "action": ["stat_gain:gold@mine.player:1"]
         }
       ]
     },
@@ -1597,7 +1685,6 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:elited@self:0",
             "stat_set:ready_since@self:0",
             "move_to:mine.army"
           ]
@@ -1649,7 +1736,7 @@
       "text": "Jaina Stormborne",
       "tags": ["hero", "fighter", "h_fire", "red", "sparkshot", "flame", "hero_face"],
       "asset": "star:7:orange",
-      "tooltip": "Phoenix Archer. Levels 1-3 2/3 with sparkshot (NOT MODELLED). Levels 4-6 3/3: exhaust to deal 1 damage to a patrolling unit or building. Level 7 4/3: exhaust to deal 3 damage to a unit or building.",
+      "tooltip": "Phoenix Archer. Levels 1-3 2/3 with sparkshot (NOT MODELLED: it sparks every adjacent patroller rather than one of your choice). Levels 4-6 3/3: exhaust to deal 1 damage to a patrolling unit or building. Level 7 4/3: exhaust to deal 3 damage to a unit or building.",
       "card_stats": { "price": 2, "atk": 2, "life": { "value": 3, "max": 3 }, "level": 1 },
       "abilities": [
         {
@@ -1664,7 +1751,6 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:elited@self:0",
             "stat_set:ready_since@self:0",
             "move_to:mine.army"
           ]
@@ -1727,17 +1813,7 @@
             "type": "card",
             "count": 1,
             "owner": "anyone",
-            "zones": [
-              "patrol_lead",
-              "patrol_elite",
-              "patrol_scav",
-              "patrol_tech",
-              "patrol_look",
-              "base",
-              "tech",
-              "structures",
-              "addon"
-            ],
+            "zones": ["base", "tech", "structures", "addon", "patrol"],
             "where": ["not_tagged:untargetable@target >= 1"]
           },
           "action": [
@@ -1757,18 +1833,7 @@
             "type": "card",
             "count": 1,
             "owner": "anyone",
-            "zones": [
-              "army",
-              "patrol_lead",
-              "patrol_elite",
-              "patrol_scav",
-              "patrol_tech",
-              "patrol_look",
-              "base",
-              "tech",
-              "structures",
-              "addon"
-            ],
+            "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
             "where": ["not_tagged:untargetable@target >= 1"]
           },
           "action": [
@@ -1799,7 +1864,6 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:elited@self:0",
             "stat_set:ready_since@self:0",
             "move_to:mine.army"
           ]
@@ -1887,7 +1951,6 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:elited@self:0",
             "stat_set:ready_since@self:0",
             "move_to:mine.army"
           ]
@@ -1958,7 +2021,6 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:elited@self:0",
             "stat_set:ready_since@self:0",
             "move_to:mine.army",
             "fill:mine.army:wisp:1"
@@ -2012,7 +2074,7 @@
             "count": 1,
             "owner": "anyone",
             "tags": ["unit"],
-            "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"],
+            "zones": ["army", "patrol"],
             "where": ["not_tagged:untargetable@target >= 1"]
           },
           "action": ["stat_gain:atk@target:1", "stat_gain:armor@target:1"]
@@ -2243,8 +2305,8 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Frenzy 1 (gets +1 ATK on your turn). NOT MODELLED: frenzy — its attack is the printed 1.",
-      "card_stats": { "price": 1, "atk": 1, "hp": { "value": 1, "max": 1 } }
+      "tooltip": "Frenzy 1 (gets +1 ATK on your turn).",
+      "card_stats": { "price": 1, "atk": 1, "hp": { "value": 1, "max": 1 }, "rage": 1 }
     },
     {
       "key": "mad_man",
@@ -2288,7 +2350,7 @@
           "count": 1,
           "owner": "enemy",
           "tags": ["unit"],
-          "zones": ["patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"],
+          "zones": ["patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": ["stat_damage:hp@target:2", "activate_zone:rules_death"]
@@ -2317,18 +2379,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ],
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -2354,8 +2405,17 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "End of turn: return Bloodrage Ogre to his owner's hand if he didn't arrive or attack this turn. NOT MODELLED: nothing records whether a card attacked.",
-      "card_stats": { "price": 2, "atk": 3, "hp": { "value": 2, "max": 2 } }
+      "tooltip": "End of turn: return Bloodrage Ogre to his owner's hand if he didn't arrive or attack this turn.",
+      "card_stats": { "price": 2, "atk": 3, "hp": { "value": 2, "max": 2 } },
+      "abilities": [
+        {
+          "key": "endturn",
+          "phases": [],
+          "text": "Bloodrage Ogre",
+          "when": ["ready_since@self >= 1", "fought@self == 0"],
+          "action": ["move_to:mine.hand"]
+        }
+      ]
     },
     {
       "key": "makeshift_rambaster",
@@ -2372,8 +2432,17 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Haste. +2 ATK when attacking buildings (NOT MODELLED). Can't patrol.",
-      "card_stats": { "price": 2, "atk": 1, "hp": { "value": 2, "max": 2 }, "ready_since": 1 }
+      "tooltip": "Haste. +2 ATK when attacking buildings. Can't patrol.",
+      "card_stats": { "price": 2, "atk": 1, "hp": { "value": 2, "max": 2 }, "ready_since": 1 },
+      "abilities": [
+        {
+          "key": "rage",
+          "phases": [],
+          "text": "Siege",
+          "when": ["attacking@self >= 1", "count:building@across >= 1"],
+          "action": ["stat_gain:power@self:2"]
+        }
+      ]
     },
     {
       "key": "bloodburn",
@@ -2388,18 +2457,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ],
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -2424,17 +2482,7 @@
           "type": "card",
           "count": 1,
           "owner": "enemy",
-          "zones": [
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ],
+          "zones": ["base", "tech", "structures", "addon", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -2461,7 +2509,7 @@
           "count": 1,
           "owner": "mine",
           "tags": ["unit"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"]
+          "zones": ["army", "patrol"]
         },
         "action": ["stat_gain:atk@target:1", "stat_set:ready_since@target:1"],
         "spent": "mine.discard"
@@ -2515,7 +2563,7 @@
           "count": 1,
           "owner": "enemy",
           "tags": ["fighter"],
-          "zones": ["patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"],
+          "zones": ["patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": ["move_target_to:enemy.army"]
@@ -2537,8 +2585,17 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Anti-air. Whenever Gunpoint Taxman kills a patroller, steal 1 gold from that player (NOT MODELLED).",
-      "card_stats": { "price": 2, "atk": 3, "hp": { "value": 3, "max": 3 }, "aa": 1 }
+      "tooltip": "Anti-air. Whenever Gunpoint Taxman kills a patroller, steal 1 gold from that player.",
+      "card_stats": { "price": 2, "atk": 3, "hp": { "value": 3, "max": 3 }, "aa": 1 },
+      "abilities": [
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Gunpoint Taxman",
+          "when": ["attacking@self >= 1", "sum:slot@across >= 1", "count:slain@across >= 1"],
+          "action": ["stat_gain:gold@mine.player:1", "stat_damage:gold@enemy.player:1"]
+        }
+      ]
     },
     {
       "key": "chameleon_lizzo",
@@ -2651,8 +2708,17 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "+4 ATK when attacking buildings. NOT MODELLED: no rule can ask what a strike is aimed at.",
-      "card_stats": { "price": 3, "atk": 3, "hp": { "value": 6, "max": 6 } }
+      "tooltip": "+4 ATK when attacking buildings.",
+      "card_stats": { "price": 3, "atk": 3, "hp": { "value": 6, "max": 6 } },
+      "abilities": [
+        {
+          "key": "rage",
+          "phases": [],
+          "text": "Siege",
+          "when": ["attacking@self >= 1", "count:building@across >= 1"],
+          "action": ["stat_gain:power@self:4"]
+        }
+      ]
     },
     {
       "key": "pirate_gunship",
@@ -2673,7 +2739,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying, haste, long-range, resist 2, obliterate 2. NOT MODELLED: long-range, resist and obliterate.",
+      "tooltip": "Flying, haste, long-range, resist 2, obliterate 2. NOT MODELLED: resist, and obliterate takes the first two units rather than the lowest tech ones.",
       "card_stats": {
         "price": 6,
         "atk": 7,
@@ -2681,7 +2747,16 @@
         "ready_since": 1,
         "alt": 1,
         "aa": 1
-      }
+      },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Obliterate",
+          "when": ["attacking@self >= 1"],
+          "action": ["destroy:enemy.army.unit:2"]
+        }
+      ]
     },
     {
       "key": "chaos_mirror",
@@ -2828,7 +2903,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Haste, ephemeral, overpower. NOT MODELLED: overpower.",
+      "tooltip": "Haste, ephemeral, overpower.",
       "card_stats": { "price": 3, "atk": 6, "hp": { "value": 2, "max": 2 }, "ready_since": 1 }
     },
     {
@@ -2847,7 +2922,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Overpower (NOT MODELLED). Upkeep: sacrifice two workers or Land Octopus — here it always takes the workers. Can't patrol.",
+      "tooltip": "Overpower. Upkeep: sacrifice two workers or Land Octopus — here it always takes the workers. Can't patrol.",
       "card_stats": { "price": 3, "atk": 8, "hp": { "value": 7, "max": 7 } },
       "abilities": [
         {
@@ -2873,7 +2948,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Attacks: if this survives the combat, gain control of a tech 0 or I unit. NOT MODELLED: there is no on-attack moment.",
+      "tooltip": "Attacks: if this survives the combat, gain control of a tech 0 or I unit. NOT MODELLED: nothing can be chosen part-way through a fight.",
       "card_stats": { "price": 5, "atk": 5, "hp": { "value": 4, "max": 4 } }
     },
     {
@@ -2919,7 +2994,7 @@
           "max": 2,
           "owner": "mine",
           "tags": ["fighter"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"]
+          "zones": ["army", "patrol"]
         },
         "action": ["stat_gain:atk@target:1", "stat_set:ready_since@target:1"],
         "spent": "mine.discard"
@@ -2947,7 +3022,7 @@
           "count": 1,
           "owner": "enemy",
           "tags": ["unit"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"],
+          "zones": ["army", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -3030,17 +3105,7 @@
           "type": "card",
           "count": 1,
           "owner": "enemy",
-          "zones": [
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ],
+          "zones": ["base", "tech", "structures", "addon", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -3107,7 +3172,7 @@
           "max": 1,
           "owner": "anyone",
           "tags": ["unit"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"],
+          "zones": ["army", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -3133,8 +3198,17 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Long-range. Attacks: deal 3 damage to that opponent's base. NOT MODELLED: both.",
-      "card_stats": { "price": 3, "atk": 4, "hp": { "value": 3, "max": 3 } }
+      "tooltip": "Long-range. Attacks: deal 3 damage to that opponent's base.",
+      "card_stats": { "price": 3, "atk": 4, "hp": { "value": 3, "max": 3 } },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Attacks",
+          "when": ["attacking@self >= 1"],
+          "action": ["stat_damage:integrity@enemy.base:3"]
+        }
+      ]
     },
     {
       "key": "firehouse",
@@ -3149,18 +3223,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ],
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -3229,17 +3292,7 @@
           "type": "card",
           "count": 1,
           "owner": "enemy",
-          "zones": [
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ],
+          "zones": ["base", "tech", "structures", "addon", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -3265,18 +3318,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ],
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -3301,18 +3343,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ],
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -3338,18 +3369,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ],
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": [
@@ -3444,7 +3464,7 @@
           "count": 1,
           "owner": "mine",
           "tags": ["unit"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"]
+          "zones": ["army", "patrol"]
         },
         "action": [
           "stat_damage:atk@self:1",
@@ -3532,7 +3552,7 @@
           "count": 1,
           "owner": "mine",
           "tags": ["fighter"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"]
+          "zones": ["army", "patrol"]
         },
         "action": [
           "stat_gain:atk@target:1",
@@ -3559,7 +3579,7 @@
           "count": 1,
           "owner": "mine",
           "tags": ["fighter"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"]
+          "zones": ["army", "patrol"]
         },
         "action": ["stat_gain:atk@target:2", "stat_gain:armor@target:2"],
         "spent": "mine.discard"
@@ -3608,7 +3628,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Deathtouch. Unattackable and unstoppable by tech 0 units. NOT MODELLED: all three — no rule can ask the attacker's tier, and deathtouch has nowhere to change a damage number.",
+      "tooltip": "Deathtouch. Unattackable and unstoppable by tech 0 units. NOT MODELLED: the last two — no rule can ask the attacker's tier.",
       "card_stats": { "price": 2, "atk": 1, "hp": { "value": 2, "max": 2 } }
     },
     {
@@ -3644,7 +3664,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Overpower. Upkeep: if a player has more total ATK than each other player, Dothram Horselord joins their forces. NOT MODELLED: both.",
+      "tooltip": "Overpower. Upkeep: if a player has more total ATK than each other player, Dothram Horselord joins their forces. NOT MODELLED: the upkeep half.",
       "card_stats": { "price": 3, "atk": 6, "hp": { "value": 5, "max": 5 } }
     },
     {
@@ -3681,7 +3701,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Untargetable, deathtouch (deathtouch NOT MODELLED). Arrives: you may destroy an upgrade or ongoing spell.",
+      "tooltip": "Untargetable, deathtouch. Arrives: you may destroy an upgrade or ongoing spell.",
       "card_stats": { "price": 4, "atk": 3, "hp": { "value": 5, "max": 5 } },
       "play": {
         "phases": ["main"],
@@ -3724,7 +3744,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Overpower, resist 2 (both NOT MODELLED). Arrives: destroy up to two units or upgrades.",
+      "tooltip": "Overpower, resist 2 (resist NOT MODELLED). Arrives: destroy up to two units or upgrades.",
       "card_stats": { "price": 8, "atk": 10, "hp": { "value": 10, "max": 10 } },
       "play": {
         "phases": ["main"],
@@ -3735,15 +3755,7 @@
           "min": 0,
           "max": 2,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "patrol_lead",
-            "patrol_elite",
-            "patrol_scav",
-            "patrol_tech",
-            "patrol_look",
-            "ongoing"
-          ],
+          "zones": ["army", "ongoing", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": ["move_to", "stat_set:ready_since@self:0", "destroy:target"]
@@ -3820,7 +3832,7 @@
           "count": 1,
           "owner": "mine",
           "tags": ["h_balance"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"]
+          "zones": ["army", "patrol"]
         },
         "action": [
           "stat_gain:atk@target:3",
@@ -3847,7 +3859,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Overpower. NOT MODELLED: overpower.",
+      "tooltip": "Overpower.",
       "card_stats": { "price": 3, "atk": 3, "hp": { "value": 4, "max": 4 } }
     },
     {
@@ -3866,7 +3878,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Sparkshot (NOT MODELLED), anti-air.",
+      "tooltip": "Sparkshot, anti-air. NOT MODELLED: it sparks every adjacent patroller rather than one of your choice.",
       "card_stats": { "price": 2, "atk": 3, "hp": { "value": 3, "max": 3 }, "aa": 1 }
     },
     {
@@ -3885,7 +3897,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Resist 2, overpower. NOT MODELLED: both.",
+      "tooltip": "Resist 2 (NOT MODELLED), overpower.",
       "card_stats": { "price": 4, "atk": 5, "hp": { "value": 5, "max": 5 } }
     },
     {
@@ -3903,7 +3915,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Gigadon costs 1 less for each green unit you have. Overpower. NOT MODELLED: both — a play block has no place to bind the arithmetic, so it costs the printed 9.",
+      "tooltip": "Gigadon costs 1 less for each green unit you have. Overpower. NOT MODELLED: the discount — a play block has no place to bind the arithmetic, so it costs the printed 9.",
       "card_stats": { "price": 9, "atk": 8, "hp": { "value": 8, "max": 8 } }
     },
     {
@@ -3975,14 +3987,23 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Untargetable. Arrives or attacks: summon three 1/1 green Squirrel tokens. Your Squirrels have haste and are invisible. NOT MODELLED: the attack half, and the Squirrels are ordinary.",
+      "tooltip": "Untargetable. Arrives or attacks: summon three 1/1 green Squirrel tokens. NOT MODELLED: the Squirrels are ordinary rather than hasty and invisible.",
       "card_stats": { "price": 7, "atk": 8, "hp": { "value": 9, "max": 9 } },
       "play": {
         "phases": ["main"],
         "needs": ["count:t3@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "action": ["move_to", "stat_set:ready_since@self:0", "fill:mine.army:squirrel:3"]
-      }
+      },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Attacks",
+          "when": ["attacking@self >= 1"],
+          "action": ["fill:mine.army:squirrel:3"]
+        }
+      ]
     },
     {
       "key": "behind_the_ferns",
@@ -4156,7 +4177,7 @@
           "count": 1,
           "owner": "mine",
           "tags": ["unit"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"]
+          "zones": ["army", "patrol"]
         },
         "action": [
           "stat_damage:atk@self:1",
@@ -4191,7 +4212,7 @@
           "count": 1,
           "owner": "mine",
           "tags": ["unit"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"]
+          "zones": ["army", "patrol"]
         },
         "action": ["stat_gain:atk@target:3", "stat_boost:hp@target:3", "stat_gain:hp@target:3"]
       }
@@ -4237,8 +4258,17 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Legendary. Resist 2, obliterate 4. You may play Growth spells for free and without having a Growth hero. NOT MODELLED: all three.",
-      "card_stats": { "price": 10, "atk": 12, "hp": { "value": 12, "max": 12 } }
+      "tooltip": "Legendary. Resist 2, obliterate 4. You may play Growth spells for free and without having a Growth hero. NOT MODELLED: resist and the free spells, and obliterate takes the first four units rather than the lowest tech ones.",
+      "card_stats": { "price": 10, "atk": 12, "hp": { "value": 12, "max": 12 } },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Obliterate",
+          "when": ["attacking@self >= 1"],
+          "action": ["destroy:enemy.army.unit:4"]
+        }
+      ]
     },
     {
       "key": "dinosize",
@@ -4255,7 +4285,7 @@
           "count": 1,
           "owner": "anyone",
           "tags": ["fighter"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"],
+          "zones": ["army", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": ["stat_gain:atk@target:6", "stat_gain:armor@target:6"],
@@ -4277,7 +4307,7 @@
           "count": 1,
           "owner": "anyone",
           "tags": ["unit"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"],
+          "zones": ["army", "patrol"],
           "where": ["not_tagged:untargetable@target >= 1"]
         },
         "action": ["transform:target:squirrel"],
@@ -4309,7 +4339,7 @@
           "count": 1,
           "owner": "mine",
           "tags": ["unit"],
-          "zones": ["army", "patrol_lead", "patrol_elite", "patrol_scav", "patrol_tech", "patrol_look"]
+          "zones": ["army", "patrol"]
         },
         "action": [
           "stat_gain:atk@target:2",

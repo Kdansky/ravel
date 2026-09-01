@@ -7,6 +7,7 @@ local predicate   = require("predicate")
 local log         = require("log")
 local geometry    = require("geometry")
 local rng         = require("rng")
+local tags        = require("tags")
 
 local M = {}
 
@@ -74,6 +75,33 @@ local function zone_of(arg)
 	return id and entity.get(id)
 end
 
+-- "origin" — the zone a card was in immediately before its last move, which the
+-- engine records and nothing else can know. It is a *destination* and never a
+-- source, because every card carries its own: one line sending a whole zone home
+-- sends each card somewhere different, which is the entire point of it. A card
+-- that has never moved has none and is left where it is, and so is one already
+-- standing in it — going home from home is not a move.
+local function origin_id(card_id)
+	local c = entity.get(card_id)
+	local z = c and c.origin_zone_id and entity.get(c.origin_zone_id)
+	if not (z and z.kind == "zone") or z.id == c.zone_id then return nil end
+	return z.id
+end
+
+-- Put it back, on its own square where the zone has them. A post somebody else
+-- has taken since is not one to evict them from, so that falls back to the
+-- ordinary arrival.
+local function send_home(card_id, where)
+	local to = origin_id(card_id)
+	if not to then return end
+	local c    = entity.get(card_id)
+	local slot = c.origin_slot_id and entity.get(c.origin_slot_id)
+	if slot and slot.zone_id == to and not slot.occupant and zones.place_in_slot(card_id, slot.id) then
+		return
+	end
+	zones.move_card(card_id, to, where)
+end
+
 -- Every numeric slot accepts a number or a measuring fn over a subject —
 -- "count:<tag>", "card:<key>", "sum:<subject>", "max:<subject>", "min:<subject>" — e.g.
 -- "stat_gain:gold:count:economic". One rule everywhere.
@@ -119,6 +147,12 @@ local function bounds(e, key)
 	local hi  = e.stat_max and e.stat_max[key]
 	if lo == nil then lo = def.min end
 	if hi == nil then hi = def.max end
+	-- **The ceiling rises with a buff, the floor does not.** A 1/1 handed +1/+1
+	-- has to be able to reach 2, or the buff is clamped away before it is worth
+	-- anything; and it has to be able to reach 0, or two damage leaves it alive
+	-- at the one point it was printed with. Those are the two ends, and they
+	-- want different treatment.
+	if hi ~= nil then hi = hi + tags.buff(e, key) end
 	return lo, hi
 end
 
@@ -132,9 +166,15 @@ end
 -- Change a stat on an entity, held between its floor and its ceiling.
 local function change_stat(e, key, delta, ctx)
 	if not e or not e.stats then return end
-	local old = e.stats[key] or 0
-	local v   = clamped(e, key, old + delta)
-	e.stats[key] = v
+	-- Arithmetic on what the stat *is*, storage of what was left after the tags
+	-- had their say. A card is damaged for what it reads, so the clamp has to
+	-- see the buffed number; what goes back on the card is that number without
+	-- the buff, so nothing is double-counted the next time it is read and the
+	-- printed value returns intact when the tag goes.
+	local buff = tags.buff(e, key)
+	local old  = (e.stats[key] or 0) + buff
+	local v    = clamped(e, key, old + delta)
+	e.stats[key] = v - buff
 	if v ~= old then
 		local txt = string.format("%+d %s", v - old, key)
 		if e.kind == "card" then
@@ -176,7 +216,7 @@ local function drain(p, n, ctx)
 	local left = n
 	for _, e in ipairs(ents) do
 		if left <= 0 then break end
-		local take = math.min(tonumber(e.stats[p.arg]) or 0, left)
+		local take = math.min(tags.stat(e, p.arg), left)
 		if take > 0 then
 			change_stat(e, p.arg, -take, ctx)
 			left = left - take
@@ -284,6 +324,10 @@ HANDLERS["move_to"] = function(p, ctx)
 		elseif t.zone_id then zones.move_card(ctx.card_id, t.zone_id) end
 		return
 	end
+	if dest == "origin" then
+		send_home(ctx.card_id)
+		return
+	end
 	if not dest then
 		local c   = entity.get(ctx.card_id)
 		local def = c and declaration.G.card_defs[c.def_key]
@@ -358,6 +402,13 @@ end
 -- Write it outright, past every bound. An authoring tool rather than a game
 -- rule: it is how a phase resets a counter, and it neither logs nor animates,
 -- because nothing a player did caused it.
+--
+-- **A write addresses the card's own number; a read and a clamp see the whole.**
+-- What a buff adds is not the card's to set, because it belongs to the tag and
+-- goes when the tag does — so a hero levelling up to "attack 2" is printed at 2
+-- and still reads 3 while it stands in the elite post. Setting the effective
+-- number instead would let a level-up quietly eat a bonus granted by something
+-- it has never heard of.
 HANDLERS["stat_set"] = function(p, ctx)
 	local sp = predicate.parse_subject(p[2])
 	if not sp then return end
@@ -566,8 +617,9 @@ end
 -- the same pair of moves whoever reads them.
 HANDLERS["move"] = function(p, ctx)
 	local sc    = predicate.parse_scope(p[2] or "")
-	local to_id = zone_id(p[3])
-	if not (sc and to_id) then return end
+	local home  = p[3] == "origin"
+	local to_id = not home and zone_id(p[3]) or nil
+	if not (sc and (to_id or home)) then return end
 	-- Snapshot before moving: the scope is recomputed from live zones, and a
 	-- card that has already left would be counted from the zone it landed in.
 	local moving = {}
@@ -578,7 +630,9 @@ HANDLERS["move"] = function(p, ctx)
 	if sc.quant == "random" and #moving > 0 then
 		moving = { moving[rng.int(#moving)] }
 	end
-	for _, id in ipairs(moving) do zones.move_card(id, to_id, p[4]) end
+	for _, id in ipairs(moving) do
+		if to_id then zones.move_card(id, to_id, p[4]) else send_home(id, p[4]) end
+	end
 end
 
 -- set_owner:<scope>:<who>  — hand those cards to a seat, or to nobody.
@@ -793,8 +847,17 @@ end
 -- otherwise refill mid-drain and loop forever.
 HANDLERS["return_to"] = function(p)
 	local from = zone_of(p[2])
+	if not from then return end
+	-- Each card to its own origin. Snapshotted first for the same reason every
+	-- other multi-card move is: the list being walked is the one emptying.
+	if p[3] == "origin" then
+		local going = {}
+		for i, id in ipairs(from.cards) do going[i] = id end
+		for _, id in ipairs(going) do send_home(id, p[4]) end
+		return
+	end
 	local to_id = zone_id(p[3])
-	if not from or not to_id then return end
+	if not to_id then return end
 	for _ = 1, #from.cards do
 		if not zones.move_top(from.id, to_id, p[4]) then break end
 	end
@@ -802,10 +865,10 @@ end
 
 -- move_target_to:zone[:top|bottom]  — move each targeted card to zone.
 HANDLERS["move_target_to"] = function(p, ctx)
-	local to_id = zone_id(p[2])
-	if not to_id then return end
+	local to_id = p[2] ~= "origin" and zone_id(p[2]) or nil
+	if not (to_id or p[2] == "origin") then return end
 	for _, tid in ipairs(ctx and ctx.targets or {}) do
-		zones.move_card(tid, to_id, p[3])
+		if to_id then zones.move_card(tid, to_id, p[3]) else send_home(tid, p[3]) end
 	end
 end
 

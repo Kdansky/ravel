@@ -412,7 +412,10 @@ function M.total(subject, ctx)
 
 	local sum, best, least = 0, 0, nil
 	for _, e in ipairs(M.bearers(p, ctx, ents)) do
-		local v = tonumber(e.stats[p.arg]) or 0
+		-- Through tags.stat, so a buff a tag is holding open counts as part of
+		-- the number. Every condition, compute, cost and amount in the game
+		-- arrives here, which is what makes one read site enough.
+		local v = tags.stat(e, p.arg)
 		sum = sum + v
 		if v > best then best = v end
 		if least == nil or v < least then least = v end

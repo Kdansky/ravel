@@ -9,7 +9,7 @@ M.filename = nil  -- source file of the current game, for template reloads
 M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list", "pays_for_index",
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
-	"compute_defs", "compute_list", "react_index",
+	"compute_defs", "compute_list", "react_index", "buff_index",
 	"style_defs", "dynamic_styles", "seat_index",
 }
 
@@ -536,6 +536,7 @@ function M.parse(filename)
 		-- knows what wounded means.
 		style_defs     = type(parsed.styles) == "table" and parsed.styles or {},
 		dynamic_styles = {},   -- style names that are also computed tags
+		buff_index     = {},   -- stat key -> tags that shift it, so a read with no buff costs one nil lookup
 		end_conditions = parsed.end_conditions or {},
 		setup          = parsed.setup or {},
 		-- Where the game begins, in the order the manual would say it. A card
@@ -597,6 +598,25 @@ function M.parse(filename)
 			td.emits = emits_of(td, pp, "tag '" .. tostring(name) .. "'")
 		end
 		G.tag_defs[name] = td
+	end
+
+	-- Which tags shift which stat, keyed by the stat so a read that has no buff
+	-- to find costs one nil lookup. A game with no "buffs" anywhere therefore
+	-- pays nothing per stat read, which is every shipped game but Codex.
+	for name, td in pairs(G.tag_defs) do
+		for stat, n in pairs(type(td) == "table" and type(td.buffs) == "table" and td.buffs or {}) do
+			if tonumber(n) then
+				local list = G.buff_index[stat] or {}
+				list[#list + 1] = { tag = name, n = tonumber(n) }
+				G.buff_index[stat] = list
+			end
+		end
+	end
+	-- Sorted, so the sum is the same on every machine: pairs() over the tags is
+	-- not, and a replay that adds the same numbers in a different order would
+	-- still be a replay that could disagree about a clamp.
+	for _, list in pairs(G.buff_index) do
+		table.sort(list, function(a, b) return a.tag < b.tag end)
 	end
 
 	-- Only a style word that is *also* a computed tag can change under a running

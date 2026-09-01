@@ -590,12 +590,22 @@ end
 -- The badges a card actually shows: the style's list, less any zero it asked to
 -- leave out. Asked by the drawing and by the title's layout both, because a
 -- title giving way to a badge that is not there would be off-centre for nothing.
-local function badge_keys(look, stats)
+-- What a card's stat shows, which is what the rules read and not what is stored
+-- on it: a badge that said the printed number while every condition in the game
+-- saw a buffed one would be the screen disagreeing with the board. Nil stays
+-- nil — a buff never gives a card a stat it has not got.
+local function shown_stat(card_e, key)
+	local stats = card_e and card_e.stats
+	if not (stats and stats[key]) then return stats and stats[key] end
+	return tags.stat(card_e, key)
+end
+
+local function badge_keys(look, card_e)
 	local out = {}
-	if not (type(look.badges) == "table" and stats) then return out end
+	if not (type(look.badges) == "table" and card_e and card_e.stats) then return out end
 	local zeros = look.badge_zeros ~= false
 	for _, key in ipairs(look.badges) do
-		local v = stats[key]
+		local v = shown_stat(card_e, key)
 		if v and (zeros or v ~= 0) then out[#out + 1] = key end
 	end
 	return out
@@ -724,10 +734,10 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		-- below, once the title has a height.
 		local stats = card_e.stats
 		local down  = look.badge_run == "down"
-		local keys  = badge_keys(look, stats)
+		local keys  = badge_keys(look, card_e)
 		local row_w, col_h = 0, 0
 		for i, key in ipairs(keys) do
-			local w = badge_size(key, badge_text(key, stats[key]))
+			local w = badge_size(key, badge_text(key, shown_stat(card_e, key)))
 			if down then
 				row_w = math.max(row_w, w)
 				col_h = col_h + get_small_font():getHeight() + 3 * S
@@ -736,7 +746,8 @@ local function draw_card_face(pl, card_e, show_text, vis)
 			end
 		end
 		if #keys == 0 and stats and stats.hp then
-			row_w = badge_size("hp", stats.hp .. "/" .. ((card_e.stat_max or {}).hp or stats.hp))
+			local hp = shown_stat(card_e, "hp")
+			row_w = badge_size("hp", hp .. "/" .. (tags.stat_max(card_e, "hp") or hp))
 		end
 		local badge_w = down and 0 or row_w
 
@@ -938,17 +949,18 @@ local function draw_card_stats_overlay(pl, card_e, by)
 		-- of the two reaches it.
 		local down = look.badge_run == "down"
 		local x, y = pl.x + 2 * S, down and (pl.y + 3 * S) or by
-		for _, key in ipairs(badge_keys(look, stats)) do
-			local w = draw_badge(key, badge_text(key, stats[key]), x, y, { 1, 1, 1 })
+		for _, key in ipairs(badge_keys(look, card_e)) do
+			local w = draw_badge(key, badge_text(key, shown_stat(card_e, key)), x, y, { 1, 1, 1 })
 			if down then y = y + fh + 3 * S else x = x + w + 2 * S end
 		end
 	elseif stats.hp then
-		local hp_max = (card_e.stat_max or {}).hp or stats.hp
-		local ratio  = hp_max > 0 and stats.hp / hp_max or 0
+		local hp     = shown_stat(card_e, "hp")
+		local hp_max = tags.stat_max(card_e, "hp") or hp
+		local ratio  = hp_max > 0 and hp / hp_max or 0
 		local colour = ratio > 0.6 and { 0.25, 0.95, 0.35 }
 			or ratio > 0.3 and { 1.00, 0.82, 0.15 }
 			or { 1.00, 0.28, 0.15 }
-		draw_badge("hp", stats.hp .. "/" .. hp_max, pl.x + 2 * S, by, colour)
+		draw_badge("hp", hp .. "/" .. hp_max, pl.x + 2 * S, by, colour)
 	end
 	love.graphics.pop()
 end
@@ -1665,8 +1677,10 @@ local function draw_card_detail(card_e)
 			print_at("Stats:", info_x, y)
 			y = y + main_font:getHeight() + 4 * S
 			local caps = card_e.stat_max or {}
-			for k, v in pairs(stats) do
-				local val = caps[k] and (v .. "/" .. caps[k]) or tostring(v)
+			for k in pairs(stats) do
+				local v   = tags.stat(card_e, k)
+				local hi  = caps[k] and tags.stat_max(card_e, k)
+				local val = hi and (v .. "/" .. hi) or tostring(v)
 				love.graphics.setColor(0.78, 0.92, 1.00)
 				print_at("  " .. k .. ": " .. val, info_x, y)
 				y = y + main_font:getHeight()

@@ -489,6 +489,10 @@ function M.move_card(card_id, to_id, where)
 	-- refused move leaves the card exactly where it was).
 	if not c or not to or not M.has_room(to) then return false end
 
+	-- The square it is standing on, read before the next lines let it go: on a
+	-- grid, "where it came from" is a cell and not a zone, and a fight that sent
+	-- three patrollers away has to put each one back in its own post.
+	local from_slot = c.slot_id
 	-- Clear slot occupancy when card leaves its slot.
 	if c.slot_id then
 		local slot = entity.get(c.slot_id)
@@ -507,6 +511,12 @@ function M.move_card(card_id, to_id, where)
 	end
 
 	if where == "bottom" then table.insert(to.cards, 1, card_id) else table.insert(to.cards, card_id) end
+	-- Where it came from, kept so it can be sent back. Written on every move,
+	-- so it means "immediately before" and not "where this lives" — a card that
+	-- fought, was bounced and drawn again remembers the hand, not the board.
+	-- Only the engine can know this, and every game asks it sooner or later.
+	c.origin_zone_id = c.zone_id
+	c.origin_slot_id = from_slot
 	c.zone_id = to_id
 	M.auto_slot(card_id)
 	fire_leaves(from, to, card_id)

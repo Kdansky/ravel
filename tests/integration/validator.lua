@@ -79,6 +79,10 @@ local CASES = {
 		end },
 	{ "a non-string in an action list", "every action must be a text string",
 		function(g) g.card_defs.c_flee.on_play = { 5 } end },
+	{ "origin used as a source", "only reads as a destination",
+		function(g) g.card_defs.c_flee.on_play = { "return_to:origin:hand" } end },
+	{ "a zone named after a destination word", "would send the card back where it came from",
+		function(g) g.zone_defs.origin = g.zone_defs.hand end },
 	-- stats
 	{ "min/max on an engine-managed stat", "managed by the engine",
 		function(g) g.stat_defs.round = { key = "round", min = 0 } end },
@@ -93,6 +97,18 @@ local CASES = {
 		function(g) g.computed_tags.keepsake = { stat = "hp", equals = "0" } end },
 	{ "a tag with behaviour nobody carries", "no card carries this tag",
 		function(g) g.tag_defs.ghost = { zone = "board" } end },
+	-- buffs
+	{ "a buff on a stat no card has", "buffs 'vigour', but no card carries a stat",
+		function(g) g.tag_defs.keepsake = { buffs = { vigour = 1 } } end },
+	{ "a buff by something that is not a number", "which is not a number",
+		function(g) g.tag_defs.keepsake = { buffs = { hp = "sum:hp@self" } } end },
+	{ "a buffs block that isn't a map", '"buffs" should be written like',
+		function(g) g.tag_defs.keepsake = { buffs = 2 } end },
+	{ "a computed tag buffing the stat that decides it", "would need to know its own answer",
+		function(g)
+			g.computed_tags.hurt = { stat = "hp", less_than = 1 }
+			g.tag_defs.hurt      = { buffs = { hp = 1 } }
+		end },
 	-- computed tags
 	{ "a computed tag that isn't a map", 'should be written like { "stat"',
 		function(g) g.computed_tags.ruined = 5 end },
