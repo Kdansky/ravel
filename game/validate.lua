@@ -31,6 +31,12 @@ local RESERVED = { round = true, plays = true }
 -- stands, which is how "rank" already works.
 local SLOT_STATS = { col = true, row = true }
 
+-- Stamped by the engine on the one card a supply keeps of each kind: how many of
+-- that kind the stock holds. Legitimate in a scoped subject although no card
+-- declares it, for the same reason col and row are — the zone declared it, on
+-- behalf of every card that lands there.
+local SUPPLY_STATS = { stock = true }
+
 -- Every tag the engine itself reads, what it attaches to, and what it does.
 --
 -- One table because there were four half-lists: a set in this file that only
@@ -54,17 +60,10 @@ M.ENGINE_TAGS = {
 	no_undo      = { on = "card", what = "playing or picking it clears the undo stack — the choice is final" },
 	generate_art = { on = "card", what = "with no asset, draws a shape derived from its key rather than a bare colour" },
 	-- zones
-	per_seat          = { on = "zone", what = "one copy per seat; pos then takes one rect each" },
 	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
 	refill_when_empty = { on = "zone", what = "recreates its contents when the last card leaves" },
-	face_up           = { on = "zone", what = "cards here are shown, whatever the type would do — including a per-seat hand, which is how an open hand is said" },
-	face_down         = { on = "zone", what = "cards here are hidden, whatever the type would do" },
-	no_peek           = { on = "zone", what = "no tooltip and no browsing the pile" },
-	activate          = { on = "zone", what = "cards here may use their abilities — without it an ability is unreachable" },
 	optional          = { on = "zone", what = "nothing here ever has to be played, so a gated card stays gated" },
-	page              = { on = "zone", what = "its cards are drawn as full-screen story pages" },
 	last_acted        = { on = "card", what = "the card a player most recently played or activated. Written by the engine, one at a time, and it lingers until the next thing a player does" },
-	hidden            = { on = "zone", what = "not drawn and not clickable — offer zones, fate decks" },
 	-- phases
 	discard_hand = { on = "phase", what = "leaving it discards the unplayed hand; tokens vanish" },
 	keep_hand    = { on = "phase", what = "a draw_and_play phase opting out of the discard it would otherwise get" },
@@ -116,17 +115,25 @@ local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	tags = true, card_stats = true, outcome = true,
 	play = true, activate = true, challenge = true, receive = true, turn = true,
-	chosen = true,
+	chosen = true, leaves = true,
 	-- Several activated abilities instead of one. Authored as a list, and
 	-- normalised in place into the same shape a lone "activate" produces, so
 	-- nothing downstream asks which form was written.
 	abilities = true,
+	-- Reactions: a list of subscriptions to another player's action, each with a
+	-- verb it answers ("to"), a condition over the event ("where"), and whether
+	-- the controller is prompted ("forced"). Normalised like abilities.
+	reactions = true,
+	-- What playing this announces, so a reaction may answer it. Usually inherited
+	-- from a tag rather than written here.
+	emits = true,
 	-- derived by declaration.parse from the blocks above
-	cost = true, needs = true, target = true, phases = true, on_play = true,
+	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
+	on_leaves = true, leaves_into = true,
 	activate_cost = true, activate_target = true,
-	activate_phases = true, on_activate = true, moves = true,
+	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
-	accepts = true, on_receive = true, on_turn = true, on_chosen = true,
+	accepts = true, on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 	style = true,
 	-- Written by the engine onto the menu entry it generates for each ability of
@@ -136,16 +143,19 @@ local CARD_FIELDS = {
 }
 local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
-	action = true }
+	action = true, spent = true }
 local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
-	moves = true }
+	moves = true, merge = true }
 local RECEIVE_FIELDS   = { needs = true, action = true }
 local TURN_FIELDS      = { action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
 -- The pick is the target; the card that asked is the one acting.
-local CHOSEN_FIELDS    = { action = true }
+local CHOSEN_FIELDS    = { where = true, action = true }
 local ZONE_FIELDS = {
-	key = true, label = true, type = true, pos = true, grid = true, style = true,
+	key = true, label = true, pos = true, style = true,
+	-- the seven, and the two parameters a layout value makes legal
+	layout = true, visibility = true, reach = true, use = true, status = true,
+	display = true, copies = true, grid = true, row = true,
 	contents = true, tooltip = true, tags = true, tags_set = true, refill_from = true,
 	-- its own ability, and what declaration.parse derives from that block
 	activate = true, on_activate = true, activate_phases = true, activate_cost = true,
@@ -157,7 +167,7 @@ local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
 	draw = true, zone = true, pass_card = true, next = true,
 	ends_after = true, ends_when = true, injected = true, tags = true, tags_set = true,
-	seat = true, on_enter = true,
+	seat = true, on_enter = true, emits = true,
 	-- derived: "zone" normalised to a list (declaration.parse)
 	zone_list = true,
 }
@@ -185,15 +195,23 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 -- The flat names a tag's "play" block becomes, and which the loader then copies
 -- onto every card wearing the tag. Derived from the loader's own table rather
 -- than typed out again: a moment gaining a field must not need editing twice.
-local GRANTED_PLAY    = { play = true }
-for _, internal in pairs(MOMENTS.play) do GRANTED_PLAY[internal] = true end
+-- The moments a tag may hand a card whole. Named here so the clash check below
+-- knows a granted field is not a card and its tag both defining one.
+local GRANTED_PLAY    = { play = true, leaves = true }
+for _, moment in ipairs({ "play", "leaves" }) do
+	for _, internal in pairs(MOMENTS[moment]) do GRANTED_PLAY[internal] = true end
+end
 
 local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
-	abilities = true,
+	abilities = true, emits = true, leaves = true, on_leaves = true, leaves_into = true,
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
-	activate_phases = true, moves = true,
-	on_play = true, cost = true, needs = true, target = true, phases = true }
+	activate_phases = true, activate_merge = true, moves = true,
+	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true,
+	buffs = true, adjusts = true }
+
+local VERB_FIELDS   = { key = true, does = true, tooltip = true }
+local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, when = true, by = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it
 -- overwritten and no error — which is the shape of bug that costs an afternoon,
 -- because the number is right in the file and wrong in the game.
@@ -205,6 +223,7 @@ local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = t
 local ENGINE_STATS    = {
 	owner      = "which seat a piece belongs to, from where it was placed",
 	turn       = "whose go it is, on the system card",
+	priority   = "who may act right now, on the system card — the turn, except inside a response window",
 	round      = "the round counter, on the system card",
 	plays      = "how many cards have been played this phase",
 	last_acted = "the card a player most recently played or activated",
@@ -257,7 +276,20 @@ local ASSET_FIELDS    = { src = true, max = true }
 -- why they are one block rather than three fields that can be half-written.
 local CHALLENGE_FIELDS = { needs = true, pass = true, fail = true }
 local PATTERN_FIELDS  = { vectors = true, class = true, zone = true }
-local ZONE_TYPES      = { deck = true, pile = true, hand = true, grid = true, options = true }
+-- Shapes reached through a section rather than declared beside one. These were
+-- written as literals at their call sites, which is why "setup" grew a second
+-- field nothing read: an inline set is checked but cannot be *asked*, so no
+-- document could be held to it and SCHEMA.json described "setup.player" for as
+-- long as it took somebody to copy it. A move rule had no set at all, so a
+-- misspelt "fil" was ignored rather than reported.
+local SETUP_FIELDS = { place = true }
+local PLACE_FIELDS = { card = true, zone = true, at = true, owner = true }
+local MOVE_RULE_FIELDS = { patterns = true, fill = true, needs = true, where = true }
+local PLAYER_FIELDS = { card = true, stats = true, text = true }
+-- A value names its own parameter field, so every word on every one of the seven
+-- is reserved: "layout": "grid" is what makes "grid" a legal field, and a
+-- parameter whose value was not chosen is a zone that thinks it is two shapes.
+local ZONE_PARAMS     = { grid = "layout", row = "layout" }
 local PHASE_TYPES     = { automatic = true, player_input = true, draw_and_play = true, overlay = true }
 
 -- The same tables, reachable. Named for the JSON section each belongs to, since
@@ -283,19 +315,27 @@ M.FIELDS = {
 	receive       = RECEIVE_FIELDS,
 	turn          = TURN_FIELDS,
 	chosen        = CHOSEN_FIELDS,
+	verbs         = VERB_FIELDS,
+	adjusts       = ADJUST_FIELDS,
 }
+
+-- The shapes above, reachable for the same reason M.FIELDS is: a set nobody can
+-- ask about is a set no document can be held to.
+M.SHAPES = { setup = SETUP_FIELDS, place = PLACE_FIELDS, move_rule = MOVE_RULE_FIELDS,
+	player = PLAYER_FIELDS }
 
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
 -- entry the engine hands around and are not things an author ever writes, so
 -- the schema document must not describe them.
 M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true, style = true,
 	-- flattened out of the moment blocks by declaration.parse, never authored
-	cost = true, needs = true, target = true, phases = true, on_play = true,
+	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	activate_cost = true, activate_target = true,
-	activate_phases = true, on_activate = true, moves = true,
+	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_receive = true, on_turn = true, on_chosen = true, zone_list = true,
-	auto_play = true, to_zone = true, to_slot = true }
+	on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
+	on_leaves = true, leaves_into = true,
+	zone_list = true, auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
 -- "did you mean" suggestions.
@@ -457,6 +497,17 @@ function M.check(G)
 			.. "could mean either, so rename one of them", c.name, c.a, c.b)
 	end
 
+	-- The two words a destination may be instead of a zone. A zone under either
+	-- name could never be moved to: the word is read first and the zone would
+	-- sit there unreachable, which is worse than being told.
+	for _, name in ipairs({ "target", "origin" }) do
+		if G.zone_defs[name] then
+			warn("zone '%s' uses a name a move already means — \"move_to:%s\" would send the card "
+				.. "%s rather than to this zone, so rename it", name, name,
+				name == "target" and "where the player pointed" or "back where it came from")
+		end
+	end
+
 	-- Walk the reserved names, not every tag and zone: deterministic order
 	-- without sorting, and the list is stated once.
 	for _, name in ipairs(RESERVED_SCOPES) do
@@ -486,6 +537,13 @@ function M.check(G)
 		end
 	end
 
+	-- Whether any zone is a supply, which is what makes "stock" a stat the engine
+	-- writes rather than a word nobody declared.
+	local has_supply = false
+	for _, zd in pairs(G.zone_defs) do
+		if type(zd) == "table" and zd.status == "supply" then has_supply = true end
+	end
+
 	local all_stats = {}
 	for k in pairs(G.stat_defs) do all_stats[k] = true end
 	for k in pairs(RESERVED) do all_stats[k] = true end
@@ -495,7 +553,7 @@ function M.check(G)
 	-- not among them, exactly as actions.sole_grid decides at runtime.
 	local grids = {}
 	for key, zd in pairs(G.zone_defs) do
-		if zd.type == "grid" and not (zd.tags_set and zd.tags_set.hidden) then
+		if zd.layout == "grid" and zd.display ~= "offscreen" then
 			grids[#grids + 1] = key
 		end
 	end
@@ -506,7 +564,7 @@ function M.check(G)
 	end
 
 	-- Everything a scope may name, for checking and for suggestions.
-	local scope_names = { target = true }
+	local scope_names = { target = true, event = true, source = true }
 	for _, k in ipairs(RESERVED_SCOPES) do scope_names[k] = true end
 	for k in pairs(G.zone_defs) do scope_names[k] = true end
 	for k in pairs(known_tags) do scope_names[k] = true end
@@ -524,6 +582,23 @@ function M.check(G)
 		return sc and scope_named(sc.name) or inner
 	end
 
+	-- "<zone>.<tag>" is two names, and both have to exist. Reported as the half
+	-- that is wrong rather than as the whole expression, since "no zone called
+	-- gem_pyle" is the sentence somebody can act on.
+	local function scope_pair_ok(where, what, expr, name)
+		if type(name) ~= "string" then return false end
+		local place, kind = name:match("^([%w_]+)%.([%w_]+)$")
+		if not place then return false end
+		if not G.zone_defs[place] then
+			warn("%s: %s '%s' looks in '%s', but no zone has that key%s",
+				where, what, expr, place, suggest(place, G.zone_defs))
+		elseif not known_tags[kind] then
+			warn("%s: %s '%s' asks for '%s' in '%s', but no card carries that tag%s",
+				where, what, expr, kind, place, suggest(kind, known_tags))
+		end
+		return true
+	end
+
 	-- A subject: [<fn>:]<stat|tag|card>[@[<quant>.]<scope>]. allow_fn is false
 	-- for costs, where count:/card:/sum:/max:/min: have nothing to spend.
 	local function subject_ok(where, key, allow_fn)
@@ -534,7 +609,9 @@ function M.check(G)
 			return
 		end
 		local named = p.scope and scope_named(p.scope)
-		if p.scope and not scope_names[named] then
+		if p.scope and not scope_names[named] and scope_pair_ok(where, "the subject", key, named) then
+			-- said already, as the half that is wrong
+		elseif p.scope and not scope_names[named] then
 			warn("%s: '@%s' is neither a zone nor a tag%s",
 				where, p.scope, suggest(named, scope_names))
 		end
@@ -562,7 +639,8 @@ function M.check(G)
 		elseif not stat_ok(p.arg) then
 			-- A scoped subject reads a stat off the cards it names, so a stat
 			-- only ever carried by cards is legitimate there.
-			if not (p.scope and (card_stats[p.arg] or SLOT_STATS[p.arg])) then
+			if not (p.scope and (card_stats[p.arg] or SLOT_STATS[p.arg]
+				or (has_supply and SUPPLY_STATS[p.arg]))) then
 				warn("%s: uses the stat '%s', but it is never declared or set up%s",
 					where, tostring(p.arg), suggest(p.arg, all_stats))
 			end
@@ -594,7 +672,16 @@ function M.check(G)
 			return
 		end
 		if not (bound and bound[c.left.src]) then subject_ok(where, c.left.src or c.left.n) end
-		if c.right.subject then subject_ok(where, c.right.src) end
+		if bound and bound[c.right.src] then
+			-- A compute, named where the ability bound it. Legitimate on either
+			-- side: it is a number with a name, and one comparison is two operands.
+		elseif c.right.bare then
+			warn("%s: '%s' is a bare word, so it would read as a stat worth nothing — write a number, "
+				.. 'a compute this ability lists, or say which cards you mean ("value@target", '
+				.. '"max:value@mine.red")', where, tostring(c.right.src))
+		elseif c.right.subject then
+			subject_ok(where, c.right.src)
+		end
 	end
 
 	-- A gate: a list of conditions, every one of which must hold. It was a map
@@ -655,8 +742,21 @@ function M.check(G)
 				-- A cost's subjects may carry a scope, but not a measuring fn.
 				subject_ok(where, key, false)
 			end
-			if type(v) ~= "number" then
-				warn("%s: the value of '%s' should be a number", where, tostring(key))
+			if type(v) == "string" then
+				-- Measured rather than typed: the amount is read off the board when
+				-- the cost is judged. Checked as the subject it is; a bare word
+				-- would otherwise read as a stat worth nothing and quietly make the
+				-- whole thing free.
+				if tonumber(v) then
+					warn('%s: the value of \'%s\' is the text "%s" rather than the number %s — '
+						.. "a quoted amount is read as a subject to measure, and measures nothing",
+						where, tostring(key), v, v)
+				else
+					subject_ok(where, v, true)
+				end
+			elseif type(v) ~= "number" then
+				warn("%s: the value of '%s' should be a number, or a subject to measure it by",
+					where, tostring(key))
 			elseif v < 0 then
 				warn("%s: '%s' is negative — costs and requirements must be zero or more",
 					where, tostring(key))
@@ -717,6 +817,9 @@ function M.check(G)
 	-- op's declared shape (actions.spec), so the validator can't drift from
 	-- the handlers.
 	local known_ops = actions.ops()
+	-- Every verb the game named and actually performs, gathered as the actions
+	-- go past, exactly as emitted_verbs is.
+	local used_verbs = {}
 	-- What may stand in a value slot. The measuring words take a subject in the
 	-- slot after them and are checked there, so here they only have to be let
 	-- through.
@@ -741,16 +844,47 @@ function M.check(G)
 		end
 		return keys_memo
 	end
+	-- The verbs anything in this game announces. "play" is the engine's own, raised
+	-- whenever a card is put up to be answered; the rest are collected below, from
+	-- what cards and tags emit and from every emit: action walked.
+	local emitted_verbs = { play = true }
+	for _, defs in ipairs({ G.card_defs, tag_defs, G.phase_by_key }) do
+		for _, def in pairs(defs or {}) do
+			for _, verbs in pairs(type(def) == "table" and def.emits or {}) do
+				for _, v in ipairs(type(verbs) == "table" and verbs or {}) do emitted_verbs[v] = true end
+			end
+		end
+	end
+
+	-- Which argument of a moving op is the place cards come *out* of, so a supply
+	-- can be refused there and allowed everywhere else.
+	local MOVES_FROM = { draw_from = 2, return_to = 2 }
+
+	-- And which is the place they go, so "origin" — one destination per card,
+	-- not a zone — can be allowed there and nowhere else.
+	local MOVES_TO = { move_to = 2, move_target_to = 2, return_to = 3, move = 3 }
+
 	local check_action
 	function check_action(where, str)
 		local p = {}
 		for w in str:gmatch("[^:]+") do p[#p + 1] = w end
-		local op   = p[1]
+		local op = p[1]
+		-- A verb the game named is checked against the engine verb it stands
+		-- for, and noted as used, so an aura watching for one no card performs
+		-- can be told so at the end.
+		local vd = G.verb_defs[op]
+		if vd then
+			used_verbs[op] = true
+			op = vd.does
+		end
 		local spec = actions.spec(op)
 		if not spec then
 			warn("%s: '%s' is not an action the engine knows%s", where, tostring(op), suggest(op, known_ops))
 			return
 		end
+		-- Every verb the game raises, gathered as the actions go past, so a
+		-- reaction answering one nothing emits can be told so at the end.
+		if op == "emit" and p[2] then emitted_verbs[p[2]] = true end
 		local i = 1
 		for word in spec:gmatch("%S+") do
 			i = i + 1
@@ -774,9 +908,36 @@ function M.check(G)
 				-- key to check is the last word. An unknown owner word simply
 				-- stays part of the name and is caught as an unknown zone.
 				local sc = predicate.parse_scope(a)
-				if not (sc and (G.zone_defs[sc.name] or sc.name == "target")) then
+				if sc and sc.name == "origin" then
+					if MOVES_TO[op] ~= i then
+						warn("%s: '%s' cannot take cards out of 'origin' — it is where each card came "
+							.. "from, a different place for every one of them, so it only reads as a "
+							.. "destination", where, op)
+					end
+				elseif not (sc and (G.zone_defs[sc.name] or sc.name == "target")) then
 					warn("%s: '%s' points at zone '%s', but no zone has that key%s",
 						where, op, a, suggest(sc and sc.name or a, G.zone_defs))
+				elseif MOVES_FROM[op] == i and (G.zone_defs[sc.name] or {}).status == "supply" then
+					-- Taking *from* a supply would move the one card standing for
+					-- the whole stock. Spend it and make a new one instead: a
+					-- "stock@self" cost beside "fill:<somewhere>:@self", which is
+					-- how both games that invented this by hand already wrote it.
+					warn('%s: "%s" draws out of the supply \'%s\', which would move the card '
+						.. 'standing for the whole stock — spend "stock" and fill from it instead',
+						where, op, sc.name)
+				end
+			elseif t == "pos" then
+				-- Where in the destination the card lands. Two words, because a
+				-- list has two ends and a deck is the only zone where the
+				-- difference is a rule rather than a detail.
+				if a ~= "top" and a ~= "bottom" then
+					warn("%s: '%s' says the card lands '%s' — it should be 'top' or 'bottom'",
+						where, op, tostring(a))
+				end
+			elseif t == "moment" then
+				if a ~= "play" and a ~= "activate" then
+					warn("%s: '%s' copies '%s', and a card has two action lists to copy: 'play' and 'activate'",
+						where, op, tostring(a))
 				end
 			elseif t == "optional" then
 				if a ~= "optional" then
@@ -793,14 +954,33 @@ function M.check(G)
 			elseif t == "scope" then
 				local sc = predicate.parse_scope(a)
 				local named = sc and scope_named(sc.name)
-				if not (sc and scope_names[named]) then
+				if not (sc and scope_names[named]) and not scope_pair_ok(where, "'" .. op .. "'", a, named) then
 					warn("%s: '%s' names '%s', which is neither a zone nor a tag%s",
 						where, op, a, suggest(named or a, scope_names))
+				end
+			elseif t == "card" and a:sub(1, 1) == "@" then
+				-- The template read off a card instead of named here. Checked as
+				-- the scope it is, since the key it will produce is not knowable
+				-- until something is lying there.
+				local sc = predicate.parse_scope(a:sub(2))
+				local named = sc and scope_named(sc.name)
+				if not (sc and scope_names[named]) and not scope_pair_ok(where, "'" .. op .. "'", a, named) then
+					warn("%s: '%s' takes its card from '%s', which is neither a zone nor a tag%s",
+						where, op, a, suggest(named or a:sub(2), scope_names))
 				end
 			elseif t == "card" and not G.card_defs[a] then
 				warn("%s: '%s' names the card '%s', but no template has that key%s",
 					where, op, a, suggest(a, G.card_defs))
 			elseif t == "n" then
+				-- An amount is one slot or five ("sum:x@y:x:count:z"), so the
+				-- argument after one is not found by counting colons. Walked the
+				-- same way actions.lua walks it and left on the last slot the
+				-- amount used, or a trailing word would be checked against
+				-- whatever the measure left standing.
+				while true do
+					if AMOUNT_FNS[p[i]] then i = i + 1 end
+					if p[i + 1] == "x" then i = i + 2 else break end
+				end
 				-- A value slot: a number, a measuring fn over a subject, or a
 				-- compute the ability bound. Anything else used to read as 0 and
 				-- say nothing, so a misspelled amount was a silent no-op.
@@ -877,16 +1057,32 @@ function M.check(G)
 		end
 	end
 
+	-- Whose game it is, frozen while a question stands. The engine refuses these
+	-- at runtime (actions.lua); this is the same rule read off the file, because a
+	-- list that opens an offer and then ends the phase reads as if it worked and
+	-- leaves the offer’s cards where nobody can reach them.
+	local FREEZES = { next_phase = true, push_phase = true, pop_phase = true,
+		set_active_seat = true, set_priority = true, clear_priority = true, each_seat = true }
+
 	local function check_list(where, list)
 		if list == nil then return end
 		if type(list) ~= "table" then
 			warn('%s: should be a list of actions like ["stat_gain:gold:1"], not a single value', where)
 			return
 		end
+		local opened
 		for _, str in ipairs(list) do
 			if type(str) ~= "string" then
 				warn("%s: every action must be a text string", where)
 			else
+				local op = str:match("^[^:]+")
+				if opened and FREEZES[op] then
+					warn("%s: '%s' opens an offer and then '%s' — a phase, seat or priority may not "
+						.. "move while a question is on the table, so it is refused and the offer stays open. "
+						.. "Put it in the card’s “chosen” list, which runs once the offer has closed",
+						where, opened, op)
+				end
+				if op == "show" or op == "options" then opened = str end
 				check_action(where, str)
 			end
 		end
@@ -962,6 +1158,7 @@ function M.check(G)
 	-- standing on the square it lands on.
 	local function check_moves(where, rules)
 		for _, rule in ipairs(rules or {}) do
+			check_fields(where, rule, MOVE_RULE_FIELDS)
 			for _, pname in ipairs(rule.patterns or {}) do
 				if not G.pattern_defs[pname] then
 					warn("%s: moves by the pattern '%s', but none is declared under \"patterns\"%s",
@@ -1018,6 +1215,12 @@ function M.check(G)
 					end
 				end
 			end
+		end
+		-- What this ability says when it meets the others on the same card.
+		if ab.merge ~= nil and ab.merge ~= "both" and ab.merge ~= "this" and ab.merge ~= "other" then
+			warn('%s: merge is "both" (the default — the player is asked which), "this" (mine alone) '
+				.. 'or "other" (mine only when the card offers nothing else), not \'%s\'',
+				where, tostring(ab.merge))
 		end
 		check_conditions(where .. " when", ab.when, bound)
 		check_target(where, "target", ab.target)
@@ -1173,7 +1376,10 @@ function M.check(G)
 			-- Abilities are the exception, and the only one: two answers is
 			-- exactly what they are for. A card that can already do something
 			-- and is handed another thing can do both, and the player is asked
-			-- which — where a granted ability used to hide the card's own.
+			-- which — where a granted ability used to hide the card's own. An
+			-- ability that means to hide it says so, in "merge", and is checked
+			-- where the abilities are rather than here among the fields that
+			-- have no precedence rule at all.
 			--
 			-- "play" is the second exception, and unlike abilities it *does* have
 			-- a precedence rule: the card's own wins and the tag fills in for the
@@ -1194,14 +1400,72 @@ function M.check(G)
 					end
 				end
 			end
-			if G.computed_tags[tag] then
-				warn("%s: is defined under both 'tags' and 'computed_tags' — computed tags can't carry behaviour", where)
+			-- A buff is not behaviour. It is a property of wearing the word, the
+			-- same as a style is, and a style has always been allowed to be a
+			-- computed tag — that is the whole of conditional rendering. So a
+			-- computed tag may say what it shifts and nothing else: "damaged
+			-- units hit harder" is one line, and there is no card for the
+			-- behaviour version of it to belong to.
+			-- The loader always leaves an "abilities" and an "emits" behind, so
+			-- an empty one is not something the game said.
+			local buff_only = td.buffs ~= nil
+			for field, v in pairs(td) do
+				if field ~= "buffs" and not (type(v) == "table" and next(v) == nil) then buff_only = false end
 			end
-			if not carried_tags[tag] then
+			if G.computed_tags[tag] and not buff_only then
+				warn("%s: is defined under both 'tags' and 'computed_tags' — a computed tag can carry "
+					.. "\"buffs\" and nothing else, since there is no card for behaviour to belong to", where)
+			end
+			if not carried_tags[tag] and not G.computed_tags[tag] then
 				warn("%s: has behaviour defined, but no card carries this tag%s",
 					where, suggest(tag, carried_tags))
 			end
+			for stat, n in pairs(type(td.buffs) == "table" and td.buffs or {}) do
+				if tonumber(n) == nil then
+					warn("%s: buffs '%s' by '%s', which is not a number — a buff is a plain shift, and "
+						.. "anything worked out belongs in a compute", where, tostring(stat), tostring(n))
+				elseif not card_stats[stat] and not G.stat_defs[stat] then
+					warn("%s: buffs '%s', but no card carries a stat by that name%s",
+						where, tostring(stat), suggest(stat, card_stats))
+				end
+			end
+			if td.buffs ~= nil and type(td.buffs) ~= "table" then
+				warn('%s: "buffs" should be written like { "atk": 1 }', where)
+			end
 		end
+	end
+
+	-- **A buff may not depend on itself.** A computed tag reads a stat, and if
+	-- that tag buffs a stat some other computed tag reads, and so on back round,
+	-- then working out what a card's attack *is* needs to know what its attack
+	-- is. The engine answers nought and carries on rather than running out of
+	-- stack, but an answer nobody can predict is not an answer, so the shape is
+	-- refused here instead: "damaged units get +1 hp" is the one-line version,
+	-- and it is a card that is damaged only while it is not.
+	do
+		local reads = {}
+		for tag, td in pairs(tag_defs) do
+			local cd = G.computed_tags[tag]
+			if cd and cd.stat and type(td) == "table" and type(td.buffs) == "table" then
+				for stat in pairs(td.buffs) do
+					reads[stat] = reads[stat] or {}
+					reads[stat][#reads[stat] + 1] = { tag = tag, stat = cd.stat }
+				end
+			end
+		end
+		local seen, path = {}, {}
+		local function walk(stat, trail)
+			if path[stat] then
+				warn("computed tag '%s': its buff leads back to '%s', which is the stat deciding whether "
+					.. "the tag holds — working out the shift would need to know its own answer", trail, stat)
+				return
+			end
+			if seen[stat] then return end
+			seen[stat], path[stat] = true, true
+			for _, r in ipairs(reads[stat] or {}) do walk(r.stat, r.tag) end
+			path[stat] = nil
+		end
+		for stat in pairs(reads) do walk(stat, "") end
 	end
 
 	-- Abilities need somewhere to be used. Activation is the zone's to allow,
@@ -1211,7 +1475,7 @@ function M.check(G)
 	do
 		local can_use = false
 		for _, zd in pairs(G.zone_defs) do
-			if zd.tags_set and zd.tags_set.activate then can_use = true end
+			if zd.use == "abilities" then can_use = true end
 		end
 		if not can_use then
 			local who
@@ -1323,15 +1587,25 @@ function M.check(G)
 			end
 		end
 	end
-	-- **Badges are read off the card, so a style only a zone claims draws none.**
+	-- **Badges are read off the card, so a style nothing wears draws none.**
 	-- A style is claimed by carrying a tag of its name, and `cards.style` asks
-	-- the card — not the zone the card is lying in. Splendor named badges on
-	-- three zone styles and drew all three nowhere, for a year, with no warning:
-	-- the property is legal, the style exists, and nothing was wrong to find.
+	-- the card. Splendor named badges on three zone styles and drew all three
+	-- nowhere, for a year, with no warning: the property is legal, the style
+	-- exists, and nothing was wrong to find.
+	--
+	-- A tag a *zone* hands out through "applies" counts, because `entity_has`
+	-- counts it — which is how a chip shows what it does in a hand and what it
+	-- costs on the shelf, wearing one style of its own and one of the shop's. A
+	-- style the zone claims for *itself* is the case above and still draws none.
 	do
 		local worn = {}
 		for _, def in pairs(G.card_defs) do
 			for tag in pairs(def.tags_set or {}) do worn[tag] = true end
+		end
+		for _, zd in pairs(G.zone_defs) do
+			for _, tag in ipairs(type(zd) == "table" and type(zd.applies) == "table" and zd.applies or {}) do
+				worn[tag] = true
+			end
 		end
 		for name, sd in pairs(G.style_defs or {}) do
 			if type(sd) == "table" and sd.badges ~= nil and not worn[name] then
@@ -1364,7 +1638,8 @@ function M.check(G)
 			warn('%s: should be written like { "stat": "hp", "equals": "0" }', where)
 		else
 			check_fields(where, def, COMPUTED_FIELDS)
-			if def.stat and not card_stats[def.stat] then
+			if def.stat and not card_stats[def.stat]
+				and not (has_supply and SUPPLY_STATS[def.stat]) then
 				warn("%s: reads the card stat '%s', but no card carries it%s",
 					where, tostring(def.stat), suggest(def.stat, card_stats))
 			end
@@ -1657,6 +1932,20 @@ function M.check(G)
 		check_list(where .. " on_activate", def.on_activate)
 		check_list(where .. " on_turn", def.on_turn)
 		check_list(where .. " on_chosen", def.on_chosen)
+		-- Leaving play, and the zone that says which kind of leaving it was. A
+		-- name that is not a zone is the whole of what can go wrong here: it
+		-- would match nothing and the rule would silently never run, which is
+		-- the failure a "dies" trigger is least likely to be noticed missing.
+		check_list(where .. " leaves action", def.on_leaves)
+		if def.leaves_into ~= nil then
+			if not G.zone_defs[def.leaves_into] then
+				warn("%s leaves: goes \"into\" '%s', but no zone has that key%s",
+					where, tostring(def.leaves_into), suggest(def.leaves_into, G.zone_defs))
+			elseif def.on_leaves == nil then
+				warn('%s leaves: says where it goes but does nothing when it gets there — add "action"', where)
+			end
+		end
+		check_conditions(where .. " chosen where", def.chosen_where)
 		check_list(where .. " on_pass", def.on_pass)
 		check_list(where .. " on_fail", def.on_fail)
 
@@ -1676,6 +1965,32 @@ function M.check(G)
 			for i, ab in ipairs(def.abilities or {}) do
 				check_ability(("%s ability %d ('%s')"):format(where, i, tostring(ab.key)), ab)
 			end
+		end
+
+		-- Everything this card carries wherever it lies: its own abilities and
+		-- its keywords'. Two of them claiming "this" is two abilities each saying
+		-- the other should go quiet, which is not a precedence rule but the
+		-- absence of one. What a *zone* hands it is not counted — nothing says
+		-- which zones a card may lie in, so that pairing is only knowable as the
+		-- game runs, and the engine lets both through rather than picking.
+		local sole
+		local function claims(list, from)
+			for _, ab in ipairs(type(list) == "table" and list or {}) do
+				if type(ab) == "table" and ab.merge == "this" then
+					if sole then
+						warn("%s: %s and %s both say merge \"this\" — each wants the other silent, "
+							.. "and only one of them can be the card's whole answer",
+							where, sole, from .. " '" .. tostring(ab.key) .. "'")
+					else
+						sole = from .. " '" .. tostring(ab.key) .. "'"
+					end
+				end
+			end
+		end
+		claims(def.abilities, "its ability")
+		for _, t in ipairs(type(def.tags) == "table" and def.tags or {}) do
+			local td = tag_defs[t]
+			if type(td) == "table" then claims(td.abilities, "the tag '" .. tostring(t) .. "' ability") end
 		end
 
 		-- Placement: where does this card go? Its tags may disagree (a
@@ -1723,19 +2038,21 @@ function M.check(G)
 	for key, def in pairs(G.zone_defs) do
 		local where = "zone '" .. key .. "'"
 		check_fields(where, def, ZONE_FIELDS)
-		if def.type and not ZONE_TYPES[def.type] then
-			warn("%s: '%s' is not a zone type (deck, pile, hand, grid or options)%s",
-				where, tostring(def.type), suggest(def.type, ZONE_TYPES))
+		for param, field in pairs(ZONE_PARAMS) do
+			if def[param] ~= nil and def[field] ~= param then
+				warn('%s: writes "%s", which belongs to "%s": "%s" — it is %s here, so the two disagree about what shape this is',
+					where, param, field, param, tostring(def[field]))
+			end
 		end
 		-- A grid puts each card in an addressed slot; a fan lays them in a run.
-		-- Both answer "where does this card go", so a zone wearing both has two
+		-- Both answer "where does this card go", so a zone saying both has two
 		-- answers and the renderer would take whichever it read last.
-		if def.type == "grid" then
+		if def.layout == "grid" then
 			for tag in pairs(def.tags_set or {}) do
 				local sd = G.style_defs and G.style_defs[tag]
 				if type(sd) == "table" and sd.fan then
 					warn("%s: is a grid and wears '%s', which fans — a grid places by slot and a fan by order, "
-						.. "and they cannot both decide. Make it a pile, or drop the style", where, tag)
+						.. 'and they cannot both decide. Make it a row, or drop the style', where, tag)
 				end
 			end
 		end
@@ -1744,8 +2061,15 @@ function M.check(G)
 			if def.activate.action == nil then
 				warn('%s: has an "activate" block with no action — nothing would happen', where)
 			end
+			-- A zone has one ability and nothing to meet, so precedence between
+			-- abilities is a card's word. Refused rather than ignored: a field
+			-- that quietly does nothing is worse than one that is not allowed.
+			if def.activate.merge ~= nil then
+				warn('%s: says "merge" on its own ability, which only settles precedence '
+					.. "between the several a card can have", where)
+			end
 		end
-		if def.tags_set and def.tags_set.per_seat then
+		if def.copies == "per_seat" then
 			local seats = #(G.seat_list or {})
 			if seats > 1 then
 				if type(def.pos) ~= "table" or #def.pos ~= seats then
@@ -1763,11 +2087,11 @@ function M.check(G)
 		-- The lower-left corner belongs to the undo button and event log.
 		if type(def.pos) == "table" and #def.pos == 4
 			and type(def.pos[1]) == "number" and type(def.pos[4]) == "number"
-			and not (def.tags_set and def.tags_set.hidden)
+			and def.display ~= "offscreen"
 			and def.pos[1] < 0.17 and def.pos[4] > 0.82 then
 			warn("%s: covers the lower-left corner where the undo button and event log live — start it at x 0.19 or higher", where)
 		end
-		if def.type == "grid" then
+		if def.layout == "grid" then
 			if def.grid == nil then
 				warn('%s: a board needs "grid": [columns, rows]', where)
 			else
@@ -1775,10 +2099,17 @@ function M.check(G)
 			end
 			if type(def.grid) == "table" and type(def.grid[1]) == "number"
 				and type(def.grid[2]) == "number" and type(def.contents) == "table" then
+				-- A supply's cells hold *kinds*: sixty-four gems are one card and a
+				-- number, so what has to fit is how many different things it sells.
 				local cap, total = def.grid[1] * def.grid[2], 0
+				local kinds = {}
 				for _, entry in ipairs(def.contents) do
-					local _, n = tostring(entry):match("^([^:]+):?(%d*)$")
-					total = total + (tonumber(n) or 1)
+					local key, n = tostring(entry):match("^([^:]+):?(%d*)$")
+					if def.status == "supply" then
+						if not kinds[key] then kinds[key] = true; total = total + 1 end
+					else
+						total = total + (tonumber(n) or 1)
+					end
 				end
 				if total > cap then
 					warn("%s: starts with %d cards but the board only has %d slots — the extras are dropped",
@@ -1800,10 +2131,26 @@ function M.check(G)
 		end
 		check_conditions(where .. " accepts", def.accepts)
 		check_list(where .. " receive action", def.on_receive)
+		-- What a supply cannot also be. Its cards are a number, so anything that
+		-- reads an order or moves the card standing for the stock is asking a
+		-- question the zone has promised nobody would ask.
+		if def.status == "supply" then
+			if def.reach ~= nil then
+				warn('%s: is a supply and also says reach "%s" — a stock has no order and no top, '
+					.. "since every card of a kind in it is the same card", where, tostring(def.reach))
+			end
+			if def.refill_from ~= nil then
+				warn("%s: is a supply and refills from '%s' — a stock does not run out in an order, "
+					.. "so there is no moment to refill at", where, tostring(def.refill_from))
+			end
+		end
 		if def.applies ~= nil then
 			if type(def.applies) ~= "table" then
 				warn('%s: applies should be a list of tag names like ["takeable"]', where)
 			else
+				-- A zone hands out every tag it names at once, so two of them
+				-- claiming "this" is the same contradiction a card's own two are.
+				local sole
 				for _, tag in ipairs(def.applies) do
 					if G.computed_tags[tag] then
 						warn("%s: hands out '%s', which is a computed tag — those are "
@@ -1811,6 +2158,17 @@ function M.check(G)
 					elseif not tag_defs[tag] and not card_tags[tag] and not M.ENGINE_TAGS[tag] then
 						warn("%s: hands out '%s', which nothing defines or reads%s",
 							where, tostring(tag), suggest(tag, known_tags))
+					end
+					local td = tag_defs[tag]
+					for _, ab in ipairs(type(td) == "table" and type(td.abilities) == "table" and td.abilities or {}) do
+						if type(ab) == "table" and ab.merge == "this" then
+							if sole then
+								warn("%s: hands out '%s' and '%s', and both say merge \"this\" — "
+									.. "a card lying here would be handed two whole answers", where, sole, tostring(tag))
+							else
+								sole = tostring(tag)
+							end
+						end
 					end
 				end
 			end
@@ -1828,8 +2186,8 @@ function M.check(G)
 		local rects = {}
 		for _, key in ipairs(G.zone_list) do
 			local def = G.zone_defs[key]
-			if def and not (def.tags_set and def.tags_set.hidden) and type(def.pos) == "table" then
-				local per_seat = def.tags_set and def.tags_set.per_seat
+			if def and def.display ~= "offscreen" and type(def.pos) == "table" then
+				local per_seat = def.copies == "per_seat"
 				local list = per_seat and def.pos or { def.pos }
 				-- A per_seat zone declaring one rect shares it between seats,
 				-- which the check above already warns about; skip it here so one
@@ -2006,7 +2364,7 @@ function M.check(G)
 
 	-- Setup.
 	if G.setup then
-		check_fields("setup", G.setup, { place = true })
+		check_fields("setup", G.setup, SETUP_FIELDS)
 		-- Setup arranges the box: every entry names a card, and may say which
 		-- zone, which squares, and whose it is. A square outside the grid is
 		-- silently ignored at init, which reads as a piece that simply is not
@@ -2014,7 +2372,7 @@ function M.check(G)
 		for i, e in ipairs(type(G.setup.place) == "table" and G.setup.place or {}) do
 			local where = ("setup.place entry %d"):format(i)
 			if type(e) == "table" then
-				check_fields(where, e, { card = true, zone = true, at = true, owner = true })
+				check_fields(where, e, PLACE_FIELDS)
 				if not G.card_defs[e.card] then
 					warn("%s: places '%s', but no card has that key%s", where, tostring(e.card),
 						suggest(e.card, G.card_defs))
@@ -2059,7 +2417,7 @@ function M.check(G)
 		if type(e) ~= "table" then
 			warn('%s: should be an object, like { "card": "north" }', where)
 		else
-			check_fields(where, e, { card = true, stats = true, text = true })
+			check_fields(where, e, PLAYER_FIELDS)
 			if e.card ~= nil and type(e.card) ~= "string" then
 				warn("%s: its \"card\" should be the key of a card", where)
 			end
@@ -2126,6 +2484,120 @@ function M.check(G)
 				seen[cur.key] = true
 				cur = G.phase_by_key[auto_successor(cur) or ""]
 			end
+		end
+	end
+
+	-- Reactions. A reaction is an ability with a subscription on the front, so it
+	-- is checked as one and then for the three things only it has: the verb it
+	-- answers, the condition it reads the event through, and where it answers from.
+	--
+	-- Last, because the verb check needs every action in the game already walked:
+	-- what a game emits is only knowable once the emit: actions have gone past.
+	local reacting = {}
+	for key, def in pairs(G.card_defs) do
+		for i, r in ipairs(type(def) == "table" and def.reactions or {}) do
+			local rw = ("card '%s' reaction %d ('%s')"):format(key, i, tostring(r.key))
+			check_ability(rw, r)
+			check_conditions(rw .. " where", r.where)
+			-- "hand" and "board" are the two shapes a game usually has; a zone by
+			-- name is the third, for a row of ongoing effects that is in play and
+			-- is a hand as far as a zone type goes. Anything else is a typo.
+			if r.from ~= nil and r.from ~= "hand" and r.from ~= "board"
+				and not G.zone_defs[r.from] then
+				warn('%s: is answered "from": \'%s\', which is neither "hand" (played out of one), '
+					.. '"board" (used where it lies), nor a zone this game declares%s',
+					rw, tostring(r.from), suggest(r.from, G.zone_defs))
+			end
+			reacting[#reacting + 1] = { where = rw, to = r.to }
+		end
+	end
+	-- A reaction to a verb nothing raises can never fire, and looks exactly like
+	-- **A game's own word for a moment, and the aura that watches for it.** Both
+	-- halves are written in different places and nothing else holds them
+	-- together, which is the same typo the reaction cross-check below catches
+	-- and is caught the same way.
+	local ADJUSTABLE = { stat_damage = true, stat_gain = true }
+	for _, key in ipairs(G.verb_list) do
+		local vd    = G.verb_defs[key]
+		local where = "verb '" .. tostring(key) .. "'"
+		if type(vd) ~= "table" then
+			warn('%s: should be written like { "key": "poison", "does": "stat_damage" }', where)
+			vd = {}
+		else
+			check_fields(where, vd, VERB_FIELDS)
+		end
+		if actions.spec(key) then
+			warn("%s: the engine already has an action by that name — a game's word for a moment has "
+				.. "to be its own, or which one an action meant would be a lookup", where)
+		elseif vd.does == nil then
+			warn('%s: needs a "does" saying which action carries it, like "stat_damage"', where)
+		elseif not ADJUSTABLE[vd.does] then
+			warn("%s: stands for '%s', which is not a verb an aura may watch%s — a named moment is one "
+				.. "something can answer, and only %s can be adjusted so far", where, tostring(vd.does),
+				suggest(vd.does, ADJUSTABLE), "stat_damage and stat_gain")
+		elseif not used_verbs[key] then
+			warn("%s: is declared but no action performs it — a moment nothing reaches is a word "
+				.. "the file has to keep in step for nothing", where)
+		end
+	end
+
+	for tag, td in pairs(tag_defs) do
+		for i, ad in ipairs(type(td) == "table" and type(td.adjusts) == "table" and td.adjusts or {}) do
+			local where = ("tag '%s' adjusts %d ('%s')"):format(tostring(tag), i, tostring(ad.key))
+			if type(ad) ~= "table" then
+				warn('%s: should be written like { "verb": "damage", "stat": "hp", "covers": "self", "by": -1 }', where)
+			else
+				check_fields(where, ad, ADJUST_FIELDS)
+				if ad.key == nil then
+					warn('%s: needs a "key", so two adjustments on one card can be told apart', where)
+				end
+				-- **Never an engine verb.** This is the rule the whole word rests
+				-- on: a game says which of its moments are moments by naming
+				-- them, and everything it did not name stays plumbing that
+				-- nothing can reach into.
+				if ad.verb == nil then
+					warn('%s: needs a "verb" saying what it watches', where)
+				elseif actions.spec(ad.verb) and not G.verb_defs[ad.verb] then
+					warn("%s: watches '%s', which is the engine's own verb and not the game's. Declare the "
+						.. 'moment under "verbs" and watch that, so bookkeeping written with the same '
+						.. "action is never caught by it", where, tostring(ad.verb))
+				elseif not G.verb_defs[ad.verb] then
+					warn("%s: watches '%s', but no verb is declared by that name%s",
+						where, tostring(ad.verb), suggest(ad.verb, G.verb_defs))
+				end
+				if ad.stat == nil then
+					warn('%s: needs a "stat" saying which number it changes', where)
+				elseif not card_stats[ad.stat] and not G.stat_defs[ad.stat] then
+					warn("%s: changes '%s', but no card carries a stat by that name%s",
+						where, tostring(ad.stat), suggest(ad.stat, card_stats))
+				end
+				if ad.covers == nil then
+					warn('%s: needs a "covers" saying who it is about — "self" for a keyword', where)
+				elseif ad.covers ~= "self" then
+					local sc    = predicate.parse_scope(ad.covers)
+					local named = sc and scope_named(sc.name)
+					if not (sc and scope_names[named]) then
+						warn("%s: covers '%s', which is neither a zone nor a tag%s",
+							where, tostring(ad.covers), suggest(named or ad.covers, scope_names))
+					end
+				end
+				check_conditions(where .. " when", ad.when)
+				if ad.by == nil then
+					warn('%s: needs a "by" saying how much it shifts what lands', where)
+				elseif tonumber(ad.by) == nil then
+					subject_ok(where .. " by", tostring(ad.by))
+				end
+			end
+		end
+	end
+
+	-- one that works. This is the whole of the typo: the two halves of an event
+	-- are written in different files and nothing else holds them together.
+	for _, r in ipairs(reacting) do
+		if not emitted_verbs[r.to] then
+			warn("%s: answers '%s', but nothing in this game emits that — a card or tag says "
+				.. '"emits", or an action says "emit:%s"%s', r.where, tostring(r.to),
+				tostring(r.to), suggest(r.to, emitted_verbs))
 		end
 	end
 

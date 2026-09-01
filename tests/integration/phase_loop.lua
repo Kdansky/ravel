@@ -33,8 +33,8 @@ local GAME = [==[{
     { "key": "rounds", "min": 0, "max": 99, "tags": ["hidden"], "on": ["side"], "start": 0 }
   ],
   "zones": [
-    { "key": "hand", "type": "hand", "pos": [0.22, 0.80, 0.60, 0.95] },
-    { "key": "table", "type": "grid", "grid": [6, 1], "pos": [0.02, 0.30, 0.98, 0.50] }
+    { "key": "hand", "layout": "row", "pos": [0.22, 0.80, 0.60, 0.95] },
+    { "key": "table", "layout": "grid", "grid": [6, 1], "pos": [0.02, 0.30, 0.98, 0.50] }
   ],
   "phases": [
     { "key": "setup", "type": "automatic", "next": [{ "then": "act" }] },

@@ -20,6 +20,8 @@ local M = {}
 --   hp@each.enemy.creature  every creature an opponent owns
 --   hp@self                 the acting card
 --   hp@target               the cards the player chose for this card
+--   hp@event                the card an event is about, for a reaction to read
+--   hp@source               the card doing it, for an aura to read
 --   count:farm@board        the fn forms take a scope too
 --   count:gem@everywhere    every card, hands and decks included (opt-in)
 --   min:value@mine.hand     the smallest one, over the cards that carry it
@@ -41,6 +43,12 @@ local FNS    = { count = true, card = true, sum = true, max = true, min = true,
 local QUANTS = { any = true, each = true, random = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
 
+-- The three closed vocabularies, reachable. Both documents teach them, and a
+-- word gained here that neither names is a word nobody can look up — the same
+-- hole the action table was falling into. tests/integration/docs.lua holds
+-- SCHEMA.json and AUTHORING.md to this table.
+M.WORDS = { fns = FNS, quants = QUANTS, owners = OWNERS }
+
 -- A scope expression: [<quant>.][<owner>.]<zone-or-tag>. It is the part after
 -- "@" in a subject, and it also stands alone as an action's zone argument, so
 -- "destroy:each.enemy.creature" and "hp@each.enemy.creature" read the same.
@@ -60,8 +68,9 @@ function M.parse_scope(s)
 	if rest == "" then return nil end
 	-- Choosing two targets means both of them; a tag that happens to match
 	-- several cards means the pool. Different defaults because they are
-	-- different intents, not an inconsistency.
-	return { quant = quant or (rest == "target" and "each" or "any"),
+	-- different intents, not an inconsistency. An event's subject is the same
+	-- intent as a target — all of what it names, not one of them.
+	return { quant = quant or ((rest == "target" or rest == "event") and "each" or "any"),
 		owner = owner, name = rest }
 end
 
@@ -155,7 +164,7 @@ function M.entities_in_scope(scope, ctx, owner)
 		-- it survived this long. A seatless game has no active seat and every
 		-- player card answers to nobody, so it is unchanged.
 		local active, seen = zones.active_seat(), {}
-		for _, id in ipairs(tags.find_targets({ "player" }, { grid = true })) do
+		for _, id in ipairs(tags.find_targets({ "player" }, tags.IN_PLAY)) do
 			local e = entity.get(id)
 			seen[id] = true
 			if M.seat_of(e) == active then out[#out + 1] = e end
@@ -180,8 +189,27 @@ function M.entities_in_scope(scope, ctx, owner)
 	elseif scope == "self" then
 		local e = ctx and ctx.card_id and entity.get(ctx.card_id)
 		if e then out[1] = e end
+	elseif scope == "source" then
+		-- The card doing it, read from the other side. An aura is asked while
+		-- somebody else is acting, so "who is hitting me" is the one thing it
+		-- needs that no existing scope names: @self is the card holding the aura
+		-- and @target is the card being hit. @event is taken, and means a
+		-- reaction's record rather than an actor.
+		local e = ctx and ctx.source and entity.get(ctx.source)
+		if e then out[1] = e end
 	elseif scope == "target" then
 		for _, id in ipairs(ctx and ctx.targets or {}) do
+			local e = entity.get(id)
+			if e then out[#out + 1] = e end
+		end
+	elseif scope == "event" then
+		-- The subject of the event a reaction is answering: the card that was
+		-- played, activated, or emitted about. Like `target` it is a list the
+		-- engine puts in the ctx, not a scope of the board — so a reaction reads
+		-- the tags and stats of what it reacts to (`tagged:fireball@event`,
+		-- `value@event`) through the one grammar, and a fireball never has to
+		-- name what answers it.
+		for _, id in ipairs(ctx and ctx.event or {}) do
 			local e = entity.get(id)
 			if e then out[#out + 1] = e end
 		end
@@ -273,23 +301,40 @@ function M.entities_in_scope(scope, ctx, owner)
 			if occ then out[#out + 1] = entity.get(occ) end
 		end
 	else
+		-- "<zone>.<tag>" — the cards in one place that are also one kind. A target
+		-- spec has always been able to say this, with "zones" beside "tags"; a
+		-- scope could not, which was one question with two spellings. It narrows
+		-- left to right, widest first, exactly as "each.enemy.creature" does, and
+		-- it is what lets a rule reach inside a hand it may not otherwise read:
+		-- "count:purple@enemy.hand" is a sentence a scope could not say before.
+		--
+		-- Split structurally rather than by lookup, because parse_scope is pure
+		-- and the validator reads one with no game loaded. The zone comes first
+		-- because a place is the wider of the two, and a tag that happened to
+		-- name a zone would otherwise decide which reading a line got.
+		local place, kind = scope:match("^([%w_]+)%.([%w_]+)$")
 		-- A zone key reaches every instance of it — both arenas, not just the
 		-- active seat's. Narrowing to one is what the owner word is for, and a
 		-- set may be wide where a destination may not.
-		local instances = zones.all_with_key(scope)
+		local instances = zones.all_with_key(place or scope)
 		if #instances > 0 then
 			for _, z in ipairs(instances) do
 				for _, id in ipairs(z.cards) do
 					local e = entity.get(id)
-					if e then out[#out + 1] = e end
+					if e and (kind == nil or tags.entity_has(e, kind)) then out[#out + 1] = e end
 				end
 			end
+		elseif kind then
+			-- The left word named no zone, so there is nothing for the right one
+			-- to narrow. Answering with every card carrying the tag would be the
+			-- opposite of what was asked.
+			return out
 		else
 			-- A tag means the cards in play carrying it — grid zones only,
 			-- exactly what bare "count:<tag>" has always meant. A card in hand
 			-- is not on the board and must not be reachable by "@beast"; name
 			-- the zone (@hand) when that is what you want.
-			for _, id in ipairs(tags.find_targets({ scope }, { grid = true })) do
+			for _, id in ipairs(tags.find_targets({ scope }, tags.IN_PLAY)) do
 				out[#out + 1] = entity.get(id)
 			end
 		end
@@ -342,13 +387,13 @@ function M.total(subject, ctx)
 	-- the default scope below.
 	if not p.scope then
 		if p.fn == "count" then
-			return #tags.find_targets({ p.arg }, { grid = true })
+			return #tags.find_targets({ p.arg }, tags.IN_PLAY)
 		elseif p.fn == "tagged" or p.fn == "not_tagged" then
-			local any = #tags.find_targets({ p.arg }, { grid = true }) > 0
+			local any = #tags.find_targets({ p.arg }, tags.IN_PLAY) > 0
 			return (p.fn == "tagged") == any and 1 or 0
 		elseif p.fn == "card" then
 			local n = 0
-			for _, id in ipairs(tags.find_targets({}, { grid = true })) do
+			for _, id in ipairs(tags.find_targets({}, tags.IN_PLAY)) do
 				if entity.get(id).def_key == p.arg then n = n + 1 end
 			end
 			return n
@@ -376,7 +421,10 @@ function M.total(subject, ctx)
 
 	local sum, best, least = 0, 0, nil
 	for _, e in ipairs(M.bearers(p, ctx, ents)) do
-		local v = tonumber(e.stats[p.arg]) or 0
+		-- Through tags.stat, so a buff a tag is holding open counts as part of
+		-- the number. Every condition, compute, cost and amount in the game
+		-- arrives here, which is what makes one read site enough.
+		local v = tags.stat(e, p.arg)
 		sum = sum + v
 		if v > best then best = v end
 		if least == nil or v < least then least = v end
@@ -518,13 +566,14 @@ local function compile(s)
 	local l, r = operand(left), operand(right)
 	if not l then return nil, "'" .. left .. "' is not something the engine can measure" end
 	if not r then return nil, "'" .. right .. "' is not something the engine can measure" end
-	-- The rule bound() keeps for the struct form, kept here at the door instead:
-	-- a bare word on the right would read as an unknown stat worth nothing and
-	-- quietly pass, so it is a typo until it says which cards it means.
-	if r.subject and not (r.subject.scope or r.subject.fn) then
-		return nil, "'" .. right .. "' is a bare word, so it would read as a stat worth nothing — "
-			.. "write a number, or say which cards you mean (\"value@target\", \"max:value@mine.red\")"
-	end
+	-- A bare word on the right is a compute the ability bound before it was
+	-- asked, or a typo that would read as an unknown stat worth nothing. **The
+	-- grammar cannot tell them apart**: this is pure and cached across games,
+	-- while which computes are bound is one ability's decision. So it parses and
+	-- is marked, `measure` reads it as absent when nothing bound it — failing
+	-- closed, which is what the refusal was protecting — and the validator, which
+	-- does know the bound names, is what reports the typo at authoring time.
+	if r.subject and not (r.subject.scope or r.subject.fn) then r.bare = true end
 	return { left = l, op = op, right = r, src = s }
 end
 
@@ -562,6 +611,10 @@ end
 local function measure(o, ctx)
 	if o.n then return o.n end
 	if ctx and ctx.let and ctx.let[o.src] then return ctx.let[o.src] end
+	-- A bare word nothing bound is absent, not zero, and so fails every
+	-- comparison — the same answer the left-hand side has always given a stat
+	-- nobody carries. The validator is where it is a typo rather than a nil.
+	if o.bare then return nil end
 	local p = o.subject
 	local pooled = p.fn == nil or p.fn == "min"
 	if pooled and #M.bearers(p, ctx) == 0 then return nil end

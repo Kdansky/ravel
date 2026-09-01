@@ -881,11 +881,16 @@ end
 -- table when it loads — a wrapper installed later would never be called from
 -- the GUI. They are inert until a transport is linked or a seat is claimed, so
 -- requiring this module changes nothing on its own.
-for _, name in ipairs({ "play_card", "activate", "activate_zone", "undo" }) do
+for _, name in ipairs({ "play_card", "activate", "activate_zone", "react", "pass_react", "undo" }) do
 	local inner = flow[name]
 	flow[name] = function(...)
 		if (link or M.seat) and not M.may_act() then
-			say("not your turn — " .. tostring(zones.active_seat()) .. " to play")
+			-- Inside a response window the seat that is up is answering, not
+			-- playing, and "not your turn" is the one thing it is not: the turn
+			-- is still the other player's and stays theirs.
+			local who = tostring(zones.active_seat())
+			say(flow.pending_event() and ("waiting on " .. who .. " to answer")
+				or ("not your turn — " .. who .. " to play"))
 			return false
 		end
 		local result = inner(...)
@@ -903,7 +908,7 @@ end
 -- for your opponent looks like waiting: the renderer dims a card it cannot
 -- play, the CLI says so, and nobody starts picking targets for a move that is
 -- going to be refused at the end of it.
-for _, name in ipairs({ "can_play", "can_activate" }) do
+for _, name in ipairs({ "can_play", "can_activate", "can_react" }) do
 	local inner = flow[name]
 	flow[name] = function(...)
 		if M.seat and not M.may_act() then return false end

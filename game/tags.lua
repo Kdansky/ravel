@@ -21,21 +21,76 @@ function M.entity_has(e, tag)
     local cd = G.computed_tags and G.computed_tags[tag]
     if not cd then return false end
     local s = e.stats or {}
-    local v = s[cd.stat]
-    if v == nil then return false end
-    if cd.less_than      then return v < (tonumber(cd.less_than) or s[cd.less_than] or 0) end
+    -- Nil is "this card has no such stat", which no amount of buffing invents;
+    -- the value it holds is then read through the buffs, so a card that is a
+    -- 2/2 because something says so is damaged at 1 and not at 2.
+    if s[cd.stat] == nil then return false end
+    local v = M.stat(e, cd.stat)
+    if cd.less_than      then return v < (tonumber(cd.less_than) or M.stat(e, cd.less_than)) end
     -- Below its own ceiling: "damaged", the commonest computed tag there is.
     -- It used to be written less_than_stat: hp_max, which only worked while a
     -- maximum was a stat in its own right — the card carried a number called
     -- hp_max that counting and spending could reach as readily as hp.
     if cd.less_than_max then
-        local hi = e.stat_max and e.stat_max[cd.stat]
+        local hi = M.stat_max(e, cd.stat)
         return hi ~= nil and v < hi
     end
-    if cd.less_than_stat then return v < (s[cd.less_than_stat] or 0) end
+    if cd.less_than_stat then return v < (s[cd.less_than_stat] and M.stat(e, cd.less_than_stat) or 0) end
     if cd.at_least       then return v >= (tonumber(cd.at_least) or 0) end
     if cd.equals         then return v == (tonumber(cd.equals) or 0) end
     return false
+end
+
+-- **A tag may shift a stat, and the shift is never written down.** "elite" says
+-- `"buffs": { "atk": 1 }` and every card wearing it reads one higher, for as
+-- long as it wears it — which is the whole of a continuous effect. Nothing is
+-- applied when the tag arrives and nothing is restored when it goes, because
+-- there is no stored number to get out of step: the tag *is* the effect, and a
+-- card that stops wearing it stops reading higher in the same instant.
+--
+-- That is why this is a read and not an action. A +1/+1 written as `stat_gain`
+-- has to be undone by whoever took it away, on every path it could leave by,
+-- and a game gets one of those paths wrong. Codex kept a hidden `elited` stat
+-- for exactly that bookkeeping and undid it in ten places.
+--
+-- The three tag sources all count, so the shift can come from what a card *is*
+-- (a printed keyword), from where it *stands* (a zone's `applies` — the whole
+-- of "gets +1 while in the duel"), or from how it *is doing* (a computed tag —
+-- "gets +1 while damaged"). The last one is why a cycle is possible at all, and
+-- why the validator refuses a computed tag that buffs the stat it reads.
+-- A stat asked for while it is already being worked out. The validator refuses
+-- the shape that causes it, so this is the seatbelt: a bad file gets a defined
+-- answer instead of a stack that runs out.
+local busy = {}
+
+function M.buff(e, key)
+    local list = declaration.G.buff_index and declaration.G.buff_index[key]
+    if not list or not e or busy[key] then return 0 end
+    busy[key] = true
+    local n = 0
+    for _, b in ipairs(list) do
+        if M.entity_has(e, b.tag) then n = n + b.n end
+    end
+    busy[key] = nil
+    return n
+end
+
+-- What a stat *is*, as against what is stored on the card. Everything that
+-- asks the board a question comes through here; only the writer in actions.lua
+-- touches `e.stats` directly, and it stores the base back after clamping.
+function M.stat(e, key)
+    if not (e and e.stats) then return 0 end
+    return (tonumber(e.stats[key]) or 0) + M.buff(e, key)
+end
+
+-- A ceiling rises with the value it bounds. Without this a 1/1 handed +1/+1
+-- would be clamped straight back to 1 and the buff would do nothing at all —
+-- and `damaged` (below its own maximum) would call a freshly buffed card hurt.
+function M.stat_max(e, key)
+    local hi = e and e.stat_max and e.stat_max[key]
+    if hi == nil then hi = (declaration.G.stat_defs[key] or {}).max end
+    if hi == nil then return nil end
+    return hi + M.buff(e, key)
 end
 
 -- Whose *piece* this is: the seat written on it when it was placed, or failing
@@ -75,14 +130,24 @@ function M.owner_of(e)
 	return z and z.seat
 end
 
+-- The rules that mean "in play" ask for it by name. They used to pass
+-- { grid = true } — the shape a board happened to have — which is why a row of
+-- ongoing effects laid face up in front of one player could not be counted,
+-- sacrificed or asked to act. A sentinel rather than a key, so no zone can
+-- collide with it by being called the wrong thing.
+M.IN_PLAY = {}
+
 -- Return array of card entity IDs matching ALL filter_tags.
--- zone_set: {zone_type=true} restricts which zones to search; nil = any non-deck.
+-- zone_set: {layout=true} restricts which zones to search; M.IN_PLAY means
+-- wherever cards are in play; nil = anywhere cards can be used at all.
 function M.find_targets(filter_tags, zone_set)
     local res = {}
     for e in entity.each("card") do
         local z = entity.get(e.zone_id)
-        if z and z.zone_type ~= "deck" then
-            local zone_ok = not zone_set or zone_set[z.zone_type] or zone_set[z.key]
+        if z and z.use ~= "none" then
+            local zone_ok
+            if zone_set == M.IN_PLAY then zone_ok = z.status == "board"
+            else zone_ok = not zone_set or zone_set[z.layout] or zone_set[z.key] end
             if zone_ok then
                 local match = true
                 for _, tag in ipairs(filter_tags) do

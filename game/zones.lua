@@ -49,13 +49,32 @@ function M.system_card()
 	end
 end
 
-function M.active_seat()
-	if as_if then return as_if end
+-- The seat whose turn it is, ignoring any response window. The turn stays put
+-- while a reaction runs inside it: Puzzle Strike's loss is checked "at the end of
+-- your own turn" and Magic is thick with "until end of turn", so who is answering
+-- must not be mistaken for whose turn it is.
+function M.turn_seat()
 	local seats = declaration.G.seat_list or {}
 	if #seats < 2 then return seats[1] end
 	local sys = M.system_card()
 	-- turn 0 is "nobody has taken one yet", which reads as the first seat: a
 	-- game that never hands over still has somebody playing.
+	return sys and seats[sys.stats.turn or 0] or seats[1]
+end
+
+-- Who is acting right now. The same seat as the turn, except inside a response
+-- window, where priority is held by whoever is answering another player's action
+-- without the turn moving. "mine", costs, the plays counter and reachability all
+-- read this — so setting priority is the whole of letting a card be played out of
+-- turn. Priority is 0 (unset) everywhere but inside a window, so every existing
+-- game reads exactly the turn, as it always did.
+function M.active_seat()
+	if as_if then return as_if end
+	local seats = declaration.G.seat_list or {}
+	if #seats < 2 then return seats[1] end
+	local sys = M.system_card()
+	local pr  = sys and (sys.stats.priority or 0) or 0
+	if pr > 0 and seats[pr] then return seats[pr] end
 	return sys and seats[sys.stats.turn or 0] or seats[1]
 end
 
@@ -91,7 +110,14 @@ local function build(def, seat, pos)
 		key       = def.key,
 		seat      = seat,   -- nil for a shared zone: its cards have no owner
 		label     = def.label,
-		zone_type = def.type or "pile",
+		layout     = def.layout,
+		row        = def.row,          -- which way a row fans, when it fans at all
+		visibility = def.visibility,
+		reach      = def.reach,
+		use        = def.use,
+		status     = def.status,
+		display    = def.display,
+		copies     = def.copies,
 		tags      = def.tags_set or {},
 		grid      = def.grid,
 		-- How this zone looks, merged from the styles its tags name: the shape it
@@ -125,7 +151,7 @@ local function build(def, seat, pos)
 		key_map[e.key] = e.id
 	end
 
-	if e.zone_type == "grid" and e.grid then
+	if e.layout == "grid" and e.grid then
 		local cols, rows = e.grid[1], e.grid[2]
 		for idx = 1, cols * rows do
 			local slot = {
@@ -158,7 +184,7 @@ end
 -- the def's list of positions. Everything downstream sees ordinary zones that
 -- happen to carry a seat, so only the lookup below has to know the difference.
 function M.create(def)
-	if not (def.tags_set and def.tags_set.per_seat) then return build(def, nil, def.pos) end
+	if def.copies ~= "per_seat" then return build(def, nil, def.pos) end
 	-- One rect per seat: "pos" is a list of rects here, not the single rect a
 	-- shared zone declares. Two seats sharing one rect would draw on top of
 	-- each other, so the author names both — the validator insists.
@@ -174,8 +200,37 @@ end
 -- Create a card into a zone and give it a slot, or return nil when a grid is
 -- full. move_card guards arrivals, but creation bypasses it entirely, so the
 -- capacity bound lives here rather than being restated at every creation site.
+-- The one card of a kind a supply keeps real. Everything else of that kind is a
+-- number written on it, so this is what "the 1-gem stack" means to every rule
+-- that asks: it is targeted by nothing, but it is counted, tagged and clicked.
+local function face_card(z, def_key)
+	for _, id in ipairs(z.cards or {}) do
+		local e = entity.get(id)
+		if e and e.def_key == def_key then return e end
+	end
+end
+
+-- Put one card of this kind here.
+--
+-- **A supply counts instead.** Its cards are interchangeable by declaration, so
+-- the second one is not a card at all — it is the first one's "stock" going up.
+-- Every existing way of filling a zone therefore lands right without knowing:
+-- a "contents" line of "gem_1:64", a "fill:bank:gem_1:8", a rule returning a gem
+-- to the box. What a supply refuses is running out of room, since a number has
+-- no capacity.
 function M.add(z, def_key)
-	if not z or not M.has_room(z) then return nil end
+	if not z then return nil end
+	if z.status == "supply" then
+		local e = face_card(z, def_key)
+		if not e then
+			e = cards.create(def_key, z.id)
+			M.auto_slot(e.id)
+			cards.attach_stat(e, "stock", 0)
+		end
+		e.stats.stock = (e.stats.stock or 0) + 1
+		return e
+	end
+	if not M.has_room(z) then return nil end
 	local e = cards.create(def_key, z.id)
 	M.auto_slot(e.id)
 	return e
@@ -267,13 +322,7 @@ end
 function M.visible(c)
 	if not c then return false end
 	local z = c.zone_id and entity.get(c.zone_id)
-	if not z or z.zone_type ~= "hand" or not z.seat then return true end
-	-- A seat's own hand it has chosen to show: "face_up" says *whatever the type
-	-- would do*, and hiding a hand is the only thing the type does here. That is
-	-- what an open hand is — a card laid in front of you for everybody to read,
-	-- which is a move in several games and was unsayable while this rule only
-	-- knew about seats.
-	if z.tags.face_up then return true end
+	if not z or z.visibility ~= "owner" or not z.seat then return true end
 	return z.seat == (M.watching() or M.active_seat())
 end
 
@@ -288,7 +337,7 @@ end
 function M.browse_order(z)
 	local out = {}
 	for i, cid in ipairs(z and z.cards or {}) do out[i] = cid end
-	if not (z and z.zone_type == "deck" and not z.tags.face_up) then return out end
+	if not (z and z.visibility == "secret") then return out end
 	local function name(id)
 		local e = entity.get(id)
 		local d = declaration.G.card_defs[e.def_key]
@@ -309,13 +358,11 @@ end
 -- browser, the card detail, the ctrl+hover inspector — has to ask this too, or
 -- one of them quietly undoes the other.
 function M.peekable(z)
-	if not z or z.tags.no_peek then return false end
-	if z.zone_type ~= "hand" or not z.seat then return true end
-	if z.tags.face_up then return true end
+	if not z or z.visibility ~= "owner" or not z.seat then return true end
 	return z.seat == (M.watching() or M.active_seat())
 end
 
-function M.move_top(from_id, to_id)
+function M.move_top(from_id, to_id, where)
 	local from = entity.get(from_id)
 	if not from then return false end
 	-- Asked for, not fired on emptying. A pile refills when somebody tries to
@@ -325,13 +372,13 @@ function M.move_top(from_id, to_id)
 	-- straight back in.
 	if #from.cards == 0 and from.refill_from then M.restock(from) end
 	if #from.cards == 0 then return false end
-	return M.move_card(from.cards[#from.cards], to_id)
+	return M.move_card(from.cards[#from.cards], to_id, where)
 end
 
 -- True when a card can take a place in the zone: grids are bounded by their
 -- free slots, every other zone type is unbounded.
 function M.has_room(z)
-	if not z or z.zone_type ~= "grid" then return true end
+	if not z or z.layout ~= "grid" then return true end
 	for _, sid in ipairs(z.slots) do
 		local s = entity.get(sid)
 		if s and not s.occupant then return true end
@@ -350,6 +397,47 @@ M.run_actions = nil
 -- discipline as settle's step budget — a rule that runs away says so instead of
 -- taking the process with it.
 local receiving = 0
+
+-- **Leaving play**, which is where a card game keeps most of its triggers and
+-- the engine had no word for. It fires on the way out of a `status: board` zone
+-- into one that is not: a unit walking from the bench to the front line has not
+-- left anything, and a unit going to a discard, a hand, a trash or a command
+-- zone has. `into` on the card's block names which of those, so death, exile and
+-- bounce are one sentence pointed at three places and the engine learns none of
+-- their names.
+--
+-- **`destroy:` does not fire it, deliberately.** A destroyed card lands nowhere,
+-- so there is no zone to name, and `destroy_card` clears its stats — a rule
+-- asked to run after that has no numbers left to read. The rule an author needs
+-- instead is one sentence: *if you want a removal answered, give it a zone*,
+-- which is what naming one has always been for. `destroy:` stays the verb for
+-- things nobody may ask about.
+--
+-- Fired after the move so the card is standing where it landed and `into` is
+-- answerable, and before the destination's own `receive`, because a card leaves
+-- and then the place does something about it.
+local function fire_leaves(from, to, card_id)
+	if not (from and to and M.run_actions) then return end
+	if from.status ~= "board" or to.status == "board" then return end
+	local c   = entity.get(card_id)
+	local def = c and declaration.G.card_defs[c.def_key]
+	if not (def and def.on_leaves) then return end
+	local want = def.leaves_into
+	if want and want ~= to.key then return end
+	-- The same depth guard receive keeps, for the same reason: a rule that moves
+	-- the card it just watched leave says so in the log rather than taking the
+	-- process with it.
+	if receiving >= 8 then
+		local msg = "! leaves: '" .. tostring(c.def_key) .. "' is moving cards round in a circle — stopped"
+		log.add(msg)
+		print(msg)
+		return
+	end
+	receiving = receiving + 1
+	local ok, err = pcall(M.run_actions, def.on_leaves, { card_id = card_id, targets = {} })
+	receiving = receiving - 1
+	if not ok then error(err, 0) end
+end
 
 local function fire_receive(to, card_id)
 	local def = to and declaration.G.zone_defs[to.key]
@@ -371,13 +459,40 @@ local function fire_receive(to, card_id)
 	if not ok then error(err, 0) end
 end
 
-function M.move_card(card_id, to_id)
+-- The top of a pile is the end of its list: move_top draws from there, and an
+-- arrival lands there. "where" is the one word that says otherwise — "bottom"
+-- puts the card under the pile, which is where a rule that buries something
+-- wants it, and which no other spelling could reach. Every zone is a list, so
+-- this means something everywhere; it only *reads* as anything in a deck.
+function M.move_card(card_id, to_id, where)
 	local c  = entity.get(card_id)
 	local to = entity.get(to_id)
+	-- **Into a supply, a card stops being one.** A stock counts rather than
+	-- keeps, so putting a gem back in the box is the number going up and the
+	-- gem going away — which is what "the cards in it are interchangeable"
+	-- means from the other direction. Written here rather than only in `add` so
+	-- that every way of moving a card lands right: a draw, a return_to, a rule
+	-- that sends what it trashes to the box.
+	if c and to and to.status == "supply" then
+		local key = c.def_key
+		-- What it is worth as stock. One for an ordinary card being put in the
+		-- box; its own number for a card that *was* a shelf and is coming back —
+		-- an offer borrows the real card, and a stack lent to a question has to
+		-- return as deep as it left.
+		local worth = tonumber(c.stats and c.stats.stock) or 1
+		M.destroy_card(card_id)
+		local e = M.add(to, key)
+		if e and worth > 1 then e.stats.stock = e.stats.stock + worth - 1 end
+		return e ~= nil
+	end
 	-- A full board refuses new arrivals (checked before any mutation, so a
 	-- refused move leaves the card exactly where it was).
 	if not c or not to or not M.has_room(to) then return false end
 
+	-- The square it is standing on, read before the next lines let it go: on a
+	-- grid, "where it came from" is a cell and not a zone, and a fight that sent
+	-- three patrollers away has to put each one back in its own post.
+	local from_slot = c.slot_id
 	-- Clear slot occupancy when card leaves its slot.
 	if c.slot_id then
 		local slot = entity.get(c.slot_id)
@@ -395,9 +510,16 @@ function M.move_card(card_id, to_id)
 		end
 	end
 
-	table.insert(to.cards, card_id)
+	if where == "bottom" then table.insert(to.cards, 1, card_id) else table.insert(to.cards, card_id) end
+	-- Where it came from, kept so it can be sent back. Written on every move,
+	-- so it means "immediately before" and not "where this lives" — a card that
+	-- fought, was bounced and drawn again remembers the hand, not the board.
+	-- Only the engine can know this, and every game asks it sooner or later.
+	c.origin_zone_id = c.zone_id
+	c.origin_slot_id = from_slot
 	c.zone_id = to_id
 	M.auto_slot(card_id)
+	fire_leaves(from, to, card_id)
 	fire_receive(to, card_id)
 	return true
 end
@@ -428,7 +550,7 @@ end
 function M.auto_slot(card_id)
 	local c = entity.get(card_id)
 	local z = c and entity.get(c.zone_id)
-	if not z or z.zone_type ~= "grid" or c.slot_id then return end
+	if not z or z.layout ~= "grid" or c.slot_id then return end
 	for _, sid in ipairs(z.slots) do
 		local s = entity.get(sid)
 		if s and not s.occupant then
@@ -505,7 +627,7 @@ end
 function M.sole_grid()
 	local found
 	for z in entity.each("zone") do
-		if z.zone_type == "grid" and not z.tags.hidden then
+		if z.layout == "grid" and z.display ~= "offscreen" then
 			if found then return nil end
 			found = z
 		end
@@ -596,7 +718,7 @@ local function keep_ratio(z)
 	-- one of them: a named square board is a square with a line of text above
 	-- it, not a square with a bite out of the top. Grids only — every other kind
 	-- is laid out by the renderer, which takes the band off there instead.
-	local head = z.label and z.zone_type == "grid" and M.label_h or 0
+	local head = z.label and z.layout == "grid" and M.label_h or 0
 	local w = math.min(p.w, (p.h - head) * r)
 	local h = w / r
 	p.x, p.y = p.x + (p.w - w) / 2, p.y + (p.h - head - h) / 2
@@ -615,7 +737,7 @@ function M.resize()
 			h = (p[4] - p[2]) * H,
 		}
 		keep_ratio(z)
-		if z.zone_type == "grid" and z.grid and next(z.slots) then
+		if z.layout == "grid" and z.grid and next(z.slots) then
 			for idx, slot_id in pairs(z.slots) do
 				local slot = entity.get(slot_id)
 				if slot then slot.place = M.cell_rect(z, idx) end
@@ -631,7 +753,7 @@ end
 function M.zone_at(x, y)
 	local result = nil
 	for z in entity.each("zone") do
-		if not z.tags.hidden and M.contains(z.place, x, y) then result = z.id end
+		if z.display ~= "offscreen" and M.contains(z.place, x, y) then result = z.id end
 	end
 	return result
 end
@@ -650,17 +772,16 @@ end
 -- is why this went unnoticed: only a zone that overrides that — an overlay,
 -- which must be somewhere visible when it opens — can cover anything.
 local function reachable(z, open_id)
-	return not z.tags.hidden or z.id == open_id
+	return z.display ~= "offscreen" or z.id == open_id
 end
 
 function M.card_at(x, y, open_id)
 	local result
 	for z in entity.each("zone") do
-		if z.zone_type ~= "deck" and reachable(z, open_id) and M.contains(z.place, x, y) then
+		if z.use ~= "none" and reachable(z, open_id) and M.contains(z.place, x, y) then
 			-- Last match wins, and a fan is drawn in order, so a click in the
 			-- overlap lands on the card actually showing there.
-			local list = z.zone_type == "pile" and not z.style.fan
-				and { z.cards[#z.cards] } or z.cards
+			local list = z.layout == "stack" and { z.cards[#z.cards] } or z.cards
 			for _, cid in ipairs(list) do
 				local c = entity.get(cid)
 				if c and c.place and M.contains(c.place, x, y) then result = cid end

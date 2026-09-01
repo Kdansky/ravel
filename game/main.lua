@@ -59,6 +59,7 @@ local aiming_at = nil
 local RESOLVE = {
 	play     = function(cid, targs) return flow.play_card(cid, targs) end,
 	activate = function(cid, targs) return flow.activate(cid, targs, aiming_at) end,
+	react    = function(cid, targs) return flow.react(cid, aiming_at, targs) end,
 }
 
 -- Give up on targeting without offering anything back. The plain version of
@@ -171,6 +172,9 @@ local function primary_action(x, y)
 	elseif btn == "no_choice" then
 		flow.dismiss_offer()
 		return
+	elseif btn == "pass" then
+		flow.pass_react()
+		return
 	end
 
 	local cur = phase.current()
@@ -188,7 +192,11 @@ local function primary_action(x, y)
 		local pick = flow.menu_choice(cid)
 		if pick then
 			flow.close_offer()
-			begin_action(pick.source, pick.ability.target, "activate", pick.index)
+			if pick.reaction then
+				begin_action(pick.source, pick.reaction.target, "react", pick.index)
+			else
+				begin_action(pick.source, pick.ability.target, "activate", pick.index)
+			end
 		else
 			flow.play_card(cid, {})
 		end
@@ -223,10 +231,24 @@ local function primary_action(x, y)
 		local def = cards.def(c)
 		local z   = entity.get(c.zone_id)
 
+		-- A window is open and this card may answer it, so answering is what the
+		-- click means — ahead of playing and of activating both, because the card
+		-- is being offered for exactly this and only now. Its own zone has no say:
+		-- a reaction is answered from a hand, from the board, or from wherever the
+		-- card happens to lie, and "from" already decided which.
+		local answer = flow.sole_reaction(cid)
+		if answer then
+			begin_action(cid, answer.reaction.target, "react", answer.index)
+			return
+		end
+		-- Two ways to answer with the one card, so the card stops being the
+		-- question and the chooser becomes it — the same turn abilities take.
+		if flow.offer_reactions(cid) then return end
+
 		-- A zone tagged "activate" is where abilities are used; anywhere else,
 		-- clicking a card plays it. The zone says which, so a board, a discard
 		-- you may take from and a hand need no special cases here.
-		if z and z.tags.activate then
+		if z and z.use == "abilities" then
 			local sole = flow.sole_ability(cid)
 			if sole then
 				begin_action(cid, sole.ability.target, "activate", sole.index)
@@ -462,7 +484,7 @@ function love.update(dt)
 		local cid = card_at(mx, my)
 		local c   = cid and entity.get(cid)
 		local z   = c and entity.get(c.zone_id)
-		if z and not z.tags.no_peek then
+		if z then
 			hover = cid
 		else
 			-- No card under the cursor, so ask the zone. A deck has no clickable
@@ -470,7 +492,7 @@ function love.update(dt)
 			-- which made the one thing you can do with it undiscoverable.
 			local zid = zones.zone_at(mx, my)
 			local zz  = zid and entity.get(zid)
-			if zz and not zz.tags.no_peek and (zz.tooltip or zz.on_activate) then hover = zid end
+			if zz and (zz.tooltip or zz.on_activate) then hover = zid end
 		end
 	end
 	tooltip.update(dt, not inspecting and hover or nil)

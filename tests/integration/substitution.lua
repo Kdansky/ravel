@@ -29,8 +29,8 @@ local GAME = [==[{
     { "key": "gold",  "label": "Gold",  "on": ["player"], "start": 0, "pays_for": ["generic", "red", "blue"] }
   ],
   "zones": [
-    { "key": "hand", "type": "hand", "pos": [0.25, 0.7, 0.95, 0.95] },
-    { "key": "table", "type": "hand", "pos": [0.25, 0.4, 0.95, 0.65] }
+    { "key": "hand", "layout": "row", "pos": [0.25, 0.7, 0.95, 0.95] },
+    { "key": "table", "layout": "row", "pos": [0.25, 0.4, 0.95, 0.65] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }

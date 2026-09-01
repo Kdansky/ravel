@@ -196,32 +196,34 @@
     {
       "key": "table",
       "label": "The Work",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
       "pos": [0.02, 0.05, 0.86, 0.42],
-      "grid": [8, 1],
-      "tags": ["activate"]
+      "grid": [8, 1]
     },
     {
       "key": "holdings",
       "label": "Holdings",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
       "pos": [0.19, 0.47, 0.85, 0.95],
       "grid": [4, 2],
-      "contents": ["tome:2"],
-      "tags": ["activate"]
+      "contents": ["tome:2"]
     },
-    { "key": "discard", "label": "Spent", "type": "pile", "pos": [0.875, 0.52, 0.99, 0.9] },
+    { "key": "discard", "label": "Spent", "layout": "stack", "pos": [0.875, 0.52, 0.99, 0.9] },
     {
       "key": "fate",
-      "type": "deck",
-      "tags": ["shuffle", "refill_when_empty", "hidden"],
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
+      "tags": ["shuffle", "refill_when_empty"],
       "contents": ["a_page:3", "a_whisper:2", "a_patron:2", "a_nightmare:2", "a_revelation:1", "an_omen:2"]
     },
-    { "key": "offer", "type": "hand", "pos": [0.15, 0.32, 0.85, 0.7], "tags": ["hidden"] },
-    { "key": "fate_win", "type": "deck", "tags": ["hidden"], "contents": ["ascended"] },
-    { "key": "fate_dead", "type": "deck", "tags": ["hidden"], "contents": ["perished"] },
-    { "key": "fate_mad", "type": "deck", "tags": ["hidden"], "contents": ["unmade"] },
-    { "key": "fate_late", "type": "deck", "tags": ["hidden"], "contents": ["too_late"] }
+    { "key": "offer", "layout": "row", "display": "offscreen", "pos": [0.15, 0.32, 0.85, 0.7] },
+    { "key": "fate_win", "layout": "stack", "visibility": "secret", "display": "offscreen", "contents": ["ascended"] },
+    { "key": "fate_dead", "layout": "stack", "visibility": "secret", "display": "offscreen", "contents": ["perished"] },
+    { "key": "fate_mad", "layout": "stack", "visibility": "secret", "display": "offscreen", "contents": ["unmade"] },
+    { "key": "fate_late", "layout": "stack", "visibility": "secret", "display": "offscreen", "contents": ["too_late"] }
   ],
   "phases": [
     { "key": "day", "type": "player_input", "label": "Day" },

@@ -32,6 +32,10 @@ local CASES = {
 		function(g) g.end_conditions[2] = { zone_empty = { "vault" }, ["then"] = {} } end },
 	{ "an art spec the engine can't draw", "isn't a shape the engine can draw",
 		function(g) g.card_defs.c_flee.asset = "hexagram:red" end },
+	{ "a leaves block pointed at no zone", "but no zone has that key",
+		function(g) g.card_defs.c_flee.leaves_into = "vault"; g.card_defs.c_flee.on_leaves = { "destroy_self" } end },
+	{ "a leaves block that says where and not what", "does nothing when it gets there",
+		function(g) g.card_defs.c_flee.leaves_into = "hand" end },
 	{ "a comparison against a bare word", "is a bare word",
 		function(g) g.end_conditions[2] = { when = "hp >= lots", ["then"] = {} } end },
 	{ "a condition with no comparison in it", "should be a comparison",
@@ -75,6 +79,10 @@ local CASES = {
 		end },
 	{ "a non-string in an action list", "every action must be a text string",
 		function(g) g.card_defs.c_flee.on_play = { 5 } end },
+	{ "origin used as a source", "only reads as a destination",
+		function(g) g.card_defs.c_flee.on_play = { "return_to:origin:hand" } end },
+	{ "a zone named after a destination word", "would send the card back where it came from",
+		function(g) g.zone_defs.origin = g.zone_defs.hand end },
 	-- stats
 	{ "min/max on an engine-managed stat", "managed by the engine",
 		function(g) g.stat_defs.round = { key = "round", min = 0 } end },
@@ -89,6 +97,102 @@ local CASES = {
 		function(g) g.computed_tags.keepsake = { stat = "hp", equals = "0" } end },
 	{ "a tag with behaviour nobody carries", "no card carries this tag",
 		function(g) g.tag_defs.ghost = { zone = "board" } end },
+	-- buffs
+	{ "a buff on a stat no card has", "buffs 'vigour', but no card carries a stat",
+		function(g) g.tag_defs.keepsake = { buffs = { vigour = 1 } } end },
+	{ "a buff by something that is not a number", "which is not a number",
+		function(g) g.tag_defs.keepsake = { buffs = { hp = "sum:hp@self" } } end },
+	{ "a buffs block that isn't a map", '"buffs" should be written like',
+		function(g) g.tag_defs.keepsake = { buffs = 2 } end },
+	{ "a computed tag buffing the stat that decides it", "would need to know its own answer",
+		function(g)
+			g.computed_tags.hurt = { stat = "hp", less_than = 1 }
+			g.tag_defs.hurt      = { buffs = { hp = 1 } }
+		end },
+	-- named verbs and the auras that watch them
+	{ "a verb entry that isn't a map", 'should be written like { "key"',
+		function(g) g.verb_defs.poison = "stat_damage"; g.verb_list = { "poison" } end },
+	{ "a verb named after an engine action", "the engine already has an action by that name",
+		function(g) g.verb_defs.destroy = { key = "destroy", does = "stat_damage" }; g.verb_list = { "destroy" } end },
+	{ "a verb standing for nothing", 'needs a "does"',
+		function(g) g.verb_defs.poison = { key = "poison" }; g.verb_list = { "poison" } end },
+	{ "a verb standing for an unwatchable action", "is not a verb an aura may watch",
+		function(g) g.verb_defs.poison = { key = "poison", does = "destroy" }; g.verb_list = { "poison" } end },
+	{ "a verb nothing performs", "no action performs it",
+		function(g) g.verb_defs.poison = { key = "poison", does = "stat_damage" }; g.verb_list = { "poison" } end },
+	{ "an aura watching the engine's own verb", "the engine's own verb and not the game's",
+		function(g) g.tag_defs.keepsake.adjusts = {
+			{ key = "a", verb = "stat_damage", stat = "hp", covers = "self", by = -1 } } end },
+	{ "an aura watching a verb nobody declared", "no verb is declared by that name",
+		function(g) g.tag_defs.keepsake.adjusts = {
+			{ key = "a", verb = "poison", stat = "hp", covers = "self", by = -1 } } end },
+	{ "an aura with no key", 'needs a "key"',
+		function(g) g.tag_defs.keepsake.adjusts = { { verb = "poison", stat = "hp", covers = "self", by = -1 } } end },
+	{ "an aura changing a stat no card has", "changes 'vigour', but no card carries a stat",
+		function(g) g.tag_defs.keepsake.adjusts = {
+			{ key = "a", verb = "poison", stat = "vigour", covers = "self", by = -1 } } end },
+	{ "an aura covering nothing nameable", "which is neither a zone nor a tag",
+		function(g) g.tag_defs.keepsake.adjusts = {
+			{ key = "a", verb = "poison", stat = "hp", covers = "each.wombat", by = -1 } } end },
+	{ "an aura that says nothing about how much", 'needs a "by"',
+		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "poison", stat = "hp", covers = "self" } } end },
+	-- verbs a game names, and the auras that watch them
+	{ "a verb standing for nothing", 'needs a "does"',
+		function(g)
+			g.verb_defs.poison = { key = "poison" }
+			g.verb_list = { "poison" }
+		end },
+	{ "a verb standing for an unwatchable action", "is not a verb an aura may watch",
+		function(g)
+			g.verb_defs.poison = { key = "poison", does = "destroy" }
+			g.verb_list = { "poison" }
+		end },
+	{ "a verb the engine already has", "the engine already has an action by that name",
+		function(g)
+			g.verb_defs.destroy = { key = "destroy", does = "stat_damage" }
+			g.verb_list = { "destroy" }
+		end },
+	{ "a verb nothing performs", "no action performs it",
+		function(g)
+			g.verb_defs.poison = { key = "poison", does = "stat_damage" }
+			g.verb_list = { "poison" }
+		end },
+	{ "an aura watching the engine's own verb", "which is the engine's own verb and not the game's",
+		function(g)
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "stat_damage", stat = "hp",
+				covers = "self", by = -1 } } }
+		end },
+	{ "an aura watching a verb nobody declared", "but no verb is declared by that name",
+		function(g)
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "poison", stat = "hp",
+				covers = "self", by = -1 } } }
+		end },
+	{ "an aura changing a stat no card has", "changes 'vigour', but no card carries a stat",
+		function(g)
+			g.verb_defs.poison = { key = "poison", does = "stat_damage" }
+			g.verb_list = { "poison" }
+			g.card_defs.c_flee.on_play = { "poison:hp@self:1" }
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "poison", stat = "vigour",
+				covers = "self", by = -1 } } }
+		end },
+	{ "an aura covering nothing that exists", "which is neither a zone nor a tag",
+		function(g)
+			g.verb_defs.poison = { key = "poison", does = "stat_damage" }
+			g.verb_list = { "poison" }
+			g.card_defs.c_flee.on_play = { "poison:hp@self:1" }
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "poison", stat = "hp",
+				covers = "each.wyvern", by = -1 } } }
+		end },
+	{ "an aura with no key", 'needs a "key"',
+		function(g)
+			g.tag_defs.keepsake = { adjusts = { { verb = "poison", stat = "hp",
+				covers = "self", by = -1 } } }
+		end },
+	{ "an aura shifting by nothing", 'needs a "by"',
+		function(g)
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "poison", stat = "hp",
+				covers = "self" } } }
+		end },
 	-- computed tags
 	{ "a computed tag that isn't a map", 'should be written like { "stat"',
 		function(g) g.computed_tags.ruined = 5 end },
@@ -344,6 +448,16 @@ local CASES = {
 			g.zone_defs.hand.pos = { 0.3, 0.3, 0.8, 0.8 } end },
 	{ "an order the engine does not know", "is not an order the engine knows",
 		function(g) g.card_defs.c_flee.on_play = { "activate_zone:board:widdershins" } end },
+	{ "a third word for which end of a pile", "it should be 'top' or 'bottom'",
+		function(g) g.card_defs.c_flee.on_play = { "move:hand:board:sideways" } end },
+	-- The one that needed the validator to count the way the engine does: an
+	-- amount is one slot or five, so the end has to be looked for past the measure.
+	{ "the same mistake written after a measured amount", "it should be 'top' or 'bottom'",
+		function(g) g.card_defs.c_flee.on_play = { "draw_from:hand:board:count:keepsake:sideways" } end },
+	{ "a copy of something a card does not have", "a card has two action lists to copy",
+		function(g) g.card_defs.c_flee.on_play = { "copy:target:sing" } end },
+	{ "a chosen where that names nothing", "neither a zone nor a tag",
+		function(g) g.card_defs.c_flee.chosen_where = { "hp@nowhere >= 1" } end },
 	-- The shapes a condition used to have. Both are what a game file written
 	-- before the migration carries, so both say what to write instead.
 	{ "a gate still written as a map", "is written as a map",
@@ -443,7 +557,33 @@ local CASES = {
 				g.stat_defs_list[#g.stat_defs_list + 1] = k
 			end
 		end },
+	-- Reactions. The two halves of an event are written in different files, so a
+	-- reaction answering a verb nothing raises reads exactly like one that works
+	-- — and is checked as an ability besides, since that is what it is.
+	{ "a reaction to a verb nothing emits", "answers 'crash', but nothing in this game emits that",
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "crash", action = { "destroy_self" } } } end },
+	{ "a reaction answered from nowhere", 'is answered "from": \'pocket\'',
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", from = "pocket", action = { "destroy_self" } } } end },
+	{ "an unknown action inside a reaction", "'moove_to' is not an action",
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", action = { "moove_to:board" } } } end },
 }
+
+-- The verb check runs last for a reason: what a game emits is only known once
+-- every action has gone past, and an emit may be written anywhere — including
+-- inside another reaction. Ordering this wrong reports a working pair as broken,
+-- which is the one thing a validator must never do.
+function M.test_validator_finds_a_verb_emitted_from_anywhere(check)
+	local g = declaration.parse("tower.json")
+	g.card_defs.c_flee.emits = { play = { "cast" } }
+	g.card_defs.c_flee.reactions = {
+		{ key = "r", to = "summon", action = { "destroy_self" } },
+		{ key = "s", to = "cast", action = { "emit:summon" } },
+	}
+	local said = table.concat(validate.check(g), "\n")
+	check("a verb a card emits is answerable", said:find("answers 'cast'", 1, true) == nil, said)
+	check("and so is one emitted by another reaction",
+		said:find("answers 'summon'", 1, true) == nil, said)
+end
 
 function M.test_validator_names_every_problem_it_knows(check)
 	for _, c in ipairs(CASES) do
@@ -463,7 +603,7 @@ function M.test_validator_catches_a_typo_inside_an_ability(check)
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
 		"title": "Typo",
-		"zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "thing", "text": "Thing",
 			"abilities": [{ "key": "go", "assset": "circle:red", "action": ["next_phase"] }] }]
@@ -490,7 +630,7 @@ function M.test_validator_an_absolute_square_is_on_the_board_at_both_ends(check)
 	local f = assert(io.open(path, "w"))
 	f:write([==[{
   "title": "Off Board",
-  "zones": [{ "key": "board", "type": "grid", "grid": [2, 2], "tags": ["activate"] }],
+  "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
   "phases": [{ "key": "turn", "type": "player_input" }],
   "patterns": {
     "under": { "vectors": ["a0"], "class": ["absolute"] },
@@ -524,6 +664,207 @@ function M.test_every_action_declares_its_argument_shape(check)
 	end
 	check("every action declares its argument shape", #unspecced == 0,
 		table.concat(unspecced, ", "))
+end
+
+-- "merge" is a word, not a flag, so a word nobody defined has to be caught:
+-- reading an unknown one as the default would hide the typo behind behaviour
+-- that looks deliberate.
+function M.test_validator_refuses_a_merge_it_does_not_know(check)
+	local path = "game/games/tmp_merge_typo.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Merge typo",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "thing", "text": "Thing",
+			"abilities": [{ "key": "go", "merge": "mine", "action": ["next_phase"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_merge_typo.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	check("it says which three words there are",
+		has_problem(validate.check(G), 'merge is "both"'),
+		table.concat(validate.check(G), "; "))
+end
+
+-- Two abilities each demanding the other go quiet is not a precedence rule but
+-- the absence of one. Reported rather than resolved, exactly as two tags
+-- granting one field are: inventing a winner hides the mistake.
+function M.test_validator_catches_two_abilities_claiming_merge_this(check)
+	local path = "game/games/tmp_merge_clash.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Merge clash",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"tags": { "loud": { "abilities": [
+			{ "key": "shout", "merge": "this", "action": ["next_phase"] }] } },
+		"cards": [{ "key": "thing", "text": "Thing", "tags": ["loud"],
+			"abilities": [{ "key": "go", "merge": "this", "action": ["next_phase"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_merge_clash.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	check("the card's own and its keyword's are named as the pair",
+		has_problem(validate.check(G), 'both say merge "this"'),
+		table.concat(validate.check(G), "; "))
+end
+
+-- A zone hands out everything it names at once, so the same contradiction can
+-- be written across two tags that never meet on a card.
+function M.test_validator_catches_a_zone_granting_two_merge_this(check)
+	local path = "game/games/tmp_merge_zone.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Merge zone",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2],
+			"applies": ["shop", "vault"] }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"tags": {
+			"shop":  { "abilities": [{ "key": "buy",  "merge": "this", "action": ["next_phase"] }] },
+			"vault": { "abilities": [{ "key": "lock", "merge": "this", "action": ["next_phase"] }] } },
+		"cards": [{ "key": "thing", "text": "Thing", "action": ["next_phase"] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_merge_zone.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	check("the zone is told it would hand a card two whole answers",
+		has_problem(validate.check(G), 'both say merge "this"'),
+		table.concat(validate.check(G), "; "))
+end
+
+-- fill's card slot takes a template key or "@<scope>", and the second is checked
+-- as the scope it is: the key it will produce is not knowable until something is
+-- lying there, so all that can be read at authoring time is whether the scope
+-- names anything.
+function M.test_validator_reads_fills_scope_form(check)
+	local path = "game/games/tmp_fill_scope.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Fill scope",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] },
+			{ "key": "hand", "layout": "row" }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "thing", "text": "Thing", "abilities": [
+			{ "key": "ok",   "action": ["fill:hand:@self:1"] },
+			{ "key": "bad",  "action": ["fill:hand:@nowhere:1"] },
+			{ "key": "typo", "action": ["fill:hand:thign:1"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_fill_scope.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = validate.check(G)
+	check("@self is accepted", not has_problem(said, "@self"), table.concat(said, "; "))
+	check("a scope naming nothing is caught",
+		has_problem(said, "takes its card from '@nowhere'"), table.concat(said, "; "))
+	check("and a misspelled key still is",
+		has_problem(said, "names the card 'thign'"), table.concat(said, "; "))
+end
+
+-- "<zone>.<tag>" is two names, and both have to exist. The complaint says which
+-- half is wrong, because "no zone called that" is a sentence somebody can act on
+-- and "that is not a scope" is not.
+function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
+	local path = "game/games/tmp_zone_tag_bad.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Zone tag",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] },
+			{ "key": "vault", "layout": "stack" }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem"], "abilities": [
+			{ "key": "a", "action": ["destroy:vualt.gem"] },
+			{ "key": "b", "action": ["destroy:vault.gme"] },
+			{ "key": "c", "when": ["count:gem@vualt.gem >= 1"], "action": ["next_phase"] },
+			{ "key": "d", "action": ["destroy:vault.gem"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_zone_tag_bad.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = table.concat(validate.check(G), "; ")
+	check("a misspelled place is named as a place, with the near miss",
+		said:find("looks in 'vualt'", 1, true) and said:find("did you mean 'vault'", 1, true), said)
+	check("a misspelled kind is named as a kind, and where it was looked for",
+		said:find("asks for 'gme' in 'vault'", 1, true), said)
+	check("a subject says it too, not only an action",
+		said:find("the subject 'count:gem@vualt.gem' looks in 'vualt'", 1, true), said)
+	check("and a good one says nothing", not said:find("vault.gem'", 1, true), said)
+end
+
+-- A supply promises its cards are interchangeable, and the validator holds the
+-- game to it: anything that reads an order, or moves the one card standing for
+-- the stock, is asking the question the zone said nobody would ask.
+function M.test_validator_holds_a_supply_to_its_promise(check)
+	local path = "game/games/tmp_supply_bad.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Supply promise",
+		"zones": [
+			{ "key": "shop", "layout": "grid", "grid": [2, 1], "status": "supply",
+			  "reach": "top", "refill_from": "bin", "contents": ["gem:9"] },
+			{ "key": "bin", "layout": "stack" },
+			{ "key": "hand", "layout": "row" }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "gem", "text": "Gem", "tags": ["gem"], "abilities": [
+			{ "key": "a", "action": ["draw_from:shop:hand:1"] },
+			{ "key": "b", "cost": { "stock@self": 1 }, "action": ["fill:hand:@self:1"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_supply_bad.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = table.concat(validate.check(G), "; ")
+	check("reach is refused: a stock has no top",
+		said:find("a stock has no order and no top", 1, true), said)
+	check("refill_from is refused: there is no moment to refill at",
+		said:find("no moment to refill at", 1, true), said)
+	check("and drawing out of one is refused, with the way to write it instead",
+		said:find("standing for the whole stock", 1, true), said)
+	check("while spending the stock and filling from it says nothing",
+		not said:find("'b'", 1, true), said)
+	check("and \"stock\" needs no declaring, because the zone declared it",
+		not said:find("uses the stat 'stock'", 1, true), said)
+end
+
+-- A compute is a number with a name, and one comparison has two sides. The
+-- grammar cannot tell a bound name from a misspelling — it is cached across
+-- games and does not know what any one ability bound — so this is where the two
+-- are told apart, and it has to get both answers right in the same file.
+function M.test_validator_reads_a_compute_on_either_side(check)
+	local path = "game/games/tmp_compute_operand.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Compute operands",
+		"stats": [{ "key": "gold", "min": 0 }],
+		"computes": [{ "key": "spare", "from": "gold - 2" }],
+		"zones": [
+			{ "key": "board", "layout": "grid", "grid": [1, 1], "use": "abilities" },
+			{ "key": "hand", "layout": "row" }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "clerk", "text": "Clerk", "abilities": [
+			{ "key": "right", "compute": ["spare"], "when": ["gold >= spare"],
+			  "action": ["stat_gain:gold:1"] },
+			{ "key": "left", "compute": ["spare"], "when": ["spare >= gold"],
+			  "action": ["stat_gain:gold:1"] },
+			{ "key": "typo", "when": ["gold >= resreve"], "action": ["stat_gain:gold:1"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_compute_operand.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = table.concat(validate.check(G), "; ")
+
+	check("a compute on the right is read as the number it is",
+		not said:find("'spare'", 1, true), said)
+	check("and the misspelling beside it is still a typo",
+		said:find("'resreve' is a bare word", 1, true), said)
+	check("which says a compute is one of the things it could have been",
+		said:find("a compute this ability lists", 1, true), said)
 end
 
 return M

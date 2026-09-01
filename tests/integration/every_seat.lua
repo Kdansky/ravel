@@ -32,9 +32,9 @@ local GAME = [==[{
     { "key": "held", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 }
   ],
   "zones": [
-    { "key": "hand", "type": "hand", "tags": ["per_seat"],
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",
       "pos": [[0.22, 0.80, 0.60, 0.95], [0.22, 0.02, 0.60, 0.17], [0.62, 0.02, 0.98, 0.17]] },
-    { "key": "deck", "type": "deck", "tags": ["hidden"],
+    { "key": "deck", "layout": "stack", "visibility": "secret", "display": "offscreen",
       "contents": ["chip:9"] }
   ],
   "phases": [

@@ -57,7 +57,7 @@ A recipe is: *when the contents of this zone satisfy these requirements, after
 N turns, consume some of them and produce some things.*
 
 ```json
-{ "key": "work", "type": "grid", "grid": [3, 1], "label": "Work",
+{ "key": "work", "layout": "grid", "grid": [3, 1], "label": "Work",
   "recipes": [
     { "requires": { "forge": 2, "count:tool@work": 1 },
       "turns": 4,

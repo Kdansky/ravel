@@ -321,6 +321,11 @@ local detail_id   = nil   -- card or zone shown in the full-screen detail overla
 local can_undo    = false
 local celebrated  = false -- the ending flourish fires once per ending screen
 local buttons     = {}    -- name → rect, rebuilt every frame for hit-testing
+-- Which cards may answer what is announced, worked out once a frame. Asked per
+-- card it would walk every card in the game once per card drawn, which on a
+-- hundred-chip board is ten thousand predicate reads a frame for a window that
+-- is usually not even open.
+local react_offer = {}
 local stat_hud    = {}    -- stat key → {x, y}, where the HUD drew it last frame
 
 function M.set_can_undo(b) can_undo = b end
@@ -427,11 +432,11 @@ end
 local function card_places(zone_e)
 	local p  = zone_e.place
 	local n  = #zone_e.cards
-	local zt = zone_e.zone_type
+	local zt = zone_e.layout
 
 	-- Page zones (the built-in reveal overlay): every card fills the zone,
 	-- so the whole story panel is the tap target.
-	if zone_e.tags.page then
+	if zt == "page" then
 		local pad, places = 6 * S, {}
 		for i = 1, n do
 			places[i] = { x = p.x + pad, y = p.y + pad, w = p.w - pad * 2, h = p.h - pad * 2 }
@@ -442,9 +447,9 @@ local function card_places(zone_e)
 	-- A stack asked to show its whole length. It answers before `type` does,
 	-- because the question it settles — where does each card go — is the one
 	-- `type` was otherwise the only one answering.
-	if zone_e.style.fan then return fan_places(zone_e, zone_e.style.fan) end
+	if zone_e.row then return fan_places(zone_e, zone_e.row) end
 
-	if zt == "deck" or zt == "pile" then
+	if zt == "stack" then
 		local pad = 3 * S
 		return { fit_card({ x = p.x + pad, y = p.y + pad,
 			w = p.w - pad * 2, h = p.h - pad * 2 }) }
@@ -472,27 +477,31 @@ local function card_places(zone_e)
 	-- without this a hand told you what it was only while it was empty, which
 	-- is exactly when there is least to work out.
 	local head   = zone_e.label and love.graphics.getFont():getHeight() + 3 * S or 0
-	local card_h = p.h - pad * 2 - head
-	local card_w = card_h / CARD_RATIO
 	local gap    = 4 * S
-	local needed = n * card_w + (n - 1) * gap
-	if needed > p.w - pad * 2 then
-		card_w = (p.w - pad * 2 - (n - 1) * gap) / n
-		card_h = card_w * CARD_RATIO
+	local room_w = p.w - pad * 2
+	local room_h = p.h - pad * 2 - head
+	-- One line for as long as one line reads, then more lines rather than
+	-- narrower cards. A row is the layout that promises every card shows its
+	-- text, and forty-one chips across a strip are 23px of picture each, which
+	-- is a promise broken quietly. One line is among the shapes tried, so the
+	-- winner is never smaller than the single line would have been.
+	local cols, card_h = n, 0
+	for c = 1, n do
+		local r = math.ceil(n / c)
+		local h = math.min((room_h - (r - 1) * gap) / r, (room_w - (c - 1) * gap) / c * CARD_RATIO)
+		if h > card_h then cols, card_h = c, h end
 	end
-	-- Centred, not left-aligned. A row that fills its zone looks the same
-	-- either way; a row that does not — two choices on a menu built for eight —
-	-- looks deliberate one way and abandoned the other.
-	local row  = n * card_w + (n - 1) * gap
-	local left = p.x + (p.w - row) / 2
+	local card_w = card_h / CARD_RATIO
+	local rows   = math.ceil(n / cols)
+	local top    = p.y + head + (p.h - head - (rows * card_h + (rows - 1) * gap)) / 2
 	local places = {}
 	for i = 1, n do
-		places[i] = {
-			x = left + (i - 1) * (card_w + gap),
-			y = p.y + head + (p.h - head - card_h) / 2,
-			w = card_w,
-			h = card_h,
-		}
+		local col, row = (i - 1) % cols, math.floor((i - 1) / cols)
+		-- Every line centred on its own count, so eleven above three reads as a
+		-- block with a short last line rather than as a block hanging off the left.
+		local wide = math.min(cols, n - row * cols)
+		local left = p.x + (p.w - (wide * card_w + (wide - 1) * gap)) / 2
+		places[i] = { x = left + col * (card_w + gap), y = top + row * (card_h + gap), w = card_w, h = card_h }
 	end
 	return places
 end
@@ -520,17 +529,27 @@ local function draw_card_back(pl)
 end
 
 -- Cost badge: one stat icon + number per cost entry, top-left of the card.
-local function draw_cost_badge(pl, cost)
+--
+-- **A measured cost is drawn as the number it comes to**, not as the expression
+-- that finds it. A cost amount may be a subject rather than a number — which is
+-- the whole of a card whose price is printed on itself, and the only way a play
+-- block shared by ninety cards can charge each of them its own — and printing
+-- the string put "price@self" on the face of every card in the game. Measured
+-- against this card, because "@self" is what the expression is about.
+local function draw_cost_badge(pl, cost, card_e)
 	local sf   = get_small_font()
 	local ih   = sf:getHeight()
-	local keys = {}
-	for k in pairs(cost) do keys[#keys + 1] = k end
+	local keys, shown = {}, {}
+	for k, v in pairs(cost) do
+		keys[#keys + 1] = k
+		shown[k] = tostring(cards.cost_amount(v, card_e and card_e.id))
+	end
 	table.sort(keys)
 
 	local w = 4 * S
 	for _, k in ipairs(keys) do
 		local icon = stat_icon(k)
-		w = w + (icon ~= "none" and ih or 0) + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
+		w = w + (icon ~= "none" and ih or 0) + 2 * S + sf:getWidth(shown[k]) + 4 * S
 	end
 	love.graphics.setColor(0, 0, 0, 0.65)
 	love.graphics.rectangle("fill", pl.x + 2, pl.y + 2, w, ih + 4 * S, 2 * S, 2 * S)
@@ -543,8 +562,8 @@ local function draw_cost_badge(pl, cost)
 		local ind = icon ~= "none" and ih or 0
 		draw_stat_icon(icon, x + ih * 0.5, y + ih * 0.5, ih, tint)
 		love.graphics.setColor(unpack(C.cost))
-		print_at(tostring(cost[k]), x + ind + 2 * S, y)
-		x = x + ind + 2 * S + sf:getWidth(tostring(cost[k])) + 4 * S
+		print_at(shown[k], x + ind + 2 * S, y)
+		x = x + ind + 2 * S + sf:getWidth(shown[k]) + 4 * S
 	end
 end
 
@@ -571,12 +590,22 @@ end
 -- The badges a card actually shows: the style's list, less any zero it asked to
 -- leave out. Asked by the drawing and by the title's layout both, because a
 -- title giving way to a badge that is not there would be off-centre for nothing.
-local function badge_keys(look, stats)
+-- What a card's stat shows, which is what the rules read and not what is stored
+-- on it: a badge that said the printed number while every condition in the game
+-- saw a buffed one would be the screen disagreeing with the board. Nil stays
+-- nil — a buff never gives a card a stat it has not got.
+local function shown_stat(card_e, key)
+	local stats = card_e and card_e.stats
+	if not (stats and stats[key]) then return stats and stats[key] end
+	return tags.stat(card_e, key)
+end
+
+local function badge_keys(look, card_e)
 	local out = {}
-	if not (type(look.badges) == "table" and stats) then return out end
+	if not (type(look.badges) == "table" and card_e and card_e.stats) then return out end
 	local zeros = look.badge_zeros ~= false
 	for _, key in ipairs(look.badges) do
-		local v = stats[key]
+		local v = shown_stat(card_e, key)
 		if v and (zeros or v ~= 0) then out[#out + 1] = key end
 	end
 	return out
@@ -623,11 +652,16 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	-- you may take from has to say so, or the only discoverable thing about it
 	-- is that clicking sometimes does nothing.
 	local dim, dim_label
-	if card_e.exhausted then
+	if react_offer[card_e.id] then
+		-- Being asked for beats everything below: inside a window a reaction is
+		-- neither playable nor activatable, and it may well be spent as well, so
+		-- every other rule here would draw the one live card as dead.
+		dim = false
+	elseif card_e.exhausted then
 		dim, dim_label = true, "exhausted"
-	elseif z and z.zone_type == "hand" then
+	elseif z and z.use == "play" then
 		dim = not flow.can_play(card_e.id)
-	elseif z and z.tags.activate and #cards.abilities(card_e) > 0 then
+	elseif z and z.use == "abilities" and #cards.abilities(card_e) > 0 then
 		dim, dim_label = not flow.can_activate(card_e.id), "not now"
 	end
 
@@ -700,10 +734,10 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		-- below, once the title has a height.
 		local stats = card_e.stats
 		local down  = look.badge_run == "down"
-		local keys  = badge_keys(look, stats)
+		local keys  = badge_keys(look, card_e)
 		local row_w, col_h = 0, 0
 		for i, key in ipairs(keys) do
-			local w = badge_size(key, badge_text(key, stats[key]))
+			local w = badge_size(key, badge_text(key, shown_stat(card_e, key)))
 			if down then
 				row_w = math.max(row_w, w)
 				col_h = col_h + get_small_font():getHeight() + 3 * S
@@ -712,7 +746,8 @@ local function draw_card_face(pl, card_e, show_text, vis)
 			end
 		end
 		if #keys == 0 and stats and stats.hp then
-			row_w = badge_size("hp", stats.hp .. "/" .. ((card_e.stat_max or {}).hp or stats.hp))
+			local hp = shown_stat(card_e, "hp")
+			row_w = badge_size("hp", hp .. "/" .. (tags.stat_max(card_e, "hp") or hp))
 		end
 		local badge_w = down and 0 or row_w
 
@@ -776,7 +811,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	love.graphics.setStencilTest()
 
 	if def and def.cost and next(def.cost) then
-		draw_cost_badge(pl, def.cost)
+		draw_cost_badge(pl, def.cost, card_e)
 	end
 
 	-- The art was already tinted for a plateless card, and "not now" written
@@ -914,17 +949,18 @@ local function draw_card_stats_overlay(pl, card_e, by)
 		-- of the two reaches it.
 		local down = look.badge_run == "down"
 		local x, y = pl.x + 2 * S, down and (pl.y + 3 * S) or by
-		for _, key in ipairs(badge_keys(look, stats)) do
-			local w = draw_badge(key, badge_text(key, stats[key]), x, y, { 1, 1, 1 })
+		for _, key in ipairs(badge_keys(look, card_e)) do
+			local w = draw_badge(key, badge_text(key, shown_stat(card_e, key)), x, y, { 1, 1, 1 })
 			if down then y = y + fh + 3 * S else x = x + w + 2 * S end
 		end
 	elseif stats.hp then
-		local hp_max = (card_e.stat_max or {}).hp or stats.hp
-		local ratio  = hp_max > 0 and stats.hp / hp_max or 0
+		local hp     = shown_stat(card_e, "hp")
+		local hp_max = tags.stat_max(card_e, "hp") or hp
+		local ratio  = hp_max > 0 and hp / hp_max or 0
 		local colour = ratio > 0.6 and { 0.25, 0.95, 0.35 }
 			or ratio > 0.3 and { 1.00, 0.82, 0.15 }
 			or { 1.00, 0.28, 0.15 }
-		draw_badge("hp", stats.hp .. "/" .. hp_max, pl.x + 2 * S, by, colour)
+		draw_badge("hp", hp .. "/" .. hp_max, pl.x + 2 * S, by, colour)
 	end
 	love.graphics.pop()
 end
@@ -1107,7 +1143,7 @@ end
 
 local function draw_zone(zone_e)
 	local p  = zone_e.place
-	local zt = zone_e.zone_type
+	local zt = zone_e.layout
 
 	love.graphics.push("all")
 	-- A zone can be a target in its own right, and eligibility never rides on
@@ -1139,20 +1175,20 @@ local function draw_zone(zone_e)
 	local places = card_places(zone_e)
 	local fh     = love.graphics.getFont():getHeight()
 
-	if zone_e.style.fan then
+	if zone_e.row then
 		draw_zone_label(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
 			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
-				if zone_e.tags.face_down or not zones.visible(c) then
+				if zone_e.visibility == "secret" or not zones.visible(c) then
 					draw_card_back(places[i])
 				else
 					draw_card_face(places[i], c, false,
-						fan_visible(places[i], places[i + 1], zone_e.style.fan))
+						fan_visible(places[i], places[i + 1], zone_e.row))
 				end
 			end
 		end
-	elseif zt == "deck" and zone_e.label then
+	elseif zt == "stack" and zone_e.use == "none" and zone_e.label then
 		local cur = phase.current()
 		if cur and cur.deck == zone_e.key then
 			love.graphics.push("all")
@@ -1184,10 +1220,10 @@ local function draw_zone(zone_e)
 		printf(tostring(#zone_e.cards),
 			p.x + 5 * S, band_y + fh + 5 * S, p.w - 10 * S, "center")
 		love.graphics.pop()
-	elseif zt == "deck" then
+	elseif zt == "stack" and zone_e.use == "none" then
 		if #zone_e.cards > 0 then
 			local top = entity.get(zone_e.cards[#zone_e.cards])
-			if zone_e.tags.face_up then
+			if zone_e.visibility ~= "secret" then
 				draw_card_face(places[1], top, false)
 			else
 				draw_card_back(places[1])
@@ -1197,11 +1233,11 @@ local function draw_zone(zone_e)
 			printf(tostring(#zone_e.cards), p.x, p.y + p.h - fh - 5 * S, p.w, "center")
 			love.graphics.pop()
 		end
-	elseif zt == "pile" then
+	elseif zt == "stack" then
 		if #zone_e.cards > 0 then
 			local top = entity.get(zone_e.cards[#zone_e.cards])
 			if not anim.visual_place(top.id, top.place) then
-				if zone_e.tags.face_down then
+				if zone_e.visibility == "secret" then
 					draw_card_back(places[1])
 				else
 					draw_card_face(places[1], top, false)
@@ -1228,7 +1264,7 @@ local function draw_zone(zone_e)
 		for i, card_id in ipairs(zone_e.cards) do
 			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
-				if zone_e.tags.page then
+				if zt == "page" then
 					draw_page(places[i], c)
 				elseif not zones.visible(c) then
 					-- Somebody else's hand. Backs, so the cards are still there
@@ -1382,6 +1418,40 @@ local function draw_button(name, label, x, y, w, h)
 		y + (h - mf:getHeight()) * 0.5)
 end
 
+-- What is announced and waiting to be answered, across the top. Nothing else on
+-- screen says a window is open — the turn has not moved and the phase has not
+-- changed — and the seat it is open for is being asked a question they never
+-- clicked for, so it is stated and given a way out.
+--
+-- The top, because the bottom bar belongs to targeting and a reaction that aims
+-- at something raises one while this is still up.
+local function draw_react_hint()
+	local top = flow.pending_event()
+	if not top then return end
+	local W     = love.graphics.getWidth()
+	local mf    = love.graphics.getFont()
+	local bar_h = mf:getHeight() + 14 * S
+	local names = {}
+	for _, id in ipairs(top.re_subject) do
+		local c = entity.get(id)
+		if c then names[#names + 1] = (cards.def(c) or {}).text or c.def_key end
+	end
+	local msg = table.concat(names, ", ") .. ": " .. top.re_verb
+		.. "   —   " .. tostring(zones.active_seat()) .. " to answer"
+	-- As wide as it needs and no wider. A full-width bar would lie across the
+	-- stat row in the far corner, which is exactly what a player weighing whether
+	-- to answer is reading.
+	local pw = mf:getWidth("Pass") + 20 * S
+	local bw = math.min(W, mf:getWidth(msg) + pw + 32 * S)
+	love.graphics.push("all")
+	love.graphics.setColor(0.00, 0.00, 0.00, 0.82)
+	love.graphics.rectangle("fill", 0, 0, bw, bar_h)
+	love.graphics.setColor(1.00, 0.88, 0.55)
+	print_at(msg, 12 * S, 7 * S)
+	draw_button("pass", "Pass", bw - pw - 8 * S, 3 * S, pw, bar_h - 6 * S)
+	love.graphics.pop()
+end
+
 local function draw_targeting_hint()
 	if not targeting.active() then return end
 	local W, H  = love.graphics.getDimensions()
@@ -1482,9 +1552,8 @@ end
 
 local function draw_animated_cards()
 	for z in entity.each("zone") do
-		if not z.tags.hidden then
-			local zt   = z.zone_type
-			local list = (zt == "deck" or zt == "pile") and { z.cards[#z.cards] } or z.cards
+		if z.display ~= "offscreen" then
+			local list = z.layout == "stack" and { z.cards[#z.cards] } or z.cards
 			for _, cid in ipairs(list or {}) do
 				local vpl = cid and anim.visual_place(cid, (entity.get(cid) or {}).place)
 				if vpl then draw_flying_card(vpl, entity.get(cid)) end
@@ -1570,7 +1639,7 @@ local function draw_card_detail(card_e)
 
 		if def and def.cost and next(def.cost) then
 			love.graphics.setColor(unpack(C.cost))
-			print_at("Cost: " .. cards.cost_text(def.cost), info_x, y)
+			print_at("Cost: " .. cards.cost_text(def.cost, card_e and card_e.id), info_x, y)
 			y = y + main_font:getHeight() + 8 * S
 		end
 
@@ -1608,8 +1677,10 @@ local function draw_card_detail(card_e)
 			print_at("Stats:", info_x, y)
 			y = y + main_font:getHeight() + 4 * S
 			local caps = card_e.stat_max or {}
-			for k, v in pairs(stats) do
-				local val = caps[k] and (v .. "/" .. caps[k]) or tostring(v)
+			for k in pairs(stats) do
+				local v   = tags.stat(card_e, k)
+				local hi  = caps[k] and tags.stat_max(card_e, k)
+				local val = hi and (v .. "/" .. hi) or tostring(v)
 				love.graphics.setColor(0.78, 0.92, 1.00)
 				print_at("  " .. k .. ": " .. val, info_x, y)
 				y = y + main_font:getHeight()
@@ -1673,6 +1744,8 @@ function M.draw()
 	if not font_main then M.rescale() end
 	love.graphics.clear(unpack(C.bg))
 	buttons = {}
+	react_offer = {}
+	for _, u in ipairs(flow.usable_reactions()) do react_offer[u.card] = true end
 
 	-- Impacts kick the whole scene; UI overlays below stay put.
 	local shx, shy = fx.shake_offset()
@@ -1680,7 +1753,7 @@ function M.draw()
 	love.graphics.translate(shx, shy)
 
 	for z in entity.each("zone") do
-		if not z.tags.hidden then draw_zone(z) end
+		if z.display ~= "offscreen" then draw_zone(z) end
 	end
 	draw_animated_cards()
 	fx.draw()
@@ -1757,6 +1830,7 @@ function M.draw()
 
 	fx.draw_celebration()
 	draw_targeting_arrow()
+	draw_react_hint()
 	draw_targeting_hint()
 	draw_log()
 	draw_undo_button()
@@ -1769,15 +1843,14 @@ end
 function M.sync_places()
 	for z in entity.each("zone") do
 		local places = card_places(z)
-		local zt     = z.zone_type
+		local zt     = z.layout
 		local kind   = zt == "grid" and "slam"
-			or (zt == "deck" or zt == "pile") and "drop" or "glide"
+			or zt == "stack" and "drop" or "glide"
 		-- A stack keeps one place, because only its top card is ever drawn or
 		-- clicked. A fanned one shows every card, so every card needs one — miss
 		-- this and the fan draws correctly and answers the mouse from wherever
 		-- its cards used to be.
-		local list   = (zt == "deck" or zt == "pile") and not z.style.fan
-			and { z.cards[#z.cards] } or z.cards
+		local list   = zt == "stack" and { z.cards[#z.cards] } or z.cards
 		for i, cid in ipairs(list) do
 			local c   = cid and entity.get(cid)
 			local new = places[i]

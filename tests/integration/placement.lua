@@ -26,13 +26,13 @@ local GAME = [==[{
     "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] }
   },
   "zones": [
-    { "key": "stash", "type": "grid", "grid": [3, 1], "tags": ["per_seat", "activate"],
+    { "key": "stash", "layout": "grid", "use": "abilities", "copies": "per_seat", "grid": [3, 1],
       "pos": [[0.05, 0.05, 0.95, 0.24], [0.05, 0.76, 0.95, 0.95]] },
-    { "key": "board", "type": "grid", "grid": [3, 2], "tags": ["activate"],
+    { "key": "board", "layout": "grid", "use": "abilities", "grid": [3, 2],
       "pos": [0.05, 0.32, 0.95, 0.68] },
-    { "key": "bin", "type": "pile", "pos": [0.05, 0.26, 0.20, 0.30] },
-    { "key": "stock", "type": "pile", "pos": [0.80, 0.26, 0.95, 0.30] },
-    { "key": "commons", "type": "pile", "pos": [0.40, 0.26, 0.60, 0.30],
+    { "key": "bin", "layout": "stack", "pos": [0.05, 0.26, 0.20, 0.30] },
+    { "key": "stock", "layout": "stack", "pos": [0.80, 0.26, 0.95, 0.30] },
+    { "key": "commons", "layout": "stack", "pos": [0.40, 0.26, 0.60, 0.30],
       "receive": { "action": ["set_owner:target:none"] } }
   ],
   "phases": [

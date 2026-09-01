@@ -25,9 +25,9 @@ local GAME = [==[{
   "players": [{ "card": "one" }],
   "stats": [{ "key": "purse", "min": 0, "max": 99, "tags": ["hidden"] }],
   "zones": [
-    { "key": "hand", "type": "hand", "tags": ["per_seat"], "pos": [[0.02, 0.80, 0.60, 0.95]] },
-    { "key": "table", "type": "grid", "grid": [6, 1], "pos": [0.02, 0.30, 0.98, 0.50] },
-    { "key": "sold", "type": "grid", "grid": [2, 1], "pos": [0.02, 0.55, 0.40, 0.70] }
+    { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": [[0.02, 0.80, 0.60, 0.95]] },
+    { "key": "table", "layout": "grid", "grid": [6, 1], "pos": [0.02, 0.30, 0.98, 0.50] },
+    { "key": "sold", "layout": "grid", "grid": [2, 1], "pos": [0.02, 0.55, 0.40, 0.70] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }
@@ -154,8 +154,8 @@ end
 -- work, and it is a different question from what a card's own tags say.
 function M.test_tag_play_a_zone_still_speaks_first(check)
 	local text = GAME
-		:gsub('"key": "sold", "type": "grid", "grid": %[2, 1%]',
-			'"key": "sold", "type": "grid", "grid": [2, 1], "applies": ["shove"]')
+		:gsub('"key": "sold", "layout": "grid", "grid": %[2, 1%]',
+			'"key": "sold", "layout": "grid", "grid": [2, 1], "applies": ["shove"]')
 		:gsub('"elsewhere": { "play"', '"shove": { "play": { "action": ["move_to:table"] } },\n    "elsewhere": { "play"')
 	with_game(text, function(name)
 		flow.init(name, 3)

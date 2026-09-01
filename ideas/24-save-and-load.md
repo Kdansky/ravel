@@ -1,115 +1,6 @@
 # 24 — Saving a game, and loading it back
 
-**Status:** **shipped** (`game/save.lua`, `tests/integration/save.lua`) ·
-**Size:** small, and it stayed small — the store was one line of `conf.lua` ·
-**Depends on:** nothing now. It *built* the store
-[16](16-the-player-at-this-screen.md) gap 2 was waiting for, so a name has one
-too whenever that is picked up.
-
-**The write-up's premise held and its one open question answered itself.** See
-*What building it found* at the bottom — in particular the browser, which turned
-out to need one line rather than a caveat.
-
-> *Add a safe/load functionality to the engine which produces what is
-> essentially an encoded json (just like what we send over the network for
-> multiplayer), and give games the ability to save/load. We might want to check
-> that a game's json hasn't changed between saves, though I'm not sure how.*
-
-**The format the note asks for already exists and is shipped.** `net.snapshot()`
-(`net.lua:96`) is *everything ARCHITECTURE.md lists as state*, plus the RNG
-position and the file it belongs to, in a table `json.encode` writes with sorted
-keys. `net.apply_full(snap)` (`net.lua:475`) puts it back. A save file is that
-table; loading one is that call. So this track is not "design a save format" —
-it is **give the bytes somewhere to live, and give a game a word for it**.
-
----
-
-## What is already answered, and it is more than the note expects
-
-| The note asks | What answers it today |
-|---|---|
-| an encoded json, like the network's | `net.snapshot()` / `net.apply_full()` — the same table, already round-tripped by every message a peer sends |
-| stable bytes | `json.encode` sorts map keys, and `net.fingerprint` already depends on that holding on two machines |
-| *has the game's json changed?* | **`net.game_hash(filename)`** (`net.lua:145`) and `same_game(body)` (`net.lua:431`), which already refuses a state whose `gh` does not match and says *"different versions of lost_cities.json — theirs 3f2a…, yours 91bc…"* |
-
-The third row is the part the note was unsure about, and it is not only solved
-but solved with the error message already written. A save carries `gh` the way a
-network message does, `apply_full` checks it on the way in, and a game file
-edited since the save is refused at the door rather than three moves later.
-
-**One correction to the premise:** the save is not "essentially" the network
-payload, it *is* it. Anything that makes the two diverge — a field saved but not
-sent, a version tag on one and not the other — buys a second format to keep
-correct. [Assumption: the right shape is one function pair used by both, with
-the file layer being the only new code: `save.write(slot)` encoding
-`net.snapshot()` and `save.read(slot)` handing the decoded table straight to
-`net.apply_full`.]
-
-## What is genuinely missing
-
-### 1. There is nowhere to write
-
-`grep -rn "love.filesystem.write" game/` returns nothing, and `conf.lua` sets no
-`t.identity` — so LÖVE has no save directory at all. This is the same finding
-[16](16-the-player-at-this-screen.md) gap 2 made from the other side, and it is
-the *whole* dependency between the two: a name and a saved game want one store,
-and building two would be the mistake.
-
-[Assumption: this is one line in `conf.lua` and a small `save.lua` beside
-`net.lua` — outside the engine, in the same spirit as `net.lua`'s first line, so
-no engine module requires it and deleting it leaves the game as it was.]
-
-**The browser is the part to check first rather than last.** love.js keeps the
-save directory in IndexedDB and needs an explicit sync for a write to survive a
-reload. 16 gap 2 already flags this and it bites harder here: a name that does
-not persist is an annoyance, a saved game that silently evaporates is a lie.
-[Assumption: if the sync turns out not to be wired up in this repo's love.js
-build, the honest first version is desktop-only and says so, rather than
-offering a browser button that does nothing.]
-
-### 2. A game has no word for it
-
-The note asks to *give games the ability to save/load*, which means an action,
-not just a menu item. `load_game:<file>` already exists as an action, so the
-shape is established.
-
-[Assumption: `save_game:<slot>` and `load_save:<slot>` as two ordinary actions,
-with the slot a plain word from the game file — so a game that wants a single
-autosave writes one and a game that wants three writes three, and no engine
-concept of "how many saves" is needed. `menu.json` is a game file, so *continue*
-is a card in the menu with a `needs` that the slot exists — which wants a
-condition that can ask, and that is the one thing in this track with no obvious
-existing spelling.]
-
-### 3. The log, and how much of the past a save keeps
-
-`net.snapshot()` carries `log.tail(1e9)` — the whole scrollback — and no undo
-history at all, because `flow.forget_history` is what the network calls when a
-state arrives. A save is the same trade and should make it deliberately:
-**a loaded game has its log and cannot be undone past the load.** That is the
-behaviour the network already has and nobody has minded.
-
-## What to refuse
-
-- **A second serialisation format.** The moment a save is not exactly a network
-  snapshot, `state_hash`, the delta protocol and undo all have a second thing to
-  stay correct against.
-- **Saving during a networked game.** Two peers writing independent saves of a
-  shared state is a resync problem wearing a new hat. [Assumption: the honest
-  version refuses while `net` is linked, and says why.]
-- **Migrating an old save to a changed game file.** The `gh` check is the whole
-  policy: same file, or no load. A save that *adapts* to an edited game file is
-  a schema-migration project, and the note's own instinct — check that it has
-  not changed — is the cheaper and more honest answer.
-- **Saving to a path the game file names.** The same rule the asset path and
-  [09](09-composition.md)'s `include` already enforce: a game file arriving from
-  a peer is parsed through the very same door, and a save path it controls is a
-  write primitive handed to a stranger. Slots are words; the engine decides
-  where they land.
-
-## What shipped
-
-`game/save.lua`, beside `net.lua` and required by nothing in the engine:
+**Shipped** — `game/save.lua`, `tests/integration/save.lua`.
 
 | | |
 |---|---|
@@ -117,62 +8,59 @@ behaviour the network already has and nobody has minded.
 | `load_save:<slot>` | put it back, whichever game it was of |
 | `saved:<slot> >= 1` | a condition: is there anything in that slot |
 
-The proof is two cards and no third place to look: chess deals a **Save**
-button, `menu.json` deals **Continue**, and Continue does not name a game — the
-save names its own file and that file is loaded first. `t.identity` in
-`conf.lua` is the store; `.saves/` beside the process is where the headless shim
-puts one, so the tests exercise the real path rather than a mock.
+## The decision
 
-There is no serialisation code in the file at all. `M.write` is
-`net.snapshot()` plus `gh` handed to `json.encode`; `M.read` is `json.decode`
-handed to `net.apply_full`. Everything else in those 120 lines is refusals.
+**A save is not "essentially" the network payload, it *is* it.** `M.write` is
+`net.snapshot()` plus a game hash handed to `json.encode`; `M.read` is
+`json.decode` handed to `net.apply_full`. There is no serialisation code in the
+file at all — the other 120 lines are refusals. Anything that made the two
+diverge would buy a second format to keep correct, and `state_hash`, the delta
+protocol and undo would all have a second thing to stay right against.
+
+The proof is two cards and no third place to look: chess deals a **Save**
+button, `menu.json` deals **Continue**, and Continue names no game — the save
+names its own file and that file is loaded first.
+
+A loaded game keeps its log and cannot be undone past the load. That is what the
+network already does and nobody has minded.
 
 ## What building it found
 
 **The browser needed one line, not a caveat.** The write-up guessed the honest
-first version might be desktop-only. It is not: the love.js runtime this repo
-serves already mounts `$HOME` as IDBFS and populates it with `FS.syncfs(true)`
-before the game starts — so a save *is* read back after a reload. What it only
-does at exit is the flush, `FS.syncfs(false)` on `Module.done`, and a browser
-tab is never exited. So one `javascript:` snippet after every write pushes it
-across, through the bridge [netlink](../game/netlink.lua) already documents
-(player.js overrides `window.open`, so `love.system.openURL("javascript:…")`
-runs it). Fire and forget: syncfs is asynchronous, its value lands in
-`window._output` where the next snippet overwrites it, and there is nothing
-useful to do about a failure a whole tab away.
+first version might be desktop-only. love.js already mounts `$HOME` as IDBFS and
+populates it before the game starts, so a save *is* read back after a reload;
+what it only does at exit is the flush, and a tab is never exited. One
+`javascript:` snippet after each write pushes it across, through the bridge
+`netlink.lua` documents. Fire and forget — syncfs is asynchronous and there is
+nothing useful to do about a failure a whole tab away.
 
-**The condition had an obvious spelling after all**, and it was already in the
-grammar: `saved:<slot>` is `tagged:`'s shape — a yes/no written as 1 or 0
-because a condition compares numbers. The only new thing is *who answers*. It is
-a fact about the machine rather than about any card, so `predicate` cannot know
-it and asks through `M.saved_slot`, which `save.lua` sets; a build without the
-file answers 0, which is true there. Three lines in `predicate`, one branch in
-the validator.
+**The condition had a spelling already in the grammar.** `saved:<slot>` is
+`tagged:`'s shape — a yes/no as 1 or 0. The only new thing is *who answers*: it
+is a fact about the machine rather than any card, so `predicate` asks through
+`M.saved_slot`, and a build without `save.lua` answers 0, which is true there.
 
-**"slot" was already taken, and the collision was worth avoiding.** The engine
-calls a square on a grid a slot (`entity.each("slot")`, a target's
-`type: "slot"`), so a new argument type spelled `slot` in `actions.lua`'s `SPEC`
-would read as "this action takes a square". The type is `save`; the word a game
-file and a player use stays *slot*, which is what every game that has ever had
-one calls it.
+**"slot" was already taken.** The engine calls a square on a grid a slot, so an
+argument type spelled `slot` would read as "this action takes a square". The
+type is `save`; the word a player uses stays *slot*.
 
-**Loading is deferred exactly like `load_game`**, through
-`actions.pending_slot` and `flow.settle`, and for the same reason: it replaces
-every entity in the game, so the actions written after it in the same list would
-run against a world nobody wrote them for. A restore that *throws* partway falls
-back to the menu, as a failed `load_game` does; a restore that is *refused* —
-empty slot, edited game file — changes nothing and says so in the log.
+**Loading defers like `load_game`**, through `actions.pending_slot` and
+`flow.settle` — it replaces every entity, so actions written after it in the
+same list would run against a world nobody wrote them for.
 
-**The `gh` check needed its own sentence, not the network's.** `net`'s refusal
-reads *"different versions of chess.json — theirs 3f2a…, yours 91bc…. You both
-need the same file"*, which is a sentence about two people. `save.read` makes
-the identical comparison itself, first, and says *"chess.json has changed since
-this was saved"*; net's stays underneath as the backstop. Same check, twice,
-because the second one costs a line and the first one would confuse a player
-saving alone.
+**The game-hash refusal needed its own sentence.** net's reads *"different
+versions of chess.json — theirs 3f2a…, yours 91bc…"*, which is a sentence about
+two people. `save.read` says *"chess.json has changed since this was saved"*
+first; net's stays underneath as the backstop.
 
-**Nothing wanted a timestamp, an index, or a delete action.** A slot is a word
-and the game says which; how many saves there are is not a question the engine
-has an answer for. `M.forget` exists as module API — the tests clean up with
-it — and deliberately has no action word: a card that deletes your save is not a
-button anybody asked for.
+## Refused
+
+- **A second serialisation format**, for the reason above.
+- **Saving during a networked game** — two peers writing independent saves of a
+  shared state is a resync problem in a new hat.
+- **Migrating an old save to a changed game file.** Same file, or no load.
+- **Saving to a path the game file names.** A game file can arrive from a peer;
+  a write primitive it controls is one handed to a stranger. Slots are words,
+  and the engine decides where they land.
+- **A timestamp, an index, or a delete action.** How many saves there are is not
+  a question the engine has an answer for. `M.forget` is module API with no
+  action word: a card that deletes your save is not a button anybody asked for.

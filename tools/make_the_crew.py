@@ -15,6 +15,7 @@ evenly — ten each and ten tricks, with no odd card left in a hand.
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
+import guard
 
 # key, printed name, palette colour, suit number. Rocket is a suit like any
 # other, because it is one: led first, it must be followed (rules.md §2 step 4).
@@ -264,38 +265,37 @@ def zones():
              for i in range(len(SEATS))]
 
     return [
-        {"key": "hand", "type": "hand", "tags": ["per_seat"], "pos": hands},
+        {"key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": hands},
         # Face up, so it is everybody's to read — which is the whole point of
         # saying something, and what the tag has always claimed to mean.
-        {"key": "open", "label": "Said", "type": "hand", "tags": ["per_seat", "face_up"],
+        {"key": "open", "label": "Said", "layout": "row", "copies": "per_seat",
          "pos": opens},
-        {"key": "controls", "type": "grid", "grid": [1, 1], "tags": ["activate", "optional"],
+        {"key": "controls", "layout": "grid", "use": "abilities", "grid": [1, 1], "tags": ["optional"],
          "pos": [0.685, 0.335, 0.790, 0.445]},
-        {"key": "tasks", "label": "Tasks", "type": "grid", "grid": [MAX_TASKS, 1],
-         "tags": ["per_seat"], "pos": tasks},
-        {"key": "trick", "label": "Play area", "type": "grid", "grid": [len(SEATS), 1],
+        {"key": "tasks", "label": "Tasks", "layout": "grid", "copies": "per_seat", "grid": [MAX_TASKS, 1], "pos": tasks},
+        {"key": "trick", "label": "Play area", "layout": "grid", "grid": [len(SEATS), 1],
          "applies": ["in_trick"], "pos": [0.330, 0.395, 0.670, 0.700]},
-        {"key": "deck", "label": "Deck", "type": "deck", "tags": ["shuffle"],
+        {"key": "deck", "label": "Deck", "layout": "stack", "visibility": "secret", "tags": ["shuffle"],
          "pos": [0.805, 0.335, 0.895, 0.445],
          "tooltip": "Forty cards: four colours of nine, and four rockets.",
          "contents": [f"{s[0]}_{v}" for s in SUITS for v in range(1, 10)]
                      + [f"rocket_{v}" for v in range(1, 5)]},
-        {"key": "task_deck", "label": "Tasks", "type": "deck", "tags": ["shuffle"],
+        {"key": "task_deck", "label": "Tasks", "layout": "stack", "visibility": "secret", "tags": ["shuffle"],
          "pos": [0.905, 0.335, 0.995, 0.445],
          "tooltip": "One task card for every colour card. Rockets are never a task.",
          "contents": [f"task_{s[0]}_{v}" for s in SUITS for v in range(1, 10)]},
-        {"key": "task_offer", "label": "On offer", "type": "grid", "grid": [MAX_TASKS, 1],
+        {"key": "task_offer", "label": "On offer", "layout": "grid", "grid": [MAX_TASKS, 1],
          "pos": [0.010, 0.480, 0.320, 0.620]},
-        {"key": "archive", "label": "Done", "type": "pile",
+        {"key": "archive", "label": "Done", "layout": "stack",
          "tooltip": "Tasks the crew has already fulfilled.",
          "pos": [0.220, 0.340, 0.320, 0.460]},
-        {"key": "won", "label": "Taken", "type": "pile", "tags": ["face_down"],
+        {"key": "won", "label": "Taken", "layout": "stack", "visibility": "secret", "use": "play",
          "tooltip": "Tricks already taken, set aside face down.",
          "pos": [0.115, 0.340, 0.215, 0.460]},
-        {"key": "rules", "type": "pile", "pos": [0.010, 0.340, 0.110, 0.460],
+        {"key": "rules", "layout": "stack", "pos": [0.010, 0.340, 0.110, 0.460],
          "contents": ["how_to_play"]},
-        {"key": "console", "type": "grid", "grid": [1, 1], "tags": ["hidden"]},
-        {"key": "mission", "type": "hand", "tags": ["hidden", "no_peek"],
+        {"key": "console", "layout": "grid", "display": "offscreen", "grid": [1, 1]},
+        {"key": "mission", "layout": "row", "display": "offscreen",
          "pos": [0.22, 0.24, 0.78, 0.76],
          "contents": [f"m_{n}" for n in range(1, MAX_TASKS + 1)]},
     ]
@@ -466,7 +466,9 @@ def build():
 
 if __name__ == "__main__":
     here = os.path.dirname(os.path.abspath(__file__))
-    out = os.path.join(here, "..", "game", "games", "the_crew.json")
+    out = guard.destination(os.path.join(here, "..", "game", "games", "the_crew.json"))
+    if out is None:
+        sys.exit(1)
     with open(out, "w", encoding="utf-8") as f:
         f.write(jsonfmt.dump(build()))
     print("wrote", os.path.relpath(out, os.path.join(here, "..")))

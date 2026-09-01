@@ -4,20 +4,20 @@
     {
       "key": "published",
       "label": "Published games",
-      "type": "hand",
+      "layout": "row",
       "pos": [0.06, 0.05, 0.94, 0.42],
-      "contents": ["play_lost_cities", "play_chess", "play_splendor", "play_lor", "play_the_crew", "play_puzzle_strike"]
+      "contents": ["play_lost_cities", "play_chess", "play_splendor", "play_lor", "play_the_crew", "play_puzzle_strike", "play_codex"]
     },
     {
       "key": "proof",
       "label": "Proof of concept",
-      "type": "hand",
+      "layout": "row",
       "pos": [0.06, 0.44, 0.94, 0.81],
       "contents": ["play_demo", "play_castle", "play_kingdom", "play_tower", "play_road", "play_vigil"]
     },
     {
       "key": "menu",
-      "type": "hand",
+      "layout": "row",
       "tags": ["optional"],
       "pos": [0.44, 0.83, 0.56, 0.99],
       "contents": ["m_continue", "m_join"]
@@ -25,6 +25,14 @@
   ],
   "players": [{}],
   "cards": [
+    {
+      "key": "play_codex",
+      "text": "Codex",
+      "tooltip": "Sirlin's RTS in a card game: hire workers, raise tech buildings, build your deck out of a codex as you play, and knock the other base down. Core set, one hero each.",
+      "asset": "star:5:crimson",
+      "play": { "action": ["load_game:codex.json"] },
+      "tags": ["immutable"]
+    },
     {
       "key": "play_demo",
       "text": "The Wandering Road",

@@ -31,7 +31,8 @@ inspect ─ ctrl+hover: the JSON behind whatever is under the cursor
 anim ─ flight tweens    fx ─ particles/shake/floats
 art ─ procedural placeholder shapes (its pure `parse` is shared with validate)
 ────────────────────────────────────────────────────────────── presentation
-flow ─ THE game driver: init/settle/play/activate/undo, costs, legality
+flow ─ THE game driver: init/settle/play/activate/undo, costs, legality, the stack
+reactions ─ who may answer an event, and whether a window opens at all
 validate ─ whole-file checks: schema, references, conflicts
 actions ─ the op vocabulary (HANDLERS table)
 phase ─ phase stack, routing, round/fresh flags
@@ -132,7 +133,9 @@ Treat it as disposable.
    calls itself), the phase's declared zone, and the acting seat. `targeting`
    holds what a player was *offered*; flow decides what the rules allow, so a
    script or the debug API is bound by exactly the same checks the GUI is.
-3. **`settle` is the only driver.** It loops: pending `load_game` → end
+3. **`settle` is the only driver.** It loops: pending `load_game` → the response
+   window (`flow.react_step`: a seat must answer → stop; a record resolved →
+   loop) → end
    conditions (deferred while an overlay is open) → round boundaries
    (counter, ready, every card's `turn.action` — always before the new round's phases act) →
    automatic phases → dealing fresh phases. It carries a
@@ -224,6 +227,134 @@ exactly as long as that rule was written inline in the input layer: every test
 reached `targeting.candidates` directly and passed. When a rule about *what a
 click means* has to be added, it belongs below the presentation line.
 
+## The response window
+
+A game with a zone tagged `stack` can let one player answer another's action.
+Three ideas carry the whole of it, and a game without that zone pays for none of
+them.
+
+**Priority is not the turn.** `zones.turn_seat()` is whose turn it is;
+`zones.active_seat()` is who may act *right now*, and they differ only inside a
+window. Priority lives in one stat (`priority` on the system card), 0 meaning
+"nobody but the turn" — so every game that has never heard of reactions reads
+exactly the turn, as it always did. Everything downstream — `mine`, costs, the
+plays counter, reachability — already reads `active_seat`, which is why moving
+priority is the entire out-of-turn unlock.
+
+**Nothing on the stack is a game card.** Each entry is an `event` record
+standing for something announced; the card that announced it stays in the hand or
+on the table it was played from. A counter therefore removes a record and has
+nothing to put back, and where the announcing card lands was already said by its
+own `spent`. The record carries what it needs to resolve later (`re_action`,
+`re_event`, `re_subject`, `re_actor`, `re_targets`, `re_spent`) as ordinary
+entity fields, so undo and the network snapshot carry it for free.
+
+> Which is also the trap: entity state is JSON on its way to a save file and to
+> the other client, and a table keyed by a **number** comes back keyed by a
+> string. Card ids are numbers. `re_answered` is a *list* of ids for that reason,
+> and anything else remembering cards on an entity must be too.
+
+**Two filters, so an unanswerable action never prompts.** `reactions.lua` owns
+both. Filter A is `G.react_index`, built once at parse — verb → card → the
+reactions on it — so a verb no card in the game answers short-circuits before a
+single card is looked at. Filter B walks the board and asks each candidate
+whether it matches: `where` against the event, `when` against the reactor (asked
+as their seat), and *where the card is*. That last one is asked two ways —
+strictly when the answer is acted on, loosely when it merely decides whether to
+open a window, because a hand and the bag behind it are the same place from
+across the table. Opening on what is publicly possible costs a pass now and then
+and keeps the prompt from being evidence about a hidden hand.
+
+`flow.react_step` is the scheduler and runs inside `settle`: it returns
+`waiting` (a seat must answer), `resolved` (a record ran) or `idle` (no stack —
+every existing game). An interjected phase counts as `waiting`, because a phase
+pushed for the answering seat is part of resolving the record that opened it.
+
+**It walks the responders twice, forced first and all of them.** A trigger is
+not the seat's to decline, so a pass does not silence it and a card standing
+ahead of it in the list cannot spend its turn: one fires per step and `settle`
+comes straight back for the next, which is how a record with three answers owed
+runs all three. Only then are the questions asked, and only the optional ones —
+a forced reaction that cannot fire is not a question, and offering it as one is
+how a trigger got lost. That is what `forced_verdict` is for: `fire` on its own,
+`ask` when it has to be aimed after all, `no` when the loose reading found a
+card that is not really where it could answer from.
+
+**What may answer whom** is one word on the reaction, `whose`, in the scope
+grammar's own vocabulary: `enemy` (the default), `mine`, `anyone`. It is not
+what makes the protocol terminate — that is `re_answered`, which lets one card
+answer one record once. An answer is a *new* record with its own memory, so a
+chain gets longer rather than going round, and the only shape that can still run
+away — a mandatory board reaction answering the verb answers themselves go up as
+— hits `STACK_LIMIT`, is marked as having had its go, and unwinds.
+
+**A phase announces itself** through the same `emits` a card carries, keyed by
+the two hooks a phase already had: `begin` beside the actions it runs on entry,
+`end` beside the hand it discards on the way out. Nothing is deferred, because a
+phase has no action list waiting on the answer. This is the only announcement in
+the engine that nobody caused, and it is what "at the end of your turn" is made
+of: the subject is the player card of whoever the phase belongs to, so `whose`
+and `@event` read there exactly as they do anywhere else.
+
+**An open offer freezes whose game it is.** A question on the table was asked in
+a phase, of a seat, holding priority, and the three actions that would move one
+of those (`next_phase`/`push_phase`/`pop_phase`, `set_active_seat`,
+`set_priority`/`clear_priority`, plus `each_seat`, which moves the seat by hand)
+refuse while an offer-status zone is the current overlay's zone. `offer_open` in
+`actions.lua` is the whole test; `validate.lua` reads the same rule off the file,
+so a list that opens an offer and then ends the phase is caught before it runs.
+
+Refused, not closed on the rule's behalf: a list that walks away from a question
+it asked has not decided what happens to it, and choosing for it would withdraw
+an answer somebody was owed. The place for the change is `chosen`, which runs
+after `play_card` has popped the overlay. The engine side already obeyed this —
+`react_step` returns `waiting` while `phase.depth() > 1`, and `settle` defers end
+conditions and `ends_when` under an overlay — so this closes the one hole left,
+which was content driving it directly.
+
+## Supply zones — one card standing for a stock
+
+`status: "supply"` is the only place the engine keeps something the game file
+did not ask for and does not see. It is worth reading once, because the reason
+it is safe is not obvious from either end.
+
+**What the format promises.** A supply's cards are *interchangeable*. Sixty-four
+identical gems differ in nothing a rule may ask about, and the promise is
+enforced by `targeting.candidates`, which drops them the way it drops
+`immutable` scenery: **nothing may point at one.** That is the load-bearing
+part. A rule that could aim at a particular gem would be able to find out there
+is only one.
+
+**What the engine does with it.** `zones.add` counts instead of creating: the
+first card of a kind becomes the shelf's face card, stamped with a `stock` the
+game never declares, and every one after it is that number going up. `contents`
+of `["gem_1:64"]` therefore yields one entity, and so does `fill:bank:gem_1:8`
+and a rule putting a gem back in the box. `zones.move_card` funnels into the
+same place, so every route in lands right — and it reads the incoming card's own
+`stock` as its worth, because an offer borrows the *real* card and a stack lent
+to a question has to come home as deep as it left.
+
+**Three places a supply is not a zone like the others**, each found by pointing
+the word at a real game rather than a fixture:
+
+- **It is not in play.** `status` is not `board`, so bare tag scopes, `count:`,
+  `sacrifice:` and `on_turn` all walk past it. Name the zone to reach it —
+  `stock@bank.gem_1`, which is what the `<zone>.<tag>` scope is for.
+- **Its cards answer nothing.** `reactions.placed` refuses them outright.
+  Merchandise is not a card anybody is holding, and letting the shelves into the
+  responder list opened windows for shields nobody owned.
+- **Nothing is drawn out of one.** Taking from a supply would move the card
+  standing for the whole stock, so the validator refuses `draw_from`, and
+  `reach`/`refill_from` besides: a stock has no order to have a top or to run
+  out in. Buying is a `stock@self` cost beside a `fill:<somewhere>:@self`.
+
+**Why the face card is kept rather than dropped when the stock hits zero.** An
+empty shelf is what lets a game count how many stacks have run out —
+`count:spent@bank`, where `spent` is a computed tag over `stock`. An absence
+carries no tag, so a heap of real cards could never answer that. It is the
+reason both games that needed a supply reached for a counter card before the
+word existed.
+
 ## Extending the engine
 
 **An optional layer with its own vocabulary**: declare the words in actions.lua
@@ -287,6 +418,34 @@ file as output.
   malformed draw as happily as a good one, which is how a crash in the browser
   build survived a green suite. **Add a game here when you add a game** —
   layouts differ far more than draw code does.
+- **The documents are held to the engine, both ways.** `tests/integration/schema.lua`
+  matches `SCHEMA.json` against `validate.FIELDS`, `validate.SHAPES`,
+  `actions.ops()` and the reserved-tag registry; `tests/integration/docs.lua`
+  runs every whole-file example in `AUTHORING.md` through the validator, holds
+  its action table to `actions.ops()` and its condition vocabulary to
+  `predicate.WORDS`, holds its reference index to its own headings, and refuses
+  a retired word anywhere a game is copied from. A document cannot fail on its
+  own, which is why a word the engine dropped outlived it by three passes in the
+  manual and by a whole generator in a shipped game file. **A field, action or
+  scope word arrives in the engine and both documents, or it fails the build.**
+- **The fragments are held too, to their vocabulary rather than to a game.** A
+  hundred-odd fragments — a card here, a phase there, the three lines that make
+  a shop — are read far more often than the whole files and used to be checked
+  by nobody. A fragment cannot be run: it names zones and stats it does not
+  carry, and always will. So `docs.lua` works out what shape it is by trying it
+  against each field table and keeping the reading that fits, then holds every
+  field to that table and every action to `actions.ops()`. A fragment fitting no
+  table has a word in it that nothing reads. Blocks that cannot parse are
+  allowed only where they say so — an ellipsis, or no object at all.
+- **A field set written as a literal at its call site cannot be asked about**,
+  and that is how `setup` came to carry a `player` map that the engine never
+  read, `SCHEMA.json` described in full, the manual put in its Setup example,
+  and the validator refused. `validate.SHAPES` is where the four shapes reached
+  *through* a section now live — `setup`, a `setup.place` entry, a `players`
+  entry, a move rule — so both documents are held to them like anything else. A
+  move rule had no field set at all until then, so a misspelt `fil` was ignored
+  rather than reported. **`abilities` and `reactions` entries still have none**,
+  which is the remaining hole of this kind.
 - `RAVEL_DEBUG=1` + `nc` — poke a live GUI process; `echo state | nc` dumps
   full entity state as JSON.
 - Balance questions: write a scratch script over `headless.lua` + `flow` and

@@ -262,13 +262,15 @@ grouped in threes by character; the two close-ups beside it
 (`_110900`, `_110913`) and `2 shadows characters.jpg` are what make the small
 print legible.
 
-**Which character owns which trio is inferred, not read.** The portraits are
-distinct but unlabelled, and the names come from `list of all cards.txt`. Each
-attribution below is marked **[assumed]** and rests on the chip names rather
-than on anything in the photographs — treat them as a guess to be corrected,
-not as sourced data.
+**Which character owns which trio is now read, not inferred.** `characters for
+ps.jpg` is the digital game's character-select screen: twenty portraits, four
+rows of five, the bottom two rows being Shadows — left to right, Quince, Troq,
+Menelker, Gloria, Vendetta, then Onimaru, Bal-Bas-Beta, Persephone, Gwen, Zane.
+Every chip carries its owner's portrait in the band above the banner, so the
+grouping the tray photo makes certain and the names the screen supplies meet in
+the middle. All ten attributions below were guesses and all ten were right.
 
-**Quince** *[assumed — Flagstone is his city]*
+**Quince**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -276,7 +278,7 @@ not as sourced data.
 | Flagstone Tax | brown | Ongoing: If your gem pile totals 3 or more, opponents can only buy chips with cost equal to or less than their gem pile total. Discard when you buy a purple. |
 | Patriot Mirror | brown | Ongoing: +1 action, piggy bank. Discard this at the start of your action phase if your gem pile totals an odd number. |
 
-**Onimaru** *[assumed — a swordsman's moves]*
+**Onimaru**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -284,7 +286,7 @@ not as sourced data.
 | Double Slash | purple | Crash exactly two 1-gems. (You don't get +$1.) |
 | Riposte | blue | Main: +1 action, piggy bank. Reaction: After you're red-attacked, return a chip from your discard pile to your hand. |
 
-**Zane** *[assumed — the chaos]*
+**Zane**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -292,7 +294,7 @@ not as sourced data.
 | Maximum Anarchy | brown | All players discard their hands, then draw that many chips. Draw a chip. Each player gets +1 brown action, +1 purple action, +1 red action, +1 blue action on his turn. |
 | Crash Potato | purple | Choose one: Crash a 1-gem in your gem pile — OR — exchange this with a Crash Gem in any player's discard pile. |
 
-**Gloria** *[assumed — the healer]*
+**Gloria**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -300,7 +302,7 @@ not as sourced data.
 | Radiant Healing | brown | +1 action, +1 chip, piggy bank. Each player may discard a Puzzle chip to trash a wound or a 1-gem in their hand or discard pile. |
 | Saving Grace | blue | Main: piggy bank, +$1. Each player draws a chip. You may put Saving Grace on top of your bag. Reaction: After you're red-attacked, +2 chips. |
 
-**Vendetta** *[assumed — the shadows]*
+**Vendetta**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -308,7 +310,7 @@ not as sourced data.
 | Burnbarrow | brown | +1 action, +1 red action, +1 chip |
 | Shadowswarm | red | +1 brown action, +2 chips. You may have each opponent discard a chip. |
 
-**Gwen** *[assumed — by elimination]*
+**Gwen**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -316,7 +318,7 @@ not as sourced data.
 | Surgical Strike | red | +1 red action. Each opponent draws a chip, reveals his hand, then discards a chip of your choice. |
 | Stunlock | brown | +1 brown action. Ongoing: Opponents can't combine gems unless they discard a Puzzle chip first. Discard this at the start of your next turn. |
 
-**Troq** *[assumed — the brute]*
+**Troq**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -324,7 +326,7 @@ not as sourced data.
 | Beast Unleashed | brown | If your gem pile totals at least 6, +2 chips, +1 brown action, piggy bank. |
 | More Shiny | brown | Trash a 1-gem from your hand or gem pile. If you do, +$1 and gain a 2-gem. |
 
-**Persephone** *[assumed — the mistress]*
+**Persephone**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -332,7 +334,7 @@ not as sourced data.
 | Mistress's Command | red | If chosen opponent's gem pile totals 6 or 9, reveal his hand. Put a non-Puzzle bank chip into his hand and make him play up to two chips in his hand as you wish. |
 | Always in Control | blue | Main: +2 buys. At end of turn, +1 chip for each of these buys you used. Reaction: Become immune to a red chip. |
 
-**Bal-Bas-Beta (BBB)** *[assumed — the robot]*
+**Bal-Bas-Beta (BBB)**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -340,7 +342,7 @@ not as sourced data.
 | Upgrade | brown | +$1. Trash one or two chips from your hand, then for each chip trashed this way, gain a chip costing the same or 1 more. |
 | Cog Engine | brown | Ongoing: +$1, piggy bank. Discard this chip when you buy a purple or a chip costing 6 or more. |
 
-**Menelker** *[assumed — Deathstrike Dragon is his]*
+**Menelker**
 
 | Chip | Banner | Text |
 |---|---|---|
@@ -358,17 +360,12 @@ not as sourced data.
 
 ## Missing
 
-Everything the base game needs is now here. What is left is Shadows and one
-promo:
+Everything the base game and Shadows need is here. What is left is two
+transcriptions:
 
-1. **Which Shadows character owns which trio.** Every one of the thirty chips is
-   transcribed above and grouped correctly into tens of threes — the photograph
-   makes the grouping certain — but the ten names are matched to them by
-   guesswork from the chip names, and every attribution is marked
-   **[assumed]**. One photo of a Shadows character card would settle all ten.
-2. **The Hammer's banner** — the text is legible in the tray photo, the title
+1. **The Hammer's banner** — the text is legible in the tray photo, the title
    is not; the name comes from `list of all cards.txt`.
-3. **Custom Combo's arrow burst** — five multi-arrow rows with no words. The
+2. **Custom Combo's arrow burst** — five multi-arrow rows with no words. The
    photograph resolves the shapes but not what distinguishes the rows.
 
 Box quantities are settled: **five copies of every Puzzle chip design**, three

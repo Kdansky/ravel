@@ -1,8 +1,9 @@
 # 21 — Lost Ruins of Arnak
 
-**Status:** not started · **Size:** large · **Depends on:** worker placement
-has no equivalent anywhere in the engine today — this file's real job is
-finding out what that gap costs
+**Researched: zero new primitives, and the largest content bill of the three
+deckbuilders.** Not started. Worker placement — which this file existed to
+price — resolved into two shipped idioms (`exhaust` on the *space*, and a capped
+counter for the workers), which is not what the stub predicted.
 
 > *Third of three deckbuilder candidates — a deckbuilder fused with worker
 > placement and a personal exploration board, from the current generation of

@@ -9,7 +9,8 @@ M.filename = nil  -- source file of the current game, for template reloads
 M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list", "pays_for_index",
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
-	"compute_defs", "compute_list",
+	"compute_defs", "compute_list", "react_index", "buff_index",
+	"verb_defs", "verb_list", "adjust_index",
 	"style_defs", "dynamic_styles", "seat_index",
 }
 
@@ -30,13 +31,19 @@ M.TEMPLATE_FIELDS = {
 -- parser accepted while the validator rejected it would be worse than no block.
 local MOMENTS = {
 	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
-		action = "on_play" },
+		action = "on_play", spent = "spent" },
 	activate  = { cost = "activate_cost", target = "activate_target", phases = "activate_phases",
-		action = "on_activate", moves = "moves" },
+		action = "on_activate", moves = "moves", merge = "activate_merge" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts", action = "on_receive" },
 	turn      = { action = "on_turn" },
-	chosen    = { action = "on_chosen" },
+	chosen    = { where = "chosen_where", action = "on_chosen" },
+	-- Leaving play, which is the moment a card game keeps most of its triggers
+	-- at and the engine had no word for. `into` is the zone it landed in, and
+	-- naming one is how death, exile and bounce are told apart without the
+	-- engine learning what any of them means: they are one sentence pointed at
+	-- three different places.
+	leaves    = { into = "leaves_into", action = "on_leaves" },
 }
 M.MOMENTS = MOMENTS
 
@@ -62,9 +69,14 @@ local function normalise_moves(moves)
 	return out
 end
 
+-- "merge" says what this ability does when it meets the others on the same
+-- card: "both" (the default — a card can do two things and the player is asked
+-- which), "this" (mine alone, the rest of the card goes quiet) or "other" (mine
+-- only when the card offers nothing else). A word rather than a flag, for the
+-- same reason "whose" is one below: three readings do not fit in a yes or no.
 local ABILITY_FIELDS = { key = true, text = true, tooltip = true, asset = true,
 	cost = true, target = true, phases = true, action = true, moves = true,
-	when = true, compute = true }
+	when = true, compute = true, merge = true }
 
 -- Every activated ability a card has, as one list, whether it wrote one
 -- (`activate`) or several (`abilities`). Downstream never asks which form was
@@ -107,13 +119,247 @@ local function abilities_of(def, pp, where)
 					tooltip = a.tooltip, asset = a.asset,
 					cost = a.cost, target = target, phases = a.phases,
 					action = a.action, moves = rules,
-					when = a.when, compute = a.compute }
+					when = a.when, compute = a.compute, merge = a.merge }
 			end
 		end
 	elseif def.on_activate then
 		out[1] = { key = "activate", text = def.text, cost = def.activate_cost,
 			target = def.activate_target, phases = def.activate_phases,
-			action = def.on_activate, moves = def.move_rules }
+			action = def.on_activate, moves = def.move_rules, merge = def.activate_merge }
+	end
+	return out
+end
+
+-- A reaction is a subscription: a card answering another player's action. It is
+-- shaped like an ability — a list, each entry with its own cost, target and
+-- action — plus the three things that make it a reaction: the verb it answers
+-- ("to"), a condition over the event's subject ("where", read through @event),
+-- and whether the controller is prompted ("forced": "optional") or it fires on
+-- its own ("forced": "mandatory", Magic's mandatory triggered ability). "from"
+-- says where the card acts from — a played reaction out of a hand, an activation
+-- or a static effect on the board — which decides what answering it does. It
+-- takes "hand", "board", or a zone by name, for the row of ongoing effects that
+-- is in play and is a hand as far as a zone type is concerned.
+--
+-- "whose" says whose announcement it may answer, in the words a scope already
+-- uses: "enemy" (somebody else's, the default and what a shield means), "mine"
+-- (your own, which is Magic answering your own spell on the stack), or "anyone".
+-- A word rather than a flag, because three readings do not fit in a yes or no.
+--
+-- Normalised here, the last place the authored entry exists, exactly as
+-- abilities_of is and for the same reason: a typo inside one is caught now, since
+-- what leaves this function cannot carry an unknown field.
+local REACTION_FIELDS = { key = true, text = true, tooltip = true, to = true,
+	where = true, ["when"] = true, forced = true, from = true, whose = true,
+	cost = true, target = true, action = true, moves = true, compute = true, spent = true }
+local FORCED = { optional = true, mandatory = true }
+-- The owner words a scope already takes, meaning here what they mean there:
+-- whose event it is, judged from the reacting card.
+local WHOSE = { mine = true, enemy = true, anyone = true }
+
+-- What standing a card in this zone has in the rules, which is a different
+-- question from what the zone looks like. "board" is in play: the tag scopes,
+-- count:, card:, sacrifice: and on_turn all mean it, and so does a reaction
+-- answered "from": "board". "offer" is a card lent to a question — nobody's
+-- while it is there, and gone once the question is answered. "exile" is
+-- everything else: a deck, a discard, a bag, a trash. Cards there are still
+-- *nameable*, because naming a zone has always reached it; what they are not is
+-- counted, sacrificed, or asked to act.
+--
+-- "supply" is stock: a shop's shelves, a bank of tokens, the box a game deals
+-- from. Visible and countable, but nobody's and not in play, and — the part that
+-- earns it a word of its own — **the cards in it are interchangeable**. Sixty-four
+-- identical gems differ in nothing a rule can ask about, so the engine keeps one
+-- of each as a real card and a number for the rest, and the game file never
+-- learns which. That is a promise the format makes on the game's behalf, which is
+-- why it is a standing and not a hint: nothing may point at one, so nothing can
+-- tell the copies apart and find out.
+--
+-- Two games had already built it by hand before it existed. Splendor's token
+-- piles and Puzzle Strike's bank are both a counter card tagged "immutable" with
+-- the take written as its activate — the same shape twice, with no shared
+-- authoring, which is what a missing word in an enum looks like from outside.
+--
+-- Default "exile", so a zone is inert until it says otherwise and a forgotten
+-- word fails closed. The two types that carry a standing of their own supply it,
+-- which is what keeps every game written before the field unchanged.
+M.STATUS = { board = true, exile = true, offer = true, supply = true }
+
+-- Seven questions a zone answers, where "type" answered all of them at once and
+-- a game could only have the five bundles somebody had thought of. Each field is
+-- one question, so a combination nobody anticipated — a face-up row of cards
+-- that are in play, a searchable face-up deck, a trash nothing can touch — is
+-- written rather than worked around.
+--
+--   layout      where the cards are drawn: stack, row, grid, page
+--   visibility  who may read them: public, owner, secret. Rendering only
+--   reach       which of them exist to the rules: all, or only the top
+--   use         what may be done with one here: play, abilities, none
+--   status      what standing they have: board, exile, offer
+--   display     whether the zone is drawn at all: onscreen, offscreen
+--   copies      one zone, or one per seat
+--
+-- A value names its own parameter field, which is how the format already worked
+-- for "grid": layout "grid" makes "grid" legal, holding [cols, rows], and layout
+-- "row" makes "row" legal, holding the direction it fans in. Every value on
+-- every field is therefore reserved as a field name.
+M.LAYOUT     = { stack = true, row = true, grid = true, page = true }
+M.VISIBILITY = { public = true, owner = true, secret = true }
+M.REACH      = { all = true, top = true }
+M.USE        = { play = true, abilities = true, none = true }
+M.DISPLAY    = { onscreen = true, offscreen = true }
+M.COPIES     = { one = true, per_seat = true }
+
+local ZONE_WORDS = {
+	{ "layout",     "LAYOUT" },
+	{ "visibility", "VISIBILITY" },
+	{ "reach",      "REACH" },
+	{ "use",        "USE" },
+	{ "status",     "STATUS" },
+	{ "display",    "DISPLAY" },
+	{ "copies",     "COPIES" },
+}
+
+-- Fill in the seven, from what the zone said and from the tags that used to say
+-- it. A word the engine does not have is refused here — the last place the
+-- authored value exists — and falls back to the default rather than to whatever
+-- was typed, so one typo does not cascade.
+function M.normalise_zone(zd, pp)
+	local where = "zone '" .. tostring(zd.key) .. "'"
+	for _, entry in ipairs(ZONE_WORDS) do
+		local field, set = entry[1], M[entry[2]]
+		if zd[field] ~= nil and not set[zd[field]] then
+			local words = {}
+			for w in pairs(set) do words[#words + 1] = w end
+			table.sort(words)
+			pp[#pp + 1] = where .. ": \"" .. field .. "\" is '" .. tostring(zd[field])
+				.. "', which is none of " .. table.concat(words, ", ")
+			zd[field] = nil
+		end
+	end
+
+	zd.layout     = zd.layout or "stack"
+	zd.visibility = zd.visibility or "public"
+	-- Three defaults a neighbouring field supplies, so the common shapes stay
+	-- short: a stack is reached from the top, cards nobody can see cannot be
+	-- picked out of it, and a board is in play. Each is a default and not a rule
+	-- — a fanned row says reach "top", a readout grid says status "exile" —
+	-- which is the whole difference between this and reading the rules off the
+	-- shape, which is what "type" did and what this replaced.
+	-- A supply is left without one on purpose: a stock has no order, so it has no
+	-- top and "all" would be a claim about cards that are a number. Left nil, the
+	-- reach tests downstream read it as "not top", which is the honest answer.
+	if zd.status ~= "supply" then
+		zd.reach = zd.reach or (zd.layout == "stack" and "top") or "all"
+	end
+	zd.use     = zd.use     or (zd.visibility == "secret" and "none") or "play"
+	zd.status  = zd.status  or (zd.layout == "grid" and "board") or "exile"
+	zd.display = zd.display or "onscreen"
+	zd.copies  = zd.copies  or "one"
+	return zd
+end
+
+local function reactions_of(def, pp, where)
+	if def.reactions == nil then return nil end
+	if type(def.reactions) ~= "table" then
+		pp[#pp + 1] = where .. ": \"reactions\" should be a list of reactions"
+		return nil
+	end
+	local out = {}
+	for i, r in ipairs(def.reactions) do
+		if type(r) ~= "table" then
+			pp[#pp + 1] = where .. ": reaction " .. i .. " should be an object"
+		else
+			for k in pairs(r) do
+				if not REACTION_FIELDS[k] then
+					pp[#pp + 1] = ("%s reaction %d: has a field '%s' the engine doesn't read")
+						:format(where, i, tostring(k))
+				end
+			end
+			if type(r.to) ~= "string" or r.to == "" then
+				pp[#pp + 1] = where .. ": reaction " .. i
+					.. " has no \"to\" — a reaction names the verb it answers"
+			end
+			local forced = r.forced or "optional"
+			if not FORCED[forced] then
+				pp[#pp + 1] = ("%s reaction %d: forced \"%s\" is neither \"optional\" nor \"mandatory\"")
+					:format(where, i, tostring(r.forced))
+			end
+			-- Somebody else's, which is what a shield is for and what every
+			-- reaction meant before this field existed.
+			local whose = r.whose or "enemy"
+			if not WHOSE[whose] then
+				pp[#pp + 1] = ("%s reaction %d: whose \"%s\" is none of \"mine\", \"enemy\", \"anyone\"")
+					:format(where, i, tostring(r.whose))
+			end
+			-- A reaction that says how it moves writes its own target, the same
+			-- shorthand a moving ability gets.
+			local rules  = r.moves and normalise_moves(r.moves) or nil
+			local target = r.target
+			if rules and not target then
+				target = { type = "slot", count = 1, moves = rules }
+			end
+			out[#out + 1] = { key = r.key or ("reaction_" .. i), text = r.text, tooltip = r.tooltip,
+				to = r.to, where = r.where, ["when"] = r["when"], forced = forced, from = r.from,
+				whose = whose,
+				cost = r.cost, target = target, action = r.action,
+				moves = rules, compute = r.compute, spent = r.spent }
+		end
+	end
+	return out
+end
+
+-- What a card announces, and *when*: { "play": "cast", "activate": "ability" }.
+-- Announcing is the whole of what makes an interaction answerable — a reaction
+-- subscribes to the verb, and a card that emits nothing behaves exactly as it
+-- always did.
+--
+-- Keyed by the moment because one card is often both. A spell played from hand
+-- that stays on the board and is used from there is answered as two different
+-- things, and a reaction watching for one must not catch the other.
+--
+-- Written *beside* the moment blocks rather than inside them, which is the one
+-- structural decision here. A "play" block is granted whole or not at all and two
+-- tags granting one is refused, so a "spell" tag that wants only to add an
+-- announcement could never live inside "play" without taking the card's own play
+-- action away from it. Beside them, it composes: a card keeps its own play and
+-- gains the tag's word for it.
+local EMIT_MOMENTS = { play = true, activate = true }
+-- A phase announces itself too, and for the same reason a card does: a rule that
+-- happens *at* a moment needs a moment to happen at. Everything else in this
+-- engine is caused by somebody — a card played, an ability used, an action that
+-- emits — and a phase beginning or ending is caused by nobody, so "at the end of
+-- your turn" had nowhere to be said and every rule that wanted it settled for a
+-- worse moment. These are the two hooks a phase already had: "begin" beside the
+-- actions it runs on the way in, "end" beside the hand it discards on the way out.
+local PHASE_EMIT_MOMENTS = { begin = true, ["end"] = true }
+
+local function emits_of(def, pp, where, moments)
+	moments = moments or EMIT_MOMENTS
+	if def.emits == nil then return nil end
+	if type(def.emits) ~= "table" then
+		pp[#pp + 1] = where .. ': "emits" says when as well as what, like { "play": "cast" }'
+		return nil
+	end
+	local named = {}
+	for m in pairs(moments) do named[#named + 1] = '"' .. m .. '"' end
+	table.sort(named)
+	local out = {}
+	for moment, v in pairs(def.emits) do
+		if not moments[moment] then
+			pp[#pp + 1] = ("%s: emits at '%s', which is not a moment that can be answered"
+				.. " — it announces %s"):format(where, tostring(moment), table.concat(named, " and "))
+		else
+			local verbs = {}
+			for _, verb in ipairs(type(v) == "table" and v or { v }) do
+				if type(verb) ~= "string" or verb == "" then
+					pp[#pp + 1] = ("%s: emits at '%s', but the verb is not a word"):format(where, moment)
+				else
+					verbs[#verbs + 1] = verb
+				end
+			end
+			out[moment] = verbs
+		end
 	end
 	return out
 end
@@ -175,7 +421,7 @@ end
 local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true, computes = true,
 	cards = true, zones = true, phases = true,
-	end_conditions = true, setup = true, tags = true, effects = true, players = true,
+	end_conditions = true, setup = true, tags = true, effects = true, players = true, verbs = true,
 	patterns = true, assets = true, styles = true,
 }
 M.KNOWN_SECTIONS = KNOWN_SECTIONS
@@ -291,6 +537,10 @@ function M.parse(filename)
 		-- knows what wounded means.
 		style_defs     = type(parsed.styles) == "table" and parsed.styles or {},
 		dynamic_styles = {},   -- style names that are also computed tags
+		buff_index     = {},   -- stat key -> tags that shift it, so a read with no buff costs one nil lookup
+		verb_defs      = {},   -- the game's own word for a moment -> the engine verb that carries it
+		verb_list      = {},   -- ordered, for the reference panel and deterministic reporting
+		adjust_index   = {},   -- "<game verb>:<stat>" -> the tags that change what it lands for
 		end_conditions = parsed.end_conditions or {},
 		setup          = parsed.setup or {},
 		-- Where the game begins, in the order the manual would say it. A card
@@ -346,8 +596,68 @@ function M.parse(filename)
 			-- A granted ability is an ability: same shape, so a card that has
 			-- one of its own and is handed another simply has two.
 			td.abilities = abilities_of(td, pp, "tag '" .. tostring(name) .. "'")
+			-- A keyword that announces itself. "spell" is the one every game with a
+			-- stack wants, and it is one line rather than one per card. Beside the
+			-- moment blocks and not inside them, so a card keeps its own play.
+			td.emits = emits_of(td, pp, "tag '" .. tostring(name) .. "'")
 		end
 		G.tag_defs[name] = td
+	end
+
+	-- **A game names the moments it means to be answerable.** "stat_damage" is a
+	-- mechanism and not a meaning: poison and a sword both take hp and armour
+	-- stops one of them, and an action string has nowhere else for the
+	-- difference to live. So the game says "poison" is a kind of stat_damage and
+	-- writes "poison:hp@target:1" where it means it — and an aura may name a
+	-- declared verb and never an engine one, which is what makes being
+	-- interfered with something a game opts into rather than something that
+	-- happens to its plumbing.
+	for i, vd in ipairs(type(parsed.verbs) == "table" and parsed.verbs or {}) do
+		if type(vd) == "table" and type(vd.key) == "string" then
+			G.verb_defs[vd.key] = vd
+			G.verb_list[#G.verb_list + 1] = vd.key
+		else
+			pp[#pp + 1] = "verbs entry " .. i .. ': should be written like { "key": "poison", "does": "stat_damage" }'
+		end
+	end
+
+	-- Which tags shift which stat, keyed by the stat so a read that has no buff
+	-- to find costs one nil lookup. A game with no "buffs" anywhere therefore
+	-- pays nothing per stat read, which is every shipped game but Codex.
+	for name, td in pairs(G.tag_defs) do
+		for stat, n in pairs(type(td) == "table" and type(td.buffs) == "table" and td.buffs or {}) do
+			if tonumber(n) then
+				local list = G.buff_index[stat] or {}
+				list[#list + 1] = { tag = name, n = tonumber(n) }
+				G.buff_index[stat] = list
+			end
+		end
+	end
+	-- Sorted, so the sum is the same on every machine: pairs() over the tags is
+	-- not, and a replay that adds the same numbers in a different order would
+	-- still be a replay that could disagree about a clamp.
+	for _, list in pairs(G.buff_index) do
+		table.sort(list, function(a, b) return a.tag < b.tag end)
+	end
+
+	-- The same index one level along: which tags change what a verb lands for,
+	-- keyed by the pair a change can be identified by. A game with no auras
+	-- pays one nil lookup per stat change, which is every shipped game.
+	for name, td in pairs(G.tag_defs) do
+		for _, ad in ipairs(type(td) == "table" and type(td.adjusts) == "table" and td.adjusts or {}) do
+			if type(ad) == "table" and ad.verb and ad.stat then
+				local k    = tostring(ad.verb) .. ":" .. tostring(ad.stat)
+				local list = G.adjust_index[k] or {}
+				list[#list + 1] = { tag = name, adjust = ad }
+				G.adjust_index[k] = list
+			end
+		end
+	end
+	for _, list in pairs(G.adjust_index) do
+		table.sort(list, function(a, b)
+			if a.tag ~= b.tag then return a.tag < b.tag end
+			return tostring(a.adjust.key) < tostring(b.adjust.key)
+		end)
 	end
 
 	-- Only a style word that is *also* a computed tag can change under a running
@@ -401,6 +711,8 @@ function M.parse(filename)
 				end
 			end
 			cd.abilities = abilities_of(cd, pp, "card '" .. cd.key .. "'")
+			cd.reactions = reactions_of(cd, pp, "card '" .. cd.key .. "'")
+			cd.emits = emits_of(cd, pp, "card '" .. cd.key .. "'")
 			G.card_defs[cd.key] = cd
 		end
 	end
@@ -423,29 +735,34 @@ function M.parse(filename)
 	-- neither. Two tags granting it is refused rather than resolved, exactly as an
 	-- ambiguous home is no home: picking one would make what a card does depend on
 	-- the order somebody typed its tags.
-	for _, key in ipairs(G.card_list) do
-		local cd = G.card_defs[key]
-		local own = false
-		for _, internal in pairs(MOMENTS.play) do
-			if cd[internal] ~= nil then own = true; break end
-		end
-		if not own then
-			local from, granted
-			for _, tg in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
-				local td = G.tag_defs[tg]
-				if type(td) == "table" and type(td.play) == "table" then
-					if from then
-						pp[#pp + 1] = ("card '%s' is handed \"play\" by both '%s' and '%s', so it takes"
-							.. " neither — which one won would be the order the tags were typed")
-							:format(key, from, tg)
-						granted = nil
-						break
-					end
-					from, granted = tg, td
-				end
+	-- Two moments a tag may hand over whole, and the same rule for both: "leaves"
+	-- is the one a keyword most wants, since "every unit of ours announces its
+	-- death" is one line on the tag and one per card everywhere else.
+	for _, moment in ipairs({ "play", "leaves" }) do
+		for _, key in ipairs(G.card_list) do
+			local cd = G.card_defs[key]
+			local own = false
+			for _, internal in pairs(MOMENTS[moment]) do
+				if cd[internal] ~= nil then own = true; break end
 			end
-			for _, internal in pairs(MOMENTS.play) do
-				if granted and granted[internal] ~= nil then cd[internal] = granted[internal] end
+			if not own then
+				local from, granted
+				for _, tg in ipairs(type(cd.tags) == "table" and cd.tags or {}) do
+					local td = G.tag_defs[tg]
+					if type(td) == "table" and type(td[moment]) == "table" then
+						if from then
+							pp[#pp + 1] = ("card '%s' is handed \"%s\" by both '%s' and '%s', so it takes"
+								.. " neither — which one won would be the order the tags were typed")
+								:format(key, moment, from, tg)
+							granted = nil
+							break
+						end
+						from, granted = tg, td
+					end
+				end
+				for _, internal in pairs(MOMENTS[moment]) do
+					if granted and granted[internal] ~= nil then cd[internal] = granted[internal] end
+				end
 			end
 		end
 	end
@@ -453,12 +770,15 @@ function M.parse(filename)
 	-- Zones may omit pos: every type has a sensible default spot, so a first
 	-- game needs no layout numbers at all (tune later). Hidden zones default
 	-- off-screen, which also gives dealt cards their fly-in.
+	-- A stack keeps two default spots, since a deck and a discard sat in
+	-- different corners and both are stacks now: a box you cannot see into takes
+	-- the upper one.
 	local DEFAULT_POS = {
-		hand   = { 0.19, 0.62, 0.97, 0.97 },
-		grid   = { 0.03, 0.05, 0.60, 0.55 },
-		deck   = { 0.75, 0.05, 0.95, 0.40 },
-		pile   = { 0.75, 0.45, 0.95, 0.80 },
-		hidden = { 0.42, -0.40, 0.58, -0.08 },
+		row       = { 0.19, 0.62, 0.97, 0.97 },
+		grid      = { 0.03, 0.05, 0.60, 0.55 },
+		stack     = { 0.75, 0.45, 0.95, 0.80 },
+		box       = { 0.75, 0.05, 0.95, 0.40 },
+		offscreen = { 0.42, -0.40, 0.58, -0.08 },
 	}
 
 	for _, zd in ipairs(entries(parsed.zones, "zones")) do
@@ -474,9 +794,11 @@ function M.parse(filename)
 			flatten_moments(zd, pp, "zone '" .. zd.key .. "'")
 			zd.tags_set = tag_set(zd.tags)
 			zd.style = merge_styles(G, zd.tags_set)
+			M.normalise_zone(zd, pp)
 			if not zd.pos then
-				zd.pos = zd.tags_set.hidden and DEFAULT_POS.hidden
-					or DEFAULT_POS[zd.type] or DEFAULT_POS.pile
+				zd.pos = zd.display == "offscreen" and DEFAULT_POS.offscreen
+					or (zd.layout == "stack" and zd.use == "none" and DEFAULT_POS.box)
+					or DEFAULT_POS[zd.layout] or DEFAULT_POS.stack
 			end
 			G.zone_defs[zd.key] = zd
 		end
@@ -524,6 +846,7 @@ function M.parse(filename)
 				G.phase_list[#G.phase_list + 1] = pd.key
 			end
 			pd.tags_set = tag_set(pd.tags)
+			pd.emits = emits_of(pd, pp, "phase '" .. tostring(pd.key) .. "'", PHASE_EMIT_MOMENTS)
 			-- draw_and_play is shorthand: play once, discard the rest, advance.
 			if pd.type == "draw_and_play" then
 				if pd.ends_after == nil then pd.ends_after = 1 end
@@ -539,9 +862,9 @@ function M.parse(filename)
 	-- anything that sweeps a zone. A game may claim the key to put them
 	-- somewhere else.
 	if not G.zone_defs.system then
-		G.zone_defs.system = { key = "system", type = "grid", grid = { 2, 1 },
-			injected = true, pos = DEFAULT_POS.hidden,
-			tags_set = { hidden = true } }
+		G.zone_defs.system = { key = "system", layout = "grid", grid = { 2, 1 },
+			injected = true, pos = DEFAULT_POS.offscreen,
+			display = "offscreen", status = "board", tags_set = {} }
 		G.zone_list[#G.zone_list + 1] = "system"
 	end
 
@@ -794,24 +1117,29 @@ function M.parse(filename)
 	end
 	for _, key in ipairs(G.card_list) do mint(key, G.card_defs[key].abilities, "card") end
 	for key, td in pairs(G.tag_defs) do mint(key, td.abilities, "tag") end
+	-- Reactions want entries for the same reason abilities do: a card answering
+	-- one event two different ways has to be asked which, and the chooser deals
+	-- cards. Minted from the same function because a reaction *is* an ability
+	-- with a subscription on the front, down to carrying its own text.
+	for _, key in ipairs(G.card_list) do mint(key, G.card_defs[key].reactions, "card") end
 
 	-- An "options" zone is hidden by its own type rather than by a tag it has to
 	-- remember: an offer that is not open is not on the board, and forgetting to
 	-- say so is how a zone ends up invisible and still clickable.
+	-- An offer that is not open is not on the board, and forgetting to say so is
+	-- how a zone ends up invisible and still clickable. The standing implies it,
+	-- so a game says "offer" once rather than "offer" and "offscreen".
 	for _, zd in pairs(G.zone_defs) do
-		if zd.type == "options" then
-			zd.tags_set = zd.tags_set or {}
-			zd.tags_set.hidden = true
-		end
+		if zd.status == "offer" then zd.display = "offscreen" end
 	end
 
 	-- The offer, and the phase that shows it — the same pair "reveal" gets, and
 	-- for the same reason: a game that never mentions either still has one, and
 	-- a game that wants it drawn somewhere else claims the key.
 	if not G.zone_defs.options then
-		G.zone_defs.options = { key = "options", type = "options", injected = true,
-			pos = { 0.12, 0.38, 0.88, 0.62 },
-			tags_set = { hidden = true } }
+		G.zone_defs.options = { key = "options", layout = "row", status = "offer",
+			injected = true, pos = { 0.12, 0.38, 0.88, 0.62 },
+			display = "offscreen", tags_set = {} }
 		G.zone_list[#G.zone_list + 1] = "options"
 	end
 	if not G.phase_by_key.options then
@@ -820,15 +1148,17 @@ function M.parse(filename)
 	end
 
 	if not G.zone_defs.reveal then
-		G.zone_defs.reveal = { key = "reveal", type = "hand", injected = true,
+		G.zone_defs.reveal = { key = "reveal", layout = "page", injected = true,
 			pos = { 0.22, 0.14, 0.78, 0.88 },
-			tags_set = { hidden = true, page = true, no_peek = true } }
+			display = "offscreen", tags_set = {} }
 		G.zone_list[#G.zone_list + 1] = "reveal"
 	end
 	if not G.phase_by_key.reveal then
 		G.phase_by_key.reveal = { key = "reveal", type = "overlay", zone = "reveal",
 			injected = true, tags_set = {} }
 	end
+
+	for _, zd in pairs(G.zone_defs) do M.normalise_zone(zd, pp) end
 
 	-- The zones a phase's player may play out of. One is the common case and
 	-- stays a bare word; a list is a player holding two hands — an open one
@@ -847,6 +1177,39 @@ function M.parse(filename)
 			pd.zone_list = zl
 			pd.zone = zl[1]
 		end
+	end
+
+	-- The reaction index: which reactions answer which verb, built once so a
+	-- response window never scans every card in the game. This is Filter A — a
+	-- verb no card answers opens no window, and upstream need not even be emitted.
+	-- Verb, then card, so the walk over the board asks each card one question and
+	-- the entry it finds is already what would be offered: where the reaction sits
+	-- in that card's own list, and the reaction itself. The position is what an
+	-- input layer names the reaction by, the way an ability is named by its index.
+	G.react_index = {}
+	for key, cd in pairs(G.card_defs) do
+		for i, r in ipairs(cd.reactions or {}) do
+			-- A reaction whose "to" is missing or malformed was already reported by
+			-- reactions_of, and parse problems do not stop a game loading.
+			if type(r.to) == "string" and r.to ~= "" then
+				local by_card = G.react_index[r.to] or {}
+				local hits = by_card[key] or {}
+				hits[#hits + 1] = { index = i, reaction = r }
+				by_card[key] = hits
+				G.react_index[r.to] = by_card
+			end
+		end
+	end
+
+	-- A stack entry for an event that is not a card being played — a crash, a
+	-- summon, a buy raised by "emit". It has nothing of its own to put up and
+	-- still has to hold the window open while it is answered, and a card is the
+	-- unit of everything here, so the engine writes the one card it needs. Only
+	-- where something answers something: a game with no reactions gains no def.
+	if next(G.react_index) and not G.card_defs.event then
+		G.card_defs.event = { key = "event", injected = true, text = "Event",
+			asset = "auto", tags = {}, tags_set = { token = true },
+			abilities = {}, style = merge_styles(G, { token = true }) }
 	end
 
 	return G

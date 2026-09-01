@@ -574,23 +574,27 @@
   "zones": [
     {
       "key": "board",
-      "type": "grid",
+      "layout": "grid",
+      "use": "abilities",
       "pos": [0.0, 0.0, 0.75, 0.7],
       "grid": [5, 5],
-      "tags": ["activate", "tiled"]
+      "tags": ["tiled"]
     },
-    { "key": "hand", "type": "hand", "pos": [0.19, 0.72, 0.75, 0.99] },
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.72, 0.75, 0.99] },
     {
       "key": "origins",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
       "pos": [0.42, -0.4, 0.58, -0.08],
-      "tags": ["hidden", "shuffle"],
+      "tags": ["shuffle"],
       "contents": ["merchant_prince", "warlord", "archmage"]
     },
     {
       "key": "market_deck",
       "label": "Market",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "pos": [0.77, 0.02, 0.99, 0.2],
       "tags": ["shuffle", "refill_when_empty"],
       "contents": [
@@ -605,7 +609,8 @@
     {
       "key": "barracks_deck",
       "label": "Barracks",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "pos": [0.77, 0.22, 0.99, 0.4],
       "tags": ["shuffle", "refill_when_empty"],
       "contents": [
@@ -620,7 +625,8 @@
     {
       "key": "sanctum_deck",
       "label": "Sanctum",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "pos": [0.77, 0.42, 0.99, 0.6],
       "tags": ["shuffle", "refill_when_empty"],
       "contents": [
@@ -635,7 +641,8 @@
     {
       "key": "trials1",
       "label": "Trials I",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "pos": [0.77, 0.62, 0.842, 0.78],
       "tags": ["shuffle", "refill_when_empty"],
       "contents": ["harvest_blight", "border_raid", "debt_collectors", "restless_spirits"]
@@ -643,7 +650,8 @@
     {
       "key": "trials2",
       "label": "Trials II",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "pos": [0.849, 0.62, 0.921, 0.78],
       "tags": ["shuffle", "refill_when_empty"],
       "contents": ["famine", "mercenary_uprising", "war_host", "witch_hunt"]
@@ -651,39 +659,45 @@
     {
       "key": "trials3",
       "label": "Trials III",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
       "pos": [0.928, 0.62, 0.99, 0.78],
       "tags": ["shuffle", "refill_when_empty"],
       "contents": ["war_of_succession", "long_winter", "dragon"]
     },
     {
       "key": "wartime_deck",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
       "pos": [0.42, -0.4, 0.58, -0.08],
-      "tags": ["hidden", "shuffle", "refill_when_empty"],
+      "tags": ["shuffle", "refill_when_empty"],
       "contents": ["mercenary_band:2", "offering:2", "laborers:2", "militia:2", "shrine:1", "granary:1"]
     },
-    { "key": "graveyard", "label": "Discard", "type": "pile", "pos": [0.77, 0.8, 0.99, 0.99] },
-    { "key": "offer", "type": "hand", "pos": [0.15, 0.32, 0.85, 0.7], "tags": ["hidden"] },
+    { "key": "graveyard", "label": "Discard", "layout": "stack", "pos": [0.77, 0.8, 0.99, 0.99] },
+    { "key": "offer", "layout": "row", "display": "offscreen", "pos": [0.15, 0.32, 0.85, 0.7] },
     {
       "key": "fate_crown",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
       "pos": [0.42, -0.4, 0.58, -0.08],
-      "tags": ["hidden"],
       "contents": ["crown"]
     },
     {
       "key": "fate_ruin",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
       "pos": [0.42, -0.4, 0.58, -0.08],
-      "tags": ["hidden"],
       "contents": ["ruin"]
     },
     {
       "key": "fate_twilight",
-      "type": "deck",
+      "layout": "stack",
+      "visibility": "secret",
+      "display": "offscreen",
       "pos": [0.42, -0.4, 0.58, -0.08],
-      "tags": ["hidden"],
       "contents": ["twilight"]
     }
   ],

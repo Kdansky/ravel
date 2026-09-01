@@ -4,6 +4,7 @@ local cards       = require("cards")
 local render      = require("render")
 local flow        = require("flow")
 local zones       = require("zones")
+local tags        = require("tags")
 
 local M = {}
 
@@ -79,7 +80,7 @@ local function blocks(c, def)
 		ability = true, last_acted = true }
 
 	local rows = {}
-	if def.cost and next(def.cost) then rows[#rows + 1] = { "Cost", cards.cost_text(def.cost) } end
+	if def.cost and next(def.cost) then rows[#rows + 1] = { "Cost", cards.cost_text(def.cost, c.id) } end
 	if def.needs and next(def.needs) then rows[#rows + 1] = { "Needs", cards.cost_text(def.needs) } end
 	-- Per-instance numbers, named the way the HUD names them where the game
 	-- declared a label, so one card does not call it "hp" while the bar calls it
@@ -89,6 +90,10 @@ local function blocks(c, def)
 		if v and key:sub(-4) ~= "_max" and not BOOKKEEPING[key] then
 			local sd  = declaration.G.stat_defs[key]
 			local max = c.stats[key .. "_max"]
+			-- What the rules will read, buffs and all. The panel is the place a
+			-- player checks a number they doubt, so it is the last place that
+			-- may show the printed one.
+			v = tags.stat(c, key)
 			rows[#rows + 1] = { sd and sd.label or key, max and (v .. "/" .. max) or tostring(v) }
 		end
 	end
@@ -103,7 +108,7 @@ local function blocks(c, def)
 	end
 	table.sort(undeclared)
 	for _, key in ipairs(undeclared) do
-		local v, max = c.stats[key], c.stats[key .. "_max"]
+		local v, max = tags.stat(c, key), c.stats[key .. "_max"]
 		rows[#rows + 1] = { key:sub(1, 1):upper() .. key:sub(2),
 			max and (v .. "/" .. max) or tostring(v) }
 	end
@@ -129,14 +134,14 @@ local function blocks(c, def)
 		elseif #ready == 1 then
 			local text = "Click to " .. (#all > 1 and (ready[1].ability.text or "activate") or "activate")
 			local ac = ready[1].ability.cost
-			if ac and next(ac) then text = text .. "  (" .. cards.cost_text(ac) .. ")" end
+			if ac and next(ac) then text = text .. "  (" .. cards.cost_text(ac, c.id) .. ")" end
 			add("hint", text, C.ready)
 		else
 			add("hint", "Click to choose:", C.ready)
 			for _, u in ipairs(ready) do
 				local line = "  " .. (u.ability.text or u.ability.key)
 				if u.ability.cost and next(u.ability.cost) then
-					line = line .. "  (" .. cards.cost_text(u.ability.cost) .. ")"
+					line = line .. "  (" .. cards.cost_text(u.ability.cost, c.id) .. ")"
 				end
 				add("hint", line, C.ready)
 			end

@@ -122,15 +122,15 @@ end
 function M.test_splendor_buying_settles_every_number(check)
 	local me, c = priced({ 0, 0, 0, 3, 0 }, { 0, 0, 0, 1, 0 }, { 0, 0, 0, 1, 0 }, 1)
 	me.stats.t_total = 2
-	local red_bank, gold_bank = pile("red").stats.bank, pile("gold").stats.bank
+	local red_bank, gold_bank = pile("red").stats.stock, pile("gold").stats.stock
 	local gem = c.def_key:match("^t1_(%a+)")
 	check("the card is playable", flow.can_play(c.id))
 	check("and buying it works", flow.play_card(c.id, {}))
 
 	check("the tokens are gone", me.stats.t_red == 0 and me.stats.t_gold == 0
 		and me.stats.t_total == 0)
-	check("the bank has them back", pile("red").stats.bank == red_bank + 1
-		and pile("gold").stats.bank == gold_bank + 1)
+	check("the bank has them back", pile("red").stats.stock == red_bank + 1
+		and pile("gold").stats.stock == gold_bank + 1)
 	check("the discount is permanent", me.stats["b_" .. gem] == 1)
 	check("and the purchase is counted, for the tiebreak", me.stats.bought == 1)
 
@@ -185,7 +185,7 @@ function M.test_splendor_reserving(check)
 		== zones.all_with_key("reserve")[1].id and want.stats.owner == 1)
 	check("a slot is spent and a gold earned",
 		me.stats.reserve_slots == 2 and me.stats.t_gold == 1 and me.stats.t_total == 1)
-	check("the gold came out of the bank", pile("gold").stats.bank == 4)
+	check("the gold came out of the bank", pile("gold").stats.stock == 4)
 	check("the row filled the hole", #zones.find("t2_row").cards == 4)
 
 	local deck = zones.find("t3_deck")
@@ -245,10 +245,10 @@ function M.test_splendor_the_ten_token_limit(check)
 		end
 		return false
 	end
-	local bank = pile("white").stats.bank
+	local bank = pile("white").stats.stock
 	check("one back is not enough", give_back() and phase.current().key == "discard")
 	check("two is", give_back() and me.stats.t_total == 10 and zones.active_seat() == "south")
-	check("and the bank has them", pile("white").stats.bank == bank + 2)
+	check("and the bank has them", pile("white").stats.stock == bank + 2)
 end
 
 -- Fifteen does not stop the game; everybody finishes the round. The grammar has

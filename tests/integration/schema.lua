@@ -19,6 +19,8 @@ local NESTED = {
 	target = true, route = true,
 	play = true, activate = true, challenge = true, receive = true,
 	turn = true, chosen = true,
+	-- An aura entry lives inside a tag, beside the behaviour blocks.
+	adjusts = true,
 }
 
 local M = {}
@@ -199,6 +201,36 @@ function M.test_schema_describes_every_action(check)
 	for op in pairs(described) do
 		if op:sub(1, 1) ~= "_" then
 			check("'" .. op .. "' is an action the engine runs", actions.ops()[op] ~= nil)
+		end
+	end
+end
+
+-- The shapes reached through a section rather than declared beside one: a setup
+-- entry, a seat, a move rule. Held exactly as the sections are, and for a
+-- sharper reason — these had their field sets written as literals at the call
+-- site, where a check can be run but never asked. Nothing could be compared
+-- against them, so SCHEMA.json described a "setup.player" the engine has never
+-- read, the manual put it in the Setup example, and the validator refused it.
+-- Three documents disagreeing, each of them confident.
+function M.test_schema_describes_every_shape_reached_through_a_section(check)
+	local doc = schema()
+	local card = exemplar(doc.cards)
+	local rule
+	for _, m in ipairs(card.activate.moves) do
+		if type(m) == "table" then rule = m; break end
+	end
+	local at = { setup = doc.setup, place = exemplar(doc.setup.place),
+		player = exemplar(doc.players), move_rule = rule }
+
+	for shape, fields in pairs(validate.SHAPES) do
+		local entry = at[shape]
+		check("the document has an entry for " .. shape, type(entry) == "table")
+		for field in pairs(fields) do
+			check(shape .. "." .. field .. " is described", entry and entry[field] ~= nil)
+		end
+		for field in pairs(entry or {}) do
+			check(shape .. "." .. field .. " is a field the engine reads", fields[field] ~= nil,
+				"the engine reads: " .. names(fields))
 		end
 	end
 end

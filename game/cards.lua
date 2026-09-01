@@ -143,10 +143,36 @@ function M.def(card_entity)
 	return declaration.G.card_defs[card_entity.def_key]
 end
 
+-- What an ability says when it meets the others on the same card. Written on the
+-- ability, not on the zone that granted it: the zone's whole say is naming the
+-- tag in "applies", and a card's *own* tag needs the same word — "this card's
+-- abilities do not work" is the same conflict with no zone anywhere in it.
+--
+--   both   the default, and what every ability said before this existed
+--   this   mine alone; the rest of the card goes quiet
+--   other  mine only when the card offers nothing else
+--
+-- Two abilities claiming "this" is a contradiction, and the validator says so.
+-- At runtime both survive and the player is asked, because a card that offers
+-- two things is a visible mistake and a card that silently lost one is not.
+local function merged(list)
+	local keep = {}
+	for _, a in ipairs(list) do if a.merge == "this" then keep[#keep + 1] = a end end
+	if #keep > 0 then return keep end
+	for _, a in ipairs(list) do if a.merge ~= "other" then keep[#keep + 1] = a end end
+	-- Nothing but understudies: they are the card's whole repertoire, so they play.
+	if #keep == 0 then return list end
+	return keep
+end
+
 -- Every activated ability this card has right now: its own, then any its zone
--- hands out. **Added, not substituted** — a zone that grants an ability used to
--- hide the card's own, so a rook lying in a discard pile could be taken and no
--- longer moved. One card can do two things, and the player is asked which.
+-- hands out. **Added, not substituted** unless one of them says otherwise — a
+-- zone that grants an ability used to hide the card's own, so a rook lying in a
+-- discard pile could be taken and no longer moved. One card can do two things,
+-- and the player is asked which. A shop is the case that wants the old
+-- behaviour back: a chip lying in the bank is merchandise, and its own upkeep
+-- paying out on a click is money from the shop window. That is what "merge"
+-- is for, and why adding stayed the default.
 -- Everything this card can do, in the order it is asked.
 --
 --   1. its own, written on the card
@@ -157,6 +183,10 @@ end
 -- whatever else applies, and one that changes an *outcome* has to run after the
 -- outcome: Overwhelm sends the damage past a dead blocker onwards, and there is
 -- nothing to send until the blocker has been struck.
+--
+-- Precedence is settled here rather than in the callers that ask what is usable,
+-- so it says what a card *is* where it lies and not what it can afford this
+-- instant: merchandise stays merchandise to a player who cannot buy it.
 function M.abilities(card_entity)
 	local out = {}
 	local def = M.def(card_entity)
@@ -169,6 +199,45 @@ function M.abilities(card_entity)
 	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
 		local td = declaration.G.tag_defs[tag]
 		for _, a in ipairs((td and td.abilities) or EMPTY) do out[#out + 1] = a end
+	end
+	return merged(out)
+end
+
+-- Every reaction a card carries, in the order it is asked. Its own, written on
+-- the card, come first; tag-granted and zone-applied reactions are a later
+-- refinement (a keyword that reacts, a zone that makes what lies in it react).
+function M.reactions(card_entity)
+	local out = {}
+	local def = M.def(card_entity)
+	for _, r in ipairs((def and def.reactions) or EMPTY) do out[#out + 1] = r end
+	return out
+end
+
+-- Every verb this card announces at one moment ("play", "activate"): its own, its
+-- zone's through "applies", and its tags'. A tag is the useful place to write one
+-- — "spell" says cast once, for the whole game — and these are the same three
+-- sources abilities come from, for the same reason.
+--
+-- Asked per moment, because a card is often answered as two different things. A
+-- spell that resolves onto the board and is used from there is a cast when it is
+-- played and something else entirely when it is activated, and the two must not
+-- be confused for each other. Verbs from several sources at one moment all count:
+-- a creature spell is a cast and a summon both, and nothing has to choose.
+function M.emits(card_entity, moment)
+	local out, seen = {}, {}
+	local function take(map)
+		for _, v in ipairs((map or EMPTY)[moment] or EMPTY) do
+			if not seen[v] then seen[v] = true; out[#out + 1] = v end
+		end
+	end
+	local def = M.def(card_entity)
+	take(def and def.emits)
+	local z = card_entity and card_entity.zone_id and entity.get(card_entity.zone_id)
+	for _, tag in ipairs(z and z.applies or EMPTY) do
+		take((declaration.G.tag_defs[tag] or EMPTY).emits)
+	end
+	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
+		take((declaration.G.tag_defs[tag] or EMPTY).emits)
 	end
 	return out
 end
@@ -353,10 +422,23 @@ local function condition_text(s)
 	return WORDS[c.op] .. (c.right.src or tostring(c.right.n)) .. " " .. (c.left.src or tostring(c.left.n))
 end
 
+-- What one entry of a cost comes to. **A cost amount may be a subject rather
+-- than a number** — `"price@self"` is a card charging what is printed on it,
+-- which is the only way one `play` block can serve ninety cards that cost
+-- different things — and everything that *spends* a cost has always measured it.
+-- Everything that *shows* one printed the string, so a card whose price was
+-- measured wore the expression on its face. Measured against the card the cost
+-- is about, since `@self` names it; with no card to ask, the expression is all
+-- there is to say.
+function M.cost_amount(v, card_id)
+	if type(v) ~= "string" or not card_id then return v end
+	return require("predicate").total(v, { card_id = card_id })
+end
+
 -- "2 gold, 1 food" for a cost, "at least 3 gold" for a condition. One function
 -- because one tooltip row shows either: a cost is a map of what gets spent, and
 -- `needs` / `accepts` are lists of conditions.
-function M.cost_text(cost)
+function M.cost_text(cost, card_id)
 	local parts = {}
 	if type(cost) ~= "table" then return "" end
 	if type(cost[1]) == "string" then
@@ -368,8 +450,8 @@ function M.cost_text(cost)
 	table.sort(keys)
 	for _, k in ipairs(keys) do
 		local tag = k:match("^sacrifice:(.+)$")
-		parts[#parts + 1] = tag and ("sacrifice " .. tostring(cost[k]) .. " " .. tag)
-			or (tostring(cost[k]) .. " " .. k)
+		local n   = tostring(M.cost_amount(cost[k], card_id))
+		parts[#parts + 1] = tag and ("sacrifice " .. n .. " " .. tag) or (n .. " " .. k)
 	end
 	return table.concat(parts, ", ")
 end
