@@ -248,9 +248,9 @@ function M.test_lor_a_blocked_attacker_hits_the_blocker(check)
 		and on_bench("south", "cithria") == nil)
 end
 
--- Tough is a tag the game file gives a card and a line the *zone* reads: one
--- point handed back to whatever was struck, if what was struck is tough.
--- Nothing in the engine knows the word.
+-- Tough is a tag the game file gives a card, and it does not *do* anything: it
+-- says that damage arriving at this card arrives for one less. Nothing in the
+-- engine knows the word, and nothing in the game runs on its behalf.
 function M.test_lor_tough_takes_one_off_every_source(check)
 	fight("vanguard_lookout", "plucky_poro")
 	local poro, look = on_bench("south", "plucky_poro"), on_bench("north", "vanguard_lookout")
@@ -267,13 +267,12 @@ function M.test_lor_tough_takes_one_off_every_source(check)
 	check("and no spill, because it has no overwhelm", stat("south", "nexus") == 20)
 end
 
--- The case the old arithmetic could not survive. Tough used to be a point handed
--- *back* once the strike had landed, so a source with no power healed what it
--- hit — right for every printed card, since none has zero power, and a lie the
--- moment anything deals damage equal to a count. It is a number kept off on the
--- way in now: the striker says what it deals, the keyword takes one off that,
--- and only then does it land. Which is also why the keyword is one line on the
--- `tough` tag and nothing at all on the ten templates or on whatever hit them.
+-- The case the arithmetic has to survive. Tough was once a point handed *back*
+-- after the strike landed, so a source with no power healed what it hit — right
+-- for every printed card, since none has zero power, and a lie the moment
+-- anything deals damage equal to a count. An adjustment cannot make that
+-- mistake: it may not change the sign of what it shifts, so nothing reduced
+-- past zero comes out the other side as healing.
 function M.test_lor_tough_never_heals_what_hits_it(check)
 	local atk = fight("cithria", "plucky_poro", function(a) entity.get(a).stats.power = 0 end)
 	local poro = on_bench("south", "plucky_poro")
@@ -284,8 +283,9 @@ function M.test_lor_tough_never_heals_what_hits_it(check)
 	check("nothing was healed past where it started",
 		poro.stats.health <= 1 and entity.get(atk).stats.health <= 2)
 
-	-- A keyword rides on the card wherever it goes, so the pass it belongs to is
-	-- the whole of what keeps it out of the player's way on the bench.
+	-- A keyword that changes a number is not an ability, so there was never
+	-- anything for the player to be offered. It used to be an ability fenced
+	-- into one phase, and the fence was the whole of what kept it off the bench.
 	flow.init("lor.json", 5)
 	local benched = bench_put("north", "plucky_poro", 2)
 	flow.activate(button("attack_button", "north"), {})
@@ -295,11 +295,12 @@ function M.test_lor_tough_never_heals_what_hits_it(check)
 		#offered .. " " .. tostring(offered[1] and offered[1].ability.key))
 end
 
--- What the keyword is really keyed to is the *number*, not the fight. Attacking
+-- What the keyword is really keyed to is the *moment*, not the fight. Attacking
 -- is one thing that writes damage onto a unit and LoR has spells that write it
 -- too, so Tough cannot be a term in the striker's formula without every one of
--- those sources having to remember it. It reduces `incoming` — whatever put it
--- there — and the pass that runs it is the phase's to call.
+-- those sources having to remember it. It answers "damage", whoever deals it —
+-- and the game says which of its actions are damage, so the two lines that
+-- shuffle `incoming` and `spill` about are not and can never be caught by it.
 function M.test_lor_anything_that_writes_the_damage_meets_tough(check)
 	local hit
 	fight("cithria", "plucky_poro", function(_, blk)
@@ -307,12 +308,22 @@ function M.test_lor_anything_that_writes_the_damage_meets_tough(check)
 		-- blocker, which is the shape a spell has.
 		actions.run({
 			"stat_gain:incoming@self:3",
-			"activate_zone:battle:by_column:armor",
 			"activate_zone:battle:by_column:land",
 		}, { card_id = blk })
 		hit = entity.get(blk).stats.health
 	end)
 	check("three onto a tough one-health unit takes two of them", hit == -1, tostring(hit))
+
+	-- And the other way round: the engine's own verb is plumbing, so a game that
+	-- writes it means a number moving and not a moment happening. Nothing can
+	-- reach into it, which is what lets `incoming` and `spill` be shuffled about
+	-- in the open without a keyword catching them by accident.
+	local raw
+	fight("cithria", "plucky_poro", function(_, blk)
+		actions.run({ "stat_damage:health@self:3" }, { card_id = blk })
+		raw = entity.get(blk).stats.health
+	end)
+	check("but three written as plain bookkeeping takes all three", raw == -2, tostring(raw))
 end
 
 -- Overwhelm is the same shape: a tag, and one more line on the zone. What makes

@@ -133,8 +133,16 @@ silently does nothing, which is the shape of bug a pipeline is best at hiding.
 
 **A tag ability rides on the card everywhere**, so `tough`'s `armor` would have
 appeared in the bench chooser beside *Attack* and *Block*. `phases: ["strike"]`
-keeps it out, and it is free because `activate_zone` does not read `phases` at
-all. That asymmetry was already load-bearing and undocumented.
+kept it out, free because `activate_zone` does not read `phases` at all — an
+asymmetry that was load-bearing and undocumented.
+
+**Superseded 2026-09-01.** Tough is not an ability now and never was one in
+spirit: it says that damage arriving at this card arrives for one less.
+[30](30-things-that-are-true.md) gave it the word, and the whole apparatus went
+with it — the `armor` ability, the `phases` fence that kept it off the bench,
+and a fourth pass over the board in the strike phase. What the pass finding
+above is *actually* about survives intact, since `aim` still has to run for
+every card before `land` runs for any.
 
 ## Overwhelm stopped being arithmetic
 
