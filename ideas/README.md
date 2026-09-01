@@ -48,7 +48,7 @@ engine.
 | [27](27-reactions-and-the-stack.md) | Reactions and the stack | **shipped and in use.** Left: speeds, Magic depth, and an emission suppressor |
 | [28](28-a-zone-by-its-parts.md) | A zone by its parts | **shipped whole.** Seven fields where there was one word, and the corpus got shorter |
 | [29](29-a-place-to-fight.md) | A place to fight | **shipped whole.** Combat is a zone walked in nine steps, `origin` sends everyone home, and one patrol row made adjacency fall out. Left: resist, which [30](30-things-that-are-true.md) reaches |
-| [30](30-things-that-are-true.md) | Things that are true | **draft.** `buffs` shipped; the targeting ward already ships as `receive.needs` and no game uses it; `adjusts` is the word left, keyed to verbs a game declares so that being interferable is opt-in, and it is what resist has been waiting for |
+| [30](30-things-that-are-true.md) | Things that are true | **mostly built.** `buffs` and `adjusts` both ship, keyed to verbs a game declares so that being interferable is opt-in; the targeting ward already shipped as `receive.needs` and no game uses it. Left: the cost half, which is resist, and which waits only on what the player is shown |
 
 ## What to do next
 

@@ -31,6 +31,11 @@
       ]
     }
   ],
+  "verbs": [
+    { "key": "the game's own name for a moment \u2014 \"damage\", \"poison\", \"heal\". It is what actions write and what an aura watches, and it may not be a word the engine already has: one spelling, one meaning.",
+      "does": "the engine verb that carries it, \"stat_damage\" or \"stat_gain\". **A mechanism is not a meaning.** Poison and a sword both take hp and armour stops one of them; a plane losing altitude is neither, and an action string has nowhere else for the difference to live. So a game names the moments it means and writes \"poison:hp@target:1\" where it means poison. The point is what it makes impossible: an aura may watch a declared verb and never an engine one, so bookkeeping written with a plain stat_damage \u2014 a combat shuffling its own counters about \u2014 can never be intercepted, because nothing is able to name it. Being interfered with is something a game opts into, moment by moment. A verb declared and never performed is reported, the same way a reaction answering a verb nothing emits is.",
+      "tooltip": "what the word means, shown wherever a keyword's is \u2014 \"armour does not stop poison\", written once in the place the rule lives" }
+  ],
   "computed_tags": {
     "<your name for it>": {
       "stat": "the stat on the card that decides it, read from that card alone",
@@ -310,6 +315,14 @@
     "<your tag name>": {
       "zone": "the home zone of every card carrying this tag, so a move_to with no zone, a gain, and a card whose start block names none all know where it goes without saying so",
       "buffs": { "<stat key>": "number every card wearing this tag reads that stat higher by, for as long as it wears it \u2014 negative to read it lower. **Nothing is written to the card.** The shift is worked out on every read, so it arrives and leaves with the tag and there is no stored number to get out of step: this is a continuous effect, said once, instead of a stat_gain that whoever removes the tag has to remember to undo on every path it can leave by. The three tag sources all count, so the shift can come from what a card *is* (a printed keyword), from where it *stands* (a zone's applies \u2014 the whole of \"+1 while it is in the arena\"), or from how it *is doing* (a computed tag \u2014 \"+2 while damaged\"). That last one is the single exception to a computed tag carrying nothing: a buff is a property of wearing the word, as a style is, and there is no card for the behaviour version of it to belong to \u2014 so a computed tag may write \"buffs\" and nothing else. A write addresses the card's own number and a read sees the whole, so a card set to \"attack 2\" is printed at 2 and still reads 3 while something is granting it +1 \u2014 a level-up cannot eat a bonus it has never heard of. **The ceiling rises with the value and the floor stays**, which is what makes a 1/1 handed +1 hp a 2/2 that dies to two rather than a 1/1 that was clamped back on the spot; damage comes off the buffed total, and when the tag goes what is left is the printed number with the wound still on it. The amount is a plain number, never a subject: anything worked out belongs in a compute. A buff that leads back to itself \u2014 a computed tag shifting the stat that decides whether it holds \u2014 is refused rather than resolved, since the shift would have to know its own answer." },
+      "adjusts": [
+        { "key": "a name for this adjustment, unique on the card, so two of them can be told apart",
+          "verb": "the **declared** verb it watches \u2014 a key from the top-level \"verbs\", never an engine action. See verbs.does for why that rule is the whole of the word.",
+          "stat": "which number it changes. \"damage\" to hp is not \"damage\" to gold, and a shield that stopped both would be a bug in every game that had one.",
+          "covers": "who it is about, as a scope read from the card holding it. \"self\" is a keyword and the fast path; \"each.mine.unit\" is the anthem that covers a side. The aura works only while its card is in play, as a tag scope already means.",
+          "when": ["conditions, in the one grammar. @self is the card holding the aura, @target the card being acted on, and @source the card doing it \u2014 which is how \"takes 2 less from spells\" is said."],
+          "by": "how much it shifts what lands, in the ordinary amount grammar. It adjusts the number the *action says*, as a player reads it: \"3 damage\" less one is 2, and the author never sees that the delta is carried negative inside. Adjustments sum, in a fixed order. **They may not change the sign** \u2014 three damage reduced by five is none, never a heal of two \u2014 because a word that could turn harm into help by accident is a word nobody can reason about. Asked before the change, so it reads the board as it was: \"takes one less while damaged\" sees the hp this damage has not yet come off." }
+      ],
       "play": {
         "cost": "what playing one of these cards costs",
         "needs": ["conditions gating it"],

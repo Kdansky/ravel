@@ -1,6 +1,9 @@
 # 30 — Things that are true
 
-**Draft** (2026-09-01). A fourth card moment was asked for, beside `play`,
+**Built, first cut** (2026-09-01). The stat half of `adjusts` ships with the
+declared-verb rule; the cost half (`"verb": "target"`, and resist with it) is
+still a draft, because it carries the preview question below. A fourth card
+moment was asked for, beside `play`,
 `activate` and a reaction: an **aura** that modifies behaviour rather than
 causing it. "Cannot be targeted by spells." "Blue spells cannot target this."
 "This takes 1 less damage."
@@ -300,19 +303,30 @@ effect is really a `buffs` on the attacker's own number. If a game turns up
 where it isn't, that is evidence for a fourth entry in the table, not for
 widening this one.
 
+## What shipped, and what did not
+
+**Shipped**: `verbs` as a top-level list, `adjusts` on a tag, `@source`, and the
+rule that an aura may watch only a declared verb. Two engine verbs may be stood
+for, `stat_damage` and `stat_gain`. The hook is in `change_stat`, per card, and
+the index is keyed `"<verb>:<stat>"` so a game with no auras pays one nil lookup
+per stat change. Ten validator refusals, seven integration tests, and a section
+in AUTHORING.
+
+**Not shipped**: `"verb": "target"` and the cost hook in `flow.plan` — which is
+resist. Everything about it is settled except the preview, and that is a
+question about what a player is shown rather than about the word. It is one
+handler and one index lookup once that is answered.
+
 ## Open questions
 
-1. **The name.** `adjusts` is proposed because it says what it does and pairs
+1. ~~**The name.**~~ Settled as `adjusts`, because it says what it does and pairs
    with `buffs` — one shifts a number *on* a card, one shifts a number *done to*
    one. Against `aura`: Ravel already has `attached`, and MTG's Aura is an
    attachment, so the word would arrive meaning something else.
-2. **`@source`.** A new scope for the card doing the acting. `@event` is taken
-   and means a reaction's record.
-3. **Which engine verbs a game verb may stand for in the first cut.**
-   `stat_damage` and `stat_gain` cover the damage-and-healing half; `target`
-   covers the cost half and is the one with the preview question attached.
-   Counts — draw two fewer, destroy one less — are a later widening and want
-   their own evidence.
+2. ~~**`@source`.**~~ Shipped. `@event` was taken and means a reaction's record.
+3. **Which engine verbs a game verb may stand for.** `stat_damage` and
+   `stat_gain` shipped. Counts — draw two fewer, destroy one less — are a later
+   widening and want their own evidence.
 4. **Whether `emits` may name a declared verb**, or the two vocabularies stay
    apart. See above.
 5. **The preview**, above.

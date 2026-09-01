@@ -21,6 +21,7 @@ local M = {}
 --   hp@self                 the acting card
 --   hp@target               the cards the player chose for this card
 --   hp@event                the card an event is about, for a reaction to read
+--   hp@source               the card doing it, for an aura to read
 --   count:farm@board        the fn forms take a scope too
 --   count:gem@everywhere    every card, hands and decks included (opt-in)
 --   min:value@mine.hand     the smallest one, over the cards that carry it
@@ -187,6 +188,14 @@ function M.entities_in_scope(scope, ctx, owner)
 		for e in entity.each("card") do out[#out + 1] = e end
 	elseif scope == "self" then
 		local e = ctx and ctx.card_id and entity.get(ctx.card_id)
+		if e then out[1] = e end
+	elseif scope == "source" then
+		-- The card doing it, read from the other side. An aura is asked while
+		-- somebody else is acting, so "who is hitting me" is the one thing it
+		-- needs that no existing scope names: @self is the card holding the aura
+		-- and @target is the card being hit. @event is taken, and means a
+		-- reaction's record rather than an actor.
+		local e = ctx and ctx.source and entity.get(ctx.source)
 		if e then out[1] = e end
 	elseif scope == "target" then
 		for _, id in ipairs(ctx and ctx.targets or {}) do

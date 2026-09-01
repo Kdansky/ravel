@@ -10,6 +10,7 @@ M.TEMPLATE_FIELDS = {
 	"card_defs", "card_list", "computed_tags", "stat_defs", "stat_defs_list", "pays_for_index",
 	"tag_defs", "effect_defs", "pattern_defs", "asset_defs", "raw_assets", "parse_problems",
 	"compute_defs", "compute_list", "react_index", "buff_index",
+	"verb_defs", "verb_list", "adjust_index",
 	"style_defs", "dynamic_styles", "seat_index",
 }
 
@@ -420,7 +421,7 @@ end
 local KNOWN_SECTIONS = {
 	title = true, seed = true, stats = true, computed_tags = true, computes = true,
 	cards = true, zones = true, phases = true,
-	end_conditions = true, setup = true, tags = true, effects = true, players = true,
+	end_conditions = true, setup = true, tags = true, effects = true, players = true, verbs = true,
 	patterns = true, assets = true, styles = true,
 }
 M.KNOWN_SECTIONS = KNOWN_SECTIONS
@@ -537,6 +538,9 @@ function M.parse(filename)
 		style_defs     = type(parsed.styles) == "table" and parsed.styles or {},
 		dynamic_styles = {},   -- style names that are also computed tags
 		buff_index     = {},   -- stat key -> tags that shift it, so a read with no buff costs one nil lookup
+		verb_defs      = {},   -- the game's own word for a moment -> the engine verb that carries it
+		verb_list      = {},   -- ordered, for the reference panel and deterministic reporting
+		adjust_index   = {},   -- "<game verb>:<stat>" -> the tags that change what it lands for
 		end_conditions = parsed.end_conditions or {},
 		setup          = parsed.setup or {},
 		-- Where the game begins, in the order the manual would say it. A card
@@ -600,6 +604,23 @@ function M.parse(filename)
 		G.tag_defs[name] = td
 	end
 
+	-- **A game names the moments it means to be answerable.** "stat_damage" is a
+	-- mechanism and not a meaning: poison and a sword both take hp and armour
+	-- stops one of them, and an action string has nowhere else for the
+	-- difference to live. So the game says "poison" is a kind of stat_damage and
+	-- writes "poison:hp@target:1" where it means it — and an aura may name a
+	-- declared verb and never an engine one, which is what makes being
+	-- interfered with something a game opts into rather than something that
+	-- happens to its plumbing.
+	for i, vd in ipairs(type(parsed.verbs) == "table" and parsed.verbs or {}) do
+		if type(vd) == "table" and type(vd.key) == "string" then
+			G.verb_defs[vd.key] = vd
+			G.verb_list[#G.verb_list + 1] = vd.key
+		else
+			pp[#pp + 1] = "verbs entry " .. i .. ': should be written like { "key": "poison", "does": "stat_damage" }'
+		end
+	end
+
 	-- Which tags shift which stat, keyed by the stat so a read that has no buff
 	-- to find costs one nil lookup. A game with no "buffs" anywhere therefore
 	-- pays nothing per stat read, which is every shipped game but Codex.
@@ -617,6 +638,26 @@ function M.parse(filename)
 	-- still be a replay that could disagree about a clamp.
 	for _, list in pairs(G.buff_index) do
 		table.sort(list, function(a, b) return a.tag < b.tag end)
+	end
+
+	-- The same index one level along: which tags change what a verb lands for,
+	-- keyed by the pair a change can be identified by. A game with no auras
+	-- pays one nil lookup per stat change, which is every shipped game.
+	for name, td in pairs(G.tag_defs) do
+		for _, ad in ipairs(type(td) == "table" and type(td.adjusts) == "table" and td.adjusts or {}) do
+			if type(ad) == "table" and ad.verb and ad.stat then
+				local k    = tostring(ad.verb) .. ":" .. tostring(ad.stat)
+				local list = G.adjust_index[k] or {}
+				list[#list + 1] = { tag = name, adjust = ad }
+				G.adjust_index[k] = list
+			end
+		end
+	end
+	for _, list in pairs(G.adjust_index) do
+		table.sort(list, function(a, b)
+			if a.tag ~= b.tag then return a.tag < b.tag end
+			return tostring(a.adjust.key) < tostring(b.adjust.key)
+		end)
 	end
 
 	-- Only a style word that is *also* a computed tag can change under a running

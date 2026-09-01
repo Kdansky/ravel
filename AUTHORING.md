@@ -56,7 +56,7 @@ and a line here names a section that exists:
 - **What a file holds** — Top-level fields · Stats · Zones · Players · Setup · Card templates · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
+- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Only one of them: `random.` · Making *them* choose · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `origin` — back where it came from · `fan` — a stack you can read
@@ -3215,6 +3215,82 @@ out belongs in a `compute`. And a buff may not lead back to itself — a compute
 tag shifting the very stat that decides whether it holds is refused, since
 working out the shift would need to know its own answer. `"damaged units get +1
 hp"` is a card that is damaged only while it is not.
+
+### `verbs` and `adjusts` — a moment with a name, and something that answers it
+
+`buffs` changes a number **on** a card. `adjusts` changes a number **done to**
+one — how much this damage is, what this cost comes to. Both are reads, and
+neither runs anything.
+
+It needs a word first, and the word is the game's rather than the engine's.
+
+**`stat_damage` is a mechanism, not a meaning.** Poison and a sword both take
+`hp` and armour stops one of them. A plane losing altitude is neither. There is
+nowhere in an action string for the difference to live — an action is a verb and
+its arguments, and Ravel has no per-action metadata anywhere. So a game names
+the moments it means:
+
+```json
+"verbs": [
+  { "key": "damage", "does": "stat_damage", "tooltip": "Damage — armour stops some of it." },
+  { "key": "poison", "does": "stat_damage", "tooltip": "Poison — armour does not." },
+  { "key": "mend",   "does": "stat_gain" }
+]
+```
+
+and writes them where it means them:
+
+```json
+"action": ["damage:hp@target:3"]
+"action": ["poison:hp@target:1"]
+```
+
+Then a tag may answer one:
+
+```json
+"tags": {
+  "armoured": {
+    "tooltip": "Armour 1 — takes 1 less damage, but not from poison.",
+    "adjusts": [{ "key": "armour", "verb": "damage", "stat": "hp", "covers": "self", "by": -1 }]
+  }
+}
+```
+
+**An aura may watch a declared verb and never an engine one.** That rule is the
+whole point, and it does more than tidy the vocabulary — it makes being
+interfered with **opt-in**. Codex's combat steps push `incoming`, `raw`, `back`
+and `spill` about with plain `stat_damage`, and none of it can ever be
+intercepted, because nothing is able to name it. A game says which of its
+moments are moments by giving them words; everything else stays plumbing.
+
+The fields:
+
+- **`verb`** — a key from `verbs`.
+- **`stat`** — which number. `damage` to `hp` is not `damage` to `gold`, and it
+  is what keeps a shield off the plane losing altitude.
+- **`covers`** — who it is about, as a scope read from the card holding it.
+  `"self"` is a keyword; `"each.mine.unit"` is an anthem that covers a side.
+- **`when`** — conditions, in the one grammar. `@self` holds the aura, `@target`
+  is being acted on, and **`@source`** is doing it:
+
+```json
+{ "key": "ward", "verb": "damage", "stat": "hp", "covers": "self", "by": -2,
+  "when": ["tagged:witch@source >= 1"] }
+```
+
+- **`by`** — how much, in the ordinary amount grammar.
+
+Four rules keep it predictable:
+
+```
+it adjusts the number the action says     "3 damage" less one is 2
+several sum, in a fixed order              armour and an anthem take two off
+it may not change the sign                 three less five is none, never a heal of two
+it is asked before the change              "1 less while damaged" reads the hp not yet taken
+```
+
+And an aura only works while its card is in play, which is what a tag scope has
+always meant. A shield in a deck shields nothing.
 
 ### Keywords: a tag that means something to the player
 

@@ -164,13 +164,58 @@ local function clamped(e, key, v)
 end
 
 -- Change a stat on an entity, held between its floor and its ceiling.
-local function change_stat(e, key, delta, ctx)
+-- **What a verb lands for, once everything with an opinion has spoken.** A tag
+-- may say that a verb aimed at cards it covers arrives for a different number:
+-- armour takes one off damage, and takes nothing off poison, because the game
+-- named the two moments differently and the aura names one of them.
+--
+-- It adjusts the number *the action says*, always as a player reads it — "3
+-- damage" less one is 2 — so the author never has to know the delta is carried
+-- negative in here. And **it may not change the sign**: three damage reduced by
+-- five is none, never a heal of two, because a word that could turn harm into
+-- help by accident is a word nobody can reason about.
+--
+-- Asked before the change, so it sees the board as it was: "takes one less
+-- while damaged" reads the hp this damage has not yet come off.
+local function adjusted(e, key, verb, delta, ctx)
+	local list = verb and declaration.G.adjust_index[verb .. ":" .. key]
+	if not list or delta == 0 then return delta end
+	local sign, size = delta < 0 and -1 or 1, math.abs(delta)
+	local shift = 0
+	for _, entry in ipairs(list) do
+		local ad = entry.adjust
+		for _, holder in ipairs(tags.find_targets({ entry.tag }, tags.IN_PLAY)) do
+			local h = entity.get(holder)
+			-- "self" is the common case and the whole of a keyword, so it does
+			-- not go the long way round through a scope.
+			-- "self" is the whole of a keyword and does not go the long way round
+			-- through a scope; anything else is read from the card holding the
+			-- aura, so an anthem says who it covers in the words a scope already
+			-- uses.
+			local covered = holder == e.id
+			if not covered and ad.covers ~= "self" then
+				local sc = predicate.parse_scope(ad.covers)
+				for _, c in ipairs(sc and predicate.entities_in_scope(sc.name, { card_id = holder }, sc.owner) or EMPTY) do
+					if c.id == e.id then covered = true; break end
+				end
+			end
+			local sub = { card_id = holder, targets = { e.id }, source = ctx and ctx.card_id }
+			if covered and h and predicate.meets_all(ad.when, sub) then
+				shift = shift + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
+			end
+		end
+	end
+	return sign * math.max(0, size + shift)
+end
+
+local function change_stat(e, key, delta, ctx, verb)
 	if not e or not e.stats then return end
 	-- Arithmetic on what the stat *is*, storage of what was left after the tags
 	-- had their say. A card is damaged for what it reads, so the clamp has to
 	-- see the buffed number; what goes back on the card is that number without
 	-- the buff, so nothing is double-counted the next time it is read and the
 	-- printed value returns intact when the tag goes.
+	delta = adjusted(e, key, verb, delta, ctx)
 	local buff = tags.buff(e, key)
 	local old  = (e.stats[key] or 0) + buff
 	local v    = clamped(e, key, old + delta)
@@ -200,10 +245,13 @@ local function designated(p, ctx)
 	return { ents[1] }
 end
 
-local function apply_stat(subject, delta, ctx)
+local function apply_stat(subject, delta, ctx, verb)
 	local p = predicate.parse_subject(subject)
 	if not p then return end
-	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, delta, ctx) end
+	-- Per card and not per action: "this creature takes one less" cannot be
+	-- worked out once for the whole line, because the line may name six of them
+	-- and only one is wearing the armour.
+	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, delta, ctx, verb) end
 end
 
 -- Take n from a pool, in id order until it is covered — deterministic, so a
@@ -370,14 +418,14 @@ end
 -- The four verbs that move a number, named so they sort together: what they
 -- share is the stat, and that is the half worth reading first.
 HANDLERS["stat_gain"] = function(p, ctx)
-	apply_stat(p[2], amount(p, 3, 0, ctx), ctx)
+	apply_stat(p[2], amount(p, 3, 0, ctx), ctx, p[1])
 end
 
 -- Taking it away. The same arithmetic as stat_gain with the sign turned round,
 -- and a separate word because "damage 2" and "gain -2" are the same instruction
 -- to the engine and different sentences to everyone else.
 HANDLERS["stat_damage"] = function(p, ctx)
-	apply_stat(p[2], -amount(p, 3, 0, ctx), ctx)
+	apply_stat(p[2], -amount(p, 3, 0, ctx), ctx, p[1])
 end
 
 -- Move the ceiling. The current value comes with it only where it has to: a
@@ -1306,8 +1354,12 @@ end
 
 
 function M.execute(str, ctx)
-	local p = parse(str)
-	local h = HANDLERS[p[1]]
+	local p  = parse(str)
+	-- A verb the game named runs the engine verb it stands for, and keeps its
+	-- own name in p[1] — which is how the handler can tell an aura that this
+	-- was poison and not a sword, when both are a stat_damage to hp.
+	local vd = declaration.G.verb_defs[p[1]]
+	local h  = HANDLERS[vd and vd.does or p[1]]
 	if h then
 		h(p, ctx)
 	else

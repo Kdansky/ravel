@@ -109,6 +109,90 @@ local CASES = {
 			g.computed_tags.hurt = { stat = "hp", less_than = 1 }
 			g.tag_defs.hurt      = { buffs = { hp = 1 } }
 		end },
+	-- named verbs and the auras that watch them
+	{ "a verb entry that isn't a map", 'should be written like { "key"',
+		function(g) g.verb_defs.poison = "stat_damage"; g.verb_list = { "poison" } end },
+	{ "a verb named after an engine action", "the engine already has an action by that name",
+		function(g) g.verb_defs.destroy = { key = "destroy", does = "stat_damage" }; g.verb_list = { "destroy" } end },
+	{ "a verb standing for nothing", 'needs a "does"',
+		function(g) g.verb_defs.poison = { key = "poison" }; g.verb_list = { "poison" } end },
+	{ "a verb standing for an unwatchable action", "is not a verb an aura may watch",
+		function(g) g.verb_defs.poison = { key = "poison", does = "destroy" }; g.verb_list = { "poison" } end },
+	{ "a verb nothing performs", "no action performs it",
+		function(g) g.verb_defs.poison = { key = "poison", does = "stat_damage" }; g.verb_list = { "poison" } end },
+	{ "an aura watching the engine's own verb", "the engine's own verb and not the game's",
+		function(g) g.tag_defs.keepsake.adjusts = {
+			{ key = "a", verb = "stat_damage", stat = "hp", covers = "self", by = -1 } } end },
+	{ "an aura watching a verb nobody declared", "no verb is declared by that name",
+		function(g) g.tag_defs.keepsake.adjusts = {
+			{ key = "a", verb = "poison", stat = "hp", covers = "self", by = -1 } } end },
+	{ "an aura with no key", 'needs a "key"',
+		function(g) g.tag_defs.keepsake.adjusts = { { verb = "poison", stat = "hp", covers = "self", by = -1 } } end },
+	{ "an aura changing a stat no card has", "changes 'vigour', but no card carries a stat",
+		function(g) g.tag_defs.keepsake.adjusts = {
+			{ key = "a", verb = "poison", stat = "vigour", covers = "self", by = -1 } } end },
+	{ "an aura covering nothing nameable", "which is neither a zone nor a tag",
+		function(g) g.tag_defs.keepsake.adjusts = {
+			{ key = "a", verb = "poison", stat = "hp", covers = "each.wombat", by = -1 } } end },
+	{ "an aura that says nothing about how much", 'needs a "by"',
+		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "poison", stat = "hp", covers = "self" } } end },
+	-- verbs a game names, and the auras that watch them
+	{ "a verb standing for nothing", 'needs a "does"',
+		function(g)
+			g.verb_defs.poison = { key = "poison" }
+			g.verb_list = { "poison" }
+		end },
+	{ "a verb standing for an unwatchable action", "is not a verb an aura may watch",
+		function(g)
+			g.verb_defs.poison = { key = "poison", does = "destroy" }
+			g.verb_list = { "poison" }
+		end },
+	{ "a verb the engine already has", "the engine already has an action by that name",
+		function(g)
+			g.verb_defs.destroy = { key = "destroy", does = "stat_damage" }
+			g.verb_list = { "destroy" }
+		end },
+	{ "a verb nothing performs", "no action performs it",
+		function(g)
+			g.verb_defs.poison = { key = "poison", does = "stat_damage" }
+			g.verb_list = { "poison" }
+		end },
+	{ "an aura watching the engine's own verb", "which is the engine's own verb and not the game's",
+		function(g)
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "stat_damage", stat = "hp",
+				covers = "self", by = -1 } } }
+		end },
+	{ "an aura watching a verb nobody declared", "but no verb is declared by that name",
+		function(g)
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "poison", stat = "hp",
+				covers = "self", by = -1 } } }
+		end },
+	{ "an aura changing a stat no card has", "changes 'vigour', but no card carries a stat",
+		function(g)
+			g.verb_defs.poison = { key = "poison", does = "stat_damage" }
+			g.verb_list = { "poison" }
+			g.card_defs.c_flee.on_play = { "poison:hp@self:1" }
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "poison", stat = "vigour",
+				covers = "self", by = -1 } } }
+		end },
+	{ "an aura covering nothing that exists", "which is neither a zone nor a tag",
+		function(g)
+			g.verb_defs.poison = { key = "poison", does = "stat_damage" }
+			g.verb_list = { "poison" }
+			g.card_defs.c_flee.on_play = { "poison:hp@self:1" }
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "poison", stat = "hp",
+				covers = "each.wyvern", by = -1 } } }
+		end },
+	{ "an aura with no key", 'needs a "key"',
+		function(g)
+			g.tag_defs.keepsake = { adjusts = { { verb = "poison", stat = "hp",
+				covers = "self", by = -1 } } }
+		end },
+	{ "an aura shifting by nothing", 'needs a "by"',
+		function(g)
+			g.tag_defs.keepsake = { adjusts = { { key = "a", verb = "poison", stat = "hp",
+				covers = "self" } } }
+		end },
 	-- computed tags
 	{ "a computed tag that isn't a map", 'should be written like { "stat"',
 		function(g) g.computed_tags.ruined = 5 end },

@@ -208,7 +208,10 @@ local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = t
 	on_activate = true, activate_target = true, activate_cost = true,
 	activate_phases = true, activate_merge = true, moves = true,
 	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true,
-	buffs = true }
+	buffs = true, adjusts = true }
+
+local VERB_FIELDS   = { key = true, does = true, tooltip = true }
+local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, when = true, by = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it
 -- overwritten and no error — which is the shape of bug that costs an afternoon,
 -- because the number is right in the file and wrong in the game.
@@ -312,6 +315,8 @@ M.FIELDS = {
 	receive       = RECEIVE_FIELDS,
 	turn          = TURN_FIELDS,
 	chosen        = CHOSEN_FIELDS,
+	verbs         = VERB_FIELDS,
+	adjusts       = ADJUST_FIELDS,
 }
 
 -- The shapes above, reachable for the same reason M.FIELDS is: a set nobody can
@@ -559,7 +564,7 @@ function M.check(G)
 	end
 
 	-- Everything a scope may name, for checking and for suggestions.
-	local scope_names = { target = true, event = true }
+	local scope_names = { target = true, event = true, source = true }
 	for _, k in ipairs(RESERVED_SCOPES) do scope_names[k] = true end
 	for k in pairs(G.zone_defs) do scope_names[k] = true end
 	for k in pairs(known_tags) do scope_names[k] = true end
@@ -812,6 +817,9 @@ function M.check(G)
 	-- op's declared shape (actions.spec), so the validator can't drift from
 	-- the handlers.
 	local known_ops = actions.ops()
+	-- Every verb the game named and actually performs, gathered as the actions
+	-- go past, exactly as emitted_verbs is.
+	local used_verbs = {}
 	-- What may stand in a value slot. The measuring words take a subject in the
 	-- slot after them and are checked there, so here they only have to be let
 	-- through.
@@ -860,7 +868,15 @@ function M.check(G)
 	function check_action(where, str)
 		local p = {}
 		for w in str:gmatch("[^:]+") do p[#p + 1] = w end
-		local op   = p[1]
+		local op = p[1]
+		-- A verb the game named is checked against the engine verb it stands
+		-- for, and noted as used, so an aura watching for one no card performs
+		-- can be told so at the end.
+		local vd = G.verb_defs[op]
+		if vd then
+			used_verbs[op] = true
+			op = vd.does
+		end
 		local spec = actions.spec(op)
 		if not spec then
 			warn("%s: '%s' is not an action the engine knows%s", where, tostring(op), suggest(op, known_ops))
@@ -2496,6 +2512,85 @@ function M.check(G)
 		end
 	end
 	-- A reaction to a verb nothing raises can never fire, and looks exactly like
+	-- **A game's own word for a moment, and the aura that watches for it.** Both
+	-- halves are written in different places and nothing else holds them
+	-- together, which is the same typo the reaction cross-check below catches
+	-- and is caught the same way.
+	local ADJUSTABLE = { stat_damage = true, stat_gain = true }
+	for _, key in ipairs(G.verb_list) do
+		local vd    = G.verb_defs[key]
+		local where = "verb '" .. tostring(key) .. "'"
+		if type(vd) ~= "table" then
+			warn('%s: should be written like { "key": "poison", "does": "stat_damage" }', where)
+			vd = {}
+		else
+			check_fields(where, vd, VERB_FIELDS)
+		end
+		if actions.spec(key) then
+			warn("%s: the engine already has an action by that name — a game's word for a moment has "
+				.. "to be its own, or which one an action meant would be a lookup", where)
+		elseif vd.does == nil then
+			warn('%s: needs a "does" saying which action carries it, like "stat_damage"', where)
+		elseif not ADJUSTABLE[vd.does] then
+			warn("%s: stands for '%s', which is not a verb an aura may watch%s — a named moment is one "
+				.. "something can answer, and only %s can be adjusted so far", where, tostring(vd.does),
+				suggest(vd.does, ADJUSTABLE), "stat_damage and stat_gain")
+		elseif not used_verbs[key] then
+			warn("%s: is declared but no action performs it — a moment nothing reaches is a word "
+				.. "the file has to keep in step for nothing", where)
+		end
+	end
+
+	for tag, td in pairs(tag_defs) do
+		for i, ad in ipairs(type(td) == "table" and type(td.adjusts) == "table" and td.adjusts or {}) do
+			local where = ("tag '%s' adjusts %d ('%s')"):format(tostring(tag), i, tostring(ad.key))
+			if type(ad) ~= "table" then
+				warn('%s: should be written like { "verb": "damage", "stat": "hp", "covers": "self", "by": -1 }', where)
+			else
+				check_fields(where, ad, ADJUST_FIELDS)
+				if ad.key == nil then
+					warn('%s: needs a "key", so two adjustments on one card can be told apart', where)
+				end
+				-- **Never an engine verb.** This is the rule the whole word rests
+				-- on: a game says which of its moments are moments by naming
+				-- them, and everything it did not name stays plumbing that
+				-- nothing can reach into.
+				if ad.verb == nil then
+					warn('%s: needs a "verb" saying what it watches', where)
+				elseif actions.spec(ad.verb) and not G.verb_defs[ad.verb] then
+					warn("%s: watches '%s', which is the engine's own verb and not the game's. Declare the "
+						.. 'moment under "verbs" and watch that, so bookkeeping written with the same '
+						.. "action is never caught by it", where, tostring(ad.verb))
+				elseif not G.verb_defs[ad.verb] then
+					warn("%s: watches '%s', but no verb is declared by that name%s",
+						where, tostring(ad.verb), suggest(ad.verb, G.verb_defs))
+				end
+				if ad.stat == nil then
+					warn('%s: needs a "stat" saying which number it changes', where)
+				elseif not card_stats[ad.stat] and not G.stat_defs[ad.stat] then
+					warn("%s: changes '%s', but no card carries a stat by that name%s",
+						where, tostring(ad.stat), suggest(ad.stat, card_stats))
+				end
+				if ad.covers == nil then
+					warn('%s: needs a "covers" saying who it is about — "self" for a keyword', where)
+				elseif ad.covers ~= "self" then
+					local sc    = predicate.parse_scope(ad.covers)
+					local named = sc and scope_named(sc.name)
+					if not (sc and scope_names[named]) then
+						warn("%s: covers '%s', which is neither a zone nor a tag%s",
+							where, tostring(ad.covers), suggest(named or ad.covers, scope_names))
+					end
+				end
+				check_conditions(where .. " when", ad.when)
+				if ad.by == nil then
+					warn('%s: needs a "by" saying how much it shifts what lands', where)
+				elseif tonumber(ad.by) == nil then
+					subject_ok(where .. " by", tostring(ad.by))
+				end
+			end
+		end
+	end
+
 	-- one that works. This is the whole of the typo: the two halves of an event
 	-- are written in different files and nothing else holds them together.
 	for _, r in ipairs(reacting) do

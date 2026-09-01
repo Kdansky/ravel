@@ -358,7 +358,7 @@ local function readings(frag)
 	end
 	-- A whole entry, or the handful of its fields a paragraph is about: a
 	-- fragment showing what "next" looks like is a phase with one field written.
-	for _, sec in ipairs({ "cards", "zones", "phases", "stats" }) do
+	for _, sec in ipairs({ "cards", "zones", "phases", "stats", "verbs", "adjusts" }) do
 		local t = validate.FIELDS[sec]
 		if fits(t) then
 			add((frag.key and "a " or "the fields of a ") .. sec:sub(1, #sec - 1),
