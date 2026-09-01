@@ -109,6 +109,7 @@
     },
     { "key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"] },
     { "key": "stock", "min": 0, "max": 99, "icon": "card", "tags": ["hidden"] },
+    { "key": "on_sale", "min": 0, "max": 1, "on": ["chip"], "start": 0, "tags": ["hidden"] },
     { "key": "plus_act", "min": 0, "max": 9, "icon": "arrow", "tags": ["hidden"] },
     {
       "key": "plus_piggy",
@@ -154,10 +155,15 @@
     "for_sale": { "badges": ["price", "stock"], "badge_run": "down", "badge_zeros": false },
     "character_card": { "color": [0.24, 0.26, 0.36] }
   },
-  "computed_tags": { "spent": { "stat": "stock", "less_than": 1 } },
+  "computed_tags": {
+    "spent": { "stat": "stock", "less_than": 1 },
+    "discounted": { "stat": "on_sale", "at_least": 1 },
+    "dear": { "stat": "price", "at_least": 2 }
+  },
   "tags": {
     "red": { "emits": { "play": "attack" } },
     "buyable": { "emits": { "activate": "buy" } },
+    "discounted": { "buffs": { "price": -1 } },
     "for_sale": {
       "play": { "phases": [] },
       "abilities": [
@@ -405,7 +411,8 @@
         "move:mine.table:mine.discard",
         "stat_set:to_draw@mine.player:5",
         "activate_zone:rules_height",
-        "activate_zone:rules_piggy"
+        "activate_zone:rules_piggy",
+        "stat_set:on_sale@each.bank:0"
       ],
       "next": [{ "then": "cleanup_draw" }]
     },
@@ -984,10 +991,10 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:money@mine.player:1"],
+        "action": ["stat_gain:money@mine.player:1", "stat_set:on_sale@each.bank.dear:1"],
         "spent": "mine.table"
       },
-      "tooltip": "+$1. Chips in the bank cost 1 less this turn, to a minimum of 1.\n\nDEV: the gem power is built. A cost is a fixed number in this engine — no measure may stand in one — so nothing can make the bank cheaper for a turn.",
+      "tooltip": "+$1. Chips in the bank cost 1 less this turn, to a minimum of 1.\n\nDEV: a second Sale Prices in one turn takes nothing more off — the mark a chip carries is on or off, and a buff is a plain number rather than one the mark could count.",
       "card_stats": { "plus_pow": 1, "price": 2 }
     },
     {

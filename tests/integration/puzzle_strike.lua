@@ -232,6 +232,37 @@ function M.test_puzzle_strike_training_day_pays_an_allowance(check)
 	check("with a buy to spend it on", seat_card("south").stats.buys == 1)
 end
 
+-- Sale Prices, which was "NOT MODELLED — a cost is a fixed number in this
+-- engine" until a tag could hold a discount open. Nothing writes on a chip: the
+-- sale leaves a mark, the mark is a tag, and the tag says the price reads one
+-- lower for as long as it is there. The buy cost is the same "price@self" it
+-- always was and never learned a word.
+function M.test_puzzle_strike_a_sale_makes_the_bank_cheaper_for_a_turn(check)
+	opening(7, "jaina", "setsuki", { "sale_prices", "draw_three", "risky_move", "really_annoying",
+		"recklessness", "sneak_attack", "gem_essence", "one_two_punch", "one_of_each", "roundhouse" })
+	local tags = require("tags")
+	local two  = find_in("bank", "gem_2")
+	local one  = find_in("bank", "gem_1")
+	check("a two-gem is priced at three to start with", tags.stat(two, "price") == 3,
+		tostring(tags.stat(two, "price")))
+
+	local sale = zones.add(zone_of("hand", "south"), "sale_prices")
+	seat_card("south").stats.act_brown = 1
+	check("the sale is played", flow.play_card(sale.id, {}))
+	check("and the two-gem now costs two", tags.stat(two, "price") == 2,
+		tostring(tags.stat(two, "price")))
+	check("with nothing written on the chip", two.stats.price == 3, tostring(two.stats.price))
+	-- The whole of "to a minimum of 1": the mark goes only on chips that can
+	-- afford to lose a coin, and it is decided against the printed price before
+	-- any of them is cheaper.
+	check("while a chip already at one is left alone", tags.stat(one, "price") == 1,
+		tostring(tags.stat(one, "price")))
+
+	actions.execute("stat_set:on_sale@each.bank:0", {})
+	check("and the sale is over when the turn is", tags.stat(two, "price") == 3,
+		tostring(tags.stat(two, "price")))
+end
+
 -- The opponent's choice, and it really is theirs: priority crosses the table
 -- while the offer is up and each branch hands it back.
 function M.test_puzzle_strike_pick_your_poison_asks_the_other_seat(check)

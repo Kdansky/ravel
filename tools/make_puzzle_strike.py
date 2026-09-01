@@ -316,8 +316,8 @@ TEXT = {
                    "player, which no scope says.",
                    {"plus_act": 1}),
     "sale_prices": ("+$1. Chips in the bank cost 1 less this turn, to a minimum of 1.",
-                    "the gem power is built. A cost is a fixed number in this engine \u2014 no measure may stand in "
-                    "one \u2014 so nothing can make the bank cheaper for a turn.",
+                    "a second Sale Prices in one turn takes nothing more off \u2014 the mark a chip carries is on "
+                    "or off, and a buff is a plain number rather than one the mark could count.",
                     {"plus_pow": 1}),
     "secret_move": ("+1 action. Ongoing: piggy bank each turn. Discard this when you buy a purple.",
      None,
@@ -860,6 +860,10 @@ def stats():
         {"key": "value", "min": 0, "max": 4, "icon": "diamond", "color": "green", "tags": ["hidden"]},
         {"key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"]},
         {"key": "stock", "min": 0, "max": 99, "icon": "card", "tags": ["hidden"]},
+        # Sale Prices leaves this behind and cleanup takes it away. The discount
+        # itself is not written anywhere: a tag holds it open, so the printed
+        # price is never touched and there is nothing to restore.
+        {"key": "on_sale", "min": 0, "max": 1, "on": ["chip"], "start": 0, "tags": ["hidden"]},
         {"key": "plus_act", "min": 0, "max": 9, "icon": "arrow", "tags": ["hidden"]},
         {"key": "plus_piggy", "min": 0, "max": 9, "icon": "pot", "color": "pink", "number": False, "tags": ["hidden"]},
         {"key": "plus_draw", "min": 0, "max": 9, "icon": "card", "tags": ["hidden"]},
@@ -1130,7 +1134,8 @@ def puzzle_cards():
                                 "stat_gain:act_red@mine.player:1"],
                        "fail": ["stat_gain:act_red@mine.player:1"]}},
         {"key": "sale_prices", **shape("sale_prices", "brown"),
-         "play": act(["stat_gain:money@mine.player:1"])},
+         "play": act(["stat_gain:money@mine.player:1",
+                      "stat_set:on_sale@each.bank.dear:1"])},
         {"key": "secret_move", **shape("secret_move", "brown"),
          "abilities": [{"key": "upkeep", "text": "Secret Move",
                         "action": ["stat_gain:piggy@mine.player:1"]}],
@@ -2152,7 +2157,8 @@ def phases():
          "actions": ["move:mine.table:mine.discard",
                      "stat_set:to_draw@mine.player:%d" % HAND,
                      "activate_zone:rules_height",
-                     "activate_zone:rules_piggy"],
+                     "activate_zone:rules_piggy",
+                     "stat_set:on_sale@each.bank:0"],
          "next": [{"then": "cleanup_draw"}]},
         # The last thing a turn does, so this is the moment "at the end of your
         # turn" means. It announces on the way out rather than on the way in,
@@ -2185,7 +2191,15 @@ def build():
         "styles": styles(),
         # A stack nobody can buy from any more is what drives the ante up, and
         # it is the plate's own number read as a word.
-        "computed_tags": {"spent": {"stat": "stock", "less_than": 1}},
+        "computed_tags": {"spent": {"stat": "stock", "less_than": 1},
+                          # Marked by the sale, and so a coin cheaper.
+                          "discounted": {"stat": "on_sale", "at_least": 1},
+                          # Chips that can afford to lose one. This is the whole
+                          # of "to a minimum of 1": it is asked once, against the
+                          # printed price, before any of them is cheaper — which
+                          # is also why the sale marks the stacks rather than the
+                          # discount reading the price it changes.
+                          "dear": {"stat": "price", "at_least": 2}},
         # Two words the whole game answers to, said once each rather than on
         # ninety chips. A red chip announces an attack when it is played, so a
         # shield names "attack" and never has to list what might carry one; the
@@ -2193,6 +2207,10 @@ def build():
         # *buying* announces itself without a single plate knowing.
         "tags": {"red": {"emits": {"play": "attack"}},
                  "buyable": {"emits": {"activate": "buy"}},
+                 # The sale, and the whole of it. "price@self" in the buy cost
+                 # below reads through this without knowing it is there, so
+                 # nothing about buying learned a word.
+                 "discounted": {"buffs": {"price": -1}},
                  # One buy for fifty-nine stacks. It can say the price because a
                  # cost may be measured, and the chip has carried its own price
                  # since a rule needed to read one off a card in a hand.
