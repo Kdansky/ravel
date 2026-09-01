@@ -47,6 +47,8 @@ engine.
 | [26](26-an-if-and-a-name.md) | An ability with an if, and a number with a name | **shipped** — `when` and `computes` |
 | [27](27-reactions-and-the-stack.md) | Reactions and the stack | **shipped and in use.** Left: speeds, Magic depth, and an emission suppressor |
 | [28](28-a-zone-by-its-parts.md) | A zone by its parts | **shipped whole.** Seven fields where there was one word, and the corpus got shorter |
+| [29](29-a-place-to-fight.md) | A place to fight | **shipped whole.** Combat is a zone walked in nine steps, `origin` sends everyone home, and one patrol row made adjacency fall out. Left: resist, which [30](30-things-that-are-true.md) reaches |
+| [30](30-things-that-are-true.md) | Things that are true | **draft.** `buffs` shipped; the targeting ward already ships as `receive.needs` and no game uses it; `adjusts` is the word left, keyed to verbs a game declares so that being interferable is opt-in, and it is what resist has been waiting for |
 
 ## What to do next
 
