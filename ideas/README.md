@@ -39,7 +39,7 @@ engine.
 | [18](18-legends-of-runeterra.md) | Legends of Runeterra | **milestone 1 plays.** Left: spells, speeds, the rest of the keywords, champions |
 | [19](19-mage-knight.md) | Mage Knight | **researched, ranked last of three.** Two compounding engine gaps; the cuts that buy them back are dishonest ones |
 | [20](20-puzzle-strike.md) | Puzzle Strike | **built and playing**, the whole box drafted. Left: a short list of engine features, one buy-count rule to settle, and the per-chip state is in the game file |
-| [21](21-lost-ruins-of-arnak.md) | Lost Ruins of Arnak | **researched — zero new primitives**, and the largest content bill of the three |
+| [21](21-lost-ruins-of-arnak.md) | Lost Ruins of Arnak | **built and playing**, hand-written, two seats. Left: three and four players, the travel hierarchy, and the branching half of the research track |
 | [22](22-the-crew.md) | The Crew | **built and playing.** Left: the order tokens and the printed fifty missions |
 | [23](23-splendor.md) | Splendor | **built and playing**, two seats |
 | [24](24-save-and-load.md) | Saving a game | **shipped** over `net.snapshot`, with no second format |
@@ -72,7 +72,7 @@ Cheap things that let other things happen come first.
 | 12 | [04](04-simulation-games.md) — **a Cultist Simulator prototype, JSON only** | small | free: answers "is turn-based CS fun" for the price of a game file |
 | 13 | [07](07-presentation.md) — **an offer of fifty-one** | small, after 1 | the draft may only look bad because its two buttons are 23px squares. Look again with item 1 in, then decide whether `layout: "page"` — which already draws the reveal overlay — should serve an offer too |
 | 14 | [16](16-the-player-at-this-screen.md) — **a name, and something to say with it** | medium | parked deliberately, and cheaper than it was: [24](24-save-and-load.md) built the store both halves waited on, so what is left is the handshake field and the input surface |
-| 15 | [21](21-lost-ruins-of-arnak.md) — **Arnak** | large | needs nothing from the engine. Worth doing when authoring volume is the thing there is appetite for, not when capability is |
+| ~~15~~ | [21](21-lost-ruins-of-arnak.md) — **Arnak** | large | **shipped.** Sixty-one templates, twenty-one zones, no generator, and nothing in `game/` touched — the research's "zero new primitives" held. It found two words the engine has not got: dealing into a *named* cell, and *who* spent a card's exhaust. Both are written up in [arnak/design.md](arnak/design.md) and neither is ranked yet |
 | — | [18](18-legends-of-runeterra.md) + [01](01-boardgames.md) gap 5 — **triggers, spells, speeds** | large | not ranked as one item on purpose. [27](27-reactions-and-the-stack.md) shipped the window; what is left is speeds, spell mana, the mulligan, and a hand bounded at ten |
 | — | [19](19-mage-knight.md) — **Mage Knight** | large | **ranked last on evidence, not taste.** Worth revisiting only if hex geometry is wanted for its own sake |
 

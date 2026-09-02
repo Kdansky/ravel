@@ -13,6 +13,7 @@
         "play_lor",
         "play_the_crew",
         "play_puzzle_strike",
+        "play_arnak",
         "play_codex",
         "play_spellstorm"
       ]
@@ -34,6 +35,14 @@
   ],
   "players": [{}],
   "cards": [
+    {
+      "key": "play_arnak",
+      "text": "Lost Ruins of Arnak",
+      "tooltip": "A deckbuilder fused with worker placement. Play a card for what it says or for how far it carries you, send two archaeologists onto a shared island, wake the guardians you find there, and climb the research track. Five rounds. Two players, one device.",
+      "asset": "polygon:5:teal",
+      "play": { "action": ["load_game:arnak.json"] },
+      "tags": ["immutable"]
+    },
     {
       "key": "play_codex",
       "text": "Codex",
