@@ -6,7 +6,16 @@
       "label": "Published games",
       "layout": "row",
       "pos": [0.06, 0.05, 0.94, 0.42],
-      "contents": ["play_lost_cities", "play_chess", "play_splendor", "play_lor", "play_the_crew", "play_puzzle_strike", "play_codex"]
+      "contents": [
+        "play_lost_cities",
+        "play_chess",
+        "play_splendor",
+        "play_lor",
+        "play_the_crew",
+        "play_puzzle_strike",
+        "play_codex",
+        "play_spellstorm"
+      ]
     },
     {
       "key": "proof",
@@ -19,8 +28,8 @@
       "key": "menu",
       "layout": "row",
       "tags": ["optional"],
-      "pos": [0.44, 0.83, 0.56, 0.99],
-      "contents": ["m_continue", "m_join"]
+      "pos": [0.36, 0.83, 0.64, 0.99],
+      "contents": ["m_continue", "m_join", "m_open"]
     }
   ],
   "players": [{}],
@@ -142,6 +151,21 @@
       "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works even for a game you do not have.",
       "tags": ["token", "immutable"],
       "play": { "action": ["net_join"] }
+    },
+    {
+      "key": "m_open",
+      "text": "Open a file",
+      "tooltip": "Play a game file of your own. Nothing is uploaded and nothing is installed — the file is read where it lies. You can also drag one onto the window.",
+      "tags": ["token", "immutable"],
+      "play": { "action": ["open_game"] }
+    },
+    {
+      "key": "play_spellstorm",
+      "text": "Spellstorm",
+      "asset": "ss_stormdragon.jpg",
+      "tooltip": "Keith Burgun's tactical deckbuilder. Pick one of eight asymmetrical wizards, play a card face down each round, and see whose element counters whose. First to eight Storm Shards, or the last one still standing.",
+      "play": { "action": ["load_game:spellstorm.json"] },
+      "tags": ["immutable"]
     }
   ],
   "phases": [{ "key": "waiting", "type": "player_input" }]

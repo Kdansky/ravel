@@ -1,0 +1,1111 @@
+RULEBOOK
+
+A STRANGE, MYSTICAL SPIRE
+
+In the bay north of the Ashen Char, there stands a bizarre rocky crag, blasted by violent waves and
+powerful winds. Few are brave enough to come anywhere near it, and of those who do, even fewer
+return home. Travelers aim to keep a great distance from the accursed storms and magical Dragons
+that are said to exist nearby.
+Recently, scholars have discovered a tiny window of time wherein it may be possible for a skilled Wizard
+to travel there, collect powerful Storm Shards, and gain immense magical power, although they have
+also given dire warnings against trying.
+As word of this possibility spread across Omia, many of the world’s most powerful Wizards traveled
+there. Some seek the power in a quest for world domination. Others hope to stop that very thing from
+happening. Each has their own reasons for being there, but only one will emerge with the Shards.
+You are one such Wizard. Can you harness the magic of the Spellstorm? Or will you be overwhelmed by
+its dark elemental power?
+
+INTRODUCTION & GOAL
+Spellstorm is a tactical deckbuilding card game for 1–4 players. Choose one
+of eight different wizards with wildly asymmetrical powers, and do battle in the
+dangerous Spellstorm. Throughout the game you will acquire cards, collect
+resources and cast powerful spells in an all-out battle!
+The first to collect 8 Storm Shards wins, and those who run out of health lose!
+
+COMPONENTS
+1 Battle Board
+
+1 Spellstorm Board
+
+4 Stat Boards
+
+1 Initiative Tracker
+
+4 Storm Shard
+Markers
+
+25 Power Tokens
+
+25 Mana Tokens 4 Health Markers
+
+4 DOOM Tokens
+
+3 Energy Tokens 6 Research Tokens
+
+(Croh Vosh)
+
+(May Danaris)
+
+(Abragail)
+
+63 Spell Cards
+
+16 Wizard Spell Cards
+
+23 Special Cards
+(6 Ice, 6 Ash, 6 Curse,
+5 Dragons)
+
+(8 Calm Before the Storm,
+16 Standard)
+
+24 Weather Cards
+
+3 Trap Cards
+
+9 Potion Cards
+
+8 Wizard Character
+Cards
+
+1 Abragail’s
+Research Journal
+
+1 Oren Bark’s
+Chemistry Board
+
+1 Robot Boy
+Character Card
+
+9 Robot Boy
+Spell Cards
+
+3 Element Tokens
+
+(Includes four 6-card starting
+decks and 3 Essence cards)
+
+(2 for each Wizard)
+
+(Omar Evans)
+
+(Oren Bark)
+
+(Oren Bark)
+
+6 Blast Tokens
+(Robot Boy)
+
+3
+
+SETUP
+1. Place the Battle Board and the Spellstorm Board in the middle of the table within reach of all players.
+2. Place the Ash, Curse and Ice card decks face-up on their slots on the Spellstorm Board.
+3. Shuffle the Dragon Deck and place it face-up, in its slot on the Spellstorm Board.
+4. Find the three Essence cards in the Spellstorm Deck, marked by a small “E” icon on their bottom left and place
+them into any of the Storm Cloud spots. Shuffle the Spellstorm Deck and place it next to the Spellstorm board, on its
+designated off-board spot, face-down. Finally, draw 2 more cards from the Spellstorm Deck to the remaining 2 Storm
+Cloud spots to form the starting Storm Cloud.
+5. Shuffle the 8 “Calm Before the Storm” Weather cards, and 16 regular Weather cards separately. Then place the Calm
+Before the Storm cards on top of the other 16 to form the Weather Deck, and place it in its designated spot.
+
+PLAYER SETUP
+1. Each player takes a 6-card Basic Spell Deck, a Stat Board, a Health Marker (
+
+) and a Storm Shard Marker (
+
+).
+
+2. Each player selects a Wizard by whatever means they choose. (For your first game, use Derby and Eve).
+3. Players take the large Wizard Character Card of their chosen wizard, along with their 2 Wizard Spell Cards and any
+other special components associated with their wizard. (Derby and Eve have no special components).
+4. Each player sets their health to the correct starting amount by looking at number inside the heart icon on bottom right
+of their Wizard Character Card, then places the Health Marker on the corresponding spot on their Health Track.
+5. Give the Initiative Tracker to the player with the lower Initiative number on their Wizard Character Card. They place it on
+their Initiative spot on the Battle Board. (If you’re playing with Derby and Eve, Derby gets initiative here.)
+6. Each player shuffles their two Wizard Spell Cards into their Starting Decks and places the deck face-down near them.
+7. Each player starts with 2 mana tokens (
+
+).
+Storm Cloud Slots
+(spell card available
+to gain during play)
+
+Initiative
+spot
+
+Shuffle the Dragon Cards and
+place them here, face-up.
+
+Place
+Weather
+Deck
+here
+Place the remaining
+three types of Special
+Cards here on their
+slots, face-up
+
+Power Track Slot
+Tier Slots
+Place
+Spellstorm
+Deck here
+
+Health Track
+Storm Shard Track
+Stat Board (1 per player)
+
+4
+
+Wizard Character
+Card (1 per Player)
+
+Starting Deck
+(1 per player)
+
+Starts empty,
+VOIDED
+cards go here
+during play
+
+GAMEPLAY
+GAME STRUCTURE
+
+UNPLAYABLE HAND
+
+The game is made up of two major parts: players play cards
+
+At the Play a Card stage of a battle, if your hand consists
+
+during the Battle phase, made up of four rounds. Players
+
+entirely of cards that can’t be played (Ice, Curse, or Ash),
+
+then gain a new card from the Storm Cloud in the Regroup
+
+you must reveal them, discard them all (their discard effects
+
+phase. This process repeats until one player wins.
+
+trigger), take 1 damage (on top of any damage taken from
+
+You can win by either gaining 8 Storm Shards or by
+
+the discards), and then draw a new hand of 4 cards. If you
+
+reducing each of your opponent’s health to 0!
+
+BATTLE PHASE
+Battles consist of four rounds, during which players play
+cards to the board, reveal them simultaneously, and resolve
+them one at a time. Players continue with this process until
+all four rounds are complete. During a battle, players gain
+resources, activate special abilities, deal damage, and more.
+At the start of a battle, each player draws cards from their
+deck until they have 3 cards in hand. Anytime you need to
+access cards from your deck and there aren’t any, reshuffle
+your discard and place it as your new Draw Deck. For the
+first battle draw 3 cards from your deck. For all other battles, you will
+
+get another hand full of unplayable cards, repeat until you
+have a playable card.
+
+COUNTERING
+On the Reveal step, Spell cards will often COUNTER each
+other. The “Elemental Counter Wheel” image below shows
+each element with an arrow pointing to the element it
+COUNTERS. For example, if you played a Fire card (
+opponent played a Water card (
+
+), and your
+
+), your opponent COUNTERED you.
+
+If the card you played COUNTERS the next clockwise
+opponent, you draw a card. This represents getting the
+upper hand in this spell exchange, and gives you an
+increased chance to get Storm Shards as a result.
+
+have 1 card gained from the Storm Cloud, and draw 2 from your deck.
+Each round of a battle, do the following steps:
+1. Flip Weather Card
+Flip the current round’s Weather card face-up and all
+players resolve it. There is only ever one single active
+Weather card at a time. Weather cards from previous
+rounds are inactive.
+2. Play a Card
+All players play a card from their hand to the Battle Card
+spot in front of them face-down. Once each player has
+played a card, move on to the next step. (If you cannot
+play the cards in your hand, see “Unplayable Hand” for
+more details.)
+3. Reveal
+Players reveal their cards simultaneously. Compare the
+element of each card (indicated by an icon in the top left
+corner) and see if a player COUNTERED another player
+(See “Countering” for more details).
+4. Resolve
+
+Elemental Counter Wheel
+
+Starting with the player who has Initiative, each player
+resolves their card. Then move the played cards to the
+discard. (See “Spell Cards” for more details.)
+5
+
+EXAMPLE ROUND
+Keith and Thea are playing a 1 on 1 match of Spellstorm. Keith has
+
+Now, it’s time to resolve what the
+
+chosen Derby Pocket, and Thea has chosen Eve Williams. Neither of
+
+cards actually do. Keith has Initiative,
+
+these Wizards have any other special components, so they both take
+
+so he goes first. Keith’s Magic Dart
+
+a starting deck and mix in their two Wizard Spell Cards. They take
+
+gains him 1 mana, and lets him deal
+
+their Wizard Character Card and place it in front of themselves, set
+
+1 damage since he has Initiative,
+
+their Storm Shard Marker to 0 and Health Markers on their correct
+
+so Thea moves her Health Marker
+
+starting positions, and get 2 mana each. They’re now ready to play!
+
+down one space. It also lets him
+
+After setting up the board, they compare Initiative ratings on the
+
+have the option to use Derby’s
+
+Wizard Character Cards to see who goes first: looks like it’s Derby
+
+Ultimate, but he does not yet have
+
+Pocket, so Keith takes the Initiative Tracker and places it on his side.
+
+enough mana.
+
+At the start of the game, Keith takes Earth Essence from the Storm
+
+Now it’s Thea’s turn to resolve her
+
+Cloud and places it in his discard pile, thanks to Derby’s Distributor
+
+Block. First, she gains the Initiative. Then, since Keith revealed a Fire
+
+Connection. Thea gives both players an Ice, with Eve’s Always Already
+
+card, she heals 1, undoing the damage that Magic Dart did. Hooray!
+
+ability.
+
+Then, these cards are both placed into the Discard Pile (note: dont
+
+Now they are ready for the first battle. They flip the top Weather card.
+
+trigger Discard Effects here).
+
+It’s Nice Breeze, so they each draw a card, gain 1 mana, and 1 power.
+
+And that’s it for this round—onto the next! They do this whole thing
+
+Keith and Thea then both choose a card from their hands to play
+
+again three more times: flipping a Weather card and resolving it,
+
+face-down.
+
+then playing and resolving a card. After four rounds, it’s time for the
+
+Once both players have done so, they each REVEAL each card,
+
+Regroup Phase.
+
+flipping it face-up simultaneously. Keith played Fire (Magic Dart) and
+Thea played Water (Block), so Thea COUNTERED Keith, and she draws
+a card.
+COUNTERS
+
+Gains
+Initiative
+
+Heals 1
+
+Gains 1
+mana
+Deals 1 damage
+
+6
+
+REGROUP PHASE
+The Regroup Phase happens in between battles in four steps:
+
+Cards with Discard effects have white borders
+and a discard symbol in the top right corner
+
+1. Discard Weather Cards
+Discard the four Weather cards used in the previous battle.
+2. Discard Effects
+All players first discard all cards in their hand that have a
+DISCARD EFFECT (
+
+). These are easy to identify by their white
+
+borders and icon in the top right corner. You may decide the
+order in which these effects trigger. (Each ICE discarded here
+gives you a -1 for the next step.)
+3. Blast Scoring
+Each player counts and discards the cards remaining in their hand.
+The number of cards they discard is their Blast Score.
+♦ If there’s one player with the highest Blast Score, they gain
+two Storm Shards.
+♦ If two or more players are tied for the highest Blast Score, then
+these players gain 1 Storm Shard.
+If any player reaches 8 Storm Shards, they win, and the game
+ends immediately!
+4. Gain Spell Step
+Each player gains exactly one card from the Storm Cloud, starting
+
+Discard effects are listed in card text.
+
+Spell Tier icon
+
+with the player who has initiative, followed by each other player
+in clockwise order.
+♦ Cards have a “Tier icon” in the bottom right corner, with a
+roman numeral (I, II, III or IV). You may only take these cards if
+you are at or above that Tier level.
+♦ If there are no cards that you can or want to take in the Storm
+Cloud, then you must take one of the free Special Cards (ICE,
+CURSE or ASH). Note: Any time you need to take a Special
+Card and there are none of that kind left, you do the actions
+listed on their part of the board.
+♦ If the Spellstorm Deck is depleted, reshuffle the VOID to
+become the new Spellstorm Deck.
+Any cards gained as a result of the Gain Spell Step go into your
+
+Hey there. I’m a flame in a lantern,
+but you can call me “little buddy”.
+Listen, I wanted to talk to you a bit
+about this whole “Tiers” thing. It’s not
+just powerful Tier III cards and even
+Dragons that are important. Increasing your Tier allows you access to
+more choices in general, which can
+be a really big deal!
+
+hand (with the exception of cards that say they go to your discard, such as ICE). After gaining your card, draw cards until you
+have a hand of three cards (note: Robot Boy does not gain a card
+or draw up to 3; he starts the battle with no Blast Tokens.)
+Important: After any card is taken from the Storm Cloud, always
+immediately draw a new one to replace it. The Regroup Phase is
+now over, so move onto the next Battle!
+
+7
+
+SPELL CARDS
+Spellstorm’s cards have text and iconography on them that tells you what to do.
+
+Element
+
+Type
+
+Name
+
+Discard
+Symbol
+
+After revealing a card, and also at some other times, you will RESOLVE a spell
+card, which means to do everything on it except its “On Discard” effect.
+Draw. Draw a card from your deck and add it to your hand. (If your deck is
+empty, reshuffle your discard and place it as your new Draw Deck.)
+Gain Card. You may gain a card from the Spellstorm of your Tier or lower.
+It goes into your hand (unless otherwise specified).
+On Discard. This effect happens when you discard the card, (typically at
+the end of the battle). Discard effects do not trigger when you:
+♦ Play a card in battle. Playing a card RESOLVES it. Played cards are
+not discarded directly from your hand, so their discard effects will not
+happen.
+♦ VOID a card.
+Gain Mana. Gain 1 mana from the supply and place it on your Stat Board.
+Mana is mainly used for activating your Ultimate ability.
+
+Discard effect
+Spell effect
+
+Spell Tier
+Flavor text
+Just for fun!
+
+Power Up. Gain 1 Power Token from the supply and add it to your Stat
+Board. You start the game at “Tier I”, meaning you can only gain Tier I
+Spells. To access stronger Tier II and III cards, you will need to increase
+your power.
+Place the Power Token on one of the 6 available octagonal slots in your
+Power Track. If you can’t because it’s full (there are already 6 tokens there),
+then increase your Tier by 1, following these instructions:
+♦ Place your new token onto your Stats Card into the lowest empty Tier
+
+Power Track on the Stat Board.
+This player has reached Tier II, and is 2/6
+steps toward Tier III.
+
+slot. For example, if it’s your first time increasing your Tier, you’ll place the token
+into the slot next to “II”. This shows that you are now Tier II. If you already have one
+there, then you’ll place one into “III”.
+♦ Return the other six of your tokens to the supply on the main board.
+♦ If you were already at Tier III and fill up your track, remove all six of your
+
+Health Track on the Stat Board.
+This player is at 4 health.
+
+tokens and you may gain a powerful Tier IV Dragon card.
+Initiative. At all times, one player has the Initiative Tracker. This is always what determines the order that things
+happen. In a 3 or 4 player game, the player with initiative goes first, then proceed around the table clockwise. If a
+card says to gain initiative, take the Initiative Tracker. If it says lose initiative, hand it off to the next clockwise player.
+Ultimate. If you have the required amount of mana, you may discard that many to use your Ultimate Ability.
+Damage. Some cards say “Deal 1 damage”. This means you deal 1 damage against all opponents (they lose 1 health).
+If a card says “deal 1 damage to an opponent”, you choose which opponent to damage.
+Give an ICE/ASH/CURSE. When you resolve a card that says give an ICE/ASH/CURSE, all opponents gain one of
+those types (to their discard). If there are none left, do what’s printed on that spot on the board instead.
+VOID. Place this card into the VOID spot, unless it’s an ICE/ASH/CURSE, in which case it goes back to its supply pile.
+
+8
+
+WIZARDS
+Spellstorm has eight asymmetrical wizards, each with their
+own abilities and play styles. Each wizard is defined by
+abilities on their Wizard Character Card, their Wizard Spell
+cards, and any special components they may have.
+
+WIZARD CHARACTER CARDS
+Each wizard character card lists key information, special
+properties, and abilities.
+♦ Game Start. This happens once, at the start of the game
+♦ Battle Start: This happens at the start of each Battle Phase,
+before you flip the first Weather card.
+♦ Passive Ability: This ability is active throughout the game,
+in both Battle and Regroup Phases.
+♦ Starting Health. At the start of the game, place your Health
+Marker on this number on Health Track section of your Stat
+Board. Wizards can never gain more than your starting
+health (Bunny Wizard is an exception here).
+♦ Initiative Rating. Determines which player starts the game
+with Initiative. The lowest number takes the Initiative
+Tracker.
+Ultimate Ability
+Mana cost
+Special properties
+or abilities
+
+Flavor text
+Just for fun!
+
+Starting
+Health
+
+Initiative
+Rating
+
+USING YOUR ULTIMATE
+Every Wizard has a Ultimate ability that they can use to gain
+an advantage in battle. Usually it costs around 5 mana (
+
+)
+
+to cast, and it’s the main reason you want to accumulate
+mana. You can activate your Ultimate when resolving a spell
+card when it has the Ultimate icon (
+
+), as long as you have
+
+the required amount of mana. Return the required amount
+of mana to the supply, and do as the ability on your Wizard
+Character Card indicates, just as you would with a regular
+spell card. Complete the entire Ultimate before moving onto
+anything else on the card.
+
+WIZARD SPELL CARDS
+Each wizard has 2 Wizard Spell Cards that go into your starting deck. These cards can’t be voided (indicated by the small
+icon (
+The back of each Wizard
+Character Card is also a
+quick reference.
+
+) on bottom right corner of the card).
+
+SPECIAL COMPONENTS
+Some Wizards have additional cards, tokens or decks. Take all
+your Wizard’s special components at the start of the game.
+
+9
+
+GAME END
+The game ends when a player gains their 8th Storm Shard or when all of a player’s opponents have been brought to 0
+health. When either condition is met, stop playing immediately, because the game is over, and a winner is pronounced.
+Health cannot go below 0.
+There may be some situations where players run out of health at the same moment, or gain 8 Storm Shards at the same
+moment. Determine tiebreakers with the following rules:
+♦ If players reach 0 health at the same instant, the player with more Storm Shards wins.
+♦ If players reach 8 Storm Shards at the same instant, the player with the most health wins.
+♦ If a win condition has been triggered and players have 0 health and the same amount of Storm Shards, then the player
+with the Initiative Tracker (
+
+) wins. Note that this is exceedingly rare!
+
+BASIC STRATEGY
+In a game of Spellstorm, you’ll be gaining more powerful cards for your deck, collecting
+Storm Shards, dealing damage, and a lot more.
+Throughout this process, try to find a likely path to victory by asking questions like these:
+♦ Can I deal enough damage to defeat my opponent, before they win via Storm Shards?
+If so, I probably want to gain (and use) more Fire cards.
+♦ Do I see a route for me to get a bunch of Power Tokens, Tier up and maybe grab a
+Dragon or two? The way to pursue this is by gaining and using a bunch of Earth cards.
+♦ Do I want to play the long game, mess up my opponent’s deck, and heal to keep
+myself alive? If so, then I might want to focus on gaining and using Water cards.
+The three elements counter each other, both tactically (in COUNTERING, on reveal) and
+also strategically. So if your opponent is leaning hard into fire cards, you may want to
+pick up some more water cards, for example. Of course, it’s a lot more complicated than
+that, since cards do many things, and because there are many other factors (weather,
+your wizard, and so on) but this is a good place to start.
+
+10
+
+THE WIZARDS
+CHOOSING A WIZARD
+You can choose Wizards by any method you like but here are some ideas for how to pick:
+♦ For your first match or two, we recommend playing as Derby Pocket and Eve Williams. They’re the simplest characters
+in the game, and that’s helpful when learning the basics.
+♦ Once you’ve played a bunch, we recommend giving players a character randomly. You can do this by dealing out a
+character card to all players face-down, or by dealing out two character cards to each player and having them choose
+from those two.
+♦ Or… simply choose the character that resonates with you!
+After you’ve chosen your Wizard, check to see if they have any extra components that are associated with that Wizard
+(it says it on their Wizard Character Card, in the Game Start section, and below).
+Each Wizard has varying strengths and weaknesses. They each have different playstyles, so try a few and see which ones
+you like best. Each Wizard also has two of the three elements they’re generally best at working with. If you’re playing
+Derby Pocket, it’s good to at least consider leaning into Fire or Earth cards, for example.
+
+DERBY POCKET
+Derby (Fire, Earth) is an ex-Business Demon Intern who loves to encourage
+others. They’re a strong early game aggressive character who also can get
+power passively throughout the game (good investments!). A good all-around
+character and great for new players. No special components.
+Until recently, Derby could be found doing mundane tasks for the Business Demons. That all changed when,
+with the help of Eve Williams, they realized that being an unpaid intern for a bunch of evil colonizers wasn’t
+for them anymore. Instead, they’d rather be an unpaid intern for the resistance! Now, Derby has joined Eve
+in heading to the Spellstorm in the hopes of gaining power that can stop Bill Milton’s bulldozing of Terre de
+Pomme.
+“I couldn’t live with myself if I didn’t do everything possible to make things right. Come on gang, we can do this!”
+
+EVE WILLIAMS
+Eve (Fire, Water) is radical activist who loves to blow things up and play punk
+rock music. She’s an aggressive character who can also really mess up her
+opponent’s deck. She’s good if you’re feeling angry and wanna tear it all down
+(good for new players too). No special components.
+Eve is a radical activist who was jailed for her attempts to sabotage the Business Demons and liberate the
+Potatoes. Before she was out on the streets throwing Doom Baubles, she was the lead singer in a punk band
+called Eighteen Post Out! back in the Ashen Char. Now, with the Business Demons more powerful than ever,
+Eve comes to the Spellstorm seeking its power, as well as potential allies.
+“I’m here in solidarity with all of those who are oppressed across the globe. From my Rootkin brothers and
+sisters in Terre de Pomme, to my Zuzuni allies in Tiya Bannet… and of course all of us Neverenders.”
+
+11
+
+ABRAGAIL
+Abragail (Water, Earth) is a professor of Magical Chemistry at Azura Academy
+(she’s Oren’s teacher) who loves to make people laugh. She has a second card
+that has several additional powers on it! She’s great for players who like to
+calculate and plan.
+
+SPECIAL COMPONENTS
+♦ 1 Abragail’s Journal
+♦ 6 Research Tokens
+
+ABRAGAIL’S JOURNAL
+Abragail levels up her magic as the game goes on. Each time she casts her Ultimate, place one of her 6 special tokens on any spot that doesn’t already have a
+token on it. AT BATTLE START activate all the powers you’ve researched.
+Abragail is a professor at Azura Academy, where she has taught a variety of subjects; mainly, she’s known for
+her research in Water Magic, but she also has written several short controversial books on the history of the
+Azure Order and its fraught, complicated history and present. She comes to the Spellstorm, with her student
+Oren Bark as an assistant, in the hopes of finding new scientific and magical breakthroughs that may help
+contain the spread of the Spellstorm’s cursed weather.
+“I tell ya, there’s a lot of nonsense conspiracy theories about the Spellstorm, but one of ‘em, sadly, is looking
+like it’s actually real. The diameter of the Spellstorm is definitely expanding, we know this now.”
+
+CROH VOSH
+Croh Vosh (Fire, Water) is an undead Lich who has returned from a 1000
+year slumber at the bottom of the lake to get revenge. Croh starts out with an
+immense amount of health, but he also can’t heal, and he gains DOOM Tokens
+throughout the game and gives his opponents nightmarish curses. Croh is a
+good choice if you want to be bad.
+
+SPECIAL COMPONENTS
+♦ 4 DOOM Tokens
+
+DOOOOOOOM!!
+Croh can gain DOOM Tokens, which massively enhance his abilities over the
+course of the game.
+Almost 1000 years ago, Croh was a powerful Wizard General for the Water Kingdom, second in line to become
+King, when he was backstabbed by his friend Salutaire Ruupart at Dragon Bridge. After the Omni-Gem was
+shattered, some fragments of it ended up near his resting place under the water, and it allowed him to return
+as a terrifying undead lich. Now he has come to the Spellstorm to seize its power, and with it take back the
+Azure Order (former Water Kingdom) as well as the rest of Omia!
+“Dreamsss… at the bottom of an ancient wellspring… gurgle… Fear MEEE, forth I come!”
+
+12
+
+OMAR EVANS
+Omar (Fire, Water) is a mysterious ninja and wanted eco-terrorist. He loves
+plants and animals. He’s got low health but has lots of ways of blocking, and
+can set nasty traps for the opponent. He’s great if you like to predict what the
+opponent is going to do.
+
+SPECIAL COMPONENTS
+♦ 3 Trap cards
+
+TRAP CARDS
+When playing as Omar, take his 3 TRAP cards and keep them nearby. When you
+use Omar’s ultimate ability, you play one of these three cards onto your Wizard
+Character Card face-down, without letting any other players see which card you
+picked. You may look at this to remind yourself of what it is at any time.
+Each TRAP card has a trigger, which is a game event that may happen. Right
+after any such event happens, you may choose to reveal the TRAP card on your
+Wizard Character Card and resolve its action. If you do so, leave the card there
+until you cast your ultimate again, at which time you will swap it with a new one
+(you can’t use the same TRAP twice in a row).
+Omar is a highly trained ninja who studied at Temple Kress, where the most elite ninjas of the world have
+been trained, before he decided to go on a pilgrimage to Mt. Douglass. It was there that he witnessed a
+vision of a dark future, where the undead lich Croh Vosh would return and seize control over the entire
+planet, using the power of the Spellstorm. Omar has come to make sure that doesn’t happen!
+Omar is driven by a passion to protect the environment, in particularly the plants and animals of Omia,
+which according to him, “are the most vulnerable among us, even more than the most vulnerable Zuzuni”
+(the species of Bug People that Omar belongs to).
+
+BUNNY WIZARD
+Bunny Wizard (Water, Earth) is a healer and a local politician at his home town
+of Bunny Island who loves to help others. Bunny starts with a low amount of
+health, but he can heal up quick, often helping his opponents out as he helps
+himself. He’s a good choice if you like to play nice. No special components.
+Bunny Wizard is a stuffie from the Kindred Society island of Bunny Island. One day, he was flying in a blimp towards
+the Harraway Archipelago to see a performance of the Candy Mishandlers, a successful television program/dance
+pop group. He was running late, and told the computer to find a faster flight path. Sadly, the one it picked sent
+Bunny straight through the Spellstorm. Bunny crashed and is now hoping to find another way to see his favorite
+band!
+“Bunny says, this place is kind of cool and all, but he is wondering if anyone has a canoe or something that can
+take him to the Harraway Archipelago please?” —Bunny’s Handler
+
+13
+
+OREN BARK
+Oren (Fire, Earth) is a Magical Chemistry student at Azura Academy who loves
+danger. And whose experiments keep exploding. He has a Potion deck and
+keeps track of ingredients on his Chemistry Board. He drinks an experimental
+concoction by using his ultimate. Oren is a good character for players who like
+to gamble.
+
+SPECIAL COMPONENTS
+♦ 1 Chemistry Board
+♦ 3 Element Tokens
+♦ 9 Potion Cards
+
+POTION DECK
+Oren powers up his elements in his three elemental beakers. For his ultimate,
+he draws cards from the Potion Card Deck and resolves them until he either
+chooses to stop, or pushes his luck too far and draws 3 TOXIC cards!
+Oren is a promising, but mischievous young man who studies at Azura Academy under Abragail. While he was
+officially majoring in Chemical Magic, he spends most of his time developing new explosive mechanical inventions,
+such as his potion gun: a remarkable feat of engineering (when it doesn’t explode on use). After nearly burning
+down one of the laboratories, Oren was given one last chance to prove himself, by joining Abragail at the
+Spellstorm as an assistant.
+“Everyone’s freaking out about this Spellstorm thing. I told Abragail, give me access to the Azura Chemical Vault
+and… trust me, I think I can make the Spellstorm go away, if it’s a problem.”
+
+MAY DANARIS
+May Danaris (Fire, Earth) is a hacker who formerly worked for Central Intelligence. Her abilities need to be Energized, but when they are, she can play
+cards from the opponent’s hand, or even from the VOID. She’s good for players
+who like to feel like they’re cheating.
+
+SPECIAL COMPONENTS
+3 Energy Tokens
+
+ENERGY TOKENS
+May uses Energy to enhance her Wizard Spell Cards and utilize her passive
+ability. She starts the game with 2 Energy tokens and can have up to 3 at a time.
+May is a computer hacker who used to work for Central Intelligence, the official Alcove Prefex intelligence agency,
+until she discovered some very unsettling truths about the origins of the technology enjoyed by the citizens of the
+Harraway Archipelago. After hacking the local news stations to spread the word, she was forced to fake her own
+death and go into hiding. Now, she has snuck into the Spellstorm, realizing that its power may be the key to turning
+the tide against rising authoritarianism in her home country.
+“Grah… I reaaally am not jazzed about going to the Spellstorm! But… I don’t think anyone else really knows what I
+know… about what’s going to happen next. It’s gonna be bad, and I just don’t know who else is gonna do anything
+about it!”
+
+14
+
+ALTERNATE GAME MODES
+SINGLE PLAYER
+
+♦ Robot Boy can win via either victory condition.
+
+In Single player mode, you fight against the vicious Robot
+
+♦ Robot Boy’s starting cards cannot be voided.
+
+Boy who has his own Character card and deck of 9 cards.
+Set up Robot Boy just as you would another player. Give
+him a Stat Board and his Character Card and set his health
+to 15. Shuffle his deck and put it on his side of the board,
+then draw two cards, one face-up and one face-down and
+place them on his Character Card.
+Choose Robot Boy’s difficulty level: Easy, Medium, or
+Hard, in which case he starts with 0, 2, or 4 power tokens
+respectively. He always starts with 0 mana and 0 of his
+special
+
+Blast Tokens.
+
+♦ Anything that checks for “current hand size” checks
+his number of Blast Tokens instead. “Discard a random
+card” has him lose 1 Blast Token.
+♦ If a decision must be made for what Robot Boy does for
+a certain card, all players collectively decide (this also
+applies for Co-op mode).
+
+CO-OP
+2 to 4 players can play against the terrible Robot Boy!
+It works the same way as single player, but with a few
+
+Robot Boy doesn’t have a hand of cards. When he would
+
+different rules:
+
+draw or discard a card because of a weather effect,
+
+♦ When you give a ICE/CURSE/ASH, you give them only to
+
+COUNTERING or anything else, he instead gains or loses
+that many of his special Blast Tokens. These determine his
+Blast Score. After the Blast Scoring step, return all his Blast
+Tokens to the supply. There are only 6 Blast Tokens in the
+game, so the most Blast Score Robot Boy can have is 6.
+Each turn, after you’ve played your card face-down, play
+the top card of Robot Boy’s deck into the spot opposing
+your card. Then, flip and resolve them as usual.
+
+Robot Boy.
+♦ You don’t deal damage to allies. You only deal damage
+to Robot boy.
+♦ When you HEAL, you may choose to heal an ally
+instead.
+♦ If any player wins, their whole team wins. The team can
+keep continuing if a player is eliminated, though.
+
+Robot Boy has some special rules:
+
+TWO ON TWO
+
+♦ Robot Boy never gains cards from the Storm Cloud, but
+
+In Two on Two mode, two players face off against two
+
+he can gain ICE, CURSES and ASH. Anything else that
+enters his possession is VOIDED.
+♦ When robot boy reveals an ICE/CURSE/ASH, use it to
+COUNTER, as usual. Then, reveal more cards from robot
+boy’s deck until you reveal a Robot Boy card (don’t
+check COUNTER again). When resolving robot boy’s
+turn, resolve and then discard all of the revealed cards.
+♦ Robot Boy’s ultimate always triggers at the end of his
+turn if he has the required amount of mana. Discard the
+required mana and resolve the face-up card that is on
+his Character Card. Then flip and resolve the face-down
+card as well. Finally, draw one card face-up and one card
+face-down and place them on his Character Card. (There
+should be two cards on his Character Card at all times.)
+♦ If Robot Boy increases his Tier Level when he is already
+at Tier III, he instantly resolves the top Dragon card.
+
+opponents. The special rules for damage, healing and
+victory for Co-op are also in play in this mode as well.
+
+FREE FOR ALL
+Free for All can be played by either 3 or 4 players.
+The rules are the same as 2 player, with
+the following changes:
+♦ Each player starts with
+2 Storm Shards.
+♦ Players who reach 0 health
+are eliminated. They lose initiative
+(hand off clockwise). Place their
+deck, discard pile, hand and played
+card(s) into the VOID, face-up (other
+players can eventually get their
+Wizard Spell Cards!) and the game
+continues without them.
+15
+
+FAQ
+Is there a hand limit? No.
+
+What’s optional on cards? You have to do everything any
+
+Is it possible to get a draw/tie in this game? No. If two or
+
+card says, if you can. There are two exceptions to this:
+
+more players run out of health or have 8 Storm Shards at
+
+♦ If a card says “you may X”.
+
+the same moment, the player who has Initiative wins. In the
+
+♦ The “Gain Card” icon (
+
+case that neither tied player has Initiative (such as in FFA),
+the player who is closest to having Initiative (i.e. who would
+have it next, should Initiative be lost by the person who has
+it now) wins.
+Where does this card I just gained go? When you gain a
+card, it goes to your HAND, unless the card says otherwise.
+
+card says you MUST (e.g., Amber). This is distinct from
+the Gain Spell Step of the Regroup phase, wherein you
+MUST gain a card.
+When do I reshuffle my discard into my deck? Reshuffle
+your discard to form a new deck when you need to draw
+from or otherwise access cards in your deck and there are
+
+I need to draw or reveal a card from my deck, but there
+
+no cards in it.
+
+are no cards there. Anytime you need to draw, reveal or
+
+At the end of the round, which order do I discard my
+
+interact with the top card of your deck, but your deck is
+empty, immediately reshuffle your discard to form your new
+deck. In the rare case that your entire deck and discard are
+in your hand, you simply don’t draw or reveal a card!
+Where do VOIDED cards go? To the VOID, a space next to
+the Spellstorm Deck. There are a few exceptions to this:
+♦ Wizard Spell Cards can’t be voided for any reason, ever.
+♦ VOIDED ICE, CURSE or ASHES go to their designated
+piles on the Storm Board.
+If the Spellstorm Deck is ever depleted and you need to
+draw more cards from it, you will reshuffle the VOID to
+become the new Spellstorm Deck.
+What if a card says “lose 1 Power Token”, but I don’t have
+any? Can I lose a Tier in this way? The Power Tokens that
+are on your Tier II and III spots can never be lost for any
+reason. If a card says “lose 1 Power Token”, then you return
+one Power Token from your Power Track to the supply, if
+you have any. If you don’t have any, ignore it.
+What does “resolve another card” mean on some cards?
+Some cards allow you to resolve another card directly from
+your hand, as though you had played it to the game board.
+Simply do that, then both cards go to your discard (they
+were both played, so their discard effects don’t trigger).
+What does “reveal” mean on cards? Many cards say “if
+anyone revealed” X. This refers specifically to the card
+that was played face-down as the simultaneously revealed
+battle card, and not any other cards. There is only 1 “reveal”
+per player each round.
+16
+
+) is always optional unless the
+
+cards in? Any order you prefer. (The order can be important
+in some cases!)
+Can I look through any discard pile? Yes. All face-up cards
+are public information. This includes the Dragon Deck and
+the VOID.
+How do Abragail’s upgrades work? When Abragail uses
+her Ultimate, she adds one of her tokens, if she has any
+left, to an empty space on her Journal. At the start of each
+battle (not round), she activates all of those powers (in any
+order she chooses).
+
+Does Robot Boy discard all of his Blast Tokens if a card
+
+How does Oren’s Ultimate work? At the start of the game,
+
+such as Wave says that he “discards his hand”? Yes. And
+
+gain Oren’s Potion Deck, his Chemistry Board, and his 3
+
+then he gains one blast token for each card he would have
+
+Elemental Tokens. Place the 3 Elemental Tokens on the
+
+drawn afterwards.
+
+“3” spots for each element. When you play the Ultimate,
+
+If Omar’s trap is triggered, can I choose not to trigger it?
+
+first, pay the required mana as usual. Shuffle the Potion
+
+Yes, however, you almost always will want to trigger it.
+Can I reveal Omar’s Dodge trap when an opponent deals
+0 damage to me? Yes.
+How do Croh and May’s tokens work? When you “gain a
+Curse/Energy Token”, it goes onto one of the slots on your
+character’s card. When you lose one, simply take the token
+off of the card. It’s a way to keep track of how many of this
+resource you have ready.
+Can I do an ultimate, while already in the middle of
+another ultimate? Yes, as long as you have another icon
+and the mana.
+
+Deck, and draw out the top card. If you have the amount of
+the Chemistry Board element shown, lower that element
+by that much on the Chemistry Board, and then resolve
+the effects (e.g., heal 2 from Health Soda). You may then
+choose to end the ultimate, or draw again, as many times
+as you like. If you draw a third TOXIC card, the Ultimate
+ends and Oren gains 1 ICE, 1 ASH and 1 CURSE.
+After I play a card as my battle card, I move it to my
+discard. Do I trigger its discard effect in this scenario? No.
+Where can I go if I have more questions? Check out our
+discord, which you can find the link to at keithburgun.net.
+
+CREDITS
+Spellstorm is designed and created by Keith Burgun.
+Artwork by Christina Zhong, except for Rain of Toads by Peter Siecienski, and Robot Boy by Keith Burgun.
+Lead developers: Peter Siecienski, Brett Lowey
+Playtesters: Seth Jaffee, Geoff Englestein, Benjamin Loxley, Mundungu, Mallorean Thug, Ryan Bowles, Eli Priest, Ronnie Rozbox,
+Brittani-Pearl Eaton Koch, Blake Reynolds, Adam Vogel
+Logo by Jonathan Wilcox
+Spell card design by Jenny Bee
+Rulebook design by Adam Vogel
+Marketing and Social Media by OtherStuffGames
+Special thank you to all of our supporters on Kickstarter!
+This game was produced using TheGameCrafter’s Component Studio software, Tabletop Simulator and Adobe Suite.
+Visit www.keithburgun.net for more information or to join our Discord!
+
+17
+
+The World of
+
+OMIA
+
+18
+
+There are a wide variety of different kinds of creatures and societies living in the world of Omia, and
+Spellstorm’s Wizards represent just a small slice of that variety.
+
+Spellstorm takes place in the “Gem Wizards Universe”, the same fantasy universe as Dragon Bridge, as well as the tactical digital wargame,
+Gem Wizards Tactics. There are more games in the works right now in this universe, so stay tuned to keithburgun.net for the latest.
+
+19
+
+QUICK START GUIDE
+Follow these steps to get started quickly for your first match of
+Spellstorm. This is designed for a 2-player match.
+
+OBJECT OF THE GAME
+
+You win by reducing your opponent’s health to 0 (do this by
+dealing damage), or by gaining 8 Storm Shards (do this by
+having the most cards in hand at the end of each Battle).
+
+SETUP
+
+1. Place the Battle Board and the Spellstorm Board in the
+middle of the table where both players can reach them.
+2. Find the Dragon, Ash, Curse and Ice card decks and place
+them on the four Special Cards slots on the Spellstorm
+Board, each in their own spots, face-up. Shuffle the Dragon
+Deck and then leave it face-up.
+3. Give each player their own 6-card Basic Spell Deck and a
+Stat Board.
+4. Find the 3 “Essence” cards in the Spellstorm Deck (they
+have an E in their corner) and place them on the 3 “E” spots
+in the Storm Cloud.
+5. Shuffle the remaining Spellstorm Deck and place it next to
+the board, on its designated off-board spot.
+6. Draw 2 more cards from the Spellstorm Deck to complete
+the 5-card Storm Cloud.
+7. There are 2 Weather Decks, a regular one and a Calm
+Before the Storm one. Shuffle them both separately, and
+then place the Calm Before the Storm deck on top of the
+other one, to form the full Weather deck, and place it in its
+designated spot.
+
+FOR EACH PLAYER
+
+1. For your starting game, give the younger player Derby
+Pocket and the older player Eve Williams. Players then take
+the large Wizard Character Card of their wizard. Also get
+your 2 Wizard Spell cards and add these to your 6-card
+Basic Spell deck, to form your full starting 8 card deck.
+Shuffle it and place it face-down near your Stat Board.
+2. Set your health to the correct starting amount based on the
+number on the bottom right of your Wizard Character Card.
+3. Give the Initiative Tracker to the player playing as Derby
+Pocket (place it on the Initiative spot on their side of the
+board).
+4. Each player starts with 2 mana and 0 Storm Shards.
+
+BATTLE START
+
+Now, and at the start of each Battle, players draw cards from
+their deck until they have a hand of 3 cards.
+
+BATTLE
+
+1. Flip Weather Card
+Flip the current round’s Weather card face-up and resolve it.
+2. Play a card
+Both players play a card face-down from their hand to the
+board.
+3. Reveal
+Both players reveal their card simultaneously. At this time,
+look at the element of each card (in the top left corner) and
+see if either player COUNTERED the other player (fire beats
+earth, earth beats water, and water beats fire). If a player did
+COUNTER their opponent, they draw a card.
+4. Resolve
+Starting with the player who has Initiative, each player
+resolves their card. Then move your played cards to the
+discard, and do these steps three more times. After that,
+head to the Regroup phase!
+
+REGROUP
+
+The Regroup Phase is a short section that happens in between
+battles, where you score Blast Shards and gain a new card for
+your deck. It has four steps:
+1. Discard the four Weather cards from the previous battle.
+2. All players discard any cards they have in hand that have
+DISCARD EFFECTS (
+
+), and trigger these effects now.
+
+3. The number of cards you have remaining in your hand is
+your Blast Score. If one player has a higher Blast Score than
+the other, they gain 2 Storm Shards. If both players have the
+same Blast Score, they each gain 1 Storm Shard.
+4. Now, you will gain exactly one card from the Storm Cloud
+and put it into your starting hand for the next Battle. You
+can only gain cards that are at or lower than your current
+Tier Level. After taking a card, redraw a new card from the
+Spellstorm Deck (the Storm Cloud should always have 5
+cards in it).
+Then return to another Battle Start. Continue this until a player
+wins or loses!
+For more detailed rules, please refer to the manual, or visit our
+Discord chatroom at keithburgun.net.
+
+

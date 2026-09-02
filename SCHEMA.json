@@ -437,6 +437,7 @@
     "push_phase": "push_phase:<phase> — enter a phase and remember where to come back to. Refused while an offer is open: see _actions._frozen_while_asking.",
     "pop_phase": "pop_phase — go back. Refused while an offer is open: see _actions._frozen_while_asking.",
     "load_game": "load_game:<file.json> — switch games. A bare name only: a path or a .. is refused.",
+    "open_game": "open_game — ask the player for a game file of their own and play it: a file picker in the browser, a dropped file on the desktop. Nothing is uploaded and nothing is installed. The engine already runs a game handed to it as text — that is how an invite carries its rules to somebody who has never seen the file — so this is only the asking. Silent in a build with no way to ask.",
     "net_invite": "net_invite — build an invite to send somebody",
     "net_join": "net_join — open the box to paste one into",
     "net_seat": "net_seat:<seat> — sit in a chair, or any to give it up",

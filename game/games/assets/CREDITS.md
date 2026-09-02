@@ -90,3 +90,25 @@ q queen, r rook; `d` dark, `l` light.
 |---|---|---|---|
 | Chess_*t60.png (12 files) | [Standard SVG chess pieces](https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces) | Cburnett | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
 
+
+## Spellstorm
+
+`ss_*.jpg` — 102 files, the card faces of **Spellstorm** by Keith Burgun,
+extracted from the print-and-play PDFs kept in `ideas/PDFS/` and cropped to the
+card artwork (`tools/make_spellstorm.py`, and `ideas/spellstorm/README.md` for
+how). 300 dpi, 825x1125 for cards and 1125x1725 for the wizards, including
+print bleed.
+
+**These are not public domain and carry no Creative Commons licence**, unlike
+everything above. Spellstorm is © Keith Burgun; the artwork is by Christina
+Zhong, except Rain of Toads (`ss_rainoftoads.jpg`) by Peter Siecienski.
+
+**They are here by written permission from Keith Burgun** — see
+`SPELLSTORM-PERMISSION.md` in this directory. That permission is what these
+files rest on, not the licence of the directory they sit in, so anyone reusing
+them outside this project needs their own.
+
+| Files | Work | Artist | License |
+|---|---|---|---|
+| ss_*.jpg (101 files) | [Spellstorm](https://keithburgun.net) print-and-play card faces | Christina Zhong, for Keith Burgun | © Keith Burgun — used by written permission |
+| ss_rainoftoads.jpg | Spellstorm, "Rain of Toads" | Peter Siecienski | © Keith Burgun — used by written permission |

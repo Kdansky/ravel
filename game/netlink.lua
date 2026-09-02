@@ -151,6 +151,13 @@ local function guarded(body)
 end
 
 -- Stage a value JS-side, then pull it across in fixed-size pieces.
+--
+-- **The value must be single-line ASCII**, which base64 is and which is why
+-- nothing met this until something else was sent: a piece comes back through
+-- io.read("*l") and stops at a newline, and the offset counts Lua bytes against
+-- a JavaScript length, which agree only below U+0080. A caller with anything
+-- else to send encodes it — openfile percent-encodes a game file for exactly
+-- this reason.
 local function eval_long(body)
 	local head = eval(guarded('window.__ravel_q=String(' .. body .. ');return "#"+window.__ravel_q.length'))
 	if not head then return nil end
