@@ -452,7 +452,7 @@ local function card_places(zone_e)
 	if zt == "stack" then
 		local pad = 3 * S
 		return { fit_card({ x = p.x + pad, y = p.y + pad,
-			w = p.w - pad * 2, h = p.h - pad * 2 }) }
+			w = p.w - pad * 2, h = p.h - pad * 2 }, zone_e.style.fit) }
 	end
 
 	if zt == "grid" then
@@ -480,19 +480,41 @@ local function card_places(zone_e)
 	local gap    = 4 * S
 	local room_w = p.w - pad * 2
 	local room_h = p.h - pad * 2 - head
-	-- One line for as long as one line reads, then more lines rather than
-	-- narrower cards. A row is the layout that promises every card shows its
+	-- A filled card has no shape of its own, so the card ratio cannot bound the
+	-- search and every column count tiles the same area. Cells closest to square
+	-- is what settles it instead: two buttons in a wide strip come out side by
+	-- side using the whole of it, which is the fault this fixes, and fifty-one
+	-- plates come out as a block rather than as a row of slivers.
+	--
+	-- Otherwise: one line for as long as one line reads, then more lines rather
+	-- than narrower cards. A row is the layout that promises every card shows its
 	-- text, and forty-one chips across a strip are 23px of picture each, which
 	-- is a promise broken quietly. One line is among the shapes tried, so the
 	-- winner is never smaller than the single line would have been.
-	local cols, card_h = n, 0
+	local fill = zone_e.style.fit == "fill"
+	local cols, card_h, best = n, 0, math.huge
 	for c = 1, n do
 		local r = math.ceil(n / c)
-		local h = math.min((room_h - (r - 1) * gap) / r, (room_w - (c - 1) * gap) / c * CARD_RATIO)
-		if h > card_h then cols, card_h = c, h end
+		local w = (room_w - (c - 1) * gap) / c
+		local h = (room_h - (r - 1) * gap) / r
+		if fill then
+			-- Both sides positive or the ratio says nothing: a column count that
+			-- does not fit is not a layout, it is a negative width.
+			local off = (w > 0 and h > 0) and math.abs(math.log(w / h)) or math.huge
+			if off < best then cols, best = c, off end
+		else
+			h = math.min(h, w * CARD_RATIO)
+			if h > card_h then cols, card_h = c, h end
+		end
 	end
-	local card_w = card_h / CARD_RATIO
-	local rows   = math.ceil(n / cols)
+	local rows = math.ceil(n / cols)
+	local card_w
+	if fill then
+		card_w = (room_w - (cols - 1) * gap) / cols
+		card_h = (room_h - (rows - 1) * gap) / rows
+	else
+		card_w = card_h / CARD_RATIO
+	end
 	local top    = p.y + head + (p.h - head - (rows * card_h + (rows - 1) * gap)) / 2
 	local places = {}
 	for i = 1, n do

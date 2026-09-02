@@ -720,7 +720,7 @@ def zones():
         # The two buttons sit on the middle line between the gem piles, where
         # they belong to whoever is up rather than to either side of the table.
         {"key": "controls", "layout": "grid", "use": "abilities", "grid": [5, 1],
-         "pos": [0.808, 0.463, 0.995, 0.537]},
+         "tags": ["button"], "pos": [0.790, 0.448, 0.995, 0.552]},
         # The roster is the injected offer, positioned rather than declared: ten
         # characters wants more of the screen than a choice between two. Nearly
         # the whole screen, because the widest question this game asks is the
@@ -898,6 +898,9 @@ def styles():
     # in the shop shows what it costs and how many are left.
     out["for_sale"] = {"badges": ["price", "stock"], "badge_run": "down", "badge_zeros": False}
     out["character_card"] = {"color": [0.24, 0.26, 0.36]}
+    # A button is a word you have to be able to read, not a picture of a chip,
+    # so it takes the whole cell rather than a card-shaped slice of it.
+    out["button"] = {"fit": "fill"}
     return out
 
 
