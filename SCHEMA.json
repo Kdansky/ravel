@@ -58,7 +58,7 @@
       "color": "cards: [r, g, b] each 0 to 1 for the plate behind the art, or false for no plate at all — so a transparent PNG shows the board through it",
       "title": "cards: false draws no title, giving the whole card to the picture",
       "border": "cards: false draws no frame around the card. A chess piece is not a card and should not be drawn inside one; selection and eligibility outlines still draw, because those are the affordance rather than the frame.",
-      "fit": "grid zones: how a card sits in a cell. card (the default) keeps card proportions and leaves breathing room; fill stretches it to the whole cell, for board tiles",
+      "fit": "zones: how a card sits in the box its layout gives it. card (the default) keeps card proportions and leaves breathing room; fill takes the whole box, for board tiles and for buttons \u2014 a word you have to read is not a picture of a card. On a row it also settles the shape, since a filled row has no card ratio to lay out against: it picks the column count whose cells come out closest to square",
       "fan": "stack zones: show the whole stack instead of only its top card, each card laid over the one before and leaving a strip of it showing. The word is the direction the next card goes — up, down, left or right — so down is a solitaire tableau and up is a row growing away from its owner. The strip is what the layout protects: cards shrink to keep it readable rather than the other way round. Not for grid zones, which place by slot.",
       "ratio": "zones: the shape it keeps whatever the window is — width over height, so 1 is square, or the word grid to read it from the cell count. The zone takes the largest rect of that shape inside what pos allotted, centred.",
       "chequer": [

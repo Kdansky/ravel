@@ -439,6 +439,74 @@ do
 	end
 end
 
+-- A card with no shape of its own takes the whole of its cell, outside a grid
+-- as well as in one. `fit: "fill"` was read on the grid branch and nowhere
+-- else, so two buttons in a wide strip drew as two portrait cards floating in
+-- the middle of it — the zone said how much room there was and the card ratio
+-- gave most of it back.
+do
+	local path = "game/games/tmp_fill.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+  "title": "Fill",
+  "styles": { "button": { "fit": "fill" } },
+  "zones": [
+    { "key": "plain", "layout": "row", "pos": [0.05, 0.05, 0.45, 0.20],
+      "contents": ["a", "b"] },
+    { "key": "filled", "layout": "row", "tags": ["button"], "pos": [0.55, 0.05, 0.95, 0.20],
+      "contents": ["c", "d"] },
+    { "key": "many", "layout": "row", "tags": ["button"], "pos": [0.25, 0.30, 0.75, 0.90],
+      "contents": ["e", "f", "g", "h", "i", "j", "k", "l"] }
+  ],
+  "phases": [{ "key": "main", "type": "player_input", "zone": "plain" }],
+  "cards": [
+    { "key": "a", "text": "End action" }, { "key": "b", "text": "End turn" },
+    { "key": "c", "text": "End action" }, { "key": "d", "text": "End turn" },
+    { "key": "e", "text": "E" }, { "key": "f", "text": "F" }, { "key": "g", "text": "G" },
+    { "key": "h", "text": "H" }, { "key": "i", "text": "I" }, { "key": "j", "text": "J" },
+    { "key": "k", "text": "K" }, { "key": "l", "text": "L" }
+  ]
+}]==])
+	f:close()
+	flow.init("tmp_fill.json", 5)
+	os.remove(path)
+	render.rescale()
+	render.sync_places()
+
+	local function places(key)
+		local z, out = zones.find(key), {}
+		for i, cid in ipairs(z.cards) do out[i] = entity.get(cid).place end
+		return z, out
+	end
+
+	local plain, pp = places("plain")
+	assert(math.abs(pp[1].h / pp[1].w - 1.6) < 0.01,
+		("an unfilled card keeps the card ratio, got %.2f"):format(pp[1].h / pp[1].w))
+	assert(pp[1].w * 2 < plain.place.w * 0.5, "and so leaves most of a wide strip empty")
+
+	local filled, fp = places("filled")
+	assert(math.abs(fp[1].h - fp[2].h) < 0.01 and math.abs(fp[1].w - fp[2].w) < 0.01,
+		"two buttons in one zone are one size")
+	assert(fp[1].w > pp[1].w * 2, ("a filled button is %.1fpx wide against %.1f"):format(fp[1].w, pp[1].w))
+	-- The pair spans the zone bar the padding it is drawn inside, which is what
+	-- "use the whole zone" has to mean if it is to mean anything measurable.
+	local span = fp[2].x + fp[2].w - fp[1].x
+	assert(span > filled.place.w * 0.9, ("two filled cards span %.1f of %.1f"):format(span, filled.place.w))
+	assert(fp[1].h > filled.place.h * 0.7, "and take the height as well as the width")
+
+	-- Eight of them tile rather than run off the edge, and every one stays in.
+	local many, mp = places("many")
+	for i, pl in ipairs(mp) do
+		assert(pl.x >= many.place.x - 1 and pl.y >= many.place.y - 1
+			and pl.x + pl.w <= many.place.x + many.place.w + 1
+			and pl.y + pl.h <= many.place.y + many.place.h + 1,
+			"a filled card must stay inside its zone, card " .. i)
+	end
+	local rows = 1
+	for _, pl in ipairs(mp) do if pl.y > mp[1].y + 1 then rows = 2 end end
+	assert(rows == 2, "eight cards in a tall zone come out as a block, not a line")
+end
+
 -- A bump is a displacement laid over a card standing still: the rules put it
 -- somewhere and it stays there, so the rect the renderer asks for moves and
 -- nothing else does. It also has to settle back to exactly where it started,

@@ -720,7 +720,7 @@ def zones():
         # The two buttons sit on the middle line between the gem piles, where
         # they belong to whoever is up rather than to either side of the table.
         {"key": "controls", "layout": "grid", "use": "abilities", "grid": [5, 1],
-         "tags": ["button"], "pos": [0.790, 0.448, 0.995, 0.552]},
+         "tags": ["button"], "pos": [0.808, 0.457, 0.995, 0.543]},
         # The roster is the injected offer, positioned rather than declared: ten
         # characters wants more of the screen than a choice between two. Nearly
         # the whole screen, because the widest question this game asks is the

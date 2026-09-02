@@ -2169,7 +2169,7 @@ A style carries everything about how a thing *looks*, for cards and zones alike:
 | `color` | cards | `[r, g, b]` for the plate behind the art, or **`false`** for no plate at all, so a transparent PNG shows the board through it |
 | `title` | cards | `false` draws none, giving the whole card to the picture |
 | `border` | cards | `false` draws no frame. A chess piece is not a card and should not be drawn inside one — selection and eligibility outlines still draw, because those are the affordance rather than the frame |
-| `fit` | grid zones | `card` (default) keeps card proportions in a cell; `fill` stretches to the whole cell, for board tiles |
+| `fit` | zones | `card` (default) keeps card proportions inside whatever box the layout gives; `fill` takes the whole of it. Board tiles want it, and so does a button — a word you have to read is not a picture of a card, and a portrait button in a wide strip gives most of the strip back. On a `row` it also settles the shape: a filled row has no card ratio to lay out against, so it picks the column count whose cells come out closest to square |
 | `fan` | stack zones | show the whole stack, not just its top card — `"up"`, `"down"`, `"left"` or `"right"`, the way the next card is laid. See below |
 | `ratio` | zones | the shape it keeps whatever the window is — width over height, or `"grid"` to read it from the cell count |
 | `chequer` | grid zones | two colours alternated across the squares. **The first is a1's** — the bottom-left square — and a board wanting the other way round swaps the two strings. There is no flag for it |

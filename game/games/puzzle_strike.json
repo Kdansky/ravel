@@ -153,7 +153,8 @@
       "badge_zeros": false
     },
     "for_sale": { "badges": ["price", "stock"], "badge_run": "down", "badge_zeros": false },
-    "character_card": { "color": [0.24, 0.26, 0.36] }
+    "character_card": { "color": [0.24, 0.26, 0.36] },
+    "button": { "fit": "fill" }
   },
   "computed_tags": {
     "spent": { "stat": "stock", "less_than": 1 },
@@ -219,7 +220,8 @@
       "layout": "grid",
       "use": "abilities",
       "grid": [5, 1],
-      "pos": [0.808, 0.463, 0.995, 0.537]
+      "tags": ["button"],
+      "pos": [0.808, 0.457, 0.995, 0.543]
     },
     { "key": "options", "layout": "row", "status": "offer", "pos": [0.06, 0.18, 0.94, 0.82] },
     { "key": "box", "layout": "stack", "visibility": "secret", "display": "offscreen" },
