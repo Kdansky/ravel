@@ -633,6 +633,12 @@ open overlay, and then run their `then`.
 **Reachable at all.** A game the menu does not offer is a game only the CLI has:
 add a card to `menu.json` with `"play": { "action": ["load_game:mygame.json"] }`.
 
+Or don't: the menu's **Open a file** card asks for one wherever you keep it, and
+dropping a `.json` onto the window does the same thing without the card. Either
+way the file is read where it lies — nothing is copied into the engine and
+nothing is uploaded anywhere — so a game you are still writing is one drop away
+from being played, and a game somebody sends you needs no installing.
+
 ### Arrangements worth copying whole
 
 Longer shapes, each named with the game that already does it.
@@ -3519,6 +3525,7 @@ what a player reads.
 | `counterspell` | Written in a reaction: the event it answers does not happen. **It names no zone** — the stack holds records, not cards, so nothing moved and there is nothing to put back |
 | `set_priority:<scope>` / `clear_priority` | Whoever the scope names may act right now, without the turn moving. The response window does this for itself; write it only for an out-of-turn moment of your own |
 | `load_game:file` | Switch games (menu items, endings). `file` must be a bare `name.json` — no path, no `..` — and is refused otherwise |
+| `open_game` | Ask the player for a game file of *theirs* and play it — a file picker in the browser, a dropped file on the desktop. Nothing is uploaded and nothing is installed: the engine already runs a game handed to it as text, which is how a network invite carries its rules to somebody who has never seen the file, so this is only the asking. A build with no way to ask says nothing and does nothing |
 | `each_seat:<action>` | Run one action once per seat, in seat order, with each seat up in turn — so `mine` does the work and a four-seat deal is one line rather than four. Whoever was up is up again when it returns, and no handover happens: the undo history is not cleared, because dealing to everybody is not anybody's turn. See *Every seat, once* |
 | `net_invite` / `net_join` / `net_panel` / `net_seat:<who>` / `net_offline` | The networking layer's own UI, offered as actions so a game may put "Host" and "Join" on its own menu cards. The engine knows the words; the behaviour arrives only if the net module is loaded, and a game without one is unaffected. See *Playing over a network* |
 | `save_game:<slot>` / `load_save:<slot>` | Write the position out, and put it back. The slot is a plain word your game picks; where it lands is the engine's business. See *Saving a game* below |

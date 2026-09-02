@@ -17,6 +17,10 @@ local netpanel    = require("netpanel")
 -- load_save do anything, and nothing in the engine requires it back. Nothing
 -- here calls into it, so nothing here holds it.
 require("save")
+-- Beside those two and for the same reason: requiring it is what makes
+-- `open_game` do anything. Held, unlike save, because a dropped file arrives
+-- through an event rather than through an action.
+local openfile    = require("openfile")
 local render      = require("render")
 local tooltip     = require("tooltip")
 local inspect     = require("inspect")
@@ -338,6 +342,16 @@ function love.load()
 	netpanel.setup()
 end
 
+-- The desktop half of `open_game`: no picker, but every window manager already
+-- has one and it ends in a drop. Dropping a file is asking for it whether or not
+-- anybody pressed the menu card first.
+function love.filedropped(file)
+	local ok = file:open("r")
+	local text = ok and file:read()
+	file:close()
+	openfile.take(file:getFilename(), text)
+end
+
 function love.resize()
 	-- Fonts first: `rescale` measures the band a named grid keeps clear, and
 	-- `zones.resize` lays the cells out under it.
@@ -450,9 +464,11 @@ function love.update(dt)
 	-- the renderer is what fills them in.
 	net_clock = net_clock + dt
 	if net_clock >= 1 / NET_HZ then
+		local since = net_clock
 		net_clock = 0
 		net.update()
 		netpanel.update()
+		openfile.update(since)
 	end
 	anim.update(dt)
 	fx.update(dt)

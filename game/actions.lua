@@ -17,6 +17,7 @@ M.pending_load   = nil   -- set by load_game, consumed by flow after the action 
 M.pending_slot   = nil   -- set by load_save, consumed the same way
 M.on_net         = nil   -- optional hook(what, arg): the networking layer's UI, if one is loaded
 M.on_save        = nil   -- optional hook(what, slot): the save layer, if one is loaded
+M.on_open        = nil   -- optional hook(): asks the machine for a game file, if that layer is loaded
 M.on_stat_change = nil   -- optional hook(entity, key, delta, ctx) for visual feedback
 -- optional hook(card_id, ordinal): a zone's cards acting in turn, so the
 -- presentation can space them out. ordinal 0 with no card means the run is over.
@@ -1098,6 +1099,15 @@ local function net_ui(what)
 	end
 end
 
+-- open_game  — the player's own file, wherever they keep it. Beside the net ops
+-- because it is the same bargain: the engine knows the word and the validator
+-- with it, while asking an operating system for a file is somebody else's
+-- business and arrives only if that module is loaded. A build without one says
+-- nothing and does nothing, which is right for headless and for a kiosk.
+HANDLERS["open_game"] = function()
+	if M.on_open then M.on_open() end
+end
+
 HANDLERS["net_invite"]  = net_ui("invite")
 HANDLERS["net_join"]    = net_ui("join")
 HANDLERS["net_panel"]   = net_ui("panel")
@@ -1317,6 +1327,7 @@ local SPEC = {
 	push_phase        = "phase",
 	pop_phase         = "",
 	load_game         = "gamefile",
+	open_game         = "",
 	destroy           = "scope n?",
 	ready             = "scope",
 	activate_zone     = "zone order? step?",

@@ -28,8 +28,8 @@
       "key": "menu",
       "layout": "row",
       "tags": ["optional"],
-      "pos": [0.44, 0.83, 0.56, 0.99],
-      "contents": ["m_continue", "m_join"]
+      "pos": [0.36, 0.83, 0.64, 0.99],
+      "contents": ["m_continue", "m_join", "m_open"]
     }
   ],
   "players": [{}],
@@ -151,6 +151,13 @@
       "tooltip": "Paste an invite someone sent you, or a saved game state. It carries its game with it, so this works even for a game you do not have.",
       "tags": ["token", "immutable"],
       "play": { "action": ["net_join"] }
+    },
+    {
+      "key": "m_open",
+      "text": "Open a file",
+      "tooltip": "Play a game file of your own. Nothing is uploaded and nothing is installed — the file is read where it lies. You can also drag one onto the window.",
+      "tags": ["token", "immutable"],
+      "play": { "action": ["open_game"] }
     },
     {
       "key": "play_spellstorm",
