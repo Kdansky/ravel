@@ -309,6 +309,70 @@ function M.test_spellstorm_the_shelf_is_gated_by_tier(check)
 end
 
 
+-- The face-down half of a simultaneous reveal. Worth its own test because it is
+-- the one rule here that no action performs: a card is unreadable because of
+-- where it lies, so the only proof is to ask the renderer's own question.
+--
+-- Asked through `as_seat` rather than by reading the turn, because that is what
+-- the two cases really are: over the wire each client answers as the seat it
+-- claimed, and in hot-seat the seat to play answers for the screen. One
+-- function, both readings.
+function M.test_spellstorm_a_played_card_is_face_down_until_the_showdown(check)
+	opening(11, "derby", "eve")
+	check("a round opens with the first seat playing", phase.current().key == "play_1",
+		phase.current().key)
+
+	local one = zones.active_seat()
+	local played
+	for _, id in ipairs(hand_of(one).cards) do
+		if flow.can_play(id) then played = id; flow.play_card(id, {}); break end
+	end
+	assert(played, "seat one had nothing playable")
+	local card = entity.get(played)
+
+	check("the card went to the commit spot, not the battle spot",
+		zone_of("commit", one).cards[1] == played,
+		tostring(#zone_of("battle", one).cards))
+
+	local mine, theirs
+	zones.as_seat(one, function() mine = zones.visible(card) end)
+	check("its own seat may read it", mine)
+
+	-- The turn has passed by now, which is the whole of the question: the second
+	-- player is choosing, and this is what they are choosing against.
+	local two = zones.active_seat()
+	check("the second seat is up", two ~= one and phase.current().key == "play_2",
+		phase.current().key)
+	zones.as_seat(two, function()
+		theirs = zones.visible(card)
+		check("nor may they look inside the zone holding it",
+			not zones.peekable(zone_of("commit", one)))
+	end)
+	check("and the second seat cannot read the first card", not theirs)
+
+	for _, id in ipairs(hand_of(two).cards) do
+		if flow.can_play(id) then flow.play_card(id, {}); break end
+	end
+
+	-- Both cards down, and the rest of the round runs itself: showdown reveals,
+	-- the two resolve steps fire, and round_end sweeps the battle spots into the
+	-- discards. So the card is not caught standing in the battle zone -- what is
+	-- worth checking is that it left the face-down zone and became readable.
+	check("the commit spot is empty again", #zone_of("commit", one).cards == 0,
+		tostring(#zone_of("commit", one).cards))
+	zones.as_seat(two, function() theirs = zones.visible(card) end)
+	check("and the card is in the open once the round has run", theirs)
+
+	-- The reveal itself, pinned on its own: the showdown's first action is what
+	-- turns the cards over, and everything after it reads `battle`.
+	local staged = stage_battle(one, "magicdart")
+	zones.move_card(staged.id, zone_of("commit", one).id)
+	actions.execute("each_seat:move:mine.commit:mine.battle", {})
+	check("the showdown's move is what puts a card in the battle spot",
+		zone_of("battle", one).cards[1] == staged.id,
+		tostring(#zone_of("commit", one).cards))
+end
+
 function M.test_spellstorm_a_battle_is_four_rounds_then_a_regroup(check)
 	opening(7, "derby", "eve")
 	-- Play the first playable card each time it is asked, take the first thing
