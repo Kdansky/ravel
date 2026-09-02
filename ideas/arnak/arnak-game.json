@@ -1,0 +1,175 @@
+{
+  "game": {
+    "name": "Lost Ruins of Arnak",
+    "players": "1-4",
+    "duration": "~30 min/player",
+    "rounds": 5,
+    "description": "Each player leads an archaeological expedition to a newly discovered island, gathering resources, exploring, buying item/artifact cards, and advancing research tracks.",
+    "components": {
+      "resources": [
+        {"type": "coin", "description": "Funding", "primarily_used_for": "buying items"},
+        {"type": "compass", "description": "Time/Energy", "primarily_used_for": "buying artifacts, discovering new sites"},
+        {"type": "tablet", "description": "Deciphered Texts", "primarily_used_for": "mixed costs"},
+        {"type": "arrowhead", "description": "Weapon Remnants", "primarily_used_for": "overcoming guardians"},
+        {"type": "jewel", "description": "Talismans of Ara-Anu", "primarily_used_for": "research, especially deep"}
+      ],
+      "cards": {
+        "basic_cards": [
+          {"type": "funding", "count": 2, "effect": "Grant 1 coin", "travel_value": "coin"},
+          {"type": "exploration", "count": 2, "effect": "Grant 1 compass", "travel_value": "compass"},
+          {"type": "fear", "count": 2, "effect": "None", "travel_value": "unknown (flagged in rules)"}
+        ],
+        "item_cards": {
+          "description": "Support cards from mainland, provide effects when played",
+          "properties": {
+            "bought_by": "coin cost",
+            "placed": "bottom of deck",
+            "replay_cost": "none"
+          }
+        },
+        "artifact_cards": {
+          "description": "Powerful cards found on island, provide immediate effects",
+          "properties": {
+            "bought_by": "compass cost",
+            "placed": "play area",
+            "replay_cost": "1 tablet",
+            "immediate_effect": "free on first use"
+          }
+        }
+      },
+      "board": {
+        "type": "shared",
+        "sites": {
+          "starting_sites": {
+            "count": 5,
+            "properties": {
+              "each_has": "1-2 archaeologist spaces",
+              "blocking_tiles": "scale by player count (2 players: all 5 blocked, 3 players: 3 blocked, 4 players: none)"
+            }
+          },
+          "discoverable_sites": {
+            "level_i": {
+              "positions": 15,
+              "tiles": 10,
+              "discover_cost": "compass (unknown amount)",
+              "idols_per_site": "1-2"
+            },
+            "level_ii": {
+              "positions": 10,
+              "tiles": 6,
+              "discover_cost": "compass (unknown amount, higher than level I)",
+              "idols_per_site": "2-3"
+            }
+          }
+        },
+        "idols": {
+          "count_per_player": 4,
+          "points_per_idol": 3,
+          "slot_points_when_empty": ["1, 2, ?, ? (first two slots confirmed)"]
+        },
+        "guardians": {
+          "description": "Awakened when site is discovered, block nothing, give fear when returning from guarded site",
+          "cost_to_overcome": "varies per guardian (flagged)",
+          "points_per_guardian": 5,
+          "boon": "one-time bonus effect (flagged)"
+        }
+      },
+      "tracks": {
+        "research_track": {
+          "type": "branching",
+          "tokens": [
+            {"name": "magnifying_glass", "description": "discovery token", "can_reach": "lost temple"},
+            {"name": "notebook", "description": "documentation token", "constraint": "cannot be ahead of magnifying glass"}
+          ],
+          "bonuses": {
+            "row_bonuses": "resource gain, draw cards, recruit/upgrade assistants",
+            "lost_temple_bonus": "highest points to first arrival (3 options)",
+            "temple_tiles": {
+              "types": [
+                {"points": 2, "cost": "unknown combination"},
+                {"points": 6, "cost": "unknown combination"},
+                {"points": 11, "cost": "unknown combination"}
+              ]
+            }
+          }
+        }
+      },
+      "assistants": {
+        "description": "Recruited via research track, upgradeable from silver to gold side",
+        "properties": {
+          "location": "player board only",
+          "refresh": "automatic at round cleanup, or via specific effects"
+        }
+      },
+      "fear": {
+        "cards": 19,
+        "points": -1,
+        "source": "returning from guarded site at cleanup"
+      },
+      "card_row": {
+        "structure": "artifacts on left, items on right, split by moon staff",
+        "starting_setup": {"artifacts": 1, "items": 5},
+        "round_progression": "staff moves right each round, expanding artifact side",
+        "cleanup": {
+          "exile": "one artifact and one item flanking staff",
+          "refill": "slide row and deal new card of same type"
+        }
+      }
+    },
+    "gameplay": {
+      "turn_order": "fixed, sequential, clockwise",
+      "turn_structure": [
+        "Draw 5 cards (keep leftovers from previous round)",
+        "Take turns (main action + free actions)",
+        "Pass when done",
+        "Round cleanup (return archaeologists, gain fear, shuffle, refresh)",
+        "Advance moon staff"
+      ],
+      "actions": {
+        "main_actions": [
+          "Dig at a Site",
+          "Discover a New Site",
+          "Overcome a Guardian",
+          "Buy a Card",
+          "Play a Card",
+          "Research",
+          "Pass"
+        ],
+        "free_actions": [
+          "Play basic Funding/Exploration for effect",
+          "Slot an idol",
+          "Use assistant with free effect",
+          "Use guardian boon"
+        ]
+      },
+      "scoring": {
+        "categories": [
+          "Research tokens by row",
+          "Temple tiles",
+          "Idols (3 pts each + empty slot bonuses)",
+          "Guardians overcome (5 pts each)",
+          "Item/artifact cards in collection",
+          "Fear cards (-1 pt each)"
+        ],
+        "tiebreaker": "First to Lost Temple, then research score"
+      }
+    },
+    "expansions": {
+      "included_in_rules": "None - base game only"
+    },
+    "notes": {
+      "unverified_details": [
+        "Travel hierarchy ranking",
+        "Exact site discovery costs",
+        "Level I vs Level II tile counts",
+        "Discovered sites with second archaeologist space",
+        "Starting resources by seat order",
+        "Exact idol slot empty bonuses",
+        "Fear card travel value",
+        "Temple tile stack sizes",
+        "Full guardian cost/boon table",
+        "Exact card row behavior when decks empty"
+      ]
+    }
+  }
+}
