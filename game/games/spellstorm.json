@@ -196,6 +196,16 @@
       "pos": [[0.89, 0.795, 0.995, 0.995], [0.005, 0.005, 0.11, 0.205]]
     },
     {
+      "key": "commit",
+      "label": "Face down",
+      "layout": "grid",
+      "grid": [1, 1],
+      "copies": "per_seat",
+      "visibility": "owner",
+      "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played.",
+      "pos": [[0.915, 0.52, 0.995, 0.775], [0.915, 0.215, 0.995, 0.47]]
+    },
+    {
       "key": "battle",
       "label": "Battle",
       "layout": "grid",
@@ -479,7 +489,7 @@
       "seat": "next",
       "label": "Play a card face down",
       "zone": ["hand", "wizard", "controls"],
-      "ends_when": "count:spell@mine.battle >= 1",
+      "ends_when": "count:spell@mine.commit >= 1",
       "next": [{ "then": "play_2" }]
     },
     {
@@ -488,13 +498,14 @@
       "seat": "next",
       "label": "Play a card face down",
       "zone": ["hand", "wizard", "controls"],
-      "ends_when": "count:spell@mine.battle >= 1",
+      "ends_when": "count:spell@mine.commit >= 1",
       "next": [{ "then": "showdown" }]
     },
     {
       "key": "showdown",
       "type": "automatic",
       "actions": [
+        "each_seat:move:mine.commit:mine.battle",
         "each_seat:activate_zone:rules:by_column:check",
         "each_seat:activate_zone:weather_now:by_column:wy"
       ],
@@ -579,7 +590,7 @@
       "asset": "ss_magicdart.jpg",
       "tags": ["fire", "ember", "spell", "basic"],
       "tooltip": "Gain 1 mana. If you have Initiative, deal 1 damage.\n\nFire magic is often banned from use in many parts of the world, due to its unpredictable nature.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:mana@mine.player:1"] },
@@ -597,7 +608,7 @@
       "asset": "ss_block.jpg",
       "tags": ["water", "tide", "spell", "basic"],
       "tooltip": "Gain Initiative. Heal 1 for every Fire card revealed this round.\n\n\"He just needs a little splash, is all he needs.\" - The Splashmaster",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -617,7 +628,7 @@
       "asset": "ss_powergem.jpg",
       "tags": ["earth", "loam", "spell", "basic", "has_discard"],
       "tooltip": "Power up. You may gain a card from the Storm Cloud; if you do, it goes to your discard. On discard: power up.\n\nThe golden gems of the Spell Storm take time to develop their power.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:power@mine.player:1"] },
@@ -632,7 +643,7 @@
       "asset": "ss_fireessence.jpg",
       "tags": ["fire", "ember", "spell", "essence"],
       "tooltip": "Deal 1 damage. You may gain any Tier I or II Fire card in the Storm Cloud. VOID this.\n\nFire Magic is generally associated with destruction.\n\n[Simplified: the offer is not narrowed to Fire, or to Tier I-II]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -650,7 +661,7 @@
       "asset": "ss_wateressence.jpg",
       "tags": ["water", "tide", "spell", "essence"],
       "tooltip": "Gain 1 mana. You may gain any Tier I or II Water card in the Storm Cloud. VOID this.\n\nWater Magic is generally associated with healing.\n\n[Simplified: the offer is not narrowed to Water, or to Tier I-II]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -668,7 +679,7 @@
       "asset": "ss_earthessence.jpg",
       "tags": ["earth", "loam", "spell", "essence", "has_discard"],
       "tooltip": "Power up. You may gain any Tier I or II Earth card in the Storm Cloud. VOID this. On discard: power up.\n\nEarth Magic is generally associated with building.\n\n[Simplified: the offer is not narrowed to Earth, or to Tier I-II]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -687,7 +698,7 @@
       "asset": "ss_fireball.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Deal 1 damage and gain an ASH. If you have Initiative, deal 2 more damage and lose Initiative.\n\nIt is customary to say \"shaboom!\" when one reveals the Fireball card.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -713,7 +724,7 @@
       "asset": "ss_fireball2.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Deal 2 damage. If you have Initiative, deal 2 more damage.\n\nIt is customary to say \"shaboom-ya!\" when one reveals the Fireball II card.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:2"] },
@@ -731,7 +742,7 @@
       "asset": "ss_flame.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Deal 1 damage, then resolve and discard a different Fire card from your hand.\n\nYou need *magic* water to put a magical flame out.\n\n[Simplified: the offer is not narrowed to Fire cards; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:1"] },
@@ -745,7 +756,7 @@
       "asset": "ss_heartgem.jpg",
       "tags": ["fire", "ember", "spell", "has_discard"],
       "tooltip": "Heal 3 and gain a CURSE. On discard: take 1 damage.\n\nThe Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -762,7 +773,7 @@
       "asset": "ss_lantern.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Gain 2 mana. If your opponent revealed Water, VOID this, gain a CURSE and take 1 damage.\n\nDo not keep sentient fire spirits trapped in a lantern, for any reason.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -788,7 +799,7 @@
       "asset": "ss_lavabat.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Gain 1 mana. You may move a card from your opponent's discard to your own. Gain Initiative.\n\nDangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm.\n\n[Simplified: the printed card moves a Fire card between any two discards; here it is their discard to yours, any card]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -810,7 +821,7 @@
       "asset": "ss_manafont.jpg",
       "tags": ["fire", "ember", "spell", "has_discard"],
       "tooltip": "VOID a card in the Storm Cloud. If you did, gain 3 mana. On discard: take 1 damage and gain 1 mana.\n\nWhile there are many theories, no one knows where the magic inside gems originally comes from.\n\n[Simplified: the offer is not narrowed to Water cards]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -837,7 +848,7 @@
       "asset": "ss_obsidian.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Take 1 damage and lose 2 mana. If you did, you may use your Ultimate without paying its mana cost.\n\n\"Whenever I close my eyes, I see my twisted reflection in that black mirrored gem.\" - Unknown\n\n[Simplified: the free Ultimate is not granted -- there is no way to waive a cost; the damage and mana loss happen]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -853,7 +864,7 @@
       "asset": "ss_rapidfire.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Draw a card. If you have Initiative, deal 2 damage and you may redraw this to your hand.\n\nWhen going for a fire-based strategy, it's important to keep the pressure on.\n\n[Simplified: the card is not returned to hand]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
@@ -871,7 +882,7 @@
       "asset": "ss_ruby.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Discard the top 3 cards of your deck and deal 1 damage.\n\nThe popular trend of ruby-adorned garments was blamed for the Great Royal Ball Fire of 1976.\n\n[Simplified: the printed card deals 1 damage per Fire discarded, or voids one instead; there is no way to count what was just discarded, so it deals a flat 1]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -887,7 +898,7 @@
       "asset": "ss_shockwave.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Your opponent loses 2 Power Tokens and discards a card. You gain Initiative. Deal 1 damage.\n\nThe 1981 hit song \"Shockwave\" is often credited with creating the Bonepunk genre.\n\n[Simplified: the discard is the top card of their hand rather than a random one]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -909,7 +920,7 @@
       "asset": "ss_swampsilt.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "Draw a card. Whoever has Initiative loses it. Give your opponent a CURSE.\n\nThe Order's imperial land-grab has much to do with the increasing swampland in their territory.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -937,7 +948,7 @@
       "asset": "ss_crossfire.jpg",
       "tags": ["fire", "ember", "spell"],
       "tooltip": "If you have Initiative, deal 3 damage, lose Initiative, and put this in your opponent's discard.\n\n\"The first lesson in using fire magic always must be... how not to burn one's self.\" - B Underbrom, Professor of Fire Magic",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -960,7 +971,7 @@
       "asset": "ss_arctite.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Draw 2 cards. Heal 2 and give an ICE.\n\nPirates have been known to smuggle large amounts of Arctite inside icebergs.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
         {
@@ -981,7 +992,7 @@
       "asset": "ss_frostmagic.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Heal 1. Lose 1 Power Token. Give your opponent an ICE.\n\nThe Azure Order was focused on water magic until the 1970s, when ice magic suddenly became far more popular.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1001,7 +1012,7 @@
       "asset": "ss_iceflume.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Give an ICE. You may VOID an ICE from your hand. Gain Initiative.\n\n\"Watch your step!\" - Unknown\n\n[Simplified: the offer is your hand only, and is not narrowed to ICE]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1023,7 +1034,7 @@
       "asset": "ss_lapis.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Draw a card. You may discard a card and heal 1.\n\nDoctors throughout Omia have used Water Magic to heal the sick for generations.\n\n[Simplified: the printed card discards up to 2 and heals 1 per Water discarded; here it is one card and a flat 1]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
@@ -1037,7 +1048,7 @@
       "asset": "ss_leap.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Gain Initiative and heal 1. If your opponent revealed Fire, you may VOID a card from your hand.\n\nAzure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1064,7 +1075,7 @@
       "asset": "ss_moonstone.jpg",
       "tags": ["water", "tide", "spell", "has_discard"],
       "tooltip": "Heal 4. On discard: heal 2.\n\nThe rare and beautiful Moonstone is one of the most coveted in all of Omia.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:health@mine.player:4"] },
@@ -1077,7 +1088,7 @@
       "asset": "ss_reflect.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Draw a card, gain Initiative, heal 1. If your opponent revealed Fire, they take 2 damage.\n\n\"He just needs a little splash, is all he needs.\" - The Splashmaster",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1104,7 +1115,7 @@
       "asset": "ss_sapphire.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Draw a card, heal 1, and gain an ASH.\n\nMany of Omia's most impressive Wizards have a signature move, which some call an \"Ultimate\".",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1124,7 +1135,7 @@
       "asset": "ss_step.jpg",
       "tags": ["water", "tide", "spell", "has_discard"],
       "tooltip": "If you have Initiative, heal 1. Otherwise, gain Initiative. On discard: gain Initiative.\n\nFrom the year 366-1182, the Water Kingdom reigned over much of the Eastern Continent.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1153,7 +1164,7 @@
       "asset": "ss_twinsapphire.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Draw a card and heal 2.\n\n\"TWO sapphires?! Wow, thanks!\" - Someone's son",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1169,7 +1180,7 @@
       "asset": "ss_ultimate.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "You may VOID a card from your hand. If you did, gain 3 mana.\n\n\"He just needs a little splash, is all he needs.\" - The Splashmaster\n\n[Simplified: the offer is not narrowed to Earth cards]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1190,7 +1201,7 @@
       "asset": "ss_wave.jpg",
       "tags": ["water", "tide", "spell"],
       "tooltip": "Gain 3 mana. Your opponent discards their hand and draws a new hand of 4 cards.\n\nA wave does not ask what it washes away.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1212,7 +1223,7 @@
       "asset": "ss_amber.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Power up. You must gain a card from the Storm Cloud. On discard: power up.\n\nThe Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly.\n\n[Simplified: the printed card gains twice and is mandatory; here it gains once and may be declined]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:power@mine.player:1"] },
@@ -1227,7 +1238,7 @@
       "asset": "ss_bloodstone.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Gain 1 mana. Take 1 damage. You may VOID a card from your hand. On discard: gain 1 mana.\n\n\"It's best to leave gems that you find in the wild alone, unless you really know what you're doing.\" - Abragail\n\n[Simplified: the offer is your hand only, not hand or discard]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1246,7 +1257,7 @@
       "asset": "ss_diamond.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "If you hold 3 or more other cards, discard 3 of them and power up 3 times. On discard: power up.\n\n\"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years.\" - Azura Spellstorm Scholar\n\n[Simplified: the three discarded cards are the first three in hand rather than your choice]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1270,7 +1281,7 @@
       "asset": "ss_meteorite.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Take 1 damage. You may resolve any card in the Storm Cloud regardless of tier, then VOID it. On discard: take 1 damage.\n\n\"Mom! Look! This fell from the sky!\" - A child of Tiya Bannet\n\n[Simplified: a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@mine.player:1"] },
@@ -1291,7 +1302,7 @@
       "asset": "ss_opal.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Draw a card, power up twice, gain 2 mana, and you may gain a card from the Storm Cloud. On discard: power up twice.\n\nGems are rocks found deep in the earth that are charged with mysterious power.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
         {
@@ -1320,7 +1331,7 @@
       "asset": "ss_quake.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Your opponent loses 2 Power Tokens and gains an ASH. You may gain a card from the Storm Cloud. On discard: power up.\n\nA huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1339,7 +1350,7 @@
       "asset": "ss_shatter.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "You may VOID a card from your hand; if you do, power up. On discard: power up.\n\n\"That there spellstorm water's FULL-a gold, I tell ya!\" - Prospector\n\n[Simplified: the printed card voids up to 2; here it is one]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1354,7 +1365,7 @@
       "asset": "ss_sift.jpg",
       "tags": ["earth", "loam", "spell"],
       "tooltip": "Power up. Draw 2 cards, then you may discard one of them.\n\nAlmost all Earth cards have discard effects.\n\n[Simplified: the printed card looks at the top 2 and may put them back in order; here they are drawn and one may be discarded]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1372,7 +1383,7 @@
       "asset": "ss_spiritcrystal.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Draw a card. Reveal a card from your hand, resolve it and then discard it. On discard: power up.\n\nIt's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.\n\n[Simplified: the offer is not narrowed to Earth cards; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
@@ -1387,7 +1398,7 @@
       "asset": "ss_threepower.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Power up twice and you may gain a card from the Storm Cloud. If anyone revealed Water, power up again. On discard: power up twice.\n\nWhen you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         {
@@ -1416,7 +1427,7 @@
       "asset": "ss_twopower.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
       "tooltip": "Power up twice and you may gain a card from the Storm Cloud. On discard: power up twice.\n\nWhen you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1475,7 +1486,7 @@
       "asset": "ss_firedragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon"],
       "tooltip": "Deal 4 damage. Gain 2 mana.\n\nNo Dragon is more feared than the destructive and terrible Fire Dragon.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -1495,7 +1506,7 @@
       "asset": "ss_winddragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon"],
       "tooltip": "Gain Initiative. Gain a Storm Shard. You may resolve a card from your hand.\n\nThe elusive Storm Dragons were considered to be cryptids until very recently.\n\n[Simplified: the printed card resolves up to two cards; here it is one, and a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -1517,7 +1528,7 @@
       "asset": "ss_icedragon.jpg",
       "tags": ["water", "tide", "spell", "dragon"],
       "tooltip": "Heal 3. Gain a Storm Shard. Give an ICE.\n\nThe elusive Storm Dragons were considered to be cryptids until very recently.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -1537,7 +1548,7 @@
       "asset": "ss_stormdragon.jpg",
       "tags": ["water", "tide", "spell", "dragon"],
       "tooltip": "Deal 3 damage and gain a Storm Shard.\n\nThe elusive Storm Dragons were considered to be cryptids until very recently.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -1553,7 +1564,7 @@
       "asset": "ss_earthdragon.jpg",
       "tags": ["earth", "loam", "spell", "dragon"],
       "tooltip": "You may gain a card from the Storm Cloud. Deal 2 damage. Gain a Storm Shard. Your opponent gains an ASH.\n\nThe Earth Dragons are known to hoard massive amounts of treasure in caves.\n\n[Simplified: the printed card gains twice; here it gains once]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
         {
@@ -1605,7 +1616,7 @@
       "asset": "ss_derby_coffee.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
       "tooltip": "Power up twice and you may gain a card from the Storm Cloud. If you gained an Earth card, gain Initiative.\n\n\"This is gonna be the best coffee run of all time!\"\n\n[Simplified: Initiative is granted for any gained card, not only an Earth one]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1630,7 +1641,7 @@
       "asset": "ss_derby_reckless.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
       "tooltip": "Gain 1 mana and power up. Deal 1 damage. Gain an ASH. If you have Initiative, deal 1 more damage.\n\n\"I know we can do it if we work together!\"",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1693,7 +1704,7 @@
       "asset": "ss_eve_facepunch.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
       "tooltip": "Gain Initiative. Steal 1 mana from your opponent and they discard a card.\n\n\"We use voices to avoid having to use fists. We use fists to avoid having to use bombs.\"\n\n[Simplified: the discard is the top card of their hand rather than a random one]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1715,7 +1726,7 @@
       "asset": "ss_eve_riot.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
       "tooltip": "Discard your hand without triggering any discard effects. Deal 1 damage per Earth card discarded. Draw 2 cards.\n\n\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1762,7 +1773,7 @@
       "asset": "ss_abra_deepgems.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
       "tooltip": "Draw a card and gain 1 mana. You may lose 1 Power Token to resolve and then VOID a card from the Storm Cloud.\n\nThe Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep.\n\n[Simplified: the offer is not narrowed to Water cards, the Power Token is not spent, and a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1786,7 +1797,7 @@
       "asset": "ss_abra_newcurriciulum.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
       "tooltip": "Power up once per Tier you have reached. You may VOID a card in the Storm Cloud, and you may gain one.\n\n\"Can't believe the *garbage* I'm asked to teach sometimes!\"\n\n[Simplified: the printed card voids up to 2; here one card is offered, and taking it gains rather than voids]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1836,7 +1847,7 @@
       "asset": "ss_croh_sinking.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
       "tooltip": "Gain 2 mana. Deal damage equal to your number of DOOM Tokens.\n\nLong ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart.\n\n[Simplified: the DOOM Token for an empty CURSE pile is not granted]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1856,7 +1867,7 @@
       "asset": "ss_croh_undertow.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
       "tooltip": "Your opponent discards a card. Draw a card. If you hold at least 3 more cards than they do, gain a DOOM Token.\n\nCroh has come to the Spellstorm seeking his path to world domination.\n\n[Simplified: the discard is the top card of their hand rather than a random one]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1908,7 +1919,7 @@
       "asset": "ss_omar_beetle.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
       "tooltip": "Discard a card from your hand to deal 2 damage.\n\nA hero to many, Omar is regarded by the powerful as an eco-terrorist.\n\n[Simplified: the offer is not narrowed to Fire cards]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1922,7 +1933,7 @@
       "asset": "ss_omar_shuriken.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
       "tooltip": "Gain Initiative and draw a card.\n\n\"...\"\n\n[Simplified: the printed card ALWAYS resolves first and can discard the opponent's revealed card; resolution order is set by Initiative alone, so it takes Initiative instead]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1976,7 +1987,7 @@
       "asset": "ss_bunny_buddy.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
       "tooltip": "Power up and gain 1 mana. If your opponent is Tier I, they power up too.\n\n\"Bunny is wondering if it would be okay to hold your hand.\" - Bunny's Handler\n\n[Simplified: resolving a different revealed Earth card is not offered]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -1998,7 +2009,7 @@
       "asset": "ss_bunny_snowday.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
       "tooltip": "Heal 2. Give an ICE to your opponent if they have none in their discard.\n\nThe Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic.",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:health@mine.player:2"] },
@@ -2042,7 +2053,7 @@
       "asset": "ss_oren_potion.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
       "tooltip": "Deal 1 damage. You may give a card from your hand to your opponent's hand.\n\n\"Think I can hit that old barrel by the hill over there?\"\n\n[Simplified: gaining 2 of the matching Element needs the Chemistry Board, which is not implemented]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:1"] },
@@ -2056,7 +2067,7 @@
       "asset": "ss_oren_unstable.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
       "tooltip": "Power up and gain 1 mana. If anyone revealed Water, power up again.\n\n\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"\n\n[Simplified: raising and lowering Elements needs the Chemistry Board, which is not implemented]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
@@ -2109,7 +2120,7 @@
       "asset": "ss_may_data.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
       "tooltip": "Lose 2 Energy Tokens to power up twice and make your opponent discard a card.\n\n\"Yes! I'm in. Now let's see what these idiots have planned next...\"\n\n[Simplified: the choice of losing 1 or 2 Energy is not offered, and the discard is the top card of their hand]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -2132,7 +2143,7 @@
       "asset": "ss_may_starshot.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
       "tooltip": "Discard a card to deal 1 damage. Gain 1 mana for each Energy Token you have, then lose 2 Energy.\n\n\"Hey, YOU! Eat this!\"\n\n[Simplified: the extra damage for discarding a Tier II card is not checked]",
-      "play": { "action": ["set_owner:self:mine", "move_to:mine.battle"] },
+      "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {

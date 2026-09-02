@@ -771,7 +771,7 @@ def spell_template(c):
     # CURSE carry none, which is the whole of "this can't be played" and needs
     # no rule anywhere else.
     if c["kind"] != "junk":
-        t["play"] = {"action": ["set_owner:self:mine", "move_to:mine.battle"]}
+        t["play"] = {"action": ["set_owner:self:mine", "move_to:mine.commit"]}
 
     # `tier_req` is what the Storm Cloud's take tests against your Tier.
     stats = {}
@@ -966,6 +966,21 @@ def zones():
         {"key": "discard", "label": "Discard", "layout": "stack",
          "copies": "per_seat",
          "pos": [P(0.89, 0.795, 0.995, 0.995), P(0.005, 0.005, 0.11, 0.205)]},
+        # Where a card waits face down, and where it stands once both are turned
+        # over. Two zones rather than one because "who may read this" is a
+        # property of the place and not of the moment: `visibility` is declared,
+        # so the only way to stop being face down is to be somewhere else.
+        #
+        # They would share a rect if they could -- the two are never both
+        # occupied, so the reveal would be the card turning over where it lay --
+        # but the validator refuses overlapping zones and is right to in general:
+        # nothing in the format says "these two are never open at once". So the
+        # face-down card gets the free strip down the right edge instead, and
+        # the reveal is a slide to the middle.
+        {"key": "commit", "label": "Face down", "layout": "grid", "grid": [1, 1],
+         "copies": "per_seat", "visibility": "owner",
+         "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played.",
+         "pos": [P(0.915, 0.520, 0.995, 0.775), P(0.915, 0.215, 0.995, 0.470)]},
         {"key": "battle", "label": "Battle", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat",
          "pos": [P(0.435, 0.575, 0.565, 0.785), P(0.435, 0.215, 0.565, 0.425)]},
@@ -1091,19 +1106,25 @@ def phases():
                      "each_seat:activate_zone:weather_now:by_column:wx"],
          "next": [{"then": "play_1"}]},
 
-        # Both players play face down and reveal together. Hot-seat cannot hide
-        # the first card from the second player -- see the gaps note.
+        # Both players play face down, then reveal together. The card goes to
+        # `commit`, which only its own seat may read, so the second player
+        # chooses without seeing the first card -- really, over the network;
+        # only on the screen, in hot-seat, where the other player watched the
+        # click. See the gaps note.
         {"key": "play_1", "type": "player_input", "seat": "next",
          "label": "Play a card face down", "zone": ["hand", "wizard", "controls"],
-         "ends_when": "count:spell@mine.battle >= 1",
+         "ends_when": "count:spell@mine.commit >= 1",
          "next": [{"then": "play_2"}]},
         {"key": "play_2", "type": "player_input", "seat": "next",
          "label": "Play a card face down", "zone": ["hand", "wizard", "controls"],
-         "ends_when": "count:spell@mine.battle >= 1",
+         "ends_when": "count:spell@mine.commit >= 1",
          "next": [{"then": "showdown"}]},
 
+        # This move is the reveal, and it has to come before anything that reads
+        # the two cards against each other: countering asks about `enemy.battle`.
         {"key": "showdown", "type": "automatic",
-         "actions": ["each_seat:activate_zone:rules:by_column:check",
+         "actions": ["each_seat:move:mine.commit:mine.battle",
+                     "each_seat:activate_zone:rules:by_column:check",
                      "each_seat:activate_zone:weather_now:by_column:wy"],
          "next": [{"then": "resolve_1"}]},
 

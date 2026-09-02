@@ -9,23 +9,38 @@ Nothing here is a bug to be fixed in the game file. Each is either a shape the
 engine has no word for (AUTHORING.md §3, *Rules that do not fit*) or a rule that
 would need an engine change to express.
 
-## Structural — the four that change how the game feels
+## Structural — the ones that change how the game feels
 
-### 1. Nothing is simultaneous, and hot-seat hides nothing
+### 1. The turns are sequential, but the card really is face down
 
 Spellstorm's core beat is *both players play a card face down, then reveal
-together*. The engine is strictly one action at a time and both hands live on
-the same screen, so `play_1` and `play_2` are sequential and the second player
-can see what the first played.
+together*. The engine is strictly one action at a time, so `play_1` and `play_2`
+are sequential and always will be.
 
-This is the one deviation that changes strategy rather than detail: the second
-player is playing with perfect information about the reveal. **Over a network
-the two hands are still in one shared state**, so it is not fixed by playing
-remotely either.
+**What is no longer given away is the card.** A played card goes to `commit` —
+per-seat, `visibility: "owner"` — and the showdown's first action,
+`each_seat:move:mine.commit:mine.battle`, is the reveal. Only then do countering
+and every "revealed this round" condition have anything to read. Over the
+network that closes the gap outright: each client renders as the seat it claimed
+(`net.claim_seat` sets `zones.viewer`), so the second player chooses against a
+card back. It hides rather than protects — the whole state is on both machines,
+which is true of the hands too and is the engine's stated position on trust
+(DESIGN.md, *Trust*) — but it is the same standard the rest of the game already
+holds to.
 
-The rest of the round is faithful: the cards do sit face down in their battle
-spots until the `showdown` phase, countering is checked across both spots at
-once, and resolution follows the Initiative Tracker.
+In hot-seat it is worth less, and honestly so: the card is drawn face down, but
+the other player was sitting there and watched the click. No arrangement of
+phases fixes that one.
+
+Two zones rather than one because `visibility` is declared on a place, not
+performed by an action — so the only way for a card to stop being face down is
+to be somewhere else. They would have shared a rect, since neither is ever
+occupied while the other is, but the validator refuses overlapping zones and is
+right to: nothing in the format can say "these two are never open at once". The
+face-down card takes the free strip down the right edge instead.
+
+The rest of the round was always faithful: countering is checked across both
+spots at once, and resolution follows the Initiative Tracker.
 
 ### 2. Ultimates are used when you play, not when you resolve
 
