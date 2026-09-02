@@ -13,6 +13,51 @@ built whole carries a `DEV:` line in its own tooltip saying exactly what is
 missing, and a test asserts the shape. A table in this file would drift from it
 within a commit.
 
+## Open, from playing it
+
+**Buying is gated at one chip a turn, and it should not be.** *From `todo.md`:
+"Per the rules it is legal to buy multiple chips per round, not just one."* The
+`for_sale` ability costs `buys@mine.player: 1` and the buy phase opens by setting
+`buys` to 1 (`make_puzzle_strike.py:1034`, `:2229`), so the second purchase is
+refused however much money is on the table. Nothing else needs building: money is
+already computed fresh each turn and spent down, and *End turn* already costs
+`bought@mine.player: 1`, which is the "must buy at least one" half of the rule
+enforced from the other side. Dropping the `buys` cost is the whole change.
+
+**And `buys` was never a resource — that was a transcription error.** Always in
+Control does not read "+2 buys". The chip reads *"Main: +2 piggy. At the end of
+the turn, +draw for each of these pigs you used. React: Become immune to a Red
+Attack Chip."* — piggy bank keeps, not purchases. So nothing in the box argues
+for a buy ceiling, and the rule is settled: **buy as many chips as you can
+afford, and at least one — a Wound if you are broke.** Three changes, and the
+chip's own text is one of them:
+
+- drop `buys@mine.player: 1` from the `for_sale` cost, and stop setting `buys` at
+  the top of the buy phase;
+- fix Always in Control to grant piggy-bank keeps and draw per pig used, and
+  re-check its `DEV:` line — "nothing counts how many of a particular grant were
+  spent" is still true, but of pigs rather than of buys;
+- keep *End turn* costing `bought@mine.player: 1`, which is the "at least one"
+  half already enforced from the other side, and which is the button that ends
+  the buy phase now that the phase no longer ends itself when the single buy is
+  spent.
+
+Check `stat_set:buys` at every other site before deleting the stat —
+`make_puzzle_strike.py` writes it in seven places, and Mix-Master is one of them.
+
+**The kept-back zone should be called "piggybank".** One rename in the generator
+and its zone key; the rules call the whole option the *Piggy Bank* and the file
+calls the zone something else, which is the one place a reader has to translate.
+
+**Its two visual complaints are [07](07-presentation.md)'s**, not this track's:
+buttons too small (a card cannot fill its zone outside a grid), the stat readout
+printed over a gem pile, and the fifty-one-plate draft wanting a layout. All
+three are written up there.
+
+**Where a trashed chip goes is [28](28-a-zone-by-its-parts.md)'s.** The bank
+should be the default destination for a destroyed card, so Bubble Shield taking a
+gem off a pile needs no rule naming the bank.
+
 ## The research verdict, and how it held
 
 The gap pass predicted **one** real structural gap — counter-crashing, a chip

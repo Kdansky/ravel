@@ -1,8 +1,8 @@
 # 07 — Presentation and the gestures on top of it
 
-**Gaps 1–6 and 8 shipped. Gap 7 is half shipped and is the only open thing
-here.** Every item is something a player sees or does, not something the engine
-computes.
+**Gaps 1–6 and 8 shipped. Gap 7 is half shipped, and three more arrived from
+Puzzle Strike.** Every item is something a player sees or does, not something the
+engine computes.
 
 ## Still open — where a game puts its buttons
 
@@ -49,6 +49,75 @@ it, and undo does not know about it.
 the right shape; the complaint is where the card sits. *Not a per-seat question*:
 LoR's controls are per seat because each seat passes and attacks, chess's *Save*
 is neither seat's, and a named region must keep working for both.
+
+## Shipped — a card that fills the zone it is in
+
+`fit: "fill"` existed and was read on the grid branch of `card_places` and
+nowhere else, so every button in the corpus was a portrait card floating in a
+wide rect. It is read everywhere now, and `AUTHORING.md` and `SCHEMA.json` say
+so where the field is listed. **A filled row has no card ratio to lay out
+against**, so the column search needed a different question: every count tiles
+the same area, and the cells closest to square is what settles it.
+
+**It does not fix Puzzle Strike's buttons, and the measurement is the finding.**
+Its five controls are ~28px wide because the zone is 179×46px — the only gap the
+right column has, bracketed by the two gem piles above and below and the stashes
+to the left, every one of which the validator measures against. Filling gains
+about a quarter of the width and the whole of the height, and "End turn" still
+does not fit. **Five readable buttons need somewhere else to stand**, which is
+gap 7 above and not this.
+
+## Still open — where the numbers are read, and whether zeros are read at all
+
+*From `todo.md`: "The stats on the top right are overlaid over one player's gem
+pile. That isn't very nice. It would be better if we could assign the stats
+window to any zone and it would be displayed there. In this case this would work
+perfectly for "played this turn" if right-aligned. Also it should not show 0
+values (this should be a toggleable feature of whether we want to show 0
+values)."*
+
+`draw_stats` is hard-anchored: `x = W - 10 * S`, `y = 10 * S`, rows down the
+right edge (`render.lua:1285`). Nothing in a game file can move it, so any game
+whose layout uses its top-right corner has the readout printed over the top of
+that corner — which is the same complaint gap 7 makes about buttons, one level
+up: **the chrome has no vocabulary and the games have the whole window.**
+
+Two halves, and they are independent:
+
+- **A place.** [Assumption: the spelling is a zone naming itself as the
+  readout's home rather than the readout naming a zone — a zone already knows its
+  rect, its seat and whether it is drawn, and a top-level `stats_at: "<zone>"`
+  would be a second place to keep a zone key in step.] Either way it wants
+  consent on the word before it exists. The drawing is the easy half:
+  `draw_stats` already computes every row's width for `stat_hud`, so right-
+  aligning inside a rect instead of inside the window is a changed `x` and a
+  changed `y`, not a changed function. **Careful with `stat_pos`** — floating
+  deltas read `stat_hud` for where a number lives, and its fallback is the
+  top-right corner in pixels.
+- **Zeros.** `badge_zeros: false` already exists and is *per style*, deciding
+  whether a card's badge draws a zero. The HUD is the same question at the other
+  end of the screen and has no answer at all. [Assumption: it wants the same
+  spelling and the same default — visible unless the game says otherwise — and
+  belongs beside whatever names the place, not on each stat def, since "do not
+  show me empty rows" is one preference about a readout and not forty
+  statements about forty numbers.] The `hidden` tag on a stat def is the
+  neighbouring word and is a different one: `hidden` means never, this means not
+  while it is nothing.
+
+## Still open — an offer of fifty-one
+
+*From `todo.md`: "The bank draft screen shows all fifty-one plates in one offer,
+which is a lot of cards at once. It works, but it wants a layout of its own."*
+
+The hand branch's row/column search already keeps every card readable by adding
+rows rather than shrinking cards, so fifty-one plates *fit*; what they do not do
+is read as a thing you choose from. [Assumption: what is wanted is not a new
+layout algorithm but the `page` layout the seven fields already reserve
+(`layout: "page"` in [28](28-a-zone-by-its-parts.md)) actually doing something —
+a fixed grid with a next/previous, so an offer is a page of twelve rather than a
+wall of fifty-one.] Worth confirming against the screenshot harness before
+building anything: the draft may only look bad because the two draft buttons in
+the same row are 23px squares, which is the gap above and not this one.
 
 ## What shipped, and what each cost to find
 
