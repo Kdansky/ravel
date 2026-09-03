@@ -147,6 +147,7 @@
     { "key": "picked", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "took", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "toxic", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "doubled", "min": 0, "max": 1, "tags": ["hidden"], "on": ["player"], "start": 0 },
     {
       "key": "battle_round",
       "min": 0,
@@ -649,7 +650,10 @@
     {
       "key": "aftermath",
       "type": "automatic",
-      "actions": ["each_seat:activate_zone:weather_now:by_column:wz"],
+      "actions": [
+        "each_seat:activate_zone:weather_now:by_column:wz",
+        "each_seat:activate_zone:rules:by_column:round_close"
+      ],
       "next": [{ "then": "round_end" }]
     },
     {
@@ -1381,12 +1385,16 @@
       "text": "Amber",
       "asset": "ss_amber.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "*Power up*. You must gain a card from the *Storm Cloud* at or below your *Tier*. On discard: *power up*.\n\n_The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly._\n\n_[Simplified: the printed card gains twice and is mandatory; here it gains once and may be declined]_",
+      "tooltip": "*Power up*. You must gain two cards from the *Storm Cloud* at or below your *Tier*. On discard: *power up*.\n\n_The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:power@mine.player:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:storm_cloud", "show:storm_cloud"]
+        }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": {
@@ -1744,7 +1752,7 @@
       "text": "Earth Dragon",
       "asset": "ss_earthdragon.jpg",
       "tags": ["earth", "loam", "spell", "dragon", "ult"],
-      "tooltip": "You may gain a card from the *Storm Cloud* at or below your *Tier*. Deal *2 damage*. Gain a *Storm Shard*. Your opponent gains an *ASH*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Earth Dragons are known to hoard massive amounts of treasure in caves._\n\n_[Simplified: the printed card gains twice; here it gains once]_",
+      "tooltip": "You may gain two cards from the *Storm Cloud* at or below your *Tier*. Deal *2 damage*. Gain a *Storm Shard*. Your opponent gains an *ASH*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Earth Dragons are known to hoard massive amounts of treasure in caves._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1759,7 +1767,11 @@
             "draw_from:ash_pile:enemy.discard:1"
           ]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:storm_cloud:optional", "show:storm_cloud:optional"]
+        }
       ],
       "chosen": {
         "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
@@ -2317,7 +2329,7 @@
       "text": "Potion Gun",
       "asset": "ss_oren_potion.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "Deal *1 damage*. You may give a card from your hand to your opponent's hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Think I can hit that old barrel by the hill over there?\"_\n\n_[Simplified: which Element the given card matches is not read, so no Element is gained]_",
+      "tooltip": "Deal *1 damage*. You may give a non-Wizard card from your hand to your opponent. If you do, gain 2 of the Element matching it.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Think I can hit that old barrel by the hill over there?\"_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2325,14 +2337,22 @@
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:enemy.hand"] }
+      "chosen": {
+        "action": [
+          "stat_gain:fire_el@mine.player:count:fire@options:x:2",
+          "stat_gain:earth_el@mine.player:count:earth@options:x:2",
+          "stat_gain:water_el@mine.player:count:water@options:x:2",
+          "move_target_to:enemy.hand"
+        ],
+        "where": ["count:wizard_spell@target <= 0"]
+      }
     },
     {
       "key": "oren_unstable",
       "text": "Unstable Formula",
       "asset": "ss_oren_unstable.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "*Power up* and gain *1 mana*. If anyone revealed *Water*, *power up* again.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"_\n\n_[Simplified: choosing which Element to lower and which to raise is not offered]_",
+      "tooltip": "*Power up* and gain *1 mana*. Lower one Element by 2 to raise another by 2. If anyone revealed *Water*, gain 1 *Earth* Element.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2346,7 +2366,14 @@
           "key": "cast2",
           "text": "Resolve",
           "when": ["count:water@battle >= 1"],
-          "action": ["stat_gain:power@mine.player:1"]
+          "action": ["stat_gain:earth_el@mine.player:1"]
+        },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": [
+            "options:pour_fire_earth,pour_fire_water,pour_earth_fire,pour_earth_water,pour_water_fire,pour_water_earth:optional"
+          ]
         }
       ]
     },
@@ -2355,7 +2382,7 @@
       "text": "May Danaris",
       "asset": "ss_may.jpg",
       "tags": ["wizard_card", "may"],
-      "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a card from the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 12*, *Initiative rating 4*.\n\n_[Simplified: Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented]_",
+      "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a card from the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 12*, *Initiative rating 4*.",
       "reactions": [
         {
           "to": "resolving",
@@ -2363,6 +2390,14 @@
           "from": "wizard",
           "cost": { "mana@mine.player": 6 },
           "action": ["stat_gain:energy@mine.player:3", "show:void:optional"]
+        },
+        {
+          "to": "round_over",
+          "whose": "mine",
+          "from": "wizard",
+          "cost": { "energy@mine.player": 1, "mana@mine.player": 1 },
+          "when": ["tier_req@enemy.battle == 2"],
+          "action": ["copy:enemy.battle:activate"]
         }
       ],
       "chosen": { "action": ["copy:target:activate", "move_target_to:spellstorm_deck:bottom"] }
@@ -2796,6 +2831,8 @@
         "action": [
           "activate_zone:reveal:by_column:sip",
           "activate_zone:reveal:by_column:sip2",
+          "activate_zone:reveal:by_column:again",
+          "activate_zone:reveal:by_column:again2",
           "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
@@ -2814,6 +2851,28 @@
             "stat_set:initiative@mine.player:1",
             "stat_set:initiative@enemy.player:0"
           ]
+        },
+        {
+          "key": "again",
+          "when": [
+            "fire_el@mine.player >= 1",
+            "doubled@mine.player >= 1",
+            "initiative@mine.player >= 1"
+          ],
+          "action": ["stat_damage:health@enemy.player:1", "stat_set:doubled@mine.player:0"]
+        },
+        {
+          "key": "again2",
+          "when": [
+            "fire_el@mine.player >= 1",
+            "doubled@mine.player >= 1",
+            "initiative@mine.player <= 0"
+          ],
+          "action": [
+            "stat_set:initiative@mine.player:1",
+            "stat_set:initiative@enemy.player:0",
+            "stat_set:doubled@mine.player:0"
+          ]
         }
       ]
     },
@@ -2828,6 +2887,7 @@
         "action": [
           "stat_gain:toxic@mine.player:1",
           "activate_zone:reveal:by_column:sip",
+          "activate_zone:reveal:by_column:again",
           "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
@@ -2841,6 +2901,16 @@
             "stat_gain:power@mine.player:1",
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1"
+          ]
+        },
+        {
+          "key": "again",
+          "when": ["fire_el@mine.player >= 2", "doubled@mine.player >= 1"],
+          "action": [
+            "stat_gain:power@mine.player:1",
+            "stat_gain:mana@mine.player:1",
+            "stat_gain:mana@mine.player:1",
+            "stat_set:doubled@mine.player:0"
           ]
         }
       ]
@@ -2856,6 +2926,7 @@
         "action": [
           "stat_gain:toxic@mine.player:1",
           "activate_zone:reveal:by_column:sip",
+          "activate_zone:reveal:by_column:again",
           "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
@@ -2871,6 +2942,17 @@
             "stat_gain:earth_el@mine.player:1",
             "stat_gain:water_el@mine.player:1"
           ]
+        },
+        {
+          "key": "again",
+          "when": ["fire_el@mine.player >= 3", "doubled@mine.player >= 1"],
+          "action": [
+            "stat_damage:health@enemy.player:1",
+            "stat_gain:fire_el@mine.player:1",
+            "stat_gain:earth_el@mine.player:1",
+            "stat_gain:water_el@mine.player:1",
+            "stat_set:doubled@mine.player:0"
+          ]
         }
       ]
     },
@@ -2885,6 +2967,7 @@
         "action": [
           "stat_gain:toxic@mine.player:1",
           "activate_zone:reveal:by_column:sip",
+          "activate_zone:reveal:by_column:again",
           "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
@@ -2899,6 +2982,16 @@
             "activate_zone:rules:by_column:dry_give_ash",
             "draw_from:ash_pile:enemy.discard:1"
           ]
+        },
+        {
+          "key": "again",
+          "when": ["earth_el@mine.player >= 1", "doubled@mine.player >= 1"],
+          "action": [
+            "stat_gain:power@mine.player:1",
+            "activate_zone:rules:by_column:dry_give_ash",
+            "draw_from:ash_pile:enemy.discard:1",
+            "stat_set:doubled@mine.player:0"
+          ]
         }
       ]
     },
@@ -2908,7 +3001,7 @@
       "tags": ["potion"],
       "asset": "ss_oren6.jpg",
       "story": "I Think I Just Drank Gasoline\n\n*Earth* 2 - TOXIC. Take *1 damage*. Your next potion happens twice, and you pay its cost once.",
-      "tooltip": "*Earth* 2 - TOXIC. Take *1 damage*. Your next potion happens twice, and you pay its cost once.\n\n_[Simplified: the next potion is not doubled]_",
+      "tooltip": "*Earth* 2 - TOXIC. Take *1 damage*. Your next potion happens twice, and you pay its cost once.",
       "play": {
         "action": [
           "stat_gain:toxic@mine.player:1",
@@ -2921,7 +3014,11 @@
         {
           "key": "sip",
           "when": ["earth_el@mine.player >= 2"],
-          "action": ["stat_damage:earth_el@mine.player:2", "stat_damage:health@mine.player:1"]
+          "action": [
+            "stat_damage:earth_el@mine.player:2",
+            "stat_damage:health@mine.player:1",
+            "stat_set:doubled@mine.player:1"
+          ]
         }
       ]
     },
@@ -2931,10 +3028,11 @@
       "tags": ["potion"],
       "asset": "ss_oren4.jpg",
       "story": "Dragon Elixir\n\n*Earth* 4. Resolve the top card of the Dragon Deck.",
-      "tooltip": "*Earth* 4. Resolve the top card of the Dragon Deck.\n\n_[Simplified: the Dragon is gained rather than resolved]_",
+      "tooltip": "*Earth* 4. Resolve the top card of the Dragon Deck.",
       "play": {
         "action": [
           "activate_zone:reveal:by_column:sip",
+          "activate_zone:reveal:by_column:again",
           "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
@@ -2946,7 +3044,16 @@
           "action": [
             "stat_damage:earth_el@mine.player:4",
             "activate_zone:rules:by_column:dry_dragon",
-            "draw_from:dragon_deck:mine.hand:1"
+            "copy:dragon_deck:activate"
+          ]
+        },
+        {
+          "key": "again",
+          "when": ["earth_el@mine.player >= 4", "doubled@mine.player >= 1"],
+          "action": [
+            "activate_zone:rules:by_column:dry_dragon",
+            "copy:dragon_deck:activate",
+            "stat_set:doubled@mine.player:0"
           ]
         }
       ]
@@ -2961,6 +3068,7 @@
       "play": {
         "action": [
           "activate_zone:reveal:by_column:sip",
+          "activate_zone:reveal:by_column:again",
           "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
@@ -2975,6 +3083,16 @@
             "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1"
           ]
+        },
+        {
+          "key": "again",
+          "when": ["water_el@mine.player >= 2", "doubled@mine.player >= 1"],
+          "action": [
+            "stat_damage:mana@enemy.player:1",
+            "activate_zone:rules:by_column:dry_give_ice",
+            "draw_from:ice_pile:enemy.discard:1",
+            "stat_set:doubled@mine.player:0"
+          ]
         }
       ]
     },
@@ -2988,6 +3106,7 @@
       "play": {
         "action": [
           "activate_zone:reveal:by_column:sip",
+          "activate_zone:reveal:by_column:again",
           "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
@@ -3000,6 +3119,15 @@
             "stat_damage:water_el@mine.player:3",
             "draw_from:mine.deck:mine.hand:1",
             "stat_gain:power@mine.player:1"
+          ]
+        },
+        {
+          "key": "again",
+          "when": ["water_el@mine.player >= 3", "doubled@mine.player >= 1"],
+          "action": [
+            "draw_from:mine.deck:mine.hand:1",
+            "stat_gain:power@mine.player:1",
+            "stat_set:doubled@mine.player:0"
           ]
         }
       ]
@@ -3015,6 +3143,7 @@
         "action": [
           "stat_gain:toxic@mine.player:1",
           "activate_zone:reveal:by_column:sip",
+          "activate_zone:reveal:by_column:again",
           "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
@@ -3024,6 +3153,101 @@
           "key": "sip",
           "when": ["water_el@mine.player >= 4"],
           "action": ["stat_damage:water_el@mine.player:4", "stat_gain:health@mine.player:2"]
+        },
+        {
+          "key": "again",
+          "when": ["water_el@mine.player >= 4", "doubled@mine.player >= 1"],
+          "action": ["stat_gain:health@mine.player:2", "stat_set:doubled@mine.player:0"]
+        }
+      ]
+    },
+    {
+      "key": "pour_fire_earth",
+      "text": "Fire down, Earth up",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Lower your *Fire* beaker by 2 to raise your *Earth* beaker by 2. Nothing happens if *Fire* is below 2.",
+      "play": { "action": ["activate_zone:options:by_column:pour"] },
+      "abilities": [
+        {
+          "key": "pour",
+          "when": ["fire_el@mine.player >= 2"],
+          "action": ["stat_damage:fire_el@mine.player:2", "stat_gain:earth_el@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "pour_fire_water",
+      "text": "Fire down, Water up",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Lower your *Fire* beaker by 2 to raise your *Water* beaker by 2. Nothing happens if *Fire* is below 2.",
+      "play": { "action": ["activate_zone:options:by_column:pour"] },
+      "abilities": [
+        {
+          "key": "pour",
+          "when": ["fire_el@mine.player >= 2"],
+          "action": ["stat_damage:fire_el@mine.player:2", "stat_gain:water_el@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "pour_earth_fire",
+      "text": "Earth down, Fire up",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Lower your *Earth* beaker by 2 to raise your *Fire* beaker by 2. Nothing happens if *Earth* is below 2.",
+      "play": { "action": ["activate_zone:options:by_column:pour"] },
+      "abilities": [
+        {
+          "key": "pour",
+          "when": ["earth_el@mine.player >= 2"],
+          "action": ["stat_damage:earth_el@mine.player:2", "stat_gain:fire_el@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "pour_earth_water",
+      "text": "Earth down, Water up",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Lower your *Earth* beaker by 2 to raise your *Water* beaker by 2. Nothing happens if *Earth* is below 2.",
+      "play": { "action": ["activate_zone:options:by_column:pour"] },
+      "abilities": [
+        {
+          "key": "pour",
+          "when": ["earth_el@mine.player >= 2"],
+          "action": ["stat_damage:earth_el@mine.player:2", "stat_gain:water_el@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "pour_water_fire",
+      "text": "Water down, Fire up",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Lower your *Water* beaker by 2 to raise your *Fire* beaker by 2. Nothing happens if *Water* is below 2.",
+      "play": { "action": ["activate_zone:options:by_column:pour"] },
+      "abilities": [
+        {
+          "key": "pour",
+          "when": ["water_el@mine.player >= 2"],
+          "action": ["stat_damage:water_el@mine.player:2", "stat_gain:fire_el@mine.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "pour_water_earth",
+      "text": "Water down, Earth up",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Lower your *Water* beaker by 2 to raise your *Earth* beaker by 2. Nothing happens if *Water* is below 2.",
+      "play": { "action": ["activate_zone:options:by_column:pour"] },
+      "abilities": [
+        {
+          "key": "pour",
+          "when": ["water_el@mine.player >= 2"],
+          "action": ["stat_damage:water_el@mine.player:2", "stat_gain:earth_el@mine.player:2"]
         }
       ]
     },
@@ -3357,6 +3581,7 @@
             "draw_from:curse_pile:mine.discard:1",
             "activate_zone:rules:by_column:dry_take_ice",
             "draw_from:ice_pile:mine.discard:1",
+            "stat_set:doubled@mine.player:0",
             "stat_set:fire_el@mine.player:3",
             "stat_set:earth_el@mine.player:3",
             "stat_set:water_el@mine.player:3",
@@ -3379,6 +3604,14 @@
           "action": ["stat_gain:doom@mine.player:1"]
         }
       ]
+    },
+    {
+      "key": "r_round_over",
+      "text": "The round is over",
+      "tags": ["immutable"],
+      "tooltip": "The end of a round, said out loud so that a rule which happens then has something to answer.",
+      "asset": "auto",
+      "abilities": [{ "key": "round_close", "action": ["emit:round_over"] }]
     },
     {
       "key": "r_accursed",
@@ -3466,6 +3699,7 @@
       "activate": {
         "phases": ["potion"],
         "action": [
+          "stat_set:doubled@mine.player:0",
           "stat_set:fire_el@mine.player:3",
           "stat_set:earth_el@mine.player:3",
           "stat_set:water_el@mine.player:3",
@@ -3533,6 +3767,7 @@
       { "card": "r_journal_8", "zone": "rules" },
       { "card": "r_potion", "zone": "rules" },
       { "card": "r_doom", "zone": "rules" },
+      { "card": "r_round_over", "zone": "rules" },
       { "card": "r_accursed", "zone": "rules" },
       { "card": "r_topup", "zone": "rules" }
     ]

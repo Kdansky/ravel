@@ -119,8 +119,12 @@ and a phase's own action list are the only automatic hooks.
 - **Bunny Wizard — *Double Stitch* / *Triple Stitch!*** ("heal past your starting
   health to 10; draw for each point of wasted healing"). His ceiling is simply 10
   from the start, so the overheal draw never fires.
-- **May Danaris — *Dangerous Download*** (spend Energy and a mana at the end of a
-  round to resolve an opponent's revealed Tier II card) is not implemented.
+- **May Danaris — *Dangerous Download*** is done, and was never a passive. "At
+  the end of a round, May may lose 1 Energy and 1 mana; if she did, she may
+  resolve another player's revealed Tier II card" is a thing a player may do, at
+  a cost, at a named moment — which is a reaction. The moment is the round
+  saying out loud that it is over, in the `aftermath` phase, while the revealed
+  cards are still in the battle spots.
 
 ## Wizard components not implemented
 
@@ -137,11 +141,13 @@ states that grant them. What each still rounds off is below.
 
 ## Rules simplified
 
-- **"Gain twice" gains once** (Amber, Earth Dragon, Abragail's *New Curriculum*):
-  one card has one `chosen` block. **The offer queue closed this and nobody
-  noticed** — two `show:` lines on one card queue two questions and both run that
-  card's `chosen`, which is measured. Amber is also mandatory in print and
-  optional here, which is the other half of it.
+- **~~"Gain twice" gains once~~** — done. The offer queue had closed it without
+  anybody noticing: two `show:` lines on one card queue two questions and both
+  run that card's `chosen`. *Amber* gains twice and, alone in the box, may not
+  decline either — the rulebook's one MUST. *Earth Dragon* gains twice.
+  *New Curriculum* was never a double gain: it is one `[GAIN]` **and** "VOID up
+  to 2 cards in the Storm Cloud", which are two different fates for a chosen
+  card and a card has one `chosen` block. The VOID is what is missing there.
 - **Ruby** deals a flat 1 damage. "1 damage per Fire card discarded" needs to
   count what was *just* discarded, and nothing names that set.
 - **Diamond** discards the first three cards in hand rather than three of your
@@ -154,11 +160,17 @@ states that grant them. What each still rounds off is below.
   Token *on a space of your choice*; here it is a count, so the eight spaces come
   on 1, 2, 3… in order. All eight work, including the three that ask a question,
   which get a phase each — an offer is one at a time.
-- **Three of Oren's cards still round off.** *I Think I Just Drank Gasoline*
-  takes the damage but does not double the next potion; *Dragon Elixir* gains the
-  Dragon rather than resolving it; *Potion Gun* gives the card but does not read
-  which Element it matched; and *Unstable Formula* does not offer which beaker to
-  lower and which to raise. The costs, the TOXIC count and the loop are exact.
+- **Oren is exact but for one corner.** *I Think I Just Drank Gasoline* doubles
+  the next potion — the one card in the game that reaches forward to the next,
+  which it does with a flag it sets and the next potion spends. *Dragon Elixir*
+  resolves the top Dragon where it lies rather than gaining it. *Potion Gun*
+  reads which Element the given card matched, by counting the pick in the offer
+  it is still lying in, and will not give away a Wizard Spell Card.
+  *Unstable Formula* offers all six ways to pour one beaker into another — but a
+  beaker holding less than 2 cannot pour 2, and **an offered card's own `needs`
+  is not read** (below), so that rule is an ability on the entry instead: the
+  pour is offered, and picking it spends the choice and does nothing. The card
+  says so on its face.
 - **How many potions are TOXIC is unsettled in the source.** The transcription's
   prose says six of nine and its table marks five; the table is what is followed
   (`07-wizards.md`). Worth a look at the printed cards.
@@ -222,7 +234,14 @@ Worth weighing against `todo.md` rather than working around again:
 3. **An offer cannot be narrowed by a condition on the offered cards** the way a
    `target` spec can with `where`. `chosen.where` exists and gates what may be
    *taken*, but the cards still all show, and it cannot be written per-offer.
-4. **A `chosen` action cannot ask what it was handed.** `move_target_to:` names
+4. **An `options:` entry's own `needs` is not read.** `flow.can_play` answers
+   `pickable()` for anything lying in an offer, and `pickable` only asks the
+   *asker's* `chosen.where` — which the schema says does not cover a dealt entry,
+   since "narrowing a list you wrote is writing a shorter list". So an entry that
+   carries its own rule has nowhere to put it, and Oren's pours put theirs in an
+   ability. One line in `pickable`: a dealt entry falls through to its `needs`.
+   The same fault as 1, in the other half of the offer.
+5. **A `chosen` action cannot ask what it was handed.** `move_target_to:` names
    one destination, and a rule whose destination depends on the pick has to name
    the offer zone and move by tag — three lines, two of which find nothing (see
    *Soothing Rain*, and AUTHORING §*Routing the pick by what it is*). The word it

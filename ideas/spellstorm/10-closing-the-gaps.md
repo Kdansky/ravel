@@ -323,12 +323,18 @@ Three keep their own rule and are untouched: the Essences say "any Tier I or II"
 Meteorite says "regardless of tier", and Mana Font and Deep Gems VOID rather than
 gain.
 
-### C2. "Gain twice" gains once (Amber, Earth Dragon, Abragail)
+### C2. ~~"Gain twice" gains once~~ — done (Amber, Earth Dragon)
 
-**Proposal — a list of `chosen` blocks rather than one**, run in order, or a
-`times` on the block. The second reads better and stays one block.
+The proposal here was a `times` on the `chosen` block, and it was never needed.
+The offer queue had already closed this: **two `show:` lines on one card are two
+questions**, held one at a time, and both come back to the same `chosen`. Amber
+gains twice and may decline neither — the rulebook's one MUST. Earth Dragon gains
+twice.
 
-**Size:** small.
+Abragail's *New Curriculum* was miscounted here from the start. It is one
+`[GAIN]` **and** "VOID up to 2 cards in the Storm Cloud" — two different fates
+for a chosen card, and a card has one `chosen` block. That one wants a `chosen`
+per offer, which is C1's shape rather than this one's.
 
 ### C3. Diamond discards the first three rather than three of your choosing
 
@@ -571,7 +577,8 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 | | Item | Size | Why here |
 |---|---|---|---|
 | 1 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
-| 2 | C2, C3, D2, D3 | small each | one card or three apiece |
-| 3 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
-| — | A1, A2, A3, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
+| 2 | C3, D2, D3 | small each | one card or three apiece |
+| 3 | **An offered card's own `needs`** | one line | `pickable` answers for every card in an offer and only asks the asker's `chosen.where`; a dealt entry should fall through to its `needs`. Oren's pours want it, and it is the same fault as F-the-zone-granted-play in the other half of the offer |
+| 4 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
+| — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |

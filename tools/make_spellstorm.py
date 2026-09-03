@@ -73,6 +73,10 @@ DISCARD_RANDOM = lambda who: "move:random.%s.hand:%s.discard" % (who, who)
 # the card that was on the shelf rather than a copy of it; the `chosen` block on
 # each card says where its pick lands and refills the shelf behind it.
 OFFER_CLOUD = "show:storm_cloud:optional"
+# The same shelf, with no way out of the question. `[GAIN]` is optional wherever
+# the rulebook does not say MUST, which is everywhere but Amber. An offer where
+# nothing qualifies still does not open, so "must" cannot ask the impossible.
+MUST_GAIN   = "show:storm_cloud"
 OFFER_HAND  = "show:mine.hand:optional"
 
 # The same two, narrowed to one kind of card. `<zone>.<tag>` is the engine's word
@@ -297,11 +301,12 @@ SPELLS = [
                "draw_from:enemy.deck:enemy.hand:4"]),
 
     # Earth
+    # Two questions from one card, which the offer queue holds one at a time --
+    # and the only [GAIN] in the box that says MUST, so neither may be declined.
     card("amber", "Amber", EARTH, tier=1,
-         tooltip="Power up. You must gain a card from the Storm Cloud at or below your Tier. On discard: power up.",
+         tooltip="Power up. You must gain two cards from the Storm Cloud at or below your Tier. On discard: power up.",
          flavour="The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly.",
-         simplified="the printed card gains twice and is mandatory; here it gains once and may be declined",
-         cast=[POWER, OFFER_CLOUD], chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER]),
+         cast=[POWER, MUST_GAIN, MUST_GAIN], chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER]),
     card("bloodstone", "Bloodstone", EARTH, tier=1,
          tooltip="Gain 1 mana. Take 1 damage. You may VOID a card from your hand. On discard: gain 1 mana.",
          flavour='"It\'s best to leave gems that you find in the wild alone, unless you really know what you\'re doing." - Abragail',
@@ -404,10 +409,9 @@ DRAGONS = [
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
          cast=[DMG(3), SHARD(1)]),
     card("earthdragon", "Earth Dragon", EARTH, tier=4, kind="dragon", ult=True,
-         tooltip="You may gain a card from the Storm Cloud at or below your Tier. Deal 2 damage. Gain a Storm Shard. Your opponent gains an ASH.",
+         tooltip="You may gain two cards from the Storm Cloud at or below your Tier. Deal 2 damage. Gain a Storm Shard. Your opponent gains an ASH.",
          flavour="The Earth Dragons are known to hoard massive amounts of treasure in caves.",
-         simplified="the printed card gains twice; here it gains once",
-         cast=[DMG(2), SHARD(1)] + GIVE("ash") + [OFFER_CLOUD],
+         cast=[DMG(2), SHARD(1)] + GIVE("ash") + [OFFER_CLOUD, OFFER_CLOUD],
          chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER),
 ]
 
@@ -529,6 +533,30 @@ WEATHER_RIDERS = {
     "strange_weather": [(HAS_INIT, ["draw_from:weather_calm:weather_discard:1"])],
 }
 
+# Oren's Chemistry Board holds three beakers, and *Unstable Formula* pours two
+# out of one into another. Which pair is the player's to choose, so the six pairs
+# are dealt as an offer -- and each entry carries its own rule, which is what an
+# `options:` entry is for: the beaker has to hold two before it can lose two.
+SWAPS = [(a, b) for a in (FIRE, EARTH, WATER) for b in (FIRE, EARTH, WATER) if a != b]
+OFFER_SWAP = "options:" + ",".join("pour_%s_%s" % (a, b) for a, b in SWAPS) + ":optional"
+
+
+def swap_templates():
+    # The pouring is an ability rather than the play itself, because a beaker
+    # with less than two in it cannot pour two -- and an ability's `when` is read
+    # where an offered card's `needs` is not. So an entry that cannot be poured
+    # is offered and does nothing, which the card says on its face.
+    return [{"key": "pour_%s_%s" % (a, b), "text": "%s down, %s up" % (a.title(), b.title()),
+             "tags": ["immutable"], "asset": "auto",
+             "tooltip": "Lower your %s beaker by 2 to raise your %s beaker by 2. "
+                        "Nothing happens if %s is below 2." % (a.title(), b.title(), a.title()),
+             "play": {"action": ["activate_zone:options:by_column:pour"]},
+             "abilities": [ability("pour", ["stat_damage:%s_el@mine.player:2" % a,
+                                            "stat_gain:%s_el@mine.player:2" % b],
+                                   when=["%s_el@mine.player >= 2" % a])]}
+            for a, b in SWAPS]
+
+
 # ---------------------------------------------------------------------------
 # Wizards
 #
@@ -539,13 +567,13 @@ WEATHER_RIDERS = {
 
 def wizard(key, name, epithet, elements, health, rating, ult_cost, ult_name,
            ult_tooltip, ult_action, spells, start=(), ult_chosen=None,
-           simplified=None, blurb=""):
+           passive=None, simplified=None, blurb=""):
     return dict(key=key, name=name, epithet=epithet, elements=elements,
                 health=health, rating=rating, ult_cost=ult_cost,
                 ult_name=ult_name, ult_tooltip=ult_tooltip,
                 ult_action=list(ult_action), ult_chosen=ult_chosen,
-                spells=spells, start=list(start), simplified=simplified,
-                blurb=blurb)
+                passive=passive, spells=spells, start=list(start),
+                simplified=simplified, blurb=blurb)
 
 
 WIZARDS = [
@@ -688,17 +716,36 @@ WIZARDS = [
            blurb="A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.",
            spells=[
                card("oren_potion", "Potion Gun", FIRE, kind="wizard_spell", ult=True,
-                    tooltip="Deal 1 damage. You may give a card from your hand to your opponent's hand.",
+                    tooltip="Deal 1 damage. You may give a non-Wizard card from your hand to your opponent. If you do, gain 2 of the Element matching it.",
                     flavour='"Think I can hit that old barrel by the hill over there?"',
-                    simplified="which Element the given card matches is not read, so no Element is gained",
+                    # "Gain 2 of the Element matching that card" -- and which
+                    # Element that is depends on the pick, so it is read off the
+                    # offer rather than named. The pick is the only card left in
+                    # there while a `chosen` list runs, so `count:fire@options`
+                    # is one if it was a Fire card and nought otherwise; the
+                    # doubling is the amount grammar's product. Before the move,
+                    # because a card in the enemy's hand is no longer in the
+                    # offer to be counted.
                     cast=[DMG(1), OFFER_HAND],
-                    chosen=["move_target_to:enemy.hand"]),
+                    chosen=["stat_gain:fire_el@mine.player:count:fire@options:x:2",
+                            "stat_gain:earth_el@mine.player:count:earth@options:x:2",
+                            "stat_gain:water_el@mine.player:count:water@options:x:2",
+                            "move_target_to:enemy.hand"],
+                    # "A non-Wizard card": a fact about the card, but said as a
+                    # condition rather than a tag because no tag says what a card
+                    # is *not*. The whole hand still comes up, which is right --
+                    # you are looking through it either way.
+                    chosen_where=["count:wizard_spell@target <= 0"]),
+               # Six ways to pour one beaker into another, dealt as an offer of six.
+               # Two questions would read better -- which down, then which up -- but
+               # the second could not leave the first one out, and pouring Fire into
+               # Fire is not a move. So the pairs are the entries, and each says in
+               # its own `needs` whether there is enough in the beaker to pour.
                card("oren_unstable", "Unstable Formula", EARTH, kind="wizard_spell", ult=True,
-                    tooltip="Power up and gain 1 mana. If anyone revealed Water, power up again.",
+                    tooltip="Power up and gain 1 mana. Lower one Element by 2 to raise another by 2. If anyone revealed Water, gain 1 Earth Element.",
                     flavour='"Oh, it\'ll work, trust me. But, uh... you might wanna stand back a bit..."',
-                    simplified="choosing which Element to lower and which to raise is not offered",
-                    cast=[POWER, MANA],
-                    cast2=("count:water@battle >= 1", [POWER])),
+                    cast=[POWER, MANA, OFFER_SWAP],
+                    cast2=("count:water@battle >= 1", ["stat_gain:earth_el@mine.player:1"])),
            ]),
 
     wizard("may", "May Danaris", "Hacker", "Fire, Earth", 12, 4, 6,
@@ -707,7 +754,15 @@ WIZARDS = [
            ["stat_gain:energy@mine.player:3", "show:void:optional"],
            ult_chosen=["copy:target:activate",
                        "move_target_to:spellstorm_deck:bottom"],
-           simplified="Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented",
+           # Dangerous Download: at the end of a round she may spend an Energy
+           # and a mana to resolve the opponent's revealed Tier II card. A thing
+           # a player may do, at a cost, at a moment -- which is a reaction, and
+           # the moment is the round saying it is over. The cards are still in
+           # the battle spots when it does; `round_end` sweeps them a phase later.
+           passive={"to": "round_over", "whose": "mine", "from": "wizard",
+                    "cost": {"energy@mine.player": 1, "mana@mine.player": 1},
+                    "when": ["tier_req@enemy.battle == 2"],
+                    "action": ["copy:enemy.battle:activate"]},
            blurb="A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating.",
            start=["stat_gain:energy@mine.player:2"],
            spells=[
@@ -768,11 +823,15 @@ POTIONS = [
                             "stat_gain:water_el@mine.player:1"]), None),
     ("pot_devils", "Devil's Breath", "Power up. Give an ASH.",
      EARTH, 1, True, (None, [POWER] + GIVE("ash")), None),
+    # The flag the next potion reads. It is set here and spent there, which is
+    # the only way a card in this game reaches forward to the next one.
     ("pot_gasoline", "I Think I Just Drank Gasoline", "Take 1 damage. Your next potion happens twice, and you pay its cost once.",
-     EARTH, 2, True, (None, [SELF_DMG(1)]), None),
+     EARTH, 2, True, (None, [SELF_DMG(1), "stat_set:doubled@mine.player:1"]), None),
+    # Resolve it where it lies: the printed card says resolve, not gain, and
+    # `copy:` is the word for running a card's whole list without taking it.
     ("pot_dragon", "Dragon Elixir", "Resolve the top card of the Dragon Deck.",
      EARTH, 4, False, (None, ["activate_zone:rules:by_column:dry_dragon",
-                              "draw_from:dragon_deck:mine.hand:1"]), None),
+                              "copy:dragon_deck:activate"]), None),
     ("pot_frost", "Frost Bomb", "Your opponent loses 1 mana. Give an ICE.",
      WATER, 2, False, (None, ["stat_damage:mana@enemy.player:1"] + GIVE("ice")), None),
     ("pot_storm", "Storm Juice", "Draw a card and power up.",
@@ -784,7 +843,8 @@ POTIONS = [
 # What ends the Ultimate, whichever way it ends: the beakers go back to 3 and the
 # phase the Ultimate pushed comes off. The pushed phase is on top by now -- a
 # revealed page pops before the card it showed acts -- so this pops the loop.
-POTION_END = ["stat_set:fire_el@mine.player:3",
+POTION_END = ["stat_set:doubled@mine.player:0",
+              "stat_set:fire_el@mine.player:3",
               "stat_set:earth_el@mine.player:3",
               "stat_set:water_el@mine.player:3",
               "stat_set:toxic@mine.player:0",
@@ -932,10 +992,14 @@ def spell_template(c):
     else: stats["tier_req"] = 1
     t["card_stats"] = stats
 
-    asks = [a for a in c["cast"] if a.startswith("show:")]
-    does = [a for a in c["cast"] if not a.startswith("show:")]
-    assert not asks or c["cast"].index(asks[0]) == len(c["cast"]) - 1, \
-        "%s: the offer has to be the last thing its cast does" % c["key"]
+    # An action list has no cursor, so whatever follows an ask runs before the
+    # answer arrives. The asks therefore go at the end -- and there may be more
+    # than one now, since the offer queue holds the second question until the
+    # first is answered. What is not allowed is doing something in between.
+    asks = [a for a in c["cast"] if a.startswith("show:") or a.startswith("options:")]
+    does = [a for a in c["cast"] if a not in asks]
+    assert c["cast"][len(c["cast"]) - len(asks):] == asks, \
+        "%s: the offers have to be the last thing its cast does" % c["key"]
 
     abil = []
     # The [ULT] icon. A phase of its own walks the battle spots for this one
@@ -1005,7 +1069,7 @@ def wizard_templates(w):
                        % (w["epithet"], w["blurb"], w["ult_cost"], w["ult_name"],
                           w["ult_tooltip"], w["health"], w["rating"]),
                        simplified=w["simplified"]),
-        "reactions": [ult],
+        "reactions": [ult] + ([w["passive"]] if w["passive"] else []),
     }
     if w["ult_chosen"]: char["chosen"] = {"action": list(w["ult_chosen"])}
     out.append(char)
@@ -1168,6 +1232,14 @@ def rules_templates():
         [ability("croh_doom", ["stat_gain:doom@mine.player:1"],
                  when=["doom@mine.player <= 0"])]))
 
+    # Somebody has to say the round is over, or nothing can answer it. May's
+    # Dangerous Download is the only thing that does, and a verb no card answers
+    # never opens a window -- so in a game without her this line costs nothing.
+    out.append(rules_card(
+        "r_round_over", "The round is over",
+        "The end of a round, said out loud so that a rule which happens then has something to answer.",
+        [ability("round_close", ["emit:round_over"])]))
+
     # Croh cannot heal: his healing becomes a CURSE for the other seat. This is
     # the closest the engine gets to a passive -- it is a battle-start sweep
     # rather than a rule that intercepts every heal.
@@ -1184,8 +1256,6 @@ def potion_templates():
     for key, name, tooltip, el, cost, toxic, main, other in POTIONS:
         line = "%s %d%s. %s" % (el.title(), cost, " - TOXIC" if toxic else "", tooltip)
         note = None
-        if key == "pot_dragon": note = "the Dragon is gained rather than resolved"
-        if key == "pot_gasoline": note = "the next potion is not doubled"
         t = {"key": key, "text": name, "tags": ["potion"],
              "asset": POTION_ART[key],
              "story": "%s\n\n%s" % (name, line),
@@ -1197,6 +1267,9 @@ def potion_templates():
         # while this runs and that is the zone its own steps are reached through.
         play += ["activate_zone:reveal:by_column:sip"]
         if other: play.append("activate_zone:reveal:by_column:sip2")
+        if key != "pot_gasoline":
+            play.append("activate_zone:reveal:by_column:again")
+            if other: play.append("activate_zone:reveal:by_column:again2")
         play += ["activate_zone:rules:by_column:potion_toxic", "move_to:potion_discard"]
         t["play"] = {"action": play}
 
@@ -1206,6 +1279,18 @@ def potion_templates():
                         when=[afford] + ([main[0]] if main[0] else []))]
         if other:
             abil.append(ability("sip2", pay + list(other[1]), when=[afford, other[0]]))
+        # *I Think I Just Drank Gasoline* doubles the **next** potion, so every
+        # potion but that one carries the second helping: the same effect again
+        # without the cost, and the flag spent in the doing. Gasoline itself is
+        # left out or it would double the damage it takes to set the flag.
+        if key != "pot_gasoline":
+            spend = ["stat_set:doubled@mine.player:0"]
+            abil.append(ability("again", list(main[1]) + spend,
+                                when=[afford, "doubled@mine.player >= 1"]
+                                     + ([main[0]] if main[0] else [])))
+            if other:
+                abil.append(ability("again2", list(other[1]) + spend,
+                                    when=[afford, "doubled@mine.player >= 1", other[0]]))
         t["abilities"] = abil
         out.append(t)
     return out
@@ -1486,12 +1571,14 @@ def phases():
         {"key": "resolve_2", "type": "automatic", "actions": list(RESOLVE),
          "next": [{"then": "aftermath"}]},
 
-        # Both cards have resolved, and this is where the weather gets the last
-        # word. Only Energy Wave uses it, and what it says is "you may cast your
-        # Ultimate" -- so this is a phase for the same reason the announce phases
-        # are: the window it opens has to hold the round behind it.
+        # Both cards have resolved, and this is where whatever happens *then*
+        # happens: the weather's last word (Energy Wave's extra Ultimate) and the
+        # round announcing that it is over (May's Dangerous Download answers it).
+        # Both open windows, so this is a phase for the same reason the announce
+        # phases are -- the window has to hold the rest of the round behind it.
         {"key": "aftermath", "type": "automatic",
-         "actions": ["each_seat:activate_zone:weather_now:by_column:wz"],
+         "actions": ["each_seat:activate_zone:weather_now:by_column:wz",
+                     "each_seat:activate_zone:rules:by_column:round_close"],
          "next": [{"then": "round_end"}]},
 
         {"key": "round_end", "type": "automatic",
@@ -1546,6 +1633,7 @@ def build():
     for w in WEATHER:
         cards.append(weather_template(w))
     cards += potion_templates()
+    cards += swap_templates()
     cards += rules_templates()
 
     # Top-up: three abilities' worth of "draw if you are short", because a
@@ -1671,6 +1759,8 @@ def build():
             {"key": "took", "min": 0, "max": 9, "tags": ["hidden"],
              "on": ["player"], "start": 0},
             {"key": "toxic", "min": 0, "max": 9, "tags": ["hidden"],
+             "on": ["player"], "start": 0},
+            {"key": "doubled", "min": 0, "max": 1, "tags": ["hidden"],
              "on": ["player"], "start": 0},
             {"key": "battle_round", "min": 0, "max": 9, "tags": ["hidden"],
              "on": ["plan"], "start": 0},

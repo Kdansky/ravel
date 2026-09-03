@@ -1185,4 +1185,194 @@ function M.test_spellstorm_energy_wave_opens_an_ultimate_window(check)
 	check("and nothing at all when they cannot pay", #flow.usable_reactions() == 0)
 end
 
+
+-- Amber is the one [GAIN] in the box that says MUST, and it says it twice. Both
+-- halves needed the offer queue: one card asking two questions, and neither of
+-- them declinable.
+function M.test_spellstorm_amber_gains_twice_and_takes_no_for_an_answer(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	local amber = stage_battle(one, "amber")
+	local held = #hand_of(one).cards
+
+	actions.execute("copy:target:activate", { card_id = amber.id, targets = { amber.id } })
+	check("it asks", phase.current().key == "options", phase.current().key)
+	check("and there is no way out of the question", not flow.can_dismiss())
+	local took = 0
+	for _ = 1, 2 do
+		for _, id in ipairs({ unpack(zones.find("options").cards) }) do
+			if flow.can_play(id) then flow.play_card(id, {}); took = took + 1; break end
+		end
+	end
+	check("twice over", took == 2, took)
+	check("and both cards are in hand", #hand_of(one).cards == held + 2,
+		#hand_of(one).cards)
+	check("with the Storm Cloud refilled behind them",
+		#zones.find("storm_cloud").cards == 5, #zones.find("storm_cloud").cards)
+end
+
+
+-- Potion Gun gives a card away and gains 2 of the Element it matched -- which
+-- means reading the pick, and a `chosen` action cannot be told to ask. What it
+-- can do is count: the pick is the only card left in the offer while those
+-- actions run, so "count:fire@options" is one when a Fire card was chosen.
+function M.test_spellstorm_potion_gun_reads_the_element_it_gave_away(check)
+	opening(7, "oren", "derby")
+	local one = "seat_one"
+	become(one)
+	empty_hand(one)
+	local gun  = stage_battle(one, "oren_potion")
+	local ball = find("fireball")
+	zones.move_card(ball.id, hand_of(one).id)
+	local own = find("oren_unstable")
+	zones.move_card(own.id, hand_of(one).id)
+	local fire = seat_card(one).stats.fire_el
+
+	actions.execute("copy:target:activate", { card_id = gun.id, targets = { gun.id } })
+	check("it opens the hand", phase.current().key == "options", phase.current().key)
+	check("a Wizard Spell Card is not one you may give away", not flow.can_play(own.id))
+	check("an ordinary card is", flow.can_play(ball.id))
+
+	flow.play_card(ball.id, {})
+	check("the card went to the opponent",
+		entity.get(ball.id).zone_id == zone_of("hand", "seat_two").id)
+	check("and two Fire came back for it", seat_card(one).stats.fire_el == fire + 2,
+		seat_card(one).stats.fire_el)
+	check("and nothing else moved on the board",
+		seat_card(one).stats.water_el == 3 and seat_card(one).stats.earth_el == 3,
+		seat_card(one).stats.water_el .. "/" .. seat_card(one).stats.earth_el)
+end
+
+
+-- "Lower any one Element by 2 to raise another by 2" is six moves, and the six
+-- are the offer. Each carries its own rule, because a beaker with less than two
+-- in it has nothing to pour.
+function M.test_spellstorm_unstable_formula_pours_one_beaker_into_another(check)
+	opening(7, "oren", "derby")
+	local one = "seat_one"
+	become(one)
+	local card = stage_battle(one, "oren_unstable")
+	seat_card(one).stats.fire_el = 1
+
+	actions.execute("copy:target:activate", { card_id = card.id, targets = { card.id } })
+	check("six pours are offered", #zones.find("options").cards == 6,
+		#zones.find("options").cards)
+	check("and it may be declined", flow.can_dismiss())
+	local dry, wet
+	for _, id in ipairs(zones.find("options").cards) do
+		if entity.get(id).def_key == "pour_fire_earth"  then dry = id end
+		if entity.get(id).def_key == "pour_earth_fire" then wet = id end
+	end
+	-- A beaker below two has nothing to pour, and an offered card's own `needs`
+	-- is not read -- so the rule is an ability on the entry instead, and picking
+	-- that pour spends the choice and does nothing.
+	flow.play_card(dry, {})
+	check("pouring from a beaker with one in it does nothing",
+		seat_card(one).stats.fire_el == 1 and seat_card(one).stats.earth_el == 3,
+		seat_card(one).stats.fire_el .. "/" .. seat_card(one).stats.earth_el)
+
+	seat_card(one).stats.fire_el = 1
+	actions.execute("copy:target:activate", { card_id = card.id, targets = { card.id } })
+	for _, id in ipairs(zones.find("options").cards) do
+		if entity.get(id).def_key == "pour_earth_fire" then wet = id end
+	end
+	flow.play_card(wet, {})
+	check("and pouring from one with three moves the two across",
+		seat_card(one).stats.earth_el == 1 and seat_card(one).stats.fire_el == 3,
+		seat_card(one).stats.earth_el .. "/" .. seat_card(one).stats.fire_el)
+end
+
+
+-- "Your next Potion Card's effect happens twice (pay the cost once)." The only
+-- card in the game that reaches forward to the next one, which it does with a
+-- flag: Gasoline sets it, every other potion spends it.
+function M.test_spellstorm_gasoline_doubles_the_next_potion(check)
+	opening(7, "oren", "derby")
+	local one = "seat_one"
+	become(one)
+	local pl = seat_card(one)
+	local function sip(def_key)
+		local e = find(def_key)
+		zones.move_card(e.id, zones.find("reveal").id)
+		actions.run(require("cards").behaviour(entity.get(e.id), "on_play"), { card_id = e.id, targets = {} })
+	end
+
+	local hp = pl.stats.health
+	sip("pot_gasoline")
+	check("the gasoline costs a point of health", pl.stats.health == hp - 1, pl.stats.health)
+	check("and leaves the next one doubled", pl.stats.doubled == 1, pl.stats.doubled)
+
+	pl.stats.fire_el, pl.stats.mana, pl.stats.power = 6, 0, 0
+	sip("pot_purple")
+	check("so Purple Stuff pours twice", pl.stats.mana == 4, pl.stats.mana)
+	check("for one beaker's worth of Fire", pl.stats.fire_el == 4, pl.stats.fire_el)
+	check("and the doubling is spent", pl.stats.doubled == 0, pl.stats.doubled)
+
+	pl.stats.mana = 0
+	sip("pot_storm")
+	check("the one after that is an ordinary potion", pl.stats.power == 3, pl.stats.power)
+end
+
+
+-- "Resolve the top card of the Dragon Deck" -- resolve, not gain. `copy:` runs a
+-- card's whole list where it lies, which is the difference between drinking the
+-- elixir and pocketing the bottle.
+function M.test_spellstorm_dragon_elixir_resolves_rather_than_gains(check)
+	opening(7, "oren", "derby")
+	local one = "seat_one"
+	become(one)
+	local deck = zones.find("dragon_deck")
+	local top  = entity.get(deck.cards[#deck.cards])
+	local n, held = #deck.cards, #hand_of(one).cards
+	local hp = seat_card("seat_two").stats.health
+
+	local e = find("pot_dragon")
+	zones.move_card(e.id, zones.find("reveal").id)
+	seat_card(one).stats.earth_el = 6
+	actions.run(require("cards").behaviour(entity.get(e.id), "on_play"), { card_id = e.id, targets = {} })
+
+	check("the Dragon stays where it lies", entity.get(top.id).zone_id == deck.id,
+		entity.get(entity.get(top.id).zone_id).key)
+	check("and the deck is no shorter", #zones.find("dragon_deck").cards == n,
+		#zones.find("dragon_deck").cards)
+	check("but it went off", seat_card("seat_two").stats.health < hp
+		or #hand_of(one).cards ~= held or phase.current().key == "options",
+		top.def_key)
+end
+
+
+-- May's Dangerous Download: at the end of a round she may spend an Energy and a
+-- mana to resolve the opponent's revealed Tier II card. A thing a player may do,
+-- at a cost, at a named moment -- which is a reaction, and the moment is the
+-- round saying out loud that it is over.
+function M.test_spellstorm_may_answers_the_end_of_a_round(check)
+	opening(5, "may", "derby")
+	local may, them = "seat_one", "seat_two"
+	stage_battle(them, "rapidfire")
+	seat_card(may).stats.energy = 2
+	seat_card(may).stats.mana   = 3
+
+	actions.execute("each_seat:activate_zone:rules:by_column:round_close", {})
+	flow.settle()
+	local top = flow.pending_event()
+	check("the round announced itself", top and top.re_verb == "round_over",
+		top and top.re_verb)
+	check("and it is May who was asked", zones.active_seat() == may, zones.active_seat())
+	check("with the download on offer", #flow.usable_reactions() == 1, #flow.usable_reactions())
+
+	-- The cost is the whole of the "may", so without it there is nothing to take.
+	seat_card(may).stats.energy = 0
+	check("and nothing on offer when she cannot pay", #flow.usable_reactions() == 0)
+
+	-- A Tier I card is not what the passive answers.
+	opening(5, "may", "derby")
+	stage_battle("seat_two", "fireball")
+	seat_card("seat_one").stats.energy = 2
+	seat_card("seat_one").stats.mana   = 3
+	actions.execute("each_seat:activate_zone:rules:by_column:round_close", {})
+	flow.settle()
+	check("a Tier I card opens no window at all", flow.pending_event() == nil,
+		flow.pending_event() and flow.pending_event().re_verb)
+end
+
 return M
