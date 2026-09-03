@@ -169,13 +169,6 @@ states that grant them. What each still rounds off is below.
   `each_seat:` walks the seats in the order the players list gives them, and
   there is no word for "starting with whoever is up". It costs who gets first
   pick off a shared shelf, which is a real difference maybe one game in five.
-- **A `[GAIN]` from a card effect is not gated by your Tier.** The Regroup gain
-  is (`tier@mine.player >= tier_req@self` on the shelf card itself), and the
-  three Essences are gated to Tier I or II because the card says a number. But
-  Power Gem, Amber, Quake, Falling Star and the rest offer the whole shelf. The
-  word for it exists — `chosen.where` is where "at or below **your** Tier" goes,
-  since it is not a property of the card being looked at — so this is a to-do
-  rather than a gap.
 - **An empty pile VOIDs a card, but not one you choose.** The Spellstorm Board
   prints an alternative for each pile that has run out: get rid of one of that
   junk card you are holding, and take a penalty. Both halves happen; which ICE,

@@ -506,9 +506,15 @@ function M.test_spellstorm_a_battle_is_four_rounds_then_a_regroup(check)
 		elseif p == "options" then
 			-- An offer over an empty hand has nothing to pick, and declining is
 			-- what a player does with it.
-			local o = zones.find("options")
-			if o.cards[1] then flow.play_card(o.cards[1], {})
-			elseif not flow.dismiss_offer() then break end
+			-- Take the first card the offer will actually part with. A [GAIN]
+			-- only offers what is at or below your Tier, so the first card up is
+			-- often not one of them -- and an offer nobody can take from is one a
+			-- player declines.
+			local o, took = zones.find("options"), false
+			for _, id in ipairs({ unpack(o.cards) }) do
+				if flow.can_play(id) then flow.play_card(id, {}); took = true; break end
+			end
+			if not took and not flow.dismiss_offer() then break end
 		else
 			break
 		end
@@ -885,6 +891,46 @@ function M.test_spellstorm_the_tier_limit_gates_the_take(check)
 		table.concat(shown, ",") == "fireball,fireball2", table.concat(shown, ","))
 	check("but only the Tier I one may be taken",
 		table.concat(pickable, ",") == "fireball", table.concat(pickable, ","))
+end
+
+
+-- The plain [GAIN] icon, whose limit is your own Tier rather than a number the
+-- card prints -- which is exactly why it is a `chosen.where` and not a narrower
+-- scope. No tag on the card being looked at could say whether it is at or below
+-- somebody's Tier, because it is not a fact about that card.
+function M.test_spellstorm_a_gain_is_limited_to_your_own_tier(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	local shelf = zones.find("storm_cloud")
+	for _, id in ipairs({ unpack(shelf.cards) }) do zones.destroy_card(id) end
+	for _, key in ipairs({ "fireball", "rapidfire", "fireball2" }) do zones.add(shelf, key) end
+
+	local gem = stage_battle(one, "twopower")
+	seat_card(one).stats.tier = 2
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
+		{ card_id = gem.id, targets = {} })
+	local shown, pickable = {}, {}
+	for _, id in ipairs(zones.find("options").cards) do
+		local key = entity.get(id).def_key
+		shown[#shown + 1] = key
+		if flow.can_play(id) then pickable[#pickable + 1] = key end
+	end
+	table.sort(shown)
+	table.sort(pickable)
+	check("the whole shelf comes up -- seeing it is half the decision",
+		table.concat(shown, ",") == "fireball,fireball2,rapidfire", table.concat(shown, ","))
+	check("but only Tier I and II may be taken at Tier II",
+		table.concat(pickable, ",") == "fireball,rapidfire", table.concat(pickable, ","))
+
+	-- And the gained card goes to hand, which is what the rulebook says a gain
+	-- does unless the card says otherwise. Power Gem is the one that says so.
+	local before = #hand_of(one).cards
+	for _, id in ipairs({ unpack(zones.find("options").cards) }) do
+		if flow.can_play(id) then flow.play_card(id, {}); break end
+	end
+	flow.settle()
+	check("and it goes to the hand", #hand_of(one).cards == before + 1,
+		("%d, was %d"):format(#hand_of(one).cards, before))
 end
 
 

@@ -287,6 +287,37 @@ already had, used where it belongs. It is worth asking, before proposing a field
 which *question* the rule is asking — "which cards" and "which of these" look
 alike on a card and are answered in different places.
 
+### C1b. ~~A `[GAIN]` from a card effect ignored your Tier~~ — done
+
+Noticed while wiring Falling Star, and worth its own entry because it is C1's
+lesson going unapplied for a while. The Regroup gain was gated on the shelf card
+itself and the three Essences on the number they print, but every plain `[GAIN]`
+— Power Gem, Amber, Opal, Quake, Two Power, Three Power, Earth Dragon, Coffee
+Run, New Curriculum, journal space 6 — offered the whole shelf.
+
+The icon table says it outright: *"May gain a card from the Storm Cloud of your
+Tier or lower, to hand"*, and the rulebook says both halves again for the Regroup
+step. So two things were wrong, and the second was mine from the day before:
+
+```json
+"chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+            "where":  ["tier@mine.player >= tier_req@target"] }
+```
+
+**A `chosen.where` and not a narrower scope**, for the reason C1 gives: your Tier
+is not a property of the card being looked at, so no tag could say it. The whole
+shelf comes up — seeing what is there is half the decision — and only what you
+may take can be clicked. An offer where nothing qualifies does not open at all,
+which is what *may* means.
+
+And **Falling Star's gain went to the discard**, because I copied Power Gem. Power
+Gem is the one card that says otherwise in its own text ("if you gained a card,
+discard it"); everything else goes to hand.
+
+Three keep their own rule and are untouched: the Essences say "any Tier I or II",
+Meteorite says "regardless of tier", and Mana Font and Deep Gems VOID rather than
+gain.
+
 ### C2. "Gain twice" gains once (Amber, Earth Dragon, Abragail)
 
 **Proposal — a list of `chosen` blocks rather than one**, run in order, or a
@@ -537,6 +568,6 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 | 1 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
 | 2 | C2, C3, D2, D3 | small each | one card or three apiece |
 | 3 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
-| 4 | The `[GAIN]` Tier gate, and Falling Star's order | small each | both newly written down in `09`, both a word the engine already has |
+| 4 | Falling Star's order — `each_seat:` from whoever is up | small | written down in `09`; settle it with [32](../32-a-third-player.md) |
 | — | A1, A2, A3, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |

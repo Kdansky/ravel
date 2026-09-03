@@ -741,7 +741,7 @@
       "text": "Power Gem",
       "asset": "ss_powergem.jpg",
       "tags": ["earth", "loam", "spell", "basic", "has_discard"],
-      "tooltip": "*Power up*. You may gain a card from the *Storm Cloud*; if you do, it goes to your discard. On discard: *power up*.\n\n_The golden gems of the Spell Storm take time to develop their power._",
+      "tooltip": "*Power up*. You may gain a card from the *Storm Cloud* at or below your *Tier*; if you do, it goes to your discard. On discard: *power up*.\n\n_The golden gems of the Spell Storm take time to develop their power._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -749,7 +749,10 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
-      "chosen": { "action": ["move_target_to:mine.discard", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.discard", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "fireessence",
@@ -1369,7 +1372,7 @@
       "text": "Amber",
       "asset": "ss_amber.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "*Power up*. You must gain a card from the *Storm Cloud*. On discard: *power up*.\n\n_The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly._\n\n_[Simplified: the printed card gains twice and is mandatory; here it gains once and may be declined]_",
+      "tooltip": "*Power up*. You must gain a card from the *Storm Cloud* at or below your *Tier*. On discard: *power up*.\n\n_The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly._\n\n_[Simplified: the printed card gains twice and is mandatory; here it gains once and may be declined]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1377,7 +1380,10 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "bloodstone",
@@ -1452,7 +1458,7 @@
       "text": "Opal",
       "asset": "ss_opal.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "*Draw a card*, *power up twice*, gain *2 mana*, and you may gain a card from the *Storm Cloud*. On discard: *power up twice*.\n\n_Gems are rocks found deep in the earth that are charged with mysterious power._",
+      "tooltip": "*Draw a card*, *power up twice*, gain *2 mana*, and you may gain a card from the *Storm Cloud* at or below your *Tier*. On discard: *power up twice*.\n\n_Gems are rocks found deep in the earth that are charged with mysterious power._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
@@ -1474,14 +1480,17 @@
         "into": "discard",
         "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
       },
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "quake",
       "text": "Quake",
       "asset": "ss_quake.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Your opponent loses *2 Power Tokens* and gains an *ASH*. You may gain a card from the *Storm Cloud*. On discard: *power up*.\n\n_A huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons._",
+      "tooltip": "Your opponent loses *2 Power Tokens* and gains an *ASH*. You may gain a card from the *Storm Cloud* at or below your *Tier*. On discard: *power up*.\n\n_A huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1497,7 +1506,10 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "shatter",
@@ -1552,7 +1564,7 @@
       "text": "Three Power",
       "asset": "ss_threepower.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud*. If anyone revealed *Water*, *power up* again. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
+      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. If anyone revealed *Water*, *power up* again. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1574,14 +1586,17 @@
         "into": "discard",
         "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
       },
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "twopower",
       "text": "Two Power",
       "asset": "ss_twopower.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud*. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
+      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1597,7 +1612,10 @@
         "into": "discard",
         "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
       },
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "ice",
@@ -1717,7 +1735,7 @@
       "text": "Earth Dragon",
       "asset": "ss_earthdragon.jpg",
       "tags": ["earth", "loam", "spell", "dragon", "ult"],
-      "tooltip": "You may gain a card from the *Storm Cloud*. Deal *2 damage*. Gain a *Storm Shard*. Your opponent gains an *ASH*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Earth Dragons are known to hoard massive amounts of treasure in caves._\n\n_[Simplified: the printed card gains twice; here it gains once]_",
+      "tooltip": "You may gain a card from the *Storm Cloud* at or below your *Tier*. Deal *2 damage*. Gain a *Storm Shard*. Your opponent gains an *ASH*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Earth Dragons are known to hoard massive amounts of treasure in caves._\n\n_[Simplified: the printed card gains twice; here it gains once]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1734,7 +1752,10 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "wiz_derby",
@@ -1776,7 +1797,7 @@
       "text": "Coffee Run",
       "asset": "ss_derby_coffee.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud*. If you gained an *Earth* card, gain *Initiative*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"This is gonna be the best coffee run of all time!\"_\n\n_[Simplified: Initiative is granted for any gained card, not only an Earth one]_",
+      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. If you gained an *Earth* card, gain *Initiative*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"This is gonna be the best coffee run of all time!\"_\n\n_[Simplified: Initiative is granted for any gained card, not only an Earth one]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1794,7 +1815,8 @@
           "draw_from:spellstorm_deck:storm_cloud:1",
           "stat_set:initiative@mine.player:1",
           "stat_set:initiative@enemy.player:0"
-        ]
+        ],
+        "where": ["tier@mine.player >= tier_req@target"]
       }
     },
     {
@@ -1980,7 +2002,7 @@
       "text": "New Curriculum",
       "asset": "ss_abra_newcurriciulum.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "*Power up* once per *Tier* you have reached. You may *VOID* a card in the *Storm Cloud*, and you may gain one.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Can't believe the *garbage* I'm asked to teach sometimes!\"_\n\n_[Simplified: the printed card voids up to 2; here one card is offered, and taking it gains rather than voids]_",
+      "tooltip": "*Power up* once per *Tier* you have reached. You may *VOID* a card in the *Storm Cloud*, and you may gain one at or below your *Tier*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Can't believe the *garbage* I'm asked to teach sometimes!\"_\n\n_[Simplified: the printed card voids up to 2; here one card is offered, and taking it gains rather than voids]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1992,7 +2014,10 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "wiz_croh",
@@ -2491,7 +2516,7 @@
       "text": "Falling Star",
       "tags": ["weather", "storm"],
       "asset": "ss_fallingstar.jpg",
-      "tooltip": "*Draw a card*. Every player may gain a card from the *Storm Cloud*, and it goes to their discard.\n\n_[Simplified: the printed card asks the player with Initiative first; the questions are asked in seat order]_",
+      "tooltip": "*Draw a card*. Every player may gain a card from the *Storm Cloud* at or below their *Tier*.\n\n_[Simplified: the printed card asks the player with Initiative first; the questions are asked in seat order]_",
       "abilities": [
         {
           "key": "wx",
@@ -2499,7 +2524,10 @@
           "action": ["draw_from:mine.deck:mine.hand:1", "show:storm_cloud:optional"]
         }
       ],
-      "chosen": { "action": ["move_target_to:mine.discard", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "strange_weather",
@@ -3249,7 +3277,10 @@
           "action": ["show:storm_cloud:optional"]
         }
       ],
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier@mine.player >= tier_req@target"]
+      }
     },
     {
       "key": "r_journal_7",

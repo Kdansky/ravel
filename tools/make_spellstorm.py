@@ -89,6 +89,19 @@ OFFER_HAND_OF  = lambda kind: "show:mine.hand.%s:optional" % kind
 REFILL_CLOUD = "draw_from:spellstorm_deck:storm_cloud:1"
 TAKE_TO_HAND = ["move_target_to:mine.hand", REFILL_CLOUD]
 
+# The [GAIN] icon in full: "May gain a card from the Storm Cloud of your Tier or
+# lower, to hand" (02-icons), which the rulebook says twice over for the Regroup
+# gain -- "you may only take a card at or below your Tier", and "gained cards go
+# to your hand unless the card says otherwise".
+#
+# It is a `chosen.where` rather than a narrower scope because it is a fact about
+# the *player*: no tag on the card being looked at could say whether it is at or
+# below somebody's Tier. An offer where nothing qualifies does not open, so a
+# [GAIN] with nothing takeable is a card that does nothing -- which is what "may"
+# means. The three Essences say a Tier of their own ("any Tier I or II"), and
+# Meteorite says "regardless of tier": those override this rather than add to it.
+GAIN_TIER = ["tier@mine.player >= tier_req@target"]
+
 FIRE, WATER, EARTH = "fire", "water", "earth"
 
 # ---------------------------------------------------------------------------
@@ -122,10 +135,10 @@ BASIC = [
          flavour='"He just needs a little splash, is all he needs." - The Splashmaster',
          cast=GAIN_INIT + ["stat_gain:health@mine.player:count:fire@battle"]),
     card("powergem", "Power Gem", EARTH, kind="basic",
-         tooltip="Power up. You may gain a card from the Storm Cloud; if you do, it goes to your discard. On discard: power up.",
+         tooltip="Power up. You may gain a card from the Storm Cloud at or below your Tier; if you do, it goes to your discard. On discard: power up.",
          flavour="The golden gems of the Spell Storm take time to develop their power.",
          cast=[POWER, OFFER_CLOUD],
-         chosen=["move_target_to:mine.discard", REFILL_CLOUD],
+         chosen=["move_target_to:mine.discard", REFILL_CLOUD], chosen_where=GAIN_TIER,
          disc=[POWER]),
 ]
 
@@ -285,10 +298,10 @@ SPELLS = [
 
     # Earth
     card("amber", "Amber", EARTH, tier=1,
-         tooltip="Power up. You must gain a card from the Storm Cloud. On discard: power up.",
+         tooltip="Power up. You must gain a card from the Storm Cloud at or below your Tier. On discard: power up.",
          flavour="The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly.",
          simplified="the printed card gains twice and is mandatory; here it gains once and may be declined",
-         cast=[POWER, OFFER_CLOUD], chosen=TAKE_TO_HAND, disc=[POWER]),
+         cast=[POWER, OFFER_CLOUD], chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER]),
     card("bloodstone", "Bloodstone", EARTH, tier=1,
          tooltip="Gain 1 mana. Take 1 damage. You may VOID a card from your hand. On discard: gain 1 mana.",
          flavour='"It\'s best to leave gems that you find in the wild alone, unless you really know what you\'re doing." - Abragail',
@@ -308,15 +321,15 @@ SPELLS = [
          chosen=["move_target_to:void", "copy:target:activate", REFILL_CLOUD],
          disc=[SELF_DMG(1)]),
     card("opal", "Opal", EARTH, tier=3,
-         tooltip="Draw a card, power up twice, gain 2 mana, and you may gain a card from the Storm Cloud. On discard: power up twice.",
+         tooltip="Draw a card, power up twice, gain 2 mana, and you may gain a card from the Storm Cloud at or below your Tier. On discard: power up twice.",
          flavour="Gems are rocks found deep in the earth that are charged with mysterious power.",
          cast=[DRAW, POWER, POWER, MANA, MANA, OFFER_CLOUD],
-         chosen=TAKE_TO_HAND, disc=[POWER, POWER]),
+         chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER, POWER]),
     card("quake", "Quake", EARTH, tier=1,
-         tooltip="Your opponent loses 2 Power Tokens and gains an ASH. You may gain a card from the Storm Cloud. On discard: power up.",
+         tooltip="Your opponent loses 2 Power Tokens and gains an ASH. You may gain a card from the Storm Cloud at or below your Tier. On discard: power up.",
          flavour="A huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons.",
          cast=["stat_damage:power@enemy.player:2"] + GIVE("ash") + [OFFER_CLOUD],
-         chosen=TAKE_TO_HAND, disc=[POWER]),
+         chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER]),
     card("shatter", "Shatter", EARTH, tier=2,
          tooltip="You may VOID a card from your hand; if you do, power up. On discard: power up.",
          flavour='"That there spellstorm water\'s FULL-a gold, I tell ya!" - Prospector',
@@ -335,16 +348,16 @@ SPELLS = [
          chosen=["copy:target:activate", "move_target_to:mine.discard"],
          disc=[POWER]),
     card("threepower", "Three Power", EARTH, tier=2,
-         tooltip="Power up twice and you may gain a card from the Storm Cloud. If anyone revealed Water, power up again. On discard: power up twice.",
+         tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If anyone revealed Water, power up again. On discard: power up twice.",
          flavour='When you see the "Gain Card" icon on a card, keep in mind that you may choose not to gain a card.',
          cast=[POWER, POWER, OFFER_CLOUD],
          cast2=("count:water@battle >= 1", [POWER]),
-         chosen=TAKE_TO_HAND, disc=[POWER, POWER]),
+         chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER, POWER]),
     card("twopower", "Two Power", EARTH, tier=1,
-         tooltip="Power up twice and you may gain a card from the Storm Cloud. On discard: power up twice.",
+         tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. On discard: power up twice.",
          flavour='When you see the "Gain Card" icon on a card, keep in mind that you may choose not to gain a card.',
          cast=[POWER, POWER, OFFER_CLOUD],
-         chosen=TAKE_TO_HAND, disc=[POWER, POWER]),
+         chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER, POWER]),
 ]
 
 # --- Special cards: the three junk piles and the five Dragons -------------
@@ -391,11 +404,11 @@ DRAGONS = [
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
          cast=[DMG(3), SHARD(1)]),
     card("earthdragon", "Earth Dragon", EARTH, tier=4, kind="dragon", ult=True,
-         tooltip="You may gain a card from the Storm Cloud. Deal 2 damage. Gain a Storm Shard. Your opponent gains an ASH.",
+         tooltip="You may gain a card from the Storm Cloud at or below your Tier. Deal 2 damage. Gain a Storm Shard. Your opponent gains an ASH.",
          flavour="The Earth Dragons are known to hoard massive amounts of treasure in caves.",
          simplified="the printed card gains twice; here it gains once",
          cast=[DMG(2), SHARD(1)] + GIVE("ash") + [OFFER_CLOUD],
-         chosen=TAKE_TO_HAND),
+         chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER),
 ]
 
 # ---------------------------------------------------------------------------
@@ -407,9 +420,10 @@ DRAGONS = [
 # has played anything yet.
 # ---------------------------------------------------------------------------
 
-def weather(key, name, tooltip, wx=(), wy=None, calm=False, simplified=None, chosen=None):
+def weather(key, name, tooltip, wx=(), wy=None, calm=False, simplified=None,
+            chosen=None, chosen_where=None):
     return dict(key=key, name=name, tooltip=tooltip, wx=list(wx), wy=wy,
-                calm=calm, simplified=simplified, chosen=chosen)
+                calm=calm, simplified=simplified, chosen=chosen, chosen_where=chosen_where)
 
 REVEALED = lambda el: "count:%s@mine.battle >= 1" % el
 
@@ -435,10 +449,10 @@ WEATHER = [
     # seat is asked in turn: the second ask waits rather than tipping its shelf
     # into the first one's.
     weather("fallingstar", "Falling Star",
-            "Draw a card. Every player may gain a card from the Storm Cloud, and it goes to their discard.",
+            "Draw a card. Every player may gain a card from the Storm Cloud at or below their Tier.",
             simplified="the printed card asks the player with Initiative first; the questions are asked in seat order",
             wx=[DRAW, OFFER_CLOUD],
-            chosen=["move_target_to:mine.discard", REFILL_CLOUD], calm=True),
+            chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, calm=True),
     weather("strange_weather", "Strange Weather",
             "Draw 2 cards. Discard the next card in the Weather Deck.",
             wx=[DRAW, DRAW], calm=True),
@@ -529,11 +543,11 @@ WIZARDS = [
            start=["draw_from:spellstorm_deck:mine.discard:0"],
            spells=[
                card("derby_coffee", "Coffee Run", EARTH, kind="wizard_spell", ult=True,
-                    tooltip="Power up twice and you may gain a card from the Storm Cloud. If you gained an Earth card, gain Initiative.",
+                    tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If you gained an Earth card, gain Initiative.",
                     flavour='"This is gonna be the best coffee run of all time!"',
                     simplified="Initiative is granted for any gained card, not only an Earth one",
                     cast=[POWER, POWER, OFFER_CLOUD],
-                    chosen=TAKE_TO_HAND + GAIN_INIT),
+                    chosen=TAKE_TO_HAND + GAIN_INIT, chosen_where=GAIN_TIER),
                card("derby_reckless", "Reckless Charge", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Gain 1 mana and power up. Deal 1 damage. Gain an ASH. If you have Initiative, deal 1 more damage.",
                     flavour='"I know we can do it if we work together!"',
@@ -575,11 +589,11 @@ WIZARDS = [
                     cast=[DRAW, MANA, OFFER_CLOUD_OF(WATER)],
                     chosen=["move_target_to:void", "copy:target:activate", REFILL_CLOUD]),
                card("abra_newcurriciulum", "New Curriculum", EARTH, kind="wizard_spell", ult=True,
-                    tooltip="Power up once per Tier you have reached. You may VOID a card in the Storm Cloud, and you may gain one.",
+                    tooltip="Power up once per Tier you have reached. You may VOID a card in the Storm Cloud, and you may gain one at or below your Tier.",
                     flavour='"Can\'t believe the *garbage* I\'m asked to teach sometimes!"',
                     simplified="the printed card voids up to 2; here one card is offered, and taking it gains rather than voids",
                     cast=["stat_gain:power@mine.player:sum:tier@mine.player", OFFER_CLOUD],
-                    chosen=TAKE_TO_HAND),
+                    chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER),
            ]),
 
     wizard("croh", "Croh Vosh", "Undead Lich", "Fire, Water", 20, 8, 6,
@@ -712,7 +726,7 @@ JOURNAL = [
         {"where": ["tagged:junk@target"],
          "action": ["move_target_to:enemy.discard"]}),
     (5, [POWER], None),
-    (6, [OFFER_CLOUD], {"action": TAKE_TO_HAND}),
+    (6, [OFFER_CLOUD], {"action": TAKE_TO_HAND, "where": GAIN_TIER}),
     (7, [POWER], None),
     (8, [DRAW], None),
 ]
@@ -948,7 +962,9 @@ def weather_template(w):
     if abil: t["abilities"] = abil
     # A weather card that asks is the card doing the asking, so the answer comes
     # back to it, exactly as it does for a spell.
-    if w["chosen"]: t["chosen"] = {"action": list(w["chosen"])}
+    if w["chosen"]:
+        t["chosen"] = {"action": list(w["chosen"])}
+        if w["chosen_where"]: t["chosen"]["where"] = list(w["chosen_where"])
     return t
 
 
