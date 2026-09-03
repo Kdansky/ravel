@@ -1,69 +1,165 @@
 {
   "title": "Lost Ruins of Arnak",
   "stats": [
-    { "key": "score", "label": "Score", "icon": "banner", "color": "gold", "min": -99, "max": 999, "on": ["player"], "start": 0, "subject": "score@mine.player" },
     { "key": "coin", "label": "Coin", "icon": "coin", "color": "gold", "min": 0, "max": 99, "on": ["player"], "start": 0, "subject": "coin@mine.player" },
     { "key": "compass", "label": "Compass", "icon": "orb", "color": "cyan", "min": 0, "max": 99, "on": ["player"], "start": 0, "subject": "compass@mine.player" },
-    { "key": "tablet", "label": "Tablet", "icon": "card", "color": "sand", "min": 0, "max": 99, "on": ["player"], "start": 0, "subject": "tablet@mine.player" },
+    { "key": "tablet", "label": "Tablet", "icon": "leaf", "color": "sand", "min": 0, "max": 99, "on": ["player"], "start": 0, "subject": "tablet@mine.player" },
     { "key": "arrowhead", "label": "Arrowhead", "icon": "blade", "color": "silver", "min": 0, "max": 99, "on": ["player"], "start": 0, "subject": "arrowhead@mine.player" },
     { "key": "jewel", "label": "Jewel", "icon": "diamond", "color": "violet", "min": 0, "max": 99, "on": ["player"], "start": 0, "subject": "jewel@mine.player" },
     { "key": "travel", "label": "Travel", "icon": "arrow", "color": "teal", "min": 0, "max": 99, "on": ["player"], "start": 0, "subject": "travel@mine.player" },
-    { "key": "main", "label": "Main action", "icon": "fist", "color": "crimson", "min": 0, "max": 1, "on": ["player"], "start": 0, "subject": "main@mine.player" },
-    { "key": "workers", "label": "Archaeologists", "icon": "leaf", "color": "amber", "min": 0, "max": 2, "on": ["player"], "start": 0, "subject": "workers@mine.player" },
-    { "key": "glass", "label": "Magnifying glass", "icon": "pot", "color": "orange", "min": 0, "max": 6, "on": ["player"], "start": 0, "subject": "glass@mine.player" },
-    { "key": "note", "label": "Notebook", "icon": "shield", "color": "brown", "min": 0, "max": 6, "on": ["player"], "start": 0, "subject": "note@mine.player" },
+    { "key": "main", "label": "Action", "icon": "fist", "color": "crimson", "min": 0, "max": 1, "on": ["player"], "start": 0, "subject": "main@mine.player" },
+    { "key": "workers", "label": "Diggers", "icon": "heart", "color": "amber", "min": 0, "max": 2, "on": ["player"], "start": 0, "subject": "workers@mine.player" },
+    { "key": "glass", "label": "Glass", "icon": "pot", "color": "orange", "min": 0, "max": 6, "on": ["player"], "start": 0, "subject": "glass@mine.player" },
+    { "key": "note", "label": "Notes", "icon": "shield", "color": "brown", "min": 0, "max": 6, "on": ["player"], "start": 0, "subject": "note@mine.player" },
 
+    { "key": "score", "min": -99, "max": 999, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "passed", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "guarded", "min": 0, "max": 9, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "guardians", "min": 0, "max": 9, "on": ["player"], "start": 0, "tags": ["hidden"] },
 
-    { "key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"] },
+    { "key": "price", "min": 0, "max": 20, "icon": "pot", "color": "gold", "tags": ["hidden"] },
     { "key": "trek", "min": 0, "max": 4, "icon": "arrow", "color": "teal", "tags": ["hidden"] },
     { "key": "points", "min": 0, "max": 9, "icon": "banner", "color": "gold", "tags": ["hidden"] },
     { "key": "toll", "min": 0, "max": 9, "icon": "arrow", "color": "crimson", "tags": ["hidden"] },
     { "key": "guard", "min": 0, "max": 1, "icon": "shield", "color": "red", "number": false, "on": ["site"], "start": 0, "tags": ["hidden"] },
     { "key": "used", "min": 0, "max": 1, "on": ["idol"], "start": 0, "tags": ["hidden"] },
 
-    { "key": "want", "min": 0, "max": 20, "tags": ["hidden"] },
-    { "key": "round_no", "min": 0, "max": 9, "tags": ["hidden"] },
+    { "key": "y_coin", "min": 0, "max": 9, "icon": "coin", "color": "gold", "tags": ["hidden"] },
+    { "key": "y_compass", "min": 0, "max": 9, "icon": "orb", "color": "cyan", "tags": ["hidden"] },
+    { "key": "y_tablet", "min": 0, "max": 9, "icon": "leaf", "color": "sand", "tags": ["hidden"] },
+    { "key": "y_arrow", "min": 0, "max": 9, "icon": "blade", "color": "silver", "tags": ["hidden"] },
+    { "key": "y_jewel", "min": 0, "max": 9, "icon": "diamond", "color": "violet", "tags": ["hidden"] },
+    { "key": "y_travel", "min": 0, "max": 9, "icon": "arrow", "color": "amber", "tags": ["hidden"] },
+    { "key": "y_draw", "min": 0, "max": 9, "icon": "card", "color": "white", "tags": ["hidden"] },
+    { "key": "y_idol", "min": 0, "max": 9, "icon": "heart", "color": "gold", "tags": ["hidden"] },
+
+    { "key": "g_arrow", "min": 0, "max": 9, "on": ["site"], "start": 0, "tags": ["hidden"] },
+    { "key": "g_tablet", "min": 0, "max": 9, "on": ["site"], "start": 0, "tags": ["hidden"] },
+    { "key": "g_jewel", "min": 0, "max": 9, "on": ["site"], "start": 0, "tags": ["hidden"] },
+
+    { "key": "round_no", "label": "Round", "icon": "none", "min": 0, "max": 9, "subject": "sum:round_no@clock" },
     { "key": "temple_taken", "min": 0, "max": 1, "tags": ["hidden"] }
   ],
 
   "styles": {
-    "parchment": { "color": [0.52, 0.47, 0.38], "badges": ["trek", "points"], "badge_zeros": false },
-    "crate": { "color": [0.44, 0.33, 0.21], "badges": ["price", "trek", "points"], "badge_zeros": false },
-    "relic": { "color": [0.40, 0.25, 0.48], "badges": ["price", "trek", "points"], "badge_zeros": false },
-    "dread": { "color": [0.32, 0.13, 0.14], "badges": ["trek"], "badge_zeros": false },
-    "field": { "color": [0.20, 0.38, 0.27], "badges": ["toll", "guard"], "badge_zeros": false },
+    "parchment": { "color": [0.52, 0.47, 0.38], "badge_run": "down", "badge_zeros": false,
+      "badges": ["trek", "y_coin", "y_compass"] },
+    "crate": { "color": [0.44, 0.33, 0.21], "badge_run": "down", "badge_zeros": false,
+      "badges": ["price", "points", "trek", "y_coin", "y_compass", "y_tablet",
+                 "y_arrow", "y_jewel", "y_travel", "y_draw", "y_idol"] },
+    "relic": { "color": [0.40, 0.25, 0.48], "badge_run": "down", "badge_zeros": false,
+      "badges": ["price", "points", "trek", "y_coin", "y_compass", "y_tablet",
+                 "y_arrow", "y_jewel", "y_travel", "y_draw", "y_idol"] },
+    "dread": { "color": [0.32, 0.13, 0.14], "badge_run": "down", "badges": ["trek"], "badge_zeros": false },
+    "field": { "color": [0.20, 0.38, 0.27], "badge_zeros": false,
+      "badges": ["toll", "guard", "y_coin", "y_compass", "y_tablet", "y_arrow", "y_jewel"] },
     "veiled": { "color": [0.16, 0.18, 0.22], "badges": ["toll"], "badge_zeros": false },
-    "gilt": { "color": [0.58, 0.47, 0.14] },
-    "hire": { "color": [0.18, 0.40, 0.44] },
+    "gilt": { "color": [0.58, 0.47, 0.14], "fit": "fill" },
+    "hire": { "color": [0.18, 0.40, 0.44], "badge_run": "down", "badge_zeros": false,
+      "badges": ["y_coin", "y_compass", "y_tablet", "y_arrow", "y_jewel", "y_travel", "y_draw"] },
     "study": { "color": [0.25, 0.27, 0.48] },
+    "tile": { "fit": "fill" },
     "button": { "fit": "fill" }
   },
 
   "tags": {
+    "deck_card": {
+      "abilities": [
+        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
+          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
+      ]
+    },
+    "basic": {
+      "abilities": [
+        { "key": "effect", "text": "Take what it gives (free)", "phases": ["turn"],
+          "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
+                     "stat_gain:compass@mine.player:sum:y_compass@self",
+                     "move_to:mine.table"] }
+      ]
+    },
+    "item": {
+      "abilities": [
+        { "key": "effect", "text": "Use it — your main action", "phases": ["turn"],
+          "cost": { "main@mine.player": 1 },
+          "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
+                     "stat_gain:compass@mine.player:sum:y_compass@self",
+                     "stat_gain:tablet@mine.player:sum:y_tablet@self",
+                     "stat_gain:arrowhead@mine.player:sum:y_arrow@self",
+                     "stat_gain:jewel@mine.player:sum:y_jewel@self",
+                     "stat_gain:travel@mine.player:sum:y_travel@self",
+                     "draw_from:mine.bag:mine.hand:sum:y_draw@self",
+                     "fill:mine.idols:idol:sum:y_idol@self",
+                     "move_to:mine.table"] }
+      ]
+    },
+    "artifact": {
+      "abilities": [
+        { "key": "effect", "text": "Read it — your main action, and a tablet", "phases": ["turn"],
+          "cost": { "main@mine.player": 1, "tablet@mine.player": 1 },
+          "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
+                     "stat_gain:compass@mine.player:sum:y_compass@self",
+                     "stat_gain:tablet@mine.player:sum:y_tablet@self",
+                     "stat_gain:arrowhead@mine.player:sum:y_arrow@self",
+                     "stat_gain:jewel@mine.player:sum:y_jewel@self",
+                     "stat_gain:travel@mine.player:sum:y_travel@self",
+                     "draw_from:mine.bag:mine.hand:sum:y_draw@self",
+                     "fill:mine.idols:idol:sum:y_idol@self",
+                     "move_to:mine.table"] }
+      ]
+    },
+    "site": {
+      "abilities": [
+        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
+          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1,
+                    "travel@mine.player": "toll@self" },
+          "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
+                     "stat_gain:compass@mine.player:sum:y_compass@self",
+                     "stat_gain:tablet@mine.player:sum:y_tablet@self",
+                     "stat_gain:arrowhead@mine.player:sum:y_arrow@self",
+                     "stat_gain:jewel@mine.player:sum:y_jewel@self"] },
+        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"],
+          "when": ["guard@self >= 1"],
+          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1,
+                    "travel@mine.player": "toll@self" },
+          "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
+                     "stat_gain:compass@mine.player:sum:y_compass@self",
+                     "stat_gain:tablet@mine.player:sum:y_tablet@self",
+                     "stat_gain:arrowhead@mine.player:sum:y_arrow@self",
+                     "stat_gain:jewel@mine.player:sum:y_jewel@self",
+                     "stat_gain:guarded@mine.player:1"] },
+        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
+          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
+          "cost": { "main@mine.player": 1, "arrowhead@mine.player": "g_arrow@self",
+                    "tablet@mine.player": "g_tablet@self", "jewel@mine.player": "g_jewel@self" },
+          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1",
+                     "stat_damage:guarded@mine.player:1"] }
+      ]
+    },
+    "assistant": {
+      "tooltip": "Once a round, free. Every assistant is refreshed when the round wraps.",
+      "abilities": [
+        { "key": "use", "text": "Set them to work", "phases": ["turn"], "cost": { "exhaust": 1 },
+          "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
+                     "stat_gain:compass@mine.player:sum:y_compass@self",
+                     "stat_gain:tablet@mine.player:sum:y_tablet@self",
+                     "stat_gain:arrowhead@mine.player:sum:y_arrow@self",
+                     "stat_gain:jewel@mine.player:sum:y_jewel@self",
+                     "stat_gain:travel@mine.player:sum:y_travel@self",
+                     "draw_from:mine.bag:mine.hand:sum:y_draw@self"] }
+      ]
+    },
     "for_sale_item": {
-      "tooltip": "On the mainland shelf. Buy it with coins and it goes to the bottom of your deck.",
       "abilities": [
         { "key": "buy_item", "text": "Buy it", "merge": "this", "phases": ["turn"],
           "cost": { "main@mine.player": 1, "coin@mine.player": "price@self" },
-          "action": ["move:self:mine.bag:bottom",
-                     "stat_set:want@clock:6",
-                     "stat_damage:want@clock:sum:round_no@clock",
-                     "stat_damage:want@clock:count:item@items",
-                     "draw_from:item_deck:items:sum:want@clock"] }
+          "action": ["move:self:mine.bag:bottom", "draw_from:item_deck:items:1"] }
       ]
     },
     "for_sale_art": {
-      "tooltip": "Found on the island. Buy it with compasses and it goes to the bottom of your deck.",
       "abilities": [
         { "key": "buy_art", "text": "Buy it", "merge": "this", "phases": ["turn"],
           "cost": { "main@mine.player": 1, "compass@mine.player": "price@self" },
-          "action": ["move:self:mine.bag:bottom",
-                     "stat_set:want@clock:sum:round_no@clock",
-                     "stat_damage:want@clock:count:artifact@artifacts",
-                     "draw_from:artifact_deck:artifacts:sum:want@clock"] }
+          "action": ["move:self:mine.bag:bottom", "draw_from:artifact_deck:artifacts:1"] }
       ]
     }
   },
@@ -71,26 +167,27 @@
   "players": [{ "card": "south" }, { "card": "north" }],
 
   "zones": [
-    { "key": "whose_turn", "label": "current_player", "layout": "grid", "grid": [1, 1], "pos": [0.005, 0.175, 0.160, 0.215] },
-    { "key": "what_now", "label": "current_phase", "layout": "grid", "grid": [1, 1], "pos": [0.005, 0.219, 0.160, 0.259] },
-
-    { "key": "research", "label": "Research", "layout": "grid", "grid": [1, 6], "use": "abilities",
-      "pos": [0.005, 0.336, 0.160, 0.815],
-      "tooltip": "Two tokens climb this track. The notebook may never sit above the magnifying glass, and only the glass may reach the Lost Temple." },
+    { "key": "whose_turn", "label": "current_player", "layout": "grid", "grid": [1, 1],
+      "pos": [0.005, 0.195, 0.150, 0.240] },
+    { "key": "what_now", "label": "current_phase", "layout": "grid", "grid": [1, 1],
+      "pos": [0.005, 0.245, 0.150, 0.290] },
     { "key": "controls", "layout": "grid", "grid": [2, 1], "use": "abilities", "tags": ["button"],
-      "pos": [0.005, 0.265, 0.160, 0.330] },
+      "pos": [0.005, 0.296, 0.150, 0.360] },
+    { "key": "research", "label": "Research", "layout": "grid", "grid": [1, 6], "use": "abilities",
+      "tags": ["tile"], "pos": [0.005, 0.368, 0.150, 0.805],
+      "tooltip": "Two tokens climb this track, cheapest row at the bottom. The notebook may never sit above the magnifying glass, and only the glass reaches the Lost Temple." },
 
     { "key": "artifacts", "label": "Artifacts", "layout": "grid", "grid": [5, 1], "use": "abilities",
-      "applies": ["for_sale_art"], "pos": [0.170, 0.175, 0.995, 0.300],
-      "tooltip": "The artifact half of the card row. It grows by one slot every round as the moon staff moves." },
+      "applies": ["for_sale_art"], "tags": ["tile"], "pos": [0.160, 0.195, 0.855, 0.345],
+      "tooltip": "The artifact half of the card row, bought with compasses. The moon staff gives it one more slot every round. An artifact read out of hand later costs a tablet on top of the action." },
     { "key": "items", "label": "Items", "layout": "grid", "grid": [5, 1], "use": "abilities",
-      "applies": ["for_sale_item"], "pos": [0.170, 0.305, 0.995, 0.430],
-      "tooltip": "The item half of the card row. It loses one slot every round as the moon staff moves." },
+      "applies": ["for_sale_item"], "tags": ["tile"], "pos": [0.160, 0.350, 0.855, 0.500],
+      "tooltip": "The item half of the card row, bought with coins. The moon staff takes one slot away every round. Whatever you buy goes to the bottom of your deck." },
     { "key": "island", "label": "The island", "layout": "grid", "grid": [5, 3], "use": "abilities",
-      "pos": [0.170, 0.436, 0.995, 0.828],
-      "tooltip": "Five known sites along the bottom, unexplored Level I positions above them, Level II above those." },
+      "tags": ["tile"], "pos": [0.160, 0.508, 0.995, 0.805],
+      "tooltip": "Known sites along the bottom, unexplored Level I positions above them, Level II above those. Send an archaeologist to one: pay the travel printed on it and take what it yields. One figure a site, whoever gets there first, until the round wraps." },
 
-    { "key": "options", "layout": "row", "status": "offer", "pos": [0.100, 0.230, 0.900, 0.770] },
+    { "key": "options", "layout": "row", "status": "offer", "pos": [0.150, 0.250, 0.850, 0.750] },
 
     { "key": "item_deck", "layout": "stack", "visibility": "secret", "display": "offscreen", "tags": ["shuffle"],
       "contents": ["it_canteen:3", "it_compass:3", "it_shovel:3", "it_rope:3", "it_pickaxe:3",
@@ -107,20 +204,25 @@
     { "key": "sys", "layout": "grid", "grid": [1, 1], "display": "offscreen" },
     { "key": "rules_win", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "rules_temple", "layout": "stack", "visibility": "secret", "display": "offscreen" },
+    { "key": "rules_market", "layout": "stack", "visibility": "secret", "display": "offscreen" },
 
     { "key": "bag", "label": "Deck", "layout": "stack", "visibility": "secret", "copies": "per_seat",
-      "pos": [[0.170, 0.835, 0.222, 0.995], [0.170, 0.005, 0.222, 0.165]],
-      "tooltip": "Your expedition deck. It is never reshuffled during a round — only at the round's end." },
-    { "key": "hand", "layout": "row", "visibility": "owner", "use": "abilities", "copies": "per_seat",
-      "pos": [[0.227, 0.835, 0.520, 0.995], [0.227, 0.005, 0.520, 0.165]] },
+      "pos": [[0.190, 0.815, 0.240, 0.995], [0.005, 0.005, 0.055, 0.185]],
+      "tooltip": "Your expedition deck. It is never reshuffled during a round — only when the round ends." },
+    { "key": "hand", "label": "Hand", "layout": "row", "visibility": "owner", "use": "abilities",
+      "copies": "per_seat", "tags": ["tile"],
+      "pos": [[0.245, 0.815, 0.615, 0.995], [0.060, 0.005, 0.430, 0.185]],
+      "tooltip": "Play a card for what it says, or spend it for the distance printed on it. Never both, and either way it lands in your play area." },
     { "key": "table", "label": "Played", "layout": "row", "copies": "per_seat",
-      "pos": [[0.525, 0.835, 0.760, 0.995], [0.525, 0.005, 0.760, 0.165]],
-      "tooltip": "Everything you played this round. At the round's end it is shuffled and put under your deck." },
-    { "key": "idols", "label": "Idols", "layout": "grid", "grid": [4, 1], "use": "abilities", "copies": "per_seat",
-      "pos": [[0.765, 0.835, 0.885, 0.995], [0.765, 0.005, 0.885, 0.165]],
-      "tooltip": "Three points each, whether you ever use them or not." },
-    { "key": "assistants", "label": "Assistants", "layout": "grid", "grid": [3, 1], "use": "abilities", "copies": "per_seat",
-      "pos": [[0.890, 0.835, 0.995, 0.995], [0.890, 0.005, 0.995, 0.165]],
+      "pos": [[0.620, 0.815, 0.795, 0.995], [0.435, 0.005, 0.620, 0.185]],
+      "tooltip": "Everything you played this round. When the round ends it is shuffled and put under your deck." },
+    { "key": "idols", "label": "Idols", "layout": "grid", "grid": [2, 2], "use": "abilities",
+      "copies": "per_seat", "tags": ["tile"],
+      "pos": [[0.800, 0.815, 0.895, 0.995], [0.625, 0.005, 0.740, 0.185]],
+      "tooltip": "Three points each at the end, kept or slotted." },
+    { "key": "assistants", "label": "Assistants", "layout": "grid", "grid": [2, 1], "use": "abilities",
+      "copies": "per_seat", "tags": ["tile"],
+      "pos": [[0.900, 0.815, 0.995, 0.995], [0.745, 0.005, 0.855, 0.185]],
       "tooltip": "Recruited from the research track. Each works once a round." }
   ],
 
@@ -134,21 +236,13 @@
 
     { "key": "round_start", "type": "automatic",
       "actions": ["stat_gain:round_no@clock:1",
-                  "destroy:artifacts:1",
-                  "destroy:items:1",
-                  "stat_set:want@clock:sum:round_no@clock",
-                  "stat_damage:want@clock:count:artifact@artifacts",
-                  "draw_from:artifact_deck:artifacts:sum:want@clock",
-                  "stat_set:want@clock:6",
-                  "stat_damage:want@clock:sum:round_no@clock",
-                  "stat_damage:want@clock:count:item@items",
-                  "draw_from:item_deck:items:sum:want@clock",
+                  "activate_zone:rules_market",
                   "each_seat:stat_set:workers@mine.player:2",
                   "each_seat:stat_set:passed@mine.player:0",
                   "each_seat:draw_from:mine.bag:mine.hand:5"],
       "next": [{ "when": "round_no@clock >= 6", "then": "scoring" }, { "then": "turn" }] },
 
-    { "key": "turn", "type": "player_input", "seat": "next", "label": "One main action, and as many free ones as you like",
+    { "key": "turn", "type": "player_input", "seat": "next", "label": "Your turn",
       "actions": ["stat_set:main@mine.player:1", "stat_set:travel@mine.player:0"],
       "next": [{ "when": "passed@each.anyone.player >= 1", "then": "cleanup" },
                { "when": "passed@enemy.player >= 1", "then": "turn", "seat": "same" },
@@ -196,6 +290,8 @@
       { "card": "site_cave", "zone": "island", "at": "e1" },
       { "card": "pos_1", "zone": "island", "at": ["a2", "b2", "c2", "d2", "e2"] },
       { "card": "pos_2", "zone": "island", "at": ["a3", "b3", "c3", "d3", "e3"] },
+      { "card": "market_first", "zone": "rules_market" },
+      { "card": "market_staff", "zone": "rules_market" },
       { "card": "win_south", "zone": "rules_win" },
       { "card": "win_north", "zone": "rules_win" },
       { "card": "first_temple", "zone": "rules_temple" }
@@ -207,425 +303,105 @@
     { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "coin": 1, "compass": 1 } },
 
     { "key": "clock", "text": "The expedition", "tags": ["clock", "immutable"],
-      "card_stats": { "round_no": 0, "want": 0, "temple_taken": 0 } },
+      "card_stats": { "round_no": 0, "temple_taken": 0 } },
 
-    { "key": "funding", "text": "Funding", "tags": ["basic", "parchment"], "asset": "circle:gold",
-      "tooltip": "Effect (free): take 1 coin. Or spend it travelling for 1.",
-      "card_stats": { "trek": 1 },
-      "abilities": [
-        { "key": "effect", "text": "Take the coin", "phases": ["turn"],
-          "action": ["stat_gain:coin@mine.player:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
+    { "key": "funding", "text": "Funding", "tags": ["deck_card", "basic", "parchment"], "asset": "circle:gold",
+      "tooltip": "Free: take a coin. Or spend it travelling for 1.",
+      "card_stats": { "trek": 1, "y_coin": 1 } },
+    { "key": "exploration", "text": "Exploration", "tags": ["deck_card", "basic", "parchment"], "asset": "circle:cyan",
+      "tooltip": "Free: take a compass. Or spend it travelling for 1.",
+      "card_stats": { "trek": 1, "y_compass": 1 } },
+    { "key": "fear", "text": "Fear", "tags": ["deck_card", "fear", "dread"], "asset": "cross:maroon",
+      "tooltip": "It does nothing. Spend it travelling for 1, and lose a point for it at the end.",
+      "card_stats": { "trek": 1 } },
 
-    { "key": "exploration", "text": "Exploration", "tags": ["basic", "parchment"], "asset": "circle:cyan",
-      "tooltip": "Effect (free): take 1 compass. Or spend it travelling for 1.",
-      "card_stats": { "trek": 1 },
-      "abilities": [
-        { "key": "effect", "text": "Take the compass", "phases": ["turn"],
-          "action": ["stat_gain:compass@mine.player:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
+    { "key": "it_canteen", "text": "Canteen", "tags": ["deck_card", "item", "crate"], "asset": "square:tan",
+      "tooltip": "Two coins.", "card_stats": { "price": 2, "trek": 1, "y_coin": 2 } },
+    { "key": "it_compass", "text": "Spare Compass", "tags": ["deck_card", "item", "crate"], "asset": "square:cyan",
+      "tooltip": "Two compasses.", "card_stats": { "price": 2, "trek": 1, "y_compass": 2 } },
+    { "key": "it_shovel", "text": "Shovel", "tags": ["deck_card", "item", "crate"], "asset": "square:silver",
+      "tooltip": "An arrowhead and a tablet.", "card_stats": { "price": 3, "trek": 1, "y_arrow": 1, "y_tablet": 1 } },
+    { "key": "it_rope", "text": "Rope", "tags": ["deck_card", "item", "crate"], "asset": "square:brown",
+      "tooltip": "Two travel.", "card_stats": { "price": 3, "trek": 2, "points": 1, "y_travel": 2 } },
+    { "key": "it_pickaxe", "text": "Pickaxe", "tags": ["deck_card", "item", "crate"], "asset": "square:slate",
+      "tooltip": "Two arrowheads.", "card_stats": { "price": 4, "trek": 1, "points": 1, "y_arrow": 2 } },
+    { "key": "it_map", "text": "Map", "tags": ["deck_card", "item", "crate"], "asset": "square:sand",
+      "tooltip": "Three travel.", "card_stats": { "price": 4, "trek": 2, "points": 1, "y_travel": 3 } },
+    { "key": "it_lantern", "text": "Lantern", "tags": ["deck_card", "item", "crate"], "asset": "square:amber",
+      "tooltip": "A jewel.", "card_stats": { "price": 4, "trek": 1, "points": 1, "y_jewel": 1 } },
+    { "key": "it_camera", "text": "Camera", "tags": ["deck_card", "item", "crate"], "asset": "square:olive",
+      "tooltip": "Two tablets and a coin.",
+      "card_stats": { "price": 5, "trek": 1, "points": 2, "y_tablet": 2, "y_coin": 1 } },
+    { "key": "it_journal", "text": "Field Journal", "tags": ["deck_card", "item", "crate"], "asset": "square:forest",
+      "tooltip": "Draw two cards.", "card_stats": { "price": 5, "trek": 2, "points": 2, "y_draw": 2 } },
+    { "key": "it_tent", "text": "Tent", "tags": ["deck_card", "item", "crate"], "asset": "square:maroon",
+      "tooltip": "Two coins and a compass.",
+      "card_stats": { "price": 6, "trek": 2, "points": 3, "y_coin": 2, "y_compass": 1 } },
 
-    { "key": "fear", "text": "Fear", "tags": ["fear", "dread"], "asset": "cross:maroon",
-      "tooltip": "No effect at all. Spend it travelling for 1, and lose a point for it at the end.",
-      "card_stats": { "trek": 1 },
-      "abilities": [
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_canteen", "text": "Canteen", "tags": ["item", "crate"], "asset": "square:tan",
-      "tooltip": "Effect (main action): take 2 coins.",
-      "card_stats": { "price": 2, "trek": 1, "points": 0 },
-      "abilities": [
-        { "key": "effect", "text": "Use the canteen", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["stat_gain:coin@mine.player:2", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_compass", "text": "Spare Compass", "tags": ["item", "crate"], "asset": "square:cyan",
-      "tooltip": "Effect (main action): take 2 compasses.",
-      "card_stats": { "price": 2, "trek": 1, "points": 0 },
-      "abilities": [
-        { "key": "effect", "text": "Use the compass", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["stat_gain:compass@mine.player:2", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_shovel", "text": "Shovel", "tags": ["item", "crate"], "asset": "square:silver",
-      "tooltip": "Effect (main action): take 1 arrowhead and 1 tablet.",
-      "card_stats": { "price": 3, "trek": 1, "points": 0 },
-      "abilities": [
-        { "key": "effect", "text": "Dig with the shovel", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["stat_gain:arrowhead@mine.player:1", "stat_gain:tablet@mine.player:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_rope", "text": "Rope", "tags": ["item", "crate"], "asset": "square:brown",
-      "tooltip": "Effect (main action): 2 travel.",
-      "card_stats": { "price": 3, "trek": 2, "points": 1 },
-      "abilities": [
-        { "key": "effect", "text": "Climb with the rope", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["stat_gain:travel@mine.player:2", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_pickaxe", "text": "Pickaxe", "tags": ["item", "crate"], "asset": "square:slate",
-      "tooltip": "Effect (main action): take 2 arrowheads.",
-      "card_stats": { "price": 4, "trek": 1, "points": 1 },
-      "abilities": [
-        { "key": "effect", "text": "Swing the pickaxe", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["stat_gain:arrowhead@mine.player:2", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_map", "text": "Map", "tags": ["item", "crate"], "asset": "square:sand",
-      "tooltip": "Effect (main action): 3 travel.",
-      "card_stats": { "price": 4, "trek": 2, "points": 1 },
-      "abilities": [
-        { "key": "effect", "text": "Read the map", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["stat_gain:travel@mine.player:3", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_lantern", "text": "Lantern", "tags": ["item", "crate"], "asset": "square:amber",
-      "tooltip": "Effect (main action): take 1 jewel.",
-      "card_stats": { "price": 4, "trek": 1, "points": 1 },
-      "abilities": [
-        { "key": "effect", "text": "Light the lantern", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["stat_gain:jewel@mine.player:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_camera", "text": "Camera", "tags": ["item", "crate"], "asset": "square:olive",
-      "tooltip": "Effect (main action): take 2 tablets and 1 coin.",
-      "card_stats": { "price": 5, "trek": 1, "points": 2 },
-      "abilities": [
-        { "key": "effect", "text": "Photograph the find", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["stat_gain:tablet@mine.player:2", "stat_gain:coin@mine.player:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_journal", "text": "Field Journal", "tags": ["item", "crate"], "asset": "square:forest",
-      "tooltip": "Effect (main action): draw 2 cards.",
-      "card_stats": { "price": 5, "trek": 2, "points": 2 },
-      "abilities": [
-        { "key": "effect", "text": "Read the journal", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["draw_from:mine.bag:mine.hand:2", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "it_tent", "text": "Tent", "tags": ["item", "crate"], "asset": "square:maroon",
-      "tooltip": "Effect (main action): take 1 coin, 1 compass and 1 tablet.",
-      "card_stats": { "price": 6, "trek": 2, "points": 3 },
-      "abilities": [
-        { "key": "effect", "text": "Make camp", "phases": ["turn"], "cost": { "main@mine.player": 1 },
-          "action": ["stat_gain:coin@mine.player:1", "stat_gain:compass@mine.player:1",
-                     "stat_gain:tablet@mine.player:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "ar_tablet", "text": "Star Tablet", "tags": ["artifact", "relic"], "asset": "star:5:violet",
-      "tooltip": "Effect (main action, and 1 tablet to read it again): take 2 tablets.",
-      "card_stats": { "price": 2, "trek": 1, "points": 1 },
-      "abilities": [
-        { "key": "effect", "text": "Read the tablet", "phases": ["turn"],
-          "cost": { "main@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_gain:tablet@mine.player:2", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "ar_disc", "text": "Golden Disc", "tags": ["artifact", "relic"], "asset": "star:6:gold",
-      "tooltip": "Effect (main action, and 1 tablet): take 1 jewel and 1 tablet.",
-      "card_stats": { "price": 3, "trek": 2, "points": 2 },
-      "abilities": [
-        { "key": "effect", "text": "Turn the disc", "phases": ["turn"],
-          "cost": { "main@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_gain:jewel@mine.player:1", "stat_gain:tablet@mine.player:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "ar_amulet", "text": "Ara-Anu Amulet", "tags": ["artifact", "relic"], "asset": "star:7:magenta",
-      "tooltip": "Effect (main action, and 1 tablet): take 1 jewel and draw a card.",
-      "card_stats": { "price": 3, "trek": 1, "points": 2 },
-      "abilities": [
-        { "key": "effect", "text": "Wear the amulet", "phases": ["turn"],
-          "cost": { "main@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_gain:jewel@mine.player:1", "draw_from:mine.bag:mine.hand:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "ar_mask", "text": "Ritual Mask", "tags": ["artifact", "relic"], "asset": "star:8:teal",
-      "tooltip": "Effect (main action, and 1 tablet): 4 travel.",
-      "card_stats": { "price": 4, "trek": 2, "points": 2 },
-      "abilities": [
-        { "key": "effect", "text": "Wear the mask", "phases": ["turn"],
-          "cost": { "main@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_gain:travel@mine.player:4", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "ar_scepter", "text": "Sun Scepter", "tags": ["artifact", "relic"], "asset": "star:9:orange",
-      "tooltip": "Effect (main action, and 1 tablet): take 2 arrowheads and 1 jewel.",
-      "card_stats": { "price": 5, "trek": 2, "points": 3 },
-      "abilities": [
-        { "key": "effect", "text": "Raise the scepter", "phases": ["turn"],
-          "cost": { "main@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_gain:arrowhead@mine.player:2", "stat_gain:jewel@mine.player:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
-
-    { "key": "ar_totem", "text": "Bird Totem", "tags": ["artifact", "relic"], "asset": "star:10:indigo",
-      "tooltip": "Effect (main action, and 1 tablet): take an idol from the supply.",
-      "card_stats": { "price": 6, "trek": 2, "points": 3 },
-      "abilities": [
-        { "key": "effect", "text": "Call the bird god", "phases": ["turn"],
-          "cost": { "main@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["fill:mine.idols:idol:1", "move_to:mine.table"] },
-        { "key": "travel", "text": "Spend it travelling", "phases": ["turn"],
-          "action": ["stat_gain:travel@mine.player:sum:trek@self", "move_to:mine.table"] }
-      ] },
+    { "key": "ar_tablet", "text": "Star Tablet", "tags": ["deck_card", "artifact", "relic"], "asset": "star:5:violet",
+      "tooltip": "Two tablets.", "card_stats": { "price": 2, "trek": 1, "points": 1, "y_tablet": 2 } },
+    { "key": "ar_disc", "text": "Golden Disc", "tags": ["deck_card", "artifact", "relic"], "asset": "star:6:gold",
+      "tooltip": "A jewel and a tablet.",
+      "card_stats": { "price": 3, "trek": 2, "points": 2, "y_jewel": 1, "y_tablet": 1 } },
+    { "key": "ar_amulet", "text": "Ara-Anu Amulet", "tags": ["deck_card", "artifact", "relic"], "asset": "star:7:magenta",
+      "tooltip": "A jewel, and draw a card.",
+      "card_stats": { "price": 3, "trek": 1, "points": 2, "y_jewel": 1, "y_draw": 1 } },
+    { "key": "ar_mask", "text": "Ritual Mask", "tags": ["deck_card", "artifact", "relic"], "asset": "star:8:teal",
+      "tooltip": "Four travel.", "card_stats": { "price": 4, "trek": 2, "points": 2, "y_travel": 4 } },
+    { "key": "ar_scepter", "text": "Sun Scepter", "tags": ["deck_card", "artifact", "relic"], "asset": "star:9:orange",
+      "tooltip": "Two arrowheads and a jewel.",
+      "card_stats": { "price": 5, "trek": 2, "points": 3, "y_arrow": 2, "y_jewel": 1 } },
+    { "key": "ar_totem", "text": "Bird Totem", "tags": ["deck_card", "artifact", "relic"], "asset": "star:10:indigo",
+      "tooltip": "An idol out of the supply.",
+      "card_stats": { "price": 6, "trek": 2, "points": 3, "y_idol": 1 } },
 
     { "key": "site_beach", "text": "Shell Beach", "tags": ["site", "field"], "asset": "triangle:teal",
-      "tooltip": "Dig here for 1 travel: take 2 coins.",
-      "card_stats": { "toll": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 1 },
-          "action": ["stat_gain:coin@mine.player:2"] }
-      ] },
-
+      "card_stats": { "toll": 1, "y_coin": 2 } },
     { "key": "site_jungle", "text": "Jungle Path", "tags": ["site", "field"], "asset": "triangle:forest",
-      "tooltip": "Dig here for 1 travel: take 1 coin and 1 compass.",
-      "card_stats": { "toll": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 1 },
-          "action": ["stat_gain:coin@mine.player:1", "stat_gain:compass@mine.player:1"] }
-      ] },
-
+      "card_stats": { "toll": 1, "y_coin": 1, "y_compass": 1 } },
     { "key": "site_cliffs", "text": "Chalk Cliffs", "tags": ["site", "field"], "asset": "triangle:silver",
-      "tooltip": "Dig here for 2 travel: take 1 arrowhead and 1 coin.",
-      "card_stats": { "toll": 2 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:arrowhead@mine.player:1", "stat_gain:coin@mine.player:1"] }
-      ] },
-
+      "card_stats": { "toll": 2, "y_arrow": 1, "y_coin": 1 } },
     { "key": "site_ruins", "text": "Roadside Ruins", "tags": ["site", "field"], "asset": "triangle:sand",
-      "tooltip": "Dig here for 2 travel: take 1 tablet and 1 compass.",
-      "card_stats": { "toll": 2 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:tablet@mine.player:1", "stat_gain:compass@mine.player:1"] }
-      ] },
-
+      "card_stats": { "toll": 2, "y_tablet": 1, "y_compass": 1 } },
     { "key": "site_cave", "text": "Bat Cave", "tags": ["site", "field"], "asset": "triangle:slate",
-      "tooltip": "Dig here for 3 travel: take 1 jewel.",
-      "card_stats": { "toll": 3 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:jewel@mine.player:1"] }
-      ] },
+      "card_stats": { "toll": 3, "y_jewel": 1 } },
 
     { "key": "s1_lagoon", "text": "Sunken Lagoon", "tags": ["site", "field"], "asset": "polygon:5:cyan",
-      "tooltip": "Dig here for 2 travel: take 1 compass and 1 jewel. Its guardian costs 1 arrowhead and 1 tablet.",
-      "card_stats": { "toll": 2, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:compass@mine.player:1", "stat_gain:jewel@mine.player:1"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:compass@mine.player:1", "stat_gain:jewel@mine.player:1", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
-
+      "tooltip": "Its guardian asks an arrowhead and a tablet.",
+      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_compass": 1, "y_jewel": 1 } },
     { "key": "s1_temple", "text": "Broken Temple", "tags": ["site", "field"], "asset": "polygon:5:sand",
-      "tooltip": "Dig here for 2 travel: take 2 tablets. Its guardian costs 1 arrowhead and 1 tablet.",
-      "card_stats": { "toll": 2, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:tablet@mine.player:2"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:tablet@mine.player:2", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
-
+      "tooltip": "Its guardian asks an arrowhead and a tablet.",
+      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_tablet": 2 } },
     { "key": "s1_quarry", "text": "Old Quarry", "tags": ["site", "field"], "asset": "polygon:5:silver",
-      "tooltip": "Dig here for 2 travel: take 2 arrowheads. Its guardian costs 1 arrowhead and 1 tablet.",
-      "card_stats": { "toll": 2, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:arrowhead@mine.player:2"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:arrowhead@mine.player:2", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
-
+      "tooltip": "Its guardian asks an arrowhead and a tablet.",
+      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_arrow": 2 } },
     { "key": "s1_grotto", "text": "Painted Grotto", "tags": ["site", "field"], "asset": "polygon:5:violet",
-      "tooltip": "Dig here for 2 travel: take 1 tablet, 1 coin and 1 compass. Its guardian costs 1 arrowhead and 1 tablet.",
-      "card_stats": { "toll": 2, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:tablet@mine.player:1", "stat_gain:coin@mine.player:1", "stat_gain:compass@mine.player:1"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:tablet@mine.player:1", "stat_gain:coin@mine.player:1",
-                     "stat_gain:compass@mine.player:1", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
-
+      "tooltip": "Its guardian asks an arrowhead and a tablet.",
+      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1,
+                      "y_tablet": 1, "y_coin": 1, "y_compass": 1 } },
     { "key": "s1_terrace", "text": "Stone Terrace", "tags": ["site", "field"], "asset": "polygon:5:gold",
-      "tooltip": "Dig here for 2 travel: take 3 coins. Its guardian costs 1 arrowhead and 1 tablet.",
-      "card_stats": { "toll": 2, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:coin@mine.player:3"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:coin@mine.player:3", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
-
+      "tooltip": "Its guardian asks an arrowhead and a tablet.",
+      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_coin": 3 } },
     { "key": "s1_spring", "text": "Hot Spring", "tags": ["site", "field"], "asset": "polygon:5:orange",
-      "tooltip": "Dig here for 2 travel: take 1 jewel and 1 coin. Its guardian costs 1 arrowhead and 1 tablet.",
-      "card_stats": { "toll": 2, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:jewel@mine.player:1", "stat_gain:coin@mine.player:1"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["stat_gain:jewel@mine.player:1", "stat_gain:coin@mine.player:1", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 1, "tablet@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
+      "tooltip": "Its guardian asks an arrowhead and a tablet.",
+      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_jewel": 1, "y_coin": 1 } },
 
     { "key": "s2_vault", "text": "Sealed Vault", "tags": ["site", "field"], "asset": "polygon:8:violet",
-      "tooltip": "Dig here for 3 travel: take 2 jewels. Its guardian costs 2 arrowheads and 1 jewel.",
-      "card_stats": { "toll": 3, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:jewel@mine.player:2"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:jewel@mine.player:2", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 2, "jewel@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
-
+      "tooltip": "Its guardian asks two arrowheads and a jewel.",
+      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1, "y_jewel": 2 } },
     { "key": "s2_obelisk", "text": "Fallen Obelisk", "tags": ["site", "field"], "asset": "polygon:8:sand",
-      "tooltip": "Dig here for 3 travel: take 2 tablets and 1 arrowhead. Its guardian costs 2 arrowheads and 1 jewel.",
-      "card_stats": { "toll": 3, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:tablet@mine.player:2", "stat_gain:arrowhead@mine.player:1"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:tablet@mine.player:2", "stat_gain:arrowhead@mine.player:1", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 2, "jewel@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
-
+      "tooltip": "Its guardian asks two arrowheads and a jewel.",
+      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1, "y_tablet": 2, "y_arrow": 1 } },
     { "key": "s2_gate", "text": "Serpent Gate", "tags": ["site", "field"], "asset": "polygon:8:forest",
-      "tooltip": "Dig here for 3 travel: take 1 jewel, 1 tablet and 1 compass. Its guardian costs 2 arrowheads and 1 jewel.",
-      "card_stats": { "toll": 3, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:jewel@mine.player:1", "stat_gain:tablet@mine.player:1", "stat_gain:compass@mine.player:1"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:jewel@mine.player:1", "stat_gain:tablet@mine.player:1",
-                     "stat_gain:compass@mine.player:1", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 2, "jewel@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
-
+      "tooltip": "Its guardian asks two arrowheads and a jewel.",
+      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1,
+                      "y_jewel": 1, "y_tablet": 1, "y_compass": 1 } },
     { "key": "s2_pyramid", "text": "Step Pyramid", "tags": ["site", "field"], "asset": "polygon:8:gold",
-      "tooltip": "Dig here for 3 travel: take 2 arrowheads and 2 coins. Its guardian costs 2 arrowheads and 1 jewel.",
-      "card_stats": { "toll": 3, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:arrowhead@mine.player:2", "stat_gain:coin@mine.player:2"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:arrowhead@mine.player:2", "stat_gain:coin@mine.player:2", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 2, "jewel@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
-
+      "tooltip": "Its guardian asks two arrowheads and a jewel.",
+      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1, "y_arrow": 2, "y_coin": 2 } },
     { "key": "s2_observatory", "text": "Sky Observatory", "tags": ["site", "field"], "asset": "polygon:8:cyan",
-      "tooltip": "Dig here for 3 travel: take 1 jewel and 2 compasses. Its guardian costs 2 arrowheads and 1 jewel.",
-      "card_stats": { "toll": 3, "guard": 1 },
-      "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:jewel@mine.player:1", "stat_gain:compass@mine.player:2"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"], "when": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 3 },
-          "action": ["stat_gain:jewel@mine.player:1", "stat_gain:compass@mine.player:2", "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": 2, "jewel@mine.player": 1 },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1", "stat_damage:guarded@mine.player:1"] }
-      ] },
+      "tooltip": "Its guardian asks two arrowheads and a jewel.",
+      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1, "y_jewel": 1, "y_compass": 2 } },
 
     { "key": "pos_1", "text": "Level I", "tags": ["marker", "veiled"], "asset": "diamond:slate",
       "tooltip": "Undiscovered. Discover it for 2 travel: take an idol, turn up a Level I site, and wake the guardian standing on it.",
@@ -654,47 +430,31 @@
           "action": ["stat_set:used@self:1", "options:idol_coin,idol_compass,idol_dig,idol_draw"] }
       ] },
 
-    { "key": "idol_coin", "text": "Funding", "tags": ["token", "gilt"],
-      "tooltip": "Take 3 coins.",
+    { "key": "idol_coin", "text": "Funding", "tags": ["token", "gilt"], "asset": "circle:gold",
+      "tooltip": "Take three coins.",
       "play": { "action": ["stat_gain:coin@mine.player:3"] } },
-    { "key": "idol_compass", "text": "Bearings", "tags": ["token", "gilt"],
-      "tooltip": "Take 3 compasses.",
+    { "key": "idol_compass", "text": "Bearings", "tags": ["token", "gilt"], "asset": "circle:cyan",
+      "tooltip": "Take three compasses.",
       "play": { "action": ["stat_gain:compass@mine.player:3"] } },
-    { "key": "idol_dig", "text": "Relics", "tags": ["token", "gilt"],
-      "tooltip": "Take 1 arrowhead, 1 tablet and 1 jewel.",
+    { "key": "idol_dig", "text": "Relics", "tags": ["token", "gilt"], "asset": "triangle:silver",
+      "tooltip": "Take an arrowhead, a tablet and a jewel.",
       "play": { "action": ["stat_gain:arrowhead@mine.player:1", "stat_gain:tablet@mine.player:1",
                            "stat_gain:jewel@mine.player:1"] } },
-    { "key": "idol_draw", "text": "Foresight", "tags": ["token", "gilt"],
-      "tooltip": "Draw 2 cards.",
+    { "key": "idol_draw", "text": "Foresight", "tags": ["token", "gilt"], "asset": "square:forest",
+      "tooltip": "Draw two cards.",
       "play": { "action": ["draw_from:mine.bag:mine.hand:2"] } },
 
     { "key": "asst_scout", "text": "Scout", "tags": ["assistant", "hire"], "asset": "polygon:6:teal",
-      "tooltip": "Once a round, free: 2 travel.",
-      "abilities": [
-        { "key": "use", "text": "Send the scout", "phases": ["turn"], "cost": { "exhaust": 1 },
-          "action": ["stat_gain:travel@mine.player:2"] }
-      ] },
+      "card_stats": { "y_travel": 2 } },
     { "key": "asst_digger", "text": "Digger", "tags": ["assistant", "hire"], "asset": "polygon:6:brown",
-      "tooltip": "Once a round, free: take 1 arrowhead and 1 tablet.",
-      "abilities": [
-        { "key": "use", "text": "Set the digger to work", "phases": ["turn"], "cost": { "exhaust": 1 },
-          "action": ["stat_gain:arrowhead@mine.player:1", "stat_gain:tablet@mine.player:1"] }
-      ] },
+      "card_stats": { "y_arrow": 1, "y_tablet": 1 } },
     { "key": "asst_scribe", "text": "Scribe", "tags": ["assistant", "hire"], "asset": "polygon:6:sand",
-      "tooltip": "Once a round, free: draw a card.",
-      "abilities": [
-        { "key": "use", "text": "Ask the scribe", "phases": ["turn"], "cost": { "exhaust": 1 },
-          "action": ["draw_from:mine.bag:mine.hand:1"] }
-      ] },
+      "card_stats": { "y_draw": 1 } },
     { "key": "asst_trader", "text": "Trader", "tags": ["assistant", "hire"], "asset": "polygon:6:gold",
-      "tooltip": "Once a round, free: take 2 coins.",
-      "abilities": [
-        { "key": "use", "text": "Send the trader to market", "phases": ["turn"], "cost": { "exhaust": 1 },
-          "action": ["stat_gain:coin@mine.player:2"] }
-      ] },
+      "card_stats": { "y_coin": 2 } },
 
-    { "key": "res_1", "text": "I", "tags": ["study"], "asset": "stripes:2:indigo",
-      "tooltip": "Glass: 1 compass, take 1 coin. Notebook: 1 compass, take 1 compass.",
+    { "key": "res_1", "text": "I", "tags": ["study"],
+      "tooltip": "A compass to move either token. Glass: take a coin. Notebook: take a compass.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
           "when": ["glass@mine.player == 0"],
@@ -706,8 +466,8 @@
           "action": ["stat_set:note@mine.player:1", "stat_gain:compass@mine.player:1"] }
       ] },
 
-    { "key": "res_2", "text": "II", "tags": ["study"], "asset": "stripes:3:indigo",
-      "tooltip": "Glass: 1 tablet, take 1 arrowhead. Notebook: 1 tablet, draw a card.",
+    { "key": "res_2", "text": "II", "tags": ["study"],
+      "tooltip": "A tablet to move either token. Glass: take an arrowhead. Notebook: draw a card.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
           "when": ["glass@mine.player == 1"],
@@ -719,21 +479,21 @@
           "action": ["stat_set:note@mine.player:2", "draw_from:mine.bag:mine.hand:1"] }
       ] },
 
-    { "key": "res_3", "text": "III", "tags": ["study"], "asset": "stripes:4:indigo",
-      "tooltip": "Glass: 1 tablet and 1 arrowhead, take 1 tablet. Notebook: 1 tablet and 1 arrowhead, recruit an assistant.",
+    { "key": "res_3", "text": "III", "tags": ["study"],
+      "tooltip": "A tablet and an arrowhead. Glass: take a tablet. Notebook: recruit an assistant.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
           "when": ["glass@mine.player == 2"],
           "cost": { "main@mine.player": 1, "tablet@mine.player": 1, "arrowhead@mine.player": 1 },
           "action": ["stat_set:glass@mine.player:3", "stat_gain:tablet@mine.player:1"] },
-        { "key": "note", "text": "Advance the notebook", "phases": ["turn"],
+        { "key": "note", "text": "Advance the notebook, and recruit", "phases": ["turn"],
           "when": ["note@mine.player == 2", "glass@mine.player >= 3"],
           "cost": { "main@mine.player": 1, "tablet@mine.player": 1, "arrowhead@mine.player": 1 },
           "action": ["stat_set:note@mine.player:3", "draw_from:assistant_box:mine.assistants:1"] }
       ] },
 
-    { "key": "res_4", "text": "IV", "tags": ["study"], "asset": "stripes:5:indigo",
-      "tooltip": "Glass: 1 jewel, take 1 jewel. Notebook: 1 jewel, take 2 coins.",
+    { "key": "res_4", "text": "IV", "tags": ["study"],
+      "tooltip": "A jewel to move either token. Glass: take a jewel. Notebook: take two coins.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
           "when": ["glass@mine.player == 3"],
@@ -745,21 +505,21 @@
           "action": ["stat_set:note@mine.player:4", "stat_gain:coin@mine.player:2"] }
       ] },
 
-    { "key": "res_5", "text": "V", "tags": ["study"], "asset": "stripes:6:indigo",
-      "tooltip": "Glass: 1 jewel and 1 tablet, take 2 compasses. Notebook: 1 jewel and 1 tablet, recruit an assistant.",
+    { "key": "res_5", "text": "V", "tags": ["study"],
+      "tooltip": "A jewel and a tablet. Glass: take two compasses. Notebook: recruit an assistant.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
           "when": ["glass@mine.player == 4"],
           "cost": { "main@mine.player": 1, "jewel@mine.player": 1, "tablet@mine.player": 1 },
           "action": ["stat_set:glass@mine.player:5", "stat_gain:compass@mine.player:2"] },
-        { "key": "note", "text": "Advance the notebook", "phases": ["turn"],
+        { "key": "note", "text": "Advance the notebook, and recruit", "phases": ["turn"],
           "when": ["note@mine.player == 4", "glass@mine.player >= 5"],
           "cost": { "main@mine.player": 1, "jewel@mine.player": 1, "tablet@mine.player": 1 },
           "action": ["stat_set:note@mine.player:5", "draw_from:assistant_box:mine.assistants:1"] }
       ] },
 
-    { "key": "res_6", "text": "The Lost Temple", "tags": ["study"], "asset": "star:12:gold",
-      "tooltip": "Only the magnifying glass reaches it: 2 jewels for 5 points, and 5 more for whoever gets there first.",
+    { "key": "res_6", "text": "Temple", "tags": ["study"], "asset": "star:12:gold",
+      "tooltip": "The Lost Temple, and only the magnifying glass reaches it: two jewels for five points, and five more for whoever arrives first.",
       "abilities": [
         { "key": "glass", "text": "Reach the Lost Temple", "phases": ["turn"],
           "when": ["glass@mine.player == 5"],
@@ -772,6 +532,19 @@
       "abilities": [
         { "key": "first_temple", "text": "first_temple", "when": ["temple_taken@clock == 0"],
           "action": ["stat_gain:score@mine.player:5", "stat_set:temple_taken@clock:1"] }
+      ] },
+
+    { "key": "market_first", "text": "market_first", "tags": ["immutable"],
+      "abilities": [
+        { "key": "market_first", "text": "market_first", "when": ["round_no@clock == 1"],
+          "action": ["draw_from:artifact_deck:artifacts:1", "draw_from:item_deck:items:5"] }
+      ] },
+
+    { "key": "market_staff", "text": "market_staff", "tags": ["immutable"],
+      "abilities": [
+        { "key": "market_staff", "text": "market_staff", "when": ["round_no@clock >= 2"],
+          "action": ["destroy:artifacts:1", "destroy:items:1",
+                     "draw_from:artifact_deck:artifacts:2"] }
       ] },
 
     { "key": "end_turn", "text": "End turn", "tags": ["immutable"], "asset": "square:slate",

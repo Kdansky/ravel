@@ -14,6 +14,7 @@ local entity = require("entity")
 local zones  = require("zones")
 local phase  = require("phase")
 local flow   = require("flow")
+local cards  = require("cards")
 
 local M = {}
 
@@ -218,6 +219,54 @@ function M.test_arnak_five_rounds_and_then_the_count(check)
 		south.stats.score == -2, tostring(south.stats.score))
 	check("and the engine knows who won", north.stats.won == 1 and (south.stats.won or 0) == 0,
 		tostring(north.stats.won) .. "/" .. tostring(south.stats.won))
+end
+
+-- What a card is worth is one number, read twice: the badge draws it and the
+-- ability spends it. Nothing in the file writes a yield down a second time, so
+-- the printed card and the rule it runs cannot drift apart.
+function M.test_arnak_a_card_pays_out_exactly_what_it_prints(check)
+	flow.init("arnak.json", 7)
+	local me = seat("south")
+	me.stats.main, me.stats.coin, me.stats.tablet = 1, 0, 0
+
+	-- Straight out of the deck, so this is the shipped card and not one dialled up.
+	local camera = cards.create("it_camera", zone("hand", 1).id)
+	camera.stats.owner = 1
+	check("the camera prints two tablets and a coin",
+		camera.stats.y_tablet == 2 and camera.stats.y_coin == 1)
+	check("and using it works", use(camera, "effect"))
+	check("two tablets arrived", me.stats.tablet == 2, tostring(me.stats.tablet))
+	check("and one coin", me.stats.coin == 1, tostring(me.stats.coin))
+
+	-- A card that prints none of a thing gains none of it, silently: sum: over a
+	-- card with no such stat is zero, so the uniform action list costs nothing.
+	check("and nothing it does not print", me.stats.jewel == 0, tostring(me.stats.jewel))
+end
+
+-- Every badge a style lists is a stat some card actually carries, and every
+-- yield a card carries is on the badge list of the style it wears. A number
+-- the player cannot see is a rule written in invisible ink.
+function M.test_arnak_every_printed_number_is_drawn(check)
+	flow.init("arnak.json", 7)
+	local G = require("declaration").G
+	local box, missing = zone("item_deck").id, {}
+	for key, def in pairs(G.card_defs) do
+		if def.card_stats then
+			local made  = cards.create(key, box)
+			local style = cards.style(made)
+			for stat in pairs(def.card_stats) do
+				if stat:match("^y_") or stat == "price" or stat == "toll"
+					or stat == "trek" or stat == "points" then
+					local drawn = false
+					for _, b in ipairs(style.badges or {}) do drawn = drawn or b == stat end
+					if not drawn then missing[#missing + 1] = key .. "." .. stat end
+				end
+			end
+		end
+	end
+	table.sort(missing)
+	check("every printed number has a badge to draw it", #missing == 0,
+		table.concat(missing, ", "))
 end
 
 return M

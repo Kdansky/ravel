@@ -9,15 +9,16 @@ that priced it. This file is the third thing: the record of the build.
 ```
 luajit check.lua arnak.json      silent
 luajit play.lua arnak.json 7     two seats, five rounds
-luajit tests/run.lua arnak       seven scripted tests
+luajit tests/run.lua arnak       nine scripted tests
 ```
 
 Hand-written, no generator. Sixty-one card templates and twenty-one zones is
 past the "write a script" line [AUTHORING](../../AUTHORING.md) draws at a
-couple of dozen — but the line is about *repetition*, and Arnak has almost
-none: nineteen site tiles that differ in their cost and their yield, sixteen
-market cards that differ in the same two, and no family anywhere that a loop
-would have written more clearly than a list does.
+couple of dozen — and the reason it stays readable is that **no card in the
+file carries an action list.** Every rule lives on a tag; a card is its name,
+its picture and the numbers printed on it. Nineteen site tiles, sixteen market
+cards, four assistants and three basics, and between them not one duplicated
+line of behaviour for a generator to have kept in step.
 
 ---
 
@@ -43,7 +44,14 @@ thing to do; each half is gated separately by its own `cost`, which is exactly
 the difference the rulebook draws — playing for travel is free, playing an item
 for its effect is your main action.
 
-Three things fall out of it that no other spelling gives:
+**The two halves live on tags, not on cards.** `deck_card` grants the travel
+ability to everything in a deck; `basic`, `item` and `artifact` each grant the
+effect half with the cost that kind of card charges — nothing, a main action, a
+main action and a tablet. `site` grants the three a site space has, and
+`assistant` the one an assistant has. A card names its tags and prints its
+numbers, and that is the whole of a card.
+
+Three more things fall out of it that no other spelling gives:
 
 - **Fear is a card with one ability.** No `effect` half at all, so the chooser
   never appears and clicking it spends it for travel. *This chip does nothing*
@@ -72,17 +80,16 @@ that one.
 | a space is occupied for the rest of the round | `"exhaust": 1` in the dig ability's cost. `ends_round: true` on the cleanup route readies every one of them at once |
 | five resource types | five stats on the player card |
 | a card's travel value, spent as a second currency | `trek` printed on the card, `travel` banked on the player and zeroed at the start of every turn |
-| dig at a site: pay its travel cost, resolve its effect | one ability per site card, its own `travel@mine.player` cost written on it |
+| dig at a site: pay its travel cost, resolve its effect | one ability on the `site` tag, whose cost reads the toll off the tile: `"travel@mine.player": "toll@self"` |
 | a guardian wakes when a site is discovered | `guard: 1` in the revealed tile's `card_stats`; the tile *is* the guardian |
-| a guardian does not block digging | a second ability, `dig_guarded`, gated `"when": ["guard@self >= 1"]`, identical except that it raises `guarded` |
-| overcome one by paying a flat price | a third ability, no `exhaust`, so an exhausted space still offers it |
+| a guardian does not block digging | a second ability, `dig_guarded`, gated `"when": ["guard@self >= 1"]`, identical except that it raises `guarded`. `when` decides which of the two is *offered*, so the player is shown one |
+| overcome one by paying a flat price | a third ability, no `exhaust`, so an exhausted space still offers it. Its price is read off the tile too — `g_arrow`, `g_tablet`, `g_jewel` |
 | an archaeologist coming home from a guarded site earns a Fear card | `each_seat:fill:mine.table:fear:sum:guarded@mine.player` in `cleanup`, then the counter is cleared |
 | discovery reveals a printed position | the position is a `pos_1`/`pos_2` marker card sitting in the `island` grid. Discovering it runs `destroy_self` and then `draw_from:site_1_deck:island:1`, and the freed cell is the only one the grid has |
 | idols come only from discovery | `fill:mine.idols:idol:1` in the same list, before the marker destroys itself |
 | slot an idol, free, once, for one of several effects | `"when": ["used@self == 0"]` and `options:idol_coin,idol_compass,idol_dig,idol_draw` |
-| the card row, split by the moon staff | two zones. `artifacts` is filled to `round_no` cards, `items` to `6 − round_no`, so the row is always six wide and one slot crosses every round |
-| two cards exiled every round, whether bought or not | `destroy:artifacts:1` and `destroy:items:1` at the head of `round_start`, which take the earliest of each |
-| buying refills the row | the same arithmetic, in the buy ability, so the shelf fills before the next player looks at it |
+| the card row, split by the moon staff | two zones and two rule cards in `rules_market`, gated on the round: the first round deals one artifact and five items, and every round after exiles one of each and deals **two** artifacts. The row is always six wide and one slot crosses every round, with no arithmetic in it |
+| buying refills the row | `draw_from` of one, in the buy ability, so the shelf fills before the next player looks at it |
 | an item costs coins, an artifact costs compasses | two tags, `for_sale_item` and `for_sale_art`, differing in one word of one cost map |
 | a bought card goes to the bottom of your deck | `move:self:mine.bag:bottom` |
 | round cleanup: shuffle the play area and put it under the deck | `each_seat:shuffle:mine.table` then `each_seat:return_to:mine.table:mine.bag:bottom`. Cards bought during the round are already down there, so they are drawn first — which is what the rulebook's parenthesis means |
@@ -92,18 +99,45 @@ that one.
 | assistants recruited from the track, exhausted on use, refreshed at cleanup | `draw_from:assistant_box:mine.assistants:1` on two notebook rows; `"cost": { "exhaust": 1 }` on each assistant; the round boundary readies them with everything else |
 | final scoring, six categories | six `each_seat:` lines in `scoring`, then `activate_zone:rules_win` to set the reserved `won` stat |
 
-The whole of the arithmetic in the file is one idiom, used twice: **a clamped
-subtraction is `max(0, a − b)`**, so "fill the shelf up to what this round
-wants" is
+---
+
+## What a card says without being read
+
+A card's yield is **one number, read twice**: the badge draws it and the ability
+spends it. `it_camera` prints `y_tablet: 2` and `y_coin: 1`, its style lists
+those keys among its badges, and the ability the `item` tag grants says
 
 ```json
-"stat_set:want@clock:6",
-"stat_damage:want@clock:sum:round_no@clock",
-"stat_damage:want@clock:count:item@items",
-"draw_from:item_deck:items:sum:want@clock"
+"stat_gain:tablet@mine.player:sum:y_tablet@self",
+"stat_gain:coin@mine.player:sum:y_coin@self",
 ```
 
-and there is no other computation anywhere.
+for every resource, unconditionally. A card that prints none of a thing gains
+none of it and says nothing about it: `sum:` over a card with no such stat is
+zero, `change_stat` returns early on a delta of nothing, and a badge list with
+`badge_zeros: false` leaves the line out. So one action list serves forty cards,
+the printed card and the rule can never drift apart, and
+`test_arnak_a_card_pays_out_exactly_what_it_prints` is the assertion that says
+so.
+
+Written the obvious way instead — an action list per card — the badge would have
+been a *second* copy of the same number, and the file's own record of what a
+card does would be the thing least likely to be right.
+
+Two rules keep the badges legible, and both are about width rather than taste:
+
+- **`badge_run: "down"` wherever a card is portrait** (hand cards, market
+  tiles), because a column leaves the title its full width and a row takes it
+  away. Board tiles are wide and short, so their badges run along the bottom.
+- **No deck card yields more than two things**, which caps its badge column at
+  five — price, points, travel value and two yields — and that is what a market
+  tile is tall enough to draw. `it_tent` was the one card over the line and gives
+  two coins and a compass instead of three separate things.
+
+The other constraint is the screen's, not the format's: **the stat readout is
+hard-anchored to the top-right corner**, so roughly `x > 0.86, y < 0.40` is
+unusable and the layout is built around a hole. That is
+[07](../07-presentation.md)'s open gap, met from the authoring side.
 
 ---
 
@@ -230,9 +264,10 @@ the missing thing is not the boolean but the seat.
 | | |
 |---|---|
 | the turn, and how a round ends | `phases`: `turn`'s three `next` routes |
-| the moon staff | `round_start`'s action list, and the two `for_sale_*` tags |
-| worker placement | any `site_*`/`s1_*`/`s2_*` card's `abilities` |
-| discovery | `pos_1` and `pos_2` |
+| the moon staff | `market_first` and `market_staff` in `rules_market`, and the two `for_sale_*` tags |
+| what every kind of card does | the `tags` section — `deck_card`, `basic`, `item`, `artifact`, `site`, `assistant` |
+| what a card is worth | its `card_stats`, and the badge list of the style it wears |
+| discovery | `pos_1` and `pos_2`, the only two cards with abilities of their own |
 | the research track | `res_1`..`res_6`, and `first_temple` in `rules_temple` |
 | scoring | the `scoring` phase, and `win_south`/`win_north` in `rules_win` |
 | the buttons | `end_turn` and `pass_turn`, in the `controls` zone |
