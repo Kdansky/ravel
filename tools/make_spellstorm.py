@@ -90,11 +90,12 @@ FIRE, WATER, EARTH = "fire", "water", "earth"
 
 def card(key, name, element, tooltip, cast=(), cast2=None, cast3=None,
          disc=None, chosen=None, tier=None, kind="spell", flavour=None,
-         simplified=None, asset=None, tags=()):
+         simplified=None, asset=None, tags=(), comment=None):
     return dict(key=key, name=name, element=element, tooltip=tooltip,
                 cast=list(cast), cast2=cast2, cast3=cast3, disc=disc,
                 chosen=chosen, tier=tier, kind=kind, flavour=flavour,
-                simplified=simplified, asset=asset, tags=list(tags))
+                simplified=simplified, asset=asset, tags=list(tags),
+                comment=comment)
 
 
 # --- The six-card starting deck -------------------------------------------
@@ -544,9 +545,9 @@ WIZARDS = [
                card("eve_riot", "Riot", FIRE, kind="wizard_spell",
                     tooltip="Discard your hand without triggering any discard effects. Deal 1 damage per Earth card discarded. Draw 2 cards.",
                     flavour='"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression."',
-                    simplified="the discard effects DO trigger -- a card leaving a hand for a discard is what fires them, and there is no word for a move that does not count as leaving",
+                    comment="The two moves are one discard, and the detour is the whole of \"without triggering any discard effects\". An On Discard fires on a card going from a hand to a discard; leaving a hand for the quiet is not that, and leaving the quiet for a discard is not either. The cards are there for the length of one step and this is the only card in the box that needs it.",
                     cast=["stat_damage:health@enemy.player:count:earth@mine.hand",
-                          "move:mine.hand:mine.discard", DRAW, DRAW]),
+                          "move:mine.hand:quiet", "move:quiet:mine.discard", DRAW, DRAW]),
            ]),
 
     wizard("abra", "Abragail", "Professor of Magical Chemistry", "Water, Earth", 16, 7, 4,
@@ -869,6 +870,7 @@ def spell_template(c):
     if c["disc"]: tags.append("has_discard")
     t["tags"] = tags
     t["tooltip"] = tip(c["tooltip"], c["flavour"], c["simplified"])
+    if c["comment"]: t["comment"] = c["comment"]
 
     # A card that can be cast says so by carrying a play block; ICE, ASH and
     # CURSE carry none, which is the whole of "this can't be played" and needs
@@ -1234,6 +1236,10 @@ def zones():
         # Rules that have to run at a named moment live on cards, and cards have
         # to live somewhere.
         {"key": "rules", "layout": "stack", "display": "offscreen", "use": "none"},
+        {"key": "quiet", "layout": "stack", "display": "offscreen", "use": "none",
+         "status": "exile",
+         "comment": "Empty except for the instant between the two halves of a discard that must not be heard. Riot is the only card that uses it, and it puts them here and takes them away again in consecutive steps.",
+         "tooltip": "Cards passing through on their way to a discard that triggers nothing."},
         {"key": "table", "layout": "grid", "grid": [1, 1],
          "display": "offscreen", "use": "abilities"},
         {"key": "potion_deck", "layout": "stack", "visibility": "secret",

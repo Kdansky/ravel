@@ -164,12 +164,6 @@ states that grant them. What each still rounds off is below.
   The VOID does not — it wants "a CURSE in *that seat's* hand or discard", and a
   scope names a zone or a kind, never both. The Dragon pile's rule has no VOID in
   it and is exact.
-- **Riot fires the discard effects it says it does not.** "Discard your hand
-  without triggering any discard effects" was accidentally true while On Discard
-  was an ability nothing ran outside Regroup; now that it is a `leaves` on the
-  card going from a hand to a discard, Riot sets off every one of them. There is
-  no word for a move that does not count as leaving, and routing the cards
-  through a spare zone to strip the trigger would be a lie on the card.
 - **The Tier check runs between rounds**, not the instant a sixth Power Token
   lands. Overflow is kept (the track subtracts six rather than resetting), so
   nothing is lost — it just arrives a moment late.

@@ -691,6 +691,47 @@ function M.test_spellstorm_the_potion_loop_pays_and_ends_itself(check)
 end
 
 
+-- Riot says "discard your hand without triggering any discard effects", and it
+-- means it. An On Discard fires on a card going from a hand to a discard; the
+-- detour through `quiet` is neither half of that, so the cards land where the
+-- card says they land and nothing is heard on the way.
+function M.test_spellstorm_riot_discards_a_hand_in_silence(check)
+	opening(3, "eve", "croh")
+	local one = "seat_one"
+	become(one)
+	empty_hand(one)
+	local hand = hand_of(one)
+	-- Three cards that each say something on the way out: a Power Token, a
+	-- point of damage, and a point off the Blast Score.
+	for _, key in ipairs({ "powergem", "curse", "ice" }) do zones.add(hand, key) end
+	local seat = seat_card(one)
+	seat.stats.power, seat.stats.ice_pen = 0, 0
+	local health = seat.stats.health
+
+	local riot = stage_battle(one, "eve_riot")
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = riot.id, targets = {} })
+
+	-- Two cards back in it, because Riot draws two once the hand is gone.
+	check("the hand went to the discard", #hand.cards == 2, #hand.cards)
+	check("and the quiet is empty again, as it is between every pair of steps",
+		#zones.find("quiet").cards == 0, #zones.find("quiet").cards)
+	check("no Power Token from the Gem", seat.stats.power == 0, seat.stats.power)
+	check("no damage from the CURSE", seat.stats.health == health, seat.stats.health)
+	check("no Blast penalty from the ICE", seat.stats.ice_pen == 0, seat.stats.ice_pen)
+
+	-- The same three cards discarded the ordinary way still speak up, which is
+	-- what makes the silence Riot's doing rather than the engine's.
+	empty_hand(one)
+	for _, key in ipairs({ "powergem", "curse", "ice" }) do zones.add(hand, key) end
+	seat.stats.power, seat.stats.ice_pen = 0, 0
+	seat.stats.health = health
+	actions.execute("move:mine.hand:mine.discard", { card_id = riot.id, targets = {} })
+	check("discarded any other way, all three fire",
+		seat.stats.power == 1 and seat.stats.health == health - 1 and seat.stats.ice_pen == 1,
+		("%d/%d/%d"):format(seat.stats.power, seat.stats.health, seat.stats.ice_pen))
+end
+
+
 function M.test_spellstorm_both_endings_are_reachable(check)
 	opening(5, "derby", "eve")
 	-- End conditions are asked when the game comes to rest, so a play is what

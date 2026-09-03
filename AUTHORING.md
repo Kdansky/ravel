@@ -53,7 +53,7 @@ says anything twice. These are its headings, grouped by the question each one
 answers; a test holds this list to them, so a section that exists is listed here
 and a line here names a section that exists:
 
-- **What a file holds** — Top-level fields · Stats · Zones · Players · Setup · Card templates · Two marks in card text · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
+- **What a file holds** — Top-level fields · `comment` — the one field the engine will not read · Stats · Zones · Players · Setup · Card templates · Two marks in card text · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
@@ -755,6 +755,29 @@ file to check what may appear where.
 | `end_conditions` | Outcome checks, first match wins, once per game |
 | `players` | Who is playing, in seat order (see *Players*) |
 | `setup` | How the game begins: `place` lays out whatever starts on the table (see *Setup*) |
+| `comment` | A note to whoever reads the file. Legal here and on anything with named fields; read by nothing (see below) |
+
+#### `comment` — the one field the engine will not read
+
+JSON has no comments, and the validator refuses fields nothing reads, which is
+how a typo is caught. One word is exempt, and it may sit on anything with named
+fields — the file, a card, a zone, a phase, a stat, a moment block, a routing
+entry, a setup placement:
+
+```json
+{ "key": "riot", "text": "Riot",
+  "comment": "The two moves are one discard. Going by way of the void is what keeps the discard effects quiet: leaving a hand for the void is not the trigger, and leaving the void for a discard is not either.",
+  "play": { "action": ["move:mine.hand:void", "move:void:mine.discard"] } }
+```
+
+**It is never a rule.** Nothing branches on it, nothing renders it, nothing
+looks at it twice. That is the whole of the field: the reason a line is written
+the way it is has somewhere to live *beside the line*, rather than only in a
+generator no reader of the file will open.
+
+It is exempt by name rather than by being listed among each section's fields,
+which is deliberate — adding a real field to a section is still a decision, and
+`comments`, `note` or `why` remain typos.
 
 ### Stats
 

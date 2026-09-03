@@ -375,45 +375,44 @@ wanted.
 
 ## G. Found while closing the others
 
-### G1. Riot fires the discard effects it says it does not
+### G1. ~~Riot fires the discard effects it says it does not~~ — done, without a new word
 
-**What it costs.** Eve's *Riot* reads "discard your hand without triggering any
+**What it was.** Eve's *Riot* reads "discard your hand without triggering any
 discard effects". That was accidentally true while On Discard was an ability
-nothing ran outside Regroup. It is a `leaves` now — the card going from a hand to
-a discard — and Riot's `move:mine.hand:mine.discard` is exactly that, so it sets
-off every one of them. The card is wrong today, and it went wrong the moment the
-trigger was made right.
+nothing ran outside Regroup, and went false the moment the trigger was made
+right: a `leaves` fires on a card going from a hand to a discard, and
+`move:mine.hand:mine.discard` is exactly that.
 
-**What will not do.** Routing the cards through a spare zone on the way —
-hand → commit → discard, neither hop matching both ends of the trigger — works
-and is a lie printed on a card. The format is the product; a card that says
-"discard your hand" must say that.
+**What it did not get.** A keyword. A verb argument meaning "and this one does
+not count" is a whole new idea in the format bought for one card in one box, and
+the format is the product — every game file afterwards would have to know it.
 
-**Proposal — a word for a move that is not a departure**, and it wants the
-author's ear before it is written, because it is a new word in the file. `destroy`
-already has the idea ("nothing is triggered by it") and the wrong shape, since
-these cards must land in the discard and be counted there. Two spellings worth
-weighing:
+**What it got instead: a detour.** The cards go by way of `quiet`, an offscreen
+zone with `status: "exile"`, and neither hop is the trigger — leaving a hand for
+the quiet is not a discard, and leaving the quiet for a discard is not leaving a
+hand. Two lines on one card, using words that were already there:
 
-- on the action, beside `top`/`bottom`: `move:mine.hand:mine.discard:quietly` —
-  short, and reads on the card as the printed text reads;
-- on the trigger, as a scope the `leaves` declines: harder to write and no better
-  to read.
+```json
+"action": ["move:mine.hand:quiet", "move:quiet:mine.discard"]
+```
 
-The first is one argument on one verb, and the only card in the box that needs it
-says why on its face.
+**And the thing that makes a detour honest is a comment.** A reader of the game
+file would otherwise find two moves where the card says one thing, so the card
+carries a `comment` saying why — a field the engine reads nowhere and that may
+sit on anything with named fields. That is the general lesson, and it is worth
+more than the trick: **the format did not need a word for this; it needed
+somewhere to write down why.**
 
-**Size:** small, and blocked on a word rather than on work.
+The zone is empty between any two steps, and Riot is the only card that uses it.
 
 ## What to do first
 
 | | Item | Size | Why here |
 |---|---|---|---|
-| 1 | G1 — **a move that is not a departure**, for Riot | small | the one card the engine is currently *wrong* about, rather than merely short of; needs a word agreed first |
-| 2 | C1 — **`chosen.where` narrows what is shown** | small | fixes every `[GAIN]`, every Essence and Flame in one change |
-| 3 | A1 — **Ultimates as a reaction to a resolve verb** | small–medium | restores the `[ULT]` icon, the largest single departure |
-| 4 | A2 — **one offer per seat, queued** | medium | Falling Star, and the last thing an automatic step cannot ask |
-| 5 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
-| 6 | C2, C3, D2, D3 | small each | one card or three apiece |
-| — | A3, A2's tail, F2, E, D1 | ~~various~~ | **done.** The copy, the journal, the potion loop, the five that were not gaps, and the random discards |
+| 1 | C1 — **`chosen.where` narrows what is shown** | small | fixes every `[GAIN]`, every Essence and Flame in one change |
+| 2 | A1 — **Ultimates as a reaction to a resolve verb** | small–medium | restores the `[ULT]` icon, the largest single departure |
+| 3 | A2 — **one offer per seat, queued** | medium | Falling Star, and the last thing an automatic step cannot ask |
+| 4 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
+| 5 | C2, C3, D2, D3 | small each | one card or three apiece |
+| — | A3, A2's tail, F2, E, D1, G1 | ~~various~~ | **done.** The copy, the journal, the potion loop, the five that were not gaps, the random discards, and Riot's silence |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |

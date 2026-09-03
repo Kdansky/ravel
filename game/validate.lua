@@ -822,10 +822,16 @@ function M.check(G)
 		end
 	end
 
+	-- "comment" is legal on anything with named fields, and the engine never
+	-- reads it. A generated game file is the product, and the reason a line is
+	-- written the way it is often lives in the generator where no reader of the
+	-- file will find it. JSON has no comments; this is the one field that is
+	-- allowed to be prose for a person, and it is never a rule -- nothing
+	-- branches on it, nothing renders it.
 	local function check_fields(where, def, fields)
 		if type(def) ~= "table" then return end
 		for k in pairs(def) do
-			if not fields[k] then
+			if k ~= "comment" and not fields[k] then
 				warn("%s: has a field '%s' the engine doesn't read%s", where, tostring(k), suggest(k, fields))
 			end
 		end

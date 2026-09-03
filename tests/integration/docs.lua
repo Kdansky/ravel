@@ -301,7 +301,9 @@ local function walk(where, def, fields, found)
 	for k, v in pairs(def) do
 		if fields and type(k) == "string" then
 			found.checked = found.checked + 1
-			if not fields[k] then found[#found + 1] = where .. ": '" .. k .. "'" end
+			-- The one word every shape carries and none of them lists, exactly
+			-- as check_fields exempts it: see validate.lua.
+			if k ~= "comment" and not fields[k] then found[#found + 1] = where .. ": '" .. k .. "'" end
 		end
 		if RUNS[k] and type(v) == "table" then
 			for _, str in ipairs(v) do
@@ -328,7 +330,7 @@ end
 local function readings(frag)
 	local out = {}
 	local function fits(t)
-		for k in pairs(frag) do if not t[k] then return false end end
+		for k in pairs(frag) do if k ~= "comment" and not t[k] then return false end end
 		return next(frag) ~= nil
 	end
 	local function add(name, fn) out[#out + 1] = { name, fn } end

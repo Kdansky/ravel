@@ -584,7 +584,9 @@ function M.parse(filename)
 	for k in pairs(KNOWN_SECTIONS) do sections[#sections + 1] = k end
 	table.sort(sections)
 	for k in pairs(parsed) do
-		if not KNOWN_SECTIONS[k] then
+		-- "comment" is the one key that may sit anywhere, here included, and the
+		-- engine reads none of them: see check_fields in validate.lua.
+		if k ~= "comment" and not KNOWN_SECTIONS[k] then
 			pp[#pp + 1] = "this file has a section '" .. tostring(k)
 				.. "' the engine doesn't read (known sections: "
 				.. table.concat(sections, ", ") .. ")"

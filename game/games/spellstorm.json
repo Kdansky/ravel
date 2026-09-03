@@ -426,6 +426,15 @@
     },
     { "key": "rules", "layout": "stack", "display": "offscreen", "use": "none" },
     {
+      "key": "quiet",
+      "layout": "stack",
+      "display": "offscreen",
+      "use": "none",
+      "status": "exile",
+      "comment": "Empty except for the instant between the two halves of a discard that must not be heard. Riot is the only card that uses it, and it puts them here and takes them away again in consecutive steps.",
+      "tooltip": "Cards passing through on their way to a discard that triggers nothing."
+    },
+    {
       "key": "table",
       "layout": "grid",
       "grid": [1, 1],
@@ -1821,7 +1830,8 @@
       "text": "Riot",
       "asset": "ss_eve_riot.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Discard your hand without triggering any discard effects. Deal *1 damage* per *Earth* card discarded. Draw *2 cards*.\n\n_\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"_\n\n_[Simplified: the discard effects DO trigger -- a card leaving a hand for a discard is what fires them, and there is no word for a move that does not count as leaving]_",
+      "tooltip": "Discard your hand without triggering any discard effects. Deal *1 damage* per *Earth* card discarded. Draw *2 cards*.\n\n_\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"_",
+      "comment": "The two moves are one discard, and the detour is the whole of \"without triggering any discard effects\". An On Discard fires on a card going from a hand to a discard; leaving a hand for the quiet is not that, and leaving the quiet for a discard is not either. The cards are there for the length of one step and this is the only card in the box that needs it.",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1830,7 +1840,8 @@
           "text": "Resolve",
           "action": [
             "stat_damage:health@enemy.player:count:earth@mine.hand",
-            "move:mine.hand:mine.discard",
+            "move:mine.hand:quiet",
+            "move:quiet:mine.discard",
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1"
           ]
