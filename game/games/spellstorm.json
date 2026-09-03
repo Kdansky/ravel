@@ -2491,14 +2491,15 @@
       "text": "Falling Star",
       "tags": ["weather", "storm"],
       "asset": "ss_fallingstar.jpg",
-      "tooltip": "*Draw a card* and gain *1 mana*.\n\n_[Simplified: the printed card lets every player gain a card from the Storm Cloud; an offer cannot be opened once per seat inside one automatic step, so it gives mana instead]_",
+      "tooltip": "*Draw a card*. Every player may gain a card from the *Storm Cloud*, and it goes to their discard.\n\n_[Simplified: the printed card asks the player with Initiative first; the questions are asked in seat order]_",
       "abilities": [
         {
           "key": "wx",
           "text": "Weather",
-          "action": ["draw_from:mine.deck:mine.hand:1", "stat_gain:mana@mine.player:1"]
+          "action": ["draw_from:mine.deck:mine.hand:1", "show:storm_cloud:optional"]
         }
-      ]
+      ],
+      "chosen": { "action": ["move_target_to:mine.discard", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
     {
       "key": "strange_weather",

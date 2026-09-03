@@ -53,6 +53,11 @@ local function opening(seed, one, two)
 		end
 		assert(picked, "no such wizard in the offer: " .. name)
 	end
+	-- The weather may ask before anybody plays: Falling Star offers the Storm
+	-- Cloud to each seat in turn, and those offers are waiting when the round
+	-- opens. A test that wants the start of play declines them; the one that is
+	-- about Falling Star drives it itself.
+	while phase.current().key == "options" and flow.dismiss_offer() do end
 end
 
 -- Put one named card into a seat's battle spot, whatever it was holding.
@@ -714,7 +719,10 @@ function M.test_spellstorm_the_journal_asks_one_question_at_a_time(check)
 		n > 0 and n <= #hand_of("seat_one").cards + n, n)
 	check("and it may be declined, since the printed space says you *may*",
 		flow.can_dismiss())
-	flow.dismiss_offer()
+	-- Declining is not losing. Shutting one question moves the game straight on
+	-- to the next -- the journal has two more spaces that ask, and each is a
+	-- phase -- so the chain is declined to the end and then counted.
+	while phase.current().key == "options" and flow.dismiss_offer() do end
 	check("declining sends every borrowed card home",
 		#zones.find("options").cards == 0, #zones.find("options").cards)
 	check("with nothing lost on the way",

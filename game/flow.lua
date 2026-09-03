@@ -429,8 +429,12 @@ function M.settle()
 		-- without a stack and every moment its stack is empty — unchanged.
 		local rstate = M.react_step()
 		if rstate == "waiting" then return end
+		-- A question waiting to be asked holds up phases exactly as an unanswered
+		-- window does, and is settled in the same place for the same reason.
+		local asked = M.offer_step()
+		M.release_priority()
 		-- Outcomes wait until any open overlay (a pending choice) is closed.
-		if rstate ~= "resolved" and (phase.is_overlay() or not fire_end_condition()) then
+		if rstate ~= "resolved" and not asked and (phase.is_overlay() or not fire_end_condition()) then
 			local cur = phase.current()
 			if phase.take_wrapped() then
 				-- A round completed: advance the counter, ready exhausted
@@ -863,7 +867,7 @@ local function clear_offer(oz, keep)
 			zones.destroy_card(cid)
 		end
 	end
-	oz.asked_by, oz.dismissable = nil, nil
+	oz.asked_by, oz.dismissable, oz.asked_seat = nil, nil, nil
 end
 
 -- Play a card: pay its cost and run on_play. A phase with a play limit then
@@ -1146,6 +1150,10 @@ function M.close_offer()
 	if not z then return end
 	clear_offer(z)
 	if phase.is_overlay() then phase.pop() end
+	-- Shutting an offer is an action like any other, and settle is where anything
+	-- "after an action" belongs: the next question in the queue is asked here, and
+	-- before there was a queue there was simply nothing waiting to notice.
+	M.settle()
 end
 
 -- Activate a board card's ability. With several usable, `index` says which —
@@ -1387,8 +1395,9 @@ end
 
 -- Move priority (who acts) to a seat, dropping undo history at the boundary the
 -- way a handover does: a reaction is not the turn player's move to take back, and
--- undoing across it would rewrite a decision that was not theirs.
-local function react_priority(seat)
+-- undoing across it would rewrite a decision that was not theirs. The same is
+-- true of a question asked of somebody else, which is the other caller.
+local function give_priority(seat)
 	local sys = system_card()
 	if not sys then return end
 	local i = (seat and declaration.G.seat_index[seat]) or 0
@@ -1418,7 +1427,7 @@ local resolving = nil
 -- nothing on the stack is a game card, so there is nothing a game action could
 -- have moved.
 local function resolve_top(top)
-	react_priority(top.re_actor)
+	give_priority(top.re_actor)
 	mark_acted(nil)
 	local prev = resolving
 	resolving  = top
@@ -1490,18 +1499,57 @@ end
 -- One step of the response protocol, called by settle each loop. Returns
 -- "waiting" (a seat must answer — stop and wait), "resolved" (an item ran — loop
 -- again), or "idle" (no stack; proceed as normal, which is every existing game).
+-- Priority is released when nothing wants it, and that is the whole of the rule:
+-- one seat stat, no second answer to "who is acting". Two things can want it —
+-- a record on the stack waiting to be answered, and a question waiting to be
+-- asked — and a phase interjected mid-answer is up because *that* seat is, so
+-- nothing is given back under one.
+--
+-- Written here rather than on the stack's way past, which is where it used to
+-- live: a game with no stack zone never went past, so an offer that took
+-- priority would have kept it.
+function M.release_priority()
+	if phase.depth() > 1 then return end
+	local sz = stack_zone()
+	if sz and #sz.cards > 0 then return end
+	local oz = zones.find("options")
+	if oz and (oz.pending or #oz.cards > 0) then return end
+	give_priority(nil)
+end
+
+-- The next question that is waiting, if the last one is finished with. There is
+-- one offer zone and one overlay over it, so asks queue rather than pile up:
+-- `show:` writes down the one it could not open (actions.lua), and this is where
+-- the game comes back to it — in settle, which is where anything "after an
+-- action" belongs, and this is after one.
+--
+-- Run as the seat it was asked of, since an offer is answered by whoever is up.
+-- What is stored is the action itself rather than the cards it would have moved,
+-- the same shape as the tail an `emit:` defers: the board has changed by now and
+-- the question is about the board as it stands.
+function M.offer_step()
+	local z = zones.find("options")
+	if not z then return false end
+	-- The offer on the table is answered by whoever holds priority, so hand it to
+	-- the seat that asked. Here rather than in the ask, because the ask happens
+	-- mid-list and the seat must not move under the rest of that list.
+	if #z.cards > 0 then
+		if z.asked_seat then give_priority(z.asked_seat) end
+		return false
+	end
+	if not z.pending or phase.is_overlay() then return false end
+	local ask = table.remove(z.pending, 1)
+	if #z.pending == 0 then z.pending = nil end
+	give_priority(ask.seat)
+	actions.run({ ask.action }, { card_id = ask.card, targets = {} })
+	return true
+end
+
 function M.react_step()
 	local z = stack_zone()
 	if not z then return "idle" end
 	local top_id = z.cards[#z.cards]
 	if not top_id then
-		-- The window is closed, but priority is not the stack's to give back while
-		-- something else still holds it. A phase interjected mid-answer — an offer,
-		-- a buy handed to the seat that just reacted — is up because *they* are, and
-		-- popping the last record out from under it would hand their phase to the
-		-- turn player. Priority is released when nothing wants it, and that is the
-		-- whole of the rule: one seat stat, no second answer to "who is acting".
-		if phase.depth() <= 1 then react_priority(nil) end
 		return "idle"
 	end
 	-- Something is interjected — an offer, a phase a reaction handed to the seat
@@ -1535,10 +1583,10 @@ function M.react_step()
 			and not has_answered(top, r.card) then
 			local verdict = forced_verdict(top, r)
 			if verdict == "ask" then
-				react_priority(r.seat)
+				give_priority(r.seat)
 				return "waiting"
 			elseif verdict == "fire" then
-				react_priority(r.seat)
+				give_priority(r.seat)
 				-- A refused fire is the stack at its limit. It has been marked as
 				-- having had its go, so the window moves past it rather than
 				-- burning settle's budget on the record it just failed on.
@@ -1556,7 +1604,7 @@ function M.react_step()
 		if r.reaction.forced ~= "mandatory"
 			and reactions.answers_seat(r.reaction, r.seat, top.re_actor)
 			and not top.re_passed[r.seat] and not has_answered(top, r.card) then
-			react_priority(r.seat)
+			give_priority(r.seat)
 			return "waiting"
 		end
 	end

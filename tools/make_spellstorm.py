@@ -407,9 +407,9 @@ DRAGONS = [
 # has played anything yet.
 # ---------------------------------------------------------------------------
 
-def weather(key, name, tooltip, wx=(), wy=None, calm=False, simplified=None):
+def weather(key, name, tooltip, wx=(), wy=None, calm=False, simplified=None, chosen=None):
     return dict(key=key, name=name, tooltip=tooltip, wx=list(wx), wy=wy,
-                calm=calm, simplified=simplified)
+                calm=calm, simplified=simplified, chosen=chosen)
 
 REVEALED = lambda el: "count:%s@mine.battle >= 1" % el
 
@@ -430,10 +430,15 @@ WEATHER = [
     weather("dustcloud", "Dust Cloud",
             "Draw a card, power up. All players discard a card.",
             wx=[DRAW, POWER, DISCARD_RANDOM("mine")], calm=True),
+    # The card the offer queue was built for. The weather phase already runs a
+    # weather card's `wx` once per seat, so the offer is written once and every
+    # seat is asked in turn: the second ask waits rather than tipping its shelf
+    # into the first one's.
     weather("fallingstar", "Falling Star",
-            "Draw a card and gain 1 mana.",
-            simplified="the printed card lets every player gain a card from the Storm Cloud; an offer cannot be opened once per seat inside one automatic step, so it gives mana instead",
-            wx=[DRAW, MANA], calm=True),
+            "Draw a card. Every player may gain a card from the Storm Cloud, and it goes to their discard.",
+            simplified="the printed card asks the player with Initiative first; the questions are asked in seat order",
+            wx=[DRAW, OFFER_CLOUD],
+            chosen=["move_target_to:mine.discard", REFILL_CLOUD], calm=True),
     weather("strange_weather", "Strange Weather",
             "Draw 2 cards. Discard the next card in the Weather Deck.",
             wx=[DRAW, DRAW], calm=True),
@@ -941,6 +946,9 @@ def weather_template(w):
     if w["wy"]:
         abil.append(ability("wy", w["wy"][1], when=[w["wy"][0]], text="Weather"))
     if abil: t["abilities"] = abil
+    # A weather card that asks is the card doing the asking, so the answer comes
+    # back to it, exactly as it does for a spell.
+    if w["chosen"]: t["chosen"] = {"action": list(w["chosen"])}
     return t
 
 

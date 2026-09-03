@@ -69,7 +69,7 @@ shipped at the time, both now fixed with tests:
 requirement rather than meet it (D4, and 09's weather note), and neither is a
 thing a card can say about the round.
 
-### A2. A question inside an automatic step (09 §2, Abragail, Falling Star, May)
+### A2. ~~A question inside an automatic step~~ — done (09 §2, Abragail, Falling Star, May)
 
 **What is actually true, tested rather than assumed.** An automatic step *can*
 ask. `show:` opens an offer from inside an ability that an automatic phase
@@ -93,12 +93,45 @@ things are true instead:
 - **It cannot resume.** An action list has no cursor, so whatever follows the
   ask runs before the answer arrives.
 
-**Proposal.** For the each-seat case, a queue: `show:` from inside `each_seat:`
-enqueues rather than opening, and the offers are presented one after another as
-each is answered. That is the same question [32](../32-a-third-player.md)'s
-`seat: "all"` asks, and the two should be settled together. For targeting, an
-ability run by a zone could open it the way a play does — but nothing in this
-box needs that once offers work.
+**The queue is done, and the middle bullet above was wrong about how it failed.**
+The second `show:` did not return silently: both offers opened, stacked, and the
+two hands *merged* into the one `options` zone, so one seat was asked to pick out
+of the other's cards. And the first offer was already going to the wrong seat —
+`each_seat:` had put the turn back by the time the overlay was drawn, so it was
+answered by whoever happened to be up.
+
+**What it is.** `show:` writes the question down when the offer is busy, and
+settle asks the next one when the last is answered — the same place a response
+window is settled, and for the same reason: it is after an action. No new word;
+`each_seat:show:mine.hand:optional` was always the sentence and now it works.
+
+Three things make it small:
+
+- **The request waits, not the cards.** The scope is read again when the question
+  opens, against the board the previous answer left — so a question asked of a
+  player whose hand somebody else has just emptied opens nothing, which is the
+  rule an empty offer already had.
+- **The asking seat is written down, not acted on.** An ask that moved the seat
+  where it stood would move it out from under the list still running, and every
+  remaining question would go to whoever asked first. Flow hands priority over
+  once the game has come to rest — priority being the word that already means
+  "who is acting, when it is not the turn player".
+- **It is plain data on a zone**, so `entity.snapshot()` carries it into saves,
+  net messages and undo checkpoints with nothing taught to any of them. Tested by
+  encode/decode/apply mid-queue.
+
+**Two things it dragged into the light.** Priority was released on the stack's
+way past, so a game with offers and no stack zone would have kept it — that rule
+is its own line in settle now. And closing an offer never settled, which nothing
+had noticed because there was never anything waiting behind one.
+
+**Falling Star is exact but for the order** — every player is asked; the printed
+card asks the one with Initiative first and `each_seat:` walks the players list.
+See `09`. Worth settling with [32](../32-a-third-player.md), which is the same
+question about seats.
+
+For targeting, an ability run by a zone could open it the way a play does — but
+nothing in this box needs that.
 
 **And: Abragail's journal — done, all three asking spaces, and there were
 three.** Space 6 (`[GAIN]`) was missing too and nobody had noticed. Two things
@@ -113,8 +146,8 @@ action list has not got.
 
 Worth keeping as the shape: **a phase is the engine's word for "and then".**
 
-**Size:** the queue is still medium. Abragail was a generator change and no
-engine work at all.
+**Size:** the queue came in at about seventy lines across two files. Abragail was
+a generator change and no engine work at all.
 
 ### A3. ~~An offer opened inside an offer deadlocks~~ — done
 
@@ -501,9 +534,9 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 
 | | Item | Size | Why here |
 |---|---|---|---|
-| 1 | A2 — **one offer per seat, queued** | medium | Falling Star, and the last thing an automatic step cannot ask |
-| 2 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
-| 3 | C2, C3, D2, D3 | small each | one card or three apiece |
-| 4 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
-| — | A1, A3, A2's tail, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The Ultimates, the copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
+| 1 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
+| 2 | C2, C3, D2, D3 | small each | one card or three apiece |
+| 3 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
+| 4 | The `[GAIN]` Tier gate, and Falling Star's order | small each | both newly written down in `09`, both a word the engine already has |
+| — | A1, A2, A3, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |

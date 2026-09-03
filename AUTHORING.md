@@ -57,7 +57,7 @@ and a line here names a section that exists:
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
-- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Only one of them: `random.` · Making *them* choose · Nothing moves while an offer is open
+- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Only one of them: `random.` · Making *them* choose · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
@@ -2916,6 +2916,30 @@ doing carries on afterwards.
 
 The trap is that both readings look right from one side of the screen. Say the
 scope out loud as **the seat who is up**, and check who that is at that line.
+
+#### Asking every player, one at a time
+
+`each_seat:` wraps any action, including one that asks:
+
+```json
+"action": ["each_seat:show:mine.hand:optional"]
+```
+
+There is one `options` zone and one overlay over it, so the questions do not all
+open at once — **the second and third are written down and asked when the one
+before them is answered.** Each is asked of the seat that asked it, so `mine`
+inside the offer and inside the `chosen` block is that player, not whoever
+happened to be up when the list ran.
+
+What waits is the *request*, not the cards it would have shown. The scope is read
+again when the question opens, against the board the previous answer left — so
+"every player discards one" asked of a player whose hand somebody else has just
+emptied opens nothing at all, which is the same rule as an empty offer anywhere
+else.
+
+That is why a question asked of each seat needs no phase of its own. A question
+that has to happen *between* two other steps still does: see *An automatic phase
+can ask*.
 
 #### Nothing moves while an offer is open
 
