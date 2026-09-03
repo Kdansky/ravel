@@ -8,13 +8,11 @@ Written after building the game rather than before, which is the only order that
 produces an honest list: every entry below is a shape the engine actually
 refused, not one somebody imagined it might.
 
-**The one thing worth reading if you read nothing else.** Eleven of the entries
-below are the same missing word wearing different hats: *an automatic step
-cannot stop and ask a question.* Ultimates on resolve, Abragail's spaces 2 and
-4, Falling Star, May's Dangerous Download, Oren's potions, Diamond, Omar's
-traps — all of them are a moment where the rules want the player's answer and
-the engine is midway through an action list with nobody to ask. Everything else
-here is small by comparison.
+**The one thing worth reading if you read nothing else.** Most of what is
+missing here is one moment: the rules want the player's answer and the engine is
+midway through an action list. But the shape of that limit is narrower than it
+looks from the outside, and getting it right changes which entries are cheap —
+see A2, which was written wrong the first time and is corrected below.
 
 ---
 
@@ -46,25 +44,42 @@ finding out before anything else on this page.
 
 ### A2. A question inside an automatic step (09 §2, Abragail, Falling Star, May)
 
-**What it costs.** Abragail's Research Journal spaces 2 and 4 are not
-implemented, because a battle-start step is automatic. Falling Star gives mana
-instead of offering the Storm Cloud to each player in turn. May's *Dangerous
-Download* is missing entirely.
+**What is actually true, tested rather than assumed.** An automatic step *can*
+ask. `show:` opens an offer from inside an ability that an automatic phase
+activated, and Spellstorm already depends on it: every `cast_ask` runs that way.
+Verified on a three-card game — an `automatic` phase running
+`each_seat:activate_zone:rules:by_column:bstart` over an ability whose whole
+body is `show:shelf:optional` leaves a live, dismissable offer on the table.
 
-**Proposal — `push_phase`, which is already an action.** `push_phase` and
-`pop_phase` exist and are already refused while an offer is open (`frozen()`).
-An automatic step that wants an answer pushes a one-question `player_input`
-phase and pops back when its `ends_when` is met. Two things to settle:
+So the earlier framing here, and the comment in `make_spellstorm.py` that says a
+battle-start step "cannot open a question", are both wrong. Three narrower
+things are true instead:
 
-- **Where the loop resumes.** The pushed phase has to return to the *middle* of
-  an action list, and an action list has no cursor today. Cheapest honest answer
-  is that it does not resume: the step ends at the push, and what follows is the
-  pushed phase's own `next`. That is enough for all four cards above.
-- **`each_seat:` around a push.** Falling Star wants one offer *per seat*, which
-  is a pushed phase with `seat: "next"` and a counter — see
-  [32](../32-a-third-player.md), whose `seat: "all"` is the same question.
+- **It cannot open targeting.** `activate_zone` runs every ability with
+  `targets = {}`, hardcoded (`actions.lua`), so an ability's `target` spec is
+  never asked about and no targeting opens. An offer is the only way to ask.
+- **It cannot ask each seat in turn.** `each_seat:` runs both seats inside one
+  step and there is one `options` zone. The first seat's offer holds it; the
+  second seat's `show:` finds the source zone already lent out and returns
+  silently, so the question is asked once and nobody is told. **This is the real
+  blocker**, and it is Falling Star exactly.
+- **It cannot resume.** An action list has no cursor, so whatever follows the
+  ask runs before the answer arrives.
 
-**Size:** medium. It is the single highest-value item in this file.
+**Proposal.** For the each-seat case, a queue: `show:` from inside `each_seat:`
+enqueues rather than opening, and the offers are presented one after another as
+each is answered. That is the same question [32](../32-a-third-player.md)'s
+`seat: "all"` asks, and the two should be settled together. For targeting, an
+ability run by a zone could open it the way a play does — but nothing in this
+box needs that once offers work.
+
+**And: Abragail's journal spaces 2 and 4 may be buildable today.** Only Abragail
+has a journal, so only one seat ever asks, and an offer is exactly the
+mechanism. They were left out for a reason that turns out not to hold. **Try it
+before designing anything** — like F2, this one may already be free.
+
+**Size:** the queue is medium. Abragail is a generator change and possibly zero
+engine work.
 
 ### A3. An offer opened inside an offer deadlocks (09, engine words §2)
 
@@ -94,8 +109,10 @@ card has no such dependency and only has to go home. Split the two and the
 The one shared `options` zone stays one zone, and no overlay stack is needed:
 the two questions never have to coexist in it.
 
-**Size:** small — an ordering change and a snapshot, no new words. Removes the
-`cast`/`cast_ask` split from all seven cards.
+**Size:** small — an ordering change, no new words. **Done**: the leftovers now
+go home before the chosen block runs, and only the picked card waits for it.
+Removing the `cast`/`cast_ask` split from the seven cards is a generator change
+still to do.
 
 ---
 
@@ -322,13 +339,13 @@ wanted.
 
 | | Item | Size | Why here |
 |---|---|---|---|
-| 1 | F2 — **try the pushed potion phase** | free, if it works | costs an afternoon to find out and may close a component outright |
+| 1 | A2's tail + F2 — **try Abragail's two spaces, and the potion phase** | free, if they work | both were left out for reasons that do not survive a test; either may already be buildable |
 | 2 | E — **the five things that are not gaps** | small | five entries leave `09` for the price of some generator lines |
 | 3 | C1 — **`chosen.where` narrows what is shown** | small | fixes every `[GAIN]`, every Essence and Flame in one change |
 | 4 | D1 — **`random.` in a `move:`** | small | six cards become exact |
 | 5 | A1 — **Ultimates as a reaction to a resolve verb** | small–medium | restores the `[ULT]` icon, the largest single departure |
-| 6 | A3 — **stack the offer overlays** | small–medium | deletes the `cast`/`cast_ask` split from seven cards |
-| 7 | A2 — **an automatic step that can ask** | medium | Abragail, Falling Star, May — and it is the word behind half this page |
+| — | A3 — **the nested offer** | ~~small–medium~~ | **done.** The ordering fix landed; the `cast`/`cast_ask` split can now come out of all seven cards |
+| 6 | A2 — **one offer per seat, queued** | medium | Falling Star, and the same question as `seat: "all"` |
 | 8 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
 | 9 | C2, C3, D2, D3 | small each | one card or three apiece |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |
