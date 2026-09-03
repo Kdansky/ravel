@@ -800,6 +800,41 @@ function M.test_spellstorm_the_tier_limit_gates_the_take(check)
 end
 
 
+-- "A CURSE or ICE from your discard or your hand" is two unions met in the
+-- middle, and until a union could be named the card had neither half: a scope
+-- names one tag and one place. Now the kinds are a tag, the places are a tag,
+-- and the two meet in a third.
+function M.test_spellstorm_doom_bauble_offers_two_kinds_in_two_places(check)
+	opening(3, "eve", "croh")
+	local one = "seat_one"
+	become(one)
+	empty_hand(one)
+	local hand, discard = hand_of(one), zone_of("discard", one)
+	for _, id in ipairs({ unpack(discard.cards) }) do zones.move_card(id, zone_of("deck", one).id) end
+	zones.add(hand, "curse")
+	zones.add(hand, "magicdart")
+	zones.add(discard, "ice")
+	zones.add(discard, "block")
+	-- Two that must not come up: one of the right kind in the wrong place, and
+	-- one in the right place belonging to the wrong seat.
+	zones.add(zone_of("battle", one), "curse")
+	zones.add(zone_of("discard", "seat_two"), "ice")
+
+	-- The Ultimate's own line, run on its own: what is under test is the offer,
+	-- not the two cards it draws first.
+	actions.execute("show:mine.everywhere.curse_or_ice_held:optional",
+		{ card_id = find("wiz_eve", "wizard").id, targets = {} })
+
+	local shown = {}
+	for _, id in ipairs(zones.find("options").cards) do
+		shown[#shown + 1] = entity.get(id).def_key
+	end
+	table.sort(shown)
+	check("the CURSE in hand and the ICE in the discard, and nothing else",
+		table.concat(shown, ",") == "curse,ice", table.concat(shown, ","))
+end
+
+
 function M.test_spellstorm_both_endings_are_reachable(check)
 	opening(5, "derby", "eve")
 	-- End conditions are asked when the game comes to rest, so a play is what

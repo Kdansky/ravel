@@ -157,7 +157,15 @@
     },
     { "key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"] }
   ],
-  "computed_tags": { "has_init": { "stat": "initiative", "at_least": 1 } },
+  "computed_tags": {
+    "has_init": { "stat": "initiative", "at_least": 1 },
+    "held": { "any_of": ["in_hand", "in_discard"] },
+    "curse_or_ice": { "any_of": ["curse", "ice"] },
+    "curse_or_ice_held": { "all_of": ["curse_or_ice", "held"] },
+    "ice_held": { "all_of": ["ice", "held"] },
+    "ash_held": { "all_of": ["ash", "held"] },
+    "curse_held": { "all_of": ["curse", "held"] }
+  },
   "styles": {
     "ember": { "color": [0.62, 0.2, 0.16], "title": false },
     "tide": { "color": [0.16, 0.36, 0.58], "title": false },
@@ -210,6 +218,7 @@
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",
+      "applies": ["in_hand"],
       "pos": [[0.14, 0.795, 0.79, 0.995], [0.21, 0.005, 0.86, 0.205]]
     },
     {
@@ -228,6 +237,7 @@
       "label": "Discard",
       "layout": "stack",
       "copies": "per_seat",
+      "applies": ["in_discard"],
       "pos": [[0.89, 0.795, 0.995, 0.995], [0.005, 0.005, 0.11, 0.205]]
     },
     {
@@ -1120,7 +1130,7 @@
       "text": "Ice Flume",
       "asset": "ss_iceflume.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Give an *ICE*. You may *VOID* an *ICE* from your hand. Gain *Initiative*.\n\n_\"Watch your step!\" - Unknown_\n\n_[Simplified: the offer is your hand, not your hand or discard]_",
+      "tooltip": "Give an *ICE*. You may *VOID* an *ICE* from your hand. Gain *Initiative*.\n\n_\"Watch your step!\" - Unknown_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1134,7 +1144,11 @@
             "stat_set:initiative@enemy.player:0"
           ]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.ice:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.everywhere.ice_held:optional"]
+        }
       ],
       "chosen": { "action": ["move_target_to:ice_pile"] }
     },
@@ -1346,7 +1360,7 @@
       "text": "Bloodstone",
       "asset": "ss_bloodstone.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Gain *1 mana*. Take *1 damage*. You may *VOID* a card from your hand. On discard: gain *1 mana*.\n\n_\"It's best to leave gems that you find in the wild alone, unless you really know what you're doing.\" - Abragail_\n\n_[Simplified: the offer is your hand only, not hand or discard]_",
+      "tooltip": "Gain *1 mana*. Take *1 damage*. You may *VOID* a card from your hand. On discard: gain *1 mana*.\n\n_\"It's best to leave gems that you find in the wild alone, unless you really know what you're doing.\" - Abragail_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1355,7 +1369,11 @@
           "text": "Resolve",
           "action": ["stat_gain:mana@mine.player:1", "stat_damage:health@mine.player:1"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.everywhere.held:optional"]
+        }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:mana@mine.player:1"] },
       "chosen": { "action": ["move_target_to:void"] }
@@ -1778,14 +1796,14 @@
       "text": "Eve Williams",
       "asset": "ss_eve.jpg",
       "tags": ["wizard_card", "eve"],
-      "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a card from your discard to your opponent's discard.\n\nStarting *health 14*, *Initiative rating 5*.\n\n_[Simplified: the offer is the junk in your discard, so an ASH comes up beside the ICE and CURSE -- one scope names one kind -- and your hand is not offered]_",
+      "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a card from your discard to your opponent's discard.\n\nStarting *health 14*, *Initiative rating 5*.",
       "activate": {
         "cost": { "mana@mine.player": 5 },
         "phases": ["play_1", "play_2"],
         "action": [
           "draw_from:mine.deck:mine.hand:1",
           "draw_from:mine.deck:mine.hand:1",
-          "show:mine.discard.junk:optional"
+          "show:mine.everywhere.curse_or_ice_held:optional"
         ]
       },
       "chosen": { "action": ["move_target_to:enemy.discard"] }
@@ -2973,18 +2991,18 @@
       "key": "r_dry_ash",
       "text": "The ASH pile is empty",
       "tags": ["immutable"],
-      "tooltip": "When the *ASH* pile is empty, whoever would have been given one VOIDs a *ASH* from their hand or discard and takes the penalty instead.\n\n_[Simplified: only the penalty happens; the VOID needs a card of one kind in one seat's hand, and a scope names a zone or a kind, never both]_",
+      "tooltip": "When the *ASH* pile is empty, whoever would have been given one VOIDs a *ASH* from their hand or discard and takes the penalty instead.\n\n_[Simplified: which ASH is VOIDed is not offered; the engine takes one]_",
       "asset": "auto",
       "abilities": [
         {
           "key": "dry_take_ash",
           "when": ["count:junk@ash_pile <= 0"],
-          "action": ["stat_damage:power@mine.player:2"]
+          "action": ["move:random.mine.everywhere.ash_held:ash_pile", "stat_damage:power@mine.player:2"]
         },
         {
           "key": "dry_give_ash",
           "when": ["count:junk@ash_pile <= 0"],
-          "action": ["stat_damage:power@enemy.player:2"]
+          "action": ["move:random.enemy.everywhere.ash_held:ash_pile", "stat_damage:power@enemy.player:2"]
         }
       ]
     },
@@ -2992,18 +3010,24 @@
       "key": "r_dry_curse",
       "text": "The CURSE pile is empty",
       "tags": ["immutable"],
-      "tooltip": "When the *CURSE* pile is empty, whoever would have been given one VOIDs a *CURSE* from their hand or discard and takes the penalty instead.\n\n_[Simplified: only the penalty happens; the VOID needs a card of one kind in one seat's hand, and a scope names a zone or a kind, never both]_",
+      "tooltip": "When the *CURSE* pile is empty, whoever would have been given one VOIDs a *CURSE* from their hand or discard and takes the penalty instead.\n\n_[Simplified: which CURSE is VOIDed is not offered; the engine takes one]_",
       "asset": "auto",
       "abilities": [
         {
           "key": "dry_take_curse",
           "when": ["count:junk@curse_pile <= 0"],
-          "action": ["stat_damage:health@mine.player:1"]
+          "action": [
+            "move:random.mine.everywhere.curse_held:curse_pile",
+            "stat_damage:health@mine.player:1"
+          ]
         },
         {
           "key": "dry_give_curse",
           "when": ["count:junk@curse_pile <= 0"],
-          "action": ["stat_damage:health@enemy.player:1"]
+          "action": [
+            "move:random.enemy.everywhere.curse_held:curse_pile",
+            "stat_damage:health@enemy.player:1"
+          ]
         }
       ]
     },
@@ -3011,18 +3035,26 @@
       "key": "r_dry_ice",
       "text": "The ICE pile is empty",
       "tags": ["immutable"],
-      "tooltip": "When the *ICE* pile is empty, whoever would have been given one VOIDs a *ICE* from their hand or discard and takes the penalty instead.\n\n_[Simplified: only the penalty happens; the VOID needs a card of one kind in one seat's hand, and a scope names a zone or a kind, never both]_",
+      "tooltip": "When the *ICE* pile is empty, whoever would have been given one VOIDs a *ICE* from their hand or discard and takes the penalty instead.\n\n_[Simplified: which ICE is VOIDed is not offered; the engine takes one]_",
       "asset": "auto",
       "abilities": [
         {
           "key": "dry_take_ice",
           "when": ["count:junk@ice_pile <= 0"],
-          "action": ["move:random.mine.hand:mine.discard", "move:random.mine.hand:mine.discard"]
+          "action": [
+            "move:random.mine.everywhere.ice_held:ice_pile",
+            "move:random.mine.hand:mine.discard",
+            "move:random.mine.hand:mine.discard"
+          ]
         },
         {
           "key": "dry_give_ice",
           "when": ["count:junk@ice_pile <= 0"],
-          "action": ["move:random.enemy.hand:enemy.discard", "move:random.enemy.hand:enemy.discard"]
+          "action": [
+            "move:random.enemy.everywhere.ice_held:ice_pile",
+            "move:random.enemy.hand:enemy.discard",
+            "move:random.enemy.hand:enemy.discard"
+          ]
         }
       ]
     },

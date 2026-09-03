@@ -335,11 +335,20 @@ function M.entities_in_scope(scope, ctx, owner)
 		-- because a place is the wider of the two, and a tag that happened to
 		-- name a zone would otherwise decide which reading a line got.
 		local place, kind = scope:match("^([%w_]+)%.([%w_]+)$")
+		-- "everywhere.<tag>" — the one place that is not a zone. A *subject* has
+		-- always been able to say this ("count:gem@mine.everywhere"); a scope
+		-- could not, so a rule could count those cards and not move or show
+		-- them. One question with two spellings, which is the fault
+		-- "<zone>.<tag>" was written to end, left in the one spot it missed.
 		-- A zone key reaches every instance of it — both arenas, not just the
 		-- active seat's. Narrowing to one is what the owner word is for, and a
 		-- set may be wide where a destination may not.
-		local instances = zones.all_with_key(place or scope)
-		if #instances > 0 then
+		local instances = place ~= "everywhere" and zones.all_with_key(place or scope) or {}
+		if place == "everywhere" then
+			for e in entity.each("card") do
+				if tags.entity_has(e, kind) then out[#out + 1] = e end
+			end
+		elseif #instances > 0 then
 			for _, z in ipairs(instances) do
 				for _, id in ipairs(z.cards) do
 					local e = entity.get(id)

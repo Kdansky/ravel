@@ -236,8 +236,7 @@ SPELLS = [
     card("iceflume", "Ice Flume", WATER, tier=2,
          tooltip="Give an ICE. You may VOID an ICE from your hand. Gain Initiative.",
          flavour='"Watch your step!" - Unknown',
-         simplified="the offer is your hand, not your hand or discard",
-         cast=GIVE("ice") + GAIN_INIT + [OFFER_HAND_OF("ice")],
+         cast=GIVE("ice") + GAIN_INIT + ["show:mine.everywhere.ice_held:optional"],
          chosen=["move_target_to:ice_pile"]),
     card("lapis", "Lapis", WATER, tier=1,
          tooltip="Draw a card. You may discard a card and heal 1.",
@@ -293,8 +292,7 @@ SPELLS = [
     card("bloodstone", "Bloodstone", EARTH, tier=1,
          tooltip="Gain 1 mana. Take 1 damage. You may VOID a card from your hand. On discard: gain 1 mana.",
          flavour='"It\'s best to leave gems that you find in the wild alone, unless you really know what you\'re doing." - Abragail',
-         simplified="the offer is your hand only, not hand or discard",
-         cast=[MANA, SELF_DMG(1), OFFER_HAND],
+         cast=[MANA, SELF_DMG(1), "show:mine.everywhere.held:optional"],
          chosen=["move_target_to:void"], disc=[MANA]),
     card("diamond", "Diamond", EARTH, tier=1,
          tooltip="If you hold 3 or more other cards, discard 3 of them and power up 3 times. On discard: power up.",
@@ -541,9 +539,8 @@ WIZARDS = [
     wizard("eve", "Eve Williams", "Radical Activist", "Fire, Water", 14, 5, 5,
            "Doom Bauble",
            "Draw 2 cards. You may move a card from your discard to your opponent's discard.",
-           [DRAW, DRAW, "show:mine.discard.junk:optional"],
+           [DRAW, DRAW, "show:mine.everywhere.curse_or_ice_held:optional"],
            ult_chosen=["move_target_to:enemy.discard"],
-           simplified="the offer is the junk in your discard, so an ASH comes up beside the ICE and CURSE -- one scope names one kind -- and your hand is not offered",
            blurb="A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.",
            start=GIVE("ice") + GAIN_JUNK("ice"),
            spells=[
@@ -1044,15 +1041,20 @@ def rules_templates():
                       ["stat_damage:power@enemy.player:2"]),
             ("curse", [SELF_DMG(1)], [DMG(1)]),
             ("ice",   [DISCARD_RANDOM("mine")] * 2, [DISCARD_RANDOM("enemy")] * 2)):
+        # VOIDing one is a move back onto the pile, which is where a VOIDed junk
+        # card goes -- so the pile refills by one and the penalty lands on top.
+        void = lambda who: "move:random.%s.everywhere.%s_held:%s_pile" % (who, kind, kind)
         out.append(rules_card(
             "r_dry_" + kind, "The %s pile is empty" % kind.upper(),
             tip("When the %s pile is empty, whoever would have been given one VOIDs "
                 "a %s from their hand or discard and takes the penalty instead."
                 % (kind.upper(), kind.upper()),
-                simplified="only the penalty happens; the VOID needs a card of one kind "
-                           "in one seat's hand, and a scope names a zone or a kind, never both"),
-            [ability("dry_take_" + kind, take, when=["count:junk@%s_pile <= 0" % kind]),
-             ability("dry_give_" + kind, give, when=["count:junk@%s_pile <= 0" % kind])]))
+                simplified="which %s is VOIDed is not offered; the engine takes one"
+                           % kind.upper()),
+            [ability("dry_take_" + kind, [void("mine")] + take,
+                     when=["count:junk@%s_pile <= 0" % kind]),
+             ability("dry_give_" + kind, [void("enemy")] + give,
+                     when=["count:junk@%s_pile <= 0" % kind])]))
 
     # The Dragon pile is the one whose empty rule is a reward rather than a
     # penalty, because a Dragon is what you were owed.
@@ -1158,15 +1160,17 @@ def zones():
         # Named so the box stays on screen when the hand is empty -- which it is
         # across `regroup` and both gain steps, and whenever somebody plays their
         # last card. An unlabelled empty zone draws nothing at all (render.lua).
+        # `applies` so that "your hand or discard" -- which four printed cards
+        # say and no single zone key covers -- has two kinds to be the union of.
         {"key": "hand", "label": "Hand", "layout": "row", "visibility": "owner",
-         "copies": "per_seat",
+         "copies": "per_seat", "applies": ["in_hand"],
          "pos": [P(0.14, 0.795, 0.79, 0.995), P(0.21, 0.005, 0.86, 0.205)]},
         {"key": "deck", "label": "Deck", "layout": "stack", "visibility": "secret",
          "copies": "per_seat", "tags": ["shuffle"], "refill_from": "discard",
          "tooltip": "Your draw deck. When you need a card and it is empty, your discard is shuffled into it.",
          "pos": [P(0.795, 0.795, 0.885, 0.995), P(0.115, 0.005, 0.205, 0.205)]},
         {"key": "discard", "label": "Discard", "layout": "stack",
-         "copies": "per_seat",
+         "copies": "per_seat", "applies": ["in_discard"],
          "pos": [P(0.89, 0.795, 0.995, 0.995), P(0.005, 0.005, 0.11, 0.205)]},
         # Where a card waits face down, and where it stands once both are turned
         # over. Two zones rather than one because "who may read this" is a
@@ -1551,8 +1555,18 @@ def build():
             # costs in Tier to take it.
             {"key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"]},
         ],
+        # A tag is what a card *is*, and these are the kinds the printed cards
+        # name that no single tag did. "held" is a union of two places, because a
+        # zone hands out a tag and a union may name those; the rest meet it in
+        # the middle, which is how an "and" of "or"s is written without nesting.
         "computed_tags": {
             "has_init": {"stat": "initiative", "at_least": 1},
+            "held": {"any_of": ["in_hand", "in_discard"]},
+            "curse_or_ice": {"any_of": ["curse", "ice"]},
+            "curse_or_ice_held": {"all_of": ["curse_or_ice", "held"]},
+            "ice_held": {"all_of": ["ice", "held"]},
+            "ash_held": {"all_of": ["ash", "held"]},
+            "curse_held": {"all_of": ["curse", "held"]},
         },
         "styles": {
             "ember": {"color": [0.62, 0.20, 0.16], "title": False},

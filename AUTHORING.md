@@ -1576,6 +1576,12 @@ count:gem@mine.everywhere  the same, narrowed to the seat whose turn it is
 sum:value@enemy.everywhere an opponent's total, wherever they are holding it
 ```
 
+**It narrows by tag like any other place**, and that is how a scope reaches a set
+spread over several zones: `show:mine.everywhere.curse_or_ice` offers those cards
+wherever the seat is keeping them. Until this existed a rule could *count* such a
+set (`count:gem@mine.everywhere`) and not move or show it, which was one question
+with two spellings.
+
 It is the one search naming a single zone cannot do, because a card may be in
 any of several. Naming a zone still reaches a hand, a pile or a deck as it always
 has (`count:gem@hand`, `sum:value@mine.discard`) — `@everywhere` is only for
@@ -3208,6 +3214,44 @@ Per-card derived tags from that card's own stats:
 Comparators: `less_than`, `less_than_stat`, `less_than_max`, `at_least`, `equals`. Usable
 anywhere card tags are (targeting, `count:`, and as a scope — castle reads
 `sum:defense@standing` so rubble stops defending).
+
+**`any_of` — a union, which is how the format says "or" about kinds.** A
+condition list is an `and` and a scope names one tag, so *a CURSE or an ICE* had
+nowhere to be written: the two cards have nothing in common to point at. Name the
+union once and they do.
+
+```json
+"computed_tags": { "curse_or_ice": { "any_of": ["curse", "ice"] } }
+```
+
+```
+show:mine.discard.curse_or_ice        offer only those
+"where": ["tagged:curse_or_ice@target"]
+count:curse_or_ice@enemy.discard
+```
+
+**Tag names only, never conditions.** Every tag question in the engine comes
+through one lookup, run on every card of every scope resolution; a condition here
+would turn that into the recomputation problem auras are. What a card *is* is a
+tag; what is *true* of it is a condition, and the two meet in a `where`. A union
+that reaches itself is refused, and one entry says `any_of` or `stat`, never
+both.
+
+**A union of places, too**, because a zone can hand out a tag (`applies`) and a
+union can name those. Two zones say what they are, one tag says either:
+
+```json
+"zones": [{ "key": "hand", "applies": ["in_hand"] },
+          { "key": "discard", "applies": ["in_discard"] }],
+"computed_tags": { "held_or_binned": { "any_of": ["in_hand", "in_discard"] } }
+```
+
+```
+show:mine.everywhere.held_or_binned:optional
+```
+
+`everywhere` rather than a zone key, because the cards are in two places at once
+and no single zone name covers them — see below.
 
 **This is the one place the struct spelling survives, and it is a different
 question.** A condition asks about a *scope*; a computed tag is asked of one

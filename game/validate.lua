@@ -259,7 +259,7 @@ local ROUTE_FIELDS    = { when = true, zone_empty = true, ["then"] = true, ends_
 local ROUTE_SEATS     = { next = true, same = true }
 local END_FIELDS      = { when = true, zone_empty = true, ["then"] = true, fired = true }
 local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_than_stat = true,
-	at_least = true, equals = true, less_than_max = true }
+	at_least = true, equals = true, less_than_max = true, any_of = true, all_of = true }
 -- The assets table: named pictures, and the only place a picture carries
 -- options. Everything a card's `asset` can spell out inline is legal as a `src`
 -- here too, so the source is checked by the same rules.
@@ -405,6 +405,15 @@ function M.check(G)
 	for t in pairs(carried_tags) do known_tags[t] = true end
 	for t in pairs(G.computed_tags) do known_tags[t] = true end
 	for t in pairs(tag_defs) do known_tags[t] = true end
+	-- A tag named by a union is read, even when nothing is printed with it: a
+	-- zone that hands out "in_hand" for a union to gather is the whole of
+	-- "your hand or your discard", and it has no other reader by design.
+	local union_members = {}
+	for _, cd in pairs(G.computed_tags) do
+		for _, t in ipairs(type(cd) == "table" and (cd.any_of or cd.all_of) or {}) do
+			union_members[t] = true
+		end
+	end
 
 	-- Zones and tags share one namespace: a condition that points at "@holdings"
 	-- means either the zone or the cards carrying that tag, and it must not
@@ -595,6 +604,16 @@ function M.check(G)
 		if type(name) ~= "string" then return false end
 		local place, kind = name:match("^([%w_]+)%.([%w_]+)$")
 		if not place then return false end
+		-- "everywhere" is the one left half that is not a zone: it is the opt-in
+		-- that says to look in hands and decks too, and it narrows by tag like
+		-- any other place.
+		if place == "everywhere" then
+			if not known_tags[kind] then
+				warn("%s: %s '%s' asks for '%s' everywhere, but no card carries that tag%s",
+					where, what, expr, kind, suggest(kind, known_tags))
+			end
+			return true
+		end
 		if not G.zone_defs[place] then
 			warn("%s: %s '%s' looks in '%s', but no zone has that key%s",
 				where, what, expr, place, suggest(place, G.zone_defs))
@@ -1681,7 +1700,65 @@ function M.check(G)
 				warn("%s: reads the card stat '%s', but no card carries it%s",
 					where, tostring(def.stat), suggest(def.stat, card_stats))
 			end
+			-- A union: worn by a card wearing any of the tags it names. Tags and
+			-- not conditions, so a card's kinds are what it unions -- what is
+			-- *true* of a card is a condition and belongs in a "where".
+			local combinator = def.any_of ~= nil and "any_of" or def.all_of ~= nil and "all_of"
+			if combinator then
+				if def.stat ~= nil then
+					warn("%s: says both \"stat\" and \"%s\" — a computed tag is worked out "
+						.. "one way, from a number or from other tags", where, combinator)
+				end
+				-- One entry, one combinator: an "and" of "or"s is written by
+				-- naming the middle of it, which reads and does not nest.
+				if def.any_of ~= nil and def.all_of ~= nil then
+					warn('%s: says both "any_of" and "all_of" — name the inner one and '
+						.. 'union that, so each entry is one word', where)
+				end
+				local list = def[combinator]
+				if type(list) ~= "table" or #list == 0 then
+					warn('%s: "%s" is a list of tag names, like ["curse", "ice"]', where, combinator)
+				end
+				for _, t in ipairs(type(list) == "table" and list or {}) do
+					if type(t) ~= "string" then
+						warn('%s: "%s" holds something that is not a tag name', where, combinator)
+					elseif t == tag then
+						warn("%s: names itself, so it can never be worked out", where)
+					elseif not known_tags[t] then
+						warn("%s: combines '%s', but no card carries that tag%s",
+							where, tostring(t), suggest(t, known_tags))
+					end
+				end
+			end
 		end
+	end
+
+	-- **A union that reaches itself never settles.** The runtime has a seatbelt
+	-- for it (tags.lua answers false and carries on), but a file that says it is
+	-- wrong and should hear so: what a card wears would depend on which tag was
+	-- asked about first.
+	do
+		local state = {}
+		local function walk(tag, trail)
+			if state[tag] == "done" then return end
+			if state[tag] == "open" then
+				warn("computed tag '%s': combines its way back to itself (%s), so no card can "
+					.. "be asked whether it wears it", tostring(tag), table.concat(trail, " → "))
+				return
+			end
+			state[tag] = "open"
+			local def = G.computed_tags[tag]
+			local list = type(def) == "table" and (def.any_of or def.all_of) or nil
+			for _, t in ipairs(type(list) == "table" and list or {}) do
+				if G.computed_tags[t] then
+					trail[#trail + 1] = tostring(t)
+					walk(t, trail)
+					trail[#trail] = nil
+				end
+			end
+			state[tag] = "done"
+		end
+		for tag in pairs(G.computed_tags) do walk(tag, { tostring(tag) }) end
 	end
 
 	-- A number worked out where it is used. Declared like a stat and checked
@@ -2204,9 +2281,11 @@ function M.check(G)
 				local sole
 				for _, tag in ipairs(def.applies) do
 					if G.computed_tags[tag] then
-						warn("%s: hands out '%s', which is a computed tag — those are "
-							.. "derived from a card's own stats and cannot be granted", where, tostring(tag))
-					elseif not tag_defs[tag] and not card_tags[tag] and not M.ENGINE_TAGS[tag] then
+						warn("%s: hands out '%s', which is a computed tag — those are worked out "
+							.. "from what a card is and cannot be granted. A union may name a tag "
+							.. "this zone hands out; the other way round is a circle", where, tostring(tag))
+					elseif not tag_defs[tag] and not card_tags[tag] and not M.ENGINE_TAGS[tag]
+						and not union_members[tag] then
 						warn("%s: hands out '%s', which nothing defines or reads%s",
 							where, tostring(tag), suggest(tag, known_tags))
 					end

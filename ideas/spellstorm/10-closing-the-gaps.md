@@ -428,6 +428,47 @@ somewhere to write down why.**
 
 The zone is empty between any two steps, and Riot is the only card that uses it.
 
+### G2. ~~"A CURSE or an ICE" cannot be said~~ — done, and it is a tag now
+
+**What it was.** A condition list is an `and`; a scope names one tag and one
+place. So *a CURSE or an ICE* had nowhere to be written — the two cards have
+nothing in common to point at — and *from your hand or discard* had nowhere
+either, since no zone key covers two zones. Between them they cost Doom Bauble,
+Ice Flume, Bloodstone and all three empty-pile VOIDs.
+
+**What it got: a name.** `computed_tags` already meant "a tag a card wears
+because something is true of it"; it learned two more ways to work one out.
+
+```json
+"computed_tags": {
+  "held":              { "any_of": ["in_hand", "in_discard"] },
+  "curse_or_ice":      { "any_of": ["curse", "ice"] },
+  "curse_or_ice_held": { "all_of": ["curse_or_ice", "held"] }
+}
+```
+
+Three things make it small rather than a boolean language.
+
+- **Tag names, never conditions.** Every tag question in the engine comes through
+  one lookup, run on every card of every scope resolution. A condition there is
+  the recomputation problem auras are. What a card *is* is a tag; what is *true*
+  of it is a condition, and they meet in a `where`.
+- **One entry, one combinator.** An `and` of `or`s is written by naming the
+  middle of it, which reads as a sentence. Nesting would not.
+- **A place is a kind**, because a zone hands out tags (`applies`). That is what
+  makes "hand or discard" expressible without teaching scopes about zone lists.
+
+**And one thing had to be added to reach it**: `everywhere.<tag>` as a scope. A
+*subject* could always say "this tag wherever it sits" (`count:gem@mine.everywhere`)
+and a scope could not, so a rule could count such a set and not show or move it —
+one question with two spellings, in the one place `<zone>.<tag>` had missed.
+
+**What this corrected.** Two things written on this page and in `09` were wrong,
+and finding them was the useful part: `tags.owner_of` falls back to the zone's
+seat, so an unowned ICE in your discard does answer "mine" — ownership was never
+the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
+**and** a kind, so half of that VOID was buildable all along.
+
 ## What to do first
 
 | | Item | Size | Why here |
@@ -436,5 +477,5 @@ The zone is empty between any two steps, and Riot is the only card that uses it.
 | 2 | A2 — **one offer per seat, queued** | medium | Falling Star, and the last thing an automatic step cannot ask |
 | 3 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
 | 4 | C2, C3, D2, D3 | small each | one card or three apiece |
-| — | A3, A2's tail, F2, E, D1, G1, C1 | ~~various~~ | **done.** The copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, and the narrowed offers |
+| — | A3, A2's tail, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |

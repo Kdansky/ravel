@@ -114,12 +114,6 @@ states that grant them. What each still rounds off is below.
 
 ## Rules simplified
 
-- **An offer names one kind, and some cards name two.** An offer is narrowed by
-  its scope — `<zone>.<tag>`, one place and one kind — so "a Fire card from your
-  hand" comes up as the Fire cards and nothing else. Eve's *Doom Bauble* wants "a
-  CURSE or ICE", which is two kinds, and gets the junk in her discard: an ASH
-  comes up beside them. *Ice Flume* wants "an ICE from your hand **or discard**",
-  which is two places, and gets the hand.
 - **"Gain twice" gains once** (Amber, Earth Dragon, Abragail's *New Curriculum*):
   one card has one `chosen` block.
 - **Ruby** deals a flat 1 damage. "1 damage per Fire card discarded" needs to
@@ -159,12 +153,12 @@ states that grant them. What each still rounds off is below.
   draw. *Falling Star* gives mana rather than offering the Storm Cloud to each
   player in turn, because an offer cannot be opened once per seat inside one
   automatic step.
-- **An empty pile bites, but nothing is VOIDed.** The Spellstorm Board prints an
-  alternative for each pile that has run out, and each is two halves: get rid of
-  one of that junk card you are holding, and take a penalty. The penalty happens.
-  The VOID does not — it wants "a CURSE in *that seat's* hand or discard", and a
-  scope names a zone or a kind, never both. The Dragon pile's rule has no VOID in
-  it and is exact.
+- **An empty pile VOIDs a card, but not one you choose.** The Spellstorm Board
+  prints an alternative for each pile that has run out: get rid of one of that
+  junk card you are holding, and take a penalty. Both halves happen; which ICE,
+  ASH or CURSE goes back on the pile is the engine's pick rather than yours,
+  because a battle-start sweep runs for both seats and an offer is one at a time.
+  The Dragon pile's rule has no VOID in it and is exact.
 - **The Tier check runs between rounds**, not the instant a sixth Power Token
   lands. Overflow is kept (the track subtracts six rather than resetting), so
   nothing is lost — it just arrives a moment late.

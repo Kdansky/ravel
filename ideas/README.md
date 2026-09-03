@@ -49,7 +49,7 @@ engine.
 | [28](28-a-zone-by-its-parts.md) | A zone by its parts | **shipped whole**, and `supply` is a fourth `status` since. Left: where a destroyed card goes, so nothing has to name the bank |
 | [29](29-a-place-to-fight.md) | A place to fight | **shipped whole.** Combat is a zone walked in nine steps, `origin` sends everyone home, and one patrol row made adjacency fall out. Left: resist, which [30](30-things-that-are-true.md) reaches |
 | [30](30-things-that-are-true.md) | Things that are true | **mostly built.** `buffs` and `adjusts` both ship, keyed to verbs a game declares so that being interferable is opt-in; the targeting ward already shipped as `receive.needs` and no game uses it. Left: the cost half, which is resist, and which waits only on what the player is shown |
-| [31](31-either-of-two.md) | Either of two | **not started.** `or` between conditions, where the list is already the `and`; one decision and about ten lines |
+| [31](31-either-of-two.md) | Either of two | **half done.** The `or` between *kinds* landed as `computed_tags.any_of`/`all_of` — a union with a name, usable wherever a tag is. `or` between *conditions* is still open, and is one decision |
 | [32](32-a-third-player.md) | A third player | **not started, parked.** Rotation, `each_seat:` and per-seat zones are already any size; what is missing is a word narrower than `enemy`, which means "not me", and a `seat: "all"` phase to stop writing `_1`/`_2` twice |
 
 ## What to do next

@@ -3,8 +3,16 @@ local declaration = require("declaration")
 
 local M = {}
 
+-- A union asked about while it is being worked out. Cheaper than the validator's
+-- cycle walk and not a substitute for it: this is the seatbelt, exactly as `busy`
+-- is for buffs, so a bad file gets a defined answer instead of a stack that runs
+-- out. Keyed on the tag rather than the card, because a union asks about one card
+-- all the way down.
+local resolving = {}
+
 -- True if entity e has the given tag: one it was defined with, one the zone it
--- sits in grants ("applies"), or a computed one derived from its stats.
+-- sits in grants ("applies"), or a computed one derived from its stats or from
+-- the other tags it wears.
 -- Where a card *is* can therefore decide what it is — bounded on purpose to a
 -- fixed list declared on the zone, so this stays one lookup and never becomes
 -- the recomputation problem that auras are.
@@ -20,6 +28,40 @@ function M.entity_has(e, tag)
     end
     local cd = G.computed_tags and G.computed_tags[tag]
     if not cd then return false end
+    -- **A union, which is how the format says "or" about kinds.** A condition
+    -- list is an `and` and a scope names one tag, so "a CURSE or an ICE" had no
+    -- spelling at all: the two cards have nothing in common to point at. Naming
+    -- the union once, centrally, gives it something -- and because every tag
+    -- question in the engine comes through here, the name then works wherever a
+    -- tag works: in a scope, in `tagged:`, in a count, in a target spec.
+    --
+    -- Tags and not conditions, deliberately. This runs on every card of every
+    -- scope resolution, and a condition here would make what is one lookup into
+    -- the recomputation problem auras are. What a card *is* is a tag; what is
+    -- *true* of it is a condition, and they meet in `where`.
+    -- One entry, one combinator. An `and` of `or`s is written by naming the
+    -- middle of it -- "curse_or_ice", then "curse_or_ice_held" -- which is a
+    -- sentence a reader can follow and a nested one is not.
+    if cd.any_of then
+        if resolving[tag] then return false end
+        resolving[tag] = true
+        local worn = false
+        for _, t in ipairs(cd.any_of) do
+            if M.entity_has(e, t) then worn = true; break end
+        end
+        resolving[tag] = nil
+        return worn
+    end
+    if cd.all_of then
+        if resolving[tag] then return false end
+        resolving[tag] = true
+        local worn = true
+        for _, t in ipairs(cd.all_of) do
+            if not M.entity_has(e, t) then worn = false; break end
+        end
+        resolving[tag] = nil
+        return worn
+    end
     local s = e.stats or {}
     -- Nil is "this card has no such stat", which no amount of buffing invents;
     -- the value it holds is then read through the buffs, so a card that is a

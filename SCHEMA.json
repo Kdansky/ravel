@@ -44,7 +44,9 @@
       "less_than_stat": "another stat key on the same card: the tag holds while the first is under the second",
       "less_than_max": "true: the tag holds while the stat is under its own declared maximum. This is \"damaged\", and it is what a card_stats ceiling makes expressible without a second stat standing in for it.",
       "at_least": "number: the tag holds while the stat reaches it",
-      "equals": "number: the tag holds while the stat is exactly it"
+      "equals": "number: the tag holds while the stat is exactly it",
+   "any_of": "list of tag names: the tag holds on a card wearing any one of them, which is how the format says \"or\" about kinds. A condition list is an \"and\" and a scope names one tag, so \"a CURSE or an ICE\" had nowhere to be written; naming the union once here gives the two cards something to be pointed at, and the name then works wherever a tag works \u2014 in a scope, in tagged:, in a count, in a target spec. Tag names only and never conditions: every tag question in the engine comes through one lookup, and a condition here would turn it into the recomputation problem auras are. A union that reaches itself is refused. Say this or a stat, never both.",
+   "all_of": "list of tag names: the tag holds on a card wearing every one of them. The intersection to any_of's union, and the two are never written on one entry \u2014 an \"and\" of \"or\"s is said by naming the middle of it (\"curse_or_ice\", then \"curse_or_ice_held\"), which reads as a sentence where a nested one does not."
     }
   },
   "computes": [

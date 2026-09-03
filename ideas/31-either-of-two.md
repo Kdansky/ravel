@@ -4,6 +4,25 @@
 but sometimes we need an OR. How do we solve this? Multiple where clauses?
 Explicit OR syntax?"*
 
+**Half of it is done, and it was not this half.** The customer this track was
+holding turned out to be about *kinds*, not conditions: "a CURSE or an ICE from
+your hand or discard" is a question about what a card **is** and where it sits,
+and it never reached a `where` at all — a scope names one tag and one place, so
+the rule had nowhere to start. That is answered, by `computed_tags` learning
+`any_of` and `all_of`: the union has a name, and the name is then an ordinary
+tag everywhere a tag works. See `ideas/spellstorm/10-closing-the-gaps.md` §G2.
+
+**What is left here is the honest remainder**: `or` between *conditions* —
+"if you have Initiative **or** three mana" — which is about what is **true** of
+the board rather than what a card is. Everything below still stands for that,
+and the recommendation is unchanged.
+
+**Which sharpens the shape of it.** The two questions are answered in different
+places on purpose, and the union above is the reason to keep them apart: a tag is
+one lookup on one card, run on every card of every scope resolution, and a
+condition is not. Whatever spelling wins below must stay on the condition side of
+that line.
+
 **Not started. It is one decision, and the decision is the whole of it** — every
 spelling below is between three and ten lines of engine.
 
