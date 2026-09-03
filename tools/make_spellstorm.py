@@ -415,15 +415,18 @@ DRAGONS = [
 # Weather
 #
 # One card is flipped at the start of each round and every player resolves it.
-# Two moments: `wx` at the flip, and `wy` at the reveal -- which is what lets
-# "if you reveal Fire this round" be asked at all, since at flip time nobody
-# has played anything yet.
+# Three moments: `wx` at the flip, `wy` at the reveal -- which is what lets "if
+# you reveal Fire this round" be asked at all, since at flip time nobody has
+# played anything yet -- and `wz` once both cards have resolved, which is where a
+# card that adds something *after* the round's work goes. Each is an ability with
+# that key, walked once per seat by a phase of its own.
 # ---------------------------------------------------------------------------
 
-def weather(key, name, tooltip, wx=(), wy=None, calm=False, simplified=None,
-            chosen=None, chosen_where=None):
+def weather(key, name, tooltip, wx=(), wy=None, wz=(), calm=False, copies=1,
+            simplified=None, chosen=None, chosen_where=None):
     return dict(key=key, name=name, tooltip=tooltip, wx=list(wx), wy=wy,
-                calm=calm, simplified=simplified, chosen=chosen, chosen_where=chosen_where)
+                wz=list(wz), calm=calm, copies=copies, simplified=simplified,
+                chosen=chosen, chosen_where=chosen_where)
 
 REVEALED = lambda el: "count:%s@mine.battle >= 1" % el
 
@@ -434,7 +437,7 @@ WEATHER = [
             wx=[DRAW, MANA, POWER], calm=True),
     weather("crystalflurries", "Crystal Flurries",
             "Draw a card and gain 1 mana. If you reveal Water this round, gain 1 mana.",
-            wx=[DRAW, MANA], wy=(REVEALED(WATER), [MANA]), calm=True),
+            wx=[DRAW, MANA], wy=(REVEALED(WATER), [MANA]), calm=True, copies=2),
     weather("heatwave", "Heatwave",
             "Draw a card. If you reveal Fire this round, gain 1 mana.",
             wx=[DRAW], wy=(REVEALED(FIRE), [MANA]), calm=True),
@@ -460,10 +463,15 @@ WEATHER = [
     weather("burningblizzard", "Burning Blizzard",
             "Draw a card. If you reveal Fire this round, gain 2 mana.",
             wx=[DRAW], wy=(REVEALED(FIRE), [MANA, MANA])),
+    # An Ultimate is a reaction to one of your own cards announcing that it is
+    # resolving, so a round in which anybody may cast one is a round in which
+    # something else does the announcing. That is this card: once both spells
+    # have resolved it says the same word they say, once per player, and each
+    # wizard answers their own. The mana is still owed, because the cost is on
+    # the reaction and nothing here waives it.
     weather("energywave", "Energy Wave",
-            "Draw a card. After resolving, players may use their Ultimate ability.",
-            simplified="an Ultimate now needs a card carrying the Ultimate icon, and waiving that for one round is not something a weather card can say; this only draws",
-            wx=[DRAW]),
+            "Draw a card. Once both cards have resolved, each player may cast their Ultimate.",
+            wx=[DRAW], wz=["emit:resolving"], copies=2),
     weather("gemlightomen", "Gemlight Omen",
             "Draw a card. Tier II players gain 1 mana; Tier I players power up 3 times.",
             wx=[DRAW]),
@@ -473,22 +481,30 @@ WEATHER = [
             wx=[DRAW, DRAW]),
     weather("ionicatmosphere", "Ionic Atmosphere",
             "Draw 2 cards and gain 1 mana. Tier II and III players lose 2 Power Tokens.",
-            wx=[DRAW, DRAW, MANA]),
+            wx=[DRAW, DRAW, MANA], copies=2),
     weather("lightningstrike", "Lightning Strike!",
             "Draw a card and gain 1 mana. Players with more than 8 health take 1 damage.",
             wx=[DRAW, MANA]),
     weather("magneticwarp", "Magnetic Warp",
             "Draw 2 cards. VOID all cards in the Storm Cloud and draw out 5 new ones.",
-            wx=[DRAW, DRAW]),
+            wx=[DRAW, DRAW], copies=2),
     weather("rainoftoads", "Rain of Toads",
             "Draw a card. Whoever has Initiative loses it; whoever gains it gains a CURSE and 1 mana.",
             wx=[DRAW]),
     weather("shootingstar", "Shooting Star", "Draw 2 cards and power up twice.",
             wx=[DRAW, DRAW, POWER, POWER]),
+    # The other card the offer queue was built for, and the one that needed it
+    # most: every player is asked, and the answer is a card out of a hand nobody
+    # else may read. VOIDed junk goes back on its own pile rather than into the
+    # VOID -- that is what the piles running dry is about -- and which pile
+    # depends on what was picked, so the three moves are written out and two of
+    # them find nothing. The pick is the only card left in the offer by the time
+    # these run; the rest has already gone home.
     weather("soothingrain", "Soothing Rain",
-            "Draw a card. You may VOID an ASH, CURSE or ICE in your discard pile.",
-            simplified="the void is not offered inside an automatic step; this only draws",
-            wx=[DRAW]),
+            "Draw a card. You may VOID an ASH, CURSE or ICE from your hand or discard pile.",
+            wx=[DRAW, "show:mine.everywhere.junk_held:optional"],
+            chosen=["move:options.ice:ice_pile", "move:options.ash:ash_pile",
+                    "move:options.curse:curse_pile"], copies=2),
     weather("tidalwave", "Tidal Wave",
             "Draw 2 cards and gain 1 mana. All players discard 2 cards.",
             wx=[DRAW, DRAW, MANA, DISCARD_RANDOM("mine"), DISCARD_RANDOM("mine")]),
@@ -958,6 +974,7 @@ def weather_template(w):
         abil.append(ability("wx%d" % (i + 2), acts, when=[cond], text="Weather"))
     if w["wy"]:
         abil.append(ability("wy", w["wy"][1], when=[w["wy"][0]], text="Weather"))
+    if w["wz"]: abil.append(ability("wz", w["wz"], text="Weather"))
     if abil: t["abilities"] = abil
     # A weather card that asks is the card doing the asking, so the answer comes
     # back to it, exactly as it does for a spell.
@@ -1194,6 +1211,12 @@ def potion_templates():
     return out
 
 
+def deck_of(calm):
+    """The weather deck as the box prints it, duplicates and all."""
+    return ["%s:%d" % (w["key"], w["copies"]) if w["copies"] > 1 else w["key"]
+            for w in WEATHER if w["calm"] == calm]
+
+
 def zones():
     P = lambda *r: list(r)
     return [
@@ -1218,7 +1241,11 @@ def zones():
         # last card. An unlabelled empty zone draws nothing at all (render.lua).
         # `applies` so that "your hand or discard" -- which four printed cards
         # say and no single zone key covers -- has two kinds to be the union of.
-        {"key": "hand", "label": "Hand", "layout": "row", "visibility": "owner",
+        #
+        # Labelled with the seat rather than the word "Hand". Two hands facing
+        # each other are obviously hands; what a rule saying "the player with
+        # Initiative" needs is a board that points at one of them by name.
+        {"key": "hand", "label": "owning_player", "layout": "row", "visibility": "owner",
          "copies": "per_seat", "applies": ["in_hand"],
          "pos": [P(0.145, 0.795, 0.730, 0.995), P(0.145, 0.005, 0.730, 0.205)]},
         {"key": "deck", "label": "Deck", "layout": "stack", "visibility": "secret",
@@ -1269,11 +1296,11 @@ def zones():
          "visibility": "secret", "tags": ["shuffle"], "refill_from": "weather_main",
          "tooltip": "The eight Calm Before the Storm cards sit on top of the Weather Deck, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
          "pos": P(0.115, 0.625, 0.20, 0.785),
-         "contents": [w["key"] for w in WEATHER if w["calm"]]},
+         "contents": deck_of(True)},
         {"key": "weather_main", "label": "Storm", "layout": "stack",
          "visibility": "secret", "tags": ["shuffle"],
          "pos": P(0.245, 0.625, 0.33, 0.785),
-         "contents": [w["key"] for w in WEATHER if not w["calm"]]},
+         "contents": deck_of(False)},
         {"key": "weather_discard", "layout": "stack", "use": "none",
          "pos": P(0.34, 0.625, 0.425, 0.785)},
 
@@ -1457,6 +1484,14 @@ def phases():
                      "activate_zone:mine.battle:by_column:ult_call"],
          "next": [{"then": "resolve_2"}]},
         {"key": "resolve_2", "type": "automatic", "actions": list(RESOLVE),
+         "next": [{"then": "aftermath"}]},
+
+        # Both cards have resolved, and this is where the weather gets the last
+        # word. Only Energy Wave uses it, and what it says is "you may cast your
+        # Ultimate" -- so this is a phase for the same reason the announce phases
+        # are: the window it opens has to hold the round behind it.
+        {"key": "aftermath", "type": "automatic",
+         "actions": ["each_seat:activate_zone:weather_now:by_column:wz"],
          "next": [{"then": "round_end"}]},
 
         {"key": "round_end", "type": "automatic",
@@ -1652,6 +1687,7 @@ def build():
             "held": {"any_of": ["in_hand", "in_discard"]},
             "curse_or_ice": {"any_of": ["curse", "ice"]},
             "curse_or_ice_held": {"all_of": ["curse_or_ice", "held"]},
+            "junk_held": {"all_of": ["junk", "held"]},
             "ice_held": {"all_of": ["ice", "held"]},
             "ash_held": {"all_of": ["ash", "held"]},
             "curse_held": {"all_of": ["curse", "held"]},

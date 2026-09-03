@@ -518,7 +518,10 @@ function M.test_spellstorm_a_battle_is_four_rounds_then_a_regroup(check)
 		else
 			break
 		end
-		if (seen.gain_2 or 0) >= 3 then break end
+		-- Not while a question is still up: Soothing Rain asks both players every
+		-- time it comes round, and stopping the driver on an open offer would
+		-- leave borrowed cards in it and prove nothing.
+		if (seen.gain_2 or 0) >= 3 and phase.current().key ~= "options" then break end
 	end
 	check("the battle ran its four rounds and regrouped, three times over",
 		(seen.gain_2 or 0) >= 3, tostring(seen.gain_2))
@@ -715,7 +718,14 @@ function M.test_spellstorm_the_journal_asks_one_question_at_a_time(check)
 	check("the silent spaces fire in the battle-start sweep and ask nothing",
 		phase.current().key ~= "options", phase.current().key)
 
-	local held = #hand_of("seat_one").cards + #hand_of("seat_two").cards
+	-- The cards themselves rather than how many: declining the last question runs
+	-- the chain on into the next round, which deals, so a total would be counting
+	-- the weather's draw as well. What is being asked is whether any of *these*
+	-- went missing.
+	local held = {}
+	for _, k in ipairs({ "seat_one", "seat_two" }) do
+		for _, id in ipairs(hand_of(k).cards) do held[#held + 1] = id end
+	end
 	phase.push("journal_2a")
 	flow.settle()
 	check("the space that asks opens its offer in its own phase",
@@ -731,8 +741,12 @@ function M.test_spellstorm_the_journal_asks_one_question_at_a_time(check)
 	while phase.current().key == "options" and flow.dismiss_offer() do end
 	check("declining sends every borrowed card home",
 		#zones.find("options").cards == 0, #zones.find("options").cards)
-	check("with nothing lost on the way",
-		#hand_of("seat_one").cards + #hand_of("seat_two").cards == held)
+	local home = 0
+	for _, id in ipairs(held) do
+		local z = entity.get(id) and entity.get(entity.get(id).zone_id)
+		if z and z.key == "hand" then home = home + 1 end
+	end
+	check("with nothing lost on the way", home == #held, home .. " of " .. #held)
 end
 
 
@@ -1058,6 +1072,117 @@ function M.test_spellstorm_both_endings_are_reachable(check)
 	check("nought health ends it too",
 		phase.current().key == "reveal" or #zones.find("reveal").cards > 0,
 		phase.current().key)
+end
+
+
+-- The weather deck is dealt at the counts the box prints, not one of each
+-- design. Five cards appear twice, and how often a design comes round is the
+-- whole of what a deck of twenty-four four-card battles is measuring.
+function M.test_spellstorm_the_weather_deck_is_dealt_at_its_printed_counts(check)
+	opening(5, "derby", "eve")
+	local seen = {}
+	for e in entity.each("card") do
+		local z = entity.get(e.zone_id)
+		if z and (z.key or ""):find("^weather") then seen[e.def_key] = (seen[e.def_key] or 0) + 1 end
+	end
+	local total = 0
+	for _, n in pairs(seen) do total = total + n end
+	check("twenty-four cards in all", total == 24, total)
+	check("and Crystal Flurries is two of them", seen.crystalflurries == 2, seen.crystalflurries)
+	check("as is Soothing Rain", seen.soothingrain == 2, seen.soothingrain)
+end
+
+
+-- Soothing Rain asks every player whether to VOID a junk card, which is two
+-- questions over two hands nobody else may read -- the shape the offer queue
+-- was built for. Where the answer goes is the other half: a VOIDed junk card
+-- goes back onto its own pile rather than into the VOID, because a pile running
+-- dry is a rule, and which pile depends on what was picked.
+function M.test_spellstorm_soothing_rain_voids_a_junk_card_onto_its_own_pile(check)
+	opening(5, "derby", "eve")
+	local one, two = "seat_one", "seat_two"
+	-- Hands and discards both, because "your hand or discard pile" is what the
+	-- card says and a wizard who opens holding an ICE would otherwise be offered
+	-- two of them.
+	for _, seat in ipairs({ one, two }) do
+		empty_hand(seat)
+		for _, id in ipairs({ unpack(zone_of("discard", seat).cards) }) do
+			zones.move_card(id, zone_of("deck", seat).id)
+		end
+	end
+	local ice = find("ice", "ice_pile")
+	local ash = find("ash", "ash_pile")
+	zones.move_card(ice.id, hand_of(one).id)
+	zones.move_card(ash.id, hand_of(two).id)
+	local piles = #zones.find("ice_pile").cards
+
+	local rain = find("soothingrain")
+	actions.execute("move:weather_now:weather_discard", {})
+	zones.move_card(rain.id, zones.find("weather_now").id)
+	become(one)
+	actions.execute("each_seat:activate_zone:weather_now:by_column:wx", {})
+	flow.settle()
+
+	check("the first seat is asked", phase.current().key == "options", phase.current().key)
+	local asked, wrong = zones.find("options"), nil
+	for _, id in ipairs(asked.cards) do
+		local home = entity.get(entity.get(id).borrowed_from)
+		if home.seat ~= one or not require("tags").entity_has(entity.get(id), "junk") then
+			wrong = entity.get(id).def_key .. " from " .. home.key .. "/" .. tostring(home.seat)
+		end
+	end
+	check("about their own junk, out of their hand or their discard and nowhere else",
+		#asked.cards > 0 and not wrong, wrong or #asked.cards)
+	local held = false
+	for _, id in ipairs(asked.cards) do if id == ice.id then held = true end end
+	check("the ICE they are holding among it", held)
+	check("and may decline, since the printed card says you may", flow.can_dismiss())
+	flow.play_card(ice.id, {})
+	check("the ICE went back onto the ICE pile",
+		entity.get(ice.id).zone_id == zones.find("ice_pile").id)
+	check("which is one deeper for it", #zones.find("ice_pile").cards == piles + 1,
+		#zones.find("ice_pile").cards)
+
+	check("and the second seat is asked next, not at the same time",
+		phase.current().key == "options", phase.current().key)
+	local second, theirs = zones.find("options"), false
+	for _, id in ipairs(second.cards) do if id == ash.id then theirs = true end end
+	check("about the ASH that one is holding", theirs, #second.cards)
+	flow.dismiss_offer()
+	check("declining leaves it where it was",
+		entity.get(ash.id).zone_id == hand_of(two).id)
+end
+
+
+-- Energy Wave is the weather card that gives a player something to *do*. An
+-- Ultimate is a reaction to one of your own cards announcing that it is
+-- resolving, so a round in which anybody may cast one is a round in which
+-- something else does the announcing -- and once both spells have resolved,
+-- this card says the same word they say, once per seat.
+function M.test_spellstorm_energy_wave_opens_an_ultimate_window(check)
+	opening(5, "derby", "eve")
+	local wave = find("energywave")
+	actions.execute("move:weather_now:weather_discard", {})
+	zones.move_card(wave.id, zones.find("weather_now").id)
+	for _, k in ipairs({ "seat_one", "seat_two" }) do seat_card(k).stats.mana = 9 end
+
+	-- What the `aftermath` phase does, run where the phase runs it. Pushed
+	-- instead, the window would never open: an interjected phase holds the stack
+	-- exactly so that a reaction's own offer resolves before anything under it.
+	actions.execute("each_seat:activate_zone:weather_now:by_column:wz", {})
+	flow.settle()
+	local top = flow.pending_event()
+	check("the weather announced a resolution of its own", top and top.re_verb == "resolving",
+		top and top.re_verb)
+	local usable = flow.usable_reactions()
+	check("and the seat holding priority is offered their Ultimate", #usable == 1, #usable)
+	check("out of their wizard zone",
+		#usable == 1 and entity.get(entity.get(usable[1].card).zone_id).key == "wizard")
+
+	-- Without the mana there is nothing to offer, which is the "still need the
+	-- required mana" half of the printed card.
+	for _, k in ipairs({ "seat_one", "seat_two" }) do seat_card(k).stats.mana = 0 end
+	check("and nothing at all when they cannot pay", #flow.usable_reactions() == 0)
 end
 
 return M

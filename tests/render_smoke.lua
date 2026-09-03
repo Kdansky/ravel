@@ -214,6 +214,28 @@ for _, g in ipairs({ "lost_cities.json", "kingdom.json", "road.json", "vigil.jso
 	for _ = 1, 4 do frame(0.016) end
 end
 
+-- A zone that says whose it is. Two hands facing each other are obviously
+-- hands; what a board also has to say is which of them is Player One, because
+-- every rule about Initiative and turn order names a seat and nothing else on
+-- screen points at one. `owning_player` is the reserved label that does it, and
+-- what it must draw is the seat *card's* text -- "Player One" -- rather than
+-- the key the file spells it with.
+do
+	flow.init("spellstorm.json", 4)
+	render.rescale()
+	local said = {}
+	local real = love.graphics.printf
+	love.graphics.printf = function(text, ...)
+		said[tostring(text)] = true
+		return real(text, ...)
+	end
+	for _ = 1, 4 do frame(0.016) end
+	love.graphics.printf = real
+	assert(said["Player One"] and said["Player Two"],
+		"expected both hands to be labelled with their seat")
+	assert(not said["seat_one"], "a seat key is a spelling, not a name to show")
+end
+
 -- Ctrl+hover's JSON panel, over each of the three things it can describe, in a
 -- game whose board is full: a card's dump is the longest and the only one that
 -- has to scroll, and the panel reserves its own footer line to say so.

@@ -68,10 +68,17 @@ it. So each side's resolution is two phases now — `ult_1` then `resolve_1`,
 is the same lesson Abragail's journal produced: **a phase is the engine's word
 for "and then"**.
 
-What the icon still cannot say is the reverse. *Obsidian* ("you may use your
-Ultimate without paying the mana cost") and *Energy Wave* ("players may use
-their Ultimate") both waive the requirement rather than meet it, and neither is
-a thing a card can say about the round.
+What the icon still cannot say is a cost waived. *Obsidian* ("you may use your
+Ultimate without paying the mana cost") lets you cast one for free, and nothing
+in the format waives a cost.
+
+*Energy Wave* looked like the same problem and is not. "Players may use their
+Ultimate" waives the **icon** rather than the mana, and the icon is not a
+permission to be lifted — it is a card announcing that it is resolving. So the
+weather card does the announcing itself, once per player, in a phase of its own
+after both spells have resolved. The mana is still owed, because the cost is on
+the reaction. That is the third weather moment: `wx` at the flip, `wy` at the
+reveal, `wz` once the round's work is done.
 
 ### 3. ~~A card resolved by another card does not ask questions~~ — fixed
 
@@ -158,11 +165,10 @@ states that grant them. What each still rounds off is below.
   re-read of the printed card, or Keith.
 - **Omar's Shuriken** takes Initiative instead of "this card ALWAYS goes first".
   Resolution order is the Initiative Tracker and nothing else, which is close.
-- **Weather that rewrites other cards** is not implemented: *Glittering Dust*
-  ("Earth cards do nothing but heal 2") is a continuous effect, and *Energy Wave*
-  ("players may use their Ultimate") now means something — an Ultimate needs a
-  card carrying the icon (§2) — but waiving that for one round is a rule about
-  the round, and a weather card has no way to say it. Both still draw.
+- **Glittering Dust only draws.** "Earth cards do nothing when resolved but heal
+  2" replaces every card of an Element for the round, which is a continuous
+  effect. It is the last weather card that does not do what it says; *Energy
+  Wave* and *Soothing Rain*, which used to keep it company, both work now.
 - **A mirror match has no Initiative Tracker to start with.** "At all times
   exactly one player holds" it, and the lower Initiative rating takes it at the
   start — but two of the same wizard have the same rating, so nobody took it and
@@ -185,7 +191,11 @@ states that grant them. What each still rounds off is below.
 - **Card counts are per design, not per print run.** The Spellstorm Deck holds one
   of each non-basic spell; the real box has duplicates whose counts the print
   files do not record. Starting decks are exact: 2 Magic Dart, 2 Block, 2 Power
-  Gem, plus your two Wizard Spell Cards.
+  Gem, plus your two Wizard Spell Cards. **The weather deck is exact too**, since
+  that one the source does record: eight Calm and sixteen standard, with Crystal
+  Flurries, Energy Wave, Ionic Atmosphere, Magnetic Warp and Soothing Rain twice
+  each. A battle draws four, so how often a design comes round is the whole of
+  what those counts are for.
 
 ## Modes not implemented
 
@@ -216,3 +226,10 @@ Worth weighing against `todo.md` rather than working around again:
 5. **An offer cannot be narrowed by a condition on the offered cards** the way a
    `target` spec can with `where`. `chosen.where` exists and gates what may be
    *taken*, but the cards still all show, and it cannot be written per-offer.
+6. **A `chosen` action cannot ask what it was handed.** `move_target_to:` names
+   one destination, and a rule whose destination depends on the pick has to name
+   the offer zone and move by tag — three lines, two of which find nothing (see
+   *Soothing Rain*, and AUTHORING §*Routing the pick by what it is*). The word it
+   wants is `target.<tag>` as a scope, which is the same "one question, two
+   spellings" fault `<zone>.<tag>` was written to end, left in the one spot it
+   missed.

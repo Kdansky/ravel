@@ -57,7 +57,7 @@ and a line here names a section that exists:
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
-- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
+- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
@@ -821,7 +821,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 
 | Field | Meaning |
 |---|---|
-| `key`, `label` | Identity and optional on-screen label. A label is written across the top of the zone and the cards keep clear of it, so a named zone is still named once something is in it — which costs a line of height, and a zone whose cards are sized by their height wants a little more room than an unnamed one. **Two labels are read off the engine instead of printed**: `current_phase` and `current_player`. A board shows what is where and says nothing about whose turn it is or which part of it this is, so an empty `grid [1, 1]` with one of those labels is a readout |
+| `key`, `label` | Identity and optional on-screen label. A label is written across the top of the zone and the cards keep clear of it, so a named zone is still named once something is in it — which costs a line of height, and a zone whose cards are sized by their height wants a little more room than an unnamed one. **Three labels are read off the engine instead of printed**: `current_phase`, `current_player` and `owning_player`. A board shows what is where and says nothing about whose turn it is or which part of it this is, so an empty `grid [1, 1]` with one of the first two is a readout. `owning_player` is the odd one out and is about the zone rather than the moment: on a `per_seat` zone it draws that copy's own seat by name, which is how two hands facing each other say which is which |
 | `layout` | Where the cards are drawn. `stack` (one on top of another — only the top shows), `row` (side by side, each showing its text — wrapping onto more lines rather than shrinking when one line would be too tight), `grid` (addressed cells), `page` (each card fills the zone, for a story panel) |
 | `visibility` | Who may read them, and **nothing else** — a card in play may be unreadable and a card nobody can touch may be plain to see. `public` (default), `owner` (the seat whose zone it is; a zone with no seat is nobody's secret and stays public), `secret` (nobody — backs out, and a stack's order is scrambled in the browser, because the order is the secret and the contents usually are not) |
 | `reach` | Which of the cards here exist as far as the rules go: `all`, or `top` — only the last one. A `stack` is `top` unless it says otherwise |
@@ -2836,6 +2836,25 @@ because that is what an offer is for.
 `@self`. That is the `options:` relationship said the other way round: there the
 entry carries the rule and the asker is what it is about; here the entry is
 somebody else's property and carries nothing of ours.
+
+#### Routing the pick by what it is
+
+**The pick is the only card left in the offer while `chosen` runs.** The rest
+went home first, which is what lets a rule send the pick somewhere that depends
+on what it *is*. `move_target_to:` names one destination; a `move:` over the
+offer names one per kind. Spellstorm's *Soothing Rain* VOIDs an ASH, CURSE or
+ICE, and each goes back onto its own pile:
+
+```json
+"play": { "action": ["show:mine.everywhere.junk_held:optional"] },
+"chosen": { "action": ["move:options.ice:ice_pile",
+                       "move:options.ash:ash_pile",
+                       "move:options.curse:curse_pile"] }
+```
+
+Two of the three find nothing. Write it this way only where the destination
+really does vary with the card — `move_target_to:` is shorter and says what it
+means.
 
 #### `chosen.where` — which of the revealed cards may be taken
 

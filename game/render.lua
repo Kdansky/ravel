@@ -1149,27 +1149,43 @@ end
 -- hands: LoR's bench, Splendor's nobles and its bank all named themselves and
 -- drew nothing, and an empty hand with a name on it is the case that made it
 -- obvious — a box saying nothing is not a zone a player can learn.
+
+-- What to call a seat on screen. A seat *is* a card, and the card's text is the
+-- name the game gave it -- "Player One", a wizard, a colour. The key is a
+-- spelling for the file to use and never one to show anybody.
+local function seat_name(seat)
+	local def = seat and declaration.G.card_defs[seat]
+	return def and def.text or seat
+end
+
 -- A zone's label is normally a fixed word, and two things a board most wants to
 -- say are not fixed: which phase it is in and whose turn it is. Both are read
 -- off the engine every frame, so they are reserved words rather than text a
 -- game could keep in step by hand. Only the drawing substitutes — the log still
 -- names the zone by what the file called it.
+--
+-- `owning_player` is the third and the one that is about the zone rather than
+-- the moment: a per_seat zone drawn twice needs to say which of the two this
+-- copy is, and the seat's own name is the only answer a player can act on. Two
+-- hands facing each other are otherwise a board that talks about "seat one"
+-- without ever pointing at it.
 local LIVE_LABEL = {
 	current_phase = function()
 		local cur = phase.current()
 		return cur and (cur.label or cur.key)
 	end,
 	current_player = function()
-		local seat = zones.active_seat()
-		local def  = seat and declaration.G.card_defs[seat]
-		return def and def.text or seat
+		return seat_name(zones.active_seat())
+	end,
+	owning_player = function(zone_e)
+		return seat_name(zone_e.seat)
 	end,
 }
 
 local function draw_zone_label(zone_e)
 	local text = zone_e.label
 	local live = text and LIVE_LABEL[text]
-	if live then text = live() end
+	if live then text = live(zone_e) end
 	if not text then return end
 	local p = zone_e.place
 	love.graphics.push("all")
@@ -1474,7 +1490,7 @@ local function draw_react_hint()
 		if c then names[#names + 1] = (cards.def(c) or {}).text or c.def_key end
 	end
 	local msg = table.concat(names, ", ") .. ": " .. top.re_verb
-		.. "   —   " .. tostring(zones.active_seat()) .. " to answer"
+		.. "   —   " .. tostring(seat_name(zones.active_seat())) .. " to answer"
 	-- As wide as it needs and no wider. A full-width bar would lie across the
 	-- stat row in the far corner, which is exactly what a player weighing whether
 	-- to answer is reading.

@@ -162,6 +162,7 @@
     "held": { "any_of": ["in_hand", "in_discard"] },
     "curse_or_ice": { "any_of": ["curse", "ice"] },
     "curse_or_ice_held": { "all_of": ["curse_or_ice", "held"] },
+    "junk_held": { "all_of": ["junk", "held"] },
     "ice_held": { "all_of": ["ice", "held"] },
     "ash_held": { "all_of": ["ash", "held"] },
     "curse_held": { "all_of": ["curse", "held"] }
@@ -214,7 +215,7 @@
     },
     {
       "key": "hand",
-      "label": "Hand",
+      "label": "owning_player",
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",
@@ -343,7 +344,7 @@
       "pos": [0.115, 0.625, 0.2, 0.785],
       "contents": [
         "nice_breeze",
-        "crystalflurries",
+        "crystalflurries:2",
         "heatwave",
         "fallingearth",
         "dustcloud",
@@ -360,15 +361,15 @@
       "pos": [0.245, 0.625, 0.33, 0.785],
       "contents": [
         "burningblizzard",
-        "energywave",
+        "energywave:2",
         "gemlightomen",
         "glitteringdust",
-        "ionicatmosphere",
+        "ionicatmosphere:2",
         "lightningstrike",
-        "magneticwarp",
+        "magneticwarp:2",
         "rainoftoads",
         "shootingstar",
-        "soothingrain",
+        "soothingrain:2",
         "tidalwave",
         "wildcolorwinds"
       ]
@@ -643,6 +644,12 @@
         "activate_zone:mine.battle:by_column:cast3",
         "activate_zone:mine.battle:by_column:cast_ask"
       ],
+      "next": [{ "then": "aftermath" }]
+    },
+    {
+      "key": "aftermath",
+      "type": "automatic",
+      "actions": ["each_seat:activate_zone:weather_now:by_column:wz"],
       "next": [{ "then": "round_end" }]
     },
     {
@@ -2572,8 +2579,11 @@
       "text": "Energy Wave",
       "tags": ["weather", "storm"],
       "asset": "ss_energywave.jpg",
-      "tooltip": "*Draw a card*. After resolving, players may use their *Ultimate* ability.\n\n_[Simplified: an Ultimate now needs a card carrying the Ultimate icon, and waiving that for one round is not something a weather card can say; this only draws]_",
-      "abilities": [{ "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] }]
+      "tooltip": "*Draw a card*. Once both cards have resolved, each player may cast their *Ultimate*.",
+      "abilities": [
+        { "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] },
+        { "key": "wz", "text": "Weather", "action": ["emit:resolving"] }
+      ]
     },
     {
       "key": "gemlightomen",
@@ -2725,8 +2735,21 @@
       "text": "Soothing Rain",
       "tags": ["weather", "storm"],
       "asset": "ss_soothingrain.jpg",
-      "tooltip": "*Draw a card*. You may *VOID* an *ASH*, *CURSE* or *ICE* in your discard pile.\n\n_[Simplified: the void is not offered inside an automatic step; this only draws]_",
-      "abilities": [{ "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] }]
+      "tooltip": "*Draw a card*. You may *VOID* an *ASH*, *CURSE* or *ICE* from your hand or discard pile.",
+      "abilities": [
+        {
+          "key": "wx",
+          "text": "Weather",
+          "action": ["draw_from:mine.deck:mine.hand:1", "show:mine.everywhere.junk_held:optional"]
+        }
+      ],
+      "chosen": {
+        "action": [
+          "move:options.ice:ice_pile",
+          "move:options.ash:ash_pile",
+          "move:options.curse:curse_pile"
+        ]
+      }
     },
     {
       "key": "tidalwave",

@@ -65,9 +65,13 @@ shipped at the time, both now fixed with tests:
   empty stack under an open page stopped end conditions and automatic phases
   both. The interjection rule is right; it just has to be asked second.
 
-**What is still not the printed rule**: *Obsidian* and *Energy Wave* waive the
-requirement rather than meet it (D4, and 09's weather note), and neither is a
-thing a card can say about the round.
+**What is still not the printed rule**: *Obsidian* (D4). It waives the mana, and
+nothing in the format waives a cost.
+
+*Energy Wave* was listed here beside it and should not have been. It waives the
+**icon**, not the mana — and the icon is not a permission, it is a card saying it
+is resolving. So the weather card says it instead, once per player, in a phase
+after both spells have resolved. No new word; the third weather moment, `wz`.
 
 ### A2. ~~A question inside an automatic step~~ — done (09 §2, Abragail, Falling Star, May)
 
