@@ -72,14 +72,30 @@ phase and pops back when its `ends_when` is met. Two things to settle:
 split into `cast` (deterministic, always runs) and `cast_ask` (the offer, never
 reached by a copy). A copied *Lapis* draws but does not offer its discard.
 
-**Proposal — stack the overlays.** `show:` from inside a `chosen` block currently
-pushes an overlay that the outer `close_offer` then empties, leaving an
-unresolvable `options` phase. The engine already has a phase *stack*
-(`push_phase`/`pop_phase`); the offer overlay is the one thing not using it.
-Make `close_offer` pop one rather than empty, and the `cast`/`cast_ask` split
-disappears from all seven cards.
+**The cause, found by reproducing it.** Not a missing stack — an ordering. In
+`flow.play_card`, picking from an offer runs in this order: pop the overlay, run
+the `chosen` block, then `clear_offer`. `clear_offer` walks whatever is in the
+`options` zone *now* and sends it home. So when the chosen block opens a second
+offer, the sweep meant for the first one eats the second one's cards and blanks
+its `asked_by` and `dismissable` — which is why the lock has no key in it:
+`can_dismiss` reads the flag that was just cleared.
 
-**Size:** small–medium, and it deletes code rather than adding it.
+Minimal repro: a card whose `play` is `show:vault` and whose `chosen` is
+`copy:target:activate`, over a card whose ability is `show:shelf`. Pick the one
+card on offer and you get `phase = options`, `options = 0 cards`, the shelf
+back where it started, and `can_dismiss = false`.
+
+**Proposal — clear the first offer's leftovers *before* running the chosen
+block, not after.** The picked card's own fate still has to be settled
+afterwards, since the chosen actions may have moved it; every *other* borrowed
+card has no such dependency and only has to go home. Split the two and the
+`options` zone is empty at the moment a nested `show:` reaches it.
+
+The one shared `options` zone stays one zone, and no overlay stack is needed:
+the two questions never have to coexist in it.
+
+**Size:** small — an ordering change and a snapshot, no new words. Removes the
+`cast`/`cast_ask` split from all seven cards.
 
 ---
 
