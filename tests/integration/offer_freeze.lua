@@ -46,10 +46,39 @@ local GAME = [==[{
   ]
 }]==]
 
-local function with_game(fn)
+-- A card that asks two questions: which card to resolve, and then whatever the
+-- resolved card asks in turn. Kept apart from GAME because the shape it tests
+-- is the *nesting*, and mixing it into the freeze game would leave neither
+-- reading as the thing it is about.
+local NESTED = [==[{
+  "title": "Nested Offer",
+  "players": [{ "card": "one" }, { "card": "two" }],
+  "zones": [
+    { "key": "hand", "layout": "row", "copies": "per_seat", "visibility": "owner",
+      "pos": [[0.05, 0.4, 0.9, 0.2], [0.05, 0.62, 0.9, 0.2]] },
+    { "key": "vault", "layout": "row", "pos": [0.05, 0.05, 0.4, 0.25],
+      "contents": ["inner:1"] },
+    { "key": "shelf", "layout": "row", "pos": [0.5, 0.05, 0.4, 0.25],
+      "contents": ["gem:3"] }
+  ],
+  "phases": [
+    { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }],
+  "cards": [
+    { "key": "one", "text": "One", "tags": ["seat_one"] },
+    { "key": "two", "text": "Two", "tags": ["seat_two"] },
+    { "key": "gem", "text": "Gem" },
+    { "key": "inner", "text": "Inner",
+      "abilities": [{ "key": "ask", "action": ["show:shelf:optional"] }] },
+    { "key": "asker", "text": "Asker",
+      "play": { "phases": ["act"], "action": ["show:vault"], "spent": "void" },
+      "chosen": { "action": ["copy:target:activate"] } }
+  ]
+}]==]
+
+local function with_game(fn, text)
 	local path = "game/games/tmp_offer_freeze.json"
 	local f = assert(io.open(path, "w"))
-	f:write(GAME)
+	f:write(text or GAME)
 	f:close()
 	local ok, err = pcall(fn, "tmp_offer_freeze.json")
 	os.remove(path)
@@ -113,6 +142,47 @@ function M.test_offer_freeze_allows_the_change_once_the_offer_has_closed(check)
 		check("and the borrowed cards still went home", count_in("vault") == 3,
 			count_in("vault"))
 	end)
+end
+
+-- An offer opened from inside a "chosen" block used to be eaten by the cleanup
+-- meant for the offer that had just closed. There is one "options" zone and it
+-- knows its contents by what is lying in it, so a sweep that ran after the
+-- chosen actions could not tell the second question's cards from the first
+-- question's leftovers -- and took both, along with the "dismissable" flag,
+-- leaving an overlay with nothing in it and no way out.
+--
+-- This is not a rule about nesting. It is the ordering: the leftovers go home
+-- before the chosen actions run, and only the picked card waits for them.
+function M.test_offer_freeze_an_offer_may_open_inside_a_chosen_block(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		play("asker")
+		check("the first question is on the table", phase.current().key == "options")
+		check("holding the one card it borrowed", count_in("options") == 1,
+			count_in("options"))
+
+		-- Picking it copies it, and the copy asks the second question.
+		flow.play_card(zones.find("options").cards[1], {})
+		check("the second question is on the table now",
+			phase.current().key == "options", phase.current().key)
+		check("holding its own three cards, not an empty box",
+			count_in("options") == 3, count_in("options"))
+		check("which are lent out of the shelf, exactly as the first was",
+			count_in("shelf") == 0, count_in("shelf"))
+		check("the first question's card went home rather than staying to be counted",
+			count_in("vault") == 1, count_in("vault"))
+		check("and the offer knows who asked it, so it can be answered",
+			zones.find("options").asked_by ~= nil)
+		check("and walked away from, since this one said it could be",
+			flow.can_dismiss())
+
+		-- Answering it has to work too: a live-looking offer that cannot close
+		-- is the same lock wearing a better face.
+		flow.play_card(zones.find("options").cards[1], {})
+		check("answering the second question closes it", phase.current().key == "act",
+			phase.current().key)
+		check("and its cards went home", count_in("shelf") == 3, count_in("shelf"))
+	end, NESTED)
 end
 
 function M.test_offer_freeze_is_read_off_the_file_too(check)

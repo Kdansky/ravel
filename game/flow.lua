@@ -844,16 +844,22 @@ end
 -- behind hands the *next* offer a permission it never asked for. A promotion
 -- opened after the pawn has already moved would then be declinable, and a pawn
 -- would sit on the eighth rank as a pawn.
-local function clear_offer(oz)
+-- `keep` is the card the player just picked, whose fate the chosen actions get
+-- to decide -- everything else goes home now, before those actions run, so that
+-- an offer they open in turn finds the zone empty. There is one "options" zone
+-- and it knows its contents by what is lying in it, so a sweep that ran
+-- afterwards could not tell the first question's leftovers from the second
+-- question's cards, and took both.
+local function clear_offer(oz, keep)
 	local left = {}
 	for i, cid in ipairs(oz.cards) do left[i] = cid end
 	for _, cid in ipairs(left) do
-		local c    = entity.get(cid)
+		local c    = cid ~= keep and entity.get(cid)
 		local home = c and c.borrowed_from
 		if home and entity.get(home) then
 			c.borrowed_from = nil
 			zones.move_card(cid, home)
-		else
+		elseif c then
 			zones.destroy_card(cid)
 		end
 	end
@@ -913,6 +919,19 @@ function M.play_card(card_id, targets)
 	-- opened the offer still acting — so the mark stays where it was.
 	if not overlay then mark_acted(card_id) end
 	if overlay then phase.pop() end
+	-- The rest of the offer goes home *here*, before the chosen actions run.
+	-- Those actions may open an offer of their own -- a card that resolves
+	-- another card is asking two questions, and the second one is the copied
+	-- card's -- and a sweep afterwards could not tell that offer's cards from
+	-- this one's leftovers, so it took both and left an overlay with nothing in
+	-- it and its "dismissable" flag cleared. A question with no answer and no
+	-- way out.
+	--
+	-- The picked card is the exception and stays: what becomes of it is exactly
+	-- what the chosen actions are about, and it is settled below once they have
+	-- had their say.
+	local oz = offer and entity.get(offer)
+	if oz and oz.status == "offer" then clear_offer(oz, card_id) end
 	local before = phase.current()
 	-- Through behaviour, so a zone can grant what playing a card lying in it
 	-- does — which is how one offer deals a card the game has other plans for.
@@ -925,16 +944,20 @@ function M.play_card(card_id, targets)
 		actions.run(cards.behaviour(c, "on_play"), ctx)
 		send_spent(card_id, cards.behaviour(c, "spent"))
 	end
-	-- A borrowed card is not spent by being picked: clear_offer sends whatever
-	-- is left home, and that includes this one when the rule did not move it.
-	if offer and not lent and entity.get(card_id) and entity.get(card_id).zone_id == offer then
-		zones.destroy_card(card_id)
+	-- And now the picked card, once those actions have had their say. A card the
+	-- offer *dealt* is spent by being chosen and vanishes; one it *borrowed* is
+	-- somebody else's and goes home. Either way only if it is still lying there:
+	-- a rule that moved it somewhere has already answered this question.
+	local picked = entity.get(card_id)
+	if offer and picked and picked.zone_id == offer then
+		local home = picked.borrowed_from
+		if home and entity.get(home) then
+			picked.borrowed_from = nil
+			zones.move_card(card_id, home)
+		else
+			zones.destroy_card(card_id)
+		end
 	end
-	-- An offer outlives its question by nothing. Only an "options" zone is
-	-- cleared — a page overlay deals its own cards and decides for itself what
-	-- stays.
-	local oz = offer and entity.get(offer)
-	if oz and oz.status == "offer" then clear_offer(oz) end
 	if tags.entity_has(c, "no_undo") then
 		history = {}
 		log.add("— no turning back —")
