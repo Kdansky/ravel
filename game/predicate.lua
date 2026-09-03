@@ -38,8 +38,18 @@ local M = {}
 -- is there a game in that slot. It cannot be answered here — the save layer is
 -- outside the engine and nothing in here may require it — so it arrives through
 -- M.saved_slot below, and a build without one truthfully answers no.
+-- "not_self" is the same yes/no shape asked about identity: is the candidate
+-- the card doing the asking. Nothing else in the vocabulary can say it -- every
+-- other question is about a property, and "which one you are" is not one -- so
+-- "a different Fire card in your hand" had no spelling at all.
+--
+-- It takes no argument, which no other fn does: there is nothing to name, since
+-- the card it compares against is the one whose condition this is.
 local FNS    = { count = true, card = true, sum = true, max = true, min = true,
-	tagged = true, not_tagged = true, saved = true }
+	tagged = true, not_tagged = true, saved = true, not_self = true }
+-- The fns written bare, with no ":<something>" in front of the "@". Kept apart
+-- from FNS so that "count@hand" is still the typo it always was.
+local NULLARY = { not_self = true }
 local QUANTS = { any = true, each = true, random = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
 
@@ -82,6 +92,8 @@ function M.parse_subject(s)
 
 	local fn, arg = left:match("^([%w_]+):(.+)$")
 	if not (fn and FNS[fn]) then fn, arg = nil, left end
+	-- A nullary fn has no colon to be found by, so it is recognised by name.
+	if not fn and NULLARY[left] then fn, arg = left, nil end
 
 	local sc = right and right ~= "" and M.parse_scope(right) or nil
 	return { fn = fn, arg = arg,
@@ -380,6 +392,20 @@ function M.total(subject, ctx)
 
 	if p.fn == "saved" then
 		return (M.saved_slot and M.saved_slot(p.arg)) and 1 or 0
+	end
+
+	-- Is nothing in this scope the card asking? Written as 1 or 0 like the other
+	-- yes/no forms. Without a card doing the asking there is nobody for a
+	-- candidate to be, so every candidate is somebody else and the answer is yes
+	-- -- which is also the reading that leaves a rule written for a play working
+	-- when the engine runs the card with nobody aimed at anything.
+	if p.fn == "not_self" then
+		local me = ctx and ctx.card_id
+		if not me then return 1 end
+		for _, e in ipairs(M.entities_in_scope(p.scope, ctx, p.owner)) do
+			if e.id == me then return 0 end
+		end
+		return 1
 	end
 
 	-- The counting forms keep their shipped meaning without a scope: "in play",

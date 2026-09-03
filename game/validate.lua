@@ -637,6 +637,13 @@ function M.check(G)
 				warn("%s: checks for the card '%s', but no template has that key%s",
 					where, p.arg, suggest(p.arg, G.card_defs))
 			end
+		elseif p.fn == "not_self" then
+			-- Nothing to name: what it compares against is the card whose
+			-- condition this is. A scope is the whole of the question, and
+			-- without one there is nobody for the answer to be about.
+			if not p.scope then
+				warn("%s: 'not_self' needs a scope to ask about, like \"not_self@target\"", where)
+			end
 		elseif not stat_ok(p.arg) then
 			-- A scoped subject reads a stat off the cards it names, so a stat
 			-- only ever carried by cards is legitimate there.

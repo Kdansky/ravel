@@ -1833,6 +1833,21 @@ same clause serves both colours.
 `"tagged:pawn@behind": 1` is *there is a pawn there*. Use them rather than
 counting to one — `count:` is for when the number is the point.
 
+**`not_self`** is the same yes/no shape asked about identity: *is nothing in
+this scope the card doing the asking*. It takes no argument, which no other
+measuring fn does — there is nothing to name, since what it compares against is
+the card whose condition this is:
+
+```json
+"target": { "zones": ["hand"], "tags": ["fire"],
+            "where": ["not_self@target >= 1"] }
+```
+
+That is "a **different** Fire card in your hand", which nothing else in the
+vocabulary can say: every other question here is about a property, and *which
+one you are* is not one. With nobody asking — an ability the engine ran with no
+card aimed at anything — every candidate is somebody else and the answer is yes.
+
 **Castling is what this is for.** It is two abilities on the king, and every
 question it asks is relative — the king goes two columns toward the rook, and
 columns do not flip with facing, so the same rules serve both colours:

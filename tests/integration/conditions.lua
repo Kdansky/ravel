@@ -415,4 +415,46 @@ function M.test_conditions_everywhere_reaches_a_hand_and_a_deck(check)
 	if not ok then error(err, 0) end
 end
 
+-- "not_self" -- the one question in the vocabulary that is not about a property.
+--
+-- Everything else a condition asks is what a card *is*: a tag, a stat, a zone.
+-- "a different Fire card in your hand" asks which one you are, and there was no
+-- spelling for it at all: two copies of the same card are alike in every way a
+-- condition can see, so nothing short of identity tells them apart.
+--
+-- It is also the only measuring fn written with no argument, which is the whole
+-- of why the parser needed a word for it: without a colon there is nothing to
+-- find it by, so `not_self@target` parsed as a stat nobody carries and quietly
+-- answered no.
+function M.test_conditions_not_self_tells_a_card_from_the_one_asking(check)
+	local predicate = require("predicate")
+	local sub = predicate.parse_subject("not_self@target")
+	check("it parses as a measuring fn, not as a stat called not_self",
+		sub.fn == "not_self" and sub.arg == nil and sub.scope == "target",
+		tostring(sub.fn) .. "/" .. tostring(sub.arg) .. "/" .. tostring(sub.scope))
+
+	with_game(function(name)
+		flow.init(name, 3)
+		-- Two of a kind, which is the case that needs it: alike in every way a
+		-- condition can see, and still not the same card.
+		local hand = zones.find("hand")
+		local me = zones.add(hand, "loose")
+		local twin = zones.add(hand, "loose")
+
+		check("a candidate that is the asker answers no",
+			predicate.total("not_self@target", { card_id = me.id, targets = { me.id } }) == 0)
+		check("and its identical twin answers yes",
+			predicate.total("not_self@target", { card_id = me.id, targets = { twin.id } }) == 1)
+
+		-- The reading that matters when the engine runs a card with nobody aimed
+		-- at anything: there is no asker, so every candidate is somebody else.
+		check("with nobody asking, everything is somebody else",
+			predicate.total("not_self@target", { targets = { me.id } }) == 1)
+
+		check("it holds as a condition, not only as a measurement",
+			predicate.holds("not_self@target >= 1", { card_id = me.id, targets = { twin.id } })
+			and not predicate.holds("not_self@target >= 1", { card_id = me.id, targets = { me.id } }))
+	end)
+end
+
 return M
