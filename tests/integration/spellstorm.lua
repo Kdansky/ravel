@@ -81,6 +81,52 @@ local function empty_hand(seat)
 end
 
 
+-- "Resolve that card" means the card, not the first line of it.
+--
+-- `copy` used to run ability one and stop, which quietly dropped every rider
+-- with an if in it and every question the card asks -- and a card that asks
+-- keeps the asking in a later ability, so the offer opens after the rest of the
+-- resolution has run. A copied Lapis drew and never offered its discard.
+function M.test_spellstorm_a_copied_card_asks_what_it_would_have_asked(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	local lapis = stage_battle(one, "lapis")
+
+	local keys = {}
+	for _, a in ipairs(require("cards").abilities(lapis)) do keys[#keys + 1] = a.key end
+	check("Lapis keeps its asking in a later ability, after the drawing",
+		table.concat(keys, ",") == "cast,cast_ask", table.concat(keys, ","))
+
+	local deck = #zone_of("deck", one).cards
+	actions.execute("copy:target:activate", { card_id = lapis.id, targets = { lapis.id } })
+	check("copying it drew, which is the deterministic half",
+		#zone_of("deck", one).cards == deck - 1, #zone_of("deck", one).cards)
+	check("and opened the question the card asks, which is the other half",
+		phase.current().key == "options", phase.current().key)
+	check("with the hand in it to choose from", #zones.find("options").cards > 0,
+		#zones.find("options").cards)
+end
+
+-- The other half of the same rule: a discard effect is *not* part of resolving.
+-- Nothing in a flat list of abilities says so, so the ability says it itself --
+-- it is looking only when no card stands in a battle spot, which is every
+-- moment except a resolution.
+function M.test_spellstorm_a_copy_does_not_fire_a_discard_effect(check)
+	opening(7, "derby", "eve")
+	local one = zones.active_seat()
+	local seat = seat_card(one)
+
+	-- Heart Gem heals 3 when resolved and costs 1 health when discarded, so the
+	-- two halves pull opposite ways and the number tells which ran. Room to heal
+	-- into first, or a full wizard hides the heal behind the cap.
+	seat.stats.health = seat.stats.health - 5
+	local hp = seat.stats.health
+	local hg = stage_battle(one, "heartgem")
+	actions.execute("copy:target:activate", { card_id = hg.id, targets = { hg.id } })
+	check("the copy healed 3, so its cast ran", seat.stats.health == hp + 3,
+		seat.stats.health .. " from " .. hp)
+end
+
 function M.test_spellstorm_the_box_is_the_published_one(check)
 	flow.init("spellstorm.json", 1)
 	local defs = require("declaration").G.card_defs

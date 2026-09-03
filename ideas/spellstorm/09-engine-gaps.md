@@ -57,19 +57,26 @@ Consequences: the `[ULT]` icon on a card means nothing mechanically, and an
 Ultimate is cast before the reveal rather than after — so an Ultimate that wants
 to answer what the opponent played cannot.
 
-### 3. A card resolved by another card does not ask questions
+### 3. ~~A card resolved by another card does not ask questions~~ — fixed
 
-*Flame*, *Spirit Crystal*, *Meteorite*, *Wind Dragon*, *Deep Gems*, Bunny's
-*Cast a Magic Trick!* and May's *Void Traveler* all resolve another card.
+*Kept here because the tooltips said it for a while and the shape is worth
+remembering.* `copy:<scope>:activate` ran a card's **first** ability and stopped,
+which dropped every rider with an if in it and every question the card asks —
+and a card that asks keeps the asking in a later ability, so the offer opens
+after the rest of the resolution has run. On top of that, an offer opened from
+inside a `chosen` block was swept by the cleanup meant for the offer that had
+just closed, which left an overlay with nothing in it and no way out.
 
-`copy:<scope>:activate` runs a card's **first** ability, and an offer opened from
-inside a `chosen` block leaves an overlay with nothing in it that the player
-cannot close — a genuine soft-lock, found while playing. So each card's cast is
-split in two: `cast`, the deterministic half, always first; and `cast_ask`, the
-offer, run as a later step by the resolve phase and never reached by a copy.
+Both are fixed. `copy:…:activate` now runs every ability whose `when` holds, in
+order, the same thing `activate_zone` does; and the offer's leftovers go home
+before the chosen actions run rather than after. *Flame*, *Spirit Crystal*,
+*Meteorite*, *Wind Dragon*, *Deep Gems*, Bunny's *Cast a Magic Trick!* and May's
+*Void Traveler* resolve the whole of what they copy.
 
-A copied *Lapis* therefore draws but does not offer its discard. This is the
-cleanest available answer without touching the engine, and it fails safe.
+The one thing a copy still must not do is fire a discard effect, since that is
+not part of being resolved. A flat list of abilities cannot say so on its own,
+so the ability says it: Spellstorm's `disc` steps are looking only when no card
+stands in a battle spot, which is every moment except a resolution.
 
 ### 4. There are no passives, so Croh and Bunny are approximations
 

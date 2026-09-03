@@ -634,7 +634,12 @@
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:power@mine.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:power@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:power@mine.player:1"]
+        }
       ],
       "chosen": { "action": ["move_target_to:mine.discard", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
@@ -689,7 +694,12 @@
           "action": ["stat_gain:power@mine.player:1", "move_to:void"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:power@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:power@mine.player:1"]
+        }
       ],
       "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
@@ -742,7 +752,7 @@
       "text": "Flame",
       "asset": "ss_flame.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Deal *1 damage*, then resolve and discard a different *Fire* card from your hand.\n\n_You need *magic* water to put a magical flame out._\n\n_[Simplified: the offer is not narrowed to Fire cards; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
+      "tooltip": "Deal *1 damage*, then resolve and discard a different *Fire* card from your hand.\n\n_You need *magic* water to put a magical flame out._\n\n_[Simplified: the offer is not narrowed to Fire cards]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -765,7 +775,12 @@
           "text": "Resolve",
           "action": ["stat_gain:health@mine.player:3", "draw_from:curse_pile:mine.discard:1"]
         },
-        { "key": "disc", "text": "On discard", "action": ["stat_damage:health@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_damage:health@mine.player:1"]
+        }
       ]
     },
     {
@@ -830,6 +845,7 @@
         {
           "key": "disc",
           "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
           "action": ["stat_damage:health@mine.player:1", "stat_gain:mana@mine.player:1"]
         }
       ],
@@ -1080,7 +1096,12 @@
       "card_stats": { "tier_req": 3 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:health@mine.player:4"] },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:health@mine.player:2"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:health@mine.player:2"]
+        }
       ]
     },
     {
@@ -1155,6 +1176,7 @@
         {
           "key": "disc",
           "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
           "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
         }
       ]
@@ -1229,7 +1251,12 @@
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:power@mine.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:power@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:power@mine.player:1"]
+        }
       ],
       "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
@@ -1248,7 +1275,12 @@
           "action": ["stat_gain:mana@mine.player:1", "stat_damage:health@mine.player:1"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:mana@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:mana@mine.player:1"]
+        }
       ],
       "chosen": { "action": ["move_target_to:void"] }
     },
@@ -1273,7 +1305,12 @@
             "stat_gain:power@mine.player:1"
           ]
         },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:power@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:power@mine.player:1"]
+        }
       ]
     },
     {
@@ -1281,13 +1318,18 @@
       "text": "Meteorite",
       "asset": "ss_meteorite.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Take *1 damage*. You may resolve any card in the *Storm Cloud* regardless of tier, then *VOID* it. On discard: take *1 damage*.\n\n_\"Mom! Look! This fell from the sky!\" - A child of Tiya Bannet_\n\n_[Simplified: a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
+      "tooltip": "Take *1 damage*. You may resolve any card in the *Storm Cloud* regardless of tier, then *VOID* it. On discard: take *1 damage*.\n\n_\"Mom! Look! This fell from the sky!\" - A child of Tiya Bannet_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@mine.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        { "key": "disc", "text": "On discard", "action": ["stat_damage:health@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_damage:health@mine.player:1"]
+        }
       ],
       "chosen": {
         "action": [
@@ -1321,6 +1363,7 @@
         {
           "key": "disc",
           "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
           "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
         }
       ],
@@ -1341,7 +1384,12 @@
           "action": ["stat_damage:power@enemy.player:2", "draw_from:ash_pile:enemy.discard:1"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:power@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:power@mine.player:1"]
+        }
       ],
       "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
@@ -1356,7 +1404,12 @@
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:power@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:power@mine.player:1"]
+        }
       ],
       "chosen": { "action": ["move_target_to:void", "stat_gain:power@mine.player:1"] }
     },
@@ -1383,13 +1436,18 @@
       "text": "Spirit Crystal",
       "asset": "ss_spiritcrystal.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "*Draw a card*. Reveal a card from your hand, resolve it and then discard it. On discard: *power up*.\n\n_It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers._\n\n_[Simplified: the offer is not narrowed to Earth cards; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
+      "tooltip": "*Draw a card*. Reveal a card from your hand, resolve it and then discard it. On discard: *power up*.\n\n_It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers._\n\n_[Simplified: the offer is not narrowed to Earth cards]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:power@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:power@mine.player:1"]
+        }
       ],
       "chosen": { "action": ["copy:target:activate", "move_target_to:mine.discard"] }
     },
@@ -1417,6 +1475,7 @@
         {
           "key": "disc",
           "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
           "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
         }
       ],
@@ -1440,6 +1499,7 @@
         {
           "key": "disc",
           "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
           "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
         }
       ],
@@ -1454,7 +1514,12 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "disc", "text": "On discard", "action": ["stat_gain:ice_pen@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_gain:ice_pen@mine.player:1"]
+        }
       ]
     },
     {
@@ -1466,7 +1531,12 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "disc", "text": "On discard", "action": ["stat_damage:power@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_damage:power@mine.player:1"]
+        }
       ]
     },
     {
@@ -1478,7 +1548,12 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "disc", "text": "On discard", "action": ["stat_damage:health@mine.player:1"] }
+        {
+          "key": "disc",
+          "text": "On discard",
+          "when": ["count:spell@battle <= 0"],
+          "action": ["stat_damage:health@mine.player:1"]
+        }
       ]
     },
     {
@@ -1506,7 +1581,7 @@
       "text": "Wind Dragon",
       "asset": "ss_winddragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon"],
-      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one, and a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
+      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1773,7 +1848,7 @@
       "text": "Deep Gems",
       "asset": "ss_abra_deepgems.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a card from the *Storm Cloud*.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._\n\n_[Simplified: the offer is not narrowed to Water cards, the Power Token is not spent, and a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
+      "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a card from the *Storm Cloud*.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._\n\n_[Simplified: the offer is not narrowed to Water cards and the Power Token is not spent]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1953,7 +2028,7 @@
       "text": "Bunny Wizard",
       "asset": "ss_bunny.jpg",
       "tags": ["wizard_card", "bunny"],
-      "tooltip": "Healer of Bunny Island. A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\n*Ultimate* (*5 mana*) - Cast a Magic Trick!: Reveal a card from your hand, resolve it twice and *VOID* it. All players *heal 1*.\n\nStarting *health 8*, *Initiative rating 2*.\n\n_[Simplified: Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
+      "tooltip": "Healer of Bunny Island. A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\n*Ultimate* (*5 mana*) - Cast a Magic Trick!: Reveal a card from your hand, resolve it twice and *VOID* it. All players *heal 1*.\n\nStarting *health 8*, *Initiative rating 2*.\n\n_[Simplified: Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires]_",
       "activate": { "cost": { "mana@mine.player": 5 }, "action": ["show:mine.hand:optional"] },
       "chosen": {
         "action": [
@@ -2089,7 +2164,7 @@
       "text": "May Danaris",
       "asset": "ss_may.jpg",
       "tags": ["wizard_card", "may"],
-      "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a card from the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nStarting *health 12*, *Initiative rating 4*.\n\n_[Simplified: Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
+      "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a card from the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nStarting *health 12*, *Initiative rating 4*.\n\n_[Simplified: Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented]_",
       "activate": {
         "cost": { "mana@mine.player": 6 },
         "action": ["stat_gain:energy@mine.player:3", "show:void:optional"]

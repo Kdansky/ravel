@@ -1041,16 +1041,23 @@ HANDLERS["copy"] = function(p, ctx)
 		for _ = 1, amount(p, 4, 1, ctx) do
 			for _, id in ipairs(doing) do
 				local e = entity.get(id)
-				local list
+				if e then log.add("Copied " .. ((cards.def(e) or {}).text or e.def_key)) end
 				if moment == "play" then
-					list = e and cards.behaviour(e, "on_play")
-				else
-					local a = e and cards.abilities(e)[1]
-					list = a and a.action
-				end
-				if list then
-					log.add("Copied " .. ((cards.def(e) or {}).text or e.def_key))
-					M.run(list, { card_id = id, targets = {} })
+					local list = e and cards.behaviour(e, "on_play")
+					if list then M.run(list, { card_id = id, targets = {} }) end
+				elseif e then
+					-- Every ability whose "when" holds, in order -- the same thing
+					-- activate_zone does, and for the same reason: "resolve that card"
+					-- means the card, not the first line of it. Running only ability
+					-- one dropped every rider with an if in it, and dropped any
+					-- question the card asks, since a card that asks keeps the asking
+					-- in a later ability so the offer opens after the rest has run.
+					for _, a in ipairs(cards.abilities(e)) do
+						if type(a.action) == "table" then
+							local c = predicate.bind(a.compute, { card_id = id, targets = {} })
+							if predicate.meets_all(a.when, c) then M.run(a.action, c) end
+						end
+					end
 				end
 			end
 		end

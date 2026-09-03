@@ -65,13 +65,6 @@ TAKE_TO_HAND = ["move_target_to:mine.hand", REFILL_CLOUD]
 
 FIRE, WATER, EARTH = "fire", "water", "earth"
 
-# `copy:<scope>:activate` runs a card's first ability, and an offer opened from
-# inside another offer leaves an overlay nothing can close -- so a card's
-# question lives in a later step that a copy never reaches. Every card that
-# resolves another one says so.
-COPIED_NOTE = ("a card resolved by another card does the part of itself that "
-               "asks nothing -- an offer opened inside an offer has no way to close")
-
 # ---------------------------------------------------------------------------
 # Cards
 #
@@ -148,7 +141,7 @@ SPELLS = [
     card("flame", "Flame", FIRE, tier=1,
          tooltip="Deal 1 damage, then resolve and discard a different Fire card from your hand.",
          flavour="You need *magic* water to put a magical flame out.",
-         simplified="the offer is not narrowed to Fire cards; " + COPIED_NOTE,
+         simplified="the offer is not narrowed to Fire cards",
          cast=[DMG(1), OFFER_HAND],
          chosen=["copy:target:activate", "move_target_to:mine.discard"]),
     card("heartgem", "Heart Gem", FIRE, tier=1,
@@ -288,7 +281,6 @@ SPELLS = [
     card("meteorite", "Meteorite", EARTH, tier=1,
          tooltip="Take 1 damage. You may resolve any card in the Storm Cloud regardless of tier, then VOID it. On discard: take 1 damage.",
          flavour='"Mom! Look! This fell from the sky!" - A child of Tiya Bannet',
-         simplified=COPIED_NOTE,
          cast=[SELF_DMG(1), OFFER_CLOUD],
          chosen=["move_target_to:void", "copy:target:activate", REFILL_CLOUD],
          disc=[SELF_DMG(1)]),
@@ -316,7 +308,7 @@ SPELLS = [
     card("spiritcrystal", "Spirit Crystal", EARTH, tier=1,
          tooltip="Draw a card. Reveal a card from your hand, resolve it and then discard it. On discard: power up.",
          flavour="It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.",
-         simplified="the offer is not narrowed to Earth cards; " + COPIED_NOTE,
+         simplified="the offer is not narrowed to Earth cards",
          cast=[DRAW, OFFER_HAND],
          chosen=["copy:target:activate", "move_target_to:mine.discard"],
          disc=[POWER]),
@@ -361,7 +353,7 @@ DRAGONS = [
     card("winddragon", "Wind Dragon", FIRE, tier=4, kind="dragon",
          tooltip="Gain Initiative. Gain a Storm Shard. You may resolve a card from your hand.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
-         simplified="the printed card resolves up to two cards; here it is one, and " + COPIED_NOTE,
+         simplified="the printed card resolves up to two cards; here it is one",
          cast=GAIN_INIT + [SHARD(1), OFFER_HAND],
          chosen=["copy:target:activate", "move_target_to:mine.discard"]),
     card("icedragon", "Ice Dragon", WATER, tier=4, kind="dragon",
@@ -551,7 +543,7 @@ WIZARDS = [
                card("abra_deepgems", "Deep Gems", WATER, kind="wizard_spell",
                     tooltip="Draw a card and gain 1 mana. You may lose 1 Power Token to resolve and then VOID a card from the Storm Cloud.",
                     flavour="The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep.",
-                    simplified="the offer is not narrowed to Water cards, the Power Token is not spent, and " + COPIED_NOTE,
+                    simplified="the offer is not narrowed to Water cards and the Power Token is not spent",
                     cast=[DRAW, MANA, OFFER_CLOUD],
                     chosen=["move_target_to:void", "copy:target:activate", REFILL_CLOUD]),
                card("abra_newcurriciulum", "New Curriculum", EARTH, kind="wizard_spell",
@@ -612,7 +604,7 @@ WIZARDS = [
            ["show:mine.hand:optional"],
            ult_chosen=["copy:target:activate:2", "move_target_to:void",
                        HEAL(1), "stat_gain:health@enemy.player:1"],
-           simplified="Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires; " + COPIED_NOTE,
+           simplified="Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires",
            blurb="A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.",
            spells=[
                card("bunny_buddy", "Buddy System", EARTH, kind="wizard_spell",
@@ -656,7 +648,7 @@ WIZARDS = [
            ["stat_gain:energy@mine.player:3", "show:void:optional"],
            ult_chosen=["copy:target:activate",
                        "move_target_to:spellstorm_deck:bottom"],
-           simplified="Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented; " + COPIED_NOTE,
+           simplified="Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented",
            blurb="A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating.",
            start=["stat_gain:energy@mine.player:2"],
            spells=[
@@ -842,7 +834,14 @@ def spell_template(c):
     if c["cast2"]: abil.append(ability("cast2", c["cast2"][1], when=[c["cast2"][0]], text="Resolve"))
     if c["cast3"]: abil.append(ability("cast3", c["cast3"][1], when=[c["cast3"][0]], text="Resolve"))
     if asks:       abil.append(ability("cast_ask", asks, text="Resolve"))
-    if c["disc"]:  abil.append(ability("disc", c["disc"], text="On discard"))
+    # A discard effect is not part of resolving, and `copy` runs the whole card:
+    # "resolve that card" means everything the card does *now*, and what it does
+    # when discarded is not that. Nothing else tells the two apart -- the resolve
+    # phase names its steps and the regroup names this one, so the ability itself
+    # has to say when it is not looking. It is looking whenever no card is
+    # standing in a battle spot, which is every moment except a resolution.
+    if c["disc"]:  abil.append(ability("disc", c["disc"], text="On discard",
+                                       when=["count:spell@battle <= 0"]))
     t["abilities"] = abil
     if c["chosen"]: t["chosen"] = {"action": list(c["chosen"])}
     return t

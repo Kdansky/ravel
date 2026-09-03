@@ -81,38 +81,38 @@ before designing anything** — like F2, this one may already be free.
 **Size:** the queue is medium. Abragail is a generator change and possibly zero
 engine work.
 
-### A3. An offer opened inside an offer deadlocks (09, engine words §2)
+### A3. ~~An offer opened inside an offer deadlocks~~ — done
 
-**What it costs.** Seven cards resolve another card, and every one of them is
-split into `cast` (deterministic, always runs) and `cast_ask` (the offer, never
-reached by a copy). A copied *Lapis* draws but does not offer its discard.
+Two faults, not one, and the second only showed once the first was out of the
+way.
 
-**The cause, found by reproducing it.** Not a missing stack — an ordering. In
-`flow.play_card`, picking from an offer runs in this order: pop the overlay, run
-the `chosen` block, then `clear_offer`. `clear_offer` walks whatever is in the
-`options` zone *now* and sends it home. So when the chosen block opens a second
-offer, the sweep meant for the first one eats the second one's cards and blanks
-its `asked_by` and `dismissable` — which is why the lock has no key in it:
-`can_dismiss` reads the flag that was just cleared.
+**The lock.** Picking from an offer popped the overlay, ran the `chosen` block,
+then swept the `options` zone. There is one such zone and it knows its contents
+by what is lying in it, so an offer the chosen block opened was eaten by the
+cleanup meant for the offer that had just closed — cards and `dismissable` flag
+together, which is why `can_dismiss` refused: it reads the flag that had just
+been cleared. **Fixed by the ordering**: the leftovers go home before the chosen
+actions run, and only the picked card waits for them.
 
-Minimal repro: a card whose `play` is `show:vault` and whose `chosen` is
-`copy:target:activate`, over a card whose ability is `show:shelf`. Pick the one
-card on offer and you get `phase = options`, `options = 0 cards`, the shelf
-back where it started, and `can_dismiss = false`.
+**The half-resolved copy.** `copy:<scope>:activate` ran a card's *first* ability
+and stopped. That dropped every rider with an if in it, and every question the
+card asks — a card that asks keeps the asking in a later ability so the offer
+opens after the rest has run, which is exactly the ability a copy never reached.
+**Fixed**: `copy` now runs every ability whose `when` holds, in order, the same
+thing `activate_zone` does.
 
-**Proposal — clear the first offer's leftovers *before* running the chosen
-block, not after.** The picked card's own fate still has to be settled
-afterwards, since the chosen actions may have moved it; every *other* borrowed
-card has no such dependency and only has to go home. Split the two and the
-`options` zone is empty at the moment a nested `show:` reaches it.
+**What that cost.** A flat ability list cannot say which of its entries are part
+of being *resolved*, so a copy would have fired the discard effect too.
+Spellstorm's `disc` steps now carry a `when` — they are looking only while no
+card stands in a battle spot, which is every moment except a resolution. Worth
+noting as a shape rather than a fix: **the four-pass resolve exists only to keep
+`disc` out**, and now that `disc` says for itself when it is looking, one
+`activate_zone` with no step would do the same work.
 
-The one shared `options` zone stays one zone, and no overlay stack is needed:
-the two questions never have to coexist in it.
-
-**Size:** small — an ordering change, no new words. **Done**: the leftovers now
-go home before the chosen block runs, and only the picked card waits for it.
-Removing the `cast`/`cast_ask` split from the seven cards is a generator change
-still to do.
+The `cast`/`cast_ask` split stays, and should: it is what keeps the offer last
+within one card, so a rider does not read a hand that has been lent out to a
+question. Merging them would be safe today by luck — only one card has both a
+rider and an ask, and its rider reads the battle spots — which is not a reason.
 
 ---
 
@@ -344,7 +344,7 @@ wanted.
 | 3 | C1 — **`chosen.where` narrows what is shown** | small | fixes every `[GAIN]`, every Essence and Flame in one change |
 | 4 | D1 — **`random.` in a `move:`** | small | six cards become exact |
 | 5 | A1 — **Ultimates as a reaction to a resolve verb** | small–medium | restores the `[ULT]` icon, the largest single departure |
-| — | A3 — **the nested offer** | ~~small–medium~~ | **done.** The ordering fix landed; the `cast`/`cast_ask` split can now come out of all seven cards |
+| — | A3 — **the nested offer, and the half-resolved copy** | ~~small–medium~~ | **done.** Both landed; a copied card now resolves the whole of itself |
 | 6 | A2 — **one offer per seat, queued** | medium | Falling Star, and the same question as `seat: "all"` |
 | 8 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
 | 9 | C2, C3, D2, D3 | small each | one card or three apiece |

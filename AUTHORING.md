@@ -2709,8 +2709,18 @@ copied is the **effect**, not the card: nothing is created, nothing is spent, no
 cost is paid, and the copied card does not move. A verb that duplicated the card
 instead would leave a second one lying about for somebody to find.
 
-`copy:<scope>:activate` runs the first ability a card offers instead of its
-play, which is the same rule aimed at a card already on the board.
+`copy:<scope>:activate` runs the card's **abilities** instead of its play, which
+is the same rule aimed at a card already on the board. Every one of them whose
+`when` holds, in the order they are written — the same thing `activate_zone`
+does, and for the same reason: *resolve that card* means the card, not the first
+line of it. Running only the first ability dropped every rider with an if in it,
+and dropped any question the card asks, since a card that asks keeps the asking
+in a later ability so the offer opens after the rest has run.
+
+An ability that is **not** part of being resolved has to say so, since the list
+is flat and nothing else tells them apart. A `when` is how: Spellstorm's discard
+effects are looking only when no card stands in a battle spot, which is every
+moment except a resolution.
 
 Two things it does not do, both on purpose:
 
@@ -3545,7 +3555,7 @@ what a player reads.
 | `options:<source>[:optional]` | Offer a choice and open it. `<source>` is a zone, whose cards name the choices, or a comma-separated list of card keys. The chosen card is played with **the asking card as its target**. `optional` puts a No choice button on the offer |
 | `show:<scope>[:optional]` | Put the **real** cards a scope names into the offer, face up, and open it — how one player reads another's hand. They go home when it closes. Choosing one runs the asking card's `chosen` block with the pick as `@target`, rather than playing it. The scope may say `random.`, and then one of them comes up rather than all: `show:random.enemy.hand` is the whole of "reveal a card from their hand" |
 | `transform:<scope>:<card>` | Replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own |
-| `copy:<scope>[:play\|activate[:<n>]]` | Every card the scope names **does what it does**, n times over, without being played and without moving. The card is not copied, its effects are: nothing is created, nothing is spent, no cost is paid, and it stays where it lies — which is what "play it twice, then trash it" means and what duplicating the card would get wrong. The moment picks which list to run, `play` (the default) or `activate` (the first ability it offers). The copied card is the one acting, so its action reads `@self` as itself — but `mine` still means whoever is *up*, so copying somebody else's card benefits the copier. Targets are not carried over: nobody aimed the copy |
+| `copy:<scope>[:play\|activate[:<n>]]` | Every card the scope names **does what it does**, n times over, without being played and without moving. The card is not copied, its effects are: nothing is created, nothing is spent, no cost is paid, and it stays where it lies — which is what "play it twice, then trash it" means and what duplicating the card would get wrong. The moment picks which list to run, `play` (the default) or `activate` (every ability whose `when` holds, in order). The copied card is the one acting, so its action reads `@self` as itself — but `mine` still means whoever is *up*, so copying somebody else's card benefits the copier. Targets are not carried over: nobody aimed the copy |
 | `resolve_challenge` | Ask the card's `challenge`: run its `pass` or its `fail`. The condition is asked with the acting card and its targets in hand, so it may say `@self` and `@target` |
 | `effect:name` | Play a named visual effect on the acting card (headless: skipped) |
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
