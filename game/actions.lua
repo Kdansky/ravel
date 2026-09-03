@@ -1279,12 +1279,17 @@ HANDLERS["each_seat"] = function(p, ctx)
 		M.execute(inner, ctx)
 		return
 	end
-	local was = sys.stats.turn
+	local was, held = sys.stats.turn, sys.stats.priority or 0
 	for i = 1, #seats do
 		sys.stats.turn = i
+		-- Priority outranks the turn wherever "mine" is worked out, so a list run
+		-- off the stack — an emit's tail, a reaction's action — would ignore this
+		-- loop and run one seat's action once per seat. Move whichever is read.
+		if held > 0 then sys.stats.priority = i end
 		M.execute(inner, ctx)
 	end
 	sys.stats.turn = was
+	if held > 0 then sys.stats.priority = held end
 end
 
 -- Saving, and picking the game back up. The same shape as the net_ ops above:

@@ -1493,12 +1493,6 @@ end
 function M.react_step()
 	local z = stack_zone()
 	if not z then return "idle" end
-	-- Something is interjected — an offer, a phase a reaction handed to the seat
-	-- that played it — and resolving the rest of the stack under it would run the
-	-- turn player's deferred effects while somebody else is still mid-answer. The
-	-- interjection is *part* of resolving the record that opened it, so nothing
-	-- below it moves until it pops.
-	if phase.depth() > 1 then return "waiting" end
 	local top_id = z.cards[#z.cards]
 	if not top_id then
 		-- The window is closed, but priority is not the stack's to give back while
@@ -1510,6 +1504,17 @@ function M.react_step()
 		if phase.depth() <= 1 then react_priority(nil) end
 		return "idle"
 	end
+	-- Something is interjected — an offer, a phase a reaction handed to the seat
+	-- that played it — and resolving the rest of the stack under it would run the
+	-- turn player's deferred effects while somebody else is still mid-answer. The
+	-- interjection is *part* of resolving the record that opened it, so nothing
+	-- below it moves until it pops.
+	--
+	-- Asked *after* the stack is known to hold something, because an empty stack
+	-- has nothing to hold up: saying "waiting" there stopped settle outright, so
+	-- a game with a stack zone froze its end conditions and its automatic phases
+	-- for as long as any page or pushed phase was open.
+	if phase.depth() > 1 then return "waiting" end
 	local top = entity.get(top_id)
 	-- Anyone who may still answer this top: a responder that answers this seat's
 	-- announcements at all ("whose") and has not already answered it. The second

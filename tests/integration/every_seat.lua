@@ -137,4 +137,37 @@ function M.test_every_seat_checks_what_it_wraps(check)
 	end)
 end
 
+-- A list run off the stack, which is where this quietly stopped working. An
+-- emit's tail and a reaction's action both run under priority, and priority
+-- outranks the turn wherever "mine" is worked out — so the loop moved a number
+-- nobody was reading and dealt the same seat in three times. Nothing shipped
+-- writes it yet, which is exactly why it wanted a test.
+function M.test_every_seat_loops_inside_a_deferred_list(check)
+	local text = GAME
+		:gsub('"contents": %["chip:9"%] }',
+			'"contents": ["chip:9"] },\n'
+			.. '    { "key": "stack", "layout": "stack", "tags": ["stack"], "display": "offscreen" }')
+		:gsub('{ "key": "chip",  "text": "Chip",  "tags": %["chip"%] }',
+			'{ "key": "chip",  "text": "Chip",  "tags": ["chip"] },\n'
+			.. '    { "key": "siren", "text": "Siren",\n'
+			.. '      "play": { "action": ["emit:alarm:each_seat:stat_gain:held@mine.player:1"] } },\n'
+			.. '    { "key": "watch", "text": "Watch", "reactions": [\n'
+			.. '      { "to": "alarm", "whose": "anyone", "forced": "mandatory", "from": "hand",\n'
+			.. '        "action": ["stat_gain:score@mine.player:1"] }] }')
+	with_game(text, function(name)
+		flow.init(name, 3)
+		zones.add(zones.find("hand", "mine"), "watch")
+		local siren = zones.add(zones.find("hand", "mine"), "siren")
+		flow.play_card(siren.id, {})
+		flow.settle()
+		check("the alarm was answered, so the rest of it waited on the stack",
+			seat("north").stats.score == 1, tostring(seat("north").stats.score))
+		check("and each seat was still dealt in once",
+			seat("north").stats.held == 1 and seat("east").stats.held == 1
+			and seat("south").stats.held == 1,
+			("%d/%d/%d"):format(seat("north").stats.held, seat("east").stats.held,
+				seat("south").stats.held))
+	end)
+end
+
 return M
