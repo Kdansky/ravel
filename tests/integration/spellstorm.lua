@@ -1375,4 +1375,85 @@ function M.test_spellstorm_may_answers_the_end_of_a_round(check)
 		flow.pending_event() and flow.pending_event().re_verb)
 end
 
+
+-- Abragail's *New Curriculum* asks three questions about one shelf and means two
+-- different things by the answers: VOID up to 2, then gain 1. A card has one
+-- `chosen` block, so the VOIDs are asked by the rule that is about VOIDing --
+-- and each asker owns its own answer, which is why declining any of them leaves
+-- the others saying what they always said.
+function M.test_spellstorm_new_curriculum_voids_and_gains_from_one_shelf(check)
+	opening(5, "abra", "eve")
+	local one = zones.active_seat()
+	local card = stage_battle(one, "abra_newcurriciulum")
+	local held, voided = #hand_of(one).cards, #zones.find("void").cards
+
+	actions.execute("copy:target:activate", { card_id = card.id, targets = { card.id } })
+	-- It carries the Ultimate icon, so activating the whole card announces a
+	-- resolution too. In a round that window is `ult_1`, a phase of its own;
+	-- here it is in the way, and passing it is what the resolve phase waits for.
+	-- Passing once is enough: the record stays on the stack while the offer it
+	-- let through is open, so passing again does nothing but spin.
+	if flow.pending_event() then flow.pass_react() end
+	check("it asks", phase.current().key == "options", phase.current().key)
+
+	-- Both VOIDs taken, then the gain: three questions, one shelf, two fates.
+	local first = zones.find("options").cards[1]
+	flow.play_card(first, {})
+	check("the first pick went to the VOID",
+		entity.get(first).zone_id == zones.find("void").id,
+		entity.get(entity.get(first).zone_id).key)
+
+	local second = zones.find("options").cards[1]
+	check("and a second card is asked about", second ~= nil)
+	flow.play_card(second, {})
+	check("which goes to the VOID as well",
+		entity.get(second).zone_id == zones.find("void").id,
+		entity.get(entity.get(second).zone_id).key)
+
+	check("then the gain is asked, and it is a different question",
+		phase.current().key == "options", phase.current().key)
+	local took
+	for _, id in ipairs({ unpack(zones.find("options").cards) }) do
+		if flow.can_play(id) then took = id; flow.play_card(id, {}); break end
+	end
+	check("and its answer goes to hand, not the VOID",
+		took and entity.get(took).zone_id == hand_of(one).id,
+		took and entity.get(entity.get(took).zone_id).key)
+	check("so the hand is one longer", #hand_of(one).cards == held + 1, #hand_of(one).cards)
+	check("and the VOID two", #zones.find("void").cards == voided + 2,
+		#zones.find("void").cards)
+	check("with the shelf refilled behind all three",
+		#zones.find("storm_cloud").cards == 5, #zones.find("storm_cloud").cards)
+end
+
+
+-- "Up to 2" is the half a counter could never have carried: declining a VOID
+-- must not turn the gain that follows it into one.
+function M.test_spellstorm_a_declined_void_leaves_the_gain_a_gain(check)
+	opening(5, "abra", "eve")
+	local one = zones.active_seat()
+	local card = stage_battle(one, "abra_newcurriciulum")
+	local held, voided = #hand_of(one).cards, #zones.find("void").cards
+
+	actions.execute("copy:target:activate", { card_id = card.id, targets = { card.id } })
+	-- Passing once is enough: the record stays on the stack while the offer it
+	-- let through is open, so passing again does nothing but spin.
+	if flow.pending_event() then flow.pass_react() end
+	check("both VOIDs may be declined", flow.can_dismiss())
+	flow.dismiss_offer()
+	check("and the second one too", flow.can_dismiss())
+	flow.dismiss_offer()
+
+	check("the gain is still waiting", phase.current().key == "options", phase.current().key)
+	local took
+	for _, id in ipairs({ unpack(zones.find("options").cards) }) do
+		if flow.can_play(id) then took = id; flow.play_card(id, {}); break end
+	end
+	check("and it still gains", took and entity.get(took).zone_id == hand_of(one).id,
+		took and entity.get(entity.get(took).zone_id).key)
+	check("with nothing VOIDed on the way", #zones.find("void").cards == voided,
+		#zones.find("void").cards)
+	check("and one card gained", #hand_of(one).cards == held + 1, #hand_of(one).cards)
+end
+
 return M

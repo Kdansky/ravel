@@ -57,7 +57,7 @@ and a line here names a section that exists:
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
-- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
+- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
@@ -2855,6 +2855,26 @@ ICE, and each goes back onto its own pile:
 Two of the three find nothing. Write it this way only where the destination
 really does vary with the card — `move_target_to:` is shorter and says what it
 means.
+
+#### A second asker is a second answer
+
+A card has one `chosen` block, so every offer it opens means the same thing by
+the pick. When a card asks two questions with **different answers** — Spellstorm's
+*New Curriculum* voids up to two cards from a shelf and then gains one from the
+same shelf — the second question belongs to a second card:
+
+```json
+"play": { "action": ["activate_zone:rules:by_column:void_two",
+                     "show:storm_cloud:optional"] },
+"chosen": { "action": ["move_target_to:mine.hand"] }
+```
+
+The rules card's `void_two` opens its own offers and carries its own `chosen`,
+because `show:` records whoever ran it as the asker. Order does not matter and no
+question has to know about the others — which is the point. Telling them apart by
+counting how many have been answered breaks on the first one declined: nothing
+runs on a decline, so the count never advances and every question after it means
+the wrong thing.
 
 #### `chosen.where` — which of the revealed cards may be taken
 

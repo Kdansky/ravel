@@ -333,8 +333,16 @@ twice.
 
 Abragail's *New Curriculum* was miscounted here from the start. It is one
 `[GAIN]` **and** "VOID up to 2 cards in the Storm Cloud" — two different fates
-for a chosen card, and a card has one `chosen` block. That one wants a `chosen`
-per offer, which is C1's shape rather than this one's.
+for a chosen card, and a card has one `chosen` block. It looked like it wanted a
+`chosen` per offer. It did not: **a second asker is a second answer.** The VOIDs
+are asked by a rules card that is about VOIDing, the gain by the card itself, and
+each owns what happens to its own pick. That is the idiom the journal's asking
+spaces already use — a rule that asks needs a card to itself.
+
+The alternative was a counter in one `chosen` block, telling the questions apart
+by how many had been answered. It reads well until the first "up to" somebody
+declines: nothing runs on a decline, so the count never advances and every
+question after it means the wrong thing. Whichever order the offers are asked in.
 
 ### C3. Diamond discards the first three rather than three of your choosing
 

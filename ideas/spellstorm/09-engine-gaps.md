@@ -147,7 +147,11 @@ states that grant them. What each still rounds off is below.
   decline either — the rulebook's one MUST. *Earth Dragon* gains twice.
   *New Curriculum* was never a double gain: it is one `[GAIN]` **and** "VOID up
   to 2 cards in the Storm Cloud", which are two different fates for a chosen
-  card and a card has one `chosen` block. The VOID is what is missing there.
+  card and a card has one `chosen` block. **A second asker is a second answer** —
+  the two VOIDs are asked by a rules card that is about VOIDing, the gain by the
+  card itself, and each owns what happens to its own pick. Not a counter telling
+  the questions apart: nothing runs on a decline, so the first "up to" somebody
+  passes on would put every question after it out of step.
 - **Ruby** deals a flat 1 damage. "1 damage per Fire card discarded" needs to
   count what was *just* discarded, and nothing names that set.
 - **Diamond** discards the first three cards in hand rather than three of your

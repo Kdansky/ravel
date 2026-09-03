@@ -2023,7 +2023,7 @@
       "text": "New Curriculum",
       "asset": "ss_abra_newcurriciulum.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "*Power up* once per *Tier* you have reached. You may *VOID* a card in the *Storm Cloud*, and you may gain one at or below your *Tier*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Can't believe the *garbage* I'm asked to teach sometimes!\"_\n\n_[Simplified: the printed card voids up to 2; here one card is offered, and taking it gains rather than voids]_",
+      "tooltip": "*Power up* once per *Tier* you have reached. You may *VOID* up to *2 cards* in the *Storm Cloud*, and you may gain one at or below your *Tier*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Can't believe the *garbage* I'm asked to teach sometimes!\"_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2031,7 +2031,10 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:power@mine.player:sum:tier@mine.player"]
+          "action": [
+            "stat_gain:power@mine.player:sum:tier@mine.player",
+            "activate_zone:rules:by_column:curric_void"
+          ]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
@@ -3606,6 +3609,20 @@
       ]
     },
     {
+      "key": "r_curriculum",
+      "text": "New Curriculum",
+      "tags": ["immutable"],
+      "tooltip": "Abragail may *VOID* up to *2 cards* in the *Storm Cloud*. The shelf refills behind each one.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "curric_void",
+          "action": ["show:storm_cloud:optional", "show:storm_cloud:optional"]
+        }
+      ],
+      "chosen": { "action": ["move_target_to:void", "draw_from:spellstorm_deck:storm_cloud:1"] }
+    },
+    {
       "key": "r_round_over",
       "text": "The round is over",
       "tags": ["immutable"],
@@ -3767,6 +3784,7 @@
       { "card": "r_journal_8", "zone": "rules" },
       { "card": "r_potion", "zone": "rules" },
       { "card": "r_doom", "zone": "rules" },
+      { "card": "r_curriculum", "zone": "rules" },
       { "card": "r_round_over", "zone": "rules" },
       { "card": "r_accursed", "zone": "rules" },
       { "card": "r_topup", "zone": "rules" }

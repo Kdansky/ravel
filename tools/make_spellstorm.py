@@ -631,11 +631,18 @@ WIZARDS = [
                     simplified="the Power Token is not spent",
                     cast=[DRAW, MANA, OFFER_CLOUD_OF(WATER)],
                     chosen=["move_target_to:void", "copy:target:activate", REFILL_CLOUD]),
+               # Three questions about one shelf, and two different things to do
+               # with the answer -- which one `chosen` block cannot say. So the
+               # VOIDs are asked by the rule that is about VOIDing: a card that
+               # asks owns the answer, and a second asker is a second answer. The
+               # order falls out of the list and matters to nobody, which is the
+               # point -- a counter telling the questions apart would be undone
+               # by the first "up to" the player declined.
                card("abra_newcurriciulum", "New Curriculum", EARTH, kind="wizard_spell", ult=True,
-                    tooltip="Power up once per Tier you have reached. You may VOID a card in the Storm Cloud, and you may gain one at or below your Tier.",
+                    tooltip="Power up once per Tier you have reached. You may VOID up to 2 cards in the Storm Cloud, and you may gain one at or below your Tier.",
                     flavour='"Can\'t believe the *garbage* I\'m asked to teach sometimes!"',
-                    simplified="the printed card voids up to 2; here one card is offered, and taking it gains rather than voids",
-                    cast=["stat_gain:power@mine.player:sum:tier@mine.player", OFFER_CLOUD],
+                    cast=["stat_gain:power@mine.player:sum:tier@mine.player",
+                          "activate_zone:rules:by_column:curric_void", OFFER_CLOUD],
                     chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER),
            ]),
 
@@ -1231,6 +1238,17 @@ def rules_templates():
         "Croh Vosh gains a DOOM Token from his Ultimate only when he has none left.",
         [ability("croh_doom", ["stat_gain:doom@mine.player:1"],
                  when=["doom@mine.player <= 0"])]))
+
+    # The VOIDing half of Abragail's *New Curriculum*, which is here rather than
+    # on the card because the card is already asking a question of its own and
+    # means something else by the answer. Two shows, so two questions: the queue
+    # holds the second until the first is answered, and either may be declined --
+    # "up to 2" is the whole of what this rule says about how many.
+    out.append(rules_card(
+        "r_curriculum", "New Curriculum",
+        "Abragail may VOID up to 2 cards in the Storm Cloud. The shelf refills behind each one.",
+        [ability("curric_void", [OFFER_CLOUD, OFFER_CLOUD])],
+        chosen={"action": ["move_target_to:void", REFILL_CLOUD]}))
 
     # Somebody has to say the round is over, or nothing can answer it. May's
     # Dangerous Download is the only thing that does, and a verb no card answers
