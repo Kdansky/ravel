@@ -171,7 +171,9 @@ reset to 3 after every Ultimate.
 
 Each potion has an **Element cost** (a coloured diamond with a number): you resolve it only if that element is
 at or above the number on your Chemistry Board, and doing so lowers that element by that much. Six of the nine
-are **TOXIC**; drawing a third TOXIC ends the Ultimate and gives Oren an ASH, CURSE and ICE.
+are **TOXIC**; drawing a third TOXIC ends the Ultimate and gives Oren an ASH, CURSE and ICE. (The table
+below marks five, not six — one of the two is a miscount, and the game follows the table. Worth checking
+against the printed cards.)
 
 | Potion | Cost | Effect | TOXIC |
 |---|---|---|---|

@@ -101,6 +101,39 @@
       "on": ["player"],
       "start": 0
     },
+    {
+      "key": "fire_el",
+      "label": "Fire",
+      "icon": "pot",
+      "color": "orange",
+      "min": 0,
+      "max": 6,
+      "subject": "fire_el@mine.player",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "earth_el",
+      "label": "Earth",
+      "icon": "pot",
+      "color": "brown",
+      "min": 0,
+      "max": 6,
+      "subject": "earth_el@mine.player",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "water_el",
+      "label": "Water",
+      "icon": "pot",
+      "color": "cyan",
+      "min": 0,
+      "max": 6,
+      "subject": "water_el@mine.player",
+      "on": ["player"],
+      "start": 0
+    },
     { "key": "blast", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "ice_pen", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
     {
@@ -113,6 +146,7 @@
     },
     { "key": "picked", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "took", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "toxic", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
     {
       "key": "battle_round",
       "min": 0,
@@ -378,7 +412,7 @@
     {
       "key": "controls",
       "layout": "grid",
-      "grid": [1, 2],
+      "grid": [1, 4],
       "use": "abilities",
       "tags": ["optional"],
       "pos": [0.735, 0.44, 0.825, 0.785]
@@ -471,6 +505,42 @@
         "each_seat:activate_zone:rules:by_column:topup",
         "each_seat:activate_zone:rules:by_column:topup"
       ],
+      "next": [{ "then": "journal_2a" }]
+    },
+    {
+      "key": "journal_2a",
+      "type": "automatic",
+      "actions": ["set_active_seat:has_init", "activate_zone:rules:by_column:jr2"],
+      "next": [{ "then": "journal_4a" }]
+    },
+    {
+      "key": "journal_4a",
+      "type": "automatic",
+      "actions": ["activate_zone:rules:by_column:jr4"],
+      "next": [{ "then": "journal_6a" }]
+    },
+    {
+      "key": "journal_6a",
+      "type": "automatic",
+      "actions": ["activate_zone:rules:by_column:jr6"],
+      "next": [{ "then": "journal_2b" }]
+    },
+    {
+      "key": "journal_2b",
+      "type": "automatic",
+      "actions": ["set_active_seat:enemy.player", "activate_zone:rules:by_column:jr2"],
+      "next": [{ "then": "journal_4b" }]
+    },
+    {
+      "key": "journal_4b",
+      "type": "automatic",
+      "actions": ["activate_zone:rules:by_column:jr4"],
+      "next": [{ "then": "journal_6b" }]
+    },
+    {
+      "key": "journal_6b",
+      "type": "automatic",
+      "actions": ["activate_zone:rules:by_column:jr6"],
       "next": [{ "then": "weather" }]
     },
     {
@@ -572,6 +642,12 @@
       "zone": ["wizard", "controls"],
       "ends_when": "took@mine.player >= 1",
       "next": [{ "then": "gain_2" }]
+    },
+    {
+      "key": "potion",
+      "type": "player_input",
+      "label": "Bottoms up, I guess!",
+      "zone": ["controls"]
     },
     {
       "key": "gain_2",
@@ -704,7 +780,11 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_damage:health@enemy.player:1", "draw_from:ash_pile:mine.discard:1"]
+          "action": [
+            "stat_damage:health@enemy.player:1",
+            "activate_zone:rules:by_column:dry_take_ash",
+            "draw_from:ash_pile:mine.discard:1"
+          ]
         },
         {
           "key": "cast2",
@@ -762,7 +842,11 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:health@mine.player:3", "draw_from:curse_pile:mine.discard:1"]
+          "action": [
+            "stat_gain:health@mine.player:3",
+            "activate_zone:rules:by_column:dry_take_curse",
+            "draw_from:curse_pile:mine.discard:1"
+          ]
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:health@mine.player:1"] }
@@ -787,6 +871,7 @@
           "when": ["count:water@enemy.battle >= 1"],
           "action": [
             "move_to:void",
+            "activate_zone:rules:by_column:dry_take_curse",
             "draw_from:curse_pile:mine.discard:1",
             "stat_damage:health@mine.player:1"
           ]
@@ -863,7 +948,7 @@
       "text": "Rapid Fire",
       "asset": "ss_rapidfire.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "*Draw a card*. If you have *Initiative*, deal *2 damage* and you may redraw this to your hand.\n\n_When going for a fire-based strategy, it's important to keep the pressure on._\n\n_[Simplified: the card is not returned to hand]_",
+      "tooltip": "*Draw a card*. If you have *Initiative*, deal *2 damage* and you may redraw this to your hand.\n\n_When going for a fire-based strategy, it's important to keep the pressure on._\n\n_[Simplified: returning the card to hand is not optional; if you have Initiative it always comes back]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -872,7 +957,7 @@
           "key": "cast2",
           "text": "Resolve",
           "when": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@enemy.player:2"]
+          "action": ["stat_damage:health@enemy.player:2", "move_to:mine.hand"]
         }
       ]
     },
@@ -897,7 +982,7 @@
       "text": "Shockwave",
       "asset": "ss_shockwave.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Your opponent loses *2 Power Tokens* and *discards a card*. You gain *Initiative*. Deal *1 damage*.\n\n_The 1981 hit song \"Shockwave\" is often credited with creating the Bonepunk genre._\n\n_[Simplified: the discard is the top card of their hand rather than a random one]_",
+      "tooltip": "Your opponent loses *2 Power Tokens* and *discards a card*. You gain *Initiative*. Deal *1 damage*.\n\n_The 1981 hit song \"Shockwave\" is often credited with creating the Bonepunk genre._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -906,7 +991,7 @@
           "text": "Resolve",
           "action": [
             "stat_damage:power@enemy.player:2",
-            "draw_from:enemy.hand:enemy.discard:1",
+            "move:random.enemy.hand:enemy.discard",
             "stat_set:initiative@mine.player:1",
             "stat_set:initiative@enemy.player:0",
             "stat_damage:health@enemy.player:1"
@@ -926,7 +1011,11 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:mine.deck:mine.hand:1", "draw_from:curse_pile:enemy.discard:1"]
+          "action": [
+            "draw_from:mine.deck:mine.hand:1",
+            "activate_zone:rules:by_column:dry_give_curse",
+            "draw_from:curse_pile:enemy.discard:1"
+          ]
         },
         {
           "key": "cast2",
@@ -981,6 +1070,7 @@
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1",
             "stat_gain:health@mine.player:2",
+            "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1"
           ]
         }
@@ -1001,6 +1091,7 @@
           "action": [
             "stat_gain:health@mine.player:1",
             "stat_damage:power@mine.player:1",
+            "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1"
           ]
         }
@@ -1019,6 +1110,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
+            "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1",
             "stat_set:initiative@mine.player:1",
             "stat_set:initiative@enemy.player:0"
@@ -1122,6 +1214,7 @@
           "action": [
             "draw_from:mine.deck:mine.hand:1",
             "stat_gain:health@mine.player:1",
+            "activate_zone:rules:by_column:dry_take_ash",
             "draw_from:ash_pile:mine.discard:1"
           ]
         }
@@ -1335,7 +1428,11 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_damage:power@enemy.player:2", "draw_from:ash_pile:enemy.discard:1"]
+          "action": [
+            "stat_damage:power@enemy.player:2",
+            "activate_zone:rules:by_column:dry_give_ash",
+            "draw_from:ash_pile:enemy.discard:1"
+          ]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
@@ -1529,6 +1626,7 @@
           "action": [
             "stat_gain:health@mine.player:3",
             "stat_gain:shards@mine.player:1",
+            "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1"
           ]
         }
@@ -1565,6 +1663,7 @@
           "action": [
             "stat_damage:health@enemy.player:2",
             "stat_gain:shards@mine.player:1",
+            "activate_zone:rules:by_column:dry_give_ash",
             "draw_from:ash_pile:enemy.discard:1"
           ]
         },
@@ -1580,6 +1679,7 @@
       "tooltip": "Infernal Intern. An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\n*Ultimate* (*6 mana*) - Flaming Yardstick: Deal *2 damage* and gain *1 mana*.\n\nStarting *health 13*, *Initiative rating 3*.\n\n_[Simplified: the printed Ultimate gives 2 mana only at an odd number of health; there is no parity test, so it always gives 1]_",
       "activate": {
         "cost": { "mana@mine.player": 6 },
+        "phases": ["play_1", "play_2"],
         "action": ["stat_damage:health@enemy.player:2", "stat_gain:mana@mine.player:1"]
       }
     },
@@ -1643,6 +1743,7 @@
             "stat_gain:mana@mine.player:1",
             "stat_gain:power@mine.player:1",
             "stat_damage:health@enemy.player:1",
+            "activate_zone:rules:by_column:dry_take_ash",
             "draw_from:ash_pile:mine.discard:1"
           ]
         },
@@ -1662,6 +1763,7 @@
       "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a card from your discard to your opponent's discard.\n\nStarting *health 14*, *Initiative rating 5*.\n\n_[Simplified: the offer is not narrowed to ICE and CURSE]_",
       "activate": {
         "cost": { "mana@mine.player": 5 },
+        "phases": ["play_1", "play_2"],
         "action": [
           "draw_from:mine.deck:mine.hand:1",
           "draw_from:mine.deck:mine.hand:1",
@@ -1684,7 +1786,9 @@
           "fill:mine.wizard:wiz_eve:1",
           "fill:mine.deck:eve_facepunch:1",
           "fill:mine.deck:eve_riot:1",
+          "activate_zone:rules:by_column:dry_give_ice",
           "draw_from:ice_pile:enemy.discard:1",
+          "activate_zone:rules:by_column:dry_take_ice",
           "draw_from:ice_pile:mine.discard:1",
           "stat_gain:picked@mine.player:1"
         ]
@@ -1695,7 +1799,7 @@
       "text": "Face Punch",
       "asset": "ss_eve_facepunch.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain *Initiative*. Steal *1 mana* from your opponent and they *discard a card*.\n\n_\"We use voices to avoid having to use fists. We use fists to avoid having to use bombs.\"_\n\n_[Simplified: the discard is the top card of their hand rather than a random one]_",
+      "tooltip": "Gain *Initiative*. Steal *1 mana* from your opponent and they *discard a card*.\n\n_\"We use voices to avoid having to use fists. We use fists to avoid having to use bombs.\"_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1707,7 +1811,7 @@
             "stat_set:initiative@enemy.player:0",
             "stat_damage:mana@enemy.player:1",
             "stat_gain:mana@mine.player:1",
-            "draw_from:enemy.hand:enemy.discard:1"
+            "move:random.enemy.hand:enemy.discard"
           ]
         }
       ]
@@ -1717,7 +1821,7 @@
       "text": "Riot",
       "asset": "ss_eve_riot.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Discard your hand without triggering any discard effects. Deal *1 damage* per *Earth* card discarded. Draw *2 cards*.\n\n_\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"_",
+      "tooltip": "Discard your hand without triggering any discard effects. Deal *1 damage* per *Earth* card discarded. Draw *2 cards*.\n\n_\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"_\n\n_[Simplified: the discard effects DO trigger -- a card leaving a hand for a discard is what fires them, and there is no word for a move that does not count as leaving]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1739,7 +1843,11 @@
       "asset": "ss_abra.jpg",
       "tags": ["wizard_card", "abra"],
       "tooltip": "Professor of Magical Chemistry. A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\n*Ultimate* (*4 mana*) - Level Up!: Add a *Research Token* to your journal. At the start of each battle, every researched power activates.\n\nStarting *health 16*, *Initiative rating 7*.",
-      "activate": { "cost": { "mana@mine.player": 4 }, "action": ["stat_gain:research@mine.player:1"] }
+      "activate": {
+        "cost": { "mana@mine.player": 4 },
+        "phases": ["play_1", "play_2"],
+        "action": ["stat_gain:research@mine.player:1"]
+      }
     },
     {
       "key": "pick_abra",
@@ -1806,12 +1914,13 @@
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
       "tags": ["wizard_card", "croh"],
-      "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: Redraw one card from your discard for each *DOOM Token* you have, then gain a *DOOM Token*.\n\nStarting *health 20*, *Initiative rating 8*.\n\n_[Simplified: the printed Ultimate offers a choice of card and only grants a DOOM Token when you have none; here the redraw is off the top of the discard and a token is always gained]_",
+      "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: Redraw one card from your discard for each *DOOM Token* you have, then gain a *DOOM Token*.\n\nStarting *health 20*, *Initiative rating 8*.\n\n_[Simplified: the printed Ultimate lets you take any card from your discard, or draw instead; here the redraw is off the top of the discard]_",
       "activate": {
         "cost": { "mana@mine.player": 6 },
+        "phases": ["play_1", "play_2"],
         "action": [
           "draw_from:mine.discard:mine.hand:sum:doom@mine.player",
-          "stat_gain:doom@mine.player:1"
+          "activate_zone:rules:by_column:croh_doom"
         ]
       }
     },
@@ -1838,7 +1947,7 @@
       "text": "Sinking Strike",
       "asset": "ss_croh_sinking.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain *2 mana*. Deal damage equal to your number of *DOOM Tokens*.\n\n_Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart._\n\n_[Simplified: the DOOM Token for an empty CURSE pile is not granted]_",
+      "tooltip": "Gain *2 mana*. Deal damage equal to your number of *DOOM Tokens*. If the *CURSE* pile is empty, gain a *DOOM Token*.\n\n_Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1850,6 +1959,12 @@
             "stat_gain:mana@mine.player:1",
             "stat_damage:health@enemy.player:sum:doom@mine.player"
           ]
+        },
+        {
+          "key": "cast2",
+          "text": "Resolve",
+          "when": ["count:junk@curse_pile <= 0"],
+          "action": ["stat_gain:doom@mine.player:1"]
         }
       ]
     },
@@ -1858,14 +1973,14 @@
       "text": "Undertow",
       "asset": "ss_croh_undertow.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Your opponent *discards a card*. *Draw a card*. If you hold at least 3 more cards than they do, gain a *DOOM Token*.\n\n_Croh has come to the Spellstorm seeking his path to world domination._\n\n_[Simplified: the discard is the top card of their hand rather than a random one]_",
+      "tooltip": "Your opponent *discards a card*. *Draw a card*. If you hold at least 3 more cards than they do, gain a *DOOM Token*.\n\n_Croh has come to the Spellstorm seeking his path to world domination._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:enemy.hand:enemy.discard:1", "draw_from:mine.deck:mine.hand:1"]
+          "action": ["move:random.enemy.hand:enemy.discard", "draw_from:mine.deck:mine.hand:1"]
         },
         {
           "key": "cast2",
@@ -1883,6 +1998,7 @@
       "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, and *draw a card*.\n\nStarting *health 10*, *Initiative rating 1*.\n\n_[Simplified: Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine]_",
       "activate": {
         "cost": { "mana@mine.player": 4 },
+        "phases": ["play_1", "play_2"],
         "action": ["draw_from:mine.deck:mine.hand:1", "show:mine.discard:optional"]
       },
       "chosen": { "action": ["move_target_to:mine.hand"] }
@@ -1945,7 +2061,11 @@
       "asset": "ss_bunny.jpg",
       "tags": ["wizard_card", "bunny"],
       "tooltip": "Healer of Bunny Island. A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\n*Ultimate* (*5 mana*) - Cast a Magic Trick!: Reveal a card from your hand, resolve it twice and *VOID* it. All players *heal 1*.\n\nStarting *health 8*, *Initiative rating 2*.\n\n_[Simplified: Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires]_",
-      "activate": { "cost": { "mana@mine.player": 5 }, "action": ["show:mine.hand:optional"] },
+      "activate": {
+        "cost": { "mana@mine.player": 5 },
+        "phases": ["play_1", "play_2"],
+        "action": ["show:mine.hand:optional"]
+      },
       "chosen": {
         "action": [
           "copy:target:activate:2",
@@ -2009,7 +2129,7 @@
           "key": "cast2",
           "text": "Resolve",
           "when": ["count:junk@enemy.discard <= 0"],
-          "action": ["draw_from:ice_pile:enemy.discard:1"]
+          "action": ["activate_zone:rules:by_column:dry_give_ice", "draw_from:ice_pile:enemy.discard:1"]
         }
       ]
     },
@@ -2018,8 +2138,17 @@
       "text": "Oren Bark",
       "asset": "ss_oren.jpg",
       "tags": ["wizard_card", "oren"],
-      "tooltip": "Magical Chemistry Student. A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\n*Ultimate* (*5 mana*) - Bottoms up, I guess!: Draw and resolve a card from your Potion Deck.\n\nStarting *health 16*, *Initiative rating 6*.\n\n_[Simplified: the Chemistry Board, its three Element tracks and the push-your-luck of drawing until a third TOXIC card are not implemented; the Ultimate resolves exactly one potion, free]_",
-      "activate": { "cost": { "mana@mine.player": 5 }, "action": ["reveal_top:potion_deck"] }
+      "tooltip": "Magical Chemistry Student. A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\n*Ultimate* (*5 mana*) - Bottoms up, I guess!: Reshuffle your Potion Deck, then draw potions one at a time for as long as you dare. A third TOXIC ends it and gives you an *ASH*, a *CURSE* and an *ICE*. Your Elements reset to 3 afterwards.\n\nStarting *health 16*, *Initiative rating 6*.",
+      "activate": {
+        "cost": { "mana@mine.player": 5 },
+        "phases": ["play_1", "play_2"],
+        "action": [
+          "move:potion_discard:potion_deck",
+          "shuffle:potion_deck",
+          "stat_set:toxic@mine.player:0",
+          "push_phase:potion"
+        ]
+      }
     },
     {
       "key": "pick_oren",
@@ -2035,6 +2164,9 @@
           "fill:mine.wizard:wiz_oren:1",
           "fill:mine.deck:oren_potion:1",
           "fill:mine.deck:oren_unstable:1",
+          "stat_set:fire_el@mine.player:3",
+          "stat_set:earth_el@mine.player:3",
+          "stat_set:water_el@mine.player:3",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -2044,7 +2176,7 @@
       "text": "Potion Gun",
       "asset": "ss_oren_potion.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Deal *1 damage*. You may give a card from your hand to your opponent's hand.\n\n_\"Think I can hit that old barrel by the hill over there?\"_\n\n_[Simplified: gaining 2 of the matching Element needs the Chemistry Board, which is not implemented]_",
+      "tooltip": "Deal *1 damage*. You may give a card from your hand to your opponent's hand.\n\n_\"Think I can hit that old barrel by the hill over there?\"_\n\n_[Simplified: which Element the given card matches is not read, so no Element is gained]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2058,7 +2190,7 @@
       "text": "Unstable Formula",
       "asset": "ss_oren_unstable.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Power up* and gain *1 mana*. If anyone revealed *Water*, *power up* again.\n\n_\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"_\n\n_[Simplified: raising and lowering Elements needs the Chemistry Board, which is not implemented]_",
+      "tooltip": "*Power up* and gain *1 mana*. If anyone revealed *Water*, *power up* again.\n\n_\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"_\n\n_[Simplified: choosing which Element to lower and which to raise is not offered]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2083,6 +2215,7 @@
       "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a card from the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nStarting *health 12*, *Initiative rating 4*.\n\n_[Simplified: Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented]_",
       "activate": {
         "cost": { "mana@mine.player": 6 },
+        "phases": ["play_1", "play_2"],
         "action": ["stat_gain:energy@mine.player:3", "show:void:optional"]
       },
       "chosen": { "action": ["copy:target:activate", "move_target_to:spellstorm_deck:bottom"] }
@@ -2111,7 +2244,7 @@
       "text": "Data Breach",
       "asset": "ss_may_data.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Lose *2 Energy* Tokens to *power up twice* and make your opponent *discard a card*.\n\n_\"Yes! I'm in. Now let's see what these idiots have planned next...\"_\n\n_[Simplified: the choice of losing 1 or 2 Energy is not offered, and the discard is the top card of their hand]_",
+      "tooltip": "Lose *2 Energy* Tokens to *power up twice* and make your opponent *discard a card*.\n\n_\"Yes! I'm in. Now let's see what these idiots have planned next...\"_\n\n_[Simplified: the choice of losing 1 or 2 Energy is not offered]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2124,7 +2257,7 @@
             "stat_damage:energy@mine.player:2",
             "stat_gain:power@mine.player:1",
             "stat_gain:power@mine.player:1",
-            "draw_from:enemy.hand:enemy.discard:1"
+            "move:random.enemy.hand:enemy.discard"
           ]
         }
       ]
@@ -2225,7 +2358,7 @@
       "text": "Dust Cloud",
       "tags": ["weather", "storm"],
       "asset": "ss_dustcloud.jpg",
-      "tooltip": "*Draw a card*, *power up*. All players *discard a card*.\n\n_[Simplified: the discard is the first card in hand rather than a random one]_",
+      "tooltip": "*Draw a card*, *power up*. All players *discard a card*.",
       "abilities": [
         {
           "key": "wx",
@@ -2233,7 +2366,7 @@
           "action": [
             "draw_from:mine.deck:mine.hand:1",
             "stat_gain:power@mine.player:1",
-            "draw_from:mine.hand:mine.discard:1"
+            "move:random.mine.hand:mine.discard"
           ]
         }
       ]
@@ -2415,6 +2548,7 @@
           "action": [
             "stat_set:initiative@mine.player:1",
             "stat_set:initiative@enemy.player:0",
+            "activate_zone:rules:by_column:dry_take_curse",
             "draw_from:curse_pile:mine.discard:1",
             "stat_gain:mana@mine.player:1"
           ]
@@ -2453,7 +2587,7 @@
       "text": "Tidal Wave",
       "tags": ["weather", "storm"],
       "asset": "ss_tidalwave.jpg",
-      "tooltip": "Draw *2 cards* and gain *1 mana*. All players discard *2 cards*.\n\n_[Simplified: the discards are the first two in hand rather than random]_",
+      "tooltip": "Draw *2 cards* and gain *1 mana*. All players discard *2 cards*.",
       "abilities": [
         {
           "key": "wx",
@@ -2462,7 +2596,8 @@
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1",
             "stat_gain:mana@mine.player:1",
-            "draw_from:mine.hand:mine.discard:2"
+            "move:random.mine.hand:mine.discard",
+            "move:random.mine.hand:mine.discard"
           ]
         }
       ]
@@ -2486,125 +2621,242 @@
       "text": "Haste Potion",
       "tags": ["potion"],
       "asset": "ss_oren2.jpg",
-      "story": "Haste Potion\n\nGain *Initiative*.",
-      "tooltip": "Gain *Initiative*.\n\n_[Simplified: a revealed page runs one action list with no if in it, so this always takes Initiative rather than dealing damage when you already hold it.]_",
+      "story": "Haste Potion\n\n*Fire* 1. If you have *Initiative*, deal *1 damage*. Otherwise, gain *Initiative*.",
+      "tooltip": "*Fire* 1. If you have *Initiative*, deal *1 damage*. Otherwise, gain *Initiative*.",
       "play": {
         "action": [
-          "stat_set:initiative@mine.player:1",
-          "stat_set:initiative@enemy.player:0",
+          "activate_zone:reveal:by_column:sip",
+          "activate_zone:reveal:by_column:sip2",
+          "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
-      }
+      },
+      "abilities": [
+        {
+          "key": "sip",
+          "when": ["fire_el@mine.player >= 1", "initiative@mine.player >= 1"],
+          "action": ["stat_damage:fire_el@mine.player:1", "stat_damage:health@enemy.player:1"]
+        },
+        {
+          "key": "sip2",
+          "when": ["fire_el@mine.player >= 1", "initiative@mine.player <= 0"],
+          "action": [
+            "stat_damage:fire_el@mine.player:1",
+            "stat_set:initiative@mine.player:1",
+            "stat_set:initiative@enemy.player:0"
+          ]
+        }
+      ]
     },
     {
       "key": "pot_purple",
       "text": "I Call It... Purple Stuff.",
       "tags": ["potion"],
       "asset": "ss_oren3.jpg",
-      "story": "I Call It... Purple Stuff.\n\n*Power up* and gain *2 mana*.",
-      "tooltip": "*Power up* and gain *2 mana*.",
+      "story": "I Call It... Purple Stuff.\n\n*Fire* 2 - TOXIC. *Power up* and gain *2 mana*.",
+      "tooltip": "*Fire* 2 - TOXIC. *Power up* and gain *2 mana*.",
       "play": {
         "action": [
-          "stat_gain:power@mine.player:1",
-          "stat_gain:mana@mine.player:1",
-          "stat_gain:mana@mine.player:1",
+          "stat_gain:toxic@mine.player:1",
+          "activate_zone:reveal:by_column:sip",
+          "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
-      }
+      },
+      "abilities": [
+        {
+          "key": "sip",
+          "when": ["fire_el@mine.player >= 2"],
+          "action": [
+            "stat_damage:fire_el@mine.player:2",
+            "stat_gain:power@mine.player:1",
+            "stat_gain:mana@mine.player:1",
+            "stat_gain:mana@mine.player:1"
+          ]
+        }
+      ]
     },
     {
       "key": "pot_explosion",
       "text": "A Slight... Explosion",
       "tags": ["potion"],
       "asset": "ss_oren1.jpg",
-      "story": "A Slight... Explosion\n\nDeal *1 damage* and gain *1 mana*.",
-      "tooltip": "Deal *1 damage* and gain *1 mana*.",
+      "story": "A Slight... Explosion\n\n*Fire* 3 - TOXIC. Deal *1 damage*. Gain 1 of each Element.",
+      "tooltip": "*Fire* 3 - TOXIC. Deal *1 damage*. Gain 1 of each Element.",
       "play": {
         "action": [
-          "stat_damage:health@enemy.player:1",
-          "stat_gain:mana@mine.player:1",
+          "stat_gain:toxic@mine.player:1",
+          "activate_zone:reveal:by_column:sip",
+          "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
-      }
+      },
+      "abilities": [
+        {
+          "key": "sip",
+          "when": ["fire_el@mine.player >= 3"],
+          "action": [
+            "stat_damage:fire_el@mine.player:3",
+            "stat_damage:health@enemy.player:1",
+            "stat_gain:fire_el@mine.player:1",
+            "stat_gain:earth_el@mine.player:1",
+            "stat_gain:water_el@mine.player:1"
+          ]
+        }
+      ]
     },
     {
       "key": "pot_devils",
       "text": "Devil's Breath",
       "tags": ["potion"],
       "asset": "ss_oren5.jpg",
-      "story": "Devil's Breath\n\n*Power up*. Give an *ASH*.",
-      "tooltip": "*Power up*. Give an *ASH*.",
+      "story": "Devil's Breath\n\n*Earth* 1 - TOXIC. *Power up*. Give an *ASH*.",
+      "tooltip": "*Earth* 1 - TOXIC. *Power up*. Give an *ASH*.",
       "play": {
         "action": [
-          "stat_gain:power@mine.player:1",
-          "draw_from:ash_pile:enemy.discard:1",
+          "stat_gain:toxic@mine.player:1",
+          "activate_zone:reveal:by_column:sip",
+          "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
-      }
+      },
+      "abilities": [
+        {
+          "key": "sip",
+          "when": ["earth_el@mine.player >= 1"],
+          "action": [
+            "stat_damage:earth_el@mine.player:1",
+            "stat_gain:power@mine.player:1",
+            "activate_zone:rules:by_column:dry_give_ash",
+            "draw_from:ash_pile:enemy.discard:1"
+          ]
+        }
+      ]
     },
     {
       "key": "pot_gasoline",
       "text": "I Think I Just Drank Gasoline",
       "tags": ["potion"],
       "asset": "ss_oren6.jpg",
-      "story": "I Think I Just Drank Gasoline\n\nTake *1 damage* and draw *2 cards*.",
-      "tooltip": "Take *1 damage* and draw *2 cards*.",
+      "story": "I Think I Just Drank Gasoline\n\n*Earth* 2 - TOXIC. Take *1 damage*. Your next potion happens twice, and you pay its cost once.",
+      "tooltip": "*Earth* 2 - TOXIC. Take *1 damage*. Your next potion happens twice, and you pay its cost once.\n\n_[Simplified: the next potion is not doubled]_",
       "play": {
         "action": [
-          "stat_damage:health@mine.player:1",
-          "draw_from:mine.deck:mine.hand:1",
-          "draw_from:mine.deck:mine.hand:1",
+          "stat_gain:toxic@mine.player:1",
+          "activate_zone:reveal:by_column:sip",
+          "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
-      }
+      },
+      "abilities": [
+        {
+          "key": "sip",
+          "when": ["earth_el@mine.player >= 2"],
+          "action": ["stat_damage:earth_el@mine.player:2", "stat_damage:health@mine.player:1"]
+        }
+      ]
     },
     {
       "key": "pot_dragon",
       "text": "Dragon Elixir",
       "tags": ["potion"],
       "asset": "ss_oren4.jpg",
-      "story": "Dragon Elixir\n\nResolve the top card of the Dragon Deck.",
-      "tooltip": "Resolve the top card of the Dragon Deck.\n\n_[Simplified: the Dragon is gained rather than resolved.]_",
-      "play": { "action": ["draw_from:dragon_deck:mine.hand:1", "move_to:potion_discard"] }
+      "story": "Dragon Elixir\n\n*Earth* 4. Resolve the top card of the Dragon Deck.",
+      "tooltip": "*Earth* 4. Resolve the top card of the Dragon Deck.\n\n_[Simplified: the Dragon is gained rather than resolved]_",
+      "play": {
+        "action": [
+          "activate_zone:reveal:by_column:sip",
+          "activate_zone:rules:by_column:potion_toxic",
+          "move_to:potion_discard"
+        ]
+      },
+      "abilities": [
+        {
+          "key": "sip",
+          "when": ["earth_el@mine.player >= 4"],
+          "action": [
+            "stat_damage:earth_el@mine.player:4",
+            "activate_zone:rules:by_column:dry_dragon",
+            "draw_from:dragon_deck:mine.hand:1"
+          ]
+        }
+      ]
     },
     {
       "key": "pot_frost",
       "text": "Frost Bomb",
       "tags": ["potion"],
       "asset": "ss_oren7.jpg",
-      "story": "Frost Bomb\n\nYour opponent loses *1 mana*. Give an *ICE*.",
-      "tooltip": "Your opponent loses *1 mana*. Give an *ICE*.",
+      "story": "Frost Bomb\n\n*Water* 2. Your opponent loses *1 mana*. Give an *ICE*.",
+      "tooltip": "*Water* 2. Your opponent loses *1 mana*. Give an *ICE*.",
       "play": {
         "action": [
-          "stat_damage:mana@enemy.player:1",
-          "draw_from:ice_pile:enemy.discard:1",
+          "activate_zone:reveal:by_column:sip",
+          "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
-      }
+      },
+      "abilities": [
+        {
+          "key": "sip",
+          "when": ["water_el@mine.player >= 2"],
+          "action": [
+            "stat_damage:water_el@mine.player:2",
+            "stat_damage:mana@enemy.player:1",
+            "activate_zone:rules:by_column:dry_give_ice",
+            "draw_from:ice_pile:enemy.discard:1"
+          ]
+        }
+      ]
     },
     {
       "key": "pot_storm",
       "text": "Storm Juice",
       "tags": ["potion"],
       "asset": "ss_oren9.jpg",
-      "story": "Storm Juice\n\n*Draw a card* and *power up*.",
-      "tooltip": "*Draw a card* and *power up*.",
+      "story": "Storm Juice\n\n*Water* 3. *Draw a card* and *power up*.",
+      "tooltip": "*Water* 3. *Draw a card* and *power up*.",
       "play": {
         "action": [
-          "draw_from:mine.deck:mine.hand:1",
-          "stat_gain:power@mine.player:1",
+          "activate_zone:reveal:by_column:sip",
+          "activate_zone:rules:by_column:potion_toxic",
           "move_to:potion_discard"
         ]
-      }
+      },
+      "abilities": [
+        {
+          "key": "sip",
+          "when": ["water_el@mine.player >= 3"],
+          "action": [
+            "stat_damage:water_el@mine.player:3",
+            "draw_from:mine.deck:mine.hand:1",
+            "stat_gain:power@mine.player:1"
+          ]
+        }
+      ]
     },
     {
       "key": "pot_soda",
       "text": "Health Soda",
       "tags": ["potion"],
       "asset": "ss_oren8.jpg",
-      "story": "Health Soda\n\n*Heal 2*.",
-      "tooltip": "*Heal 2*.",
-      "play": { "action": ["stat_gain:health@mine.player:2", "move_to:potion_discard"] }
+      "story": "Health Soda\n\n*Water* 4 - TOXIC. *Heal 2*.",
+      "tooltip": "*Water* 4 - TOXIC. *Heal 2*.",
+      "play": {
+        "action": [
+          "stat_gain:toxic@mine.player:1",
+          "activate_zone:reveal:by_column:sip",
+          "activate_zone:rules:by_column:potion_toxic",
+          "move_to:potion_discard"
+        ]
+      },
+      "abilities": [
+        {
+          "key": "sip",
+          "when": ["water_el@mine.player >= 4"],
+          "action": ["stat_damage:water_el@mine.player:4", "stat_gain:health@mine.player:2"]
+        }
+      ]
     },
     {
       "key": "r_ctr_fire",
@@ -2689,7 +2941,82 @@
         {
           "key": "tier_gem",
           "when": ["power@mine.player >= 6", "tier@mine.player >= 3"],
-          "action": ["stat_damage:power@mine.player:6", "draw_from:dragon_deck:mine.hand:1"]
+          "action": [
+            "stat_damage:power@mine.player:6",
+            "activate_zone:rules:by_column:dry_dragon",
+            "draw_from:dragon_deck:mine.hand:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "r_dry_ash",
+      "text": "The ASH pile is empty",
+      "tags": ["immutable"],
+      "tooltip": "When the *ASH* pile is empty, whoever would have been given one VOIDs a *ASH* from their hand or discard and takes the penalty instead.\n\n_[Simplified: only the penalty happens; the VOID needs a card of one kind in one seat's hand, and a scope names a zone or a kind, never both]_",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "dry_take_ash",
+          "when": ["count:junk@ash_pile <= 0"],
+          "action": ["stat_damage:power@mine.player:2"]
+        },
+        {
+          "key": "dry_give_ash",
+          "when": ["count:junk@ash_pile <= 0"],
+          "action": ["stat_damage:power@enemy.player:2"]
+        }
+      ]
+    },
+    {
+      "key": "r_dry_curse",
+      "text": "The CURSE pile is empty",
+      "tags": ["immutable"],
+      "tooltip": "When the *CURSE* pile is empty, whoever would have been given one VOIDs a *CURSE* from their hand or discard and takes the penalty instead.\n\n_[Simplified: only the penalty happens; the VOID needs a card of one kind in one seat's hand, and a scope names a zone or a kind, never both]_",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "dry_take_curse",
+          "when": ["count:junk@curse_pile <= 0"],
+          "action": ["stat_damage:health@mine.player:1"]
+        },
+        {
+          "key": "dry_give_curse",
+          "when": ["count:junk@curse_pile <= 0"],
+          "action": ["stat_damage:health@enemy.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "r_dry_ice",
+      "text": "The ICE pile is empty",
+      "tags": ["immutable"],
+      "tooltip": "When the *ICE* pile is empty, whoever would have been given one VOIDs a *ICE* from their hand or discard and takes the penalty instead.\n\n_[Simplified: only the penalty happens; the VOID needs a card of one kind in one seat's hand, and a scope names a zone or a kind, never both]_",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "dry_take_ice",
+          "when": ["count:junk@ice_pile <= 0"],
+          "action": ["move:random.mine.hand:mine.discard", "move:random.mine.hand:mine.discard"]
+        },
+        {
+          "key": "dry_give_ice",
+          "when": ["count:junk@ice_pile <= 0"],
+          "action": ["move:random.enemy.hand:enemy.discard", "move:random.enemy.hand:enemy.discard"]
+        }
+      ]
+    },
+    {
+      "key": "r_dry_dragon",
+      "text": "The Dragon pile is empty",
+      "tags": ["immutable"],
+      "tooltip": "When the Dragon pile is empty, gaining a Dragon deals *2 damage* and gains *2 Storm Shards* instead.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "dry_dragon",
+          "when": ["count:dragon@dragon_deck <= 0"],
+          "action": ["stat_damage:health@enemy.player:2", "stat_gain:shards@mine.player:2"]
         }
       ]
     },
@@ -2711,7 +3038,7 @@
       "key": "r_journal_1",
       "text": "Abragail's Journal, space 1",
       "tags": ["immutable"],
-      "tooltip": "At the start of each battle, Abragail activates every power she has researched. Two of the eight printed spaces ask a question of the player and are left out.",
+      "tooltip": "At the start of each battle, Abragail activates every power she has researched.\n\n_[Simplified: a Research Token goes on the next space rather than one you choose, so the journal fills in order]_",
       "asset": "auto",
       "abilities": [
         {
@@ -2722,10 +3049,25 @@
       ]
     },
     {
+      "key": "r_journal_2",
+      "text": "Abragail's Journal, space 2",
+      "tags": ["immutable"],
+      "tooltip": "At the start of each battle, Abragail activates every power she has researched.\n\n_[Simplified: a Research Token goes on the next space rather than one you choose, so the journal fills in order]_",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "jr2",
+          "when": ["count:abra@mine.wizard >= 1", "research@mine.player >= 2"],
+          "action": ["show:mine.hand:optional"]
+        }
+      ],
+      "chosen": { "action": ["move_target_to:void"] }
+    },
+    {
       "key": "r_journal_3",
       "text": "Abragail's Journal, space 3",
       "tags": ["immutable"],
-      "tooltip": "At the start of each battle, Abragail activates every power she has researched. Two of the eight printed spaces ask a question of the player and are left out.",
+      "tooltip": "At the start of each battle, Abragail activates every power she has researched.\n\n_[Simplified: a Research Token goes on the next space rather than one you choose, so the journal fills in order]_",
       "asset": "auto",
       "abilities": [
         {
@@ -2736,10 +3078,25 @@
       ]
     },
     {
+      "key": "r_journal_4",
+      "text": "Abragail's Journal, space 4",
+      "tags": ["immutable"],
+      "tooltip": "At the start of each battle, Abragail activates every power she has researched.\n\n_[Simplified: a Research Token goes on the next space rather than one you choose, so the journal fills in order]_",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "jr4",
+          "when": ["count:abra@mine.wizard >= 1", "research@mine.player >= 4"],
+          "action": ["show:mine.discard:optional"]
+        }
+      ],
+      "chosen": { "where": ["tagged:junk@target"], "action": ["move_target_to:enemy.discard"] }
+    },
+    {
       "key": "r_journal_5",
       "text": "Abragail's Journal, space 5",
       "tags": ["immutable"],
-      "tooltip": "At the start of each battle, Abragail activates every power she has researched. Two of the eight printed spaces ask a question of the player and are left out.",
+      "tooltip": "At the start of each battle, Abragail activates every power she has researched.\n\n_[Simplified: a Research Token goes on the next space rather than one you choose, so the journal fills in order]_",
       "asset": "auto",
       "abilities": [
         {
@@ -2750,10 +3107,25 @@
       ]
     },
     {
+      "key": "r_journal_6",
+      "text": "Abragail's Journal, space 6",
+      "tags": ["immutable"],
+      "tooltip": "At the start of each battle, Abragail activates every power she has researched.\n\n_[Simplified: a Research Token goes on the next space rather than one you choose, so the journal fills in order]_",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "jr6",
+          "when": ["count:abra@mine.wizard >= 1", "research@mine.player >= 6"],
+          "action": ["show:storm_cloud:optional"]
+        }
+      ],
+      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+    },
+    {
       "key": "r_journal_7",
       "text": "Abragail's Journal, space 7",
       "tags": ["immutable"],
-      "tooltip": "At the start of each battle, Abragail activates every power she has researched. Two of the eight printed spaces ask a question of the player and are left out.",
+      "tooltip": "At the start of each battle, Abragail activates every power she has researched.\n\n_[Simplified: a Research Token goes on the next space rather than one you choose, so the journal fills in order]_",
       "asset": "auto",
       "abilities": [
         {
@@ -2767,13 +3139,53 @@
       "key": "r_journal_8",
       "text": "Abragail's Journal, space 8",
       "tags": ["immutable"],
-      "tooltip": "At the start of each battle, Abragail activates every power she has researched. Two of the eight printed spaces ask a question of the player and are left out.",
+      "tooltip": "At the start of each battle, Abragail activates every power she has researched.\n\n_[Simplified: a Research Token goes on the next space rather than one you choose, so the journal fills in order]_",
       "asset": "auto",
       "abilities": [
         {
           "key": "bstart",
           "when": ["count:abra@mine.wizard >= 1", "research@mine.player >= 8"],
           "action": ["draw_from:mine.deck:mine.hand:1"]
+        }
+      ]
+    },
+    {
+      "key": "r_potion",
+      "text": "A third TOXIC",
+      "tags": ["immutable"],
+      "tooltip": "Drawing a third TOXIC potion ends Oren's *Ultimate* after that potion resolves, and gives him an *ASH*, a *CURSE* and an *ICE*.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "potion_toxic",
+          "when": ["toxic@mine.player >= 3"],
+          "action": [
+            "activate_zone:rules:by_column:dry_take_ash",
+            "draw_from:ash_pile:mine.discard:1",
+            "activate_zone:rules:by_column:dry_take_curse",
+            "draw_from:curse_pile:mine.discard:1",
+            "activate_zone:rules:by_column:dry_take_ice",
+            "draw_from:ice_pile:mine.discard:1",
+            "stat_set:fire_el@mine.player:3",
+            "stat_set:earth_el@mine.player:3",
+            "stat_set:water_el@mine.player:3",
+            "stat_set:toxic@mine.player:0",
+            "pop_phase"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "r_doom",
+      "text": "Looming",
+      "tags": ["immutable"],
+      "tooltip": "Croh Vosh gains a *DOOM Token* from his *Ultimate* only when he has none left.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "croh_doom",
+          "when": ["doom@mine.player <= 0"],
+          "action": ["stat_gain:doom@mine.player:1"]
         }
       ]
     },
@@ -2787,7 +3199,10 @@
         {
           "key": "bstart",
           "when": ["count:croh@mine.wizard >= 1"],
-          "action": ["draw_from:curse_pile:enemy.discard:1"]
+          "action": [
+            "activate_zone:rules:by_column:dry_give_curse",
+            "draw_from:curse_pile:enemy.discard:1"
+          ]
         }
       ]
     },
@@ -2835,10 +3250,36 @@
       "tags": ["immutable"],
       "tooltip": "If your hand is nothing but *ICE*, *ASH* and *CURSE*, use this: discard them all with their effects, take *1 damage*, and draw a new hand of 4.",
       "activate": {
+        "phases": ["play_1", "play_2"],
         "action": [
           "move:mine.hand:mine.discard",
           "stat_damage:health@mine.player:1",
           "draw_from:mine.deck:mine.hand:4"
+        ]
+      }
+    },
+    {
+      "key": "btn_potion_draw",
+      "text": "Draw a potion",
+      "asset": "auto",
+      "tags": ["immutable"],
+      "tooltip": "Draw the next potion. Its effect happens only if the Element it costs is high enough on your *Chemistry Board*.",
+      "activate": { "phases": ["potion"], "action": ["reveal_top:potion_deck"] }
+    },
+    {
+      "key": "btn_potion_stop",
+      "text": "Stop drinking",
+      "asset": "auto",
+      "tags": ["immutable"],
+      "tooltip": "End your *Ultimate* while you are ahead. Your Elements go back to 3.",
+      "activate": {
+        "phases": ["potion"],
+        "action": [
+          "stat_set:fire_el@mine.player:3",
+          "stat_set:earth_el@mine.player:3",
+          "stat_set:water_el@mine.player:3",
+          "stat_set:toxic@mine.player:0",
+          "pop_phase"
         ]
       }
     },
@@ -2878,18 +3319,29 @@
       { "card": "seat_two", "owner": "seat_two", "zone": "seats", "at": "b1" },
       { "card": "plan", "zone": "table" },
       { "card": "btn_unplayable", "zone": "controls" },
+      { "card": "btn_potion_draw", "zone": "controls" },
+      { "card": "btn_potion_stop", "zone": "controls" },
       { "card": "btn_rules", "zone": "controls" },
       { "card": "r_ctr_fire", "zone": "rules" },
       { "card": "r_ctr_earth", "zone": "rules" },
       { "card": "r_ctr_water", "zone": "rules" },
       { "card": "r_blast", "zone": "rules" },
       { "card": "r_tier", "zone": "rules" },
+      { "card": "r_dry_ash", "zone": "rules" },
+      { "card": "r_dry_curse", "zone": "rules" },
+      { "card": "r_dry_ice", "zone": "rules" },
+      { "card": "r_dry_dragon", "zone": "rules" },
       { "card": "r_first", "zone": "rules" },
       { "card": "r_journal_1", "zone": "rules" },
+      { "card": "r_journal_2", "zone": "rules" },
       { "card": "r_journal_3", "zone": "rules" },
+      { "card": "r_journal_4", "zone": "rules" },
       { "card": "r_journal_5", "zone": "rules" },
+      { "card": "r_journal_6", "zone": "rules" },
       { "card": "r_journal_7", "zone": "rules" },
       { "card": "r_journal_8", "zone": "rules" },
+      { "card": "r_potion", "zone": "rules" },
+      { "card": "r_doom", "zone": "rules" },
       { "card": "r_accursed", "zone": "rules" },
       { "card": "r_topup", "zone": "rules" }
     ]

@@ -52,8 +52,22 @@ NO_INIT  = "initiative@mine.player <= 0"
 # The junk piles are real stacks of six, so giving one is a draw off the pile
 # and voiding one is a move back onto it -- which is what the rulebook says
 # happens to a VOIDed ICE, and it means the piles run out on their own.
-GIVE = lambda kind: "draw_from:%s_pile:enemy.discard:1" % kind
-GAIN_JUNK = lambda kind: "draw_from:%s_pile:mine.discard:1" % kind
+#
+# Which the board has printed rules for, so each of these is two steps: the
+# empty-pile rule first, then the draw. That order because a draw that takes the
+# last card is not a draw from an empty pile, and only the second reading is the
+# one the board means.
+GIVE = lambda kind: ["activate_zone:rules:by_column:dry_give_%s" % kind,
+                     "draw_from:%s_pile:enemy.discard:1" % kind]
+GAIN_JUNK = lambda kind: ["activate_zone:rules:by_column:dry_take_%s" % kind,
+                          "draw_from:%s_pile:mine.discard:1" % kind]
+
+# "Discard a random card", which is a selection and a coin toss and nothing
+# else: `random.` narrows a scope to one of whatever it named, and `move:` obeys
+# it. Two cards is the line twice -- there is no count on a move, and doubling it
+# is exactly what the rule says. Being a move rather than a draw, it fires the
+# On Discard of whatever comes up, which is the point of it being a discard.
+DISCARD_RANDOM = lambda who: "move:random.%s.hand:%s.discard" % (who, who)
 
 # Offering the Storm Cloud. `show:` lends the real cards, so what comes back is
 # the card that was on the shelf rather than a copy of it; the `chosen` block on
@@ -132,7 +146,7 @@ SPELLS = [
     card("fireball", "Fireball", FIRE, tier=1,
          tooltip="Deal 1 damage and gain an ASH. If you have Initiative, deal 2 more damage and lose Initiative.",
          flavour='It is customary to say "shaboom!" when one reveals the Fireball card.',
-         cast=[DMG(1), GAIN_JUNK("ash")],
+         cast=[DMG(1)] + GAIN_JUNK("ash"),
          cast2=(HAS_INIT, [DMG(2)] + LOSE_INIT)),
     card("fireball2", "Fireball II", FIRE, tier=3,
          tooltip="Deal 2 damage. If you have Initiative, deal 2 more damage.",
@@ -147,13 +161,13 @@ SPELLS = [
     card("heartgem", "Heart Gem", FIRE, tier=1,
          tooltip="Heal 3 and gain a CURSE. On discard: take 1 damage.",
          flavour="The Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time.",
-         cast=[HEAL(3), GAIN_JUNK("curse")], disc=[SELF_DMG(1)]),
+         cast=[HEAL(3)] + GAIN_JUNK("curse"), disc=[SELF_DMG(1)]),
     card("lantern", "Lantern", FIRE, tier=1,
          tooltip="Gain 2 mana. If your opponent revealed Water, VOID this, gain a CURSE and take 1 damage.",
          flavour="Do not keep sentient fire spirits trapped in a lantern, for any reason.",
          cast=[MANA, MANA],
          cast2=("count:water@enemy.battle >= 1",
-                ["move_to:void", GAIN_JUNK("curse"), SELF_DMG(1)])),
+                ["move_to:void"] + GAIN_JUNK("curse") + [SELF_DMG(1)])),
     card("lavabat", "Lava Bat", FIRE, tier=1,
          tooltip="Gain 1 mana. You may move a card from your opponent's discard to your own. Gain Initiative.",
          flavour="Dangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm.",
@@ -175,8 +189,8 @@ SPELLS = [
     card("rapidfire", "Rapid Fire", FIRE, tier=2,
          tooltip="Draw a card. If you have Initiative, deal 2 damage and you may redraw this to your hand.",
          flavour="When going for a fire-based strategy, it's important to keep the pressure on.",
-         simplified="the card is not returned to hand",
-         cast=[DRAW], cast2=(HAS_INIT, [DMG(2)])),
+         simplified="returning the card to hand is not optional; if you have Initiative it always comes back",
+         cast=[DRAW], cast2=(HAS_INIT, [DMG(2), "move_to:mine.hand"])),
     card("ruby", "Ruby", FIRE, tier=1,
          tooltip="Discard the top 3 cards of your deck and deal 1 damage.",
          flavour="The popular trend of ruby-adorned garments was blamed for the Great Royal Ball Fire of 1976.",
@@ -185,13 +199,12 @@ SPELLS = [
     card("shockwave", "Shockwave", FIRE, tier=2,
          tooltip="Your opponent loses 2 Power Tokens and discards a card. You gain Initiative. Deal 1 damage.",
          flavour='The 1981 hit song "Shockwave" is often credited with creating the Bonepunk genre.',
-         simplified="the discard is the top card of their hand rather than a random one",
          cast=["stat_damage:power@enemy.player:2",
-               "draw_from:enemy.hand:enemy.discard:1"] + GAIN_INIT + [DMG(1)]),
+               DISCARD_RANDOM("enemy")] + GAIN_INIT + [DMG(1)]),
     card("swampsilt", "Swamp Silt", FIRE, tier=1,
          tooltip="Draw a card. Whoever has Initiative loses it. Give your opponent a CURSE.",
          flavour="The Order's imperial land-grab has much to do with the increasing swampland in their territory.",
-         cast=[DRAW, GIVE("curse")],
+         cast=[DRAW] + GIVE("curse"),
          cast2=(HAS_INIT, LOSE_INIT), cast3=(NO_INIT, GAIN_INIT)),
     card("crossfire", "Crossfire", FIRE, tier=2,
          tooltip="If you have Initiative, deal 3 damage, lose Initiative, and put this in your opponent's discard.",
@@ -202,16 +215,16 @@ SPELLS = [
     card("arctite", "Arctite", WATER, tier=3,
          tooltip="Draw 2 cards. Heal 2 and give an ICE.",
          flavour="Pirates have been known to smuggle large amounts of Arctite inside icebergs.",
-         cast=[DRAW, DRAW, HEAL(2), GIVE("ice")]),
+         cast=[DRAW, DRAW, HEAL(2)] + GIVE("ice")),
     card("frostmagic", "Frost Magic", WATER, tier=1,
          tooltip="Heal 1. Lose 1 Power Token. Give your opponent an ICE.",
          flavour="The Azure Order was focused on water magic until the 1970s, when ice magic suddenly became far more popular.",
-         cast=[HEAL(1), "stat_damage:power@mine.player:1", GIVE("ice")]),
+         cast=[HEAL(1), "stat_damage:power@mine.player:1"] + GIVE("ice")),
     card("iceflume", "Ice Flume", WATER, tier=2,
          tooltip="Give an ICE. You may VOID an ICE from your hand. Gain Initiative.",
          flavour='"Watch your step!" - Unknown',
          simplified="the offer is your hand only, and is not narrowed to ICE",
-         cast=[GIVE("ice")] + GAIN_INIT + [OFFER_HAND],
+         cast=GIVE("ice") + GAIN_INIT + [OFFER_HAND],
          chosen=["move_target_to:ice_pile"]),
     card("lapis", "Lapis", WATER, tier=1,
          tooltip="Draw a card. You may discard a card and heal 1.",
@@ -237,7 +250,7 @@ SPELLS = [
     card("sapphire", "Sapphire", WATER, tier=1,
          tooltip="Draw a card, heal 1, and gain an ASH.",
          flavour='Many of Omia\'s most impressive Wizards have a signature move, which some call an "Ultimate".',
-         cast=[DRAW, HEAL(1), GAIN_JUNK("ash")]),
+         cast=[DRAW, HEAL(1)] + GAIN_JUNK("ash")),
     card("step", "Step", WATER, tier=1,
          tooltip="If you have Initiative, heal 1. Otherwise, gain Initiative. On discard: gain Initiative.",
          flavour="From the year 366-1182, the Water Kingdom reigned over much of the Eastern Continent.",
@@ -292,7 +305,7 @@ SPELLS = [
     card("quake", "Quake", EARTH, tier=1,
          tooltip="Your opponent loses 2 Power Tokens and gains an ASH. You may gain a card from the Storm Cloud. On discard: power up.",
          flavour="A huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons.",
-         cast=["stat_damage:power@enemy.player:2", GIVE("ash"), OFFER_CLOUD],
+         cast=["stat_damage:power@enemy.player:2"] + GIVE("ash") + [OFFER_CLOUD],
          chosen=TAKE_TO_HAND, disc=[POWER]),
     card("shatter", "Shatter", EARTH, tier=2,
          tooltip="You may VOID a card from your hand; if you do, power up. On discard: power up.",
@@ -363,7 +376,7 @@ DRAGONS = [
     card("icedragon", "Ice Dragon", WATER, tier=4, kind="dragon",
          tooltip="Heal 3. Gain a Storm Shard. Give an ICE.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
-         cast=[HEAL(3), SHARD(1), GIVE("ice")]),
+         cast=[HEAL(3), SHARD(1)] + GIVE("ice")),
     card("stormdragon", "Storm Dragon", WATER, tier=4, kind="dragon",
          tooltip="Deal 3 damage and gain a Storm Shard.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
@@ -372,7 +385,7 @@ DRAGONS = [
          tooltip="You may gain a card from the Storm Cloud. Deal 2 damage. Gain a Storm Shard. Your opponent gains an ASH.",
          flavour="The Earth Dragons are known to hoard massive amounts of treasure in caves.",
          simplified="the printed card gains twice; here it gains once",
-         cast=[DMG(2), SHARD(1), GIVE("ash"), OFFER_CLOUD],
+         cast=[DMG(2), SHARD(1)] + GIVE("ash") + [OFFER_CLOUD],
          chosen=TAKE_TO_HAND),
 ]
 
@@ -407,8 +420,7 @@ WEATHER = [
             wx=[DRAW], wy=(REVEALED(EARTH), [POWER]), calm=True),
     weather("dustcloud", "Dust Cloud",
             "Draw a card, power up. All players discard a card.",
-            simplified="the discard is the first card in hand rather than a random one",
-            wx=[DRAW, POWER, "draw_from:mine.hand:mine.discard:1"], calm=True),
+            wx=[DRAW, POWER, DISCARD_RANDOM("mine")], calm=True),
     weather("fallingstar", "Falling Star",
             "Draw a card and gain 1 mana.",
             simplified="the printed card lets every player gain a card from the Storm Cloud; an offer cannot be opened once per seat inside one automatic step, so it gives mana instead",
@@ -452,8 +464,7 @@ WEATHER = [
             wx=[DRAW]),
     weather("tidalwave", "Tidal Wave",
             "Draw 2 cards and gain 1 mana. All players discard 2 cards.",
-            simplified="the discards are the first two in hand rather than random",
-            wx=[DRAW, DRAW, MANA, "draw_from:mine.hand:mine.discard:2"]),
+            wx=[DRAW, DRAW, MANA, DISCARD_RANDOM("mine"), DISCARD_RANDOM("mine")]),
     weather("wildcolorwinds", "Wildcolor Winds",
             "Draw a card. All players draw a card from the Spellstorm Deck into their discard.",
             wx=[DRAW, "draw_from:spellstorm_deck:mine.discard:1"]),
@@ -469,7 +480,7 @@ WEATHER_RIDERS = {
     "magneticwarp": [(HAS_INIT,
                       ["move:storm_cloud:void",
                        "draw_from:spellstorm_deck:storm_cloud:5"])],
-    "rainoftoads": [(NO_INIT, GAIN_INIT + [GAIN_JUNK("curse"), MANA])],
+    "rainoftoads": [(NO_INIT, GAIN_INIT + GAIN_JUNK("curse") + [MANA])],
     # Both of these act on the shared table, so they are hung on the seat with
     # Initiative -- weather is walked once per seat and would otherwise fire twice.
     "strange_weather": [(HAS_INIT, ["draw_from:weather_calm:weather_discard:1"])],
@@ -512,7 +523,7 @@ WIZARDS = [
                card("derby_reckless", "Reckless Charge", FIRE, kind="wizard_spell",
                     tooltip="Gain 1 mana and power up. Deal 1 damage. Gain an ASH. If you have Initiative, deal 1 more damage.",
                     flavour='"I know we can do it if we work together!"',
-                    cast=[MANA, POWER, DMG(1), GAIN_JUNK("ash")],
+                    cast=[MANA, POWER, DMG(1)] + GAIN_JUNK("ash"),
                     cast2=(HAS_INIT, [DMG(1)])),
            ]),
 
@@ -523,17 +534,17 @@ WIZARDS = [
            ult_chosen=["move_target_to:enemy.discard"],
            simplified="the offer is not narrowed to ICE and CURSE",
            blurb="A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.",
-           start=[GIVE("ice"), GAIN_JUNK("ice")],
+           start=GIVE("ice") + GAIN_JUNK("ice"),
            spells=[
                card("eve_facepunch", "Face Punch", WATER, kind="wizard_spell",
                     tooltip="Gain Initiative. Steal 1 mana from your opponent and they discard a card.",
                     flavour='"We use voices to avoid having to use fists. We use fists to avoid having to use bombs."',
-                    simplified="the discard is the top card of their hand rather than a random one",
                     cast=GAIN_INIT + ["stat_damage:mana@enemy.player:1", MANA,
-                                      "draw_from:enemy.hand:enemy.discard:1"]),
+                                      DISCARD_RANDOM("enemy")]),
                card("eve_riot", "Riot", FIRE, kind="wizard_spell",
                     tooltip="Discard your hand without triggering any discard effects. Deal 1 damage per Earth card discarded. Draw 2 cards.",
                     flavour='"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression."',
+                    simplified="the discard effects DO trigger -- a card leaving a hand for a discard is what fires them, and there is no word for a move that does not count as leaving",
                     cast=["stat_damage:health@enemy.player:count:earth@mine.hand",
                           "move:mine.hand:mine.discard", DRAW, DRAW]),
            ]),
@@ -562,21 +573,21 @@ WIZARDS = [
            "DOOOOOOOOOM!",
            "Redraw one card from your discard for each DOOM Token you have, then gain a DOOM Token.",
            ["draw_from:mine.discard:mine.hand:sum:doom@mine.player",
-            "stat_gain:doom@mine.player:1"],
-           simplified="the printed Ultimate offers a choice of card and only grants a DOOM Token when you have none; here the redraw is off the top of the discard and a token is always gained",
+            "activate_zone:rules:by_column:croh_doom"],
+           simplified="the printed Ultimate lets you take any card from your discard, or draw instead; here the redraw is off the top of the discard",
            blurb="An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead.",
            spells=[
                card("croh_sinking", "Sinking Strike", FIRE, kind="wizard_spell",
-                    tooltip="Gain 2 mana. Deal damage equal to your number of DOOM Tokens.",
+                    tooltip="Gain 2 mana. Deal damage equal to your number of DOOM Tokens. If the CURSE pile is empty, gain a DOOM Token.",
                     flavour="Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart.",
-                    simplified="the DOOM Token for an empty CURSE pile is not granted",
                     cast=[MANA, MANA,
-                          "stat_damage:health@enemy.player:sum:doom@mine.player"]),
+                          "stat_damage:health@enemy.player:sum:doom@mine.player"],
+                    cast2=("count:junk@curse_pile <= 0",
+                           ["stat_gain:doom@mine.player:1"])),
                card("croh_undertow", "Undertow", WATER, kind="wizard_spell",
                     tooltip="Your opponent discards a card. Draw a card. If you hold at least 3 more cards than they do, gain a DOOM Token.",
                     flavour="Croh has come to the Spellstorm seeking his path to world domination.",
-                    simplified="the discard is the top card of their hand rather than a random one",
-                    cast=["draw_from:enemy.hand:enemy.discard:1", DRAW],
+                    cast=[DISCARD_RANDOM("enemy"), DRAW],
                     cast2=("count:spell@mine.hand >= count:spell@enemy.hand",
                            ["stat_gain:doom@mine.player:1"])),
            ]),
@@ -622,26 +633,29 @@ WIZARDS = [
                     tooltip="Heal 2. Give an ICE to your opponent if they have none in their discard.",
                     flavour="The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic.",
                     cast=[HEAL(2)],
-                    cast2=("count:junk@enemy.discard <= 0", [GIVE("ice")])),
+                    cast2=("count:junk@enemy.discard <= 0", GIVE("ice"))),
            ]),
 
     wizard("oren", "Oren Bark", "Magical Chemistry Student", "Fire, Earth", 16, 6, 5,
            "Bottoms up, I guess!",
-           "Draw and resolve a card from your Potion Deck.",
-           ["reveal_top:potion_deck"],
-           simplified="the Chemistry Board, its three Element tracks and the push-your-luck of drawing until a third TOXIC card are not implemented; the Ultimate resolves exactly one potion, free",
+           "Reshuffle your Potion Deck, then draw potions one at a time for as long as you dare. A third TOXIC ends it and gives you an ASH, a CURSE and an ICE. Your Elements reset to 3 afterwards.",
+           ["move:potion_discard:potion_deck", "shuffle:potion_deck",
+            "stat_set:toxic@mine.player:0", "push_phase:potion"],
+           start=["stat_set:fire_el@mine.player:3",
+                  "stat_set:earth_el@mine.player:3",
+                  "stat_set:water_el@mine.player:3"],
            blurb="A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.",
            spells=[
                card("oren_potion", "Potion Gun", FIRE, kind="wizard_spell",
                     tooltip="Deal 1 damage. You may give a card from your hand to your opponent's hand.",
                     flavour='"Think I can hit that old barrel by the hill over there?"',
-                    simplified="gaining 2 of the matching Element needs the Chemistry Board, which is not implemented",
+                    simplified="which Element the given card matches is not read, so no Element is gained",
                     cast=[DMG(1), OFFER_HAND],
                     chosen=["move_target_to:enemy.hand"]),
                card("oren_unstable", "Unstable Formula", EARTH, kind="wizard_spell",
                     tooltip="Power up and gain 1 mana. If anyone revealed Water, power up again.",
                     flavour='"Oh, it\'ll work, trust me. But, uh... you might wanna stand back a bit..."',
-                    simplified="raising and lowering Elements needs the Chemistry Board, which is not implemented",
+                    simplified="choosing which Element to lower and which to raise is not offered",
                     cast=[POWER, MANA],
                     cast2=("count:water@battle >= 1", [POWER])),
            ]),
@@ -659,10 +673,10 @@ WIZARDS = [
                card("may_data", "Data Breach", EARTH, kind="wizard_spell",
                     tooltip="Lose 2 Energy Tokens to power up twice and make your opponent discard a card.",
                     flavour='"Yes! I\'m in. Now let\'s see what these idiots have planned next..."',
-                    simplified="the choice of losing 1 or 2 Energy is not offered, and the discard is the top card of their hand",
+                    simplified="the choice of losing 1 or 2 Energy is not offered",
                     cast2=("energy@mine.player >= 2",
                            ["stat_damage:energy@mine.player:2", POWER, POWER,
-                            "draw_from:enemy.hand:enemy.discard:1"])),
+                            DISCARD_RANDOM("enemy")])),
                card("may_starshot", "Star Shot", FIRE, kind="wizard_spell",
                     tooltip="Discard a card to deal 1 damage. Gain 1 mana for each Energy Token you have, then lose 2 Energy.",
                     flavour='"Hey, YOU! Eat this!"',
@@ -673,24 +687,67 @@ WIZARDS = [
            ]),
 ]
 
-# Abragail's journal, in printed order. Two of the eight spaces ask a question
-# of the player, which an automatic battle-start step cannot open, so they are
-# left out and the tooltip says so.
-JOURNAL = [(1, [MANA]), (3, [MANA]), (5, [POWER]), (7, [POWER]), (8, [DRAW])]
-
-# Oren's potion deck. The Element costs and the TOXIC push-your-luck are not
-# implemented, so each potion is simply resolved when it comes up.
-POTIONS = [
-    ("pot_haste", "Haste Potion", "Gain Initiative.", None),
-    ("pot_purple", "I Call It... Purple Stuff.", "Power up and gain 2 mana.", [POWER, MANA, MANA]),
-    ("pot_explosion", "A Slight... Explosion", "Deal 1 damage and gain 1 mana.", [DMG(1), MANA]),
-    ("pot_devils", "Devil's Breath", "Power up. Give an ASH.", [POWER, GIVE("ash")]),
-    ("pot_gasoline", "I Think I Just Drank Gasoline", "Take 1 damage and draw 2 cards.", [SELF_DMG(1), DRAW, DRAW]),
-    ("pot_dragon", "Dragon Elixir", "Resolve the top card of the Dragon Deck.", None),
-    ("pot_frost", "Frost Bomb", "Your opponent loses 1 mana. Give an ICE.", ["stat_damage:mana@enemy.player:1", GIVE("ice")]),
-    ("pot_storm", "Storm Juice", "Draw a card and power up.", [DRAW, POWER]),
-    ("pot_soda", "Health Soda", "Heal 2.", [HEAL(2)]),
+# Abragail's Research Journal: eight spaces, each firing at battle start once a
+# Research Token sits on it. Three of them ask a question, and an offer is one
+# at a time, so those three get a step of their own and a phase each to open in
+# -- an ask is the last thing an action list can do, and three asks in one list
+# is three overlays on one table.
+JOURNAL = [
+    (1, [MANA], None),
+    (2, [OFFER_HAND], {"action": ["move_target_to:void"]}),
+    (3, [MANA], None),
+    (4, ["show:mine.discard:optional"],
+        {"where": ["tagged:junk@target"],
+         "action": ["move_target_to:enemy.discard"]}),
+    (5, [POWER], None),
+    (6, [OFFER_CLOUD], {"action": TAKE_TO_HAND}),
+    (7, [POWER], None),
+    (8, [DRAW], None),
 ]
+
+# The spaces that ask, in order, which is both the steps and the phases.
+JOURNAL_ASKS = [n for n, _, ch in JOURNAL if ch]
+
+# Oren's potion deck. Each potion costs a number of one Element off the Chemistry
+# Board and does nothing if the beaker is too low, which is a condition and so an
+# ability rather than a play. Six of the nine carry the TOXIC icon on the printed
+# card; the transcription's table marks five, and the table is what is followed
+# here (ideas/spellstorm/07-wizards.md).
+#
+# The last two columns are what the potion does once it is paid for: a condition
+# and its actions, and a second pair for the one potion whose text has an if.
+POTIONS = [
+    ("pot_haste", "Haste Potion", "If you have Initiative, deal 1 damage. Otherwise, gain Initiative.",
+     FIRE, 1, False, (HAS_INIT, [DMG(1)]), (NO_INIT, GAIN_INIT)),
+    ("pot_purple", "I Call It... Purple Stuff.", "Power up and gain 2 mana.",
+     FIRE, 2, True, (None, [POWER, MANA, MANA]), None),
+    ("pot_explosion", "A Slight... Explosion", "Deal 1 damage. Gain 1 of each Element.",
+     FIRE, 3, True, (None, [DMG(1), "stat_gain:fire_el@mine.player:1",
+                            "stat_gain:earth_el@mine.player:1",
+                            "stat_gain:water_el@mine.player:1"]), None),
+    ("pot_devils", "Devil's Breath", "Power up. Give an ASH.",
+     EARTH, 1, True, (None, [POWER] + GIVE("ash")), None),
+    ("pot_gasoline", "I Think I Just Drank Gasoline", "Take 1 damage. Your next potion happens twice, and you pay its cost once.",
+     EARTH, 2, True, (None, [SELF_DMG(1)]), None),
+    ("pot_dragon", "Dragon Elixir", "Resolve the top card of the Dragon Deck.",
+     EARTH, 4, False, (None, ["activate_zone:rules:by_column:dry_dragon",
+                              "draw_from:dragon_deck:mine.hand:1"]), None),
+    ("pot_frost", "Frost Bomb", "Your opponent loses 1 mana. Give an ICE.",
+     WATER, 2, False, (None, ["stat_damage:mana@enemy.player:1"] + GIVE("ice")), None),
+    ("pot_storm", "Storm Juice", "Draw a card and power up.",
+     WATER, 3, False, (None, [DRAW, POWER]), None),
+    ("pot_soda", "Health Soda", "Heal 2.",
+     WATER, 4, True, (None, [HEAL(2)]), None),
+]
+
+# What ends the Ultimate, whichever way it ends: the beakers go back to 3 and the
+# phase the Ultimate pushed comes off. The pushed phase is on top by now -- a
+# revealed page pops before the card it showed acts -- so this pops the loop.
+POTION_END = ["stat_set:fire_el@mine.player:3",
+              "stat_set:earth_el@mine.player:3",
+              "stat_set:water_el@mine.player:3",
+              "stat_set:toxic@mine.player:0",
+              "pop_phase"]
 
 # ---------------------------------------------------------------------------
 # Assembly
@@ -868,7 +925,12 @@ def weather_template(w):
 def wizard_templates(w):
     """The character card that carries the Ultimate, and the chooser card."""
     out = []
+    # Cast while you are choosing a card to play, which is the one moment the
+    # engine can offer -- see the gaps note. Named rather than left open because
+    # an Ultimate that may be used inside anything can be used inside itself,
+    # and Oren's opens a phase of its own to be used inside.
     ult = {"cost": {"mana@mine.player": w["ult_cost"]},
+           "phases": ["play_1", "play_2"],
            "action": list(w["ult_action"])}
     char = {
         "key": "wiz_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
@@ -903,11 +965,15 @@ def wizard_templates(w):
     return out
 
 
-def rules_card(key, text, tooltip, abilities):
+def rules_card(key, text, tooltip, abilities, chosen=None):
     """A rule with nowhere else to live: a card in an offscreen zone that a
     phase walks. Its `when` is the if the action grammar has no room for."""
-    return {"key": key, "text": text, "tags": ["immutable"], "tooltip": tooltip,
-            "asset": "auto", "abilities": abilities}
+    t = {"key": key, "text": text, "tags": ["immutable"], "tooltip": tooltip,
+         "asset": "auto", "abilities": abilities}
+    # A rule that asks is the card doing the asking, so the answer comes back to
+    # it -- which is why a space that asks needs a rules card to itself.
+    if chosen: t["chosen"] = dict(chosen)
+    return t
 
 
 def rules_templates():
@@ -947,8 +1013,41 @@ def rules_templates():
                              "stat_gain:tier@mine.player:1"],
                  when=["power@mine.player >= 6", "tier@mine.player <= 2"]),
          ability("tier_gem", ["stat_damage:power@mine.player:6",
+                              "activate_zone:rules:by_column:dry_dragon",
                               "draw_from:dragon_deck:mine.hand:1"],
                  when=["power@mine.player >= 6", "tier@mine.player >= 3"])]))
+
+    # What the board prints for a pile that has run out. Six ICE, six ASH and
+    # six CURSE is few enough to reach in a long game, and until now giving from
+    # an empty pile did nothing at all -- which made running the supply dry a
+    # reward. Each alternative is the same shape as the card that is no longer
+    # there: get rid of one you are holding, and take the penalty instead.
+    #
+    # Two abilities per pile because there are two directions -- being handed
+    # junk and taking it yourself -- and the penalty follows whoever would have
+    # received the card.
+    for kind, take, give in (
+            ("ash",   ["stat_damage:power@mine.player:2"],
+                      ["stat_damage:power@enemy.player:2"]),
+            ("curse", [SELF_DMG(1)], [DMG(1)]),
+            ("ice",   [DISCARD_RANDOM("mine")] * 2, [DISCARD_RANDOM("enemy")] * 2)):
+        out.append(rules_card(
+            "r_dry_" + kind, "The %s pile is empty" % kind.upper(),
+            tip("When the %s pile is empty, whoever would have been given one VOIDs "
+                "a %s from their hand or discard and takes the penalty instead."
+                % (kind.upper(), kind.upper()),
+                simplified="only the penalty happens; the VOID needs a card of one kind "
+                           "in one seat's hand, and a scope names a zone or a kind, never both"),
+            [ability("dry_take_" + kind, take, when=["count:junk@%s_pile <= 0" % kind]),
+             ability("dry_give_" + kind, give, when=["count:junk@%s_pile <= 0" % kind])]))
+
+    # The Dragon pile is the one whose empty rule is a reward rather than a
+    # penalty, because a Dragon is what you were owed.
+    out.append(rules_card(
+        "r_dry_dragon", "The Dragon pile is empty",
+        "When the Dragon pile is empty, gaining a Dragon deals 2 damage and gains 2 Storm Shards instead.",
+        [ability("dry_dragon", [DMG(2), SHARD(2)],
+                 when=["count:dragon@dragon_deck <= 0"])]))
 
     # Who begins with the Initiative Tracker: the lower Initiative rating.
     out.append(rules_card(
@@ -957,14 +1056,36 @@ def rules_templates():
         [ability("first", GAIN_INIT,
                  when=["init_rating@mine.player < init_rating@enemy.player"])]))
 
-    # Abragail's journal: every researched space fires at battle start.
-    for n, acts in JOURNAL:
+    # Abragail's journal: every researched space fires at battle start. The
+    # three that ask a question run under their own step so a phase can open
+    # them one at a time.
+    for n, acts, chosen in JOURNAL:
         out.append(rules_card(
             "r_journal_%d" % n, "Abragail's Journal, space %d" % n,
-            "At the start of each battle, Abragail activates every power she has researched. Two of the eight printed spaces ask a question of the player and are left out.",
-            [ability("bstart", acts,
+            tip("At the start of each battle, Abragail activates every power she has researched.",
+                simplified="a Research Token goes on the next space rather than one you choose, so the journal fills in order"),
+            [ability("jr%d" % n if chosen else "bstart", acts,
                      when=["count:abra@mine.wizard >= 1",
-                           "research@mine.player >= %d" % n])]))
+                           "research@mine.player >= %d" % n])],
+            chosen=chosen))
+
+    # A third TOXIC ends the Ultimate whatever the player wanted, and costs one
+    # of each junk card on the way out.
+    out.append(rules_card(
+        "r_potion", "A third TOXIC",
+        "Drawing a third TOXIC potion ends Oren's Ultimate after that potion resolves, and gives him an ASH, a CURSE and an ICE.",
+        [ability("potion_toxic",
+                 GAIN_JUNK("ash") + GAIN_JUNK("curse") + GAIN_JUNK("ice") + POTION_END,
+                 when=["toxic@mine.player >= 3"])]))
+
+    # Croh gains DOOM Tokens only from failure states -- having none, or an
+    # empty CURSE pile -- which is the trap his whole design is built around.
+    # An if lives in an ability, so the Ultimate calls one rather than saying it.
+    out.append(rules_card(
+        "r_doom", "Looming",
+        "Croh Vosh gains a DOOM Token from his Ultimate only when he has none left.",
+        [ability("croh_doom", ["stat_gain:doom@mine.player:1"],
+                 when=["doom@mine.player <= 0"])]))
 
     # Croh cannot heal: his healing becomes a CURSE for the other seat. This is
     # the closest the engine gets to a passive -- it is a battle-start sweep
@@ -972,27 +1093,39 @@ def rules_templates():
     out.append(rules_card(
         "r_accursed", "Accursed",
         "Croh Vosh can never heal. Approximated: at the start of each battle he gives a CURSE instead of whatever healing he did.",
-        [ability("bstart", [GIVE("curse")],
+        [ability("bstart", GIVE("curse"),
                  when=["count:croh@mine.wizard >= 1"])]))
     return out
 
 
 def potion_templates():
     out = []
-    for key, name, tooltip, acts in POTIONS:
+    for key, name, tooltip, el, cost, toxic, main, other in POTIONS:
+        line = "%s %d%s. %s" % (el.title(), cost, " - TOXIC" if toxic else "", tooltip)
+        note = None
+        if key == "pot_dragon": note = "the Dragon is gained rather than resolved"
+        if key == "pot_gasoline": note = "the next potion is not doubled"
         t = {"key": key, "text": name, "tags": ["potion"],
              "asset": POTION_ART[key],
-             "story": "%s\n\n%s" % (name, tooltip),
-             "tooltip": tooltip}
-        if key == "pot_haste":
-            t["play"] = {"action": GAIN_INIT + ["move_to:potion_discard"]}
-            t["tooltip"] += "\n\n_[Simplified: a revealed page runs one action list with no if in it, so this always takes Initiative rather than dealing damage when you already hold it.]_"
-        elif key == "pot_dragon":
-            t["play"] = {"action": ["draw_from:dragon_deck:mine.hand:1",
-                                    "move_to:potion_discard"]}
-            t["tooltip"] += "\n\n_[Simplified: the Dragon is gained rather than resolved.]_"
-        else:
-            t["play"] = {"action": list(acts) + ["move_to:potion_discard"]}
+             "story": "%s\n\n%s" % (name, line),
+             "tooltip": tip(line, simplified=note)}
+        # Counted on the draw rather than on the sip: a third TOXIC ends the
+        # Ultimate whether or not the beaker could pay for it.
+        play = ["stat_gain:toxic@mine.player:1"] if toxic else []
+        # The page has already popped, so the potion is lying in the reveal zone
+        # while this runs and that is the zone its own steps are reached through.
+        play += ["activate_zone:reveal:by_column:sip"]
+        if other: play.append("activate_zone:reveal:by_column:sip2")
+        play += ["activate_zone:rules:by_column:potion_toxic", "move_to:potion_discard"]
+        t["play"] = {"action": play}
+
+        pay = ["stat_damage:%s_el@mine.player:%d" % (el, cost)]
+        afford = "%s_el@mine.player >= %d" % (el, cost)
+        abil = [ability("sip", pay + list(main[1]),
+                        when=[afford] + ([main[0]] if main[0] else []))]
+        if other:
+            abil.append(ability("sip2", pay + list(other[1]), when=[afford, other[0]]))
+        t["abilities"] = abil
         out.append(t)
     return out
 
@@ -1089,7 +1222,7 @@ def zones():
          "contents": [c["key"] for c in DRAGONS],
          "pos": P(0.615, 0.44, 0.705, 0.625)},
 
-        {"key": "controls", "layout": "grid", "grid": [1, 2],
+        {"key": "controls", "layout": "grid", "grid": [1, 4],
          "use": "abilities", "tags": ["optional"],
          "pos": P(0.735, 0.44, 0.825, 0.785)},
 
@@ -1105,7 +1238,7 @@ def zones():
          "display": "offscreen", "use": "abilities"},
         {"key": "potion_deck", "layout": "stack", "visibility": "secret",
          "display": "offscreen", "tags": ["shuffle"], "refill_from": "potion_discard",
-         "contents": [k for k, _, _, _ in POTIONS]},
+         "contents": [pot[0] for pot in POTIONS]},
         {"key": "potion_discard", "layout": "stack", "display": "offscreen",
          "use": "none"},
     ]
@@ -1116,6 +1249,28 @@ RESOLVE = ["activate_zone:mine.battle:by_column:cast",
            "activate_zone:mine.battle:by_column:cast2",
            "activate_zone:mine.battle:by_column:cast3",
            "activate_zone:mine.battle:by_column:cast_ask"]
+
+
+# Abragail's three question spaces, one phase each and one seat each. An action
+# list has no cursor -- whatever follows an ask runs before the answer arrives --
+# so the ask is the last thing each of these does and the next one waits for the
+# phase to come back. One seat each because two Abragails would otherwise hold up
+# both hands at once and the second question would land in the first one's offer.
+#
+# Only the first phase of each side names a seat: "the enemy of whoever is up"
+# said three times running walks back and forth.
+JOURNAL_PHASES = []
+for side, setter in (("a", "set_active_seat:has_init"),
+                     ("b", "set_active_seat:enemy.player")):
+    for n in JOURNAL_ASKS:
+        first = n == JOURNAL_ASKS[0]
+        JOURNAL_PHASES.append(
+            {"key": "journal_%d%s" % (n, side), "type": "automatic",
+             "actions": ([setter] if first else [])
+                        + ["activate_zone:rules:by_column:jr%d" % n]})
+for i, ph in enumerate(JOURNAL_PHASES):
+    ph["next"] = [{"then": JOURNAL_PHASES[i + 1]["key"]
+                           if i + 1 < len(JOURNAL_PHASES) else "weather"}]
 
 
 def phases():
@@ -1153,7 +1308,9 @@ def phases():
                      "each_seat:activate_zone:rules:by_column:topup",
                      "each_seat:activate_zone:rules:by_column:topup",
                      "each_seat:activate_zone:rules:by_column:topup"],
-         "next": [{"then": "weather"}]},
+         "next": [{"then": JOURNAL_PHASES[0]["key"]}]},
+
+        ] + JOURNAL_PHASES + [
 
         {"key": "weather", "type": "automatic",
          "actions": ["move:weather_now:weather_discard",
@@ -1219,6 +1376,13 @@ def phases():
                      "each_seat:stat_set:took@mine.player:0"],
          "zone": ["wizard", "controls"],
          "ends_when": "took@mine.player >= 1", "next": [{"then": "gain_2"}]},
+        # Oren's Ultimate pushes this over whatever he was doing and the two
+        # potion buttons are the only things reachable while it is up. It ends
+        # when one of them says so, or when a third TOXIC says so -- so it has no
+        # "ends_when" of its own: what ends it is an action, every time.
+        {"key": "potion", "type": "player_input", "label": "Bottoms up, I guess!",
+         "zone": ["controls"]},
+
         {"key": "gain_2", "type": "player_input", "seat": "next",
          "label": "Gain a card from the Storm Cloud",
          "zone": ["wizard", "controls"],
@@ -1265,9 +1429,20 @@ def build():
         "key": "btn_unplayable", "text": "Unplayable hand",
         "asset": "auto", "tags": ["immutable"],
         "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
-        "activate": {"action": ["move:mine.hand:mine.discard",
+        "activate": {"phases": ["play_1", "play_2"],
+                     "action": ["move:mine.hand:mine.discard",
                                 SELF_DMG(1),
                                 "draw_from:mine.deck:mine.hand:4"]}})
+    cards.append({
+        "key": "btn_potion_draw", "text": "Draw a potion",
+        "asset": "auto", "tags": ["immutable"],
+        "tooltip": "Draw the next potion. Its effect happens only if the Element it costs is high enough on your Chemistry Board.",
+        "activate": {"phases": ["potion"], "action": ["reveal_top:potion_deck"]}})
+    cards.append({
+        "key": "btn_potion_stop", "text": "Stop drinking",
+        "asset": "auto", "tags": ["immutable"],
+        "tooltip": "End your Ultimate while you are ahead. Your Elements go back to 3.",
+        "activate": {"phases": ["potion"], "action": list(POTION_END)}})
     cards.append({
         "key": "btn_rules", "text": "The rules",
         "asset": "auto", "tags": ["immutable"],
@@ -1327,6 +1502,17 @@ def build():
             {"key": "research", "label": "Research", "icon": "leaf",
              "color": "olive", "min": 0, "max": 6,
              "subject": "research@mine.player", "on": ["player"], "start": 0},
+            # Oren's Chemistry Board: three beakers, 0 to 6, that his potions
+            # are paid out of and that go back to 3 when his Ultimate ends.
+            {"key": "fire_el", "label": "Fire", "icon": "pot", "color": "orange",
+             "min": 0, "max": 6, "subject": "fire_el@mine.player",
+             "on": ["player"], "start": 0},
+            {"key": "earth_el", "label": "Earth", "icon": "pot", "color": "brown",
+             "min": 0, "max": 6, "subject": "earth_el@mine.player",
+             "on": ["player"], "start": 0},
+            {"key": "water_el", "label": "Water", "icon": "pot", "color": "cyan",
+             "min": 0, "max": 6, "subject": "water_el@mine.player",
+             "on": ["player"], "start": 0},
 
             # Working numbers. Hidden, floored at zero -- the floor is what makes
             # the Blast Score subtraction clamp instead of going negative.
@@ -1339,6 +1525,8 @@ def build():
             {"key": "picked", "min": 0, "max": 9, "tags": ["hidden"],
              "on": ["player"], "start": 0},
             {"key": "took", "min": 0, "max": 9, "tags": ["hidden"],
+             "on": ["player"], "start": 0},
+            {"key": "toxic", "min": 0, "max": 9, "tags": ["hidden"],
              "on": ["player"], "start": 0},
             {"key": "battle_round", "min": 0, "max": 9, "tags": ["hidden"],
              "on": ["plan"], "start": 0},
@@ -1386,6 +1574,8 @@ def build():
             {"card": "seat_two", "owner": "seat_two", "zone": "seats", "at": "b1"},
             {"card": "plan", "zone": "table"},
             {"card": "btn_unplayable", "zone": "controls"},
+            {"card": "btn_potion_draw", "zone": "controls"},
+            {"card": "btn_potion_stop", "zone": "controls"},
             {"card": "btn_rules", "zone": "controls"},
         ]},
     }

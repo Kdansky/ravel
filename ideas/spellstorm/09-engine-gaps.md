@@ -91,6 +91,8 @@ and a phase's own action list are the only automatic hooks.
 - **Croh Vosh — *Accursed*** ("whenever you would heal, give a CURSE instead")
   would have to intercept every heal in the game. Approximated as a battle-start
   sweep: he gives one CURSE at the start of each battle, and he *can* still heal.
+  His DOOM Tokens are exact — one only when he holds none, and one from *Sinking
+  Strike* for a CURSE pile he has already emptied.
 - **Bunny Wizard — *Double Stitch* / *Triple Stitch!*** ("heal past your starting
   health to 10; draw for each point of wasted healing"). His ceiling is simply 10
   from the start, so the overheal draw never fires.
@@ -102,17 +104,16 @@ and a phase's own action list are the only automatic hooks.
 | Component | Wizard | Why |
 |---|---|---|
 | 3 **Trap** cards | Omar Evans | A card played face down and revealed at a trigger *of the player's choosing* is a reaction to an arbitrary game event. Reactions answer a named verb emitted by a card being played; "when an opponent is dealing damage to you" is not one. |
-| **Chemistry Board**, 3 Element Tokens | Oren Bark | Three 0–6 tracks that potions are paid out of. The tracks are expressible; the Ultimate that spends them is not (below). |
-| **Potion Deck** push-your-luck | Oren Bark | "Draw, resolve, then choose to stop or draw again, until a third TOXIC" is an unbounded player-driven loop inside one ability. Oren's Ultimate resolves **exactly one** potion instead, free, via `reveal_top:`. All nine potions are in the game and carry their printed effects. |
-| **Research Journal** spaces 2 and 4 | Abragail | The other six work: her Ultimate adds a Research Token and each researched space fires at battle start. Spaces 2 ("you may VOID a card from your hand") and 4 ("move an ICE, ASH or CURSE between discards") ask the player a question, and a battle-start step is automatic. |
-| **DOOM Token** conditions | Croh Vosh | He gains a token on every Ultimate rather than only when he has none, and *Sinking Strike* does not grant one for an empty CURSE pile. |
+
+Traps are the only one left. The **Chemistry Board** is three stats and the
+potions are paid out of them; the **Potion Deck**'s push-your-luck is a phase the
+Ultimate pushes, drawing until you stop or a third TOXIC stops you; the
+**Research Journal**'s eight spaces all fire, three of them asking a question in
+a phase of their own; and the **DOOM Tokens** arrive only from the two failure
+states that grant them. What each still rounds off is below.
 
 ## Rules simplified
 
-- **Random discards are not random.** "Discard a random card" is the top card of
-  the hand — there is no random-one-of-a-zone move, only `random.` in a *scope*,
-  which reads rather than moves. Affects Shockwave, Dust Cloud, Tidal Wave,
-  Undertow, Face Punch, Data Breach.
 - **`[GAIN]` from a card effect ignores the Tier limit and the element.** An
   offer cannot be filtered, so any of the five Storm Cloud cards may be taken.
   The **Regroup gain step does enforce Tier** — that is an ability with a `when`,
@@ -128,7 +129,23 @@ and a phase's own action list are the only automatic hooks.
   putting them back in order.
 - **Obsidian** takes the damage and the mana but does not grant a free Ultimate —
   there is no way to waive a cost.
-- **Rapid Fire** does not return itself to hand.
+- **The Research Journal fills in order.** The printed Ultimate puts a Research
+  Token *on a space of your choice*; here it is a count, so the eight spaces come
+  on 1, 2, 3… in order. All eight work, including the three that ask a question,
+  which get a phase each — an offer is one at a time.
+- **An Ultimate is usable only while you are choosing a card to play.** Which is
+  where it was always meant to be (§2), and is now said in as many words rather
+  than left to the zones a phase happens to name: an Ultimate that may be used
+  inside anything can be used inside itself, and Oren's opens a phase of its own
+  to be used inside.
+- **Three of Oren's cards still round off.** *I Think I Just Drank Gasoline*
+  takes the damage but does not double the next potion; *Dragon Elixir* gains the
+  Dragon rather than resolving it; *Potion Gun* gives the card but does not read
+  which Element it matched; and *Unstable Formula* does not offer which beaker to
+  lower and which to raise. The costs, the TOXIC count and the loop are exact.
+- **How many potions are TOXIC is unsettled in the source.** The transcription's
+  prose says six of nine and its table marks five; the table is what is followed
+  (`07-wizards.md`). Worth a look at the printed cards.
 - **Wind Dragon discards the card it resolves** — and now that discarding fires
   an On Discard, that guess costs something. The tooltip says only "resolve a
   card from your hand"; where the resolved card goes is unrecorded here. Needs a
@@ -141,10 +158,18 @@ and a phase's own action list are the only automatic hooks.
   draw. *Falling Star* gives mana rather than offering the Storm Cloud to each
   player in turn, because an offer cannot be opened once per seat inside one
   automatic step.
-- **Empty-pile actions are not implemented.** The Spellstorm Board prints what to
-  do when the ICE, ASH, CURSE or Dragon pile is empty; here, giving from an empty
-  pile simply does nothing. The piles are real stacks of six, so this is
-  reachable, just uncommon.
+- **An empty pile bites, but nothing is VOIDed.** The Spellstorm Board prints an
+  alternative for each pile that has run out, and each is two halves: get rid of
+  one of that junk card you are holding, and take a penalty. The penalty happens.
+  The VOID does not — it wants "a CURSE in *that seat's* hand or discard", and a
+  scope names a zone or a kind, never both. The Dragon pile's rule has no VOID in
+  it and is exact.
+- **Riot fires the discard effects it says it does not.** "Discard your hand
+  without triggering any discard effects" was accidentally true while On Discard
+  was an ability nothing ran outside Regroup; now that it is a `leaves` on the
+  card going from a hand to a discard, Riot sets off every one of them. There is
+  no word for a move that does not count as leaving, and routing the cards
+  through a spare zone to strip the trigger would be a lie on the card.
 - **The Tier check runs between rounds**, not the instant a sixth Power Token
   lands. Overflow is kept (the track subtracts six rather than resetting), so
   nothing is lost — it just arrives a moment late.

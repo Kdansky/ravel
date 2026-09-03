@@ -73,13 +73,21 @@ each is answered. That is the same question [32](../32-a-third-player.md)'s
 ability run by a zone could open it the way a play does — but nothing in this
 box needs that once offers work.
 
-**And: Abragail's journal spaces 2 and 4 may be buildable today.** Only Abragail
-has a journal, so only one seat ever asks, and an offer is exactly the
-mechanism. They were left out for a reason that turns out not to hold. **Try it
-before designing anything** — like F2, this one may already be free.
+**And: Abragail's journal — done, all three asking spaces, and there were
+three.** Space 6 (`[GAIN]`) was missing too and nobody had noticed. Two things
+turned out to be true that the paragraph above did not say. One seat asking is
+not one ask: a fully-researched journal asks *three* times in one battle-start
+list, and an action list has no cursor, so all three overlays would land on one
+table. And "only Abragail has a journal" is false in a mirror, where both seats
+do. So each asking space gets **a phase**, and each phase **one seat** — six
+short automatic phases, empty for every other wizard. An ask is the last thing a
+phase does, and the next phase waits for the answer, which is the cursor an
+action list has not got.
 
-**Size:** the queue is medium. Abragail is a generator change and possibly zero
-engine work.
+Worth keeping as the shape: **a phase is the engine's word for "and then".**
+
+**Size:** the queue is still medium. Abragail was a generator change and no
+engine work at all.
 
 ### A3. ~~An offer opened inside an offer deadlocks~~ — done
 
@@ -220,13 +228,20 @@ for one card in the box. Sift stays as it is: draw 2, discard 1.
 
 ## D. Counting and arithmetic
 
-### D1. Random discards are not random (Shockwave, Dust Cloud, Tidal Wave, Undertow, Face Punch, Data Breach)
+### D1. ~~Random discards are not random~~ — done, and it was already there
 
-**Proposal — let `move:` take the `random.` quantifier it already parses.**
-`random.` narrows a scope for *reading* today. `move:random.enemy.hand:enemy.discard`
-is the same word doing the obvious thing, and six cards become exact.
+`move:` has honoured `random.` since the quantifier existed — the same three
+lines `destroy` and `show` carry. Nobody had written it down: the reference said
+`show` and `destroy` took it and the `move` row did not, so six cards discarded
+the top of a hand for want of a sentence in `AUTHORING.md`. Now said in both, and
+in `SCHEMA.json`.
 
-**Size:** small. Best value-for-effort item in section D.
+**The lesson is about the docs, not the engine.** A word the engine knows and the
+reference does not is a word the game cannot use.
+
+Shockwave, Dust Cloud, Tidal Wave, Undertow, Face Punch and Data Breach are
+exact. Two cards is the line twice; there is no count on a move, and doubling it
+is what "discard two random cards" says.
 
 ### D2. Ruby counts what was just discarded
 
@@ -269,26 +284,30 @@ game in twenty.
 
 ---
 
-## E. Things that are not gaps at all
+## E. ~~Things that are not gaps at all~~ — done, all five
 
-Worth separating, because they read like engine limits in `09` and are not.
-Each is a to-do in the generator.
+They read like engine limits in `09` and were not one of them. Each was a to-do
+in the generator, and all five are written.
 
-- **Croh's DOOM Token conditions.** "Gains a token only when he has none" is an
-  ability `when` — `count:doom@mine.board <= 0`. The engine reads it today.
-  Same for *Sinking Strike* granting one for an empty CURSE pile.
-- **Empty-pile actions.** "Giving from an empty pile does nothing" can be a
-  `when` on `count:@ice_pile <= 0` firing the printed alternative. Expressible
-  now; simply not written.
-- **Rapid Fire does not return itself.** Nothing obviously prevents it: the
-  round-end sweep is `each_seat:move:mine.battle:mine.discard`, and a card that
-  moved itself to hand during its cast is no longer in `battle` to be swept.
-  **Worth re-testing before anything is built** — this may already work.
+- **Croh's DOOM Token conditions.** An ability `when`, twice: `doom@mine.player
+  <= 0` for the Ultimate, `count:junk@curse_pile <= 0` for *Sinking Strike*. The
+  Ultimate calls a rules card rather than saying it inline, because an action
+  list has no room for an if and a rules card is where this game keeps them.
+- **Empty-pile actions.** `count:junk@<kind>_pile <= 0` on a rules card, checked
+  *before* the draw — a draw that takes the last card is not a draw from an empty
+  pile. Both directions, since the penalty follows whoever would have received
+  the card. **Half of each junk rule is still missing**: "VOID an ASH in your
+  hand or discard" wants a card of one kind in one seat's zone, and a scope names
+  a zone or a kind, never both. The Dragon pile has no VOID in it and is exact.
+- **Rapid Fire does not return itself.** It does now, and nothing prevented it:
+  the round-end sweep moves what is still standing in a battle spot, and a card
+  that left is not there to be swept. One `move_to:mine.hand` on the rider.
 - **Card counts are per design, not per print run.** Data, not engine. The print
   files do not record duplicate counts; nothing to fix here.
-- **Oren's Chemistry Board.** Three 0–6 tracks are three stats, and the engine
-  has stats. Only the Ultimate that *spends* them needs a word, and that word is
-  a disjunctive cost — [31](../31-either-of-two.md), or `pays_for` again.
+- **Oren's Chemistry Board.** Three stats, and each potion's Element cost is a
+  `when` on the step that spends it — no disjunctive cost anywhere in it. What
+  wants [31](../31-either-of-two.md) is *Unstable Formula*, which is a different
+  card and a different question.
 
 ---
 
@@ -307,16 +326,22 @@ name worth printing in that sentence.
 
 **Size:** small. Not scheduled — hot-seat simultaneity is a niche of a niche.
 
-### F2. Oren's potion push-your-luck
+### F2. ~~Oren's potion push-your-luck~~ — done
 
-"Draw, resolve, then choose to stop or draw again, until a third TOXIC" is an
-unbounded player-driven loop inside one ability — which is a **phase**, not an
-ability, and the engine has phases with `ends_when`. A `player_input` phase
-pushed by the Ultimate, ending on `count:toxic@mine.potion_discard >= 3` or a
-*stop* button, may be buildable today with no engine change at all.
+It was free, and it needed no `ends_when` at all: the phase is pushed by the
+Ultimate and popped by whatever ends it, which is an action either way — the
+*Stop drinking* button, or the rule that watches for a third TOXIC. A phase that
+is ended by a condition and a phase that is ended by a button are different
+shapes, and this is the second one.
 
-**Worth trying before it is designed.** It is the one item here that might
-already be free.
+The Chemistry Board came with it and was never the hard part: three stats, and a
+potion's Element cost is a `when` on the step that spends it. A beaker too low is
+a potion that does nothing, which is the printed rule.
+
+One thing had to change beside it. An Ultimate is now `phases: ["play_1",
+"play_2"]` — **an Ultimate that may be used inside anything can be used inside
+itself**, and Oren's opens a phase to be used inside. That is where §2 already
+said Ultimates live; it just had never been written down as a restriction.
 
 ### F3. The Tier check runs between rounds
 
@@ -346,17 +371,49 @@ wanted.
 
 ---
 
+---
+
+## G. Found while closing the others
+
+### G1. Riot fires the discard effects it says it does not
+
+**What it costs.** Eve's *Riot* reads "discard your hand without triggering any
+discard effects". That was accidentally true while On Discard was an ability
+nothing ran outside Regroup. It is a `leaves` now — the card going from a hand to
+a discard — and Riot's `move:mine.hand:mine.discard` is exactly that, so it sets
+off every one of them. The card is wrong today, and it went wrong the moment the
+trigger was made right.
+
+**What will not do.** Routing the cards through a spare zone on the way —
+hand → commit → discard, neither hop matching both ends of the trigger — works
+and is a lie printed on a card. The format is the product; a card that says
+"discard your hand" must say that.
+
+**Proposal — a word for a move that is not a departure**, and it wants the
+author's ear before it is written, because it is a new word in the file. `destroy`
+already has the idea ("nothing is triggered by it") and the wrong shape, since
+these cards must land in the discard and be counted there. Two spellings worth
+weighing:
+
+- on the action, beside `top`/`bottom`: `move:mine.hand:mine.discard:quietly` —
+  short, and reads on the card as the printed text reads;
+- on the trigger, as a scope the `leaves` declines: harder to write and no better
+  to read.
+
+The first is one argument on one verb, and the only card in the box that needs it
+says why on its face.
+
+**Size:** small, and blocked on a word rather than on work.
+
 ## What to do first
 
 | | Item | Size | Why here |
 |---|---|---|---|
-| 1 | A2's tail + F2 — **try Abragail's two spaces, and the potion phase** | free, if they work | both were left out for reasons that do not survive a test; either may already be buildable |
-| 2 | E — **the five things that are not gaps** | small | five entries leave `09` for the price of some generator lines |
-| 3 | C1 — **`chosen.where` narrows what is shown** | small | fixes every `[GAIN]`, every Essence and Flame in one change |
-| 4 | D1 — **`random.` in a `move:`** | small | six cards become exact |
-| 5 | A1 — **Ultimates as a reaction to a resolve verb** | small–medium | restores the `[ULT]` icon, the largest single departure |
-| — | A3 — **the nested offer, and the half-resolved copy** | ~~small–medium~~ | **done.** Both landed; a copied card now resolves the whole of itself |
-| 6 | A2 — **one offer per seat, queued** | medium | Falling Star, and the same question as `seat: "all"` |
-| 8 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
-| 9 | C2, C3, D2, D3 | small each | one card or three apiece |
+| 1 | G1 — **a move that is not a departure**, for Riot | small | the one card the engine is currently *wrong* about, rather than merely short of; needs a word agreed first |
+| 2 | C1 — **`chosen.where` narrows what is shown** | small | fixes every `[GAIN]`, every Essence and Flame in one change |
+| 3 | A1 — **Ultimates as a reaction to a resolve verb** | small–medium | restores the `[ULT]` icon, the largest single departure |
+| 4 | A2 — **one offer per seat, queued** | medium | Falling Star, and the last thing an automatic step cannot ask |
+| 5 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
+| 6 | C2, C3, D2, D3 | small each | one card or three apiece |
+| — | A3, A2's tail, F2, E, D1 | ~~various~~ | **done.** The copy, the journal, the potion loop, the five that were not gaps, and the random discards |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |

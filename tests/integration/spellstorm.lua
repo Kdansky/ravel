@@ -73,6 +73,17 @@ end
 
 local function hand_of(seat) return zone_of("hand", seat) end
 
+-- Put a named seat up. The seat cards carry no tag naming themselves, so there
+-- is nothing for set_active_seat to point at; handing over until the right one
+-- is up says the same thing with the words the game has.
+local function become(seat)
+	for _ = 1, 4 do
+		if zones.active_seat() == seat then return end
+		actions.execute("set_active_seat:enemy.player", {})
+	end
+	assert(zones.active_seat() == seat, "cannot make " .. seat .. " the active seat")
+end
+
 local function empty_hand(seat)
 	local h = hand_of(seat)
 	for _, id in ipairs({ unpack(h.cards) }) do
@@ -500,6 +511,183 @@ function M.test_spellstorm_a_battle_is_four_rounds_then_a_regroup(check)
 		tostring(#zones.find("storm_cloud").cards))
 	check("nothing got stuck in the offer",
 		#zones.find("options").cards == 0, tostring(#zones.find("options").cards))
+end
+
+
+-- "Discards a random card" is a selection and a coin toss, and the engine had
+-- both words all along: `random.` narrows a scope to one of what it named, and
+-- `move` obeys it. Six cards said "the top of their hand" instead, which is the
+-- one card a player can plan around.
+function M.test_spellstorm_a_random_discard_is_not_the_top_of_the_hand(check)
+	opening(3, "eve", "croh")
+	local two = "seat_two"
+	empty_hand(two)
+	local hand = hand_of(two)
+	local order = { "magicdart", "block", "powergem", "ice" }
+	for _, key in ipairs(order) do zones.add(hand, key) end
+
+	local taken = {}
+	for _ = 1, #order do
+		actions.execute("move:random.enemy.hand:enemy.discard",
+			{ card_id = seat_card("seat_one").id, targets = {} })
+		local d = zone_of("discard", two)
+		taken[#taken + 1] = entity.get(d.cards[#d.cards]).def_key
+	end
+	check("one card left the hand each time, and the hand is empty",
+		#hand.cards == 0, #hand.cards)
+	check("and they did not come off in the order they were held",
+		table.concat(taken, ",") ~= table.concat(order, ","), table.concat(taken, ","))
+end
+
+
+-- The board prints what to do when a pile runs out, and until now running one
+-- dry was a *reward*: giving from an empty pile did nothing at all.
+function M.test_spellstorm_an_empty_pile_bites_instead_of_nothing(check)
+	opening(3, "eve", "croh")
+	local one, two = "seat_one", "seat_two"
+	become(one)
+	local pile = zones.find("curse_pile")
+	check("the pile has CURSE in it to start with", #pile.cards > 0, #pile.cards)
+
+	local health = seat_card(two).stats.health
+	actions.execute("activate_zone:rules:by_column:dry_give_curse", {})
+	check("with cards in the pile, the empty rule is quiet",
+		seat_card(two).stats.health == health, seat_card(two).stats.health)
+
+	for _, id in ipairs({ unpack(pile.cards) }) do zones.move_card(id, zones.find_id("void")) end
+	actions.execute("activate_zone:rules:by_column:dry_give_curse", {})
+	check("empty, being given a CURSE is a point of damage instead",
+		seat_card(two).stats.health == health - 1, seat_card(two).stats.health)
+end
+
+
+-- Croh's DOOM Tokens come only from failure states, which is the trap his whole
+-- design is built on: a token when he has none, and a token for a CURSE pile he
+-- has already emptied. Both are ifs, and an if lives in an ability.
+function M.test_spellstorm_dooms_arrive_only_from_failure(check)
+	opening(3, "croh", "eve")
+	local one = "seat_one"
+	become(one)
+	actions.execute("stat_set:doom@mine.player:0", {})
+	actions.execute("activate_zone:rules:by_column:croh_doom", {})
+	check("with no DOOM Token, the Ultimate grants one",
+		seat_card(one).stats.doom == 1, seat_card(one).stats.doom)
+	actions.execute("activate_zone:rules:by_column:croh_doom", {})
+	check("holding one, it grants nothing",
+		seat_card(one).stats.doom == 1, seat_card(one).stats.doom)
+
+	local sinking = stage_battle(one, "croh_sinking")
+	actions.execute("activate_zone:mine.battle:by_column:cast2",
+		{ card_id = sinking.id, targets = {} })
+	check("and Sinking Strike grants none while the CURSE pile is stocked",
+		seat_card(one).stats.doom == 1, seat_card(one).stats.doom)
+	local pile = zones.find("curse_pile")
+	for _, id in ipairs({ unpack(pile.cards) }) do zones.move_card(id, zones.find_id("void")) end
+	actions.execute("activate_zone:mine.battle:by_column:cast2",
+		{ card_id = sinking.id, targets = {} })
+	check("emptied, it does", seat_card(one).stats.doom == 2, seat_card(one).stats.doom)
+end
+
+
+-- Rapid Fire comes back to hand, which it could always have done: the round-end
+-- sweep moves what is still standing in a battle spot, and a card that left is
+-- not there to be swept.
+function M.test_spellstorm_rapid_fire_comes_back(check)
+	opening(3, "eve", "croh")
+	local one = "seat_one"
+	become(one)
+	actions.execute("stat_set:initiative@mine.player:0", {})
+	local rf = stage_battle(one, "rapidfire")
+	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = rf.id, targets = {} })
+	check("without Initiative it stays where it fell",
+		entity.get(rf.id).zone_id == zone_of("battle", one).id)
+
+	actions.execute("stat_set:initiative@mine.player:1", {})
+	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = rf.id, targets = {} })
+	check("with it, the card is back in the hand",
+		entity.get(rf.id).zone_id == hand_of(one).id)
+	actions.execute("each_seat:move:mine.battle:mine.discard", {})
+	check("so the sweep at the end of the round never sees it",
+		entity.get(rf.id).zone_id == hand_of(one).id)
+end
+
+
+-- Abragail's journal asks three of its eight questions, and an offer is one at a
+-- time: an action list has no cursor, so an ask has to be the last thing a phase
+-- does. Each question therefore gets a phase, and each phase one seat -- two
+-- Abragails would otherwise hold up both hands into the same offer.
+function M.test_spellstorm_the_journal_asks_one_question_at_a_time(check)
+	opening(3, "abra", "abra")
+	for _, k in ipairs({ "seat_one", "seat_two" }) do seat_card(k).stats.research = 8 end
+
+	actions.execute("each_seat:activate_zone:rules:by_column:bstart", {})
+	check("the silent spaces fire in the battle-start sweep and ask nothing",
+		phase.current().key ~= "options", phase.current().key)
+
+	local held = #hand_of("seat_one").cards + #hand_of("seat_two").cards
+	phase.push("journal_2a")
+	flow.settle()
+	check("the space that asks opens its offer in its own phase",
+		phase.current().key == "options", phase.current().key)
+	local n = #zones.find("options").cards
+	check("holding one seat's hand rather than both",
+		n > 0 and n <= #hand_of("seat_one").cards + n, n)
+	check("and it may be declined, since the printed space says you *may*",
+		flow.can_dismiss())
+	flow.dismiss_offer()
+	check("declining sends every borrowed card home",
+		#zones.find("options").cards == 0, #zones.find("options").cards)
+	check("with nothing lost on the way",
+		#hand_of("seat_one").cards + #hand_of("seat_two").cards == held)
+end
+
+
+-- Oren's Ultimate is a loop, and a loop is a phase. Each potion costs a number
+-- of one Element off the Chemistry Board and does nothing when the beaker is too
+-- low; a third TOXIC ends the whole thing and hands him one of each junk card.
+function M.test_spellstorm_the_potion_loop_pays_and_ends_itself(check)
+	opening(7, "oren", "derby")
+	local one = "seat_one"
+	become(one)
+	local seat = seat_card(one)
+	check("the beakers start at three",
+		seat.stats.fire_el == 3 and seat.stats.earth_el == 3 and seat.stats.water_el == 3,
+		("%d/%d/%d"):format(seat.stats.fire_el, seat.stats.earth_el, seat.stats.water_el))
+
+	actions.execute("push_phase:potion", {})
+	local draw
+	for _, z in ipairs(zones.all_with_key("controls")) do
+		for _, id in ipairs(z.cards) do
+			if entity.get(id).def_key == "btn_potion_draw" then draw = id end
+		end
+	end
+	check("the draw button is reachable, and only here", draw ~= nil and #flow.usable_abilities(draw) == 1)
+
+	local sips, guard = 0, 0
+	while phase.current().key ~= "play_1" and guard < 40 do
+		guard = guard + 1
+		flow.settle()
+		if phase.current().key == "reveal" then
+			local id = zones.find("reveal").cards[1]
+			if id and flow.can_play(id) then sips = sips + 1; flow.play_card(id, {}) end
+		else
+			local u = flow.usable_abilities(draw)
+			if #u == 0 then break end
+			flow.activate(draw, {}, u[1].index)
+		end
+	end
+	check("drinking until a third TOXIC ends the Ultimate on its own",
+		phase.current().key == "play_1", phase.current().key)
+	check("and it took more than one potion to get there", sips > 1, sips)
+	check("the beakers go back to three afterwards",
+		seat.stats.fire_el == 3 and seat.stats.earth_el == 3 and seat.stats.water_el == 3,
+		("%d/%d/%d"):format(seat.stats.fire_el, seat.stats.earth_el, seat.stats.water_el))
+	local junk = 0
+	for _, id in ipairs(zone_of("discard", one).cards) do
+		local d = require("cards").def(entity.get(id))
+		for _, t in ipairs(d.tags or {}) do if t == "junk" then junk = junk + 1 end end
+	end
+	check("and a third TOXIC costs an ASH, a CURSE and an ICE", junk >= 3, junk)
 end
 
 
