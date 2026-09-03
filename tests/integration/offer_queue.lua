@@ -124,6 +124,8 @@ end
 -- The first offer is the one that used to go to the wrong seat, and it is the
 -- easiest to miss: it opens where it stands, so nothing was obviously broken --
 -- except that `each_seat:` had put the turn back by the time anyone could click.
+-- Asked here of a table where somebody other than the first seat is up, which is
+-- also where the order of the questions is visible.
 function M.test_offer_queue_the_seat_that_asked_is_the_seat_that_answers(check)
 	with_game(nil, function(name)
 		flow.init(name, 3)
@@ -135,9 +137,16 @@ function M.test_offer_queue_the_seat_that_asked_is_the_seat_that_answers(check)
 
 		actions.execute("next_phase", {})
 		flow.settle()
-		check("the first question is still seat one's", zones.active_seat() == "one",
-			zones.active_seat())
-		for _ = 1, 3 do answer() end
+		local asked = {}
+		for _ = 1, 3 do
+			asked[#asked + 1] = zones.active_seat()
+			answer()
+		end
+		-- `each_seat:` goes round the table from whoever is up, so naming a seat
+		-- before it is how a game says "starting with the player who has
+		-- Initiative" -- and the questions arrive in that order.
+		check("the questions go round the table from whoever is up",
+			table.concat(asked, ",") == "three,one,two", table.concat(asked, ","))
 		check("and the turn is handed back afterwards", zones.active_seat() == up,
 			zones.active_seat())
 	end)

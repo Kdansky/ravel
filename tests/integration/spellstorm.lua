@@ -894,6 +894,72 @@ function M.test_spellstorm_the_tier_limit_gates_the_take(check)
 end
 
 
+-- "At all times exactly one player holds the Initiative Tracker" -- it decides
+-- the order of every step of the round that has one, so a game where nobody
+-- holds it quietly turns "starting with the player who has Initiative" into
+-- "starting with whoever happens to be up". The lower rating takes it, and a
+-- mirror match, where the ratings are equal, used to leave it on the table.
+function M.test_spellstorm_exactly_one_seat_holds_initiative(check)
+	for _, pair in ipairs({ { "derby", "eve" }, { "derby", "derby" }, { "may", "may" } }) do
+		opening(5, pair[1], pair[2])
+		local held = seat_card("seat_one").stats.initiative
+			+ seat_card("seat_two").stats.initiative
+		check(pair[1] .. " v " .. pair[2] .. ": exactly one holds it", held == 1, held)
+	end
+	opening(5, "derby", "eve")
+	check("and it is the lower rating that has it",
+		seat_card("seat_one").stats.initiative == 1
+		and seat_card("seat_one").stats.init_rating < seat_card("seat_two").stats.init_rating,
+		("%d/%d rating, %d/%d tracker"):format(
+			seat_card("seat_one").stats.init_rating, seat_card("seat_two").stats.init_rating,
+			seat_card("seat_one").stats.initiative, seat_card("seat_two").stats.initiative))
+end
+
+
+-- The round is ordered by the tracker, and every phase that cares names its own
+-- seat rather than inheriting one -- so nothing accumulates across rounds. The
+-- player with Initiative commits first, resolves first, and is asked first.
+function M.test_spellstorm_the_round_is_ordered_by_initiative(check)
+	opening(11, "derby", "eve")
+	check("the Initiative holder plays first",
+		seat_card(zones.active_seat()).stats.initiative == 1, zones.active_seat())
+	-- Hand it over, run the round out, and the order follows the tracker rather
+	-- than remembering who went first last time.
+	actions.execute("set_active_seat:has_init", {})
+	local was = zones.active_seat()
+	seat_card("seat_one").stats.initiative = 1 - seat_card("seat_one").stats.initiative
+	seat_card("seat_two").stats.initiative = 1 - seat_card("seat_two").stats.initiative
+	phase.push("weather")
+	flow.settle()
+	while phase.current().key == "options" and flow.dismiss_offer() do end
+	check("after it changes hands the other seat plays first",
+		zones.active_seat() ~= was, zones.active_seat())
+	check("and it is the one holding the tracker",
+		seat_card(zones.active_seat()).stats.initiative == 1, zones.active_seat())
+end
+
+
+-- Mirrored, not rotated. Two people read the same board from opposite sides of a
+-- table, so the second seat's row is the first one's reflected across the middle
+-- -- wizard, hand, deck, discard, left to right on both -- and not turned through
+-- half a circle. A rotated board puts your deck where your opponent's wizard is,
+-- which is only right if you are really sitting opposite each other.
+function M.test_spellstorm_the_board_is_mirrored_not_rotated(check)
+	opening(5, "derby", "eve")
+	for _, key in ipairs({ "wizard", "hand", "deck", "discard", "battle", "commit" }) do
+		local zs = zones.all_with_key(key)
+		check(key .. ": one for each seat", #zs == 2, #zs)
+		check(key .. ": the same place left to right for both seats",
+			zs[1].pos[1] == zs[2].pos[1] and zs[1].pos[3] == zs[2].pos[3],
+			("%s vs %s"):format(zs[1].pos[1] .. ".." .. zs[1].pos[3],
+				zs[2].pos[1] .. ".." .. zs[2].pos[3]))
+		-- And on their own side of it: the first seat is the near half.
+		check(key .. ": each on their own side", zs[1].pos[2] > zs[2].pos[2],
+			zs[1].pos[2] .. " vs " .. zs[2].pos[2])
+	end
+end
+
+
 -- The plain [GAIN] icon, whose limit is your own Tier rather than a number the
 -- card prints -- which is exactly why it is a `chosen.where` and not a narrower
 -- scope. No tag on the card being looked at could say whether it is at or below

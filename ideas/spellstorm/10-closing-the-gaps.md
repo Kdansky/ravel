@@ -125,10 +125,11 @@ way past, so a game with offers and no stack zone would have kept it — that ru
 is its own line in settle now. And closing an offer never settled, which nothing
 had noticed because there was never anything waiting behind one.
 
-**Falling Star is exact but for the order** — every player is asked; the printed
-card asks the one with Initiative first and `each_seat:` walks the players list.
-See `09`. Worth settling with [32](../32-a-third-player.md), which is the same
-question about seats.
+**Falling Star is exact**, order included. `each_seat:` goes round the table from
+whoever is up rather than always from the first seat — which is what "each
+player" means wherever a rulebook bothers to say, and Spellstorm says it twice
+("starting with the player with Initiative, then clockwise") — so naming the seat
+before the loop is how a game chooses the order, with a word it already had.
 
 For targeting, an ability run by a zone could open it the way a play does — but
 nothing in this box needs that.
@@ -568,6 +569,5 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 | 1 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
 | 2 | C2, C3, D2, D3 | small each | one card or three apiece |
 | 3 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
-| 4 | Falling Star's order — `each_seat:` from whoever is up | small | written down in `09`; settle it with [32](../32-a-third-player.md) |
 | — | A1, A2, A3, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |

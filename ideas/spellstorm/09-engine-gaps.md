@@ -163,12 +163,12 @@ states that grant them. What each still rounds off is below.
   ("players may use their Ultimate") now means something — an Ultimate needs a
   card carrying the icon (§2) — but waiving that for one round is a rule about
   the round, and a weather card has no way to say it. Both still draw.
-- **Falling Star asks in seat order, not Initiative order.** The printed card
-  offers the Storm Cloud to every player, *the one with Initiative first*. Every
-  player is now asked — the offer queue is what made that sayable — but
-  `each_seat:` walks the seats in the order the players list gives them, and
-  there is no word for "starting with whoever is up". It costs who gets first
-  pick off a shared shelf, which is a real difference maybe one game in five.
+- **A mirror match has no Initiative Tracker to start with.** "At all times
+  exactly one player holds" it, and the lower Initiative rating takes it at the
+  start — but two of the same wizard have the same rating, so nobody took it and
+  every "starting with the player who has Initiative" fell back to whoever was
+  up. The printed game does not say how to break that tie, so the tracker goes to
+  the player who is up as the game begins.
 - **An empty pile VOIDs a card, but not one you choose.** The Spellstorm Board
   prints an alternative for each pile that has run out: get rid of one of that
   junk card you are holding, and take a penalty. Both halves happen; which ICE,

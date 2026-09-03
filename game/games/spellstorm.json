@@ -210,7 +210,7 @@
       "grid": [1, 1],
       "copies": "per_seat",
       "use": "abilities",
-      "pos": [[0.005, 0.795, 0.135, 0.995], [0.865, 0.005, 0.995, 0.205]]
+      "pos": [[0.005, 0.795, 0.135, 0.995], [0.005, 0.005, 0.135, 0.205]]
     },
     {
       "key": "hand",
@@ -219,7 +219,7 @@
       "visibility": "owner",
       "copies": "per_seat",
       "applies": ["in_hand"],
-      "pos": [[0.14, 0.795, 0.79, 0.995], [0.21, 0.005, 0.86, 0.205]]
+      "pos": [[0.145, 0.795, 0.73, 0.995], [0.145, 0.005, 0.73, 0.205]]
     },
     {
       "key": "deck",
@@ -230,7 +230,7 @@
       "tags": ["shuffle"],
       "refill_from": "discard",
       "tooltip": "Your draw deck. When you need a card and it is empty, your discard is shuffled into it.",
-      "pos": [[0.795, 0.795, 0.885, 0.995], [0.115, 0.005, 0.205, 0.205]]
+      "pos": [[0.74, 0.795, 0.855, 0.995], [0.74, 0.005, 0.855, 0.205]]
     },
     {
       "key": "discard",
@@ -238,7 +238,7 @@
       "layout": "stack",
       "copies": "per_seat",
       "applies": ["in_discard"],
-      "pos": [[0.89, 0.795, 0.995, 0.995], [0.005, 0.005, 0.11, 0.205]]
+      "pos": [[0.865, 0.795, 0.98, 0.995], [0.865, 0.005, 0.98, 0.205]]
     },
     {
       "key": "commit",
@@ -248,7 +248,7 @@
       "copies": "per_seat",
       "visibility": "owner",
       "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played.",
-      "pos": [[0.915, 0.52, 0.995, 0.775], [0.915, 0.215, 0.995, 0.47]]
+      "pos": [[0.91, 0.52, 0.995, 0.775], [0.91, 0.215, 0.995, 0.47]]
     },
     {
       "key": "battle",
@@ -387,7 +387,7 @@
       "applies": ["takeable"],
       "contents": ["ice:6"],
       "tooltip": "Six *ICE*. Given to an opponent's discard, and returned here when *VOIDed*.",
-      "pos": [0.615, 0.215, 0.705, 0.4]
+      "pos": [0.6, 0.215, 0.69, 0.4]
     },
     {
       "key": "ash_pile",
@@ -397,7 +397,7 @@
       "applies": ["takeable"],
       "contents": ["ash:6"],
       "tooltip": "Six *ASH*. Given to an opponent's discard, and returned here when *VOIDed*.",
-      "pos": [0.715, 0.215, 0.805, 0.4]
+      "pos": [0.7, 0.215, 0.79, 0.4]
     },
     {
       "key": "curse_pile",
@@ -407,7 +407,7 @@
       "applies": ["takeable"],
       "contents": ["curse:6"],
       "tooltip": "Six *CURSE*. Given to an opponent's discard, and returned here when *VOIDed*.",
-      "pos": [0.815, 0.215, 0.905, 0.4]
+      "pos": [0.8, 0.215, 0.89, 0.4]
     },
     {
       "key": "dragon_deck",
@@ -417,15 +417,15 @@
       "use": "none",
       "tooltip": "*Tier IV*. Gained by filling your *Power Track* while already at *Tier III*.",
       "contents": ["firedragon", "winddragon", "icedragon", "stormdragon", "earthdragon"],
-      "pos": [0.615, 0.44, 0.705, 0.625]
+      "pos": [0.6, 0.44, 0.69, 0.625]
     },
     {
       "key": "controls",
       "layout": "grid",
-      "grid": [1, 4],
+      "grid": [2, 2],
       "use": "abilities",
       "tags": ["optional"],
-      "pos": [0.735, 0.44, 0.825, 0.785]
+      "pos": [0.71, 0.44, 0.895, 0.785]
     },
     {
       "key": "options",
@@ -517,7 +517,8 @@
         "each_seat:fill:mine.deck:block:2",
         "each_seat:fill:mine.deck:powergem:2",
         "each_seat:shuffle:mine.deck",
-        "each_seat:activate_zone:rules:by_column:first"
+        "each_seat:activate_zone:rules:by_column:first",
+        "activate_zone:rules:by_column:first_tie"
       ],
       "next": [{ "then": "battle_start" }]
     },
@@ -577,6 +578,7 @@
         "move:weather_now:weather_discard",
         "draw_from:weather_calm:weather_now:1",
         "stat_gain:battle_round@plan:1",
+        "set_active_seat:has_init",
         "each_seat:activate_zone:weather_now:by_column:wx"
       ],
       "next": [{ "then": "play_1" }]
@@ -584,7 +586,7 @@
     {
       "key": "play_1",
       "type": "player_input",
-      "seat": "next",
+      "seat": "same",
       "label": "Play a card face down",
       "zone": ["hand", "wizard", "controls"],
       "ends_when": "count:spell@mine.commit >= 1",
@@ -2516,7 +2518,7 @@
       "text": "Falling Star",
       "tags": ["weather", "storm"],
       "asset": "ss_fallingstar.jpg",
-      "tooltip": "*Draw a card*. Every player may gain a card from the *Storm Cloud* at or below their *Tier*.\n\n_[Simplified: the printed card asks the player with Initiative first; the questions are asked in seat order]_",
+      "tooltip": "*Draw a card*. Every player may gain a card from the *Storm Cloud* at or below their *Tier*.",
       "abilities": [
         {
           "key": "wx",
@@ -3189,6 +3191,11 @@
           "key": "first",
           "when": ["init_rating@mine.player < init_rating@enemy.player"],
           "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
+        },
+        {
+          "key": "first_tie",
+          "when": ["initiative@mine.player <= 0", "initiative@enemy.player <= 0"],
+          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
         }
       ]
     },
@@ -3479,10 +3486,10 @@
       { "card": "seat_one", "owner": "seat_one", "zone": "seats", "at": "a1" },
       { "card": "seat_two", "owner": "seat_two", "zone": "seats", "at": "b1" },
       { "card": "plan", "zone": "table" },
+      { "card": "btn_rules", "zone": "controls" },
       { "card": "btn_unplayable", "zone": "controls" },
       { "card": "btn_potion_draw", "zone": "controls" },
       { "card": "btn_potion_stop", "zone": "controls" },
-      { "card": "btn_rules", "zone": "controls" },
       { "card": "r_ctr_fire", "zone": "rules" },
       { "card": "r_ctr_earth", "zone": "rules" },
       { "card": "r_ctr_water", "zone": "rules" },

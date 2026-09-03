@@ -1301,8 +1301,17 @@ HANDLERS["each_seat"] = function(p, ctx)
 		M.execute(inner, ctx)
 		return
 	end
+	-- **Starting with whoever is up**, and round the table from there. That is
+	-- what "each player" means wherever a rulebook bothers to say — Spellstorm's
+	-- gain step is "starting with the player with Initiative, then clockwise" —
+	-- and a loop that always began at the first seat could not say it at all. So
+	-- the order is chosen by naming the seat before the loop, with the word that
+	-- already does that. Where the order does not matter, which is every deal
+	-- written so far, this reads exactly as it did.
 	local was, held = sys.stats.turn, sys.stats.priority or 0
-	for i = 1, #seats do
+	local from = (declaration.G.seat_index or {})[zones.active_seat()] or 1
+	for n = 0, #seats - 1 do
+		local i = (from - 1 + n) % #seats + 1
 		sys.stats.turn = i
 		-- Priority outranks the turn wherever "mine" is worked out, so a list run
 		-- off the stack — an emit's tail, a reaction's action — would ignore this

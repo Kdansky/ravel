@@ -956,7 +956,12 @@ function M.test_puzzle_strike_bubble_shield_makes_you_immune_to_a_red_chip(check
 	for _, z in ipairs(zones.all_with_key("hand")) do
 		if z.seat ~= one then two = z.seat end
 	end
-	local shield = zones.add(zone_of("hand", two), "bubble_shield")
+	-- Cleared first: the deal may have handed them a shield of their own, and
+	-- then "the answer offered" is two identical chips and the check reads as a
+	-- failure of the window rather than of the arithmetic above it.
+	local h = zone_of("hand", two)
+	for _, id in ipairs({ unpack(h.cards) }) do zones.move_card(id, zone_of("bag", two).id) end
+	local shield = zones.add(h, "bubble_shield")
 	local red = zones.add(zone_of("hand", one), "sneak_attack")
 	seat_card(one).stats.act_red = (seat_card(one).stats.act_red or 0) + 1
 

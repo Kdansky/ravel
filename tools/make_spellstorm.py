@@ -450,7 +450,6 @@ WEATHER = [
     # into the first one's.
     weather("fallingstar", "Falling Star",
             "Draw a card. Every player may gain a card from the Storm Cloud at or below their Tier.",
-            simplified="the printed card asks the player with Initiative first; the questions are asked in seat order",
             wx=[DRAW, OFFER_CLOUD],
             chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, calm=True),
     weather("strange_weather", "Strange Weather",
@@ -1109,7 +1108,17 @@ def rules_templates():
         "r_first", "Initiative rating",
         "The wizard with the lower Initiative rating takes the Initiative Tracker at the start of the game.",
         [ability("first", GAIN_INIT,
-                 when=["init_rating@mine.player < init_rating@enemy.player"])]))
+                 when=["init_rating@mine.player < init_rating@enemy.player"]),
+         # "At all times exactly one player holds the Initiative Tracker", and
+         # two wizards with the same rating -- a mirror match -- left nobody
+         # holding it, which quietly turned every "starting with the player who
+         # has Initiative" into "starting with whoever happened to be up". The
+         # printed game does not say how to break the tie, so the engine gives it
+         # to the player who is up as the game begins. Run once rather than once
+         # per seat, or the second seat would take it back off the first.
+         ability("first_tie", GAIN_INIT,
+                 when=["initiative@mine.player <= 0",
+                       "initiative@enemy.player <= 0"])]))
 
     # Abragail's journal: every researched space fires at battle start. The
     # three that ask a question run under their own step so a phase can open
@@ -1189,6 +1198,13 @@ def zones():
     P = lambda *r: list(r)
     return [
         # Per-seat. Bottom seat first, top seat second, everywhere.
+        #
+        # **Mirrored, not rotated.** Two people at a table read the same board
+        # from opposite sides, so the second seat's row is the first one's
+        # reflected across the middle -- wizard on the left, hand, then deck and
+        # discard on the right -- and not turned through half a circle. A rotated
+        # board puts your deck where your opponent's wizard is, which is only
+        # right if you are actually sitting opposite each other.
         # Offscreen, and a grid so it counts as in play: "who holds the
         # Initiative Tracker" is asked of the seat cards as a computed tag, and a
         # tag scope only reaches a board.
@@ -1196,7 +1212,7 @@ def zones():
          "display": "offscreen", "use": "abilities"},
         {"key": "wizard", "label": "Wizard", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat", "use": "abilities",
-         "pos": [P(0.005, 0.795, 0.135, 0.995), P(0.865, 0.005, 0.995, 0.205)]},
+         "pos": [P(0.005, 0.795, 0.135, 0.995), P(0.005, 0.005, 0.135, 0.205)]},
         # Named so the box stays on screen when the hand is empty -- which it is
         # across `regroup` and both gain steps, and whenever somebody plays their
         # last card. An unlabelled empty zone draws nothing at all (render.lua).
@@ -1204,14 +1220,14 @@ def zones():
         # say and no single zone key covers -- has two kinds to be the union of.
         {"key": "hand", "label": "Hand", "layout": "row", "visibility": "owner",
          "copies": "per_seat", "applies": ["in_hand"],
-         "pos": [P(0.14, 0.795, 0.79, 0.995), P(0.21, 0.005, 0.86, 0.205)]},
+         "pos": [P(0.145, 0.795, 0.730, 0.995), P(0.145, 0.005, 0.730, 0.205)]},
         {"key": "deck", "label": "Deck", "layout": "stack", "visibility": "secret",
          "copies": "per_seat", "tags": ["shuffle"], "refill_from": "discard",
          "tooltip": "Your draw deck. When you need a card and it is empty, your discard is shuffled into it.",
-         "pos": [P(0.795, 0.795, 0.885, 0.995), P(0.115, 0.005, 0.205, 0.205)]},
+         "pos": [P(0.740, 0.795, 0.855, 0.995), P(0.740, 0.005, 0.855, 0.205)]},
         {"key": "discard", "label": "Discard", "layout": "stack",
          "copies": "per_seat", "applies": ["in_discard"],
-         "pos": [P(0.89, 0.795, 0.995, 0.995), P(0.005, 0.005, 0.11, 0.205)]},
+         "pos": [P(0.865, 0.795, 0.980, 0.995), P(0.865, 0.005, 0.980, 0.205)]},
         # Where a card waits face down, and where it stands once both are turned
         # over. Two zones rather than one because "who may read this" is a
         # property of the place and not of the moment: `visibility` is declared,
@@ -1226,7 +1242,7 @@ def zones():
         {"key": "commit", "label": "Face down", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat", "visibility": "owner",
          "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played.",
-         "pos": [P(0.915, 0.520, 0.995, 0.775), P(0.915, 0.215, 0.995, 0.470)]},
+         "pos": [P(0.910, 0.520, 0.995, 0.775), P(0.910, 0.215, 0.995, 0.470)]},
         {"key": "battle", "label": "Battle", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat",
          "pos": [P(0.435, 0.575, 0.565, 0.785), P(0.435, 0.215, 0.565, 0.425)]},
@@ -1264,24 +1280,27 @@ def zones():
         {"key": "ice_pile", "use": "abilities", "label": "Ice", "layout": "stack",
          "applies": ["takeable"], "contents": ["ice:6"],
          "tooltip": "Six ICE. Given to an opponent's discard, and returned here when VOIDed.",
-         "pos": P(0.615, 0.215, 0.705, 0.40)},
+         "pos": P(0.600, 0.215, 0.690, 0.40)},
         {"key": "ash_pile", "use": "abilities", "label": "Ash", "layout": "stack",
          "applies": ["takeable"], "contents": ["ash:6"],
          "tooltip": "Six ASH. Given to an opponent's discard, and returned here when VOIDed.",
-         "pos": P(0.715, 0.215, 0.805, 0.40)},
+         "pos": P(0.700, 0.215, 0.790, 0.40)},
         {"key": "curse_pile", "use": "abilities", "label": "Curse", "layout": "stack",
          "applies": ["takeable"], "contents": ["curse:6"],
          "tooltip": "Six CURSE. Given to an opponent's discard, and returned here when VOIDed.",
-         "pos": P(0.815, 0.215, 0.905, 0.40)},
+         "pos": P(0.800, 0.215, 0.890, 0.40)},
         {"key": "dragon_deck", "label": "Dragons", "layout": "stack",
          "tags": ["shuffle"], "use": "none",
          "tooltip": "Tier IV. Gained by filling your Power Track while already at Tier III.",
          "contents": [c["key"] for c in DRAGONS],
-         "pos": P(0.615, 0.44, 0.705, 0.625)},
+         "pos": P(0.600, 0.44, 0.690, 0.625)},
 
-        {"key": "controls", "layout": "grid", "grid": [1, 4],
+        # Two across and two down, so the two buttons anybody may press -- the
+        # rules card and the unplayable hand -- sit side by side, with Oren's two
+        # potion buttons under them.
+        {"key": "controls", "layout": "grid", "grid": [2, 2],
          "use": "abilities", "tags": ["optional"],
-         "pos": P(0.735, 0.44, 0.825, 0.785)},
+         "pos": P(0.710, 0.44, 0.895, 0.785)},
 
         # The offer, claimed so a roster of eight wizards has the middle of the
         # screen for one click and no strip of board for the rest of the game.
@@ -1364,7 +1383,8 @@ def phases():
                      "each_seat:fill:mine.deck:block:2",
                      "each_seat:fill:mine.deck:powergem:2",
                      "each_seat:shuffle:mine.deck",
-                     "each_seat:activate_zone:rules:by_column:first"],
+                     "each_seat:activate_zone:rules:by_column:first",
+                     "activate_zone:rules:by_column:first_tie"],
          "next": [{"then": "battle_start"}]},
 
         # A battle begins with three cards in hand. After the first one you are
@@ -1381,10 +1401,17 @@ def phases():
 
         ] + JOURNAL_PHASES + [
 
+        # The seat is named before the sweep because `each_seat:` goes round the
+        # table from whoever is up: that is how Falling Star says "all players
+        # may gain, player with Initiative first". It also settles who commits
+        # first, which the printed game leaves open -- both cards go down face
+        # down -- and having the Initiative player lead every ordered step of the
+        # round is the one answer that is consistent with the rest of it.
         {"key": "weather", "type": "automatic",
          "actions": ["move:weather_now:weather_discard",
                      "draw_from:weather_calm:weather_now:1",
                      "stat_gain:battle_round@plan:1",
+                     "set_active_seat:has_init",
                      "each_seat:activate_zone:weather_now:by_column:wx"],
          "next": [{"then": "play_1"}]},
 
@@ -1393,7 +1420,7 @@ def phases():
         # chooses without seeing the first card -- really, over the network;
         # only on the screen, in hot-seat, where the other player watched the
         # click. See the gaps note.
-        {"key": "play_1", "type": "player_input", "seat": "next",
+        {"key": "play_1", "type": "player_input", "seat": "same",
          "label": "Play a card face down", "zone": ["hand", "wizard", "controls"],
          "ends_when": "count:spell@mine.commit >= 1",
          "next": [{"then": "play_2"}]},
@@ -1665,10 +1692,10 @@ def build():
             {"card": "seat_one", "owner": "seat_one", "zone": "seats", "at": "a1"},
             {"card": "seat_two", "owner": "seat_two", "zone": "seats", "at": "b1"},
             {"card": "plan", "zone": "table"},
+            {"card": "btn_rules", "zone": "controls"},
             {"card": "btn_unplayable", "zone": "controls"},
             {"card": "btn_potion_draw", "zone": "controls"},
             {"card": "btn_potion_stop", "zone": "controls"},
-            {"card": "btn_rules", "zone": "controls"},
         ]},
     }
 
