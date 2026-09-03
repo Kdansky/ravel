@@ -73,10 +73,15 @@ before the chosen actions run rather than after. *Flame*, *Spirit Crystal*,
 *Meteorite*, *Wind Dragon*, *Deep Gems*, Bunny's *Cast a Magic Trick!* and May's
 *Void Traveler* resolve the whole of what they copy.
 
-The one thing a copy still must not do is fire a discard effect, since that is
-not part of being resolved. A flat list of abilities cannot say so on its own,
-so the ability says it: Spellstorm's `disc` steps are looking only when no card
-stands in a battle spot, which is every moment except a resolution.
+The one thing a copy must not do is fire a discard effect, since that is not
+part of being resolved — and the answer turned out not to be a rule about
+copying. **On Discard is not an ability.** An ability is something the card
+does, and every rule that runs abilities would run it; this is something that
+happens *to* the card. It is now a `leaves` trigger, fired by the card going
+from a hand into a discard pile, so no rule about resolving has to know it
+exists and no card carries a condition on the off chance somebody copies it.
+The engine word this needed is `leaves.from`, which names which departure a
+`leaves` answers — leaving play, as before, or leaving a named zone.
 
 ### 4. There are no passives, so Croh and Bunny are approximations
 
@@ -124,6 +129,10 @@ and a phase's own action list are the only automatic hooks.
 - **Obsidian** takes the damage and the mana but does not grant a free Ultimate —
   there is no way to waive a cost.
 - **Rapid Fire** does not return itself to hand.
+- **Wind Dragon discards the card it resolves** — and now that discarding fires
+  an On Discard, that guess costs something. The tooltip says only "resolve a
+  card from your hand"; where the resolved card goes is unrecorded here. Needs a
+  re-read of the printed card, or Keith.
 - **Omar's Shuriken** takes Initiative instead of "this card ALWAYS goes first".
   Resolution order is the Initiative Tracker and nothing else, which is close.
 - **Weather that rewrites other cards** is not implemented: *Glittering Dust*

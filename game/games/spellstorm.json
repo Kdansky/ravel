@@ -555,7 +555,6 @@
       "type": "automatic",
       "actions": [
         "move:weather_now:weather_discard",
-        "each_seat:activate_zone:mine.hand:by_column:disc",
         "each_seat:move:mine.hand.has_discard:mine.discard",
         "each_seat:move:mine.hand.junk:mine.discard",
         "each_seat:activate_zone:rules:by_column:score",
@@ -633,14 +632,9 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:power@mine.player:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": { "action": ["move_target_to:mine.discard", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
     {
@@ -693,14 +687,9 @@
           "text": "Resolve",
           "action": ["stat_gain:power@mine.player:1", "move_to:void"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
     {
@@ -774,14 +763,9 @@
           "key": "cast",
           "text": "Resolve",
           "action": ["stat_gain:health@mine.player:3", "draw_from:curse_pile:mine.discard:1"]
-        },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_damage:health@mine.player:1"]
         }
-      ]
+      ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:health@mine.player:1"] }
     },
     {
       "key": "lantern",
@@ -841,14 +825,13 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_damage:health@mine.player:1", "stat_gain:mana@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
+      "leaves": {
+        "from": "hand",
+        "into": "discard",
+        "action": ["stat_damage:health@mine.player:1", "stat_gain:mana@mine.player:1"]
+      },
       "chosen": {
         "action": [
           "move_target_to:void",
@@ -1094,15 +1077,8 @@
       "tooltip": "*Heal 4*. On discard: *heal 2*.\n\n_The rare and beautiful Moonstone is one of the most coveted in all of Omia._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
-      "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_gain:health@mine.player:4"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:health@mine.player:2"]
-        }
-      ]
+      "abilities": [{ "key": "cast", "text": "Resolve", "action": ["stat_gain:health@mine.player:4"] }],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:health@mine.player:2"] }
     },
     {
       "key": "reflect",
@@ -1172,14 +1148,13 @@
           "text": "Resolve",
           "when": ["initiative@mine.player <= 0"],
           "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
-        },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
         }
-      ]
+      ],
+      "leaves": {
+        "from": "hand",
+        "into": "discard",
+        "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
+      }
     },
     {
       "key": "twinsapphire",
@@ -1250,14 +1225,9 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:power@mine.player:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
     {
@@ -1274,14 +1244,9 @@
           "text": "Resolve",
           "action": ["stat_gain:mana@mine.player:1", "stat_damage:health@mine.player:1"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:mana@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:mana@mine.player:1"] },
       "chosen": { "action": ["move_target_to:void"] }
     },
     {
@@ -1304,14 +1269,9 @@
             "stat_gain:power@mine.player:1",
             "stat_gain:power@mine.player:1"
           ]
-        },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1"]
         }
-      ]
+      ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] }
     },
     {
       "key": "meteorite",
@@ -1323,14 +1283,9 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@mine.player:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_damage:health@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:health@mine.player:1"] },
       "chosen": {
         "action": [
           "move_target_to:void",
@@ -1359,14 +1314,13 @@
             "stat_gain:mana@mine.player:1"
           ]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
+      "leaves": {
+        "from": "hand",
+        "into": "discard",
+        "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
+      },
       "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
     {
@@ -1383,14 +1337,9 @@
           "text": "Resolve",
           "action": ["stat_damage:power@enemy.player:2", "draw_from:ash_pile:enemy.discard:1"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
     {
@@ -1403,14 +1352,9 @@
       "card_stats": { "tier_req": 2 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": { "action": ["move_target_to:void", "stat_gain:power@mine.player:1"] }
     },
     {
@@ -1441,14 +1385,9 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": { "action": ["copy:target:activate", "move_target_to:mine.discard"] }
     },
     {
@@ -1471,14 +1410,13 @@
           "when": ["count:water@battle >= 1"],
           "action": ["stat_gain:power@mine.player:1"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
+      "leaves": {
+        "from": "hand",
+        "into": "discard",
+        "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
+      },
       "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
     {
@@ -1495,14 +1433,13 @@
           "text": "Resolve",
           "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
+      "leaves": {
+        "from": "hand",
+        "into": "discard",
+        "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
+      },
       "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
     {
@@ -1512,15 +1449,8 @@
       "tags": ["water", "tide", "spell", "junk", "has_discard"],
       "tooltip": "This can't be played. On discard during *Regroup*: -1 to your *Blast Score*.\n\n_\"Ice cut into a cube shape is kind of like a gem.\" - Beosnook_",
       "card_stats": { "tier_req": 1 },
-      "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_gain:ice_pen@mine.player:1"]
-        }
-      ]
+      "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:ice_pen@mine.player:1"] }
     },
     {
       "key": "ash",
@@ -1529,15 +1459,8 @@
       "tags": ["earth", "loam", "spell", "junk", "has_discard"],
       "tooltip": "This can't be played. On discard: lose *1 Power Token*.\n\n_The Spellstorm is a highly volcanic area, often covered in ash._",
       "card_stats": { "tier_req": 1 },
-      "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_damage:power@mine.player:1"]
-        }
-      ]
+      "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:power@mine.player:1"] }
     },
     {
       "key": "curse",
@@ -1546,15 +1469,8 @@
       "tags": ["fire", "ember", "spell", "junk", "has_discard"],
       "tooltip": "This can't be played. On discard: take *1 damage*.\n\n_\"Curses!\" - H.M.T. Holliganger, Distinguished Professor at the Azura Academy School of Archaeology_",
       "card_stats": { "tier_req": 1 },
-      "abilities": [
-        { "key": "cast", "text": "Resolve", "action": [] },
-        {
-          "key": "disc",
-          "text": "On discard",
-          "when": ["count:spell@battle <= 0"],
-          "action": ["stat_damage:health@mine.player:1"]
-        }
-      ]
+      "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:health@mine.player:1"] }
     },
     {
       "key": "firedragon",
@@ -1581,7 +1497,7 @@
       "text": "Wind Dragon",
       "asset": "ss_winddragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon"],
-      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one]_",
+      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one, and the card resolved is then discarded — the printed card may not say that]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -2920,7 +2836,6 @@
       "tooltip": "If your hand is nothing but *ICE*, *ASH* and *CURSE*, use this: discard them all with their effects, take *1 damage*, and draw a new hand of 4.",
       "activate": {
         "action": [
-          "activate_zone:mine.hand:by_column:disc",
           "move:mine.hand:mine.discard",
           "stat_damage:health@mine.player:1",
           "draw_from:mine.deck:mine.hand:4"

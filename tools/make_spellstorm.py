@@ -353,8 +353,12 @@ DRAGONS = [
     card("winddragon", "Wind Dragon", FIRE, tier=4, kind="dragon",
          tooltip="Gain Initiative. Gain a Storm Shard. You may resolve a card from your hand.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
-         simplified="the printed card resolves up to two cards; here it is one",
+         simplified="the printed card resolves up to two cards; here it is one, and the card resolved is then discarded — the printed card may not say that",
          cast=GAIN_INIT + [SHARD(1), OFFER_HAND],
+         # GAP: does the resolved card go anywhere? The tooltip says only
+         # "resolve", and the discard here was a guess made when a discard fired
+         # nothing. It fires an On Discard now, so the guess costs something.
+         # Waiting on a re-read of the printed card, or on Keith.
          chosen=["copy:target:activate", "move_target_to:mine.discard"]),
     card("icedragon", "Ice Dragon", WATER, tier=4, kind="dragon",
          tooltip="Heal 3. Gain a Storm Shard. Give an ICE.",
@@ -828,21 +832,21 @@ def spell_template(c):
         "%s: the offer has to be the last thing its cast does" % c["key"]
 
     abil = []
-    # Always first, even when it is empty: `copy` reaches for ability one and
-    # runs it without asking whether there is anything in it.
+    # Kept even when it is empty, so the resolve phase's first pass always has
+    # something to name.
     abil.append(ability("cast", does, text="Resolve"))
     if c["cast2"]: abil.append(ability("cast2", c["cast2"][1], when=[c["cast2"][0]], text="Resolve"))
     if c["cast3"]: abil.append(ability("cast3", c["cast3"][1], when=[c["cast3"][0]], text="Resolve"))
     if asks:       abil.append(ability("cast_ask", asks, text="Resolve"))
-    # A discard effect is not part of resolving, and `copy` runs the whole card:
-    # "resolve that card" means everything the card does *now*, and what it does
-    # when discarded is not that. Nothing else tells the two apart -- the resolve
-    # phase names its steps and the regroup names this one, so the ability itself
-    # has to say when it is not looking. It is looking whenever no card is
-    # standing in a battle spot, which is every moment except a resolution.
-    if c["disc"]:  abil.append(ability("disc", c["disc"], text="On discard",
-                                       when=["count:spell@battle <= 0"]))
     t["abilities"] = abil
+    # On Discard is not an ability. An ability is something the card does, and
+    # every rule that runs abilities would run this one -- resolving it, copying
+    # it -- each needing a reason not to. This is something that happens *to* the
+    # card, so it is a trigger: leaving the hand for the discard pile, which is
+    # what the rulebook means and nothing else. VOIDing it goes somewhere else
+    # and fires nothing, which is the rule stated once instead of on every card.
+    if c["disc"]:
+        t["leaves"] = {"from": "hand", "into": "discard", "action": list(c["disc"])}
     if c["chosen"]: t["chosen"] = {"action": list(c["chosen"])}
     return t
 
@@ -1201,7 +1205,6 @@ def phases():
         # in hand is a Blast Score, and each player gains one card.
         {"key": "regroup", "type": "automatic",
          "actions": ["move:weather_now:weather_discard",
-                     "each_seat:activate_zone:mine.hand:by_column:disc",
                      "each_seat:move:mine.hand.has_discard:mine.discard",
                      "each_seat:move:mine.hand.junk:mine.discard",
                      "each_seat:activate_zone:rules:by_column:score",
@@ -1262,8 +1265,7 @@ def build():
         "key": "btn_unplayable", "text": "Unplayable hand",
         "asset": "auto", "tags": ["immutable"],
         "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
-        "activate": {"action": ["activate_zone:mine.hand:by_column:disc",
-                                "move:mine.hand:mine.discard",
+        "activate": {"action": ["move:mine.hand:mine.discard",
                                 SELF_DMG(1),
                                 "draw_from:mine.deck:mine.hand:4"]}})
     cards.append({

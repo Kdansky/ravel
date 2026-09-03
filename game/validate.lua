@@ -130,7 +130,7 @@ local CARD_FIELDS = {
 	emits = true,
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
-	on_leaves = true, leaves_into = true,
+	on_leaves = true, leaves_into = true, leaves_from = true,
 	activate_cost = true, activate_target = true,
 	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
@@ -152,6 +152,9 @@ local TURN_FIELDS      = { action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
 -- The pick is the target; the card that asked is the one acting.
 local CHOSEN_FIELDS    = { where = true, action = true }
+-- A card on its way out. "from" is which departure is meant -- out of play
+-- when it is left out, out of the zone it names when it is not.
+local LEAVES_FIELDS    = { from = true, into = true, action = true }
 local ZONE_FIELDS = {
 	key = true, label = true, pos = true, style = true,
 	-- the seven, and the two parameters a layout value makes legal
@@ -205,6 +208,7 @@ end
 
 local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
 	abilities = true, emits = true, leaves = true, on_leaves = true, leaves_into = true,
+	leaves_from = true,
 	-- derived from the blocks, as on a card
 	on_activate = true, activate_target = true, activate_cost = true,
 	activate_phases = true, activate_merge = true, moves = true,
@@ -316,6 +320,7 @@ M.FIELDS = {
 	receive       = RECEIVE_FIELDS,
 	turn          = TURN_FIELDS,
 	chosen        = CHOSEN_FIELDS,
+	leaves        = LEAVES_FIELDS,
 	verbs         = VERB_FIELDS,
 	adjusts       = ADJUST_FIELDS,
 }
@@ -335,7 +340,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
-	on_leaves = true, leaves_into = true,
+	on_leaves = true, leaves_into = true, leaves_from = true,
 	zone_list = true, auto_play = true, to_zone = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
@@ -1840,7 +1845,7 @@ function M.check(G)
 		check_fields(where, def, CARD_FIELDS)
 		for moment, fields in pairs({ play = PLAY_FIELDS, activate = ACTIVATE_FIELDS,
 			receive = RECEIVE_FIELDS, turn = TURN_FIELDS, challenge = CHALLENGE_FIELDS,
-			chosen = CHOSEN_FIELDS }) do
+			chosen = CHOSEN_FIELDS, leaves = LEAVES_FIELDS }) do
 			if type(def[moment]) == "table" then
 				check_fields(where .. " " .. moment, def[moment], fields)
 			end
@@ -1970,6 +1975,19 @@ function M.check(G)
 					where, tostring(def.leaves_into), suggest(def.leaves_into, G.zone_defs))
 			elseif def.on_leaves == nil then
 				warn('%s leaves: says where it goes but does nothing when it gets there — add "action"', where)
+			end
+		end
+		if def.leaves_from ~= nil then
+			if not G.zone_defs[def.leaves_from] then
+				warn("%s leaves: comes \"from\" '%s', but no zone has that key%s",
+					where, tostring(def.leaves_from), suggest(def.leaves_from, G.zone_defs))
+			elseif def.on_leaves == nil then
+				warn('%s leaves: says where it comes from but does nothing on the way out — add "action"', where)
+			end
+			-- Naming the same zone both ways is a card that never moves.
+			if def.leaves_from == def.leaves_into then
+				warn("%s leaves: comes \"from\" '%s' and goes \"into\" the same zone, so it never fires",
+					where, tostring(def.leaves_from))
 			end
 		end
 		check_conditions(where .. " chosen where", def.chosen_where)

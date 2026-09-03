@@ -1105,7 +1105,7 @@ disk cache with no network at all.
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). `action`: what happens when one lands, read the same way. Zones take the same block |
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
-| `leaves` | `action`: run when this card **leaves play** — out of a `status: board` zone into one that is not. `into` names the zone it landed in, and is what tells death from exile from bounce (see *`leaves` — a card on its way out*) |
+| `leaves` | `action`: run when this card **leaves**, with `@self` as the departing card. `from` says which departure — leaving play by default, out of a `status: board` zone into one that is not; name a zone and it is leaving that zone, which is how "when you discard this" is said. `into` names the zone it landed in, and is what tells death from exile from bounce (see *`leaves` — a card on its way out*) |
 | `chosen` | `action`: run when somebody picks a card out of the offer **this** card opened with `show:`, with the pick as `@target` and this card as `@self`. The reverse of an `options:` offer, where the entry carries the rule and the asker is what it is about — here the entry is somebody else's property and carries nothing of ours |
 | `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
@@ -2888,8 +2888,7 @@ is the setup for the offer, not a change made underneath it.
 ### `leaves` — a card on its way out
 
 **Most of a card game's triggers are about a card leaving**, and this is the
-moment for them. It fires when a card goes out of a `status: board` zone into
-one that is not, with `@self` as the departing card:
+moment for them. It fires as the card moves, with `@self` as the departing card:
 
 ```json
 "leaves": { "into": "discard", "action": ["stat_damage:hp@enemy.hero:1"] }
@@ -2905,8 +2904,30 @@ from another**. The engine learns none of their names:
 | "when this is returned to your hand" | `hand` |
 | "when this leaves play" | leave `into` out — any departure |
 
-Moving between two board zones is not leaving anything, so a unit walking off a
-patrol slot and into your army fires nothing.
+**`from` says which departure is meant.** Left out it is leaving *play*: out of
+a `status: board` zone into one that is not. Moving between two board zones is
+not leaving anything, so a unit walking off a patrol slot and into your army
+fires nothing.
+
+Name a zone and it is leaving *that zone* instead — the other trigger every card
+game has:
+
+```json
+"leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] }
+```
+
+That is "when you discard this", and it is one word away from "when this dies"
+because they are one sentence with the departure swapped. `into` still filters
+where it went, which is what keeps a card that is *voided* out of the same hand
+from firing it.
+
+Reach for `from` whenever the departure is not a death — a hand, a deck being
+milled, a market row refreshing — and reach for it especially in a game that
+keeps **no `status: board` zone at all**, where leaving play is a thing that
+never happens. Without it such a trigger has to be written as an ability, and
+an ability is a thing the card *does*: every rule that runs abilities will then
+run it, and each of those rules needs a reason not to. A trigger is something
+that happens *to* the card, and belongs here.
 
 **Write it on a tag and a whole class announces itself.** The other half of a
 trigger is usually a card *watching*, and that is an ordinary reaction — so one

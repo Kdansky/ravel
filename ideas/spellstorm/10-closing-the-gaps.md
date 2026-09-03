@@ -101,13 +101,24 @@ opens after the rest has run, which is exactly the ability a copy never reached.
 **Fixed**: `copy` now runs every ability whose `when` holds, in order, the same
 thing `activate_zone` does.
 
-**What that cost.** A flat ability list cannot say which of its entries are part
-of being *resolved*, so a copy would have fired the discard effect too.
-Spellstorm's `disc` steps now carry a `when` — they are looking only while no
-card stands in a battle spot, which is every moment except a resolution. Worth
-noting as a shape rather than a fix: **the four-pass resolve exists only to keep
-`disc` out**, and now that `disc` says for itself when it is looking, one
-`activate_zone` with no step would do the same work.
+**What that cost, and what it bought.** A flat ability list cannot say which of
+its entries are part of being *resolved*, so a copy fired the discard effect
+too. The first patch was a `when` on every `disc` step — looking only while no
+card stands in a battle spot — which is a card carrying a condition about the
+world to answer a question about itself, and reads as nothing at all.
+
+**Fixed properly**: On Discard is not an ability. An ability is something the
+card does; this is something that happens *to* it. It is a `leaves` trigger now,
+`{ "from": "hand", "into": "discard" }`, which is the rulebook sentence — and
+"does not trigger when you VOID" comes free, since a VOID lands somewhere else.
+The engine gained one word for it, `leaves.from`, naming which departure a
+`leaves` answers. Nineteen conditions went, two `activate_zone` lines went, and
+*Flame* and *Spirit Crystal* began firing the On Discard they had been eating.
+
+Worth noting as a shape rather than a fix: **the four-pass resolve had a second
+job, keeping `disc` out of a stepless pass**, and no longer has it. Each battle
+spot holds one card, so `activate_zone:mine.battle:by_column` with no step would
+now run the same four abilities in the same order, in one line instead of four.
 
 The `cast`/`cast_ask` split stays, and should: it is what keeps the offer last
 within one card, so a rider does not read a hand that has been lent out to a

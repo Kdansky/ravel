@@ -398,13 +398,21 @@ M.run_actions = nil
 -- taking the process with it.
 local receiving = 0
 
--- **Leaving play**, which is where a card game keeps most of its triggers and
--- the engine had no word for. It fires on the way out of a `status: board` zone
--- into one that is not: a unit walking from the bench to the front line has not
--- left anything, and a unit going to a discard, a hand, a trash or a command
--- zone has. `into` on the card's block names which of those, so death, exile and
--- bounce are one sentence pointed at three places and the engine learns none of
--- their names.
+-- **A card on its way out**, which is where a card game keeps most of its
+-- triggers and the engine had no word for. `into` on the card's block names
+-- where it landed, so death, exile and bounce are one sentence pointed at three
+-- places and the engine learns none of their names.
+--
+-- **Which departure is `from`.** Left out it is leaving *play*: out of a
+-- `status: board` zone into one that is not, so a unit walking from the bench
+-- to the front line has left nothing and a unit going to a discard, a hand, a
+-- trash or a command zone has. Name a zone and it is leaving *that* zone
+-- instead, which is the other trigger every card game has — discarded from
+-- hand, milled off a deck — and which was unsayable before. The two are one
+-- word because they are one sentence with the departure swapped, and a game
+-- that keeps no board at all had nowhere else to put the second: it wrote the
+-- trigger as an ability, and then had to stop every rule that runs abilities
+-- from running it.
 --
 -- **`destroy:` does not fire it, deliberately.** A destroyed card lands nowhere,
 -- so there is no zone to name, and `destroy_card` clears its stats — a rule
@@ -418,10 +426,14 @@ local receiving = 0
 -- and then the place does something about it.
 local function fire_leaves(from, to, card_id)
 	if not (from and to and M.run_actions) then return end
-	if from.status ~= "board" or to.status == "board" then return end
 	local c   = entity.get(card_id)
 	local def = c and declaration.G.card_defs[c.def_key]
 	if not (def and def.on_leaves) then return end
+	if def.leaves_from then
+		if from.key ~= def.leaves_from then return end
+	elseif from.status ~= "board" or to.status == "board" then
+		return
+	end
 	local want = def.leaves_into
 	if want and want ~= to.key then return end
 	-- The same depth guard receive keeps, for the same reason: a rule that moves
@@ -501,6 +513,14 @@ function M.move_card(card_id, to_id, where)
 	end
 
 	local from = entity.get(c.zone_id)
+	-- A card in the offer is lent, not moved: somebody is holding it up out of a
+	-- hand it has not left, which is why it remembers a home to be sent back to.
+	-- So a departure is measured from there, or "when you discard this" would
+	-- miss every discard that went through a question. Forgotten on the way out
+	-- for the same reason it is forgotten going home: it is only true while the
+	-- card is being looked at.
+	local lent = from and from.status == "offer" and entity.get(c.borrowed_from)
+	if lent then c.borrowed_from = nil end
 	if from then
 		for i, id in ipairs(from.cards) do
 			if id == card_id then table.remove(from.cards, i); break end
@@ -519,7 +539,7 @@ function M.move_card(card_id, to_id, where)
 	c.origin_slot_id = from_slot
 	c.zone_id = to_id
 	M.auto_slot(card_id)
-	fire_leaves(from, to, card_id)
+	fire_leaves(lent or from, to, card_id)
 	fire_receive(to, card_id)
 	return true
 end

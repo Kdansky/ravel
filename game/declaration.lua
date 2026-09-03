@@ -38,12 +38,19 @@ local MOMENTS = {
 	receive   = { needs = "accepts", action = "on_receive" },
 	turn      = { action = "on_turn" },
 	chosen    = { where = "chosen_where", action = "on_chosen" },
-	-- Leaving play, which is the moment a card game keeps most of its triggers
-	-- at and the engine had no word for. `into` is the zone it landed in, and
-	-- naming one is how death, exile and bounce are told apart without the
-	-- engine learning what any of them means: they are one sentence pointed at
-	-- three different places.
-	leaves    = { into = "leaves_into", action = "on_leaves" },
+	-- A card on its way out, which is the moment a card game keeps most of its
+	-- triggers at and the engine had no word for. `into` is the zone it landed
+	-- in, and naming one is how death, exile and bounce are told apart without
+	-- the engine learning what any of them means: they are one sentence pointed
+	-- at three different places.
+	--
+	-- `from` is which departure is meant. Left out it is leaving *play*, which
+	-- is what a card that dies does; naming a zone makes it leaving that zone,
+	-- which is what a card discarded out of a hand does. Both are "leaves", and
+	-- a game with no board at all -- a whole hand of them -- had no way to say
+	-- the second until this existed, so it wrote the trigger as an ability and
+	-- then had to keep every other rule from running it.
+	leaves    = { from = "leaves_from", into = "leaves_into", action = "on_leaves" },
 }
 M.MOMENTS = MOMENTS
 

@@ -108,9 +108,11 @@ function M.test_spellstorm_a_copied_card_asks_what_it_would_have_asked(check)
 end
 
 -- The other half of the same rule: a discard effect is *not* part of resolving.
--- Nothing in a flat list of abilities says so, so the ability says it itself --
--- it is looking only when no card stands in a battle spot, which is every
--- moment except a resolution.
+-- It is not an ability at all -- an ability is something the card does, and
+-- every rule that runs abilities would then run this one. It is a `leaves`,
+-- triggered by the card going from a hand to a discard, so no rule about
+-- resolving has to know it exists and no card has to carry a condition saying
+-- so on the off chance somebody copies it.
 function M.test_spellstorm_a_copy_does_not_fire_a_discard_effect(check)
 	opening(7, "derby", "eve")
 	local one = zones.active_seat()
@@ -124,6 +126,30 @@ function M.test_spellstorm_a_copy_does_not_fire_a_discard_effect(check)
 	local hg = stage_battle(one, "heartgem")
 	actions.execute("copy:target:activate", { card_id = hg.id, targets = { hg.id } })
 	check("the copy healed 3, so its cast ran", seat.stats.health == hp + 3,
+		seat.stats.health .. " from " .. hp)
+
+	-- And the same card, discarded out of the hand, pays the 1 it is printed
+	-- with. Same card, same effect, and nothing about it says "unless".
+	zones.move_card(hg.id, hand_of(one).id)
+	hp = seat.stats.health
+	zones.move_card(hg.id, zone_of("discard", one).id)
+	check("discarded from hand, it costs the 1", seat.stats.health == hp - 1,
+		seat.stats.health .. " from " .. hp)
+end
+
+-- VOIDing is not discarding, which the rulebook says once and the card now says
+-- not at all: "into" already names the only landing that counts.
+function M.test_spellstorm_voiding_a_card_is_not_discarding_it(check)
+	opening(7, "derby", "eve")
+	local one = zones.active_seat()
+	local seat = seat_card(one)
+	seat.stats.health = seat.stats.health - 5
+
+	local hg = find("heartgem")
+	zones.move_card(hg.id, hand_of(one).id)
+	local hp = seat.stats.health
+	zones.move_card(hg.id, zones.find_id("void"))
+	check("voided out of the hand, it costs nothing", seat.stats.health == hp,
 		seat.stats.health .. " from " .. hp)
 end
 

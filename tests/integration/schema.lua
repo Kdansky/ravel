@@ -18,7 +18,7 @@ local actions = require("actions")
 local NESTED = {
 	target = true, route = true,
 	play = true, activate = true, challenge = true, receive = true,
-	turn = true, chosen = true,
+	turn = true, chosen = true, leaves = true,
 	-- An aura entry lives inside a tag, beside the behaviour blocks.
 	adjusts = true,
 }

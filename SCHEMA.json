@@ -207,9 +207,10 @@
       },
 
       "leaves": {
+        "from": "which departure this answers. Leave it out and it is leaving play — out of a zone whose status is \"board\" into one that is not, which is what a card that dies does. Name a zone and it is leaving that zone instead, which is what a card discarded out of a hand or milled off a deck does: the two are one word because they are one sentence with the departure swapped. A game that keeps no board at all can say only the second, and without this had to write the trigger as an ability and then keep every rule that runs abilities from running it.",
         "into": "the zone this card landed in, and the whole of what tells one kind of leaving from another: the discard is a death, a trash is an exile, \"hand\" is a bounce. The engine learns none of those names. Leave it out and the block answers any departure.",
         "action": [
-          "action strings run when this card leaves play — out of a zone whose status is \"board\" into one that is not, with @self as the departing card. Moving between two board zones is not leaving anything. Written on a tag it covers a whole class at once, which is how \"every unit announces its death\" is one line; a tag hands it over whole and a card writing its own takes none of the tag's, the same rule play keeps. destroy: does NOT fire it — a destroyed card lands in no zone, so there is no \"into\" to name, and its stats are cleared, so a rule running afterwards has nothing left to read. A removal you want answered is a move into a zone."
+          "action strings run when this card leaves, with @self as the departing card. Which departure is \"from\": leaving play by default, out of a zone whose status is \"board\" into one that is not, where moving between two board zones is not leaving anything. Written on a tag it covers a whole class at once, which is how \"every unit announces its death\" is one line; a tag hands it over whole and a card writing its own takes none of the tag's, the same rule play keeps. destroy: does NOT fire it — a destroyed card lands in no zone, so there is no \"into\" to name, and its stats are cleared, so a rule running afterwards has nothing left to read. A removal you want answered is a move into a zone."
         ]
       },      "chosen": {
         "where": [
