@@ -138,7 +138,10 @@ states that grant them. What each still rounds off is below.
 ## Rules simplified
 
 - **"Gain twice" gains once** (Amber, Earth Dragon, Abragail's *New Curriculum*):
-  one card has one `chosen` block.
+  one card has one `chosen` block. **The offer queue closed this and nobody
+  noticed** — two `show:` lines on one card queue two questions and both run that
+  card's `chosen`, which is measured. Amber is also mandatory in print and
+  optional here, which is the other half of it.
 - **Ruby** deals a flat 1 damage. "1 damage per Fire card discarded" needs to
   count what was *just* discarded, and nothing names that set.
 - **Diamond** discards the first three cards in hand rather than three of your
@@ -214,22 +217,23 @@ Worth weighing against `todo.md` rather than working around again:
    from `cards.behaviour`. So a zone can say *what* playing a card there does but
    not *whether* you may. Both of this game's gates moved to abilities, whose
    `when` **is** read (`flow.lua:997`). Worth making the two agree.
-2. **An offer opened inside an offer deadlocks.** `show:` from a `chosen` block
-   pushes an overlay the outer `close_offer` then empties, leaving an
-   unresolvable `options` phase. Either refuse the nested open the way
-   `set_priority` is refused, or stack them.
-3. **No way to pick a random card out of a zone and move it.** `random.` narrows a
-   scope for reading; every "discard a random card" in this game is the top card
-   instead.
-4. **No parity, modulo or division.** Derby's Ultimate ("if you have an odd number
+2. **No parity, modulo or division.** Derby's Ultimate ("if you have an odd number
    of health") has no expression at all.
-5. **An offer cannot be narrowed by a condition on the offered cards** the way a
+3. **An offer cannot be narrowed by a condition on the offered cards** the way a
    `target` spec can with `where`. `chosen.where` exists and gates what may be
    *taken*, but the cards still all show, and it cannot be written per-offer.
-6. **A `chosen` action cannot ask what it was handed.** `move_target_to:` names
+4. **A `chosen` action cannot ask what it was handed.** `move_target_to:` names
    one destination, and a rule whose destination depends on the pick has to name
    the offer zone and move by tag — three lines, two of which find nothing (see
    *Soothing Rain*, and AUTHORING §*Routing the pick by what it is*). The word it
    wants is `target.<tag>` as a scope, which is the same "one question, two
    spellings" fault `<zone>.<tag>` was written to end, left in the one spot it
    missed.
+
+**Two entries came off this list without anybody closing them, and that is worth
+saying out loud.** "An offer opened inside an offer deadlocks" was fixed by §3 —
+the leftovers go home before the `chosen` actions run — and the same doc went on
+listing it. "No way to pick a random card out of a zone and move it" was never
+true: `move:` obeys `random.`, which is what every *discard a random card* in
+this game already does. A list of what the engine cannot say has to be re-read
+against the engine, not kept.
