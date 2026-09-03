@@ -727,7 +727,7 @@
       "text": "Fire Essence",
       "asset": "ss_fireessence.jpg",
       "tags": ["fire", "ember", "spell", "essence"],
-      "tooltip": "Deal *1 damage*. You may gain any *Tier I* or II *Fire* card in the *Storm Cloud*. *VOID* this.\n\n_Fire Magic is generally associated with destruction._\n\n_[Simplified: the offer is not narrowed to Fire, or to Tier I-II]_",
+      "tooltip": "Deal *1 damage*. You may gain any *Tier I* or II *Fire* card in the *Storm Cloud*. *VOID* this.\n\n_Fire Magic is generally associated with destruction._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -736,16 +736,19 @@
           "text": "Resolve",
           "action": ["stat_damage:health@enemy.player:1", "move_to:void"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.fire:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier_req@target <= 2"]
+      }
     },
     {
       "key": "wateressence",
       "text": "Water Essence",
       "asset": "ss_wateressence.jpg",
       "tags": ["water", "tide", "spell", "essence"],
-      "tooltip": "Gain *1 mana*. You may gain any *Tier I* or II *Water* card in the *Storm Cloud*. *VOID* this.\n\n_Water Magic is generally associated with healing._\n\n_[Simplified: the offer is not narrowed to Water, or to Tier I-II]_",
+      "tooltip": "Gain *1 mana*. You may gain any *Tier I* or II *Water* card in the *Storm Cloud*. *VOID* this.\n\n_Water Magic is generally associated with healing._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -754,16 +757,19 @@
           "text": "Resolve",
           "action": ["stat_gain:mana@mine.player:1", "move_to:void"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.water:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier_req@target <= 2"]
+      }
     },
     {
       "key": "earthessence",
       "text": "Earth Essence",
       "asset": "ss_earthessence.jpg",
       "tags": ["earth", "loam", "spell", "essence", "has_discard"],
-      "tooltip": "*Power up*. You may gain any *Tier I* or II *Earth* card in the *Storm Cloud*. *VOID* this. On discard: *power up*.\n\n_Earth Magic is generally associated with building._\n\n_[Simplified: the offer is not narrowed to Earth, or to Tier I-II]_",
+      "tooltip": "*Power up*. You may gain any *Tier I* or II *Earth* card in the *Storm Cloud*. *VOID* this. On discard: *power up*.\n\n_Earth Magic is generally associated with building._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -772,10 +778,13 @@
           "text": "Resolve",
           "action": ["stat_gain:power@mine.player:1", "move_to:void"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.earth:optional"] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
-      "chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": {
+        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "where": ["tier_req@target <= 2"]
+      }
     },
     {
       "key": "fireball",
@@ -830,12 +839,12 @@
       "text": "Flame",
       "asset": "ss_flame.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Deal *1 damage*, then resolve and discard a different *Fire* card from your hand.\n\n_You need *magic* water to put a magical flame out._\n\n_[Simplified: the offer is not narrowed to Fire cards]_",
+      "tooltip": "Deal *1 damage*, then resolve and discard a different *Fire* card from your hand.\n\n_You need *magic* water to put a magical flame out._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
       "chosen": { "action": ["copy:target:activate", "move_target_to:mine.discard"] }
     },
@@ -914,12 +923,12 @@
       "text": "Mana Font",
       "asset": "ss_manafont.jpg",
       "tags": ["fire", "ember", "spell", "has_discard"],
-      "tooltip": "*VOID* a card in the *Storm Cloud*. If you did, gain *3 mana*. On discard: take *1 damage* and gain *1 mana*.\n\n_While there are many theories, no one knows where the magic inside gems originally comes from._\n\n_[Simplified: the offer is not narrowed to Water cards]_",
+      "tooltip": "*VOID* a card in the *Storm Cloud*. If you did, gain *3 mana*. On discard: take *1 damage* and gain *1 mana*.\n\n_While there are many theories, no one knows where the magic inside gems originally comes from._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.water:optional"] }
       ],
       "leaves": {
         "from": "hand",
@@ -1111,7 +1120,7 @@
       "text": "Ice Flume",
       "asset": "ss_iceflume.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Give an *ICE*. You may *VOID* an *ICE* from your hand. Gain *Initiative*.\n\n_\"Watch your step!\" - Unknown_\n\n_[Simplified: the offer is your hand only, and is not narrowed to ICE]_",
+      "tooltip": "Give an *ICE*. You may *VOID* an *ICE* from your hand. Gain *Initiative*.\n\n_\"Watch your step!\" - Unknown_\n\n_[Simplified: the offer is your hand, not your hand or discard]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1125,7 +1134,7 @@
             "stat_set:initiative@enemy.player:0"
           ]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.ice:optional"] }
       ],
       "chosen": { "action": ["move_target_to:ice_pile"] }
     },
@@ -1279,12 +1288,12 @@
       "text": "Ultimate",
       "asset": "ss_ultimate.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "You may *VOID* a card from your hand. If you did, gain *3 mana*.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_\n\n_[Simplified: the offer is not narrowed to Earth cards]_",
+      "tooltip": "You may *VOID* a card from your hand. If you did, gain *3 mana*.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.earth:optional"] }
       ],
       "chosen": {
         "action": [
@@ -1486,12 +1495,12 @@
       "text": "Spirit Crystal",
       "asset": "ss_spiritcrystal.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "*Draw a card*. Reveal a card from your hand, resolve it and then discard it. On discard: *power up*.\n\n_It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers._\n\n_[Simplified: the offer is not narrowed to Earth cards]_",
+      "tooltip": "*Draw a card*. Reveal a card from your hand, resolve it and then discard it. On discard: *power up*.\n\n_It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.earth:optional"] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": { "action": ["copy:target:activate", "move_target_to:mine.discard"] }
@@ -1552,7 +1561,7 @@
       "key": "ice",
       "text": "Ice",
       "asset": "ss_ice.jpg",
-      "tags": ["water", "tide", "spell", "junk", "has_discard"],
+      "tags": ["water", "tide", "spell", "junk", "ice", "has_discard"],
       "tooltip": "This can't be played. On discard during *Regroup*: -1 to your *Blast Score*.\n\n_\"Ice cut into a cube shape is kind of like a gem.\" - Beosnook_",
       "card_stats": { "tier_req": 1 },
       "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
@@ -1562,7 +1571,7 @@
       "key": "ash",
       "text": "Ash",
       "asset": "ss_ash.jpg",
-      "tags": ["earth", "loam", "spell", "junk", "has_discard"],
+      "tags": ["earth", "loam", "spell", "junk", "ash", "has_discard"],
       "tooltip": "This can't be played. On discard: lose *1 Power Token*.\n\n_The Spellstorm is a highly volcanic area, often covered in ash._",
       "card_stats": { "tier_req": 1 },
       "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
@@ -1572,7 +1581,7 @@
       "key": "curse",
       "text": "Curse",
       "asset": "ss_curse.jpg",
-      "tags": ["fire", "ember", "spell", "junk", "has_discard"],
+      "tags": ["fire", "ember", "spell", "junk", "curse", "has_discard"],
       "tooltip": "This can't be played. On discard: take *1 damage*.\n\n_\"Curses!\" - H.M.T. Holliganger, Distinguished Professor at the Azura Academy School of Archaeology_",
       "card_stats": { "tier_req": 1 },
       "abilities": [{ "key": "cast", "text": "Resolve", "action": [] }],
@@ -1769,14 +1778,14 @@
       "text": "Eve Williams",
       "asset": "ss_eve.jpg",
       "tags": ["wizard_card", "eve"],
-      "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a card from your discard to your opponent's discard.\n\nStarting *health 14*, *Initiative rating 5*.\n\n_[Simplified: the offer is not narrowed to ICE and CURSE]_",
+      "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a card from your discard to your opponent's discard.\n\nStarting *health 14*, *Initiative rating 5*.\n\n_[Simplified: the offer is the junk in your discard, so an ASH comes up beside the ICE and CURSE -- one scope names one kind -- and your hand is not offered]_",
       "activate": {
         "cost": { "mana@mine.player": 5 },
         "phases": ["play_1", "play_2"],
         "action": [
           "draw_from:mine.deck:mine.hand:1",
           "draw_from:mine.deck:mine.hand:1",
-          "show:mine.discard:optional"
+          "show:mine.discard.junk:optional"
         ]
       },
       "chosen": { "action": ["move_target_to:enemy.discard"] }
@@ -1883,7 +1892,7 @@
       "text": "Deep Gems",
       "asset": "ss_abra_deepgems.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a card from the *Storm Cloud*.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._\n\n_[Simplified: the offer is not narrowed to Water cards and the Power Token is not spent]_",
+      "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a card from the *Storm Cloud*.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._\n\n_[Simplified: the Power Token is not spent]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1892,7 +1901,7 @@
           "text": "Resolve",
           "action": ["draw_from:mine.deck:mine.hand:1", "stat_gain:mana@mine.player:1"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.water:optional"] }
       ],
       "chosen": {
         "action": [
@@ -2037,12 +2046,12 @@
       "text": "Beetle Buster",
       "asset": "ss_omar_beetle.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Discard a card* from your hand to deal *2 damage*.\n\n_A hero to many, Omar is regarded by the powerful as an eco-terrorist._\n\n_[Simplified: the offer is not narrowed to Fire cards]_",
+      "tooltip": "*Discard a card* from your hand to deal *2 damage*.\n\n_A hero to many, Omar is regarded by the powerful as an eco-terrorist._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
       "chosen": { "action": ["move_target_to:mine.discard", "stat_damage:health@enemy.player:2"] }
     },

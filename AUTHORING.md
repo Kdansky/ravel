@@ -2826,6 +2826,21 @@ candidate is `@target` and the asking card is `@self`. **The whole scope still
 comes up** — revealing a hand is usually half the rule — and only the cards that
 qualify can be clicked; the rest are shown and dimmed.
 
+**If you wanted fewer cards to come up, narrow the scope instead.** "A Fire card
+from your hand" is one place and one kind, which is `<zone>.<tag>`:
+
+```json
+"play": { "action": ["show:mine.hand.fire:optional"] },
+"chosen": { "where": ["tier_req@target <= 2"], "action": ["move_target_to:mine.discard"] }
+```
+
+The two do different jobs and a rule often wants both. *Which cards come up* is a
+fact about the cards, so it belongs to the scope — and a card that never comes up
+is one nobody has to be told they may not click. *Which of them may be taken* can
+ask about the **player** — "at or below your Tier" is not a property of the card
+being looked at — so it stays a condition. If you find yourself wishing `where`
+hid things, the question you are asking is the first one.
+
 "Largest" is the second condition and it is worth reading twice: `@options` is
 the offer itself, so the candidate is being compared with what it is lying
 beside. Any question you can ask of a scope, you can ask here.

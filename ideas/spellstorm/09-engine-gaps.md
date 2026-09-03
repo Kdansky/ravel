@@ -114,11 +114,12 @@ states that grant them. What each still rounds off is below.
 
 ## Rules simplified
 
-- **`[GAIN]` from a card effect ignores the Tier limit and the element.** An
-  offer cannot be filtered, so any of the five Storm Cloud cards may be taken.
-  The **Regroup gain step does enforce Tier** — that is an ability with a `when`,
-  which the engine does read. The Essences therefore offer the whole shelf rather
-  than their own element.
+- **An offer names one kind, and some cards name two.** An offer is narrowed by
+  its scope — `<zone>.<tag>`, one place and one kind — so "a Fire card from your
+  hand" comes up as the Fire cards and nothing else. Eve's *Doom Bauble* wants "a
+  CURSE or ICE", which is two kinds, and gets the junk in her discard: an ASH
+  comes up beside them. *Ice Flume* wants "an ICE from your hand **or discard**",
+  which is two places, and gets the hand.
 - **"Gain twice" gains once** (Amber, Earth Dragon, Abragail's *New Curriculum*):
   one card has one `chosen` block.
 - **Ruby** deals a flat 1 damage. "1 damage per Fire card discarded" needs to

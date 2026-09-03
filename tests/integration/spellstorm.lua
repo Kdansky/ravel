@@ -732,6 +732,74 @@ function M.test_spellstorm_riot_discards_a_hand_in_silence(check)
 end
 
 
+-- "Gain a Fire card" is two questions, not one, and the engine has a word for
+-- each. Which cards come up is the *scope* -- `<zone>.<tag>`, one place and one
+-- kind -- and it narrows what is shown, because a card that never comes up is
+-- one nobody has to be told they may not click. Which of them may be taken is
+-- `chosen.where`, and it is separate because it can ask about the player: your
+-- Tier is not a property of the card you are looking at.
+function M.test_spellstorm_an_offer_is_narrowed_to_one_kind(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	empty_hand(one)
+	local hand = hand_of(one)
+	for _, key in ipairs({ "fireball", "block", "powergem" }) do zones.add(hand, key) end
+
+	local flame = stage_battle(one, "flame")
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
+		{ card_id = flame.id, targets = {} })
+	check("the offer opened", phase.current().key == "options", phase.current().key)
+	local shown = {}
+	for _, id in ipairs(zones.find("options").cards) do
+		shown[#shown + 1] = entity.get(id).def_key
+	end
+	table.sort(shown)
+	check("and it holds the Fire card and nothing else",
+		table.concat(shown, ",") == "fireball", table.concat(shown, ","))
+	check("the Water and Earth cards never left the hand", #hand.cards == 2, #hand.cards)
+end
+
+-- The other half: a question with no answer is not asked at all. Flame with no
+-- Fire card in hand deals its damage and stops, which is what the card says.
+function M.test_spellstorm_an_offer_of_nothing_does_not_open(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	empty_hand(one)
+	for _, key in ipairs({ "block", "powergem" }) do zones.add(hand_of(one), key) end
+	local flame = stage_battle(one, "flame")
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
+		{ card_id = flame.id, targets = {} })
+	check("no Fire card, no question", phase.current().key ~= "options", phase.current().key)
+end
+
+-- The Tier limit is the half a scope cannot say. Fire Essence offers the Fire
+-- cards on the shelf and lets you take one at Tier I or II, so a Tier III card
+-- comes up -- you can see what is there -- and cannot be clicked.
+function M.test_spellstorm_the_tier_limit_gates_the_take(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	-- Staged first: the Essences start on the shelf, and clearing it would take
+	-- the card under test with it.
+	local essence = stage_battle(one, "fireessence")
+	local shelf = zones.find("storm_cloud")
+	for _, id in ipairs({ unpack(shelf.cards) }) do zones.destroy_card(id) end
+	for _, key in ipairs({ "fireball", "fireball2", "block" }) do zones.add(shelf, key) end
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
+		{ card_id = essence.id, targets = {} })
+	local shown, pickable = {}, {}
+	for _, id in ipairs(zones.find("options").cards) do
+		local key = entity.get(id).def_key
+		shown[#shown + 1] = key
+		if flow.can_play(id) then pickable[#pickable + 1] = key end
+	end
+	table.sort(shown)
+	check("both Fire cards come up, and the Water one does not",
+		table.concat(shown, ",") == "fireball,fireball2", table.concat(shown, ","))
+	check("but only the Tier I one may be taken",
+		table.concat(pickable, ",") == "fireball", table.concat(pickable, ","))
+end
+
+
 function M.test_spellstorm_both_endings_are_reachable(check)
 	opening(5, "derby", "eve")
 	-- End conditions are asked when the game comes to rest, so a play is what

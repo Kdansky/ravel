@@ -74,6 +74,18 @@ DISCARD_RANDOM = lambda who: "move:random.%s.hand:%s.discard" % (who, who)
 # each card says where its pick lands and refills the shelf behind it.
 OFFER_CLOUD = "show:storm_cloud:optional"
 OFFER_HAND  = "show:mine.hand:optional"
+
+# The same two, narrowed to one kind of card. `<zone>.<tag>` is the engine's word
+# for one place and one kind, and an element is a tag on every card, so "gain a
+# Fire card" is a question about *which cards come up* -- which is what a scope
+# says. What may be *taken* out of what came up is `chosen.where`, and it is a
+# different question because it can ask about the player: your Tier is not a
+# property of the card you are looking at.
+#
+# An offer with nothing in it does not open, so a card that wants a Fire card and
+# finds none simply does nothing, which is what the printed card says.
+OFFER_CLOUD_OF = lambda kind: "show:storm_cloud.%s:optional" % kind
+OFFER_HAND_OF  = lambda kind: "show:mine.hand.%s:optional" % kind
 REFILL_CLOUD = "draw_from:spellstorm_deck:storm_cloud:1"
 TAKE_TO_HAND = ["move_target_to:mine.hand", REFILL_CLOUD]
 
@@ -89,13 +101,13 @@ FIRE, WATER, EARTH = "fire", "water", "earth"
 # ---------------------------------------------------------------------------
 
 def card(key, name, element, tooltip, cast=(), cast2=None, cast3=None,
-         disc=None, chosen=None, tier=None, kind="spell", flavour=None,
-         simplified=None, asset=None, tags=(), comment=None):
+         disc=None, chosen=None, chosen_where=None, tier=None, kind="spell",
+         flavour=None, simplified=None, asset=None, tags=(), comment=None):
     return dict(key=key, name=name, element=element, tooltip=tooltip,
                 cast=list(cast), cast2=cast2, cast3=cast3, disc=disc,
-                chosen=chosen, tier=tier, kind=kind, flavour=flavour,
-                simplified=simplified, asset=asset, tags=list(tags),
-                comment=comment)
+                chosen=chosen, chosen_where=chosen_where, tier=tier, kind=kind,
+                flavour=flavour, simplified=simplified, asset=asset,
+                tags=list(tags), comment=comment)
 
 
 # --- The six-card starting deck -------------------------------------------
@@ -118,25 +130,27 @@ BASIC = [
 ]
 
 # --- The three Essence cards, seeded into the Storm Cloud at setup ---------
-# Each voids itself and lets you take a card of its own element. The engine's
-# offer cannot be narrowed to one element, so the whole shelf is offered.
+# Each voids itself and lets you take a card of its own element, at Tier I or II.
+# Two different narrowings: the element decides which cards come up (a scope), the
+# Tier decides which of them may be taken (a condition, because it is a number on
+# the card rather than a kind).
 
 ESSENCE = [
     card("fireessence", "Fire Essence", FIRE, kind="essence", tier=1,
          tooltip="Deal 1 damage. You may gain any Tier I or II Fire card in the Storm Cloud. VOID this.",
          flavour="Fire Magic is generally associated with destruction.",
-         simplified="the offer is not narrowed to Fire, or to Tier I-II",
-         cast=[DMG(1), "move_to:void", OFFER_CLOUD], chosen=TAKE_TO_HAND),
+         cast=[DMG(1), "move_to:void", OFFER_CLOUD_OF(FIRE)],
+         chosen=TAKE_TO_HAND, chosen_where=["tier_req@target <= 2"]),
     card("wateressence", "Water Essence", WATER, kind="essence", tier=1,
          tooltip="Gain 1 mana. You may gain any Tier I or II Water card in the Storm Cloud. VOID this.",
          flavour="Water Magic is generally associated with healing.",
-         simplified="the offer is not narrowed to Water, or to Tier I-II",
-         cast=[MANA, "move_to:void", OFFER_CLOUD], chosen=TAKE_TO_HAND),
+         cast=[MANA, "move_to:void", OFFER_CLOUD_OF(WATER)],
+         chosen=TAKE_TO_HAND, chosen_where=["tier_req@target <= 2"]),
     card("earthessence", "Earth Essence", EARTH, kind="essence", tier=1,
          tooltip="Power up. You may gain any Tier I or II Earth card in the Storm Cloud. VOID this. On discard: power up.",
          flavour="Earth Magic is generally associated with building.",
-         simplified="the offer is not narrowed to Earth, or to Tier I-II",
-         cast=[POWER, "move_to:void", OFFER_CLOUD], chosen=TAKE_TO_HAND,
+         cast=[POWER, "move_to:void", OFFER_CLOUD_OF(EARTH)],
+         chosen=TAKE_TO_HAND, chosen_where=["tier_req@target <= 2"],
          disc=[POWER]),
 ]
 
@@ -156,8 +170,7 @@ SPELLS = [
     card("flame", "Flame", FIRE, tier=1,
          tooltip="Deal 1 damage, then resolve and discard a different Fire card from your hand.",
          flavour="You need *magic* water to put a magical flame out.",
-         simplified="the offer is not narrowed to Fire cards",
-         cast=[DMG(1), OFFER_HAND],
+         cast=[DMG(1), OFFER_HAND_OF(FIRE)],
          chosen=["copy:target:activate", "move_target_to:mine.discard"]),
     card("heartgem", "Heart Gem", FIRE, tier=1,
          tooltip="Heal 3 and gain a CURSE. On discard: take 1 damage.",
@@ -178,8 +191,7 @@ SPELLS = [
     card("manafont", "Mana Font", FIRE, tier=1,
          tooltip="VOID a card in the Storm Cloud. If you did, gain 3 mana. On discard: take 1 damage and gain 1 mana.",
          flavour="While there are many theories, no one knows where the magic inside gems originally comes from.",
-         simplified="the offer is not narrowed to Water cards",
-         cast=[OFFER_CLOUD],
+         cast=[OFFER_CLOUD_OF(WATER)],
          chosen=["move_target_to:void", REFILL_CLOUD, MANA, MANA, MANA],
          disc=[SELF_DMG(1), MANA]),
     card("obsidian", "Obsidian", FIRE, tier=2,
@@ -224,8 +236,8 @@ SPELLS = [
     card("iceflume", "Ice Flume", WATER, tier=2,
          tooltip="Give an ICE. You may VOID an ICE from your hand. Gain Initiative.",
          flavour='"Watch your step!" - Unknown',
-         simplified="the offer is your hand only, and is not narrowed to ICE",
-         cast=GIVE("ice") + GAIN_INIT + [OFFER_HAND],
+         simplified="the offer is your hand, not your hand or discard",
+         cast=GIVE("ice") + GAIN_INIT + [OFFER_HAND_OF("ice")],
          chosen=["move_target_to:ice_pile"]),
     card("lapis", "Lapis", WATER, tier=1,
          tooltip="Draw a card. You may discard a card and heal 1.",
@@ -264,8 +276,7 @@ SPELLS = [
     card("ultimate", "Ultimate", WATER, tier=1,
          tooltip="You may VOID a card from your hand. If you did, gain 3 mana.",
          flavour='"He just needs a little splash, is all he needs." - The Splashmaster',
-         simplified="the offer is not narrowed to Earth cards",
-         cast=[OFFER_HAND],
+         cast=[OFFER_HAND_OF(EARTH)],
          chosen=["move_target_to:void", MANA, MANA, MANA]),
     card("wave", "Wave", WATER, tier=2,
          tooltip="Gain 3 mana. Your opponent discards their hand and draws a new hand of 4 cards.",
@@ -322,8 +333,7 @@ SPELLS = [
     card("spiritcrystal", "Spirit Crystal", EARTH, tier=1,
          tooltip="Draw a card. Reveal a card from your hand, resolve it and then discard it. On discard: power up.",
          flavour="It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.",
-         simplified="the offer is not narrowed to Earth cards",
-         cast=[DRAW, OFFER_HAND],
+         cast=[DRAW, OFFER_HAND_OF(EARTH)],
          chosen=["copy:target:activate", "move_target_to:mine.discard"],
          disc=[POWER]),
     card("threepower", "Three Power", EARTH, tier=2,
@@ -348,15 +358,15 @@ JUNK = [
     card("ice", "Ice", WATER, kind="junk",
          tooltip="This can't be played. On discard during Regroup: -1 to your Blast Score.",
          flavour='"Ice cut into a cube shape is kind of like a gem." - Beosnook',
-         disc=["stat_gain:ice_pen@mine.player:1"], tags=["junk"]),
+         disc=["stat_gain:ice_pen@mine.player:1"], tags=["junk", "ice"]),
     card("ash", "Ash", EARTH, kind="junk",
          tooltip="This can't be played. On discard: lose 1 Power Token.",
          flavour="The Spellstorm is a highly volcanic area, often covered in ash.",
-         disc=["stat_damage:power@mine.player:1"], tags=["junk"]),
+         disc=["stat_damage:power@mine.player:1"], tags=["junk", "ash"]),
     card("curse", "Curse", FIRE, kind="junk",
          tooltip="This can't be played. On discard: take 1 damage.",
          flavour='"Curses!" - H.M.T. Holliganger, Distinguished Professor at the Azura Academy School of Archaeology',
-         disc=[SELF_DMG(1)], tags=["junk"]),
+         disc=[SELF_DMG(1)], tags=["junk", "curse"]),
 ]
 
 DRAGONS = [
@@ -531,9 +541,9 @@ WIZARDS = [
     wizard("eve", "Eve Williams", "Radical Activist", "Fire, Water", 14, 5, 5,
            "Doom Bauble",
            "Draw 2 cards. You may move a card from your discard to your opponent's discard.",
-           [DRAW, DRAW, "show:mine.discard:optional"],
+           [DRAW, DRAW, "show:mine.discard.junk:optional"],
            ult_chosen=["move_target_to:enemy.discard"],
-           simplified="the offer is not narrowed to ICE and CURSE",
+           simplified="the offer is the junk in your discard, so an ASH comes up beside the ICE and CURSE -- one scope names one kind -- and your hand is not offered",
            blurb="A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.",
            start=GIVE("ice") + GAIN_JUNK("ice"),
            spells=[
@@ -559,8 +569,8 @@ WIZARDS = [
                card("abra_deepgems", "Deep Gems", WATER, kind="wizard_spell",
                     tooltip="Draw a card and gain 1 mana. You may lose 1 Power Token to resolve and then VOID a card from the Storm Cloud.",
                     flavour="The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep.",
-                    simplified="the offer is not narrowed to Water cards and the Power Token is not spent",
-                    cast=[DRAW, MANA, OFFER_CLOUD],
+                    simplified="the Power Token is not spent",
+                    cast=[DRAW, MANA, OFFER_CLOUD_OF(WATER)],
                     chosen=["move_target_to:void", "copy:target:activate", REFILL_CLOUD]),
                card("abra_newcurriciulum", "New Curriculum", EARTH, kind="wizard_spell",
                     tooltip="Power up once per Tier you have reached. You may VOID a card in the Storm Cloud, and you may gain one.",
@@ -604,8 +614,7 @@ WIZARDS = [
                card("omar_beetle", "Beetle Buster", FIRE, kind="wizard_spell",
                     tooltip="Discard a card from your hand to deal 2 damage.",
                     flavour="A hero to many, Omar is regarded by the powerful as an eco-terrorist.",
-                    simplified="the offer is not narrowed to Fire cards",
-                    cast=[OFFER_HAND],
+                    cast=[OFFER_HAND_OF(FIRE)],
                     chosen=["move_target_to:mine.discard", DMG(2)]),
                card("omar_shuriken", "Shuriken", WATER, kind="wizard_spell",
                     tooltip="Gain Initiative and draw a card.",
@@ -906,7 +915,9 @@ def spell_template(c):
     # and fires nothing, which is the rule stated once instead of on every card.
     if c["disc"]:
         t["leaves"] = {"from": "hand", "into": "discard", "action": list(c["disc"])}
-    if c["chosen"]: t["chosen"] = {"action": list(c["chosen"])}
+    if c["chosen"]:
+        t["chosen"] = {"action": list(c["chosen"])}
+        if c["chosen_where"]: t["chosen"]["where"] = list(c["chosen_where"])
     return t
 
 

@@ -187,21 +187,44 @@ from inside the engine's own steps rather than from a card).
 
 ## C. Offers that cannot be narrowed or repeated
 
-### C1. `[GAIN]` ignores the Tier limit and the element (09, rules simplified)
+### C1. ~~`[GAIN]` ignores the Tier limit and the element~~ — done, and the proposal above was wrong
 
-**What it costs.** Any of the five Storm Cloud cards may be taken from a card
-effect, whatever its Tier; the Essences offer the whole shelf rather than their
-own element.
+**What it was.** Any of the five Storm Cloud cards could be taken from a card
+effect, whatever its Tier; the Essences offered the whole shelf rather than their
+own element; nine cards said "not narrowed" in their tooltips.
 
-**Proposal — let `chosen.where` narrow what is *shown*, not only what may be
-taken.** The field exists and the condition is already written down: the Regroup
-gain step proves it (`tier@mine.player >= tier_req@self`). Today it gates the
-take and the cards all still show, which is the worst of both — the player sees
-five and may click two.
+**Why the proposal above was the wrong shape.** It asked `chosen.where` to narrow
+what is *shown* as well as what may be taken. But `where` is documented to leave
+the whole scope up on purpose — reading somebody's hand is usually half the rule
+— and one field cannot mean both "show me less" and "show me everything, and grey
+out the rest" without the author saying which.
 
-**Size:** small. This is the highest ratio of "cards fixed" to "lines changed"
-on the page: it fixes every `[GAIN]`, every Essence, and Flame's Fire-only
-offer in one go.
+**They are two questions, and the engine already had a word for each.**
+
+- **Which cards come up** is a property of the *scope*, and a scope is narrowed
+  by `<zone>.<tag>` — one place and one kind, the word that already writes
+  `destroy:mine.discard.wound`. So `show:mine.hand.fire:optional` is the whole of
+  "a Fire card from your hand", and the Water and Earth cards never leave the
+  hand. Nothing has to be greyed out, because a card that never comes up is one
+  nobody has to be told they may not click.
+- **Which of them may be taken** stays `chosen.where`, and it has to be separate
+  because it can ask about the *player*. "Tier I or II" is a number on the card
+  (`tier_req@target <= 2`); "at or below **your** Tier" is not a property of the
+  card being looked at at all, and no tag could ever say it.
+
+Both were already there. Nine cards became exact — the three Essences, Flame,
+Mana Font, Ice Flume, Ultimate, Spirit Crystal, Deep Gems and Beetle Buster — for
+a lambda in the generator and no engine change.
+
+**What is left is only where a card names two of something.** One scope names one
+kind and one place: *Doom Bauble* ("a CURSE or ICE") gets the junk in the
+discard, so an ASH comes up too, and *Ice Flume* ("from your hand or discard")
+gets the hand. Both are recorded in `09`.
+
+**The lesson, again.** Twice on this page now, the fix has been a word the engine
+already had, used where it belongs. It is worth asking, before proposing a field,
+which *question* the rule is asking — "which cards" and "which of these" look
+alike on a card and are answered in different places.
 
 ### C2. "Gain twice" gains once (Amber, Earth Dragon, Abragail)
 
@@ -409,10 +432,9 @@ The zone is empty between any two steps, and Riot is the only card that uses it.
 
 | | Item | Size | Why here |
 |---|---|---|---|
-| 1 | C1 — **`chosen.where` narrows what is shown** | small | fixes every `[GAIN]`, every Essence and Flame in one change |
-| 2 | A1 — **Ultimates as a reaction to a resolve verb** | small–medium | restores the `[ULT]` icon, the largest single departure |
-| 3 | A2 — **one offer per seat, queued** | medium | Falling Star, and the last thing an automatic step cannot ask |
-| 4 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
-| 5 | C2, C3, D2, D3 | small each | one card or three apiece |
-| — | A3, A2's tail, F2, E, D1, G1 | ~~various~~ | **done.** The copy, the journal, the potion loop, the five that were not gaps, the random discards, and Riot's silence |
+| 1 | A1 — **Ultimates as a reaction to a resolve verb** | small–medium | restores the `[ULT]` icon, the largest single departure |
+| 2 | A2 — **one offer per seat, queued** | medium | Falling Star, and the last thing an automatic step cannot ask |
+| 3 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
+| 4 | C2, C3, D2, D3 | small each | one card or three apiece |
+| — | A3, A2's tail, F2, E, D1, G1, C1 | ~~various~~ | **done.** The copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, and the narrowed offers |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |
