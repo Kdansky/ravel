@@ -436,6 +436,14 @@
     },
     { "key": "rules", "layout": "stack", "display": "offscreen", "use": "none" },
     {
+      "key": "stack",
+      "layout": "stack",
+      "display": "offscreen",
+      "use": "none",
+      "tags": ["stack"],
+      "tooltip": "A card that has announced itself and is waiting to be answered."
+    },
+    {
       "key": "quiet",
       "layout": "stack",
       "display": "offscreen",
@@ -599,25 +607,35 @@
         "each_seat:activate_zone:rules:by_column:check",
         "each_seat:activate_zone:weather_now:by_column:wy"
       ],
+      "next": [{ "then": "ult_1" }]
+    },
+    {
+      "key": "ult_1",
+      "type": "automatic",
+      "actions": ["set_active_seat:has_init", "activate_zone:mine.battle:by_column:ult_call"],
       "next": [{ "then": "resolve_1" }]
     },
     {
       "key": "resolve_1",
       "type": "automatic",
       "actions": [
-        "set_active_seat:has_init",
         "activate_zone:mine.battle:by_column:cast",
         "activate_zone:mine.battle:by_column:cast2",
         "activate_zone:mine.battle:by_column:cast3",
         "activate_zone:mine.battle:by_column:cast_ask"
       ],
+      "next": [{ "then": "ult_2" }]
+    },
+    {
+      "key": "ult_2",
+      "type": "automatic",
+      "actions": ["set_active_seat:enemy.player", "activate_zone:mine.battle:by_column:ult_call"],
       "next": [{ "then": "resolve_2" }]
     },
     {
       "key": "resolve_2",
       "type": "automatic",
       "actions": [
-        "set_active_seat:enemy.player",
         "activate_zone:mine.battle:by_column:cast",
         "activate_zone:mine.battle:by_column:cast2",
         "activate_zone:mine.battle:by_column:cast3",
@@ -683,11 +701,12 @@
       "key": "magicdart",
       "text": "Magic Dart",
       "asset": "ss_magicdart.jpg",
-      "tags": ["fire", "ember", "spell", "basic"],
-      "tooltip": "Gain *1 mana*. If you have *Initiative*, deal *1 damage*.\n\n_Fire magic is often banned from use in many parts of the world, due to its unpredictable nature._",
+      "tags": ["fire", "ember", "spell", "basic", "ult"],
+      "tooltip": "Gain *1 mana*. If you have *Initiative*, deal *1 damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_Fire magic is often banned from use in many parts of the world, due to its unpredictable nature._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:mana@mine.player:1"] },
         {
           "key": "cast2",
@@ -848,11 +867,12 @@
       "key": "flame",
       "text": "Flame",
       "asset": "ss_flame.jpg",
-      "tags": ["fire", "ember", "spell"],
-      "tooltip": "Deal *1 damage*, then resolve and discard a different *Fire* card from your hand.\n\n_You need *magic* water to put a magical flame out._",
+      "tags": ["fire", "ember", "spell", "ult"],
+      "tooltip": "Deal *1 damage*, then resolve and discard a different *Fire* card from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_You need *magic* water to put a magical flame out._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
@@ -862,11 +882,12 @@
       "key": "heartgem",
       "text": "Heart Gem",
       "asset": "ss_heartgem.jpg",
-      "tags": ["fire", "ember", "spell", "has_discard"],
-      "tooltip": "*Heal 3* and gain a *CURSE*. On discard: take *1 damage*.\n\n_The Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time._",
+      "tags": ["fire", "ember", "spell", "has_discard", "ult"],
+      "tooltip": "*Heal 3* and gain a *CURSE*. On discard: take *1 damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1235,11 +1256,12 @@
       "key": "sapphire",
       "text": "Sapphire",
       "asset": "ss_sapphire.jpg",
-      "tags": ["water", "tide", "spell"],
-      "tooltip": "*Draw a card*, *heal 1*, and gain an *ASH*.\n\n_Many of Omia's most impressive Wizards have a signature move, which some call an \"Ultimate\"._",
+      "tags": ["water", "tide", "spell", "ult"],
+      "tooltip": "*Draw a card*, *heal 1*, and gain an *ASH*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_Many of Omia's most impressive Wizards have a signature move, which some call an \"Ultimate\"._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1285,11 +1307,12 @@
       "key": "twinsapphire",
       "text": "Twin Sapphire",
       "asset": "ss_twinsapphire.jpg",
-      "tags": ["water", "tide", "spell"],
-      "tooltip": "*Draw a card* and *heal 2*.\n\n_\"TWO sapphires?! Wow, thanks!\" - Someone's son_",
+      "tags": ["water", "tide", "spell", "ult"],
+      "tooltip": "*Draw a card* and *heal 2*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"TWO sapphires?! Wow, thanks!\" - Someone's son_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1301,11 +1324,12 @@
       "key": "ultimate",
       "text": "Ultimate",
       "asset": "ss_ultimate.jpg",
-      "tags": ["water", "tide", "spell"],
-      "tooltip": "You may *VOID* a card from your hand. If you did, gain *3 mana*.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_",
+      "tags": ["water", "tide", "spell", "ult"],
+      "tooltip": "You may *VOID* a card from your hand. If you did, gain *3 mana*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.earth:optional"] }
       ],
@@ -1609,11 +1633,12 @@
       "key": "firedragon",
       "text": "Fire Dragon",
       "asset": "ss_firedragon.jpg",
-      "tags": ["fire", "ember", "spell", "dragon"],
-      "tooltip": "Deal *4 damage*. Gain *2 mana*.\n\n_No Dragon is more feared than the destructive and terrible Fire Dragon._",
+      "tags": ["fire", "ember", "spell", "dragon", "ult"],
+      "tooltip": "Deal *4 damage*. Gain *2 mana*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_No Dragon is more feared than the destructive and terrible Fire Dragon._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1629,11 +1654,12 @@
       "key": "winddragon",
       "text": "Wind Dragon",
       "asset": "ss_winddragon.jpg",
-      "tags": ["fire", "ember", "spell", "dragon"],
-      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one, and the card resolved is then discarded — the printed card may not say that]_",
+      "tags": ["fire", "ember", "spell", "dragon", "ult"],
+      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one, and the card resolved is then discarded — the printed card may not say that]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1651,11 +1677,12 @@
       "key": "icedragon",
       "text": "Ice Dragon",
       "asset": "ss_icedragon.jpg",
-      "tags": ["water", "tide", "spell", "dragon"],
-      "tooltip": "*Heal 3*. Gain a *Storm Shard*. Give an *ICE*.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
+      "tags": ["water", "tide", "spell", "dragon", "ult"],
+      "tooltip": "*Heal 3*. Gain a *Storm Shard*. Give an *ICE*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1672,11 +1699,12 @@
       "key": "stormdragon",
       "text": "Storm Dragon",
       "asset": "ss_stormdragon.jpg",
-      "tags": ["water", "tide", "spell", "dragon"],
-      "tooltip": "Deal *3 damage* and gain a *Storm Shard*.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
+      "tags": ["water", "tide", "spell", "dragon", "ult"],
+      "tooltip": "Deal *3 damage* and gain a *Storm Shard*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1688,11 +1716,12 @@
       "key": "earthdragon",
       "text": "Earth Dragon",
       "asset": "ss_earthdragon.jpg",
-      "tags": ["earth", "loam", "spell", "dragon"],
-      "tooltip": "You may gain a card from the *Storm Cloud*. Deal *2 damage*. Gain a *Storm Shard*. Your opponent gains an *ASH*.\n\n_The Earth Dragons are known to hoard massive amounts of treasure in caves._\n\n_[Simplified: the printed card gains twice; here it gains once]_",
+      "tags": ["earth", "loam", "spell", "dragon", "ult"],
+      "tooltip": "You may gain a card from the *Storm Cloud*. Deal *2 damage*. Gain a *Storm Shard*. Your opponent gains an *ASH*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Earth Dragons are known to hoard massive amounts of treasure in caves._\n\n_[Simplified: the printed card gains twice; here it gains once]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1712,12 +1741,16 @@
       "text": "Derby Pocket",
       "asset": "ss_derby.jpg",
       "tags": ["wizard_card", "derby"],
-      "tooltip": "Infernal Intern. An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\n*Ultimate* (*6 mana*) - Flaming Yardstick: Deal *2 damage* and gain *1 mana*.\n\nStarting *health 13*, *Initiative rating 3*.\n\n_[Simplified: the printed Ultimate gives 2 mana only at an odd number of health; there is no parity test, so it always gives 1]_",
-      "activate": {
-        "cost": { "mana@mine.player": 6 },
-        "phases": ["play_1", "play_2"],
-        "action": ["stat_damage:health@enemy.player:2", "stat_gain:mana@mine.player:1"]
-      }
+      "tooltip": "Infernal Intern. An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\n*Ultimate* (*6 mana*) - Flaming Yardstick: Deal *2 damage* and gain *1 mana*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 13*, *Initiative rating 3*.\n\n_[Simplified: the printed Ultimate gives 2 mana only at an odd number of health; there is no parity test, so it always gives 1]_",
+      "reactions": [
+        {
+          "to": "resolving",
+          "whose": "mine",
+          "from": "wizard",
+          "cost": { "mana@mine.player": 6 },
+          "action": ["stat_damage:health@enemy.player:2", "stat_gain:mana@mine.player:1"]
+        }
+      ]
     },
     {
       "key": "pick_derby",
@@ -1742,11 +1775,12 @@
       "key": "derby_coffee",
       "text": "Coffee Run",
       "asset": "ss_derby_coffee.jpg",
-      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud*. If you gained an *Earth* card, gain *Initiative*.\n\n_\"This is gonna be the best coffee run of all time!\"_\n\n_[Simplified: Initiative is granted for any gained card, not only an Earth one]_",
+      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud*. If you gained an *Earth* card, gain *Initiative*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"This is gonna be the best coffee run of all time!\"_\n\n_[Simplified: Initiative is granted for any gained card, not only an Earth one]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1767,11 +1801,12 @@
       "key": "derby_reckless",
       "text": "Reckless Charge",
       "asset": "ss_derby_reckless.jpg",
-      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain *1 mana* and *power up*. Deal *1 damage*. Gain an *ASH*. If you have *Initiative*, deal *1 more damage*.\n\n_\"I know we can do it if we work together!\"_",
+      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "Gain *1 mana* and *power up*. Deal *1 damage*. Gain an *ASH*. If you have *Initiative*, deal *1 more damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"I know we can do it if we work together!\"_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1796,16 +1831,20 @@
       "text": "Eve Williams",
       "asset": "ss_eve.jpg",
       "tags": ["wizard_card", "eve"],
-      "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a card from your discard to your opponent's discard.\n\nStarting *health 14*, *Initiative rating 5*.",
-      "activate": {
-        "cost": { "mana@mine.player": 5 },
-        "phases": ["play_1", "play_2"],
-        "action": [
-          "draw_from:mine.deck:mine.hand:1",
-          "draw_from:mine.deck:mine.hand:1",
-          "show:mine.everywhere.curse_or_ice_held:optional"
-        ]
-      },
+      "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a card from your discard to your opponent's discard.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 14*, *Initiative rating 5*.",
+      "reactions": [
+        {
+          "to": "resolving",
+          "whose": "mine",
+          "from": "wizard",
+          "cost": { "mana@mine.player": 5 },
+          "action": [
+            "draw_from:mine.deck:mine.hand:1",
+            "draw_from:mine.deck:mine.hand:1",
+            "show:mine.everywhere.curse_or_ice_held:optional"
+          ]
+        }
+      ],
       "chosen": { "action": ["move_target_to:enemy.discard"] }
     },
     {
@@ -1834,11 +1873,12 @@
       "key": "eve_facepunch",
       "text": "Face Punch",
       "asset": "ss_eve_facepunch.jpg",
-      "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain *Initiative*. Steal *1 mana* from your opponent and they *discard a card*.\n\n_\"We use voices to avoid having to use fists. We use fists to avoid having to use bombs.\"_",
+      "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "Gain *Initiative*. Steal *1 mana* from your opponent and they *discard a card*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"We use voices to avoid having to use fists. We use fists to avoid having to use bombs.\"_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1856,12 +1896,13 @@
       "key": "eve_riot",
       "text": "Riot",
       "asset": "ss_eve_riot.jpg",
-      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Discard your hand without triggering any discard effects. Deal *1 damage* per *Earth* card discarded. Draw *2 cards*.\n\n_\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"_",
+      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "Discard your hand without triggering any discard effects. Deal *1 damage* per *Earth* card discarded. Draw *2 cards*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"_",
       "comment": "The two moves are one discard, and the detour is the whole of \"without triggering any discard effects\". An On Discard fires on a card going from a hand to a discard; leaving a hand for the quiet is not that, and leaving the quiet for a discard is not either. The cards are there for the length of one step and this is the only card in the box that needs it.",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1880,12 +1921,16 @@
       "text": "Abragail",
       "asset": "ss_abra.jpg",
       "tags": ["wizard_card", "abra"],
-      "tooltip": "Professor of Magical Chemistry. A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\n*Ultimate* (*4 mana*) - Level Up!: Add a *Research Token* to your journal. At the start of each battle, every researched power activates.\n\nStarting *health 16*, *Initiative rating 7*.",
-      "activate": {
-        "cost": { "mana@mine.player": 4 },
-        "phases": ["play_1", "play_2"],
-        "action": ["stat_gain:research@mine.player:1"]
-      }
+      "tooltip": "Professor of Magical Chemistry. A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\n*Ultimate* (*4 mana*) - Level Up!: Add a *Research Token* to your journal. At the start of each battle, every researched power activates.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 16*, *Initiative rating 7*.",
+      "reactions": [
+        {
+          "to": "resolving",
+          "whose": "mine",
+          "from": "wizard",
+          "cost": { "mana@mine.player": 4 },
+          "action": ["stat_gain:research@mine.player:1"]
+        }
+      ]
     },
     {
       "key": "pick_abra",
@@ -1909,11 +1954,12 @@
       "key": "abra_deepgems",
       "text": "Deep Gems",
       "asset": "ss_abra_deepgems.jpg",
-      "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a card from the *Storm Cloud*.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._\n\n_[Simplified: the Power Token is not spent]_",
+      "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a card from the *Storm Cloud*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._\n\n_[Simplified: the Power Token is not spent]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1933,11 +1979,12 @@
       "key": "abra_newcurriciulum",
       "text": "New Curriculum",
       "asset": "ss_abra_newcurriciulum.jpg",
-      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Power up* once per *Tier* you have reached. You may *VOID* a card in the *Storm Cloud*, and you may gain one.\n\n_\"Can't believe the *garbage* I'm asked to teach sometimes!\"_\n\n_[Simplified: the printed card voids up to 2; here one card is offered, and taking it gains rather than voids]_",
+      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "*Power up* once per *Tier* you have reached. You may *VOID* a card in the *Storm Cloud*, and you may gain one.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Can't believe the *garbage* I'm asked to teach sometimes!\"_\n\n_[Simplified: the printed card voids up to 2; here one card is offered, and taking it gains rather than voids]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1952,15 +1999,19 @@
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
       "tags": ["wizard_card", "croh"],
-      "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: Redraw one card from your discard for each *DOOM Token* you have, then gain a *DOOM Token*.\n\nStarting *health 20*, *Initiative rating 8*.\n\n_[Simplified: the printed Ultimate lets you take any card from your discard, or draw instead; here the redraw is off the top of the discard]_",
-      "activate": {
-        "cost": { "mana@mine.player": 6 },
-        "phases": ["play_1", "play_2"],
-        "action": [
-          "draw_from:mine.discard:mine.hand:sum:doom@mine.player",
-          "activate_zone:rules:by_column:croh_doom"
-        ]
-      }
+      "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: Redraw one card from your discard for each *DOOM Token* you have, then gain a *DOOM Token*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 20*, *Initiative rating 8*.\n\n_[Simplified: the printed Ultimate lets you take any card from your discard, or draw instead; here the redraw is off the top of the discard]_",
+      "reactions": [
+        {
+          "to": "resolving",
+          "whose": "mine",
+          "from": "wizard",
+          "cost": { "mana@mine.player": 6 },
+          "action": [
+            "draw_from:mine.discard:mine.hand:sum:doom@mine.player",
+            "activate_zone:rules:by_column:croh_doom"
+          ]
+        }
+      ]
     },
     {
       "key": "pick_croh",
@@ -1984,11 +2035,12 @@
       "key": "croh_sinking",
       "text": "Sinking Strike",
       "asset": "ss_croh_sinking.jpg",
-      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain *2 mana*. Deal damage equal to your number of *DOOM Tokens*. If the *CURSE* pile is empty, gain a *DOOM Token*.\n\n_Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart._",
+      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "Gain *2 mana*. Deal damage equal to your number of *DOOM Tokens*. If the *CURSE* pile is empty, gain a *DOOM Token*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2010,11 +2062,12 @@
       "key": "croh_undertow",
       "text": "Undertow",
       "asset": "ss_croh_undertow.jpg",
-      "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Your opponent *discards a card*. *Draw a card*. If you hold at least 3 more cards than they do, gain a *DOOM Token*.\n\n_Croh has come to the Spellstorm seeking his path to world domination._",
+      "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "Your opponent *discards a card*. *Draw a card*. If you hold at least 3 more cards than they do, gain a *DOOM Token*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_Croh has come to the Spellstorm seeking his path to world domination._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2033,12 +2086,16 @@
       "text": "Omar Evans",
       "asset": "ss_omar.jpg",
       "tags": ["wizard_card", "omar"],
-      "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, and *draw a card*.\n\nStarting *health 10*, *Initiative rating 1*.\n\n_[Simplified: Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine]_",
-      "activate": {
-        "cost": { "mana@mine.player": 4 },
-        "phases": ["play_1", "play_2"],
-        "action": ["draw_from:mine.deck:mine.hand:1", "show:mine.discard:optional"]
-      },
+      "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, and *draw a card*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 10*, *Initiative rating 1*.\n\n_[Simplified: Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine]_",
+      "reactions": [
+        {
+          "to": "resolving",
+          "whose": "mine",
+          "from": "wizard",
+          "cost": { "mana@mine.player": 4 },
+          "action": ["draw_from:mine.deck:mine.hand:1", "show:mine.discard:optional"]
+        }
+      ],
       "chosen": { "action": ["move_target_to:mine.hand"] }
     },
     {
@@ -2063,11 +2120,12 @@
       "key": "omar_beetle",
       "text": "Beetle Buster",
       "asset": "ss_omar_beetle.jpg",
-      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Discard a card* from your hand to deal *2 damage*.\n\n_A hero to many, Omar is regarded by the powerful as an eco-terrorist._",
+      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "*Discard a card* from your hand to deal *2 damage*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_A hero to many, Omar is regarded by the powerful as an eco-terrorist._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
@@ -2077,11 +2135,12 @@
       "key": "omar_shuriken",
       "text": "Shuriken",
       "asset": "ss_omar_shuriken.jpg",
-      "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain *Initiative* and *draw a card*.\n\n_\"...\"_\n\n_[Simplified: the printed card ALWAYS resolves first and can discard the opponent's revealed card; resolution order is set by Initiative alone, so it takes Initiative instead]_",
+      "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "Gain *Initiative* and *draw a card*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"...\"_\n\n_[Simplified: the printed card ALWAYS resolves first and can discard the opponent's revealed card; resolution order is set by Initiative alone, so it takes Initiative instead]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2098,12 +2157,16 @@
       "text": "Bunny Wizard",
       "asset": "ss_bunny.jpg",
       "tags": ["wizard_card", "bunny"],
-      "tooltip": "Healer of Bunny Island. A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\n*Ultimate* (*5 mana*) - Cast a Magic Trick!: Reveal a card from your hand, resolve it twice and *VOID* it. All players *heal 1*.\n\nStarting *health 8*, *Initiative rating 2*.\n\n_[Simplified: Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires]_",
-      "activate": {
-        "cost": { "mana@mine.player": 5 },
-        "phases": ["play_1", "play_2"],
-        "action": ["show:mine.hand:optional"]
-      },
+      "tooltip": "Healer of Bunny Island. A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\n*Ultimate* (*5 mana*) - Cast a Magic Trick!: Reveal a card from your hand, resolve it twice and *VOID* it. All players *heal 1*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 8*, *Initiative rating 2*.\n\n_[Simplified: Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires]_",
+      "reactions": [
+        {
+          "to": "resolving",
+          "whose": "mine",
+          "from": "wizard",
+          "cost": { "mana@mine.player": 5 },
+          "action": ["show:mine.hand:optional"]
+        }
+      ],
       "chosen": {
         "action": [
           "copy:target:activate:2",
@@ -2135,11 +2198,12 @@
       "key": "bunny_buddy",
       "text": "Buddy System",
       "asset": "ss_bunny_buddy.jpg",
-      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Power up* and gain *1 mana*. If your opponent is *Tier I*, they *power up* too.\n\n_\"Bunny is wondering if it would be okay to hold your hand.\" - Bunny's Handler_\n\n_[Simplified: resolving a different revealed Earth card is not offered]_",
+      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "*Power up* and gain *1 mana*. If your opponent is *Tier I*, they *power up* too.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Bunny is wondering if it would be okay to hold your hand.\" - Bunny's Handler_\n\n_[Simplified: resolving a different revealed Earth card is not offered]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2157,11 +2221,12 @@
       "key": "bunny_snowday",
       "text": "Snow Day",
       "asset": "ss_bunny_snowday.jpg",
-      "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Heal 2*. Give an *ICE* to your opponent if they have none in their discard.\n\n_The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic._",
+      "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "*Heal 2*. Give an *ICE* to your opponent if they have none in their discard.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:health@mine.player:2"] },
         {
           "key": "cast2",
@@ -2176,17 +2241,21 @@
       "text": "Oren Bark",
       "asset": "ss_oren.jpg",
       "tags": ["wizard_card", "oren"],
-      "tooltip": "Magical Chemistry Student. A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\n*Ultimate* (*5 mana*) - Bottoms up, I guess!: Reshuffle your Potion Deck, then draw potions one at a time for as long as you dare. A third TOXIC ends it and gives you an *ASH*, a *CURSE* and an *ICE*. Your Elements reset to 3 afterwards.\n\nStarting *health 16*, *Initiative rating 6*.",
-      "activate": {
-        "cost": { "mana@mine.player": 5 },
-        "phases": ["play_1", "play_2"],
-        "action": [
-          "move:potion_discard:potion_deck",
-          "shuffle:potion_deck",
-          "stat_set:toxic@mine.player:0",
-          "push_phase:potion"
-        ]
-      }
+      "tooltip": "Magical Chemistry Student. A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\n*Ultimate* (*5 mana*) - Bottoms up, I guess!: Reshuffle your Potion Deck, then draw potions one at a time for as long as you dare. A third TOXIC ends it and gives you an *ASH*, a *CURSE* and an *ICE*. Your Elements reset to 3 afterwards.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 16*, *Initiative rating 6*.",
+      "reactions": [
+        {
+          "to": "resolving",
+          "whose": "mine",
+          "from": "wizard",
+          "cost": { "mana@mine.player": 5 },
+          "action": [
+            "move:potion_discard:potion_deck",
+            "shuffle:potion_deck",
+            "stat_set:toxic@mine.player:0",
+            "push_phase:potion"
+          ]
+        }
+      ]
     },
     {
       "key": "pick_oren",
@@ -2213,11 +2282,12 @@
       "key": "oren_potion",
       "text": "Potion Gun",
       "asset": "ss_oren_potion.jpg",
-      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Deal *1 damage*. You may give a card from your hand to your opponent's hand.\n\n_\"Think I can hit that old barrel by the hill over there?\"_\n\n_[Simplified: which Element the given card matches is not read, so no Element is gained]_",
+      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "Deal *1 damage*. You may give a card from your hand to your opponent's hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Think I can hit that old barrel by the hill over there?\"_\n\n_[Simplified: which Element the given card matches is not read, so no Element is gained]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
@@ -2227,11 +2297,12 @@
       "key": "oren_unstable",
       "text": "Unstable Formula",
       "asset": "ss_oren_unstable.jpg",
-      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Power up* and gain *1 mana*. If anyone revealed *Water*, *power up* again.\n\n_\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"_\n\n_[Simplified: choosing which Element to lower and which to raise is not offered]_",
+      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "*Power up* and gain *1 mana*. If anyone revealed *Water*, *power up* again.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"_\n\n_[Simplified: choosing which Element to lower and which to raise is not offered]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2250,12 +2321,16 @@
       "text": "May Danaris",
       "asset": "ss_may.jpg",
       "tags": ["wizard_card", "may"],
-      "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a card from the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nStarting *health 12*, *Initiative rating 4*.\n\n_[Simplified: Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented]_",
-      "activate": {
-        "cost": { "mana@mine.player": 6 },
-        "phases": ["play_1", "play_2"],
-        "action": ["stat_gain:energy@mine.player:3", "show:void:optional"]
-      },
+      "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a card from the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 12*, *Initiative rating 4*.\n\n_[Simplified: Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented]_",
+      "reactions": [
+        {
+          "to": "resolving",
+          "whose": "mine",
+          "from": "wizard",
+          "cost": { "mana@mine.player": 6 },
+          "action": ["stat_gain:energy@mine.player:3", "show:void:optional"]
+        }
+      ],
       "chosen": { "action": ["copy:target:activate", "move_target_to:spellstorm_deck:bottom"] }
     },
     {
@@ -2281,11 +2356,12 @@
       "key": "may_data",
       "text": "Data Breach",
       "asset": "ss_may_data.jpg",
-      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Lose *2 Energy* Tokens to *power up twice* and make your opponent *discard a card*.\n\n_\"Yes! I'm in. Now let's see what these idiots have planned next...\"_\n\n_[Simplified: the choice of losing 1 or 2 Energy is not offered]_",
+      "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "Lose *2 Energy* Tokens to *power up twice* and make your opponent *discard a card*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Yes! I'm in. Now let's see what these idiots have planned next...\"_\n\n_[Simplified: the choice of losing 1 or 2 Energy is not offered]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": [] },
         {
           "key": "cast2",
@@ -2304,11 +2380,12 @@
       "key": "may_starshot",
       "text": "Star Shot",
       "asset": "ss_may_starshot.jpg",
-      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "*Discard a card* to deal *1 damage*. Gain *1 mana* for each *Energy* Token you have, then lose *2 Energy*.\n\n_\"Hey, YOU! Eat this!\"_\n\n_[Simplified: the extra damage for discarding a Tier II card is not checked]_",
+      "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
+      "tooltip": "*Discard a card* to deal *1 damage*. Gain *1 mana* for each *Energy* Token you have, then lose *2 Energy*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Hey, YOU! Eat this!\"_\n\n_[Simplified: the extra damage for discarding a Tier II card is not checked]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
+        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2464,7 +2541,7 @@
       "text": "Energy Wave",
       "tags": ["weather", "storm"],
       "asset": "ss_energywave.jpg",
-      "tooltip": "*Draw a card*. After resolving, players may use their *Ultimate* ability.\n\n_[Simplified: Ultimates are already usable every round in this build, so this only draws]_",
+      "tooltip": "*Draw a card*. After resolving, players may use their *Ultimate* ability.\n\n_[Simplified: an Ultimate now needs a card carrying the Ultimate icon, and waiving that for one round is not something a weather card can say; this only draws]_",
       "abilities": [{ "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] }]
     },
     {

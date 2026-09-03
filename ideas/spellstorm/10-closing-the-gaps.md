@@ -18,29 +18,56 @@ see A2, which was written wrong the first time and is corrected below.
 
 ## A. The one big word: an automatic step that can ask
 
-### A1. Ultimates are cast on play, not on resolve (09 §2)
+### A1. ~~Ultimates are cast on play, not on resolve~~ — done, and the answer was yes
 
-**What it costs.** The `[ULT]` icon means nothing mechanically, and an Ultimate
-that wants to answer what the opponent revealed cannot — it is spent before the
-showdown turns the cards over.
+**The open question was whether `reactions.responders` may open a window from
+inside an *automatic* phase's action list.** It may. Nothing in the scheduler
+had to learn anything: `settle` puts the response window ahead of every phase
+decision, so an `emit:` from a phase's own actions leaves the stack waiting and
+the phases behind it unrun. That made A1 a game-file change and no engine change
+at all.
 
-**Proposal — reactions, which already exist for exactly this.** A reaction is a
-window opened on a named verb, and it already carries a `cost`, a `when` and a
-`from`. Give the resolve step an `emit:` — say `spell_resolving` — and the
-wizard card carries:
+**What it is.** A card carrying the `[ULT]` icon carries one more ability,
 
 ```json
-{ "to": "spell_resolving", "whose": "mine", "from": "board",
+{ "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] }
+```
+
+and the wizard carries the answer:
+
+```json
+{ "to": "resolving", "whose": "mine", "from": "wizard",
   "cost": { "mana@mine.player": 6 }, "action": [ … ] }
 ```
 
-The machinery is all there (`game/reactions.lua`, `emit:` in `actions.lua`).
-The open question is whether `reactions.responders` may open a window from
-inside an *automatic* phase's action list, which is where resolution runs.
-If it can, this is a game-file change and no engine change at all — worth
-finding out before anything else on this page.
+`"whose": "mine"` is the whole of *your own* card: the announcement is made by
+whichever seat is resolving, and only that seat's wizard may answer it. The
+subject is the card rather than a rule about the round, which is what lets the
+window name the card that opened it — the engine already draws that line across
+the top of the screen, with the Pass beside it.
 
-**Size:** small if the window opens; medium if the scheduler has to learn to.
+**And the one thing it needed was a phase.** An action list has no cursor, so an
+ask in the middle of one is answered after the rest of the list has run. A phase
+that *ends* on the ask leaves the next phase waiting, so each side's resolution
+became two: `ult_1` then `resolve_1`, `ult_2` then `resolve_2`. The seat is named
+once per side, in the announce phase, since the resolve that follows is the same
+seat's.
+
+**Two latent engine bugs surfaced doing it**, neither reachable from any game
+shipped at the time, both now fixed with tests:
+
+- **`each_seat:` inside a deferred list looped one seat N times.** Priority
+  outranks the turn wherever "mine" is worked out, and `each_seat` moved only the
+  turn — so an emit's tail or a reaction's action ran the same seat's action once
+  per seat. It moves whichever is being read now.
+- **A pushed phase froze `settle` in any game with a stack.** `react_step` said
+  "waiting" for `depth > 1` before checking whether the stack held anything, so an
+  empty stack under an open page stopped end conditions and automatic phases
+  both. The interjection rule is right; it just has to be asked second.
+
+**What is still not the printed rule**: *Obsidian* and *Energy Wave* waive the
+requirement rather than meet it (D4, and 09's weather note), and neither is a
+thing a card can say about the round.
 
 ### A2. A question inside an automatic step (09 §2, Abragail, Falling Star, May)
 
@@ -180,8 +207,9 @@ card being played — "when an opponent is dealing damage to you". Since
 path `emit:` a verb, and a trap is then an ordinary reaction with
 `from: "traps"`.
 
-**Size:** medium, and it shares its whole cost with A1 (both want a verb emitted
-from inside the engine's own steps rather than from a card).
+**Size:** medium — and cheaper than it was. A1 shipped the half they shared: a
+window *does* open from inside an automatic step and holds it. What is left is
+the verb itself, emitted from the damage path rather than from a card.
 
 ---
 
@@ -473,9 +501,9 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 
 | | Item | Size | Why here |
 |---|---|---|---|
-| 1 | A1 — **Ultimates as a reaction to a resolve verb** | small–medium | restores the `[ULT]` icon, the largest single departure |
-| 2 | A2 — **one offer per seat, queued** | medium | Falling Star, and the last thing an automatic step cannot ask |
-| 3 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
-| 4 | C2, C3, D2, D3 | small each | one card or three apiece |
-| — | A3, A2's tail, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
+| 1 | A2 — **one offer per seat, queued** | medium | Falling Star, and the last thing an automatic step cannot ask |
+| 2 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
+| 3 | C2, C3, D2, D3 | small each | one card or three apiece |
+| 4 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
+| — | A1, A3, A2's tail, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The Ultimates, the copy, the journal, the potion loop, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |

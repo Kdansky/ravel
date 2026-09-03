@@ -46,16 +46,32 @@ face-down card takes the free strip down the right edge instead.
 The rest of the round was always faithful: countering is checked across both
 spots at once, and resolution follows the Initiative Tracker.
 
-### 2. Ultimates are used when you play, not when you resolve
+### 2. ~~Ultimates are used when you play, not when you resolve~~ — fixed
 
-The printed rule is that you may cast your Ultimate while resolving a spell card
-carrying the `[ULT]` icon. There is no way to open a player decision inside an
-automatic resolution step, so instead **your wizard's Ultimate is clickable
-during your own play phase**, as often as you can pay for it.
+*Kept because the shape is the useful part.* The printed rule is that you may
+cast your Ultimate while resolving a spell card carrying the `[ULT]` icon. That
+was read as "a player decision inside an automatic resolution step", which the
+engine could not open — so an Ultimate became a button during your own play
+phase, the icon meant nothing, and an Ultimate could not answer what the
+opponent had revealed.
 
-Consequences: the `[ULT]` icon on a card means nothing mechanically, and an
-Ultimate is cast before the reveal rather than after — so an Ultimate that wants
-to answer what the opponent played cannot.
+**All three are gone, and no engine word was needed.** A card carrying the icon
+announces itself — one ability, `emit:resolving` — and the wizard's Ultimate is
+an ordinary reaction to that verb, paid for out of mana like any other. The
+twenty-seven cards that carry the icon in the box carry the tag here.
+
+The one thing it wanted was a **phase to announce in**. An action list has no
+cursor, so an ask written into the middle of one is answered after the rest of
+the list has run; a phase that ends on the ask leaves the next phase waiting for
+it. So each side's resolution is two phases now — `ult_1` then `resolve_1`,
+`ult_2` then `resolve_2` — and the window holds the resolution behind it. That
+is the same lesson Abragail's journal produced: **a phase is the engine's word
+for "and then"**.
+
+What the icon still cannot say is the reverse. *Obsidian* ("you may use your
+Ultimate without paying the mana cost") and *Energy Wave* ("players may use
+their Ultimate") both waive the requirement rather than meet it, and neither is
+a thing a card can say about the round.
 
 ### 3. ~~A card resolved by another card does not ask questions~~ — fixed
 
@@ -128,11 +144,6 @@ states that grant them. What each still rounds off is below.
   Token *on a space of your choice*; here it is a count, so the eight spaces come
   on 1, 2, 3… in order. All eight work, including the three that ask a question,
   which get a phase each — an offer is one at a time.
-- **An Ultimate is usable only while you are choosing a card to play.** Which is
-  where it was always meant to be (§2), and is now said in as many words rather
-  than left to the zones a phase happens to name: an Ultimate that may be used
-  inside anything can be used inside itself, and Oren's opens a phase of its own
-  to be used inside.
 - **Three of Oren's cards still round off.** *I Think I Just Drank Gasoline*
   takes the damage but does not double the next potion; *Dragon Elixir* gains the
   Dragon rather than resolving it; *Potion Gun* gives the card but does not read
@@ -149,8 +160,9 @@ states that grant them. What each still rounds off is below.
   Resolution order is the Initiative Tracker and nothing else, which is close.
 - **Weather that rewrites other cards** is not implemented: *Glittering Dust*
   ("Earth cards do nothing but heal 2") is a continuous effect, and *Energy Wave*
-  ("players may use their Ultimate") is already true every round here. Both still
-  draw. *Falling Star* gives mana rather than offering the Storm Cloud to each
+  ("players may use their Ultimate") now means something — an Ultimate needs a
+  card carrying the icon (§2) — but waiving that for one round is a rule about
+  the round, and a weather card has no way to say it. Both still draw. *Falling Star* gives mana rather than offering the Storm Cloud to each
   player in turn, because an offer cannot be opened once per seat inside one
   automatic step.
 - **An empty pile VOIDs a card, but not one you choose.** The Spellstorm Board

@@ -102,18 +102,18 @@ FIRE, WATER, EARTH = "fire", "water", "earth"
 
 def card(key, name, element, tooltip, cast=(), cast2=None, cast3=None,
          disc=None, chosen=None, chosen_where=None, tier=None, kind="spell",
-         flavour=None, simplified=None, asset=None, tags=(), comment=None):
+         flavour=None, simplified=None, asset=None, tags=(), comment=None, ult=False):
     return dict(key=key, name=name, element=element, tooltip=tooltip,
                 cast=list(cast), cast2=cast2, cast3=cast3, disc=disc,
                 chosen=chosen, chosen_where=chosen_where, tier=tier, kind=kind,
                 flavour=flavour, simplified=simplified, asset=asset,
-                tags=list(tags), comment=comment)
+                tags=list(tags), comment=comment, ult=ult)
 
 
 # --- The six-card starting deck -------------------------------------------
 
 BASIC = [
-    card("magicdart", "Magic Dart", FIRE, kind="basic",
+    card("magicdart", "Magic Dart", FIRE, kind="basic", ult=True,
          tooltip="Gain 1 mana. If you have Initiative, deal 1 damage.",
          flavour="Fire magic is often banned from use in many parts of the world, due to its unpredictable nature.",
          cast=[MANA], cast2=(HAS_INIT, [DMG(1)])),
@@ -167,12 +167,12 @@ SPELLS = [
          tooltip="Deal 2 damage. If you have Initiative, deal 2 more damage.",
          flavour='It is customary to say "shaboom-ya!" when one reveals the Fireball II card.',
          cast=[DMG(2)], cast2=(HAS_INIT, [DMG(2)])),
-    card("flame", "Flame", FIRE, tier=1,
+    card("flame", "Flame", FIRE, tier=1, ult=True,
          tooltip="Deal 1 damage, then resolve and discard a different Fire card from your hand.",
          flavour="You need *magic* water to put a magical flame out.",
          cast=[DMG(1), OFFER_HAND_OF(FIRE)],
          chosen=["copy:target:activate", "move_target_to:mine.discard"]),
-    card("heartgem", "Heart Gem", FIRE, tier=1,
+    card("heartgem", "Heart Gem", FIRE, tier=1, ult=True,
          tooltip="Heal 3 and gain a CURSE. On discard: take 1 damage.",
          flavour="The Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time.",
          cast=[HEAL(3)] + GAIN_JUNK("curse"), disc=[SELF_DMG(1)]),
@@ -259,7 +259,7 @@ SPELLS = [
          flavour='"He just needs a little splash, is all he needs." - The Splashmaster',
          cast=[DRAW] + GAIN_INIT + [HEAL(1)],
          cast2=("count:fire@enemy.battle >= 1", [DMG(2)])),
-    card("sapphire", "Sapphire", WATER, tier=1,
+    card("sapphire", "Sapphire", WATER, tier=1, ult=True,
          tooltip="Draw a card, heal 1, and gain an ASH.",
          flavour='Many of Omia\'s most impressive Wizards have a signature move, which some call an "Ultimate".',
          cast=[DRAW, HEAL(1)] + GAIN_JUNK("ash")),
@@ -268,11 +268,11 @@ SPELLS = [
          flavour="From the year 366-1182, the Water Kingdom reigned over much of the Eastern Continent.",
          cast2=(HAS_INIT, [HEAL(1)]), cast3=(NO_INIT, GAIN_INIT),
          disc=GAIN_INIT),
-    card("twinsapphire", "Twin Sapphire", WATER, tier=2,
+    card("twinsapphire", "Twin Sapphire", WATER, tier=2, ult=True,
          tooltip="Draw a card and heal 2.",
          flavour='"TWO sapphires?! Wow, thanks!" - Someone\'s son',
          cast=[DRAW, HEAL(2)]),
-    card("ultimate", "Ultimate", WATER, tier=1,
+    card("ultimate", "Ultimate", WATER, tier=1, ult=True,
          tooltip="You may VOID a card from your hand. If you did, gain 3 mana.",
          flavour='"He just needs a little splash, is all he needs." - The Splashmaster',
          cast=[OFFER_HAND_OF(EARTH)],
@@ -368,11 +368,11 @@ JUNK = [
 ]
 
 DRAGONS = [
-    card("firedragon", "Fire Dragon", FIRE, tier=4, kind="dragon",
+    card("firedragon", "Fire Dragon", FIRE, tier=4, kind="dragon", ult=True,
          tooltip="Deal 4 damage. Gain 2 mana.",
          flavour="No Dragon is more feared than the destructive and terrible Fire Dragon.",
          cast=[DMG(4), MANA, MANA]),
-    card("winddragon", "Wind Dragon", FIRE, tier=4, kind="dragon",
+    card("winddragon", "Wind Dragon", FIRE, tier=4, kind="dragon", ult=True,
          tooltip="Gain Initiative. Gain a Storm Shard. You may resolve a card from your hand.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
          simplified="the printed card resolves up to two cards; here it is one, and the card resolved is then discarded — the printed card may not say that",
@@ -382,15 +382,15 @@ DRAGONS = [
          # nothing. It fires an On Discard now, so the guess costs something.
          # Waiting on a re-read of the printed card, or on Keith.
          chosen=["copy:target:activate", "move_target_to:mine.discard"]),
-    card("icedragon", "Ice Dragon", WATER, tier=4, kind="dragon",
+    card("icedragon", "Ice Dragon", WATER, tier=4, kind="dragon", ult=True,
          tooltip="Heal 3. Gain a Storm Shard. Give an ICE.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
          cast=[HEAL(3), SHARD(1)] + GIVE("ice")),
-    card("stormdragon", "Storm Dragon", WATER, tier=4, kind="dragon",
+    card("stormdragon", "Storm Dragon", WATER, tier=4, kind="dragon", ult=True,
          tooltip="Deal 3 damage and gain a Storm Shard.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
          cast=[DMG(3), SHARD(1)]),
-    card("earthdragon", "Earth Dragon", EARTH, tier=4, kind="dragon",
+    card("earthdragon", "Earth Dragon", EARTH, tier=4, kind="dragon", ult=True,
          tooltip="You may gain a card from the Storm Cloud. Deal 2 damage. Gain a Storm Shard. Your opponent gains an ASH.",
          flavour="The Earth Dragons are known to hoard massive amounts of treasure in caves.",
          simplified="the printed card gains twice; here it gains once",
@@ -444,7 +444,7 @@ WEATHER = [
             wx=[DRAW], wy=(REVEALED(FIRE), [MANA, MANA])),
     weather("energywave", "Energy Wave",
             "Draw a card. After resolving, players may use their Ultimate ability.",
-            simplified="Ultimates are already usable every round in this build, so this only draws",
+            simplified="an Ultimate now needs a card carrying the Ultimate icon, and waiving that for one round is not something a weather card can say; this only draws",
             wx=[DRAW]),
     weather("gemlightomen", "Gemlight Omen",
             "Draw a card. Tier II players gain 1 mana; Tier I players power up 3 times.",
@@ -523,13 +523,13 @@ WIZARDS = [
            blurb="An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.",
            start=["draw_from:spellstorm_deck:mine.discard:0"],
            spells=[
-               card("derby_coffee", "Coffee Run", EARTH, kind="wizard_spell",
+               card("derby_coffee", "Coffee Run", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up twice and you may gain a card from the Storm Cloud. If you gained an Earth card, gain Initiative.",
                     flavour='"This is gonna be the best coffee run of all time!"',
                     simplified="Initiative is granted for any gained card, not only an Earth one",
                     cast=[POWER, POWER, OFFER_CLOUD],
                     chosen=TAKE_TO_HAND + GAIN_INIT),
-               card("derby_reckless", "Reckless Charge", FIRE, kind="wizard_spell",
+               card("derby_reckless", "Reckless Charge", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Gain 1 mana and power up. Deal 1 damage. Gain an ASH. If you have Initiative, deal 1 more damage.",
                     flavour='"I know we can do it if we work together!"',
                     cast=[MANA, POWER, DMG(1)] + GAIN_JUNK("ash"),
@@ -544,12 +544,12 @@ WIZARDS = [
            blurb="A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.",
            start=GIVE("ice") + GAIN_JUNK("ice"),
            spells=[
-               card("eve_facepunch", "Face Punch", WATER, kind="wizard_spell",
+               card("eve_facepunch", "Face Punch", WATER, kind="wizard_spell", ult=True,
                     tooltip="Gain Initiative. Steal 1 mana from your opponent and they discard a card.",
                     flavour='"We use voices to avoid having to use fists. We use fists to avoid having to use bombs."',
                     cast=GAIN_INIT + ["stat_damage:mana@enemy.player:1", MANA,
                                       DISCARD_RANDOM("enemy")]),
-               card("eve_riot", "Riot", FIRE, kind="wizard_spell",
+               card("eve_riot", "Riot", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Discard your hand without triggering any discard effects. Deal 1 damage per Earth card discarded. Draw 2 cards.",
                     flavour='"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression."',
                     comment="The two moves are one discard, and the detour is the whole of \"without triggering any discard effects\". An On Discard fires on a card going from a hand to a discard; leaving a hand for the quiet is not that, and leaving the quiet for a discard is not either. The cards are there for the length of one step and this is the only card in the box that needs it.",
@@ -563,13 +563,13 @@ WIZARDS = [
            ["stat_gain:research@mine.player:1"],
            blurb="A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.",
            spells=[
-               card("abra_deepgems", "Deep Gems", WATER, kind="wizard_spell",
+               card("abra_deepgems", "Deep Gems", WATER, kind="wizard_spell", ult=True,
                     tooltip="Draw a card and gain 1 mana. You may lose 1 Power Token to resolve and then VOID a card from the Storm Cloud.",
                     flavour="The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep.",
                     simplified="the Power Token is not spent",
                     cast=[DRAW, MANA, OFFER_CLOUD_OF(WATER)],
                     chosen=["move_target_to:void", "copy:target:activate", REFILL_CLOUD]),
-               card("abra_newcurriciulum", "New Curriculum", EARTH, kind="wizard_spell",
+               card("abra_newcurriciulum", "New Curriculum", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up once per Tier you have reached. You may VOID a card in the Storm Cloud, and you may gain one.",
                     flavour='"Can\'t believe the *garbage* I\'m asked to teach sometimes!"',
                     simplified="the printed card voids up to 2; here one card is offered, and taking it gains rather than voids",
@@ -585,14 +585,14 @@ WIZARDS = [
            simplified="the printed Ultimate lets you take any card from your discard, or draw instead; here the redraw is off the top of the discard",
            blurb="An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead.",
            spells=[
-               card("croh_sinking", "Sinking Strike", FIRE, kind="wizard_spell",
+               card("croh_sinking", "Sinking Strike", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Gain 2 mana. Deal damage equal to your number of DOOM Tokens. If the CURSE pile is empty, gain a DOOM Token.",
                     flavour="Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart.",
                     cast=[MANA, MANA,
                           "stat_damage:health@enemy.player:sum:doom@mine.player"],
                     cast2=("count:junk@curse_pile <= 0",
                            ["stat_gain:doom@mine.player:1"])),
-               card("croh_undertow", "Undertow", WATER, kind="wizard_spell",
+               card("croh_undertow", "Undertow", WATER, kind="wizard_spell", ult=True,
                     tooltip="Your opponent discards a card. Draw a card. If you hold at least 3 more cards than they do, gain a DOOM Token.",
                     flavour="Croh has come to the Spellstorm seeking his path to world domination.",
                     cast=[DISCARD_RANDOM("enemy"), DRAW],
@@ -608,12 +608,12 @@ WIZARDS = [
            simplified="Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine",
            blurb="A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.",
            spells=[
-               card("omar_beetle", "Beetle Buster", FIRE, kind="wizard_spell",
+               card("omar_beetle", "Beetle Buster", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Discard a card from your hand to deal 2 damage.",
                     flavour="A hero to many, Omar is regarded by the powerful as an eco-terrorist.",
                     cast=[OFFER_HAND_OF(FIRE)],
                     chosen=["move_target_to:mine.discard", DMG(2)]),
-               card("omar_shuriken", "Shuriken", WATER, kind="wizard_spell",
+               card("omar_shuriken", "Shuriken", WATER, kind="wizard_spell", ult=True,
                     tooltip="Gain Initiative and draw a card.",
                     flavour='"..."',
                     simplified='the printed card ALWAYS resolves first and can discard the opponent\'s revealed card; resolution order is set by Initiative alone, so it takes Initiative instead',
@@ -629,14 +629,14 @@ WIZARDS = [
            simplified="Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires",
            blurb="A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.",
            spells=[
-               card("bunny_buddy", "Buddy System", EARTH, kind="wizard_spell",
+               card("bunny_buddy", "Buddy System", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up and gain 1 mana. If your opponent is Tier I, they power up too.",
                     flavour='"Bunny is wondering if it would be okay to hold your hand." - Bunny\'s Handler',
                     simplified="resolving a different revealed Earth card is not offered",
                     cast=[POWER, MANA],
                     cast2=("tier@enemy.player <= 1",
                            ["stat_gain:power@enemy.player:1"])),
-               card("bunny_snowday", "Snow Day", WATER, kind="wizard_spell",
+               card("bunny_snowday", "Snow Day", WATER, kind="wizard_spell", ult=True,
                     tooltip="Heal 2. Give an ICE to your opponent if they have none in their discard.",
                     flavour="The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic.",
                     cast=[HEAL(2)],
@@ -653,13 +653,13 @@ WIZARDS = [
                   "stat_set:water_el@mine.player:3"],
            blurb="A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.",
            spells=[
-               card("oren_potion", "Potion Gun", FIRE, kind="wizard_spell",
+               card("oren_potion", "Potion Gun", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Deal 1 damage. You may give a card from your hand to your opponent's hand.",
                     flavour='"Think I can hit that old barrel by the hill over there?"',
                     simplified="which Element the given card matches is not read, so no Element is gained",
                     cast=[DMG(1), OFFER_HAND],
                     chosen=["move_target_to:enemy.hand"]),
-               card("oren_unstable", "Unstable Formula", EARTH, kind="wizard_spell",
+               card("oren_unstable", "Unstable Formula", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up and gain 1 mana. If anyone revealed Water, power up again.",
                     flavour='"Oh, it\'ll work, trust me. But, uh... you might wanna stand back a bit..."',
                     simplified="choosing which Element to lower and which to raise is not offered",
@@ -677,14 +677,14 @@ WIZARDS = [
            blurb="A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating.",
            start=["stat_gain:energy@mine.player:2"],
            spells=[
-               card("may_data", "Data Breach", EARTH, kind="wizard_spell",
+               card("may_data", "Data Breach", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Lose 2 Energy Tokens to power up twice and make your opponent discard a card.",
                     flavour='"Yes! I\'m in. Now let\'s see what these idiots have planned next..."',
                     simplified="the choice of losing 1 or 2 Energy is not offered",
                     cast2=("energy@mine.player >= 2",
                            ["stat_damage:energy@mine.player:2", POWER, POWER,
                             DISCARD_RANDOM("enemy")])),
-               card("may_starshot", "Star Shot", FIRE, kind="wizard_spell",
+               card("may_starshot", "Star Shot", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Discard a card to deal 1 damage. Gain 1 mana for each Energy Token you have, then lose 2 Energy.",
                     flavour='"Hey, YOU! Eat this!"',
                     simplified="the extra damage for discarding a Tier II card is not checked",
@@ -874,8 +874,15 @@ def spell_template(c):
     if c["kind"] == "dragon":  tags.append("dragon")
     if c["kind"] == "wizard_spell": tags += ["wizard_spell", "no_void"]
     if c["disc"]: tags.append("has_discard")
+    # The [ULT] icon, and now it means what it says: the resolve phase announces
+    # a card wearing this, and your wizard's Ultimate is the answer.
+    if c["ult"]: tags.append("ult")
     t["tags"] = tags
-    t["tooltip"] = tip(c["tooltip"], c["flavour"], c["simplified"])
+    # The icon is a rule now, so it is said in words too -- nothing else on the
+    # card tells a player why a window opens while this one resolves.
+    text = c["tooltip"]
+    if c["ult"]: text += "\n\nCarries the Ultimate icon: you may cast your Ultimate as this resolves."
+    t["tooltip"] = tip(text, c["flavour"], c["simplified"])
     if c["comment"]: t["comment"] = c["comment"]
 
     # A card that can be cast says so by carrying a play block; ICE, ASH and
@@ -897,6 +904,11 @@ def spell_template(c):
         "%s: the offer has to be the last thing its cast does" % c["key"]
 
     abil = []
+    # The [ULT] icon. A phase of its own walks the battle spots for this one
+    # ability, so only a card wearing the icon announces itself -- and it is the
+    # card that announces, not a rule about the round, because the window the
+    # player is shown says which card opened it.
+    if c["ult"]: abil.append(ability("ult_call", ["emit:resolving"], text="Ultimate"))
     # Kept even when it is empty, so the resolve phase's first pass always has
     # something to name.
     abil.append(ability("cast", does, text="Resolve"))
@@ -935,21 +947,25 @@ def weather_template(w):
 def wizard_templates(w):
     """The character card that carries the Ultimate, and the chooser card."""
     out = []
-    # Cast while you are choosing a card to play, which is the one moment the
-    # engine can offer -- see the gaps note. Named rather than left open because
-    # an Ultimate that may be used inside anything can be used inside itself,
-    # and Oren's opens a phase of its own to be used inside.
-    ult = {"cost": {"mana@mine.player": w["ult_cost"]},
-           "phases": ["play_1", "play_2"],
+    # The printed moment, at last: you may cast your Ultimate while one of your
+    # own cards carrying the [ULT] icon resolves. That is a reaction to a verb --
+    # the card announces "resolving" and this answers it -- so the icon means
+    # what it says and an Ultimate can reply to what the reveal turned over.
+    #
+    # "whose": "mine" is the whole of "your own card": the announcement is made
+    # by whichever seat is resolving, and only that seat's wizard may answer it.
+    ult = {"to": "resolving", "whose": "mine", "from": "wizard",
+           "cost": {"mana@mine.player": w["ult_cost"]},
            "action": list(w["ult_action"])}
     char = {
         "key": "wiz_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
         "tags": ["wizard_card", w["key"]],
-        "tooltip": tip("%s. %s\n\nUltimate (%d mana) - %s: %s\n\nStarting health %d, Initiative rating %d."
+        "tooltip": tip("%s. %s\n\nUltimate (%d mana) - %s: %s\n\nCast it while one of your own cards"
+                       " carrying the Ultimate icon resolves.\n\nStarting health %d, Initiative rating %d."
                        % (w["epithet"], w["blurb"], w["ult_cost"], w["ult_name"],
                           w["ult_tooltip"], w["health"], w["rating"]),
                        simplified=w["simplified"]),
-        "activate": ult,
+        "reactions": [ult],
     }
     if w["ult_chosen"]: char["chosen"] = {"action": list(w["ult_chosen"])}
     out.append(char)
@@ -1251,6 +1267,14 @@ def zones():
         # Rules that have to run at a named moment live on cards, and cards have
         # to live somewhere.
         {"key": "rules", "layout": "stack", "display": "offscreen", "use": "none"},
+
+        # Where a card waits while it is being answered -- one record at a time,
+        # and only ever a card announcing the Ultimate icon. Offscreen because
+        # the engine already says so across the top of the screen, naming the
+        # card and offering the way out, and the board has no strip left.
+        {"key": "stack", "layout": "stack", "display": "offscreen", "use": "none",
+         "tags": ["stack"],
+         "tooltip": "A card that has announced itself and is waiting to be answered."},
         {"key": "quiet", "layout": "stack", "display": "offscreen", "use": "none",
          "status": "exile",
          "comment": "Empty except for the instant between the two halves of a discard that must not be heard. Riot is the only card that uses it, and it puts them here and takes them away again in consecutive steps.",
@@ -1360,15 +1384,28 @@ def phases():
          "actions": ["each_seat:move:mine.commit:mine.battle",
                      "each_seat:activate_zone:rules:by_column:check",
                      "each_seat:activate_zone:weather_now:by_column:wy"],
-         "next": [{"then": "resolve_1"}]},
+         "next": [{"then": "ult_1"}]},
 
         # Resolution follows the Initiative Tracker, and each card must resolve
-        # while its own seat is up or "mine" would name the wrong player.
-        {"key": "resolve_1", "type": "automatic",
-         "actions": ["set_active_seat:has_init"] + RESOLVE,
+        # while its own seat is up or "mine" would name the wrong player. The
+        # seat is named once per side, in the announce phase, because the resolve
+        # that follows is the same seat's and flipping again would walk it back.
+        #
+        # **The announce is a phase of its own, and that is what makes it work.**
+        # An action list has no cursor -- whatever follows an ask runs before the
+        # answer arrives -- so the ask is the last thing this phase does, and the
+        # resolution waits behind it. A phase is the engine's word for "and then".
+        {"key": "ult_1", "type": "automatic",
+         "actions": ["set_active_seat:has_init",
+                     "activate_zone:mine.battle:by_column:ult_call"],
+         "next": [{"then": "resolve_1"}]},
+        {"key": "resolve_1", "type": "automatic", "actions": list(RESOLVE),
+         "next": [{"then": "ult_2"}]},
+        {"key": "ult_2", "type": "automatic",
+         "actions": ["set_active_seat:enemy.player",
+                     "activate_zone:mine.battle:by_column:ult_call"],
          "next": [{"then": "resolve_2"}]},
-        {"key": "resolve_2", "type": "automatic",
-         "actions": ["set_active_seat:enemy.player"] + RESOLVE,
+        {"key": "resolve_2", "type": "automatic", "actions": list(RESOLVE),
          "next": [{"then": "round_end"}]},
 
         {"key": "round_end", "type": "automatic",

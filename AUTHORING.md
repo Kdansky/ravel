@@ -58,7 +58,7 @@ and a line here names a section that exists:
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · `chosen.where` — which of the revealed cards may be taken · Only one of them: `random.` · Making *them* choose · Nothing moves while an offer is open
-- **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · A mandatory reaction is how you ask somebody else a question · What it will not do yet
+- **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
 
@@ -2602,6 +2602,30 @@ now, so an emit costs a game without reactions exactly nothing.
 The subject is the acting card, which carries the tags a reaction reads —
 `"where": ["tagged:gem@event >= 1"]` — so the emitter names nobody who might
 answer.
+
+#### An automatic phase can ask, if the ask is the last thing it does
+
+A window opened from inside an automatic phase's own actions **holds everything
+behind it**. The response window is settled before any phase decision, so the
+emit goes up, the game comes to rest, and the phase that would have run next
+does not — until the window is answered or passed.
+
+That is the cursor an action list has not got, and it is why the ask has to be
+last. Anything written after the emit in the same list runs before the answer
+arrives; anything written in the *next phase* runs after it. So a rule of the
+shape *announce, then resolve* is two phases:
+
+```json
+{ "key": "ult_1", "type": "automatic",
+  "actions": ["set_active_seat:has_init", "activate_zone:mine.battle:by_column:ult_call"],
+  "next": [{ "then": "resolve_1" }] }
+```
+
+with `resolve_1` doing the resolving. Spellstorm's Ultimates are exactly this: a
+card carrying the printed `[ULT]` icon has one ability that emits, the wizard
+holds a reaction to that verb, and the resolution waits behind the window.
+
+**A phase is the engine's word for "and then".**
 
 #### A mandatory reaction is how you ask somebody else a question
 

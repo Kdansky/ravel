@@ -460,13 +460,20 @@ function M.test_spellstorm_a_battle_is_four_rounds_then_a_regroup(check)
 	opening(7, "derby", "eve")
 	-- Play the first playable card each time it is asked, take the first thing
 	-- offered, and watch the shape of a battle rather than its content.
-	local seen, guard = {}, 0
+	local seen, guard, asked = {}, 0, 0
 	while guard < 400 do
 		guard = guard + 1
 		local p = phase.current().key
 		seen[p] = (seen[p] or 0) + 1
 		if p == "reveal" then break end
-		if p:find("^play") then
+		if flow.pending_event() then asked = asked + 1 end
+		-- A card carrying the Ultimate icon has announced itself and the round
+		-- waits on an answer. This driver casts no Ultimates, so it declines --
+		-- which is the other half of a window and has to be reachable, or the
+		-- resolution behind it never runs.
+		if flow.pending_event() and phase.depth() <= 1 then
+			if not flow.pass_react() then break end
+		elseif p:find("^play") then
 			local h, done = hand_of(zones.active_seat()), false
 			for _, id in ipairs(h.cards) do
 				if flow.can_play(id) then flow.play_card(id, {}); done = true; break end
@@ -511,6 +518,79 @@ function M.test_spellstorm_a_battle_is_four_rounds_then_a_regroup(check)
 		tostring(#zones.find("storm_cloud").cards))
 	check("nothing got stuck in the offer",
 		#zones.find("options").cards == 0, tostring(#zones.find("options").cards))
+	-- The wiring, in a real round rather than a pushed phase: cards carrying the
+	-- Ultimate icon came up and the round stopped to ask about them.
+	check("and the icon opened windows along the way", asked > 0, tostring(asked))
+end
+
+
+-- The Ultimate icon, which used to mean nothing at all.
+--
+-- The printed rule is that you may cast your Ultimate while resolving a card
+-- carrying the icon. There was no way to open a player decision inside an
+-- automatic step, so an Ultimate was a button during your own play phase
+-- instead -- spent before the reveal turned anything over, and the icon was
+-- decoration. It is a reaction now: the card announces "resolving", the wizard
+-- answers, and the resolution waits behind the window.
+--
+-- No engine word was needed for any of it. The announce is a phase of its own,
+-- and a phase is the engine's word for "and then".
+function M.test_spellstorm_an_ultimate_answers_a_card_that_carries_the_icon(check)
+	opening(7, "derby", "eve")
+	seat_card("seat_one").stats.initiative = 1
+	seat_card("seat_two").stats.initiative = 0
+	seat_card("seat_one").stats.mana = 9
+	local dart = stage_battle("seat_one", "magicdart")
+	local hurt = seat_card("seat_two").stats.health
+
+	phase.push("ult_1")
+	flow.settle()
+	local top = flow.pending_event()
+	check("the card announced itself", top ~= nil and top.re_verb == "resolving",
+		top and top.re_verb or "(nothing announced)")
+	-- The subject is the card rather than a rule about the round, which is what
+	-- lets the window say which card opened it.
+	check("and the window names the card that carries the icon",
+		top ~= nil and top.re_subject[1] == dart.id)
+	check("the seat resolving is the one with Initiative",
+		zones.active_seat() == "seat_one", tostring(zones.active_seat()))
+	check("its resolution has not run yet", seat_card("seat_one").stats.mana == 9,
+		tostring(seat_card("seat_one").stats.mana))
+
+	local answers = flow.usable_reactions()
+	check("one wizard may answer, and it is the resolving seat's own",
+		#answers == 1 and entity.get(answers[1].card).def_key == "wiz_derby",
+		#answers .. " " .. (answers[1] and entity.get(answers[1].card).def_key or "-"))
+
+	flow.react(answers[1].card, answers[1].index, {})
+	-- The phase was pushed to reach it, and nothing under an interjection may
+	-- resolve while it stands -- which is the rule that keeps a reaction's own
+	-- offer from being run over. Stepping back off it is what a routed ult_1
+	-- never has to do.
+	phase.pop()
+	flow.settle()
+	-- Six for the Ultimate and one back from it: Derby deals 2 and gains 1.
+	check("the Ultimate was paid for and fired", seat_card("seat_one").stats.mana == 4,
+		tostring(seat_card("seat_one").stats.mana))
+	check("and it hit", seat_card("seat_two").stats.health == hurt - 2,
+		("%d, was %d"):format(seat_card("seat_two").stats.health, hurt))
+	check("with nothing left waiting", flow.pending_event() == nil)
+end
+
+
+-- The other half of an icon meaning something: a card without one is quiet, and
+-- a round of ordinary cards never stops to ask.
+function M.test_spellstorm_a_card_without_the_icon_announces_nothing(check)
+	opening(7, "derby", "eve")
+	seat_card("seat_one").stats.initiative = 1
+	seat_card("seat_two").stats.initiative = 0
+	stage_battle("seat_one", "block")
+
+	phase.push("ult_1")
+	flow.settle()
+	check("nothing announced itself", flow.pending_event() == nil,
+		flow.pending_event() and flow.pending_event().re_verb or "-")
+	check("and no wizard is being asked", #flow.usable_reactions() == 0)
 end
 
 
