@@ -355,7 +355,7 @@
           "text": "Attack the squad leader",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "when": ["ready_since@self >= 1", "not_tagged:cant_attack@self >= 1"],
+          "when": ["ready_since@self >= 1", "not_tagged:cant_attack@self"],
           "target": {
             "type": "card",
             "count": 1,
@@ -396,7 +396,7 @@
           "compute": ["det", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"],
           "when": [
             "ready_since@self >= 1",
-            "not_tagged:cant_attack@self >= 1",
+            "not_tagged:cant_attack@self",
             "count:at_lead@enemy.patrol <= lead_skip"
           ],
           "target": {
@@ -455,7 +455,7 @@
           ],
           "when": [
             "ready_since@self >= 1",
-            "not_tagged:cant_attack@self >= 1",
+            "not_tagged:cant_attack@self",
             "count:at_lead@enemy.patrol <= lead_skip",
             "pat_rest <= rest_skip"
           ],
@@ -464,7 +464,7 @@
             "count": 1,
             "owner": "enemy",
             "zones": ["army", "base", "tech", "structures", "addon"],
-            "where": ["alt@target <= sum:aa@self", "not_tagged:untargetable@target >= 1"]
+            "where": ["alt@target <= sum:aa@self", "not_tagged:untargetable@target"]
           },
           "action": [
             "stat_set:attacking@self:1",
@@ -491,7 +491,7 @@
           "phases": ["main"],
           "cost": { "exhaust": 1 },
           "tooltip": "Take a post. Left to right: squad leader, elite, scavenger, technician, lookout.",
-          "when": ["not_tagged:cant_patrol@self >= 1"],
+          "when": ["not_tagged:cant_patrol@self"],
           "target": { "type": "slot", "count": 1, "owner": "mine", "zones": ["patrol"], "fill": "empty" },
           "action": [
             "move_to:target",
@@ -1652,7 +1652,7 @@
             "count": 1,
             "owner": "enemy",
             "zones": ["patrol"],
-            "where": ["not_tagged:untargetable@target >= 1"]
+            "where": ["not_tagged:untargetable@target"]
           },
           "action": ["stat_damage:hp@target:1", "stat_damage:life@target:1", "activate_zone:rules_death"]
         },
@@ -1814,7 +1814,7 @@
             "count": 1,
             "owner": "anyone",
             "zones": ["base", "tech", "structures", "addon", "patrol"],
-            "where": ["not_tagged:untargetable@target >= 1"]
+            "where": ["not_tagged:untargetable@target"]
           },
           "action": [
             "stat_damage:hp@target:1",
@@ -1834,7 +1834,7 @@
             "count": 1,
             "owner": "anyone",
             "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-            "where": ["not_tagged:untargetable@target >= 1"]
+            "where": ["not_tagged:untargetable@target"]
           },
           "action": [
             "stat_damage:hp@target:3",
@@ -1997,7 +1997,7 @@
         }
       ],
       "chosen": {
-        "where": ["tagged:tiger@target >= 1"],
+        "where": ["tagged:tiger@target"],
         "action": ["move_target_to:mine.army", "stat_set:ready_since@target:0"]
       }
     },
@@ -2075,7 +2075,7 @@
             "owner": "anyone",
             "tags": ["unit"],
             "zones": ["army", "patrol"],
-            "where": ["not_tagged:untargetable@target >= 1"]
+            "where": ["not_tagged:untargetable@target"]
           },
           "action": ["stat_gain:atk@target:1", "stat_gain:armor@target:1"]
         }
@@ -2351,7 +2351,7 @@
           "owner": "enemy",
           "tags": ["unit"],
           "zones": ["patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": ["stat_damage:hp@target:2", "activate_zone:rules_death"]
       }
@@ -2380,7 +2380,7 @@
           "count": 1,
           "owner": "anyone",
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "stat_damage:hp@target:1",
@@ -2458,7 +2458,7 @@
           "count": 1,
           "owner": "anyone",
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "stat_damage:hp@target:1",
@@ -2483,7 +2483,7 @@
           "count": 1,
           "owner": "enemy",
           "zones": ["base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "stat_damage:hp@target:2",
@@ -2564,7 +2564,7 @@
           "owner": "enemy",
           "tags": ["fighter"],
           "zones": ["patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": ["move_target_to:enemy.army"]
       }
@@ -2781,7 +2781,7 @@
           "owner": "anyone",
           "tags": ["building"],
           "zones": ["tech", "structures"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": ["stat_set:integrity@target:0", "activate_zone:rules_death"],
         "spent": "mine.discard"
@@ -3023,7 +3023,7 @@
           "owner": "enemy",
           "tags": ["unit"],
           "zones": ["army", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "set_owner:target:mine",
@@ -3106,7 +3106,7 @@
           "count": 1,
           "owner": "enemy",
           "zones": ["base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "stat_damage:hp@target:2",
@@ -3173,7 +3173,7 @@
           "owner": "anyone",
           "tags": ["unit"],
           "zones": ["army", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "move_to",
@@ -3224,7 +3224,7 @@
           "count": 1,
           "owner": "anyone",
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "stat_damage:hp@target:2",
@@ -3293,7 +3293,7 @@
           "count": 1,
           "owner": "enemy",
           "zones": ["base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "stat_damage:hp@target:3",
@@ -3319,7 +3319,7 @@
           "count": 1,
           "owner": "anyone",
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "stat_damage:hp@target:3",
@@ -3344,7 +3344,7 @@
           "count": 1,
           "owner": "anyone",
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "stat_damage:hp@target:4",
@@ -3370,7 +3370,7 @@
           "count": 1,
           "owner": "anyone",
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": [
           "stat_damage:hp@target:5",
@@ -3756,7 +3756,7 @@
           "max": 2,
           "owner": "anyone",
           "zones": ["army", "ongoing", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": ["move_to", "stat_set:ready_since@self:0", "destroy:target"]
       }
@@ -3775,7 +3775,7 @@
         "spent": "mine.discard"
       },
       "chosen": {
-        "where": ["tagged:unit@target >= 1", "sum:price@target <= 5"],
+        "where": ["tagged:unit@target", "sum:price@target <= 5"],
         "action": ["move_target_to:mine.army", "stat_set:ready_since@target:0"]
       }
     },
@@ -3801,7 +3801,7 @@
           "count": 1,
           "owner": "anyone",
           "zones": ["ongoing", "structures", "tech"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": ["stat_set:integrity@target:0", "activate_zone:rules_death", "destroy:target"],
         "spent": "mine.discard"
@@ -4286,7 +4286,7 @@
           "owner": "anyone",
           "tags": ["fighter"],
           "zones": ["army", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": ["stat_gain:atk@target:6", "stat_gain:armor@target:6"],
         "spent": "mine.discard"
@@ -4308,7 +4308,7 @@
           "owner": "anyone",
           "tags": ["unit"],
           "zones": ["army", "patrol"],
-          "where": ["not_tagged:untargetable@target >= 1"]
+          "where": ["not_tagged:untargetable@target"]
         },
         "action": ["transform:target:squirrel"],
         "spent": "mine.discard"

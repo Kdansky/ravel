@@ -452,8 +452,46 @@ function M.test_conditions_not_self_tells_a_card_from_the_one_asking(check)
 			predicate.total("not_self@target", { targets = { me.id } }) == 1)
 
 		check("it holds as a condition, not only as a measurement",
-			predicate.holds("not_self@target >= 1", { card_id = me.id, targets = { twin.id } })
-			and not predicate.holds("not_self@target >= 1", { card_id = me.id, targets = { me.id } }))
+			predicate.holds("not_self@target", { card_id = me.id, targets = { twin.id } })
+			and not predicate.holds("not_self@target", { card_id = me.id, targets = { me.id } }))
+	end)
+end
+
+-- A question is written on its own, and comparing one to a number is refused.
+--
+-- The fns that answer yes or no were written as 1 or 0 only because the grammar
+-- demanded a comparison on every condition. It no longer does, and the taxed
+-- spelling is now an authoring error rather than a second way to say the same
+-- thing -- because the corpus would otherwise hold both, and because the numeric
+-- dress invited shapes that should not exist: `tagged:x@y < 1` was in a shipped
+-- game where `not_tagged:x@y` is the word for it.
+function M.test_conditions_a_question_is_written_on_its_own(check)
+	local predicate = require("predicate")
+	local validate = require("validate")
+	local declaration = require("declaration")
+
+	local bare = predicate.parse_condition("tagged:pawn@behind")
+	check("a yes/no fn needs no comparison", bare ~= nil)
+	check("and compiles to the shape the comparison had, so nothing below learns "
+		.. "that booleans exist", bare and bare.op == ">=" and bare.right.n == 1,
+		bare and (bare.op .. "/" .. tostring(bare.right.n)))
+
+	-- The refusal has to be narrow: a count is a number and still says what it
+	-- is being compared to. "At least one" is a real thing to write.
+	check("a counting form on its own is still an error",
+		predicate.parse_condition("count:gem@mine.hand") == nil)
+	check("and so is a bare stat, which would otherwise read as a stat worth nothing",
+		predicate.parse_condition("gold") == nil)
+	check("while a real comparison is untouched",
+		predicate.parse_condition("gold >= 3") ~= nil)
+
+	with_game(function(name)
+		local G = declaration.parse(name)
+		G.card_defs.one_gate.needs = { "tagged:beast@board >= 1" }
+		local said = table.concat(validate.check(G), "; ")
+		check("the taxed spelling is reported", said:find("compares a question to a number", 1, true), said)
+		check("and the message shows the spelling to use instead",
+			said:find("tagged:beast@board\"", 1, true), said)
 	end)
 end
 

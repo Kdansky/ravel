@@ -34,13 +34,13 @@ local GAME = [==[{
     { "key": "beast", "text": "Beast", "tags": ["creature"] },
     { "key": "flame_counter", "text": "Flame Counter", "tags": ["counter"],
       "reactions": [
-        { "to": "play", "where": ["tagged:fireball@event >= 1"],
+        { "to": "play", "where": ["tagged:fireball@event"],
           "when": ["mana@mine.player >= 1"], "from": "board",
           "action": ["destroy:event"] }
       ] },
     { "key": "summon_counter", "text": "Summon Counter", "tags": ["counter"],
       "reactions": [
-        { "to": "summon", "where": ["tagged:creature@event >= 1"], "from": "board",
+        { "to": "summon", "where": ["tagged:creature@event"], "from": "board",
           "action": ["destroy:event"] }
       ] }
   ],

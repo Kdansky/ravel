@@ -49,7 +49,7 @@ local GAME = [==[{
       "chosen": { "action": ["stat_gain:seen@mine.player:1"] } },
     { "key": "sifter", "text": "Sifter",
       "play": { "action": ["show:enemy.hand:optional"] },
-      "chosen": { "where": ["tagged:relic@target >= 1"],
+      "chosen": { "where": ["tagged:relic@target"],
         "action": ["move_target_to:mine.table"] } },
     { "key": "greedy", "text": "Greedy",
       "play": { "action": ["show:enemy.hand:optional"] },
@@ -57,7 +57,7 @@ local GAME = [==[{
         "action": ["move_target_to:mine.table"] } },
     { "key": "chooser", "text": "Chooser",
       "play": { "action": ["options:alpha,beta"] },
-      "chosen": { "where": ["tagged:relic@target >= 1"], "action": [] } },
+      "chosen": { "where": ["tagged:relic@target"], "action": [] } },
     { "key": "interrogate", "text": "Interrogate",
       "play": { "action": ["set_priority:enemy.player", "show:mine.hand"] },
       "chosen": { "action": ["move_target_to:enemy.table", "clear_priority"] } }

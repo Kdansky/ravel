@@ -948,7 +948,7 @@
         "spent": "void"
       },
       "chosen": {
-        "where": ["not_tagged:gem@target >= 1", "not_tagged:puzzle@target >= 1"],
+        "where": ["not_tagged:gem@target", "not_tagged:puzzle@target"],
         "action": ["fill:mine.discard:@target:1", "stat_damage:stock@target:1", "next_phase"]
       },
       "tooltip": "Choose any number of different non-gem, non-Puzzle chips in the bank. Play them, gain them, then end your action phase.\n\nDEV: one chip is gained off the shelf, and it ends your action phase and trashes itself. Two things are short of the print. \"Any number of different\" is one, because an offer takes one answer. And they are gained rather than played: these four are the purples and Wound, whose plays resolve a challenge, and a challenge's pass is an ordinary action list that moves the card it belongs to — which would drag the shelf out of the bank. copy: promises not to move a card; it cannot promise that about what the card's own rules do once they are running.",
@@ -1011,7 +1011,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "from": "board",
-          "where": ["tagged:purple@event >= 1"],
+          "where": ["tagged:purple@event"],
           "action": [],
           "spent": "mine.discard"
         }
@@ -1065,7 +1065,7 @@
         "action": ["show:enemy.hand:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["tagged:purple@target >= 1"], "action": ["move_target_to:mine.discard"] },
+      "chosen": { "where": ["tagged:purple@target"], "action": ["move_target_to:mine.discard"] },
       "tooltip": "Chosen opponent reveals his hand and discards all purples. Steal one of those purples (to your discard pile). If you do, trash this chip.\n\nDEV: you take one purple out of their revealed hand. The rest of their purples are not discarded, which would want a scope that reaches inside a hand.",
       "card_stats": { "hits": 1, "price": 4 }
     },
@@ -1152,7 +1152,7 @@
         "action": ["stat_gain:act_blue@mine.player:1", "show:mine.bag:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["tagged:blue@target >= 1"], "action": ["move_target_to:mine.hand"] },
+      "chosen": { "where": ["tagged:blue@target"], "action": ["move_target_to:mine.hand"] },
       "reactions": [
         {
           "to": "attack",
@@ -1522,7 +1522,7 @@
         "action": ["show:mine.bag:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["tagged:character@target >= 1"], "action": ["move_target_to:mine.hand"] },
+      "chosen": { "where": ["tagged:character@target"], "action": ["move_target_to:mine.hand"] },
       "tooltip": "Search your bag or discard pile for a character chip and put it in your hand. You may play a character chip.\n\nDEV: the search is built and narrowed to a character chip. Playing one for free afterwards is not: nothing plays a card without its cost.",
       "card_stats": { "price": 5 }
     },
@@ -1844,13 +1844,13 @@
         {
           "to": "buy",
           "text": "Trash a chip and gain a better one",
-          "where": ["tagged:purple@event >= 1"],
+          "where": ["tagged:purple@event"],
           "target": {
             "type": "card",
             "zones": ["hand"],
             "owner": "mine",
             "count": 1,
-            "where": ["tagged:purple@target < 1"]
+            "where": ["not_tagged:purple@target"]
           },
           "action": [
             "stat_set:money@mine.player:sum:price@target",
@@ -1900,7 +1900,7 @@
           "zones": ["hand"],
           "owner": "anyone",
           "count": 1,
-          "where": ["not_tagged:puzzle@target >= 1"]
+          "where": ["not_tagged:puzzle@target"]
         },
         "action": ["copy:target:play:2", "destroy:target", "next_phase"],
         "spent": "mine.table"
@@ -2100,7 +2100,7 @@
         "spent": "mine.table"
       },
       "chosen": {
-        "where": ["tagged:gem@target >= 1", "sum:value@target >= max:value@options"],
+        "where": ["tagged:gem@target", "sum:value@target >= max:value@options"],
         "action": [
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
@@ -2216,7 +2216,7 @@
         "action": ["stat_gain:acts@mine.player:1", "show:mine.bag:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["tagged:purple@target >= 1"], "action": ["move_target_to:mine.hand"] },
+      "chosen": { "where": ["tagged:purple@target"], "action": ["move_target_to:mine.hand"] },
       "tooltip": "+1 action. Exchange a chip in your hand with a purple from your bag.\n\nDEV: the bag opens and a purple comes out of it. The chip you give back in exchange is not asked for.",
       "card_stats": { "plus_act": 1 }
     },
@@ -2254,7 +2254,7 @@
         "action": ["stat_gain:acts@mine.player:1", "show:mine.discard:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["not_tagged:puzzle@target >= 1"], "action": ["move_target_to:mine.hand"] },
+      "chosen": { "where": ["not_tagged:puzzle@target"], "action": ["move_target_to:mine.hand"] },
       "tooltip": "+1 action. Put a non-Puzzle chip from your discard pile into your hand.",
       "card_stats": { "plus_act": 1 }
     },
@@ -2297,7 +2297,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "from": "board",
-          "where": ["tagged:purple@event >= 1"],
+          "where": ["tagged:purple@event"],
           "action": [],
           "spent": "mine.discard"
         }
@@ -2338,7 +2338,7 @@
         "spent": "mine.table"
       },
       "chosen": {
-        "where": ["tagged:puzzle@target >= 1", "sum:price@target <= shown@clock"],
+        "where": ["tagged:puzzle@target", "sum:price@target <= shown@clock"],
         "action": ["copy:target:play", "stat_damage:stock@target:1"]
       },
       "tooltip": "Reveal a Puzzle chip from your hand or discard pile, then play and trash a different Puzzle chip from the bank costing the same or less.\n\nDEV: built, now that the bank holds chips: the revealed chip stays in your hand, its price is written on the clock rather than into your purse, and the shelf it may reach is gated on that number. The bank chip is played and the stack pays one for it, which is what trashing it comes to. \"A different Puzzle chip\" is not said — nothing compares a pick against an earlier one — and the reveal is from your hand only, since a discard is a stack and a stack offers its top card."
@@ -2659,7 +2659,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "from": "board",
-          "where": ["tagged:purple@event >= 1"],
+          "where": ["tagged:purple@event"],
           "action": [],
           "spent": "mine.discard"
         }
@@ -2895,7 +2895,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "from": "board",
-          "where": ["tagged:purple@event >= 1"],
+          "where": ["tagged:purple@event"],
           "action": [],
           "spent": "mine.discard"
         },
@@ -2941,7 +2941,7 @@
         "spent": "mine.table"
       },
       "chosen": {
-        "where": ["tagged:gem@target >= 1", "sum:value@target >= max:value@options"],
+        "where": ["tagged:gem@target", "sum:value@target >= max:value@options"],
         "action": ["move_target_to:enemy.discard"]
       },
       "tooltip": "+1 brown action. Each opponent reveals his hand and discards his largest gem.",
@@ -2958,7 +2958,7 @@
         "action": ["show:bank:optional"],
         "spent": "mine.table"
       },
-      "chosen": { "where": ["tagged:puzzle@target >= 1"], "action": ["move_target_to:chip_box"] },
+      "chosen": { "where": ["tagged:puzzle@target"], "action": ["move_target_to:chip_box"] },
       "tooltip": "Remove a Puzzle bank stack from the game. If a stack was previously removed, return it to the game.\n\nDEV: the stack goes back into the box, which is as near as a zone gets to out of the game. The bank comes up as an offer rather than as a target, because a bank plate is scenery and nothing may point at one. Returning a stack is not built: nothing remembers which one left."
     },
     {
@@ -2993,7 +2993,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "from": "board",
-          "where": ["tagged:puzzle@event >= 1"],
+          "where": ["tagged:puzzle@event"],
           "action": ["stat_set:owed@mine.player:1"]
         },
         {

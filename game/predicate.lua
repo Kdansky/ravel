@@ -47,6 +47,11 @@ local M = {}
 -- the card it compares against is the one whose condition this is.
 local FNS    = { count = true, card = true, sum = true, max = true, min = true,
 	tagged = true, not_tagged = true, saved = true, not_self = true }
+-- The fns that answer a question rather than measure a quantity. They are the
+-- conditions that need no comparison: "there is a pawn behind it" is the whole
+-- sentence, and `>= 1` after it was the grammar's tax, not the author's meaning.
+-- Kept as a set because the validator refuses the taxed spelling by name.
+local YESNO  = { tagged = true, not_tagged = true, saved = true, not_self = true }
 -- The fns written bare, with no ":<something>" in front of the "@". Kept apart
 -- from FNS so that "count@hand" is still the typo it always was.
 local NULLARY = { not_self = true }
@@ -57,7 +62,12 @@ local OWNERS = { mine = true, enemy = true, anyone = true }
 -- word gained here that neither names is a word nobody can look up — the same
 -- hole the action table was falling into. tests/integration/docs.lua holds
 -- SCHEMA.json and AUTHORING.md to this table.
-M.WORDS = { fns = FNS, quants = QUANTS, owners = OWNERS }
+M.WORDS = { fns = FNS, quants = QUANTS, owners = OWNERS, yesno = YESNO }
+
+-- Whether a subject answers yes or no rather than measuring something.
+function M.is_yesno(p)
+	return p ~= nil and p.fn ~= nil and YESNO[p.fn] == true
+end
 
 -- A scope expression: [<quant>.][<owner>.]<zone-or-tag>. It is the part after
 -- "@" in a subject, and it also stands alone as an action's zone argument, so
@@ -578,7 +588,15 @@ local compiled = {}
 local function compile(s)
 	local left, op, right = s:match("^%s*(.-)%s*([<>=!]=?)%s*(.-)%s*$")
 	if not left then
-		return nil, "should be a comparison, like \"gold >= 3\""
+		-- No comparison, which is right for the fns that answer a question:
+		-- "tagged:pawn@behind" *is* the condition. Compiled to the shape the
+		-- comparison had, so nothing below here learns that booleans exist.
+		local bare = operand((s:gsub("^%s*(.-)%s*$", "%1")))
+		if bare and M.is_yesno(bare.subject) then
+			return { left = bare, op = ">=", right = { n = 1 }, src = s, yesno = true }
+		end
+		return nil, "should be a comparison, like \"gold >= 3\" — or one of the "
+			.. "questions that needs none, like \"tagged:pawn@behind\""
 	end
 	if COMPARE[op] == nil then
 		return nil, "'" .. op .. "' is not a comparison — write >=, <=, >, <, == or !="

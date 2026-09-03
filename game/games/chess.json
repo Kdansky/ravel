@@ -172,8 +172,8 @@
               "patterns": ["pawn_take"],
               "fill": "empty",
               "where": [
-                "tagged:last_acted@behind >= 1",
-                "tagged:pawn@behind >= 1",
+                "tagged:last_acted@behind",
+                "tagged:pawn@behind",
                 "rank@behind == 4"
               ]
             }
@@ -254,9 +254,9 @@
               "fill": "empty",
               "needs": ["moves_made@self == 0"],
               "where": [
-                "tagged:rook@one_right >= 1",
+                "tagged:rook@one_right",
                 "moves_made@one_right == 0",
-                "not_tagged:piece@one_left >= 1"
+                "not_tagged:piece@one_left"
               ]
             }
           ],
@@ -278,10 +278,10 @@
               "fill": "empty",
               "needs": ["moves_made@self == 0"],
               "where": [
-                "tagged:rook@two_left >= 1",
+                "tagged:rook@two_left",
                 "moves_made@two_left == 0",
-                "not_tagged:piece@one_right >= 1",
-                "not_tagged:piece@one_left >= 1"
+                "not_tagged:piece@one_right",
+                "not_tagged:piece@one_left"
               ]
             }
           ],

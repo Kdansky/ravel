@@ -86,9 +86,9 @@ function M.test_event_gates_a_reaction_by_condition(check)
 		local bolt = { event = { at("a1").id } }
 		local beast = { event = { at("b1").id } }
 		check("a flame-counter answers a fireball",
-			predicate.holds("tagged:fireball@event >= 1", bolt))
+			predicate.holds("tagged:fireball@event", bolt))
 		check("and does not answer a creature",
-			not predicate.holds("tagged:fireball@event >= 1", beast))
+			not predicate.holds("tagged:fireball@event", beast))
 		check("immune above three: the small one is answerable",
 			predicate.holds("value@event <= 3", bolt))
 		check("and the big one is not",

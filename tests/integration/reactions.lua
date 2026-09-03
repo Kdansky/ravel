@@ -32,7 +32,7 @@ local GAME = [==[{
     { "key": "flame_counter", "text": "Flame Counter", "tags": ["spell"],
       "reactions": [
         { "to": "play",
-          "where": ["tagged:fireball@event >= 1"],
+          "where": ["tagged:fireball@event"],
           "when": ["mana@mine.player >= 1"],
           "cost": { "mana@mine.player": 1 },
           "action": ["destroy:event"] }

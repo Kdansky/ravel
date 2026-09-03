@@ -61,11 +61,11 @@ local GAME = [==[{
       "activate": { "action": ["stat_gain:landed@mine.player:1"] } },
     { "key": "flame_counter", "text": "Flame Counter", "tags": ["counter"],
       "reactions": [
-        { "to": "cast", "where": ["tagged:fireball@event >= 1"], "action": ["counterspell"] }
+        { "to": "cast", "where": ["tagged:fireball@event"], "action": ["counterspell"] }
       ] },
     { "key": "crash_counter", "text": "Crash Counter", "tags": ["counter"],
       "reactions": [
-        { "to": "crash", "where": ["tagged:gem@event >= 1"], "action": ["counterspell"] }
+        { "to": "crash", "where": ["tagged:gem@event"], "action": ["counterspell"] }
       ] },
     { "key": "prism", "text": "Prism", "tags": ["counter"],
       "reactions": [
@@ -75,7 +75,7 @@ local GAME = [==[{
       ] },
     { "key": "ward", "text": "Ward", "tags": ["counter"],
       "reactions": [
-        { "to": "cast", "forced": "mandatory", "where": ["tagged:fireball@event >= 1"],
+        { "to": "cast", "forced": "mandatory", "where": ["tagged:fireball@event"],
           "action": ["counterspell"], "spent": "mine.table" }
       ] },
     { "key": "silence", "text": "Silence", "tags": ["counter"],

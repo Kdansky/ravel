@@ -478,7 +478,7 @@ local CASES = {
 	{ "a save slot that is a path", "which isn't a plain word",
 		function(g) g.card_defs.c_flee.on_play = { "save_game:../../elsewhere" } end },
 	{ "a condition asking about a save slot that is a path", "is not a save slot",
-		function(g) g.card_defs.c_flee.needs = { "saved:../../elsewhere >= 1" } end },
+		function(g) g.card_defs.c_flee.needs = { "saved:../../elsewhere" } end },
 	{ "badges running in a direction nobody draws", 'badge_run should be "right" or "down"',
 		function(g)
 			g.style_defs = { priced = { badges = { "hp" }, badge_run = "sideways" } }

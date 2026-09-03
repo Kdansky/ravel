@@ -680,6 +680,25 @@ function M.check(G)
 			return
 		end
 		if not (bound and bound[c.left.src]) then subject_ok(where, c.left.src or c.left.n) end
+		-- A question compared to a number. The fns that answer yes or no were
+		-- written as 1 or 0 only because the grammar demanded a comparison, and
+		-- now it does not: "tagged:pawn@behind" is the whole sentence. Refused
+		-- rather than tolerated, or the corpus keeps two spellings for it -- and
+		-- the numeric dress invites shapes that should not exist at all, like
+		-- "tagged:x@y < 1" where the vocabulary already has "not_tagged".
+		if not c.yesno and predicate.is_yesno(c.left.subject) then
+			warn('%s: "%s" compares a question to a number. It answers yes or no, '
+				.. 'so write it on its own: "%s"%s', where, tostring(s),
+				tostring(c.left.src),
+				(c.op == "<" or c.op == "<=" or c.op == "==" and c.right.n == 0)
+					and (" — or, for the other answer, the word that says so: \"" ..
+						(c.left.subject.fn:match("^not_") and c.left.subject.fn:gsub("^not_", "")
+							or ("not_" .. c.left.subject.fn))
+						.. (c.left.subject.arg and (":" .. c.left.subject.arg) or "")
+						.. (c.left.subject.scope and ("@" .. c.left.subject.scope) or "") .. "\"")
+					or "")
+			return
+		end
 		if bound and bound[c.right.src] then
 			-- A compute, named where the ability bound it. Legitimate on either
 			-- side: it is a number with a name, and one comparison is two operands.

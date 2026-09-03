@@ -1829,9 +1829,19 @@ between them mean it has just run two squares past me. `behind` is anchored on
 the square being considered, and its facing still comes from the mover, so the
 same clause serves both colours.
 
-**`tagged:` and `not_tagged:`** answer yes or no about a scope, as 1 or 0:
-`"tagged:pawn@behind": 1` is *there is a pawn there*. Use them rather than
-counting to one — `count:` is for when the number is the point.
+**`tagged:` and `not_tagged:`** answer yes or no about a scope, and are
+**written on their own** — `"tagged:pawn@behind"` is *there is a pawn there*.
+Use them rather than counting to one; `count:` is for when the number is the
+point, and then the comparison says what the number is being compared to.
+
+Comparing one of these to a number is an error, not a second spelling. A
+question has no arithmetic in it, and the numeric dress invited shapes that
+should not exist: `"tagged:purple@target < 1"` was in a shipped game, where
+`"not_tagged:purple@target"` is the word for it. **Polarity lives in the word**,
+which is why the pair exists.
+
+The four that are written this way: `tagged:`, `not_tagged:`, `saved:` and
+`not_self`.
 
 **`not_self`** is the same yes/no shape asked about identity: *is nothing in
 this scope the card doing the asking*. It takes no argument, which no other
@@ -1840,7 +1850,7 @@ the card whose condition this is:
 
 ```json
 "target": { "zones": ["hand"], "tags": ["fire"],
-            "where": ["not_self@target >= 1"] }
+            "where": ["not_self@target"] }
 ```
 
 That is "a **different** Fire card in your hand", which nothing else in the
@@ -1856,9 +1866,9 @@ columns do not flip with facing, so the same rules serve both colours:
 { "key": "castle_k", "text": "Castle kingside",
   "moves": [{ "patterns": ["two_right"], "fill": "empty",
               "needs": ["moves_made@self == 0"],
-              "where": ["tagged:rook@one_right >= 1",
+              "where": ["tagged:rook@one_right",
                         "moves_made@one_right == 0",
-                        "not_tagged:piece@one_left >= 1"] }],
+                        "not_tagged:piece@one_left"] }],
   "action": ["move_to:target", "place:one_right:one_left", "next_phase"] }
 ```
 
@@ -2097,7 +2107,7 @@ which is how chess declares it.
       "where": [
         "tagged:rook@one_right >= 1",
         "moves_made@one_right == 0",
-        "not_tagged:piece@one_left >= 1"
+        "not_tagged:piece@one_left"
       ]
     }
   ],

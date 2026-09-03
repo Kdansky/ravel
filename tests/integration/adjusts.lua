@@ -39,7 +39,7 @@ local GAME = [==[{
     },
     "warded": {
       "adjusts": [{ "key": "ward", "verb": "damage", "stat": "hp", "covers": "self", "by": -2,
-        "when": ["tagged:witch@source >= 1"] }]
+        "when": ["tagged:witch@source"] }]
     },
     "blessed": {
       "adjusts": [{ "key": "bless", "verb": "mend", "stat": "hp", "covers": "self", "by": 1 }]

@@ -152,7 +152,7 @@
       "text": "Continue",
       "tooltip": "Pick up the game you saved. It remembers which game it was, and refuses if that game file has changed since.",
       "tags": ["token", "immutable"],
-      "play": { "needs": ["saved:quick >= 1"], "action": ["load_save:quick"] }
+      "play": { "needs": ["saved:quick"], "action": ["load_save:quick"] }
     },
     {
       "key": "m_join",

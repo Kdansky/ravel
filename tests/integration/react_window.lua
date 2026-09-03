@@ -36,17 +36,17 @@ local GAME = [==[{
       "play": { "action": ["stat_gain:landed@mine.player:1"], "spent": "mine.graveyard" } },
     { "key": "flame_counter", "text": "Flame Counter", "tags": ["counter"],
       "reactions": [
-        { "to": "play", "where": ["tagged:fireball@event >= 1"],
+        { "to": "play", "where": ["tagged:fireball@event"],
           "action": ["counterspell"], "spent": "mine.graveyard" }
       ] },
     { "key": "ward", "text": "Ward", "tags": ["counter"],
       "reactions": [
-        { "to": "play", "where": ["tagged:fireball@event >= 1"],
+        { "to": "play", "where": ["tagged:fireball@event"],
           "action": ["stat_gain:mana@mine.player:1"] }
       ] },
     { "key": "spellshield", "text": "Spellshield", "tags": ["shield"],
       "reactions": [
-        { "to": "play", "where": ["tagged:counter@event >= 1"],
+        { "to": "play", "where": ["tagged:counter@event"],
           "action": ["counterspell"], "spent": "mine.graveyard" }
       ] }
   ]
