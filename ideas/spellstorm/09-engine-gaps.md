@@ -9,6 +9,10 @@ Nothing here is a bug to be fixed in the game file. Each is either a shape the
 engine has no word for (AUTHORING.md §3, *Rules that do not fit*) or a rule that
 would need an engine change to express.
 
+**What each would cost to close is in `10-closing-the-gaps.md`**, which proposes
+a fix and a size for every entry below — including the five that turn out not to
+be engine gaps at all.
+
 ## Structural — the ones that change how the game feels
 
 ### 1. The turns are sequential, but the card really is face down
