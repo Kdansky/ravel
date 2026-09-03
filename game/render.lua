@@ -112,10 +112,10 @@ function M.rescale()
 	-- `card_places` reserves on a hand and what `draw_zone_label` prints into.
 	-- zones.lua has no font, so the measurement is pushed to it from here.
 	zones.label_h = font_main:getHeight() + 3 * S
-	-- Rich text owns no fonts and no scale; both are handed to it here, where
-	-- they change.
+	-- Rich text owns no fonts; the one thing it cannot work out for itself is
+	-- handed to it here. How heavy a bold is it takes from the face it is
+	-- drawing, which is the only thing that answer depends on.
 	rich.font_step = M.font_step
-	rich.stroke    = math.max(1, math.floor(S + 0.5))
 	fx.set_scale(S)
 end
 

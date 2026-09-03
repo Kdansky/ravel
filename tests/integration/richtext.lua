@@ -100,6 +100,46 @@ function M.test_richtext_wrapping_measures_each_run_in_its_own_face(check)
 		#flav .. " vs " .. #body)
 end
 
+-- Bold is the same glyphs struck again a little to the right, because the face
+-- ships no bold cut -- and how far to the right has to follow the size of the
+-- type, not the size of the screen. Struck once at the far edge, a two-pixel
+-- stroke draws two thin letters with a hole down the middle instead of one heavy
+-- one, which is exactly what a doubled-up bold looks like at any UI scale above
+-- one. So every pixel across is struck, and the last one is worked out from the
+-- face being drawn.
+function M.test_richtext_a_bold_is_struck_at_every_pixel_across(check)
+	local real, hits = love.graphics, nil
+	love.graphics = {
+		setFont = function() end, setColor = function() end,
+		push = function() end, pop = function() end,
+		print = function(_, x) hits[#hits + 1] = x end,
+	}
+	local function strikes(px, text)
+		hits = {}
+		rich.draw(at(px), rich.wrap(at(px), text, 1e6), 0, 0, 1e6)
+		return hits
+	end
+	local plain, small, big = strikes(12, "ab"), strikes(12, "*ab*"), strikes(60, "*ab*")
+	love.graphics = real
+
+	check("plain text is drawn once", #plain == 1, #plain)
+	check("body-sized bold is one strike heavier", #small == 2, #small)
+	-- Sixty-pixel type wants two pixels of stroke, and both of them are struck.
+	check("bigger type is struck wider", #big == 3, #big)
+	local gaps = {}
+	for i = 2, #big do gaps[#gaps + 1] = big[i] - big[i - 1] end
+	check("with no gap left between the strikes",
+		table.concat(gaps, ",") == "1,1", table.concat(gaps, ","))
+
+	-- And what it draws is what it was measured as, or a bold word runs into the
+	-- next one and off the end of the box it was wrapped into.
+	local w_plain = rich.wrap(at(12), "ab", 1e6)[1].w
+	local w_bold  = rich.wrap(at(12), "*ab*", 1e6)[1].w
+	check("a bold run is measured as wide as it draws", w_bold == w_plain + 1,
+		w_bold .. " vs " .. w_plain)
+end
+
+
 function M.test_richtext_a_line_break_in_the_text_breaks_the_line(check)
 	local base = at(12)
 	local lines = rich.wrap(base, "one\ntwo\nthree", 500)

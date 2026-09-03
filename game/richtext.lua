@@ -22,8 +22,16 @@ local M = {}
 -- Replaced once, at load, by whoever owns the cache.
 M.font_step = function(font) return font end
 
--- How far apart the two strikes of a bold are, in pixels. Set with the scale.
-M.stroke = 1
+-- How much fatter a bold is than the face it thickens, as a fraction of the line
+-- height. It has to follow the size rather than the screen: one fixed pixel is
+-- invisible on a banner, and three on body text are not a heavy letter but two
+-- thin ones with a gap down the middle.
+--
+-- The default face's line height is a fifth again its size, so this is one pixel
+-- of stroke up to about 30px of type, two to 60, three above -- which is a hair
+-- under a tenth of the stem width at every size, and reads as weight rather than
+-- as a smear.
+local WEIGHT = 0.04
 
 -- How far an italic leans, as a fraction of the line height.
 local SLANT = 0.18
@@ -114,12 +122,24 @@ local function face(font, run)
 	return run.italic and M.font_step(font, -1) or font
 end
 
+-- How far the last strike of a bold lands past the first, in whole pixels: at
+-- least one, or the mark would do nothing at all.
+local function weight(f)
+	return math.max(1, math.floor(f:getHeight() * WEIGHT + 0.5))
+end
+
 local function width_of(font, run)
 	local f = face(font, run)
 	-- The lean pushes the last glyph's top past where its box ends, so the run
 	-- is one slant wider than its glyphs are. Without this an italic word runs
 	-- into whatever follows it.
-	return f:getWidth(run.text) + (run.italic and f:getHeight() * SLANT or 0)
+	--
+	-- A bold is wider than its glyphs for the same reason, by the strike that
+	-- fattens it -- and a run measured thinner than it draws runs into the next
+	-- word and off the end of the box it was wrapped into.
+	return f:getWidth(run.text)
+		+ (run.italic and f:getHeight() * SLANT or 0)
+		+ (run.bold and weight(f) or 0)
 end
 
 local function like(run, text)
@@ -213,7 +233,12 @@ local function draw_run(font, run, x, y)
 	x, y = math.floor(x + ox + 0.5), math.floor(y + 0.5)
 	love.graphics.print(run.text, x, y, 0, 1, 1, 0, 0, kx, 0)
 	if run.bold then
-		love.graphics.print(run.text, x + M.stroke, y, 0, 1, 1, 0, 0, kx, 0)
+		-- Struck at every whole pixel across rather than only at the far edge.
+		-- Two strikes two pixels apart are two letters, and the hole down the
+		-- middle of them is what a doubled-up bold looks like.
+		for i = 1, weight(f) do
+			love.graphics.print(run.text, x + i, y, 0, 1, 1, 0, 0, kx, 0)
+		end
 	end
 end
 
@@ -243,9 +268,13 @@ function M.draw(font, lines, x, y, w, align, opts)
 		elseif align == "right" then lx = x + w - l.w
 		end
 		if out then
+			-- A halo one stroke thick, which is the same measure as a bold and for
+			-- the same reason: a single pixel around sixty-pixel type is not a
+			-- halo, it is a slightly soft edge.
+			local r = weight(font)
 			love.graphics.setColor(out[1], out[2], out[3], out[4] or 1)
 			for _, o in ipairs(OUTLINE) do
-				draw_line(font, l, lx + o[1] * M.stroke, ly + o[2] * M.stroke)
+				draw_line(font, l, lx + o[1] * r, ly + o[2] * r)
 			end
 		end
 		love.graphics.setColor(fg[1], fg[2], fg[3], fg[4] or 1)
