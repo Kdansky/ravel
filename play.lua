@@ -17,6 +17,8 @@ local log         = require("log")
 local predicate   = require("predicate")
 local validate    = require("validate")
 local rng         = require("rng")
+-- A terminal has one face, so the marks a card sets its text in come off here.
+local rich        = require("richtext")
 -- Optional: the networking prototype is additive, and play.lua keeps working
 -- with both files deleted.
 local ok_net, net = pcall(require, "net")
@@ -42,7 +44,7 @@ local function card_line(e)
 	local bits = { def.text or e.def_key }
 	if def.cost and next(def.cost) then bits[#bits + 1] = "(" .. cards.cost_text(def.cost) .. ")" end
 	if e.stats.hp then bits[#bits + 1] = e.stats.hp .. "/" .. ((e.stat_max or {}).hp or e.stats.hp) .. "hp" end
-	if def.tooltip then bits[#bits + 1] = "- " .. def.tooltip end
+	if def.tooltip then bits[#bits + 1] = "- " .. rich.strip(def.tooltip) end
 	return table.concat(bits, " ")
 end
 
@@ -139,7 +141,7 @@ local function show()
 			local def = cards.def(entity.get(cid))
 			print("")
 			print("~~~ " .. (def.text or "") .. " ~~~")
-			for _, l in ipairs(wrap(def.story or def.tooltip or "", 70)) do
+			for _, l in ipairs(wrap(rich.strip(def.story or def.tooltip or ""), 70)) do
 				print("  " .. l)
 			end
 			print("  [" .. i .. "] continue")
@@ -306,9 +308,9 @@ local function inspect(n)
 	local def = cards.def(c)
 	print(def.text or c.def_key)
 	if def.cost and next(def.cost) then print("  cost: " .. cards.cost_text(def.cost)) end
-	if def.tooltip then print("  " .. def.tooltip) end
+	if def.tooltip then print("  " .. rich.strip(def.tooltip)) end
 	if def.story then
-		for _, l in ipairs(wrap(def.story, 70)) do print("  " .. l) end
+		for _, l in ipairs(wrap(rich.strip(def.story), 70)) do print("  " .. l) end
 	end
 	for k, v in pairs(c.stats) do print("  " .. k .. ": " .. v) end
 	if def.tags then print("  tags: " .. table.concat(def.tags, ", ")) end

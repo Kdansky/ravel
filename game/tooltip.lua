@@ -5,6 +5,7 @@ local render      = require("render")
 local flow        = require("flow")
 local zones       = require("zones")
 local tags        = require("tags")
+local rich        = require("richtext")
 
 local M = {}
 
@@ -205,16 +206,15 @@ function M.draw()
 	-- Measure, then draw. Two passes rather than one so the panel is the size of
 	-- what is in it: guessing the height is what left the old one padded at the
 	-- bottom on a short card and tight on a long one.
+	-- Prose is the one thing here a card may have set in bold or italic, so it is
+	-- measured by the same wrap that will draw it: a bold word is wider than the
+	-- plain one, and a panel sized off the plain text comes out short.
+	local line_h = math.ceil(bf:getHeight() * 1.25)
 	local function height_of(b)
 		if b.kind == "title" then return tf:getHeight()
-		elseif b.kind == "prose" then
-			local _, lines = bf:getWrap(b.a, inner)
-			return #lines * math.ceil(bf:getHeight() * 1.25)
 		elseif b.kind == "rule" then return math.floor(gap * 1.8)
 		elseif b.kind == "row" then return math.ceil(bf:getHeight() * 1.15)
-		else
-			local _, lines = bf:getWrap(b.a, inner)
-			return #lines * math.ceil(bf:getHeight() * 1.25)
+		else return #rich.wrap(bf, b.a, inner) * line_h
 		end
 	end
 
@@ -260,9 +260,8 @@ function M.draw()
 			love.graphics.setColor(unpack(C.title))
 			love.graphics.printf(b.a, x + pad, cy, inner, "left")
 		elseif b.kind == "prose" then
-			love.graphics.setFont(bf)
-			love.graphics.setColor(unpack(C.prose))
-			love.graphics.printf(b.a, x + pad, cy, inner, "left")
+			rich.printf(bf, b.a, x + pad, cy, inner, "left",
+				{ color = C.prose, line_h = line_h })
 		elseif b.kind == "rule" then
 			love.graphics.setColor(C.rule[1], C.rule[2], C.rule[3], 0.85)
 			love.graphics.rectangle("fill", x + pad, math.floor(cy + gap * 0.9) + 0.5, inner, 1)
@@ -275,9 +274,8 @@ function M.draw()
 			love.graphics.setColor(unpack(C.value))
 			love.graphics.printf(b.b, x + pad, cy, inner, "right")
 		else
-			love.graphics.setFont(bf)
-			love.graphics.setColor(unpack(b.b))
-			love.graphics.printf(b.a, x + pad, cy, inner, "left")
+			rich.printf(bf, b.a, x + pad, cy, inner, "left",
+				{ color = b.b, line_h = line_h })
 		end
 		cy = cy + height_of(b)
 		if b.kind == "title" or (b.kind == "prose" and list[i + 1] and list[i + 1].kind ~= "prose") then

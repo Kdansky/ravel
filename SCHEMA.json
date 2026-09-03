@@ -79,7 +79,7 @@
     {
       "key": "unique name. Cards, actions, conditions and scopes all reference it, and it may never collide with a zone key or a tag.",
       "text": "the card title, drawn on its face",
-      "tooltip": "prose shown in the hover panel after a short delay",
+      "tooltip": "prose shown in the hover panel after a short delay. May carry two marks: *bold* for the mechanics, _italic_ for flavour, which is set a size smaller. A mark that never closes is left as the character it is, so weather_now stays one word.",
       "story": "long prose for the full-screen page overlay and the detail view",
       "asset": "a picture: a name in the assets table, a bare filename in games/assets, an http(s) URL, a shape spec like star:5:amber, or auto for a generated one. A name is anything with no source in it, which is what tells the five apart. A picture that cannot be produced draws a generated placeholder derived from the card key, never nothing.",
       "tags": [
