@@ -8,6 +8,7 @@
 
 local actions   = require("actions")
 local predicate = require("predicate")   -- parse_subject only: pure, no game state
+local rich      = require("richtext")     -- the two marks card prose may carry
 
 -- The same allowlist the loader enforces, so an author sees the problem at
 -- load time instead of only in the console when the fetch is refused. Shared
@@ -2485,6 +2486,28 @@ function M.check(G)
 				cur = G.phase_by_key[auto_successor(cur) or ""]
 			end
 		end
+	end
+
+	-- `*bold*` and `_italic_` in prose a player reads. A mark that opens and never
+	-- closes prints as itself, which is what keeps `weather_now` one word and "2 *
+	-- 3" arithmetic -- and is also how a typo hides, because the card still looks
+	-- fine in the file. So the one case nobody can mean is asked about here.
+	local function check_marks(where, text)
+		if type(text) ~= "string" then return end
+		local mark = rich.unclosed(text)
+		if mark then
+			warn("%s: opens %s and never closes it, so the mark prints as itself",
+				where, mark == "*" and "a *bold* mark" or "an _italic_ mark")
+		end
+	end
+	for key, def in pairs(G.card_defs) do
+		if type(def) == "table" then
+			check_marks(("card '%s' tooltip"):format(key), def.tooltip)
+			check_marks(("card '%s' story"):format(key), def.story)
+		end
+	end
+	for key, zd in pairs(G.zone_defs) do
+		check_marks(("zone '%s' tooltip"):format(key), zd.tooltip)
 	end
 
 	-- Reactions. A reaction is an ability with a subscription on the front, so it

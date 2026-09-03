@@ -172,6 +172,7 @@
     },
     {
       "key": "hand",
+      "label": "Hand",
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",
@@ -220,7 +221,7 @@
       "layout": "grid",
       "grid": [1, 5],
       "applies": ["takeable"],
-      "tooltip": "Five cards to gain from. You may only take one at or below your Tier. After any card leaves, another is drawn to replace it.",
+      "tooltip": "Five cards to gain from. You may only take one at or below your *Tier*. After any card leaves, another is drawn to replace it.",
       "pos": [0.005, 0.215, 0.105, 0.785],
       "contents": ["fireessence", "wateressence", "earthessence"]
     },
@@ -231,7 +232,7 @@
       "visibility": "secret",
       "tags": ["shuffle"],
       "refill_from": "void",
-      "tooltip": "The Spellstorm Deck. When it runs out, the VOID is shuffled to become the new one.",
+      "tooltip": "The *Spellstorm Deck*. When it runs out, the *VOID* is shuffled to become the new one.",
       "pos": [0.115, 0.215, 0.2, 0.4],
       "contents": [
         "fireball",
@@ -277,7 +278,7 @@
       "label": "VOID",
       "layout": "stack",
       "use": "none",
-      "tooltip": "Cards removed from the game. When the Spellstorm Deck runs out, this becomes the new one.",
+      "tooltip": "Cards removed from the game. When the *Spellstorm Deck* runs out, this becomes the new one.",
       "pos": [0.115, 0.42, 0.2, 0.605]
     },
     {
@@ -294,7 +295,7 @@
       "visibility": "secret",
       "tags": ["shuffle"],
       "refill_from": "weather_main",
-      "tooltip": "The eight Calm Before the Storm cards sit on top of the Weather Deck, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
+      "tooltip": "The eight Calm Before the Storm cards sit on top of the *Weather Deck*, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
       "pos": [0.115, 0.625, 0.2, 0.785],
       "contents": [
         "nice_breeze",
@@ -341,7 +342,7 @@
       "layout": "stack",
       "applies": ["takeable"],
       "contents": ["ice:6"],
-      "tooltip": "Six ICE. Given to an opponent's discard, and returned here when VOIDed.",
+      "tooltip": "Six *ICE*. Given to an opponent's discard, and returned here when *VOIDed*.",
       "pos": [0.615, 0.215, 0.705, 0.4]
     },
     {
@@ -351,7 +352,7 @@
       "layout": "stack",
       "applies": ["takeable"],
       "contents": ["ash:6"],
-      "tooltip": "Six ASH. Given to an opponent's discard, and returned here when VOIDed.",
+      "tooltip": "Six *ASH*. Given to an opponent's discard, and returned here when *VOIDed*.",
       "pos": [0.715, 0.215, 0.805, 0.4]
     },
     {
@@ -361,7 +362,7 @@
       "layout": "stack",
       "applies": ["takeable"],
       "contents": ["curse:6"],
-      "tooltip": "Six CURSE. Given to an opponent's discard, and returned here when VOIDed.",
+      "tooltip": "Six *CURSE*. Given to an opponent's discard, and returned here when *VOIDed*.",
       "pos": [0.815, 0.215, 0.905, 0.4]
     },
     {
@@ -370,7 +371,7 @@
       "layout": "stack",
       "tags": ["shuffle"],
       "use": "none",
-      "tooltip": "Tier IV. Gained by filling your Power Track while already at Tier III.",
+      "tooltip": "*Tier IV*. Gained by filling your *Power Track* while already at *Tier III*.",
       "contents": ["firedragon", "winddragon", "icedragon", "stormdragon", "earthdragon"],
       "pos": [0.615, 0.44, 0.705, 0.625]
     },
@@ -589,7 +590,7 @@
       "text": "Magic Dart",
       "asset": "ss_magicdart.jpg",
       "tags": ["fire", "ember", "spell", "basic"],
-      "tooltip": "Gain 1 mana. If you have Initiative, deal 1 damage.\n\nFire magic is often banned from use in many parts of the world, due to its unpredictable nature.",
+      "tooltip": "Gain *1 mana*. If you have *Initiative*, deal *1 damage*.\n\n_Fire magic is often banned from use in many parts of the world, due to its unpredictable nature._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -607,7 +608,7 @@
       "text": "Block",
       "asset": "ss_block.jpg",
       "tags": ["water", "tide", "spell", "basic"],
-      "tooltip": "Gain Initiative. Heal 1 for every Fire card revealed this round.\n\n\"He just needs a little splash, is all he needs.\" - The Splashmaster",
+      "tooltip": "Gain *Initiative*. *Heal 1* for every *Fire* card revealed this round.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -627,7 +628,7 @@
       "text": "Power Gem",
       "asset": "ss_powergem.jpg",
       "tags": ["earth", "loam", "spell", "basic", "has_discard"],
-      "tooltip": "Power up. You may gain a card from the Storm Cloud; if you do, it goes to your discard. On discard: power up.\n\nThe golden gems of the Spell Storm take time to develop their power.",
+      "tooltip": "*Power up*. You may gain a card from the *Storm Cloud*; if you do, it goes to your discard. On discard: *power up*.\n\n_The golden gems of the Spell Storm take time to develop their power._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -642,7 +643,7 @@
       "text": "Fire Essence",
       "asset": "ss_fireessence.jpg",
       "tags": ["fire", "ember", "spell", "essence"],
-      "tooltip": "Deal 1 damage. You may gain any Tier I or II Fire card in the Storm Cloud. VOID this.\n\nFire Magic is generally associated with destruction.\n\n[Simplified: the offer is not narrowed to Fire, or to Tier I-II]",
+      "tooltip": "Deal *1 damage*. You may gain any *Tier I* or II *Fire* card in the *Storm Cloud*. *VOID* this.\n\n_Fire Magic is generally associated with destruction._\n\n_[Simplified: the offer is not narrowed to Fire, or to Tier I-II]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -660,7 +661,7 @@
       "text": "Water Essence",
       "asset": "ss_wateressence.jpg",
       "tags": ["water", "tide", "spell", "essence"],
-      "tooltip": "Gain 1 mana. You may gain any Tier I or II Water card in the Storm Cloud. VOID this.\n\nWater Magic is generally associated with healing.\n\n[Simplified: the offer is not narrowed to Water, or to Tier I-II]",
+      "tooltip": "Gain *1 mana*. You may gain any *Tier I* or II *Water* card in the *Storm Cloud*. *VOID* this.\n\n_Water Magic is generally associated with healing._\n\n_[Simplified: the offer is not narrowed to Water, or to Tier I-II]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -678,7 +679,7 @@
       "text": "Earth Essence",
       "asset": "ss_earthessence.jpg",
       "tags": ["earth", "loam", "spell", "essence", "has_discard"],
-      "tooltip": "Power up. You may gain any Tier I or II Earth card in the Storm Cloud. VOID this. On discard: power up.\n\nEarth Magic is generally associated with building.\n\n[Simplified: the offer is not narrowed to Earth, or to Tier I-II]",
+      "tooltip": "*Power up*. You may gain any *Tier I* or II *Earth* card in the *Storm Cloud*. *VOID* this. On discard: *power up*.\n\n_Earth Magic is generally associated with building._\n\n_[Simplified: the offer is not narrowed to Earth, or to Tier I-II]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -697,7 +698,7 @@
       "text": "Fireball",
       "asset": "ss_fireball.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Deal 1 damage and gain an ASH. If you have Initiative, deal 2 more damage and lose Initiative.\n\nIt is customary to say \"shaboom!\" when one reveals the Fireball card.",
+      "tooltip": "Deal *1 damage* and gain an *ASH*. If you have *Initiative*, deal *2 more damage* and lose *Initiative*.\n\n_It is customary to say \"shaboom!\" when one reveals the Fireball card._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -723,7 +724,7 @@
       "text": "Fireball II",
       "asset": "ss_fireball2.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Deal 2 damage. If you have Initiative, deal 2 more damage.\n\nIt is customary to say \"shaboom-ya!\" when one reveals the Fireball II card.",
+      "tooltip": "Deal *2 damage*. If you have *Initiative*, deal *2 more damage*.\n\n_It is customary to say \"shaboom-ya!\" when one reveals the Fireball II card._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
@@ -741,7 +742,7 @@
       "text": "Flame",
       "asset": "ss_flame.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Deal 1 damage, then resolve and discard a different Fire card from your hand.\n\nYou need *magic* water to put a magical flame out.\n\n[Simplified: the offer is not narrowed to Fire cards; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
+      "tooltip": "Deal *1 damage*, then resolve and discard a different *Fire* card from your hand.\n\n_You need *magic* water to put a magical flame out._\n\n_[Simplified: the offer is not narrowed to Fire cards; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -755,7 +756,7 @@
       "text": "Heart Gem",
       "asset": "ss_heartgem.jpg",
       "tags": ["fire", "ember", "spell", "has_discard"],
-      "tooltip": "Heal 3 and gain a CURSE. On discard: take 1 damage.\n\nThe Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time.",
+      "tooltip": "*Heal 3* and gain a *CURSE*. On discard: take *1 damage*.\n\n_The Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -772,7 +773,7 @@
       "text": "Lantern",
       "asset": "ss_lantern.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Gain 2 mana. If your opponent revealed Water, VOID this, gain a CURSE and take 1 damage.\n\nDo not keep sentient fire spirits trapped in a lantern, for any reason.",
+      "tooltip": "Gain *2 mana*. If your opponent revealed *Water*, *VOID* this, gain a *CURSE* and take *1 damage*.\n\n_Do not keep sentient fire spirits trapped in a lantern, for any reason._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -798,7 +799,7 @@
       "text": "Lava Bat",
       "asset": "ss_lavabat.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Gain 1 mana. You may move a card from your opponent's discard to your own. Gain Initiative.\n\nDangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm.\n\n[Simplified: the printed card moves a Fire card between any two discards; here it is their discard to yours, any card]",
+      "tooltip": "Gain *1 mana*. You may move a card from your opponent's discard to your own. Gain *Initiative*.\n\n_Dangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm._\n\n_[Simplified: the printed card moves a Fire card between any two discards; here it is their discard to yours, any card]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -820,7 +821,7 @@
       "text": "Mana Font",
       "asset": "ss_manafont.jpg",
       "tags": ["fire", "ember", "spell", "has_discard"],
-      "tooltip": "VOID a card in the Storm Cloud. If you did, gain 3 mana. On discard: take 1 damage and gain 1 mana.\n\nWhile there are many theories, no one knows where the magic inside gems originally comes from.\n\n[Simplified: the offer is not narrowed to Water cards]",
+      "tooltip": "*VOID* a card in the *Storm Cloud*. If you did, gain *3 mana*. On discard: take *1 damage* and gain *1 mana*.\n\n_While there are many theories, no one knows where the magic inside gems originally comes from._\n\n_[Simplified: the offer is not narrowed to Water cards]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -847,7 +848,7 @@
       "text": "Obsidian",
       "asset": "ss_obsidian.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Take 1 damage and lose 2 mana. If you did, you may use your Ultimate without paying its mana cost.\n\n\"Whenever I close my eyes, I see my twisted reflection in that black mirrored gem.\" - Unknown\n\n[Simplified: the free Ultimate is not granted -- there is no way to waive a cost; the damage and mana loss happen]",
+      "tooltip": "Take *1 damage* and lose *2 mana*. If you did, you may use your *Ultimate* without paying its mana cost.\n\n_\"Whenever I close my eyes, I see my twisted reflection in that black mirrored gem.\" - Unknown_\n\n_[Simplified: the free Ultimate is not granted -- there is no way to waive a cost; the damage and mana loss happen]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -863,7 +864,7 @@
       "text": "Rapid Fire",
       "asset": "ss_rapidfire.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Draw a card. If you have Initiative, deal 2 damage and you may redraw this to your hand.\n\nWhen going for a fire-based strategy, it's important to keep the pressure on.\n\n[Simplified: the card is not returned to hand]",
+      "tooltip": "*Draw a card*. If you have *Initiative*, deal *2 damage* and you may redraw this to your hand.\n\n_When going for a fire-based strategy, it's important to keep the pressure on._\n\n_[Simplified: the card is not returned to hand]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -881,7 +882,7 @@
       "text": "Ruby",
       "asset": "ss_ruby.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Discard the top 3 cards of your deck and deal 1 damage.\n\nThe popular trend of ruby-adorned garments was blamed for the Great Royal Ball Fire of 1976.\n\n[Simplified: the printed card deals 1 damage per Fire discarded, or voids one instead; there is no way to count what was just discarded, so it deals a flat 1]",
+      "tooltip": "Discard the top *3 cards* of your deck and deal *1 damage*.\n\n_The popular trend of ruby-adorned garments was blamed for the Great Royal Ball Fire of 1976._\n\n_[Simplified: the printed card deals 1 damage per Fire discarded, or voids one instead; there is no way to count what was just discarded, so it deals a flat 1]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -897,7 +898,7 @@
       "text": "Shockwave",
       "asset": "ss_shockwave.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Your opponent loses 2 Power Tokens and discards a card. You gain Initiative. Deal 1 damage.\n\nThe 1981 hit song \"Shockwave\" is often credited with creating the Bonepunk genre.\n\n[Simplified: the discard is the top card of their hand rather than a random one]",
+      "tooltip": "Your opponent loses *2 Power Tokens* and *discards a card*. You gain *Initiative*. Deal *1 damage*.\n\n_The 1981 hit song \"Shockwave\" is often credited with creating the Bonepunk genre._\n\n_[Simplified: the discard is the top card of their hand rather than a random one]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -919,7 +920,7 @@
       "text": "Swamp Silt",
       "asset": "ss_swampsilt.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Draw a card. Whoever has Initiative loses it. Give your opponent a CURSE.\n\nThe Order's imperial land-grab has much to do with the increasing swampland in their territory.",
+      "tooltip": "*Draw a card*. Whoever has *Initiative* loses it. Give your opponent a *CURSE*.\n\n_The Order's imperial land-grab has much to do with the increasing swampland in their territory._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -947,7 +948,7 @@
       "text": "Crossfire",
       "asset": "ss_crossfire.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "If you have Initiative, deal 3 damage, lose Initiative, and put this in your opponent's discard.\n\n\"The first lesson in using fire magic always must be... how not to burn one's self.\" - B Underbrom, Professor of Fire Magic",
+      "tooltip": "If you have *Initiative*, deal *3 damage*, lose *Initiative*, and put this in your opponent's discard.\n\n_\"The first lesson in using fire magic always must be... how not to burn one's self.\" - B Underbrom, Professor of Fire Magic_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -970,7 +971,7 @@
       "text": "Arctite",
       "asset": "ss_arctite.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Draw 2 cards. Heal 2 and give an ICE.\n\nPirates have been known to smuggle large amounts of Arctite inside icebergs.",
+      "tooltip": "Draw *2 cards*. *Heal 2* and give an *ICE*.\n\n_Pirates have been known to smuggle large amounts of Arctite inside icebergs._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
@@ -991,7 +992,7 @@
       "text": "Frost Magic",
       "asset": "ss_frostmagic.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Heal 1. Lose 1 Power Token. Give your opponent an ICE.\n\nThe Azure Order was focused on water magic until the 1970s, when ice magic suddenly became far more popular.",
+      "tooltip": "*Heal 1*. Lose *1 Power Token*. Give your opponent an *ICE*.\n\n_The Azure Order was focused on water magic until the 1970s, when ice magic suddenly became far more popular._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1011,7 +1012,7 @@
       "text": "Ice Flume",
       "asset": "ss_iceflume.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Give an ICE. You may VOID an ICE from your hand. Gain Initiative.\n\n\"Watch your step!\" - Unknown\n\n[Simplified: the offer is your hand only, and is not narrowed to ICE]",
+      "tooltip": "Give an *ICE*. You may *VOID* an *ICE* from your hand. Gain *Initiative*.\n\n_\"Watch your step!\" - Unknown_\n\n_[Simplified: the offer is your hand only, and is not narrowed to ICE]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1033,7 +1034,7 @@
       "text": "Lapis",
       "asset": "ss_lapis.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Draw a card. You may discard a card and heal 1.\n\nDoctors throughout Omia have used Water Magic to heal the sick for generations.\n\n[Simplified: the printed card discards up to 2 and heals 1 per Water discarded; here it is one card and a flat 1]",
+      "tooltip": "*Draw a card*. You may *discard a card* and *heal 1*.\n\n_Doctors throughout Omia have used Water Magic to heal the sick for generations._\n\n_[Simplified: the printed card discards up to 2 and heals 1 per Water discarded; here it is one card and a flat 1]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1047,7 +1048,7 @@
       "text": "Leap",
       "asset": "ss_leap.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Gain Initiative and heal 1. If your opponent revealed Fire, you may VOID a card from your hand.\n\nAzure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe.",
+      "tooltip": "Gain *Initiative* and *heal 1*. If your opponent revealed *Fire*, you may *VOID* a card from your hand.\n\n_Azure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1074,7 +1075,7 @@
       "text": "Moonstone",
       "asset": "ss_moonstone.jpg",
       "tags": ["water", "tide", "spell", "has_discard"],
-      "tooltip": "Heal 4. On discard: heal 2.\n\nThe rare and beautiful Moonstone is one of the most coveted in all of Omia.",
+      "tooltip": "*Heal 4*. On discard: *heal 2*.\n\n_The rare and beautiful Moonstone is one of the most coveted in all of Omia._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
@@ -1087,7 +1088,7 @@
       "text": "Reflect",
       "asset": "ss_reflect.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Draw a card, gain Initiative, heal 1. If your opponent revealed Fire, they take 2 damage.\n\n\"He just needs a little splash, is all he needs.\" - The Splashmaster",
+      "tooltip": "*Draw a card*, gain *Initiative*, *heal 1*. If your opponent revealed *Fire*, they take *2 damage*.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1114,7 +1115,7 @@
       "text": "Sapphire",
       "asset": "ss_sapphire.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Draw a card, heal 1, and gain an ASH.\n\nMany of Omia's most impressive Wizards have a signature move, which some call an \"Ultimate\".",
+      "tooltip": "*Draw a card*, *heal 1*, and gain an *ASH*.\n\n_Many of Omia's most impressive Wizards have a signature move, which some call an \"Ultimate\"._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1134,7 +1135,7 @@
       "text": "Step",
       "asset": "ss_step.jpg",
       "tags": ["water", "tide", "spell", "has_discard"],
-      "tooltip": "If you have Initiative, heal 1. Otherwise, gain Initiative. On discard: gain Initiative.\n\nFrom the year 366-1182, the Water Kingdom reigned over much of the Eastern Continent.",
+      "tooltip": "If you have *Initiative*, *heal 1*. Otherwise, gain *Initiative*. On discard: gain *Initiative*.\n\n_From the year 366-1182, the Water Kingdom reigned over much of the Eastern Continent._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1163,7 +1164,7 @@
       "text": "Twin Sapphire",
       "asset": "ss_twinsapphire.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Draw a card and heal 2.\n\n\"TWO sapphires?! Wow, thanks!\" - Someone's son",
+      "tooltip": "*Draw a card* and *heal 2*.\n\n_\"TWO sapphires?! Wow, thanks!\" - Someone's son_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1179,7 +1180,7 @@
       "text": "Ultimate",
       "asset": "ss_ultimate.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "You may VOID a card from your hand. If you did, gain 3 mana.\n\n\"He just needs a little splash, is all he needs.\" - The Splashmaster\n\n[Simplified: the offer is not narrowed to Earth cards]",
+      "tooltip": "You may *VOID* a card from your hand. If you did, gain *3 mana*.\n\n_\"He just needs a little splash, is all he needs.\" - The Splashmaster_\n\n_[Simplified: the offer is not narrowed to Earth cards]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1200,7 +1201,7 @@
       "text": "Wave",
       "asset": "ss_wave.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "Gain 3 mana. Your opponent discards their hand and draws a new hand of 4 cards.\n\nA wave does not ask what it washes away.",
+      "tooltip": "Gain *3 mana*. Your opponent *discards their hand* and draws a new hand of *4 cards*.\n\n_A wave does not ask what it washes away._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1222,7 +1223,7 @@
       "text": "Amber",
       "asset": "ss_amber.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Power up. You must gain a card from the Storm Cloud. On discard: power up.\n\nThe Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly.\n\n[Simplified: the printed card gains twice and is mandatory; here it gains once and may be declined]",
+      "tooltip": "*Power up*. You must gain a card from the *Storm Cloud*. On discard: *power up*.\n\n_The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly._\n\n_[Simplified: the printed card gains twice and is mandatory; here it gains once and may be declined]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1237,7 +1238,7 @@
       "text": "Bloodstone",
       "asset": "ss_bloodstone.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Gain 1 mana. Take 1 damage. You may VOID a card from your hand. On discard: gain 1 mana.\n\n\"It's best to leave gems that you find in the wild alone, unless you really know what you're doing.\" - Abragail\n\n[Simplified: the offer is your hand only, not hand or discard]",
+      "tooltip": "Gain *1 mana*. Take *1 damage*. You may *VOID* a card from your hand. On discard: gain *1 mana*.\n\n_\"It's best to leave gems that you find in the wild alone, unless you really know what you're doing.\" - Abragail_\n\n_[Simplified: the offer is your hand only, not hand or discard]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1256,7 +1257,7 @@
       "text": "Diamond",
       "asset": "ss_diamond.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "If you hold 3 or more other cards, discard 3 of them and power up 3 times. On discard: power up.\n\n\"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years.\" - Azura Spellstorm Scholar\n\n[Simplified: the three discarded cards are the first three in hand rather than your choice]",
+      "tooltip": "If you hold 3 or more other cards, discard 3 of them and *power up 3 times*. On discard: *power up*.\n\n_\"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years.\" - Azura Spellstorm Scholar_\n\n_[Simplified: the three discarded cards are the first three in hand rather than your choice]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1280,7 +1281,7 @@
       "text": "Meteorite",
       "asset": "ss_meteorite.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Take 1 damage. You may resolve any card in the Storm Cloud regardless of tier, then VOID it. On discard: take 1 damage.\n\n\"Mom! Look! This fell from the sky!\" - A child of Tiya Bannet\n\n[Simplified: a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
+      "tooltip": "Take *1 damage*. You may resolve any card in the *Storm Cloud* regardless of tier, then *VOID* it. On discard: take *1 damage*.\n\n_\"Mom! Look! This fell from the sky!\" - A child of Tiya Bannet_\n\n_[Simplified: a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1301,7 +1302,7 @@
       "text": "Opal",
       "asset": "ss_opal.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Draw a card, power up twice, gain 2 mana, and you may gain a card from the Storm Cloud. On discard: power up twice.\n\nGems are rocks found deep in the earth that are charged with mysterious power.",
+      "tooltip": "*Draw a card*, *power up twice*, gain *2 mana*, and you may gain a card from the *Storm Cloud*. On discard: *power up twice*.\n\n_Gems are rocks found deep in the earth that are charged with mysterious power._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
@@ -1330,7 +1331,7 @@
       "text": "Quake",
       "asset": "ss_quake.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Your opponent loses 2 Power Tokens and gains an ASH. You may gain a card from the Storm Cloud. On discard: power up.\n\nA huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons.",
+      "tooltip": "Your opponent loses *2 Power Tokens* and gains an *ASH*. You may gain a card from the *Storm Cloud*. On discard: *power up*.\n\n_A huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1349,7 +1350,7 @@
       "text": "Shatter",
       "asset": "ss_shatter.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "You may VOID a card from your hand; if you do, power up. On discard: power up.\n\n\"That there spellstorm water's FULL-a gold, I tell ya!\" - Prospector\n\n[Simplified: the printed card voids up to 2; here it is one]",
+      "tooltip": "You may *VOID* a card from your hand; if you do, *power up*. On discard: *power up*.\n\n_\"That there spellstorm water's FULL-a gold, I tell ya!\" - Prospector_\n\n_[Simplified: the printed card voids up to 2; here it is one]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1364,7 +1365,7 @@
       "text": "Sift",
       "asset": "ss_sift.jpg",
       "tags": ["earth", "loam", "spell"],
-      "tooltip": "Power up. Draw 2 cards, then you may discard one of them.\n\nAlmost all Earth cards have discard effects.\n\n[Simplified: the printed card looks at the top 2 and may put them back in order; here they are drawn and one may be discarded]",
+      "tooltip": "*Power up*. Draw *2 cards*, then you may discard one of them.\n\n_Almost all Earth cards have discard effects._\n\n_[Simplified: the printed card looks at the top 2 and may put them back in order; here they are drawn and one may be discarded]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1382,7 +1383,7 @@
       "text": "Spirit Crystal",
       "asset": "ss_spiritcrystal.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Draw a card. Reveal a card from your hand, resolve it and then discard it. On discard: power up.\n\nIt's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.\n\n[Simplified: the offer is not narrowed to Earth cards; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
+      "tooltip": "*Draw a card*. Reveal a card from your hand, resolve it and then discard it. On discard: *power up*.\n\n_It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers._\n\n_[Simplified: the offer is not narrowed to Earth cards; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1397,7 +1398,7 @@
       "text": "Three Power",
       "asset": "ss_threepower.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Power up twice and you may gain a card from the Storm Cloud. If anyone revealed Water, power up again. On discard: power up twice.\n\nWhen you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card.",
+      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud*. If anyone revealed *Water*, *power up* again. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1426,7 +1427,7 @@
       "text": "Two Power",
       "asset": "ss_twopower.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "Power up twice and you may gain a card from the Storm Cloud. On discard: power up twice.\n\nWhen you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card.",
+      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud*. On discard: *power up twice*.\n\n_When you see the \"Gain Card\" icon on a card, keep in mind that you may choose not to gain a card._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1449,7 +1450,7 @@
       "text": "Ice",
       "asset": "ss_ice.jpg",
       "tags": ["water", "tide", "spell", "junk", "has_discard"],
-      "tooltip": "This can't be played. On discard during Regroup: -1 to your Blast Score.\n\n\"Ice cut into a cube shape is kind of like a gem.\" - Beosnook",
+      "tooltip": "This can't be played. On discard during *Regroup*: -1 to your *Blast Score*.\n\n_\"Ice cut into a cube shape is kind of like a gem.\" - Beosnook_",
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1461,7 +1462,7 @@
       "text": "Ash",
       "asset": "ss_ash.jpg",
       "tags": ["earth", "loam", "spell", "junk", "has_discard"],
-      "tooltip": "This can't be played. On discard: lose 1 Power Token.\n\nThe Spellstorm is a highly volcanic area, often covered in ash.",
+      "tooltip": "This can't be played. On discard: lose *1 Power Token*.\n\n_The Spellstorm is a highly volcanic area, often covered in ash._",
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1473,7 +1474,7 @@
       "text": "Curse",
       "asset": "ss_curse.jpg",
       "tags": ["fire", "ember", "spell", "junk", "has_discard"],
-      "tooltip": "This can't be played. On discard: take 1 damage.\n\n\"Curses!\" - H.M.T. Holliganger, Distinguished Professor at the Azura Academy School of Archaeology",
+      "tooltip": "This can't be played. On discard: take *1 damage*.\n\n_\"Curses!\" - H.M.T. Holliganger, Distinguished Professor at the Azura Academy School of Archaeology_",
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
@@ -1485,7 +1486,7 @@
       "text": "Fire Dragon",
       "asset": "ss_firedragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon"],
-      "tooltip": "Deal 4 damage. Gain 2 mana.\n\nNo Dragon is more feared than the destructive and terrible Fire Dragon.",
+      "tooltip": "Deal *4 damage*. Gain *2 mana*.\n\n_No Dragon is more feared than the destructive and terrible Fire Dragon._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1505,7 +1506,7 @@
       "text": "Wind Dragon",
       "asset": "ss_winddragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon"],
-      "tooltip": "Gain Initiative. Gain a Storm Shard. You may resolve a card from your hand.\n\nThe elusive Storm Dragons were considered to be cryptids until very recently.\n\n[Simplified: the printed card resolves up to two cards; here it is one, and a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
+      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one, and a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1527,7 +1528,7 @@
       "text": "Ice Dragon",
       "asset": "ss_icedragon.jpg",
       "tags": ["water", "tide", "spell", "dragon"],
-      "tooltip": "Heal 3. Gain a Storm Shard. Give an ICE.\n\nThe elusive Storm Dragons were considered to be cryptids until very recently.",
+      "tooltip": "*Heal 3*. Gain a *Storm Shard*. Give an *ICE*.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1547,7 +1548,7 @@
       "text": "Storm Dragon",
       "asset": "ss_stormdragon.jpg",
       "tags": ["water", "tide", "spell", "dragon"],
-      "tooltip": "Deal 3 damage and gain a Storm Shard.\n\nThe elusive Storm Dragons were considered to be cryptids until very recently.",
+      "tooltip": "Deal *3 damage* and gain a *Storm Shard*.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1563,7 +1564,7 @@
       "text": "Earth Dragon",
       "asset": "ss_earthdragon.jpg",
       "tags": ["earth", "loam", "spell", "dragon"],
-      "tooltip": "You may gain a card from the Storm Cloud. Deal 2 damage. Gain a Storm Shard. Your opponent gains an ASH.\n\nThe Earth Dragons are known to hoard massive amounts of treasure in caves.\n\n[Simplified: the printed card gains twice; here it gains once]",
+      "tooltip": "You may gain a card from the *Storm Cloud*. Deal *2 damage*. Gain a *Storm Shard*. Your opponent gains an *ASH*.\n\n_The Earth Dragons are known to hoard massive amounts of treasure in caves._\n\n_[Simplified: the printed card gains twice; here it gains once]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1585,7 +1586,7 @@
       "text": "Derby Pocket",
       "asset": "ss_derby.jpg",
       "tags": ["wizard_card", "derby"],
-      "tooltip": "Infernal Intern. An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\nUltimate (6 mana) - Flaming Yardstick: Deal 2 damage and gain 1 mana.\n\nStarting health 13, Initiative rating 3.\n\n[Simplified: the printed Ultimate gives 2 mana only at an odd number of health; there is no parity test, so it always gives 1]",
+      "tooltip": "Infernal Intern. An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\n*Ultimate* (*6 mana*) - Flaming Yardstick: Deal *2 damage* and gain *1 mana*.\n\nStarting *health 13*, *Initiative rating 3*.\n\n_[Simplified: the printed Ultimate gives 2 mana only at an odd number of health; there is no parity test, so it always gives 1]_",
       "activate": {
         "cost": { "mana@mine.player": 6 },
         "action": ["stat_damage:health@enemy.player:2", "stat_gain:mana@mine.player:1"]
@@ -1596,7 +1597,7 @@
       "text": "Derby Pocket",
       "asset": "ss_derby.jpg",
       "tags": ["chooser", "no_undo"],
-      "tooltip": "Infernal Intern (Fire, Earth). An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\nHealth 13, Initiative rating 3, Ultimate 6 mana.",
+      "tooltip": "Infernal Intern (*Fire*, *Earth*). An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\nHealth 13, *Initiative rating 3*, *Ultimate* *6 mana*.",
       "play": {
         "action": [
           "stat_boost:health@mine.player:12",
@@ -1615,7 +1616,7 @@
       "text": "Coffee Run",
       "asset": "ss_derby_coffee.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Power up twice and you may gain a card from the Storm Cloud. If you gained an Earth card, gain Initiative.\n\n\"This is gonna be the best coffee run of all time!\"\n\n[Simplified: Initiative is granted for any gained card, not only an Earth one]",
+      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud*. If you gained an *Earth* card, gain *Initiative*.\n\n_\"This is gonna be the best coffee run of all time!\"_\n\n_[Simplified: Initiative is granted for any gained card, not only an Earth one]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1640,7 +1641,7 @@
       "text": "Reckless Charge",
       "asset": "ss_derby_reckless.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain 1 mana and power up. Deal 1 damage. Gain an ASH. If you have Initiative, deal 1 more damage.\n\n\"I know we can do it if we work together!\"",
+      "tooltip": "Gain *1 mana* and *power up*. Deal *1 damage*. Gain an *ASH*. If you have *Initiative*, deal *1 more damage*.\n\n_\"I know we can do it if we work together!\"_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1667,7 +1668,7 @@
       "text": "Eve Williams",
       "asset": "ss_eve.jpg",
       "tags": ["wizard_card", "eve"],
-      "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\nUltimate (5 mana) - Doom Bauble: Draw 2 cards. You may move a card from your discard to your opponent's discard.\n\nStarting health 14, Initiative rating 5.\n\n[Simplified: the offer is not narrowed to ICE and CURSE]",
+      "tooltip": "Radical Activist. A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\n*Ultimate* (*5 mana*) - Doom Bauble: Draw *2 cards*. You may move a card from your discard to your opponent's discard.\n\nStarting *health 14*, *Initiative rating 5*.\n\n_[Simplified: the offer is not narrowed to ICE and CURSE]_",
       "activate": {
         "cost": { "mana@mine.player": 5 },
         "action": [
@@ -1683,7 +1684,7 @@
       "text": "Eve Williams",
       "asset": "ss_eve.jpg",
       "tags": ["chooser", "no_undo"],
-      "tooltip": "Radical Activist (Fire, Water). A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\nHealth 14, Initiative rating 5, Ultimate 5 mana.",
+      "tooltip": "Radical Activist (*Fire*, *Water*). A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\nHealth 14, *Initiative rating 5*, *Ultimate* *5 mana*.",
       "play": {
         "action": [
           "stat_boost:health@mine.player:13",
@@ -1703,7 +1704,7 @@
       "text": "Face Punch",
       "asset": "ss_eve_facepunch.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain Initiative. Steal 1 mana from your opponent and they discard a card.\n\n\"We use voices to avoid having to use fists. We use fists to avoid having to use bombs.\"\n\n[Simplified: the discard is the top card of their hand rather than a random one]",
+      "tooltip": "Gain *Initiative*. Steal *1 mana* from your opponent and they *discard a card*.\n\n_\"We use voices to avoid having to use fists. We use fists to avoid having to use bombs.\"_\n\n_[Simplified: the discard is the top card of their hand rather than a random one]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1725,7 +1726,7 @@
       "text": "Riot",
       "asset": "ss_eve_riot.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Discard your hand without triggering any discard effects. Deal 1 damage per Earth card discarded. Draw 2 cards.\n\n\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"",
+      "tooltip": "Discard your hand without triggering any discard effects. Deal *1 damage* per *Earth* card discarded. Draw *2 cards*.\n\n_\"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression.\"_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1746,7 +1747,7 @@
       "text": "Abragail",
       "asset": "ss_abra.jpg",
       "tags": ["wizard_card", "abra"],
-      "tooltip": "Professor of Magical Chemistry. A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\nUltimate (4 mana) - Level Up!: Add a Research Token to your journal. At the start of each battle, every researched power activates.\n\nStarting health 16, Initiative rating 7.",
+      "tooltip": "Professor of Magical Chemistry. A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\n*Ultimate* (*4 mana*) - Level Up!: Add a *Research Token* to your journal. At the start of each battle, every researched power activates.\n\nStarting *health 16*, *Initiative rating 7*.",
       "activate": { "cost": { "mana@mine.player": 4 }, "action": ["stat_gain:research@mine.player:1"] }
     },
     {
@@ -1754,7 +1755,7 @@
       "text": "Abragail",
       "asset": "ss_abra.jpg",
       "tags": ["chooser", "no_undo"],
-      "tooltip": "Professor of Magical Chemistry (Water, Earth). A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\nHealth 16, Initiative rating 7, Ultimate 4 mana.",
+      "tooltip": "Professor of Magical Chemistry (*Water*, *Earth*). A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\nHealth 16, *Initiative rating 7*, *Ultimate* *4 mana*.",
       "play": {
         "action": [
           "stat_boost:health@mine.player:15",
@@ -1772,7 +1773,7 @@
       "text": "Deep Gems",
       "asset": "ss_abra_deepgems.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Draw a card and gain 1 mana. You may lose 1 Power Token to resolve and then VOID a card from the Storm Cloud.\n\nThe Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep.\n\n[Simplified: the offer is not narrowed to Water cards, the Power Token is not spent, and a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
+      "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a card from the *Storm Cloud*.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._\n\n_[Simplified: the offer is not narrowed to Water cards, the Power Token is not spent, and a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1796,7 +1797,7 @@
       "text": "New Curriculum",
       "asset": "ss_abra_newcurriciulum.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Power up once per Tier you have reached. You may VOID a card in the Storm Cloud, and you may gain one.\n\n\"Can't believe the *garbage* I'm asked to teach sometimes!\"\n\n[Simplified: the printed card voids up to 2; here one card is offered, and taking it gains rather than voids]",
+      "tooltip": "*Power up* once per *Tier* you have reached. You may *VOID* a card in the *Storm Cloud*, and you may gain one.\n\n_\"Can't believe the *garbage* I'm asked to teach sometimes!\"_\n\n_[Simplified: the printed card voids up to 2; here one card is offered, and taking it gains rather than voids]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1814,7 +1815,7 @@
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
       "tags": ["wizard_card", "croh"],
-      "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead.\n\nUltimate (6 mana) - DOOOOOOOOOM!: Redraw one card from your discard for each DOOM Token you have, then gain a DOOM Token.\n\nStarting health 20, Initiative rating 8.\n\n[Simplified: the printed Ultimate offers a choice of card and only grants a DOOM Token when you have none; here the redraw is off the top of the discard and a token is always gained]",
+      "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: Redraw one card from your discard for each *DOOM Token* you have, then gain a *DOOM Token*.\n\nStarting *health 20*, *Initiative rating 8*.\n\n_[Simplified: the printed Ultimate offers a choice of card and only grants a DOOM Token when you have none; here the redraw is off the top of the discard and a token is always gained]_",
       "activate": {
         "cost": { "mana@mine.player": 6 },
         "action": [
@@ -1828,7 +1829,7 @@
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
       "tags": ["chooser", "no_undo"],
-      "tooltip": "Undead Lich (Fire, Water). An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead.\n\nHealth 20, Initiative rating 8, Ultimate 6 mana.",
+      "tooltip": "Undead Lich (*Fire*, *Water*). An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\nHealth 20, *Initiative rating 8*, *Ultimate* *6 mana*.",
       "play": {
         "action": [
           "stat_boost:health@mine.player:19",
@@ -1846,7 +1847,7 @@
       "text": "Sinking Strike",
       "asset": "ss_croh_sinking.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain 2 mana. Deal damage equal to your number of DOOM Tokens.\n\nLong ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart.\n\n[Simplified: the DOOM Token for an empty CURSE pile is not granted]",
+      "tooltip": "Gain *2 mana*. Deal damage equal to your number of *DOOM Tokens*.\n\n_Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart._\n\n_[Simplified: the DOOM Token for an empty CURSE pile is not granted]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1866,7 +1867,7 @@
       "text": "Undertow",
       "asset": "ss_croh_undertow.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Your opponent discards a card. Draw a card. If you hold at least 3 more cards than they do, gain a DOOM Token.\n\nCroh has come to the Spellstorm seeking his path to world domination.\n\n[Simplified: the discard is the top card of their hand rather than a random one]",
+      "tooltip": "Your opponent *discards a card*. *Draw a card*. If you hold at least 3 more cards than they do, gain a *DOOM Token*.\n\n_Croh has come to the Spellstorm seeking his path to world domination._\n\n_[Simplified: the discard is the top card of their hand rather than a random one]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1888,7 +1889,7 @@
       "text": "Omar Evans",
       "asset": "ss_omar.jpg",
       "tags": ["wizard_card", "omar"],
-      "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\nUltimate (4 mana) - Hidden Movement: Return a card from your discard to your hand, and draw a card.\n\nStarting health 10, Initiative rating 1.\n\n[Simplified: Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine]",
+      "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, and *draw a card*.\n\nStarting *health 10*, *Initiative rating 1*.\n\n_[Simplified: Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine]_",
       "activate": {
         "cost": { "mana@mine.player": 4 },
         "action": ["draw_from:mine.deck:mine.hand:1", "show:mine.discard:optional"]
@@ -1900,7 +1901,7 @@
       "text": "Omar Evans",
       "asset": "ss_omar.jpg",
       "tags": ["chooser", "no_undo"],
-      "tooltip": "Ninja and Eco-Terrorist (Fire, Water). A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\nHealth 10, Initiative rating 1, Ultimate 4 mana.",
+      "tooltip": "Ninja and Eco-Terrorist (*Fire*, *Water*). A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\nHealth 10, *Initiative rating 1*, *Ultimate* *4 mana*.",
       "play": {
         "action": [
           "stat_boost:health@mine.player:9",
@@ -1918,7 +1919,7 @@
       "text": "Beetle Buster",
       "asset": "ss_omar_beetle.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Discard a card from your hand to deal 2 damage.\n\nA hero to many, Omar is regarded by the powerful as an eco-terrorist.\n\n[Simplified: the offer is not narrowed to Fire cards]",
+      "tooltip": "*Discard a card* from your hand to deal *2 damage*.\n\n_A hero to many, Omar is regarded by the powerful as an eco-terrorist._\n\n_[Simplified: the offer is not narrowed to Fire cards]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1932,7 +1933,7 @@
       "text": "Shuriken",
       "asset": "ss_omar_shuriken.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Gain Initiative and draw a card.\n\n\"...\"\n\n[Simplified: the printed card ALWAYS resolves first and can discard the opponent's revealed card; resolution order is set by Initiative alone, so it takes Initiative instead]",
+      "tooltip": "Gain *Initiative* and *draw a card*.\n\n_\"...\"_\n\n_[Simplified: the printed card ALWAYS resolves first and can discard the opponent's revealed card; resolution order is set by Initiative alone, so it takes Initiative instead]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1952,7 +1953,7 @@
       "text": "Bunny Wizard",
       "asset": "ss_bunny.jpg",
       "tags": ["wizard_card", "bunny"],
-      "tooltip": "Healer of Bunny Island. A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\nUltimate (5 mana) - Cast a Magic Trick!: Reveal a card from your hand, resolve it twice and VOID it. All players heal 1.\n\nStarting health 8, Initiative rating 2.\n\n[Simplified: Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
+      "tooltip": "Healer of Bunny Island. A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\n*Ultimate* (*5 mana*) - Cast a Magic Trick!: Reveal a card from your hand, resolve it twice and *VOID* it. All players *heal 1*.\n\nStarting *health 8*, *Initiative rating 2*.\n\n_[Simplified: Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
       "activate": { "cost": { "mana@mine.player": 5 }, "action": ["show:mine.hand:optional"] },
       "chosen": {
         "action": [
@@ -1968,7 +1969,7 @@
       "text": "Bunny Wizard",
       "asset": "ss_bunny.jpg",
       "tags": ["chooser", "no_undo"],
-      "tooltip": "Healer of Bunny Island (Water, Earth). A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\nHealth 8, Initiative rating 2, Ultimate 5 mana.",
+      "tooltip": "Healer of Bunny Island (*Water*, *Earth*). A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\nHealth 8, *Initiative rating 2*, *Ultimate* *5 mana*.",
       "play": {
         "action": [
           "stat_boost:health@mine.player:7",
@@ -1986,7 +1987,7 @@
       "text": "Buddy System",
       "asset": "ss_bunny_buddy.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Power up and gain 1 mana. If your opponent is Tier I, they power up too.\n\n\"Bunny is wondering if it would be okay to hold your hand.\" - Bunny's Handler\n\n[Simplified: resolving a different revealed Earth card is not offered]",
+      "tooltip": "*Power up* and gain *1 mana*. If your opponent is *Tier I*, they *power up* too.\n\n_\"Bunny is wondering if it would be okay to hold your hand.\" - Bunny's Handler_\n\n_[Simplified: resolving a different revealed Earth card is not offered]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2008,7 +2009,7 @@
       "text": "Snow Day",
       "asset": "ss_bunny_snowday.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Heal 2. Give an ICE to your opponent if they have none in their discard.\n\nThe Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic.",
+      "tooltip": "*Heal 2*. Give an *ICE* to your opponent if they have none in their discard.\n\n_The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic._",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2026,7 +2027,7 @@
       "text": "Oren Bark",
       "asset": "ss_oren.jpg",
       "tags": ["wizard_card", "oren"],
-      "tooltip": "Magical Chemistry Student. A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\nUltimate (5 mana) - Bottoms up, I guess!: Draw and resolve a card from your Potion Deck.\n\nStarting health 16, Initiative rating 6.\n\n[Simplified: the Chemistry Board, its three Element tracks and the push-your-luck of drawing until a third TOXIC card are not implemented; the Ultimate resolves exactly one potion, free]",
+      "tooltip": "Magical Chemistry Student. A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\n*Ultimate* (*5 mana*) - Bottoms up, I guess!: Draw and resolve a card from your Potion Deck.\n\nStarting *health 16*, *Initiative rating 6*.\n\n_[Simplified: the Chemistry Board, its three Element tracks and the push-your-luck of drawing until a third TOXIC card are not implemented; the Ultimate resolves exactly one potion, free]_",
       "activate": { "cost": { "mana@mine.player": 5 }, "action": ["reveal_top:potion_deck"] }
     },
     {
@@ -2034,7 +2035,7 @@
       "text": "Oren Bark",
       "asset": "ss_oren.jpg",
       "tags": ["chooser", "no_undo"],
-      "tooltip": "Magical Chemistry Student (Fire, Earth). A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\nHealth 16, Initiative rating 6, Ultimate 5 mana.",
+      "tooltip": "Magical Chemistry Student (*Fire*, *Earth*). A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\nHealth 16, *Initiative rating 6*, *Ultimate* *5 mana*.",
       "play": {
         "action": [
           "stat_boost:health@mine.player:15",
@@ -2052,7 +2053,7 @@
       "text": "Potion Gun",
       "asset": "ss_oren_potion.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Deal 1 damage. You may give a card from your hand to your opponent's hand.\n\n\"Think I can hit that old barrel by the hill over there?\"\n\n[Simplified: gaining 2 of the matching Element needs the Chemistry Board, which is not implemented]",
+      "tooltip": "Deal *1 damage*. You may give a card from your hand to your opponent's hand.\n\n_\"Think I can hit that old barrel by the hill over there?\"_\n\n_[Simplified: gaining 2 of the matching Element needs the Chemistry Board, which is not implemented]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2066,7 +2067,7 @@
       "text": "Unstable Formula",
       "asset": "ss_oren_unstable.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Power up and gain 1 mana. If anyone revealed Water, power up again.\n\n\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"\n\n[Simplified: raising and lowering Elements needs the Chemistry Board, which is not implemented]",
+      "tooltip": "*Power up* and gain *1 mana*. If anyone revealed *Water*, *power up* again.\n\n_\"Oh, it'll work, trust me. But, uh... you might wanna stand back a bit...\"_\n\n_[Simplified: raising and lowering Elements needs the Chemistry Board, which is not implemented]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2088,7 +2089,7 @@
       "text": "May Danaris",
       "asset": "ss_may.jpg",
       "tags": ["wizard_card", "may"],
-      "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating.\n\nUltimate (6 mana) - Void Traveler: Gain 3 Energy Tokens. You may resolve a card from the VOID, then put it on the bottom of the Spellstorm Deck.\n\nStarting health 12, Initiative rating 4.\n\n[Simplified: Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]",
+      "tooltip": "Hacker. A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\n*Ultimate* (*6 mana*) - Void Traveler: Gain *3 Energy* Tokens. You may resolve a card from the *VOID*, then put it on the bottom of the *Spellstorm Deck*.\n\nStarting *health 12*, *Initiative rating 4*.\n\n_[Simplified: Dangerous Download -- resolving an opponent's revealed Tier II card at the end of a round -- is not implemented; a card resolved by another card does the part of itself that asks nothing -- an offer opened inside an offer has no way to close]_",
       "activate": {
         "cost": { "mana@mine.player": 6 },
         "action": ["stat_gain:energy@mine.player:3", "show:void:optional"]
@@ -2100,7 +2101,7 @@
       "text": "May Danaris",
       "asset": "ss_may.jpg",
       "tags": ["chooser", "no_undo"],
-      "tooltip": "Hacker (Fire, Earth). A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating.\n\nHealth 12, Initiative rating 4, Ultimate 6 mana.",
+      "tooltip": "Hacker (*Fire*, *Earth*). A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\nHealth 12, *Initiative rating 4*, *Ultimate* *6 mana*.",
       "play": {
         "action": [
           "stat_boost:health@mine.player:11",
@@ -2119,7 +2120,7 @@
       "text": "Data Breach",
       "asset": "ss_may_data.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Lose 2 Energy Tokens to power up twice and make your opponent discard a card.\n\n\"Yes! I'm in. Now let's see what these idiots have planned next...\"\n\n[Simplified: the choice of losing 1 or 2 Energy is not offered, and the discard is the top card of their hand]",
+      "tooltip": "Lose *2 Energy* Tokens to *power up twice* and make your opponent *discard a card*.\n\n_\"Yes! I'm in. Now let's see what these idiots have planned next...\"_\n\n_[Simplified: the choice of losing 1 or 2 Energy is not offered, and the discard is the top card of their hand]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2142,7 +2143,7 @@
       "text": "Star Shot",
       "asset": "ss_may_starshot.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void"],
-      "tooltip": "Discard a card to deal 1 damage. Gain 1 mana for each Energy Token you have, then lose 2 Energy.\n\n\"Hey, YOU! Eat this!\"\n\n[Simplified: the extra damage for discarding a Tier II card is not checked]",
+      "tooltip": "*Discard a card* to deal *1 damage*. Gain *1 mana* for each *Energy* Token you have, then lose *2 Energy*.\n\n_\"Hey, YOU! Eat this!\"_\n\n_[Simplified: the extra damage for discarding a Tier II card is not checked]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2163,7 +2164,7 @@
       "text": "Nice Breeze",
       "tags": ["weather", "storm"],
       "asset": "ss_nice_breeze.jpg",
-      "tooltip": "Draw a card, gain 1 mana, power up.",
+      "tooltip": "*Draw a card*, gain *1 mana*, *power up*.",
       "abilities": [
         {
           "key": "wx",
@@ -2181,7 +2182,7 @@
       "text": "Crystal Flurries",
       "tags": ["weather", "storm"],
       "asset": "ss_crystalflurries.jpg",
-      "tooltip": "Draw a card and gain 1 mana. If you reveal Water this round, gain 1 mana.",
+      "tooltip": "*Draw a card* and gain *1 mana*. If you reveal *Water* this round, gain *1 mana*.",
       "abilities": [
         {
           "key": "wx",
@@ -2201,7 +2202,7 @@
       "text": "Heatwave",
       "tags": ["weather", "storm"],
       "asset": "ss_heatwave.jpg",
-      "tooltip": "Draw a card. If you reveal Fire this round, gain 1 mana.",
+      "tooltip": "*Draw a card*. If you reveal *Fire* this round, gain *1 mana*.",
       "abilities": [
         { "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] },
         {
@@ -2217,7 +2218,7 @@
       "text": "Falling Earth",
       "tags": ["weather", "storm"],
       "asset": "ss_fallingearth.jpg",
-      "tooltip": "Draw a card. If you reveal Earth this round, power up.",
+      "tooltip": "*Draw a card*. If you reveal *Earth* this round, *power up*.",
       "abilities": [
         { "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] },
         {
@@ -2233,7 +2234,7 @@
       "text": "Dust Cloud",
       "tags": ["weather", "storm"],
       "asset": "ss_dustcloud.jpg",
-      "tooltip": "Draw a card, power up. All players discard a card.\n\n[Simplified: the discard is the first card in hand rather than a random one]",
+      "tooltip": "*Draw a card*, *power up*. All players *discard a card*.\n\n_[Simplified: the discard is the first card in hand rather than a random one]_",
       "abilities": [
         {
           "key": "wx",
@@ -2251,7 +2252,7 @@
       "text": "Falling Star",
       "tags": ["weather", "storm"],
       "asset": "ss_fallingstar.jpg",
-      "tooltip": "Draw a card and gain 1 mana.\n\n[Simplified: the printed card lets every player gain a card from the Storm Cloud; an offer cannot be opened once per seat inside one automatic step, so it gives mana instead]",
+      "tooltip": "*Draw a card* and gain *1 mana*.\n\n_[Simplified: the printed card lets every player gain a card from the Storm Cloud; an offer cannot be opened once per seat inside one automatic step, so it gives mana instead]_",
       "abilities": [
         {
           "key": "wx",
@@ -2265,7 +2266,7 @@
       "text": "Strange Weather",
       "tags": ["weather", "storm"],
       "asset": "ss_strange_weather.jpg",
-      "tooltip": "Draw 2 cards. Discard the next card in the Weather Deck.",
+      "tooltip": "Draw *2 cards*. Discard the next card in the *Weather Deck*.",
       "abilities": [
         {
           "key": "wx",
@@ -2285,7 +2286,7 @@
       "text": "Burning Blizzard",
       "tags": ["weather", "storm"],
       "asset": "ss_burningblizzard.jpg",
-      "tooltip": "Draw a card. If you reveal Fire this round, gain 2 mana.",
+      "tooltip": "*Draw a card*. If you reveal *Fire* this round, gain *2 mana*.",
       "abilities": [
         { "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] },
         {
@@ -2301,7 +2302,7 @@
       "text": "Energy Wave",
       "tags": ["weather", "storm"],
       "asset": "ss_energywave.jpg",
-      "tooltip": "Draw a card. After resolving, players may use their Ultimate ability.\n\n[Simplified: Ultimates are already usable every round in this build, so this only draws]",
+      "tooltip": "*Draw a card*. After resolving, players may use their *Ultimate* ability.\n\n_[Simplified: Ultimates are already usable every round in this build, so this only draws]_",
       "abilities": [{ "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] }]
     },
     {
@@ -2309,7 +2310,7 @@
       "text": "Gemlight Omen",
       "tags": ["weather", "storm"],
       "asset": "ss_gemlightomen.jpg",
-      "tooltip": "Draw a card. Tier II players gain 1 mana; Tier I players power up 3 times.",
+      "tooltip": "*Draw a card*. *Tier II* players gain *1 mana*; *Tier I* players *power up 3 times*.",
       "abilities": [
         { "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] },
         {
@@ -2335,7 +2336,7 @@
       "text": "Glittering Dust",
       "tags": ["weather", "storm"],
       "asset": "ss_glitteringdust.jpg",
-      "tooltip": "Draw 2 cards. Earth cards do nothing when resolved but heal 2.\n\n[Simplified: the replacement of every Earth card's effect is a continuous effect the engine has no way to express; this only draws]",
+      "tooltip": "Draw *2 cards*. *Earth* cards do nothing when resolved but *heal 2*.\n\n_[Simplified: the replacement of every Earth card's effect is a continuous effect the engine has no way to express; this only draws]_",
       "abilities": [
         {
           "key": "wx",
@@ -2349,7 +2350,7 @@
       "text": "Ionic Atmosphere",
       "tags": ["weather", "storm"],
       "asset": "ss_ionicatmosphere.jpg",
-      "tooltip": "Draw 2 cards and gain 1 mana. Tier II and III players lose 2 Power Tokens.",
+      "tooltip": "Draw *2 cards* and gain *1 mana*. *Tier II* and III players lose *2 Power Tokens*.",
       "abilities": [
         {
           "key": "wx",
@@ -2373,7 +2374,7 @@
       "text": "Lightning Strike!",
       "tags": ["weather", "storm"],
       "asset": "ss_lightningstrike.jpg",
-      "tooltip": "Draw a card and gain 1 mana. Players with more than 8 health take 1 damage.",
+      "tooltip": "*Draw a card* and gain *1 mana*. Players with more than *8 health* take *1 damage*.",
       "abilities": [
         {
           "key": "wx",
@@ -2393,7 +2394,7 @@
       "text": "Magnetic Warp",
       "tags": ["weather", "storm"],
       "asset": "ss_magneticwarp.jpg",
-      "tooltip": "Draw 2 cards. VOID all cards in the Storm Cloud and draw out 5 new ones.",
+      "tooltip": "Draw *2 cards*. *VOID* all cards in the *Storm Cloud* and draw out 5 new ones.",
       "abilities": [
         {
           "key": "wx",
@@ -2413,7 +2414,7 @@
       "text": "Rain of Toads",
       "tags": ["weather", "storm"],
       "asset": "ss_rainoftoads.jpg",
-      "tooltip": "Draw a card. Whoever has Initiative loses it; whoever gains it gains a CURSE and 1 mana.",
+      "tooltip": "*Draw a card*. Whoever has *Initiative* loses it; whoever gains it gains a *CURSE* and *1 mana*.",
       "abilities": [
         { "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] },
         {
@@ -2434,7 +2435,7 @@
       "text": "Shooting Star",
       "tags": ["weather", "storm"],
       "asset": "ss_shootingstar.jpg",
-      "tooltip": "Draw 2 cards and power up twice.",
+      "tooltip": "Draw *2 cards* and *power up twice*.",
       "abilities": [
         {
           "key": "wx",
@@ -2453,7 +2454,7 @@
       "text": "Soothing Rain",
       "tags": ["weather", "storm"],
       "asset": "ss_soothingrain.jpg",
-      "tooltip": "Draw a card. You may VOID an ASH, CURSE or ICE in your discard pile.\n\n[Simplified: the void is not offered inside an automatic step; this only draws]",
+      "tooltip": "*Draw a card*. You may *VOID* an *ASH*, *CURSE* or *ICE* in your discard pile.\n\n_[Simplified: the void is not offered inside an automatic step; this only draws]_",
       "abilities": [{ "key": "wx", "text": "Weather", "action": ["draw_from:mine.deck:mine.hand:1"] }]
     },
     {
@@ -2461,7 +2462,7 @@
       "text": "Tidal Wave",
       "tags": ["weather", "storm"],
       "asset": "ss_tidalwave.jpg",
-      "tooltip": "Draw 2 cards and gain 1 mana. All players discard 2 cards.\n\n[Simplified: the discards are the first two in hand rather than random]",
+      "tooltip": "Draw *2 cards* and gain *1 mana*. All players discard *2 cards*.\n\n_[Simplified: the discards are the first two in hand rather than random]_",
       "abilities": [
         {
           "key": "wx",
@@ -2480,7 +2481,7 @@
       "text": "Wildcolor Winds",
       "tags": ["weather", "storm"],
       "asset": "ss_wildcolorwinds.jpg",
-      "tooltip": "Draw a card. All players draw a card from the Spellstorm Deck into their discard.",
+      "tooltip": "*Draw a card*. All players *draw a card* from the *Spellstorm Deck* into their discard.",
       "abilities": [
         {
           "key": "wx",
@@ -2494,8 +2495,8 @@
       "text": "Haste Potion",
       "tags": ["potion"],
       "asset": "ss_oren2.jpg",
-      "story": "Haste Potion\n\nGain Initiative.",
-      "tooltip": "Gain Initiative. [Simplified: a revealed page runs one action list with no if in it, so this always takes Initiative rather than dealing damage when you already hold it.]",
+      "story": "Haste Potion\n\nGain *Initiative*.",
+      "tooltip": "Gain *Initiative*.\n\n_[Simplified: a revealed page runs one action list with no if in it, so this always takes Initiative rather than dealing damage when you already hold it.]_",
       "play": {
         "action": [
           "stat_set:initiative@mine.player:1",
@@ -2509,8 +2510,8 @@
       "text": "I Call It... Purple Stuff.",
       "tags": ["potion"],
       "asset": "ss_oren3.jpg",
-      "story": "I Call It... Purple Stuff.\n\nPower up and gain 2 mana.",
-      "tooltip": "Power up and gain 2 mana.",
+      "story": "I Call It... Purple Stuff.\n\n*Power up* and gain *2 mana*.",
+      "tooltip": "*Power up* and gain *2 mana*.",
       "play": {
         "action": [
           "stat_gain:power@mine.player:1",
@@ -2525,8 +2526,8 @@
       "text": "A Slight... Explosion",
       "tags": ["potion"],
       "asset": "ss_oren1.jpg",
-      "story": "A Slight... Explosion\n\nDeal 1 damage and gain 1 mana.",
-      "tooltip": "Deal 1 damage and gain 1 mana.",
+      "story": "A Slight... Explosion\n\nDeal *1 damage* and gain *1 mana*.",
+      "tooltip": "Deal *1 damage* and gain *1 mana*.",
       "play": {
         "action": [
           "stat_damage:health@enemy.player:1",
@@ -2540,8 +2541,8 @@
       "text": "Devil's Breath",
       "tags": ["potion"],
       "asset": "ss_oren5.jpg",
-      "story": "Devil's Breath\n\nPower up. Give an ASH.",
-      "tooltip": "Power up. Give an ASH.",
+      "story": "Devil's Breath\n\n*Power up*. Give an *ASH*.",
+      "tooltip": "*Power up*. Give an *ASH*.",
       "play": {
         "action": [
           "stat_gain:power@mine.player:1",
@@ -2555,8 +2556,8 @@
       "text": "I Think I Just Drank Gasoline",
       "tags": ["potion"],
       "asset": "ss_oren6.jpg",
-      "story": "I Think I Just Drank Gasoline\n\nTake 1 damage and draw 2 cards.",
-      "tooltip": "Take 1 damage and draw 2 cards.",
+      "story": "I Think I Just Drank Gasoline\n\nTake *1 damage* and draw *2 cards*.",
+      "tooltip": "Take *1 damage* and draw *2 cards*.",
       "play": {
         "action": [
           "stat_damage:health@mine.player:1",
@@ -2572,7 +2573,7 @@
       "tags": ["potion"],
       "asset": "ss_oren4.jpg",
       "story": "Dragon Elixir\n\nResolve the top card of the Dragon Deck.",
-      "tooltip": "Resolve the top card of the Dragon Deck. [Simplified: the Dragon is gained rather than resolved.]",
+      "tooltip": "Resolve the top card of the Dragon Deck.\n\n_[Simplified: the Dragon is gained rather than resolved.]_",
       "play": { "action": ["draw_from:dragon_deck:mine.hand:1", "move_to:potion_discard"] }
     },
     {
@@ -2580,8 +2581,8 @@
       "text": "Frost Bomb",
       "tags": ["potion"],
       "asset": "ss_oren7.jpg",
-      "story": "Frost Bomb\n\nYour opponent loses 1 mana. Give an ICE.",
-      "tooltip": "Your opponent loses 1 mana. Give an ICE.",
+      "story": "Frost Bomb\n\nYour opponent loses *1 mana*. Give an *ICE*.",
+      "tooltip": "Your opponent loses *1 mana*. Give an *ICE*.",
       "play": {
         "action": [
           "stat_damage:mana@enemy.player:1",
@@ -2595,8 +2596,8 @@
       "text": "Storm Juice",
       "tags": ["potion"],
       "asset": "ss_oren9.jpg",
-      "story": "Storm Juice\n\nDraw a card and power up.",
-      "tooltip": "Draw a card and power up.",
+      "story": "Storm Juice\n\n*Draw a card* and *power up*.",
+      "tooltip": "*Draw a card* and *power up*.",
       "play": {
         "action": [
           "draw_from:mine.deck:mine.hand:1",
@@ -2610,15 +2611,15 @@
       "text": "Health Soda",
       "tags": ["potion"],
       "asset": "ss_oren8.jpg",
-      "story": "Health Soda\n\nHeal 2.",
-      "tooltip": "Heal 2.",
+      "story": "Health Soda\n\n*Heal 2*.",
+      "tooltip": "*Heal 2*.",
       "play": { "action": ["stat_gain:health@mine.player:2", "move_to:potion_discard"] }
     },
     {
       "key": "r_ctr_fire",
       "text": "Fire beats Earth",
       "tags": ["immutable"],
-      "tooltip": "Countering: Fire beats Earth. Countering the opponent draws you a card.",
+      "tooltip": "Countering: *Fire* beats *Earth*. Countering the opponent draws you a card.",
       "asset": "auto",
       "abilities": [
         {
@@ -2632,7 +2633,7 @@
       "key": "r_ctr_earth",
       "text": "Earth beats Water",
       "tags": ["immutable"],
-      "tooltip": "Countering: Earth beats Water. Countering the opponent draws you a card.",
+      "tooltip": "Countering: *Earth* beats *Water*. Countering the opponent draws you a card.",
       "asset": "auto",
       "abilities": [
         {
@@ -2646,7 +2647,7 @@
       "key": "r_ctr_water",
       "text": "Water beats Fire",
       "tags": ["immutable"],
-      "tooltip": "Countering: Water beats Fire. Countering the opponent draws you a card.",
+      "tooltip": "Countering: *Water* beats *Fire*. Countering the opponent draws you a card.",
       "asset": "auto",
       "abilities": [
         {
@@ -2660,7 +2661,7 @@
       "key": "r_blast",
       "text": "Blast Score",
       "tags": ["immutable"],
-      "tooltip": "Blast Score is the cards left in your hand after discard effects, less one per ICE discarded. The single highest score gains 2 Storm Shards; a tie gains 1 each.",
+      "tooltip": "*Blast Score* is the cards left in your hand after discard effects, less one per *ICE* discarded. The single highest score gains *2 Storm Shards*; a tie gains 1 each.",
       "asset": "auto",
       "abilities": [
         {
@@ -2686,7 +2687,7 @@
       "key": "r_tier",
       "text": "The Power Track",
       "tags": ["immutable"],
-      "tooltip": "Six Power Tokens fill the track. Filling it raises your Tier by one and returns the six; at Tier III a filled track gains you a Dragon instead. Checked between rounds.",
+      "tooltip": "Six *Power Tokens* fill the track. Filling it raises your *Tier* by one and returns the six; at *Tier III* a filled track gains you a Dragon instead. Checked between rounds.",
       "asset": "auto",
       "abilities": [
         {
@@ -2705,7 +2706,7 @@
       "key": "r_first",
       "text": "Initiative rating",
       "tags": ["immutable"],
-      "tooltip": "The wizard with the lower Initiative rating takes the Initiative Tracker at the start of the game.",
+      "tooltip": "The wizard with the lower *Initiative rating* takes the *Initiative* Tracker at the start of the game.",
       "asset": "auto",
       "abilities": [
         {
@@ -2789,7 +2790,7 @@
       "key": "r_accursed",
       "text": "Accursed",
       "tags": ["immutable"],
-      "tooltip": "Croh Vosh can never heal. Approximated: at the start of each battle he gives a CURSE instead of whatever healing he did.",
+      "tooltip": "Croh Vosh can never heal. Approximated: at the start of each battle he gives a *CURSE* instead of whatever healing he did.",
       "asset": "auto",
       "abilities": [
         {
@@ -2818,7 +2819,7 @@
       "text": "Player One",
       "asset": "auto",
       "tags": ["seat"],
-      "tooltip": "Your wizard, your health, your Storm Shards.",
+      "tooltip": "Your wizard, your health, your *Storm Shards*.",
       "card_stats": { "health": { "value": 1, "min": 0, "max": 1 } }
     },
     {
@@ -2826,7 +2827,7 @@
       "text": "Player Two",
       "asset": "auto",
       "tags": ["seat"],
-      "tooltip": "Your wizard, your health, your Storm Shards.",
+      "tooltip": "Your wizard, your health, your *Storm Shards*.",
       "card_stats": { "health": { "value": 1, "min": 0, "max": 1 } }
     },
     {
@@ -2834,14 +2835,14 @@
       "text": "The Battle",
       "tags": ["immutable", "plan"],
       "asset": "auto",
-      "tooltip": "A battle is four rounds, then a Regroup."
+      "tooltip": "A battle is four rounds, then a *Regroup*."
     },
     {
       "key": "btn_unplayable",
       "text": "Unplayable hand",
       "asset": "auto",
       "tags": ["immutable"],
-      "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
+      "tooltip": "If your hand is nothing but *ICE*, *ASH* and *CURSE*, use this: discard them all with their effects, take *1 damage*, and draw a new hand of 4.",
       "activate": {
         "action": [
           "activate_zone:mine.hand:by_column:disc",
@@ -2856,7 +2857,7 @@
       "text": "The rules",
       "asset": "auto",
       "tags": ["immutable"],
-      "tooltip": "SPELLSTORM. Win by reaching 8 Storm Shards, or by taking your opponent to 0 health.\n\nA battle is four rounds. Each round: the weather is flipped and resolved, both players play a card face down, the cards are revealed, and they resolve in Initiative order. Countering the opponent -- Fire beats Earth, Earth beats Water, Water beats Fire -- draws you a card.\n\nAfter four rounds comes the Regroup: discard effects fire, the cards you still hold are your Blast Score, the higher score takes 2 Storm Shards (1 each on a tie), and each player gains one card from the Storm Cloud at or below their Tier.\n\nSix Power Tokens fill your track; filling it raises your Tier. At Tier III a filled track gains you a Dragon instead.",
+      "tooltip": "SPELLSTORM. Win by reaching *8 Storm Shards*, or by taking your opponent to *0 health*.\n\nA battle is four rounds. Each round: the weather is flipped and resolved, both players play a card face down, the cards are revealed, and they resolve in *Initiative* order. Countering the opponent -- *Fire* beats *Earth*, *Earth* beats *Water*, *Water* beats *Fire* -- draws you a card.\n\nAfter four rounds comes the *Regroup*: discard effects fire, the cards you still hold are your *Blast Score*, the higher score takes *2 Storm Shards* (1 each on a tie), and each player gains one card from the *Storm Cloud* at or below their *Tier*.\n\nSix *Power Tokens* fill your track; filling it raises your *Tier*. At *Tier III* a filled track gains you a Dragon instead.",
       "activate": { "action": ["effect:spark"] }
     },
     {
@@ -2864,7 +2865,7 @@
       "outcome": "victory",
       "text": "The Shards Are Taken",
       "asset": "auto",
-      "story": "Eight Storm Shards. The storm answers to you now, and the crag is quiet for the first time in an age.",
+      "story": "Eight *Storm Shards*. The storm answers to you now, and the crag is quiet for the first time in an age.",
       "play": { "action": ["load_game:menu.json"] }
     },
     {

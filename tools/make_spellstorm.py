@@ -23,7 +23,7 @@ trailing "[Simplified: ...]" note and the deviation is listed in
 ideas/spellstorm/09-engine-gaps.md. Nothing is silently wrong.
 """
 
-import json, os, sys
+import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
 import guard
@@ -735,13 +735,63 @@ POTION_ART = {"pot_explosion": "ss_oren1.jpg", "pot_haste": "ss_oren2.jpg",
 ELEMENT_STYLE = {FIRE: "ember", WATER: "tide", EARTH: "loam"}
 
 
+# Bold is the mechanics, and the vocabulary is written down once here rather
+# than by hand into a hundred and thirty strings: a term the game gains is then
+# marked up everywhere it is already named, and a term it loses stops being
+# marked everywhere at once.
+#
+# Verbs stay plain and their objects are bolded -- "deal *2 damage*", not "*deal
+# 2 damage*". The eye is looking for the number and the named thing; bolding the
+# sentence around them would leave nothing standing out from anything.
+MECHANICS = [
+    r"\d+ more damage", r"\d+ damage", r"\d+ mana", r"\d+ cards?",
+    r"health \d+", r"\d+ health",
+    r"\d+ Power Tokens?", r"\d+ Storm Shards?", r"\d+ Shards?",
+    r"\d+ Research Tokens?", r"\d+ DOOM Tokens?", r"\d+ Energy",
+    r"[Hh]eals? \d+", r"[Hh]eals? for", r"[Pp]ower up \d+ times",
+    r"[Pp]ower up twice", r"[Pp]owers? up",
+    r"[Dd]raws? a card", r"[Dd]iscards? a card", r"[Dd]iscards? their hand",
+    r"Power Tokens?", r"Power Track", r"Initiative rating \d+",
+    r"Initiative rating", r"Initiative",
+    r"Storm Clouds?", r"Storm Shards?", r"Spellstorm Deck", r"Weather Deck",
+    r"Research Journal", r"Research Tokens?", r"DOOM Tokens?", r"Chemistry Board",
+    r"Blast Score", r"Ultimates?", r"Tier [IV]+", r"Tier", r"Regroup",
+    r"ICE", r"ASH", r"CURSE", r"VOIDed", r"VOID", r"Energy",
+    # The three elements are read by rules as often as any stat is -- "if your
+    # opponent revealed Water" is a condition, not a mood.
+    r"Fire", r"Water", r"Earth",
+]
+MECH_RE = re.compile(r"\b(?:%s)\b" % "|".join(MECHANICS))
+
+
+def mark(text):
+    """Bold the mechanics, and leave the paragraphs already set in italic alone.
+
+    A paragraph wearing italic is flavour or an aside about the engine -- the
+    half a player may skip -- and bolding inside it would put the emphasis back
+    exactly where the italic was taking it away.
+    """
+    out = []
+    for para in text.split("\n\n"):
+        if para.startswith("_") and para.endswith("_"):
+            out.append(para)
+        else:
+            out.append(MECH_RE.sub(lambda m: "*%s*" % m.group(0), para))
+    return "\n\n".join(out)
+
+
 def tip(base, flavour=None, simplified=None):
-    """One tooltip: what the card does, what it says, and where we fell short."""
+    """One tooltip: what the card does, what it says, and where we fell short.
+
+    The printed flavour line and our own note about where the engine fell short
+    are both italic: neither is a rule, and a player deciding what to play wants
+    to know that before reading either of them.
+    """
     out = base
     if flavour:
-        out += "\n\n" + flavour
+        out += "\n\n_%s_" % flavour
     if simplified:
-        out += "\n\n[Simplified: %s]" % simplified
+        out += "\n\n_[Simplified: %s]_" % simplified
     return out
 
 
@@ -933,11 +983,11 @@ def potion_templates():
              "tooltip": tooltip}
         if key == "pot_haste":
             t["play"] = {"action": GAIN_INIT + ["move_to:potion_discard"]}
-            t["tooltip"] += " [Simplified: a revealed page runs one action list with no if in it, so this always takes Initiative rather than dealing damage when you already hold it.]"
+            t["tooltip"] += "\n\n_[Simplified: a revealed page runs one action list with no if in it, so this always takes Initiative rather than dealing damage when you already hold it.]_"
         elif key == "pot_dragon":
             t["play"] = {"action": ["draw_from:dragon_deck:mine.hand:1",
                                     "move_to:potion_discard"]}
-            t["tooltip"] += " [Simplified: the Dragon is gained rather than resolved.]"
+            t["tooltip"] += "\n\n_[Simplified: the Dragon is gained rather than resolved.]_"
         else:
             t["play"] = {"action": list(acts) + ["move_to:potion_discard"]}
         out.append(t)
@@ -956,7 +1006,10 @@ def zones():
         {"key": "wizard", "label": "Wizard", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat", "use": "abilities",
          "pos": [P(0.005, 0.795, 0.135, 0.995), P(0.865, 0.005, 0.995, 0.205)]},
-        {"key": "hand", "layout": "row", "visibility": "owner",
+        # Named so the box stays on screen when the hand is empty -- which it is
+        # across `regroup` and both gain steps, and whenever somebody plays their
+        # last card. An unlabelled empty zone draws nothing at all (render.lua).
+        {"key": "hand", "label": "Hand", "layout": "row", "visibility": "owner",
          "copies": "per_seat",
          "pos": [P(0.14, 0.795, 0.79, 0.995), P(0.21, 0.005, 0.86, 0.205)]},
         {"key": "deck", "label": "Deck", "layout": "stack", "visibility": "secret",
@@ -1341,6 +1394,15 @@ def build():
     for c in cards:
         if c["key"].startswith("r_"):
             game["setup"]["place"].append({"card": c["key"], "zone": "rules"})
+
+    # Last, and over everything: the prose a player reads is marked up here
+    # rather than at the fifty places that write it, so a tooltip typed into a
+    # zone gets the same treatment as one a card template assembled.
+    for group in (game["cards"], game["zones"]):
+        for e in group:
+            for field in ("tooltip", "story"):
+                if e.get(field):
+                    e[field] = mark(e[field])
     return game
 
 

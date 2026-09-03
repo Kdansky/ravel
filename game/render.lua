@@ -11,6 +11,7 @@ local flow        = require("flow")
 local tags        = require("tags")
 local art         = require("art")
 local predicate   = require("predicate")
+local rich        = require("richtext")
 
 local M = {}
 
@@ -61,6 +62,9 @@ local font_banner = nil
 -- out as "S...", which tells a player nothing at all, and the same string at
 -- 8px is legible. Cutting is still the last resort, not the first.
 local font_cache = {}
+-- What size each face was made at. A LOVE font will not say, and rich text has
+-- to ask for the same face a size down for the italic it sets flavour in.
+local font_px = setmetatable({}, { __mode = "k" })
 -- Text lands on whole pixels, everywhere. A zone's rect is a fraction of the
 -- window, so a card lands on x = 371.4 and every glyph in it is sampled between
 -- two texels — which is most of what "blurry" is. Wrapped once here rather than
@@ -83,8 +87,15 @@ local function font_at(px)
 		-- that were sharp. Text is the one thing that wants nearest.
 		f:setFilter("nearest", "nearest")
 		font_cache[px] = f
+		font_px[f] = px
 	end
 	return font_cache[px]
+end
+
+-- The same face a size or two along, which is all rich text needs of the cache.
+function M.font_step(font, delta)
+	local px = font_px[font]
+	return px and font_at(px + delta) or font
 end
 
 function M.rescale()
@@ -101,6 +112,10 @@ function M.rescale()
 	-- `card_places` reserves on a hand and what `draw_zone_label` prints into.
 	-- zones.lua has no font, so the measurement is pushed to it from here.
 	zones.label_h = font_main:getHeight() + 3 * S
+	-- Rich text owns no fonts and no scale; both are handed to it here, where
+	-- they change.
+	rich.font_step = M.font_step
+	rich.stroke    = math.max(1, math.floor(S + 0.5))
 	fx.set_scale(S)
 end
 
@@ -791,14 +806,15 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		-- Prose needs room to be prose. Below about a thumb's width a card can
 		-- hold a name or a paragraph, not both, and the name is the half a
 		-- player is choosing between — the rest is a hover away.
-		local bf, body_h, body_text = get_small_font(), 0, nil
+		local bf, body_h, body_lines = get_small_font(), 0, nil
 		if body and show_text and vis.w >= 92 * S then
-			local _, lines = bf:getWrap(body, avail)
+			local lines = rich.wrap(bf, body, avail)
 			local room = vis.h * 0.55 - title_h - pad * 2 - gap
 			local n = math.min(#lines, math.max(0, math.floor(room / bf:getHeight())))
 			if n > 0 then
-				body_text = table.concat(lines, "\n", 1, n)
-				body_h    = n * bf:getHeight()
+				-- Wrapped once and cut here, so what gets drawn is what was counted.
+				for i = #lines, n + 1, -1 do lines[i] = nil end
+				body_lines, body_h = lines, n * bf:getHeight()
 			end
 		end
 
@@ -824,9 +840,8 @@ local function draw_card_face(pl, card_e, show_text, vis)
 			y = y + title_h + gap
 		end
 		if body_h > 0 then
-			love.graphics.setFont(bf)
-			outlined_printf(body_text, vis.x + pad, y, avail, "center",
-				C.card_body, { 0, 0, 0, 0.85 })
+			rich.draw(bf, body_lines, vis.x + pad, y, avail, "center",
+				{ color = C.card_body, outline = { 0, 0, 0, 0.85 } })
 		end
 		love.graphics.setScissor()
 	end

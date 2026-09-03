@@ -53,7 +53,7 @@ says anything twice. These are its headings, grouped by the question each one
 answers; a test holds this list to them, so a section that exists is listed here
 and a line here names a section that exists:
 
-- **What a file holds** — Top-level fields · Stats · Zones · Players · Setup · Card templates · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
+- **What a file holds** — Top-level fields · Stats · Zones · Players · Setup · Card templates · Two marks in card text · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
@@ -992,6 +992,37 @@ player acts in, using its own `actions`:
 A local `asset` must be a bare filename (`sword.png`, not `../sword.png` or
 a path) — this is enforced, not just a convention, since games can be
 authored by people other than whoever is hosting the engine.
+
+### Two marks in card text
+
+Prose a player reads — a card's `tooltip` and `story`, a zone's `tooltip` — may
+carry exactly two marks:
+
+```json
+{ "key": "magicdart", "text": "Magic Dart",
+  "tooltip": "Deal *1 damage*. _The first spell anyone learns, and the last one anyone respects._" }
+```
+
+`*bold*` is the mechanics: a stat, a keyword, a number the player has to act on.
+`_italic_` is flavour, and is set one size smaller than the body — the point is
+that the eye can skip it while it is still deciding what to play.
+
+There is no more markdown than that — no headings, no links, no code spans —
+because a card is one paragraph and the alternative is a language with
+precedence living inside a game file. The two marks are independent, so one may
+sit inside the other (`_a *magic* word_` is a bold word in a flavour line);
+what there is no such thing as is bold inside bold.
+
+**A mark that does not close is not a mark.** `weather_now` stays one word,
+`2 * 3` stays arithmetic, and `un*even` keeps its star, because a mark only
+opens where a word begins and only closes where one ends. A style never reaches
+across a line break either. The one case nobody can mean — a mark that opens a
+style and never shuts it — is a validator warning, since in the file it looks
+exactly like text that is fine.
+
+The marks are drawn, not set: LÖVE ships one face, so bold is the glyphs struck
+twice and italic is the glyphs sheared. Everywhere text is read rather than
+drawn — the CLI player, a log line — the marks come off.
 
 ### Named assets
 
