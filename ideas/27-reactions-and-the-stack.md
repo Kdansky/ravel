@@ -140,17 +140,6 @@ making Dragon Form react to its own purples, since countering is the opposite of
 what it wants. Under the record design a suppressed emit would simply create no
 record, so the card resolves as in a game with no reactions at all.
 
-**A reaction cannot open an offer.** Found 2026-09-04 converting Puzzle Strike's
-Rigorous Training from a borrowed buy phase to `show:bank:optional`: the reaction
-runs, the offer opens, the player picks — and the buy the reaction was answering
-is gone. Nothing lands, the stack is empty, and priority is home, so it is not
-waiting on anything either. Pushing a *phase* from a reaction works and is what
-that card does instead, which is the shape of the difference.
-[Assumption: the fault is in the order `flow.play_card` does things when an offer
-resolves — the overlay is popped before `chosen` runs, and the settle at the end
-sees a stack a suspended window should still have been holding. Not investigated
-past reproducing it.]
-
 **Speeds**, for Runeterra Fast/Slow.
 
 **Magic depth**: APNAP trigger ordering, and targeting at cast versus at

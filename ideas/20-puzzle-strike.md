@@ -32,23 +32,17 @@ one rule about how much a turn may buy, *"you must buy at least one chip per
 turn"*, and nothing above it, so the `buys` stat is gone: nothing spends it and
 nothing needs to. *End turn* reads `bought` with a `when`.
 
-**Two chips stopped borrowing a buy phase and now offer the bank.** Training Day
-and Chips for Free both say "trash a chip, then take one costing up to N more",
-which is one chip judged against one number — not a purse, which buys whatever
-it covers. They set a `budget`, `show:bank:optional`, and their `chosen` takes
-the pick out of the box. Training Day's chip lands in the *hand* the card names,
-which the borrowed buy phase could never do: a purchase goes to the discard.
+**Three chips stopped borrowing a buy phase and now offer the bank.** Training
+Day, Chips for Free and Rigorous Training all say "trash a chip, then take one
+costing up to N more", which is one chip judged against one number — not a purse,
+which buys whatever it covers. They set a `budget`, `show:bank:optional`, and
+their `chosen` takes the pick out of the box. Training Day's chip lands in the
+*hand* the card names, which the borrowed buy phase could never do: a purchase
+goes to the discard.
 
-Two things left:
-
-- **A reaction cannot open that offer.** Rigorous Training says the same
-  sentence, and converting it lost the buy it was answering: the announcement on
-  the stack is gone by the time the pick resolves, and nothing lands. So it keeps
-  the purse and the borrowed buy phase, as does Upgrade, whose per-chip
-  allowances a single purse cannot say anyway. Both DEV lines say so. [Assumption:
-  the fault is in how an offer interacts with a deferred play rather than in
-  either card — `flow.play_card` pops the overlay before running `chosen`, and
-  the stack is empty by the time `settle` runs.]
+**Upgrade keeps the purse and the phase**, being the one of the four that grants
+a chip *per chip trashed*, each against its own price — which one offer and one
+budget cannot say. Its DEV line says so.
 
 The Wound stack is a thousand deep, which is the other half of the same rule.
 Twenty-four is how many fit in a box; the rulebook has to say what happens when
