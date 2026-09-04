@@ -483,7 +483,7 @@
       "tags": ["immutable"],
       "asset": "triangle:silver",
       "tooltip": "Finish your action phase and go on to buying. Any actions you have left are lost.",
-      "activate": { "phases": ["action"], "action": ["next_phase"] }
+      "abilities": [{ "phases": ["action"], "action": ["next_phase"] }]
     },
     {
       "key": "pick_chip",
@@ -491,7 +491,7 @@
       "tags": ["immutable"],
       "asset": "square:teal",
       "tooltip": "Open the box and put one Puzzle chip into the bank. Ten of them make a game.",
-      "activate": { "phases": ["build_bank"], "action": ["show:chip_box:optional"] },
+      "abilities": [{ "phases": ["build_bank"], "action": ["show:chip_box:optional"] }],
       "chosen": { "action": ["move_target_to:bank", "stat_set:stock@each.bank.puzzle:5"] }
     },
     {
@@ -500,16 +500,18 @@
       "tags": ["immutable"],
       "asset": "square:amber",
       "tooltip": "Fill whatever is left of the bank at random. Press it first for a random bank, or after choosing a few to leave the rest to chance.",
-      "activate": {
-        "phases": ["build_bank"],
-        "action": [
-          "shuffle:chip_box",
-          "stat_set:to_pick@clock:10",
-          "stat_damage:to_pick@clock:count:puzzle@bank",
-          "draw_from:chip_box:bank:sum:to_pick@clock",
-          "stat_set:stock@each.bank.puzzle:5"
-        ]
-      }
+      "abilities": [
+        {
+          "phases": ["build_bank"],
+          "action": [
+            "shuffle:chip_box",
+            "stat_set:to_pick@clock:10",
+            "stat_damage:to_pick@clock:count:puzzle@bank",
+            "draw_from:chip_box:bank:sum:to_pick@clock",
+            "stat_set:stock@each.bank.puzzle:5"
+          ]
+        }
+      ]
     },
     {
       "key": "finish_shopping",
@@ -517,7 +519,7 @@
       "tags": ["immutable"],
       "asset": "square:slate",
       "tooltip": "Finish the shopping you were handed and give the turn back. Whatever you did not spend goes back with it.",
-      "activate": { "phases": ["react_buy"], "action": ["stat_set:money@mine.player:0", "pop_phase"] }
+      "abilities": [{ "phases": ["react_buy"], "action": ["stat_set:money@mine.player:0", "pop_phase"] }]
     },
     {
       "key": "end_turn",
@@ -525,7 +527,7 @@
       "tags": ["immutable"],
       "asset": "square:slate",
       "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
-      "activate": { "phases": ["buy"], "when": ["bought@mine.player >= 1"], "action": ["next_phase"] }
+      "abilities": [{ "phases": ["buy"], "when": ["bought@mine.player >= 1"], "action": ["next_phase"] }]
     },
     {
       "key": "gem_1",
