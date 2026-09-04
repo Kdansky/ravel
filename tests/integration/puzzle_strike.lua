@@ -412,6 +412,20 @@ function M.test_puzzle_strike_a_turn_cannot_end_before_something_is_bought(check
 	check("and now the turn may end", flow.can_activate(loose("end_turn").id))
 end
 
+-- An empty stack refuses the sale rather than charging for it. `stock@self` as a
+-- cost used to check, pay and record where the chip came from all at once, which
+-- was convenient and said none of the three out loud; `take` is the record and
+-- `when` is the check, and the button has to grey out on the same evidence.
+function M.test_puzzle_strike_an_empty_stack_cannot_be_bought(check)
+	opening(7)
+	flow.activate(loose("done_acting").id, {})
+	local pile = loose("wound")
+	check("a stocked pile is buyable", flow.can_activate(pile.id))
+	pile.stats.stock = 0
+	check("an empty one is not", not flow.can_activate(pile.id))
+	check("and the shelf is still there to be counted", entity.get(pile.id) ~= nil)
+end
+
 -- Cleanup sweeps the table and the unplayed hand into the discard and draws a
 -- fresh five, and the turn passes. This is the loop the whole game runs on.
 function M.test_puzzle_strike_cleanup_sweeps_and_hands_over(check)

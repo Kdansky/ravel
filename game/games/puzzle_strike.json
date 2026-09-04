@@ -173,8 +173,9 @@
           "text": "Buy it",
           "merge": "this",
           "phases": ["buy", "react_buy"],
-          "cost": { "buys@mine.player": 1, "stock@self": 1, "money@mine.player": "price@self" },
-          "action": ["fill:mine.discard:@self:1", "stat_gain:bought@mine.player:1"]
+          "when": ["stock@self >= 1"],
+          "cost": { "buys@mine.player": 1, "money@mine.player": "price@self" },
+          "action": ["take:self:mine.discard:1", "stat_gain:bought@mine.player:1"]
         }
       ]
     }
@@ -625,8 +626,7 @@
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
           "move_target_to:void",
-          "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-          "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:1",
           "emit:crash"
         ],
@@ -655,8 +655,7 @@
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
           "move_target_to:void",
-          "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-          "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:2",
           "emit:crash"
         ],
@@ -706,14 +705,14 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["fill:enemy.discard:wound:1", "stat_damage:stock@bank.wound:1"],
+        "action": ["take:bank.wound:enemy.discard:1"],
         "spent": "mine.table"
       },
       "reactions": [
         {
           "to": "attack",
           "text": "Wound the attacker",
-          "action": ["fill:enemy.discard:wound:1", "stat_damage:stock@bank.wound:1"],
+          "action": ["take:bank.wound:enemy.discard:1"],
           "spent": "mine.discard"
         }
       ],
@@ -743,11 +742,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": [
-          "stat_gain:acts@mine.player:4",
-          "fill:mine.discard:wound:1",
-          "stat_damage:stock@bank.wound:1"
-        ],
+        "action": ["stat_gain:acts@mine.player:4", "take:bank.wound:mine.discard:1"],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 4, "price": 3 }
@@ -761,11 +756,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": [
-          "stat_gain:act_red@mine.player:1",
-          "fill:enemy.gem_pile:gem_1:1",
-          "stat_damage:stock@bank.gem_1:1"
-        ],
+        "action": ["stat_gain:act_red@mine.player:1", "take:bank.gem_1:enemy.gem_pile:1"],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1, "hits": 1, "price": 3 }
@@ -915,7 +906,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["fill:mine.gem_pile:crash_gem:1", "stat_damage:stock@bank.crash_gem:1"],
+        "action": ["take:bank.crash_gem:mine.gem_pile:1"],
         "spent": "mine.table"
       },
       "tooltip": "Put a Crash Gem from the bank into your gem pile. You may play it later as if from your hand.\n\nDEV: the Crash Gem arrives in your gem pile. Playing a card out of a gem pile is not built — a zone can grant what lying in it lets a card do, and this one does not.",
@@ -1293,8 +1284,7 @@
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
             "move_target_to:void",
-            "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-            "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+            "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "stat_gain:money@mine.player:0",
             "emit:crash"
           ]
@@ -1339,14 +1329,14 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["fill:mine.hand:gem_2:1", "stat_damage:stock@bank.gem_2:1"],
+        "action": ["take:bank.gem_2:mine.hand:1"],
         "spent": "mine.table"
       },
       "reactions": [
         {
           "to": "attack",
           "text": "Take a gem from the bank",
-          "action": ["fill:mine.hand:gem_1:1", "stat_damage:stock@bank.gem_1:1"],
+          "action": ["take:bank.gem_1:mine.hand:1"],
           "spent": "mine.discard"
         }
       ],
@@ -1408,12 +1398,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": [
-          "fill:enemy.gem_pile:gem_1:1",
-          "stat_damage:stock@bank.gem_1:1",
-          "fill:enemy.discard:wound:1",
-          "stat_damage:stock@bank.wound:1"
-        ],
+        "action": ["take:bank.gem_1:enemy.gem_pile:1", "take:bank.wound:enemy.discard:1"],
         "spent": "mine.table"
       },
       "tooltip": "Ante a 1-gem into each opposing gem pile. Then each opponent trashes a Combine from his discard pile, discards a chip, and gains a wound. Once-per-turn.\n\nDEV: the ante and the wound are built. Trashing a named chip out of their discard needs a pick narrowed to one card, and once-per-turn is not marked.",
@@ -1461,7 +1446,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
-        "action": ["fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"],
+        "action": ["take:bank.gem_1:enemy.gem_pile:1"],
         "spent": "mine.bag"
       },
       "tooltip": "Ante a 1-gem into each opposing gem pile. You may put this chip on top of your bag.\n\nDEV: it always goes back on top of your bag rather than to the table. \"You may\" would be an offer of two landings, and where a chip lands is one word.",
@@ -1475,11 +1460,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": [
-          "fill:mine.gem_pile:gem_3:1",
-          "stat_damage:stock@bank.gem_3:1",
-          "each_seat:draw_from:mine.bag:mine.hand:2"
-        ],
+        "action": ["take:bank.gem_3:mine.gem_pile:1", "each_seat:draw_from:mine.bag:mine.hand:2"],
         "spent": "mine.table"
       },
       "tooltip": "Ante a 3-gem. All players draw two chips. You may trash this chip.\n\nDEV: the ante and the draw are built; the chip is not offered the choice of trashing itself.",
@@ -1615,8 +1596,7 @@
           "stat_gain:act_brown@mine.player:1",
           "move_target_to:void",
           "stat_gain:stock@bank.gem_1:1",
-          "fill:enemy.gem_pile:gem_1:1",
-          "stat_damage:stock@bank.gem_1:1"
+          "take:bank.gem_1:enemy.gem_pile:1"
         ],
         "spent": "mine.table"
       },
@@ -1653,11 +1633,9 @@
         "cost": { "act_red@mine.player": 1 },
         "action": [
           "stat_gain:act_blue@mine.player:1",
-          "fill:enemy.bag:wound:1",
-          "stat_damage:stock@bank.wound:1",
+          "take:bank.wound:enemy.bag:1",
           "shuffle:enemy.bag",
-          "fill:enemy.gem_pile:gem_1:count:wound@enemy.discard",
-          "stat_damage:stock@bank.gem_1:count:wound@enemy.discard"
+          "take:bank.gem_1:enemy.gem_pile:count:wound@enemy.discard"
         ],
         "spent": "mine.table"
       },
@@ -1729,8 +1707,7 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "action": [
-          "fill:mine.gem_pile:gem_1:1",
-          "stat_damage:stock@bank.gem_1:1",
+          "take:bank.gem_1:mine.gem_pile:1",
           "stat_gain:act_brown@mine.player:1",
           "stat_gain:act_red@mine.player:1",
           "draw_from:mine.bag:mine.hand:1"
@@ -1752,8 +1729,7 @@
         "action": [
           "move_target_to:void",
           "stat_gain:acts@mine.player:1",
-          "fill:enemy.gem_pile:gem_1:1",
-          "stat_damage:stock@bank.gem_1:1"
+          "take:bank.gem_1:enemy.gem_pile:1"
         ],
         "spent": "mine.table"
       },
@@ -1780,14 +1756,11 @@
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
           "move_target_to:void",
-          "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-          "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:2",
           "move_to:mine.table",
-          "fill:mine.discard:wound:1",
-          "stat_damage:stock@bank.wound:1",
-          "fill:mine.discard:wound:1",
-          "stat_damage:stock@bank.wound:1",
+          "take:bank.wound:mine.discard:1",
+          "take:bank.wound:mine.discard:1",
           "emit:crash"
         ]
       },
@@ -1807,13 +1780,10 @@
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
             "move_target_to:void",
-            "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-            "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+            "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "stat_gain:money@mine.player:2",
-            "fill:mine.discard:wound:1",
-            "stat_damage:stock@bank.wound:1",
-            "fill:mine.discard:wound:1",
-            "stat_damage:stock@bank.wound:1",
+            "take:bank.wound:mine.discard:1",
+            "take:bank.wound:mine.discard:1",
             "emit:crash"
           ],
           "spent": "mine.discard"
@@ -1881,7 +1851,7 @@
           "count": 1,
           "owner": "anyone"
         },
-        "action": ["move_target_to:void", "fill:mine.hand:gem_2:1", "stat_damage:stock@bank.gem_2:1"],
+        "action": ["move_target_to:void", "take:bank.gem_2:mine.hand:1"],
         "spent": "mine.table"
       }
     },
@@ -1971,10 +1941,8 @@
             "stat_damage:sent@mine.player:sum:crashed@enemy.player",
             "stat_damage:crashed@enemy.player:sum:crashed@mine.player",
             "stat_set:crashed@mine.player:sum:sent@mine.player",
-            "fill:mine.gem_pile:gem_1:sum:crashed@enemy.player",
-            "stat_damage:stock@bank.gem_1:sum:crashed@enemy.player",
-            "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-            "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+            "take:bank.gem_1:mine.gem_pile:sum:crashed@enemy.player",
+            "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "emit:crash"
           ],
           "spent": "mine.discard"
@@ -2105,8 +2073,7 @@
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
           "move_target_to:void",
-          "fill:enemy.discard:gem_1:sum:crashed@mine.player",
-          "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+          "take:bank.gem_1:enemy.discard:sum:crashed@mine.player",
           "emit:crash"
         ]
       },
@@ -2183,8 +2150,7 @@
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
           "move_target_to:void",
-          "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-          "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:0",
           "emit:crash"
         ],
@@ -2362,8 +2328,7 @@
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
           "move_target_to:void",
-          "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-          "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:0",
           "emit:crash"
         ],
@@ -2460,8 +2425,7 @@
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
           "move_target_to:void",
-          "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-          "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:0",
           "emit:crash"
         ],
@@ -2703,8 +2667,7 @@
         "action": [
           "move_target_to:void",
           "stat_gain:money@mine.player:1",
-          "fill:mine.discard:gem_2:1",
-          "stat_damage:stock@bank.gem_2:1"
+          "take:bank.gem_2:mine.discard:1"
         ],
         "spent": "mine.table"
       },
@@ -2721,8 +2684,7 @@
         "cost": { "act_red@mine.player": 1 },
         "action": [
           "stat_gain:act_red@mine.player:1",
-          "fill:enemy.bag:wound:1",
-          "stat_damage:stock@bank.wound:1",
+          "take:bank.wound:enemy.bag:1",
           "shuffle:enemy.bag",
           "draw_from:mine.bag:mine.hand:count:wound@enemy.discard"
         ],
@@ -2785,8 +2747,7 @@
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
           "move_target_to:void",
-          "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-          "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+          "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:0",
           "emit:crash"
         ],
@@ -2807,8 +2768,7 @@
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
             "move_target_to:void",
-            "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-            "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+            "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "stat_gain:money@mine.player:0",
             "emit:crash"
           ],
@@ -2829,8 +2789,7 @@
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
             "move_target_to:void",
-            "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-            "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+            "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "stat_gain:money@mine.player:0",
             "emit:crash"
           ],
@@ -3156,14 +3115,14 @@
       "text": "You ante a 2-gem",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": { "action": ["fill:mine.gem_pile:gem_2:1", "stat_damage:stock@bank.gem_2:1"] }
+      "play": { "action": ["take:bank.gem_2:mine.gem_pile:1"] }
     },
     {
       "key": "js_wound",
       "text": "Each opponent gains a wound",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": { "action": ["fill:enemy.discard:wound:1", "stat_damage:stock@bank.wound:1"] }
+      "play": { "action": ["take:bank.wound:enemy.discard:1"] }
     },
     {
       "key": "js_trash",
@@ -3197,9 +3156,7 @@
       "text": "Ante a 1-gem",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": {
-        "action": ["fill:mine.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1", "clear_priority"]
-      }
+      "play": { "action": ["take:bank.gem_1:mine.gem_pile:1", "clear_priority"] }
     },
     {
       "key": "pp_discard",
@@ -3219,10 +3176,8 @@
           "fill:mine.bag:hex_of_murkwood:1",
           "fill:mine.bag:bubble_shield:1",
           "fill:mine.bag:protective_ward:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3240,10 +3195,8 @@
           "fill:mine.bag:playing_with_fire:1",
           "fill:mine.bag:burning_vigor:1",
           "fill:mine.bag:unstable_power:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3261,10 +3214,8 @@
           "fill:mine.bag:dragon_form:1",
           "fill:mine.bag:rigorous_training:1",
           "fill:mine.bag:purge_bad_habits:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3282,10 +3233,8 @@
           "fill:mine.bag:double_take:1",
           "fill:mine.bag:bag_of_tricks:1",
           "fill:mine.bag:speed_of_the_fox:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3303,10 +3252,8 @@
           "fill:mine.bag:living_on_the_edge:1",
           "fill:mine.bag:pandas_bargain:1",
           "fill:mine.bag:jackpot:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3324,10 +3271,8 @@
           "fill:mine.bag:reversal:1",
           "fill:mine.bag:martial_mastery:1",
           "fill:mine.bag:versatile_style:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3345,10 +3290,8 @@
           "fill:mine.bag:stone_wall:1",
           "fill:mine.bag:big_rocks:1",
           "fill:mine.bag:strength_of_earth:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3366,10 +3309,8 @@
           "fill:mine.bag:pilebunker:1",
           "fill:mine.bag:no_more_lies:1",
           "fill:mine.bag:troublesome_rhetoric:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3387,10 +3328,8 @@
           "fill:mine.bag:burst_of_speed:1",
           "fill:mine.bag:chromatic_orb:1",
           "fill:mine.bag:creative_thoughts:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3408,10 +3347,8 @@
           "fill:mine.bag:research_development:1",
           "fill:mine.bag:future_sight:1",
           "fill:mine.bag:its_time_for_the_past:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3429,10 +3366,8 @@
           "fill:mine.bag:two_truths:1",
           "fill:mine.bag:flagstone_tax:1",
           "fill:mine.bag:patriot_mirror:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3450,10 +3385,8 @@
           "fill:mine.bag:wartime_tactics:1",
           "fill:mine.bag:double_slash:1",
           "fill:mine.bag:riposte:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3471,10 +3404,8 @@
           "fill:mine.bag:crash_bomb:1",
           "fill:mine.bag:maximum_anarchy:1",
           "fill:mine.bag:crash_potato:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3492,10 +3423,8 @@
           "fill:mine.bag:healing_touch:1",
           "fill:mine.bag:radiant_healing:1",
           "fill:mine.bag:saving_grace:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3513,10 +3442,8 @@
           "fill:mine.bag:shadow_plague:1",
           "fill:mine.bag:burnbarrow:1",
           "fill:mine.bag:shadowswarm:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3534,10 +3461,8 @@
           "fill:mine.bag:acrobatics:1",
           "fill:mine.bag:surgical_strike:1",
           "fill:mine.bag:stunlock:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3555,10 +3480,8 @@
           "fill:mine.bag:giant_growth:1",
           "fill:mine.bag:beast_unleashed:1",
           "fill:mine.bag:more_shiny:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3576,10 +3499,8 @@
           "fill:mine.bag:pleasure_and_pain:1",
           "fill:mine.bag:mistress_command:1",
           "fill:mine.bag:always_in_control:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3597,10 +3518,8 @@
           "fill:mine.bag:rocket_punch:1",
           "fill:mine.bag:upgrade:1",
           "fill:mine.bag:cog_engine:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3618,10 +3537,8 @@
           "fill:mine.bag:deathstrike_dragon:1",
           "fill:mine.bag:bonecracker:1",
           "fill:mine.bag:into_oblivion:1",
-          "fill:mine.bag:crash_gem:1",
-          "fill:mine.bag:gem_1:6",
-          "stat_damage:stock@bank.crash_gem:1",
-          "stat_damage:stock@bank.gem_1:6",
+          "take:bank.crash_gem:mine.bag:1",
+          "take:bank.gem_1:mine.bag:6",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3637,7 +3554,7 @@
           "key": "ante_1",
           "text": "ante_1",
           "when": ["panic@clock <= 1"],
-          "action": ["fill:mine.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"]
+          "action": ["take:bank.gem_1:mine.gem_pile:1"]
         }
       ]
     },
@@ -3650,7 +3567,7 @@
           "key": "ante_2",
           "text": "ante_2",
           "when": ["panic@clock >= 2", "panic@clock <= 2"],
-          "action": ["fill:mine.gem_pile:gem_2:1", "stat_damage:stock@bank.gem_2:1"]
+          "action": ["take:bank.gem_2:mine.gem_pile:1"]
         }
       ]
     },
@@ -3663,7 +3580,7 @@
           "key": "ante_3",
           "text": "ante_3",
           "when": ["panic@clock >= 3", "panic@clock <= 3"],
-          "action": ["fill:mine.gem_pile:gem_3:1", "stat_damage:stock@bank.gem_3:1"]
+          "action": ["take:bank.gem_3:mine.gem_pile:1"]
         }
       ]
     },
@@ -3676,7 +3593,7 @@
           "key": "ante_4",
           "text": "ante_4",
           "when": ["panic@clock >= 4"],
-          "action": ["fill:mine.gem_pile:gem_4:1", "stat_damage:stock@bank.gem_4:1"]
+          "action": ["take:bank.gem_4:mine.gem_pile:1"]
         }
       ]
     },
@@ -3689,7 +3606,7 @@
           "key": "comb_2",
           "text": "comb_2",
           "when": ["combined@mine.player == 2"],
-          "action": ["fill:mine.gem_pile:gem_2:1", "stat_damage:stock@bank.gem_2:1"]
+          "action": ["take:bank.gem_2:mine.gem_pile:1"]
         }
       ]
     },
@@ -3702,7 +3619,7 @@
           "key": "comb_3",
           "text": "comb_3",
           "when": ["combined@mine.player == 3"],
-          "action": ["fill:mine.gem_pile:gem_3:1", "stat_damage:stock@bank.gem_3:1"]
+          "action": ["take:bank.gem_3:mine.gem_pile:1"]
         }
       ]
     },
@@ -3715,7 +3632,7 @@
           "key": "comb_4",
           "text": "comb_4",
           "when": ["combined@mine.player == 4"],
-          "action": ["fill:mine.gem_pile:gem_4:1", "stat_damage:stock@bank.gem_4:1"]
+          "action": ["take:bank.gem_4:mine.gem_pile:1"]
         }
       ]
     },
@@ -3728,7 +3645,7 @@
           "key": "up_2",
           "text": "up_2",
           "when": ["combined@mine.player == 1"],
-          "action": ["fill:mine.discard:gem_2:1", "stat_damage:stock@bank.gem_2:1"]
+          "action": ["take:bank.gem_2:mine.discard:1"]
         }
       ]
     },
@@ -3741,7 +3658,7 @@
           "key": "up_3",
           "text": "up_3",
           "when": ["combined@mine.player == 2"],
-          "action": ["fill:mine.discard:gem_3:1", "stat_damage:stock@bank.gem_3:1"]
+          "action": ["take:bank.gem_3:mine.discard:1"]
         }
       ]
     },
@@ -3754,7 +3671,7 @@
           "key": "up_4",
           "text": "up_4",
           "when": ["combined@mine.player == 3"],
-          "action": ["fill:mine.discard:gem_4:1", "stat_damage:stock@bank.gem_4:1"]
+          "action": ["take:bank.gem_4:mine.discard:1"]
         }
       ]
     },
@@ -3767,7 +3684,7 @@
           "key": "uph_2",
           "text": "uph_2",
           "when": ["combined@mine.player == 1"],
-          "action": ["fill:mine.hand:gem_2:1", "stat_damage:stock@bank.gem_2:1"]
+          "action": ["take:bank.gem_2:mine.hand:1"]
         }
       ]
     },
@@ -3780,7 +3697,7 @@
           "key": "uph_3",
           "text": "uph_3",
           "when": ["combined@mine.player == 2"],
-          "action": ["fill:mine.hand:gem_3:1", "stat_damage:stock@bank.gem_3:1"]
+          "action": ["take:bank.gem_3:mine.hand:1"]
         }
       ]
     },
@@ -3793,7 +3710,7 @@
           "key": "uph_4",
           "text": "uph_4",
           "when": ["combined@mine.player == 3"],
-          "action": ["fill:mine.hand:gem_4:1", "stat_damage:stock@bank.gem_4:1"]
+          "action": ["take:bank.gem_4:mine.hand:1"]
         }
       ]
     },
@@ -3806,7 +3723,7 @@
           "key": "upp_2",
           "text": "upp_2",
           "when": ["combined@mine.player == 1"],
-          "action": ["fill:mine.gem_pile:gem_2:1", "stat_damage:stock@bank.gem_2:1"]
+          "action": ["take:bank.gem_2:mine.gem_pile:1"]
         }
       ]
     },
@@ -3819,7 +3736,7 @@
           "key": "upp_3",
           "text": "upp_3",
           "when": ["combined@mine.player == 2"],
-          "action": ["fill:mine.gem_pile:gem_3:1", "stat_damage:stock@bank.gem_3:1"]
+          "action": ["take:bank.gem_3:mine.gem_pile:1"]
         }
       ]
     },
@@ -3832,7 +3749,7 @@
           "key": "upp_4",
           "text": "upp_4",
           "when": ["combined@mine.player == 3"],
-          "action": ["fill:mine.gem_pile:gem_4:1", "stat_damage:stock@bank.gem_4:1"]
+          "action": ["take:bank.gem_4:mine.gem_pile:1"]
         }
       ]
     },
