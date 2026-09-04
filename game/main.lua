@@ -481,11 +481,15 @@ function love.update(dt)
 		netpanel.update()
 		openfile.update(since)
 	end
-	-- Before stage: a step lets a card go by starting the move the layout asked
-	-- for, and sync_places is what asks. The other way round, the first step of
-	-- every run would find nothing to release and the card would simply appear.
-	render.sync_places()
+	-- After stage and inside its swap: the layout a card is asked for is the one
+	-- the *presented* state wants, and that state is this beat's. Laid out
+	-- against the live registry instead, every card would be asked for its final
+	-- position on the first frame of a run and the whole thing would happen at
+	-- once, which is what the run exists to stop.
 	stage.update(dt)
+	stage.enter()
+	render.sync_places()
+	stage.leave()
 	anim.update(dt * stage.speed())
 	fx.update(dt)
 	render.set_can_undo(flow.can_undo())
@@ -532,8 +536,13 @@ function love.update(dt)
 end
 
 function love.draw()
+	-- The whole frame is drawn against whatever state the run has reached, the
+	-- tooltip and the inspector included: a card the player is reading about
+	-- should say what it said when they pointed at it.
+	stage.enter()
 	render.draw()
 	if inspecting then inspect.draw(inspecting) else tooltip.draw() end
+	stage.leave()
 end
 
 -- LÖVE's stock main loop with one addition: a frame cap. Nothing else caps

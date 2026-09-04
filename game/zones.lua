@@ -592,9 +592,15 @@ function M.take(shelf, to_id, where)
 	if (tonumber(shelf.stats and shelf.stats.stock) or 0) < 1 then return nil end
 	local from = entity.get(shelf.zone_id)
 	if not from or from.status ~= "supply" then return nil end
-	local e = M.add(to, shelf.def_key)
-	if not e then return nil end
+	-- Docked before the card is made, so the step `add` records is a state where
+	-- the box and the card already agree about how many there are. Put back if
+	-- the destination refuses the arrival, which a full grid does.
 	shelf.stats.stock = shelf.stats.stock - 1
+	local e = M.add(to, shelf.def_key)
+	if not e then
+		shelf.stats.stock = shelf.stats.stock + 1
+		return nil
+	end
 	-- Into another supply the arrival is a number, and a number was never
 	-- anywhere; the shelf it came off is the only card in the story.
 	if to.status ~= "supply" then

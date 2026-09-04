@@ -88,15 +88,23 @@ local flow      = require("flow")
 local render    = require("render")
 local tooltip   = require("tooltip")
 local anim      = require("anim")
+local stage     = require("stage")
 local fx        = require("fx")
 
 local frames = 0
 local function frame(dt)
-	anim.update(dt)
-	fx.update(dt)
+	-- Exactly main.lua's order: the run advances, the layout is asked against the
+	-- state it reached, and the frame is drawn against that same state.
+	stage.update(dt)
+	stage.enter()
 	render.sync_places()
+	stage.leave()
+	anim.update(dt * stage.speed())
+	fx.update(dt)
+	stage.enter()
 	render.draw()
 	tooltip.draw()
+	stage.leave()
 	frames = frames + 1
 end
 
@@ -553,6 +561,55 @@ do
 	-- Nothing to lean towards is not a bump.
 	anim.bump("still", 0, 0)
 	assert(anim.visual_place("still", rest) == nil, "a bump at no distance does nothing")
+end
+
+-- A whole click drawn as a run: the registry the drawing path reads is a state
+-- the rules have already left behind, so every derived answer it leans on —
+-- what a zone shows, whose hand it is, where the cells are — has to come out of
+-- the snapshot without the renderer knowing it moved.
+do
+	flow.init("puzzle_strike.json", 2)
+	render.rescale()
+	-- Long enough for the deal to land: a board still settling would have cards
+	-- in flight that the run did not put there.
+	for _ = 1, 40 do frame(0.016) end
+
+	zones.on_change = function(what, id) stage.record(what, id) end
+	stage.arm()
+	actions.execute("take:bank.gem_1:mine.gem_pile:3", {})
+	actions.execute("move:mine.gem_pile.gem_1:enemy.gem_pile:2", {})
+	stage.seal()
+	assert(stage.busy(), "a click that moved five cards is a run")
+
+	-- The rules are five moves ahead and the picture is not: the first frame
+	-- shows the first step and no more, however far the click actually got.
+	local function flying()
+		local n = 0
+		for e in entity.each("card") do
+			if anim.visual_place(e.id, e.place) then n = n + 1 end
+		end
+		return n
+	end
+	frame(0)
+	assert(flying() <= 1, "only the first step has been shown, but " .. flying() .. " cards moved")
+
+	local guard = 0
+	while stage.busy() and guard < 400 do
+		frame(0.016)
+		guard = guard + 1
+	end
+	assert(not stage.busy(), "and the run ends")
+	assert(guard > 5, "and it took beats to get there rather than one frame")
+	zones.on_change = nil
+
+	-- The live registry is back, and hit-testing has somewhere to point: the
+	-- rects the run computed against the snapshot belong to the live cards too.
+	local placed = 0
+	for e in entity.each("card") do
+		if e.zone_id and e.place and e.place.w > 0 then placed = placed + 1 end
+	end
+	assert(placed > 0, "the frame the run ended on left the live cards their rects")
+	frame(0.016)
 end
 
 print("render smoke ok: " .. frames .. " frames drawn, " .. drawn .. " placeholders")

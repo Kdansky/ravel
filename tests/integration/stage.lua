@@ -2,9 +2,9 @@
 --
 -- `stage` is presentation, so none of this proves anything about the rules —
 -- what it proves is that the rules can be watched: that the order things
--- happened in survives the frame they happened in, that a card can be held
--- where the player last saw it while the board runs on ahead, and that every
--- way out of a run puts every held card back down again.
+-- happened in survives the frame they happened in, that the board a player is
+-- looking at is a state the rules have already left behind, and that every way
+-- out of a run puts the live state back.
 
 local entity = require("entity")
 local zones  = require("zones")
@@ -64,10 +64,19 @@ local function stand(e, x)
 end
 
 -- What the layout does on the frame after a click: every moved card is asked
--- for the flight it is about to make. A held one keeps the request instead of
--- setting off, which is the whole trick.
+-- for the flight it is about to make.
 local function layout(e, x)
 	anim.move(e.id, e.place, { x = x, y = 400, w = 40, h = 60 }, "glide")
+end
+
+-- Where the drawing path would find a card this frame, which is the whole of
+-- what stage 2 is: during a run it is a state the rules have moved on from.
+local function shown(id)
+	stage.enter()
+	local e = entity.get(id)
+	local zone = e and e.zone_id
+	stage.leave()
+	return zone
 end
 
 -- One frame of love.update, in its order: the layout has already spoken, the
@@ -80,78 +89,88 @@ end
 function M.test_a_run_plays_in_the_order_it_happened(check)
 	with_game(function(name)
 		flow.init(name, 1)
-		local hand = zones.find_id("hand")
+		local hand, deck = zones.find_id("hand"), zones.find_id("deck")
 		local ash, birch = card("ash"), card("birch")
-		stand(ash, 10)
-		stand(birch, 20)
 
 		stage.arm()
 		zones.move_card(ash.id, hand)
 		zones.move_card(birch.id, hand)
 		stage.seal()
 
-		layout(ash, 300)
-		layout(birch, 360)
-		check("the run is holding both cards", stage.busy())
-		check("ash has not set off yet", anim.visual_place(ash.id).x == 10)
-		check("nor has birch", anim.visual_place(birch.id).x == 20)
+		check("a run is playing", stage.busy())
+		check("the rules have both cards in hand already",
+			ash.zone_id == hand and birch.zone_id == hand)
+		check("but the board still shows them where they were",
+			shown(ash.id) == deck and shown(birch.id) == deck)
 
 		frame(0.05)
-		check("ash goes first", anim.visual_place(ash.id).x > 10)
-		check("birch is still waiting its turn", anim.visual_place(birch.id).x == 20)
+		check("ash arrives first", shown(ash.id) == hand)
+		check("birch is still waiting its turn", shown(birch.id) == deck)
 
 		frame(0.20)
-		check("birch follows a beat later", anim.visual_place(birch.id).x > 20)
+		check("birch follows a beat later", shown(birch.id) == hand)
 		check("and the run is over", not stage.busy())
+		check("which hands the live state back", shown(birch.id) == hand)
 	end)
 end
 
-function M.test_a_card_that_moved_twice_does_not_fly(check)
+-- Stage 1 could only cut here: with one state on screen, a chip discarded and
+-- then drawn again had no honest flight left, so it waited and was afterwards
+-- simply somewhere else. A state per step is what replaces the cut with the
+-- journey — it went to the bin, and then it came back.
+function M.test_a_card_that_moved_twice_makes_both_moves(check)
 	with_game(function(name)
 		flow.init(name, 1)
+		local hand, bin, deck = zones.find_id("hand"), zones.find_id("bin"), zones.find_id("deck")
 		local ash = card("ash")
-		stand(ash, 10)
 
 		stage.arm()
-		zones.move_card(ash.id, zones.find_id("hand"))
-		zones.move_card(ash.id, zones.find_id("bin"))
+		zones.move_card(ash.id, bin)
+		zones.move_card(ash.id, hand)
 		stage.seal()
-		layout(ash, 800)
 
-		-- A chip discarded, shuffled back in and drawn again would sail from the
-		-- board to the hand, which is a trip it never made and a shuffle nobody
-		-- may see the result of. So it waits where it was, and then it is simply
-		-- somewhere else.
-		check("it waits where it stood", anim.visual_place(ash.id).x == 10)
+		check("it starts where the player last had it", shown(ash.id) == deck)
 		frame(0.05)
-		check("and then draws no line at all", anim.visual_place(ash.id) == nil)
+		check("the first move is shown", shown(ash.id) == bin)
+		frame(0.10)
+		check("and then the second", shown(ash.id) == hand)
 		check("with nothing left queued behind it", not stage.busy())
 	end)
 end
 
--- A crash in Puzzle Strike is a `fill`: gems are conjured into the other pile
--- and the bank's stock is docked by a separate action, with nothing linking the
--- two. So the most important thing on the board happened in no time at all —
--- the gems had never been anywhere to travel from. The supply that stocks the
--- kind is the honest answer to where they were.
-function M.test_a_conjured_card_comes_from_the_supply_that_stocks_it(check)
+-- A card that appears out of nothing has no earlier position by definition. What
+-- a state per step buys is that it is not drawn at all until its beat, rather
+-- than standing in the destination from the first frame of the run.
+function M.test_a_conjured_card_is_not_there_before_its_beat(check)
 	with_game(function(name)
 		flow.init(name, 1)
-		local box = zones.find("box")
+		local box, hand = zones.find("box"), zones.find("hand")
 		check("the box keeps one real cedar and counts the rest",
 			#box.cards == 1 and entity.get(box.cards[1]).stats.stock == 9)
 		check("and it is what stocks a cedar", zones.supply_of("cedar").id == box.cards[1])
 		check("nothing stocks an ash", zones.supply_of("ash") == nil)
 
 		stage.arm()
-		zones.add(zones.find("hand"), "cedar")
+		zones.take(entity.get(box.cards[1]), hand.id)
 		stage.seal()
 
 		local made
 		for e in entity.each("card") do
-			if e.def_key == "cedar" and e.zone_id == zones.find_id("hand") then made = e end
+			if e.def_key == "cedar" and e.zone_id == hand.id then made = e end
 		end
-		check("the new card is held, so the run can hand it a beat", made and anim.holding(made.id))
+		check("the rules made it", made ~= nil)
+		check("but the board has not got it yet", shown(made.id) == nil)
+		check("and the box still reads nine on screen", (function()
+			stage.enter()
+			local n = entity.get(box.cards[1]).stats.stock
+			stage.leave()
+			return n
+		end)() == 9)
+
+		frame(0.05)
+		check("it arrives on its beat", shown(made.id) == hand.id)
+		check("and the box is docked at the same moment",
+			entity.get(box.cards[1]).stats.stock == 8)
 	end)
 end
 
@@ -204,14 +223,14 @@ function M.test_every_way_out_puts_the_cards_down(check)
 		stage.arm()
 		zones.move_card(ash.id, zones.find_id("hand"))
 		stage.seal()
-		layout(ash, 300)
-		check("held while the run waits", anim.visual_place(ash.id).x == 10)
+		check("the board is a step behind while the run waits",
+			shown(ash.id) == zones.find_id("deck"))
 
 		-- What an undo does, and a load, and a game that reset underneath us.
 		stage.clear()
 		check("clearing the run ends it", not stage.busy())
-		anim.update(0.05)
-		check("and lets the card go", anim.visual_place(ash.id).x > 10)
+		check("and hands the live state straight back",
+			shown(ash.id) == zones.find_id("hand"))
 	end)
 end
 

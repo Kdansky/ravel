@@ -45,6 +45,14 @@ local function restore(snap)
 	ALL = snap
 end
 
+-- The registry itself, by reference, for the one caller that has to put it back.
+-- `stage` draws a state the rules have already left behind by swapping it in and
+-- swapping the live one back after the frame; a deep copy to return to would
+-- cost more every frame than the whole feature saves.
+local function registry()
+	return ALL
+end
+
 return {
 	register  = register,
 	get       = get,
@@ -52,4 +60,5 @@ return {
 	reset     = reset,
 	snapshot  = snapshot,
 	restore   = restore,
+	registry  = registry,
 }

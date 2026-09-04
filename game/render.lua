@@ -5,6 +5,7 @@ local cards       = require("cards")
 local phase       = require("phase")
 local targeting   = require("targeting")
 local anim        = require("anim")
+local stage       = require("stage")
 local fx          = require("fx")
 local log         = require("log")
 local flow        = require("flow")
@@ -1934,12 +1935,12 @@ function M.sync_places()
 					from = shelf and shelf.place or (origin or {}).place
 				end
 				-- Conjured, and with nowhere to have been: a `fill` says what
-				-- appears and never where it was, which is why the whole of a
-				-- crash — gems arriving in the other pile — happened in no time
-				-- at all. The bank that stocks the kind is the honest answer.
-				-- Only while a run is holding the card, or every chip in the box
-				-- would fly to its seat the moment a game loaded.
-				if not from and anim.holding(c.id) then
+				-- appears and never where it was. A component out of a box says
+				-- `take` now and remembers, so what is left here is a card that
+				-- genuinely came from nothing — and if the box stocks its kind,
+				-- that box is still the honest guess. Only during a run, or every
+				-- chip in the box would fly to its seat the moment a game loaded.
+				if not from and stage.busy() then
 					local supply = zones.supply_of(c.def_key)
 					from = supply and supply.place
 				end
