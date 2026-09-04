@@ -332,7 +332,7 @@ the middle. All ten attributions below were guesses and all ten were right.
 |---|---|---|
 | Pleasure & Pain | red | +1 red action. Each opponent discards a wound or puts a wound in his bag. Choose a discard pile, then +1 chip for each wound in it. |
 | Mistress's Command | red | If chosen opponent's gem pile totals 6 or 9, reveal his hand. Put a non-Puzzle bank chip into his hand and make him play up to two chips in his hand as you wish. |
-| Always in Control | blue | Main: +2 buys. At end of turn, +1 chip for each of these buys you used. Reaction: Become immune to a red chip. |
+| Always in Control | blue | Main: +2 piggy. At end of turn, +1 chip for each of these pigs you used. Reaction: Become immune to a red chip. |
 
 **Bal-Bas-Beta (BBB)**
 

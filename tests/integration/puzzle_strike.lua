@@ -213,23 +213,36 @@ function M.test_puzzle_strike_x_copy_plays_a_chip_twice(check)
 		entity.get(d3.id).zone_id == hand.id)
 end
 
--- "Gain a chip costing up to 2 more than the one you trashed" is money, and the
--- ordinary price of every pile does the gating. The borrowed buy phase is where
--- it gets spent, so the shopping happens inside an action phase.
-function M.test_puzzle_strike_training_day_pays_an_allowance(check)
+-- "Put a bank chip costing up to 2 more than the trashed chip into your hand" is
+-- an offer of the bank judged against one number. It was a purse and a borrowed
+-- buy phase, which is a different sentence: a purse buys whatever it covers, and
+-- what it buys goes to the discard a purchase goes to rather than to the hand
+-- this chip names.
+function M.test_puzzle_strike_training_day_trades_a_chip_in(check)
 	opening(7, "jaina", "setsuki", { "training_day", "draw_three", "risky_move", "really_annoying",
 		"recklessness", "sneak_attack", "gem_essence", "one_two_punch", "one_of_each", "roundhouse" })
 	local hand = zone_of("hand", "south")
 	local td   = zones.add(hand, "training_day")
-	local gem  = zones.add(hand, "gem_3")
+	-- Risky Move costs 1, so the budget is 3: Recklessness at 3 is in and
+	-- Roundhouse at 6 is out, which is the line the card draws.
+	local fodder = zones.add(hand, "risky_move")
 
 	seat_card("south").stats.act_brown = 1
-	check("it is played on the 3-gem", flow.play_card(td.id, { gem.id }))
-	check("the gem was trashed", entity.get(gem.id).zone_id == nil
-		or entity.get(gem.id).zone_id == zones.find_id("void"))
-	check("and the allowance is its price plus two",
-		seat_card("south").stats.money == 7, seat_card("south").stats.money)
-	check("and a shop to spend it in", phase.current().key == "react_buy", phase.current().key)
+	check("it is played on the Risky Move", flow.play_card(td.id, { fodder.id }))
+	check("the chip was trashed", entity.get(fodder.id).zone_id == nil
+		or entity.get(fodder.id).zone_id == zones.find_id("void"))
+	check("and the budget is its price plus two",
+		seat_card("south").stats.budget == 3, seat_card("south").stats.budget)
+
+	check("the whole bank is on offer", count_in("options") > 0, count_in("options"))
+	check("one over the budget is refused", not flow.play_card(find_in("options", "roundhouse").id, {}))
+	local shelf = find_in("options", "recklessness")
+	local left  = shelf.stats.stock
+	check("and one within it is taken", flow.play_card(shelf.id, {}))
+	check("into the hand, not the discard", count_in("hand", "south", "recklessness") == 1,
+		table.concat(keys_in("hand", "south"), " "))
+	check("out of the box rather than out of nothing",
+		find_in("bank", "recklessness").stats.stock == left - 1)
 end
 
 -- Sale Prices, which was "NOT MODELLED — a cost is a fixed number in this

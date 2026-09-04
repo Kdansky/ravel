@@ -583,9 +583,9 @@ TEXT = {
     "mistress_command": ("If chosen opponent's gem pile totals 6 or 9, reveal his hand. Put a non-Puzzle bank chip into his hand and make him play up to two chips in his hand as you wish.",
      "the reveal is built and nothing else is. \"6 or 9\" is two comparisons and a condition is one; making somebody else play their own chips has no spelling, since a copied action benefits whoever is up.",
      {}),
-    "always_in_control": ("Main: +2 buys. At end of turn, +1 chip for each of these buys you used. Reaction: Become immune to a red chip.",
-     "the immunity is built and the main half is not. There is no ceiling on buying here for two more to be added to \u2014 the rulebook states the floor, that you must buy at least one chip a turn, and nothing above it \u2014 so a grant of two more buys has nothing to be two more than, and the chip per buy used has nothing to count.",
-     {'react': 1}),
+    "always_in_control": ("Main: +2 piggy. At end of turn, +1 chip for each of these pigs you used. Reaction: Become immune to a red chip.",
+     "the two piggy banks and the immunity are built. The chip per pig used is not: nothing counts how many of a particular grant were spent.",
+     {'plus_piggy': 2, 'react': 1}),
 
     "rocket_punch": ("Main: Crash a 1-gem in your gem pile. Reaction: Before you're red-attacked or an opponent sends gems, crash a 1-gem at the attacker or sender.",
      None, {'react': 1}),
@@ -837,6 +837,11 @@ def stats():
         # keeps one unplayed chip through cleanup, at the cost of drawing one
         # fewer (rules.md §4).
         player("piggy", "Piggy bank", "pot", "pink"),
+        # What a chip traded in is worth at the bank, for the one turn it is worth
+        # it. A card that says "gain a chip costing up to 2 more than the trashed
+        # one" has to carry that number from the chip it trashed to the offer it
+        # opens, and the trashed chip is gone by then.
+        player("budget", None, None, hidden=True),
         # How many chips this turn has bought, and the only number buying reads.
         # There is no matching allowance: the rule is a floor — "you must buy at
         # least one chip" — and neither the box nor the rulebook puts a ceiling
@@ -1030,17 +1035,6 @@ def puzzle_cards():
     ongoing_play = lambda: {"phases": ["action"], "cost": {"acts@mine.player": 1},
                             "action": [], "spent": "mine.ongoing"}
 
-    # "Trash a chip, then gain one costing up to N more" — three chips say it and
-    # none of them needed a new verb. The allowance is handed over as *money*, so
-    # the ordinary price of every pile does the gating, and the borrowed buy phase
-    # is where it gets spent. A chip nobody can buy carries no price, so trashing
-    # a character chip allows exactly N.
-    def allowance(more):
-        return ["stat_set:money@mine.player:sum:price@target",
-                "stat_gain:money@mine.player:%d" % more,
-                "move_target_to:void",
-                "push_phase:react_buy"]
-
     return [
         {"key": "risky_move", "text": "Risky Move", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
@@ -1167,10 +1161,20 @@ def puzzle_cards():
         # "Up to 2 more" is money, and the piles price themselves. The borrowed
         # buy phase is what lets the shopping happen inside an action.
         {"key": "training_day", **shape("training_day", "brown"),
+         # An offer of the bank rather than a borrowed buy phase. The phase was
+         # money handed over, which is a purse and buys whatever it covers; this is
+         # one chip, judged against one number, and it lands in the hand the chip
+         # names rather than in the discard a purchase goes to.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["trashable"]),
-                  "action": ["stat_gain:piggy@mine.player:1"] + allowance(2),
-                  "spent": "mine.table"}},
+                  "action": ["stat_gain:piggy@mine.player:1",
+                             "stat_set:budget@mine.player:sum:price@target",
+                             "stat_gain:budget@mine.player:2",
+                             "move_target_to:void",
+                             "show:bank:optional"],
+                  "spent": "mine.table"},
+         "chosen": {"where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+                    "action": ["take:target:mine.hand:1"]}},
 
         # --- Shadows --------------------------------------------------------
         {"key": "axe_kick", **shape("axe_kick", "brown"),
@@ -1192,8 +1196,14 @@ def puzzle_cards():
         {"key": "chips_for_free", **shape("chips_for_free", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["trashable"]),
-                  "action": ["draw_from:mine.bag:mine.hand:2"] + allowance(2),
-                  "spent": "mine.table"}},
+                  "action": ["draw_from:mine.bag:mine.hand:2",
+                             "stat_set:budget@mine.player:sum:price@target",
+                             "stat_gain:budget@mine.player:2",
+                             "move_target_to:void",
+                             "show:bank:optional"],
+                  "spent": "mine.table"},
+         "chosen": {"where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+                    "action": ["take:target:mine.discard:1"]}},
         {"key": "color_panic", **shape("color_panic", "red"),
          "play": act(["stat_gain:act_red@mine.player:1"])},
         {"key": "degenerate_trasher", **shape("degenerate_trasher", "brown"),
@@ -1398,6 +1408,12 @@ def character_chips():
                         "where": ["tagged:purple@event"],
                         "target": {"type": "card", "zones": ["hand"], "owner": "mine", "count": 1,
                                    "where": ["not_tagged:purple@target"]},
+                        # Not an offer of the bank, the way the two chips that say
+                        # the same sentence in a main phase are. A reaction that
+                        # opens one loses the announcement it was answering: the
+                        # buy on the stack is gone by the time the pick resolves.
+                        # So this keeps the purse and the borrowed buy phase, and
+                        # keeps the purse's looseness with it.
                         "action": ["stat_set:money@mine.player:sum:price@target",
                                    "stat_gain:money@mine.player:2",
                                    "move_target_to:void",
@@ -1762,10 +1778,7 @@ def character_chips():
          "play": act(["show:enemy.hand:optional"])},
         {"key": "always_in_control", "text": "Always in Control", "tags": ["chip", "character", "blue"],
          "asset": "circle:violet",
-         # Its main half is the one thing in the box that argued for a buy ceiling,
-         # and the ceiling lost: nothing else in the rules or on a chip rations
-         # buying, so a grant of two more has nothing to be two more *than*.
-         "play": act([]),
+         "play": act(["stat_gain:piggy@mine.player:2"]),
          "reactions": [{"to": "attack", "text": "Become immune",
                         "action": ["counterspell"], "spent": "mine.discard"}]},
         # Bal-Bas-Beta
@@ -2046,11 +2059,9 @@ def button_cards():
          "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
          # A count, not a payment: the rule is a floor, so this asks whether the
          # floor was reached and takes nothing away for asking — a cost would have
-         # spent the one purchase it was checking for. Written as a one-entry
-         # "abilities" list because a lone "activate" block has no "when".
-         "abilities": [{"key": "end_turn", "text": "End turn", "phases": ["buy"],
-                        "when": ["bought@mine.player >= 1"],
-                        "action": ["next_phase"]}]},
+         # spent the one purchase it was checking for.
+         "activate": {"phases": ["buy"], "when": ["bought@mine.player >= 1"],
+                      "action": ["next_phase"]}},
     ]
 
 
