@@ -333,14 +333,14 @@ function M.test_abilities_a_shop_sells_a_copy_of_what_is_on_the_shelf(check)
 	end)
 end
 
--- A lone `activate` takes the same `when` an entry in an `abilities` list does.
--- It did not, and the two forms normalise into one shape three lines apart — so
--- a button gating on a tally had to be written as a one-entry list to say a
--- thing the short form could say in every other word.
+-- An ability that does one thing still takes a `when`, which is the whole reason
+-- there is no second spelling for the one-ability card: the short form used to
+-- be a different set of fields, and a button gating on a tally had to be grown
+-- into a list to say what the long form said in every other word.
 --
 -- A `when` is not a cost. A cost that checks a counter spends it, which is the
 -- wrong sentence for "you must have bought at least one chip".
-function M.test_abilities_a_lone_activate_takes_a_when(check)
+function M.test_abilities_one_ability_takes_a_when(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local lever
@@ -353,6 +353,119 @@ function M.test_abilities_a_lone_activate_takes_a_when(check)
 		flow.activate(lever.id, {})
 		check("the ability ran, and asking cost nothing", lever.stats.moves_made == 2, lever.stats.moves_made)
 	end)
+end
+
+-- A place may offer two things, and the same chooser answers for it. It could
+-- only ever offer one before: a zone's ability came down a path of its own,
+-- reading flat fields nothing else read, so "draw one or draw two" had to be two
+-- zones or a card standing in front of the deck.
+local PLACE = [==[{
+  "title": "Two Doors",
+  "players": [{ "card": "me" }],
+  "stats": [{ "key": "gold", "label": "Gold", "subject": "gold@mine.player" }],
+  "zones": [
+    { "key": "deck", "layout": "stack", "visibility": "secret",
+      "abilities": [
+        { "key": "one", "text": "Draw one", "action": ["draw_from:deck:hand:1"] },
+        { "key": "two", "text": "Draw two", "cost": { "gold@mine.player": 3 },
+          "action": ["draw_from:deck:hand:2"] }],
+      "contents": ["stone", "stone", "stone", "stone"] },
+    { "key": "hand", "layout": "row" }],
+  "phases": [{ "key": "turn", "type": "player_input" }],
+  "cards": [{ "key": "me", "text": "Me", "card_stats": { "gold": 3 } },
+    { "key": "stone", "text": "Stone" }]
+}]==]
+
+local function with_place(fn)
+	local path = "game/games/tmp_two_doors.json"
+	local f = assert(io.open(path, "w"))
+	f:write(PLACE)
+	f:close()
+	local ok, err = pcall(fn, "tmp_two_doors.json")
+	os.remove(path)
+	if not ok then error(err, 0) end
+end
+
+function M.test_abilities_a_place_may_offer_two_things(check)
+	with_place(function(name)
+		flow.init(name, 3)
+		local deck, purse = zones.find_id("deck"), nil
+		for e in entity.each("card") do if e.def_key == "me" then purse = e end end
+		check("both doors are open, so there is nothing to guess",
+			#flow.usable_zone_abilities(deck) == 2)
+		check("and a click that names neither refuses rather than picking one",
+			flow.activate_zone(deck) == false)
+
+		check("so the place stops being the question and the chooser becomes it",
+			flow.offer_zone_abilities(deck))
+		local offer = zones.find("options")
+		check("with one entry per ability, remembering the place that asked",
+			#offer.cards == 2 and offer.asked_by == deck, #offer.cards)
+		local picked = {}
+		for _, id in ipairs(offer.cards) do
+			local choice = flow.menu_choice(id)
+			check("an entry resolves to the place that asked",
+				choice ~= nil and choice.source == deck)
+			picked[choice.index] = choice.ability.text
+		end
+		check("and the two entries mean two different abilities",
+			picked[1] == "Draw one" and picked[2] == "Draw two",
+			tostring(picked[1]) .. " / " .. tostring(picked[2]))
+
+		flow.close_offer()
+		check("the door chosen is the one that opens", flow.activate_zone(deck, 2))
+		check("two cards drawn and the gold spent",
+			#zones.find("hand").cards == 2 and purse.stats.gold == 0,
+			#zones.find("hand").cards)
+		check("with the price gone, one door is left and it needs no asking",
+			#flow.usable_zone_abilities(deck) == 1 and flow.activate_zone(deck))
+		check("and it drew the third", #zones.find("hand").cards == 3)
+	end)
+end
+
+-- A compute on the play, which is the other half of what one shape bought: the
+-- ability entry had one and the play block did not, so "deal damage equal to"
+-- could be said by a card used on the board and not by one played from a hand.
+function M.test_abilities_a_play_may_compute(check)
+	local path = "game/games/tmp_play_compute.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+  "title": "Named Number",
+  "players": [{ "card": "me" }],
+  "stats": [{ "key": "gold", "label": "Gold", "subject": "gold@mine.player" },
+    { "key": "score", "label": "Score", "subject": "score@mine.player" }],
+  "computes": [{ "key": "swing", "from": "gold@mine.player - 1" }],
+  "zones": [{ "key": "hand", "layout": "row" }],
+  "phases": [{ "key": "turn", "type": "player_input", "zone": "hand" }],
+  "cards": [{ "key": "me", "text": "Me", "card_stats": { "gold": 4, "score": 0 } },
+    { "key": "surge", "text": "Surge",
+      "play": { "compute": ["swing"], "needs": ["swing >= 2"],
+                "action": ["stat_gain:score@mine.player:swing"] } },
+    { "key": "filler", "text": "Filler", "play": { "action": ["destroy_self"] } }],
+  "setup": { "place": [{ "card": "surge", "zone": "hand" },
+    { "card": "filler", "zone": "hand" }] }
+}]==])
+	f:close()
+	local ok, err = pcall(function()
+		flow.init("tmp_play_compute.json", 3)
+		local surge, purse
+		for e in entity.each("card") do
+			if e.def_key == "surge" then surge = e end
+			if e.def_key == "me" then purse = e end
+		end
+		check("the gate reads the name the play bound", flow.can_play(surge.id))
+		-- Beside a card that is always playable, so this is the gate answering and
+		-- not the hatch that keeps a hand from soft-locking.
+		purse.stats.gold = 2
+		check("and it means the same number when the number changes",
+			flow.can_play(surge.id) == false)
+		purse.stats.gold = 5
+		flow.play_card(surge.id, {})
+		check("the action reads it too, and reads the same one",
+			purse.stats.score == 4, purse.stats.score)
+	end)
+	os.remove(path)
+	if not ok then error(err, 0) end
 end
 
 return M

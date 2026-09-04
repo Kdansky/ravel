@@ -17,7 +17,7 @@ local actions = require("actions")
 -- Shapes reached through another section rather than declared beside one.
 local NESTED = {
 	target = true, route = true,
-	play = true, activate = true, challenge = true, receive = true,
+	play = true, challenge = true, receive = true,
 	turn = true, chosen = true, leaves = true,
 	-- An aura entry lives inside a tag, beside the behaviour blocks.
 	adjusts = true,
@@ -124,8 +124,8 @@ function M.test_schema_describes_the_nested_shapes(check)
 	local card = exemplar(doc.cards)
 	local phase = exemplar(doc.phases)
 
-	-- The target spec is spelled out under play; activate.target says it is the
-	-- same shape rather than repeating twenty lines of it.
+	-- The target spec is spelled out under play; an ability's target says it is
+	-- the same shape rather than repeating twenty lines of it.
 	for field in pairs(validate.FIELDS.target) do
 		check("play.target." .. field .. " is described", card.play.target[field] ~= nil)
 	end
@@ -135,7 +135,7 @@ function M.test_schema_describes_the_nested_shapes(check)
 	end
 
 	-- A card's moments: each block against its own field table, both ways.
-	for _, moment in ipairs({ "play", "activate", "challenge", "receive", "turn" }) do
+	for _, moment in ipairs({ "play", "challenge", "receive", "turn" }) do
 		local block, fields = card[moment], validate.FIELDS[moment]
 		check("the document has a " .. moment .. " block", type(block) == "table")
 		for field in pairs(fields) do
@@ -216,7 +216,7 @@ function M.test_schema_describes_every_shape_reached_through_a_section(check)
 	local doc = schema()
 	local card = exemplar(doc.cards)
 	local rule
-	for _, m in ipairs(card.activate.moves) do
+	for _, m in ipairs(exemplar(card.abilities).moves) do
 		if type(m) == "table" then rule = m; break end
 	end
 	local at = { setup = doc.setup, place = exemplar(doc.setup.place),

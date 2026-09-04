@@ -27,7 +27,7 @@ conflicts — with "did you mean" suggestions; the game plays on regardless.
 **Hold ctrl and point at anything** in the running game — a card, the square
 under it, the zone it lies in — to read the JSON behind it: the template (your
 JSON, plus whatever the parser derived from it — a card with `moves` grew the
-the `activate.target` that makes those moves clickable), the live entity the engine
+the ability's `target` that makes those moves clickable), the live entity the engine
 made of it, and the things the engine works out rather than stores anywhere
 (whose piece it is, and *every* tag that is true of it
 right now, including the ones its zone grants and the computed ones that are
@@ -247,8 +247,8 @@ rulebook open alongside.
 | "Cards must be played in ascending order" | `receive.needs` on the destination |
 | "Costs 2 gold" | `"play": { "cost": { "gold": 2 } }` |
 | "Only if you control a farm" | `"play": { "needs": ["count:farm >= 1"] }` |
-| "Draw from the deck or a discard pile" | a token in the draw phase's `zone` for the deck; for the piles, `"applies": ["takeable"]` on each and one tag def carrying an `activate` block |
-| "Only during your main phase" | `"play": { "phases": ["main"] }`, or `activate.phases` for the ability |
+| "Draw from the deck or a discard pile" | a token in the draw phase's `zone` for the deck; for the piles, `"applies": ["takeable"]` on each and one tag def carrying an `abilities` list |
+| "Only during your main phase" | `"play": { "phases": ["main"] }`, or an ability's own `phases` |
 | "Put it on the discard pile" | `"target": { "type": "zone", "zones": ["discard"] }` — point at the place, not at a card lying in it |
 | "Discard a card of your choice" | an `overlay` phase over the hand; the zone `applies` a tag whose `play.action` discards |
 | "Destroy all enemy creatures" | `destroy:each.enemy.creature` |
@@ -463,11 +463,11 @@ two things, and `"gold >= 2"` in a cost would say the wrong one.
 **"Once a turn."** Being spent is itself the cost:
 
 ```json
-"activate": { "cost": { "exhaust": 1 }, "action": ["stat_gain:gold:3"] }
+"abilities": [{ "cost": { "exhaust": 1 }, "action": ["stat_gain:gold:3"] }]
 ```
 
 An ability that charges no `exhaust` stays available all round, which is how a
-permanent button works. Only an *activate* cost may ask for it — a card leaving
+permanent button works. Only an ability's cost may ask for it — a card leaving
 a hand has nothing left to stay spent.
 
 **"Sacrifice a militia."** A cost paid in cards rather than numbers. The word
@@ -485,8 +485,8 @@ line.
 typed, which is the whole of a shop:
 
 ```json
-"activate": { "cost": { "coin@mine.player": "price@self", "stock@self": 1 },
-              "action": ["fill:mine.discard:@self:1"] }
+"abilities": [{ "cost": { "coin@mine.player": "price@self", "stock@self": 1 },
+              "action": ["fill:mine.discard:@self:1"] }]
 ```
 
 One ability, on the tag the shelf hands out, reading each shelf's own price. A
@@ -595,8 +595,8 @@ without slot targeting takes the first free cell.
 **A piece that moves, and takes what it lands on.**
 
 ```json
-{ "key": "rook", "activate": { "moves": ["line_ortho"],
-                               "action": ["move_to:target:destroy"] } }
+{ "key": "rook", "abilities": [{ "moves": ["line_ortho"],
+                               "action": ["move_to:target:destroy"] }] }
 ```
 
 `moves` writes the targeting for you. The `:destroy` is what makes aiming at a
@@ -673,8 +673,8 @@ else you may do does not:
 
 **A crisis that persists** (`castle.json`). `resolve_challenge` with a
 `challenge` block, where `fail` starts with `move_to:board`, the card carries a
-`turn.action` that drains you every round, and `activate.action:
-["resolve_challenge"]` lets the player answer it later. Failure becomes
+`turn.action` that drains you every round, and an ability whose action is
+`["resolve_challenge"]` lets the player answer it later. Failure becomes
 escalating pressure instead of a slap.
 
 **Tiers, acts and loops** (`kingdom.json`). Structure driven by a number is
@@ -684,7 +684,7 @@ no separate progression machinery, and there does not need to be.
 **An engine that ticks** (`kingdom.json`). `turn.action` on a board card runs
 once a round. Synergy is `count:<tag>` in an amount
 (`stat_gain:gold:count:economic`), a threshold is a computed tag, and a burst is
-an `exhaust`-limited `activate`.
+an `exhaust`-limited ability.
 
 **Sub-card choices** (`demo.json`). The options live in a hidden deck, the
 parent card pushes an overlay over it, and the *offer zone* `applies` a tag
@@ -745,7 +745,7 @@ file to check what may appear where.
 | `stats` | Ordered stat declarations (HUD order) |
 | `computed_tags` | Derived per-card tags (see below) |
 | `styles` | Named looks, claimed by tagging one (see *Styles*) |
-| `tags` | Tag behaviour — a tag is a mixin: it can give its cards a home `zone`, a `tooltip`, and an `activate` block (the same one a card has), which a zone may then hand to its contents with `applies` (see below) |
+| `tags` | Tag behaviour — a tag is a mixin: it can give its cards a home `zone`, a `tooltip`, and an `abilities` list (the same one a card has), which a zone may then hand to its contents with `applies` (see below) |
 | `effects` | Named visual effects on the base vocabulary (see below) |
 | `patterns` | Named direction sets for grid movement (see *Pieces that move*) |
 | `assets` | Named pictures, and the only place a picture carries options (see *Named assets*) |
@@ -825,7 +825,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `layout` | Where the cards are drawn. `stack` (one on top of another — only the top shows), `row` (side by side, each showing its text — wrapping onto more lines rather than shrinking when one line would be too tight), `grid` (addressed cells), `page` (each card fills the zone, for a story panel) |
 | `visibility` | Who may read them, and **nothing else** — a card in play may be unreadable and a card nobody can touch may be plain to see. `public` (default), `owner` (the seat whose zone it is; a zone with no seat is nobody's secret and stays public), `secret` (nobody — backs out, and a stack's order is scrambled in the browser, because the order is the secret and the contents usually are not) |
 | `reach` | Which of the cards here exist as far as the rules go: `all`, or `top` — only the last one. A `stack` is `top` unless it says otherwise |
-| `use` | What may be done with a card lying here **at all** — the ceiling, which a phase's `zone` then narrows: playing needs both to agree. `play` (default), `abilities` (its own `activate` blocks work here — what a board means), `none` (a box you use rather than reach into, which is how a trash or an exile is made untouchable). A `secret` zone is `none` unless it says otherwise, which is what makes a deck a deck |
+| `use` | What may be done with a card lying here **at all** — the ceiling, which a phase's `zone` then narrows: playing needs both to agree. `play` (default), `abilities` (its own abilities work here — what a board means), `none` (a box you use rather than reach into, which is how a trash or an exile is made untouchable). A `secret` zone is `none` unless it says otherwise, which is what makes a deck a deck |
 | `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `exile` is everything else and is the default. A `grid` is `board` and an `options` zone is `offer` without saying so. See *What counts as in play* |
 | `display` | `onscreen` (default) or `offscreen` — not drawn, and nothing in it clickable. For offers, fate decks and rules pages. Not the same as `secret`, which is a zone you can see and cannot read |
 | `copies` | `one` (default) or `per_seat` — one zone each, and `pos` then takes one rect per seat |
@@ -834,7 +834,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `row` | Which way a row fans, so every card in it can be read at once: `down` or `right`. Legal only where `layout` is `row`; left out, the cards sit side by side and do not overlap |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
 | `tooltip` | Prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck |
-| `activate` | The zone's **own** ability, in a card's words: `cost`, `phases`, `action`, `target`. This is how a deck is drawn from — the box answers, rather than the card on top of it becoming clickable. Gated like a card's: the phase it works in, what it costs, and whose zone it is. Not to be confused with `applies`, which hands an ability to the cards *lying* there |
+| `abilities` | The zone's **own** abilities, in a card's words: `cost`, `phases`, `when`, `action`. This is how a deck is drawn from — the box answers, rather than the card on top of it becoming clickable. Gated like a card's: the phase it works in, what it costs, and whose zone it is. Two of them opens the same chooser a card's two do. No `target` and no `moves` — there is no arrow to draw from a deck. Not to be confused with `applies`, which hands an ability to the cards *lying* there |
 | `refill_from` | The zone this one is rebuilt from when something tries to draw from it and finds it empty — a deckbuilder's draw pile naming its discard. Everything there moves in and the pile is shuffled; a per-seat zone takes the same seat's copy, so one line serves every player. **Asked for, not fired on emptying**: a rule that clears the pile on purpose is left alone, and the loop closes wherever it actually runs out — mid-draw, mid-action, inside a card that draws four, which is exactly where a phase loop cannot reach |
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
 | `receive` | What this zone does about an arrival. `needs`: whether a card being played may be sent **here** — the zone answers for itself, as a card does. `action`: what happens when one lands, with the zone as `@self` and the newcomer as `@target` (a discard pile anybody may take from says `set_owner:target:none` here, once, rather than every card that might be thrown into it saying it) |
@@ -1121,7 +1121,7 @@ disk cache with no network at all.
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
 | `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a card that carries its own bounds writes them by name — `{ "value": 4, "max": 4 }`, and `min` beside them — which are the same three words the `stats` entry uses. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate, asked once before targeting opens and so blind to targets — see *`needs` and `where`*, which also carries the escape hatch. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
-| `activate` | The board ability, in the same words: `cost`, `target`, `phases`, `action`, `when` (no `needs` — an ability is gated by its cost, its phase and its `when`). **A `when` asks and takes nothing**, which is the difference from a cost: a button reading "you must have bought at least one chip" is a question, and writing it as a cost would spend the purchase it was checking for. **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
+| `abilities` | What the card can be used for, one entry each — `cost`, `target`, `phases`, `when`, `compute`, `action` (no `needs` — an ability is gated by its cost, its phase and its `when`). A card that does one thing writes a list of one. **A `when` asks and takes nothing**, which is the difference from a cost: a button reading "you must have bought at least one chip" is a question, and writing it as a cost would spend the purchase it was checking for. **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `reactions` | A list of subscriptions to another player's action — each with the verb it answers (`to`), a condition about the event (`where`), a condition about the reactor (`when`), and the `cost`, `target` and `action` an ability has. `spent` says where the card lands once its answer is over. See *Reactions* |
 | `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
 | `play.spent` | Where the card goes once its play is over, **however it ends** — resolved, or countered before it ever ran. Opt-in; without it the action list is answerable for its own card |
@@ -1130,7 +1130,7 @@ disk cache with no network at all.
 | `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
 | `leaves` | `action`: run when this card **leaves**, with `@self` as the departing card. `from` says which departure — leaving play by default, out of a `status: board` zone into one that is not; name a zone and it is leaving that zone, which is how "when you discard this" is said. `into` names the zone it landed in, and is what tells death from exile from bounce (see *`leaves` — a card on its way out*) |
 | `chosen` | `action`: run when somebody picks a card out of the offer **this** card opened with `show:`, with the pick as `@target` and this card as `@self`. The reverse of an `options:` offer, where the entry carries the rule and the asker is what it is about — here the entry is somebody else's property and carries nothing of ours |
-| `play.target` / `activate.target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
+| `play.target` / an ability's `target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
 | `fill` | What may already be standing on a targeted square: `empty` (default), `enemy`, `open` (empty or enemy — "not blocked by my own"), `any`. Anything but `empty` is how a square you are about to capture becomes clickable |
 | `where` | A condition asked of **each candidate**, with the candidate as `@target` and as the anchor for any pattern inside — so a target spec can say things about the destination that `fill` cannot. `"row@target == 1"` is the near row of a grid; `"count:unit@across >= 1"` is a cell with something standing opposite it. The same word a move rule carries, asked one level up so a destination nothing *walks* to can be narrowed too |
 
@@ -1540,7 +1540,7 @@ which a heap of real cards could never answer, because an absence carries no tag
 
 Two games built this by hand before it existed: Splendor's token piles and Puzzle
 Strike's bank are the same counter card tagged `immutable`, with the take written
-as its `activate`. If you find yourself writing that, this is the word for it.
+as its one ability. If you find yourself writing that, this is the word for it.
 
 ### `<zone>.<tag>` — one place, one kind
 
@@ -1705,7 +1705,7 @@ other, and its stats are the player's stats.
 A **party** is the same idea repeated: N cards in a zone, each tagged `player`,
 each with its own `card_stats`. Per-character stats, targeting, death and
 revival are all ordinary card behaviour — `sum:might@party` asks what the party
-has between them, `"activate": { "cost": { "mana@self": 1 } }` makes a character pay
+has between them, `"abilities": [{ "cost": { "mana@self": 1 } }]` makes a character pay
 from her own pool. Note that with several player cards a *bare* subject means
 all of them at once; name a scope when you mean one.
 
@@ -2032,19 +2032,19 @@ Pieces then name patterns, and only a piece whose rules differ in *what may be
 standing on the far square* needs more than a list of names:
 
 ```json
-{ "key": "queen", "activate": { "moves": ["line_ortho", "line_diag"],
-    "action": ["move_to:target:taken", "next_phase"] } },
-{ "key": "knight", "activate": { "moves": ["knight_leap"], "action": [...] } },
-{ "key": "pawn", "activate": { "action": [...], "moves": [
+{ "key": "queen", "abilities": [{ "moves": ["line_ortho", "line_diag"],
+    "action": ["move_to:target:taken", "next_phase"] }] },
+{ "key": "knight", "abilities": [{ "moves": ["knight_leap"], "action": [...] }] },
+{ "key": "pawn", "abilities": [{ "action": [...], "moves": [
     { "patterns": ["pawn_step"], "fill": "empty" },
     { "patterns": ["pawn_run"],  "fill": "empty",
       "needs": ["rank@self == 2"] },
-    { "patterns": ["pawn_take"], "fill": "enemy" } ] } }
+    { "patterns": ["pawn_take"], "fill": "enemy" } ] }] }
 ```
 
-Declaring `activate.moves` writes the `activate.target` for you (one square, `fill` per
+Declaring an ability's `moves` writes its `target` for you (one square, `fill` per
 rule), so clicking the piece opens targeting and clicking a square moves it.
-Write the `activate.action` yourself — that is where captures go, and where the turn
+Write the ability's `action` yourself — that is where captures go, and where the turn
 ends.
 
 **`y` is forward for whoever is moving**, so one pawn definition serves both
@@ -2322,8 +2322,9 @@ not by meaning, because what a game calls its currency is its own business.
 
 ### A card that can do several things
 
-One `activate` is a card with one thing to do. A list of `abilities` is a card
-the player has to be asked about:
+Everything a card can be used for is an `abilities` entry, and a card that does
+one thing writes a list of one. Several is a card the player has to be asked
+about:
 
 ```json
 "abilities": [
@@ -2451,7 +2452,7 @@ a whole game instead of one per card:
 "tags": { "spell": { "emits": { "play": "cast" } } }
 ```
 
-`activate` is the other moment, and it is kept apart from `play` on purpose: a
+`activate` is the other verb, and it is kept apart from `play` on purpose: a
 spell cast from hand that resolves onto the board and is used from there is
 answered as two different things, and a reaction watching for one must not catch
 the other.
@@ -3403,9 +3404,8 @@ reads as cleverness and debugs as neither.
 won would be the order somebody typed the tags. The validator names both, the
 same way an ambiguous home is no home.
 
-Only `play`. A tag's `activate` already reaches its cards through their
-abilities, and one word with two roads into the engine is how a format grows
-synonyms.
+Only `play`. A tag's `abilities` already reach its cards, and one word with two
+roads into the engine is how a format grows synonyms.
 
 The zone route is a different question with the same spelling: a zone's
 `applies` hands a tag to whatever *lies there*, and that is looked up as a card
@@ -3667,7 +3667,7 @@ whose tags don't say, and reports the conflict when a card's tags disagree.
 ### Board buttons
 
 A card that starts in play and never leaves is the engine's button. Combine a
-`setup.place` entry with an `activate.action`. A button stays clickable by
+`setup.place` entry with an ability whose `action` is what the button does. A button stays clickable by
 saying nothing: an ability spends its card only if its cost says so, and one
 that charges no `exhaust` is available every turn.
 
@@ -3675,24 +3675,24 @@ that charges no `exhaust` is available every turn.
 {
   "key": "pass_time",
   "text": "Let time pass",
-  "activate": { "action": ["next_phase"] }
+  "abilities": [{ "action": ["next_phase"] }]
 }
 
 "setup": { "place": [{ "card": "pass_time", "zone": "table", "at": ["a1"] }] }
 ```
 
-Add `activate.target` when the button needs to be pointed at something —
-clicking it opens the same targeting arrow a played card uses, and the chosen
-cards arrive in `activate.action` as targets:
+Add a `target` when the button needs to be pointed at something — clicking it
+opens the same targeting arrow a played card uses, and the chosen cards arrive in
+the ability's `action` as targets:
 
 ```json
 {
   "key": "workbench",
-  "activate": {
+  "abilities": [{
     "cost": { "focus": 1 },
     "target": { "type": "card", "count": 1, "tags": ["material"], "zones": ["table"] },
     "action": ["stat_damage:hp@target:1", "stat_gain:progress:2"]
-  }
+  }]
 }
 
 "setup": { "place": [{ "card": "workbench", "zone": "table" }] }
@@ -3990,7 +3990,7 @@ card key `system` the round counter. The tag `immutable` means scenery: nothing
 may target such a card and its template can never be edited — put it on menu
 entries and anything else that is interface rather than game. Clicking a face-up
 card plays it; clicking a grid card, or the top of a pile, activates it; decks
-aren't clickable unless they carry an `activate` block, which is how a deck is drawn from.
+aren't clickable unless they carry abilities of their own, which is how a deck is drawn from.
 
 Reserved words that a zone or tag may never be named: `self`, `all`,
 `everywhere`, `reach` and `owner_of` (the engine answers for them in scopes),

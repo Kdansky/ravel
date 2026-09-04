@@ -143,9 +143,7 @@ local CARD_FIELDS = {
 }
 local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
-	action = true, spent = true }
-local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
-	moves = true, merge = true, when = true }
+	action = true, spent = true, compute = true }
 local RECEIVE_FIELDS   = { needs = true, action = true }
 local TURN_FIELDS      = { action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
@@ -315,7 +313,6 @@ M.FIELDS = {
 	target        = TARGET_FIELDS,
 	route         = ROUTE_FIELDS,
 	play          = PLAY_FIELDS,
-	activate      = ACTIVATE_FIELDS,
 	challenge     = CHALLENGE_FIELDS,
 	receive       = RECEIVE_FIELDS,
 	turn          = TURN_FIELDS,

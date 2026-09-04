@@ -296,7 +296,7 @@ local CASES = {
 		function(g) g.card_defs.c_flee.cost = { gold = -5 } end },
 	{ "a sacrifice of an uncarried tag", "sacrifices the tag 'dragons'",
 		function(g) g.card_defs.c_flee.cost = { ["sacrifice:dragons"] = 1 } end },
-	{ "a sacrifice outside a cost", "belongs in cost or activate_cost",
+	{ "a sacrifice outside a cost", "belongs in a cost",
 		function(g) g.card_defs.c_flee.needs = { "sacrifice:keepsake >= 1" } end },
 	{ "a missing image file", "is not in games/assets",
 		function(g) g.card_defs.c_flee.asset = "no_such_file.png" end },
@@ -327,8 +327,11 @@ local CASES = {
 		function(g) g.zone_defs.reveal.injected = nil end },
 	{ "an uncarried tag near a carried one", "did you mean 'keepsake'",
 		function(g) g.tag_defs.keepsakes = { zone = "board" } end },
-	{ "an activate_target with no ability", "no ability for it to target",
-		function(g) g.card_defs.c_flee.activate_target = { type = "card", count = 1 } end },
+	{ "a zone ability that tries to aim", "a zone's ability cannot aim",
+		function(g)
+			g.zone_defs.board.abilities = { { key = "poke", action = { "next_phase" },
+				target = { type = "card", count = 1 } } }
+		end },
 	{ "an unknown fill word", "fill should be 'empty', 'enemy', 'open' or 'any'",
 		function(g) g.card_defs.c_flee.target = { type = "slot", count = 1, fill = "friendly" } end },
 	{ "a pattern that isn't a list of pairs", "should be a list of [x, y] pairs",
@@ -345,16 +348,22 @@ local CASES = {
 		function(g) g.raw_patterns = { hop = { vectors = { { 1, 0 } }, class = { "step:2" } } } end },
 	{ "a piece moving by a pattern nobody declared", "but none is declared under",
 		function(g)
-			g.card_defs.c_flee.move_rules = { { patterns = { "line_ortho" }, fill = "open" } }
+			g.card_defs.c_flee.abilities = { { key = "step", action = { "move_to:target" },
+				moves = { { patterns = { "line_ortho" }, fill = "open" } } } }
 		end },
 	{ "a move with an unknown fill", "a move's fill should be",
 		function(g)
 			g.raw_patterns = { hop = { { 1, 0 } } }
 			g.pattern_defs.hop = { vectors = { { 1, 0 } }, range = 1 }
-			g.card_defs.c_flee.move_rules = { { patterns = { "hop" }, fill = "friendly" } }
+			g.card_defs.c_flee.abilities = { { key = "step", action = { "move_to:target" },
+				moves = { { patterns = { "hop" }, fill = "friendly" } } } }
 		end },
-	{ "a piece that moves but does nothing on arrival", "no on_activate",
-		function(g) g.card_defs.c_flee.moves = { "hop" }; g.card_defs.c_flee.on_activate = nil end },
+	{ "a piece that moves but does nothing on arrival", "does nothing when the square is chosen",
+		function(g)
+			g.pattern_defs.hop = { vectors = { { 1, 0 } }, range = 1 }
+			g.card_defs.c_flee.abilities = { { key = "step",
+				moves = { { patterns = { "hop" }, fill = "empty" } } } }
+		end },
 	{ "a walking word on an absolute pattern", "has no path to describe",
 		function(g)
 			g.raw_patterns = { home = { vectors = { { 1, 1 } }, class = { "absolute", "ray" },
@@ -568,8 +577,11 @@ local CASES = {
 		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", action = { "moove_to:board" } } } end },
 	{ "a box paid back for a destroy that pays itself", "which now pays itself",
 		function(g) g.card_defs.c_flee.on_play = { "destroy:mine.hand:1", "stat_gain:stock@bank.gem_1:1" } end },
-	{ "a condition on a lone activate that names nothing", "uses the stat 'zeal'",
-		function(g) g.card_defs.c_flee.activate_when = { "zeal@self >= 1" } end },
+	{ "a condition on an ability that names nothing", "uses the stat 'zeal'",
+		function(g)
+			g.card_defs.c_flee.abilities = { { key = "muster", action = { "next_phase" },
+				["when"] = { "zeal@self >= 1" } } }
+		end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once

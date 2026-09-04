@@ -294,13 +294,14 @@ do
 	board.style.cell_outline = false
 	local piece
 	for _, id in ipairs(board.cards) do
-		local c = entity.get(id)
-		local spec = cards.behaviour(c, "activate_target")
-		if spec then
-			targeting.start(id, spec)
-			if #targeting.eligible > 0 then piece = id; break end
-			targeting.clear()
+		for _, a in ipairs(cards.abilities(entity.get(id))) do
+			if a.target then
+				targeting.start(id, a.target)
+				if #targeting.eligible > 0 then piece = id; break end
+				targeting.clear()
+			end
 		end
+		if piece then break end
 	end
 	assert(piece, "expected some piece on the opening board to have a legal move")
 	assert(drawn() > bare, "an eligible square must be drawn even on a bare board")

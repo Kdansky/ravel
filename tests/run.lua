@@ -1864,7 +1864,7 @@ check("mine reaches neither", predicate.total("count:planet@mine.system") == 0)
 check("player one may not act with a piece in someone else's colours",
 	flow.can_activate(colony.id) == false and flow.can_activate(cruiser.id))
 
-local shots = targeting.candidates(cruiser.id, cards.def(cruiser).activate_target)
+local shots = targeting.candidates(cruiser.id, cards.abilities(cruiser)[1].target)
 local shot_at = {}
 for _, id in ipairs(shots) do shot_at[entity.get(id).def_key] = true end
 check("player one may attack a planet in player two's system that player three holds",
@@ -2049,11 +2049,11 @@ do
 	-- card's own definition answers only where the zone is silent.
 	local in_hand = entity.get(zones.find("hand", "mine").cards[1])
 	check("the zone it lies in decides its behaviour",
-		cards.behaviour(top, "on_activate") ~= nil
+		#cards.abilities(top) > 0
 		and cards.behaviour(top, "tooltip") == "Take this card into your hand.")
 	check("and the card answers for itself where the zone says nothing",
 		cards.behaviour(top, "target") == cards.def(top).target
-		and cards.behaviour(in_hand, "on_activate") == nil
+		and #cards.abilities(in_hand) == 0
 		and cards.behaviour(in_hand, "tooltip") == cards.def(in_hand).tooltip)
 	check("the zone's grant is separately readable, so prose can show both",
 		cards.zone_grant(top, "tooltip") == "Take this card into your hand."
@@ -2521,7 +2521,8 @@ check("every shipped card's tooltip text can be built without crashing", (functi
 		for _, def in pairs(declaration.G.card_defs) do
 			local ok = pcall(function()
 				return cards.cost_text(def.cost or {}) .. cards.cost_text(def.needs or {})
-					.. cards.cost_text(def.accepts or {}) .. cards.cost_text(def.activate_cost or {})
+					.. cards.cost_text(def.accepts or {})
+					.. cards.cost_text((def.abilities and def.abilities[1] or {}).cost or {})
 			end)
 			if not ok then return false end
 		end
@@ -2821,7 +2822,7 @@ end
 -- than one that fails, so this one is measured.
 do
 	flow.init("chess.json", 1)
-	declaration.G.card_defs.rook.activate_target.moves[1].needs =
+	declaration.G.card_defs.rook.abilities[1].target.moves[1].needs =
 		{ ["count:king@enemy.reach"] = { equals = 0 } }
 	local t0 = os.clock()
 	local n  = predicate.total("count:king@enemy.reach")

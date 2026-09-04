@@ -3690,14 +3690,16 @@
       "asset": "auto",
       "tags": ["immutable"],
       "tooltip": "If your hand is nothing but *ICE*, *ASH* and *CURSE*, use this: discard them all with their effects, take *1 damage*, and draw a new hand of 4.",
-      "activate": {
-        "phases": ["play_1", "play_2"],
-        "action": [
-          "move:mine.hand:mine.discard",
-          "stat_damage:health@mine.player:1",
-          "draw_from:mine.deck:mine.hand:4"
-        ]
-      }
+      "abilities": [
+        {
+          "phases": ["play_1", "play_2"],
+          "action": [
+            "move:mine.hand:mine.discard",
+            "stat_damage:health@mine.player:1",
+            "draw_from:mine.deck:mine.hand:4"
+          ]
+        }
+      ]
     },
     {
       "key": "btn_potion_draw",
@@ -3705,7 +3707,7 @@
       "asset": "auto",
       "tags": ["immutable"],
       "tooltip": "Draw the next potion. Its effect happens only if the Element it costs is high enough on your *Chemistry Board*.",
-      "activate": { "phases": ["potion"], "action": ["reveal_top:potion_deck"] }
+      "abilities": [{ "phases": ["potion"], "action": ["reveal_top:potion_deck"] }]
     },
     {
       "key": "btn_potion_stop",
@@ -3713,17 +3715,19 @@
       "asset": "auto",
       "tags": ["immutable"],
       "tooltip": "End your *Ultimate* while you are ahead. Your Elements go back to 3.",
-      "activate": {
-        "phases": ["potion"],
-        "action": [
-          "stat_set:doubled@mine.player:0",
-          "stat_set:fire_el@mine.player:3",
-          "stat_set:earth_el@mine.player:3",
-          "stat_set:water_el@mine.player:3",
-          "stat_set:toxic@mine.player:0",
-          "pop_phase"
-        ]
-      }
+      "abilities": [
+        {
+          "phases": ["potion"],
+          "action": [
+            "stat_set:doubled@mine.player:0",
+            "stat_set:fire_el@mine.player:3",
+            "stat_set:earth_el@mine.player:3",
+            "stat_set:water_el@mine.player:3",
+            "stat_set:toxic@mine.player:0",
+            "pop_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "btn_rules",
@@ -3731,7 +3735,7 @@
       "asset": "auto",
       "tags": ["immutable"],
       "tooltip": "SPELLSTORM. Win by reaching *8 Storm Shards*, or by taking your opponent to *0 health*.\n\nA battle is four rounds. Each round: the weather is flipped and resolved, both players play a card face down, the cards are revealed, and they resolve in *Initiative* order. Countering the opponent -- *Fire* beats *Earth*, *Earth* beats *Water*, *Water* beats *Fire* -- draws you a card.\n\nAfter four rounds comes the *Regroup*: discard effects fire, the cards you still hold are your *Blast Score*, the higher score takes *2 Storm Shards* (1 each on a tie), and each player gains one card from the *Storm Cloud* at or below their *Tier*.\n\nSix *Power Tokens* fill your track; filling it raises your *Tier*. At *Tier III* a filled track gains you a Dragon instead.",
-      "activate": { "action": ["effect:spark"] }
+      "abilities": [{ "action": ["effect:spark"] }]
     },
     {
       "key": "end_shards",

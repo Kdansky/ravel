@@ -286,7 +286,7 @@ end
 
 -- A nested block's fields, where the name of the key and the name of the shape
 -- differ only for "next".
-local NESTED = { play = "play", activate = "activate", challenge = "challenge",
+local NESTED = { play = "play", challenge = "challenge",
 	receive = "receive", turn = "turn", chosen = "chosen", target = "target", next = "route" }
 -- Keys holding a list of actions. "then" holds one only when it is a list: on a
 -- routing entry it is a phase key.
@@ -375,7 +375,7 @@ local function readings(frag)
 			end
 		end)
 	end
-	for _, shape in ipairs({ "target", "route", "play", "activate", "chosen", "challenge" }) do
+	for _, shape in ipairs({ "target", "route", "play", "chosen", "challenge" }) do
 		if fits(validate.FIELDS[shape]) then
 			add("a " .. shape, function(found) walk(shape, frag, validate.FIELDS[shape], found) end)
 		end

@@ -115,31 +115,9 @@
         "phases": [
           "phase key or list: this card may be played only in those. Naming none means any phase."
         ],
+        "compute": ["compute keys, worked out in this order before the play is judged and again before it runs. Each sees the ones before it. Their names then stand as amounts in the actions below, as operands in needs, and inside the cost \u2014 \"deal damage equal to what you have in front of you\" is one number, named once and meaning the same thing in the question and in the deed."],
         "action": ["action strings run when the card is played. See _actions."],
         "spent": "where the card goes once its play is over, as a scope like \"mine.table\" or \"mine.graveyard\". **However it ends** — resolved, or countered before it ever ran. An MTG sorcery goes to the graveyard either way and a deck-builder's chip to the table either way, and neither the action list nor the card that countered it should be the one that remembers. Opt-in: leave it out and the action list is answerable for its own card, exactly as before. Resolved as the card's owner, so \"mine\" is whose card it is and not whoever happened to be acting."
-      },
-      "activate": {
-        "cost": {
-          "<stat key, sacrifice:tag, or exhaust>": "number paid when the ability is used, same rules as play.cost. It may be a subject instead of a number, measured when the cost is judged \u2014 \"price@self\" is a shop whose buy lives on the tag its zone hands out and so cannot type a price. A compute the ability bound before it ran stands here too, which is where a price with something taken off it is said, since a compute has arithmetic a cost has no room for. \"exhaust\": 1 is MTG's tap symbol — the ability spends the card being ready, so it may be used once a round and a card already spent cannot pay it. An ability that does not charge it stays available. Only an activate cost may ask for it."
-        },
-        "target": "the same shape as play.target, for the board ability rather than the play",
-        "phases": [
-          "phase key or list: the ability works only in those. Separate from play.phases, so a card can be playable in one phase and activatable in another."
-        ],
-        "action": [
-          "action strings run when the card is clicked on the board. Being spent is a cost, not a consequence: an ability exhausts its card only if its cost says so."
-        ],
-        "when": ["conditions deciding whether the ability may be used at all, the same word an entry in \"abilities\" carries. Unlike a cost it takes nothing away for asking, which is what a button gating on a tally rather than spending off it needs \u2014 \"you must have bought at least one chip\" is a question, and a cost would have spent the purchase it was checking for."],
-        "merge": "what this ability says when it meets the others on the same card. \"both\" (the default) adds it to whatever else the card can do and the player is asked which \u2014 a rook lying in a discard pile can be taken *and* still moved. \"this\" is mine alone: everything else the card offers goes quiet, which is what a shop wants, since a chip lying in the bank is merchandise and its own ability paying out on a click is money from the shop window. \"other\" is the understudy \u2014 mine only when the card offers nothing else. Written on the ability rather than on the zone that granted it, because a card's own tag needs the same word: \"this card's abilities do not work\" is the same conflict with no zone in it. Two abilities claiming \"this\" is a contradiction the validator refuses.",
-        "moves": [
-          "how a piece moves on a grid: a pattern name on its own, or a rule shaped like the one beside it. Declaring this writes the activate target for you, so clicking the piece opens targeting.",
-          {
-            "patterns": ["the direction sets this rule moves by, named under \"patterns\". Several means the union of them."],
-            "fill": "what may already be standing on a square this rule offers: empty (the default), enemy, open (empty or enemy), any. It knows only what is there, never anything else about it.",
-            "needs": ["conditions asked once for the whole rule, about the piece rather than about any square — \"has this king moved yet\". It cannot tell one candidate from another; that is what where is for."],
-            "where": ["conditions asked once per candidate square, with that square as @target and as the anchor for any pattern inside it. En passant and castling are written here, and because every question is relative the same rule serves both sides of the board."]
-          }
-        ]
       },
       "abilities": [
         {
@@ -148,17 +126,25 @@
           "tooltip": "the long version, shown on hover. The text above is a label and should stay short enough to read at a glance.",
           "asset": "the picture for this ability's entry in the chooser. Naming an entry from the assets section works as anywhere else, so one with a picture per player wears the colours of whoever opened the chooser. Without it the engine draws a shape derived from the ability's name.",
           "cost": {
-            "<stat key, sacrifice:tag, or exhaust>": "paid when this ability is used, not when another is"
+            "<stat key, sacrifice:tag, or exhaust>": "paid when this ability is used, not when another is \u2014 same rules as play.cost. It may be a subject instead of a number, measured when the cost is judged: \"price@self\" is a shop whose buy lives on the tag its zone hands out and so cannot type a price. A compute this ability bound stands here too, which is where a price with something taken off it is said. \"exhaust\": 1 is MTG's tap symbol \u2014 the ability spends the card being ready, so it may be used once a round and a card already spent cannot pay it. An ability that does not charge it stays available. Only an ability's cost may ask for it."
           },
           "target": "the same shape as play.target, for this ability alone",
-          "phases": ["phase key or list: this ability works only in those"],
+          "phases": ["phase key or list: this ability works only in those. Separate from play.phases, so a card can be playable in one phase and usable in another."],
           "compute": ["compute keys, worked out in this order before the ability is judged and again before it runs. Each sees the ones before it, which is the whole of the dependency rule. Their names then stand as amounts in the actions below and as operands in the when above."],
           "when": ["conditions deciding whether this ability happens at all. Unlike phases and cost — which say whether a *player* may use it — this is part of the rule: \"damage past the blocker\" is a sentence with an if in it, and a phase running the zone honours it too. Without it the only way to write the if is multiplying by a stat that is 0 or 1."],
           "action": [
             "what this ability does. @self is the card carrying it, even when a chooser was shown in between."
           ],
           "merge": "what this ability says when it meets the others on the same card. \"both\" (the default) adds it to whatever else the card can do and the player is asked which \u2014 a rook lying in a discard pile can be taken *and* still moved. \"this\" is mine alone: everything else the card offers goes quiet, which is what a shop wants, since a chip lying in the bank is merchandise and its own ability paying out on a click is money from the shop window. \"other\" is the understudy \u2014 mine only when the card offers nothing else. Written on the ability rather than on the zone that granted it, because a card's own tag needs the same word: \"this card's abilities do not work\" is the same conflict with no zone in it. Two abilities claiming \"this\" is a contradiction the validator refuses.",
-          "moves": ["how a piece moves, if this ability is a move"]
+          "moves": [
+            "how a piece moves on a grid: a pattern name on its own, or a rule shaped like the one beside it. Declaring this writes the ability's target for you, so clicking the piece opens targeting.",
+            {
+              "patterns": ["the direction sets this rule moves by, named under \"patterns\". Several means the union of them."],
+              "fill": "what may already be standing on a square this rule offers: empty (the default), enemy, open (empty or enemy), any. It knows only what is there, never anything else about it.",
+              "needs": ["conditions asked once for the whole rule, about the piece rather than about any square \u2014 \"has this king moved yet\". It cannot tell one candidate from another; that is what where is for."],
+              "where": ["conditions asked once per candidate square, with that square as @target and as the anchor for any pattern inside it. En passant and castling are written here, and because every question is relative the same rule serves both sides of the board."]
+            }
+          ]
         }
       ],
       "reactions": [
@@ -249,15 +235,11 @@
         "action": ["action strings run when a card lands in this zone, with the zone as @self and the newcomer as @target. A discard pile anybody may take from says \"set_owner:target:none\" here, rather than every card that might be thrown into it saying it."]
       },
       "tooltip": "prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck — so this is what a player reads before clicking it.",
-      "activate": {
-        "cost": { "<stat key>": "number paid to use the zone's own ability" },
-        "phases": ["phase keys it works in. Naming none means any."],
-        "action": [
-          "what clicking the zone does. This is how a deck is drawn from: the box answers, rather than the card on top of it becoming clickable."
-        ],
-        "target": "a target spec, the same shape as a card's play.target",
-        "moves": ["pattern names, if the ability is a move"]
-      },
+      "abilities": [
+        {
+          "...": "what clicking the place does, written exactly as a card's abilities are. This is how a deck is drawn from: the box answers, rather than the card on top of it becoming clickable. A zone offering two things opens the same chooser a card with two abilities does. No target and no moves \u2014 there is no arrow to draw from a deck, and nothing under the cursor to draw it at."
+        }
+      ],
       "asset": "a picture behind the whole zone, stretched to its rect. Same five forms as a card's asset.",
       "tags": [
         "a list of words; the engine knows several for zones (see _engine_tags), and a zone claims a look by naming a style (see styles)"
@@ -337,16 +319,9 @@
           "what playing one of these cards does. Two readings, and both are live. A tag a *card* carries hands the whole moment to every card wearing it — ninety Splendor development cards buy the same way, so the game says it once instead of ninety templates each keeping a copy in step. A tag a *zone* hands out with applies says what playing a card that lies *there* does, which is how an offer says what choosing from it means when the cards it deals already do something else from a hand. Whole block or none: a card writing its own play takes none of the tag's, since half a moment — the tag's action under the card's own cost — reads as cleverness and debugs as neither. Two tags granting it is refused rather than resolved, and the card does neither: which one won would be the order somebody typed the tags."
         ]
       },
-      "activate": {
-        "action": ["action strings this tag gives its cards — to every card carrying the tag as a keyword, and to whatever lies in a zone that hands the tag out with applies. A card is asked for its own abilities first, then its zone's, then its tags', so a keyword that changes an outcome runs after the outcome."],
-        "target": "a target spec for that ability, the same shape as a card's play.target",
-        "cost": { "<stat key>": "number paid for that ability" },
-        "phases": ["phase keys the ability works in"],
-        "moves": ["pattern names, if the ability is a move"]
-      },
       "abilities": [
         {
-          "...": "several activated abilities instead of one, exactly as on a card. A tag that grants abilities *adds* them to whatever the card can already do."
+          "...": "abilities this tag gives its cards, written exactly as on a card \u2014 to every card carrying the tag as a keyword, and to whatever lies in a zone that hands the tag out with applies. They *add* to whatever the card can already do. A card is asked for its own first, then its zone's, then its tags', so a keyword that changes an outcome runs after the outcome."
         }
       ],
       "leaves": "the same block a card may write for itself, handed to every card carrying this tag — \"every unit of ours announces its death\" is one line here and one per card everywhere else. Whole block or none, as with play.",

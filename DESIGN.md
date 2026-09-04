@@ -131,7 +131,7 @@ No s-expressions, no command trees, no arbitrary expressions. Nested arrays are 
 
 ## Actions Are Strings
 
-Game actions (a card's `play.action` / `activate.action` / `turn.action`, a phase's `actions`) are arrays of plain strings. Each string is an operation with optional colon-separated parameters:
+Game actions (a card's `play.action` / an ability's `action` / `turn.action`, a phase's `actions`) are arrays of plain strings. Each string is an operation with optional colon-separated parameters:
 
 ```
 "draw_from:stock"
@@ -354,7 +354,7 @@ how a rule reaches something, and this is that rule once more.
 
 ## Costs
 
-`"play": { "cost": { "gold": 2 } }` gates playing a card: unaffordable cards render dimmed and don't respond to clicks; the cost is deducted on play. `activate.cost` does the same for the board ability. **Choosing from an overlay costs nothing** — cost, needs and targeting describe playing that card out of a hand later. Affordability reads the same subject the payment spends, so it checks whatever the subject's scope names — the player's own cards by default.
+`"play": { "cost": { "gold": 2 } }` gates playing a card: unaffordable cards render dimmed and don't respond to clicks; the cost is deducted on play. An ability's own `cost` does the same for using it. **Choosing from an overlay costs nothing** — cost, needs and targeting describe playing that card out of a hand later. Affordability reads the same subject the payment spends, so it checks whatever the subject's scope names — the player's own cards by default.
 
 `"needs": { "plays": 1 }` is the non-consuming gate: nothing is spent, the card is simply unplayable (dimmed) until the condition holds. Subjects follow the shared vocabulary, so `"needs": { "count:soldier": 2 }` gates on the board. The engine maintains a `plays` stat on the player card — reset to 0 whenever a phase is freshly entered (not when resumed after an overlay), +1 per card played — which is how "play at least one card per hand" is expressed. Escape hatch: a needs-gated card becomes playable when nothing else in its zone is, so a mandatory play can never soft-lock a hand. `round` and `plays` are reserved engine stats; declare them only to display them.
 
@@ -425,7 +425,7 @@ The startup screen is `menu.json`, a valid game loaded like any other. Menu item
 
 Clicking any face-up card always selects it. This is hardcoded engine behaviour, not a JSON-configurable action. No game definition needs to declare a "select" action. Right-click opens a detail view of a card, or browses a face-up zone's contents (e.g. the discard pile).
 
-**A zone has abilities of its own, and they are gated like a card's.** `activate` on a zone carries the same words a card's does — cost, phases, action — and answers the same questions: the phase it works in, what it costs, and whose zone it is. It replaced `on_click`, which fired in *any* phase and answered to nothing, and therefore had to carry a warning that it was not a move and must not be used as one. It is a move now. Do not confuse it with `applies`, which grants an ability to the cards *lying* in the zone: a discard pile has both, and they are different sentences — "you may take the top of this pile" is the pile speaking about its cards, "draw from this deck" is the deck speaking about itself.
+**A zone has abilities of its own, and they are gated like a card's.** `abilities` on a zone is the list a card writes — cost, phases, when, action — and answers the same questions: the phase it works in, what it costs, and whose zone it is. A place offering two things opens the chooser a card with two abilities opens; it cannot aim, because there is no arrow to draw from a deck. It replaced `on_click`, which fired in *any* phase and answered to nothing, and therefore had to carry a warning that it was not a move and must not be used as one. It is a move now. Do not confuse it with `applies`, which grants an ability to the cards *lying* in the zone: a discard pile has both, and they are different sentences — "you may take the top of this pile" is the pile speaking about its cards, "draw from this deck" is the deck speaking about itself.
 
 **A deck is a box, not a stack of clickable cards**, and that is what makes drawing simple. "Click the deck to draw" was going to need the top card to become clickable, and therefore hoverable, and therefore guarded so that hovering a face-down deck did not read out the card you were about to draw. The zone answers instead, and the problem is deleted rather than defended against.
 
@@ -441,10 +441,10 @@ A `deck` or a `pile` draws one card and hit-tests one card, so the rules say the
 
 ## Tags Are Mixins, and a Zone May Grant Them
 
-A tag definition may carry card behaviour — a home `zone`, a `tooltip`, and the `play` and `activate` blocks a card itself has — and a zone may hand tags to whatever sits in it:
+A tag definition may carry card behaviour — a home `zone`, a `tooltip`, the `play` block and the `abilities` a card itself has — and a zone may hand tags to whatever sits in it:
 
 ```json
-"tags":  { "takeable": { "activate": { "action": ["move_to:hand", "next_phase"], "phases": ["draw"] } } }
+"tags":  { "takeable": { "abilities": [{ "action": ["move_to:hand", "next_phase"], "phases": ["draw"] }] } }
 "zones": [ { "key": "red_discard", "type": "pile", "applies": ["takeable"] } ]
 ```
 
