@@ -1923,8 +1923,16 @@ function M.sync_places()
 				-- because only a stack's top card is laid out — so a draw
 				-- appeared in the hand instead of travelling to it. It came from
 				-- the pile, and the pile is where the eye last had it.
-				local from = c.place and c.place.w > 0 and c.place
-					or (entity.get(c.origin_zone_id) or {}).place
+				local from = c.place and c.place.w > 0 and c.place or nil
+				if not from then
+					-- Out of a box, where the origin zone is the whole bank and
+					-- the stack inside it is what the eye was on: a `take` stamps
+					-- the zone the way a move does, so the stack is read back off
+					-- it and a gem flies off its own pile rather than the shelf.
+					local origin = entity.get(c.origin_zone_id)
+					local shelf = origin and origin.status == "supply" and zones.supply_of(c.def_key)
+					from = shelf and shelf.place or (origin or {}).place
+				end
 				-- Conjured, and with nowhere to have been: a `fill` says what
 				-- appears and never where it was, which is why the whole of a
 				-- crash — gems arriving in the other pile — happened in no time

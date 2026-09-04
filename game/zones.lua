@@ -575,6 +575,41 @@ function M.move_card(card_id, to_id, where)
 	return true
 end
 
+-- Take one out of a supply and put it somewhere real — M.add read backwards.
+--
+-- **There is nothing in the box to pick up.** A stock counts instead of keeping,
+-- so the card standing on the shelf *is* the stack, and moving it would move the
+-- whole of it. What arrives is therefore made at the destination and the shelf's
+-- number goes down, which is one event however it has to be written.
+--
+-- Where it came from is stamped the way a move stamps it, so a rule that sends
+-- the card home knows the box and the presentation has somewhere to fly it out
+-- of. A supply for a destination is legal and collapses back into a number: the
+-- box passing a component to another box moves a count and no card at all.
+function M.take(shelf, to_id, where)
+	local to = entity.get(to_id)
+	if not shelf or not to or not shelf.def_key then return nil end
+	if (tonumber(shelf.stats and shelf.stats.stock) or 0) < 1 then return nil end
+	local from = entity.get(shelf.zone_id)
+	if not from or from.status ~= "supply" then return nil end
+	local e = M.add(to, shelf.def_key)
+	if not e then return nil end
+	shelf.stats.stock = shelf.stats.stock - 1
+	-- Into another supply the arrival is a number, and a number was never
+	-- anywhere; the shelf it came off is the only card in the story.
+	if to.status ~= "supply" then
+		e.origin_zone_id = from.id
+		if where == "bottom" then
+			for i, id in ipairs(to.cards) do
+				if id == e.id then table.remove(to.cards, i); break end
+			end
+			table.insert(to.cards, 1, e.id)
+		end
+		fire_receive(to, e.id)
+	end
+	return e
+end
+
 -- A piece knows where it stands, as its own stats: "col" and "row" straight off
 -- the square, and "rank" counted from its owner's own side so that a pawn's
 -- home is rank 2 whichever colour it is. Conditions and computed tags then read

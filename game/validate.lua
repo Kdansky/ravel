@@ -981,12 +981,10 @@ function M.check(G)
 						where, op, a, suggest(sc and sc.name or a, G.zone_defs))
 				elseif MOVES_FROM[op] == i and (G.zone_defs[sc.name] or {}).status == "supply" then
 					-- Taking *from* a supply would move the one card standing for
-					-- the whole stock. Spend it and make a new one instead: a
-					-- "stock@self" cost beside "fill:<somewhere>:@self", which is
-					-- how both games that invented this by hand already wrote it.
+					-- the whole stock, which is what `take` exists to say instead.
 					warn('%s: "%s" draws out of the supply \'%s\', which would move the card '
-						.. 'standing for the whole stock — spend "stock" and fill from it instead',
-						where, op, sc.name)
+						.. 'standing for the whole stock — "take:%s.<kind>:<zone>:<n>" is the verb '
+						.. 'for a source that counts', where, op, sc.name, sc.name)
 				end
 			elseif t == "pos" then
 				-- Where in the destination the card lands. Two words, because a
@@ -1187,6 +1185,34 @@ function M.check(G)
 					warn("%s: '%s' and '%s' are one move written as a death and a birth — "
 						.. "\"move:%s:%s:%s\" moves the cards themselves, which keeps what they were "
 						.. "and lets the player see them go", where, gone.said, str, gone.scope, zone, n)
+				end
+			end
+		end
+
+		-- **The same fault against the box.** A component leaving a supply is a
+		-- `fill` that conjures it beside a decrement that pays for it: two
+		-- statements a game file can put out of step, and nothing tying them
+		-- together, so the presentation had to guess which box a gem came out of.
+		-- `take` is one statement that does both.
+		--
+		-- Matched on the amount as well as the kind, because a fill and a
+		-- decrement of the same kind that disagree about how many are not this —
+		-- they are a bug, and one this cannot tell from an author's arithmetic.
+		local paid = {}
+		for _, str in ipairs(list) do
+			if type(str) == "string" then
+				local shelf, key, n = str:match("^stat_damage:stock@([^.:]+)%.([^:]+):(.+)$")
+				if shelf then paid[key] = { n = n, scope = shelf .. "." .. key, said = str } end
+			end
+		end
+		for _, str in ipairs(list) do
+			if type(str) == "string" then
+				local zone, key, n = str:match("^fill:([^:]+):([^:]+):(.+)$")
+				local out = key and paid[key]
+				if out and out.n == n then
+					warn("%s: '%s' and '%s' are one component leaving the box, written as a birth "
+						.. "and a payment — \"take:%s:%s:%s\" says it once, and the card remembers "
+						.. "where it came from", where, str, out.said, out.scope, zone, n)
 				end
 			end
 		end

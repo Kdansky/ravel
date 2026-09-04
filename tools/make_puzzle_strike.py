@@ -943,8 +943,7 @@ def crash_action(n_targets, bonus):
         "stat_set:crashed@mine.player:sum:value@target",
         "stat_set:broke@mine.player:max:value@target",
         "move_target_to:void",
-        "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-        "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+        "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
         "stat_gain:money@mine.player:%d" % bonus,
         "emit:crash",
     ]
@@ -1001,9 +1000,9 @@ ANSWERABLE = ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"]
 
 
 # A wound is gained rather than bought when a chip inflicts one, and both go to
-# the discard: taking one out of the bank is the same two lines everywhere.
+# the discard: taking one out of the bank is the same line everywhere.
 def gain_wound(who="mine"):
-    return ["fill:%s.discard:wound:1" % who, "stat_damage:stock@bank.wound:1"]
+    return ["take:bank.wound:%s.discard:1" % who]
 
 
 # The names, banners and pictures of a Puzzle chip, which are the same three
@@ -1066,7 +1065,7 @@ def puzzle_cards():
          "asset": "polygon:6:red",
          "tooltip": "Ante a 1-gem into each opposing gem pile, and keep your action.",
          "play": act(["stat_gain:act_red@mine.player:1",
-                      "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"])},
+                      "take:bank.gem_1:enemy.gem_pile:1"])},
         {"key": "gem_essence", "text": "Gem Essence", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
          "tooltip": "Trash a gem out of your hand and take four actions for it.",
@@ -1105,7 +1104,7 @@ def puzzle_cards():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_gain:acts@mine.player:1"], "spent": "void"}},
         {"key": "iron_defense", **shape("iron_defense", "brown"),
-         "play": act(["fill:mine.gem_pile:crash_gem:1", "stat_damage:stock@bank.crash_gem:1"])},
+         "play": act(["take:bank.crash_gem:mine.gem_pile:1"])},
         # Their discard, chosen by them: priority crosses the table while the
         # offer is up, so "mine.hand" in here is the opponent's own hand.
         {"key": "knockdown", **shape("knockdown", "red"),
@@ -1214,9 +1213,9 @@ def puzzle_cards():
         {"key": "just_a_scratch", **shape("just_a_scratch", "red"),
          "play": act(["options:js_wound,js_trash"])},
         {"key": "money_for_nothing", **shape("money_for_nothing", "blue"),
-         "play": act(["fill:mine.hand:gem_2:1", "stat_damage:stock@bank.gem_2:1"]),
+         "play": act(["take:bank.gem_2:mine.hand:1"]),
          "reactions": [{"to": "attack", "text": "Take a gem from the bank",
-                        "action": ["fill:mine.hand:gem_1:1", "stat_damage:stock@bank.gem_1:1"],
+                        "action": ["take:bank.gem_1:mine.hand:1"],
                         "spent": "mine.discard"}]},
         {"key": "now_or_later", **shape("now_or_later", "brown"),
          "play": act(["options:nl_chips,nl_trash"])},
@@ -1234,7 +1233,7 @@ def puzzle_cards():
          "chosen": {"where": ["sum:price@target <= 5"],
                     "action": ["copy:target:play"]}},
         {"key": "ouch", **shape("ouch", "red"),
-         "play": act(["fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"]
+         "play": act(["take:bank.gem_1:enemy.gem_pile:1"]
                      + gain_wound("enemy"))},
         # The offer opens for them, and each branch hands priority back.
         {"key": "pick_your_poison", **shape("pick_your_poison", "red"),
@@ -1245,10 +1244,10 @@ def puzzle_cards():
          "play": act(["stat_gain:acts@mine.player:2", "draw_from:mine.bag:mine.hand:1"])},
         {"key": "repeated_jabs", **shape("repeated_jabs", "red"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"],
+                  "action": ["take:bank.gem_1:enemy.gem_pile:1"],
                   "spent": "mine.bag"}},
         {"key": "risk_to_riskonade", **shape("risk_to_riskonade", "brown"),
-         "play": act(["fill:mine.gem_pile:gem_3:1", "stat_damage:stock@bank.gem_3:1",
+         "play": act(["take:bank.gem_3:mine.gem_pile:1",
                       "each_seat:draw_from:mine.bag:mine.hand:2"])},
         {"key": "safe_keeping", **shape("safe_keeping", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1284,7 +1283,7 @@ def puzzle_cards():
                              "owner": "mine", "count": 1},
                   "action": ["stat_gain:act_brown@mine.player:1", "move_target_to:void",
                              "stat_gain:stock@bank.gem_1:1",
-                             "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1"],
+                             "take:bank.gem_1:enemy.gem_pile:1"],
                   "spent": "mine.table"}},
         {"key": "combo_time", "text": "It's Combo Time", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
@@ -1320,10 +1319,9 @@ def character_chips():
          # keeps it out of the count on the next line — and the shuffle is why
          # it is not simply the next chip they draw.
          "play": act(["stat_gain:act_blue@mine.player:1",
-                      "fill:enemy.bag:wound:1", "stat_damage:stock@bank.wound:1",
+                      "take:bank.wound:enemy.bag:1",
                       "shuffle:enemy.bag",
-                      "fill:enemy.gem_pile:gem_1:count:wound@enemy.discard",
-                      "stat_damage:stock@bank.gem_1:count:wound@enemy.discard"])},
+                      "take:bank.gem_1:enemy.gem_pile:count:wound@enemy.discard"])},
         # Two cards. Laying it out turns it into the ongoing half; answering
         # from hand instead cancels the attack outright, which is what immunity
         # means with two players at the table.
@@ -1351,7 +1349,7 @@ def character_chips():
         {"key": "playing_with_fire", "text": "Playing with Fire", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:crimson",
          "tooltip": "Ante a 1-gem into your own pile, then take two actions and a chip for it.",
-         "play": act(["fill:mine.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1",
+         "play": act(["take:bank.gem_1:mine.gem_pile:1",
                       "stat_gain:act_brown@mine.player:1", "stat_gain:act_red@mine.player:1",
                       "draw_from:mine.bag:mine.hand:1"])},
         {"key": "burning_vigor", "text": "Burning Vigor", "tags": ["chip", "character", "red"],
@@ -1360,7 +1358,7 @@ def character_chips():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["wound"]),
                   "action": ["move_target_to:void", "stat_gain:acts@mine.player:1",
-                             "fill:enemy.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1",
+                             "take:bank.gem_1:enemy.gem_pile:1",
                              "move_to:mine.table"]}},
         {"key": "unstable_power", "text": "Unstable Power", "tags": ["chip", "character", "purple"],
          "asset": "dots:2:crimson",
@@ -1410,7 +1408,7 @@ def character_chips():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["trashable"]),
                   "action": ["move_target_to:void",
-                             "fill:mine.hand:gem_2:1", "stat_damage:stock@bank.gem_2:1",
+                             "take:bank.gem_2:mine.hand:1",
                              "move_to:mine.table"]}},
         # Setsuki
         {"key": "double_take", "text": "Double-take", "tags": ["chip", "character", "brown"],
@@ -1454,10 +1452,8 @@ def character_chips():
                                    "stat_damage:sent@mine.player:sum:crashed@enemy.player",
                                    "stat_damage:crashed@enemy.player:sum:crashed@mine.player",
                                    "stat_set:crashed@mine.player:sum:sent@mine.player",
-                                   "fill:mine.gem_pile:gem_1:sum:crashed@enemy.player",
-                                   "stat_damage:stock@bank.gem_1:sum:crashed@enemy.player",
-                                   "fill:enemy.gem_pile:gem_1:sum:crashed@mine.player",
-                                   "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+                                   "take:bank.gem_1:mine.gem_pile:sum:crashed@enemy.player",
+                                   "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
                                    "emit:crash"],
                         "spent": "mine.discard"}]},
         {"key": "martial_mastery", "text": "Martial Mastery", "tags": ["chip", "character", "brown"],
@@ -1519,8 +1515,7 @@ def character_chips():
                     "action": ["stat_set:crashed@mine.player:sum:value@target",
                                "stat_set:broke@mine.player:max:value@target",
                                "move_target_to:void",
-                               "fill:enemy.discard:gem_1:sum:crashed@mine.player",
-                               "stat_damage:stock@bank.gem_1:sum:crashed@mine.player",
+                               "take:bank.gem_1:enemy.discard:sum:crashed@mine.player",
                                "emit:crash"]}},
         {"key": "no_more_lies", "text": "No More Lies", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:pink",
@@ -1751,7 +1746,7 @@ def character_chips():
                   "target": {"type": "card", "tags": ["gem_1"], "zones": ["hand", "gem_pile"],
                              "owner": "mine", "count": 1},
                   "action": ["move_target_to:void", "stat_gain:money@mine.player:1",
-                             "fill:mine.discard:gem_2:1", "stat_damage:stock@bank.gem_2:1"],
+                             "take:bank.gem_2:mine.discard:1"],
                   "spent": "mine.table"}},
         # Persephone
         {"key": "pleasure_and_pain", "text": "Pleasure & Pain", "tags": ["chip", "character", "red"],
@@ -1760,7 +1755,7 @@ def character_chips():
          # count asked of it counts the zone rather than what is lying in it.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_gain:act_red@mine.player:1",
-                             "fill:enemy.bag:wound:1", "stat_damage:stock@bank.wound:1",
+                             "take:bank.wound:enemy.bag:1",
                              "shuffle:enemy.bag",
                              "draw_from:mine.bag:mine.hand:count:wound@enemy.discard"],
                   "spent": "mine.table"}},
@@ -1915,7 +1910,7 @@ def choice_cards():
         choice("ef_trash", "Everybody trashes a 1-gem",
                ["each_seat:destroy:mine.gem_1:1", "stat_gain:stock@bank.gem_1:%d" % len(SEATS)]),
         choice("ef_ante", "You ante a 2-gem",
-               ["fill:mine.gem_pile:gem_2:1", "stat_damage:stock@bank.gem_2:1"]),
+               ["take:bank.gem_2:mine.gem_pile:1"]),
         choice("js_wound", "Each opponent gains a wound", gain_wound("enemy")),
         choice("js_trash", "Trash a wound and take a red action",
                ["destroy:mine.hand:1", "stat_gain:stock@bank.wound:1",
@@ -1926,7 +1921,7 @@ def choice_cards():
         # Both of Pick Your Poison's branches hand priority back, because the
         # seat reading them is the one who was given it.
         choice("pp_ante", "Ante a 1-gem",
-               ["fill:mine.gem_pile:gem_1:1", "stat_damage:stock@bank.gem_1:1",
+               ["take:bank.gem_1:mine.gem_pile:1",
                 "clear_priority"]),
         choice("pp_discard", "Discard two chips",
                ["move:mine.hand:mine.discard", "clear_priority"]),
@@ -1950,8 +1945,8 @@ def rule_cards():
         out.append((zone, {"key": key, "text": key, "tags": ["immutable"],
                            "abilities": [{"key": key, "text": key, "when": when, "action": action}]}))
 
-    def take(n, where):
-        return ["fill:%s:%s:1" % (where, gem_key(n)), "stat_damage:stock@bank.%s:1" % gem_key(n)]
+    def ante_gem(n, where):
+        return ["take:bank.%s:%s:1" % (gem_key(n), where)]
 
     # The ante grows as the bank empties: Panic, Danger and Deadly Time, at one
     # empty stack per player and then two and three more (rules.md §9).
@@ -1961,11 +1956,11 @@ def rule_cards():
             when.append("panic@clock >= %d" % lo)
         if hi is not None:
             when.append("panic@clock <= %d" % hi)
-        rule("rules_ante", "ante_%d" % n, when, take(n, "mine.gem_pile"))
+        rule("rules_ante", "ante_%d" % n, when, ante_gem(n, "mine.gem_pile"))
     # Two gems out, one gem in, and their sum is what says which.
     for n in (2, 3, 4):
         rule("rules_combine", "comb_%d" % n, ["combined@mine.player == %d" % n],
-             take(n, "mine.gem_pile"))
+             ante_gem(n, "mine.gem_pile"))
     # A gem one bigger than the one you gave up — Risky Move's other half, Big
     # Rocks', and Strength of Earth's. Same question, three different places
     # for the answer to land.
@@ -1974,7 +1969,7 @@ def rule_cards():
                                 ("rules_upgrade_pile", "mine.gem_pile", "p")]:
         for n in (2, 3, 4):
             rule(where, "up%s_%d" % (suffix, n), ["combined@mine.player == %d" % (n - 1)],
-                 take(n, zone))
+                 ante_gem(n, zone))
     # The piggy bank: your own hand comes up in the offer and you may keep one
     # chip out of the discard, drawing one fewer for it. Declinable, because
     # keeping nothing is the usual answer — and a `chosen` block rather than an
@@ -1998,10 +1993,8 @@ def character_cards():
     out = []
     for key, name, colour, tip, chips in CHARACTERS:
         deal = ["fill:mine.bag:%s:1" % c for c in chips]
-        deal.append("fill:mine.bag:crash_gem:1")
-        deal.append("fill:mine.bag:gem_1:6")
-        deal.append("stat_damage:stock@bank.crash_gem:1")
-        deal.append("stat_damage:stock@bank.gem_1:6")
+        deal.append("take:bank.crash_gem:mine.bag:1")
+        deal.append("take:bank.gem_1:mine.bag:6")
         out.append({"key": "char_" + key, "text": name, "tags": ["character_card", "immutable"],
                     "asset": "star:6:%s" % colour, "tooltip": tip,
                     "play": {"action": deal + ["stat_gain:picked@mine.player:1",
@@ -2228,9 +2221,16 @@ def build():
                               "abilities": [
                                   {"key": "buy", "text": "Buy it", "merge": "this",
                                    "phases": ["buy", "react_buy"],
-                                   "cost": {"buys@mine.player": 1, "stock@self": 1,
+                                   # An empty stack refuses the sale rather than
+                                   # charging for it: `stock@self` as a cost used
+                                   # to check, pay and record the provenance all
+                                   # at once, which was convenient and said none
+                                   # of the three out loud. `take` is the record,
+                                   # and the check is what `when` is for.
+                                   "when": ["stock@self >= 1"],
+                                   "cost": {"buys@mine.player": 1,
                                             "money@mine.player": "price@self"},
-                                   "action": ["fill:mine.discard:@self:1",
+                                   "action": ["take:self:mine.discard:1",
                                               "stat_gain:bought@mine.player:1"]}]}},
         "zones": zones(),
         "phases": phases(),

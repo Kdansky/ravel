@@ -370,7 +370,18 @@ the word at a real game rather than a fixture:
 - **Nothing is drawn out of one.** Taking from a supply would move the card
   standing for the whole stock, so the validator refuses `draw_from`, and
   `reach`/`refill_from` besides: a stock has no order to have a top or to run
-  out in. Buying is a `stock@self` cost beside a `fill:<somewhere>:@self`.
+  out in. `take` is the way out: `zones.take` makes the arrival at the
+  destination and lowers the shelf, which is `zones.add` read backwards. Its
+  first argument is the one scope in the grammar that names the *source* —
+  the shelf, not the goods — and that inversion is why it is a verb of its own
+  rather than a count on `move`.
+
+**A component leaving the box was two statements until `take`.** A `fill` that
+conjured it beside a `stat_damage:stock` that paid for it: nothing tied them
+together, so a game file could put them out of step and only find out by
+counting, and the presentation had no origin to fly the card out of — 95 sites in
+Puzzle Strike. The validator now names the pair wherever it survives and writes
+the `take` that replaces it.
 
 **Why the face card is kept rather than dropped when the stock hits zero.** An
 empty shelf is what lets a game count how many stacks have run out —

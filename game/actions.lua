@@ -323,6 +323,56 @@ HANDLERS["fill"] = function(p, ctx)
 	end
 end
 
+-- take:<supply scope>:<zone>:<n>[:top|bottom]  — n components come out of that
+-- box and go there. It is `move`, for a source that counts instead of keeps.
+--
+-- **The first argument names the shelf, not the goods.** Everywhere else a scope
+-- says what moves; here it says what it comes out of, because there is nothing
+-- in a supply to point at — the one card standing there is the whole stack, and
+-- `zones.take` explains why. "bank.gem_1" is the same <zone>.<tag> scope that
+-- "stock@bank.gem_1" already reads, and "self" is a shelf serving itself, which
+-- is how a shop sells what it is. That inversion is the reason this is a verb of
+-- its own rather than a flag on `move`: two spellings that read alike and mean
+-- opposite things would be worse than two words.
+--
+-- Every shelf in scope hands over n, the way every card in a `fill` scope
+-- contributes its own — a wider scope deals a set rather than picking a winner.
+-- A shelf that is short hands over what it has and stops, and an empty one says
+-- nothing: an empty box is a legal state and not a mistake.
+HANDLERS["take"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	if not sc then
+		content_error("take: '" .. tostring(p[2]) .. "' is not a scope")
+		return
+	end
+	local to_id = zone_id(p[3])
+	if not to_id then
+		content_error("take: unknown zone " .. tostring(p[3]))
+		return
+	end
+	local pos, n = p[4], nil
+	if pos and pos ~= "top" and pos ~= "bottom" then
+		local j
+		n, j = amount(p, 4, 1, ctx)
+		pos = p[j]
+	end
+	local shelves = {}
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		local z = e.kind == "card" and entity.get(e.zone_id)
+		if z and z.status == "supply" then shelves[#shelves + 1] = e end
+	end
+	if #shelves == 0 then
+		content_error("take: '" .. tostring(p[2]) .. "' names nothing in a supply — "
+			.. "a scope of ordinary cards is what `move` is for")
+		return
+	end
+	for _, shelf in ipairs(shelves) do
+		for _ = 1, (n or 1) do
+			if not zones.take(shelf, to_id, pos) then break end
+		end
+	end
+end
+
 HANDLERS["shuffle"] = function(p)
 	local zid = zone_id(p[2])
 	if zid then zones.shuffle(zid) end
@@ -1392,6 +1442,7 @@ local SPEC = {
 	ready             = "scope",
 	activate_zone     = "zone order? step?",
 	move              = "scope zone n? pos?",
+	take              = "scope zone n? pos?",
 	set_owner         = "scope seat",
 	destroy_self      = "",
 	options           = "any optional?",
