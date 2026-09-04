@@ -1690,7 +1690,7 @@
       "text": "Wind Dragon",
       "asset": "ss_winddragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon", "ult"],
-      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one, and the card resolved is then discarded — the printed card may not say that]_",
+      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one]_",
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
