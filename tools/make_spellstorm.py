@@ -393,12 +393,10 @@ DRAGONS = [
     card("winddragon", "Wind Dragon", FIRE, tier=4, kind="dragon", ult=True,
          tooltip="Gain Initiative. Gain a Storm Shard. You may resolve a card from your hand.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
-         simplified="the printed card resolves up to two cards; here it is one, and the card resolved is then discarded — the printed card may not say that",
+         simplified="the printed card resolves up to two cards; here it is one",
          cast=GAIN_INIT + [SHARD(1), OFFER_HAND],
-         # GAP: does the resolved card go anywhere? The tooltip says only
-         # "resolve", and the discard here was a guess made when a discard fired
-         # nothing. It fires an On Discard now, so the guess costs something.
-         # Waiting on a re-read of the printed card, or on Keith.
+         # A resolved card goes to the discard pile like any other, so the On
+         # Discard it fires there is meant to fire.
          chosen=["copy:target:activate", "move_target_to:mine.discard"]),
     card("icedragon", "Ice Dragon", WATER, tier=4, kind="dragon", ult=True,
          tooltip="Heal 3. Gain a Storm Shard. Give an ICE.",
@@ -813,9 +811,8 @@ JOURNAL_ASKS = [n for n, _, ch in JOURNAL if ch]
 
 # Oren's potion deck. Each potion costs a number of one Element off the Chemistry
 # Board and does nothing if the beaker is too low, which is a condition and so an
-# ability rather than a play. Six of the nine carry the TOXIC icon on the printed
-# card; the transcription's table marks five, and the table is what is followed
-# here (ideas/spellstorm/07-wizards.md).
+# ability rather than a play. Five of the nine carry the TOXIC icon — the
+# transcription's table is right and its prose, which says six, is not.
 #
 # The last two columns are what the potion does once it is paid for: a condition
 # and its actions, and a second pair for the one potion whose text has an if.

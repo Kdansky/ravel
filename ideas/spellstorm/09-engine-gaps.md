@@ -175,13 +175,6 @@ states that grant them. What each still rounds off is below.
   is not read** (below), so that rule is an ability on the entry instead: the
   pour is offered, and picking it spends the choice and does nothing. The card
   says so on its face.
-- **How many potions are TOXIC is unsettled in the source.** The transcription's
-  prose says six of nine and its table marks five; the table is what is followed
-  (`07-wizards.md`). Worth a look at the printed cards.
-- **Wind Dragon discards the card it resolves** — and now that discarding fires
-  an On Discard, that guess costs something. The tooltip says only "resolve a
-  card from your hand"; where the resolved card goes is unrecorded here. Needs a
-  re-read of the printed card, or Keith.
 - **Omar's Shuriken** takes Initiative instead of "this card ALWAYS goes first".
   Resolution order is the Initiative Tracker and nothing else, which is close.
 - **Glittering Dust only draws.** "Earth cards do nothing when resolved but heal

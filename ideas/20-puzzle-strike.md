@@ -45,6 +45,33 @@ chip's own text is one of them:
 Check `stat_set:buys` at every other site before deleting the stat —
 `make_puzzle_strike.py` writes it in seven places, and Mix-Master is one of them.
 
+**Signature Move only does its first half.** *From `todo.md`: "It should open a
+choose window, let me pick a chip from hand to play, or if that's impossible,
+clone one, make the effect happen, and discard the chip. That looks like playing,
+but doesn't cause costs."* The chip reads *"Search your bag or discard pile for a
+character chip and put it in your hand. You may play a character chip."* — the
+search is built (`make_puzzle_strike.py:1260`), the play is not, and its `DEV:`
+line says "nothing plays a card without its cost". That line is wrong now:
+`copy:target:play` is exactly a play without a cost, and X-Copy already uses it.
+
+Three pieces, none of them engine work:
+
+- **The second question needs a second asker.** One card has one `chosen`, and
+  these two questions want different answers — so the "you may play a character
+  chip" half goes on a rules card that Signature Move activates, the way
+  Spellstorm's *New Curriculum* reaches its own second window. The rules card's
+  `chosen` is `["copy:target:play", "move_target_to:mine.table"]`.
+- **The search reaches only the bag.** `show:mine.bag:optional` misses the
+  discard pile the card names. `mine.everywhere.character` is the one scope that
+  spans both — it also spans hand, table and gem pile, which is
+  wider than the card says. [Assumption: offering a chip already in hand is
+  harmless, since moving it to hand is a no-op, and one already on the table is
+  the case that would read wrong.] Decide between that and two separate offers.
+- **The `copy:` chip is discarded, not spent.** `spent:` is the field a real play
+  uses and there is no real play here, so the chosen chip is moved by hand.
+  [Assumption: `mine.table` is right, matching where a played chip sits until
+  cleanup, rather than straight to the discard pile.]
+
 **The kept-back zone should be called "piggybank".** One rename in the generator
 and its zone key; the rules call the whole option the *Piggy Bank* and the file
 calls the zone something else, which is the one place a reader has to translate.
