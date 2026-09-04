@@ -33,7 +33,7 @@ local MOMENTS = {
 	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
 		action = "on_play", spent = "spent" },
 	activate  = { cost = "activate_cost", target = "activate_target", phases = "activate_phases",
-		action = "on_activate", moves = "moves", merge = "activate_merge" },
+		action = "on_activate", moves = "moves", merge = "activate_merge", when = "activate_when" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts", action = "on_receive" },
 	turn      = { action = "on_turn" },
@@ -132,7 +132,8 @@ local function abilities_of(def, pp, where)
 	elseif def.on_activate then
 		out[1] = { key = "activate", text = def.text, cost = def.activate_cost,
 			target = def.activate_target, phases = def.activate_phases,
-			action = def.on_activate, moves = def.move_rules, merge = def.activate_merge }
+			action = def.on_activate, moves = def.move_rules, merge = def.activate_merge,
+			when = def.activate_when }
 	end
 	return out
 end

@@ -18,7 +18,8 @@ local M = {}
 local GAME = [==[{
   "title": "Two Sources",
   "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2], "applies": ["takeable"] },
-    { "key": "hand", "layout": "row" }],
+    { "key": "hand", "layout": "row" },
+    { "key": "shelf", "layout": "row", "use": "abilities", "pos": [0.05, 0.7, 0.9, 0.2] }],
   "phases": [{ "key": "turn", "type": "player_input" }],
   "tags": {
     "takeable": { "abilities": [
@@ -30,11 +31,14 @@ local GAME = [==[{
     { "key": "rook", "text": "Rook", "card_stats": { "moves_made": 0 },
       "abilities": [{ "key": "move", "text": "Move it", "action": ["stat_gain:moves_made@self:1"] }] },
     { "key": "pawn", "text": "Pawn", "tags": ["eager"], "card_stats": { "moves_made": 0 },
-      "abilities": [{ "key": "move", "text": "Move it", "action": ["stat_gain:moves_made@self:1"] }] }
+      "abilities": [{ "key": "move", "text": "Move it", "action": ["stat_gain:moves_made@self:1"] }] },
+    { "key": "lever", "text": "Lever", "card_stats": { "moves_made": 0 },
+      "activate": { "when": ["moves_made@self >= 1"], "action": ["stat_gain:moves_made@self:1"] } }
   ],
   "setup": { "place": [
     { "card": "rook", "zone": "board", "at": ["a1"] },
-    { "card": "pawn", "zone": "board", "at": ["b1"] }
+    { "card": "pawn", "zone": "board", "at": ["b1"] },
+    { "card": "lever", "zone": "shelf" }
   ] }
 }]==]
 
@@ -326,6 +330,28 @@ function M.test_abilities_a_shop_sells_a_copy_of_what_is_on_the_shelf(check)
 			bought.stats.bought == 0 and shelf.stats.bought == 1,
 			tostring(bought.stats.bought) .. " / " .. tostring(shelf.stats.bought))
 		check("and the shelf keeps its card", in_zone("shop", "widget") ~= nil)
+	end)
+end
+
+-- A lone `activate` takes the same `when` an entry in an `abilities` list does.
+-- It did not, and the two forms normalise into one shape three lines apart — so
+-- a button gating on a tally had to be written as a one-entry list to say a
+-- thing the short form could say in every other word.
+--
+-- A `when` is not a cost. A cost that checks a counter spends it, which is the
+-- wrong sentence for "you must have bought at least one chip".
+function M.test_abilities_a_lone_activate_takes_a_when(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local lever
+		for e in entity.each("card") do
+			if e.def_key == "lever" then lever = e end
+		end
+		check("the condition is false, so the ability is not offered", not flow.can_activate(lever.id))
+		lever.stats.moves_made = 1
+		check("and true is all it takes", flow.can_activate(lever.id))
+		flow.activate(lever.id, {})
+		check("the ability ran, and asking cost nothing", lever.stats.moves_made == 2, lever.stats.moves_made)
 	end)
 end
 

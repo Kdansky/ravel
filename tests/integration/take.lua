@@ -11,6 +11,10 @@
 -- The one place a scope names the source rather than what moves. That inversion
 -- is the argument for a verb of its own: two spellings that read alike and mean
 -- opposite things would be worse than two words.
+--
+-- A shelf lent to an offer is still the shelf — `zones.supply_home` asks where it
+-- belongs rather than where it is standing — which is what lets a card offer the
+-- bank and take out of the pick. Puzzle Strike's Training Day is the test of that.
 
 local entity  = require("entity")
 local zones   = require("zones")

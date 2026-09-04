@@ -358,8 +358,7 @@ HANDLERS["take"] = function(p, ctx)
 	end
 	local shelves = {}
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
-		local z = e.kind == "card" and entity.get(e.zone_id)
-		if z and z.status == "supply" then shelves[#shelves + 1] = e end
+		if e.kind == "card" and zones.supply_home(e) then shelves[#shelves + 1] = e end
 	end
 	if #shelves == 0 then
 		content_error("take: '" .. tostring(p[2]) .. "' names nothing in a supply — "

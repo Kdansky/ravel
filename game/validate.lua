@@ -131,7 +131,7 @@ local CARD_FIELDS = {
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	on_leaves = true, leaves_into = true, leaves_from = true,
-	activate_cost = true, activate_target = true,
+	activate_cost = true, activate_target = true, activate_when = true,
 	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	move_rules = true, requires = true, on_pass = true, on_fail = true,
 	accepts = true, on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
@@ -146,7 +146,7 @@ local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
 	action = true, spent = true }
 local ACTIVATE_FIELDS  = { cost = true, target = true, phases = true, action = true,
-	moves = true, merge = true }
+	moves = true, merge = true, when = true }
 local RECEIVE_FIELDS   = { needs = true, action = true }
 local TURN_FIELDS      = { action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
@@ -163,7 +163,7 @@ local ZONE_FIELDS = {
 	contents = true, tooltip = true, tags = true, tags_set = true, refill_from = true,
 	-- its own ability, and what declaration.parse derives from that block
 	activate = true, on_activate = true, activate_phases = true, activate_cost = true,
-	activate_target = true, moves = true,
+	activate_target = true, activate_when = true, moves = true,
 	injected = true, applies = true, accepts = true, on_receive = true, receive = true,
 	asset = true,
 }
@@ -210,7 +210,7 @@ local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = t
 	abilities = true, emits = true, leaves = true, on_leaves = true, leaves_into = true,
 	leaves_from = true,
 	-- derived from the blocks, as on a card
-	on_activate = true, activate_target = true, activate_cost = true,
+	on_activate = true, activate_target = true, activate_cost = true, activate_when = true,
 	activate_phases = true, activate_merge = true, moves = true,
 	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true,
 	buffs = true, adjusts = true }
@@ -336,7 +336,7 @@ M.SHAPES = { setup = SETUP_FIELDS, place = PLACE_FIELDS, move_rule = MOVE_RULE_F
 M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true, style = true,
 	-- flattened out of the moment blocks by declaration.parse, never authored
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
-	activate_cost = true, activate_target = true,
+	activate_cost = true, activate_target = true, activate_when = true,
 	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
@@ -1513,6 +1513,7 @@ function M.check(G)
 					where, tostring(td.zone), suggest(td.zone, G.zone_defs))
 			end
 			check_list(where .. " on_activate", td.on_activate)
+			check_conditions(where .. " activate when", td.activate_when)
 			check_phases(where, td.phases)
 			if not td.on_activate then
 				for i, ab in ipairs(td.abilities or {}) do
@@ -2085,6 +2086,7 @@ function M.check(G)
 		end
 		check_cost(where .. " cost", def.cost)
 		check_cost(where .. " activate_cost", def.activate_cost, "activate")
+		check_conditions(where .. " activate when", def.activate_when)
 		check_conditions(where .. " needs", def.needs)
 		check_conditions(where .. " requires", def.requires)
 		-- "accepts" is asked of this card about the one arriving, so @self is

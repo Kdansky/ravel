@@ -609,12 +609,22 @@ end
 -- the card home knows the box and the presentation has somewhere to fly it out
 -- of. A supply for a destination is legal and collapses back into a number: the
 -- box passing a component to another box moves a count and no card at all.
+-- The box this shelf belongs to, whether or not it is standing in it. An offer
+-- keeps the card it lent until the `chosen` actions have had their say, which is
+-- precisely when a rule that offered the bank says what to take out of it — and
+-- a shelf away from home is still the shelf, since the count is written on the
+-- card and not on the zone.
+function M.supply_home(shelf)
+	local z = shelf and entity.get(shelf.borrowed_from or shelf.zone_id)
+	return z and z.status == "supply" and z or nil
+end
+
 function M.take(shelf, to_id, where)
 	local to = entity.get(to_id)
 	if not shelf or not to or not shelf.def_key then return nil end
 	if (tonumber(shelf.stats and shelf.stats.stock) or 0) < 1 then return nil end
-	local from = entity.get(shelf.zone_id)
-	if not from or from.status ~= "supply" then return nil end
+	local from = M.supply_home(shelf)
+	if not from then return nil end
 	-- Docked before the card is made, so the step `add` records is a state where
 	-- the box and the card already agree about how many there are. Put back if
 	-- the destination refuses the arrival, which a full grid does.
