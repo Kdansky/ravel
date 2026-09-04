@@ -947,13 +947,18 @@ function M.check(G)
 			i = i + 1
 			local t, optional = word:match("^(%w+)(%??)$")
 			local a = p[i]
-			if a == nil then
+			if t == "n" and optional == "?" and (a == "top" or a == "bottom") then
+				-- The count left out and the position written where it would
+				-- have gone. "top" and "bottom" are not numbers, so nothing is
+				-- ambiguous — and it is the grammar that says so rather than the
+				-- op, which is why the rule lives here.
+				i = i - 1
+			elseif a == nil then
 				if optional == "" and t ~= "n" and t ~= "any" then
 					warn("%s: '%s' is missing its %s argument", where, op, t)
 				end
 				break
-			end
-			if t == "action" then
+			elseif t == "action" then
 				-- A wrapping op: everything after it is an action of its own, so
 				-- the argument checks that matter are that one's. Rejoined
 				-- rather than taken word by word, since an action carries its
@@ -1042,9 +1047,18 @@ function M.check(G)
 				-- compute the ability bound. Anything else used to read as 0 and
 				-- say nothing, so a misspelled amount was a silent no-op.
 				if not amount_ok(a) then
-					warn("%s: '%s' takes an amount, and '%s' is not one — write a number, a measure "
-						.. '("count:farm", "sum:power@self"), or a compute this ability names%s',
-						where, op, tostring(a), suggest(a, G.compute_defs or {}))
+					-- A count that may be left out with a position behind it: what
+					-- stands here is neither, and saying so names both. Read off
+					-- the shape rather than off a list of ops, because it is the
+					-- grammar that makes the slot ambiguous and not the verb.
+					if optional == "?" and spec:find("n%? pos%?") then
+						warn("%s: '%s' says the card lands '%s' — it should be 'top' or 'bottom', "
+							.. "or a count and then one", where, op, tostring(a))
+					else
+						warn("%s: '%s' takes an amount, and '%s' is not one — write a number, a measure "
+							.. '("count:farm", "sum:power@self"), or a compute this ability names%s',
+							where, op, tostring(a), suggest(a, G.compute_defs or {}))
+					end
 				end
 			elseif t == "stat" then
 				-- An action's stat argument is a full subject: it may carry a
@@ -1141,6 +1155,39 @@ function M.check(G)
 				end
 				if op == "show" or op == "options" then opened = str end
 				check_action(where, str)
+			end
+		end
+
+		-- **A move written as a death and a birth.** `destroy` could be told how
+		-- many and `move` could not, so "send two of my gems over there" was
+		-- spelled as a kill beside a `fill`. It costs the cards their identity,
+		-- their history and any chance of the player watching them go, and it
+		-- reads as two events. `move` takes a count now, so the workaround has an
+		-- honest spelling and every place it survives should say so out loud.
+		--
+		-- A kind that trades with the box in the same list is doing *that*, and
+		-- the two are easy to confuse: a destroy that puts stock back and a fill
+		-- that spends it are the honest halves of a supply, and they share a key
+		-- and an amount without being one move. Puzzle Strike's Reversal does
+		-- both in one breath, which is what this exception is measured against.
+		local stocked, killed = {}, {}
+		for _, str in ipairs(list) do
+			if type(str) == "string" then
+				local traded = str:match("^stat_%a+:stock@[^.:]+%.([^:]+)")
+				if traded then stocked[traded] = true end
+				local scope, n = str:match("^destroy:([^:]+):(.+)$")
+				if scope then killed[scope:match("[^.]+$")] = { n = n, scope = scope, said = str } end
+			end
+		end
+		for _, str in ipairs(list) do
+			if type(str) == "string" then
+				local zone, key, n = str:match("^fill:([^:]+):([^:]+):(.+)$")
+				local gone = key and not stocked[key] and killed[key]
+				if gone and gone.n == n then
+					warn("%s: '%s' and '%s' are one move written as a death and a birth — "
+						.. "\"move:%s:%s:%s\" moves the cards themselves, which keeps what they were "
+						.. "and lets the player see them go", where, gone.said, str, gone.scope, zone, n)
+				end
 			end
 		end
 	end

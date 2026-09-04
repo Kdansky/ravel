@@ -676,11 +676,28 @@ HANDLERS["move"] = function(p, ctx)
 		if e.kind == "card" and e.zone_id and e.zone_id ~= to_id then moving[#moving + 1] = e.id end
 	end
 	table.sort(moving)
-	if sc.quant == "random" and #moving > 0 then
-		moving = { moving[rng.int(#moving)] }
+	-- How many, and then whereabouts they land. The count is optional and
+	-- everything moves without one, which is what "move" meant before it could
+	-- be told a number and what every spelling written before this still means.
+	-- A position standing where the count would go is still a position: "top"
+	-- and "bottom" are not numbers, and nothing else in the grammar is a bare
+	-- word there.
+	local pos, want = p[4], nil
+	if pos and pos ~= "top" and pos ~= "bottom" then
+		local j
+		want, j = amount(p, 4, nil, ctx)
+		pos = p[j]
 	end
-	for _, id in ipairs(moving) do
-		if to_id then zones.move_card(id, to_id, p[4]) else send_home(id, p[4]) end
+	-- Taken one at a time, the way `destroy` takes them, so that a random scope
+	-- asked for three picks three different cards rather than the same one
+	-- thrice. Without a count a random scope still means one, which is what it
+	-- has always meant.
+	local n = want or (sc.quant == "random" and 1 or #moving)
+	if n > #moving then n = #moving end
+	for _ = 1, n do
+		local i  = sc.quant == "random" and rng.int(#moving) or 1
+		local id = table.remove(moving, i)
+		if to_id then zones.move_card(id, to_id, pos) else send_home(id, pos) end
 	end
 end
 
@@ -1374,7 +1391,7 @@ local SPEC = {
 	destroy           = "scope n?",
 	ready             = "scope",
 	activate_zone     = "zone order? step?",
-	move              = "scope zone pos?",
+	move              = "scope zone n? pos?",
 	set_owner         = "scope seat",
 	destroy_self      = "",
 	options           = "any optional?",
