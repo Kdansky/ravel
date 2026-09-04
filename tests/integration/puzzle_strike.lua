@@ -1222,11 +1222,10 @@ end
 -- Two things the engine had to grow for it, and one it did not. The bank hands
 -- whatever lies in it a "buy" announcement through "applies", so the piles say
 -- nothing about being answerable and the tag says it once. The answer interjects
--- a phase, and priority stays with the seat it was interjected for while the
--- turn never moves. What it did *not* need is a way to filter a shop by price:
--- the allowance is handed over as money and the ordinary price of every pile
--- does the gating.
-function M.test_puzzle_strike_rigorous_training_buys_out_of_turn(check)
+-- priority, which stays with the seat it was interjected for while the turn never
+-- moves. What it did *not* need is a way to filter a shop by price: the offer
+-- shows the whole bank and the budget refuses the picks it does not cover.
+function M.test_puzzle_strike_rigorous_training_shops_out_of_turn(check)
 	opening(7, "jaina", "argagarg")
 	local one = zones.turn_seat()
 	local two
@@ -1259,33 +1258,26 @@ function M.test_puzzle_strike_rigorous_training_buys_out_of_turn(check)
 	flow.react(rt.id, 1, { fodder.id })
 	check("the trashed chip is gone", entity.get(fodder.id).zone_id == zones.find_id("void"))
 	-- 3 for the Draw Three, plus the two the card gives.
-	check("the allowance is the price plus two", seat_card(two).stats.money == 5,
-		seat_card(two).stats.money)
-	check("the shopping phase is up", phase.current().key == "react_buy", phase.current().key)
-	check("and it belongs to the reactor", zones.active_seat() == two, zones.active_seat())
+	check("the budget is the price plus two", seat_card(two).stats.budget == 5,
+		seat_card(two).stats.budget)
+	check("and the bank is on offer to the reactor", count_in("options") > 0, count_in("options"))
+	check("while the turn stays the buyer's", zones.turn_seat() == one, zones.turn_seat())
 
-	-- What the allowance is *for*: it gates the shop without anything filtering it,
-	-- and it is the only gate there is.
-	check("a pile within the allowance is buyable",
-		flow.can_activate(find_in("bank", "one_of_each").id))
-	check("one over it is not",
-		not flow.can_activate(find_in("bank", "roundhouse").id))
-
-	flow.activate(find_in("bank", "one_of_each").id, {}, 1)
+	-- What the budget is *for*: it gates the offer without anything filtering it.
+	check("one over it is refused", not flow.play_card(find_in("options", "roundhouse").id, {}))
+	local shelf = find_in("options", "one_of_each")
+	local left  = shelf.stats.stock
+	check("and one within it is taken", flow.play_card(shelf.id, {}))
 	check("the gained chip is in the reactor's discard",
 		count_in("discard", two, "one_of_each") == 1,
 		table.concat(keys_in("discard", two), " "))
+	check("out of the box, which is one shorter",
+		find_in("bank", "one_of_each").stats.stock == left - 1)
 
-	-- And the purse is all that stops a second one. What was handed over is
-	-- money, so an allowance big enough for two cheap chips buys two — the same
-	-- looseness Upgrade's one-purse-for-two-chips already had, and the price of
-	-- buying being uncapped everywhere rather than in one phase and not the other.
-	seat_card(two).stats.money = 20
-	check("a fat enough purse buys again", flow.can_activate(find_in("bank", "roundhouse").id))
-
-	flow.activate(find_in("controls", "finish_shopping").id, {}, 1)
-	check("the interjection is over", phase.current().key ~= "react_buy", phase.current().key)
-	check("nothing is left over", seat_card(two).stats.money == 0, seat_card(two).stats.money)
+	-- And the buy underneath still happens. An offer of the whole bank sends
+	-- every plate home before this record resolves, and the record names the
+	-- plate it was announced for — so a plate rebuilt on the way home is a buy
+	-- aimed at a card that no longer exists.
 	check("the turn player's buy landed", count_in("discard", one, "double_crash") == 1,
 		table.concat(keys_in("discard", one), " "))
 	check("and priority went home", zones.active_seat() == one, zones.active_seat())

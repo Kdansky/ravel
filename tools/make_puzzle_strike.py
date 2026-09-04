@@ -334,7 +334,7 @@ TEXT = {
      {'plus_pow': 1, 'react': 1}),
     "training_day": ("Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing "
                      "up to 2 more than the trashed chip into your hand.",
-                     "the allowance is money and the piles price themselves, so what is handed over is a purse rather than a chip: a big enough one buys two cheap chips where the card grants one. Nothing counts purchases \u2014 buying is uncapped here, which is what the rulebook says about your own turn and not about this.", {"plus_piggy": 1}),
+                     None, {"plus_piggy": 1}),
 
     # --- Shadows ------------------------------------------------------------
     "axe_kick": ("+1 brown action, +2 chips", None, {"plus_act": 1, "plus_draw": 2}),
@@ -453,8 +453,7 @@ TEXT = {
      "the bigger ante is built. Nothing can say an announcement may not be answered, and nothing can bar a pile from being bought, so the other two clauses have no spelling.",
      {}),
     "rigorous_training": ("Reaction: When an opponent buys a purple chip, trash a non-purple chip from your hand then gain a chip costing up to 2 more than the trashed chip.",
-     "the allowance is money and the piles price themselves, so what is handed over is a purse rather than a chip: a big enough one buys two cheap chips where the card grants one. Nothing counts purchases \u2014 buying is uncapped here, which is what the rulebook says about your own turn and not about this.",
-     {'react': 1}),
+     None, {'react': 1}),
     "purge_bad_habits": ("Trash a chip from your hand. Put a 2-gem from the bank into your hand. "
                          "(Character chips can't be trashed.)", None, {}),
 
@@ -590,7 +589,7 @@ TEXT = {
     "rocket_punch": ("Main: Crash a 1-gem in your gem pile. Reaction: Before you're red-attacked or an opponent sends gems, crash a 1-gem at the attacker or sender.",
      None, {'react': 1}),
     "upgrade": ("+$1. Trash one or two chips from your hand, then for each chip trashed this way, gain a chip costing the same or 1 more.",
-     "built the way Training Day is, and loose the same way: one purse rather than one per chip, so a big trash and a small one are spent as a single sum, and a sum that covers two cheap chips buys two.",
+     "the only one of the four that still borrows a buy phase. Training Day and its like are one chip judged against one number and say so with an offer of the bank; this one grants a chip per chip trashed, each against its own price, which one offer and one budget cannot say. So it hands over a purse: one sum for both trashes, and a sum that covers two cheap chips buys two.",
      {'plus_pow': 1}),
     "cog_engine": ("Ongoing: +$1, piggy bank. Discard this chip when you buy a purple or a chip costing 6 or more.",
      None, {'plus_pow': 1, 'plus_piggy': 1}),
@@ -1414,17 +1413,13 @@ def character_chips():
                         "where": ["tagged:purple@event"],
                         "target": {"type": "card", "zones": ["hand"], "owner": "mine", "count": 1,
                                    "where": ["not_tagged:purple@target"]},
-                        # Not an offer of the bank, the way the two chips that say
-                        # the same sentence in a main phase are. A reaction that
-                        # opens one loses the announcement it was answering: the
-                        # buy on the stack is gone by the time the pick resolves.
-                        # So this keeps the purse and the borrowed buy phase, and
-                        # keeps the purse's looseness with it.
-                        "action": ["stat_set:money@mine.player:sum:price@target",
-                                   "stat_gain:money@mine.player:2",
+                        "action": ["stat_set:budget@mine.player:sum:price@target",
+                                   "stat_gain:budget@mine.player:2",
                                    "move_target_to:void",
-                                   "push_phase:react_buy"],
-                        "spent": "mine.discard"}]},
+                                   "show:bank:optional"],
+                        "spent": "mine.discard"}],
+         "chosen": {"where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+                    "action": ["take:target:mine.discard:1"]}},
         {"key": "purge_bad_habits", "text": "Purge Bad Habits", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:green",
          "tooltip": "Trash a chip out of your hand and take a 2-gem from the bank straight into it. Character chips cannot be trashed.",
