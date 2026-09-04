@@ -25,6 +25,7 @@ local render      = require("render")
 local tooltip     = require("tooltip")
 local inspect     = require("inspect")
 local anim        = require("anim")
+local stage       = require("stage")
 local fx          = require("fx")
 local debugserver = require("debugserver")
 local validate    = require("validate")
@@ -279,31 +280,33 @@ function love.load()
 	love.graphics.setDefaultFilter("linear", "linear")
 	render.rescale()
 	flow.on_reset = function()
+		stage.clear()
 		anim.clear()
 		fx.clear()
 		render.set_selected(nil)
 		render.set_detail(nil)
 	end
-	-- How far into a run of cards acting we are, so a whole zone resolving at
-	-- once still reads left to right. Zero outside a run, which is every
-	-- ordinary click.
-	local beat = 0
-	actions.on_act = function(_, ordinal) beat = ordinal or 0 end
+	-- Every visible thing the rules do, in the order they did it.
+	zones.on_change = function(what, id) stage.record(what, id) end
 
 	-- Stat changes float up from where they happened (card, or the HUD row).
 	-- A card losing health also takes a small damage burst, and whoever did it
 	-- leans into them — a number changing across the board says nothing about
 	-- where it came from, and that is most of what there is to follow.
 	actions.on_stat_change = function(e, key, delta, ctx)
-		local txt   = (delta > 0 and "+" or "") .. delta .. " " .. key
-		local col   = delta > 0 and { 0.45, 0.95, 0.50 } or { 1.00, 0.45, 0.35 }
-		local delay = math.max(0, beat - 1) * 0.16
+		local txt = (delta > 0 and "+" or "") .. delta .. " " .. key
+		local col = delta > 0 and { 0.45, 0.95, 0.50 } or { 1.00, 0.45, 0.35 }
 		if e.kind == "card" and e.place and e.place.w > 0 then
-			-- Read the rect now: by the time a delayed burst plays, the rules
-			-- have long finished and the card may have been sent home.
+			-- Read the rects now: by the time the beat comes round the rules have
+			-- long finished and either card may have been sent home.
 			local cx, cy = e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5
 			local top    = e.place.y
-			fx.after(delay, function()
+			local actor  = ctx and ctx.card_id and entity.get(ctx.card_id)
+			local ax, ay
+			if actor and actor.id ~= e.id and actor.place and actor.place.w > 0 then
+				ax, ay = actor.place.x + actor.place.w * 0.5, actor.place.y + actor.place.h * 0.5
+			end
+			stage.record("stat", e.id, function()
 				fx.float(cx, top, txt, col)
 				-- Any number going down on a card takes a knock. Which stats
 				-- *hurt* is the game's business and naming them here was the
@@ -311,15 +314,11 @@ function love.load()
 				if delta < 0 then
 					fx.play({ base = "damage", size = 0.7 }, cx, cy)
 				end
+				if ax then anim.bump(actor.id, cx - ax, cy - ay) end
 			end)
-			local actor = ctx and ctx.card_id and entity.get(ctx.card_id)
-			if actor and actor.id ~= e.id and actor.place and actor.place.w > 0 then
-				local ax, ay = actor.place.x + actor.place.w * 0.5, actor.place.y + actor.place.h * 0.5
-				anim.bump(actor.id, cx - ax, cy - ay)
-			end
 		else
 			local x, y = render.stat_pos(key)
-			fx.after(delay, function() fx.float(x, y, txt, col) end)
+			stage.record("stat", e.id, function() fx.float(x, y, txt, col) end)
 		end
 	end
 
@@ -328,11 +327,13 @@ function love.load()
 		local def = declaration.G.effect_defs[name]
 		if not def then return end
 		local e = ctx and ctx.card_id and entity.get(ctx.card_id)
+		local x, y
 		if e and e.place and e.place.w > 0 then
-			fx.play(def, e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5)
+			x, y = e.place.x + e.place.w * 0.5, e.place.y + e.place.h * 0.5
 		else
-			fx.play(def, love.graphics.getWidth() * 0.5, love.graphics.getHeight() * 0.5)
+			x, y = love.graphics.getWidth() * 0.5, love.graphics.getHeight() * 0.5
 		end
+		stage.record("effect", e and e.id, function() fx.play(def, x, y) end)
 	end
 	if os.getenv("RAVEL_DEBUG") then debugserver.start() end
 	flow.default_seed = tonumber(os.getenv("RAVEL_SEED") or "")
@@ -370,6 +371,8 @@ function love.keypressed(key)
 		end
 		return
 	end
+	if stage.busy() then stage.hurry(); return end
+	stage.arm()
 	if key == "escape" then
 		if render.get_detail() then
 			render.set_detail(nil)
@@ -384,6 +387,7 @@ function love.keypressed(key)
 	elseif key == "l" then
 		render.toggle_log()
 	end
+	stage.seal()
 end
 
 -- Left input is release-based so a long press (touch-friendly) inspects
@@ -395,7 +399,9 @@ function love.mousepressed(x, y, button)
 	-- Reading a card must not risk playing it: while ctrl is held the pointer
 	-- is a magnifying glass and nothing else.
 	if ctrl_down() then return end
+	if stage.busy() then stage.hurry(); return end
 	if button == 2 then
+		stage.arm()
 		if render.get_detail() then
 			render.set_detail(nil)
 		-- A chooser is a question, and a question you were not obliged to ask
@@ -407,6 +413,7 @@ function love.mousepressed(x, y, button)
 		else
 			inspect_at(x, y)
 		end
+		stage.seal()
 		return
 	end
 	if button == 1 then
@@ -426,7 +433,11 @@ function love.mousereleased(x, y, button)
 	if button ~= 1 or not press then return end
 	local was_long = press.long
 	press = nil
-	if not was_long then primary_action(x, y) end
+	if was_long then return end
+	if stage.busy() then stage.hurry(); return end
+	stage.arm()
+	primary_action(x, y)
+	stage.seal()
 end
 
 -- Template hot-reload: poll the current game file's modtime and re-read
@@ -470,9 +481,13 @@ function love.update(dt)
 		netpanel.update()
 		openfile.update(since)
 	end
-	anim.update(dt)
-	fx.update(dt)
+	-- Before stage: a step lets a card go by starting the move the layout asked
+	-- for, and sync_places is what asks. The other way round, the first step of
+	-- every run would find nothing to release and the card would simply appear.
 	render.sync_places()
+	stage.update(dt)
+	anim.update(dt * stage.speed())
+	fx.update(dt)
 	render.set_can_undo(flow.can_undo())
 	watch_game_file(dt)
 
@@ -486,7 +501,7 @@ function love.update(dt)
 
 	local hover = nil
 	inspecting = nil
-	if not render.get_detail() then
+	if not (render.get_detail() or stage.busy()) then
 		local mx, my = love.mouse.getPosition()
 		if ctrl_down() then
 			-- Anything under the cursor, cards first, then the square they stand

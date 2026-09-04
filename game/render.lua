@@ -1591,6 +1591,8 @@ local function draw_log()
 end
 
 -- A mid-flight card: drawn at its interpolated rect, tilted into its motion.
+-- One on its way into a face-down pile, or into a hand that is not ours, shows
+-- its back: being in the air is not a hole in what a zone promises to hide.
 local function draw_flying_card(vpl, card_e)
 	love.graphics.push()
 	if vpl.rot and vpl.rot ~= 0 then
@@ -1599,15 +1601,22 @@ local function draw_flying_card(vpl, card_e)
 		love.graphics.rotate(vpl.rot)
 		love.graphics.translate(-cx, -cy)
 	end
-	draw_card_face(vpl, card_e, false)
+	local z = card_e and card_e.zone_id and entity.get(card_e.zone_id)
+	if (z and z.visibility == "secret") or not zones.visible(card_e) then
+		draw_card_back(vpl)
+	else
+		draw_card_face(vpl, card_e, false)
+	end
 	love.graphics.pop()
 end
 
+-- Every card in the air, over the zones they are crossing. A stack is walked in
+-- full rather than topmost-first: what is still flying into a pile is not in the
+-- pile yet, and is the one thing about a stack that is worth drawing twice.
 local function draw_animated_cards()
 	for z in entity.each("zone") do
 		if z.display ~= "offscreen" then
-			local list = z.layout == "stack" and { z.cards[#z.cards] } or z.cards
-			for _, cid in ipairs(list or {}) do
+			for _, cid in ipairs(z.cards or {}) do
 				local vpl = cid and anim.visual_place(cid, (entity.get(cid) or {}).place)
 				if vpl then draw_flying_card(vpl, entity.get(cid)) end
 			end
@@ -1899,16 +1908,34 @@ function M.sync_places()
 		local zt     = z.layout
 		local kind   = zt == "grid" and "slam"
 			or zt == "stack" and "drop" or "glide"
-		-- A stack keeps one place, because only its top card is ever drawn or
-		-- clicked. A fanned one shows every card, so every card needs one — miss
-		-- this and the fan draws correctly and answers the mouse from wherever
-		-- its cards used to be.
-		local list   = zt == "stack" and { z.cards[#z.cards] } or z.cards
-		for i, cid in ipairs(list) do
+		-- A fanned zone shows every card, so every card needs a place — miss this
+		-- and the fan draws correctly and answers the mouse from wherever its
+		-- cards used to be. A stack has one place and hands it to everything in
+		-- the pile: only the top is drawn and only the top answers a click
+		-- (`zones.card_at` says so), but a chip discarded under three others is
+		-- buried the instant the rules run, and with nowhere to land it never
+		-- travels — it stops existing in the hand it left.
+		for i, cid in ipairs(z.cards) do
 			local c   = cid and entity.get(cid)
-			local new = places[i]
+			local new = zt == "stack" and places[1] or places[i]
 			if c and new then
-				if c.place and c.place.w > 0 then anim.move(c.id, c.place, new, kind) end
+				-- A card off the top of a pile has never had a place of its own,
+				-- because only a stack's top card is laid out — so a draw
+				-- appeared in the hand instead of travelling to it. It came from
+				-- the pile, and the pile is where the eye last had it.
+				local from = c.place and c.place.w > 0 and c.place
+					or (entity.get(c.origin_zone_id) or {}).place
+				-- Conjured, and with nowhere to have been: a `fill` says what
+				-- appears and never where it was, which is why the whole of a
+				-- crash — gems arriving in the other pile — happened in no time
+				-- at all. The bank that stocks the kind is the honest answer.
+				-- Only while a run is holding the card, or every chip in the box
+				-- would fly to its seat the moment a game loaded.
+				if not from and anim.holding(c.id) then
+					local supply = zones.supply_of(c.def_key)
+					from = supply and supply.place
+				end
+				if from then anim.move(c.id, from, new, kind) end
 				c.place = new
 			end
 		end

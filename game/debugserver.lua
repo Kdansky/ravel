@@ -17,6 +17,7 @@ local flow        = require("flow")
 local log         = require("log")
 local json        = require("json")
 local predicate   = require("predicate")
+local stage       = require("stage")
 
 local M = {}
 
@@ -212,7 +213,12 @@ local function handle(line)
 	if not fn then return json.encode({ error = "unknown command: " .. tostring(cmd) }) end
 	local args = {}
 	for w in rest:gmatch("%S+") do args[#args + 1] = w end
+	-- A command is an input like any other, so what it sets off is one run and
+	-- plays like one. Without this the only way to watch a sequence would be to
+	-- click, and the screenshot command below would always catch the aftermath.
+	stage.arm()
 	local ok, result = pcall(fn, args, rest)
+	stage.seal()
 	if not ok then return json.encode({ error = tostring(result) }) end
 	return json.encode(result)
 end

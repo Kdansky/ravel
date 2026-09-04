@@ -7,6 +7,14 @@ local rng         = require("rng")
 local log         = require("log")
 
 local M = {}
+
+-- Optional hook(what, id) for the presentation: something visible happened, and
+-- this is the order it happened in. `what` is "move", "add", "destroy" or
+-- "shuffle"; `id` is the card it happened to, or the zone for a shuffle. Nil
+-- everywhere but the game window, which is the whole of what keeps the rules
+-- from knowing there is a screen.
+M.on_change = nil
+
 local key_map  = {}  -- zone key → entity ID (shared zones)
 local seat_map = {}  -- zone key → seat name → entity ID (per_seat zones)
 
@@ -210,6 +218,26 @@ local function face_card(z, def_key)
 	end
 end
 
+-- The supply card that stocks this kind, if one does.
+--
+-- Presentation asks it where a conjured card should have come from: a `fill`
+-- says what appears and never where it was, so a crash puts gems in a pile out
+-- of nowhere when the bank they were taken out of is sitting right there. Lives
+-- here rather than in the renderer for the same reason `visible` does — it is a
+-- question about what a zone is, and the answer should not be kept twice.
+--
+-- First match wins. Two supplies stocking the same kind is the open question in
+-- ideas/28, and until it is settled, picking one is a better answer for a
+-- drawing than refusing to have one.
+function M.supply_of(def_key)
+	for z in entity.each("zone") do
+		if z.status == "supply" then
+			local e = face_card(z, def_key)
+			if e then return e end
+		end
+	end
+end
+
 -- Put one card of this kind here.
 --
 -- **A supply counts instead.** Its cards are interchangeable by declaration, so
@@ -228,11 +256,13 @@ function M.add(z, def_key)
 			cards.attach_stat(e, "stock", 0)
 		end
 		e.stats.stock = (e.stats.stock or 0) + 1
+		if M.on_change then M.on_change("add", e.id) end
 		return e
 	end
 	if not M.has_room(z) then return nil end
 	local e = cards.create(def_key, z.id)
 	M.auto_slot(e.id)
+	if M.on_change then M.on_change("add", e.id) end
 	return e
 end
 
@@ -539,6 +569,7 @@ function M.move_card(card_id, to_id, where)
 	c.origin_slot_id = from_slot
 	c.zone_id = to_id
 	M.auto_slot(card_id)
+	if M.on_change then M.on_change("move", card_id) end
 	fire_leaves(lent or from, to, card_id)
 	fire_receive(to, card_id)
 	return true
@@ -602,6 +633,7 @@ function M.destroy_card(card_id)
 	end
 	c.zone_id = nil
 	c.stats   = {}
+	if M.on_change then M.on_change("destroy", card_id) end
 end
 
 -- Place a card into a specific slot on a grid zone. What happens to a slot that
@@ -659,6 +691,7 @@ function M.shuffle(zone_id)
 	local z = entity.get(zone_id)
 	if not z then return end
 	rng.shuffle(z.cards)
+	if M.on_change then M.on_change("shuffle", zone_id) end
 end
 
 -- Which of a chequered board's two colours a square takes, 1 or 2.

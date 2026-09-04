@@ -28,6 +28,7 @@ above it.
 main ─ input routing, love callbacks, hot-reload watch
 render ─ drawing, layout, UI scale, buttons     tooltip   debugserver
 inspect ─ ctrl+hover: the JSON behind whatever is under the cursor
+stage ─ one click's visible steps, in order, played back a beat at a time
 anim ─ flight tweens    fx ─ particles/shake/floats
 art ─ procedural placeholder shapes (its pure `parse` is shared with validate)
 ────────────────────────────────────────────────────────────── presentation
@@ -213,6 +214,29 @@ love.mousepressed/released (main)          ── hit-test via card.place
   → next frames: render.sync_places diffs card.place → anim tweens
       anim.on_land → fx.impact; actions.on_stat_change → fx.float
 ```
+
+**The rules resolve the whole of that in one frame, and have to** — a snapshot
+taken halfway through a combat would be a state no game was ever in. So the
+order things happened in exists for the length of one call stack, and
+`sync_places` cannot recover it: it diffs two *frames*, never two *steps*, and a
+card that crossed three zones tweens once.
+
+`stage` is where that order is kept. `main` brackets each input with
+`stage.arm()` and `stage.seal()`; between them `zones.on_change` and
+`actions.on_stat_change` record what happened, in sequence. Sealing turns the run
+into a queue of beats, pins every moved card where the player last saw it
+(`anim.hold`), and lets them go one at a time while input is held — a click
+arriving mid-run speeds the queue up rather than being dropped.
+
+**Outside those brackets a step plays the instant it is recorded**, which is the
+whole of what keeps this honest: a state that arrived over the network, an undo
+and a game being loaded have no order to replay, because the moves that made them
+were not made here. They animate the difference, exactly as before.
+
+The hooks are nil unless `main` sets them, so headless has nothing to discard.
+See [ideas/02](ideas/02-between-two-states.md) for what is still missing: the
+presentation draws the live registry, so numbers, flips and pile counts still
+snap while the cards are in the air.
 
 The CLI and debug server call the same flow functions; only main.lua's
 hit-testing and hooks are GUI-specific. That is why one test suite covers all
