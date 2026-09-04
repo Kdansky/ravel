@@ -1096,7 +1096,7 @@
         "where": ["price@target <= budget@mine.player", "stock@target >= 1"],
         "action": ["take:target:mine.hand:1"]
       },
-      "tooltip": "Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing up to 2 more than the trashed chip into your hand.\n\nDEV: the allowance is money and the piles price themselves, so what is handed over is a purse rather than a chip: a big enough one buys two cheap chips where the card grants one. Nothing counts purchases — buying is uncapped here, which is what the rulebook says about your own turn and not about this.",
+      "tooltip": "Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing up to 2 more than the trashed chip into your hand.",
       "card_stats": { "plus_piggy": 1, "price": 2 }
     },
     {
@@ -1816,15 +1816,19 @@
             "where": ["not_tagged:purple@target"]
           },
           "action": [
-            "stat_set:money@mine.player:sum:price@target",
-            "stat_gain:money@mine.player:2",
+            "stat_set:budget@mine.player:sum:price@target",
+            "stat_gain:budget@mine.player:2",
             "move_target_to:void",
-            "push_phase:react_buy"
+            "show:bank:optional"
           ],
           "spent": "mine.discard"
         }
       ],
-      "tooltip": "Reaction: When an opponent buys a purple chip, trash a non-purple chip from your hand then gain a chip costing up to 2 more than the trashed chip.\n\nDEV: the allowance is money and the piles price themselves, so what is handed over is a purse rather than a chip: a big enough one buys two cheap chips where the card grants one. Nothing counts purchases — buying is uncapped here, which is what the rulebook says about your own turn and not about this.",
+      "chosen": {
+        "where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+        "action": ["take:target:mine.discard:1"]
+      },
+      "tooltip": "Reaction: When an opponent buys a purple chip, trash a non-purple chip from your hand then gain a chip costing up to 2 more than the trashed chip.",
       "card_stats": { "react": 1 }
     },
     {
@@ -2807,7 +2811,7 @@
         ],
         "spent": "mine.table"
       },
-      "tooltip": "+$1. Trash one or two chips from your hand, then for each chip trashed this way, gain a chip costing the same or 1 more.\n\nDEV: built the way Training Day is, and loose the same way: one purse rather than one per chip, so a big trash and a small one are spent as a single sum, and a sum that covers two cheap chips buys two.",
+      "tooltip": "+$1. Trash one or two chips from your hand, then for each chip trashed this way, gain a chip costing the same or 1 more.\n\nDEV: the only one of the four that still borrows a buy phase. Training Day and its like are one chip judged against one number and say so with an offer of the bank; this one grants a chip per chip trashed, each against its own price, which one offer and one budget cannot say. So it hands over a purse: one sum for both trashes, and a sum that covers two cheap chips buys two.",
       "card_stats": { "plus_pow": 1 }
     },
     {
