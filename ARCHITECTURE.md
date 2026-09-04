@@ -388,7 +388,12 @@ the word at a real game rather than a fixture:
   destination and lowers the shelf, which is `zones.add` read backwards. Its
   first argument is the one scope in the grammar that names the *source* —
   the shelf, not the goods — and that inversion is why it is a verb of its own
-  rather than a count on `move`.
+  rather than a count on `move`. **Where a shelf belongs is not where it is
+  standing**: `zones.supply_home` reads `borrowed_from` before `zone_id`, so a
+  plate lent to an offer is still a shelf. An offer keeps the picked card until
+  the `chosen` actions have had their say, which is exactly when a card that
+  offered the bank says what to take out of it — without that, the only spelling
+  left was a `fill`, which conjures and leaves the box's count untouched.
 
 **A component leaving the box was two statements until `take`.** A `fill` that
 conjured it beside a `stat_damage:stock` that paid for it: nothing tied them

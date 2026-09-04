@@ -32,36 +32,35 @@ one rule about how much a turn may buy, *"you must buy at least one chip per
 turn"*, and nothing above it, so the `buys` stat is gone: nothing spends it and
 nothing needs to. *End turn* reads `bought` with a `when`.
 
-Two things it left behind:
+**Two chips stopped borrowing a buy phase and now offer the bank.** Training Day
+and Chips for Free both say "trash a chip, then take one costing up to N more",
+which is one chip judged against one number — not a purse, which buys whatever
+it covers. They set a `budget`, `show:bank:optional`, and their `chosen` takes
+the pick out of the box. Training Day's chip lands in the *hand* the card names,
+which the borrowed buy phase could never do: a purchase goes to the discard.
 
-- **The allowance is a purse, and a fat one buys twice.** Training Day, Rigorous
-  Training and Upgrade hand over money and push a borrowed buy phase; `buys` was
-  what made "gain *a* chip costing up to 2 more" mean one chip. Two abilities on
-  the bank plate, one per phase, is not the way back — `cards.merged` keeps both
-  when both say merge `"this"`, so the positional ability index reaches for the
-  wrong one and the borrowed buy stops working. All three chips say it in their
-  DEV lines. The honest fixes are `or` between conditions
-  ([31](31-either-of-two.md)) so one ability can ask "my own phase, or I still
-  have an allowance", or a per-phase ration the format has no word for.
+Two things left:
+
+- **A reaction cannot open that offer.** Rigorous Training says the same
+  sentence, and converting it lost the buy it was answering: the announcement on
+  the stack is gone by the time the pick resolves, and nothing lands. So it keeps
+  the purse and the borrowed buy phase, as does Upgrade, whose per-chip
+  allowances a single purse cannot say anyway. Both DEV lines say so. [Assumption:
+  the fault is in how an offer interacts with a deferred play rather than in
+  either card — `flow.play_card` pops the overlay before running `chosen`, and
+  the stack is empty by the time `settle` runs.]
 - **A turn with no money and an empty Wound stack cannot end.** The rulebook has
   the escape — *"If there are no wounds left in the bank, you don't have to buy a
-  chip at all that turn"* — and it is a second condition on *End turn* that
-  `when` cannot hold as one comparison. Pre-existing; the same `or`.
+  chip at all that turn"* — and it is a second condition on *End turn* that one
+  comparison cannot hold. Pre-existing; wants `or` between conditions
+  ([31](31-either-of-two.md)).
 
-**An engine gap, found here:** a lone `activate` block has no `when`, though an
-entry in an `abilities` list does. *End turn* is written as a one-entry
-`abilities` list for that reason alone. [Assumption: this is an oversight in
-`ACTIVATE_FIELDS` rather than a decision — `check_ability` validates `when` on
-the list form, `declaration.lua` normalises the two into the same shape, and
-nothing in `AUTHORING.md` says a button may not have a condition.]
-
-**And "+2 buys" was not a transcription error.** An earlier pass recorded that
-Always in Control really reads "+2 piggy"; `chips.md` line 335 says otherwise and
-is read off a photograph of the owner's own third-edition chip. The chip does
-print "+2 buys" — it is Dominion's +Buy, and it is the one thing in the box that
-argued for a ceiling. The ceiling lost on the rulebook's silence, so the chip's
-main half now has nothing to grant and its DEV line says so. Its reaction is
-untouched.
+**Two engine changes went in for this**, both narrow. A lone `activate` block now
+takes the `when` an entry in an `abilities` list always had — the two normalise
+into one shape three lines apart, and `usable_abilities` already read the field.
+And `take` reaches a shelf lent to an offer (`zones.supply_home` asks where a
+shelf *belongs*, not where it is standing), which is what makes offering the bank
+and taking out of the pick one sentence rather than a `fill` that conjures.
 
 **Signature Move only does its first half.** *From `todo.md`: "It should open a
 choose window, let me pick a chip from hand to play, or if that's impossible,
@@ -98,10 +97,6 @@ calls the zone something else, which is the one place a reader has to translate.
 buttons too small (a card cannot fill its zone outside a grid), the stat readout
 printed over a gem pile, and the fifty-one-plate draft wanting a layout. All
 three are written up there.
-
-**Where a trashed chip goes is [28](28-a-zone-by-its-parts.md)'s.** The bank
-should be the default destination for a destroyed card, so Bubble Shield taking a
-gem off a pile needs no rule naming the bank.
 
 ## The research verdict, and how it held
 
