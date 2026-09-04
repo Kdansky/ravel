@@ -88,6 +88,7 @@
       "subject": "piggy@mine.player",
       "color": "pink"
     },
+    { "key": "budget", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "bought", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "to_draw", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "crashed", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
@@ -515,15 +516,7 @@
       "tags": ["immutable"],
       "asset": "square:slate",
       "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
-      "abilities": [
-        {
-          "key": "end_turn",
-          "text": "End turn",
-          "phases": ["buy"],
-          "when": ["bought@mine.player >= 1"],
-          "action": ["next_phase"]
-        }
-      ]
+      "activate": { "phases": ["buy"], "when": ["bought@mine.player >= 1"], "action": ["next_phase"] }
     },
     {
       "key": "gem_1",
@@ -1092,12 +1085,16 @@
         },
         "action": [
           "stat_gain:piggy@mine.player:1",
-          "stat_set:money@mine.player:sum:price@target",
-          "stat_gain:money@mine.player:2",
+          "stat_set:budget@mine.player:sum:price@target",
+          "stat_gain:budget@mine.player:2",
           "move_target_to:void",
-          "push_phase:react_buy"
+          "show:bank:optional"
         ],
         "spent": "mine.table"
+      },
+      "chosen": {
+        "where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+        "action": ["take:target:mine.hand:1"]
       },
       "tooltip": "Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing up to 2 more than the trashed chip into your hand.\n\nDEV: the allowance is money and the piles price themselves, so what is handed over is a purse rather than a chip: a big enough one buys two cheap chips where the card grants one. Nothing counts purchases — buying is uncapped here, which is what the rulebook says about your own turn and not about this.",
       "card_stats": { "plus_piggy": 1, "price": 2 }
@@ -1185,12 +1182,16 @@
         },
         "action": [
           "draw_from:mine.bag:mine.hand:2",
-          "stat_set:money@mine.player:sum:price@target",
-          "stat_gain:money@mine.player:2",
+          "stat_set:budget@mine.player:sum:price@target",
+          "stat_gain:budget@mine.player:2",
           "move_target_to:void",
-          "push_phase:react_buy"
+          "show:bank:optional"
         ],
         "spent": "mine.table"
+      },
+      "chosen": {
+        "where": ["price@target <= budget@mine.player", "stock@target >= 1"],
+        "action": ["take:target:mine.discard:1"]
       },
       "tooltip": "+2 chips. Trash a chip from your hand. If you do, gain a chip costing up to 2 more than the trashed chip.",
       "card_stats": { "plus_draw": 2, "price": 4 }
@@ -2695,7 +2696,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": [],
+        "action": ["stat_gain:piggy@mine.player:2"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -2706,8 +2707,8 @@
           "spent": "mine.discard"
         }
       ],
-      "tooltip": "Main: +2 buys. At end of turn, +1 chip for each of these buys you used. Reaction: Become immune to a red chip.\n\nDEV: the immunity is built and the main half is not. There is no ceiling on buying here for two more to be added to — the rulebook states the floor, that you must buy at least one chip a turn, and nothing above it — so a grant of two more buys has nothing to be two more than, and the chip per buy used has nothing to count.",
-      "card_stats": { "react": 1 }
+      "tooltip": "Main: +2 piggy. At end of turn, +1 chip for each of these pigs you used. Reaction: Become immune to a red chip.\n\nDEV: the two piggy banks and the immunity are built. The chip per pig used is not: nothing counts how many of a particular grant were spent.",
+      "card_stats": { "plus_piggy": 2, "react": 1 }
     },
     {
       "key": "rocket_punch",
