@@ -226,16 +226,21 @@ end
 -- here rather than in the renderer for the same reason `visible` does — it is a
 -- question about what a zone is, and the answer should not be kept twice.
 --
--- First match wins. Two supplies stocking the same kind is the open question in
--- ideas/28, and until it is settled, picking one is a better answer for a
--- drawing than refusing to have one.
-function M.supply_of(def_key)
+-- The owner's own box first, anybody's otherwise, and the first of those that
+-- matches. Two boxes stocking one kind is a game nobody has written; a rule for
+-- choosing between them would be invented ahead of its customer, and the day one
+-- turns up the wrong gem going in the wrong box is a visible bug with an obvious
+-- fix.
+function M.supply_of(def_key, seat)
+	local any
 	for z in entity.each("zone") do
 		if z.status == "supply" then
 			local e = face_card(z, def_key)
-			if e then return e end
+			if e and z.seat == seat then return e end
+			if e and not any then any = e end
 		end
 	end
+	return any
 end
 
 -- Put one card of this kind here.
@@ -506,6 +511,24 @@ end
 -- puts the card under the pile, which is where a rule that buries something
 -- wants it, and which no other spelling could reach. Every zone is a list, so
 -- this means something everywhere; it only *reads* as anything in a deck.
+-- Take the card off the table: out of its slot, out of its zone's list, and
+-- stripped of the stats that were only true while it was somewhere.
+local function unhook(c)
+	if c.slot_id then
+		local slot = entity.get(c.slot_id)
+		if slot and slot.occupant == c.id then slot.occupant = nil end
+		c.slot_id = nil
+	end
+	local z = entity.get(c.zone_id)
+	if z then
+		for i, id in ipairs(z.cards) do
+			if id == c.id then table.remove(z.cards, i); break end
+		end
+	end
+	c.zone_id = nil
+	c.stats   = {}
+end
+
 function M.move_card(card_id, to_id, where)
 	local c  = entity.get(card_id)
 	local to = entity.get(to_id)
@@ -522,7 +545,7 @@ function M.move_card(card_id, to_id, where)
 		-- an offer borrows the real card, and a stack lent to a question has to
 		-- return as deep as it left.
 		local worth = tonumber(c.stats and c.stats.stock) or 1
-		M.destroy_card(card_id)
+		unhook(c)
 		local e = M.add(to, key)
 		if e and worth > 1 then e.stats.stock = e.stats.stock + worth - 1 end
 		return e ~= nil
@@ -658,22 +681,29 @@ end
 -- it belongs to no zone and holds no stats, so nothing renders, targets or
 -- counts it. Unlike move_card this never triggers refill: destroying is not
 -- drawing, and that also rules out refill loops.
+-- Out of play, and for a component that means back in its box.
+--
+-- `destroy:` has always meant "take this out of play"; what it could not say is
+-- that a gem taken off a pile is still a gem the box owns. So every game with a
+-- finite bank had to name the bank at every site that removed a component, and
+-- the day one site forgot, the box quietly leaked. The kind is what decides:
+-- a supply's shelves *are* its statement of what it stocks, so no game says
+-- anything it has not already said in that zone's contents.
+--
+-- Nothing stocks it: it stops existing, which is what happens to every card that
+-- is not a component and is the whole of what this used to do.
 function M.destroy_card(card_id)
 	local c = entity.get(card_id)
 	if not c then return end
-	if c.slot_id then
-		local slot = entity.get(c.slot_id)
-		if slot and slot.occupant == card_id then slot.occupant = nil end
-		c.slot_id = nil
+	local home = M.supply_of(c.def_key, tags.owner_of(c))
+	-- Never into itself. A shelf being destroyed is the box losing a kind, and
+	-- one that reclaimed itself would sit there for ever, one deeper each time.
+	if home and home.id ~= card_id then
+		-- A stack lent to a question comes back as deep as it left, the same
+		-- arithmetic a move into the box does.
+		home.stats.stock = (home.stats.stock or 0) + (tonumber(c.stats and c.stats.stock) or 1)
 	end
-	local z = entity.get(c.zone_id)
-	if z then
-		for i, id in ipairs(z.cards) do
-			if id == card_id then table.remove(z.cards, i); break end
-		end
-	end
-	c.zone_id = nil
-	c.stats   = {}
+	unhook(c)
 	if M.on_change then M.on_change("destroy", card_id) end
 end
 
