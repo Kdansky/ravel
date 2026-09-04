@@ -566,6 +566,8 @@ local CASES = {
 		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", from = "pocket", action = { "destroy_self" } } } end },
 	{ "an unknown action inside a reaction", "'moove_to' is not an action",
 		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", action = { "moove_to:board" } } } end },
+	{ "a box paid back for a destroy that pays itself", "which now pays itself",
+		function(g) g.card_defs.c_flee.on_play = { "destroy:mine.hand:1", "stat_gain:stock@bank.gem_1:1" } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once

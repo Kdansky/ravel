@@ -3094,7 +3094,9 @@ own `leaves` that still wants the announcement writes `emit:` into its own list.
 **`destroy:` does not fire it, and that is the point of the verb.** A destroyed
 card lands in no zone, so there is no `into` to name, and its stats are cleared
 along with it, so a rule asked to run afterwards would have nothing left to
-read. The rule is one sentence: **if you want a removal answered, give it a
+read. A component going home to its box is not an exception: what arrives there
+is the shelf's number going up, and a number was never anywhere to have a
+`leaves` asked about it. The rule is one sentence: **if you want a removal answered, give it a
 zone** — which is what naming one has always been for. `destroy:` stays the way
 to take something off the table that nobody may ask about, which is what a token
 vanishing and a swept husk both want.
@@ -3791,7 +3793,7 @@ what a player reads.
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
 | `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
-| `destroy:<scope>[:<n>]` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`destroy:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **Nothing is triggered by it**: a destroyed card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
+| `destroy:<scope>[:<n>]` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`destroy:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **A component goes back in its box.** If any `status: "supply"` zone stocks the card's kind, the shelf's `stock` goes up by one instead of the card leaving the game — the owner's own box first, anybody's otherwise. So a finite bank is never named at the site that trashes a gem, and never has to be paid back by hand. Nothing stocks it: it stops existing, which is what happens to everything that is not a component. **Nothing is triggered by it**: a destroyed card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
 | `emit:<verb>[:<action>]` | Announce that something happened, so anybody holding a reaction to that verb may answer it first. What follows the verb is the part that **waits**. Nothing answers it, or the game has no `stack` zone: it runs now. See *Reactions* |
 | `counterspell` | Written in a reaction: the event it answers does not happen. **It names no zone** — the stack holds records, not cards, so nothing moved and there is nothing to put back |
 | `set_priority:<scope>` / `clear_priority` | Whoever the scope names may act right now, without the turn moving. The response window does this for itself; write it only for an out-of-turn moment of your own |

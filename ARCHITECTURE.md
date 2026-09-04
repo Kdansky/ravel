@@ -397,6 +397,24 @@ counting, and the presentation had no origin to fly the card out of — 95 sites
 Puzzle Strike. The validator now names the pair wherever it survives and writes
 the `take` that replaces it.
 
+**And going back in was two statements until `destroy` reclaimed.** The mirror
+of the same fault: a `destroy` that lost the component beside a
+`stat_gain:stock` that paid the box back, and a box that leaks the day one site
+forgets. `zones.destroy_card` — the single choke point `HANDLERS["destroy"]`,
+`destroy_self` and the grid's `on_occupied: "destroy"` all reach — looks the
+card's kind up with `zones.supply_of` and credits the shelf. Nothing stocks it:
+it stops existing, which is the whole of what the function used to do.
+
+No word was added, because the declaration was already written: a supply's
+shelves *are* its statement of what it stocks, and a shelf exists for a kind the
+box has held. `supply_of` takes the owner first — the same preference
+`zones.restock` makes, and for the same reason — then anybody's, then the first
+of those that matches. Two boxes stocking one kind is a game nobody has written,
+and a precedence rule invented ahead of its customer is a rule nobody chose; the
+day one turns up, the wrong gem in the wrong box is a visible bug with an obvious
+fix. Ten pairs in Puzzle Strike went, and the validator names the pair wherever
+it survives.
+
 **Why the face card is kept rather than dropped when the stock hits zero.** An
 empty shelf is what lets a game count how many stacks have run out —
 `count:spent@bank`, where `spent` is a computed tag over `stock`. An absence

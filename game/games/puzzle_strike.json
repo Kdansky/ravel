@@ -874,10 +874,7 @@
           "to": "crash",
           "text": "Negate the gems",
           "when": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
-          "action": [
-            "destroy:mine.gem_1:sum:crashed@enemy.player",
-            "stat_gain:stock@bank.gem_1:sum:crashed@enemy.player"
-          ],
+          "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
           "spent": "mine.discard"
         }
       ],
@@ -1594,8 +1591,7 @@
         },
         "action": [
           "stat_gain:act_brown@mine.player:1",
-          "move_target_to:void",
-          "stat_gain:stock@bank.gem_1:1",
+          "destroy:target",
           "take:bank.gem_1:enemy.gem_pile:1"
         ],
         "spent": "mine.table"
@@ -1672,12 +1668,7 @@
           "to": "crash",
           "when": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
           "from": "board",
-          "action": [
-            "destroy:mine.gem_1:1",
-            "stat_gain:stock@bank.gem_1:1",
-            "move_to:mine.discard",
-            "transform:self:bubble_shield"
-          ]
+          "action": ["destroy:mine.gem_1:1", "move_to:mine.discard", "transform:self:bubble_shield"]
         }
       ],
       "tooltip": "Ongoing: Negate a gem sent to you, then discard this chip.",
@@ -1936,7 +1927,6 @@
             "stat_set:broke@mine.player:max:value@target",
             "move_target_to:void",
             "destroy:mine.gem_1:sum:crashed@enemy.player",
-            "stat_gain:stock@bank.gem_1:sum:crashed@enemy.player",
             "stat_set:sent@mine.player:sum:crashed@mine.player",
             "stat_damage:sent@mine.player:sum:crashed@enemy.player",
             "stat_damage:crashed@enemy.player:sum:crashed@mine.player",
@@ -1995,10 +1985,7 @@
           "to": "crash",
           "text": "Send the gems back to the bank",
           "when": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
-          "action": [
-            "destroy:mine.gem_1:sum:crashed@enemy.player",
-            "stat_gain:stock@bank.gem_1:sum:crashed@enemy.player"
-          ],
+          "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
           "spent": "mine.discard"
         }
       ],
@@ -2448,13 +2435,7 @@
         {
           "to": "crash",
           "text": "Trim a gem off every pile",
-          "action": [
-            "destroy:mine.gem_1:1",
-            "stat_gain:stock@bank.gem_1:1",
-            "destroy:enemy.gem_1:1",
-            "stat_gain:stock@bank.gem_1:1",
-            "draw_from:mine.bag:mine.hand:1"
-          ],
+          "action": ["destroy:mine.gem_1:1", "destroy:enemy.gem_1:1", "draw_from:mine.bag:mine.hand:1"],
           "spent": "mine.discard"
         }
       ],
@@ -2878,11 +2859,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_purple@mine.player": 1 },
-        "action": [
-          "stat_set:crashed@mine.player:count:gem_1@mine.gem_pile",
-          "destroy:mine.gem_1",
-          "stat_gain:stock@bank.gem_1:sum:crashed@mine.player"
-        ],
+        "action": ["stat_set:crashed@mine.player:count:gem_1@mine.gem_pile", "destroy:mine.gem_1"],
         "spent": "void"
       },
       "tooltip": "Trash all 1-gems from your gem pile. Send half that many 1-gems (rounded down) to an opponent, then trash this chip.\n\nDEV: the pile is emptied of 1-gems and the chip trashes itself. Half of them is not sent: the amount grammar multiplies and does not divide, so there is no way to write half of a number that is only known as the game runs."
@@ -3108,7 +3085,7 @@
       "text": "Everybody trashes a 1-gem",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": { "action": ["each_seat:destroy:mine.gem_1:1", "stat_gain:stock@bank.gem_1:2"] }
+      "play": { "action": ["each_seat:destroy:mine.gem_1:1"] }
     },
     {
       "key": "ef_ante",
@@ -3129,13 +3106,7 @@
       "text": "Trash a wound and take a red action",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": {
-        "action": [
-          "destroy:mine.hand:1",
-          "stat_gain:stock@bank.wound:1",
-          "stat_gain:act_red@mine.player:1"
-        ]
-      }
+      "play": { "action": ["destroy:mine.hand:1", "stat_gain:act_red@mine.player:1"] }
     },
     {
       "key": "nl_chips",

@@ -1216,6 +1216,27 @@ function M.check(G)
 				end
 			end
 		end
+
+		-- **And the same fault on the way in.** A destroy used to lose the
+		-- component, so a finite box had to be paid back by hand; now a destroy
+		-- puts it back itself and the payment is counted twice. Matched on the
+		-- list rather than the kind, because the scope that names what dies
+		-- ("mine.hand") often does not name a kind at all — and a top-up written
+		-- beside a destroy for some unrelated reason is a game nobody has
+		-- written.
+		local kills
+		for _, str in ipairs(list) do
+			if type(str) == "string" and str:match("^destroy") then kills = str; break end
+		end
+		if kills then
+			for _, str in ipairs(list) do
+				if type(str) == "string" and str:match("^stat_gain:stock@") then
+					warn("%s: '%s' pays the box back for '%s', which now pays itself — a destroyed "
+						.. "card goes home to the supply that stocks its kind, so this counts twice",
+						where, str, kills)
+				end
+			end
+		end
 	end
 
 	-- A target spec, wherever it is written: a card's "play.target", its
