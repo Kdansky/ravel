@@ -508,18 +508,20 @@
         "t3_black_19",
         "t3_black_20"
       ],
-      "activate": {
-        "phases": ["act"],
-        "cost": { "reserve_slots": 1 },
-        "action": [
-          "draw_from:t3_deck:mine.reserve:1",
-          "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
-          "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
-          "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
-      }
+      "abilities": [
+        {
+          "phases": ["act"],
+          "cost": { "reserve_slots": 1 },
+          "action": [
+            "draw_from:t3_deck:mine.reserve:1",
+            "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
+            "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
+            "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
+            "stat_set:done@mine.player:1",
+            "next_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "t3_row",
@@ -569,18 +571,20 @@
         "t2_black_29",
         "t2_black_30"
       ],
-      "activate": {
-        "phases": ["act"],
-        "cost": { "reserve_slots": 1 },
-        "action": [
-          "draw_from:t2_deck:mine.reserve:1",
-          "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
-          "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
-          "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
-      }
+      "abilities": [
+        {
+          "phases": ["act"],
+          "cost": { "reserve_slots": 1 },
+          "action": [
+            "draw_from:t2_deck:mine.reserve:1",
+            "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
+            "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
+            "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
+            "stat_set:done@mine.player:1",
+            "next_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "t2_row",
@@ -640,18 +644,20 @@
         "t1_black_39",
         "t1_black_40"
       ],
-      "activate": {
-        "phases": ["act"],
-        "cost": { "reserve_slots": 1 },
-        "action": [
-          "draw_from:t1_deck:mine.reserve:1",
-          "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
-          "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
-          "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
-          "stat_set:done@mine.player:1",
-          "next_phase"
-        ]
-      }
+      "abilities": [
+        {
+          "phases": ["act"],
+          "cost": { "reserve_slots": 1 },
+          "action": [
+            "draw_from:t1_deck:mine.reserve:1",
+            "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
+            "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
+            "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
+            "stat_set:done@mine.player:1",
+            "next_phase"
+          ]
+        }
+      ]
     },
     {
       "key": "t1_row",
