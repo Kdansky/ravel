@@ -108,7 +108,7 @@
       "tags": ["hidden"]
     },
     { "key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"] },
-    { "key": "stock", "min": 0, "max": 99, "icon": "card", "tags": ["hidden"] },
+    { "key": "stock", "min": 0, "max": 9999, "icon": "card", "tags": ["hidden"] },
     { "key": "on_sale", "min": 0, "max": 1, "on": ["chip"], "start": 0, "tags": ["hidden"] },
     { "key": "plus_act", "min": 0, "max": 9, "icon": "arrow", "tags": ["hidden"] },
     {
@@ -212,7 +212,7 @@
         "combine:20",
         "crash_gem:16",
         "double_crash:10",
-        "wound:24"
+        "wound:1000"
       ],
       "tooltip": "Every chip you may buy. A stack says how many are left; when stacks run dry the ante grows."
     },

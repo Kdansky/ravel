@@ -49,11 +49,11 @@ Two things left:
   the fault is in how an offer interacts with a deferred play rather than in
   either card — `flow.play_card` pops the overlay before running `chosen`, and
   the stack is empty by the time `settle` runs.]
-- **A turn with no money and an empty Wound stack cannot end.** The rulebook has
-  the escape — *"If there are no wounds left in the bank, you don't have to buy a
-  chip at all that turn"* — and it is a second condition on *End turn* that one
-  comparison cannot hold. Pre-existing; wants `or` between conditions
-  ([31](31-either-of-two.md)).
+
+The Wound stack is a thousand deep, which is the other half of the same rule.
+Twenty-four is how many fit in a box; the rulebook has to say what happens when
+they run out, and that sentence is a second condition on *End turn* that one
+comparison cannot hold. A stack nobody can exhaust never asks the question.
 
 **Two engine changes went in for this**, both narrow. A lone `activate` block now
 takes the `when` an entry in an `abilities` list always had — the two normalise

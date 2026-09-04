@@ -717,7 +717,13 @@ def zones():
          "status": "supply", "applies": ["buyable", "for_sale"], "pos": [0.005, 0.095, 0.225, 0.7],
          "contents": ([f"{gem_key(n)}:{stock}" for n, _, stock in GEMS]
                       + [f"{k}:{stock}" for k, _, _, stock in PURPLES]
-                      + ["wound:24"]),
+                      # Twenty-four is how many wounds fit in a box, not a rule.
+                      # The rulebook has to say what happens when they run out
+                      # ("you don't have to buy a chip at all that turn") and
+                      # that sentence is a second condition on *End turn* which
+                      # one comparison cannot hold — so the stack is deep enough
+                      # never to ask. A game that gets through five is unusual.
+                      + ["wound:1000"]),
          "tooltip": "Every chip you may buy. A stack says how many are left; when stacks run dry the ante grows."},
         # The two buttons sit on the middle line between the gem piles, where
         # they belong to whoever is up rather than to either side of the table.
@@ -869,7 +875,7 @@ def stats():
         # tooltip, where the exact words belong.
         {"key": "value", "min": 0, "max": 4, "icon": "diamond", "color": "green", "tags": ["hidden"]},
         {"key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"]},
-        {"key": "stock", "min": 0, "max": 99, "icon": "card", "tags": ["hidden"]},
+        {"key": "stock", "min": 0, "max": 9999, "icon": "card", "tags": ["hidden"]},
         # Sale Prices leaves this behind and cleanup takes it away. The discount
         # itself is not written anywhere: a tag holds it open, so the printed
         # price is never touched and there is nothing to restore.
