@@ -2368,11 +2368,15 @@ function M.check(G)
 					local td = tag_defs[tag]
 					for _, ab in ipairs(type(td) == "table" and type(td.abilities) == "table" and td.abilities or {}) do
 						if type(ab) == "table" and ab.merge == "this" then
+							-- Named the way the card side names it, because one tag may
+							-- hold both halves of the contradiction and "'shop' and 'shop'"
+							-- sends the author hunting a second tag that is not there.
+							local this = ("the tag '%s' ability '%s'"):format(tostring(tag), tostring(ab.key))
 							if sole then
-								warn("%s: hands out '%s' and '%s', and both say merge \"this\" — "
-									.. "a card lying here would be handed two whole answers", where, sole, tostring(tag))
+								warn("%s: hands out %s and %s, and both say merge \"this\" — "
+									.. "a card lying here would be handed two whole answers", where, sole, this)
 							else
-								sole = tostring(tag)
+								sole = this
 							end
 						end
 					end

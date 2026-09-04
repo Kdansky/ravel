@@ -1858,7 +1858,10 @@ def build():
 
 
 if __name__ == "__main__":
-    out = guard.destination("game/games/spellstorm.json", sys.argv[1:])
+    here = os.path.dirname(os.path.abspath(__file__))
+    out = guard.destination(os.path.join(here, "..", "game", "games", "spellstorm.json"), sys.argv[1:])
+    if out is None:
+        sys.exit(1)
     g = build()
     with open(out, "w") as f:
         f.write(jsonfmt.dump(g))

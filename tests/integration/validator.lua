@@ -752,6 +752,34 @@ function M.test_validator_catches_a_zone_granting_two_merge_this(check)
 		table.concat(validate.check(G), "; "))
 end
 
+-- The same contradiction inside one tag. It is worth its own test because the
+-- sentence is the whole of the diagnosis: nothing else catches this pairing, a
+-- zone-granted tag not being in the card's own `tags`, so a message naming the
+-- tag twice sends the author looking for a second one that does not exist.
+function M.test_validator_names_both_abilities_of_one_applied_tag(check)
+	local path = "game/games/tmp_merge_one_tag.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Merge one tag",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2],
+			"applies": ["shop"] }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"tags": {
+			"shop": { "abilities": [
+				{ "key": "buy",   "merge": "this", "action": ["next_phase"] },
+				{ "key": "steal", "merge": "this", "action": ["next_phase"] }] } },
+		"cards": [{ "key": "thing", "text": "Thing", "action": ["next_phase"] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_merge_one_tag.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local problems = validate.check(G)
+	check("both abilities of the one tag are named",
+		has_problem(problems, "the tag 'shop' ability 'buy' and the tag 'shop' ability 'steal'"),
+		table.concat(problems, "; "))
+end
+
 -- fill's card slot takes a template key or "@<scope>", and the second is checked
 -- as the scope it is: the key it will produce is not knowable until something is
 -- lying there, so all that can be read at authoring time is whether the scope

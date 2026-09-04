@@ -6,11 +6,4 @@ Remove fully completed entries when we have done them or moved them to other fil
 
 ## Open
 
-**The zone-`applies` merge warning names the same tag twice.** When one tag's
-`abilities` list has two entries both saying `merge: "this"`, the check at
-`validate.lua:2375` sets `sole` from the *tag* while looping over its
-*abilities*, so it reports "hands out 'for_sale' and 'for_sale'". The
-contradiction it found is real — that pairing is only caught here, since a
-zone-granted tag is not in the card's own `tags` — but the sentence sends the
-author looking for a second tag that does not exist. Report the ability keys
-when both come from one tag.
+_Nothing open._
