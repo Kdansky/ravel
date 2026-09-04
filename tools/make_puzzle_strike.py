@@ -333,7 +333,8 @@ TEXT = {
      "the gem power and the immunity are built. Redirecting what you buy onto your bag is answerable now, but the event names the *plate*, not the chip it dealt into your discard, so there is nothing to move.",
      {'plus_pow': 1, 'react': 1}),
     "training_day": ("Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing "
-                     "up to 2 more than the trashed chip into your hand.", None, {"plus_piggy": 1}),
+                     "up to 2 more than the trashed chip into your hand.",
+                     "the allowance is money and the piles price themselves, so what is handed over is a purse rather than a chip: a big enough one buys two cheap chips where the card grants one. Nothing counts purchases \u2014 buying is uncapped here, which is what the rulebook says about your own turn and not about this.", {"plus_piggy": 1}),
 
     # --- Shadows ------------------------------------------------------------
     "axe_kick": ("+1 brown action, +2 chips", None, {"plus_act": 1, "plus_draw": 2}),
@@ -452,7 +453,8 @@ TEXT = {
      "the bigger ante is built. Nothing can say an announcement may not be answered, and nothing can bar a pile from being bought, so the other two clauses have no spelling.",
      {}),
     "rigorous_training": ("Reaction: When an opponent buys a purple chip, trash a non-purple chip from your hand then gain a chip costing up to 2 more than the trashed chip.",
-     None, {'react': 1}),
+     "the allowance is money and the piles price themselves, so what is handed over is a purse rather than a chip: a big enough one buys two cheap chips where the card grants one. Nothing counts purchases \u2014 buying is uncapped here, which is what the rulebook says about your own turn and not about this.",
+     {'react': 1}),
     "purge_bad_habits": ("Trash a chip from your hand. Put a 2-gem from the bank into your hand. "
                          "(Character chips can't be trashed.)", None, {}),
 
@@ -582,13 +584,13 @@ TEXT = {
      "the reveal is built and nothing else is. \"6 or 9\" is two comparisons and a condition is one; making somebody else play their own chips has no spelling, since a copied action benefits whoever is up.",
      {}),
     "always_in_control": ("Main: +2 buys. At end of turn, +1 chip for each of these buys you used. Reaction: Become immune to a red chip.",
-     "the buys and the immunity are built. The chip per buy used is not: nothing counts how many of a particular grant were spent.",
+     "the immunity is built and the main half is not. There is no ceiling on buying here for two more to be added to \u2014 the rulebook states the floor, that you must buy at least one chip a turn, and nothing above it \u2014 so a grant of two more buys has nothing to be two more than, and the chip per buy used has nothing to count.",
      {'react': 1}),
 
     "rocket_punch": ("Main: Crash a 1-gem in your gem pile. Reaction: Before you're red-attacked or an opponent sends gems, crash a 1-gem at the attacker or sender.",
      None, {'react': 1}),
     "upgrade": ("+$1. Trash one or two chips from your hand, then for each chip trashed this way, gain a chip costing the same or 1 more.",
-     "built the way Training Day is: the allowance is money and the piles price themselves. It is one purse rather than one per chip, so a big trash and a small one can be spent as a single sum.",
+     "built the way Training Day is, and loose the same way: one purse rather than one per chip, so a big trash and a small one are spent as a single sum, and a sum that covers two cheap chips buys two.",
      {'plus_pow': 1}),
     "cog_engine": ("Ongoing: +$1, piggy bank. Discard this chip when you buy a purple or a chip costing 6 or more.",
      None, {'plus_pow': 1, 'plus_piggy': 1}),
@@ -835,7 +837,10 @@ def stats():
         # keeps one unplayed chip through cleanup, at the cost of drawing one
         # fewer (rules.md §4).
         player("piggy", "Piggy bank", "pot", "pink"),
-        player("buys", None, None, hidden=True),
+        # How many chips this turn has bought, and the only number buying reads.
+        # There is no matching allowance: the rule is a floor — "you must buy at
+        # least one chip" — and neither the box nor the rulebook puts a ceiling
+        # over it, so what stops a second chip is the money.
         player("bought", None, None, hidden=True),
         player("to_draw", None, None, hidden=True),
         player("crashed", None, None, hidden=True),
@@ -1033,7 +1038,6 @@ def puzzle_cards():
     def allowance(more):
         return ["stat_set:money@mine.player:sum:price@target",
                 "stat_gain:money@mine.player:%d" % more,
-                "stat_set:buys@mine.player:1",
                 "move_target_to:void",
                 "push_phase:react_buy"]
 
@@ -1396,7 +1400,6 @@ def character_chips():
                                    "where": ["not_tagged:purple@target"]},
                         "action": ["stat_set:money@mine.player:sum:price@target",
                                    "stat_gain:money@mine.player:2",
-                                   "stat_set:buys@mine.player:1",
                                    "move_target_to:void",
                                    "push_phase:react_buy"],
                         "spent": "mine.discard"}]},
@@ -1759,7 +1762,10 @@ def character_chips():
          "play": act(["show:enemy.hand:optional"])},
         {"key": "always_in_control", "text": "Always in Control", "tags": ["chip", "character", "blue"],
          "asset": "circle:violet",
-         "play": act(["stat_gain:buys@mine.player:2"]),
+         # Its main half is the one thing in the box that argued for a buy ceiling,
+         # and the ceiling lost: nothing else in the rules or on a chip rations
+         # buying, so a grant of two more has nothing to be two more *than*.
+         "play": act([]),
          "reactions": [{"to": "attack", "text": "Become immune",
                         "action": ["counterspell"], "spent": "mine.discard"}]},
         # Bal-Bas-Beta
@@ -1788,7 +1794,6 @@ def character_chips():
                   "action": ["stat_set:money@mine.player:sum:price@target",
                              "stat_gain:money@mine.player:count:chip@target",
                              "stat_gain:money@mine.player:1",
-                             "stat_set:buys@mine.player:count:chip@target",
                              "move_target_to:void",
                              "push_phase:react_buy"],
                   "spent": "mine.table"}},
@@ -2035,13 +2040,17 @@ def button_cards():
          "tooltip": "Finish the shopping you were handed and give the turn back. Whatever you did not spend goes back with it.",
          "activate": {"phases": ["react_buy"],
                       "action": ["stat_set:money@mine.player:0",
-                                 "stat_set:buys@mine.player:0",
                                  "pop_phase"]}},
         {"key": "end_turn", "text": "End turn", "tags": ["immutable"],
          "asset": "square:slate",
          "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
-         "activate": {"phases": ["buy"], "cost": {"bought@mine.player": 1},
-                      "action": ["next_phase"]}},
+         # A count, not a payment: the rule is a floor, so this asks whether the
+         # floor was reached and takes nothing away for asking — a cost would have
+         # spent the one purchase it was checking for. Written as a one-entry
+         # "abilities" list because a lone "activate" block has no "when".
+         "abilities": [{"key": "end_turn", "text": "End turn", "phases": ["buy"],
+                        "when": ["bought@mine.player >= 1"],
+                        "action": ["next_phase"]}]},
     ]
 
 
@@ -2109,7 +2118,6 @@ def phases():
                      "stat_set:acts@mine.player:1"]
                     + ["stat_set:%s:0" % arrow(c) for c in COLOURS]
                     + ["stat_set:piggy@mine.player:0",
-                       "stat_set:buys@mine.player:1",
                        "stat_set:bought@mine.player:0",
                        "stat_set:panic@clock:count:spent@bank",
                        # Whatever was kept back last cleanup, back in hand — the
@@ -2221,8 +2229,7 @@ def build():
                                    # of the three out loud. `take` is the record,
                                    # and the check is what `when` is for.
                                    "when": ["stock@self >= 1"],
-                                   "cost": {"buys@mine.player": 1,
-                                            "money@mine.player": "price@self"},
+                                   "cost": {"money@mine.player": "price@self"},
                                    "action": ["take:self:mine.discard:1",
                                               "stat_gain:bought@mine.player:1"]}]}},
         "zones": zones(),

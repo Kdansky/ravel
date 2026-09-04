@@ -229,7 +229,7 @@ function M.test_puzzle_strike_training_day_pays_an_allowance(check)
 		or entity.get(gem.id).zone_id == zones.find_id("void"))
 	check("and the allowance is its price plus two",
 		seat_card("south").stats.money == 7, seat_card("south").stats.money)
-	check("with a buy to spend it on", seat_card("south").stats.buys == 1)
+	check("and a shop to spend it in", phase.current().key == "react_buy", phase.current().key)
 end
 
 -- Sale Prices, which was "NOT MODELLED — a cost is a fixed number in this
@@ -398,8 +398,9 @@ function M.test_puzzle_strike_a_combine_over_four_is_refused(check)
 end
 
 -- You must buy at least one chip a turn, and a Wound is free — which is what
--- makes that rule a rule rather than a wish. The end-turn button spends the
--- counter, so the gate is the cost.
+-- makes that rule a rule rather than a wish. The button reads the tally rather
+-- than spending off it: a cost would have taken away the one purchase it was
+-- checking for.
 function M.test_puzzle_strike_a_turn_cannot_end_before_something_is_bought(check)
 	opening(7)
 	flow.activate(loose("done_acting").id, {})
@@ -410,6 +411,24 @@ function M.test_puzzle_strike_a_turn_cannot_end_before_something_is_bought(check
 	check("taking one counts as the buy", (seat_card("south").stats.bought or 0) == 1)
 	check("it went to the discard, not the hand", count_in("discard", "south", "wound") == 1)
 	check("and now the turn may end", flow.can_activate(loose("end_turn").id))
+end
+
+-- And nothing above the floor. The rulebook states the one rule and no other —
+-- there is no "one buy a turn" anywhere in it — so what stops a second chip is
+-- the money, which is why every chip on the table can be spent.
+function M.test_puzzle_strike_a_turn_buys_as_much_as_it_can_afford(check)
+	opening(7)
+	flow.activate(loose("done_acting").id, {})
+	seat_card("south").stats.money = 20
+	for _, chip in ipairs({ "risky_move", "draw_three", "recklessness" }) do
+		flow.activate(find_in("bank", chip).id, {}, 1)
+	end
+	check("all three are in the discard", count_in("discard", "south", "risky_move") == 1
+		and count_in("discard", "south", "draw_three") == 1
+		and count_in("discard", "south", "recklessness") == 1,
+		table.concat(keys_in("discard", "south"), " "))
+	check("and the turn counted three buys", seat_card("south").stats.bought == 3,
+		seat_card("south").stats.bought)
 end
 
 -- An empty stack refuses the sale rather than charging for it. `stock@self` as a
@@ -1206,7 +1225,6 @@ function M.test_puzzle_strike_rigorous_training_buys_out_of_turn(check)
 	local fodder = zones.add(zone_of("hand", two), "draw_three")
 	flow.activate(loose("done_acting").id, {})
 	seat_card(one).stats.money = 9
-	seat_card(one).stats.buys  = 1
 
 	-- The rule is the colour, not the price: an eight-cost brown chip is not a
 	-- purple and opens no window, which is the check a price test would pass by
@@ -1233,7 +1251,8 @@ function M.test_puzzle_strike_rigorous_training_buys_out_of_turn(check)
 	check("the shopping phase is up", phase.current().key == "react_buy", phase.current().key)
 	check("and it belongs to the reactor", zones.active_seat() == two, zones.active_seat())
 
-	-- What the allowance is *for*: it gates the shop without anything filtering it.
+	-- What the allowance is *for*: it gates the shop without anything filtering it,
+	-- and it is the only gate there is.
 	check("a pile within the allowance is buyable",
 		flow.can_activate(find_in("bank", "one_of_each").id))
 	check("one over it is not",
@@ -1243,6 +1262,13 @@ function M.test_puzzle_strike_rigorous_training_buys_out_of_turn(check)
 	check("the gained chip is in the reactor's discard",
 		count_in("discard", two, "one_of_each") == 1,
 		table.concat(keys_in("discard", two), " "))
+
+	-- And the purse is all that stops a second one. What was handed over is
+	-- money, so an allowance big enough for two cheap chips buys two — the same
+	-- looseness Upgrade's one-purse-for-two-chips already had, and the price of
+	-- buying being uncapped everywhere rather than in one phase and not the other.
+	seat_card(two).stats.money = 20
+	check("a fat enough purse buys again", flow.can_activate(find_in("bank", "roundhouse").id))
 
 	flow.activate(find_in("controls", "finish_shopping").id, {}, 1)
 	check("the interjection is over", phase.current().key ~= "react_buy", phase.current().key)
@@ -1416,7 +1442,7 @@ function M.test_puzzle_strike_flagstone_tax_prices_an_opponent_out(check)
 		end
 		for _ = 1, south_pile do zones.add(zone_of("gem_pile", "south"), "gem_1") end
 		for _ = 1, north_pile do zones.add(zone_of("gem_pile", "north"), "gem_1") end
-		seat_card("north").stats.money, seat_card("north").stats.buys = 20, 1
+		seat_card("north").stats.money = 20
 		local before = count_in("discard", "north", "roundhouse")
 		flow.activate(find_in("bank", "roundhouse").id, {}, 1)
 		if zones.active_seat() ~= "north" then flow.pass_react() end
