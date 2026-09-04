@@ -432,7 +432,7 @@ do
 	local offer = zones.find("options")
 	local box = zones.find("chip_box")
 	-- init lands in the character pick, whose roster is sitting in the offer.
-	for i = #offer.cards, 1, -1 do zones.move_card(offer.cards[i], zones.find_id("void")) end
+	for i = #offer.cards, 1, -1 do zones.move_card(offer.cards[i], zones.find_id("box")) end
 	for _ = 1, 41 do
 		local cid = box.cards[#box.cards]
 		if not cid then break end

@@ -15,16 +15,32 @@ within a commit.
 
 ## Open, from playing it
 
-**Six gems still go to the void rather than the bank.** A destroyed component
-now returns to whatever supply stocks it, and ten sites in the generator lost
-the refund they used to write by hand. What did not move is the crash path:
-breaking a gem is `move_target_to:void`, so the broken 2- and 3-gems sit in an
-offscreen stack for ever instead of going back in the box. `destroy:target` says
-it now, and a finite bank is the point. [Assumption: the reason to look before
-changing it is that `tests/integration/puzzle_strike.lua` asserts a broken gem's
-`zone_id == zones.find_id("void")` in at least one place, and whether `void` is
-still wanted for anything else — chips spent with `spent: "void"` are a move and
-unaffected.]
+**Every broken gem goes back in the box** — shipped 2026-09-05. Nine sites, not
+six: the crash path, both combines, both upgrades, Gem Essence, Pilebunker, More
+Shiny. All of them said `move_target_to:void` and say `destroy:target` now, which
+is the same removal plus the refund `destroy` has made since a destroyed
+component learned where it belongs. A 3-gem crashed is three 1-gems out of the
+bank and a 3-gem in, so the box nets two shallower rather than five — and the ante
+clock, which counts empty stacks, was reading a bank that only ever drained.
+
+Two tests had to stop conjuring gems to count the bank honestly (`gem_from_bank`),
+and one assertion changed meaning: a gem broken and its crash shielded leaves the
+bank one *deeper* than it started, because the gem left play and only one came
+out of the box to answer it.
+
+**And so does every trashed chip.** `rules.md` lists the trashing mechanism among
+the things its research could not confirm; the answer, from somebody who has
+played it, is that **a trashed chip always goes back on its plate, and character
+chips cannot be trashed at all**. Eleven `move_target_to:void` became
+`destroy:target` and the eight chips that trash *themselves* became
+`destroy_self` — `destroy` rather than a move into the bank because the engine
+decides where a thing belongs, which is what makes the two character chips whose
+own text trashes them safe: nothing stocks a character chip, so one is simply out
+of the game. A move would have built it a plate.
+
+**The `void` zone is gone**, having nothing left in it. It was the offscreen
+stack that stood in for "out of the game" while trashing was a move, and now that
+leaving play is a verb the engine answers, no game rule names a place for it.
 
 
 **Buying has a floor and no ceiling** — shipped 2026-09-04. The rulebook states
@@ -56,32 +72,24 @@ And `take` reaches a shelf lent to an offer (`zones.supply_home` asks where a
 shelf *belongs*, not where it is standing), which is what makes offering the bank
 and taking out of the pick one sentence rather than a `fill` that conjures.
 
-**Signature Move only does its first half.** *From `todo.md`: "It should open a
-choose window, let me pick a chip from hand to play, or if that's impossible,
-clone one, make the effect happen, and discard the chip. That looks like playing,
-but doesn't cause costs."* The chip reads *"Search your bag or discard pile for a
-character chip and put it in your hand. You may play a character chip."* — the
-search is built (`make_puzzle_strike.py:1260`), the play is not, and its `DEV:`
-line says "nothing plays a card without its cost". That line is wrong now:
-`copy:target:play` is exactly a play without a cost, and X-Copy already uses it.
+**Signature Move plays what it fetches** — shipped 2026-09-05. The second
+question lives on a rules card in `rules_signature`, the way the piggy bank and
+Spellstorm's *New Curriculum* do, because a card has one `chosen` and these two
+questions mean different things by the answer. Its `chosen` is
+`["copy:target:play", "move_target_to:mine.table"]`: `copy:` runs the chip's
+action list and nothing else, which is a play without a cost, and the chip is
+moved by hand because `spent` is the field a real play uses and there is no real
+play here. The ordering falls out of the offer queue with nothing said about it —
+one offer is open at a time, `show:` writes down the one it could not open, so
+the chip the search fetched is in the hand the second question opens.
 
-Three pieces, none of them engine work:
-
-- **The second question needs a second asker.** One card has one `chosen`, and
-  these two questions want different answers — so the "you may play a character
-  chip" half goes on a rules card that Signature Move activates, the way
-  Spellstorm's *New Curriculum* reaches its own second window. The rules card's
-  `chosen` is `["copy:target:play", "move_target_to:mine.table"]`.
-- **The search reaches only the bag.** `show:mine.bag:optional` misses the
-  discard pile the card names. `mine.everywhere.character` is the one scope that
-  spans both — it also spans hand, table and gem pile, which is
-  wider than the card says. [Assumption: offering a chip already in hand is
-  harmless, since moving it to hand is a no-op, and one already on the table is
-  the case that would read wrong.] Decide between that and two separate offers.
-- **The `copy:` chip is discarded, not spent.** `spent:` is the field a real play
-  uses and there is no real play here, so the chosen chip is moved by hand.
-  [Assumption: `mine.table` is right, matching where a played chip sits until
-  cleanup, rather than straight to the discard pile.]
+**And its search reaches both piles**, which needed no new word either: the bag
+and the discard each `applies` a tag saying where a card is, and `stowed` is the
+union of the two, so `mine.everywhere.character_stowed` is "a character chip in
+your bag or your discard pile" and nothing else. The names come off the *zones*,
+so no chip declares either and both stay true as it cycles — and a chip in hand
+is not stowed, which is exactly the line the card draws. The pattern is
+Spellstorm's `held`, written down at `AUTHORING.md` §`any_of`.
 
 **The kept-back zone should be called "piggybank".** One rename in the generator
 and its zone key; the rules call the whole option the *Piggy Bank* and the file

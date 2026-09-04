@@ -47,6 +47,12 @@ local function find_in(key, def_key, seat)
 	end
 end
 
+-- Out of the box, not conjured. A broken gem goes home now, so a test that
+-- counts the bank only balances if the gem it breaks came from there.
+local function gem_from_bank(seat, def_key)
+	return zones.take(find_in("bank", def_key), zone_of("gem_pile", seat).id)
+end
+
 local function loose(def_key)
 	for e in entity.each("card") do
 		if e.def_key == def_key and e.zone_id then return e end
@@ -229,8 +235,7 @@ function M.test_puzzle_strike_training_day_trades_a_chip_in(check)
 
 	seat_card("south").stats.act_brown = 1
 	check("it is played on the Risky Move", flow.play_card(td.id, { fodder.id }))
-	check("the chip was trashed", entity.get(fodder.id).zone_id == nil
-		or entity.get(fodder.id).zone_id == zones.find_id("void"))
+	check("the chip was trashed", entity.get(fodder.id).zone_id == nil)
 	check("and the budget is its price plus two",
 		seat_card("south").stats.budget == 3, seat_card("south").stats.budget)
 
@@ -785,6 +790,73 @@ function M.test_puzzle_strike_a_piggy_bank_keeps_a_chip_for_next_turn(check)
 	check("and the shelf is empty", count_in("stash", "south") == 0)
 end
 
+-- Signature Move asks two questions and a card has one `chosen`, so the second
+-- one lives on a rules card. What this is really testing is that the two do not
+-- collide: one offer is open at a time, the second waits its turn, and the chip
+-- the first fetched is in the hand the second opens.
+--
+-- The play itself is `copy:`, which runs the chip's action list and nothing
+-- else — no action spent, no phase asked about — so a chip fetched and played
+-- costs the one action Signature Move cost.
+function M.test_puzzle_strike_signature_move_plays_what_it_fetched(check)
+	opening(7, "jaina", "argagarg")
+	local sig = zones.add(zone_of("hand", "south"), "signature_move")
+	zones.add(zone_of("bag", "south"), "riposte")
+	-- One in each pile, because reaching both is the whole of what the union
+	-- tag is for: the seat's own three are in the bag along with six gems.
+	zones.add(zone_of("discard", "south"), "stone_wall")
+	local me = seat_card("south")
+	me.stats.act_brown = (me.stats.act_brown or 0) + 1
+	local acts, piggy = me.stats.acts or 0, me.stats.piggy or 0
+
+	check("it is played", flow.play_card(sig.id, {}))
+	check("the search comes up", phase.current().type == "overlay")
+	-- The scope is the question, so there is nothing in the offer to refuse:
+	-- character chips out of the two piles, none of the gems beside them, and
+	-- not the third of the seat's own three — that one was drawn, and a chip in
+	-- hand is not stowed.
+	check("holding the character chips out of both piles and nothing else",
+		count_in("options") == 4 and find_in("options", "riposte")
+		and find_in("options", "stone_wall") and not find_in("options", "gem_1"),
+		table.concat(keys_in("options"), " "))
+	flow.play_card(find_in("options", "riposte").id, {})
+
+	-- The hand it went to is what the second question opens, so the chip is
+	-- found in the offer rather than in the zone it was moved to — which is the
+	-- point: it arrived in time to be played.
+	check("and the hand comes up behind it, the found chip in it",
+		phase.current().type == "overlay" and find_in("options", "riposte") ~= nil,
+		table.concat(keys_in("options"), " "))
+	check("declining is an answer", flow.can_dismiss())
+	flow.play_card(find_in("options", "riposte").id, {})
+	check("the chip went off", me.stats.acts == acts + 1 and me.stats.piggy == piggy + 1,
+		me.stats.acts .. "/" .. me.stats.piggy)
+	check("and it lies on the table with the chip that fetched it",
+		find_in("table", "riposte", "south") ~= nil,
+		table.concat(keys_in("table", "south"), " "))
+	check("the action phase is still the seat's", zones.active_seat() == "south",
+		zones.active_seat())
+end
+
+-- Nothing to fetch and nothing to play: both questions still open, and both are
+-- declined. A card that asks twice must not strand the turn when the answer to
+-- each is "nothing".
+function M.test_puzzle_strike_signature_move_may_find_and_play_nothing(check)
+	opening(7, "jaina", "argagarg")
+	local sig = zones.add(zone_of("hand", "south"), "signature_move")
+	local me = seat_card("south")
+	me.stats.act_brown = (me.stats.act_brown or 0) + 1
+
+	check("it is played", flow.play_card(sig.id, {}))
+	check("the search comes up", phase.current().type == "overlay")
+	flow.dismiss_offer()
+	check("and the hand comes up behind it", phase.current().type == "overlay")
+	flow.dismiss_offer()
+	check("both declined, and the turn is back", phase.current().type ~= "overlay",
+		phase.current().key)
+	check("still the seat's own", zones.active_seat() == "south", zones.active_seat())
+end
+
 -- Without the ability nothing is asked: the cleanup runs straight through.
 function M.test_puzzle_strike_no_piggy_bank_no_question(check)
 	opening(7)
@@ -884,7 +956,7 @@ function M.test_puzzle_strike_bubble_shield_takes_a_gem_back_off(check)
 	local pl = seat_card(one)
 	pl.stats.act_purple = (pl.stats.act_purple or 0) + 1
 	-- Something of one's own to break, so the crash has a size at all.
-	local mine = zones.add(zone_of("gem_pile", one), "gem_1")
+	local mine = gem_from_bank(one, "gem_1")
 
 	local before = count_in("gem_pile", two, "gem_1")
 	local stock = find_in("bank", "gem_1").stats.stock
@@ -908,7 +980,12 @@ function M.test_puzzle_strike_bubble_shield_takes_a_gem_back_off(check)
 	flow.react(shield.id, 1, {})
 	check("and the shield took it straight back off",
 		count_in("gem_pile", two, "gem_1") == before, count_in("gem_pile", two, "gem_1"))
-	check("the bank is whole again", find_in("bank", "gem_1").stats.stock == stock, stock)
+	-- One deeper than it started, and that is the crash paid for: the gem broken
+	-- to send it went home, the gem sent came home when the shield took it off,
+	-- and only one of the two left the box in the first place.
+	check("both gems are back in the box, and the crasher is a gem down",
+		find_in("bank", "gem_1").stats.stock == stock + 1,
+		find_in("bank", "gem_1").stats.stock)
 	-- It walks to the discard and turns back into the chip you buy, so the bag it
 	-- comes back in holds a Bubble Shield rather than the laid-out half of one.
 	check("the shield is spent", entity.get(shield.id).zone_id == nil)
@@ -1088,7 +1165,8 @@ function M.test_puzzle_strike_reversal_counter_crashes(check)
 		if z.seat ~= one then two = z.seat end
 	end
 	local rev = zones.add(zone_of("hand", two), "reversal")
-	local back = zones.add(zone_of("gem_pile", two), "gem_2")
+	local back = gem_from_bank(two, "gem_2")
+	local two_stock = find_in("bank", "gem_2").stats.stock
 
 	local crash = loose("crash_gem")
 	zones.move_card(crash.id, zone_of("hand", one).id)
@@ -1110,7 +1188,10 @@ function M.test_puzzle_strike_reversal_counter_crashes(check)
 	check("the two cancelled gems went home to the bank",
 		find_in("bank", "gem_1").stats.stock == stock + 2,
 		find_in("bank", "gem_1").stats.stock)
-	check("the broken gem is out of play", entity.get(back.id).zone_id == zones.find_id("void"))
+	check("and the gem it broke went back in the box",
+		entity.get(back.id).zone_id == nil
+		and find_in("bank", "gem_2").stats.stock == two_stock + 1,
+		find_in("bank", "gem_2").stats.stock)
 	-- Nothing is left in flight, so there is nothing for the attacker to answer
 	-- and priority comes straight back.
 	check("the counter sent nothing, so nobody is asked about it",
@@ -1256,7 +1337,7 @@ function M.test_puzzle_strike_rigorous_training_shops_out_of_turn(check)
 		#offer == 1 and offer[1].card == rt.id, #offer)
 
 	flow.react(rt.id, 1, { fodder.id })
-	check("the trashed chip is gone", entity.get(fodder.id).zone_id == zones.find_id("void"))
+	check("the trashed chip is gone", entity.get(fodder.id).zone_id == nil)
 	-- 3 for the Draw Three, plus the two the card gives.
 	check("the budget is the price plus two", seat_card(two).stats.budget == 5,
 		seat_card(two).stats.budget)
@@ -1307,8 +1388,7 @@ function M.test_puzzle_strike_double_take_plays_a_chip_twice_and_trashes_it(chec
 		seat_card("south").stats.piggy)
 	check("and drew twice", count_in("hand", "south") == held + 1,
 		held .. " -> " .. count_in("hand", "south"))
-	check("the copied chip was trashed", entity.get(bot.id).zone_id == nil
-		or entity.get(bot.id).zone_id == zones.find_id("void"))
+	check("the copied chip was trashed", entity.get(bot.id).zone_id == nil)
 	check("the bank kept every stack", count_in("bank") == 18, count_in("bank"))
 	check("and the action phase is over", phase.current().key ~= "action", phase.current().key)
 end
