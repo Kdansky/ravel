@@ -27,35 +27,41 @@ still wanted for anything else — chips spent with `spent: "void"` are a move a
 unaffected.]
 
 
-**Buying is gated at one chip a turn, and it should not be.** *From `todo.md`:
-"Per the rules it is legal to buy multiple chips per round, not just one."* The
-`for_sale` ability costs `buys@mine.player: 1` and the buy phase opens by setting
-`buys` to 1 (`make_puzzle_strike.py:1034`, `:2229`), so the second purchase is
-refused however much money is on the table. Nothing else needs building: money is
-already computed fresh each turn and spent down, and *End turn* already costs
-`bought@mine.player: 1`, which is the "must buy at least one" half of the rule
-enforced from the other side. Dropping the `buys` cost is the whole change.
+**Buying has a floor and no ceiling** — shipped 2026-09-04. The rulebook states
+one rule about how much a turn may buy, *"you must buy at least one chip per
+turn"*, and nothing above it, so the `buys` stat is gone: nothing spends it and
+nothing needs to. *End turn* reads `bought` with a `when`.
 
-**And `buys` was never a resource — that was a transcription error.** Always in
-Control does not read "+2 buys". The chip reads *"Main: +2 piggy. At the end of
-the turn, +draw for each of these pigs you used. React: Become immune to a Red
-Attack Chip."* — piggy bank keeps, not purchases. So nothing in the box argues
-for a buy ceiling, and the rule is settled: **buy as many chips as you can
-afford, and at least one — a Wound if you are broke.** Three changes, and the
-chip's own text is one of them:
+Two things it left behind:
 
-- drop `buys@mine.player: 1` from the `for_sale` cost, and stop setting `buys` at
-  the top of the buy phase;
-- fix Always in Control to grant piggy-bank keeps and draw per pig used, and
-  re-check its `DEV:` line — "nothing counts how many of a particular grant were
-  spent" is still true, but of pigs rather than of buys;
-- keep *End turn* costing `bought@mine.player: 1`, which is the "at least one"
-  half already enforced from the other side, and which is the button that ends
-  the buy phase now that the phase no longer ends itself when the single buy is
-  spent.
+- **The allowance is a purse, and a fat one buys twice.** Training Day, Rigorous
+  Training and Upgrade hand over money and push a borrowed buy phase; `buys` was
+  what made "gain *a* chip costing up to 2 more" mean one chip. Two abilities on
+  the bank plate, one per phase, is not the way back — `cards.merged` keeps both
+  when both say merge `"this"`, so the positional ability index reaches for the
+  wrong one and the borrowed buy stops working. All three chips say it in their
+  DEV lines. The honest fixes are `or` between conditions
+  ([31](31-either-of-two.md)) so one ability can ask "my own phase, or I still
+  have an allowance", or a per-phase ration the format has no word for.
+- **A turn with no money and an empty Wound stack cannot end.** The rulebook has
+  the escape — *"If there are no wounds left in the bank, you don't have to buy a
+  chip at all that turn"* — and it is a second condition on *End turn* that
+  `when` cannot hold as one comparison. Pre-existing; the same `or`.
 
-Check `stat_set:buys` at every other site before deleting the stat —
-`make_puzzle_strike.py` writes it in seven places, and Mix-Master is one of them.
+**An engine gap, found here:** a lone `activate` block has no `when`, though an
+entry in an `abilities` list does. *End turn* is written as a one-entry
+`abilities` list for that reason alone. [Assumption: this is an oversight in
+`ACTIVATE_FIELDS` rather than a decision — `check_ability` validates `when` on
+the list form, `declaration.lua` normalises the two into the same shape, and
+nothing in `AUTHORING.md` says a button may not have a condition.]
+
+**And "+2 buys" was not a transcription error.** An earlier pass recorded that
+Always in Control really reads "+2 piggy"; `chips.md` line 335 says otherwise and
+is read off a photograph of the owner's own third-edition chip. The chip does
+print "+2 buys" — it is Dominion's +Buy, and it is the one thing in the box that
+argued for a ceiling. The ceiling lost on the rulebook's silence, so the chip's
+main half now has nothing to grant and its DEV line says so. Its reaction is
+untouched.
 
 **Signature Move only does its first half.** *From `todo.md`: "It should open a
 choose window, let me pick a chip from hand to play, or if that's impossible,
