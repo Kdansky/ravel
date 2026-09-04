@@ -15,6 +15,18 @@ within a commit.
 
 ## Open, from playing it
 
+**Six gems still go to the void rather than the bank.** A destroyed component
+now returns to whatever supply stocks it, and ten sites in the generator lost
+the refund they used to write by hand. What did not move is the crash path:
+breaking a gem is `move_target_to:void`, so the broken 2- and 3-gems sit in an
+offscreen stack for ever instead of going back in the box. `destroy:target` says
+it now, and a finite bank is the point. [Assumption: the reason to look before
+changing it is that `tests/integration/puzzle_strike.lua` asserts a broken gem's
+`zone_id == zones.find_id("void")` in at least one place, and whether `void` is
+still wanted for anything else — chips spent with `spent: "void"` are a move and
+unaffected.]
+
+
 **Buying is gated at one chip a turn, and it should not be.** *From `todo.md`:
 "Per the rules it is legal to buy multiple chips per round, not just one."* The
 `for_sale` ability costs `buys@mine.player: 1` and the buy phase opens by setting

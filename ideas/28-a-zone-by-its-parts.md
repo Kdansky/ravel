@@ -1,49 +1,11 @@
 # 28 — A zone by its parts
 
-**Shipped** (2026-08-26). A zone's `type` answered seven questions at once; the
-seven are asked separately now.
-
-## Still open — where a destroyed card goes
-
-*From `todo.md`: "the bank should be where trashed cards go by default, in all
-cases — so if Argagarg's Bubble Shield takes a gem off a pile it goes back to the
-bank without extra logic. The zone half of this is done (`status: "supply"`, and
-moving a card into one already turns it back into stock); what is missing is the
-default destination, so nothing has to name the bank."*
-
-`zones.add` already reclaims: put a gem into a supply and it stops being a card
-and becomes that pile's `stock` going up. What has no answer is the *other*
-direction. `destroy_card` unhooks the card from its zone and clears its stats
-(`zones.lua:569`), and `HANDLERS["destroy"]` calls it directly — so a chip that
-leaves a player's deck leaves the game, and a game whose components are finite
-has to name the bank at every site that removes one.
-
-The rule wanted is: **a destroyed card goes back to the supply that stocks its
-kind, if there is one, and out of the game otherwise.** No verb changes, no field
-is added, and `destroy:` keeps meaning "take this out of play".
-
-Three things it has to decide, and none of them is obvious:
-
-- **What "the supply that stocks its kind" means when two zones do.** [Assumption:
-  the lookup is by `def_key` against the supply zones that already hold a face
-  card of it, which is what `face_card` answers; a def stocked by two supplies is
-  an authoring error the validator should refuse rather than a precedence rule
-  the engine invents.]
-- **Whether a supply that has never held the def counts.** A bank that starts
-  with eight 1-gems has a face card for `gem_1`; a bank that has been emptied to
-  zero still has one, because `zones.add` keeps the face card and moves the
-  number. [Assumption: a supply that has *never* held the kind is not its home,
-  so a game that wants the box to take back a card it never dealt says so with a
-  `contents` line of `:0`.]
-- **Whether this is `destroy` or something beside it.** Reclaiming is a real
-  change to what `destroy:` does in every game that has a supply — Splendor's
-  tokens, Puzzle Strike's gems. [Assumption: it is the same verb; the games where
-  it changes behaviour are the games that wanted it, and a second verb makes
-  every author choose between two words for one act.]
-
-`zones.destroy_card` is the single choke point — `HANDLERS["destroy"]`,
-`destroy_self` and the grid's `on_occupied: "destroy"` all reach it — so the
-change is one lookup there.
+**Shipped whole** (2026-08-26), and `supply` is a fourth `status` since. A
+zone's `type` answered seven questions at once; the seven are asked separately
+now. Where a destroyed card goes shipped 2026-09-04 with no new word — a
+supply's shelves are already the game's statement of what it stocks, so
+`zones.destroy_card` looks the kind up against them. Written up in
+ARCHITECTURE.md's supply section.
 
 ## Why it reopened
 
@@ -147,6 +109,11 @@ documents moved, and three defaults come from a neighbour.
 ## Decided
 
 - **Fields, not tags**, for 06's reason.
+- **A destroyed component goes back in its box, and `destroy:` is the verb that
+  does it.** A second verb would make every author choose between two words for
+  one act, and the games where it changes behaviour are the games that wanted
+  it. Two boxes stocking one kind takes the first that matches: a precedence
+  rule invented ahead of its customer is a rule nobody chose.
 - **No `type` shorthand kept alongside.** One question, one spelling; a preset
   beside the fields it expands to is the same question asked twice.
 - **`face_up`/`face_down` stop being tags** — they are `visibility` values that
