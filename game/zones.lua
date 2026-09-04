@@ -538,12 +538,19 @@ function M.move_card(card_id, to_id, where)
 	-- means from the other direction. Written here rather than only in `add` so
 	-- that every way of moving a card lands right: a draw, a return_to, a rule
 	-- that sends what it trashes to the box.
-	if c and to and to.status == "supply" then
+	--
+	-- **Unless it is going back to the zone that lent it**, which is a return and
+	-- not an arrival. Collapsing a shelf into a number and building an equivalent
+	-- one loses the identity, and whatever borrowed it may still be holding the
+	-- old one: a buy waiting on the stack names the plate it was announced for,
+	-- and an offer of the whole bank sends every plate home before that record
+	-- resolves. It left as this card and it comes back as this card, still as
+	-- deep as it was, because nothing touched the number written on it.
+	if c and to and to.status == "supply" and c.borrowed_from ~= to_id then
 		local key = c.def_key
 		-- What it is worth as stock. One for an ordinary card being put in the
-		-- box; its own number for a card that *was* a shelf and is coming back —
-		-- an offer borrows the real card, and a stack lent to a question has to
-		-- return as deep as it left.
+		-- box; its own number for a stack lent to a question and sent somewhere
+		-- other than home, which has to arrive as deep as it left.
 		local worth = tonumber(c.stats and c.stats.stock) or 1
 		unhook(c)
 		local e = M.add(to, key)

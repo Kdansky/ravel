@@ -861,7 +861,6 @@ local function clear_offer(oz, keep)
 		local c    = cid ~= keep and entity.get(cid)
 		local home = c and c.borrowed_from
 		if home and entity.get(home) then
-			c.borrowed_from = nil
 			zones.move_card(cid, home)
 		elseif c then
 			zones.destroy_card(cid)
@@ -956,7 +955,6 @@ function M.play_card(card_id, targets)
 	if offer and picked and picked.zone_id == offer then
 		local home = picked.borrowed_from
 		if home and entity.get(home) then
-			picked.borrowed_from = nil
 			zones.move_card(card_id, home)
 		else
 			zones.destroy_card(card_id)

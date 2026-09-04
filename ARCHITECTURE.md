@@ -394,6 +394,15 @@ the word at a real game rather than a fixture:
   the `chosen` actions have had their say, which is exactly when a card that
   offered the bank says what to take out of it — without that, the only spelling
   left was a `fill`, which conjures and leaves the box's count untouched.
+- **A card going back to the zone that lent it is returning, not arriving**, so
+  the collapse above is skipped for it. A shelf that is rebuilt is a shelf with a
+  new id, and whatever borrowed it may still be holding the old one — a buy
+  waiting on the stack names the plate it was announced for, and an offer of the
+  whole bank sends every plate home before that record resolves. The symptom was
+  a bought chip that never arrived while every other part of the buy happened,
+  which is what a `self` pointing at a destroyed card looks like from outside.
+  The two return sites used to clear `borrowed_from` before the move, which is
+  what left `move_card` unable to tell the two apart; it clears the field itself.
 
 **A component leaving the box was two statements until `take`.** A `fill` that
 conjured it beside a `stat_damage:stock` that paid for it: nothing tied them
