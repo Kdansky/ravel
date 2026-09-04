@@ -195,8 +195,8 @@ def zones():
             # The box answers, not the card on top of it. A deck has no
             # clickable cards, which is also why nothing has to hide the face
             # of the one you are about to draw.
-            "activate": {"phases": ["draw"],
-                         "action": ["draw_from:deck:hand:1", "next_phase"]},
+            "abilities": [{"phases": ["draw"],
+                         "action": ["draw_from:deck:hand:1", "next_phase"]}],
             "contents": ["%s_w%d" % (c, w) for c, _, _, _ in COLOURS for w in range(1, WAGERS + 1)]
                         + ["%s_%d" % (c, v) for c, _, _, _ in COLOURS for v in VALUES]},
            {"key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": HAND_POS},
@@ -283,11 +283,11 @@ TAG_DEFS = {
         },
     } for c, _, _, _ in COLOURS},
     "takeable": {
-        "activate": {
+        "abilities": [{
             "action": ["move_to:hand", "next_phase"],
             "phases": ["draw"],
 
-        },
+        }],
         "tooltip": "Take this card into your hand.",
     },
 }

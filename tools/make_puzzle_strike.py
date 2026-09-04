@@ -2048,7 +2048,7 @@ def button_cards():
         {"key": "done_acting", "text": "Done acting", "tags": ["immutable"],
          "asset": "triangle:silver",
          "tooltip": "Finish your action phase and go on to buying. Any actions you have left are lost.",
-         "activate": {"phases": ["action"], "action": ["next_phase"]}},
+         "abilities": [{"phases": ["action"], "action": ["next_phase"]}]},
         # The cost is the rule: you must buy at least one chip a turn, and the
         # counter is reset on the way into the next one, so spending it here
         # costs nothing that is not about to be thrown away.
@@ -2059,7 +2059,7 @@ def button_cards():
         {"key": "pick_chip", "text": "Choose a chip", "tags": ["immutable"],
          "asset": "square:teal",
          "tooltip": "Open the box and put one Puzzle chip into the bank. Ten of them make a game.",
-         "activate": {"phases": ["build_bank"], "action": ["show:chip_box:optional"]},
+         "abilities": [{"phases": ["build_bank"], "action": ["show:chip_box:optional"]}],
          # A card moved into a supply becomes a number, so the pick arrives as a
          # stack of one; this is what makes it a stack of five. Said over every
          # Puzzle chip in the bank rather than the one just picked, because at
@@ -2069,28 +2069,28 @@ def button_cards():
          "asset": "square:amber",
          "tooltip": "Fill whatever is left of the bank at random. Press it first for a random bank, or after "
                     "choosing a few to leave the rest to chance.",
-         "activate": {"phases": ["build_bank"],
+         "abilities": [{"phases": ["build_bank"],
                       "action": ["shuffle:chip_box",
                                  "stat_set:to_pick@clock:10",
                                  "stat_damage:to_pick@clock:count:puzzle@bank",
                                  "draw_from:chip_box:bank:sum:to_pick@clock",
-                                 "stat_set:stock@each.bank.puzzle:%d" % PUZZLE_STOCK]}},
+                                 "stat_set:stock@each.bank.puzzle:%d" % PUZZLE_STOCK]}]},
         # The way out of a borrowed buy phase. No cost: buying at least one chip
         # is a rule about your own turn, and this is not one.
         {"key": "finish_shopping", "text": "Done", "tags": ["immutable"],
          "asset": "square:slate",
          "tooltip": "Finish the shopping you were handed and give the turn back. Whatever you did not spend goes back with it.",
-         "activate": {"phases": ["react_buy"],
+         "abilities": [{"phases": ["react_buy"],
                       "action": ["stat_set:money@mine.player:0",
-                                 "pop_phase"]}},
+                                 "pop_phase"]}]},
         {"key": "end_turn", "text": "End turn", "tags": ["immutable"],
          "asset": "square:slate",
          "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
          # A count, not a payment: the rule is a floor, so this asks whether the
          # floor was reached and takes nothing away for asking — a cost would have
          # spent the one purchase it was checking for.
-         "activate": {"phases": ["buy"], "when": ["bought@mine.player >= 1"],
-                      "action": ["next_phase"]}},
+         "abilities": [{"phases": ["buy"], "when": ["bought@mine.player >= 1"],
+                      "action": ["next_phase"]}]},
     ]
 
 

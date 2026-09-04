@@ -1676,20 +1676,20 @@ def build():
         "key": "btn_unplayable", "text": "Unplayable hand",
         "asset": "auto", "tags": ["immutable"],
         "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
-        "activate": {"phases": ["play_1", "play_2"],
+        "abilities": [{"phases": ["play_1", "play_2"],
                      "action": ["move:mine.hand:mine.discard",
                                 SELF_DMG(1),
-                                "draw_from:mine.deck:mine.hand:4"]}})
+                                "draw_from:mine.deck:mine.hand:4"]}]})
     cards.append({
         "key": "btn_potion_draw", "text": "Draw a potion",
         "asset": "auto", "tags": ["immutable"],
         "tooltip": "Draw the next potion. Its effect happens only if the Element it costs is high enough on your Chemistry Board.",
-        "activate": {"phases": ["potion"], "action": ["reveal_top:potion_deck"]}})
+        "abilities": [{"phases": ["potion"], "action": ["reveal_top:potion_deck"]}]})
     cards.append({
         "key": "btn_potion_stop", "text": "Stop drinking",
         "asset": "auto", "tags": ["immutable"],
         "tooltip": "End your Ultimate while you are ahead. Your Elements go back to 3.",
-        "activate": {"phases": ["potion"], "action": list(POTION_END)}})
+        "abilities": [{"phases": ["potion"], "action": list(POTION_END)}]})
     cards.append({
         "key": "btn_rules", "text": "The rules",
         "asset": "auto", "tags": ["immutable"],
@@ -1706,7 +1706,7 @@ def build():
                     "from the Storm Cloud at or below their Tier.\n\n"
                     "Six Power Tokens fill your track; filling it raises your Tier. At "
                     "Tier III a filled track gains you a Dragon instead."),
-        "activate": {"action": ["effect:spark"]}})
+        "abilities": [{"action": ["effect:spark"]}]})
 
     # Endings.
     cards.append({"key": "end_shards", "outcome": "victory",
