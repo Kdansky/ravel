@@ -88,7 +88,6 @@
       "subject": "piggy@mine.player",
       "color": "pink"
     },
-    { "key": "buys", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "bought", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "to_draw", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "crashed", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
@@ -174,7 +173,7 @@
           "merge": "this",
           "phases": ["buy", "react_buy"],
           "when": ["stock@self >= 1"],
-          "cost": { "buys@mine.player": 1, "money@mine.player": "price@self" },
+          "cost": { "money@mine.player": "price@self" },
           "action": ["take:self:mine.discard:1", "stat_gain:bought@mine.player:1"]
         }
       ]
@@ -384,7 +383,6 @@
         "stat_set:act_blue@mine.player:0",
         "stat_set:act_purple@mine.player:0",
         "stat_set:piggy@mine.player:0",
-        "stat_set:buys@mine.player:1",
         "stat_set:bought@mine.player:0",
         "stat_set:panic@clock:count:spent@bank",
         "move:mine.stash:mine.hand",
@@ -509,10 +507,7 @@
       "tags": ["immutable"],
       "asset": "square:slate",
       "tooltip": "Finish the shopping you were handed and give the turn back. Whatever you did not spend goes back with it.",
-      "activate": {
-        "phases": ["react_buy"],
-        "action": ["stat_set:money@mine.player:0", "stat_set:buys@mine.player:0", "pop_phase"]
-      }
+      "activate": { "phases": ["react_buy"], "action": ["stat_set:money@mine.player:0", "pop_phase"] }
     },
     {
       "key": "end_turn",
@@ -520,7 +515,15 @@
       "tags": ["immutable"],
       "asset": "square:slate",
       "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
-      "activate": { "phases": ["buy"], "cost": { "bought@mine.player": 1 }, "action": ["next_phase"] }
+      "abilities": [
+        {
+          "key": "end_turn",
+          "text": "End turn",
+          "phases": ["buy"],
+          "when": ["bought@mine.player >= 1"],
+          "action": ["next_phase"]
+        }
+      ]
     },
     {
       "key": "gem_1",
@@ -1091,13 +1094,12 @@
           "stat_gain:piggy@mine.player:1",
           "stat_set:money@mine.player:sum:price@target",
           "stat_gain:money@mine.player:2",
-          "stat_set:buys@mine.player:1",
           "move_target_to:void",
           "push_phase:react_buy"
         ],
         "spent": "mine.table"
       },
-      "tooltip": "Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing up to 2 more than the trashed chip into your hand.",
+      "tooltip": "Piggy bank. Trash a non-purple-orb chip from your hand, then put a bank chip costing up to 2 more than the trashed chip into your hand.\n\nDEV: the allowance is money and the piles price themselves, so what is handed over is a purse rather than a chip: a big enough one buys two cheap chips where the card grants one. Nothing counts purchases — buying is uncapped here, which is what the rulebook says about your own turn and not about this.",
       "card_stats": { "plus_piggy": 1, "price": 2 }
     },
     {
@@ -1185,7 +1187,6 @@
           "draw_from:mine.bag:mine.hand:2",
           "stat_set:money@mine.player:sum:price@target",
           "stat_gain:money@mine.player:2",
-          "stat_set:buys@mine.player:1",
           "move_target_to:void",
           "push_phase:react_buy"
         ],
@@ -1816,14 +1817,13 @@
           "action": [
             "stat_set:money@mine.player:sum:price@target",
             "stat_gain:money@mine.player:2",
-            "stat_set:buys@mine.player:1",
             "move_target_to:void",
             "push_phase:react_buy"
           ],
           "spent": "mine.discard"
         }
       ],
-      "tooltip": "Reaction: When an opponent buys a purple chip, trash a non-purple chip from your hand then gain a chip costing up to 2 more than the trashed chip.",
+      "tooltip": "Reaction: When an opponent buys a purple chip, trash a non-purple chip from your hand then gain a chip costing up to 2 more than the trashed chip.\n\nDEV: the allowance is money and the piles price themselves, so what is handed over is a purse rather than a chip: a big enough one buys two cheap chips where the card grants one. Nothing counts purchases — buying is uncapped here, which is what the rulebook says about your own turn and not about this.",
       "card_stats": { "react": 1 }
     },
     {
@@ -2695,7 +2695,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_blue@mine.player": 1 },
-        "action": ["stat_gain:buys@mine.player:2"],
+        "action": [],
         "spent": "mine.table"
       },
       "reactions": [
@@ -2706,7 +2706,7 @@
           "spent": "mine.discard"
         }
       ],
-      "tooltip": "Main: +2 buys. At end of turn, +1 chip for each of these buys you used. Reaction: Become immune to a red chip.\n\nDEV: the buys and the immunity are built. The chip per buy used is not: nothing counts how many of a particular grant were spent.",
+      "tooltip": "Main: +2 buys. At end of turn, +1 chip for each of these buys you used. Reaction: Become immune to a red chip.\n\nDEV: the immunity is built and the main half is not. There is no ceiling on buying here for two more to be added to — the rulebook states the floor, that you must buy at least one chip a turn, and nothing above it — so a grant of two more buys has nothing to be two more than, and the chip per buy used has nothing to count.",
       "card_stats": { "react": 1 }
     },
     {
@@ -2801,13 +2801,12 @@
           "stat_set:money@mine.player:sum:price@target",
           "stat_gain:money@mine.player:count:chip@target",
           "stat_gain:money@mine.player:1",
-          "stat_set:buys@mine.player:count:chip@target",
           "move_target_to:void",
           "push_phase:react_buy"
         ],
         "spent": "mine.table"
       },
-      "tooltip": "+$1. Trash one or two chips from your hand, then for each chip trashed this way, gain a chip costing the same or 1 more.\n\nDEV: built the way Training Day is: the allowance is money and the piles price themselves. It is one purse rather than one per chip, so a big trash and a small one can be spent as a single sum.",
+      "tooltip": "+$1. Trash one or two chips from your hand, then for each chip trashed this way, gain a chip costing the same or 1 more.\n\nDEV: built the way Training Day is, and loose the same way: one purse rather than one per chip, so a big trash and a small one are spent as a single sum, and a sum that covers two cheap chips buys two.",
       "card_stats": { "plus_pow": 1 }
     },
     {
