@@ -42,15 +42,15 @@ local GAME = [==[{
     { "key": "one", "text": "One" },
     { "key": "two", "text": "Two" },
     { "key": "mark", "text": "Mark", "tags": ["mark"],
-      "activate": {
+      "abilities": [{
         "target": { "type": "slot", "count": 1, "zones": ["board"], "fill": "empty",
                     "where": ["row@target == 1"] },
-        "action": ["move_to:target"] } },
+        "action": ["move_to:target"] }] },
     { "key": "blocker", "text": "Blocker", "tags": ["mark"],
-      "activate": {
+      "abilities": [{
         "target": { "type": "slot", "count": 1, "zones": ["board"], "fill": "empty",
                     "where": ["row@target == 2", "count:mark@across >= 1"] },
-        "action": ["move_to:target"] } }
+        "action": ["move_to:target"] }] }
   ]
 }]==]
 

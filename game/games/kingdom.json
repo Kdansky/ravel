@@ -41,7 +41,7 @@
   "tags": {
     "trial": {
       "play": { "action": ["resolve_challenge"] },
-      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } }
+      "abilities": [{ "action": ["resolve_challenge"], "cost": { "exhaust": 1 } }]
     }
   },
   "cards": [
@@ -215,10 +215,10 @@
       "asset": "soldiers_drill.jpg",
       "tooltip": "Drill the ranks: +1 might per soldier. Once per round.",
       "play": { "cost": { "gold": 3 }, "action": ["move_to:board", "stat_gain:progress:1"] },
-      "activate": {
+      "abilities": [{
         "cost": { "exhaust": 1, "food": 1 },
         "action": ["effect:drill_rally", "stat_gain:might:count:soldier"]
-      },
+      }],
       "tags": ["holding", "military"],
       "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
@@ -290,10 +290,10 @@
       "asset": "eclipse_sun.jpg",
       "tooltip": "Spend 4 mana: the realm remembers. +2 progress. Once per round.",
       "play": { "cost": { "mana": 3 }, "action": ["move_to:board", "stat_gain:progress:1"] },
-      "activate": {
+      "abilities": [{
         "cost": { "exhaust": 1, "mana": 4 },
         "action": ["effect:eclipse_surge", "stat_gain:progress:2"]
-      },
+      }],
       "tags": ["holding", "mystic"],
       "card_stats": { "hp": { "value": 2, "max": 2 } }
     },
@@ -311,7 +311,7 @@
       "asset": "candle_night.jpg",
       "tooltip": "Spirits stand guard: spend 2 mana for +2 might. Once per round.",
       "play": { "cost": { "mana": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
-      "activate": { "cost": { "exhaust": 1, "mana": 2 }, "action": ["stat_gain:might:2"] },
+      "abilities": [{ "cost": { "exhaust": 1, "mana": 2 }, "action": ["stat_gain:might:2"] }],
       "tags": ["holding", "mystic"],
       "card_stats": { "hp": { "value": 3, "max": 3 } }
     },

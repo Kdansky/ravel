@@ -1002,7 +1002,7 @@
       "tags": ["immutable"],
       "asset": "square:slate",
       "tooltip": "Lock in your patrol zone and end your main phase.",
-      "activate": { "phases": ["main"], "action": ["next_phase"] }
+      "abilities": [{ "phases": ["main"], "action": ["next_phase"] }]
     },
     {
       "key": "hire_worker",
@@ -1143,11 +1143,11 @@
       "tags": ["immutable"],
       "asset": "circle:amber",
       "tooltip": "Add-on, 2 gold. Draw a card each upkeep. You may only have one add-on.",
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "gold@mine.player": 2 },
         "action": ["fill:mine.site:surplus:1"]
-      }
+      }]
     },
     {
       "key": "build_tower",
@@ -1155,11 +1155,11 @@
       "tags": ["immutable"],
       "asset": "polygon:6:slate",
       "tooltip": "Add-on, 3 gold. A detector, and it stings every attacker for 1.",
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "gold@mine.player": 3 },
         "action": ["fill:mine.site:tower:1"]
-      }
+      }]
     },
     {
       "key": "sacrifice_addon",
@@ -1167,10 +1167,10 @@
       "tags": ["immutable"],
       "asset": "cross:crimson",
       "tooltip": "Make room for a different add-on. Your base takes 2 damage.",
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "action": ["destroy:mine.addon", "stat_damage:integrity@mine.base:2"]
-      }
+      }]
     },
     {
       "key": "tech_button",
@@ -1178,7 +1178,7 @@
       "tags": ["immutable"],
       "asset": "star:5:violet",
       "tooltip": "Take a card out of your codex, face down, into your discard pile. Twice a turn.",
-      "activate": { "phases": ["tech"], "cost": { "teched@mine.player": 1 }, "action": ["show:mine.codex"] },
+      "abilities": [{ "phases": ["tech"], "cost": { "teched@mine.player": 1 }, "action": ["show:mine.codex"] }],
       "chosen": { "action": ["move_target_to:mine.discard"] }
     },
     {
@@ -2342,7 +2342,7 @@
       ],
       "tooltip": "1 gold, Sacrifice Bombaster: deal 2 damage to a patrolling unit.",
       "card_stats": { "price": 2, "atk": 2, "hp": { "value": 2, "max": 2 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "gold@mine.player": 1, "sacrifice:bombaster": 1 },
         "target": {
@@ -2354,7 +2354,7 @@
           "where": ["not_tagged:untargetable@target"]
         },
         "action": ["stat_damage:hp@target:2", "activate_zone:rules_death"]
-      }
+      }]
     },
     {
       "key": "careless_musketeer",
@@ -2372,7 +2372,7 @@
       ],
       "tooltip": "Exhaust: deal 1 damage to a unit or building, and 1 damage to your own base.",
       "card_stats": { "price": 2, "atk": 2, "hp": { "value": 1, "max": 1 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
@@ -2389,7 +2389,7 @@
           "stat_damage:integrity@mine.base:1",
           "activate_zone:rules_death"
         ]
-      }
+      }]
     },
     {
       "key": "bloodrage_ogre",
@@ -2450,7 +2450,7 @@
       "tags": ["deck_card", "red", "tech0", "upgrade", "bloodburn", "relic", "generate_art"],
       "tooltip": "Whenever a unit dies, put a blood rune on this (limit 4). Exhaust, remove two blood runes: deal 1 damage to a unit or building.",
       "card_stats": { "price": 3, "runes": { "value": 0, "max": 4 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1, "runes@self": 2 },
         "target": {
@@ -2466,7 +2466,7 @@
           "stat_damage:integrity@target:1",
           "activate_zone:rules_death"
         ]
-      }
+      }]
     },
     {
       "key": "scorch",
@@ -2555,7 +2555,7 @@
       ],
       "tooltip": "Exhaust: if you played a spell this turn, sideline a patroller. NOT MODELLED: nothing records that a spell was cast this turn, so this sidelines unconditionally.",
       "card_stats": { "price": 1, "atk": 2, "hp": { "value": 2, "max": 2 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
@@ -2567,7 +2567,7 @@
           "where": ["not_tagged:untargetable@target"]
         },
         "action": ["move_target_to:enemy.army"]
-      }
+      }]
     },
     {
       "key": "gunpoint_taxman",
@@ -2676,7 +2676,7 @@
       ],
       "tooltip": "1 gold, exhaust: draw a card, and put up to two tech 0/I/II units from your hand into play with haste. NOT MODELLED: those units should be ephemeral.",
       "card_stats": { "price": 4, "integrity": { "value": 4, "max": 4 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "gold@mine.player": 1, "exhaust": 1 },
         "target": {
@@ -2692,7 +2692,7 @@
           "move_target_to:mine.army",
           "stat_set:ready_since@target:1"
         ]
-      }
+      }]
     },
     {
       "key": "steam_tank",
@@ -2854,11 +2854,11 @@
       ],
       "tooltip": "Exhaust: gain 3 gold and flip a coin. Heads: phew. Tails: sacrifice Rickety Mine and your base takes 2 damage.",
       "card_stats": { "price": 2, "integrity": { "value": 3, "max": 3 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "action": ["stat_gain:gold@mine.player:3", "reveal_top:coin"]
-      }
+      }]
     },
     {
       "key": "captured_bugblatter",
@@ -3098,7 +3098,7 @@
       ],
       "tooltip": "1 gold, exhaust: deal 2 damage to a patroller or building.",
       "card_stats": { "price": 2, "atk": 3, "hp": { "value": 3, "max": 3 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "gold@mine.player": 1, "exhaust": 1 },
         "target": {
@@ -3114,7 +3114,7 @@
           "stat_damage:integrity@target:2",
           "activate_zone:rules_death"
         ]
-      }
+      }]
     },
     {
       "key": "lobber",
@@ -3133,7 +3133,7 @@
       ],
       "tooltip": "Haste. Exhaust: deal 1 damage to a building.",
       "card_stats": { "price": 1, "atk": 2, "hp": { "value": 2, "max": 2 }, "ready_since": 1 },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
@@ -3144,7 +3144,7 @@
           "zones": ["base", "tech", "structures", "addon"]
         },
         "action": ["stat_damage:integrity@target:1", "activate_zone:rules_death"]
-      }
+      }]
     },
     {
       "key": "bamstamper_lizzo",
@@ -3216,7 +3216,7 @@
       "tags": ["deck_card", "red", "fire", "tech2", "building", "stone", "build_face", "generate_art"],
       "tooltip": "Exhaust: deal 2 damage to a unit, hero or building. If you destroy it that way, ready this (NOT MODELLED).",
       "card_stats": { "price": 3, "integrity": { "value": 4, "max": 4 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
@@ -3232,7 +3232,7 @@
           "stat_damage:integrity@target:2",
           "activate_zone:rules_death"
         ]
-      }
+      }]
     },
     {
       "key": "hotter_fire",
@@ -3404,11 +3404,11 @@
       "tags": ["deck_card", "green", "tech0", "unit", "fighter", "moss", "fighter_face", "generate_art"],
       "tooltip": "Exhaust: gain 1 gold.",
       "card_stats": { "price": 1, "atk": 1, "hp": { "value": 1, "max": 1 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "action": ["stat_gain:gold@mine.player:1"]
-      }
+      }]
     },
     {
       "key": "playful_panda",
@@ -3456,7 +3456,7 @@
           "stat_gain:hp@self:2"
         ]
       },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
@@ -3473,7 +3473,7 @@
           "stat_boost:hp@target:1",
           "stat_gain:hp@target:1"
         ]
-      }
+      }]
     },
     {
       "key": "tiger_cub",
@@ -3508,11 +3508,11 @@
       ],
       "tooltip": "Healing 1. Exhaust: your tech buildings finish building at once.",
       "card_stats": { "price": 2, "integrity": { "value": 3, "max": 3 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "action": ["move:mine.site.tech_building:mine.tech"]
-      }
+      }]
     },
     {
       "key": "young_treant",
@@ -4170,7 +4170,7 @@
       ],
       "tooltip": "Whenever another unit or hero of yours arrives, put a +1/+1 rune on this (NOT MODELLED). Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
       "card_stats": { "price": 4, "atk": 2, "hp": { "value": 4, "max": 4 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "target": {
           "type": "card",
@@ -4186,7 +4186,7 @@
           "stat_boost:hp@target:1",
           "stat_gain:hp@target:1"
         ]
-      }
+      }]
     },
     {
       "key": "blooming_elm",
@@ -4204,7 +4204,7 @@
       ],
       "tooltip": "Your units and heroes with +1/+1 runes have overpower (NOT MODELLED). Exhaust: put three +1/+1 runes on a unit.",
       "card_stats": { "price": 3, "integrity": { "value": 4, "max": 4 } },
-      "activate": {
+      "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
@@ -4215,7 +4215,7 @@
           "zones": ["army", "patrol"]
         },
         "action": ["stat_gain:atk@target:3", "stat_boost:hp@target:3", "stat_gain:hp@target:3"]
-      }
+      }]
     },
     {
       "key": "might_of_leaf_and_claw",

@@ -34,7 +34,7 @@
       "asset": "moonlit_night.jpg",
       "tooltip": "End the day. Your strength fades by one, your followers tithe, and the hours return to you.",
       "tags": ["verb"],
-      "activate": { "action": ["next_phase"] }
+      "abilities": [{ "action": ["next_phase"] }]
     },
     {
       "key": "work",
@@ -42,7 +42,7 @@
       "asset": "blacksmith_forge.jpg",
       "tooltip": "An honest day at the forge. Costs 1 time, earns 2 funds. Once per day.",
       "tags": ["verb"],
-      "activate": { "cost": { "exhaust": 1, "time": 1 }, "action": ["stat_gain:funds:2"] }
+      "abilities": [{ "cost": { "exhaust": 1, "time": 1 }, "action": ["stat_gain:funds:2"] }]
     },
     {
       "key": "rest",
@@ -50,7 +50,7 @@
       "asset": "campfire_night.jpg",
       "tooltip": "Sleep, and do not dream. Costs 1 time, restores 3 health. It does nothing for what you already know. Once per day.",
       "tags": ["verb"],
-      "activate": { "cost": { "exhaust": 1, "time": 1 }, "action": ["stat_gain:health:3"] }
+      "abilities": [{ "cost": { "exhaust": 1, "time": 1 }, "action": ["stat_gain:health:3"] }]
     },
     {
       "key": "carouse",
@@ -58,7 +58,7 @@
       "asset": "brawl_men.jpg",
       "tooltip": "Drink with people who have never read anything. Costs 1 time and 2 funds, settles 3 dread. Once per day.",
       "tags": ["verb"],
-      "activate": { "cost": { "exhaust": 1, "time": 1, "funds": 2 }, "action": ["stat_damage:dread:3"] }
+      "abilities": [{ "cost": { "exhaust": 1, "time": 1, "funds": 2 }, "action": ["stat_damage:dread:3"] }]
     },
     {
       "key": "study",
@@ -66,11 +66,11 @@
       "asset": "alchemist_study.jpg",
       "tooltip": "Read a tome to the end and burn what is left. Costs 1 time and one tome, yields 2 insight. Once per day.",
       "tags": ["verb"],
-      "activate": {
+      "abilities": [{
         "cost": { "exhaust": 1, "time": 1 },
         "target": { "type": "card", "count": 1, "tags": ["lore"], "zones": ["holdings"] },
         "action": ["stat_gain:insight:2", "move_target_to:discard"]
-      }
+      }]
     },
     {
       "key": "commune",
@@ -78,7 +78,7 @@
       "asset": "tavern_meal.jpg",
       "tooltip": "Buy a stranger a meal and speak of the work. Costs 1 time and 3 funds, gains a follower. Once per day.",
       "tags": ["verb"],
-      "activate": { "cost": { "exhaust": 1, "time": 1, "funds": 3 }, "action": ["gain:follower:1"] }
+      "abilities": [{ "cost": { "exhaust": 1, "time": 1, "funds": 3 }, "action": ["gain:follower:1"] }]
     },
     {
       "key": "dream",
@@ -86,10 +86,10 @@
       "asset": "dark_forest.jpg",
       "tooltip": "Pay the dream-seller and go down the stair. Costs 1 time, 1 fund and 1 dread — the stair always takes that. What you find below is not yours to choose. Once per day.",
       "tags": ["verb"],
-      "activate": {
+      "abilities": [{
         "cost": { "exhaust": 1, "time": 1, "funds": 1 },
         "action": ["stat_gain:dread:1", "reveal_top:fate"]
-      }
+      }]
     },
     {
       "key": "the_rite",
@@ -97,10 +97,10 @@
       "asset": "chapel_altar.jpg",
       "tooltip": "Perform one third of the work. Costs 2 time, 5 insight, and one follower, who does not come back. Three rites and the vigil ends.",
       "tags": ["verb"],
-      "activate": {
+      "abilities": [{
         "cost": { "exhaust": 1, "time": 2, "insight": 5, "sacrifice:follower": 1 },
         "action": ["stat_gain:ritual:1"]
-      }
+      }]
     },
     {
       "key": "tome",

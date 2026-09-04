@@ -116,9 +116,13 @@ COMMANDS["pick"] = function(args)
 	local s = summary(); s.ok = ok; return s
 end
 
+-- click <zone> [#<n>]  — a place offering two things is picked between the same
+-- way a card's abilities are, and for the same reason: there is no player here
+-- to open a chooser for.
 COMMANDS["click"] = function(args)
 	local zid = zones.find_id(args[1])
-	local ok  = zid and flow.activate_zone(zid) or false
+	local n   = args[2] and tostring(args[2]):match("^#(%d+)$")
+	local ok  = zid and flow.activate_zone(zid, n and tonumber(n)) or false
 	local s = summary(); s.ok = ok; return s
 end
 

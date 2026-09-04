@@ -33,7 +33,7 @@ local GAME = [==[{
     { "key": "pawn", "text": "Pawn", "tags": ["eager"], "card_stats": { "moves_made": 0 },
       "abilities": [{ "key": "move", "text": "Move it", "action": ["stat_gain:moves_made@self:1"] }] },
     { "key": "lever", "text": "Lever", "card_stats": { "moves_made": 0 },
-      "activate": { "when": ["moves_made@self >= 1"], "action": ["stat_gain:moves_made@self:1"] } }
+      "abilities": [{ "when": ["moves_made@self >= 1"], "action": ["stat_gain:moves_made@self:1"] }] }
   ],
   "setup": { "place": [
     { "card": "rook", "zone": "board", "at": ["a1"] },

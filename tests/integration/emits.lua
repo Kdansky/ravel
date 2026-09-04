@@ -58,7 +58,7 @@ local GAME = [==[{
       "play": { "action": ["emit:crash:stat_gain:crashed@mine.player:1"], "spent": "mine.table" } },
     { "key": "altar", "text": "Altar", "tags": ["spell", "engine", "fireball"],
       "play": { "action": ["move_to:board"] },
-      "activate": { "action": ["stat_gain:landed@mine.player:1"] } },
+      "abilities": [{ "action": ["stat_gain:landed@mine.player:1"] }] },
     { "key": "flame_counter", "text": "Flame Counter", "tags": ["counter"],
       "reactions": [
         { "to": "cast", "where": ["tagged:fireball@event"], "action": ["counterspell"] }

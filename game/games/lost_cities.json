@@ -52,7 +52,7 @@
       }
     },
     "takeable": {
-      "activate": { "action": ["move_to:hand", "next_phase"], "phases": ["draw"] },
+      "abilities": [{ "action": ["move_to:hand", "next_phase"], "phases": ["draw"] }],
       "tooltip": "Take this card into your hand."
     }
   },
@@ -65,7 +65,7 @@
       "pos": [0.815, 0.306, 0.975, 0.524],
       "tags": ["shuffle"],
       "tooltip": "Take the top card. Ends your turn.",
-      "activate": { "phases": ["draw"], "action": ["draw_from:deck:hand:1", "next_phase"] },
+      "abilities": [{ "phases": ["draw"], "action": ["draw_from:deck:hand:1", "next_phase"] }],
       "contents": [
         "red_w1",
         "red_w2",

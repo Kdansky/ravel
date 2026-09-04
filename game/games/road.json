@@ -119,10 +119,10 @@
       "tooltip": "Sabres at dusk: strikes a threat for 2, once per day.",
       "tags": ["unit"],
       "card_stats": { "hp": { "value": 2, "max": 2 } },
-      "activate": {
+      "abilities": [{
         "action": ["effect:sabre_hit", "stat_damage:hp@random.threat:2"],
         "cost": { "exhaust": 1 }
-      }
+      }]
     },
     {
       "key": "pikemen",
@@ -131,10 +131,10 @@
       "tooltip": "A wall that walks: strikes a threat for 1, once per day.",
       "tags": ["unit"],
       "card_stats": { "hp": { "value": 4, "max": 4 } },
-      "activate": {
+      "abilities": [{
         "action": ["effect:sabre_hit", "stat_damage:hp@random.threat:1"],
         "cost": { "exhaust": 1 }
-      }
+      }]
     },
     {
       "key": "huntsman",
@@ -143,7 +143,7 @@
       "tooltip": "Knows what the land hides: +1 supply, once per day.",
       "tags": ["unit"],
       "card_stats": { "hp": { "value": 2, "max": 2 } },
-      "activate": { "action": ["stat_gain:supplies:1"], "cost": { "exhaust": 1 } }
+      "abilities": [{ "action": ["stat_gain:supplies:1"], "cost": { "exhaust": 1 } }]
     },
     {
       "key": "torch",
@@ -158,7 +158,7 @@
       "asset": "bread_still.jpg",
       "tooltip": "Use it up: +2 supplies, then it is gone.",
       "tags": ["item"],
-      "activate": { "action": ["stat_gain:supplies:2", "destroy_self"], "cost": { "exhaust": 1 } }
+      "abilities": [{ "action": ["stat_gain:supplies:2", "destroy_self"], "cost": { "exhaust": 1 } }]
     },
     {
       "key": "lucky_shoe",
@@ -269,7 +269,7 @@
         "pass": ["move_to:graveyard", "stat_gain:distance:1", "stat_gain:morale:1"],
         "fail": ["stat_damage:morale:2"]
       },
-      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
+      "abilities": [{ "action": ["resolve_challenge"], "cost": { "exhaust": 1 } }],
       "turn": { "action": ["stat_damage:morale:1"] }
     },
     {
@@ -284,7 +284,7 @@
         "pass": ["move_to:graveyard", "stat_damage:supplies:2", "stat_gain:distance:2"],
         "fail": ["stat_damage:morale:1"]
       },
-      "activate": { "action": ["resolve_challenge"], "cost": { "exhaust": 1 } },
+      "abilities": [{ "action": ["resolve_challenge"], "cost": { "exhaust": 1 } }],
       "turn": { "action": ["stat_damage:morale:1"] }
     },
     {

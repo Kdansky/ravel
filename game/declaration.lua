@@ -31,9 +31,7 @@ M.TEMPLATE_FIELDS = {
 -- parser accepted while the validator rejected it would be worse than no block.
 local MOMENTS = {
 	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
-		action = "on_play", spent = "spent" },
-	activate  = { cost = "activate_cost", target = "activate_target", phases = "activate_phases",
-		action = "on_activate", moves = "moves", merge = "activate_merge", when = "activate_when" },
+		action = "on_play", spent = "spent", compute = "compute" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts", action = "on_receive" },
 	turn      = { action = "on_turn" },
@@ -85,21 +83,23 @@ local ABILITY_FIELDS = { key = true, text = true, tooltip = true, asset = true,
 	cost = true, target = true, phases = true, action = true, moves = true,
 	when = true, compute = true, merge = true }
 
--- Every activated ability a card has, as one list, whether it wrote one
--- (`activate`) or several (`abilities`). Downstream never asks which form was
--- used — the shorthand is the list with one entry in it, and a chooser never
--- appears for a card that has one thing to do.
+-- Every activated ability, as one list. Cards, tags and zones all write the same
+-- `abilities`, and one that does a single thing writes a list of one — there is
+-- no second spelling for that case, because a second spelling is a second set of
+-- fields to keep in step, and the pair drifted: `compute` reached the list and
+-- never reached the shorthand, so naming a number meant changing the shape of
+-- the card.
 --
 -- The entries keep the authored words: cost, target, phases, action, moves.
--- `text` is what a chooser shows, and only a card with more than one ability
--- has anything to choose between, so only that card has to write it.
+-- `text` is what a chooser shows, and only something with more than one ability
+-- has anything to choose between, so only that has to write it.
 local function abilities_of(def, pp, where)
 	local out = {}
+	if def.activate ~= nil then
+		pp[#pp + 1] = where .. ": writes an \"activate\" block, which the format no longer has"
+			.. " — \"abilities\" is the word, and one thing to do is a list of one"
+	end
 	if type(def.abilities) == "table" and #def.abilities > 0 then
-		if def.on_activate or def.activate_cost or def.activate_target then
-			pp[#pp + 1] = where .. ": has both an 'activate' block and an 'abilities' list"
-				.. " — one card, one way of saying what it can do"
-		end
 		for i, a in ipairs(def.abilities) do
 			if type(a) ~= "table" then
 				pp[#pp + 1] = where .. ": ability " .. i .. " should be an object"
@@ -129,11 +129,6 @@ local function abilities_of(def, pp, where)
 					when = a.when, compute = a.compute, merge = a.merge }
 			end
 		end
-	elseif def.on_activate then
-		out[1] = { key = "activate", text = def.text, cost = def.activate_cost,
-			target = def.activate_target, phases = def.activate_phases,
-			action = def.on_activate, moves = def.move_rules, merge = def.activate_merge,
-			when = def.activate_when }
 	end
 	return out
 end
@@ -185,7 +180,7 @@ local WHOSE = { mine = true, enemy = true, anyone = true }
 --
 -- Two games had already built it by hand before it existed. Splendor's token
 -- piles and Puzzle Strike's bank are both a counter card tagged "immutable" with
--- the take written as its activate — the same shape twice, with no shared
+-- the take written as its one ability — the same shape twice, with no shared
 -- authoring, which is what a missing word in an enum looks like from outside.
 --
 -- Default "exile", so a zone is inert until it says otherwise and a forgotten
@@ -711,15 +706,6 @@ function M.parse(filename)
 			flatten_moments(cd, pp, "card '" .. cd.key .. "'")
 			cd.tags_set = tag_set(cd.tags)
 			cd.style = merge_styles(G, cd.tags_set)
-			-- A piece that says how it moves is asking for the ordinary board
-			-- targeting, so the engine writes the spec rather than making every
-			-- piece repeat the same four fields.
-			if cd.moves then
-				cd.move_rules = normalise_moves(cd.moves)
-				if not cd.activate_target then
-					cd.activate_target = { type = "slot", count = 1, moves = cd.move_rules }
-				end
-			end
 			cd.abilities = abilities_of(cd, pp, "card '" .. cd.key .. "'")
 			cd.reactions = reactions_of(cd, pp, "card '" .. cd.key .. "'")
 			cd.emits = emits_of(cd, pp, "card '" .. cd.key .. "'")
@@ -731,9 +717,9 @@ function M.parse(filename)
 	-- Splendor says once what buying a development card does, instead of ninety
 	-- templates each carrying a copy for somebody to keep in step.
 	--
-	-- Only "play". A tag's "activate" already reaches a card through its
-	-- abilities list, and a second road to one word is how a format grows
-	-- synonyms — which the pass before this one spent itself deleting.
+	-- Only "play". A tag's abilities already reach a card through its abilities
+	-- list, and a second road to one word is how a format grows synonyms — which
+	-- the pass before this one spent itself deleting.
 	--
 	-- Merged at load, where a zone's "applies" is looked up at play time, and the
 	-- difference is not an implementation choice: what lying *here* lets a card do
@@ -802,6 +788,7 @@ function M.parse(filename)
 				G.zone_list[#G.zone_list + 1] = zd.key
 			end
 			flatten_moments(zd, pp, "zone '" .. zd.key .. "'")
+			zd.abilities = abilities_of(zd, pp, "zone '" .. zd.key .. "'")
 			zd.tags_set = tag_set(zd.tags)
 			zd.style = merge_styles(G, zd.tags_set)
 			M.normalise_zone(zd, pp)
@@ -1127,6 +1114,9 @@ function M.parse(filename)
 	end
 	for _, key in ipairs(G.card_list) do mint(key, G.card_defs[key].abilities, "card") end
 	for key, td in pairs(G.tag_defs) do mint(key, td.abilities, "tag") end
+	-- A place can offer two things as readily as a card can — a deck that draws
+	-- one or five — and the chooser it opens deals the same entries.
+	for key, zd in pairs(G.zone_defs) do mint(key, zd.abilities, "zone") end
 	-- Reactions want entries for the same reason abilities do: a card answering
 	-- one event two different ways has to be asked which, and the chooser deals
 	-- cards. Minted from the same function because a reaction *is* an ability

@@ -197,8 +197,12 @@ local function primary_action(x, y)
 		local pick = flow.menu_choice(cid)
 		if pick then
 			flow.close_offer()
+			local src = entity.get(pick.source)
 			if pick.reaction then
 				begin_action(pick.source, pick.reaction.target, "react", pick.index)
+			elseif src and src.kind == "zone" then
+				-- A place aims at nothing: there is no arrow to draw from a deck.
+				flow.activate_zone(pick.source, pick.index)
 			else
 				begin_action(pick.source, pick.ability.target, "activate", pick.index)
 			end
@@ -270,8 +274,10 @@ local function primary_action(x, y)
 		return
 	end
 
+	-- The same turn a card takes when it can do two things: the place stops being
+	-- the question and the chooser becomes it.
 	local zid = zones.zone_at(x, y)
-	if zid then flow.activate_zone(zid) end
+	if zid and not flow.activate_zone(zid) then flow.offer_zone_abilities(zid) end
 end
 
 function love.load()
@@ -527,7 +533,7 @@ function love.update(dt)
 			-- which made the one thing you can do with it undiscoverable.
 			local zid = zones.zone_at(mx, my)
 			local zz  = zid and entity.get(zid)
-			if zz and (zz.tooltip or zz.on_activate) then hover = zid end
+			if zz and (zz.tooltip or (zz.abilities and #zz.abilities > 0)) then hover = zid end
 		end
 	end
 	tooltip.update(dt, not inspecting and hover or nil)

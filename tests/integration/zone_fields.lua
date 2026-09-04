@@ -45,7 +45,7 @@ local GAME = [==[{
     { "key": "one", "text": "One", "tags": ["seat_one"], "card_stats": { "gold": 0 } },
     { "key": "two", "text": "Two", "tags": ["seat_two"], "card_stats": { "gold": 0 } },
     { "key": "relic", "text": "Relic", "tags": ["loot"],
-      "activate": { "action": ["stat_gain:gold@mine.player:1"] } }
+      "abilities": [{ "action": ["stat_gain:gold@mine.player:1"] }] }
   ]
 }]==]
 

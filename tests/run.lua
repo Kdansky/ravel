@@ -1075,9 +1075,9 @@ local bp = with_fixture([[{
     },
     {
       "key": "axe",
-      "activate": {
+      "abilities": [{
         "action": "stat_gain:gold:1"
-      }
+      }]
     },
     {
       "key": "dagger"
@@ -1236,15 +1236,15 @@ local function legal_moves()
 		end
 	end
 	for e in entity.each("card") do
-		local z   = entity.get(e.zone_id)
-		local def = cards.def(e)
-		-- With the card, because a cost may be paid *with* it: "exhaust" asks
-		-- whether this one is still ready, and a cost asked in the abstract
-		-- has no answer.
-		if z and z.layout == "grid" and def and def.on_activate
-			and not e.exhausted and flow.can_afford(def.activate_cost, { card_id = e.id }) then
-			local id = e.id
-			moves[#moves + 1] = function() flow.activate(id) end
+		local z = entity.get(e.zone_id)
+		-- Asked of the card, because a cost may be paid *with* it: "exhaust" asks
+		-- whether this one is still ready, and a cost asked in the abstract has
+		-- no answer. usable_abilities asks all of that, one entry at a time.
+		if z and z.layout == "grid" then
+			for _, u in ipairs(flow.usable_abilities(e.id)) do
+				local id, idx = e.id, u.index
+				moves[#moves + 1] = function() flow.activate(id, {}, idx) end
+			end
 		end
 	end
 	return moves
@@ -1495,7 +1495,7 @@ play_fixture([[{
       "text": "Mage",
       "tags": ["mage"],
       "card_stats": { "hp": 4, "might": 1, "mana": 3 },
-      "activate": { "cost": { "mana@self": 1 }, "action": ["stat_gain:might@self:1"] }
+      "abilities": [{ "cost": { "mana@self": 1 }, "action": ["stat_gain:might@self:1"] }]
     }
   ]
 }]], 1)
@@ -1697,28 +1697,28 @@ play_fixture([==[{
       "key": "w_rook",
       "text": "White Rook",
       "tags": ["piece"],
-      "activate": {
+      "abilities": [{
         "target": { "type": "slot", "zones": ["board"], "fill": "open", "count": 1 },
         "action": ["move_to:target:taken"]
-      }
+      }]
     },
     {
       "key": "w_ghost",
       "text": "White Ghost",
       "tags": ["piece"],
-      "activate": {
+      "abilities": [{
         "target": { "type": "slot", "zones": ["board"], "fill": "open", "count": 1 },
         "action": ["move_to:target"]
-      }
+      }]
     },
     {
       "key": "b_pawn",
       "text": "Black Pawn",
       "tags": ["piece"],
-      "activate": {
+      "abilities": [{
         "target": { "type": "slot", "zones": ["board"], "fill": "empty", "count": 1 },
         "action": ["move_to:target"]
-      }
+      }]
     }
   ]
 }]==], 3)
@@ -1823,7 +1823,7 @@ play_fixture([==[{
       "key": "cruiser",
       "text": "Cruiser",
       "tags": ["ship"],
-      "activate": {
+      "abilities": [{
         "target": {
           "type": "card",
           "zones": ["system"],
@@ -1832,7 +1832,7 @@ play_fixture([==[{
           "count": 1
         },
         "action": ["destroy:target"]
-      }
+      }]
     }
   ]
 }]==], 5)

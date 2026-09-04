@@ -29,7 +29,7 @@ local GAME = [==[{
     { "key": "one", "text": "One", "tags": ["seat_one"], "card_stats": { "score": 0 } },
     { "key": "two", "text": "Two", "tags": ["seat_two"], "card_stats": { "score": 0 } },
     { "key": "piece", "text": "Piece", "tags": ["piece"],
-      "activate": { "action": ["stat_gain:score@mine.player:1"] } }
+      "abilities": [{ "action": ["stat_gain:score@mine.player:1"] }] }
   ],
   "setup": {
     "place": [

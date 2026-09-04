@@ -163,14 +163,18 @@ local function zone_blocks(z)
 		add("rule")
 		add("row", "Cards", tostring(#z.cards))
 	end
-	if flow.can_activate_zone(z.id) then
+	local ready = flow.usable_zone_abilities(z.id)
+	if #ready > 0 then
 		add("rule")
-		local text = "Click to use"
-		if z.activate_cost and next(z.activate_cost) then
-			text = text .. "  (" .. cards.cost_text(z.activate_cost) .. ")"
+		for _, u in ipairs(ready) do
+			local a = u.ability
+			local text = "Click to " .. (#ready > 1 and a.text and a.text:lower() or "use")
+			if a.cost and next(a.cost) then
+				text = text .. "  (" .. cards.cost_text(a.cost) .. ")"
+			end
+			add("hint", text, C.ready)
 		end
-		add("hint", text, C.ready)
-	elseif z.on_activate then
+	elseif z.abilities and #z.abilities > 0 then
 		add("rule")
 		add("hint", "Not available in this phase", C.wait)
 	end

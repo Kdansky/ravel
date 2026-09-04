@@ -31,7 +31,7 @@
       "tooltip": "Your seat of power. Taxes bring 1 gold each round. Pay 2 gold to inspire your people (+1 morale).",
       "card_stats": { "hp": { "value": 20, "max": 20 }, "gold": 20, "morale": 5, "defense": 0, "food": 0 },
       "tags": ["building", "hero"],
-      "activate": { "cost": { "exhaust": 1, "gold": 2 }, "action": ["stat_gain:morale:1"] },
+      "abilities": [{ "cost": { "exhaust": 1, "gold": 2 }, "action": ["stat_gain:morale:1"] }],
       "turn": { "action": ["stat_gain:gold:1"] }
     },
     {

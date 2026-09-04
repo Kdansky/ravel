@@ -115,11 +115,11 @@ M.EFFECT_BASES = {
 local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	tags = true, card_stats = true, outcome = true,
-	play = true, activate = true, challenge = true, receive = true, turn = true,
+	play = true, challenge = true, receive = true, turn = true,
 	chosen = true, leaves = true,
-	-- Several activated abilities instead of one. Authored as a list, and
-	-- normalised in place into the same shape a lone "activate" produces, so
-	-- nothing downstream asks which form was written.
+	-- Everything the card can be used for, one entry each. A card that does one
+	-- thing writes a list of one: there is no second spelling, so no two sets of
+	-- fields to keep in step.
 	abilities = true,
 	-- Reactions: a list of subscriptions to another player's action, each with a
 	-- verb it answers ("to"), a condition over the event ("where"), and whether
@@ -130,10 +130,9 @@ local CARD_FIELDS = {
 	emits = true,
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
+	compute = true,
 	on_leaves = true, leaves_into = true, leaves_from = true,
-	activate_cost = true, activate_target = true, activate_when = true,
-	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
-	move_rules = true, requires = true, on_pass = true, on_fail = true,
+	requires = true, on_pass = true, on_fail = true,
 	accepts = true, on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 	style = true,
@@ -161,9 +160,8 @@ local ZONE_FIELDS = {
 	layout = true, visibility = true, reach = true, use = true, status = true,
 	display = true, copies = true, grid = true, row = true,
 	contents = true, tooltip = true, tags = true, tags_set = true, refill_from = true,
-	-- its own ability, and what declaration.parse derives from that block
-	activate = true, on_activate = true, activate_phases = true, activate_cost = true,
-	activate_target = true, activate_when = true, moves = true,
+	-- what clicking it does, written as the list a card writes
+	abilities = true,
 	injected = true, applies = true, accepts = true, on_receive = true, receive = true,
 	asset = true,
 }
@@ -206,14 +204,16 @@ for _, moment in ipairs({ "play", "leaves" }) do
 	for _, internal in pairs(MOMENTS[moment]) do GRANTED_PLAY[internal] = true end
 end
 
-local TAG_FIELDS      = { zone = true, tooltip = true, activate = true, play = true,
+local TAG_FIELDS      = { zone = true, tooltip = true, play = true,
 	abilities = true, emits = true, leaves = true, on_leaves = true, leaves_into = true,
 	leaves_from = true,
 	-- derived from the blocks, as on a card
-	on_activate = true, activate_target = true, activate_cost = true, activate_when = true,
-	activate_phases = true, activate_merge = true, moves = true,
 	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true,
-	buffs = true, adjusts = true }
+	compute = true, buffs = true, adjusts = true }
+
+-- Words the format had and dropped. declaration.parse reports each by name and
+-- says what replaced it, so check_fields stays quiet about them.
+local RETIRED       = { activate = true }
 
 local VERB_FIELDS   = { key = true, does = true, tooltip = true }
 local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, when = true, by = true }
@@ -336,8 +336,7 @@ M.SHAPES = { setup = SETUP_FIELDS, place = PLACE_FIELDS, move_rule = MOVE_RULE_F
 M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true, style = true,
 	-- flattened out of the moment blocks by declaration.parse, never authored
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
-	activate_cost = true, activate_target = true, activate_when = true,
-	activate_phases = true, activate_merge = true, on_activate = true, moves = true,
+	compute = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
 	on_leaves = true, leaves_into = true, leaves_from = true,
@@ -700,7 +699,7 @@ function M.check(G)
 			warn("%s: 'exhaust' is a cost, not a condition — a card cannot need itself spent", where)
 			return
 		elseif type(left) == "string" and left:match("^sacrifice:") then
-			warn("%s: 'sacrifice:' belongs in cost or activate_cost, not here", where)
+			warn("%s: 'sacrifice:' belongs in a cost, not here", where)
 			return
 		end
 		if not (bound and bound[c.left.src]) then subject_ok(where, c.left.src or c.left.n) end
@@ -850,7 +849,9 @@ function M.check(G)
 	local function check_fields(where, def, fields)
 		if type(def) ~= "table" then return end
 		for k in pairs(def) do
-			if k ~= "comment" and not fields[k] then
+			-- RETIRED words have a message of their own, said where the authored
+			-- entry still exists; a second generic one would only muddy it.
+			if k ~= "comment" and not fields[k] and not RETIRED[k] then
 				warn("%s: has a field '%s' the engine doesn't read%s", where, tostring(k), suggest(k, fields))
 			end
 		end
@@ -1334,39 +1335,47 @@ function M.check(G)
 	-- Everything chess's pawn and king are written as — costs, actions, patterns,
 	-- fills, phases, targets — went unvalidated, which is to say the game driving
 	-- the whole feature was the one the validator had stopped reading.
+	-- The names an ability or a play binds before it is judged, so the condition
+	-- checks below know a bound name from a misspelt stat. Written once because
+	-- both moments compute the same way: "deal damage equal to" is one question
+	-- whether the card is played or used.
+	local function check_compute(where, list)
+		local bound = {}
+		if list == nil then return bound end
+		if type(list) ~= "table" or (next(list) ~= nil and #list == 0) then
+			warn('%s compute: should be a list of compute keys, like ["overkill"]', where)
+			return bound
+		end
+		local seen = {}
+		for _, name in ipairs(list) do
+			local def = G.compute_defs[name]
+			if not def then
+				warn("%s: computes '%s', but the game declares no such compute%s",
+					where, tostring(name), suggest(name, G.compute_defs))
+			else
+				-- Each compute sees the ones before it, so a list out of order
+				-- reads a number that has not been worked out yet — which is
+				-- zero, silently.
+				local v = predicate.parse_value(def.from)
+				for _, side in ipairs({ v and v.left, v and v.right }) do
+					if G.compute_defs[side] and not seen[side] then
+						warn("%s: computes '%s', which is made of '%s' — list '%s' first",
+							where, name, side, side)
+					end
+				end
+				seen[name] = true
+				bound[name] = true
+			end
+		end
+		return bound
+	end
+
 	local function check_ability(where, ab)
 		if type(ab) ~= "table" then return end
 		check_cost(where .. " cost", ab.cost, "activate")
 		check_list(where .. " action", ab.action)
 		check_phases(where, ab.phases)
-		local bound = {}
-		if ab.compute ~= nil then
-			if type(ab.compute) ~= "table" or (next(ab.compute) ~= nil and #ab.compute == 0) then
-				warn('%s compute: should be a list of compute keys, like ["overkill"]', where)
-			else
-				local seen = {}
-				for _, name in ipairs(ab.compute) do
-					local def = G.compute_defs[name]
-					if not def then
-						warn("%s: computes '%s', but the game declares no such compute%s",
-							where, tostring(name), suggest(name, G.compute_defs))
-					else
-						-- Each compute sees the ones before it, so a list out of
-						-- order reads a number that has not been worked out yet
-						-- — which is zero, silently.
-						local v = predicate.parse_value(def.from)
-						for _, side in ipairs({ v and v.left, v and v.right }) do
-							if G.compute_defs[side] and not seen[side] then
-								warn("%s: computes '%s', which is made of '%s' — list '%s' first",
-									where, name, side, side)
-							end
-						end
-						seen[name] = true
-						bound[name] = true
-					end
-				end
-			end
-		end
+		local bound = check_compute(where, ab.compute)
 		-- What this ability says when it meets the others on the same card.
 		if ab.merge ~= nil and ab.merge ~= "both" and ab.merge ~= "this" and ab.merge ~= "other" then
 			warn('%s: merge is "both" (the default — the player is asked which), "this" (mine alone) '
@@ -1512,13 +1521,9 @@ function M.check(G)
 				warn("%s: sends cards to zone '%s', but no zone has that key%s",
 					where, tostring(td.zone), suggest(td.zone, G.zone_defs))
 			end
-			check_list(where .. " on_activate", td.on_activate)
-			check_conditions(where .. " activate when", td.activate_when)
 			check_phases(where, td.phases)
-			if not td.on_activate then
-				for i, ab in ipairs(td.abilities or {}) do
-					check_ability(("%s ability %d ('%s')"):format(where, i, tostring(ab.key)), ab)
-				end
+			for i, ab in ipairs(td.abilities or {}) do
+				check_ability(("%s ability %d ('%s')"):format(where, i, tostring(ab.key)), ab)
 			end
 			-- A tag hands behaviour to the cards carrying it, so a card that
 			-- also declares the same field is two answers to one question.
@@ -1621,7 +1626,7 @@ function M.check(G)
 	end
 
 	-- Abilities need somewhere to be used. Activation is the zone's to allow,
-	-- so a game full of on_activate cards and no zone tagged "activate" has
+	-- so a game full of cards with abilities and no zone that allows them has
 	-- written abilities nobody can ever reach — silently, which is the worst
 	-- way for it to be wrong.
 	do
@@ -1632,10 +1637,10 @@ function M.check(G)
 		if not can_use then
 			local who
 			for _, key in ipairs(G.card_list) do
-				if G.card_defs[key].on_activate then who = key; break end
+				if #(G.card_defs[key].abilities or {}) > 0 then who = key; break end
 			end
 			for tag, td in pairs(tag_defs) do
-				if type(td) == "table" and td.on_activate then who = who or ("tag '" .. tag .. "'") end
+				if type(td) == "table" and #(td.abilities or {}) > 0 then who = who or ("tag '" .. tag .. "'") end
 			end
 			if who then
 				warn("'%s' has an ability, but no zone is tagged \"activate\" — "
@@ -2033,25 +2038,6 @@ function M.check(G)
 				warn('%s: a challenge with no "needs" has nothing to decide — it always passes', where)
 			end
 		end
-		for _, rule in ipairs(def.move_rules or {}) do
-			for _, pname in ipairs(rule.patterns) do
-				if not G.pattern_defs[pname] then
-					warn("%s: moves by the pattern '%s', but none is declared under \"patterns\"%s",
-						where, tostring(pname), suggest(pname, G.pattern_defs))
-				end
-			end
-			if not FILL_WORDS[rule.fill] then
-				warn("%s: a move's fill should be 'empty', 'enemy', 'open' or 'any', not '%s'",
-					where, tostring(rule.fill))
-			end
-			-- Asked of each square the rule offers, with that square as the
-			-- target — so it reads like any other condition, and its subjects
-			-- are checked like any other's.
-			check_conditions(where .. " where", rule.where)
-		end
-		if def.moves and not def.on_activate then
-			warn("%s: says how it moves but has no on_activate — nothing happens when the square is chosen (usually \"move_to:target\")", where)
-		end
 		if def.asset and G.asset_defs and G.asset_defs[def.asset] then
 			-- Named in the assets table, which is checked once on its own below.
 		elseif def.asset and tostring(def.asset):match("^https?://") then
@@ -2085,9 +2071,8 @@ function M.check(G)
 			warn('%s: tags should be a list like ["item", "weapon"]', where)
 		end
 		check_cost(where .. " cost", def.cost)
-		check_cost(where .. " activate_cost", def.activate_cost, "activate")
-		check_conditions(where .. " activate when", def.activate_when)
-		check_conditions(where .. " needs", def.needs)
+		local played = check_compute(where .. " play", def.compute)
+		check_conditions(where .. " needs", def.needs, played)
 		check_conditions(where .. " requires", def.requires)
 		-- "accepts" is asked of this card about the one arriving, so @self is
 		-- this card and @target the newcomer. "on_receive" answers the same way.
@@ -2140,7 +2125,6 @@ function M.check(G)
 		end
 		check_numbers(where, "color", def.color, 3)
 		check_list(where .. " on_play", def.on_play)
-		check_list(where .. " on_activate", def.on_activate)
 		check_list(where .. " on_turn", def.on_turn)
 		check_list(where .. " on_chosen", def.on_chosen)
 		-- Leaving play, and the zone that says which kind of leaving it was. A
@@ -2173,22 +2157,12 @@ function M.check(G)
 		check_list(where .. " on_pass", def.on_pass)
 		check_list(where .. " on_fail", def.on_fail)
 
-		-- "target" gates playing the card, "activate_target" its board ability;
-		-- same shape, same checks, and an ability in a list takes the same again.
-		for _, field in ipairs({ "target", "activate_target" }) do
-			check_target(where, field, def[field])
-		end
+		-- "target" gates playing the card; an ability writes its own, and
+		-- check_ability asks the same of it.
+		check_target(where, "target", def.target)
 
-		if def.activate_target and not def.on_activate then
-			warn("%s: has an activate_target but no on_activate — there is no ability for it to target", where)
-		end
-
-		-- The flat fields above are the one-ability form's, and only that form
-		-- sets on_activate — so this walks exactly the entries nothing else read.
-		if not def.on_activate then
-			for i, ab in ipairs(def.abilities or {}) do
-				check_ability(("%s ability %d ('%s')"):format(where, i, tostring(ab.key)), ab)
-			end
+		for i, ab in ipairs(def.abilities or {}) do
+			check_ability(("%s ability %d ('%s')"):format(where, i, tostring(ab.key)), ab)
 		end
 
 		-- Everything this card carries wherever it lies: its own abilities and
@@ -2262,6 +2236,15 @@ function M.check(G)
 	for key, def in pairs(G.zone_defs) do
 		local where = "zone '" .. key .. "'"
 		check_fields(where, def, ZONE_FIELDS)
+		for i, ab in ipairs(def.abilities or {}) do
+			local aw = ("%s ability %d ('%s')"):format(where, i, tostring(ab.key))
+			check_ability(aw, ab)
+			-- A place has nothing to aim with: there is no arrow to draw from a
+			-- deck, and no card under the cursor to draw it at.
+			if ab.target or ab.moves then
+				warn("%s: a zone's ability cannot aim — targets belong to a card's", aw)
+			end
+		end
 		for param, field in pairs(ZONE_PARAMS) do
 			if def[param] ~= nil and def[field] ~= param then
 				warn('%s: writes "%s", which belongs to "%s": "%s" — it is %s here, so the two disagree about what shape this is',

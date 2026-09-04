@@ -804,8 +804,12 @@ function M.can_play(card_id)
 	local lands   = cards.behaviour(c, "spent")
 	if not ((type(on_play) == "table" and #on_play > 0) or lands) then return false end
 	if not phase_ok(cards.behaviour(c, "phases")) then return false end
-	if not M.can_afford(def.cost, { card_id = card_id }) then return false end
-	if predicate.meets_all(def.needs, { card_id = card_id }) then return true end
+	-- Bound once and read by both: a card whose cost or gate is worked out from
+	-- the board says the arithmetic once and names it, and the name has to mean
+	-- the same number in the question and in the deed.
+	local ctx = predicate.bind(cards.behaviour(c, "compute"), { card_id = card_id })
+	if not M.can_afford(def.cost, ctx) then return false end
+	if predicate.meets_all(def.needs, ctx) then return true end
 	local z = entity.get(c.zone_id)
 	-- A zone tagged "optional" holds buttons, not a hand: nothing in it ever has
 	-- to be played, so there is no soft-lock for the hatch below to break, and
@@ -907,7 +911,10 @@ function M.play_card(card_id, targets)
 	-- it is the answer and the asker is the actor.
 	local lent    = overlay and c.borrowed_from ~= nil
 	if asker and entity.get(asker) and not lent then targets = { asker } end
-	local ctx = { card_id = card_id, targets = targets or {} }
+	-- The targets are in, so a compute that measures them measures the right
+	-- ones: "deal damage equal to what you aimed at" is a number about the pair.
+	local ctx = predicate.bind(cards.behaviour(c, "compute"),
+		{ card_id = card_id, targets = targets or {} })
 	-- A cost the targets pay could not be judged before they were chosen.
 	if not overlay and not M.can_afford(def.cost, ctx) then return false end
 	checkpoint()
@@ -1081,6 +1088,16 @@ function M.offer_abilities(card_id)
 	return offer_choices(card_id, picks, "ability")
 end
 
+-- The same for a place that offers more than one thing: a deck that draws one or
+-- five is asked about exactly as a card with two abilities is.
+function M.offer_zone_abilities(zone_id)
+	local picks = {}
+	for _, u in ipairs(M.usable_zone_abilities(zone_id)) do
+		picks[#picks + 1] = { menu_card = u.ability.menu_card, index = u.index }
+	end
+	return offer_choices(zone_id, picks, "ability")
+end
+
 -- The same for a card that answers the open window more than one way. Rare, and
 -- the reason the chooser is reused rather than a second surface invented: a
 -- window is a player_input phase so the board stays visible, and only the one
@@ -1135,7 +1152,12 @@ function M.menu_choice(card_id)
 		return r and { source = source, index = ridx, reaction = r } or nil
 	end
 	local idx = (c.stats or {}).ability
-	local a = idx and (cards.abilities(entity.get(source)) or {})[idx]
+	-- A place asks with the same entries a card does, and what it is deciding
+	-- between is the same list under the same name. Its own, though: a zone wears
+	-- no tags and lends nothing, so there is nothing to merge in.
+	local src  = entity.get(source)
+	local list = src.kind == "zone" and (src.abilities or {}) or cards.abilities(src)
+	local a = idx and list[idx]
 	return a and { source = source, index = idx, ability = a } or nil
 end
 
@@ -1291,30 +1313,51 @@ end
 -- Not gated: exhaustion. A zone is not spent by being used, and a deck that
 -- could only be drawn from once a round is a rule a game would have to ask for
 -- rather than one it should get by default.
-function M.can_activate_zone(zone_id)
+function M.usable_zone_abilities(zone_id)
 	local z = entity.get(zone_id)
-	if not z or not has_ability(z.on_activate) then return false end
+	if not z or z.kind ~= "zone" then return {} end
 	-- A per-seat zone answers to its seat, which is what `reachable` says for a
 	-- card. A shared zone belongs to nobody and answers to whoever is playing.
-	if z.seat and z.seat ~= zones.active_seat() then return false end
-	if not phase_ok(z.activate_phases) then return false end
-	if window_locked() then return false end
-	return M.can_afford(z.activate_cost, { zone_id = zone_id })
+	if z.seat and z.seat ~= zones.active_seat() then return {} end
+	if window_locked() then return {} end
+	local out = {}
+	for i, a in ipairs(z.abilities or {}) do
+		local ctx = predicate.bind(a.compute, { zone_id = zone_id })
+		if has_ability(a.action) and phase_ok(a.phases)
+			and predicate.meets_all(a.when, ctx)
+			and M.can_afford(a.cost, ctx) then
+			out[#out + 1] = { index = i, ability = a }
+		end
+	end
+	return out
 end
 
-function M.activate_zone(zone_id)
+function M.can_activate_zone(zone_id)
+	return #M.usable_zone_abilities(zone_id) > 0
+end
+
+-- With several usable, `index` says which — the one the chooser resolved to,
+-- exactly as for a card, and for the same reason: no index and more than one to
+-- pick from is a caller that has not asked the player yet.
+function M.activate_zone(zone_id, index)
 	if phase.is_overlay() then return false end   -- a pending choice locks other actions
-	if not M.can_activate_zone(zone_id) then return false end
+	local usable, chosen = M.usable_zone_abilities(zone_id), nil
+	for _, u in ipairs(usable) do
+		if index == nil or u.index == index then chosen = chosen or u end
+	end
+	if not chosen or (index == nil and #usable > 1) then return false end
+	local a   = chosen.ability
 	local z   = entity.get(zone_id)
-	local ctx = { zone_id = zone_id }
+	local ctx = predicate.bind(a.compute, { zone_id = zone_id })
 	checkpoint()
 	-- A zone is nothing card-shaped, so the last thing a player did was not to a
 	-- card and nothing carries the mark. Leaving a stale one would keep a window
 	-- open through a draw.
 	mark_acted(nil)
-	log.add("Used " .. (z.label or z.key))
-	pay(z.activate_cost, ctx)
-	actions.run(z.on_activate, ctx)
+	log.add("Used " .. (z.label or z.key)
+		.. (a.text and #usable > 1 and (" — " .. a.text) or ""))
+	pay(a.cost, ctx)
+	actions.run(a.action, ctx)
 	M.settle()
 	return true
 end

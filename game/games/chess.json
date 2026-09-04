@@ -189,10 +189,10 @@
       "tooltip": "Any distance along a rank or a file.",
       "tags": ["piece", "rook"],
       "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
+      "abilities": [{
         "moves": ["line_ortho"],
         "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
-      }
+      }]
     },
     {
       "key": "knight",
@@ -201,10 +201,10 @@
       "tooltip": "An L, and the only piece that leaps what stands in the way.",
       "tags": ["piece", "knight"],
       "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
+      "abilities": [{
         "moves": ["knight_leap"],
         "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
-      }
+      }]
     },
     {
       "key": "bishop",
@@ -213,10 +213,10 @@
       "tooltip": "Any distance along a diagonal, so it never leaves its colour.",
       "tags": ["piece", "bishop"],
       "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
+      "abilities": [{
         "moves": ["line_diag"],
         "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
-      }
+      }]
     },
     {
       "key": "queen",
@@ -225,10 +225,10 @@
       "tooltip": "Any distance in any of the eight directions.",
       "tags": ["piece", "queen"],
       "card_stats": { "rank": 0, "moves_made": 0 },
-      "activate": {
+      "abilities": [{
         "moves": ["line_ortho", "line_diag"],
         "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
-      }
+      }]
     },
     {
       "key": "king",
