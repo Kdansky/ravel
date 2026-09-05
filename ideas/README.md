@@ -81,6 +81,7 @@ Cheap things that let other things happen come first.
 | 18 | [07](07-presentation.md) — **an offer of fifty-one** | small | the draft may only look bad because its two buttons are 23px squares — and item 2 is in now, so the second look is available. Decide then whether `layout: "page"` — which already draws the reveal overlay — should serve an offer too |
 | 19 | [16](16-the-player-at-this-screen.md) — **a name, and something to say with it** | medium | parked deliberately, and cheaper than it was: [24](24-save-and-load.md) built the store both halves waited on, so what is left is the handshake field and the input surface |
 | ~~20~~ | [21](21-lost-ruins-of-arnak.md) — **Arnak** | large | **shipped.** Sixty-one templates, twenty-one zones, no generator, and nothing in `game/` touched — the research's "zero new primitives" held. It found two words the engine has not got: dealing into a *named* cell, and *who* spent a card's exhaust. Both are written up in [arnak/design.md](arnak/design.md) and neither is ranked yet |
+| ~~21~~ | `todo.md` — **five verbs that were other verbs** | small | **done.** An audit of the 48 ops found five saying what another already said: `destroy_self` → `destroy:self`, `add_to` → `move_to`, `move_target_to` → `move:target:`, `gain` → `fill:<zone>:`, `return_to` → `move:`. 134 sites across 12 games, 5 generators, 12 test files and both documents. Two were also wrong: `gain` inferred its zone from tags and dropped the card in the hand *silently* when two tags disagreed; and `move` sorted its cards by entity id, so Arnak shuffled its table into the bag and had the shuffle undone in the same breath. `return_to` was checked for a reaction it skipped and skips none — both verbs end in `zones.move_card`, and nothing on the move path raises a verb at all |
 | — | [18](18-legends-of-runeterra.md) + [01](01-boardgames.md) gap 5 — **triggers, spells, speeds** | large | not ranked as one item on purpose. [27](27-reactions-and-the-stack.md) shipped the window; what is left is speeds, spell mana, the mulligan, and a hand bounded at ten |
 | — | [19](19-mage-knight.md) — **Mage Knight** | large | **ranked last on evidence, not taste.** Worth revisiting only if hex geometry is wanted for its own sake |
 
@@ -120,6 +121,18 @@ other way, which was true; what was wrong was concluding the format needed a
 names for the card section, three for one gate, an `activate_` prefix meaning
 structure, seven ways to say how a thing looks. A card is now what it *is*, then
 the moments it has.
+
+**The verbs grew them too, and a synonym hides a bug.** Five of forty-eight ops
+were another op with a scope or a zone folded into the name — `destroy_self` is
+`destroy:self`, `move_target_to` is `move:target:`. Two of the five were also
+*wrong*, and in the same way: the short name had quietly picked an answer.
+`gain` worked its zone out from the card's tags and, when two tags disagreed,
+put the card in the hand saying nothing. `move` sorted by entity id — when a
+card was made — so emptying a shuffled pile dealt it back in creation order.
+Neither would have been found by reading the verb; both fell out of asking what
+the longer spelling did differently. **The scope words were the tell**: `self`
+and `target` had been scopes all along, so any verb naming one in its own name
+was a scope that could not be written where a scope belonged.
 
 **A shorthand for the one-of case is a synonym with a schedule.** The `activate`
 block and the `abilities` list said the same thing in two arrangements, and the
