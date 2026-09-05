@@ -91,6 +91,11 @@ local RETIRED = {
 	-- word turning up is not evidence of the old meaning.
 	{ "face_up", '"visibility": "public"' },
 	{ "face_down", '"visibility": "secret"' },
+	-- Three whole-string labels, replaced by a name inside braces that a caption
+	-- can put a word either side of. See "A caption that reads the board".
+	{ "current_phase", "{phase}, which may sit inside a sentence" },
+	{ "current_player", "{active}, which may sit inside a sentence" },
+	{ "owning_player", "{owner}, which may sit inside a sentence" },
 }
 
 local function read(path)

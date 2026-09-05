@@ -6,6 +6,7 @@ local flow        = require("flow")
 local zones       = require("zones")
 local tags        = require("tags")
 local rich        = require("richtext")
+local label       = require("label")
 
 local M = {}
 
@@ -48,7 +49,12 @@ local C = {
 -- answer appears, and the commonest question is the top one.
 local function blocks(c, def)
 	local out = {}
-	local function add(kind, a, b) out[#out + 1] = { kind = kind, a = a, b = b } end
+	-- Filled here rather than at the dozen places that call it: everything the
+	-- panel says about a card is a string the game wrote about *this* card, so
+	-- the one place they all pass through is where a name is answered.
+	local function add(kind, a, b)
+		out[#out + 1] = { kind = kind, a = label.fill(a, c), b = label.fill(b, c) }
+	end
 
 	add("title", def.text or c.def_key)
 
@@ -156,7 +162,9 @@ end
 -- deck — so this is what a player reads before clicking one.
 local function zone_blocks(z)
 	local out = {}
-	local function add(kind, a, b) out[#out + 1] = { kind = kind, a = a, b = b } end
+	local function add(kind, a, b)
+		out[#out + 1] = { kind = kind, a = label.fill(a, z), b = label.fill(b, z) }
+	end
 	add("title", z.label or z.key)
 	if z.tooltip and z.tooltip ~= "" then add("prose", z.tooltip) end
 	if #z.cards > 0 then

@@ -15,6 +15,7 @@ local targeting   = require("targeting")
 local flow        = require("flow")
 local log         = require("log")
 local predicate   = require("predicate")
+local label       = require("label")
 local validate    = require("validate")
 local rng         = require("rng")
 -- A terminal has one face, so the marks a card sets its text in come off here.
@@ -41,10 +42,10 @@ end
 
 local function card_line(e)
 	local def  = cards.def(e)
-	local bits = { def.text or e.def_key }
+	local bits = { label.fill(def.text or e.def_key, e) }
 	if def.cost and next(def.cost) then bits[#bits + 1] = "(" .. cards.cost_text(def.cost) .. ")" end
 	if e.stats.hp then bits[#bits + 1] = e.stats.hp .. "/" .. ((e.stat_max or {}).hp or e.stats.hp) .. "hp" end
-	if def.tooltip then bits[#bits + 1] = "- " .. rich.strip(def.tooltip) end
+	if def.tooltip then bits[#bits + 1] = "- " .. rich.strip(label.fill(def.tooltip, e)) end
 	return table.concat(bits, " ")
 end
 
@@ -67,7 +68,7 @@ local function show()
 	local G   = declaration.G
 	local cur = phase.current()
 	print("")
-	print("== " .. G.title .. " ==  phase: " .. (cur and (cur.label or cur.key) or "-"))
+	print("== " .. G.title .. " ==  phase: " .. (cur and label.fill(cur.label or cur.key, cur) or "-"))
 
 	local outcome = flow.outcome()
 	if outcome then
@@ -81,14 +82,14 @@ local function show()
 	for _, key in ipairs(G.stat_defs_list) do
 		local def = G.stat_defs[key]
 		if not (def and def.hidden) then
-			stats[#stats + 1] = (def.label or key) .. ": " .. predicate.total(def.subject or key)
+			stats[#stats + 1] = label.fill(def.label or key, def) .. ": " .. predicate.total(def.subject or key)
 		end
 	end
 	if #stats > 0 then print(table.concat(stats, "   ")) end
 
 	for z in entity.each("zone") do
 		if z.zone_type == "grid" and not z.tags.hidden then
-			print((z.label or "Board") .. " ('a <slot>' activates, ~ = exhausted):")
+			print(label.fill(z.label or "Board", z) .. " ('a <slot>' activates, ~ = exhausted):")
 			local row = {}
 			for idx, slot_id in ipairs(z.slots) do
 				local occ = entity.get(slot_id).occupant
@@ -109,7 +110,7 @@ local function show()
 	local counts = {}
 	for z in entity.each("zone") do
 		if (z.zone_type == "deck" or z.zone_type == "pile") and not z.tags.hidden then
-			counts[#counts + 1] = (z.label or z.key) .. "(" .. #z.cards .. ")"
+			counts[#counts + 1] = label.fill(z.label or z.key, z) .. "(" .. #z.cards .. ")"
 		end
 	end
 	if #counts > 0 then print(table.concat(counts, "  ")) end
@@ -138,10 +139,11 @@ local function show()
 	local h = hand_zone()
 	if h and cur and cur.page then
 		for i, cid in ipairs(h.cards) do
-			local def = cards.def(entity.get(cid))
+			local e   = entity.get(cid)
+			local def = cards.def(e)
 			print("")
-			print("~~~ " .. (def.text or "") .. " ~~~")
-			for _, l in ipairs(wrap(rich.strip(def.story or def.tooltip or ""), 70)) do
+			print("~~~ " .. label.fill(def.text or "", e) .. " ~~~")
+			for _, l in ipairs(wrap(rich.strip(label.fill(def.story or def.tooltip or "", e)), 70)) do
 				print("  " .. l)
 			end
 			print("  [" .. i .. "] continue")
@@ -220,7 +222,7 @@ local function play_index(n)
 		local why = not flow.can_afford(def.cost)
 			and ("costs " .. cards.cost_text(def.cost))
 			or ("needs " .. cards.cost_text(def.needs))
-		print("Can't play " .. (def.text or c.def_key) .. " (" .. why .. ").")
+		print("Can't play " .. label.fill(def.text or c.def_key, c) .. " (" .. why .. ").")
 		return
 	end
 	local targets = {}
@@ -306,11 +308,11 @@ local function inspect(n)
 	if not cid then print("No card [" .. n .. "]."); return end
 	local c   = entity.get(cid)
 	local def = cards.def(c)
-	print(def.text or c.def_key)
+	print(label.fill(def.text or c.def_key, c))
 	if def.cost and next(def.cost) then print("  cost: " .. cards.cost_text(def.cost)) end
-	if def.tooltip then print("  " .. rich.strip(def.tooltip)) end
+	if def.tooltip then print("  " .. rich.strip(label.fill(def.tooltip, c))) end
 	if def.story then
-		for _, l in ipairs(wrap(rich.strip(def.story), 70)) do print("  " .. l) end
+		for _, l in ipairs(wrap(rich.strip(label.fill(def.story, c)), 70)) do print("  " .. l) end
 	end
 	for k, v in pairs(c.stats) do print("  " .. k .. ": " .. v) end
 	if def.tags then print("  tags: " .. table.concat(def.tags, ", ")) end

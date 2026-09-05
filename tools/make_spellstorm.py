@@ -1352,7 +1352,8 @@ def zones():
         # Labelled with the seat rather than the word "Hand". Two hands facing
         # each other are obviously hands; what a rule saying "the player with
         # Initiative" needs is a board that points at one of them by name.
-        {"key": "hand", "label": "owning_player", "layout": "row", "visibility": "owner",
+        # "{owner}" is the seat this copy belongs to, read off the board.
+        {"key": "hand", "label": "{owner}", "layout": "row", "visibility": "owner",
          "copies": "per_seat", "applies": ["in_hand"],
          "pos": [P(0.145, 0.795, 0.550, 0.995), P(0.145, 0.005, 0.550, 0.205)]},
         # Whatever a wizard brings that nobody else has. Empty for seven of the

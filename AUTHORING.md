@@ -53,7 +53,7 @@ says anything twice. These are its headings, grouped by the question each one
 answers; a test holds this list to them, so a section that exists is listed here
 and a line here names a section that exists:
 
-- **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · Stats · Zones · Players · Setup · Card templates · Two marks in card text · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
+- **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · Stats · Zones · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
@@ -902,7 +902,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 
 | Field | Meaning |
 |---|---|
-| `key`, `label` | Identity and optional on-screen label. A label is written across the top of the zone and the cards keep clear of it, so a named zone is still named once something is in it — which costs a line of height, and a zone whose cards are sized by their height wants a little more room than an unnamed one. **Three labels are read off the engine instead of printed**: `current_phase`, `current_player` and `owning_player`. A board shows what is where and says nothing about whose turn it is or which part of it this is, so an empty `grid [1, 1]` with one of the first two is a readout. `owning_player` is the odd one out and is about the zone rather than the moment: on a `per_seat` zone it draws that copy's own seat by name, which is how two hands facing each other say which is which |
+| `key`, `label` | Identity and optional on-screen label. A label is written across the top of the zone and the cards keep clear of it, so a named zone is still named once something is in it — which costs a line of height, and a zone whose cards are sized by their height wants a little more room than an unnamed one. A label may name what it is about — `{owner}`, `{active}`, `{phase}`, or a field — and is read off the board when it is drawn: see *A caption that reads the board*. A board shows what is where and says nothing about whose turn it is or which part of it this is, so an empty `grid [1, 1]` labelled `{active}` or `{phase}` is a readout |
 | `layout` | Where the cards are drawn. `stack` (one on top of another — only the top shows), `row` (side by side, each showing its text — wrapping onto more lines rather than shrinking when one line would be too tight), `grid` (addressed cells), `page` (each card fills the zone, for a story panel) |
 | `visibility` | Who may read them, and **nothing else** — a card in play may be unreadable and a card nobody can touch may be plain to see. `public` (default), `owner` (the seat whose zone it is; a zone with no seat is nobody's secret and stays public), `secret` (nobody — backs out, and a stack's order is scrambled in the browser, because the order is the secret and the contents usually are not) |
 | `reach` | Which of the cards here exist as far as the rules go: `all`, or `top` — only the last one. A `stack` is `top` unless it says otherwise |
@@ -1127,6 +1127,54 @@ exactly like text that is fine.
 The marks are drawn, not set: LÖVE ships one face, so bold is the glyphs struck
 twice and italic is the glyphs sheared. Everywhere text is read rather than
 drawn — the CLI player, a log line — the marks come off.
+
+### A caption that reads the board
+
+A board shows what is where and says nothing about whose it is, or which part of
+the turn this is. **A name in braces is answered when the string is drawn:**
+
+```json
+{ "key": "deck",   "label": "{owner}'s deck" },
+{ "key": "turn",   "label": "{active} to move", "layout": "grid", "grid": [1, 1] },
+{ "key": "torch",  "text":  "{stats.fuel} left" }
+```
+
+Three names are the engine's own, and mean the same wherever they are written:
+
+| | |
+|---|---|
+| `{owner}` | whose the thing wearing the label is, **by name** — the seat card's `text`, not the key the file spells it with. On a `per_seat` zone it is that copy's own seat, which is how two hands facing each other say which is which |
+| `{active}` | whoever is up |
+| `{phase}` | the phase's `label`, or its key where it has none |
+
+**Anything else is a field of the thing the string is written on** — the live
+entity first, its template second, so `{text}` finds the template's word and
+`{stats.health}` finds the number as it is now. A dot walks in: `{stats.fuel}`,
+`{style.color}`.
+
+It works on every string a player reads: a zone's `label` and `tooltip`, a
+card's `text`, `tooltip` and `story`, a phase's `label`, a stat's `label`. A
+stat's row is not about any one thing, so `{owner}` has nothing to answer there;
+`{active}` and `{phase}` still do.
+
+**A name nothing answers is left standing in its braces.** `{ownr}'s deck` says
+where the typo is, where an empty `'s deck` would only say that something went
+missing. The validator says the same thing earlier, and a name holding a list
+rather than a word — `{cards}` — gets the same sentence, because a caption
+cannot print a list either.
+
+Two things it deliberately is not:
+
+- **It is not read twice.** The answer is printed as it comes back, so a seat
+  whose own `text` said `{owner}` is a label that says `{owner}`, not one that
+  resolves for ever.
+- **It is not an identity.** Only the drawing substitutes. The log, the network,
+  a save and every condition still name the thing what the file called it, so a
+  caption can be rewritten without any rule changing meaning.
+
+`{` is the mark because it was the one still free: `$` is already money in card
+prose, and `<` and `[` are commoner still. A brace around anything that is not a
+name — `{ two words }` — is prose and is left alone.
 
 ### Named assets
 

@@ -13,6 +13,7 @@ local tags        = require("tags")
 local art         = require("art")
 local predicate   = require("predicate")
 local rich        = require("richtext")
+local label       = require("label")
 
 local M = {}
 
@@ -665,7 +666,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	local color = look.color or C.card_default
 	local img   = cards.image(card_e)
 	local z     = entity.get(card_e.zone_id)
-	local title = def and def.text or card_e.def_key
+	local title = label.fill(def and def.text or card_e.def_key, card_e)
 	-- Some cards are their picture. A chess knight labelled "White Knight" is
 	-- worse than one that just looks like a knight, and on a board tile the
 	-- label costs a quarter of the height it needed for the drawing. Carried as
@@ -675,7 +676,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	-- What is left to put in the text band once the title is gone. A hand card
 	-- may still have a description worth the room; a board tile has nothing, and
 	-- gives the space back to the art.
-	local body = show_text and def and def.tooltip or nil
+	local body = show_text and def and label.fill(def.tooltip, card_e) or nil
 	if body == "" then body = nil end
 	-- Where the words ended up, reported to the caller: on a card wide enough
 	-- for prose the badges belong on the title's line, because the prose is
@@ -1020,7 +1021,7 @@ local function draw_page(pl, card_e)
 	local m = 18 * S
 	local y = pl.y + m
 	love.graphics.setColor(unpack(C.card_text))
-	printf(def and def.text or card_e.def_key, pl.x + m, y, pl.w - m * 2, "center")
+	printf(label.fill(def and def.text or card_e.def_key, card_e), pl.x + m, y, pl.w - m * 2, "center")
 	y = y + mf:getHeight() + 8 * S
 	love.graphics.setColor(0.28, 0.40, 0.62)
 	love.graphics.line(pl.x + m, y, pl.x + pl.w - m, y)
@@ -1029,7 +1030,7 @@ local function draw_page(pl, card_e)
 	local hint_h = sf:getHeight() + 12 * S
 	love.graphics.setScissor(pl.x, y, pl.w, math.max(0, pl.y + pl.h - hint_h - y))
 	love.graphics.setColor(0.80, 0.88, 1.00)
-	printf(def and (def.story or def.tooltip) or "",
+	printf(label.fill(def and (def.story or def.tooltip) or "", card_e),
 		pl.x + m, y, pl.w - m * 2, "left")
 	love.graphics.setScissor()
 
@@ -1170,23 +1171,8 @@ end
 -- copy is, and the seat's own name is the only answer a player can act on. Two
 -- hands facing each other are otherwise a board that talks about "seat one"
 -- without ever pointing at it.
-local LIVE_LABEL = {
-	current_phase = function()
-		local cur = phase.current()
-		return cur and (cur.label or cur.key)
-	end,
-	current_player = function()
-		return seat_name(zones.active_seat())
-	end,
-	owning_player = function(zone_e)
-		return seat_name(zone_e.seat)
-	end,
-}
-
 local function draw_zone_label(zone_e)
-	local text = zone_e.label
-	local live = text and LIVE_LABEL[text]
-	if live then text = live(zone_e) end
+	local text = zone_e.label and label.fill(zone_e.label, zone_e)
 	if not text then return end
 	local p = zone_e.place
 	love.graphics.push("all")
@@ -1268,7 +1254,7 @@ local function draw_zone(zone_e)
 		love.graphics.setColor(0, 0, 0, 0.55)
 		love.graphics.rectangle("fill", p.x + 3 * S, band_y, p.w - 6 * S, band_h, 3 * S, 3 * S)
 		love.graphics.setColor(unpack(C.card_text))
-		printf(truncate(love.graphics.getFont(), zone_e.label, p.w - 10 * S),
+		printf(truncate(love.graphics.getFont(), label.fill(zone_e.label, zone_e), p.w - 10 * S),
 			p.x + 5 * S, band_y + 3 * S, p.w - 10 * S, "center")
 		love.graphics.setColor(0.55, 0.72, 1.00)
 		printf(tostring(#zone_e.cards),
@@ -1347,8 +1333,9 @@ local function draw_stats()
 	love.graphics.push("all")
 	local cur = phase.current()
 	if cur and cur.label then
+		local ph_label = label.fill(cur.label, cur)
 		love.graphics.setColor(0.70, 0.88, 1.00)
-		print_at(cur.label, x - mf:getWidth(cur.label), y)
+		print_at(ph_label, x - mf:getWidth(ph_label), y)
 		y = y + fh + 8 * S
 	end
 	-- Your numbers, not the numbers of whoever is to move. The two are the same
@@ -1358,8 +1345,8 @@ local function draw_stats()
 		for _, key in ipairs(G.stat_defs_list or {}) do
 			local def = G.stat_defs[key]
 			if not (def and def.tags_set and def.tags_set.hidden) then
-				local label = def and (def.label or key) or key
-				local txt   = label .. ": " .. tostring(predicate.total(def and def.subject or key))
+				local text = label.fill(def and (def.label or key) or key, def)
+				local txt  = text .. ": " .. tostring(predicate.total(def and def.subject or key))
 				local tw    = mf:getWidth(txt)
 				local icon, tint = stat_icon(key)
 				local ind   = icon ~= "none" and fh or 0
@@ -1488,7 +1475,7 @@ local function draw_react_hint()
 	local names = {}
 	for _, id in ipairs(top.re_subject) do
 		local c = entity.get(id)
-		if c then names[#names + 1] = (cards.def(c) or {}).text or c.def_key end
+		if c then names[#names + 1] = label.fill((cards.def(c) or {}).text or c.def_key, c) end
 	end
 	local msg = table.concat(names, ", ") .. ": " .. top.re_verb
 		.. "   —   " .. tostring(seat_name(zones.active_seat())) .. " to answer"
@@ -1633,7 +1620,7 @@ local function draw_zone_browse(zone_e)
 
 	love.graphics.push("all")
 	love.graphics.setColor(unpack(C.card_text))
-	printf((zone_e.label or zone_e.key) .. "  (" .. n .. ")", 0, 18 * S, W, "center")
+	printf(label.fill(zone_e.label or zone_e.key, zone_e) .. "  (" .. n .. ")", 0, 18 * S, W, "center")
 
 	-- Pick the shape of the grid, rather than the width of a card and then
 	-- however many rows that needs. The old way fixed the columns from an
@@ -1692,7 +1679,7 @@ local function draw_card_detail(card_e)
 		local y = info_y
 
 		love.graphics.setColor(1.00, 1.00, 1.00)
-		printf(def and def.text or card_e.def_key, info_x, y, info_w, "left")
+		printf(label.fill(def and def.text or card_e.def_key, card_e), info_x, y, info_w, "left")
 		y = y + main_font:getHeight() + 8 * S
 
 		love.graphics.setColor(0.28, 0.40, 0.62)
@@ -1706,7 +1693,7 @@ local function draw_card_detail(card_e)
 			y = y + main_font:getHeight() + 8 * S
 		end
 
-		local tooltip = def and def.tooltip or ""
+		local tooltip = label.fill(def and def.tooltip or "", card_e)
 		if tooltip ~= "" then
 			love.graphics.setColor(0.82, 0.91, 1.00)
 			printf(tooltip, info_x, y, info_w, "left")
@@ -1839,7 +1826,7 @@ function M.draw()
 			if cur.label then
 				love.graphics.push("all")
 				love.graphics.setColor(unpack(C.card_text))
-				printf(cur.label, 0, oz.place.y - 30 * S, W, "center")
+				printf(label.fill(cur.label, cur), 0, oz.place.y - 30 * S, W, "center")
 				love.graphics.pop()
 			end
 			draw_zone(oz)

@@ -185,14 +185,14 @@
   "zones": [
     {
       "key": "whose_turn",
-      "label": "current_player",
+      "label": "{active}",
       "layout": "grid",
       "grid": [1, 1],
       "pos": [0.005, 0.005, 0.225, 0.045]
     },
     {
       "key": "what_now",
-      "label": "current_phase",
+      "label": "{phase}",
       "layout": "grid",
       "grid": [1, 1],
       "pos": [0.005, 0.049, 0.225, 0.089]

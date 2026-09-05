@@ -703,9 +703,9 @@ def zones():
     z = [
         # Two readouts nothing else can give: a board shows what is where and
         # says nothing about whose turn it is or which part of it this is.
-        {"key": "whose_turn", "label": "current_player", "layout": "grid", "grid": [1, 1],
+        {"key": "whose_turn", "label": "{active}", "layout": "grid", "grid": [1, 1],
          "pos": [0.005, 0.005, 0.225, 0.045]},
-        {"key": "what_now", "label": "current_phase", "layout": "grid", "grid": [1, 1],
+        {"key": "what_now", "label": "{phase}", "layout": "grid", "grid": [1, 1],
          "pos": [0.005, 0.049, 0.225, 0.089]},
         # Stopping at 0.82: the lower-left corner is the undo button's and the
         # log's, which is why this column ends above it rather than at the floor.

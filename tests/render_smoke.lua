@@ -225,9 +225,9 @@ end
 -- A zone that says whose it is. Two hands facing each other are obviously
 -- hands; what a board also has to say is which of them is Player One, because
 -- every rule about Initiative and turn order names a seat and nothing else on
--- screen points at one. `owning_player` is the reserved label that does it, and
--- what it must draw is the seat *card's* text -- "Player One" -- rather than
--- the key the file spells it with.
+-- screen points at one. `{owner}` is the name that does it, and what it must
+-- draw is the seat *card's* text -- "Player One" -- rather than the key the
+-- file spells it with.
 do
 	flow.init("spellstorm.json", 4)
 	render.rescale()

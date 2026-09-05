@@ -9,6 +9,7 @@
 local actions   = require("actions")
 local predicate = require("predicate")   -- parse_subject only: pure, no game state
 local rich      = require("richtext")     -- the two marks card prose may carry
+local label     = require("label")        -- the {name} a caption may carry
 
 -- The same allowlist the loader enforces, so an author sees the problem at
 -- load time instead of only in the console when the fetch is refused. Shared
@@ -854,6 +855,34 @@ function M.check(G)
 		end
 	end
 
+	-- Fields a live entity carries that its definition does not, and that a
+	-- caption may honestly ask for. Everything else the engine keeps on an
+	-- entity is bookkeeping, and a label naming one of those is a typo far more
+	-- often than a plan. A list is left out on purpose: a caption cannot print
+	-- one, so "{cards}" is worth the same sentence as "{cadrs}".
+	local LIVE_FIELDS = {
+		card = { def_key = true, stats = true, zone_id = true, id = true },
+		zone = { seat = true, id = true },
+	}
+
+	-- "{owner}'s deck" is answered when it is drawn, so nothing here can say
+	-- what it will read. What it can say is that nothing will ever answer it —
+	-- a name that is neither one of the engine's three words nor a field the
+	-- thing has is a typo, and it draws as itself, braces and all.
+	local function check_labels(where, def, kind, fields, ...)
+		if type(def) ~= "table" then return end
+		for _, field in ipairs({ ... }) do
+			for _, name in ipairs(label.names(def[field])) do
+				local first = name:match("^[^%.]+")
+				if not (label.RESERVED[first] or fields[first] or (LIVE_FIELDS[kind] or {})[first]) then
+					warn("%s: \"%s\" asks for '{%s}', which is neither one of the engine's own "
+						.. "words (owner, active, phase) nor a field a %s has — it will draw as itself",
+						where, field, name, kind)
+				end
+			end
+		end
+	end
+
 	local function check_numbers(where, what, arr, n)
 		if arr == nil then return end
 		if type(arr) ~= "table" or #arr ~= n then
@@ -1420,6 +1449,7 @@ function M.check(G)
 	for key, def in pairs(G.stat_defs) do
 		local where = "stat '" .. key .. "'"
 		check_fields(where, def, STAT_FIELDS)
+		check_labels(where, def, "stat", STAT_FIELDS, "label")
 		if RESERVED[key] and (def.min or def.max) then
 			warn("%s: is managed by the engine; its min/max are ignored", where)
 		end
@@ -2048,6 +2078,7 @@ function M.check(G)
 	for key, def in pairs(G.card_defs) do
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
+		check_labels(where, def, "card", CARD_FIELDS, "text", "tooltip", "story")
 		for moment, fields in pairs({ play = PLAY_FIELDS, activate = ACTIVATE_FIELDS,
 			receive = RECEIVE_FIELDS, turn = TURN_FIELDS, challenge = CHALLENGE_FIELDS,
 			chosen = CHOSEN_FIELDS, leaves = LEAVES_FIELDS }) do
@@ -2258,6 +2289,7 @@ function M.check(G)
 	for key, def in pairs(G.zone_defs) do
 		local where = "zone '" .. key .. "'"
 		check_fields(where, def, ZONE_FIELDS)
+		check_labels(where, def, "zone", ZONE_FIELDS, "label", "tooltip")
 		for i, ab in ipairs(def.abilities or {}) do
 			local aw = ("%s ability %d ('%s')"):format(where, i, tostring(ab.key))
 			check_ability(aw, ab)
@@ -2459,6 +2491,7 @@ function M.check(G)
 	for key, pd in pairs(G.phase_by_key) do
 		local where = "phase '" .. key .. "'"
 		check_fields(where, pd, PHASE_FIELDS)
+		check_labels(where, pd, "phase", PHASE_FIELDS, "label")
 		if pd.type == nil then
 			warn("%s: has no type (automatic, player_input, draw_and_play or overlay)", where)
 		elseif not PHASE_TYPES[pd.type] then

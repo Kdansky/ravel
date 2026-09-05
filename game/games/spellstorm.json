@@ -216,7 +216,7 @@
     },
     {
       "key": "hand",
-      "label": "owning_player",
+      "label": "{owner}",
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",

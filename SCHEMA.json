@@ -17,7 +17,7 @@
   "stats": [
     {
       "key": "name cards spend and conditions read. round and plays are reserved: the engine manages them, declare them only to show them. won is reserved too and sits on every seat, 0 until a game sets it — stat_gain:won@<the winning seat>:1 is how a game with two seats says who won, and the ending screen reads it against the seat this client claimed.",
-      "label": "string for the HUD row. Defaults to the key.",
+      "label": "string for the HUD row. Defaults to the key. Names in braces are answered when it is drawn: {owner} (whose it is, by the seat card's text), {active} (whoever is up), {phase} (the phase's label), or a field of the thing itself ({stats.health}, {text}). A name nothing answers is left standing in its braces. Only the drawing substitutes \u2014 the log, the network and every condition still use the key.",
       "min": "number the stat is clamped to below. Usually 0.",
       "max": "number the stat is clamped to above.",
       "subject": "a subject expression the HUD row displays instead of the plain total, while the key still names what cards spend: sum:defense@standing shows the buildings still standing.",
@@ -83,7 +83,7 @@
   "cards": [
     {
       "key": "unique name. Cards, actions, conditions and scopes all reference it, and it may never collide with a zone key or a tag.",
-      "text": "the card title, drawn on its face",
+      "text": "the card title, drawn on its face. Names in braces are answered when it is drawn: {owner} (whose it is, by the seat card's text), {active} (whoever is up), {phase} (the phase's label), or a field of the thing itself ({stats.health}, {text}). A name nothing answers is left standing in its braces. Only the drawing substitutes \u2014 the log, the network and every condition still use the key.",
       "tooltip": "prose shown in the hover panel after a short delay. May carry two marks: *bold* for the mechanics, _italic_ for flavour, which is set a size smaller. A mark that never closes is left as the character it is, so weather_now stays one word.",
       "story": "long prose for the full-screen page overlay and the detail view",
       "asset": "a picture: a name in the assets table, a bare filename in games/assets, an http(s) URL, a shape spec like star:5:amber, or auto for a generated one. A name is anything with no source in it, which is what tells the five apart. A picture that cannot be produced draws a generated placeholder derived from the card key, never nothing.",
@@ -216,7 +216,7 @@
   "zones": [
     {
       "key": "unique name, which may never collide with a card key or any tag. Some names are load-bearing: hand, graveyard, board, reveal and system have engine meanings a game may override by declaring them.",
-      "label": "string drawn on the zone",
+      "label": "string drawn on the zone. Names in braces are answered when it is drawn: {owner} (whose it is, by the seat card's text), {active} (whoever is up), {phase} (the phase's label), or a field of the thing itself ({stats.health}, {text}). A name nothing answers is left standing in its braces. Only the drawing substitutes \u2014 the log, the network and every condition still use the key.",
       "layout": "where the cards are drawn: stack (one on top of another, so only the top of the pile shows), row (side by side, each showing its text, wrapping onto more lines rather than shrinking when one line would be too tight \u2014 add \"row\": \"down\" or \"right\" to overlap them into a fan that still reads down its whole length), grid (addressed cells, which is what \"grid\": [cols, rows] is for and the only layout with a capacity), or page (each card fills the zone, for a story panel).",
       "visibility": "who may read the cards here \u2014 a drawing question and nothing else, so a card in play may be unreadable and a card nobody can touch may be plain to see. \"public\" is everyone, \"owner\" is the seat whose zone it is (a zone with no seat is nobody's secret, so it stays public), \"secret\" is nobody \u2014 backs out, and a stack's order is scrambled in the browser because the order is the secret and the contents usually are not. Default public.",
       "reach": "which of the cards here exist as far as the rules go: \"all\", or \"top\" \u2014 only the last one, which is what a stack means and is its default. A row can say \"top\" too: a column of cards fanned so every one is readable while only the last is in play is exactly Lost Cities' expedition.",
@@ -251,7 +251,7 @@
   "phases": [
     {
       "key": "unique name. A phase key must never name a seat: both players share one play phase, and seat: next is what makes the turn theirs.",
-      "label": "string for the HUD",
+      "label": "string for the HUD. Names in braces are answered when it is drawn: {owner} (whose it is, by the seat card's text), {active} (whoever is up), {phase} (the phase's label), or a field of the thing itself ({stats.health}, {text}). A name nothing answers is left standing in its braces. Only the drawing substitutes \u2014 the log, the network and every condition still use the key.",
       "type": "automatic (run actions once and advance), player_input (play freely), draw_and_play (player_input with ends_after 1 and discard_hand), or overlay (dim the screen, deal into its zone, and resolve by *playing* one of the cards dealt — choosing is playing. Push-only, and a choice costs nothing: cost, needs and targeting are skipped)",
       "actions": ["action strings run when the phase begins — any phase, not only automatic ones. On a phase that hands over, the seat has already changed, so \"mine\" is the player about to act."],
       "deck": "zone key to deal from on fresh entry",
