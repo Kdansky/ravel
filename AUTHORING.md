@@ -766,7 +766,12 @@ parsed. The merged table is itself an ordinary game file, so nothing downstream
 — the validator, the network, `check.lua` — ever learns the word.
 
 ```json
-{ "title": "Chess", "include": ["base.json"], "cards": [ ... ] }
+{
+  "title": "Arnak (3 players)",
+  "include": ["arnak.json"],
+  "replaces": ["players"],
+  "players": [{ "card": "south" }, { "card": "north" }, { "card": "east" }]
+}
 ```
 
 **The file that includes is the more specific of the two.** A three-seat module
@@ -820,12 +825,18 @@ naming two others is no use to a peer holding neither, and a hash of it would
 cover one game in three — two peers with different base files would agree they
 were playing the same game and then quietly disagree about it.
 
-**`base.json`** is an ordinary file that ships in `games/`, holding the geometry
-every grid game writes the same way: `adjacent`, `line_ortho`, `line_diag`,
-`knight_leap`. It is named in `include` like any other and is never loaded
-automatically — a name whose definition is nowhere in the file, and nowhere in
-anything the file mentions, breaks the one property a game file has. Cards,
-zones and phases do not belong in it: those are the game.
+**What it is not for is a library.** There is no shared base file of patterns
+that games include, and there should not be one: a game is self-contained, and
+chess writing out its own eight knight vectors is the format working rather than
+the format repeating itself. `line_ortho` in a file that does not define it
+sends the reader somewhere else to find out what their own game means, and the
+saving is four lines against that.
+
+So the files an `include` names are **the same game's** — a variant of it, or a
+set of cards belonging to it. Two games never share one. Where that means two
+games write the same four patterns, they write them: identical text in two
+independent files is cheaper to read, and cheaper to change, than one file two
+games depend on.
 
 ### `comment` — the one field the engine will not read
 

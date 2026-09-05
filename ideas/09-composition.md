@@ -1,10 +1,19 @@
 # 09 — One game out of several files
 
-**Status: shipped.** `include` and `replaces` are in, `base.json` holds the
-geometry, and chess is the proof — its four general patterns are gone from its
-own file and come from the base. What the format does is written up in
-AUTHORING.md (*One game out of several files*) and `SCHEMA.json`; only the
-decisions and what is still open are kept here.
+**Status: shipped, and narrower than this file argued for.** `include` and
+`replaces` are in. What the format does is written up in AUTHORING.md (*One game
+out of several files*) and `SCHEMA.json`; only the decisions and what is still
+open are kept here.
+
+**A game is self-contained, so there is no shared base file.** This document
+argued for one — geometry every grid game includes — and it was built and then
+taken out again: `line_ortho` in a file that does not define it sends the reader
+somewhere else to find out what their own game means, and the saving is four
+lines against that. Chess writes its own eight knight vectors and that is the
+format working. So the files an `include` names are **the same game's** — a
+variant of it, or a set of cards belonging to it — and two games never share
+one. Identical text in two independent files is cheaper to read, and cheaper to
+change, than one file two games depend on.
 
 ## The two decisions the pause was waiting on
 
@@ -46,11 +55,13 @@ Two consequences that fell out rather than being chosen:
 
 ## Left
 
-1. **A module actually written.** The mechanism has a test for every rule and one
-   shipped user (chess over `base.json`), but no game yet writes the case the
-   word was asked for — a player-count module over a whole game. Arnak is the
-   obvious candidate: 5 of its 22 zones are `copies: "per_seat"`, so a third seat
-   is those five zones, `players`, and a seat card.
+1. **A module actually written.** The mechanism has a test for every rule and no
+   user at all — the one it had, chess over a shared base, was the case that
+   turned out to be wrong. No game yet writes the case the word was asked for:
+   a player-count module over a whole game, or a card set over the sets before
+   it. Arnak is the obvious candidate for the first: 5 of its 22 zones are
+   `copies: "per_seat"`, so a third seat is those five zones, `players`, and a
+   seat card.
    **[Assumption: the rest of Arnak's three-player rules — component counts, the
    research track — were not looked at. The layout is the part `include` answers;
    whether the rest is a module or a different game is unexamined.]**
@@ -60,8 +71,3 @@ Two consequences that fell out rather than being chosen:
    downstream reads it, because `parse` throws it away with the other merge
    bookkeeping. Appending `(from sets/alpha.json)` to a validator warning is the
    use it was built for.
-3. **A tag in `base.json`.** Patterns only for now. The rule for adding one is
-   this repository's existing one: when two shipped games have written the same
-   tag. Cards, zones and phases never go in — those are the game, and the first
-   author who inherits a zone they did not ask for will not find where it came
-   from.

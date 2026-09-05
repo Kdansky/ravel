@@ -1,9 +1,0 @@
-{
-  "comment": "Geometry every grid game writes the same way. Named in \"include\" like any other file, never loaded on its own: a name whose definition is nowhere in the file, and nowhere in anything the file mentions, breaks the one property a game file has. Cards, zones and phases do not belong here — those are the game, and a base file that starts carrying them is a junk drawer whose first inheritance nobody can find the source of. A tag earns a place here once two shipped games have written the same one.",
-  "patterns": {
-    "adjacent":    { "vectors": [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]], "class": ["step"] },
-    "line_ortho":  { "vectors": [[1,0],[-1,0],[0,1],[0,-1]], "class": ["ray"] },
-    "line_diag":   { "vectors": [[1,1],[1,-1],[-1,1],[-1,-1]], "class": ["ray"] },
-    "knight_leap": { "vectors": [[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]], "class": ["step"] }
-  }
-}
