@@ -426,6 +426,7 @@ local KNOWN_SECTIONS = {
 	cards = true, zones = true, phases = true,
 	end_conditions = true, setup = true, tags = true, effects = true, players = true, verbs = true,
 	patterns = true, assets = true, styles = true,
+	include = true, replaces = true,
 }
 M.KNOWN_SECTIONS = KNOWN_SECTIONS
 
@@ -515,11 +516,168 @@ function M.provide(filename, text)
 	M.provided[filename] = text
 end
 
-function M.parse(filename)
-	local data = M.provided[filename] or love.filesystem.read("games/" .. filename)
-	assert(data, "Cannot read game file: " .. filename)
+-- One game file out of several, merged before anything is parsed.
+--
+-- A file that includes another is the *more specific* of the two: a three-seat
+-- module includes the two-seat game, a card set includes the sets before it.
+-- Never the other way round — the file you launch has to be a whole game, so a
+-- base that named its own variants would *be* one of them, and the plain game
+-- would stop existing.
+--
+-- **Merged as raw JSON, before parse.** The merged table is itself an ordinary
+-- game file, so parse, the validator, the network layer and check.lua all go on
+-- seeing one game and none of them learns the word "include".
+--
+-- The sections differ only in what names an entry, which is what these two
+-- tables say. Everything else — end_conditions, players — is one thing that
+-- cannot be merged half-way, so two files writing it collide about the whole
+-- section. title and seed never travel: they say *this* game, arranged this
+-- way, and an included game has its own.
+local KEYED_LISTS = { cards = true, zones = true, stats = true, phases = true, computes = true, verbs = true }
+local KEYED_MAPS  = { tags = true, patterns = true, assets = true, styles = true,
+	computed_tags = true, effects = true, setup = true }
+
+local function source(filename)
+	return M.provided[filename] or love.filesystem.read("games/" .. filename)
+end
+
+-- Every file that goes into one game, dependencies first and each one once.
+-- A diamond — two modules over one base — reads the base once, so its own cards
+-- never collide with themselves; a cycle is reported and cut rather than hung on.
+local function collect(filename, seen, chain, order, pp)
+	-- The loop is looked for before the dedupe, or a file that includes itself
+	-- would be quietly skipped as one already read.
+	if chain[filename] then
+		pp[#pp + 1] = "include: '" .. filename .. "' includes itself, going round through "
+			.. table.concat(chain.order, " -> ") .. " — the loop is cut here"
+		return
+	end
+	if seen[filename] then return end
+	local data = source(filename)
+	if not data then
+		pp[#pp + 1] = "include: cannot read '" .. filename .. "', which some file in this game includes"
+		return
+	end
 	local ok, parsed = pcall(json.decode, data)
-	assert(ok, "Bad JSON in " .. filename .. ": " .. tostring(parsed))
+	if not ok then
+		pp[#pp + 1] = "include: bad JSON in '" .. filename .. "': " .. tostring(parsed)
+		return
+	end
+	seen[filename] = true
+	chain[filename] = true
+	chain.order[#chain.order + 1] = filename
+	for _, inc in ipairs(type(parsed.include) == "table" and parsed.include or {}) do
+		if type(inc) == "string" then collect(inc, seen, chain, order, pp) end
+	end
+	chain[filename] = nil
+	chain.order[#chain.order] = nil
+	order[#order + 1] = { name = filename, data = parsed }
+end
+
+-- What this file says it is taking over: "zones" for the whole section, or
+-- "zones.bag" for the one entry. Written out because an override that nobody
+-- announced reads exactly like an accident — a set renaming a card while an
+-- older file still holds the old definition would otherwise just work, wrongly.
+local function replaced_by(entry)
+	local set = { sections = {}, keys = {} }
+	for _, r in ipairs(type(entry.data.replaces) == "table" and entry.data.replaces or {}) do
+		if type(r) == "string" then
+			local section, key = r:match("^([%w_]+)%.(.+)$")
+			if section then set.keys[section .. "." .. key] = true else set.sections[r] = true end
+		end
+	end
+	return set
+end
+
+-- Where each key came from, so a collision names two files rather than one.
+local function fold(out, from, entry, pp)
+	local said, taking = from.name, replaced_by(entry)
+	local function collide(section, key, held)
+		if taking.sections[section] or taking.keys[section .. "." .. key] then return false end
+		pp[#pp + 1] = ("include: '%s' and '%s' both define %s '%s' — say replaces: [\"%s.%s\"] "
+			.. "in '%s' to take it over, or give one of them another key")
+			:format(held, said, section, key, section, key, said)
+		return true
+	end
+	for section in pairs(KEYED_MAPS) do
+		local add = from.data[section]
+		if type(add) == "table" then
+			if taking.sections[section] then out[section] = nil end
+			out[section] = out[section] or {}
+			for k, v in pairs(add) do
+				local held = out[section][k] ~= nil and (out.from[section .. "." .. k] or "?")
+				if not (held and collide(section, k, held)) then
+					out[section][k] = v
+					out.from[section .. "." .. k] = said
+				end
+			end
+		end
+	end
+	for section in pairs(KEYED_LISTS) do
+		local add = from.data[section]
+		if type(add) == "table" then
+			if taking.sections[section] then out[section], out.at[section] = nil, nil end
+			out[section] = out[section] or {}
+			out.at[section] = out.at[section] or {}
+			for _, v in ipairs(add) do
+				local k = type(v) == "table" and v.key
+				if type(k) ~= "string" then
+					out[section][#out[section] + 1] = v
+				elseif out.at[section][k] then
+					-- Replaced where it stood: position is file order, and file order
+					-- is what makes an unseeded setup deal the same cards twice.
+					if not collide(section, k, out.from[section .. "." .. k] or "?") then
+						out[section][out.at[section][k]] = v
+						out.from[section .. "." .. k] = said
+					end
+				else
+					out[section][#out[section] + 1] = v
+					out.at[section][k] = #out[section]
+					out.from[section .. "." .. k] = said
+				end
+			end
+		end
+	end
+	-- The sections nothing names an entry of. Two files writing one is a
+	-- disagreement about the whole thing, so it is settled the same way.
+	for k, v in pairs(from.data) do
+		if not (KEYED_LISTS[k] or KEYED_MAPS[k] or k == "include" or k == "replaces"
+			or k == "title" or k == "seed" or k == "comment") then
+			if out[k] ~= nil and not taking.sections[k] then
+				pp[#pp + 1] = ("include: '%s' and '%s' both write the '%s' section, which has no keys to "
+					.. "merge by — say replaces: [\"%s\"] in '%s' to take it over")
+					:format(out.from[k] or "?", said, k, k, said)
+			else
+				out[k], out.from[k] = v, said
+			end
+		end
+	end
+end
+
+-- The whole game as one table, includes resolved. Split out of parse so the
+-- network can send what the engine is actually playing rather than a file that
+-- references two others the far side has never seen.
+function M.read(filename, pp)
+	pp = pp or {}
+	local data = source(filename)
+	assert(data, "Cannot read game file: " .. filename)
+	local ok, top = pcall(json.decode, data)
+	assert(ok, "Bad JSON in " .. filename .. ": " .. tostring(top))
+	if type(top.include) ~= "table" or #top.include == 0 then return top, pp end
+
+	local order = {}
+	collect(filename, {}, { order = {} }, order, pp)
+	local out = { from = {}, at = {} }
+	for _, entry in ipairs(order) do fold(out, entry, entry, pp) end
+	out.from, out.at = nil, nil
+	-- The top file names the game, whatever the ones under it call themselves.
+	out.title, out.seed = top.title, top.seed
+	return out, pp
+end
+
+function M.parse(filename)
+	local include_problems = {}
+	local parsed = M.read(filename, include_problems)
 
 	local G = {
 		title          = parsed.title or "Ravel",
@@ -565,6 +723,7 @@ function M.parse(filename)
 		parse_problems = {},
 	}
 	local pp = G.parse_problems
+	for _, p in ipairs(include_problems) do pp[#pp + 1] = p end
 	local function entries(list, what)
 		if list == nil then return {} end
 		-- A JSON object decodes to a table too: non-list shapes have keys

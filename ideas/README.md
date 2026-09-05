@@ -29,7 +29,7 @@ engine.
 | [06](06-schema-and-types.md) | Saying what things are | **closed.** Gap 1 reopened and shipped as [28](28-a-zone-by-its-parts.md); the rest shipped, folded into [17](17-conditions-as-expressions.md), or dissolved |
 | [07](07-presentation.md) | Presentation and its gestures | **gaps 1–6, 8 and fill shipped.** Left: a word for where the buttons go, where the stat readout sits, and an offer of fifty-one |
 | [08](08-grid-movement-notation.md) | How a piece says where it may go | **chess plays** — castling, check, promotion, en passant. Left: the scope anchor word, and checkmate |
-| [09](09-composition.md) | One game out of several files | **paused on purpose**, not unstarted — see the note below |
+| [09](09-composition.md) | One game out of several files | **shipped** — `include` merges raw JSON before parse, `replaces` says what a file takes over, and the network sends the merged game rather than the file. `base.json` holds the geometry and chess is the proof. Left: a player-count module actually written, and provenance in validator messages |
 | [10](10-schema-document.md) | A game file that describes itself | **shipped** — `SCHEMA.json`, held to the engine both ways |
 | [11](11-styles-as-tags.md) | Styles are tags too | **shipped**, and it deleted more than it added |
 | [12](12-card-moments.md) | A card is a list of moments | **shipped** — the `activate_` prefix, `requires`, `accepts` and every `on_` name are gone |
@@ -70,7 +70,7 @@ Cheap things that let other things happen come first.
 | ~~7~~ | `todo.md` — **the merge warning that names the same tag twice** | tiny | **fixed.** The zone side names what the card side already named: `the tag 'shop' ability 'buy' and the tag 'shop' ability 'steal'`, so one tag holding both halves of the contradiction reads as one tag. It is worth a test of its own because the sentence *is* the diagnosis — a zone-granted tag is not in the card's own `tags`, so nothing else catches this pairing. Went with it: `make_spellstorm.py` was the one generator that never checked whether the guard let it write, and died in `open(None)` on a dirty tree instead of exiting; it also aimed at a path relative to the shell rather than to itself |
 | 8 | [07](07-presentation.md) gap 7 — **a word for where the buttons go** | small | eight games have each invented their own chrome in raw fractions, and an author must answer "where do the buttons go" before putting a button anywhere. The cheap version is a named region resolved in `zones.resize`, one branch, keeping the model that a button is a card in a zone. Unblocked: item 2 shipped and left the buttons at 28px, which is this question's answer to give |
 | 9 | [07](07-presentation.md) — **where the numbers are read, and whether zeros are** | medium, and a word to agree first | `draw_stats` is hard-anchored to the top-right corner in pixels, so any game using that corner has its readout printed over it. Two independent halves: a place, which needs a new field and therefore consent; and zeros, where `badge_zeros` already exists for the card end of the same question |
-| 10 | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | worth re-opening with the pause's two findings settled. Four generated games now, whose files are only maintainable *because* of the generator — the argument arriving from a new direction |
+| ~~10~~ | [09](09-composition.md) — **`include`, then a base file of patterns** | medium | **shipped.** The pause's two questions were answered the other way round from how they were written: the *specific* file includes the general one — a module includes the whole game, never the reverse, or the base would *be* one of its own variants — and a collision is an error unless the including file says `replaces`, which keeps what "refuse every collision" was protecting while letting a layout module exist. `setup` travels now, which that draft said it would not: it assumed a base with no setup of its own. Merged as raw JSON before parse, so nothing downstream learns the word; the network sends the merged game, since a file naming two others is no use to a peer holding neither. Chess is the proof — its four general patterns now come from `base.json` |
 | 11 | [25](25-derived-stats.md) — **re-read, not built** | small + one decision | what is left is whether a stat that keeps itself is worth anything *once a formula can sit at its use site with a name on it*. Answer it with The Crew's `weigh` migrated. The one thing a compute cannot do is clamp, and Splendor's pricing rests on `min: 0` |
 | 12 | [33](33-a-row-that-closes-up.md) — **a cell on `draw_from`, then Arnak's row** | small, then medium | **`compact` is in.** Sliding a shelf shut turned out to be one pass rather than a settling loop, because the direction says what order to move in — the furthest card packs against the end and every card behind stops against a final wall. What is left is the deal: after a compaction the free cells are the two outer ends, and `draw_from` fills by slot index, which is right for one end of a shared row and exactly wrong for the other. Then the staff becomes a card standing in a seven-wide grid and `destroy:beside` is the rulebook sentence |
 | 13 | [01](01-boardgames.md) gap 1 — **the square a move passes over** | medium | a jump takes the piece it flies past, and nothing can name that square. Castling-through-check asks for the same word; en passant no longer does, having shipped as `where` |
@@ -164,12 +164,7 @@ engine's own counters as card statistics — every one obvious in the first
 screenshot. [07](07-presentation.md) records the scratch harness and the two
 things that stop it working. Any visual item above should be done against it.
 
-## Two standing decisions
-
-**[09](09-composition.md) is paused, and the pause is a decision.** The collision
-rule wanted is union-with-identical-or-error rather than override, and how far a
-path may reach touches the network: a peer's game text parses through the same
-door, so an include in it reads local files and forwards them.
+## A standing decision
 
 **Worktrees: no, except when somebody else is in the tree.** The exception was
 taken on 2026-09-03, with a second person editing Spellstorm in the checkout,

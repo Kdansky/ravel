@@ -152,12 +152,24 @@ function M.game_hash(filename)
 	return file_hashes[filename] or nil
 end
 
--- The file's text, wherever it came from. A game an opponent sent us is as real
+-- The game's text, wherever it came from. A game an opponent sent us is as real
 -- as one on disk, and has to hash the same on both sides.
+--
+-- **Flattened, not the file.** A file that includes two others names files the
+-- far side has never seen, and a hash of it covers one game in three — so two
+-- peers holding different base files would agree they were playing the same
+-- game and then quietly disagree about it. What goes down the wire is the
+-- merged table, which is an ordinary game file with no include in it and is
+-- exactly what this side is playing. json.encode sorts its keys, so the two
+-- sides encode the same table to the same bytes.
 function M.game_text(filename)
 	filename = filename or declaration.filename
 	if not filename then return nil end
-	return declaration.provided[filename] or love.filesystem.read("games/" .. filename)
+	local raw = declaration.provided[filename] or love.filesystem.read("games/" .. filename)
+	if not raw or not raw:find('"include"', 1, true) then return raw end
+	local ok, merged = pcall(declaration.read, filename)
+	if not ok then return raw end
+	return json.encode(merged)
 end
 
 -- Registering a shared game invalidates its cached hash, which was "false"

@@ -1,4 +1,5 @@
 {
+  "include": ["base.json"],
   "title": "Chess",
   "players": [{ "card": "player_white" }, { "card": "player_black" }],
   "assets": {
@@ -15,16 +16,6 @@
     "chessboard": { "fit": "fill", "ratio": "grid", "chequer": ["#b58863", "#f0d9b5"], "cell_outline": false }
   },
   "patterns": {
-    "line_ortho": { "vectors": [[1, 0], [-1, 0], [0, 1], [0, -1]], "class": ["ray"] },
-    "line_diag": { "vectors": [[1, 1], [1, -1], [-1, 1], [-1, -1]], "class": ["ray"] },
-    "adjacent": {
-      "vectors": [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]],
-      "class": ["step"]
-    },
-    "knight_leap": {
-      "vectors": [[1, 2], [1, -2], [-1, 2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]],
-      "class": ["step"]
-    },
     "pawn_step": { "vectors": [[0, 1]], "class": ["step"] },
     "pawn_run": { "vectors": [[0, 1]], "class": ["ray:2"] },
     "pawn_take": { "vectors": [[1, 1], [-1, 1]], "class": ["step"] },

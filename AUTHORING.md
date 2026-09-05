@@ -53,7 +53,7 @@ says anything twice. These are its headings, grouped by the question each one
 answers; a test holds this list to them, so a section that exists is listed here
 and a line here names a section that exists:
 
-- **What a file holds** — Top-level fields · `comment` — the one field the engine will not read · Stats · Zones · Players · Setup · Card templates · Two marks in card text · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
+- **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · Stats · Zones · Players · Setup · Card templates · Two marks in card text · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
@@ -742,6 +742,8 @@ file to check what may appear where.
 |---|---|
 | `title` | Shown in the HUD |
 | `seed` | Optional fixed RNG seed (reproducible shuffles) |
+| `include` | Other game files merged into this one before anything is read (see *One game out of several files*) |
+| `replaces` | What this file takes over from the files it includes — without it, a key written twice is an error |
 | `stats` | Ordered stat declarations (HUD order) |
 | `computed_tags` | Derived per-card tags (see below) |
 | `styles` | Named looks, claimed by tagging one (see *Styles*) |
@@ -757,7 +759,75 @@ file to check what may appear where.
 | `setup` | How the game begins: `place` lays out whatever starts on the table (see *Setup*) |
 | `comment` | A note to whoever reads the file. Legal here and on anything with named fields; read by nothing (see below) |
 
-#### `comment` — the one field the engine will not read
+##### One game out of several files
+
+`include` names other game files, merged into this one before anything is
+parsed. The merged table is itself an ordinary game file, so nothing downstream
+— the validator, the network, `check.lua` — ever learns the word.
+
+```json
+{ "title": "Chess", "include": ["base.json"], "cards": [ ... ] }
+```
+
+**The file that includes is the more specific of the two.** A three-seat module
+includes the two-seat game; a card set includes the sets before it. Never the
+other way round: the file you launch has to be a whole game, so a base naming
+its own variants would *be* one of them, and the plain game would stop existing.
+`arnak.json` stays exactly what it is and `arnak_3p.json` is a second entry
+beside it in the menu.
+
+Paths are filenames under `games/`, the same namespace every other filename in
+the engine lives in. Each file is merged once however many paths reach it, so
+two modules over one base is fine; a loop is reported and cut rather than hung
+on. Remote includes are refused — a game file is not a supply chain.
+
+**What merges, and by what.** Sections differ only in what names an entry:
+
+| | Merged by |
+|---|---|
+| `cards`, `zones`, `stats`, `phases`, `computes`, `verbs` | each entry's `key` |
+| `tags`, `patterns`, `assets`, `styles`, `computed_tags`, `effects`, `setup` | the map key |
+| `players`, `end_conditions` | nothing — they can only be taken over whole |
+| `title`, `seed` | neither travels: they say *this* game, arranged this way |
+
+An entry replaced this way keeps the position it had, because file order is what
+makes an unseeded setup deal the same cards twice.
+
+**A key written in two files is an error unless you say `replaces`.** That is
+the point of the word, and the reason it is not simply "the including file
+wins": an override nobody announced reads exactly like an accident. A set that
+renames a card while an older file still holds the old definition would
+otherwise just work, wrongly, and the file that is wrong is not the one you are
+reading.
+
+```json
+{
+  "title": "Arnak (3 players)",
+  "include": ["arnak.json"],
+  "replaces": ["players", "zones.bag"],
+  "players": [{ "card": "south" }, { "card": "north" }, { "card": "east" }],
+  "zones": [{ "key": "bag", "copies": "per_seat", "pos": [[...], [...], [...]] }],
+  "cards": [{ "key": "east", "text": "East" }]
+}
+```
+
+`"zones"` on its own takes over the whole section; `"zones.bag"` takes over the
+one entry and leaves the rest of the section alone. A section with nothing
+naming its entries can only be taken the first way.
+
+**Over a network it is the merged game that travels**, not the file. A file
+naming two others is no use to a peer holding neither, and a hash of it would
+cover one game in three — two peers with different base files would agree they
+were playing the same game and then quietly disagree about it.
+
+**`base.json`** is an ordinary file that ships in `games/`, holding the geometry
+every grid game writes the same way: `adjacent`, `line_ortho`, `line_diag`,
+`knight_leap`. It is named in `include` like any other and is never loaded
+automatically — a name whose definition is nowhere in the file, and nowhere in
+anything the file mentions, breaks the one property a game file has. Cards,
+zones and phases do not belong in it: those are the game.
+
+### `comment` — the one field the engine will not read
 
 JSON has no comments, and the validator refuses fields nothing reads, which is
 how a typo is caught. One word is exempt, and it may sit on anything with named
