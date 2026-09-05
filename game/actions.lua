@@ -1410,6 +1410,56 @@ HANDLERS["load_save"] = function(p)
 	M.pending_slot = p[2]
 end
 
+-- compact:<scope>:<pattern>  — every card the scope names slides as far along
+-- the pattern as free cells allow, keeping the order it is already in.
+--
+-- What a market row does when somebody buys out of the middle: the gap closes
+-- toward one end and opens at the other, so where a card sits goes on meaning
+-- how long it has been on the shelf. Without it a row is only a set of cells,
+-- and the card that leaves at cleanup is whichever one the engine reaches first.
+--
+-- **Order falls out of the direction, not out of the scope.** The card furthest
+-- along goes first and packs against the end, so every card behind it stops
+-- against a wall that is already final — one pass, and the same answer whatever
+-- order the scope hands its cards over in. Walking the scope as it comes would
+-- let a card behind overtake one in front, which is the one thing a row that
+-- means age must never do.
+--
+-- The direction is the pattern's, taken as written: a shelf slides one way for
+-- everything on it, so `y` is not turned around per owner the way a move rule's
+-- is. How far is the pattern's too — a "ray" runs to the end, a bare pair is a
+-- one-cell nudge.
+HANDLERS["compact"] = function(p, ctx)
+	local sc  = predicate.parse_scope(p[2] or "")
+	local pat = declaration.G.pattern_defs[p[3]]
+	if not (sc and pat) then
+		content_error("compact: needs a scope and a pattern, as compact:<who>:<direction>")
+		return
+	end
+	local v = not pat.absolute and #(pat.vectors or {}) == 1 and pat.vectors[1]
+	if not v then
+		content_error("compact: '" .. tostring(p[3]) .. "' must name exactly one direction")
+		return
+	end
+	local moving = {}
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		local slot = e.kind == "card" and e.slot_id and entity.get(e.slot_id)
+		if slot then
+			moving[#moving + 1] = { id = e.id, along = slot.stats.col * v[1] + slot.stats.row * v[2] }
+		end
+	end
+	table.sort(moving, function(a, b) return a.along > b.along end)
+	for _, m in ipairs(moving) do
+		-- reach lists the cells outwards and includes the first occupied one, so
+		-- the last free entry is as far as this card can go.
+		local far
+		for _, sid in ipairs(geometry.reach(entity.get(m.id).slot_id, pat, 1)) do
+			if not entity.get(sid).occupant then far = sid end
+		end
+		if far then zones.place_in_slot(m.id, far) end
+	end
+end
+
 local SPEC = {
 	fill              = "zone card n",
 	shuffle           = "zone",
@@ -1458,6 +1508,7 @@ local SPEC = {
 	each_seat         = "action",
 	save_game         = "save",
 	load_save         = "save",
+	compact           = "scope pattern",
 }
 
 -- The full op vocabulary, for the validator's suggestions — and for the test

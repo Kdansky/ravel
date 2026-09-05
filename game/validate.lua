@@ -1084,6 +1084,23 @@ function M.check(G)
 					warn("%s: '%s' hands the card to '%s', which is neither a seat nor \"mine\" nor \"none\"%s",
 						where, op, tostring(a), suggest(a, G.seat_index or {}))
 				end
+			elseif t == "pattern" then
+				-- One direction, because the op slides everything the same way.
+				-- A pattern of four vectors is a *set* of squares and says
+				-- nothing about which way a row closes; an absolute one names
+				-- cells outright and so has no direction at all.
+				local pat = (G.pattern_defs or {})[a]
+				if not pat then
+					warn("%s: '%s' names the pattern '%s', but the game declares no such pattern%s",
+						where, op, tostring(a), suggest(a, G.pattern_defs or {}))
+				elseif pat.absolute then
+					warn("%s: '%s' slides along '%s', which is absolute — it names squares rather than "
+						.. "a direction, and there is no way to go along it", where, op, tostring(a))
+				elseif #(pat.vectors or {}) ~= 1 then
+					warn("%s: '%s' slides along '%s', which names %d directions — a row closes one way, "
+						.. "so the pattern it closes along carries one vector",
+						where, op, tostring(a), #(pat.vectors or {}))
+				end
 			elseif t == "phase" and not G.phase_by_key[a] then
 				warn("%s: '%s' points at phase '%s', but no phase has that key%s",
 					where, op, a, suggest(a, G.phase_by_key))

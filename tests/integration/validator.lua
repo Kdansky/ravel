@@ -582,6 +582,19 @@ local CASES = {
 			g.card_defs.c_flee.abilities = { { key = "muster", action = { "next_phase" },
 				["when"] = { "zeal@self >= 1" } } }
 		end },
+	-- compact takes a direction, and the three ways a pattern is not one.
+	{ "a compact along a pattern nothing declares", "names the pattern 'sidle'",
+		function(g) g.card_defs.c_flee.on_play = { "compact:board:sidle" } end },
+	{ "a compact along an absolute pattern", "which is absolute",
+		function(g)
+			g.pattern_defs.corner = { vectors = { "a1" }, absolute = true, class = { absolute = true } }
+			g.card_defs.c_flee.on_play = { "compact:board:corner" }
+		end },
+	{ "a compact along a pattern with two directions", "which names 2 directions",
+		function(g)
+			g.pattern_defs.sideways = { vectors = { { 1, 0 }, { -1, 0 } }, range = 8, class = { ray = true } }
+			g.card_defs.c_flee.on_play = { "compact:board:sideways" }
+		end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once

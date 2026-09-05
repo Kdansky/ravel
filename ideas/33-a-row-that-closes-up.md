@@ -43,14 +43,27 @@ pretending to be a marker.
 
 ## What is missing
 
-**1. `compact:<scope>:<pattern>` — every card the scope names slides as far along
-the pattern as empty cells allow.** Scope-first, the way `move` already is: the
-pattern gives the direction and the scope says which cards go that way, so the
-two sides of the staff are two lines. Sliding everything as far as it goes is
-order-independent, which is what makes it a primitive rather than a loop — the
-engine has no repeat-until-stable and should not grow one for this.
+**1. ~~`compact:<scope>:<pattern>`~~ — shipped 2026-09-05.** Every card the scope
+names slides as far along the pattern as free cells allow. Scope-first the way
+`move` is, so the two sides of the staff are two lines.
 
-**2. A cell on `draw_from`.** After compaction the free cells are the two outer
+The ordering was the part that needed thinking about and it is not what this
+file first said. Sliding each card as far as it goes is *not* order-independent:
+taken as the scope hands them over, a card behind can reach the far end first
+and overtake one in front, and the row then holds the same cards while saying
+nothing true about them. The handler sorts by position along the direction and
+moves the furthest card first, so everything behind stops against a wall that is
+already final — one pass, no settling loop, and the same answer whatever order
+the scope produces. `test_compact_a_gap_closes_and_the_order_survives` is that,
+written as the case that would silently pass without it.
+
+The direction is the pattern's, taken as written rather than turned around per
+owner: a shelf slides one way for everything on it. How far is the pattern's
+too — a `ray` runs to the end, a bare pair is a one-cell nudge — so the
+validator's job is only to refuse what has no direction at all: an absolute
+pattern, or one carrying more than a single vector.
+
+**2. A cell on `draw_from`, still open.** After compaction the free cells are the two outer
 ends, and `draw_from` fills through `zones.auto_slot`, which takes the first free
 slot *by index* — a1 for artifacts, which is right, and the leftmost free cell
 for items, which is exactly wrong. `draw_from:<deck>:<zone>:<n>:<cell>`. The word
@@ -61,7 +74,7 @@ Cleanup then reads:
 
 ```json
 ["destroy:beside", "place:self:staff_step",
- "compact:artifact@row:rightward", "compact:item@row:leftward",
+ "compact:row.artifact:rightward", "compact:row.item:leftward",
  "draw_from:artifact_deck:row:1:a1", "draw_from:item_deck:row:1:g1"]
 ```
 
