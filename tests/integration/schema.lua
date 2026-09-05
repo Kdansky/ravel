@@ -18,7 +18,7 @@ local actions = require("actions")
 local NESTED = {
 	target = true, route = true,
 	play = true, challenge = true, receive = true,
-	turn = true, chosen = true, leaves = true,
+	round = true, chosen = true, leaves = true,
 	-- An aura entry lives inside a tag, beside the behaviour blocks.
 	adjusts = true,
 }
@@ -135,7 +135,7 @@ function M.test_schema_describes_the_nested_shapes(check)
 	end
 
 	-- A card's moments: each block against its own field table, both ways.
-	for _, moment in ipairs({ "play", "challenge", "receive", "turn" }) do
+	for _, moment in ipairs({ "play", "challenge", "receive", "round" }) do
 		local block, fields = card[moment], validate.FIELDS[moment]
 		check("the document has a " .. moment .. " block", type(block) == "table")
 		for field in pairs(fields) do

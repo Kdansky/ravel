@@ -3,8 +3,9 @@
 *From building Spellstorm, whose `play_1` and `play_2` are the same phase
 written twice, and from the reveal question in [16](16-the-player-at-this-screen.md).*
 
-**Not started, and deliberately parked: Spellstorm is a two-player game and stays
-one.** This is the note so the next person does not re-derive it.
+**The phase half shipped as `type: "turn"`; the `enemy` half is still open.**
+Spellstorm is a two-player game and stays one — what this bought is that its
+phases no longer say so.
 
 The surprise is how little is missing. Almost everything that touches seats was
 written against `seat_list` rather than against two, and already generalises:
@@ -47,26 +48,31 @@ it is honest, and the games written against it are two-player, where both
 readings agree. What is missing is a *narrower* word beside it, and that is a new
 word in the format — so it needs consent before anything is built.
 
-## The phase shape: `seat: "all"`
+## Shipped: the phase shape
 
-`play_1` and `play_2` are byte-identical but for their keys and their `next`.
-That duplication is what makes the game two-player, not anything in the engine.
+`type: "turn"` is in, and it landed as a phase whose body is other phases rather
+than as one phase repeated — because the duplication was never one phase. Three
+of Spellstorm's five sites were a *run*: `journal` is three phases and
+`ult`/`resolve` is two, and a run is what `each_seat:` cannot reach, living
+inside one action list. Written up in AUTHORING.md (*A turn each*).
 
-A `player_input` phase already understands `seat: "next"`, read at
-`flow.lua:471`. A third value — `"all"` — would mean *run this phase once per
-seat, in turn order, then take `next`*. It is `each_seat:` for phases, and it is
-the same idea in the same words the format already uses.
+Two decisions worth keeping:
 
-Two things to settle if it is ever built:
+- **The repeat went in `seat`, not in the type name.** `seat` was already the
+  enum for "whose is this" (`next`/`same`), so `each` is a third value there and
+  a group without it is an ordinary named run — which is Magic's turn, and costs
+  nothing extra.
+- **`order` sorts the seat cards by a stat, and is settled once.** An Initiative
+  tracker is `highest:initiative`; acting in score order is `lowest:score`. Asked
+  again per player, somebody who scored on their own turn would pick who came
+  after them and could take two turns or none.
 
-1. **Where the loop counter lives.** `phase.lua`'s stack frames already carry a
-   `seat`; a frame that knows it is on pass 2 of 3 is the smallest version.
-2. **What `ends_when` is asked about.** Per seat, presumably — the phase ends for
-   *you* when your card is down. That is what makes the condition readable, and
-   it is what `mine.` already means inside a phase.
-
-The payoff is not only player count: it removes the copy-paste, and a copy-pasted
-phase is the shape [09](09-composition.md) exists to stop.
+**One gap it left: a group cannot start with whoever is already up.** No `order`
+means *round from the next seat*, which is right for a follow — The Crew's leader
+comes last and their pass ends the moment it begins, because their card is
+already in the middle. It is wrong for a group meant to open with the seat a
+previous phase named, and there is no word for that yet. Nothing is blocked on
+it; the games that wanted it had a stat to sort by instead.
 
 ## What stays two-player on purpose
 
@@ -80,7 +86,10 @@ phase is the shape [09](09-composition.md) exists to stop.
 
 ## What this is worth
 
-Low, for now. No game in the corpus is blocked on it — the same test
-[31](31-either-of-two.md) failed. The value is that `seat: "all"` would pay for
-itself in *two*-player games by collapsing every `_1`/`_2` phase pair, and that
-is the honest customer to find first.
+The phase half paid for itself in two-player games, which is what it was ranked
+for: sixteen of Spellstorm's twenty-five phases were per-seat copies and are now
+eight, and Codex, Puzzle Strike and The Crew went the same way. A third seat
+costs nothing in phases now where it used to cost eight.
+
+The `enemy` half is still worth low. No game in the corpus is blocked on it, and
+it is a new word, so it waits on a customer and on consent.

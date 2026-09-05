@@ -2115,22 +2115,22 @@ def roster_offer():
 
 def phases():
     return [
-        {"key": "setup", "type": "automatic", "next": [{"then": "pick_1"}]},
+        {"key": "setup", "type": "automatic", "next": [{"then": "pick"}]},
         # One question per seat, asked as an offer rather than as a zone on the
         # board: a roster is only looked at once, and a strip of screen kept
         # empty for the rest of the game is the most expensive kind of strip.
         # The offer is drawn over a dimmed board and takes the middle of it.
         #
-        # `seat: "next"` on the *first* pick as well, because the turn counter
-        # starts at nobody — the first handover is what selects seat one. The
-        # phase ends on the flag the chosen character sets, not on a play
-        # counter: choosing out of an overlay is deliberately not a play.
-        {"key": "pick_1", "type": "player_input", "seat": "next", "zone": "hand",
+        # Written once and asked of everybody. No `order`, so the table goes
+        # round from whoever is next — and the turn counter starts at nobody, so
+        # that first handover is what selects seat one. The phase ends on the
+        # flag the chosen character sets, not on a play counter: choosing out of
+        # an overlay is deliberately not a play.
+        {"key": "pick", "type": "turn", "seat": "each", "phases": ["pick_character"],
+         "next": [{"then": "build_bank"}]},
+        {"key": "pick_character", "type": "player_input", "zone": "hand",
          "label": "Choose your character", "actions": [roster_offer()],
-         "ends_when": "picked@mine.player >= 1", "next": [{"then": "pick_2"}]},
-        {"key": "pick_2", "type": "player_input", "seat": "next", "zone": "hand",
-         "label": "Choose your character", "actions": [roster_offer()],
-         "ends_when": "picked@mine.player >= 1", "next": [{"then": "build_bank"}]},
+         "ends_when": "picked@mine.player >= 1"},
         # The bank is drafted, not printed. Ten Puzzle chips out of fifty-one is
         # what a game of Puzzle Strike is, and which ten is the first decision at
         # the table \u2014 so it is a phase, with two buttons and no hurry.

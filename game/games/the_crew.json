@@ -344,7 +344,7 @@
       "key": "led",
       "type": "automatic",
       "actions": ["stat_set:led@plan:sum:suit@trick"],
-      "next": [{ "then": "follow_1" }]
+      "next": [{ "then": "follow" }]
     },
     {
       "key": "resolve",
@@ -403,31 +403,18 @@
     },
     { "key": "mission", "type": "overlay", "zone": "mission" },
     {
-      "key": "follow_1",
-      "type": "player_input",
-      "seat": "next",
-      "zone": ["hand", "open"],
-      "ends_when": "count:play_card@trick >= 2",
-      "label": "Follow the suit that was led, if you can",
-      "next": [{ "then": "follow_2" }]
-    },
-    {
-      "key": "follow_2",
-      "type": "player_input",
-      "seat": "next",
-      "zone": ["hand", "open"],
-      "ends_when": "count:play_card@trick >= 3",
-      "label": "Follow the suit that was led, if you can",
-      "next": [{ "then": "follow_3" }]
-    },
-    {
-      "key": "follow_3",
-      "type": "player_input",
-      "seat": "next",
-      "zone": ["hand", "open"],
-      "ends_when": "count:play_card@trick >= 4",
-      "label": "Follow the suit that was led, if you can",
+      "key": "follow",
+      "type": "turn",
+      "seat": "each",
+      "phases": ["follow_card"],
       "next": [{ "then": "resolve" }]
+    },
+    {
+      "key": "follow_card",
+      "type": "player_input",
+      "zone": ["hand", "open"],
+      "ends_when": "count:play_card@mine.trick >= 1",
+      "label": "Follow the suit that was led, if you can"
     }
   ],
   "end_conditions": [],

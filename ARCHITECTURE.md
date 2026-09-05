@@ -36,7 +36,7 @@ flow ─ THE game driver: init/settle/play/activate/undo, costs, legality, the s
 reactions ─ who may answer an event, and whether a window opens at all
 validate ─ whole-file checks: schema, references, conflicts
 actions ─ the op vocabulary (HANDLERS table)
-phase ─ phase stack, routing, round/fresh flags
+phase ─ phase stack, routing, round/fresh flags, and the group a frame is running inside
 targeting ─ who may be targeted (candidates), plus the live selection
 predicate ─ the one condition evaluator: subjects, scopes, comparisons
 zones ─ zone membership, seats, slots, moving/destroying cards
@@ -65,7 +65,7 @@ source).
 ## What lives where
 
 **State** is exactly: the entity array inside `entity.lua` (zones, slots,
-cards — there is no player entity; the player is a card), the phase stack (`phase`), end-condition fired flags (on `G`),
+cards — there is no player entity; the player is a card), the phase stack (`phase`) — including a frame's place inside a `turn` group, which is why the frame is copied and not shared — end-condition fired flags (on `G`),
 the event log, and the RNG position (`rng.state()`, one integer). All five are captured by flow's checkpoint and restored by undo —
 **if you add stateful storage anywhere else, you must join the snapshot
 protocol in `flow.checkpoint`/`flow.undo` or undo will silently break.**
@@ -376,7 +376,7 @@ to a question has to come home as deep as it left.
 the word at a real game rather than a fixture:
 
 - **It is not in play.** `status` is not `board`, so bare tag scopes, `count:`,
-  `sacrifice:` and `on_turn` all walk past it. Name the zone to reach it —
+  `sacrifice:` and `on_round` all walk past it. Name the zone to reach it —
   `stock@bank.gem_1`, which is what the `<zone>.<tag>` scope is for.
 - **Its cards answer nothing.** `reactions.placed` refuses them outright.
   Merchandise is not a card anybody is holding, and letting the shelves into the

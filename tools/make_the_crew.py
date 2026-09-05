@@ -332,11 +332,17 @@ def phases():
     # A turn ends when a card reaches the middle, not when a card is played:
     # everything else a crew member may do — the radio, and whatever comes after
     # it — leaves the trick alone and so leaves the turn alone.
-    follow = [{"key": f"follow_{i}", "type": "player_input", "seat": "next",
-               "zone": ["hand", "open"], "ends_when": f"count:play_card@trick >= {i + 1}",
-               "label": "Follow the suit that was led, if you can",
-               "next": [{"then": f"follow_{i + 1}" if i < len(SEATS) - 1 else "resolve"}]}
-              for i in range(1, len(SEATS))]
+    # One declaration, asked of everybody, where this was one phase per seat
+    # counting cards in the middle -- three phases for four players, and a
+    # positional number in each of them. The group goes round from the seat after
+    # whoever led, so the leader's own pass comes last and ends the moment it
+    # begins: their card is already in the middle, which is what the condition
+    # asks. So the same four lines are a three-player game and a five-player one.
+    follow = [{"key": "follow", "type": "turn", "seat": "each",
+               "phases": ["follow_card"], "next": [{"then": "resolve"}]},
+              {"key": "follow_card", "type": "player_input",
+               "zone": ["hand", "open"], "ends_when": "count:play_card@mine.trick >= 1",
+               "label": "Follow the suit that was led, if you can"}]
     return [
         {"key": "setup", "type": "automatic", "actions": ["push_phase:mission"],
          "next": [{"then": "deal"}]},
@@ -361,7 +367,7 @@ def phases():
         # would follow the wrong suit — a rule that tests correct and is broken
         # on the third turn.
         {"key": "led", "type": "automatic", "actions": ["stat_set:led@plan:sum:suit@trick"],
-         "next": [{"then": "follow_1"}]},
+         "next": [{"then": "follow"}]},
         {"key": "resolve", "type": "automatic",
          "actions": [
              "stat_set:hit@each.task:0",

@@ -810,26 +810,16 @@
   ],
   "players": [{ "card": "south" }, { "card": "north" }],
   "phases": [
-    { "key": "setup", "type": "automatic", "next": [{ "then": "pick_1" }] },
+    { "key": "setup", "type": "automatic", "next": [{ "then": "pick" }] },
+    { "key": "pick", "type": "turn", "seat": "each", "phases": ["pick_hero"],
+      "next": [{ "then": "deal" }] },
     {
-      "key": "pick_1",
+      "key": "pick_hero",
       "type": "player_input",
-      "seat": "next",
       "zone": "hand",
       "label": "Choose your hero",
       "actions": ["options:pick_zane,pick_drakk,pick_jaina,pick_midori,pick_calamandra,pick_argagarg"],
-      "ends_when": "picked@mine.player >= 1",
-      "next": [{ "then": "pick_2" }]
-    },
-    {
-      "key": "pick_2",
-      "type": "player_input",
-      "seat": "next",
-      "zone": "hand",
-      "label": "Choose your hero",
-      "actions": ["options:pick_zane,pick_drakk,pick_jaina,pick_midori,pick_calamandra,pick_argagarg"],
-      "ends_when": "picked@mine.player >= 1",
-      "next": [{ "then": "deal" }]
+      "ends_when": "picked@mine.player >= 1"
     },
     {
       "key": "deal",

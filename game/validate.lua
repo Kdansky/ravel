@@ -116,7 +116,7 @@ M.EFFECT_BASES = {
 local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	tags = true, card_stats = true, outcome = true,
-	play = true, challenge = true, receive = true, turn = true,
+	play = true, challenge = true, receive = true, round = true,
 	chosen = true, leaves = true,
 	-- Everything the card can be used for, one entry each. A card that does one
 	-- thing writes a list of one: there is no second spelling, so no two sets of
@@ -134,7 +134,7 @@ local CARD_FIELDS = {
 	compute = true,
 	on_leaves = true, leaves_into = true, leaves_from = true,
 	requires = true, on_pass = true, on_fail = true,
-	accepts = true, on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
+	accepts = true, on_receive = true, on_round = true, on_chosen = true, chosen_where = true,
 	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
 	style = true,
 	-- Written by the engine onto the menu entry it generates for each ability of
@@ -146,7 +146,7 @@ local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
 	action = true, spent = true, compute = true }
 local RECEIVE_FIELDS   = { needs = true, action = true }
-local TURN_FIELDS      = { action = true }
+local ROUND_FIELDS     = { action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
 -- The pick is the target; the card that asked is the one acting.
 local CHOSEN_FIELDS    = { where = true, action = true }
@@ -168,7 +168,7 @@ local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
 	draw = true, zone = true, pass_card = true, next = true,
 	ends_after = true, ends_when = true, injected = true, tags = true, tags_set = true,
-	seat = true, on_enter = true, emits = true,
+	seat = true, on_enter = true, emits = true, phases = true, order = true,
 	-- derived: "zone" normalised to a list (declaration.parse)
 	zone_list = true,
 }
@@ -294,7 +294,15 @@ local PLAYER_FIELDS = { card = true, stats = true, text = true }
 -- is reserved: "layout": "grid" is what makes "grid" a legal field, and a
 -- parameter whose value was not chosen is a zone that thinks it is two shapes.
 local ZONE_PARAMS     = { grid = "layout", row = "layout" }
-local PHASE_TYPES     = { automatic = true, player_input = true, draw_and_play = true, overlay = true }
+local PHASE_TYPES     = { automatic = true, player_input = true, draw_and_play = true, overlay = true,
+	turn = true }
+-- What a phase may say about whose it is. "each" belongs to a group alone: it is
+-- the word that turns one declaration into one turn per player.
+local PHASE_SEATS     = { next = true, same = true, each = true }
+-- What a group does nothing of, because it is a wrapper: it holds no cards, runs
+-- no actions and ends when its members are done rather than on a condition.
+local TURN_REFUSES    = { actions = true, on_enter = true, zone = true, zone_list = true, deck = true,
+	draw = true, ends_when = true, ends_after = true, pass_card = true }
 
 -- The same tables, reachable. Named for the JSON section each belongs to, since
 -- that is how the schema document is organised and how an author meets them.
@@ -316,7 +324,7 @@ M.FIELDS = {
 	play          = PLAY_FIELDS,
 	challenge     = CHALLENGE_FIELDS,
 	receive       = RECEIVE_FIELDS,
-	turn          = TURN_FIELDS,
+	round         = ROUND_FIELDS,
 	chosen        = CHOSEN_FIELDS,
 	leaves        = LEAVES_FIELDS,
 	verbs         = VERB_FIELDS,
@@ -336,7 +344,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	compute = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_receive = true, on_turn = true, on_chosen = true, chosen_where = true,
+	on_receive = true, on_round = true, on_chosen = true, chosen_where = true,
 	on_leaves = true, leaves_into = true, leaves_from = true,
 	zone_list = true, auto_play = true, to_zone = true, to_slot = true }
 
@@ -2080,7 +2088,7 @@ function M.check(G)
 		check_fields(where, def, CARD_FIELDS)
 		check_labels(where, def, "card", CARD_FIELDS, "text", "tooltip", "story")
 		for moment, fields in pairs({ play = PLAY_FIELDS, activate = ACTIVATE_FIELDS,
-			receive = RECEIVE_FIELDS, turn = TURN_FIELDS, challenge = CHALLENGE_FIELDS,
+			receive = RECEIVE_FIELDS, round = ROUND_FIELDS, challenge = CHALLENGE_FIELDS,
 			chosen = CHOSEN_FIELDS, leaves = LEAVES_FIELDS }) do
 			if type(def[moment]) == "table" then
 				check_fields(where .. " " .. moment, def[moment], fields)
@@ -2178,7 +2186,7 @@ function M.check(G)
 		end
 		check_numbers(where, "color", def.color, 3)
 		check_list(where .. " on_play", def.on_play)
-		check_list(where .. " on_turn", def.on_turn)
+		check_list(where .. " on_round", def.on_round)
 		check_list(where .. " on_chosen", def.on_chosen)
 		-- Leaving play, and the zone that says which kind of leaving it was. A
 		-- name that is not a zone is the whole of what can go wrong here: it
@@ -2493,10 +2501,69 @@ function M.check(G)
 		check_fields(where, pd, PHASE_FIELDS)
 		check_labels(where, pd, "phase", PHASE_FIELDS, "label")
 		if pd.type == nil then
-			warn("%s: has no type (automatic, player_input, draw_and_play or overlay)", where)
+			warn("%s: has no type (automatic, player_input, draw_and_play, turn or overlay)", where)
 		elseif not PHASE_TYPES[pd.type] then
-			warn("%s: '%s' is not a phase type (automatic, player_input, draw_and_play or overlay)%s",
+			warn("%s: '%s' is not a phase type (automatic, player_input, draw_and_play, turn or overlay)%s",
 				where, tostring(pd.type), suggest(pd.type, PHASE_TYPES))
+		end
+		-- A group and its members. The group says what runs and in what order and
+		-- for whom; the members say what running is. Keeping those apart is what
+		-- lets one declaration be a two-player game and a five-player one.
+		if pd.seat ~= nil and not PHASE_SEATS[pd.seat] then
+			warn('%s: says seat "%s", which is not a word here — "next" passes to the following seat,'
+				.. ' "same" keeps the one that is up, and "each" runs a group once per player%s',
+				where, tostring(pd.seat), suggest(pd.seat, PHASE_SEATS))
+		elseif pd.seat == "each" and pd.type ~= "turn" then
+			warn('%s: says seat "each", but only a turn runs once per player — an ordinary phase'
+				.. ' runs once, for whoever is up', where)
+		end
+		if pd.type == "turn" then
+			for f in pairs(TURN_REFUSES) do
+				if pd[f] ~= nil then
+					warn("%s: is a turn and also says %s — a turn holds phases and nothing else."
+						.. " Put it on the phase inside", where, f)
+				end
+			end
+			local list = pd.phases
+			if type(list) ~= "table" or #list == 0 then
+				warn("%s: is a turn but names no phases — a turn is the phases it runs, in order", where)
+			else
+				local seen = {}
+				for _, k in ipairs(list) do
+					local target = G.phase_by_key[k or ""]
+					if not target then
+						warn("%s: runs '%s', but no phase has that key%s", where, tostring(k), suggest(k, G.phase_by_key))
+					elseif target.type == "turn" then
+						warn("%s: runs '%s', which is itself a turn — a turn inside a turn has no meaning"
+							.. " the engine can keep", where, tostring(k))
+					elseif target.type == "overlay" then
+						warn("%s: runs '%s', which is an overlay — overlays can only be pushed", where, tostring(k))
+					elseif target.next ~= nil then
+						warn("%s: runs '%s', which has routing of its own — inside a turn the turn says"
+							.. " what comes next, so the route never runs", where, tostring(k))
+					end
+					if seen[k] then
+						warn("%s: runs '%s' twice — a phase appears once in a turn, and a thing done"
+							.. " twice is two phases", where, tostring(k))
+					end
+					seen[k] = true
+				end
+			end
+			if pd.order ~= nil then
+				local dir, stat = tostring(pd.order):match("^(%l+):([%w_]+)$")
+				if dir ~= "highest" and dir ~= "lowest" then
+					warn('%s: says order "%s", which is not a word here — write "highest:<stat>" or'
+						.. ' "lowest:<stat>", or leave it out to go round the table', where, tostring(pd.order))
+				elseif not (G.stat_defs or {})[stat] then
+					warn("%s: orders by '%s', but no stat has that key%s", where, stat, suggest(stat, G.stat_defs or {}))
+				end
+				if pd.seat ~= "each" then
+					warn('%s: says an order but not seat "each" — one turn for one player has'
+						.. ' nobody to put in order', where)
+				end
+			end
+		elseif pd.phases ~= nil or pd.order ~= nil then
+			warn("%s: says %s, but only a turn holds phases", where, pd.phases ~= nil and "phases" or "order")
 		end
 		if pd.deck and not G.zone_defs[pd.deck] then
 			warn("%s: draws from '%s', but no zone has that key%s", where, tostring(pd.deck), suggest(pd.deck, G.zone_defs))

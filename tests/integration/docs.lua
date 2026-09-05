@@ -292,7 +292,7 @@ end
 -- A nested block's fields, where the name of the key and the name of the shape
 -- differ only for "next".
 local NESTED = { play = "play", challenge = "challenge",
-	receive = "receive", turn = "turn", chosen = "chosen", target = "target", next = "route" }
+	receive = "receive", round = "round", chosen = "chosen", target = "target", next = "route" }
 -- Keys holding a list of actions. "then" holds one only when it is a list: on a
 -- routing entry it is a phase key.
 local RUNS = { action = true, actions = true, pass = true, fail = true, ["then"] = true }

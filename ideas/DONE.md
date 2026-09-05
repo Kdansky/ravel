@@ -1325,6 +1325,130 @@ only kind worth suspecting.
 
 ---
 
+# A label that names what it is about · shipped (`0eb44ab`)
+
+`{owner}'s hand` on a per-seat zone, `{stats.fuel} left` on a card. `label.fill`
+answers a name when the string is **drawn**, so the log, the network, saves and
+every condition still see what the file wrote.
+
+**Three engine words** — `{owner}`, `{active}`, `{phase}` — and **everything else
+is a field of the thing wearing the label**: the live entity first, its template
+second, with a dot walking in (`{stats.health}`). Reaches every string a player
+reads: zone `label`/`tooltip`, card `text`/`tooltip`/`story`, phase `label`,
+stat `label`, in `render.lua`, `tooltip.lua` and `play.lua` alike — the CLI
+reads the same strings aloud, and omitting it would have printed `{owner}`.
+
+**Decisions worth keeping:**
+
+- **The sigil was chosen on evidence, not taste.** Across all seventeen games'
+  string values `$` appears 19 times (Puzzle Strike's money), `<` 72, `[` 31,
+  and `{` and `%` **zero**. So `{name}` collides with nothing already written.
+- **An unanswered name stays in its braces.** `{ownr}'s deck` says where the
+  typo is; an empty `'s deck` says only that something went missing. The
+  validator says it earlier, for all four kinds that carry prose.
+- **It substitutes exactly once.** A seat whose own text said `{owner}` gives a
+  label reading `{owner}`, not one that resolves for ever.
+- **It replaced `LIVE_LABEL`**, three reserved *whole-string* words in
+  `render.lua` (`owning_player`, `current_player`, `current_phase`). Migrated
+  rather than kept beside it — two spellings of one thing drift — and the three
+  are on `docs.lua`'s `RETIRED` list so nothing offers them again.
+
+**Still wrong, and not fixable here:** the react bar names the seat faithfully
+and the name is useless, because Spellstorm's seat cards are literally
+`"text": "Player One"`. Something has to rename the *seat*; see
+[35](35-a-board-that-fits-the-game.md).
+
+# A roster, and furniture only one character carries · shipped (`4fb1a40`)
+
+Spellstorm's board showed every character's equipment to everybody. Two fixes,
+neither a format word.
+
+**The wizards became cards in an offscreen `roster` zone**, and both pick phases
+are one action, `options:roster`, where each had listed all eight keys. Because
+`options:` deals **copies**, a pick can `destroy:roster.<wizard>` the real entry
+— so the second seat is offered the seven that are left and **a mirror match
+stopped being possible**. The scope `roster.derby` is `<zone>.<tag>`, already
+matched at `predicate.lua:337`; the tag is the wizard's own key.
+
+`show:` looked like the right verb and is not: it lends the real cards but does
+**not play** the chosen one — the *asker's* `chosen` block runs instead, and a
+phase action has no asker.
+
+**A per-seat `sidecar` row holds whatever one wizard needs and nobody else has.**
+Unlabelled, so it draws nothing at all while empty — the rule Lost Cities'
+scoring tray bought, and the reason the potion buttons had been visible to
+everyone: they sat in a 2×2 `controls` **grid**, whose empty cells are drawn on
+purpose because they are where a card may be put. Filled on the pick, the only
+moment that knows which wizard this is. It needs `use: "abilities"`; the
+default `play` gives a button zero usable abilities.
+
+**A consequence traced rather than deleted:** the eight Initiative ratings are
+eight distinct numbers, so with mirror matches banned `first_tie` is unreachable
+from any opening. It is still the answer to *nobody holds it*, which a card
+could yet cause, so the test constructs the tie by hand.
+
+# A turn each — `type: "turn"` · shipped
+
+Sixteen of Spellstorm's twenty-five phases were the same phase written twice.
+`play_1`/`play_2`, `journal_2a`…`journal_6b`, `ult`/`resolve` twice, `pick`,
+`gain` — and its generator wrote every pair in a Python loop, which is the word
+the format was missing.
+
+```json
+{ "key": "duel", "type": "turn", "seat": "each", "order": "highest:initiative",
+  "phases": ["ult", "resolve"], "next": [{ "then": "aftermath" }] }
+```
+
+**The unit is a run of phases, not a phase.** Three of the five sites were runs —
+`journal` is three phases, `ult`+`resolve` two — and a run is exactly what
+`each_seat:` cannot reach, because it lives inside one action list. That is why
+the earlier sketch (`seat: "all"` on a single phase) would have covered three
+sites out of five.
+
+**The group says what runs, for whom and in what order; its members say what
+running is.** A member is kept out of `phase_list` the way an overlay is, so it
+carries no routing, is never the phase the game starts on, and the fall-through
+that runs off the end of the list cannot land in the middle of somebody's turn.
+`ends_round` sits on the group's route — a round ending once per player would be
+two rounds a turn.
+
+**Decisions worth keeping:**
+
+- **The repeat went in `seat`, not the type name.** `seat` was already the enum
+  for *whose is this* (`next`/`same`), so `each` is a third value there. A group
+  without it runs once, for whoever is up — Magic's turn, free.
+- **`order` sorts the seat cards by a stat.** `highest:initiative` is Spellstorm's
+  Initiative tracker written as a sort, and it deleted six `set_active_seat`
+  lines that phases were using to arrange the phase after them. Ties keep the
+  players' listed order, which is the state Spellstorm reaches before the first
+  battle. **Settled once, on entry** — asked again per player, somebody who
+  scored on their own turn would pick who came after them, and could take two
+  turns or none.
+- **A group is carried on the frame, not stacked under it.** `phase.current()`
+  stays the phase actually running, so a label, a zone list and an `ends_when`
+  are read exactly as before, and an overlay pushes over the top without the
+  group losing its place.
+- **`on_turn` became `on_round`** and the card moment `turn` became `round`. It
+  fired on a round wrap and its own comment said so; keeping the misnomer would
+  have made `turn` mean two things in one file. Four games migrated.
+
+**What it did to the corpus:** Spellstorm 25 phases → 22 with every per-seat pair
+gone; Codex and Puzzle Strike lost `pick_1`/`pick_2`; and The Crew's
+`follow_1`/`follow_2`/`follow_3` — one phase per seat, each ending on a
+positional count of cards in the middle — became a group of one whose condition
+is `count:play_card@mine.trick >= 1`. The leader's own pass comes last and ends
+the moment it begins, because their card is already there. **A third seat now
+costs nothing in phases where it used to cost eight.**
+
+**Chess was left alone on purpose.** Its four phases are a state machine over
+*whose move* × *in check*, not a run repeated per player, so a group says nothing
+about it. The duplication it does have is the label kind, which `{active}` could
+collapse — a different change.
+
+**One gap:** a group cannot start with whoever is already up. No `order` means
+*round from the next seat*, which is right for a follow and wrong for a group
+meant to open with the seat a previous phase named. No game is blocked on it.
+
 # Bugs found on the way, and what they bought
 
 Recorded because each was invisible to a green test suite, and the fix in each
@@ -1345,6 +1469,7 @@ case was a *check*, not just a patch.
 | A platform choice written `browser(...) or desktop(...)` **ran both branches**, because "still fetching" is falsy. Every remote picture crashed the browser build on its first frame. | `tests/run.lua` stubs a browser and makes the desktop path **fatal** when it is reached, and the other way round. |
 | **Capture was unclickable** in chess. Hit-testing returns the topmost *card*; a slot-typed spec's eligible list holds *slots*; the two never met — and every test called `targeting.candidates` directly, so the seam was never crossed. | `targeting.aim` — "pointing at a piece means pointing at its square" — lives in `targeting`, where a test can reach it, not in `main`. |
 | **Hovering a castling card crashed the game.** `cards.cost_text` renders `needs` and `accepts` too, and only a cost is always a plain number; the comparison form had been legal since Lost Cities but no card had ever carried one *and* been hovered. | `tests/run.lua` asks `cost_text` for every comparison form, not just the plain number. The gap it exposes — the suite covers the rules layer thoroughly and the presentation layer barely — is still open. |
+| **A group's place in itself would not have crossed the wire.** `net.snapshot` sends the phase stack as keys rather than defs — right, because a def would inline every phase into every message — but it sent only `key` and `fresh`. A peer handed a state from the middle of somebody's turn would have restored a plain frame, ended the group there, and skipped everybody after. `arrived` and `seat` had been dropped the same way since before groups existed, which nothing had yet noticed. | The wire shape carries the group's key and its two counters, validated on the way in like every other field a peer sends; `tests/integration/turn.lua` sends a state from mid-group and plays on to check the player who had not been asked still is. |
 
 **Invariants the engine gained:** randomness belongs to the engine (ARCHITECTURE
 invariant 8); layouts may not overlap; and — from the Brave bug — a readback is a

@@ -383,7 +383,7 @@ function M.test_spellstorm_the_shelf_is_gated_by_tier(check)
 	zones.move_card(find("fireball").id, sc.id)
 	local high, low = find("fireball2", "storm_cloud"), find("fireball", "storm_cloud")
 	-- Taking a card off the shelf is an ability, and its "when" is the Tier gate.
-	phase.push("gain_1")
+	phase.push("gain")
 	check("a Tier III card is out of reach at Tier I", not flow.can_activate(high.id))
 	check("a Tier I card is not", flow.can_activate(low.id))
 	actions.execute("stat_set:tier@mine.player:3", {})
@@ -407,7 +407,7 @@ end
 -- function, both readings.
 function M.test_spellstorm_a_played_card_is_face_down_until_the_showdown(check)
 	opening(11, "derby", "eve")
-	check("a round opens with the first seat playing", phase.current().key == "play_1",
+	check("a round opens with the first seat playing", phase.current().key == "play_card",
 		phase.current().key)
 
 	local one = zones.active_seat()
@@ -429,7 +429,9 @@ function M.test_spellstorm_a_played_card_is_face_down_until_the_showdown(check)
 	-- The turn has passed by now, which is the whole of the question: the second
 	-- player is choosing, and this is what they are choosing against.
 	local two = zones.active_seat()
-	check("the second seat is up", two ~= one and phase.current().key == "play_2",
+	-- One phase key now, taken twice: what says the turn has passed is the seat,
+	-- which is the thing the rule was ever about.
+	check("the second seat is up", two ~= one and phase.current().key == "play_card",
 		phase.current().key)
 	zones.as_seat(two, function()
 		theirs = zones.visible(card)
@@ -521,12 +523,14 @@ function M.test_spellstorm_a_battle_is_four_rounds_then_a_regroup(check)
 		-- Not while a question is still up: Soothing Rain asks both players every
 		-- time it comes round, and stopping the driver on an open offer would
 		-- leave borrowed cards in it and prove nothing.
-		if (seen.gain_2 or 0) >= 3 and phase.current().key ~= "options" then break end
+		-- Counted per seat now, because one phase key is taken by both of them:
+		-- three regroups is six gains, and four rounds of two plays is eight.
+		if (seen.gain_card or 0) >= 6 and phase.current().key ~= "options" then break end
 	end
 	check("the battle ran its four rounds and regrouped, three times over",
-		(seen.gain_2 or 0) >= 3, tostring(seen.gain_2))
+		(seen.gain_card or 0) >= 6, tostring(seen.gain_card))
 	check("four plays per seat per battle",
-		(seen.play_1 or 0) >= 12, tostring(seen.play_1))
+		(seen.play_card or 0) >= 24, tostring(seen.play_card))
 	check("the Storm Cloud is still five deep after all of it",
 		#zones.find("storm_cloud").cards == 5,
 		tostring(#zones.find("storm_cloud").cards))
@@ -557,7 +561,7 @@ function M.test_spellstorm_an_ultimate_answers_a_card_that_carries_the_icon(chec
 	local dart = stage_battle("seat_one", "magicdart")
 	local hurt = seat_card("seat_two").stats.health
 
-	phase.push("ult_1")
+	phase.push("duel")
 	flow.settle()
 	local top = flow.pending_event()
 	check("the card announced itself", top ~= nil and top.re_verb == "resolving",
@@ -579,7 +583,7 @@ function M.test_spellstorm_an_ultimate_answers_a_card_that_carries_the_icon(chec
 	flow.react(answers[1].card, answers[1].index, {})
 	-- The phase was pushed to reach it, and nothing under an interjection may
 	-- resolve while it stands -- which is the rule that keeps a reaction's own
-	-- offer from being run over. Stepping back off it is what a routed ult_1
+	-- offer from being run over. Stepping back off it is what a routed ult
 	-- never has to do.
 	phase.pop()
 	flow.settle()
@@ -600,7 +604,7 @@ function M.test_spellstorm_a_card_without_the_icon_announces_nothing(check)
 	seat_card("seat_two").stats.initiative = 0
 	stage_battle("seat_one", "block")
 
-	phase.push("ult_1")
+	phase.push("duel")
 	flow.settle()
 	check("nothing announced itself", flow.pending_event() == nil,
 		flow.pending_event() and flow.pending_event().re_verb or "-")
@@ -727,7 +731,7 @@ function M.test_spellstorm_the_journal_asks_one_question_at_a_time(check)
 	for _, k in ipairs({ "seat_one", "seat_two" }) do
 		for _, id in ipairs(hand_of(k).cards) do held[#held + 1] = id end
 	end
-	phase.push("journal_2a")
+	phase.push("journal")
 	flow.settle()
 	check("the space that asks opens its offer in its own phase",
 		phase.current().key == "options", phase.current().key)
@@ -773,7 +777,7 @@ function M.test_spellstorm_the_potion_loop_pays_and_ends_itself(check)
 	check("the draw button is reachable, and only here", draw ~= nil and #flow.usable_abilities(draw) == 1)
 
 	local sips, guard = 0, 0
-	while phase.current().key ~= "play_1" and guard < 40 do
+	while phase.current().key ~= "play_card" and guard < 40 do
 		guard = guard + 1
 		flow.settle()
 		if phase.current().key == "reveal" then
@@ -786,7 +790,7 @@ function M.test_spellstorm_the_potion_loop_pays_and_ends_itself(check)
 		end
 	end
 	check("drinking until a third TOXIC ends the Ultimate on its own",
-		phase.current().key == "play_1", phase.current().key)
+		phase.current().key == "play_card", phase.current().key)
 	check("and it took more than one potion to get there", sips > 1, sips)
 	check("the beakers go back to three afterwards",
 		seat.stats.fire_el == 3 and seat.stats.earth_el == 3 and seat.stats.water_el == 3,
@@ -1407,7 +1411,7 @@ function M.test_spellstorm_new_curriculum_voids_and_gains_from_one_shelf(check)
 
 	actions.execute("copy:target:activate", { card_id = card.id, targets = { card.id } })
 	-- It carries the Ultimate icon, so activating the whole card announces a
-	-- resolution too. In a round that window is `ult_1`, a phase of its own;
+	-- resolution too. In a round that window is `ult`, a phase of its own;
 	-- here it is in the way, and passing it is what the resolve phase waits for.
 	-- Passing once is enough: the record stays on the stack while the offer it
 	-- let through is open, so passing again does nothing but spin.

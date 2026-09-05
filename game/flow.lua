@@ -153,14 +153,33 @@ end
 -- Handing over. The undo history goes with the seat that had it: undoing
 -- across a handover would either show a player something they were never
 -- meant to see, or rewrite a decision that was not theirs.
+local function hand_to(i)
+	local seats = declaration.G.seat_list or {}
+	local sys   = system_card()
+	if #seats < 2 or not sys or not seats[i] then return end
+	sys.stats.turn = i
+	history = {}
+	local def = declaration.G.card_defs[seats[i]]
+	log.add("— " .. ((def and def.text) or seats[i]) .. " to play —")
+end
+
 local function rotate_seat()
 	local seats = declaration.G.seat_list or {}
 	local sys   = system_card()
 	if #seats < 2 or not sys then return end
-	sys.stats.turn = (sys.stats.turn or 1) % #seats + 1
-	history = {}
-	local def = declaration.G.card_defs[seats[sys.stats.turn]]
-	log.add("— " .. ((def and def.text) or seats[sys.stats.turn]) .. " to play —")
+	hand_to((sys.stats.turn or 1) % #seats + 1)
+end
+
+-- A group hands the turn to a seat it named rather than to the next one round,
+-- so the handover is the same one a rotation makes and only the arithmetic
+-- differs. Naming the seat that is already up is not a handover: nobody's turn
+-- ended, so the undo history is still theirs and the log has nothing to say.
+local function take_turn_seat()
+	local seat = phase.take_turn_seat()
+	if not seat then return end
+	local sys = system_card()
+	local i   = (declaration.G.seat_index or {})[seat]
+	if i and sys and i ~= (sys.stats.turn or 0) then hand_to(i) end
 end
 
 -- Which targets the rules allow, re-derived rather than trusted. Counts were
@@ -363,20 +382,20 @@ phase.on_leave = function(pd)
 	announce(pd, "end")
 end
 
--- A full round completed: each card on a grid zone runs its on_turn actions.
+-- A full round completed: each card on a grid zone runs its on_round actions.
 -- Cards at 0 hp are ruined and don't act.
-local function run_on_turn()
+local function run_on_round()
 	for e in entity.each("card") do
 		local def = cards.def(e)
 		local z   = entity.get(e.zone_id)
-		if def.on_turn and z and z.status == "board" and (e.stats.hp or 1) > 0 then
-			actions.run(def.on_turn, { card_id = e.id, targets = {} })
+		if def.on_round and z and z.status == "board" and (e.stats.hp or 1) > 0 then
+			actions.run(def.on_round, { card_id = e.id, targets = {} })
 		end
 	end
 end
 
 -- Drive the game to a stable point: consume a queued load, fire end conditions,
--- run automatic phases, run on_turn triggers after a full round, deal freshly
+-- run automatic phases, run on_round triggers after a full round, deal freshly
 -- entered phases. Loops because each step can trigger the next. The budget
 -- catches routing cycles: content errors warn and halt, never hang.
 function M.settle()
@@ -447,9 +466,10 @@ function M.settle()
 					log.add("— Round " .. sys.stats.round .. " —")
 				end
 				for e in entity.each("card") do e.exhausted = nil end
-				run_on_turn()
+				run_on_round()
 			elseif cur and cur.type == "automatic" then
 				if phase.take_fresh() then
+					take_turn_seat()
 					if phase.arrived() then actions.run(cur.on_enter, {}) end
 					actions.run(cur.actions, {})
 					announce(cur, "begin")
@@ -473,6 +493,7 @@ function M.settle()
 				-- and the second was a copy of the first with one word missing.
 				local seat = phase.route_seat() or cur.seat
 				if seat == "next" then rotate_seat() end
+				take_turn_seat()
 				local pl = player()
 				if pl then pl.stats.plays = 0 end
 				-- What a phase does when the turn *begins*, as against what it

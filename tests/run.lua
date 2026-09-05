@@ -431,12 +431,12 @@ check("tax levy grants 3 gold", predicate.total("gold") == gold1 + 3)
 check("played edict recycles into its deck", zone_count("edicts") == 3)
 check("playing the edict ended the turn", phase.current().key == "challenge")
 
--- === castle: on_turn income on round wrap ===
+-- === castle: on_round income on round wrap ===
 local expected_income = 0
 for e in entity.each("card") do
 	local z = entity.get(e.zone_id)
 	if z and z.layout == "grid" and (e.stats.hp or 1) > 0 then
-		for _, a in ipairs(cards.def(e).on_turn or {}) do
+		for _, a in ipairs(cards.def(e).on_round or {}) do
 			local n = a:match("^stat_gain:gold:(%d+)$")
 			if n then expected_income = expected_income + tonumber(n) end
 		end
@@ -451,7 +451,7 @@ end
 local gold_before = predicate.total("gold")
 flow.play_card(challenge_card, {})
 check("round wrapped back to build1", phase.current().key == "build1")
-check("on_turn gold income applied", predicate.total("gold") == gold_before + expected_income)
+check("on_round gold income applied", predicate.total("gold") == gold_before + expected_income)
 check("round counter advanced", predicate.total("round") == 2)
 -- re-fetch by ID: undo replaced the entity tables, old references are stale
 check("the new round readies exhausted cards", entity.get(throne.id).exhausted == nil)

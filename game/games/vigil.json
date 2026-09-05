@@ -115,7 +115,7 @@
       "asset": "merchant_portrait.jpg",
       "tooltip": "They tithe 1 fund each night. They believe the vigil ends well for everyone.",
       "tags": ["follower"],
-      "turn": { "action": ["stat_gain:funds:1"] }
+      "round": { "action": ["stat_gain:funds:1"] }
     },
     {
       "key": "a_page",

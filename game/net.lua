@@ -92,10 +92,22 @@ end
 --     window anyway.
 --   * the phase stack carries keys, not phase defs. phase.snapshot holds a
 --     reference to the template table, which would inline every phase
---     definition into every message and re-import it as a stranger.
+--     definition into every message and re-import it as a stranger. The group a
+--     frame is inside goes the same way: its key, and its place in itself, which
+--     is state exactly as the frame's own is — dropped, a peer joining mid-turn
+--     would think everybody had already had one.
 function M.snapshot()
 	local ph, phases = phase.snapshot(), {}
-	for i, f in ipairs(ph.stack) do phases[i] = { key = f.def.key, fresh = f.fresh and true or false } end
+	for i, f in ipairs(ph.stack) do
+		phases[i] = { key = f.def.key, fresh = f.fresh and true or false,
+			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat }
+		if f.turn then
+			local seats = {}
+			for j, k in ipairs(f.turn.seats or {}) do seats[j] = k end
+			phases[i].turn = { key = f.turn.def.key, at = f.turn.at, seat_at = f.turn.seat_at,
+				seats = f.turn.seats and seats or nil }
+		end
+	end
 
 	local fired = {}
 	for i, cond in ipairs(declaration.G.end_conditions or {}) do fired[i] = cond.fired and true or false end
@@ -394,7 +406,22 @@ local function restore(snap, ents)
 	for i, f in ipairs(snap.phases) do
 		local def = type(f) == "table" and declaration.G.phase_by_key[f.key]
 		if not def then return false, "unknown phase: " .. tostring(type(f) == "table" and f.key) end
-		stack[i] = { def = def, fresh = f.fresh and true or false }
+		stack[i] = { def = def, fresh = f.fresh and true or false,
+			arrived = f.arrived and true or false, seat = f.seat, turn_seat = f.turn_seat }
+		local t = type(f.turn) == "table" and f.turn
+		if t then
+			local tdef = declaration.G.phase_by_key[t.key]
+			if not tdef or tdef.type ~= "turn" then
+				return false, "unknown turn: " .. tostring(t.key)
+			end
+			local seats
+			if type(t.seats) == "table" then
+				seats = {}
+				for j, k in ipairs(t.seats) do seats[j] = k end
+			end
+			stack[i].turn = { def = tdef, at = tonumber(t.at) or 1,
+				seat_at = tonumber(t.seat_at), seats = seats }
+		end
 	end
 
 	-- entity.restore adopts the array it is handed rather than copying it, which

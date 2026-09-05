@@ -54,7 +54,7 @@ answers; a test holds this list to them, so a section that exists is listed here
 and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · Stats · Zones · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
-- **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · Two or more players · The player is a card · A stat says whose number it is
+- **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
@@ -673,7 +673,7 @@ else you may do does not:
 
 **A crisis that persists** (`castle.json`). `resolve_challenge` with a
 `challenge` block, where `fail` starts with `move_to:board`, the card carries a
-`turn.action` that drains you every round, and an ability whose action is
+`round.action` that drains you every round, and an ability whose action is
 `["resolve_challenge"]` lets the player answer it later. Failure becomes
 escalating pressure instead of a slap.
 
@@ -1256,7 +1256,7 @@ disk cache with no network at all.
 | `play.spent` | Where the card goes once its play is over, **however it ends** — resolved, or countered before it ever ran. Opt-in; without it the action list is answerable for its own card |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
 | `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). `action`: what happens when one lands, read the same way. Zones take the same block |
-| `turn` | `action`: run at each round boundary while the card is on a grid and not ruined |
+| `round` | `action`: run at each round boundary while the card is on a grid and not ruined |
 | `leaves` | `action`: run when this card **leaves**, with `@self` as the departing card. `from` says which departure — leaving play by default, out of a `status: board` zone into one that is not; name a zone and it is leaving that zone, which is how "when you discard this" is said. `into` names the zone it landed in, and is what tells death from exile from bounce (see *`leaves` — a card on its way out*) |
 | `chosen` | `action`: run when somebody picks a card out of the offer **this** card opened with `show:`, with the pick as `@target` and this card as `@self`. The reverse of an `options:` offer, where the entry carries the rule and the asker is what it is about — here the entry is somebody else's property and carries nothing of ours |
 | `play.target` / an ability's `target` | Click-to-target with the arrow. Fields: `type` (`"card"`, `"slot"` or `"zone"` — a zone target names places in `zones` and ignores `tags`), `min`/`max` (or `count` for both), `tags` (all must match; computed tags count), `zones` (search only these — a per-seat key means *yours*), `owner` (`mine`/`enemy`/`anyone`), `fill` (slots only — see below) |
@@ -1284,26 +1284,86 @@ in the log and no undo history cleared, because dealing to everybody is not
 anybody's turn. It runs the same action for each seat, so an *uneven* deal is
 the one thing it cannot say.
 
+### A turn each
+
+`each_seat:` runs one *action* per seat. What it cannot do is span a phase — and
+"everybody plays a card, then everybody resolves it" is exactly that. A **turn**
+is the phase that says it:
+
+```json
+{ "key": "duel", "type": "turn", "seat": "each", "order": "highest:initiative",
+  "phases": ["announce", "resolve"], "next": [{ "then": "aftermath" }] },
+
+{ "key": "announce", "type": "automatic",
+  "actions": ["activate_zone:mine.battle:by_column:call"] },
+{ "key": "resolve", "type": "automatic",
+  "actions": ["activate_zone:mine.battle:by_column:cast"] }
+```
+
+Both phases run for one player, then both run for the next, and only when the
+last player is done does the group take its own `next`. Written out per seat that
+is four phases for two players and six for three; written like this it is three
+for any number, which is the whole point — **the seat count lives in `players`
+and nowhere else**.
+
+**The group says what runs, for whom, and in what order. Its members say what
+running is.** So a member carries no `next` — reachable only through its group,
+the way an overlay is reachable only by being pushed — and it is never the phase
+the game starts on. A round boundary (`ends_round`) belongs on the group's route,
+because a round that ended once per player would be two rounds a turn.
+
+A turn holds phases and does nothing itself: no `actions`, no `zone`, no
+`ends_when`. Put those on the phase inside.
+
+**`seat: "each"`** is what makes the run happen once per player. Left out, a turn
+runs its phases once, for whoever is up — a named group, which is Magic's word
+for the same thing.
+
+**`order`** is which player goes first, and so the order of the rest:
+
+| | |
+|---|---|
+| *left out* | round the table from whoever is next — what a pair of phases both saying `seat: "next"` used to mean |
+| `"highest:<stat>"` | the seat cards sorted by that stat, biggest first |
+| `"lowest:<stat>"` | the same, smallest first |
+
+The stat is an ordinary one on the seat cards, so an Initiative tracker is
+`"highest:initiative"` and acting in score order is `"lowest:score"` — no new
+vocabulary, and a game whose order changes every round says so in one word.
+**Ties keep the order the players are listed in**, so a table where nobody leads
+still plays round in a defined order.
+
+**The order is settled once, when the group is entered.** Asked again per player,
+somebody who scored during their own turn would decide who came after them — and
+could take two turns, or none.
+
+A turn hands over between its players exactly as `seat: "next"` does: the log
+says whose it is and the undo history goes with it. What it does *not* do is hand
+over between its members — those are one player's turn.
+
 ### Phases
 
 | Field | Meaning |
 |---|---|
 | `key`, `label` | Identity, HUD label |
-| `type` | `automatic`, `player_input`, `draw_and_play`, `overlay` |
+| `type` | `automatic`, `player_input`, `draw_and_play`, `turn`, `overlay` |
 | `actions` | Run on every entry — including a loop back into the same phase |
 | `on_enter` | Run when the **turn** begins here, and not on a loop that keeps the same player. See *A phase that leads back to itself* |
 | `deck`, `draw`, `zone` | Deal `draw` cards from `deck` into `zone` (default `hand`) on fresh entry. **Naming `zone` also bounds what may be played**: only cards in it. `zone` may be **a list**, which is a player holding two hands — an open one beside a closed one; the *first* is where cards are dealt and what an overlay offers, because those are singular questions. A phase that names none lets any reachable card be played, which is what the menu relies on |
 | `pass_card` | Card key or array, dealt with every hand — forced plays always have an out |
 | `ends_after` | The phase advances itself after this many **plays** |
 | `ends_when` | A condition, asked every time the game comes to rest — **after every action, not only after a play**. See below |
-| `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*). A route may overrule it |
+| `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*). A route may overrule it. On a turn, `"each"` runs the whole group once per player |
+| `phases`, `order` | A turn's body, and which player it starts with — see *A turn each* |
 | `tags` | `discard_hand` and `keep_hand` — see *Every tag the engine reads* |
 | `next` | Routing table (below) |
 
 Types: `automatic` runs its actions once and advances (if the actions opened
 an overlay — a revealed page, say — it waits and advances when the overlay
 closes); `player_input` lets you play freely; `draw_and_play` is shorthand
-for `player_input` with `ends_after: 1` and `discard_hand: true`; `overlay`
+for `player_input` with `ends_after: 1` and `discard_hand: true`; `turn` is a
+phase whose body is other phases, run in the order it names them and, with
+`seat: "each"`, once per player (see *A turn each*); `overlay`
 dims the screen, deals into its zone, and is resolved by **playing** one of the
 cards in it — choosing is playing. Overlays are push-only (never in the
 sequence), and the phase's `zone` is what bounds the choice to the offered
@@ -1588,7 +1648,7 @@ the validator refuses a file where they do.
 
 A pile of rules mean *in play* and none of them say which zones those are:
 `count:<tag>`, `card:<key>`, `tagged:`, a bare tag scope, `sacrifice:<tag>` as a
-cost, a card's `turn` block acting by itself, and a reaction answered
+cost, a card's `round` block acting by itself, and a reaction answered
 `"from": "board"`. The zone answers for all of them at once, with `status`:
 
 | `status` | Means |
@@ -1892,6 +1952,10 @@ on entry, so alternation is just two phases:
 
 Handing over **clears the undo history** — undoing across it would either show
 a player something they never saw or rewrite a decision that was not theirs.
+
+**A step every player takes in turn is one declaration, not one per seat.** Write
+it as a `turn` with `seat: "each"` — see *A turn each* — so that adding a player
+is a line in `players` and nothing else.
 
 **Pieces on a shared board** belong to a seat without the board doing so. Tag a
 card with a seat's key and it is that seat's:

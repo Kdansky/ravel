@@ -1488,44 +1488,36 @@ RESOLVE = ["activate_zone:mine.battle:by_column:cast",
            "activate_zone:mine.battle:by_column:cast_ask"]
 
 
-# Abragail's three question spaces, one phase each and one seat each. An action
-# list has no cursor -- whatever follows an ask runs before the answer arrives --
-# so the ask is the last thing each of these does and the next one waits for the
-# phase to come back. One seat each because two Abragails would otherwise hold up
-# both hands at once and the second question would land in the first one's offer.
+# Abragail's three question spaces, one phase each. An action list has no cursor
+# -- whatever follows an ask runs before the answer arrives -- so the ask is the
+# last thing each of these does and the next one waits for the phase to come
+# back. All three, then the other player's three: one seat at a time, because two
+# Abragails would otherwise hold up both hands at once and the second question
+# would land in the first one's offer.
 #
-# Only the first phase of each side names a seat: "the enemy of whoever is up"
-# said three times running walks back and forth.
-JOURNAL_PHASES = []
-for side, setter in (("a", "set_active_seat:has_init"),
-                     ("b", "set_active_seat:enemy.player")):
-    for n in JOURNAL_ASKS:
-        first = n == JOURNAL_ASKS[0]
-        JOURNAL_PHASES.append(
-            {"key": "journal_%d%s" % (n, side), "type": "automatic",
-             "actions": ([setter] if first else [])
-                        + ["activate_zone:rules:by_column:jr%d" % n]})
-for i, ph in enumerate(JOURNAL_PHASES):
-    ph["next"] = [{"then": JOURNAL_PHASES[i + 1]["key"]
-                           if i + 1 < len(JOURNAL_PHASES) else "weather"}]
+# The run is a group, which is why `each_seat:` cannot say it: that lives inside
+# one action list and stops at the phase boundary. Nothing here names a seat --
+# the group's `order` does, once, for the whole run.
+JOURNAL_PHASES = [{"key": "journal_%d" % n, "type": "automatic",
+                   "actions": ["activate_zone:rules:by_column:jr%d" % n]}
+                  for n in JOURNAL_ASKS]
 
 
 def phases():
     return [
         {"key": "boot", "type": "automatic",
          "actions": ["draw_from:spellstorm_deck:storm_cloud:2"],
-         "next": [{"then": "pick_1"}]},
+         "next": [{"then": "pick"}]},
 
         # One question per seat, asked out of the offer rather than a zone kept
-        # empty for the rest of the game.
-        {"key": "pick_1", "type": "player_input", "seat": "next",
+        # empty for the rest of the game. No `order`, so the table goes round
+        # from whoever is next -- which at the top of the game is seat one.
+        {"key": "pick", "type": "turn", "seat": "each",
+         "phases": ["pick_wizard"], "next": [{"then": "begin"}]},
+        {"key": "pick_wizard", "type": "player_input",
          "label": "Choose your wizard",
          "actions": ["options:roster"],
-         "ends_when": "picked@mine.player >= 1", "next": [{"then": "pick_2"}]},
-        {"key": "pick_2", "type": "player_input", "seat": "next",
-         "label": "Choose your wizard",
-         "actions": ["options:roster"],
-         "ends_when": "picked@mine.player >= 1", "next": [{"then": "begin"}]},
+         "ends_when": "picked@mine.player >= 1"},
 
         {"key": "begin", "type": "automatic",
          "actions": ["each_seat:fill:mine.deck:magicdart:2",
@@ -1546,7 +1538,17 @@ def phases():
                      "each_seat:activate_zone:rules:by_column:topup",
                      "each_seat:activate_zone:rules:by_column:topup",
                      "each_seat:activate_zone:rules:by_column:topup"],
-         "next": [{"then": JOURNAL_PHASES[0]["key"]}]},
+         "next": [{"then": "journal"}]},
+
+        # Resolution order all round is the Initiative Tracker, and it is said
+        # once here rather than by a `set_active_seat` at the top of every phase
+        # that needs it. `initiative` is 1 for whoever holds it and 0 for
+        # everybody else, so "highest" is the tracker written as a sort -- and a
+        # tie, which the rules can reach before the first battle, falls back to
+        # the order the players are listed in.
+        {"key": "journal", "type": "turn", "seat": "each", "order": "highest:initiative",
+         "phases": [ph["key"] for ph in JOURNAL_PHASES],
+         "next": [{"then": "weather"}]},
 
         ] + JOURNAL_PHASES + [
 
@@ -1562,21 +1564,18 @@ def phases():
                      "stat_gain:battle_round@plan:1",
                      "set_active_seat:has_init",
                      "each_seat:activate_zone:weather_now:by_column:wx"],
-         "next": [{"then": "play_1"}]},
+         "next": [{"then": "play"}]},
 
         # Both players play face down, then reveal together. The card goes to
         # `commit`, which only its own seat may read, so the second player
         # chooses without seeing the first card -- really, over the network;
         # only on the screen, in hot-seat, where the other player watched the
         # click. See the gaps note.
-        {"key": "play_1", "type": "player_input", "seat": "same",
+        {"key": "play", "type": "turn", "seat": "each", "order": "highest:initiative",
+         "phases": ["play_card"], "next": [{"then": "showdown"}]},
+        {"key": "play_card", "type": "player_input",
          "label": "Play a card face down", "zone": ["hand", "wizard", "controls"],
-         "ends_when": "count:spell@mine.commit >= 1",
-         "next": [{"then": "play_2"}]},
-        {"key": "play_2", "type": "player_input", "seat": "next",
-         "label": "Play a card face down", "zone": ["hand", "wizard", "controls"],
-         "ends_when": "count:spell@mine.commit >= 1",
-         "next": [{"then": "showdown"}]},
+         "ends_when": "count:spell@mine.commit >= 1"},
 
         # This move is the reveal, and it has to come before anything that reads
         # the two cards against each other: countering asks about `enemy.battle`.
@@ -1584,29 +1583,22 @@ def phases():
          "actions": ["each_seat:move:mine.commit:mine.battle",
                      "each_seat:activate_zone:rules:by_column:check",
                      "each_seat:activate_zone:weather_now:by_column:wy"],
-         "next": [{"then": "ult_1"}]},
+         "next": [{"then": "duel"}]},
 
         # Resolution follows the Initiative Tracker, and each card must resolve
         # while its own seat is up or "mine" would name the wrong player. The
-        # seat is named once per side, in the announce phase, because the resolve
-        # that follows is the same seat's and flipping again would walk it back.
+        # announce and the resolution are one seat's turn, taken twice -- which
+        # is what the group says, so neither phase names a seat any more.
         #
         # **The announce is a phase of its own, and that is what makes it work.**
         # An action list has no cursor -- whatever follows an ask runs before the
         # answer arrives -- so the ask is the last thing this phase does, and the
         # resolution waits behind it. A phase is the engine's word for "and then".
-        {"key": "ult_1", "type": "automatic",
-         "actions": ["set_active_seat:has_init",
-                     "activate_zone:mine.battle:by_column:ult_call"],
-         "next": [{"then": "resolve_1"}]},
-        {"key": "resolve_1", "type": "automatic", "actions": list(RESOLVE),
-         "next": [{"then": "ult_2"}]},
-        {"key": "ult_2", "type": "automatic",
-         "actions": ["set_active_seat:enemy.player",
-                     "activate_zone:mine.battle:by_column:ult_call"],
-         "next": [{"then": "resolve_2"}]},
-        {"key": "resolve_2", "type": "automatic", "actions": list(RESOLVE),
-         "next": [{"then": "aftermath"}]},
+        {"key": "duel", "type": "turn", "seat": "each", "order": "highest:initiative",
+         "phases": ["ult", "resolve"], "next": [{"then": "aftermath"}]},
+        {"key": "ult", "type": "automatic",
+         "actions": ["activate_zone:mine.battle:by_column:ult_call"]},
+        {"key": "resolve", "type": "automatic", "actions": list(RESOLVE)},
 
         # Both cards have resolved, and this is where whatever happens *then*
         # happens: the weather's last word (Energy Wave's extra Ultimate) and the
@@ -1635,15 +1627,20 @@ def phases():
                      "each_seat:activate_zone:rules:by_column:score",
                      "each_seat:activate_zone:rules:by_column:award_win",
                      "each_seat:activate_zone:rules:by_column:award_tie",
-                     "each_seat:move:mine.hand:mine.discard"],
-         "next": [{"then": "gain_1"}]},
-
-        {"key": "gain_1", "type": "player_input",
-         "label": "Gain a card from the Storm Cloud",
-         "actions": ["set_active_seat:has_init",
+                     "each_seat:move:mine.hand:mine.discard",
                      "each_seat:stat_set:took@mine.player:0"],
+         "next": [{"then": "gain"}]},
+
+        # The counter is zeroed for everybody by the phase before, because a
+        # group runs its body once per player and a reset inside it would wipe
+        # the first player's answer on the way to asking the second.
+        {"key": "gain", "type": "turn", "seat": "each", "order": "highest:initiative",
+         "phases": ["gain_card"],
+         "next": [{"then": "battle_start", "ends_round": True}]},
+        {"key": "gain_card", "type": "player_input",
+         "label": "Gain a card from the Storm Cloud",
          "zone": ["wizard", "controls"],
-         "ends_when": "took@mine.player >= 1", "next": [{"then": "gain_2"}]},
+         "ends_when": "took@mine.player >= 1"},
         # Oren's Ultimate pushes this over whatever he was doing and the two
         # potion buttons are the only things reachable while it is up. It ends
         # when one of them says so, or when a third TOXIC says so -- so it has no
@@ -1651,11 +1648,6 @@ def phases():
         {"key": "potion", "type": "player_input", "label": "Bottoms up, I guess!",
          "zone": ["sidecar"]},
 
-        {"key": "gain_2", "type": "player_input", "seat": "next",
-         "label": "Gain a card from the Storm Cloud",
-         "zone": ["wizard", "controls"],
-         "ends_when": "took@mine.player >= 1",
-         "next": [{"then": "battle_start", "ends_round": True}]},
     ]
 
 
@@ -1698,7 +1690,7 @@ def build():
         "key": "btn_unplayable", "text": "Unplayable hand",
         "asset": "auto", "tags": ["immutable"],
         "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
-        "abilities": [{"phases": ["play_1", "play_2"],
+        "abilities": [{"phases": ["play_card"],
                      "action": ["move:mine.hand:mine.discard",
                                 SELF_DMG(1),
                                 "draw_from:mine.deck:mine.hand:4"]}]})
@@ -1838,7 +1830,7 @@ def build():
                 "tooltip": "Gain this card. You may only take a card at or below your Tier.",
                 "abilities": [{
                     "key": "take", "text": "Gain this card", "merge": "this",
-                    "phases": ["gain_1", "gain_2"],
+                    "phases": ["gain_card"],
                     "when": ["tier@mine.player >= tier_req@self"],
                     "action": ["set_owner:self:mine", "move_to:mine.hand",
                                REFILL_CLOUD, "stat_gain:took@mine.player:1"]}]},

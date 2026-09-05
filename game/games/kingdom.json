@@ -71,7 +71,7 @@
       "tags": ["holding", "origin", "mystic"],
       "card_stats": { "hp": { "value": 3, "max": 3 } },
       "play": { "action": ["move_to:board", "stat_gain:progress:3", "stat_gain:mana:2"] },
-      "turn": { "action": ["stat_gain:mana:1"] }
+      "round": { "action": ["stat_gain:mana:1"] }
     },
     {
       "key": "decline",
@@ -138,7 +138,7 @@
       "tags": ["holding", "economic", "farm"],
       "card_stats": { "hp": { "value": 3, "max": 3 } },
       "play": { "action": ["move_to:board", "stat_gain:progress:1"] },
-      "turn": { "action": ["stat_gain:food:1"] }
+      "round": { "action": ["stat_gain:food:1"] }
     },
     {
       "key": "market_square",
@@ -146,7 +146,7 @@
       "asset": "market_square.jpg",
       "tooltip": "Trade finds its center. +1 gold each round.",
       "play": { "cost": { "gold": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
-      "turn": { "action": ["stat_gain:gold:1"] },
+      "round": { "action": ["stat_gain:gold:1"] },
       "tags": ["holding", "economic"],
       "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
@@ -156,7 +156,7 @@
       "asset": "haystacks.jpg",
       "tooltip": "Stores every harvest: +1 food per farm, each round.",
       "play": { "cost": { "food": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
-      "turn": { "action": ["stat_gain:food:count:farm"] },
+      "round": { "action": ["stat_gain:food:count:farm"] },
       "tags": ["holding", "economic"],
       "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
@@ -166,7 +166,7 @@
       "asset": "bridge_travelers.jpg",
       "tooltip": "Every wagon pays: +1 gold per economic holding, each round.",
       "play": { "cost": { "gold": 3 }, "action": ["move_to:board", "stat_gain:progress:1"] },
-      "turn": { "action": ["stat_gain:gold:count:economic"] },
+      "round": { "action": ["stat_gain:gold:count:economic"] },
       "tags": ["holding", "economic"],
       "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
@@ -184,7 +184,7 @@
       "asset": "gold_coins.jpg",
       "tooltip": "The crown's own coin. +2 gold each round.",
       "play": { "cost": { "gold": 6 }, "action": ["move_to:board", "stat_gain:progress:3"] },
-      "turn": { "action": ["stat_gain:gold:2"] },
+      "round": { "action": ["stat_gain:gold:2"] },
       "tags": ["holding", "economic"],
       "card_stats": { "hp": { "value": 4, "max": 4 } }
     },
@@ -270,7 +270,7 @@
       "asset": "moonlit_night.jpg",
       "tooltip": "Chants under the open sky: +1 mana each round.",
       "play": { "cost": { "gold": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
-      "turn": { "action": ["stat_gain:mana:1"] },
+      "round": { "action": ["stat_gain:mana:1"] },
       "tags": ["holding", "mystic"],
       "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
@@ -280,7 +280,7 @@
       "asset": "starry_tower.jpg",
       "tooltip": "The stars answer: +1 mana per mystic holding, each round.",
       "play": { "cost": { "mana": 2 }, "action": ["move_to:board", "stat_gain:progress:1"] },
-      "turn": { "action": ["stat_gain:mana:count:mystic"] },
+      "round": { "action": ["stat_gain:mana:count:mystic"] },
       "tags": ["holding", "mystic"],
       "card_stats": { "hp": { "value": 3, "max": 3 } }
     },
@@ -331,7 +331,7 @@
           "stat_damage:hp@random.farm:2"
         ]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "border_raid",
@@ -344,7 +344,7 @@
         "pass": ["move_to:graveyard", "stat_damage:might:1", "stat_gain:progress:1"],
         "fail": ["move_to:board", "effect:crisis_smoke", "stat_damage:stability:2"]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "debt_collectors",
@@ -362,7 +362,7 @@
           "stat_damage:hp@random.economic:2"
         ]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "restless_spirits",
@@ -380,7 +380,7 @@
           "stat_damage:hp@random.mystic:2"
         ]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "famine",
@@ -398,7 +398,7 @@
           "stat_damage:hp@random.farm:2"
         ]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "mercenary_uprising",
@@ -416,7 +416,7 @@
           "stat_damage:hp@random.military:3"
         ]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "war_host",
@@ -429,7 +429,7 @@
         "pass": ["move_to:graveyard", "stat_damage:might:3", "stat_gain:progress:2"],
         "fail": ["move_to:board", "effect:crisis_smoke", "stat_damage:stability:3"]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "witch_hunt",
@@ -447,7 +447,7 @@
           "stat_damage:hp@random.mystic:3"
         ]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "war_of_succession",
@@ -465,7 +465,7 @@
           "stat_damage:hp@random.holding:2"
         ]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "long_winter",
@@ -483,7 +483,7 @@
           "stat_damage:hp@random.farm:3"
         ]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "dragon",
@@ -501,7 +501,7 @@
           "stat_damage:hp@random.holding:4"
         ]
       },
-      "turn": { "action": ["stat_damage:stability:1"] }
+      "round": { "action": ["stat_damage:stability:1"] }
     },
     {
       "key": "crown",

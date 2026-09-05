@@ -166,7 +166,7 @@
       "asset": "blacksmith_forge.jpg",
       "tooltip": "Nobody believes in it. +1 morale every day anyway.",
       "tags": ["item"],
-      "turn": { "action": ["stat_gain:morale:1"] }
+      "round": { "action": ["stat_gain:morale:1"] }
     },
     {
       "key": "second_wind",
@@ -228,7 +228,7 @@
       "tooltip": "They pace the column after dark. -1 morale each day it lives.",
       "tags": ["threat"],
       "card_stats": { "hp": { "value": 2, "max": 2 } },
-      "turn": { "action": ["effect:wolf_bite", "stat_damage:morale:1"] }
+      "round": { "action": ["effect:wolf_bite", "stat_damage:morale:1"] }
     },
     {
       "key": "mire",
@@ -237,7 +237,7 @@
       "tooltip": "The road drowns and the wagons sink. -1 supply each day it lasts.",
       "tags": ["threat"],
       "card_stats": { "hp": { "value": 2, "max": 2 } },
-      "turn": { "action": ["stat_damage:supplies:1"] }
+      "round": { "action": ["stat_damage:supplies:1"] }
     },
     {
       "key": "night_things",
@@ -246,7 +246,7 @@
       "tooltip": "Never quite seen, never quite gone. -1 morale each day.",
       "tags": ["threat"],
       "card_stats": { "hp": { "value": 3, "max": 3 } },
-      "turn": { "action": ["stat_damage:morale:1"] }
+      "round": { "action": ["stat_damage:morale:1"] }
     },
     {
       "key": "ash_knights",
@@ -255,7 +255,7 @@
       "tooltip": "Riders in burnt colors. -1 morale and -1 supply each day they shadow you.",
       "tags": ["threat"],
       "card_stats": { "hp": { "value": 4, "max": 4 } },
-      "turn": { "action": ["stat_damage:morale:1", "stat_damage:supplies:1"] }
+      "round": { "action": ["stat_damage:morale:1", "stat_damage:supplies:1"] }
     },
     {
       "key": "dark_ford",
@@ -270,7 +270,7 @@
         "fail": ["stat_damage:morale:2"]
       },
       "abilities": [{ "action": ["resolve_challenge"], "cost": { "exhaust": 1 } }],
-      "turn": { "action": ["stat_damage:morale:1"] }
+      "round": { "action": ["stat_damage:morale:1"] }
     },
     {
       "key": "toll_bridge",
@@ -285,7 +285,7 @@
         "fail": ["stat_damage:morale:1"]
       },
       "abilities": [{ "action": ["resolve_challenge"], "cost": { "exhaust": 1 } }],
-      "turn": { "action": ["stat_damage:morale:1"] }
+      "round": { "action": ["stat_damage:morale:1"] }
     },
     {
       "key": "e_home",

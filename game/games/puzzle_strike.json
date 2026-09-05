@@ -340,30 +340,23 @@
     }
   ],
   "phases": [
-    { "key": "setup", "type": "automatic", "next": [{ "then": "pick_1" }] },
+    { "key": "setup", "type": "automatic", "next": [{ "then": "pick" }] },
     {
-      "key": "pick_1",
-      "type": "player_input",
-      "seat": "next",
-      "zone": "hand",
-      "label": "Choose your character",
-      "actions": [
-        "options:char_argagarg,char_jaina,char_midori,char_setsuki,char_lum,char_grave,char_rook,char_degrey,char_valerie,char_geiger,char_quince,char_onimaru,char_zane,char_gloria,char_vendetta,char_gwen,char_troq,char_persephone,char_bbb,char_menelker"
-      ],
-      "ends_when": "picked@mine.player >= 1",
-      "next": [{ "then": "pick_2" }]
+      "key": "pick",
+      "type": "turn",
+      "seat": "each",
+      "phases": ["pick_character"],
+      "next": [{ "then": "build_bank" }]
     },
     {
-      "key": "pick_2",
+      "key": "pick_character",
       "type": "player_input",
-      "seat": "next",
       "zone": "hand",
       "label": "Choose your character",
       "actions": [
         "options:char_argagarg,char_jaina,char_midori,char_setsuki,char_lum,char_grave,char_rook,char_degrey,char_valerie,char_geiger,char_quince,char_onimaru,char_zane,char_gloria,char_vendetta,char_gwen,char_troq,char_persephone,char_bbb,char_menelker"
       ],
-      "ends_when": "picked@mine.player >= 1",
-      "next": [{ "then": "build_bank" }]
+      "ends_when": "picked@mine.player >= 1"
     },
     {
       "key": "build_bank",

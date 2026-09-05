@@ -185,7 +185,7 @@
           "key": "take",
           "text": "Gain this card",
           "merge": "this",
-          "phases": ["gain_1", "gain_2"],
+          "phases": ["gain_card"],
           "when": ["tier@mine.player >= tier_req@self"],
           "action": [
             "set_owner:self:mine",
@@ -510,25 +510,21 @@
       "key": "boot",
       "type": "automatic",
       "actions": ["draw_from:spellstorm_deck:storm_cloud:2"],
-      "next": [{ "then": "pick_1" }]
+      "next": [{ "then": "pick" }]
     },
     {
-      "key": "pick_1",
-      "type": "player_input",
-      "seat": "next",
-      "label": "Choose your wizard",
-      "actions": ["options:roster"],
-      "ends_when": "picked@mine.player >= 1",
-      "next": [{ "then": "pick_2" }]
-    },
-    {
-      "key": "pick_2",
-      "type": "player_input",
-      "seat": "next",
-      "label": "Choose your wizard",
-      "actions": ["options:roster"],
-      "ends_when": "picked@mine.player >= 1",
+      "key": "pick",
+      "type": "turn",
+      "seat": "each",
+      "phases": ["pick_wizard"],
       "next": [{ "then": "begin" }]
+    },
+    {
+      "key": "pick_wizard",
+      "type": "player_input",
+      "label": "Choose your wizard",
+      "actions": ["options:roster"],
+      "ends_when": "picked@mine.player >= 1"
     },
     {
       "key": "begin",
@@ -554,43 +550,30 @@
         "each_seat:activate_zone:rules:by_column:topup",
         "each_seat:activate_zone:rules:by_column:topup"
       ],
-      "next": [{ "then": "journal_2a" }]
+      "next": [{ "then": "journal" }]
     },
     {
-      "key": "journal_2a",
-      "type": "automatic",
-      "actions": ["set_active_seat:has_init", "activate_zone:rules:by_column:jr2"],
-      "next": [{ "then": "journal_4a" }]
-    },
-    {
-      "key": "journal_4a",
-      "type": "automatic",
-      "actions": ["activate_zone:rules:by_column:jr4"],
-      "next": [{ "then": "journal_6a" }]
-    },
-    {
-      "key": "journal_6a",
-      "type": "automatic",
-      "actions": ["activate_zone:rules:by_column:jr6"],
-      "next": [{ "then": "journal_2b" }]
-    },
-    {
-      "key": "journal_2b",
-      "type": "automatic",
-      "actions": ["set_active_seat:enemy.player", "activate_zone:rules:by_column:jr2"],
-      "next": [{ "then": "journal_4b" }]
-    },
-    {
-      "key": "journal_4b",
-      "type": "automatic",
-      "actions": ["activate_zone:rules:by_column:jr4"],
-      "next": [{ "then": "journal_6b" }]
-    },
-    {
-      "key": "journal_6b",
-      "type": "automatic",
-      "actions": ["activate_zone:rules:by_column:jr6"],
+      "key": "journal",
+      "type": "turn",
+      "seat": "each",
+      "order": "highest:initiative",
+      "phases": ["journal_2", "journal_4", "journal_6"],
       "next": [{ "then": "weather" }]
+    },
+    {
+      "key": "journal_2",
+      "type": "automatic",
+      "actions": ["activate_zone:rules:by_column:jr2"]
+    },
+    {
+      "key": "journal_4",
+      "type": "automatic",
+      "actions": ["activate_zone:rules:by_column:jr4"]
+    },
+    {
+      "key": "journal_6",
+      "type": "automatic",
+      "actions": ["activate_zone:rules:by_column:jr6"]
     },
     {
       "key": "weather",
@@ -602,25 +585,22 @@
         "set_active_seat:has_init",
         "each_seat:activate_zone:weather_now:by_column:wx"
       ],
-      "next": [{ "then": "play_1" }]
+      "next": [{ "then": "play" }]
     },
     {
-      "key": "play_1",
-      "type": "player_input",
-      "seat": "same",
-      "label": "Play a card face down",
-      "zone": ["hand", "wizard", "controls"],
-      "ends_when": "count:spell@mine.commit >= 1",
-      "next": [{ "then": "play_2" }]
-    },
-    {
-      "key": "play_2",
-      "type": "player_input",
-      "seat": "next",
-      "label": "Play a card face down",
-      "zone": ["hand", "wizard", "controls"],
-      "ends_when": "count:spell@mine.commit >= 1",
+      "key": "play",
+      "type": "turn",
+      "seat": "each",
+      "order": "highest:initiative",
+      "phases": ["play_card"],
       "next": [{ "then": "showdown" }]
+    },
+    {
+      "key": "play_card",
+      "type": "player_input",
+      "label": "Play a card face down",
+      "zone": ["hand", "wizard", "controls"],
+      "ends_when": "count:spell@mine.commit >= 1"
     },
     {
       "key": "showdown",
@@ -630,41 +610,30 @@
         "each_seat:activate_zone:rules:by_column:check",
         "each_seat:activate_zone:weather_now:by_column:wy"
       ],
-      "next": [{ "then": "ult_1" }]
+      "next": [{ "then": "duel" }]
     },
     {
-      "key": "ult_1",
-      "type": "automatic",
-      "actions": ["set_active_seat:has_init", "activate_zone:mine.battle:by_column:ult_call"],
-      "next": [{ "then": "resolve_1" }]
-    },
-    {
-      "key": "resolve_1",
-      "type": "automatic",
-      "actions": [
-        "activate_zone:mine.battle:by_column:cast",
-        "activate_zone:mine.battle:by_column:cast2",
-        "activate_zone:mine.battle:by_column:cast3",
-        "activate_zone:mine.battle:by_column:cast_ask"
-      ],
-      "next": [{ "then": "ult_2" }]
-    },
-    {
-      "key": "ult_2",
-      "type": "automatic",
-      "actions": ["set_active_seat:enemy.player", "activate_zone:mine.battle:by_column:ult_call"],
-      "next": [{ "then": "resolve_2" }]
-    },
-    {
-      "key": "resolve_2",
-      "type": "automatic",
-      "actions": [
-        "activate_zone:mine.battle:by_column:cast",
-        "activate_zone:mine.battle:by_column:cast2",
-        "activate_zone:mine.battle:by_column:cast3",
-        "activate_zone:mine.battle:by_column:cast_ask"
-      ],
+      "key": "duel",
+      "type": "turn",
+      "seat": "each",
+      "order": "highest:initiative",
+      "phases": ["ult", "resolve"],
       "next": [{ "then": "aftermath" }]
+    },
+    {
+      "key": "ult",
+      "type": "automatic",
+      "actions": ["activate_zone:mine.battle:by_column:ult_call"]
+    },
+    {
+      "key": "resolve",
+      "type": "automatic",
+      "actions": [
+        "activate_zone:mine.battle:by_column:cast",
+        "activate_zone:mine.battle:by_column:cast2",
+        "activate_zone:mine.battle:by_column:cast3",
+        "activate_zone:mine.battle:by_column:cast_ask"
+      ]
     },
     {
       "key": "aftermath",
@@ -699,33 +668,31 @@
         "each_seat:activate_zone:rules:by_column:score",
         "each_seat:activate_zone:rules:by_column:award_win",
         "each_seat:activate_zone:rules:by_column:award_tie",
-        "each_seat:move:mine.hand:mine.discard"
+        "each_seat:move:mine.hand:mine.discard",
+        "each_seat:stat_set:took@mine.player:0"
       ],
-      "next": [{ "then": "gain_1" }]
+      "next": [{ "then": "gain" }]
     },
     {
-      "key": "gain_1",
+      "key": "gain",
+      "type": "turn",
+      "seat": "each",
+      "order": "highest:initiative",
+      "phases": ["gain_card"],
+      "next": [{ "then": "battle_start", "ends_round": true }]
+    },
+    {
+      "key": "gain_card",
       "type": "player_input",
       "label": "Gain a card from the Storm Cloud",
-      "actions": ["set_active_seat:has_init", "each_seat:stat_set:took@mine.player:0"],
       "zone": ["wizard", "controls"],
-      "ends_when": "took@mine.player >= 1",
-      "next": [{ "then": "gain_2" }]
+      "ends_when": "took@mine.player >= 1"
     },
     {
       "key": "potion",
       "type": "player_input",
       "label": "Bottoms up, I guess!",
       "zone": ["sidecar"]
-    },
-    {
-      "key": "gain_2",
-      "type": "player_input",
-      "seat": "next",
-      "label": "Gain a card from the Storm Cloud",
-      "zone": ["wizard", "controls"],
-      "ends_when": "took@mine.player >= 1",
-      "next": [{ "then": "battle_start", "ends_round": true }]
     }
   ],
   "cards": [
@@ -3713,7 +3680,7 @@
       "tooltip": "If your hand is nothing but *ICE*, *ASH* and *CURSE*, use this: discard them all with their effects, take *1 damage*, and draw a new hand of 4.",
       "abilities": [
         {
-          "phases": ["play_1", "play_2"],
+          "phases": ["play_card"],
           "action": [
             "move:mine.hand:mine.discard",
             "stat_damage:health@mine.player:1",

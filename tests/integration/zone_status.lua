@@ -51,7 +51,7 @@ local GAME = [==[{
     { "key": "two", "text": "Two", "tags": ["seat_two"], "card_stats": { "gold": 0, "seen": 0 } },
     { "key": "pass", "text": "Pass", "play": { "action": ["next_phase"] } },
     { "key": "lamp", "text": "Lamp", "tags": ["lit"],
-      "turn": { "action": ["stat_gain:gold@mine.player:1"] } },
+      "round": { "action": ["stat_gain:gold@mine.player:1"] } },
     { "key": "bell", "text": "Bell", "tags": ["lit"],
       "reactions": [
         { "to": "ring", "whose": "anyone", "forced": "mandatory", "from": "board",
@@ -132,10 +132,10 @@ function M.test_status_sacrifice_reaches_what_is_in_play(check)
 	end)
 end
 
--- on_turn is a card acting by itself, which is a thing only a card in play does.
+-- on_round is a card acting by itself, which is a thing only a card in play does.
 -- It fired on grids alone, so an ongoing effect that ticks every round — half of
 -- what an ongoing effect *is* — could not be written as a row.
-function M.test_status_on_turn_fires_where_cards_are_in_play(check)
+function M.test_status_on_round_fires_where_cards_are_in_play(check)
 	with_game(function(name)
 		flow.init(name, 5)
 		zones.add(zone_of("ongoing", "one"), "lamp")

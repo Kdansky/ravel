@@ -34,7 +34,7 @@ local MOMENTS = {
 		action = "on_play", spent = "spent", compute = "compute" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts", action = "on_receive" },
-	turn      = { action = "on_turn" },
+	round     = { action = "on_round" },
 	chosen    = { where = "chosen_where", action = "on_chosen" },
 	-- A card on its way out, which is the moment a card game keeps most of its
 	-- triggers at and the engine had no word for. `into` is the zone it landed
@@ -162,7 +162,7 @@ local WHOSE = { mine = true, enemy = true, anyone = true }
 
 -- What standing a card in this zone has in the rules, which is a different
 -- question from what the zone looks like. "board" is in play: the tag scopes,
--- count:, card:, sacrifice: and on_turn all mean it, and so does a reaction
+-- count:, card:, sacrifice: and on_round all mean it, and so does a reaction
 -- answered "from": "board". "offer" is a card lent to a question — nobody's
 -- while it is there, and gone once the question is answered. "exile" is
 -- everything else: a deck, a discard, a bag, a trash. Cards there are still
@@ -1012,6 +1012,25 @@ function M.parse(filename)
 			end
 			G.phase_by_key[pd.key] = pd
 		end
+	end
+
+	-- A group's members are reachable only through it, the way an overlay is
+	-- reachable only by being pushed. Out of the list they cannot be the phase
+	-- the game starts on, and the fall-through that runs off the end of the list
+	-- cannot land in the middle of somebody's turn. Done in a second pass because
+	-- a group may name members written after it.
+	local inner = {}
+	for _, pd in pairs(G.phase_by_key) do
+		if pd.type == "turn" then
+			for _, k in ipairs(pd.phases or {}) do inner[k] = true end
+		end
+	end
+	if next(inner) then
+		local keep = {}
+		for _, k in ipairs(G.phase_list) do
+			if not inner[k] then keep[#keep + 1] = k end
+		end
+		G.phase_list = keep
 	end
 
 	-- The engine's own two cards live here, out of sight and out of reach of

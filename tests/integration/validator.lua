@@ -590,6 +590,41 @@ local CASES = {
 			g.pattern_defs.sideways = { vectors = { { 1, 0 }, { -1, 0 } }, range = 8, class = { ray = true } }
 			g.card_defs.c_flee.on_play = { "compact:board:sideways" }
 		end },
+	-- turns, and the line between a group and what it runs
+	{ "a turn that names no phases", "is a turn but names no phases",
+		function(g) g.phase_by_key.day = { key = "day", type = "turn", seat = "each" } end },
+	{ "a turn running a phase that does not exist", "runs 'dusk', but no phase has that key",
+		function(g) g.phase_by_key.day = { key = "day", type = "turn", phases = { "dusk" } } end },
+	{ "a turn inside a turn", "which is itself a turn",
+		function(g)
+			g.phase_by_key.night = { key = "night", type = "turn", phases = { "story" } }
+			g.phase_by_key.day = { key = "day", type = "turn", phases = { "night" } }
+		end },
+	{ "a member with routing of its own", "which has routing of its own",
+		function(g)
+			g.phase_by_key.story.next = { { ["then"] = "story" } }
+			g.phase_by_key.day = { key = "day", type = "turn", phases = { "story" } }
+		end },
+	{ "a turn that runs one phase twice", "twice — a phase appears once in a turn",
+		function(g) g.phase_by_key.day = { key = "day", type = "turn", phases = { "intro", "intro" } } end },
+	{ "a turn that also does something itself", "a turn holds phases and nothing else",
+		function(g) g.phase_by_key.day =
+			{ key = "day", type = "turn", phases = { "intro" }, actions = { "next_phase" } } end },
+	{ "an order that is not a word here", "which is not a word here",
+		function(g) g.phase_by_key.day =
+			{ key = "day", type = "turn", seat = "each", order = "by_height", phases = { "intro" } } end },
+	{ "an order by a stat nothing declares", "orders by 'clout', but no stat has that key",
+		function(g) g.phase_by_key.day =
+			{ key = "day", type = "turn", seat = "each", order = "highest:clout", phases = { "intro" } } end },
+	{ "an order without a player to put in order", "nobody to put in order",
+		function(g) g.phase_by_key.day =
+			{ key = "day", type = "turn", order = "highest:hp", phases = { "intro" } } end },
+	{ "phases on something that is not a turn", "but only a turn holds phases",
+		function(g) g.phase_by_key.story.phases = { "intro" } end },
+	{ 'seat "each" on an ordinary phase', "only a turn runs once per player",
+		function(g) g.phase_by_key.story.seat = "each" end },
+	{ "a seat word the engine does not know", 'says seat "everyone"',
+		function(g) g.phase_by_key.story.seat = "everyone" end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once
