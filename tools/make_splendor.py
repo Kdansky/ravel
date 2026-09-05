@@ -415,7 +415,7 @@ def buttons():
                   "target": {"type": "card", "count": 1,
                              "zones": ["t1_row", "t2_row", "t3_row"]},
                   "action": ["set_owner:target:mine", "stat_set:reserved@target:1",
-                             "move_target_to:mine.reserve"] + RESERVE_GOLD}},
+                             "move:target:mine.reserve"] + RESERVE_GOLD}},
         {"key": "done_button", "text": "Done taking",
          "asset": "circle:slate",
          "tooltip": "Stop after one or two tokens. Taking a third ends your turn on its own.",
@@ -614,7 +614,7 @@ def build(here):
             "noble": {
                 "abilities": [{"key": "check", "text": "Check", "action": noble_check()}],
                 "play": {"phases": ["noble_pick"], "needs": ["ok@self >= 1"],
-                         "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]},
+                         "action": ["stat_gain:score@mine.player:3", "destroy:self", "next_phase"]},
             },
         },
         "zones": zones(rows),

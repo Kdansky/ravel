@@ -33,7 +33,7 @@ local CASES = {
 	{ "an art spec the engine can't draw", "isn't a shape the engine can draw",
 		function(g) g.card_defs.c_flee.asset = "hexagram:red" end },
 	{ "a leaves block pointed at no zone", "but no zone has that key",
-		function(g) g.card_defs.c_flee.leaves_into = "vault"; g.card_defs.c_flee.on_leaves = { "destroy_self" } end },
+		function(g) g.card_defs.c_flee.leaves_into = "vault"; g.card_defs.c_flee.on_leaves = { "destroy:self" } end },
 	{ "a leaves block that says where and not what", "does nothing when it gets there",
 		function(g) g.card_defs.c_flee.leaves_into = "hand" end },
 	{ "a comparison against a bare word", "is a bare word",
@@ -58,8 +58,8 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "moove_to:board" } end },
 	{ "an action pointing at a missing zone", "points at zone 'vault'",
 		function(g) g.card_defs.c_flee.on_play = { "draw_from:vault:hand:1" } end },
-	{ "a gain of a missing card", "names the card 'excalibur'",
-		function(g) g.card_defs.c_flee.on_play = { "gain:excalibur:1" } end },
+	{ "a fill of a missing card", "names the card 'excalibur'",
+		function(g) g.card_defs.c_flee.on_play = { "fill:hand:excalibur:1" } end },
 	{ "a push_phase to a missing phase", "points at phase 'finale'",
 		function(g) g.card_defs.c_flee.on_play = { "push_phase:finale" } end },
 	{ "a load_game path-traversal attempt", "no folders or '..' are allowed",
@@ -570,9 +570,9 @@ local CASES = {
 	-- reaction answering a verb nothing raises reads exactly like one that works
 	-- — and is checked as an ability besides, since that is what it is.
 	{ "a reaction to a verb nothing emits", "answers 'crash', but nothing in this game emits that",
-		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "crash", action = { "destroy_self" } } } end },
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "crash", action = { "destroy:self" } } } end },
 	{ "a reaction answered from nowhere", 'is answered "from": \'pocket\'',
-		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", from = "pocket", action = { "destroy_self" } } } end },
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", from = "pocket", action = { "destroy:self" } } } end },
 	{ "an unknown action inside a reaction", "'moove_to' is not an action",
 		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", action = { "moove_to:board" } } } end },
 	{ "a box paid back for a destroy that pays itself", "which now pays itself",
@@ -605,7 +605,7 @@ function M.test_validator_finds_a_verb_emitted_from_anywhere(check)
 	local g = declaration.parse("tower.json")
 	g.card_defs.c_flee.emits = { play = { "cast" } }
 	g.card_defs.c_flee.reactions = {
-		{ key = "r", to = "summon", action = { "destroy_self" } },
+		{ key = "r", to = "summon", action = { "destroy:self" } },
 		{ key = "s", to = "cast", action = { "emit:summon" } },
 	}
 	local said = table.concat(validate.check(g), "\n")

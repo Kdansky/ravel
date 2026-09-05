@@ -763,7 +763,7 @@
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": {
-        "action": ["move_target_to:mine.discard", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.discard", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -784,7 +784,7 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.fire:optional"] }
       ],
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier_req@target <= 2"]
       }
     },
@@ -805,7 +805,7 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.water:optional"] }
       ],
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier_req@target <= 2"]
       }
     },
@@ -827,7 +827,7 @@
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier_req@target <= 2"]
       }
     },
@@ -892,7 +892,7 @@
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
-      "chosen": { "action": ["copy:target:activate", "move_target_to:mine.discard"] }
+      "chosen": { "action": ["copy:target:activate", "move:target:mine.discard"] }
     },
     {
       "key": "heartgem",
@@ -963,7 +963,7 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:enemy.discard:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:mine.discard"] }
+      "chosen": { "action": ["move:target:mine.discard"] }
     },
     {
       "key": "manafont",
@@ -984,7 +984,7 @@
       },
       "chosen": {
         "action": [
-          "move_target_to:void",
+          "move:target:void",
           "draw_from:spellstorm_deck:storm_cloud:1",
           "stat_gain:mana@mine.player:1",
           "stat_gain:mana@mine.player:1",
@@ -1187,7 +1187,7 @@
           "action": ["show:mine.everywhere.ice_held:optional"]
         }
       ],
-      "chosen": { "action": ["move_target_to:ice_pile"] }
+      "chosen": { "action": ["move:target:ice_pile"] }
     },
     {
       "key": "lapis",
@@ -1201,7 +1201,7 @@
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:mine.discard", "stat_gain:health@mine.player:1"] }
+      "chosen": { "action": ["move:target:mine.discard", "stat_gain:health@mine.player:1"] }
     },
     {
       "key": "leap",
@@ -1228,7 +1228,7 @@
           "action": ["show:mine.hand:optional"]
         }
       ],
-      "chosen": { "action": ["move_target_to:void"] }
+      "chosen": { "action": ["move:target:void"] }
     },
     {
       "key": "moonstone",
@@ -1351,7 +1351,7 @@
       ],
       "chosen": {
         "action": [
-          "move_target_to:void",
+          "move:target:void",
           "stat_gain:mana@mine.player:1",
           "stat_gain:mana@mine.player:1",
           "stat_gain:mana@mine.player:1"
@@ -1398,7 +1398,7 @@
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -1423,7 +1423,7 @@
         }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:mana@mine.player:1"] },
-      "chosen": { "action": ["move_target_to:void"] }
+      "chosen": { "action": ["move:target:void"] }
     },
     {
       "key": "diamond",
@@ -1463,11 +1463,7 @@
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_damage:health@mine.player:1"] },
       "chosen": {
-        "action": [
-          "move_target_to:void",
-          "copy:target:activate",
-          "draw_from:spellstorm_deck:storm_cloud:1"
-        ]
+        "action": ["move:target:void", "copy:target:activate", "draw_from:spellstorm_deck:storm_cloud:1"]
       }
     },
     {
@@ -1498,7 +1494,7 @@
         "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
       },
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -1524,7 +1520,7 @@
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -1541,7 +1537,7 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
-      "chosen": { "action": ["move_target_to:void", "stat_gain:power@mine.player:1"] }
+      "chosen": { "action": ["move:target:void", "stat_gain:power@mine.player:1"] }
     },
     {
       "key": "sift",
@@ -1559,7 +1555,7 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:mine.discard"] }
+      "chosen": { "action": ["move:target:mine.discard"] }
     },
     {
       "key": "spiritcrystal",
@@ -1574,7 +1570,7 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.earth:optional"] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
-      "chosen": { "action": ["copy:target:activate", "move_target_to:mine.discard"] }
+      "chosen": { "action": ["copy:target:activate", "move:target:mine.discard"] }
     },
     {
       "key": "threepower",
@@ -1604,7 +1600,7 @@
         "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
       },
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -1630,7 +1626,7 @@
         "action": ["stat_gain:power@mine.player:1", "stat_gain:power@mine.player:1"]
       },
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -1706,7 +1702,7 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
-      "chosen": { "action": ["copy:target:activate", "move_target_to:mine.discard"] }
+      "chosen": { "action": ["copy:target:activate", "move:target:mine.discard"] }
     },
     {
       "key": "icedragon",
@@ -1774,7 +1770,7 @@
         }
       ],
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -1832,7 +1828,7 @@
       ],
       "chosen": {
         "action": [
-          "move_target_to:mine.hand",
+          "move:target:mine.hand",
           "draw_from:spellstorm_deck:storm_cloud:1",
           "stat_set:initiative@mine.player:1",
           "stat_set:initiative@enemy.player:0"
@@ -1888,7 +1884,7 @@
           ]
         }
       ],
-      "chosen": { "action": ["move_target_to:enemy.discard"] }
+      "chosen": { "action": ["move:target:enemy.discard"] }
     },
     {
       "key": "pick_eve",
@@ -2011,11 +2007,7 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.water:optional"] }
       ],
       "chosen": {
-        "action": [
-          "move_target_to:void",
-          "copy:target:activate",
-          "draw_from:spellstorm_deck:storm_cloud:1"
-        ]
+        "action": ["move:target:void", "copy:target:activate", "draw_from:spellstorm_deck:storm_cloud:1"]
       }
     },
     {
@@ -2039,7 +2031,7 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud:optional"] }
       ],
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -2145,7 +2137,7 @@
           "action": ["draw_from:mine.deck:mine.hand:1", "show:mine.discard:optional"]
         }
       ],
-      "chosen": { "action": ["move_target_to:mine.hand"] }
+      "chosen": { "action": ["move:target:mine.hand"] }
     },
     {
       "key": "pick_omar",
@@ -2178,7 +2170,7 @@
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:mine.discard", "stat_damage:health@enemy.player:2"] }
+      "chosen": { "action": ["move:target:mine.discard", "stat_damage:health@enemy.player:2"] }
     },
     {
       "key": "omar_shuriken",
@@ -2219,7 +2211,7 @@
       "chosen": {
         "action": [
           "copy:target:activate:2",
-          "move_target_to:void",
+          "move:target:void",
           "stat_gain:health@mine.player:1",
           "stat_gain:health@enemy.player:1"
         ]
@@ -2345,7 +2337,7 @@
           "stat_gain:fire_el@mine.player:count:fire@options:x:2",
           "stat_gain:earth_el@mine.player:count:earth@options:x:2",
           "stat_gain:water_el@mine.player:count:water@options:x:2",
-          "move_target_to:enemy.hand"
+          "move:target:enemy.hand"
         ],
         "where": ["count:wizard_spell@target <= 0"]
       }
@@ -2403,7 +2395,7 @@
           "action": ["copy:enemy.battle:activate"]
         }
       ],
-      "chosen": { "action": ["copy:target:activate", "move_target_to:spellstorm_deck:bottom"] }
+      "chosen": { "action": ["copy:target:activate", "move:target:spellstorm_deck:bottom"] }
     },
     {
       "key": "pick_may",
@@ -2468,7 +2460,7 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
-      "chosen": { "action": ["move_target_to:mine.discard", "stat_damage:health@enemy.player:1"] }
+      "chosen": { "action": ["move:target:mine.discard", "stat_damage:health@enemy.player:1"] }
     },
     {
       "key": "nice_breeze",
@@ -2572,7 +2564,7 @@
         }
       ],
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -3476,7 +3468,7 @@
           "action": ["show:mine.hand:optional"]
         }
       ],
-      "chosen": { "action": ["move_target_to:void"] }
+      "chosen": { "action": ["move:target:void"] }
     },
     {
       "key": "r_journal_3",
@@ -3505,7 +3497,7 @@
           "action": ["show:mine.discard:optional"]
         }
       ],
-      "chosen": { "where": ["tagged:junk@target"], "action": ["move_target_to:enemy.discard"] }
+      "chosen": { "where": ["tagged:junk@target"], "action": ["move:target:enemy.discard"] }
     },
     {
       "key": "r_journal_5",
@@ -3535,7 +3527,7 @@
         }
       ],
       "chosen": {
-        "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
+        "action": ["move:target:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
         "where": ["tier@mine.player >= tier_req@target"]
       }
     },
@@ -3620,7 +3612,7 @@
           "action": ["show:storm_cloud:optional", "show:storm_cloud:optional"]
         }
       ],
-      "chosen": { "action": ["move_target_to:void", "draw_from:spellstorm_deck:storm_cloud:1"] }
+      "chosen": { "action": ["move:target:void", "draw_from:spellstorm_deck:storm_cloud:1"] }
     },
     {
       "key": "r_round_over",

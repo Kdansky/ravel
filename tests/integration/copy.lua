@@ -44,7 +44,7 @@ local GAME = [==[{
         "action": ["stat_gain:landed@mine.player:1"], "spent": "mine.table" } },
     { "key": "aimed", "text": "Aimed", "tags": ["spell"],
       "play": { "target": { "type": "card", "zones": ["board"], "count": 1 },
-        "action": ["move_target_to:mine.table"] } },
+        "action": ["move:target:mine.table"] } },
     { "key": "engine", "text": "Engine", "tags": ["machine"],
       "play": { "action": ["move_to:board"] },
       "abilities": [{ "cost": { "mana@mine.player": 1 },

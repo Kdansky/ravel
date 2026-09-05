@@ -441,7 +441,7 @@ function M.test_abilities_a_play_may_compute(check)
     { "key": "surge", "text": "Surge",
       "play": { "compute": ["swing"], "needs": ["swing >= 2"],
                 "action": ["stat_gain:score@mine.player:swing"] } },
-    { "key": "filler", "text": "Filler", "play": { "action": ["destroy_self"] } }],
+    { "key": "filler", "text": "Filler", "play": { "action": ["destroy:self"] } }],
   "setup": { "place": [{ "card": "surge", "zone": "hand" },
     { "card": "filler", "zone": "hand" }] }
 }]==])

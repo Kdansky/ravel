@@ -48,7 +48,7 @@ local GAME = [==[{
                   "action": ["stat_gain:power@mine.player:1"] } },
     { "key": "sifter", "text": "Sifter",
       "play": { "phases": ["act"], "action": ["show:mine.hand"], "spent": "void" },
-      "chosen": { "action": ["copy:target:activate", "move_target_to:mine.discard"] } }
+      "chosen": { "action": ["copy:target:activate", "move:target:mine.discard"] } }
   ]
 }]==]
 

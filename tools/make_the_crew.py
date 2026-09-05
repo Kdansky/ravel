@@ -119,7 +119,7 @@ def radio_card():
                 "cost": {"radio@mine.player": 1},
                 "target": {"type": "card", "count": 1, "zones": ["hand"],
                            "where": [f"{v}@target >= 1", where.format(c=v)]},
-                "action": ["move_target_to:open"],
+                "action": ["move:target:open"],
             })
     return {"key": "radio", "text": "Radio", "asset": "circle:teal",
             "tags": ["immutable"],

@@ -185,7 +185,7 @@ Two rules carry every story:
   `destroy:hand`**, or the old choices pile up next to the new ones. A page
   that keeps the hand (a locked door, a rebuff) uses `"play": { "action": [] }`.
 
-From there: keepsakes are cards with a home-zone tag (`gain:` them, test
+From there: keepsakes are cards with a home-zone tag (`fill:` them into it, test
 them with `card:<key>`), shuffle secrets are `reveal_top:` over a hidden
 deck, and endings are pages whose `play.action` is `load_game:menu.json` plus
 `end_conditions` that `reveal:` a death page. Zones may omit `pos` — every
@@ -231,7 +231,7 @@ rulebook open alongside.
    on the last phase of the turn.
 9. **Scoring** is a phase whose `pass_card` list is one card per scoring rule,
    each gated by `needs` so it only appears when it applies, each ending in
-   `destroy_self`. Give the phase its own `zone` so leftover hand cards are not
+   `destroy:self`. Give the phase its own `zone` so leftover hand cards are not
    still playable while tallying.
 
 ### Rulebook phrase → engine construct
@@ -474,7 +474,7 @@ a hand has nothing left to stay spent.
 after the colon is a **tag**, not a card key, so one line prices a whole class:
 
 ```json
-"play": { "cost": { "sacrifice:unit": 1 }, "action": ["gain:garrison:1"] }
+"play": { "cost": { "sacrifice:unit": 1 }, "action": ["fill:board:garrison:1"] }
 ```
 
 It destroys that many of your board cards carrying the tag, oldest first.
@@ -564,7 +564,7 @@ closes. Reading an opponent's hand is the second one:
 
 ```json
 "play":   { "action": ["show:enemy.hand:optional"] },
-"chosen": { "action": ["move_target_to:enemy.discard"] }
+"chosen": { "action": ["move:target:enemy.discard"] }
 ```
 
 **Anything that moves the phase, the seat or priority belongs in `chosen`,
@@ -652,7 +652,7 @@ to the first non-automatic phase, which ends the round. Always give these a
 `deck`, `draw` and a `pass_card`, ended by a router token:
 
 ```json
-"play": { "needs": ["plays >= 1"], "action": ["destroy_self", "next_phase"] }
+"play": { "needs": ["plays >= 1"], "action": ["destroy:self", "next_phase"] }
 ```
 
 **A shop** (`splendor.json`). A `supply` zone whose `applies` tag carries the
@@ -694,7 +694,7 @@ that deals a choice writes it once. Taking one and putting the rest back is the
 whole of that tag:
 
 ```json
-"play": { "action": ["add_to:hand", "return_to:offer:build_deck",
+"play": { "action": ["move_to:hand", "return_to:offer:build_deck",
                      "shuffle:build_deck", "pop_phase"] }
 ```
 
@@ -845,7 +845,7 @@ The words the engine reads on a zone are in *Every tag the engine reads*,
 with every other reserved tag.
 
 Cards entering a grid without slot targeting auto-occupy the first free slot.
-A full board refuses new arrivals: moves fail quietly and `fill`/`gain` stop
+A full board refuses new arrivals: moves fail quietly and `fill` stops
 early (the validator warns when starting `contents` already exceed capacity).
 
 ### Players
@@ -1936,7 +1936,7 @@ from there, and an arrival lands there. So "put it on top of your deck" is what
 every move already does, and needs saying only when you want to be sure:
 
 ```json
-"play": { "action": ["move_target_to:mine.bag:top"] }
+"play": { "action": ["move:target:mine.bag:top"] }
 ```
 
 The word worth knowing is the other one. `bottom` **buries** a card, and nothing
@@ -1944,11 +1944,11 @@ else can:
 
 ```
 move:mine.hand:mine.bag:bottom          the whole hand, underneath
-move_target_to:enemy.bag:bottom         the one they chose, out of their way
+move:target:enemy.bag:bottom            the one they chose, out of their way
 draw_from:mine.bag:mine.bag:1:bottom    the top card of a deck, put under it
 ```
 
-It is the last argument of `move`, `move_target_to`, `add_to`, `draw_from` and
+It is the last argument of `move`, `take`, `draw_from` and
 `return_to` — every op that names a destination. It means something in any zone,
 since every zone is a list, but it only *reads* as anything in a deck, which is
 where somebody is about to draw.
@@ -1979,7 +1979,7 @@ home to the zone the ordinary way.
 
 ```
 move_to:origin                   the acting card, home
-move_target_to:origin            the ones the player chose, each to its own
+move:target:origin               the ones the player chose, each to its own
 move:duel:origin                 empty a zone, sending everything back
 return_to:duel:origin            the same, said the other way round
 ```
@@ -2376,7 +2376,7 @@ ability may say what it does when it meets the others:
 "tags": {
   "for_sale": { "abilities": [
     { "key": "buy", "text": "Buy it", "merge": "this",
-      "cost": { "money": 3 }, "action": ["gain:widget:1"] }] }
+      "cost": { "money": 3 }, "action": ["fill:hand:widget:1"] }] }
 },
 "zones": [{ "key": "shop", "layout": "grid", "use": "abilities", "applies": ["for_sale"] }]
 ```
@@ -2591,7 +2591,7 @@ phase and holds no reaction to any of them pays exactly nothing for it.
 A crash, a summon, a purchase:
 
 ```json
-"action": ["emit:crash:move_target_to:enemy.pile"]
+"action": ["emit:crash:move:target:enemy.pile"]
 ```
 
 The verb is announced and **what follows it is the part that waits** — the rest
@@ -2824,7 +2824,7 @@ taken. `show:` borrows the real ones:
 
 ```json
 "play": { "action": ["show:enemy.hand:optional"] },
-"chosen": { "action": ["move_target_to:void"] }
+"chosen": { "action": ["move:target:void"] }
 ```
 
 Each borrowed card remembers where it came from, and everything still lying in
@@ -2842,7 +2842,7 @@ somebody else's property and carries nothing of ours.
 
 **The pick is the only card left in the offer while `chosen` runs.** The rest
 went home first, which is what lets a rule send the pick somewhere that depends
-on what it *is*. `move_target_to:` names one destination; a `move:` over the
+on what it *is*. `move:target:` names one destination; a `move:` over the
 offer names one per kind. Spellstorm's *Soothing Rain* VOIDs an ASH, CURSE or
 ICE, and each goes back onto its own pile:
 
@@ -2854,7 +2854,7 @@ ICE, and each goes back onto its own pile:
 ```
 
 Two of the three find nothing. Write it this way only where the destination
-really does vary with the card — `move_target_to:` is shorter and says what it
+really does vary with the card — `move:target:` is shorter and says what it
 means.
 
 #### A second asker is a second answer
@@ -2867,7 +2867,7 @@ same shelf — the second question belongs to a second card:
 ```json
 "play": { "action": ["activate_zone:rules:by_column:void_two",
                      "show:storm_cloud:optional"] },
-"chosen": { "action": ["move_target_to:mine.hand"] }
+"chosen": { "action": ["move:target:mine.hand"] }
 ```
 
 The rules card's `void_two` opens its own offers and carries its own `chosen`,
@@ -2887,7 +2887,7 @@ card says which part, beside the block that says what happens:
 "play": { "action": ["show:enemy.hand:optional"] },
 "chosen": {
   "where": ["tagged:gem@target", "sum:value@target >= max:value@options"],
-  "action": ["move_target_to:void"]
+  "action": ["move:target:void"]
 }
 ```
 
@@ -2901,7 +2901,7 @@ from your hand" is one place and one kind, which is `<zone>.<tag>`:
 
 ```json
 "play": { "action": ["show:mine.hand.fire:optional"] },
-"chosen": { "where": ["tier_req@target <= 2"], "action": ["move_target_to:mine.discard"] }
+"chosen": { "where": ["tier_req@target <= 2"], "action": ["move:target:mine.discard"] }
 ```
 
 The two do different jobs and a rule often wants both. *Which cards come up* is a
@@ -2946,7 +2946,7 @@ is relative to whoever is up, so from inside that window `mine.hand` is theirs:
 
 ```json
 "play": { "action": ["set_priority:enemy.player", "show:mine.hand"] },
-"chosen": { "action": ["move_target_to:enemy.table", "clear_priority"] }
+"chosen": { "action": ["move:target:enemy.table", "clear_priority"] }
 ```
 
 Read it as the seat being asked and it says what it means: their hand comes up,
@@ -3656,7 +3656,6 @@ A tag's `zone` is the home of every card carrying it, and placement then
 works by type instead of by naming zones in every action:
 
 - `move_to` without a zone sends the played card home (`"play": { "action": ["move_to"] }`).
-- `gain:card:n` creates cards directly in their home zone (no home: the hand).
 - A `setup.place` entry with no `zone` puts the card in its home zone.
 
 A game with a single board stays simple: cards without a home fall back to
@@ -3769,16 +3768,13 @@ what a player reads.
 | `move_to:zone` | Move the acting card (uses a slot target when given); without a zone, its home tag decides |
 | `move_to:target` | Move the acting card into the **chosen target's** zone — how one card offers two destinations ("advance the expedition, or discard it") |
 | `move_to:target:<what>` | …and say what becomes of a piece already standing there: `destroy`, or the zone it goes to (a captured-pieces tray). Left out, an occupied square refuses the move. This is capture; with it, aiming at a *piece* means taking its square rather than joining its zone |
-| `gain:card:n` | Create n instances of a card in its home zone (or the hand) |
-| `add_to:zone` | Move the acting card (overlay picks) |
-| `move_target_to:zone` | Move each targeted card |
-| `…:top` / `…:bottom` | **Which end of the destination a card lands on**, as a last argument to `move`, `move_target_to`, `add_to`, `draw_from` and `return_to`. Every zone is a list and the top of a pile is the end of it, so an arrival lands on top unless told otherwise — `bottom` is the word that buries a card, and `draw_from:bag:bag:1:bottom` puts the top card of a deck underneath it |
+| `…:top` / `…:bottom` | **Which end of the destination a card lands on**, as a last argument to `move`, `take`, `draw_from` and `return_to`. Every zone is a list and the top of a pile is the end of it, so an arrival lands on top unless told otherwise — `bottom` is the word that buries a card, and `draw_from:bag:bag:1:bottom` puts the top card of a deck underneath it |
 | `place:<who>:<where>` | Put every card the scope names on a square of the only board. `<where>` is a square by name (`"g1"`) or a **pattern pointing at one from the acting card** (`"one_left"`) — the second is how a rule works for both sides of a board, since a named square is only ever one player's. Refuses an occupied square |
 | `compact:<scope>:<pattern>` | Slide every card the scope names as far along the pattern as free cells allow, keeping the order they are in — how a market row closes the gap a bought card left, so that **where a card sits goes on meaning how long it has been there**. The pattern carries one direction, taken as written: a shelf slides one way for everything on it, so `y` is not turned around per owner the way a move rule's is, and how far is the pattern's business too — a `ray` runs to the end, a bare pair is a one-cell nudge. The card furthest along moves first and packs against the end, so nothing behind can overtake something in front, and the answer does not depend on the order the scope hands its cards over |
 | `stat_gain:<subject>:n` / `stat_damage:<subject>:n` | Change the current value, held between its floor and its ceiling, logged, and floated on the card. Two words for one arithmetic, because "damage 2" and "gain −2" read differently to everybody but the engine. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |
 | `stat_boost:<subject>:n` | Move the **ceiling** of a stat that has one (`card_stats` written `{ "value": n, "max": n }`). Lowering it under the number standing there brings the current down with it; nothing else does |
 | `stat_set:<subject>:n` | Set directly, past every bound, silently. A dev and authoring tool — how a phase resets a counter, not how a rule changes a number |
-| `move:<scope>:<zone>[:<n>][:top\|bottom]` | Move every card the scope names into that zone. The scope-first sibling of the two above, for a set nobody picked: written twice with opposite owner words (`move:mine.battle:mine.bench`, then `enemy`) it covers both seats whoever is up. The scope may say `random.`, and then one of them moves rather than all — `move:random.enemy.hand:enemy.discard` is the whole of "they discard a random card". **Say a number and only that many move**, taken one at a time, so `move:random.enemy.hand:enemy.discard:2` discards two different cards. Without one, everything in scope moves, and a random scope still means one. `move:mine.gem_1:enemy.gem_pile:2` is what a crash should say, rather than killing two gems and conjuring two others |
+| `move:<scope>:<zone>[:<n>][:top\|bottom]` | Move every card the scope names into that zone. The scope-first sibling of `move_to` above, and where the cards a player chose go too (`move:target:<zone>`). Beyond those it is for a set nobody picked: written twice with opposite owner words (`move:mine.battle:mine.bench`, then `enemy`) it covers both seats whoever is up. The scope may say `random.`, and then one of them moves rather than all — `move:random.enemy.hand:enemy.discard` is the whole of "they discard a random card". **Say a number and only that many move**, taken one at a time, so `move:random.enemy.hand:enemy.discard:2` discards two different cards. Without one, everything in scope moves, and a random scope still means one. `move:mine.gem_1:enemy.gem_pile:2` is what a crash should say, rather than killing two gems and conjuring two others |
 | `take:<supply scope>:<zone>[:<n>][:top\|bottom]` | Take n components out of a box and put them there. It is `move`, for a source that **counts** instead of keeping — a supply holds one card per kind with the rest written on it as a number, so there is nothing in there to point at and `move` would carry off the whole stack. **The scope names the shelf, not the goods**, which is the one place a scope means the source: `take:bank.gem_1:enemy.gem_pile:2` is a crash, and `take:self:mine.discard:1` is a shop selling what it is. A shelf that is short hands over what it has; an empty one does nothing and says nothing, because an empty box is a legal state. **A shelf lent to an offer is still the shelf**, so `show:bank:optional` with `take:target:mine.hand:1` in the `chosen` is how a card trades one chip in for another: the count is written on the card, not on the zone, and the pick is still standing in the offer while `chosen` runs. Every shelf in scope hands over n. Use `fill` for a card that genuinely appears out of nothing, like a starting deck |
 | `set_active_seat:<scope>` | Whoever the scope names becomes the seat whose turn it is — the trick winner leading, the attack token holder acting first. Every other way of naming a seat is settled before the game starts, so this is the only one that reads off what just happened. Two seats is refused, none does nothing, and the handover ends the undo history |
 | `set_owner:<scope>:<who>` | Hand those cards to a seat, to the one that is up (`mine`), or to nobody (`none`). Whose a card is is settled when it is dealt and stays settled, so this is the only thing that changes it: mind control, and a pile that disowns whatever lands in it |
@@ -3794,7 +3790,7 @@ what a player reads.
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
 | `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
-| `destroy:<scope>[:<n>]` / `destroy_self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`destroy:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **A component goes back in its box.** If any `status: "supply"` zone stocks the card's kind, the shelf's `stock` goes up by one instead of the card leaving the game — the owner's own box first, anybody's otherwise. So a finite bank is never named at the site that trashes a gem, and never has to be paid back by hand. Nothing stocks it: it stops existing, which is what happens to everything that is not a component. **Nothing is triggered by it**: a destroyed card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
+| `destroy:<scope>[:<n>]` / `destroy:self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`destroy:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **A component goes back in its box.** If any `status: "supply"` zone stocks the card's kind, the shelf's `stock` goes up by one instead of the card leaving the game — the owner's own box first, anybody's otherwise. So a finite bank is never named at the site that trashes a gem, and never has to be paid back by hand. Nothing stocks it: it stops existing, which is what happens to everything that is not a component. **Nothing is triggered by it**: a destroyed card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
 | `emit:<verb>[:<action>]` | Announce that something happened, so anybody holding a reaction to that verb may answer it first. What follows the verb is the part that **waits**. Nothing answers it, or the game has no `stack` zone: it runs now. See *Reactions* |
 | `counterspell` | Written in a reaction: the event it answers does not happen. **It names no zone** — the stack holds records, not cards, so nothing moved and there is nothing to put back |
 | `set_priority:<scope>` / `clear_priority` | Whoever the scope names may act right now, without the turn moving. The response window does this for itself; write it only for an out-of-turn moment of your own |

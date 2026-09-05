@@ -59,7 +59,7 @@ local GAME = [==[{
         { "to": "play", "where": ["tagged:fireball@event"],
           "action": ["show:shelf:optional"], "spent": "mine.graveyard" }
       ],
-      "chosen": { "action": ["move_target_to:mine.graveyard", "stat_gain:mana@mine.player:1"] } }
+      "chosen": { "action": ["move:target:mine.graveyard", "stat_gain:mana@mine.player:1"] } }
   ],
   "setup": { "place": [{ "card": "trinket", "zone": "shelf" },
                        { "card": "trinket", "zone": "shelf" },

@@ -917,7 +917,7 @@ function M.check(G)
 
 	-- And which is the place they go, so "origin" — one destination per card,
 	-- not a zone — can be allowed there and nowhere else.
-	local MOVES_TO = { move_to = 2, move_target_to = 2, return_to = 3, move = 3 }
+	local MOVES_TO = { move_to = 2, return_to = 3, move = 3 }
 
 	local check_action
 	function check_action(where, str)

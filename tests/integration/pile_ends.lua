@@ -37,7 +37,7 @@ local GAME = [==[{
     { "key": "omega", "text": "Omega", "tags": ["letter", "omega"], "card_stats": { "value": 1 } },
     { "key": "burier", "text": "Burier",
       "play": { "target": { "type": "card", "zones": ["hand"], "count": 1 },
-        "action": ["move_target_to:bag:bottom"] } }
+        "action": ["move:target:bag:bottom"] } }
   ],
   "setup": {
     "place": [

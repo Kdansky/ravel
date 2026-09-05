@@ -514,7 +514,7 @@
             "zones": ["hand"],
             "where": ["v_pink@target >= 1", "v_pink@target >= max:v_pink@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_only_pink",
@@ -527,7 +527,7 @@
             "zones": ["hand"],
             "where": ["v_pink@target >= 1", "max:v_pink@mine.hand <= min:v_pink@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_low_pink",
@@ -540,7 +540,7 @@
             "zones": ["hand"],
             "where": ["v_pink@target >= 1", "v_pink@target <= min:v_pink@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_high_blue",
@@ -553,7 +553,7 @@
             "zones": ["hand"],
             "where": ["v_blue@target >= 1", "v_blue@target >= max:v_blue@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_only_blue",
@@ -566,7 +566,7 @@
             "zones": ["hand"],
             "where": ["v_blue@target >= 1", "max:v_blue@mine.hand <= min:v_blue@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_low_blue",
@@ -579,7 +579,7 @@
             "zones": ["hand"],
             "where": ["v_blue@target >= 1", "v_blue@target <= min:v_blue@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_high_green",
@@ -592,7 +592,7 @@
             "zones": ["hand"],
             "where": ["v_green@target >= 1", "v_green@target >= max:v_green@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_only_green",
@@ -605,7 +605,7 @@
             "zones": ["hand"],
             "where": ["v_green@target >= 1", "max:v_green@mine.hand <= min:v_green@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_low_green",
@@ -618,7 +618,7 @@
             "zones": ["hand"],
             "where": ["v_green@target >= 1", "v_green@target <= min:v_green@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_high_yellow",
@@ -631,7 +631,7 @@
             "zones": ["hand"],
             "where": ["v_yellow@target >= 1", "v_yellow@target >= max:v_yellow@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_only_yellow",
@@ -644,7 +644,7 @@
             "zones": ["hand"],
             "where": ["v_yellow@target >= 1", "max:v_yellow@mine.hand <= min:v_yellow@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         },
         {
           "key": "say_low_yellow",
@@ -657,7 +657,7 @@
             "zones": ["hand"],
             "where": ["v_yellow@target >= 1", "v_yellow@target <= min:v_yellow@mine.hand"]
           },
-          "action": ["move_target_to:open"]
+          "action": ["move:target:open"]
         }
       ]
     },

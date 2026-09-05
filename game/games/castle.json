@@ -114,7 +114,7 @@
       "text": "Pass",
       "tooltip": "Bide your time. Nothing happens this phase.",
       "tags": ["token", "slate"],
-      "play": { "action": ["destroy_self"] }
+      "play": { "action": ["destroy:self"] }
     },
     {
       "key": "royal_decree",
@@ -359,8 +359,8 @@
       "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
     },
     "draft_pick": {
-      "play": { "action": ["add_to:hand", "return_to:offer:build_deck", "shuffle:build_deck"] }
+      "play": { "action": ["move_to:hand", "return_to:offer:build_deck", "shuffle:build_deck"] }
     },
-    "decree_pick": { "play": { "action": ["add_to:hand", "return_to:decree_offer:edicts"] } }
+    "decree_pick": { "play": { "action": ["move_to:hand", "return_to:decree_offer:edicts"] } }
   }
 }

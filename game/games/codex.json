@@ -371,7 +371,7 @@
             "stat_set:sparking@mine.player:0",
             "stat_set:attacking@self:1",
             "move_to:duel",
-            "move_target_to:duel",
+            "move:target:duel",
             "activate_zone:duel:by_column:clear",
             "activate_zone:duel:by_column:rage",
             "activate_zone:duel:by_column:attacks",
@@ -414,7 +414,7 @@
             "stat_set:sparking@mine.player:0",
             "stat_set:attacking@self:1",
             "move_to:duel",
-            "move_target_to:duel",
+            "move:target:duel",
             "activate_zone:duel:by_column:clear",
             "activate_zone:duel:by_column:rage",
             "activate_zone:duel:by_column:attacks",
@@ -469,7 +469,7 @@
           "action": [
             "stat_set:attacking@self:1",
             "move_to:duel",
-            "move_target_to:duel",
+            "move:target:duel",
             "activate_zone:duel:by_column:clear",
             "activate_zone:duel:by_column:rage",
             "activate_zone:duel:by_column:attacks",
@@ -1018,7 +1018,7 @@
           "cost": { "gold@mine.player": 1, "hired@mine.player": 1 },
           "when": ["count:rich_earth@mine.ongoing == 0"],
           "target": { "type": "card", "count": 1, "owner": "mine", "zones": ["hand"] },
-          "action": ["move_target_to:mine.workers", "stat_gain:workers@mine.player:1"]
+          "action": ["move:target:mine.workers", "stat_gain:workers@mine.player:1"]
         },
         {
           "key": "hire_free",
@@ -1027,7 +1027,7 @@
           "cost": { "hired@mine.player": 1 },
           "when": ["count:rich_earth@mine.ongoing >= 1"],
           "target": { "type": "card", "count": 1, "owner": "mine", "zones": ["hand"] },
-          "action": ["move_target_to:mine.workers", "stat_gain:workers@mine.player:1"]
+          "action": ["move:target:mine.workers", "stat_gain:workers@mine.player:1"]
         }
       ]
     },
@@ -1179,7 +1179,7 @@
       "asset": "star:5:violet",
       "tooltip": "Take a card out of your codex, face down, into your discard pile. Twice a turn.",
       "abilities": [{ "phases": ["tech"], "cost": { "teched@mine.player": 1 }, "action": ["show:mine.codex"] }],
-      "chosen": { "action": ["move_target_to:mine.discard"] }
+      "chosen": { "action": ["move:target:mine.discard"] }
     },
     {
       "key": "skip_tech",
@@ -1998,7 +1998,7 @@
       ],
       "chosen": {
         "where": ["tagged:tiger@target"],
-        "action": ["move_target_to:mine.army", "stat_set:ready_since@target:0"]
+        "action": ["move:target:mine.army", "stat_set:ready_since@target:0"]
       }
     },
     {
@@ -2566,7 +2566,7 @@
           "zones": ["patrol"],
           "where": ["not_tagged:untargetable@target"]
         },
-        "action": ["move_target_to:enemy.army"]
+        "action": ["move:target:enemy.army"]
       }]
     },
     {
@@ -2689,7 +2689,7 @@
         },
         "action": [
           "draw_from:mine.deck:mine.hand:1",
-          "move_target_to:mine.army",
+          "move:target:mine.army",
           "stat_set:ready_since@target:1"
         ]
       }]
@@ -3027,7 +3027,7 @@
         },
         "action": [
           "set_owner:target:mine",
-          "move_target_to:mine.army",
+          "move:target:mine.army",
           "ready:target",
           "stat_set:ready_since@target:1"
         ],
@@ -3776,7 +3776,7 @@
       },
       "chosen": {
         "where": ["tagged:unit@target", "sum:price@target <= 5"],
-        "action": ["move_target_to:mine.army", "stat_set:ready_since@target:0"]
+        "action": ["move:target:mine.army", "stat_set:ready_since@target:0"]
       }
     },
     {

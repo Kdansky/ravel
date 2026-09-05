@@ -69,7 +69,7 @@
       "abilities": [{
         "cost": { "exhaust": 1, "time": 1 },
         "target": { "type": "card", "count": 1, "tags": ["lore"], "zones": ["holdings"] },
-        "action": ["stat_gain:insight:2", "move_target_to:discard"]
+        "action": ["stat_gain:insight:2", "move:target:discard"]
       }]
     },
     {
@@ -78,7 +78,7 @@
       "asset": "tavern_meal.jpg",
       "tooltip": "Buy a stranger a meal and speak of the work. Costs 1 time and 3 funds, gains a follower. Once per day.",
       "tags": ["verb"],
-      "abilities": [{ "cost": { "exhaust": 1, "time": 1, "funds": 3 }, "action": ["gain:follower:1"] }]
+      "abilities": [{ "cost": { "exhaust": 1, "time": 1, "funds": 3 }, "action": ["fill:holdings:follower:1"] }]
     },
     {
       "key": "dream",
@@ -122,7 +122,7 @@
       "text": "A Loose Page",
       "asset": "old_bell.jpg",
       "tooltip": "Torn from something larger, and legible. It becomes a tome.",
-      "play": { "action": ["gain:tome:1"] }
+      "play": { "action": ["fill:holdings:tome:1"] }
     },
     {
       "key": "a_whisper",
@@ -157,7 +157,7 @@
       "text": "An Omen",
       "asset": "blighted_tree.jpg",
       "tooltip": "The tree by the gate is dead on one side only. +2 dread, and a tome you did not buy.",
-      "play": { "action": ["stat_gain:dread:2", "gain:tome:1"] }
+      "play": { "action": ["stat_gain:dread:2", "fill:holdings:tome:1"] }
     },
     {
       "key": "ascended",

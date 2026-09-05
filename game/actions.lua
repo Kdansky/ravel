@@ -442,29 +442,6 @@ HANDLERS["move_to"] = function(p, ctx)
 	end
 end
 
--- gain:card_key:n  — create n instances of a card in its home zone (the
--- zone its tags name), or the hand when it has none.
-HANDLERS["gain"] = function(p)
-	local def = declaration.G.card_defs[p[2] or ""]
-	if not def then
-		content_error("gain: unknown card " .. tostring(p[2]))
-		return
-	end
-	local zone = zones.find(cards.home_zone(def) or "hand")
-	if not zone then return end
-	for _ = 1, amount(p, 3, 1) do
-		if not zones.add(zone, def.key) then break end
-	end
-end
-
-HANDLERS["add_to"] = function(p, ctx)
-	-- add_to:zone[:top|bottom]  —  same as move_to but never slot-targeted (overlay on_pick context)
-	local to_id = zone_id(p[2])
-	if to_id and ctx and ctx.card_id then
-		zones.move_card(ctx.card_id, to_id, p[3])
-	end
-end
-
 -- The four verbs that move a number, named so they sort together: what they
 -- share is the stat, and that is the half worth reading first.
 HANDLERS["stat_gain"] = function(p, ctx)
@@ -706,10 +683,12 @@ end
 
 -- move:<scope>:<zone>  — every card the scope names goes to that zone.
 --
--- The scope-first sibling of move_to (the card that is acting) and
--- move_target_to (the ones a player chose). What it is for is a set nobody
--- picked and nothing is acting for — "send the survivors back to their bench",
--- where the cards are named by whose they are rather than by a click. Written
+-- The scope-first sibling of move_to, which moves the card that is acting.
+-- Everything else a move could want is already a scope: "move:target:<zone>" is
+-- the cards a player pointed at, "move:<zone>:<zone>" empties one place into
+-- another, and what this was written for is the set nobody picked and nothing is
+-- acting for — "send the survivors back to their bench", where the cards are
+-- named by whose they are rather than by a click. Written
 -- twice with opposite owner words it covers both seats without asking which of
 -- them is up: "mine.battle → mine.bench" and "enemy.battle → enemy.bench" mean
 -- the same pair of moves whoever reads them.
@@ -778,11 +757,6 @@ HANDLERS["set_owner"] = function(p, ctx)
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
 		if e.kind == "card" and e.stats then e.stats.owner = i end
 	end
-end
-
--- destroy_self  — remove the acting card from play (pass cards, tokens).
-HANDLERS["destroy_self"] = function(p, ctx)
-	if ctx and ctx.card_id then zones.destroy_card(ctx.card_id) end
 end
 
 -- reveal:card_key  — conjure the card into the built-in page overlay. The
@@ -997,15 +971,6 @@ HANDLERS["return_to"] = function(p)
 	if not to_id then return end
 	for _ = 1, #from.cards do
 		if not zones.move_top(from.id, to_id, p[4]) then break end
-	end
-end
-
--- move_target_to:zone[:top|bottom]  — move each targeted card to zone.
-HANDLERS["move_target_to"] = function(p, ctx)
-	local to_id = p[2] ~= "origin" and zone_id(p[2]) or nil
-	if not (to_id or p[2] == "origin") then return end
-	for _, tid in ipairs(ctx and ctx.targets or {}) do
-		if to_id then zones.move_card(tid, to_id, p[3]) else send_home(tid, p[3]) end
 	end
 end
 
@@ -1466,8 +1431,6 @@ local SPEC = {
 	draw_from         = "zone zone n pos?",
 	return_to         = "zone zone pos?",
 	move_to           = "zone? occupied?",
-	add_to            = "zone pos?",
-	move_target_to    = "zone pos?",
 	place             = "scope any",
 	stat_gain         = "stat n",
 	stat_damage       = "stat n",
@@ -1493,12 +1456,10 @@ local SPEC = {
 	move              = "scope zone n? pos?",
 	take              = "scope zone n? pos?",
 	set_owner         = "scope seat",
-	destroy_self      = "",
 	options           = "any optional?",
 	show              = "scope optional?",
 	reveal            = "card",
 	reveal_top        = "zone",
-	gain              = "card n",
 	effect            = "effect",
 	set_active_seat   = "scope",
 	set_priority      = "scope",

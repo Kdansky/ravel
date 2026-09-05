@@ -52,7 +52,7 @@
       "text": "TODO: A page that gives an item",
       "story": "TODO: describe finding the key. It lands on the keepsake board because its tag's home zone says so. Note the destroy:hand opener — every page that deals new choices needs it, or old choices pile up.",
       "play": {
-        "action": ["destroy:hand", "gain:the_key:1", "fill:hand:c_leave:1", "fill:hand:c_gamble:1"]
+        "action": ["destroy:hand", "fill:board:the_key:1", "fill:hand:c_leave:1", "fill:hand:c_gamble:1"]
       }
     },
     {

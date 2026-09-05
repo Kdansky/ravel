@@ -127,7 +127,7 @@ function M.test_react_match_from_may_name_a_zone(check)
 		flow.init(name, 3)
 		local c = at("c1")
 		-- Its reaction is answered from the board, and the bin is not one.
-		actions.execute("move_target_to:bin", { targets = { c.id } })
+		actions.execute("move:target:bin", { targets = { c.id } })
 		check("in the bin it does not answer",
 			#reactions.responders("play", { at("a1").id }) == 0)
 
@@ -156,7 +156,7 @@ function M.test_react_match_filter_b_needs_the_card_where_it_acts(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		check("on the board it answers", #reactions.responders("play", { at("a1").id }) == 1)
-		actions.execute("move_target_to:bin", { targets = { at("c1").id } })
+		actions.execute("move:target:bin", { targets = { at("c1").id } })
 		check("in the bin it does not", #reactions.responders("play", { at("a1").id }) == 0)
 	end)
 end

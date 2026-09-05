@@ -428,7 +428,7 @@
       "play": {
         "phases": ["noble_pick"],
         "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "destroy_self", "next_phase"]
+        "action": ["stat_gain:score@mine.player:3", "destroy:self", "next_phase"]
       }
     }
   },
@@ -1061,7 +1061,7 @@
         "action": [
           "set_owner:target:mine",
           "stat_set:reserved@target:1",
-          "move_target_to:mine.reserve",
+          "move:target:mine.reserve",
           "stat_gain:t_gold@mine.player:count:has_gold@supply.pile_gold",
           "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
           "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",

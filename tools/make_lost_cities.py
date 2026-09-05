@@ -133,7 +133,7 @@ def templates():
                     "stat_damage:score@mine.player:20",
                     "stat_gain:score@mine.player:sum:value@mine." + c + ":x:count:wager@mine." + c,
                     "stat_damage:score@mine.player:20:x:count:wager@mine." + c,
-                    "destroy_self",
+                    "destroy:self",
                 ],
             },
         })
@@ -143,7 +143,7 @@ def templates():
             "tags": ["scoring", "token", look],
             "play": {
                 "needs": ["count:expedition@mine." + c + " >= 8"],
-                "action": ["stat_gain:score@mine.player:20", "destroy_self"],
+                "action": ["stat_gain:score@mine.player:20", "destroy:self"],
             },
         })
 
@@ -179,7 +179,7 @@ def templates():
         )})
     out.append({"key": "done_scoring", "text": "Done", "tooltip": "Finish tallying.",
                 "tags": ["token"],
-                "play": {"action": ["stat_gain:tallied@mine.player:1", "destroy_self", "next_phase"]}})
+                "play": {"action": ["stat_gain:tallied@mine.player:1", "destroy:self", "next_phase"]}})
     for seat, other in (("north", "South"), ("south", "North")):
         out.append({"key": seat + "_wins", "text": seat.title() + " wins",
                     "story": seat.title() + " comes home with the better haul. "

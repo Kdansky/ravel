@@ -40,7 +40,7 @@ local GAME = [==[{
     { "key": "gamma", "text": "Gamma", "tags": ["letter"] },
     { "key": "sender", "text": "Sender",
       "play": { "target": { "type": "card", "zones": ["duel"], "count": 1 },
-        "action": ["move_target_to:origin"] } }
+        "action": ["move:target:origin"] } }
   ],
   "setup": {
     "place": [
@@ -139,8 +139,8 @@ function M.test_origin_every_destination_op_takes_it(check)
 
 		local b = find("beta").id
 		zones.move_card(b, duel)
-		actions.execute("move_target_to:origin", { targets = { b } })
-		check("move_target_to", where("beta") == "south", where("beta"))
+		actions.execute("move:target:origin", { targets = { b } })
+		check("move:target", where("beta") == "south", where("beta"))
 
 		local g = find("gamma").id
 		zones.move_card(g, duel)

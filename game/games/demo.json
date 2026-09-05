@@ -185,5 +185,5 @@
     { "when": "hp == 0", "then": ["push_phase:defeat"] },
     { "zone_empty": ["road", "hand"], "then": ["push_phase:victory"] }
   ],
-  "tags": { "path_choice_pick": { "play": { "action": ["add_to:hand", "return_to:offer:paths"] } } }
+  "tags": { "path_choice_pick": { "play": { "action": ["move_to:hand", "return_to:offer:paths"] } } }
 }

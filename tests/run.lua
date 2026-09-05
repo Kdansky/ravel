@@ -862,11 +862,8 @@ check("death fires the collapse page", phase.is_overlay() and top_page() == "e_c
 -- === placement: tag homes and the single-board fallback ===
 flow.init("tower.json", 3)
 flow.play_card(zones.find("reveal").cards[1], {})
-eval("gain:pearl:1")
-check("gain places a homed card on its board", find_card("pearl", "board") ~= nil)
-check("gained card takes a slot", find_card("pearl", "board").slot_id ~= nil)
-eval("gain:c_flee:1")
-check("gain without a home goes to hand", find_card("c_flee", "hand") ~= nil)
+eval("fill:board:pearl:1")
+check("a card filled onto a grid takes a slot", find_card("pearl", "board").slot_id ~= nil)
 actions.execute("move_to", { card_id = find_card("c_search", "hand").id, targets = {} })
 flow.settle()
 check("bare move_to falls back to the only board", find_card("c_search", "board") ~= nil)
@@ -878,7 +875,7 @@ cards.edit("c_flee", "cost", '{"sacrifice:keepsake": 1}')
 eval("fill:hand:c_flee:1")
 local flee = find_card("c_flee", "hand")
 check("a sacrifice cost gates without the board card", flow.can_play(flee.id) == false)
-eval("gain:pearl:1")
+eval("fill:board:pearl:1")
 check("the sacrifice cost opens with it on the board", flow.can_play(flee.id) == true)
 flow.play_card(flee.id, {})
 check("paying destroyed the sacrificed card", zone_count("board") == 0)
@@ -902,8 +899,8 @@ check("the same play with a slot target works", find_card("watchtower", "board")
 -- === grid capacity: full boards refuse new arrivals ===
 flow.init("tower.json", 3)
 flow.play_card(zones.find("reveal").cards[1], {})
-eval("gain:pearl:8")
-check("gain stops at the board's capacity", zone_count("board") == 5)
+eval("fill:board:pearl:8")
+check("fill stops at the board's capacity", zone_count("board") == 5)
 local held = find_card("c_search", "hand")
 check("a move onto a full board is refused",
 	zones.move_card(held.id, zones.find_id("board")) == false)
@@ -1062,7 +1059,7 @@ local bp = with_fixture([[{
     {
       "key": "sword",
       "onplay": [
-        "destroy_self"
+        "destroy:self"
       ],
       "play": {
         "cost": {

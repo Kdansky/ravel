@@ -79,7 +79,7 @@
       "asset": "stripes:2:ash",
       "tooltip": "Claim no birthright. Begin with nothing.",
       "tags": ["token", "slate"],
-      "play": { "action": ["destroy_self"] }
+      "play": { "action": ["destroy:self"] }
     },
     {
       "key": "to_market",
@@ -89,7 +89,7 @@
       "tags": ["token", "moss"],
       "play": {
         "needs": ["plays >= 1"],
-        "action": ["stat_set:destination:1", "destroy_self", "next_phase"]
+        "action": ["stat_set:destination:1", "destroy:self", "next_phase"]
       }
     },
     {
@@ -100,7 +100,7 @@
       "tags": ["token", "rust"],
       "play": {
         "needs": ["plays >= 1"],
-        "action": ["stat_set:destination:2", "destroy_self", "next_phase"]
+        "action": ["stat_set:destination:2", "destroy:self", "next_phase"]
       }
     },
     {
@@ -111,7 +111,7 @@
       "tags": ["token", "indigo"],
       "play": {
         "needs": ["plays >= 1"],
-        "action": ["stat_set:destination:3", "destroy_self", "next_phase"]
+        "action": ["stat_set:destination:3", "destroy:self", "next_phase"]
       }
     },
     {
@@ -120,7 +120,7 @@
       "asset": "circle:teal",
       "tooltip": "End the season once both trials are faced.",
       "tags": ["token", "slate"],
-      "play": { "needs": ["plays >= 2"], "action": ["destroy_self", "next_phase"] }
+      "play": { "needs": ["plays >= 2"], "action": ["destroy:self", "next_phase"] }
     },
     {
       "key": "march_on",
@@ -128,7 +128,7 @@
       "asset": "triangle:sand",
       "tooltip": "Enough shopping — the trials won't wait.",
       "tags": ["token", "slate"],
-      "play": { "action": ["destroy_self", "next_phase"] }
+      "play": { "action": ["destroy:self", "next_phase"] }
     },
     {
       "key": "homestead",

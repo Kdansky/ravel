@@ -38,8 +38,8 @@
       "play": {
         "action": [
           "destroy:hand",
-          "gain:rusty_key:1",
-          "gain:lantern:1",
+          "fill:board:rusty_key:1",
+          "fill:board:lantern:1",
           "fill:hand:c_door:1",
           "fill:hand:c_climb:1"
         ]
@@ -67,7 +67,7 @@
       "key": "p_chest_pearl",
       "text": "Under the Oilcloth",
       "story": "Under a fold of oilcloth, nested like an egg: a pearl the size of a knuckle, cold as the lake and just as patient. It hums faintly against your palm, in a pitch you feel rather than hear.",
-      "play": { "action": ["gain:pearl:1"] }
+      "play": { "action": ["fill:board:pearl:1"] }
     },
     {
       "key": "p_chest_mimic",

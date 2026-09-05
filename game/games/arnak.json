@@ -410,7 +410,7 @@
         { "key": "discover", "text": "Discover this site", "phases": ["turn"],
           "cost": { "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
           "action": ["fill:mine.idols:idol:1", "stat_gain:guarded@mine.player:1",
-                     "destroy_self", "draw_from:site_1_deck:island:1"] }
+                     "destroy:self", "draw_from:site_1_deck:island:1"] }
       ] },
 
     { "key": "pos_2", "text": "Level II", "tags": ["marker", "veiled"], "asset": "diamond:indigo",
@@ -420,7 +420,7 @@
         { "key": "discover", "text": "Discover this site", "phases": ["turn"],
           "cost": { "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 4 },
           "action": ["fill:mine.idols:idol:1", "stat_gain:guarded@mine.player:1",
-                     "destroy_self", "draw_from:site_2_deck:island:1"] }
+                     "destroy:self", "draw_from:site_2_deck:island:1"] }
       ] },
 
     { "key": "idol", "text": "Idol", "tags": ["idol", "gilt"], "asset": "star:5:gold",

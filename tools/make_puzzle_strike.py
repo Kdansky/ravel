@@ -1057,7 +1057,7 @@ def puzzle_cards():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_gem, tags=["upgradable"]),
                   "action": ["stat_set:combined@mine.player:sum:value@target",
-                             "move_target_to:mine.gem_pile",
+                             "move:target:mine.gem_pile",
                              "activate_zone:rules_upgrade",
                              "stat_gain:money@mine.player:3",
                              "move_to:mine.table"]}},
@@ -1103,10 +1103,10 @@ def puzzle_cards():
         # --- the rest of the base game -------------------------------------
         {"key": "chip_damage", **shape("chip_damage", "red"),
          "play": act(["stat_gain:act_red@mine.player:1", "show:mine.discard:optional"]),
-         "chosen": {"action": ["move_target_to:mine.bag:top"]}},
+         "chosen": {"action": ["move:target:mine.bag:top"]}},
         {"key": "combos_are_hard", **shape("combos_are_hard", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["destroy_self", "next_phase"]}},
+                  "action": ["destroy:self", "next_phase"]}},
         {"key": "gems_to_gemonade", **shape("gems_to_gemonade", "purple"),
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
          "reactions": [{"to": "crash", "text": "Negate the gems", "when": ANSWERABLE,
@@ -1114,7 +1114,7 @@ def puzzle_cards():
                         "spent": "mine.discard"}]},
         {"key": "its_a_trap", **shape("its_a_trap", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["destroy_self", "stat_gain:acts@mine.player:1"]}},
+                  "action": ["destroy:self", "stat_gain:acts@mine.player:1"]}},
         {"key": "iron_defense", **shape("iron_defense", "brown"),
          "play": act(["take:bank.crash_gem:mine.gem_pile:1"])},
         # Their discard, chosen by them: priority crosses the table while the
@@ -1122,7 +1122,7 @@ def puzzle_cards():
         {"key": "knockdown", **shape("knockdown", "red"),
          "play": act(["stat_gain:act_purple@mine.player:1",
                       "set_priority:enemy.player", "show:mine.hand"]),
-         "chosen": {"action": ["move_target_to:mine.discard", "clear_priority"]}},
+         "chosen": {"action": ["move:target:mine.discard", "clear_priority"]}},
         {"key": "master_puzzler", **shape("master_puzzler", "brown"),
          # "Non-gem, non-Puzzle in the bank" is the three purples and Wound, and
          # the two not_tagged conditions are how the sentence is said.
@@ -1133,7 +1133,7 @@ def puzzle_cards():
          # the bank. copy: promises not to move a card; it cannot promise that
          # about what the card's own rules do once they are running.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["destroy_self", "show:bank:optional"]},
+                  "action": ["destroy:self", "show:bank:optional"]},
          "chosen": {"where": ["not_tagged:gem@target", "not_tagged:puzzle@target"],
                     "action": ["fill:mine.discard:@target:1",
                                "stat_damage:stock@target:1", "next_phase"]}},
@@ -1168,11 +1168,11 @@ def puzzle_cards():
         {"key": "stolen_purples", **shape("stolen_purples", "red"),
          "play": act(["show:enemy.hand:optional"]),
          "chosen": {"where": ["tagged:purple@target"],
-                    "action": ["move_target_to:mine.discard"]}},
+                    "action": ["move:target:mine.discard"]}},
         {"key": "thinking_ahead", **shape("thinking_ahead", "blue"),
          "play": act(["stat_gain:money@mine.player:1"]),
          "reactions": [{"to": "attack", "text": "Become immune",
-                        "action": ["destroy_self", "counterspell"]}]},
+                        "action": ["destroy:self", "counterspell"]}]},
         # "Up to 2 more" is money, and the piles price themselves. The borrowed
         # buy phase is what lets the shopping happen inside an action.
         {"key": "training_day", **shape("training_day", "brown"),
@@ -1202,12 +1202,12 @@ def puzzle_cards():
         {"key": "blues_are_good", **shape("blues_are_good", "blue"),
          "play": act(["stat_gain:act_blue@mine.player:1", "show:mine.bag:optional"]),
          "chosen": {"where": ["tagged:blue@target"],
-                    "action": ["move_target_to:mine.hand"]},
+                    "action": ["move:target:mine.hand"]},
          "reactions": [{"to": "attack", "text": "Become immune",
                         "action": ["counterspell"], "spent": "mine.discard"}]},
         {"key": "button_mashing", **shape("button_mashing", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["destroy_self", "stat_gain:acts@mine.player:2"]}},
+                  "action": ["destroy:self", "stat_gain:acts@mine.player:2"]}},
         {"key": "chips_for_free", **shape("chips_for_free", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["trashable"]),
@@ -1257,7 +1257,7 @@ def puzzle_cards():
         # copy: needs and exactly what a target could never get.
         {"key": "option_select", **shape("option_select", None),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["destroy_self", "show:bank:optional"]},
+                  "action": ["destroy:self", "show:bank:optional"]},
          "chosen": {"where": ["sum:price@target <= 5"],
                     "action": ["copy:target:play"]}},
         {"key": "ouch", **shape("ouch", "red"),
@@ -1282,7 +1282,7 @@ def puzzle_cards():
                   "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
                              "owner": "mine", "min": 0, "max": 1},
                   "action": ["stat_gain:acts@mine.player:1", "stat_gain:piggy@mine.player:1",
-                             "move_target_to:mine.bag"],
+                             "move:target:mine.bag"],
                   "spent": "mine.table"}},
         # Two questions, and a card has one `chosen` — so the second one is asked
         # by a rules card, exactly as the piggy bank is. The order falls out of
@@ -1292,11 +1292,11 @@ def puzzle_cards():
         {"key": "signature_move", **shape("signature_move", "brown"),
          "play": act(["show:mine.everywhere.character_stowed:optional",
                       "activate_zone:rules_signature"]),
-         "chosen": {"action": ["move_target_to:mine.hand"]}},
+         "chosen": {"action": ["move:target:mine.hand"]}},
         {"key": "the_hammer", **shape("the_hammer", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_gem, min=0, max=3),
-                  "action": ["move_target_to:mine.gem_pile",
+                  "action": ["move:target:mine.gem_pile",
                              "stat_gain:acts@mine.player:count:gem@target",
                              "draw_from:mine.bag:mine.hand:count:gem@target"],
                   "spent": "mine.table"}},
@@ -1322,7 +1322,7 @@ def puzzle_cards():
          "tooltip": "Put a 1-gem from your hand into your own gem pile, and it pays for itself: four chips and your action back.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_gem, tags=["gem_1"]),
-                  "action": ["move_target_to:mine.gem_pile",
+                  "action": ["move:target:mine.gem_pile",
                              "draw_from:mine.bag:mine.hand:4",
                              "stat_gain:acts@mine.player:1",
                              "move_to:mine.table"]}},
@@ -1567,7 +1567,7 @@ def character_chips():
          "asset": "polygon:7:cyan",
          "tooltip": "Trash this chip and take another whole turn after this one.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["stat_gain:extra@mine.player:1", "destroy_self"]}},
+                  "action": ["stat_gain:extra@mine.player:1", "destroy:self"]}},
         {"key": "chromatic_orb", "text": "Chromatic Orb", "tags": ["chip", "character", "purple"],
          "asset": "circle:cyan",
          "tooltip": "A chip, and a 1-gem out of your pile and into theirs.",
@@ -1585,7 +1585,7 @@ def character_chips():
          "tags": ["chip", "character", "brown"], "asset": "polygon:7:yellow",
          "play": act(["stat_gain:acts@mine.player:1", "show:mine.bag:optional"]),
          "chosen": {"where": ["tagged:purple@target"],
-                    "action": ["move_target_to:mine.hand"]}},
+                    "action": ["move:target:mine.hand"]}},
         {"key": "future_sight", "text": "Future Sight", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:yellow",
          "tooltip": "Two chips, then put up to two out of your hand back on the bag, in the order you picked them.",
@@ -1595,12 +1595,12 @@ def character_chips():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, min=0, max=2),
                   "action": ["draw_from:mine.bag:mine.hand:2",
-                             "move_target_to:mine.bag:top", "move_to:mine.table"]}},
+                             "move:target:mine.bag:top", "move_to:mine.table"]}},
         {"key": "its_time_for_the_past", "text": "It's Time for the Past",
          "tags": ["chip", "character", "brown"], "asset": "polygon:7:yellow",
          "play": act(["stat_gain:acts@mine.player:1", "show:mine.discard:optional"]),
          "chosen": {"where": ["not_tagged:puzzle@target"],
-                    "action": ["move_target_to:mine.hand"]}},
+                    "action": ["move:target:mine.hand"]}},
 
         # --- Shadows --------------------------------------------------------
         #
@@ -1621,7 +1621,7 @@ def character_chips():
                   "needs": ["count:chip@mine.discard >= 1"],
                   "action": ["set_priority:enemy.player", "show:enemy.discard"],
                   "spent": "mine.table"},
-         "chosen": {"action": ["move_target_to:enemy.hand", "clear_priority"]}},
+         "chosen": {"action": ["move:target:enemy.hand", "clear_priority"]}},
         {"key": "flagstone_tax", "text": "Flagstone Tax", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:gold",
          "play": ongoing(),
@@ -1676,7 +1676,7 @@ def character_chips():
          "play": act(["stat_gain:acts@mine.player:1", "stat_gain:piggy@mine.player:1"]),
          "reactions": [{"to": "attack", "text": "Take a chip back out of your discard",
                         "action": ["show:mine.discard:optional"], "spent": "mine.discard"}],
-         "chosen": {"action": ["move_target_to:mine.hand"]}},
+         "chosen": {"action": ["move:target:mine.hand"]}},
         # Zane
         {"key": "crash_bomb", "text": "Crash Bomb", "tags": ["chip", "character", "purple"],
          "asset": "circle:magenta",
@@ -1739,7 +1739,7 @@ def character_chips():
          "asset": "polygon:7:slate",
          "play": act(["stat_gain:act_brown@mine.player:1", "draw_from:mine.bag:mine.hand:2",
                       "set_priority:enemy.player", "show:mine.hand"]),
-         "chosen": {"action": ["move_target_to:mine.discard", "clear_priority"]}},
+         "chosen": {"action": ["move:target:mine.discard", "clear_priority"]}},
         # Gwen
         {"key": "acrobatics", "text": "Acrobatics", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:forest",
@@ -1749,7 +1749,7 @@ def character_chips():
          "asset": "polygon:7:forest",
          "play": act(["stat_gain:act_red@mine.player:1",
                       "draw_from:enemy.bag:enemy.hand:1", "show:enemy.hand"]),
-         "chosen": {"action": ["move_target_to:enemy.discard"]}},
+         "chosen": {"action": ["move:target:enemy.discard"]}},
         {"key": "stunlock", "text": "Stunlock", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:forest",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1845,13 +1845,13 @@ def character_chips():
          "tags": ["chip", "character", "purple"], "asset": "circle:maroon",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_set:crashed@mine.player:count:gem_1@mine.gem_pile",
-                             "destroy:mine.gem_1", "destroy_self"]}},
+                             "destroy:mine.gem_1", "destroy:self"]}},
         {"key": "bonecracker", "text": "Bonecracker", "tags": ["chip", "character", "red"],
          "asset": "polygon:7:maroon",
          "play": act(["stat_gain:act_brown@mine.player:1", "show:enemy.hand"]),
          "chosen": {"where": ["tagged:gem@target",
                               "sum:value@target >= max:value@options"],
-                    "action": ["move_target_to:enemy.discard"]}},
+                    "action": ["move:target:enemy.discard"]}},
         {"key": "into_oblivion", "text": "Into Oblivion", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:maroon",
          # A bank plate is scenery — "immutable", so nothing may point at it.
@@ -1859,7 +1859,7 @@ def character_chips():
          # and an offer is the only thing a plate answers to.
          "play": act(["show:bank:optional"]),
          "chosen": {"where": ["tagged:puzzle@target"],
-                    "action": ["move_target_to:chip_box"]}},
+                    "action": ["move:target:chip_box"]}},
         # Lum
         {"key": "living_on_the_edge", "text": "Living on the Edge", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:white",
@@ -2005,7 +2005,7 @@ def rule_cards():
         "abilities": [{"key": "piggy_bank", "text": "Piggy bank",
                        "when": ["piggy@mine.player >= 1"],
                        "action": ["show:mine.hand:optional"]}],
-        "chosen": {"action": ["move_target_to:mine.stash",
+        "chosen": {"action": ["move:target:mine.stash",
                               "stat_damage:to_draw@mine.player:1"]}}))
     # Signature Move's second half. A play without a cost is what `copy:` is:
     # it runs the chip's own action list and nothing else, so no action is spent
@@ -2020,7 +2020,7 @@ def rule_cards():
         "abilities": [{"key": "signature_play", "text": "Play a character chip",
                        "action": ["show:mine.hand:optional"]}],
         "chosen": {"where": ["tagged:character@target"],
-                   "action": ["copy:target:play", "move_target_to:mine.table"]}}))
+                   "action": ["copy:target:play", "move:target:mine.table"]}}))
     # The height bonus is cumulative, so three separate ifs add up to +1/+2/+3.
     for n in (3, 6, 9):
         rule("rules_height", "height_%d" % n, ["sum:value@mine.gem_pile >= %d" % n],
@@ -2064,7 +2064,7 @@ def button_cards():
          # stack of one; this is what makes it a stack of five. Said over every
          # Puzzle chip in the bank rather than the one just picked, because at
          # draft time nothing has been bought and the rest are already five.
-         "chosen": {"action": ["move_target_to:bank", "stat_set:stock@each.bank.puzzle:%d" % PUZZLE_STOCK]}},
+         "chosen": {"action": ["move:target:bank", "stat_set:stock@each.bank.puzzle:%d" % PUZZLE_STOCK]}},
         {"key": "randomize_bank", "text": "Randomise the rest", "tags": ["immutable"],
          "asset": "square:amber",
          "tooltip": "Fill whatever is left of the bank at random. Press it first for a random bank, or after "

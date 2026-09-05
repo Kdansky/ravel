@@ -91,7 +91,7 @@ OFFER_HAND  = "show:mine.hand:optional"
 OFFER_CLOUD_OF = lambda kind: "show:storm_cloud.%s:optional" % kind
 OFFER_HAND_OF  = lambda kind: "show:mine.hand.%s:optional" % kind
 REFILL_CLOUD = "draw_from:spellstorm_deck:storm_cloud:1"
-TAKE_TO_HAND = ["move_target_to:mine.hand", REFILL_CLOUD]
+TAKE_TO_HAND = ["move:target:mine.hand", REFILL_CLOUD]
 
 # The [GAIN] icon in full: "May gain a card from the Storm Cloud of your Tier or
 # lower, to hand" (02-icons), which the rulebook says twice over for the Regroup
@@ -142,7 +142,7 @@ BASIC = [
          tooltip="Power up. You may gain a card from the Storm Cloud at or below your Tier; if you do, it goes to your discard. On discard: power up.",
          flavour="The golden gems of the Spell Storm take time to develop their power.",
          cast=[POWER, OFFER_CLOUD],
-         chosen=["move_target_to:mine.discard", REFILL_CLOUD], chosen_where=GAIN_TIER,
+         chosen=["move:target:mine.discard", REFILL_CLOUD], chosen_where=GAIN_TIER,
          disc=[POWER]),
 ]
 
@@ -188,7 +188,7 @@ SPELLS = [
          tooltip="Deal 1 damage, then resolve and discard a different Fire card from your hand.",
          flavour="You need *magic* water to put a magical flame out.",
          cast=[DMG(1), OFFER_HAND_OF(FIRE)],
-         chosen=["copy:target:activate", "move_target_to:mine.discard"]),
+         chosen=["copy:target:activate", "move:target:mine.discard"]),
     card("heartgem", "Heart Gem", FIRE, tier=1, ult=True,
          tooltip="Heal 3 and gain a CURSE. On discard: take 1 damage.",
          flavour="The Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time.",
@@ -204,12 +204,12 @@ SPELLS = [
          flavour="Dangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm.",
          simplified="the printed card moves a Fire card between any two discards; here it is their discard to yours, any card",
          cast=[MANA] + GAIN_INIT + ["show:enemy.discard:optional"],
-         chosen=["move_target_to:mine.discard"]),
+         chosen=["move:target:mine.discard"]),
     card("manafont", "Mana Font", FIRE, tier=1,
          tooltip="VOID a card in the Storm Cloud. If you did, gain 3 mana. On discard: take 1 damage and gain 1 mana.",
          flavour="While there are many theories, no one knows where the magic inside gems originally comes from.",
          cast=[OFFER_CLOUD_OF(WATER)],
-         chosen=["move_target_to:void", REFILL_CLOUD, MANA, MANA, MANA],
+         chosen=["move:target:void", REFILL_CLOUD, MANA, MANA, MANA],
          disc=[SELF_DMG(1), MANA]),
     card("obsidian", "Obsidian", FIRE, tier=2,
          tooltip="Take 1 damage and lose 2 mana. If you did, you may use your Ultimate without paying its mana cost.",
@@ -254,19 +254,19 @@ SPELLS = [
          tooltip="Give an ICE. You may VOID an ICE from your hand. Gain Initiative.",
          flavour='"Watch your step!" - Unknown',
          cast=GIVE("ice") + GAIN_INIT + ["show:mine.everywhere.ice_held:optional"],
-         chosen=["move_target_to:ice_pile"]),
+         chosen=["move:target:ice_pile"]),
     card("lapis", "Lapis", WATER, tier=1,
          tooltip="Draw a card. You may discard a card and heal 1.",
          flavour="Doctors throughout Omia have used Water Magic to heal the sick for generations.",
          simplified="the printed card discards up to 2 and heals 1 per Water discarded; here it is one card and a flat 1",
          cast=[DRAW, OFFER_HAND],
-         chosen=["move_target_to:mine.discard", HEAL(1)]),
+         chosen=["move:target:mine.discard", HEAL(1)]),
     card("leap", "Leap", WATER, tier=2,
          tooltip="Gain Initiative and heal 1. If your opponent revealed Fire, you may VOID a card from your hand.",
          flavour="Azure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe.",
          cast=GAIN_INIT + [HEAL(1)],
          cast2=("count:fire@enemy.battle >= 1", [OFFER_HAND]),
-         chosen=["move_target_to:void"]),
+         chosen=["move:target:void"]),
     card("moonstone", "Moonstone", WATER, tier=3,
          tooltip="Heal 4. On discard: heal 2.",
          flavour="The rare and beautiful Moonstone is one of the most coveted in all of Omia.",
@@ -293,7 +293,7 @@ SPELLS = [
          tooltip="You may VOID a card from your hand. If you did, gain 3 mana.",
          flavour='"He just needs a little splash, is all he needs." - The Splashmaster',
          cast=[OFFER_HAND_OF(EARTH)],
-         chosen=["move_target_to:void", MANA, MANA, MANA]),
+         chosen=["move:target:void", MANA, MANA, MANA]),
     card("wave", "Wave", WATER, tier=2,
          tooltip="Gain 3 mana. Your opponent discards their hand and draws a new hand of 4 cards.",
          flavour="A wave does not ask what it washes away.",
@@ -311,7 +311,7 @@ SPELLS = [
          tooltip="Gain 1 mana. Take 1 damage. You may VOID a card from your hand. On discard: gain 1 mana.",
          flavour='"It\'s best to leave gems that you find in the wild alone, unless you really know what you\'re doing." - Abragail',
          cast=[MANA, SELF_DMG(1), "show:mine.everywhere.held:optional"],
-         chosen=["move_target_to:void"], disc=[MANA]),
+         chosen=["move:target:void"], disc=[MANA]),
     card("diamond", "Diamond", EARTH, tier=1,
          tooltip="If you hold 3 or more other cards, discard 3 of them and power up 3 times. On discard: power up.",
          flavour='"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years." - Azura Spellstorm Scholar',
@@ -323,7 +323,7 @@ SPELLS = [
          tooltip="Take 1 damage. You may resolve any card in the Storm Cloud regardless of tier, then VOID it. On discard: take 1 damage.",
          flavour='"Mom! Look! This fell from the sky!" - A child of Tiya Bannet',
          cast=[SELF_DMG(1), OFFER_CLOUD],
-         chosen=["move_target_to:void", "copy:target:activate", REFILL_CLOUD],
+         chosen=["move:target:void", "copy:target:activate", REFILL_CLOUD],
          disc=[SELF_DMG(1)]),
     card("opal", "Opal", EARTH, tier=3,
          tooltip="Draw a card, power up twice, gain 2 mana, and you may gain a card from the Storm Cloud at or below your Tier. On discard: power up twice.",
@@ -339,18 +339,18 @@ SPELLS = [
          tooltip="You may VOID a card from your hand; if you do, power up. On discard: power up.",
          flavour='"That there spellstorm water\'s FULL-a gold, I tell ya!" - Prospector',
          simplified="the printed card voids up to 2; here it is one",
-         cast=[OFFER_HAND], chosen=["move_target_to:void", POWER], disc=[POWER]),
+         cast=[OFFER_HAND], chosen=["move:target:void", POWER], disc=[POWER]),
     card("sift", "Sift", EARTH, tier=1,
          tooltip="Power up. Draw 2 cards, then you may discard one of them.",
          flavour="Almost all Earth cards have discard effects.",
          simplified="the printed card looks at the top 2 and may put them back in order; here they are drawn and one may be discarded",
          cast=[POWER, "draw_from:mine.deck:mine.hand:2", OFFER_HAND],
-         chosen=["move_target_to:mine.discard"]),
+         chosen=["move:target:mine.discard"]),
     card("spiritcrystal", "Spirit Crystal", EARTH, tier=1,
          tooltip="Draw a card. Reveal a card from your hand, resolve it and then discard it. On discard: power up.",
          flavour="It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.",
          cast=[DRAW, OFFER_HAND_OF(EARTH)],
-         chosen=["copy:target:activate", "move_target_to:mine.discard"],
+         chosen=["copy:target:activate", "move:target:mine.discard"],
          disc=[POWER]),
     card("threepower", "Three Power", EARTH, tier=2,
          tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If anyone revealed Water, power up again. On discard: power up twice.",
@@ -397,7 +397,7 @@ DRAGONS = [
          cast=GAIN_INIT + [SHARD(1), OFFER_HAND],
          # A resolved card goes to the discard pile like any other, so the On
          # Discard it fires there is meant to fire.
-         chosen=["copy:target:activate", "move_target_to:mine.discard"]),
+         chosen=["copy:target:activate", "move:target:mine.discard"]),
     card("icedragon", "Ice Dragon", WATER, tier=4, kind="dragon", ult=True,
          tooltip="Heal 3. Gain a Storm Shard. Give an ICE.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
@@ -600,7 +600,7 @@ WIZARDS = [
            "Doom Bauble",
            "Draw 2 cards. You may move a card from your discard to your opponent's discard.",
            [DRAW, DRAW, "show:mine.everywhere.curse_or_ice_held:optional"],
-           ult_chosen=["move_target_to:enemy.discard"],
+           ult_chosen=["move:target:enemy.discard"],
            blurb="A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.",
            start=GIVE("ice") + GAIN_JUNK("ice"),
            spells=[
@@ -628,7 +628,7 @@ WIZARDS = [
                     flavour="The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep.",
                     simplified="the Power Token is not spent",
                     cast=[DRAW, MANA, OFFER_CLOUD_OF(WATER)],
-                    chosen=["move_target_to:void", "copy:target:activate", REFILL_CLOUD]),
+                    chosen=["move:target:void", "copy:target:activate", REFILL_CLOUD]),
                # Three questions about one shelf, and two different things to do
                # with the answer -- which one `chosen` block cannot say. So the
                # VOIDs are asked by the rule that is about VOIDing: a card that
@@ -671,7 +671,7 @@ WIZARDS = [
            "Hidden Movement",
            "Return a card from your discard to your hand, and draw a card.",
            [DRAW, "show:mine.discard:optional"],
-           ult_chosen=["move_target_to:mine.hand"],
+           ult_chosen=["move:target:mine.hand"],
            simplified="Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine",
            blurb="A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.",
            spells=[
@@ -679,7 +679,7 @@ WIZARDS = [
                     tooltip="Discard a card from your hand to deal 2 damage.",
                     flavour="A hero to many, Omar is regarded by the powerful as an eco-terrorist.",
                     cast=[OFFER_HAND_OF(FIRE)],
-                    chosen=["move_target_to:mine.discard", DMG(2)]),
+                    chosen=["move:target:mine.discard", DMG(2)]),
                card("omar_shuriken", "Shuriken", WATER, kind="wizard_spell", ult=True,
                     tooltip="Gain Initiative and draw a card.",
                     flavour='"..."',
@@ -691,7 +691,7 @@ WIZARDS = [
            "Cast a Magic Trick!",
            "Reveal a card from your hand, resolve it twice and VOID it. All players heal 1.",
            ["show:mine.hand:optional"],
-           ult_chosen=["copy:target:activate:2", "move_target_to:void",
+           ult_chosen=["copy:target:activate:2", "move:target:void",
                        HEAL(1), "stat_gain:health@enemy.player:1"],
            simplified="Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires",
            blurb="A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.",
@@ -735,7 +735,7 @@ WIZARDS = [
                     chosen=["stat_gain:fire_el@mine.player:count:fire@options:x:2",
                             "stat_gain:earth_el@mine.player:count:earth@options:x:2",
                             "stat_gain:water_el@mine.player:count:water@options:x:2",
-                            "move_target_to:enemy.hand"],
+                            "move:target:enemy.hand"],
                     # "A non-Wizard card": a fact about the card, but said as a
                     # condition rather than a tag because no tag says what a card
                     # is *not*. The whole hand still comes up, which is right --
@@ -758,7 +758,7 @@ WIZARDS = [
            "Gain 3 Energy Tokens. You may resolve a card from the VOID, then put it on the bottom of the Spellstorm Deck.",
            ["stat_gain:energy@mine.player:3", "show:void:optional"],
            ult_chosen=["copy:target:activate",
-                       "move_target_to:spellstorm_deck:bottom"],
+                       "move:target:spellstorm_deck:bottom"],
            # Dangerous Download: at the end of a round she may spend an Energy
            # and a mana to resolve the opponent's revealed Tier II card. A thing
            # a player may do, at a cost, at a moment -- which is a reaction, and
@@ -784,7 +784,7 @@ WIZARDS = [
                     simplified="the extra damage for discarding a Tier II card is not checked",
                     cast=["stat_gain:mana@mine.player:sum:energy@mine.player",
                           "stat_damage:energy@mine.player:2", OFFER_HAND],
-                    chosen=["move_target_to:mine.discard", DMG(1)]),
+                    chosen=["move:target:mine.discard", DMG(1)]),
            ]),
 ]
 
@@ -795,11 +795,11 @@ WIZARDS = [
 # is three overlays on one table.
 JOURNAL = [
     (1, [MANA], None),
-    (2, [OFFER_HAND], {"action": ["move_target_to:void"]}),
+    (2, [OFFER_HAND], {"action": ["move:target:void"]}),
     (3, [MANA], None),
     (4, ["show:mine.discard:optional"],
         {"where": ["tagged:junk@target"],
-         "action": ["move_target_to:enemy.discard"]}),
+         "action": ["move:target:enemy.discard"]}),
     (5, [POWER], None),
     (6, [OFFER_CLOUD], {"action": TAKE_TO_HAND, "where": GAIN_TIER}),
     (7, [POWER], None),
@@ -1245,7 +1245,7 @@ def rules_templates():
         "r_curriculum", "New Curriculum",
         "Abragail may VOID up to 2 cards in the Storm Cloud. The shelf refills behind each one.",
         [ability("curric_void", [OFFER_CLOUD, OFFER_CLOUD])],
-        chosen={"action": ["move_target_to:void", REFILL_CLOUD]}))
+        chosen={"action": ["move:target:void", REFILL_CLOUD]}))
 
     # Somebody has to say the round is over, or nothing can answer it. May's
     # Dangerous Download is the only thing that does, and a verb no card answers

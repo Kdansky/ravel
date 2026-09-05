@@ -1461,7 +1461,7 @@ local resolving = nil
 -- in the effect is the caster rather than whoever answered last.
 --
 -- "self" is the card that raised it: a record stands for something a card did,
--- and "destroy_self" in a deferred crash means the chip that crashed, not the
+-- and "destroy:self" in a deferred crash means the chip that crashed, not the
 -- record standing in for it.
 --
 -- The record always goes, with no question about whether it moved itself —

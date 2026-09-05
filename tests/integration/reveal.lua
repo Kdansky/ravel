@@ -50,17 +50,17 @@ local GAME = [==[{
     { "key": "sifter", "text": "Sifter",
       "play": { "action": ["show:enemy.hand:optional"] },
       "chosen": { "where": ["tagged:relic@target"],
-        "action": ["move_target_to:mine.table"] } },
+        "action": ["move:target:mine.table"] } },
     { "key": "greedy", "text": "Greedy",
       "play": { "action": ["show:enemy.hand:optional"] },
       "chosen": { "where": ["sum:worth@target >= max:worth@options"],
-        "action": ["move_target_to:mine.table"] } },
+        "action": ["move:target:mine.table"] } },
     { "key": "chooser", "text": "Chooser",
       "play": { "action": ["options:alpha,beta"] },
       "chosen": { "where": ["tagged:relic@target"], "action": [] } },
     { "key": "interrogate", "text": "Interrogate",
       "play": { "action": ["set_priority:enemy.player", "show:mine.hand"] },
-      "chosen": { "action": ["move_target_to:enemy.table", "clear_priority"] } }
+      "chosen": { "action": ["move:target:enemy.table", "clear_priority"] } }
   ]
 }]==]
 
