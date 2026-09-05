@@ -534,7 +534,7 @@ function M.move_card(card_id, to_id, where)
 	-- keeps, so putting a gem back in the box is the number going up and the
 	-- gem going away — which is what "the cards in it are interchangeable"
 	-- means from the other direction. Written here rather than only in `add` so
-	-- that every way of moving a card lands right: a draw, a return_to, a rule
+	-- that every way of moving a card lands right: a draw, a move, a rule
 	-- that sends what it trashes to the box.
 	--
 	-- **Unless it is going back to the zone that lent it**, which is a return and

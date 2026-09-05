@@ -703,7 +703,12 @@ HANDLERS["move"] = function(p, ctx)
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
 		if e.kind == "card" and e.zone_id and e.zone_id ~= to_id then moving[#moving + 1] = e.id end
 	end
-	table.sort(moving)
+	-- **In the order the scope handed them over**, which for a zone is the order
+	-- the cards lie in. Sorting by id here threw that away, and a shuffled pile
+	-- emptied into a deck came out in the order the cards were first dealt —
+	-- Arnak shuffles its table and puts it under the bag, and the shuffle was
+	-- being undone on the way. An id is when a card was made, which is never
+	-- what a rule means.
 	-- How many, and then whereabouts they land. The count is optional and
 	-- everything moves without one, which is what "move" meant before it could
 	-- be told a number and what every spelling written before this still means.
@@ -951,27 +956,6 @@ HANDLERS["resolve_challenge"] = function(p, ctx)
 	local passed = predicate.meets_all(def.requires, ctx)
 	log.add((def.text or c.def_key) .. (passed and " — passed" or " — failed"))
 	M.run(passed and def.on_pass or def.on_fail, ctx)
-end
-
--- return_to:from_zone:to_zone  — move ALL cards currently in from_zone to
--- to_zone. Bounded by the starting count: a refill_when_empty source would
--- otherwise refill mid-drain and loop forever.
-HANDLERS["return_to"] = function(p)
-	local from = zone_of(p[2])
-	if not from then return end
-	-- Each card to its own origin. Snapshotted first for the same reason every
-	-- other multi-card move is: the list being walked is the one emptying.
-	if p[3] == "origin" then
-		local going = {}
-		for i, id in ipairs(from.cards) do going[i] = id end
-		for _, id in ipairs(going) do send_home(id, p[4]) end
-		return
-	end
-	local to_id = zone_id(p[3])
-	if not to_id then return end
-	for _ = 1, #from.cards do
-		if not zones.move_top(from.id, to_id, p[4]) then break end
-	end
 end
 
 -- place:<scope>:<col>:<row>  — put every card the scope names on that square of
@@ -1429,7 +1413,6 @@ local SPEC = {
 	fill              = "zone card n",
 	shuffle           = "zone",
 	draw_from         = "zone zone n pos?",
-	return_to         = "zone zone pos?",
 	move_to           = "zone? occupied?",
 	place             = "scope any",
 	stat_gain         = "stat n",

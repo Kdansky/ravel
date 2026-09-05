@@ -35,6 +35,8 @@ local GAME = [==[{
     { "key": "alpha", "text": "Alpha", "tags": ["letter"] },
     { "key": "beta", "text": "Beta", "tags": ["letter"] },
     { "key": "omega", "text": "Omega", "tags": ["letter", "omega"], "card_stats": { "value": 1 } },
+    { "key": "gamma", "text": "Gamma", "tags": ["letter"] },
+    { "key": "delta", "text": "Delta", "tags": ["letter"] },
     { "key": "burier", "text": "Burier",
       "play": { "target": { "type": "card", "zones": ["hand"], "count": 1 },
         "action": ["move:target:bag:bottom"] } }
@@ -76,7 +78,7 @@ function M.test_pile_ends_an_arrival_lands_on_top(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		actions.execute("fill:spare:omega:1", {})
-		actions.execute("return_to:spare:bag", {})
+		actions.execute("move:spare:bag", {})
 		check("it went on top", order("bag") == "alpha,beta,omega", order("bag"))
 		check("and it is the next card drawn", drawn() == "omega")
 	end)
@@ -87,7 +89,7 @@ function M.test_pile_ends_bottom_buries(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		actions.execute("fill:spare:omega:1", {})
-		actions.execute("return_to:spare:bag:bottom", {})
+		actions.execute("move:spare:bag:bottom", {})
 		check("it went under the pile", order("bag") == "omega,alpha,beta", order("bag"))
 		check("so the next draw is what it always was", drawn() == "beta")
 	end)
@@ -132,6 +134,27 @@ function M.test_pile_ends_a_deck_can_bury_its_own_top_card(check)
 		flow.init(name, 3)
 		actions.execute("draw_from:bag:bag:1:bottom", {})
 		check("the top card is now the bottom one", order("bag") == "beta,alpha", order("bag"))
+	end)
+end
+
+-- Emptying a pile keeps the pile's order, which is the whole reason a rule
+-- empties one. `move` used to sort its cards by id — when a card was *made* —
+-- so a deck-builder that shuffled its played cards and put them under its bag
+-- had the shuffle quietly undone on the way, and dealt the same order every
+-- round. Written without a shuffle so the check does not lean on a seed: the
+-- three are dealt one way and drawn back the other, which puts the list order
+-- and the id order in opposite directions.
+function M.test_pile_ends_emptying_a_pile_keeps_its_order(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		actions.execute("fill:spare:omega:1", {})
+		actions.execute("fill:spare:gamma:1", {})
+		actions.execute("fill:spare:delta:1", {})
+		actions.execute("draw_from:spare:table:3", {})
+		check("drawing off the top reversed them", order("table") == "delta,gamma,omega", order("table"))
+		actions.execute("move:table:spare", {})
+		check("and emptying the pile kept that order rather than the order they were made in",
+			order("spare") == "delta,gamma,omega", order("spare"))
 	end)
 end
 

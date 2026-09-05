@@ -254,7 +254,7 @@
                   "each_seat:stat_set:travel@mine.player:0",
                   "each_seat:move:mine.hand:mine.table",
                   "each_seat:shuffle:mine.table",
-                  "each_seat:return_to:mine.table:mine.bag:bottom"],
+                  "each_seat:move:mine.table:mine.bag:bottom"],
       "next": [{ "then": "round_start", "ends_round": true }] },
 
     { "key": "scoring", "type": "automatic", "label": "Counting up",

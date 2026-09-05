@@ -694,7 +694,7 @@ that deals a choice writes it once. Taking one and putting the rest back is the
 whole of that tag:
 
 ```json
-"play": { "action": ["move_to:hand", "return_to:offer:build_deck",
+"play": { "action": ["move_to:hand", "move:offer:build_deck",
                      "shuffle:build_deck", "pop_phase"] }
 ```
 
@@ -1948,8 +1948,8 @@ move:target:enemy.bag:bottom            the one they chose, out of their way
 draw_from:mine.bag:mine.bag:1:bottom    the top card of a deck, put under it
 ```
 
-It is the last argument of `move`, `take`, `draw_from` and
-`return_to` — every op that names a destination. It means something in any zone,
+It is the last argument of `move`, `take` and `draw_from` — every op that
+names a destination. It means something in any zone,
 since every zone is a list, but it only *reads* as anything in a deck, which is
 where somebody is about to draw.
 
@@ -1962,14 +1962,14 @@ engine records where each card was immediately before its last move, and
 `origin` reads it back:
 
 ```json
-"action": ["return_to:duel:origin"]
+"action": ["move:duel:origin"]
 ```
 
 One line, and each card goes somewhere different. That is the whole of it —
 `origin` is not a place, it is a different place per card, which is why nothing
 else could say this.
 
-It is a **destination and never a source**. `return_to:origin:hand` is refused,
+It is a **destination and never a source**. `move:origin:hand` is refused,
 because there is no one zone to drain.
 
 **On a grid it is the square, not the zone.** A row of five patrol posts that
@@ -1981,7 +1981,6 @@ home to the zone the ordinary way.
 move_to:origin                   the acting card, home
 move:target:origin               the ones the player chose, each to its own
 move:duel:origin                 empty a zone, sending everything back
-return_to:duel:origin            the same, said the other way round
 ```
 
 Three things worth knowing:
@@ -3764,11 +3763,10 @@ what a player reads.
 | `fill:zone:card:n` | Create n instances of card in zone. The card slot takes a template key, or `@<scope>` to read the template off a card that is already lying somewhere — `fill:mine.discard:@self:1` is a shop selling what it is. Not a clone: what arrives is fresh off the template, with the stats the game declared |
 | `shuffle:zone` | Shuffle |
 | `draw_from:from:to:n` | Move n cards off the top |
-| `return_to:from:to` | Move all cards (bounded; safe with refilling zones) |
 | `move_to:zone` | Move the acting card (uses a slot target when given); without a zone, its home tag decides |
 | `move_to:target` | Move the acting card into the **chosen target's** zone — how one card offers two destinations ("advance the expedition, or discard it") |
 | `move_to:target:<what>` | …and say what becomes of a piece already standing there: `destroy`, or the zone it goes to (a captured-pieces tray). Left out, an occupied square refuses the move. This is capture; with it, aiming at a *piece* means taking its square rather than joining its zone |
-| `…:top` / `…:bottom` | **Which end of the destination a card lands on**, as a last argument to `move`, `take`, `draw_from` and `return_to`. Every zone is a list and the top of a pile is the end of it, so an arrival lands on top unless told otherwise — `bottom` is the word that buries a card, and `draw_from:bag:bag:1:bottom` puts the top card of a deck underneath it |
+| `…:top` / `…:bottom` | **Which end of the destination a card lands on**, as a last argument to `move`, `take` and `draw_from`. Every zone is a list and the top of a pile is the end of it, so an arrival lands on top unless told otherwise — `bottom` is the word that buries a card, and `draw_from:bag:bag:1:bottom` puts the top card of a deck underneath it |
 | `place:<who>:<where>` | Put every card the scope names on a square of the only board. `<where>` is a square by name (`"g1"`) or a **pattern pointing at one from the acting card** (`"one_left"`) — the second is how a rule works for both sides of a board, since a named square is only ever one player's. Refuses an occupied square |
 | `compact:<scope>:<pattern>` | Slide every card the scope names as far along the pattern as free cells allow, keeping the order they are in — how a market row closes the gap a bought card left, so that **where a card sits goes on meaning how long it has been there**. The pattern carries one direction, taken as written: a shelf slides one way for everything on it, so `y` is not turned around per owner the way a move rule's is, and how far is the pattern's business too — a `ray` runs to the end, a bare pair is a one-cell nudge. The card furthest along moves first and packs against the end, so nothing behind can overtake something in front, and the answer does not depend on the order the scope hands its cards over |
 | `stat_gain:<subject>:n` / `stat_damage:<subject>:n` | Change the current value, held between its floor and its ceiling, logged, and floated on the card. Two words for one arithmetic, because "damage 2" and "gain −2" read differently to everybody but the engine. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |

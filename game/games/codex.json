@@ -383,7 +383,7 @@
             "activate_zone:duel:by_column:spill",
             "activate_zone:duel:by_column:kills",
             "stat_set:attacking@each.duel:0",
-            "return_to:duel:origin",
+            "move:duel:origin",
             "activate_zone:rules_death"
           ],
           "compute": ["det", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"]
@@ -426,7 +426,7 @@
             "activate_zone:duel:by_column:spill",
             "activate_zone:duel:by_column:kills",
             "stat_set:attacking@each.duel:0",
-            "return_to:duel:origin",
+            "move:duel:origin",
             "activate_zone:rules_death"
           ]
         },
@@ -481,7 +481,7 @@
             "activate_zone:duel:by_column:spill",
             "activate_zone:duel:by_column:kills",
             "stat_set:attacking@each.duel:0",
-            "return_to:duel:origin",
+            "move:duel:origin",
             "activate_zone:rules_death"
           ]
         },

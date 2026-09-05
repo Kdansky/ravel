@@ -359,8 +359,8 @@
       "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
     },
     "draft_pick": {
-      "play": { "action": ["move_to:hand", "return_to:offer:build_deck", "shuffle:build_deck"] }
+      "play": { "action": ["move_to:hand", "move:offer:build_deck", "shuffle:build_deck"] }
     },
-    "decree_pick": { "play": { "action": ["move_to:hand", "return_to:decree_offer:edicts"] } }
+    "decree_pick": { "play": { "action": ["move_to:hand", "move:decree_offer:edicts"] } }
   }
 }

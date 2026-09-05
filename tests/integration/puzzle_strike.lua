@@ -485,7 +485,7 @@ function M.test_puzzle_strike_the_bag_refills_from_the_discard_mid_draw(check)
 	opening(7)
 	-- Empty the bag and put something in the discard that was never in it, so a
 	-- recreated starting deck and a genuine reshuffle look different.
-	actions.run({ "return_to:mine.bag:mine.discard", "fill:mine.discard:gem_4:1" }, {})
+	actions.run({ "move:mine.bag:mine.discard", "fill:mine.discard:gem_4:1" }, {})
 	check("the bag is empty", count_in("bag", "south") == 0)
 	flow.activate(loose("done_acting").id, {})
 	flow.activate(loose("wound").id, {})
@@ -726,7 +726,7 @@ end
 -- an action list cannot branch and no phase runs between two draws.
 function M.test_puzzle_strike_a_chip_that_draws_reshuffles_too(check)
 	opening(7)
-	actions.run({ "return_to:mine.bag:mine.discard", "fill:mine.hand:draw_three:1" }, {})
+	actions.run({ "move:mine.bag:mine.discard", "fill:mine.hand:draw_three:1" }, {})
 	check("the bag is empty on purpose and stays that way",
 		count_in("bag", "south") == 0, tostring(count_in("bag", "south")))
 	local held = count_in("hand", "south")

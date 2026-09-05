@@ -72,15 +72,10 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "stat_gain:hp:count:dragons" } end },
 	{ "a missing card in an action amount", "checks for the card 'excalibur'",
 		function(g) g.card_defs.c_flee.on_play = { "stat_gain:hp:card:excalibur" } end },
-	{ "a return_to draining a refilling zone", "refills itself when empty",
-		function(g)
-			g.zone_defs.chest_deck.tags_set.refill_when_empty = true
-			g.card_defs.c_flee.on_play = { "return_to:chest_deck:hand" }
-		end },
 	{ "a non-string in an action list", "every action must be a text string",
 		function(g) g.card_defs.c_flee.on_play = { 5 } end },
 	{ "origin used as a source", "only reads as a destination",
-		function(g) g.card_defs.c_flee.on_play = { "return_to:origin:hand" } end },
+		function(g) g.card_defs.c_flee.on_play = { "move:origin:hand" } end },
 	{ "a zone named after a destination word", "would send the card back where it came from",
 		function(g) g.zone_defs.origin = g.zone_defs.hand end },
 	-- stats
@@ -869,7 +864,8 @@ function M.test_validator_holds_a_supply_to_its_promise(check)
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "gem", "text": "Gem", "tags": ["gem"], "abilities": [
 			{ "key": "a", "action": ["draw_from:shop:hand:1"] },
-			{ "key": "b", "cost": { "stock@self": 1 }, "action": ["fill:hand:@self:1"] }] }]
+			{ "key": "b", "cost": { "stock@self": 1 }, "action": ["fill:hand:@self:1"] },
+			{ "key": "c", "action": ["move:shop:hand"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_supply_bad.json")
@@ -882,6 +878,10 @@ function M.test_validator_holds_a_supply_to_its_promise(check)
 		said:find("no moment to refill at", 1, true), said)
 	check("and drawing out of one is refused, with the way to write it instead",
 		said:find("standing for the whole stock", 1, true), said)
+	-- move says its source as a scope rather than a zone, so the same mistake
+	-- written that way has to be caught on the other side of the argument check.
+	check("emptying one is refused too, though move names its source as a scope",
+		said:find('"move" empties the supply', 1, true), said)
 	check("while spending the stock and filling from it says nothing",
 		not said:find("'b'", 1, true), said)
 	check("and \"stock\" needs no declaring, because the zone declared it",

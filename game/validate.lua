@@ -913,11 +913,11 @@ function M.check(G)
 
 	-- Which argument of a moving op is the place cards come *out* of, so a supply
 	-- can be refused there and allowed everywhere else.
-	local MOVES_FROM = { draw_from = 2, return_to = 2 }
+	local MOVES_FROM = { draw_from = 2 }
 
 	-- And which is the place they go, so "origin" — one destination per card,
 	-- not a zone — can be allowed there and nowhere else.
-	local MOVES_TO = { move_to = 2, return_to = 3, move = 3 }
+	local MOVES_TO = { move_to = 2, move = 3 }
 
 	local check_action
 	function check_action(where, str)
@@ -1012,9 +1012,21 @@ function M.check(G)
 			elseif t == "scope" then
 				local sc = predicate.parse_scope(a)
 				local named = sc and scope_named(sc.name)
-				if not (sc and scope_names[named]) and not scope_pair_ok(where, "'" .. op .. "'", a, named) then
+				if named == "origin" then
+					-- Said as a scope now that move names its source as one, and the
+					-- answer is the same as it was on a zone argument.
+					warn("%s: '%s' cannot take cards out of 'origin' — it is where each card came "
+						.. "from, a different place for every one of them, so it only reads as a "
+						.. "destination", where, op)
+				elseif not (sc and scope_names[named]) and not scope_pair_ok(where, "'" .. op .. "'", a, named) then
 					warn("%s: '%s' names '%s', which is neither a zone nor a tag%s",
 						where, op, a, suggest(named or a, scope_names))
+				elseif op == "move" and i == 2 and (G.zone_defs[named] or {}).status == "supply" then
+					-- Emptying a supply would carry off the one card standing for the
+					-- whole stock. `take` is the verb for a source that counts.
+					warn('%s: "move" empties the supply \'%s\', which would move the card '
+						.. 'standing for the whole stock — "take:%s.<kind>:<zone>:<n>" is the verb '
+						.. 'for a source that counts', where, named, named)
 				end
 			elseif t == "card" and a:sub(1, 1) == "@" then
 				-- The template read off a card instead of named here. Checked as
@@ -1134,10 +1146,6 @@ function M.check(G)
 			if (w == "count" or w == "card") and p[j + 1] and not (w == "card" and j == 1) then
 				subject_ok(where .. ": " .. tostring(op), w .. ":" .. p[j + 1])
 			end
-		end
-		if op == "return_to" and p[2] and G.zone_defs[p[2]]
-			and G.zone_defs[p[2]].tags_set and G.zone_defs[p[2]].tags_set.refill_when_empty then
-			warn("%s: return_to drains '%s', which refills itself when empty — it would refill mid-drain", where, p[2])
 		end
 	end
 
