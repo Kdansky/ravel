@@ -55,16 +55,37 @@ Two consequences that fell out rather than being chosen:
 
 ## Left
 
-1. **A module actually written.** The mechanism has a test for every rule and no
-   user at all — the one it had, chess over a shared base, was the case that
-   turned out to be wrong. No game yet writes the case the word was asked for:
-   a player-count module over a whole game, or a card set over the sets before
-   it. Arnak is the obvious candidate for the first: 5 of its 22 zones are
-   `copies: "per_seat"`, so a third seat is those five zones, `players`, and a
-   seat card.
-   **[Assumption: the rest of Arnak's three-player rules — component counts, the
-   research track — were not looked at. The layout is the part `include` answers;
-   whether the rest is a module or a different game is unexamined.]**
+1. **A seat count as a module — the test the word is waiting for.** The
+   mechanism has a test for every rule and no user at all: the one it had, chess
+   over a shared base, was the case that turned out to be wrong. Adding *and*
+   removing a seat from a shipped game is what would prove it, because the two
+   directions fail differently — one wants a rect and a phase that do not exist,
+   the other wants a phase that does to stop being reached.
+
+   **Spellstorm is the candidate.** Two seats, 26 zones of which 6 are
+   `copies: "per_seat"` (`wizard`, `hand`, `deck`, `discard`, `commit`,
+   `battle`), and ten of its 25 phases are written as `_1`/`_2` pairs — `pick`,
+   `play`, `ult`, `resolve`, `gain`. So the module is: `replaces: ["players"]`
+   plus a third seat card, those six zones with a third rect, and *five more
+   phases*. The phases are the whole difficulty and they are somebody else's
+   problem — [32](32-a-third-player.md)'s `seat: "all"` is what collapses a
+   `_1`/`_2` pair into one phase, and until it exists a three-seat module has to
+   write `_3` by hand. **So do `seat: "all"` first, or the module proves the
+   include and buries the reader in phases.**
+
+   Worth noting for the shape of it: `spellstorm.json` is generated
+   (`tools/make_spellstorm.py`), and the module including it would be
+   hand-written. That is a property rather than a problem — a generated game
+   file and a hand-written variant of it is exactly the split `include` makes
+   possible, and the generator never has to learn about the variant.
+
+   Arnak is the smaller candidate for the same test: 5 of its 22 zones are
+   `copies: "per_seat"`, and its phases are not seat-numbered.
+   **[Assumption: neither game's real rules for another player count were looked
+   at — component counts, Arnak's research track, Spellstorm's shard threshold.
+   The layout and the phase list are the parts `include` answers; whether the
+   rest is a module or a different game is unexamined, and a variant that
+   validates but plays wrong is worse than none.]**
 2. **Provenance in validator messages.** `card 'lightning_bolt': ...` stops being
    enough when the card came from a file you did not open. The merge already
    keeps a key → source-file map to name both sides of a collision; nothing
