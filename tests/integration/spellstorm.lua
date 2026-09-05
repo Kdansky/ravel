@@ -711,7 +711,8 @@ end
 -- does. Each question therefore gets a phase, and each phase one seat -- two
 -- Abragails would otherwise hold up both hands into the same offer.
 function M.test_spellstorm_the_journal_asks_one_question_at_a_time(check)
-	opening(3, "abra", "abra")
+	-- One journal is enough to ask with, and two seats cannot both be Abragail.
+	opening(3, "abra", "eve")
 	for _, k in ipairs({ "seat_one", "seat_two" }) do seat_card(k).stats.research = 8 end
 
 	actions.execute("each_seat:activate_zone:rules:by_column:bstart", {})
@@ -764,7 +765,7 @@ function M.test_spellstorm_the_potion_loop_pays_and_ends_itself(check)
 
 	actions.execute("push_phase:potion", {})
 	local draw
-	for _, z in ipairs(zones.all_with_key("controls")) do
+	for _, z in ipairs(zones.all_with_key("sidecar")) do
 		for _, id in ipairs(z.cards) do
 			if entity.get(id).def_key == "btn_potion_draw" then draw = id end
 		end
@@ -914,12 +915,29 @@ end
 -- "starting with whoever happens to be up". The lower rating takes it, and a
 -- mirror match, where the ratings are equal, used to leave it on the table.
 function M.test_spellstorm_exactly_one_seat_holds_initiative(check)
-	for _, pair in ipairs({ { "derby", "eve" }, { "derby", "derby" }, { "may", "may" } }) do
+	for _, pair in ipairs({ { "derby", "eve" }, { "bunny", "croh" }, { "may", "omar" } }) do
 		opening(5, pair[1], pair[2])
 		local held = seat_card("seat_one").stats.initiative
 			+ seat_card("seat_two").stats.initiative
 		check(pair[1] .. " v " .. pair[2] .. ": exactly one holds it", held == 1, held)
 	end
+
+	-- The tie, which no opening can reach any more: the eight ratings are eight
+	-- different numbers and the roster stops the same wizard being taken twice,
+	-- so a mirror match — the case "first_tie" was written for — is now
+	-- unreachable in play. The rule is still the answer to *nobody holds it*,
+	-- which a card could yet cause, so the state is made by hand and the two
+	-- abilities are run in the order `battle_start` runs them.
+	opening(5, "derby", "eve")
+	for _, k in ipairs({ "seat_one", "seat_two" }) do
+		seat_card(k).stats.initiative = 0
+		seat_card(k).stats.init_rating = 4
+	end
+	actions.execute("each_seat:activate_zone:rules:by_column:first", {})
+	actions.execute("activate_zone:rules:by_column:first_tie", {})
+	local tied = seat_card("seat_one").stats.initiative + seat_card("seat_two").stats.initiative
+	check("equal ratings still leave exactly one holding it", tied == 1, tied)
+
 	opening(5, "derby", "eve")
 	check("and it is the lower rating that has it",
 		seat_card("seat_one").stats.initiative == 1

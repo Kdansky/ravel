@@ -717,7 +717,9 @@ WIZARDS = [
             "stat_set:toxic@mine.player:0", "push_phase:potion"],
            start=["stat_set:fire_el@mine.player:3",
                   "stat_set:earth_el@mine.player:3",
-                  "stat_set:water_el@mine.player:3"],
+                  "stat_set:water_el@mine.player:3",
+                  "fill:mine.sidecar:btn_potion_draw:1",
+                  "fill:mine.sidecar:btn_potion_stop:1"],
            blurb="A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.",
            spells=[
                card("oren_potion", "Potion Gun", FIRE, kind="wizard_spell", ult=True,
@@ -1088,9 +1090,14 @@ def wizard_templates(w):
         pick_action.append("fill:mine.deck:%s:1" % s["key"])
     pick_action += list(w["start"])
     pick_action.append("stat_gain:picked@mine.player:1")
+    # The copy dealt into the offer spends the real card it was copied from, so
+    # the second seat is offered seven wizards rather than eight including the
+    # one already taken. The tag is the wizard's own key, which is what lets a
+    # scope name one entry in the roster; nothing else wears it.
+    pick_action.append("destroy:roster." + w["key"])
     out.append({
         "key": "pick_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
-        "tags": ["chooser", "no_undo"],
+        "tags": ["chooser", "no_undo", w["key"]],
         "tooltip": "%s (%s). %s\n\nHealth %d, Initiative rating %d, Ultimate %d mana."
                    % (w["epithet"], w["elements"], w["blurb"], w["health"],
                       w["rating"], w["ult_cost"]),
@@ -1347,7 +1354,14 @@ def zones():
         # Initiative" needs is a board that points at one of them by name.
         {"key": "hand", "label": "owning_player", "layout": "row", "visibility": "owner",
          "copies": "per_seat", "applies": ["in_hand"],
-         "pos": [P(0.145, 0.795, 0.730, 0.995), P(0.145, 0.005, 0.730, 0.205)]},
+         "pos": [P(0.145, 0.795, 0.550, 0.995), P(0.145, 0.005, 0.550, 0.205)]},
+        # Whatever a wizard brings that nobody else has. Empty for seven of the
+        # eight, and an empty row with no label draws nothing at all, so a board
+        # that has to hold Oren's two potion buttons does not show a hole for
+        # them to everybody else. Populated on the pick rather than at setup,
+        # which is the only moment that knows which wizard this is.
+        {"key": "sidecar", "layout": "row", "copies": "per_seat", "use": "abilities",
+         "pos": [P(0.560, 0.795, 0.730, 0.995), P(0.560, 0.005, 0.730, 0.205)]},
         {"key": "deck", "label": "Deck", "layout": "stack", "visibility": "secret",
          "copies": "per_seat", "tags": ["shuffle"], "refill_from": "discard",
          "tooltip": "Your draw deck. When you need a card and it is empty, your discard is shuffled into it.",
@@ -1422,12 +1436,13 @@ def zones():
          "contents": [c["key"] for c in DRAGONS],
          "pos": P(0.600, 0.44, 0.690, 0.625)},
 
-        # Two across and two down, so the two buttons anybody may press -- the
-        # rules card and the unplayable hand -- sit side by side, with Oren's two
-        # potion buttons under them.
-        {"key": "controls", "layout": "grid", "grid": [2, 2],
+        # The two buttons anybody may press, side by side: the rules card and the
+        # unplayable hand. Oren's potion buttons used to sit in a second row
+        # under them and showed everybody two empty cells, which is what the
+        # sidecar is for -- a grid draws its empty cells on purpose.
+        {"key": "controls", "layout": "grid", "grid": [2, 1],
          "use": "abilities", "tags": ["optional"],
-         "pos": P(0.710, 0.44, 0.895, 0.785)},
+         "pos": P(0.710, 0.44, 0.895, 0.625)},
 
         # The offer, claimed so a roster of eight wizards has the middle of the
         # screen for one click and no strip of board for the rest of the game.
@@ -1437,6 +1452,12 @@ def zones():
         # Rules that have to run at a named moment live on cards, and cards have
         # to live somewhere.
         {"key": "rules", "layout": "stack", "display": "offscreen", "use": "none"},
+
+        # The eight wizards, as cards rather than as a list written into two
+        # phases. `options:` deals copies and leaves these alone, so a pick
+        # destroys its own entry here and the next seat is offered what is left.
+        {"key": "roster", "layout": "stack", "display": "offscreen", "use": "none",
+         "contents": ["pick_" + w["key"] for w in WIZARDS]},
 
         # Where a card waits while it is being answered -- one record at a time,
         # and only ever a card announcing the Ultimate icon. Offscreen because
@@ -1498,11 +1519,11 @@ def phases():
         # empty for the rest of the game.
         {"key": "pick_1", "type": "player_input", "seat": "next",
          "label": "Choose your wizard",
-         "actions": ["options:" + ",".join("pick_" + w["key"] for w in WIZARDS)],
+         "actions": ["options:roster"],
          "ends_when": "picked@mine.player >= 1", "next": [{"then": "pick_2"}]},
         {"key": "pick_2", "type": "player_input", "seat": "next",
          "label": "Choose your wizard",
-         "actions": ["options:" + ",".join("pick_" + w["key"] for w in WIZARDS)],
+         "actions": ["options:roster"],
          "ends_when": "picked@mine.player >= 1", "next": [{"then": "begin"}]},
 
         {"key": "begin", "type": "automatic",
@@ -1627,7 +1648,7 @@ def phases():
         # when one of them says so, or when a third TOXIC says so -- so it has no
         # "ends_when" of its own: what ends it is an action, every time.
         {"key": "potion", "type": "player_input", "label": "Bottoms up, I guess!",
-         "zone": ["controls"]},
+         "zone": ["sidecar"]},
 
         {"key": "gain_2", "type": "player_input", "seat": "next",
          "label": "Gain a card from the Storm Cloud",
@@ -1835,8 +1856,6 @@ def build():
             {"card": "plan", "zone": "table"},
             {"card": "btn_rules", "zone": "controls"},
             {"card": "btn_unplayable", "zone": "controls"},
-            {"card": "btn_potion_draw", "zone": "controls"},
-            {"card": "btn_potion_stop", "zone": "controls"},
         ]},
     }
 

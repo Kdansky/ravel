@@ -221,7 +221,14 @@
       "visibility": "owner",
       "copies": "per_seat",
       "applies": ["in_hand"],
-      "pos": [[0.145, 0.795, 0.73, 0.995], [0.145, 0.005, 0.73, 0.205]]
+      "pos": [[0.145, 0.795, 0.55, 0.995], [0.145, 0.005, 0.55, 0.205]]
+    },
+    {
+      "key": "sidecar",
+      "layout": "row",
+      "copies": "per_seat",
+      "use": "abilities",
+      "pos": [[0.56, 0.795, 0.73, 0.995], [0.56, 0.005, 0.73, 0.205]]
     },
     {
       "key": "deck",
@@ -424,10 +431,10 @@
     {
       "key": "controls",
       "layout": "grid",
-      "grid": [2, 2],
+      "grid": [2, 1],
       "use": "abilities",
       "tags": ["optional"],
-      "pos": [0.71, 0.44, 0.895, 0.785]
+      "pos": [0.71, 0.44, 0.895, 0.625]
     },
     {
       "key": "options",
@@ -437,6 +444,22 @@
       "pos": [0.06, 0.28, 0.94, 0.72]
     },
     { "key": "rules", "layout": "stack", "display": "offscreen", "use": "none" },
+    {
+      "key": "roster",
+      "layout": "stack",
+      "display": "offscreen",
+      "use": "none",
+      "contents": [
+        "pick_derby",
+        "pick_eve",
+        "pick_abra",
+        "pick_croh",
+        "pick_omar",
+        "pick_bunny",
+        "pick_oren",
+        "pick_may"
+      ]
+    },
     {
       "key": "stack",
       "layout": "stack",
@@ -494,9 +517,7 @@
       "type": "player_input",
       "seat": "next",
       "label": "Choose your wizard",
-      "actions": [
-        "options:pick_derby,pick_eve,pick_abra,pick_croh,pick_omar,pick_bunny,pick_oren,pick_may"
-      ],
+      "actions": ["options:roster"],
       "ends_when": "picked@mine.player >= 1",
       "next": [{ "then": "pick_2" }]
     },
@@ -505,9 +526,7 @@
       "type": "player_input",
       "seat": "next",
       "label": "Choose your wizard",
-      "actions": [
-        "options:pick_derby,pick_eve,pick_abra,pick_croh,pick_omar,pick_bunny,pick_oren,pick_may"
-      ],
+      "actions": ["options:roster"],
       "ends_when": "picked@mine.player >= 1",
       "next": [{ "then": "begin" }]
     },
@@ -697,7 +716,7 @@
       "key": "potion",
       "type": "player_input",
       "label": "Bottoms up, I guess!",
-      "zone": ["controls"]
+      "zone": ["sidecar"]
     },
     {
       "key": "gain_2",
@@ -1794,7 +1813,7 @@
       "key": "pick_derby",
       "text": "Derby Pocket",
       "asset": "ss_derby.jpg",
-      "tags": ["chooser", "no_undo"],
+      "tags": ["chooser", "no_undo", "derby"],
       "tooltip": "Infernal Intern (*Fire*, *Earth*). An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.\n\nHealth 13, *Initiative rating 3*, *Ultimate* *6 mana*.",
       "play": {
         "action": [
@@ -1805,7 +1824,8 @@
           "fill:mine.deck:derby_coffee:1",
           "fill:mine.deck:derby_reckless:1",
           "draw_from:spellstorm_deck:mine.discard:0",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "destroy:roster.derby"
         ]
       }
     },
@@ -1890,7 +1910,7 @@
       "key": "pick_eve",
       "text": "Eve Williams",
       "asset": "ss_eve.jpg",
-      "tags": ["chooser", "no_undo"],
+      "tags": ["chooser", "no_undo", "eve"],
       "tooltip": "Radical Activist (*Fire*, *Water*). A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.\n\nHealth 14, *Initiative rating 5*, *Ultimate* *5 mana*.",
       "play": {
         "action": [
@@ -1904,7 +1924,8 @@
           "draw_from:ice_pile:enemy.discard:1",
           "activate_zone:rules:by_column:dry_take_ice",
           "draw_from:ice_pile:mine.discard:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "destroy:roster.eve"
         ]
       }
     },
@@ -1975,7 +1996,7 @@
       "key": "pick_abra",
       "text": "Abragail",
       "asset": "ss_abra.jpg",
-      "tags": ["chooser", "no_undo"],
+      "tags": ["chooser", "no_undo", "abra"],
       "tooltip": "Professor of Magical Chemistry (*Water*, *Earth*). A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.\n\nHealth 16, *Initiative rating 7*, *Ultimate* *4 mana*.",
       "play": {
         "action": [
@@ -1985,7 +2006,8 @@
           "fill:mine.wizard:wiz_abra:1",
           "fill:mine.deck:abra_deepgems:1",
           "fill:mine.deck:abra_newcurriciulum:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "destroy:roster.abra"
         ]
       }
     },
@@ -2058,7 +2080,7 @@
       "key": "pick_croh",
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
-      "tags": ["chooser", "no_undo"],
+      "tags": ["chooser", "no_undo", "croh"],
       "tooltip": "Undead Lich (*Fire*, *Water*). An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\nHealth 20, *Initiative rating 8*, *Ultimate* *6 mana*.",
       "play": {
         "action": [
@@ -2068,7 +2090,8 @@
           "fill:mine.wizard:wiz_croh:1",
           "fill:mine.deck:croh_sinking:1",
           "fill:mine.deck:croh_undertow:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "destroy:roster.croh"
         ]
       }
     },
@@ -2143,7 +2166,7 @@
       "key": "pick_omar",
       "text": "Omar Evans",
       "asset": "ss_omar.jpg",
-      "tags": ["chooser", "no_undo"],
+      "tags": ["chooser", "no_undo", "omar"],
       "tooltip": "Ninja and Eco-Terrorist (*Fire*, *Water*). A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\nHealth 10, *Initiative rating 1*, *Ultimate* *4 mana*.",
       "play": {
         "action": [
@@ -2153,7 +2176,8 @@
           "fill:mine.wizard:wiz_omar:1",
           "fill:mine.deck:omar_beetle:1",
           "fill:mine.deck:omar_shuriken:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "destroy:roster.omar"
         ]
       }
     },
@@ -2221,7 +2245,7 @@
       "key": "pick_bunny",
       "text": "Bunny Wizard",
       "asset": "ss_bunny.jpg",
-      "tags": ["chooser", "no_undo"],
+      "tags": ["chooser", "no_undo", "bunny"],
       "tooltip": "Healer of Bunny Island (*Water*, *Earth*). A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.\n\nHealth 8, *Initiative rating 2*, *Ultimate* *5 mana*.",
       "play": {
         "action": [
@@ -2231,7 +2255,8 @@
           "fill:mine.wizard:wiz_bunny:1",
           "fill:mine.deck:bunny_buddy:1",
           "fill:mine.deck:bunny_snowday:1",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "destroy:roster.bunny"
         ]
       }
     },
@@ -2302,7 +2327,7 @@
       "key": "pick_oren",
       "text": "Oren Bark",
       "asset": "ss_oren.jpg",
-      "tags": ["chooser", "no_undo"],
+      "tags": ["chooser", "no_undo", "oren"],
       "tooltip": "Magical Chemistry Student (*Fire*, *Earth*). A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.\n\nHealth 16, *Initiative rating 6*, *Ultimate* *5 mana*.",
       "play": {
         "action": [
@@ -2315,7 +2340,10 @@
           "stat_set:fire_el@mine.player:3",
           "stat_set:earth_el@mine.player:3",
           "stat_set:water_el@mine.player:3",
-          "stat_gain:picked@mine.player:1"
+          "fill:mine.sidecar:btn_potion_draw:1",
+          "fill:mine.sidecar:btn_potion_stop:1",
+          "stat_gain:picked@mine.player:1",
+          "destroy:roster.oren"
         ]
       }
     },
@@ -2401,7 +2429,7 @@
       "key": "pick_may",
       "text": "May Danaris",
       "asset": "ss_may.jpg",
-      "tags": ["chooser", "no_undo"],
+      "tags": ["chooser", "no_undo", "may"],
       "tooltip": "Hacker (*Fire*, *Earth*). A hacker who used to work for Central Intelligence. She can play cards from the *VOID*, and is good for players who like to feel like they're cheating.\n\nHealth 12, *Initiative rating 4*, *Ultimate* *6 mana*.",
       "play": {
         "action": [
@@ -2412,7 +2440,8 @@
           "fill:mine.deck:may_data:1",
           "fill:mine.deck:may_starshot:1",
           "stat_gain:energy@mine.player:2",
-          "stat_gain:picked@mine.player:1"
+          "stat_gain:picked@mine.player:1",
+          "destroy:roster.may"
         ]
       }
     },
@@ -3758,8 +3787,6 @@
       { "card": "plan", "zone": "table" },
       { "card": "btn_rules", "zone": "controls" },
       { "card": "btn_unplayable", "zone": "controls" },
-      { "card": "btn_potion_draw", "zone": "controls" },
-      { "card": "btn_potion_stop", "zone": "controls" },
       { "card": "r_ctr_fire", "zone": "rules" },
       { "card": "r_ctr_earth", "zone": "rules" },
       { "card": "r_ctr_water", "zone": "rules" },
