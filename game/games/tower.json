@@ -24,7 +24,8 @@
       "contents": ["p_chest_pearl", "p_chest_mimic"]
     }
   ],
-  "players": [{ "stats": { "hp": 6 }, "to_zone": "seat_box" }],
+  "players": [{ "stats": { "hp": 6 } }],
+  "setup": { "place": [{ "card": "player", "zone": "seat_box" }] },
   "cards": [
     {
       "key": "p_shore",

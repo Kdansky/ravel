@@ -223,7 +223,9 @@ local CASES = {
 	{ "an auto_play into a missing zone", "starts in play, but its zone 'vault'",
 		function(g)
 			g.card_defs.c_flee.auto_play = true
-			g.card_defs.c_flee.to_zone = "vault"
+			g.tag_defs.vaulted = { zone = "vault" }
+			g.card_defs.c_flee.tags = { "vaulted" }
+			g.card_defs.c_flee.tags_set = { vaulted = true }
 		end },
 	-- zones
 	{ "a board without grid dimensions", 'a board needs "grid"',

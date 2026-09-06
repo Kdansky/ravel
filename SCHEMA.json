@@ -11,8 +11,7 @@
       "stats": {
         "<stat key>": "number the injected seat starts with. Only for a seat the engine makes; one that names a card takes its numbers from that card's card_stats."
       },
-      "text": "the injected seat's name, shown where a card's title would be. Defaults to You.",
-      "to_zone": "where the injected seat's card lives. Only for a seat the engine makes; one that names a card gives that card its own to_zone instead. Left unset it lands in the offscreen system zone, and the validator warns — a seat is a card a player hovers to read their own numbers, and that needs it on screen."
+      "text": "the injected seat's name, shown where a card's title would be. Defaults to You."
     }
   ],
   "stats": [

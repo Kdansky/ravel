@@ -225,7 +225,7 @@ local GRANTED = [==[{
     { "key": "board", "layout": "grid", "grid": [6, 1], "pos": [0.1, 0.3, 0.9, 0.6] },
     { "key": "seat_box", "layout": "stack", "status": "board", "pos": [0, 0, 0.19, 0.3] }
   ],
-  "players": [{ "to_zone": "seat_box" }],
+  "players": [{}],
   "phases": [{ "key": "act", "type": "player_input" }],
   "cards": [
     { "key": "plain", "text": "Plain" },
@@ -235,6 +235,7 @@ local GRANTED = [==[{
   ],
   "setup": {
     "place": [
+      { "card": "player", "zone": "seat_box" },
       { "card": "plain", "zone": "board", "at": ["a1"] },
       { "card": "hammer", "zone": "board", "at": ["b1"] },
       { "card": "worn", "zone": "board", "at": ["c1"] },

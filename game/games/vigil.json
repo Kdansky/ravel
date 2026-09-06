@@ -16,6 +16,7 @@
   },
   "setup": {
     "place": [
+      { "card": "player", "zone": "seat_box" },
       { "card": "pass_night", "zone": "table", "at": "a1" },
       { "card": "work", "zone": "table", "at": "b1" },
       { "card": "rest", "zone": "table", "at": "c1" },
@@ -26,7 +27,7 @@
       { "card": "the_rite", "zone": "table", "at": "g1" }
     ]
   },
-  "players": [{ "stats": { "time": 3, "health": 10, "funds": 4, "insight": 0, "dread": 0, "ritual": 0 }, "to_zone": "seat_box" }],
+  "players": [{ "stats": { "time": 3, "health": 10, "funds": 4, "insight": 0, "dread": 0, "ritual": 0 } }],
   "cards": [
     {
       "key": "pass_night",

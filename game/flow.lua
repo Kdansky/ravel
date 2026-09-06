@@ -581,7 +581,7 @@ function M.init(filename, seed)
 			-- Into every instance of the zone, which is one for a shared zone
 			-- and one per seat otherwise: a per-seat board wants its marker in
 			-- each seat's copy, not a single one in whoever happens to be first.
-			local zkey = e.zone or def.to_zone or cards.home_zone(def) or "board"
+			local zkey = e.zone or cards.home_zone(def) or "board"
 			for _, to in ipairs(zones.all_with_key(zkey)) do
 				-- One entry may name several squares, and then it is several
 				-- pieces: eight pawns are one line naming eight squares.

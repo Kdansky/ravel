@@ -35,8 +35,7 @@
         "mana": 0,
         "progress": 0,
         "destination": 1
-      },
-      "to_zone": "seat_box"
+      }
     }
   ],
   "tags": {
@@ -840,5 +839,5 @@
     { "when": "progress >= 24", "then": ["push_phase:coronation"] },
     { "when": "round >= 20", "then": ["push_phase:twilight_years"] }
   ],
-  "setup": { "place": [{ "card": "council", "zone": "board" }] }
+  "setup": { "place": [{ "card": "player", "zone": "seat_box" }, { "card": "council", "zone": "board" }] }
 }

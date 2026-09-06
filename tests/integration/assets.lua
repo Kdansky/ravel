@@ -19,7 +19,8 @@ local function fixture(assets, asset_field)
 			{ "key": "hand", "layout": "row", "pos": [0.2, 0, 0.8, 0.9] },
 			{ "key": "seat_box", "layout": "stack", "status": "board", "pos": [0, 0, 0.19, 0.3] }
 		],
-		"players": [{ "to_zone": "seat_box" }],
+		"players": [{}],
+		"setup": { "place": [{ "card": "player", "zone": "seat_box" }] },
 		"cards": [{ "key": "hero", "text": "Hero", "asset": %s }],
 		"phases": [{ "key": "play", "type": "player_input" }]
 	}]]):format(assets, asset_field))
@@ -65,7 +66,8 @@ function M.test_assets_two_cards_naming_one_picture_share_it(check)
 			{ "key": "hand", "layout": "row", "pos": [0.2, 0, 0.8, 0.9] },
 			{ "key": "seat_box", "layout": "stack", "status": "board", "pos": [0, 0, 0.19, 0.3] }
 		],
-		"players": [{ "to_zone": "seat_box" }],
+		"players": [{}],
+		"setup": { "place": [{ "card": "player", "zone": "seat_box" }] },
 		"cards": [
 			{ "key": "a", "text": "A", "asset": "shared" },
 			{ "key": "b", "text": "B", "asset": "shared" }

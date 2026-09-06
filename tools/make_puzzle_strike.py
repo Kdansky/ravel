@@ -2117,7 +2117,7 @@ def other_cards():
 
 
 def seat_cards():
-    return [{"key": k, "text": name, "tags": [k + "_side"], "to_zone": "seat_box_" + k} for k, name in SEATS]
+    return [{"key": k, "text": name, "tags": [k + "_side"]} for k, name in SEATS]
 
 
 def roster_offer():
@@ -2296,7 +2296,8 @@ def build():
                   + by_colour(priced(named(lands(say(gem_cards() + purple_cards() + puzzle_cards()
                                                      + character_chips())))))
                   + character_cards() + [c for _, c in rule_cards()]),
-        "setup": {"place": [{"card": "clock", "zone": "sys"},
+        "setup": {"place": [{"card": k, "zone": "seat_box_" + k} for k, _ in SEATS]
+                           + [{"card": "clock", "zone": "sys"},
                             {"card": "done_acting", "zone": "controls", "at": ["a1"]},
                             {"card": "end_turn", "zone": "controls", "at": ["b1"]},
                             {"card": "finish_shopping", "zone": "controls", "at": ["c1"]},

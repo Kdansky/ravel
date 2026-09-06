@@ -443,10 +443,10 @@
   ],
   "end_conditions": [],
   "cards": [
-    { "key": "north", "text": "North", "tags": ["north_side"], "to_zone": "seat_box_north" },
-    { "key": "east", "text": "East", "tags": ["east_side"], "to_zone": "seat_box_east" },
-    { "key": "south", "text": "South", "tags": ["south_side"], "to_zone": "seat_box_south" },
-    { "key": "west", "text": "West", "tags": ["west_side"], "to_zone": "seat_box_west" },
+    { "key": "north", "text": "North", "tags": ["north_side"] },
+    { "key": "east", "text": "East", "tags": ["east_side"] },
+    { "key": "south", "text": "South", "tags": ["south_side"] },
+    { "key": "west", "text": "West", "tags": ["west_side"] },
     {
       "key": "flight_plan",
       "text": "Flight plan",
@@ -1243,6 +1243,10 @@
   ],
   "setup": {
     "place": [
+      { "card": "north", "zone": "seat_box_north" },
+      { "card": "east", "zone": "seat_box_east" },
+      { "card": "south", "zone": "seat_box_south" },
+      { "card": "west", "zone": "seat_box_west" },
       { "card": "flight_plan", "zone": "console", "at": ["a1"] },
       { "card": "radio", "zone": "controls", "at": ["a1"] }
     ]

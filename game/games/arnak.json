@@ -282,6 +282,8 @@
 
   "setup": {
     "place": [
+      { "card": "south", "zone": "seat_box_south" },
+      { "card": "north", "zone": "seat_box_north" },
       { "card": "clock", "zone": "sys" },
       { "card": "end_turn", "zone": "controls", "at": "a1" },
       { "card": "pass_turn", "zone": "controls", "at": "b1" },
@@ -307,8 +309,8 @@
   },
 
   "cards": [
-    { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "coin": 2 }, "to_zone": "seat_box_south" },
-    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "coin": 1, "compass": 1 }, "to_zone": "seat_box_north" },
+    { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "coin": 2 } },
+    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "coin": 1, "compass": 1 } },
 
     { "key": "clock", "text": "The expedition", "tags": ["clock", "immutable"],
       "card_stats": { "round_no": 0, "temple_taken": 0 } },

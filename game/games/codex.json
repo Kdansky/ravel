@@ -909,6 +909,8 @@
   ],
   "setup": {
     "place": [
+      { "card": "south", "zone": "seat_box_south" },
+      { "card": "north", "zone": "seat_box_north" },
       { "card": "home_base", "zone": "base" },
       { "card": "end_turn", "zone": "controls", "at": ["a1"] },
       { "card": "hire_worker", "zone": "controls", "at": ["b1"] },
@@ -936,8 +938,8 @@
     ]
   },
   "cards": [
-    { "key": "south", "text": "South", "card_stats": { "workers": 4 }, "to_zone": "seat_box_south" },
-    { "key": "north", "text": "North", "card_stats": { "workers": 5 }, "to_zone": "seat_box_north" },
+    { "key": "south", "text": "South", "card_stats": { "workers": 4 } },
+    { "key": "north", "text": "North", "card_stats": { "workers": 5 } },
     {
       "key": "home_base",
       "text": "Base",

@@ -37,9 +37,10 @@ local GAME = [==[{
     { "key": "act", "type": "player_input", "zone": "hand",
       "comment": "why this phase loops",
       "next": [{ "then": "act", "comment": "why it leads back to itself" }] }],
-  "setup": { "place": [{ "card": "gem", "zone": "hand", "comment": "why it starts here" }] },
+  "setup": { "place": [{ "card": "one", "zone": "seat_box" },
+                        { "card": "gem", "zone": "hand", "comment": "why it starts here" }] },
   "cards": [
-    { "key": "one", "text": "One", "tags": ["seat_one"], "to_zone": "seat_box" },
+    { "key": "one", "text": "One", "tags": ["seat_one"] },
     { "key": "gem", "text": "Gem", "comment": "why this card exists",
       "play": { "phases": ["act"], "action": ["stat_gain:score@mine.player:1"],
                 "comment": "why playing it scores" } }

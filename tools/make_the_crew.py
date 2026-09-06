@@ -135,7 +135,7 @@ def radio_card():
 # on: ["player"], so a seat is its name and the tag other rules find it by. A
 # five-seat variant is then a longer SEATS list and nothing else.
 def seat_cards():
-    return [{"key": k, "text": t, "tags": [k + "_side"], "to_zone": "seat_box_" + k} for k, t in SEATS]
+    return [{"key": k, "text": t, "tags": [k + "_side"]} for k, t in SEATS]
 
 
 def playing_cards():
@@ -476,8 +476,9 @@ def build():
         "end_conditions": [],
         "cards": (seat_cards() + other_cards() + mission_cards() + [radio_card()]
                   + playing_cards() + task_cards()),
-        "setup": {"place": [{"card": "flight_plan", "zone": "console", "at": ["a1"]},
-                            {"card": "radio", "zone": "controls", "at": ["a1"]}]},
+        "setup": {"place": [{"card": k, "zone": "seat_box_" + k} for k, _ in SEATS]
+                           + [{"card": "flight_plan", "zone": "console", "at": ["a1"]},
+                              {"card": "radio", "zone": "controls", "at": ["a1"]}]},
     }
 
 

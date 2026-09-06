@@ -78,7 +78,7 @@ def templates():
     # The two seats. Their numbers are every seat's, so the stats node grants
     # them and nothing here distinguishes one from the other but its name.
     for key, text in (("north", "North"), ("south", "South")):
-        out.append({"key": key, "text": text, "tags": [key + "_side"], "to_zone": "seat_box_" + key})
+        out.append({"key": key, "text": text, "tags": [key + "_side"]})
 
     # There are no destination markers. Playing a card points at a *place* — the
     # expedition or the discard — and a place is a zone, so the zone is the
@@ -371,6 +371,8 @@ def build():
         "tags": TAG_DEFS,
         "zones": z,
         "cards": tpl,
+        "setup": {"place": [{"card": "north", "zone": "seat_box_north"},
+                             {"card": "south", "zone": "seat_box_south"}]},
         "phases": phases(),
         "end_conditions": [],
     }

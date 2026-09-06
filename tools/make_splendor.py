@@ -490,8 +490,8 @@ def nobles(rows):
 # is who goes first — which is a fact about north, not about players.
 def seat_cards():
     return [
-        {"key": "north", "text": "North", "tags": ["north_side"], "card_stats": {"opens": 1}, "to_zone": "seat_box_north"},
-        {"key": "south", "text": "South", "tags": ["south_side"], "to_zone": "seat_box_south"},
+        {"key": "north", "text": "North", "tags": ["north_side"], "card_stats": {"opens": 1}},
+        {"key": "south", "text": "South", "tags": ["south_side"]},
     ]
 
 
@@ -634,7 +634,8 @@ def build(here):
         "end_conditions": [],
         "cards": (seat_cards() + piles() + buttons()
                   + development(rows) + nobles(noble_rows) + endings()),
-        "setup": {"place": []},
+        "setup": {"place": [{"card": "north", "zone": "seat_box_north"},
+                            {"card": "south", "zone": "seat_box_south"}]},
     }
 
 

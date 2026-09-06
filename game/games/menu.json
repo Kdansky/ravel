@@ -34,7 +34,8 @@
     },
     { "key": "seat_box", "layout": "stack", "status": "board", "pos": [0.0, 0.05, 0.05, 0.25] }
   ],
-  "players": [{ "to_zone": "seat_box" }],
+  "players": [{}],
+  "setup": { "place": [{ "card": "player", "zone": "seat_box" }] },
   "cards": [
     {
       "key": "play_arnak",

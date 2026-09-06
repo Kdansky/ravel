@@ -95,7 +95,8 @@ local function fixture(zone, style)
 		"title": "Layout",
 		"styles": { "shaped": %s },
 		"zones": [%s, { "key": "seat_box", "layout": "stack", "status": "board", "pos": [0, 0, 0.19, 0.3] }],
-		"players": [{ "to_zone": "seat_box" }],
+		"players": [{}],
+		"setup": { "place": [{ "card": "player", "zone": "seat_box" }] },
 		"cards": [{ "key": "hero", "text": "Hero" }],
 		"phases": [{ "key": "play", "type": "player_input" }]
 	}]]):format(style or "{}", zone))

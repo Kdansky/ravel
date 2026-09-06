@@ -78,15 +78,18 @@ stat list had no free corner in any dense layout, and the numbers it read were
 already a duplicate of what a hovered card already says. What shipped instead:
 
 - **A seat must be somewhere on screen.** `validate.lua` warns when a seat's
-  resolved zone (`to_zone`, a tag's own zone, or an explicit `setup.place`)
-  is missing or `display: "offscreen"` — the engine's own default for an
-  unhomed seat. All seventeen shipped games now give theirs a small visible
-  zone; five that were generated needed the fix in their generator, not the
-  JSON. **One trap cost real time**: a `copies: "per_seat"` zone's contents
-  are shared markers cloned into *every* seat's copy — right for `hand`,
-  silently wrong for a seat's own card, which duplicated itself into every
-  copy and corrupted every bare-subject stat total reading it. Two zone keys
-  per seat, not one per-seat zone, is the fix everywhere it landed.
+  resolved zone (a `setup.place` entry, or a tag's own zone) is missing or
+  `display: "offscreen"` — the engine's own default for an unhomed seat. All
+  seventeen shipped games now give theirs a small visible zone via
+  `setup.place`; five that were generated needed the fix in their generator,
+  not the JSON. A `to_zone` field on the card def was the first shape this
+  took and was pulled back out: a placement is an instance of a card, not a
+  property of its def, and `setup.place` already says that for everything
+  else. **One trap cost real time**, twice over: a `copies: "per_seat"`
+  zone's contents are shared markers cloned into *every* seat's copy — right
+  for `hand`, silently wrong for a seat's own card, which duplicated itself
+  into every copy and corrupted every bare-subject stat total reading it. Two
+  zone keys per seat, not one per-seat zone, is the fix everywhere it landed.
 - **Hovering a seat shows its own numbers**, for free: `tooltip.lua`'s
   `blocks()` already lists every stat on whatever card is hovered, filtered
   through the same `BOOKKEEPING` set that keeps `round`/`plays`/`turn` off a

@@ -1386,9 +1386,9 @@ check("target reaches the chosen cards",
 -- === the player is a card ===
 -- There is no player entity. A game that says nothing gets a card injected
 -- from setup.player; one that wants a visible hero tags it, and demo gives
--- its own a "to_zone" so a player can find and hover it — the validator
--- requires that of every seat now. Either way a bare subject and a bare
--- write land on the same card.
+-- its own a setup.place entry so a player can find and hover it — the
+-- validator requires that of every seat now. Either way a bare subject and a
+-- bare write land on the same card.
 flow.init("demo.json", 1)
 local kinds = {}
 for e in entity.each() do kinds[e.kind] = true end
@@ -1558,8 +1558,8 @@ play_fixture([==[{
   ],
   "players": [{ "card": "north" }, { "card": "south" }],
   "cards": [
-    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "gold": 5 }, "to_zone": "seat_box_north" },
-    { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "gold": 2 }, "to_zone": "seat_box_south" },
+    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "gold": 5 } },
+    { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "gold": 2 } },
     { "key": "wolf", "text": "Wolf", "tags": ["creature"], "card_stats": { "hp": 3 },
       "play": { "action": ["ready:self"] } },
     { "key": "statue", "text": "Statue", "tags": ["creature"], "card_stats": { "hp": 9 } },
@@ -1572,7 +1572,9 @@ play_fixture([==[{
         "action": ["move_to:target"]
       }
     }
-  ]
+  ],
+  "setup": { "place": [{ "card": "north", "zone": "seat_box_north" },
+                        { "card": "south", "zone": "seat_box_south" }] }
 }]==], 1)
 
 check("a two-seat fixture validates clean", #validate.check(declaration.G) == 0)
@@ -1687,6 +1689,8 @@ play_fixture([==[{
   "phases": [{ "key": "battle", "type": "player_input", "label": "Battle" }],
   "setup": {
     "place": [
+      { "card": "player_white", "zone": "seat_box_white" },
+      { "card": "player_black", "zone": "seat_box_black" },
       { "card": "w_rook", "zone": "board", "owner": "player_white" },
       { "card": "w_ghost", "zone": "board", "owner": "player_white" },
       { "card": "b_pawn", "zone": "board", "owner": "player_black" }
@@ -1694,8 +1698,8 @@ play_fixture([==[{
   },
   "players": [{ "card": "player_white" }, { "card": "player_black" }],
   "cards": [
-    { "key": "player_white", "text": "White", "to_zone": "seat_box_white" },
-    { "key": "player_black", "text": "Black", "to_zone": "seat_box_black" },
+    { "key": "player_white", "text": "White" },
+    { "key": "player_black", "text": "Black" },
     {
       "key": "w_rook",
       "text": "White Rook",

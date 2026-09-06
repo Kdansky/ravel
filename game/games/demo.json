@@ -64,7 +64,8 @@
       "pos": [0.32, 0.3, 0.68, 0.72]
     }
   ],
-  "players": [{ "stats": { "hp": 5 }, "to_zone": "seat_box" }],
+  "players": [{ "stats": { "hp": 5 } }],
+  "setup": { "place": [{ "card": "player", "zone": "seat_box" }] },
   "cards": [
     {
       "key": "shelter",

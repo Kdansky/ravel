@@ -44,12 +44,13 @@ local GAME = [==[{
     "junk_held": { "all_of": ["junk", "held_or_binned"] }
   },
   "cards": [
-    { "key": "one", "text": "One", "tags": ["seat_one"], "to_zone": "seat_box_one" },
-    { "key": "two", "text": "Two", "tags": ["seat_two"], "to_zone": "seat_box_two" },
+    { "key": "one", "text": "One", "tags": ["seat_one"] },
+    { "key": "two", "text": "Two", "tags": ["seat_two"] },
     { "key": "curse", "text": "Curse", "tags": ["curse"] },
     { "key": "ice", "text": "Ice", "tags": ["ice"] },
     { "key": "gem", "text": "Gem", "tags": ["gem"] }
-  ]
+  ],
+  "setup": { "place": [{ "card": "one", "zone": "seat_box_one" }, { "card": "two", "zone": "seat_box_two" }] }
 }]==]
 
 local function with_game(fn)

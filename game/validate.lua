@@ -15,9 +15,9 @@ local label     = require("label")        -- the {name} a caption may carry
 -- load time instead of only in the console when the fetch is refused. Shared
 -- rather than copied: a security rule kept in two files is the one that drifts.
 local url_is_safe = require("cards").url_is_safe
--- home_zone only: resolving a seat's place the same way the engine does, so
--- the check below asks the one question that matters rather than reading
--- to_zone and a tag's own zone as two separate rules.
+-- home_zone only: a tag's own zone is the one placement a card def may still
+-- carry, since it says what *kind* of thing the card is rather than where
+-- this instance of it goes.
 local home_zone    = require("cards").home_zone
 -- art.parse is pure (no love, no state) for exactly this: a typo in a shape
 -- spec is caught at load time rather than as a blank card at play time.
@@ -139,7 +139,7 @@ local CARD_FIELDS = {
 	on_leaves = true, leaves_into = true, leaves_from = true,
 	requires = true, on_pass = true, on_fail = true,
 	accepts = true, on_receive = true, on_round = true, on_chosen = true, chosen_where = true,
-	auto_play = true, to_zone = true, to_slot = true, tags_set = true, injected = true,
+	auto_play = true, to_slot = true, tags_set = true, injected = true,
 	style = true,
 	-- Written by the engine onto the menu entry it generates for each ability of
 	-- a card that has several. Never authored: a game names abilities, not the
@@ -293,7 +293,7 @@ local PATTERN_FIELDS  = { vectors = true, class = true, zone = true }
 local SETUP_FIELDS = { place = true }
 local PLACE_FIELDS = { card = true, zone = true, at = true, owner = true }
 local MOVE_RULE_FIELDS = { patterns = true, fill = true, needs = true, where = true }
-local PLAYER_FIELDS = { card = true, stats = true, text = true, to_zone = true }
+local PLAYER_FIELDS = { card = true, stats = true, text = true }
 -- A value names its own parameter field, so every word on every one of the seven
 -- is reserved: "layout": "grid" is what makes "grid" a legal field, and a
 -- parameter whose value was not chosen is a zone that thinks it is two shapes.
@@ -350,7 +350,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_receive = true, on_round = true, on_chosen = true, chosen_where = true,
 	on_leaves = true, leaves_into = true, leaves_from = true,
-	zone_list = true, auto_play = true, to_zone = true, to_slot = true }
+	zone_list = true, auto_play = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
 -- "did you mean" suggestions.
@@ -561,21 +561,21 @@ function M.check(G)
 	-- wrong for anyone meant to be seen.
 	--
 	-- Resolved the way flow.lua actually places it (setup_place's own "zone"
-	-- first, matching flow.lua:584), not by reading to_zone directly: the seat
-	-- loop above stamps to_zone = "system" onto every seat with no home of its
-	-- own before this runs, even one an explicit setup.place entry is about to
-	-- put down somewhere else — castle's throne_room is exactly that case.
+	-- first, matching flow.lua:584): a seat's placement is an instance of it,
+	-- not a property of the card def, so it is read off the placement entry
+	-- (an explicit setup.place, or the engine's own default) rather than off
+	-- the def itself.
 	for _, key in ipairs(G.seat_list or {}) do
 		local sd    = G.card_defs[key]
 		local placed
 		for _, e in ipairs(G.setup_place or {}) do
 			if e.card == key then placed = e.zone; break end
 		end
-		local home = placed or (sd and sd.to_zone) or (sd and home_zone(sd))
+		local home = placed or (sd and home_zone(sd))
 		local zd   = home and G.zone_defs[home]
 		if not zd or zd.display == "offscreen" then
-			warn('seat \'%s\' has no visible home — give it "to_zone" (or setup.place a "zone") '
-				.. "naming a zone on screen, so a player can see and hover their own card", key)
+			warn("seat '%s' has no visible home — setup.place it into a zone on screen, "
+				.. "so a player can see and hover their own card", key)
 		end
 	end
 
@@ -2315,7 +2315,17 @@ function M.check(G)
 		end
 
 		if def.auto_play then
-			local tz = def.to_zone or (homes[1] and homes[1].zone) or "board"
+			-- A seat or the system card is placed by an entry in setup_place
+			-- (an author's own, or the engine's default of "system"), not by
+			-- this heuristic — that guess is for an ordinary card whose only
+			-- claim to a home is a tag, which a seat does not carry one for.
+			local placed
+			if def.injected or G.seat_set[key] then
+				for _, e in ipairs(G.setup_place or {}) do
+					if e.card == key then placed = e.zone; break end
+				end
+			end
+			local tz = placed or (homes[1] and homes[1].zone) or "board"
 			if not G.zone_defs[tz] then
 				warn("%s: starts in play, but its zone '%s' doesn't exist%s", where, tz, suggest(tz, G.zone_defs))
 			end

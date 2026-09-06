@@ -117,6 +117,8 @@
   "end_conditions": [],
   "setup": {
     "place": [
+      { "card": "player_white", "zone": "seat_box_white" },
+      { "card": "player_black", "zone": "seat_box_black" },
       { "card": "rook", "owner": "player_white", "zone": "board", "at": ["a1", "h1"] },
       { "card": "knight", "owner": "player_white", "zone": "board", "at": ["b1", "g1"] },
       { "card": "bishop", "owner": "player_white", "zone": "board", "at": ["c1", "f1"] },
@@ -143,8 +145,8 @@
     ]
   },
   "cards": [
-    { "key": "player_white", "text": "White", "tags": ["white_side"], "to_zone": "seat_box_white" },
-    { "key": "player_black", "text": "Black", "tags": ["black_side"], "to_zone": "seat_box_black" },
+    { "key": "player_white", "text": "White", "tags": ["white_side"] },
+    { "key": "player_black", "text": "Black", "tags": ["black_side"] },
     {
       "key": "pawn",
       "text": "Pawn",

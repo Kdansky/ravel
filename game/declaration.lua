@@ -1103,12 +1103,9 @@ function M.parse(filename)
 				-- The engine owns these two, wherever a game tried to put them: a
 				-- second bearer of either would be counted twice and advanced once.
 				stats.plays, stats.round = 0, nil
-				-- A stat bag with nowhere else to say it: "players" is the only
-				-- place naming this seat at all, so "to_zone" travels here rather
-				-- than waiting for a card def that does not exist.
 				G.card_defs[key] = { key = key, text = entry.text or "You", injected = true,
 					tags = {}, tags_set = {}, style = {},
-					card_stats = stats, auto_play = true, to_zone = entry.to_zone or "system" }
+					card_stats = stats, auto_play = true }
 				table.insert(G.card_list, i, key)
 			elseif entry.stats ~= nil then
 				pp[#pp + 1] = "player '" .. tostring(key) .. "' names a card, so its starting "
@@ -1150,16 +1147,8 @@ function M.parse(filename)
 					.. " has won — it starts at 0 whatever the card says"):format(tostring(seat.card))
 			end
 			cd.card_stats.won = 0
-			-- A seat has to exist before it can act, and one that says nothing
-			-- about where it sits is a stat bag — it goes where the injected one
-			-- goes rather than onto a board it never asked for.
+			-- A seat has to exist before it can act.
 			if cd.auto_play == nil then cd.auto_play = true end
-			local homed = false
-			for tg in pairs(cd.tags_set or {}) do
-				local td = G.tag_defs[tg]
-				if type(td) == "table" and td.zone then homed = true end
-			end
-			if not (cd.to_zone or homed) then cd.to_zone = "system" end
 		else
 			pp[#pp + 1] = "player " .. tostring(#G.seat_list + 1) .. " names the card '"
 				.. tostring(seat.card) .. "', but no card has that key"
@@ -1228,7 +1217,7 @@ function M.parse(filename)
 	if not G.card_defs.system then
 		G.card_defs.system = { key = "system", injected = true,
 			tags = {}, tags_set = {}, style = {},
-			card_stats = { round = 1, turn = 0 }, auto_play = true, to_zone = "system" }
+			card_stats = { round = 1, turn = 0 }, auto_play = true }
 		table.insert(G.card_list, 1, "system")
 	end
 
@@ -1237,6 +1226,14 @@ function M.parse(filename)
 	-- is written down by a game — a seat has to exist before it can act — and
 	-- the order is load-bearing, since entity IDs are handed out as cards are
 	-- created and a seed only replays a board built the same way twice.
+	--
+	-- Where each one goes is decided here, on the placement entry, rather than
+	-- carried on the card def: a def is the card's kind, not an instance of it
+	-- sitting somewhere, and a tag's own zone (a kind of card wanting a kind of
+	-- home) is the one exception already built for that reason. Without a home
+	-- tag it falls back to "system", the same hidden bookkeeping zone it always
+	-- has — a game that wants it seen writes its own setup.place entry instead,
+	-- which "named" below sees and this loop then leaves alone.
 	do
 		local named = {}
 		for _, e in ipairs(G.setup_place) do named[e.card] = true end
@@ -1244,7 +1241,12 @@ function M.parse(filename)
 		for _, key in ipairs(G.card_list) do
 			local cd = G.card_defs[key]
 			if not named[key] and (cd.injected or G.seat_set[key]) then
-				own[#own + 1] = { card = key, engine = true }
+				local homed = false
+				for tg in pairs(cd.tags_set or {}) do
+					local td = G.tag_defs[tg]
+					if type(td) == "table" and td.zone then homed = true end
+				end
+				own[#own + 1] = { card = key, engine = true, zone = not homed and "system" or nil }
 			end
 		end
 		for i = #own, 1, -1 do table.insert(G.setup_place, 1, own[i]) end

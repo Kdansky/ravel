@@ -88,7 +88,8 @@
     "rust": { "color": [0.16, 0.12, 0.12] },
     "slate": { "color": [0.13, 0.13, 0.16] }
   },
-  "players": [{ "stats": { "morale": 8, "supplies": 4, "distance": 0 }, "to_zone": "seat_box" }],
+  "players": [{ "stats": { "morale": 8, "supplies": 4, "distance": 0 } }],
+  "setup": { "place": [{ "card": "player", "zone": "seat_box" }] },
   "cards": [
     {
       "key": "p_depart",
