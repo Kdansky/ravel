@@ -87,7 +87,7 @@ local CASES = {
 	{ "a tag homed in a missing zone", "sends cards to zone 'vault'",
 		function(g) g.tag_defs.keepsake = { zone = "vault" } end },
 	{ "a tag that is also computed", "defined under both",
-		function(g) g.computed_tags.keepsake = { stat = "hp", equals = "0" } end },
+		function(g) g.computed_tags.keepsake = { needs = { "hp@self == 0" } } end },
 	{ "a tag with behaviour nobody carries", "no card carries this tag",
 		function(g) g.tag_defs.ghost = { zone = "board" } end },
 	-- buffs
@@ -99,7 +99,7 @@ local CASES = {
 		function(g) g.tag_defs.keepsake = { buffs = 2 } end },
 	{ "a computed tag buffing the stat that decides it", "would need to know its own answer",
 		function(g)
-			g.computed_tags.hurt = { stat = "hp", less_than = 1 }
+			g.computed_tags.hurt = { needs = { "hp@self < 1" } }
 			g.tag_defs.hurt      = { buffs = { hp = 1 } }
 		end },
 	-- named verbs and the auras that watch them
@@ -187,10 +187,14 @@ local CASES = {
 				covers = "self" } } }
 		end },
 	-- computed tags
-	{ "a computed tag that isn't a map", 'should be written like { "stat"',
+	{ "a computed tag that isn't a map", 'should be written like { "needs"',
 		function(g) g.computed_tags.ruined = 5 end },
-	{ "a computed tag reading a missing card stat", "reads the card stat 'durability'",
-		function(g) g.computed_tags.ruined = { stat = "durability", equals = "0" } end },
+	{ "a computed tag reading a missing card stat", "uses the stat 'durability'",
+		function(g) g.computed_tags.ruined = { needs = { "durability@self == 0" } } end },
+	{ "a computed tag still written as a struct", '"less_than" is gone',
+		function(g) g.computed_tags.ruined = { stat = "hp", less_than = 1 } end },
+	{ "a computed tag that says nothing at all", "says nothing",
+		function(g) g.computed_tags.ruined = {} end },
 	-- cards
 	{ "card tags that aren't a list", "tags should be a list",
 		function(g) g.card_defs.c_flee.tags = "keepsake" end },

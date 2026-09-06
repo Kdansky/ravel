@@ -41,14 +41,8 @@
   ],
   "computed_tags": {
     "<your name for it>": {
-      "stat": "the stat on the card that decides it, read from that card alone",
-      "less_than": "number: the tag holds while the stat is under it",
-      "less_than_stat": "another stat key on the same card: the tag holds while the first is under the second",
-      "less_than_max": "true: the tag holds while the stat is under its own declared maximum. This is \"damaged\", and it is what a card_stats ceiling makes expressible without a second stat standing in for it.",
-      "at_least": "number: the tag holds while the stat reaches it",
-      "equals": "number: the tag holds while the stat is exactly it",
-   "any_of": "list of tag names: the tag holds on a card wearing any one of them, which is how the format says \"or\" about kinds. A condition list is an \"and\" and a scope names one tag, so \"a CURSE or an ICE\" had nowhere to be written; naming the union once here gives the two cards something to be pointed at, and the name then works wherever a tag works \u2014 in a scope, in tagged:, in a count, in a target spec. Tag names only and never conditions: every tag question in the engine comes through one lookup, and a condition here would turn it into the recomputation problem auras are. A union that reaches itself is refused. Say this or a stat, never both.",
-   "all_of": "list of tag names: the tag holds on a card wearing every one of them. The intersection to any_of's union, and the two are never written on one entry \u2014 an \"and\" of \"or\"s is said by naming the middle of it (\"curse_or_ice\", then \"curse_or_ice_held\"), which reads as a sentence where a nested one does not."
+      "needs": ["conditions about one card, in the one grammar, all of which must hold: [\"hp@self < 1\"] is \"dead\". Every subject wants its @self \u2014 a bare stat means whoever is up, and this is asked about a particular card. It was six fields once (stat, less_than, less_than_stat, less_than_max, at_least, equals), which between them made a second comparison language with three operators, no \"greater than\" and no \"not equal\", beside the one everything else in the file is written in. Nothing says a stat's own declared ceiling: \"damaged\" wants a second stat holding the maximum, or a rule that does not ask."],
+      "any_of": "list of tag names: the tag holds on a card wearing any one of them, which is how the format says \"or\" about kinds. A condition list is an \"and\" and a scope names one tag, so \"a CURSE or an ICE\" had nowhere to be written; naming the union once here gives the two cards something to be pointed at, and the name then works wherever a tag works \u2014 in a scope, in tagged:, in a count, in a target spec. Tag names only: it is the one thing here a condition cannot say, which is why it is not one. Its opposite is not needed \u2014 \"every one of these\" is a list of tagged: conditions, and a list already means and. A union that reaches itself is refused. Say this or a needs, never both."
     }
   },
   "computes": [

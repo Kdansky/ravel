@@ -1807,14 +1807,14 @@ def build():
         # zone hands out a tag and a union may name those; the rest meet it in
         # the middle, which is how an "and" of "or"s is written without nesting.
         "computed_tags": {
-            "has_init": {"stat": "initiative", "at_least": 1},
+            "has_init": {"needs": ["initiative@self >= 1"]},
             "held": {"any_of": ["in_hand", "in_discard"]},
             "curse_or_ice": {"any_of": ["curse", "ice"]},
-            "curse_or_ice_held": {"all_of": ["curse_or_ice", "held"]},
-            "junk_held": {"all_of": ["junk", "held"]},
-            "ice_held": {"all_of": ["ice", "held"]},
-            "ash_held": {"all_of": ["ash", "held"]},
-            "curse_held": {"all_of": ["curse", "held"]},
+            "curse_or_ice_held": {"needs": ["tagged:curse_or_ice@self", "tagged:held@self"]},
+            "junk_held": {"needs": ["tagged:junk@self", "tagged:held@self"]},
+            "ice_held": {"needs": ["tagged:ice@self", "tagged:held@self"]},
+            "ash_held": {"needs": ["tagged:ash@self", "tagged:held@self"]},
+            "curse_held": {"needs": ["tagged:curse@self", "tagged:held@self"]},
         },
         "styles": {
             "ember": {"color": [0.62, 0.20, 0.16], "hide": ["title"]},

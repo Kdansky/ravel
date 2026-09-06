@@ -373,13 +373,13 @@ check("farm damaged to 1 hp", farm.stats.hp == 1)
 actions.execute("stat_gain:hp@target:9", { targets = { farm.id } })
 check("healing clamps at hp_max", farm.stats.hp == 3)
 
--- === castle: computed-tag targeting ===
+-- === castle: tag targeting ===
 actions.execute("stat_damage:hp@target:1", { targets = { farm.id } })
 eval("fill:hand:repair:1")
 local rep = find_card("repair", "hand")
 targeting.start(rep.id, cards.def(rep).target)
-check("damaged farm eligible for repair", targeting.is_eligible(farm.id))
-check("undamaged throne not eligible", not targeting.is_eligible(throne.id))
+check("a building is eligible for repair", targeting.is_eligible(farm.id))
+check("and so is the throne, which is one", targeting.is_eligible(throne.id))
 targeting.clear()
 actions.execute("stat_gain:hp@target:1", { targets = { farm.id } })
 
@@ -588,7 +588,7 @@ do
 	eval("stat_damage:hp@hero:5")
 	local hurt = blocks(throne_e.id)
 	check("a computed tag that is only true right now shows up as it becomes true",
-		hurt[2].stats.hp == 15 and table.concat(hurt[3].tags, " "):find("damaged"))
+		hurt[2].stats.hp == 15 and table.concat(hurt[3].tags, " "):find("standing"))
 
 	local zone_parts = blocks(zones.find_id("board"))
 	check("a zone dumps its own declaration and what is lying in it",

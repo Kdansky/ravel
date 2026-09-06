@@ -321,10 +321,7 @@
     { "key": "t_total", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
     { "key": "takes", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 }
   ],
-  "computed_tags": {
-    "noble_ready": { "stat": "ok", "at_least": 1 },
-    "has_gold": { "stat": "stock", "at_least": 1 }
-  },
+  "computed_tags": { "noble_ready": { "needs": ["ok@self >= 1"] }, "has_gold": { "needs": ["stock@self >= 1"] } },
   "tags": {
     "development": {
       "abilities": [

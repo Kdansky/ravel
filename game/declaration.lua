@@ -1286,7 +1286,7 @@ function M.parse(filename)
 		pp[#pp + 1] = "computed_tags: 'last_acted' is the engine's own word for the card a player"
 			.. " just touched, and the engine's meaning is the one that survives — pick another name"
 	end
-	G.computed_tags.last_acted = { stat = "last_acted", at_least = 1, injected = true }
+	G.computed_tags.last_acted = { needs = { "last_acted@self >= 1" }, injected = true }
 
 	-- A card with more than one ability needs something to *show* for each, and
 	-- the offer deals cards. So the engine writes one per ability: a menu entry,

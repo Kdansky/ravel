@@ -3,19 +3,20 @@ local declaration = require("declaration")
 
 local M = {}
 
--- A union asked about while it is being worked out. Cheaper than the validator's
--- cycle walk and not a substitute for it: this is the seatbelt, exactly as `busy`
--- is for buffs, so a bad file gets a defined answer instead of a stack that runs
--- out. Keyed on the tag rather than the card, because a union asks about one card
--- all the way down.
+-- A computed tag asked about while it is being worked out. Cheaper than the
+-- validator's cycle walk and not a substitute for it: this is the seatbelt,
+-- exactly as `busy` is for buffs, so a bad file gets a defined answer instead of
+-- a stack that runs out. Keyed on the tag rather than the card, because a tag
+-- asking about a tag asks about one card all the way down.
 local resolving = {}
 
 -- True if entity e has the given tag: one it was defined with, one the zone it
--- sits in grants ("applies"), or a computed one derived from its stats or from
--- the other tags it wears.
--- Where a card *is* can therefore decide what it is — bounded on purpose to a
--- fixed list declared on the zone, so this stays one lookup and never becomes
--- the recomputation problem that auras are.
+-- sits in grants ("applies"), or a computed one, whose condition is asked with
+-- this card as @self.
+-- Where a card *is* can therefore decide what it is — bounded on purpose to the
+-- tags a game declares, and to a fixed list on the zone. A computed tag's
+-- condition is worked out on every ask rather than stored, which is what keeps
+-- it honest: there is no cached answer to fall out of step with the card.
 function M.entity_has(e, tag)
     local G = declaration.G
     if e.kind == "card" then
@@ -28,6 +29,9 @@ function M.entity_has(e, tag)
     end
     local cd = G.computed_tags and G.computed_tags[tag]
     if not cd then return false end
+    if resolving[tag] then return false end
+    resolving[tag] = true
+    local worn
     -- **A union, which is how the format says "or" about kinds.** A condition
     -- list is an `and` and a scope names one tag, so "a CURSE or an ICE" had no
     -- spelling at all: the two cards have nothing in common to point at. Naming
@@ -35,52 +39,33 @@ function M.entity_has(e, tag)
     -- question in the engine comes through here, the name then works wherever a
     -- tag works: in a scope, in `tagged:`, in a count, in a target spec.
     --
-    -- Tags and not conditions, deliberately. This runs on every card of every
-    -- scope resolution, and a condition here would make what is one lookup into
-    -- the recomputation problem auras are. What a card *is* is a tag; what is
-    -- *true* of it is a condition, and they meet in `where`.
-    -- One entry, one combinator. An `and` of `or`s is written by naming the
-    -- middle of it -- "curse_or_ice", then "curse_or_ice_held" -- which is a
-    -- sentence a reader can follow and a nested one is not.
+    -- It is the only thing here that is not a condition, because it is the only
+    -- one a condition cannot say. Its counterpart went: "every one of these
+    -- tags" is a list of `tagged:` conditions, and a list already means and.
     if cd.any_of then
-        if resolving[tag] then return false end
-        resolving[tag] = true
-        local worn = false
+        worn = false
         for _, t in ipairs(cd.any_of) do
             if M.entity_has(e, t) then worn = true; break end
         end
-        resolving[tag] = nil
-        return worn
+    else
+        -- **The one condition grammar, asked about one card.** This used to be
+        -- six fields -- stat, less_than, less_than_stat, less_than_max, at_least
+        -- and equals -- which between them made a second comparison language
+        -- with three operators, no "greater than" and no "not equal", beside the
+        -- one the rest of the file is written in. "hp@self < 1" says it in the
+        -- words a needs, a route and an end condition already use.
+        --
+        -- Every subject wants its @self: a bare stat means the seat that is up,
+        -- and this is asked about a particular card. The card is the ctx, so
+        -- @self is it.
+        --
+        -- Required here rather than at the top of the file: predicate is built
+        -- on tags, so naming it up there would be a cycle. By the time anything
+        -- asks about a tag, both are loaded.
+        worn = require("predicate").meets_all(cd.needs, { card_id = e.id })
     end
-    if cd.all_of then
-        if resolving[tag] then return false end
-        resolving[tag] = true
-        local worn = true
-        for _, t in ipairs(cd.all_of) do
-            if not M.entity_has(e, t) then worn = false; break end
-        end
-        resolving[tag] = nil
-        return worn
-    end
-    local s = e.stats or {}
-    -- Nil is "this card has no such stat", which no amount of buffing invents;
-    -- the value it holds is then read through the buffs, so a card that is a
-    -- 2/2 because something says so is damaged at 1 and not at 2.
-    if s[cd.stat] == nil then return false end
-    local v = M.stat(e, cd.stat)
-    if cd.less_than      then return v < (tonumber(cd.less_than) or M.stat(e, cd.less_than)) end
-    -- Below its own ceiling: "damaged", the commonest computed tag there is.
-    -- It used to be written less_than_stat: hp_max, which only worked while a
-    -- maximum was a stat in its own right — the card carried a number called
-    -- hp_max that counting and spending could reach as readily as hp.
-    if cd.less_than_max then
-        local hi = M.stat_max(e, cd.stat)
-        return hi ~= nil and v < hi
-    end
-    if cd.less_than_stat then return v < (s[cd.less_than_stat] and M.stat(e, cd.less_than_stat) or 0) end
-    if cd.at_least       then return v >= (tonumber(cd.at_least) or 0) end
-    if cd.equals         then return v == (tonumber(cd.equals) or 0) end
-    return false
+    resolving[tag] = nil
+    return worn
 end
 
 -- **A tag may shift a stat, and the shift is never written down.** "elite" says

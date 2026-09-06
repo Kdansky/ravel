@@ -29,16 +29,17 @@ local GAME = [==[{
     { "key": "gold", "min": 0, "max": 99, "subject": "gold@mine.player" },
     { "key": "atk", "on": ["unit"], "start": 1, "min": 0 },
     { "key": "hp", "on": ["unit"], "start": 1, "min": 0, "max": 1 },
-    { "key": "price", "on": ["wares"], "start": 2, "min": 0 }
+    { "key": "price", "on": ["wares"], "start": 2, "min": 0 },
+    { "key": "wounds", "on": ["unit"], "start": 0, "min": 0 }
   ],
   "computed_tags": {
-    "damaged": { "stat": "hp", "less_than_max": true },
-    "dead": { "stat": "hp", "less_than": 1 }
+    "dead": { "needs": ["hp@self < 1"] },
+    "hurt": { "needs": ["wounds@self >= 1"] }
   },
   "tags": {
     "elite": { "buffs": { "atk": 1 } },
     "raging": { "buffs": { "atk": 3, "hp": 1 } },
-    "damaged": { "buffs": { "atk": 2 } },
+    "hurt": { "buffs": { "atk": 2 } },
     "marked_up": { "buffs": { "price": 5 } }
   },
   "zones": [
@@ -112,8 +113,7 @@ function M.test_buff_a_zone_grants_and_takes_it_back(check)
 end
 
 -- **The ceiling rises with the value.** Without this a 1/1 handed +1 hp would
--- be clamped straight back to 1 and the buff would be worth nothing — and
--- "damaged" would call a freshly buffed card hurt when it is at full strength.
+-- be clamped straight back to 1 and the buff would be worth nothing.
 function M.test_buff_lifts_the_ceiling_with_it(check)
 	with_game(function(name)
 		flow.init(name, 3)
@@ -121,10 +121,9 @@ function M.test_buff_lifts_the_ceiling_with_it(check)
 		zones.move_card(g.id, zones.find_id("ring"))
 		check("it is a 2 of 2", tags.stat(g, "hp") == 2 and tags.stat_max(g, "hp") == 2,
 			tags.stat(g, "hp") .. "/" .. tostring(tags.stat_max(g, "hp")))
-		check("and is not damaged", not tags.entity_has(g, "damaged"))
-		actions.execute("stat_damage:hp@self:1", { card_id = g.id })
-		check("hurt once it is a 1 of 2", tags.stat(g, "hp") == 1, tags.stat(g, "hp"))
-		check("and now it is damaged", tags.entity_has(g, "damaged"))
+		actions.execute("stat_gain:hp@self:5", { card_id = g.id })
+		check("healing clamps at the lifted ceiling, not the printed one",
+			tags.stat(g, "hp") == 2, tags.stat(g, "hp"))
 	end)
 end
 
@@ -164,7 +163,7 @@ function M.test_buff_a_computed_tag_may_carry_one(check)
 		flow.init(name, 3)
 		local c = find("champ")
 		check("unhurt, the elite is a 2", tags.stat(c, "atk") == 2, tags.stat(c, "atk"))
-		actions.execute("stat_damage:hp@self:1", { card_id = c.id })
+		actions.execute("stat_gain:wounds@self:1", { card_id = c.id })
 		check("hurt, it is a 4", tags.stat(c, "atk") == 4, tags.stat(c, "atk"))
 		check("having never been written to", c.stats.atk == 1, c.stats.atk)
 	end)

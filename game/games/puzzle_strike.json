@@ -157,11 +157,11 @@
     "button": { "fit": "fill" }
   },
   "computed_tags": {
-    "spent": { "stat": "stock", "less_than": 1 },
-    "discounted": { "stat": "on_sale", "at_least": 1 },
-    "dear": { "stat": "price", "at_least": 2 },
+    "spent": { "needs": ["stock@self < 1"] },
+    "discounted": { "needs": ["on_sale@self >= 1"] },
+    "dear": { "needs": ["price@self >= 2"] },
     "stowed": { "any_of": ["in_bag", "in_discard"] },
-    "character_stowed": { "all_of": ["character", "stowed"] }
+    "character_stowed": { "needs": ["tagged:character@self", "tagged:stowed@self"] }
   },
   "tags": {
     "red": { "emits": { "play": "attack" } },

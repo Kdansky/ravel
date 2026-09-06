@@ -450,10 +450,10 @@ def build():
            for k in SCRATCH if k not in ("suit", "value")],
         "computes": COMPUTES,
         "computed_tags": {
-            "commander": {"stat": "has_r4", "at_least": 1},
+            "commander": {"needs": ["has_r4@self >= 1"]},
             # The one card in the trick that fell short of the best by nothing.
-            "taker": {"stat": "gap", "equals": 0},
-            "hit_now": {"stat": "hit", "at_least": 1},
+            "taker": {"needs": ["gap@self == 0"]},
+            "hit_now": {"needs": ["hit@self >= 1"]},
         },
         "tags": {
             # The whole of follow-suit, said once for all forty cards. Leading,

@@ -23,7 +23,6 @@ local GAME = [==[{
     { "key": "grit", "min": 0, "max": 9, "tags": ["hidden"] }
   ],
   "computed_tags": {
-    "damaged": { "stat": "hp", "less_than_max": true }
   },
   "zones": [
     { "key": "board", "layout": "grid", "use": "abilities", "grid": [5, 1], "pos": [0.2, 0.1, 0.9, 0.4] },
@@ -172,21 +171,6 @@ function M.test_stats_set_is_the_way_past_every_bound(check)
 		-- is an authoring tool and not a rule.
 		on(e, "stat_gain:hp@self:0")
 		check("the next ordinary change pulls it back in", e.stats.hp == 6, tostring(e.stats.hp))
-	end)
-end
-
--- "damaged" is the commonest computed tag there is, and it used to be written
--- less_than_stat: hp_max — which only worked while a ceiling was a stat.
-function M.test_stats_a_tag_can_read_a_cards_own_ceiling(check)
-	with_game(function(name)
-		flow.init(name, 1)
-		local e = card("capped")
-		local tags = require("tags")
-		check("a card below its ceiling is damaged", tags.entity_has(e, "damaged"))
-		on(e, "stat_gain:hp@self:2")
-		check("and one filled to it is not", tags.entity_has(e, "damaged") == false)
-		check("a card with no ceiling can never be damaged",
-			tags.entity_has(card("plain"), "damaged") == false)
 	end)
 end
 

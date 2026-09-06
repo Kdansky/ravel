@@ -2248,21 +2248,21 @@ def build():
         "styles": styles(),
         # A stack nobody can buy from any more is what drives the ante up, and
         # it is the plate's own number read as a word.
-        "computed_tags": {"spent": {"stat": "stock", "less_than": 1},
+        "computed_tags": {"spent": {"needs": ["stock@self < 1"]},
                           # Marked by the sale, and so a coin cheaper.
-                          "discounted": {"stat": "on_sale", "at_least": 1},
+                          "discounted": {"needs": ["on_sale@self >= 1"]},
                           # Chips that can afford to lose one. This is the whole
                           # of "to a minimum of 1": it is asked once, against the
                           # printed price, before any of them is cheaper — which
                           # is also why the sale marks the stacks rather than the
                           # discount reading the price it changes.
-                          "dear": {"stat": "price", "at_least": 2},
+                          "dear": {"needs": ["price@self >= 2"]},
                           # Your deck as it is not in your hand, which is the
                           # half of it a search reaches. The two names come off
                           # the zones themselves (see `applies` there), so no
                           # chip declares either and both stay true as it cycles.
                           "stowed": {"any_of": ["in_bag", "in_discard"]},
-                          "character_stowed": {"all_of": ["character", "stowed"]}},
+                          "character_stowed": {"needs": ["tagged:character@self", "tagged:stowed@self"]}},
         # Two words the whole game answers to, said once each rather than on
         # ninety chips. A red chip announces an attack when it is played, so a
         # shield names "attack" and never has to list what might carry one; the

@@ -72,9 +72,9 @@
     }
   ],
   "computed_tags": {
-    "commander": { "stat": "has_r4", "at_least": 1 },
-    "taker": { "stat": "gap", "equals": 0 },
-    "hit_now": { "stat": "hit", "at_least": 1 }
+    "commander": { "needs": ["has_r4@self >= 1"] },
+    "taker": { "needs": ["gap@self == 0"] },
+    "hit_now": { "needs": ["hit@self >= 1"] }
   },
   "tags": {
     "play_card": {

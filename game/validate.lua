@@ -220,7 +220,9 @@ local TAG_FIELDS      = { zone = true, tooltip = true, play = true,
 -- Words that were the format's and are not. Each has a message of its own,
 -- said where the entry still is, so the generic "the engine doesn't read this"
 -- does not drown it out.
-local RETIRED       = { activate = true, ends_after = true, zone_empty = true }
+local RETIRED       = { activate = true, ends_after = true, zone_empty = true,
+	stat = true, less_than = true, less_than_stat = true, less_than_max = true,
+	at_least = true, equals = true, all_of = true }
 
 local VERB_FIELDS   = { key = true, does = true, tooltip = true }
 local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, needs = true, by = true }
@@ -264,8 +266,15 @@ local ROUTE_FIELDS    = { when = true, ["then"] = true, ends_round = true, seat 
 -- answers by Splendor and by The Crew.
 local ROUTE_SEATS     = { next = true, same = true }
 local END_FIELDS      = { when = true, ["then"] = true, fired = true }
-local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_than_stat = true,
-	at_least = true, equals = true, less_than_max = true, any_of = true, all_of = true }
+-- A computed tag is a condition about one card, plus the one thing a condition
+-- cannot say: a union of kinds. It used to be six comparison fields, which was a
+-- second comparison language with three operators, no "greater than" and no
+-- "not equal", beside the one everything else is written in.
+local COMPUTED_FIELDS = { needs = true, any_of = true, injected = true }
+local COMPUTED_RETIRED = { stat = "the stat now names itself in the condition",
+	less_than = "<", less_than_stat = "<", at_least = ">=", equals = "==",
+	less_than_max = "gone: nothing says a stat's own ceiling",
+	all_of = 'a list of "tagged:" conditions, since a list already means and' }
 -- The assets table: named pictures, and the only place a picture carries
 -- options. Everything a card's `asset` can spell out inline is legal as a `src`
 -- here too, so the source is checked by the same rules.
@@ -953,6 +962,36 @@ function M.check(G)
 	-- slot after them and are checked there, so here they only have to be let
 	-- through.
 	local AMOUNT_FNS = { count = true, card = true, sum = true, max = true, min = true }
+
+	-- What a computed tag's rule reads: the tags it can reach and the stats it
+	-- compares. Both cycle walks below follow it — one for a tag that combines
+	-- its way back to itself, one for a buff that shifts the number deciding
+	-- whether its own tag holds. They used to read cd.stat and cd.any_of
+	-- straight off the entry, which only worked while a computed tag was a
+	-- little struct rather than a condition.
+	local function computed_reads(cd)
+		local tags_read, stats_read = {}, {}
+		if type(cd) ~= "table" then return tags_read, stats_read end
+		for _, t in ipairs(type(cd.any_of) == "table" and cd.any_of or {}) do
+			tags_read[#tags_read + 1] = t
+		end
+		local list = cd.needs
+		if type(list) == "string" then list = { list } end
+		for _, str in ipairs(type(list) == "table" and list or {}) do
+			local c = predicate.parse_condition(str)
+			for _, side in ipairs({ c and c.left, c and c.right }) do
+				local p = side and side.subject
+				if p and p.arg then
+					if p.fn == nil or p.fn == "sum" or p.fn == "max" or p.fn == "min" then
+						stats_read[#stats_read + 1] = p.arg
+					else
+						tags_read[#tags_read + 1] = p.arg
+					end
+				end
+			end
+		end
+		return tags_read, stats_read
+	end
 
 	local function amount_ok(a)
 		return tonumber(a) ~= nil or AMOUNT_FNS[a] or (G.compute_defs or {})[a] ~= nil
@@ -1715,11 +1754,13 @@ function M.check(G)
 	do
 		local reads = {}
 		for tag, td in pairs(tag_defs) do
-			local cd = G.computed_tags[tag]
-			if cd and cd.stat and type(td) == "table" and type(td.buffs) == "table" then
+			local _, stats = computed_reads(G.computed_tags[tag])
+			if type(td) == "table" and type(td.buffs) == "table" then
 				for stat in pairs(td.buffs) do
-					reads[stat] = reads[stat] or {}
-					reads[stat][#reads[stat] + 1] = { tag = tag, stat = cd.stat }
+					for _, read in ipairs(stats) do
+						reads[stat] = reads[stat] or {}
+						reads[stat][#reads[stat] + 1] = { tag = tag, stat = read }
+					end
 				end
 			end
 		end
@@ -1917,36 +1958,33 @@ function M.check(G)
 			-- The engine's own, over a stat the engine writes: no card declares
 			-- it and none should.
 		elseif type(def) ~= "table" then
-			warn('%s: should be written like { "stat": "hp", "equals": "0" }', where)
+			warn('%s: should be written like { "needs": ["hp@self < 1"] }', where)
 		else
-			check_fields(where, def, COMPUTED_FIELDS)
-			if def.stat and not card_stats[def.stat]
-				and not (has_supply and SUPPLY_STATS[def.stat]) then
-				warn("%s: reads the card stat '%s', but no card carries it%s",
-					where, tostring(def.stat), suggest(def.stat, card_stats))
+			local retired = false
+			for old, hint in pairs(COMPUTED_RETIRED) do
+				if def[old] ~= nil then
+					retired = true
+					warn('%s: "%s" is gone — a computed tag is an ordinary condition about'
+						.. ' one card now, so say it as one (%s)', where, old, hint)
+				end
 			end
-			-- A union: worn by a card wearing any of the tags it names. Tags and
-			-- not conditions, so a card's kinds are what it unions -- what is
-			-- *true* of a card is a condition and belongs in a "where".
-			local combinator = def.any_of ~= nil and "any_of" or def.all_of ~= nil and "all_of"
-			if combinator then
-				if def.stat ~= nil then
-					warn("%s: says both \"stat\" and \"%s\" — a computed tag is worked out "
-						.. "one way, from a number or from other tags", where, combinator)
+			check_fields(where, def, COMPUTED_FIELDS)
+			-- A union: worn by a card wearing any of the tags it names. The one
+			-- thing a condition cannot say, since a list of them means "and" and
+			-- a scope names one tag -- so "a CURSE or an ICE" has nowhere else
+			-- to be written.
+			if def.any_of ~= nil then
+				if def.needs ~= nil then
+					warn('%s: says both "needs" and "any_of" — a computed tag is worked out'
+						.. ' one way, from a condition or from a union of kinds', where)
 				end
-				-- One entry, one combinator: an "and" of "or"s is written by
-				-- naming the middle of it, which reads and does not nest.
-				if def.any_of ~= nil and def.all_of ~= nil then
-					warn('%s: says both "any_of" and "all_of" — name the inner one and '
-						.. 'union that, so each entry is one word', where)
-				end
-				local list = def[combinator]
+				local list = def.any_of
 				if type(list) ~= "table" or #list == 0 then
-					warn('%s: "%s" is a list of tag names, like ["curse", "ice"]', where, combinator)
+					warn('%s: "any_of" is a list of tag names, like ["curse", "ice"]', where)
 				end
 				for _, t in ipairs(type(list) == "table" and list or {}) do
 					if type(t) ~= "string" then
-						warn('%s: "%s" holds something that is not a tag name', where, combinator)
+						warn('%s: "any_of" holds something that is not a tag name', where)
 					elseif t == tag then
 						warn("%s: names itself, so it can never be worked out", where)
 					elseif not known_tags[t] then
@@ -1954,6 +1992,15 @@ function M.check(G)
 							where, tostring(t), suggest(t, known_tags))
 					end
 				end
+			elseif def.needs == nil then
+				-- Said only where nothing else explains the silence: an entry
+				-- still written the old way has already been told what to write.
+				if not retired then
+					warn('%s: says nothing — a computed tag needs a condition, like'
+						.. ' { "needs": ["hp@self < 1"] }', where)
+				end
+			else
+				check_conditions(where .. " needs", def.needs)
 			end
 		end
 	end
@@ -1972,9 +2019,8 @@ function M.check(G)
 				return
 			end
 			state[tag] = "open"
-			local def = G.computed_tags[tag]
-			local list = type(def) == "table" and (def.any_of or def.all_of) or nil
-			for _, t in ipairs(type(list) == "table" and list or {}) do
+			local list = computed_reads(G.computed_tags[tag])
+			for _, t in ipairs(list) do
 				if G.computed_tags[t] then
 					trail[#trail + 1] = tostring(t)
 					walk(t, trail)

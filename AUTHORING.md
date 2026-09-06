@@ -2282,7 +2282,7 @@ colours: the first seat advances toward row 1 and the rest advance away from it.
 A piece on a square also carries `col`, `row` and `rank` as stats (declare them
 in `card_stats` to opt in) — `rank` counts from the piece's *owner's* side, which
 is why "home rank" is 2 for both colours above, and why promotion is one
-computed tag: `{ "promoting": { "stat": "rank", "at_least": 8 } }`.
+computed tag: `{ "promoting": { "needs": ["rank@self >= 8"] } }`.
 
 ### `across` and `beside` — pointing at the other cards
 
@@ -3448,7 +3448,7 @@ when a card and its zone both define one behaviour.
 **A style may be a computed tag, and then the look follows the numbers:**
 
 ```json
-"computed_tags": { "wounded": { "stat": "hp", "less_than": 3 } },
+"computed_tags": { "wounded": { "needs": ["hp@self < 3"] } },
 "styles":        { "wounded": { "color": [0.8, 0.1, 0.1] } }
 ```
 
@@ -3546,16 +3546,26 @@ costs no white, a noble that needs no green.
 
 ### Computed tags
 
-Per-card derived tags from that card's own stats:
+Per-card derived tags, written as an ordinary condition about that one card:
 
 ```json
-"computed_tags": { "damaged":  { "stat": "hp", "less_than_max": true },
-                   "standing": { "stat": "hp", "at_least": 1 } }
+"computed_tags": { "standing": { "needs": ["hp@self >= 1"] },
+                   "dead":     { "needs": ["hp@self < 1"] } }
 ```
 
-Comparators: `less_than`, `less_than_stat`, `less_than_max`, `at_least`, `equals`. Usable
-anywhere card tags are (targeting, `count:`, and as a scope — castle reads
-`sum:defense@standing` so rubble stops defending).
+**Every subject wants its `@self`.** A bare stat means whoever is up, and this is
+asked about a particular card — the card is what `@self` names here.
+
+Usable anywhere card tags are (targeting, `count:`, and as a scope — castle reads
+`sum:defense@standing` so rubble stops defending). It was six fields once —
+`stat`, `less_than`, `less_than_stat`, `less_than_max`, `at_least`, `equals` —
+which between them made a second comparison language with three operators, no
+*greater than* and no *not equal*, beside the one everything else in the file is
+written in.
+
+One thing went with them and did not come back: nothing says a stat's own
+declared ceiling, so *damaged* wants a second stat holding the maximum, or a rule
+that does not ask.
 
 **`any_of` — a union, which is how the format says "or" about kinds.** A
 condition list is an `and` and a scope names one tag, so *a CURSE or an ICE* had
@@ -3572,12 +3582,12 @@ show:mine.discard.curse_or_ice        offer only those
 count:curse_or_ice@enemy.discard
 ```
 
-**Tag names only, never conditions.** Every tag question in the engine comes
-through one lookup, run on every card of every scope resolution; a condition here
-would turn that into the recomputation problem auras are. What a card *is* is a
-tag; what is *true* of it is a condition, and the two meet in a `where`. A union
-that reaches itself is refused, and one entry says `any_of` or `stat`, never
-both.
+**Tag names only, and it is the one thing here that is not a condition** —
+because it is the one thing a condition cannot say. A list of conditions means
+*and*, and a scope names one tag. Its opposite is not needed: *every one of
+these* is a list of `tagged:` conditions, which is what a list already means.
+A union that reaches itself is refused, and one entry says `any_of` or `needs`,
+never both.
 
 **A union of places, too**, because a zone can hand out a tag (`applies`) and a
 union can name those. Two zones say what they are, one tag says either:
@@ -3594,12 +3604,6 @@ show:mine.everywhere.held_or_binned:optional
 
 `everywhere` rather than a zone key, because the cards are in two places at once
 and no single zone name covers them — see below.
-
-**This is the one place the struct spelling survives, and it is a different
-question.** A condition asks about a *scope*; a computed tag is asked of one
-card, per frame, and reaches things no subject can name — `less_than_max` reads
-that card's own ceiling. Until a subject can say "this card's ceiling", folding
-the two together would cost more than the second vocabulary does.
 
 ### Tags with behaviour
 
@@ -3685,7 +3689,7 @@ that is wrong.
 ```
 "tags": { "elite": ... }                  what a card IS      a printed keyword
 "applies": ["raging"]  (on a zone)        where it STANDS     "+3 while in the arena"
-"computed_tags": { "damaged": ... }       how it is DOING     "+2 while damaged"
+"computed_tags": { "hurt": ... }          how it is DOING     "+2 while hurt"
 ```
 
 The last is the single exception to the rule that a computed tag carries no
@@ -3694,8 +3698,8 @@ same as a style is — and there is no card for the behaviour version to belong
 to. So a computed tag may write `buffs` and nothing else:
 
 ```json
-"computed_tags": { "damaged": { "stat": "hp", "less_than_max": true } },
-"tags":          { "damaged": { "buffs": { "atk": 2 } } }
+"computed_tags": { "hurt": { "needs": ["hp@self < 3"] } },
+"tags":          { "hurt": { "buffs": { "atk": 2 } } }
 ```
 
 **The ceiling rises with the value; the floor stays.** Both ends matter and they

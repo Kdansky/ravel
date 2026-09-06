@@ -612,8 +612,8 @@ def build(here):
         "computed_tags": {
             # Both are yes/no questions asked as a number, so an amount can
             # multiply by them: the engine has no branch and needs none.
-            "noble_ready": {"stat": "ok", "at_least": 1},
-            "has_gold": {"stat": "stock", "at_least": 1},
+            "noble_ready": {"needs": ["ok@self >= 1"]},
+            "has_gold": {"needs": ["stock@self >= 1"]},
         },
         "tags": {
             # The ability is never clicked: neither zone is tagged "activate",

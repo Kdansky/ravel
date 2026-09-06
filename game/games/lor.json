@@ -30,8 +30,8 @@
     }
   ],
   "computed_tags": {
-    "dead": { "stat": "health", "less_than": 1 },
-    "passed": { "stat": "passed", "at_least": 1 }
+    "dead": { "needs": ["health@self < 1"] },
+    "passed": { "needs": ["passed@self >= 1"] }
   },
   "computes": [
     {

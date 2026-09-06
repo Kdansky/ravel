@@ -17,8 +17,7 @@
     { "key": "food", "label": "Food", "icon": "leaf", "min": 0, "max": 999 }
   ],
   "computed_tags": {
-    "damaged": { "stat": "hp", "less_than_max": true },
-    "standing": { "stat": "hp", "at_least": 1 }
+    "standing": { "needs": ["hp@self >= 1"] }
   },
   "styles": { "slate": { "color": [0.1, 0.14, 0.22] }, "tiled": { "fit": "fill" } },
   "setup": { "place": [{ "card": "throne_room", "zone": "board", "at": "c3" }] },
@@ -79,14 +78,14 @@
       "key": "repair",
       "text": "Repair Crew",
       "asset": "blacksmith_forge.jpg",
-      "tooltip": "Restore 2 HP to a damaged building.",
+      "tooltip": "Restore 2 HP to a building.",
       "play": {
         "cost": { "gold": 1 },
         "target": {
           "type": "card",
           "min": 0,
           "max": 1,
-          "tags": ["building", "damaged"],
+          "tags": ["building"],
           "zones": ["board"]
         },
         "action": ["stat_gain:hp@target:2", "move_to:graveyard"]

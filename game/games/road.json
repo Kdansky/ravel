@@ -11,7 +11,7 @@
     "unit": { "zone": "battlefield", "play": { "action": ["move_to"] } },
     "item": { "zone": "inventory", "play": { "action": ["move_to"] } }
   },
-  "computed_tags": { "slain": { "stat": "hp", "equals": "0" } },
+  "computed_tags": { "slain": { "needs": ["hp@self == 0"] } },
   "effects": {
     "sabre_hit": { "base": "damage" },
     "wolf_bite": { "base": "bleed", "size": 1.2 },

@@ -193,15 +193,15 @@
     }
   ],
   "computed_tags": {
-    "dead": { "stat": "hp", "less_than": 1 },
-    "fallen": { "stat": "life", "less_than": 1 },
-    "rubble": { "stat": "integrity", "less_than": 1 },
-    "slain": { "stat": "left", "less_than": 1 },
-    "at_lead": { "stat": "slot", "equals": 1 },
-    "at_elite": { "stat": "slot", "equals": 2 },
-    "at_scav": { "stat": "slot", "equals": 3 },
-    "at_tech": { "stat": "slot", "equals": 4 },
-    "marked": { "stat": "mark", "at_least": 1 }
+    "dead": { "needs": ["hp@self < 1"] },
+    "fallen": { "needs": ["life@self < 1"] },
+    "rubble": { "needs": ["integrity@self < 1"] },
+    "slain": { "needs": ["left@self < 1"] },
+    "at_lead": { "needs": ["slot@self == 1"] },
+    "at_elite": { "needs": ["slot@self == 2"] },
+    "at_scav": { "needs": ["slot@self == 3"] },
+    "at_tech": { "needs": ["slot@self == 4"] },
+    "marked": { "needs": ["mark@self >= 1"] }
   },
   "patterns": {
     "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] },

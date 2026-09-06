@@ -41,7 +41,7 @@ local GAME = [==[{
   "computed_tags": {
     "junk": { "any_of": ["curse", "ice"] },
     "held_or_binned": { "any_of": ["in_hand", "in_discard"] },
-    "junk_held": { "all_of": ["junk", "held_or_binned"] }
+    "junk_held": { "needs": ["tagged:junk@self", "tagged:held_or_binned@self"] }
   },
   "cards": [
     { "key": "one", "text": "One", "tags": ["seat_one"] },
@@ -191,9 +191,9 @@ function M.test_tag_union_refuses_the_shapes_that_cannot_settle(check)
 		G.computed_tags.junk = { any_of = { "curse", "nosuchtag" } }
 		check("a union of a tag nothing carries is a typo", says("nosuchtag"))
 
-		G.computed_tags.junk = { any_of = { "curse" }, stat = "hp" }
-		check("a union that is also a stat is two answers to one word",
-			says("one way, from a number or from other tags"))
+		G.computed_tags.junk = { any_of = { "curse" }, needs = { "hp@self < 1" } }
+		check("a union that is also a condition is two answers to one word",
+			says("one way, from a condition or from a union of kinds"))
 
 		G.computed_tags.junk = { any_of = { "held_or_binned" } }
 		G.computed_tags.held_or_binned = { any_of = { "junk" } }
