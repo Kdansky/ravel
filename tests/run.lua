@@ -1384,9 +1384,11 @@ check("target reaches the chosen cards",
 	== two[1].stats.hp + two[2].stats.hp)
 
 -- === the player is a card ===
--- There is no player entity. A game that says nothing gets an invisible card
--- injected from setup.player; one that wants a visible hero tags it. Either
--- way a bare subject and a bare write land on the same card.
+-- There is no player entity. A game that says nothing gets a card injected
+-- from setup.player; one that wants a visible hero tags it, and demo gives
+-- its own a "to_zone" so a player can find and hover it — the validator
+-- requires that of every seat now. Either way a bare subject and a bare
+-- write land on the same card.
 flow.init("demo.json", 1)
 local kinds = {}
 for e in entity.each() do kinds[e.kind] = true end
@@ -1394,8 +1396,8 @@ check("entity kinds are zone, slot and card — nothing else",
 	kinds.zone and kinds.slot and kinds.card and kinds.player == nil)
 
 local you = find_card("player")
-check("setup.player became a card in the hidden system zone",
-	you ~= nil and entity.get(you.zone_id).key == "system")
+check("setup.player became a card in its own visible zone",
+	you ~= nil and entity.get(you.zone_id).key == "seat_box")
 check("a bare read resolves to that card", predicate.total("hp") == you.stats.hp)
 local hp_you = you.stats.hp
 eval("stat_damage:hp:1")
@@ -1456,7 +1458,7 @@ play_fixture([[{
       "pos": [0.0, 0.0, 0.8, 0.5],
       "grid": [4, 1]
     },
-    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.97, 0.97] }
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.81, 0.97] }
   ],
   "phases": [{ "key": "adventuring", "type": "player_input", "label": "Adventuring" }],
   "setup": {
@@ -1546,7 +1548,9 @@ play_fixture([==[{
       "copies": "per_seat",
       "pos": [[0.19, 0.62, 0.97, 0.78], [0.19, 0.8, 0.97, 0.97]]
     },
-    { "key": "commons", "layout": "grid", "pos": [0.62, 0.05, 0.98, 0.3], "grid": [2, 1] }
+    { "key": "commons", "layout": "grid", "pos": [0.62, 0.05, 0.98, 0.3], "grid": [2, 1] },
+    { "key": "seat_box_north", "layout": "stack", "status": "board", "pos": [0.0, 0.62, 0.17, 0.78] },
+    { "key": "seat_box_south", "layout": "stack", "status": "board", "pos": [0.0, 0.8, 0.17, 0.97] }
   ],
   "phases": [
     { "key": "north_turn", "type": "player_input", "label": "North", "seat": "next" },
@@ -1554,8 +1558,8 @@ play_fixture([==[{
   ],
   "players": [{ "card": "north" }, { "card": "south" }],
   "cards": [
-    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "gold": 5 } },
-    { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "gold": 2 } },
+    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "gold": 5 }, "to_zone": "seat_box_north" },
+    { "key": "south", "text": "South", "tags": ["south_side"], "card_stats": { "gold": 2 }, "to_zone": "seat_box_south" },
     { "key": "wolf", "text": "Wolf", "tags": ["creature"], "card_stats": { "hp": 3 },
       "play": { "action": ["ready:self"] } },
     { "key": "statue", "text": "Statue", "tags": ["creature"], "card_stats": { "hp": 9 } },
@@ -1574,7 +1578,7 @@ play_fixture([==[{
 check("a two-seat fixture validates clean", #validate.check(declaration.G) == 0)
 check("both seats exist, neither on a board",
 	find_card("north") ~= nil and find_card("south") ~= nil
-	and entity.get(find_card("north").zone_id).key == "system")
+	and entity.get(find_card("north").zone_id).key == "seat_box_north")
 -- A seat is addressable two ways: by an ordinary tag it carries, and by the
 -- owner words — which reach it even though it sits in a shared zone, because a
 -- seat card is its own seat.
@@ -1676,7 +1680,9 @@ play_fixture([==[{
       "pos": [0.02, 0.05, 0.6, 0.6]
     },
     { "key": "taken", "layout": "stack", "pos": [0.62, 0.05, 0.98, 0.4] },
-    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.97, 0.97] }
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.81, 0.97] },
+    { "key": "seat_box_white", "layout": "stack", "status": "board", "pos": [0.62, 0.42, 0.79, 0.6] },
+    { "key": "seat_box_black", "layout": "stack", "status": "board", "pos": [0.81, 0.42, 0.98, 0.6] }
   ],
   "phases": [{ "key": "battle", "type": "player_input", "label": "Battle" }],
   "setup": {
@@ -1688,8 +1694,8 @@ play_fixture([==[{
   },
   "players": [{ "card": "player_white" }, { "card": "player_black" }],
   "cards": [
-    { "key": "player_white", "text": "White" },
-    { "key": "player_black", "text": "Black" },
+    { "key": "player_white", "text": "White", "to_zone": "seat_box_white" },
+    { "key": "player_black", "text": "Black", "to_zone": "seat_box_black" },
     {
       "key": "w_rook",
       "text": "White Rook",
@@ -1804,7 +1810,7 @@ play_fixture([==[{
         [0.32, 0.32, 0.6, 0.57]
       ]
     },
-    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.97, 0.97] }
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.81, 0.97] }
   ],
   "phases": [{ "key": "turn", "type": "player_input", "label": "Turn" }],
   "players": [{ "card": "p1" }, { "card": "p2" }, { "card": "p3" }, { "card": "p4" }],

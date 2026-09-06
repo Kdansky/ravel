@@ -31,9 +31,10 @@
       "tags": ["optional"],
       "pos": [0.36, 0.83, 0.64, 0.99],
       "contents": ["m_continue", "m_join", "m_open"]
-    }
+    },
+    { "key": "seat_box", "layout": "stack", "status": "board", "pos": [0.0, 0.05, 0.05, 0.25] }
   ],
-  "players": [{}],
+  "players": [{ "to_zone": "seat_box" }],
   "cards": [
     {
       "key": "play_arnak",

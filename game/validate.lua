@@ -15,6 +15,10 @@ local label     = require("label")        -- the {name} a caption may carry
 -- load time instead of only in the console when the fetch is refused. Shared
 -- rather than copied: a security rule kept in two files is the one that drifts.
 local url_is_safe = require("cards").url_is_safe
+-- home_zone only: resolving a seat's place the same way the engine does, so
+-- the check below asks the one question that matters rather than reading
+-- to_zone and a tag's own zone as two separate rules.
+local home_zone    = require("cards").home_zone
 -- art.parse is pure (no love, no state) for exactly this: a typo in a shape
 -- spec is caught at load time rather than as a blank card at play time.
 local art         = require("art")
@@ -289,7 +293,7 @@ local PATTERN_FIELDS  = { vectors = true, class = true, zone = true }
 local SETUP_FIELDS = { place = true }
 local PLACE_FIELDS = { card = true, zone = true, at = true, owner = true }
 local MOVE_RULE_FIELDS = { patterns = true, fill = true, needs = true, where = true }
-local PLAYER_FIELDS = { card = true, stats = true, text = true }
+local PLAYER_FIELDS = { card = true, stats = true, text = true, to_zone = true }
 -- A value names its own parameter field, so every word on every one of the seven
 -- is reserved: "layout": "grid" is what makes "grid" a legal field, and a
 -- parameter whose value was not chosen is a zone that thinks it is two shapes.
@@ -547,6 +551,31 @@ function M.check(G)
 		local sd = G.card_defs[key]
 		for k in pairs(type(sd) == "table" and type(sd.card_stats) == "table" and sd.card_stats or {}) do
 			player_stats[k] = true
+		end
+	end
+
+	-- A seat is a card a player can hover to read their own numbers, and that
+	-- only works if it is somewhere on screen. Left at the engine's own default
+	-- it lands in the offscreen "system" zone with the round counter, same as
+	-- solitaire's invisible stat bag — fine for a game with one silent seat,
+	-- wrong for anyone meant to be seen.
+	--
+	-- Resolved the way flow.lua actually places it (setup_place's own "zone"
+	-- first, matching flow.lua:584), not by reading to_zone directly: the seat
+	-- loop above stamps to_zone = "system" onto every seat with no home of its
+	-- own before this runs, even one an explicit setup.place entry is about to
+	-- put down somewhere else — castle's throne_room is exactly that case.
+	for _, key in ipairs(G.seat_list or {}) do
+		local sd    = G.card_defs[key]
+		local placed
+		for _, e in ipairs(G.setup_place or {}) do
+			if e.card == key then placed = e.zone; break end
+		end
+		local home = placed or (sd and sd.to_zone) or (sd and home_zone(sd))
+		local zd   = home and G.zone_defs[home]
+		if not zd or zd.display == "offscreen" then
+			warn('seat \'%s\' has no visible home — give it "to_zone" (or setup.place a "zone") '
+				.. "naming a zone on screen, so a player can see and hover their own card", key)
 		end
 	end
 
@@ -2353,12 +2382,12 @@ function M.check(G)
 		else
 			check_numbers(where, "pos", def.pos, 4)
 		end
-		-- The lower-left corner belongs to the undo button and event log.
+		-- The lower-right corner belongs to the undo button and event log.
 		if type(def.pos) == "table" and #def.pos == 4
-			and type(def.pos[1]) == "number" and type(def.pos[4]) == "number"
+			and type(def.pos[3]) == "number" and type(def.pos[4]) == "number"
 			and def.display ~= "offscreen"
-			and def.pos[1] < 0.17 and def.pos[4] > 0.82 then
-			warn("%s: covers the lower-left corner where the undo button and event log live — start it at x 0.19 or higher", where)
+			and def.pos[3] > 0.83 and def.pos[4] > 0.82 then
+			warn("%s: covers the lower-right corner where the undo button and event log live — end it at x 0.81 or lower", where)
 		end
 		if def.layout == "grid" then
 			if def.grid == nil then

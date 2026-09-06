@@ -31,7 +31,9 @@ local GAME = [==[{
       "applies": ["in_discard"], "pos": [[0.2, 0.05, 0.1, 0.2], [0.7, 0.05, 0.1, 0.2]] },
     { "key": "table", "layout": "grid", "grid": [2, 1], "status": "board",
       "pos": [0.35, 0.28, 0.3, 0.1] },
-    { "key": "bin", "layout": "stack", "display": "offscreen", "use": "none" }
+    { "key": "bin", "layout": "stack", "display": "offscreen", "use": "none" },
+    { "key": "seat_box_one", "layout": "stack", "status": "board", "pos": [0.02, 0.85, 0.16, 0.99] },
+    { "key": "seat_box_two", "layout": "stack", "status": "board", "pos": [0.02, 0.7, 0.16, 0.84] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }],
@@ -42,8 +44,8 @@ local GAME = [==[{
     "junk_held": { "all_of": ["junk", "held_or_binned"] }
   },
   "cards": [
-    { "key": "one", "text": "One", "tags": ["seat_one"] },
-    { "key": "two", "text": "Two", "tags": ["seat_two"] },
+    { "key": "one", "text": "One", "tags": ["seat_one"], "to_zone": "seat_box_one" },
+    { "key": "two", "text": "Two", "tags": ["seat_two"], "to_zone": "seat_box_two" },
     { "key": "curse", "text": "Curse", "tags": ["curse"] },
     { "key": "ice", "text": "Ice", "tags": ["ice"] },
     { "key": "gem", "text": "Gem", "tags": ["gem"] }

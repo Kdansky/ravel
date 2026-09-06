@@ -17,7 +17,8 @@
         "crossroads:1"
       ]
     },
-    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.96, 0.96] },
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.62, 0.81, 0.96] },
+    { "key": "seat_box", "status": "board", "layout": "stack", "pos": [0.02, 0.62, 0.17, 0.96] },
     { "key": "past", "layout": "stack", "pos": [0.8, 0.08, 0.96, 0.55] },
     {
       "key": "offer",
@@ -63,7 +64,7 @@
       "pos": [0.32, 0.3, 0.68, 0.72]
     }
   ],
-  "players": [{ "stats": { "hp": 5 } }],
+  "players": [{ "stats": { "hp": 5 }, "to_zone": "seat_box" }],
   "cards": [
     {
       "key": "shelter",

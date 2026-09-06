@@ -63,11 +63,14 @@ DISCARD_POS = {i: [COL(i)[0], 0.410, COL(i)[1], 0.524]
 HAND_POS    = [[0.06, 0.010, 0.798, 0.108],    # north, top edge
                [0.06, 0.826, 0.798, 0.924]]    # south, bottom edge
 # The right-hand column: rulebook, the deck beside the discards it feeds, and
-# the scoring tray below both. Nothing is left along the bottom edge, where the
-# undo button and the event log are drawn over everything.
+# the scoring tray below both. Choice stops short of 0.82, where the undo
+# button and the event log are drawn over everything.
 RULES_POS   = [0.815, 0.120, 0.975, 0.290]
 DECK_POS    = [0.815, 0.306, 0.975, 0.524]
-CHOICE_POS  = [0.815, 0.536, 0.975, 0.924]
+CHOICE_POS  = [0.815, 0.536, 0.975, 0.8]
+# The left margin, x < 0.06, is otherwise empty -- a seat's own card lives
+# there so a player can find and hover it.
+SEAT_BOX_POS = {"north": [0.0, 0.010, 0.058, 0.185], "south": [0.0, 0.826, 0.058, 0.99]}
 
 
 def templates():
@@ -75,7 +78,7 @@ def templates():
     # The two seats. Their numbers are every seat's, so the stats node grants
     # them and nothing here distinguishes one from the other but its name.
     for key, text in (("north", "North"), ("south", "South")):
-        out.append({"key": key, "text": text, "tags": [key + "_side"]})
+        out.append({"key": key, "text": text, "tags": [key + "_side"], "to_zone": "seat_box_" + key})
 
     # There are no destination markers. Playing a card points at a *place* — the
     # expedition or the discard — and a place is a zone, so the zone is the
@@ -224,7 +227,9 @@ def zones():
            # rather than a hand: nothing is ever dealt here and nothing leaves.
            {"key": "rules", "layout": "stack", "pos": RULES_POS,
             "contents": ["how_to_play"]},
-           {"key": "choice", "layout": "row", "row": "down", "tags": ["stacked"], "pos": CHOICE_POS}]
+           {"key": "choice", "layout": "row", "row": "down", "tags": ["stacked"], "pos": CHOICE_POS},
+           {"key": "seat_box_north", "layout": "stack", "status": "board", "pos": SEAT_BOX_POS["north"]},
+           {"key": "seat_box_south", "layout": "stack", "status": "board", "pos": SEAT_BOX_POS["south"]}]
     for i, (c, label, _, _) in enumerate(COLOURS):
         # A stack, not a grid of slots: an expedition is a run of cards in the
         # order they were played, which is what a pile is, and "stacked" fans it

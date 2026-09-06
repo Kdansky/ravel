@@ -12,7 +12,8 @@
       "grid": [5, 1],
       "pos": [0.03, 0.05, 0.6, 0.36]
     },
-    { "key": "hand", "layout": "row", "pos": [0.19, 0.6, 0.97, 0.97] },
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.6, 0.81, 0.97] },
+    { "key": "seat_box", "status": "board", "layout": "stack", "pos": [0.02, 0.6, 0.17, 0.97] },
     {
       "key": "chest_deck",
       "layout": "stack",
@@ -23,7 +24,7 @@
       "contents": ["p_chest_pearl", "p_chest_mimic"]
     }
   ],
-  "players": [{ "stats": { "hp": 6 } }],
+  "players": [{ "stats": { "hp": 6 }, "to_zone": "seat_box" }],
   "cards": [
     {
       "key": "p_shore",

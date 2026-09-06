@@ -11,6 +11,7 @@
       "grid": [5, 1]
     },
     { "key": "hand", "layout": "row" },
+    { "key": "seat_box", "status": "board", "layout": "stack", "pos": [0.02, 0.62, 0.17, 0.97] },
     {
       "key": "secret_deck",
       "layout": "stack",
@@ -20,7 +21,7 @@
       "contents": ["p_good_luck", "p_bad_luck"]
     }
   ],
-  "players": [{ "stats": { "hp": 6 } }],
+  "players": [{ "stats": { "hp": 6 }, "to_zone": "seat_box" }],
   "cards": [
     {
       "key": "p_start",

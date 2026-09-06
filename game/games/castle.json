@@ -240,7 +240,7 @@
       "tags": ["shuffle", "refill_when_empty"],
       "contents": ["bandit_raid:3", "drought:3", "merchant:2", "siege:2"]
     },
-    { "key": "graveyard", "label": "Discard", "layout": "stack", "pos": [0.77, 0.59, 0.99, 0.99] },
+    { "key": "graveyard", "label": "Discard", "layout": "stack", "pos": [0.77, 0.59, 0.83, 0.99] },
     {
       "key": "offer",
       "layout": "row",

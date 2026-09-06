@@ -809,6 +809,17 @@ def zones():
         # down until it comes back at the start of the next turn.
         {"key": "stash", "label": "Kept back", "layout": "stack", "visibility": "secret", "copies": "per_seat", "pos": rects["stash"],
          "tooltip": "A chip you kept out of the discard. It returns to your hand at the start of your next turn."},
+        # The left column stops at 0.818; below it, to the corner, is the one
+        # gap in the whole board. A seat's card lives there so it can be
+        # hovered, side by side rather than stacked since there is no matching
+        # free strip along the top-left to split them the usual way. Two zone
+        # keys, not one per_seat zone -- a per_seat zone's contents are shared
+        # markers cloned into every seat's copy, and a seat's own card must
+        # land in exactly one copy, not both.
+        {"key": "seat_box_" + SEATS[0][0], "layout": "stack", "status": "board",
+         "pos": [0.005, 0.818, 0.11, 0.995]},
+        {"key": "seat_box_" + SEATS[1][0], "layout": "stack", "status": "board",
+         "pos": [0.115, 0.818, 0.225, 0.995]},
     ]
     return z
 
@@ -2106,7 +2117,7 @@ def other_cards():
 
 
 def seat_cards():
-    return [{"key": k, "text": name, "tags": [k + "_side"]} for k, name in SEATS]
+    return [{"key": k, "text": name, "tags": [k + "_side"], "to_zone": "seat_box_" + k} for k, name in SEATS]
 
 
 def roster_offer():

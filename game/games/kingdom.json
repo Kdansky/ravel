@@ -35,7 +35,8 @@
         "mana": 0,
         "progress": 0,
         "destination": 1
-      }
+      },
+      "to_zone": "seat_box"
     }
   ],
   "tags": {
@@ -581,6 +582,7 @@
       "tags": ["tiled"]
     },
     { "key": "hand", "layout": "row", "pos": [0.19, 0.72, 0.75, 0.99] },
+    { "key": "seat_box", "status": "board", "layout": "stack", "pos": [0.02, 0.72, 0.17, 0.99] },
     {
       "key": "origins",
       "layout": "stack",
@@ -674,7 +676,7 @@
       "tags": ["shuffle", "refill_when_empty"],
       "contents": ["mercenary_band:2", "offering:2", "laborers:2", "militia:2", "shrine:1", "granary:1"]
     },
-    { "key": "graveyard", "label": "Discard", "layout": "stack", "pos": [0.77, 0.8, 0.99, 0.99] },
+    { "key": "graveyard", "label": "Discard", "layout": "stack", "pos": [0.75, 0.8, 0.83, 0.99] },
     { "key": "offer", "layout": "row", "display": "offscreen", "pos": [0.15, 0.32, 0.85, 0.7] },
     {
       "key": "fate_crown",

@@ -337,6 +337,18 @@
       "copies": "per_seat",
       "pos": [[0.708, 0.505, 0.8, 0.612], [0.708, 0.388, 0.8, 0.495]],
       "tooltip": "A chip you kept out of the discard. It returns to your hand at the start of your next turn."
+    },
+    {
+      "key": "seat_box_south",
+      "layout": "stack",
+      "status": "board",
+      "pos": [0.005, 0.818, 0.11, 0.995]
+    },
+    {
+      "key": "seat_box_north",
+      "layout": "stack",
+      "status": "board",
+      "pos": [0.115, 0.818, 0.225, 0.995]
     }
   ],
   "phases": [
@@ -456,8 +468,8 @@
   ],
   "players": [{ "card": "south" }, { "card": "north" }],
   "cards": [
-    { "key": "south", "text": "South", "tags": ["south_side"] },
-    { "key": "north", "text": "North", "tags": ["north_side"] },
+    { "key": "south", "text": "South", "tags": ["south_side"], "to_zone": "seat_box_south" },
+    { "key": "north", "text": "North", "tags": ["north_side"], "to_zone": "seat_box_north" },
     {
       "key": "clock",
       "text": "The bank",

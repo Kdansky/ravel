@@ -1335,11 +1335,16 @@ def zones():
         # discard on the right -- and not turned through half a circle. A rotated
         # board puts your deck where your opponent's wizard is, which is only
         # right if you are actually sitting opposite each other.
-        # Offscreen, and a grid so it counts as in play: "who holds the
-        # Initiative Tracker" is asked of the seat cards as a computed tag, and a
-        # tag scope only reaches a board.
+        # A grid so it counts as in play: "who holds the Initiative Tracker" is
+        # asked of the seat cards as a computed tag, and a tag scope only
+        # reaches a board. Visible now too, in the one true gap in the board --
+        # between the void and the weather track -- since a seat must be
+        # somewhere a player can hover, not just something a tag scope can
+        # reach. One shared rect for both cells (a1/b1) rather than a per-seat
+        # pair like everything else here: this zone has no "your side" to be
+        # on, wizard already carries that, so there was no reason to split it.
         {"key": "seats", "layout": "grid", "grid": [2, 1],
-         "display": "offscreen", "use": "abilities"},
+         "pos": P(0.2, 0.42, 0.245, 0.6), "use": "abilities"},
         {"key": "wizard", "label": "Wizard", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat", "use": "abilities",
          "pos": [P(0.005, 0.795, 0.135, 0.995), P(0.005, 0.005, 0.135, 0.205)]},

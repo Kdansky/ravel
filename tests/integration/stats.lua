@@ -222,8 +222,10 @@ local GRANTED = [==[{
     { "key": "edge", "min": 0, "max": 9, "tags": ["hidden"], "on": ["tool"] }
   ],
   "zones": [
-    { "key": "board", "layout": "grid", "grid": [6, 1], "pos": [0.1, 0.3, 0.9, 0.6] }
+    { "key": "board", "layout": "grid", "grid": [6, 1], "pos": [0.1, 0.3, 0.9, 0.6] },
+    { "key": "seat_box", "layout": "stack", "status": "board", "pos": [0, 0, 0.19, 0.3] }
   ],
+  "players": [{ "to_zone": "seat_box" }],
   "phases": [{ "key": "act", "type": "player_input" }],
   "cards": [
     { "key": "plain", "text": "Plain" },

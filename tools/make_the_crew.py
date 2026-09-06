@@ -135,7 +135,7 @@ def radio_card():
 # on: ["player"], so a seat is its name and the tag other rules find it by. A
 # five-seat variant is then a longer SEATS list and nothing else.
 def seat_cards():
-    return [{"key": k, "text": t, "tags": [k + "_side"]} for k, t in SEATS]
+    return [{"key": k, "text": t, "tags": [k + "_side"], "to_zone": "seat_box_" + k} for k, t in SEATS]
 
 
 def playing_cards():
@@ -233,14 +233,17 @@ def zones():
     Two hands along the top edge and two along the bottom, in clockwise order, so
     the seat that follows you is the one to your left on screen. The middle band
     is the play area, with the decks and everybody's tasks down the right and the
-    offer and the small piles down the left. Two corners are the engine's and
-    nothing reaches into either: the HUD writes into the top right, and the event
-    log into the bottom left.
+    offer and the small piles down the left. The bottom-right corner is the
+    engine's own, for the undo button and the event log.
     """
     half = (len(SEATS) + 1) // 2
 
-    # A seat's own strip: its closed hand, and its open one beside it — the card
-    # it has laid face up for everybody, which is where the radio puts things.
+    # A seat's own strip: its own card first, then its closed hand, then its
+    # open one — the card it has laid face up for everybody, which is where
+    # the radio puts things. The seat card was invisible before; it takes a
+    # slice off the start of the row the same way "open" already takes one
+    # off the end, so a player can find and hover their own the way they
+    # already found their own hand.
     def row(keys, y1, y2, reverse):
         """Split the full width between these seats, with a gutter between."""
         n = len(keys)
@@ -248,15 +251,16 @@ def zones():
         out = {}
         for i, k in enumerate(keys):
             x = 0.01 + (n - 1 - i if reverse else i) * (w + 0.01)
-            out[k] = ([round(x, 3), y1, round(x + w - 0.10, 3), y2],
+            out[k] = ([round(x, 3), y1, round(x + 0.05, 3), y2],
+                      [round(x + 0.06, 3), y1, round(x + w - 0.10, 3), y2],
                       [round(x + w - 0.09, 3), y1, round(x + w, 3), y2])
         return out
 
     order = [k for k, _ in SEATS]
     seats = row(order[:half], 0.195, 0.325, False)
     seats.update(row(order[half:], 0.755, 0.895, True))
-    hands = [seats[k][0] for k in order]
-    opens = [seats[k][1] for k in order]
+    hands = [seats[k][1] for k in order]
+    opens = [seats[k][2] for k in order]
 
     # One task row per seat, stacked under the decks. They hold very few cards
     # in practice, so they are the smallest thing on the table.
@@ -264,7 +268,14 @@ def zones():
     tasks = [[0.805, round(top + i * step, 3), 0.995, round(top + (i + 1) * step - 0.008, 3)]
              for i in range(len(SEATS))]
 
+    # One zone key per seat rather than one per_seat zone: a per_seat zone's
+    # contents are shared markers cloned into every seat's copy, and a seat's
+    # own card must land in exactly one copy, not all four.
+    seat_box_zones = [{"key": "seat_box_" + k, "layout": "stack", "status": "board", "pos": seats[k][0]}
+                       for k in order]
+
     return [
+        *seat_box_zones,
         {"key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": hands},
         # Face up, so it is everybody's to read — which is the whole point of
         # saying something, and what the tag has always claimed to mean.

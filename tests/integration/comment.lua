@@ -28,9 +28,10 @@ local GAME = [==[{
   "stats": [{ "key": "score", "min": 0, "max": 9, "on": ["player"], "start": 0,
               "comment": "why this ceiling and not another" }],
   "zones": [
-    { "key": "hand", "layout": "row", "pos": [0.2, 0.7, 0.95, 0.95],
+    { "key": "hand", "layout": "row", "pos": [0.2, 0.7, 0.8, 0.95],
       "comment": "why the hand is where it is" },
-    { "key": "table", "layout": "row", "pos": [0.05, 0.3, 0.95, 0.55] }
+    { "key": "table", "layout": "row", "pos": [0.05, 0.3, 0.95, 0.55] },
+    { "key": "seat_box", "layout": "stack", "status": "board", "pos": [0.02, 0.7, 0.19, 0.95] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": "hand",
@@ -38,7 +39,7 @@ local GAME = [==[{
       "next": [{ "then": "act", "comment": "why it leads back to itself" }] }],
   "setup": { "place": [{ "card": "gem", "zone": "hand", "comment": "why it starts here" }] },
   "cards": [
-    { "key": "one", "text": "One", "tags": ["seat_one"] },
+    { "key": "one", "text": "One", "tags": ["seat_one"], "to_zone": "seat_box" },
     { "key": "gem", "text": "Gem", "comment": "why this card exists",
       "play": { "phases": ["act"], "action": ["stat_gain:score@mine.player:1"],
                 "comment": "why playing it scores" } }

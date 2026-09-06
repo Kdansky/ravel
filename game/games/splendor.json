@@ -450,6 +450,18 @@
       "pos": [[0.57, 0.01, 0.8, 0.15], [0.57, 0.85, 0.8, 0.99]]
     },
     {
+      "key": "seat_box_north",
+      "layout": "stack",
+      "status": "board",
+      "pos": [0.82, 0.01, 0.98, 0.15]
+    },
+    {
+      "key": "seat_box_south",
+      "layout": "stack",
+      "status": "board",
+      "pos": [0.82, 0.17, 0.98, 0.32]
+    },
+    {
       "key": "nobles",
       "label": "Nobles",
       "layout": "grid",
@@ -825,8 +837,14 @@
   ],
   "end_conditions": [],
   "cards": [
-    { "key": "north", "text": "North", "tags": ["north_side"], "card_stats": { "opens": 1 } },
-    { "key": "south", "text": "South", "tags": ["south_side"] },
+    {
+      "key": "north",
+      "text": "North",
+      "tags": ["north_side"],
+      "card_stats": { "opens": 1 },
+      "to_zone": "seat_box_north"
+    },
+    { "key": "south", "text": "South", "tags": ["south_side"], "to_zone": "seat_box_south" },
     {
       "key": "pile_white",
       "text": "Diamond",

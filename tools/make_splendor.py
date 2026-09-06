@@ -296,6 +296,18 @@ def zones(rows):
          "pos": [[0.02, 0.01, 0.55, 0.15], [0.02, 0.85, 0.55, 0.99]]},
         {"key": "reserve", "label": "Reserved", "layout": "row", "visibility": "owner", "copies": "per_seat",
          "pos": [[0.57, 0.01, 0.80, 0.15], [0.57, 0.85, 0.80, 0.99]]},
+        # The one gap tableau/reserve leave: the top-right and bottom-right
+        # corners, past reserve's own edge at 0.80. Two zone keys, not one
+        # per_seat zone -- a per_seat zone's contents are shared markers
+        # cloned into every seat's copy, and a seat's own card must land in
+        # exactly one copy, not both.
+        # South's own copy of that gap falls inside the undo button and event
+        # log's own reserved corner (bottom-right), so it takes the other free
+        # rect instead -- between reserve's top edge and the supply's own top.
+        {"key": "seat_box_north", "layout": "stack", "status": "board",
+         "pos": [0.82, 0.01, 0.98, 0.15]},
+        {"key": "seat_box_south", "layout": "stack", "status": "board",
+         "pos": [0.82, 0.17, 0.98, 0.32]},
         {"key": "nobles", "label": "Nobles", "layout": "grid", "grid": [3, 1],
          "tags": ["optional", "market"], "pos": [0.02, 0.17, 0.40, 0.30]},
         {"key": "noble_deck", "layout": "stack", "visibility": "secret", "display": "offscreen", "tags": ["shuffle"],
@@ -478,8 +490,8 @@ def nobles(rows):
 # is who goes first — which is a fact about north, not about players.
 def seat_cards():
     return [
-        {"key": "north", "text": "North", "tags": ["north_side"], "card_stats": {"opens": 1}},
-        {"key": "south", "text": "South", "tags": ["south_side"]},
+        {"key": "north", "text": "North", "tags": ["north_side"], "card_stats": {"opens": 1}, "to_zone": "seat_box_north"},
+        {"key": "south", "text": "South", "tags": ["south_side"], "to_zone": "seat_box_south"},
     ]
 
 

@@ -343,7 +343,6 @@ local buttons     = {}    -- name → rect, rebuilt every frame for hit-testing
 -- hundred-chip board is ten thousand predicate reads a frame for a window that
 -- is usually not even open.
 local react_offer = {}
-local stat_hud    = {}    -- stat key → {x, y}, where the HUD drew it last frame
 
 function M.set_can_undo(b) can_undo = b end
 
@@ -354,10 +353,10 @@ function M.hit_button(x, y)
 	end
 end
 
--- Screen position of a stat's HUD row, for floating deltas.
+-- Fallback landing spot for a floating stat delta with no card of its own to
+-- rise from (the stat's HUD row used to be the other candidate; there is no
+-- HUD row now, so this is the only answer).
 function M.stat_pos(key)
-	local p = stat_hud[key]
-	if p then return p.x, p.y end
 	return love.graphics.getWidth() - 80 * S, 12 * S
 end
 
@@ -1314,44 +1313,24 @@ local function draw_zone(zone_e)
 	end
 end
 
+-- The current phase's label, top-right. The stat list that used to hang below
+-- it is gone: a seat is now always somewhere on screen (the validator sees to
+-- that), so a player's own numbers are a hover away on their own card, in
+-- whatever style the game gave it, rather than a second copy read out of a
+-- corner nobody's layout could plan around.
 local function draw_stats()
-	local G  = declaration.G
 	local W  = love.graphics.getWidth()
 	local mf = love.graphics.getFont()
-	local fh = mf:getHeight()
 	local y  = 10 * S
 	local x  = W - 10 * S
-	stat_hud = {}
-	love.graphics.push("all")
 	local cur = phase.current()
 	if cur and cur.label then
+		love.graphics.push("all")
 		local ph_label = label.fill(cur.label, cur)
 		love.graphics.setColor(0.70, 0.88, 1.00)
 		print_at(ph_label, x - mf:getWidth(ph_label), y)
-		y = y + fh + 8 * S
+		love.graphics.pop()
 	end
-	-- Your numbers, not the numbers of whoever is to move. The two are the same
-	-- seat at one screen and two seats over a network, where a row reading
-	-- "Your score" would otherwise report the opponent's while they think.
-	zones.as_seat(zones.watching(), function()
-		for _, key in ipairs(G.stat_defs_list or {}) do
-			local def = G.stat_defs[key]
-			if not (def and def.tags_set and def.tags_set.hidden) then
-				local text = label.fill(def and (def.label or key) or key, def)
-				local txt  = text .. ": " .. tostring(predicate.total(def and def.subject or key))
-				local tw    = mf:getWidth(txt)
-				local icon, tint = stat_icon(key)
-				local ind   = icon ~= "none" and fh or 0
-				local row_x = x - tw - ind - 4 * S
-				draw_stat_icon(icon, row_x + fh * 0.5, y + fh * 0.5, fh * 0.85, tint)
-				love.graphics.setColor(unpack(C.stat))
-				print_at(txt, row_x + ind + 4 * S, y)
-				stat_hud[key] = { x = row_x + ind + tw * 0.5, y = y }
-				y = y + fh + 5 * S
-			end
-		end
-	end)
-	love.graphics.pop()
 end
 
 local function bezier(t, x0, y0, x1, y1, x2, y2)
@@ -1521,16 +1500,18 @@ end
 
 local function draw_undo_button()
 	if targeting.active() or not can_undo then return end
-	local H  = love.graphics.getHeight()
+	local W, H = love.graphics.getDimensions()
 	local mf = love.graphics.getFont()
 	local w  = mf:getWidth("Undo (Z)") + 20 * S
 	local h  = mf:getHeight() + 10 * S
 	love.graphics.push("all")
-	draw_button("undo", "Undo (Z)", 8 * S, H - h - 8 * S, w, h)
+	draw_button("undo", "Undo (Z)", W - w - 8 * S, H - h - 8 * S, w, h)
 	love.graphics.pop()
 end
 
 -- Corner event log; L toggles the expanded view. Undo shortens it live.
+-- Bottom-right, beside the undo button it grows above — bottom-left is a
+-- seat's own corner now, per zones.lua's seat-visibility check.
 local log_expanded = false
 
 function M.toggle_log()
@@ -1542,7 +1523,7 @@ local function draw_log()
 	if #lines == 0 then return end
 	local sf = get_small_font()
 	local fh = sf:getHeight()
-	local H  = love.graphics.getHeight()
+	local W, H = love.graphics.getDimensions()
 	local w  = (log_expanded and 320 or 170) * S
 	local h  = #lines * (fh + 2 * S) + 8 * S
 
@@ -1553,7 +1534,7 @@ local function draw_log()
 	elseif can_undo then
 		bottom = bottom + mf_h + 18 * S
 	end
-	local x, y = 8 * S, H - bottom - h
+	local x, y = W - w - 8 * S, H - bottom - h
 
 	love.graphics.push("all")
 	love.graphics.setFont(sf)

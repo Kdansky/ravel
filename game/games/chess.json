@@ -49,6 +49,14 @@
       "copies": "per_seat",
       "pos": [[0.76, 0.65, 0.97, 0.95], [0.76, 0.05, 0.97, 0.35]]
     },
+    {
+      "key": "seat_box_white", "status": "board", "layout": "stack",
+      "pos": [0.02, 0.65, 0.23, 0.95]
+    },
+    {
+      "key": "seat_box_black", "status": "board", "layout": "stack",
+      "pos": [0.02, 0.05, 0.23, 0.35]
+    },
     { "key": "rules", "layout": "stack", "pos": [0.82, 0.36, 0.92, 0.49] },
     {
       "key": "controls",
@@ -135,8 +143,8 @@
     ]
   },
   "cards": [
-    { "key": "player_white", "text": "White", "tags": ["white_side"] },
-    { "key": "player_black", "text": "Black", "tags": ["black_side"] },
+    { "key": "player_white", "text": "White", "tags": ["white_side"], "to_zone": "seat_box_white" },
+    { "key": "player_black", "text": "Black", "tags": ["black_side"], "to_zone": "seat_box_black" },
     {
       "key": "pawn",
       "text": "Pawn",

@@ -67,42 +67,40 @@ about a quarter of the width and the whole of the height, and "End turn" still
 does not fit. **Five readable buttons need somewhere else to stand**, which is
 gap 7 above and not this.
 
-## Still open — where the numbers are read, and whether zeros are read at all
+## Shipped — where the numbers are read, and whether zeros are read at all
 
 *From `todo.md`: "The stats on the top right are overlaid over one player's gem
 pile. That isn't very nice. It would be better if we could assign the stats
-window to any zone and it would be displayed there. In this case this would work
-perfectly for "played this turn" if right-aligned. Also it should not show 0
-values (this should be a toggleable feature of whether we want to show 0
-values)."*
+window to any zone and it would be displayed there..."*
 
-`draw_stats` is hard-anchored: `x = W - 10 * S`, `y = 10 * S`, rows down the
-right edge (`render.lua:1285`). Nothing in a game file can move it, so any game
-whose layout uses its top-right corner has the readout printed over the top of
-that corner — which is the same complaint gap 7 makes about buttons, one level
-up: **the chrome has no vocabulary and the games have the whole window.**
+Not built as asked: the HUD is gone rather than relocated. A right-aligned
+stat list had no free corner in any dense layout, and the numbers it read were
+already a duplicate of what a hovered card already says. What shipped instead:
 
-Two halves, and they are independent:
-
-- **A place.** [Assumption: the spelling is a zone naming itself as the
-  readout's home rather than the readout naming a zone — a zone already knows its
-  rect, its seat and whether it is drawn, and a top-level `stats_at: "<zone>"`
-  would be a second place to keep a zone key in step.] Either way it wants
-  consent on the word before it exists. The drawing is the easy half:
-  `draw_stats` already computes every row's width for `stat_hud`, so right-
-  aligning inside a rect instead of inside the window is a changed `x` and a
-  changed `y`, not a changed function. **Careful with `stat_pos`** — floating
-  deltas read `stat_hud` for where a number lives, and its fallback is the
-  top-right corner in pixels.
-- **Zeros.** `badge_zeros: false` already exists and is *per style*, deciding
-  whether a card's badge draws a zero. The HUD is the same question at the other
-  end of the screen and has no answer at all. [Assumption: it wants the same
-  spelling and the same default — visible unless the game says otherwise — and
-  belongs beside whatever names the place, not on each stat def, since "do not
-  show me empty rows" is one preference about a readout and not forty
-  statements about forty numbers.] The `hidden` tag on a stat def is the
-  neighbouring word and is a different one: `hidden` means never, this means not
-  while it is nothing.
+- **A seat must be somewhere on screen.** `validate.lua` warns when a seat's
+  resolved zone (`to_zone`, a tag's own zone, or an explicit `setup.place`)
+  is missing or `display: "offscreen"` — the engine's own default for an
+  unhomed seat. All seventeen shipped games now give theirs a small visible
+  zone; five that were generated needed the fix in their generator, not the
+  JSON. **One trap cost real time**: a `copies: "per_seat"` zone's contents
+  are shared markers cloned into *every* seat's copy — right for `hand`,
+  silently wrong for a seat's own card, which duplicated itself into every
+  copy and corrupted every bare-subject stat total reading it. Two zone keys
+  per seat, not one per-seat zone, is the fix everywhere it landed.
+- **Hovering a seat shows its own numbers**, for free: `tooltip.lua`'s
+  `blocks()` already lists every stat on whatever card is hovered, filtered
+  through the same `BOOKKEEPING` set that keeps `round`/`plays`/`turn` off a
+  card's own tooltip. A seat is still a card, so nothing had to be taught
+  about it.
+- **The corner log and undo button moved to bottom-right**, freeing
+  bottom-left (or top-left) for a seat's own box — `validate.lua`'s reserved-
+  corner check moved with them. A hovered seat's tooltip now also lists the
+  last few log lines, a stand-in for a permanent home in a system zone
+  (load/save/invite/options) not built yet.
+- **Zeros were not addressed.** The hover tooltip still prints a stat sitting
+  at zero — lower priority now that it is on-demand rather than always
+  painted on screen. `badge_zeros: false` (cards, per style) is the
+  neighbouring word if this is ever wanted, but has no customer yet.
 
 ## Still open — an offer of fifty-one
 

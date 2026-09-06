@@ -79,9 +79,10 @@ and a line here names a section that exists:
       "tags": ["shuffle"],
       "contents": ["sword:3", "trap:2"]
     },
-    { "key": "hand", "layout": "row", "pos": [0.19, 0.65, 0.95, 0.98] }
+    { "key": "hand", "layout": "row", "pos": [0.19, 0.65, 0.81, 0.98] },
+    { "key": "seat_box", "layout": "stack", "pos": [0.02, 0.65, 0.17, 0.98] }
   ],
-  "players": [{ "stats": { "hp": 5 } }],
+  "players": [{ "stats": { "hp": 5 }, "to_zone": "seat_box" }],
   "cards": [
     {
       "key": "sword",
@@ -110,7 +111,8 @@ The recipe, in order:
    `stats` under `players`.
 2. **Zones** — where cards live. `pos` is window fractions `[x1, y1, x2, y2]`;
    positions off-screen (negative y) make cards fly in from outside. Decks own
-   their starting cards via `contents`.
+   their starting cards via `contents`. A seat must be somewhere on screen too
+   — `to_zone` says where its own card goes, so a player can find and hover it.
 3. **Cards** — one entry per card *kind*. Instances are created from these;
    editing one live changes every instance, which is why the engine calls them
    templates internally even though the section is `cards`.
@@ -139,7 +141,11 @@ from this two-page story:
     { "key": "intro", "type": "automatic", "actions": ["reveal:p_door"] },
     { "key": "story", "type": "player_input", "label": "The Cellar" }
   ],
-  "zones": [{ "key": "hand", "layout": "row" }],
+  "zones": [
+    { "key": "hand", "layout": "row" },
+    { "key": "seat_box", "layout": "stack", "pos": [0.02, 0.02, 0.17, 0.3] }
+  ],
+  "players": [{ "to_zone": "seat_box" }],
   "cards": [
     {
       "key": "p_door",
@@ -184,6 +190,9 @@ Two rules carry every story:
 - **Every page that deals new choices starts its `play.action` with
   `destroy:hand`**, or the old choices pile up next to the new ones. A page
   that keeps the hand (a locked door, a rebuff) uses `"play": { "action": [] }`.
+- **The one injected seat still needs `to_zone`.** It carries none of the
+  story, but a player has to be able to find and hover their own card, so it
+  is given a small zone of its own rather than left in the engine's hidden one.
 
 From there: keepsakes are cards with a home-zone tag (`fill:` them into it, test
 them with `card:<key>`), shuffle secrets are `reveal_top:` over a hidden
@@ -367,11 +376,13 @@ first to ten:
       "contents": ["coin:12", "gem:8"] },
     { "key": "discard", "layout": "stack", "pos": [0.8, 0.35, 0.95, 0.65] },
     { "key": "hand", "layout": "row", "copies": "per_seat", "visibility": "owner",
-      "pos": [[0.25, 0.7, 0.75, 0.95], [0.25, 0.05, 0.75, 0.3]] }
+      "pos": [[0.25, 0.7, 0.75, 0.95], [0.25, 0.05, 0.75, 0.3]] },
+    { "key": "seat_box_north", "layout": "stack", "pos": [0.02, 0.02, 0.2, 0.28] },
+    { "key": "seat_box_south", "layout": "stack", "pos": [0.02, 0.7, 0.2, 0.95] }
   ],
   "cards": [
-    { "key": "north", "text": "North", "card_stats": { "score": 0 } },
-    { "key": "south", "text": "South", "card_stats": { "score": 0 } },
+    { "key": "north", "text": "North", "card_stats": { "score": 0 }, "to_zone": "seat_box_north" },
+    { "key": "south", "text": "South", "card_stats": { "score": 0 }, "to_zone": "seat_box_south" },
     { "key": "coin", "text": "Coin", "tooltip": "Score 1.",
       "play": { "action": ["stat_gain:score:1"], "spent": "discard" } },
     { "key": "gem", "text": "Gem", "tooltip": "Score 2.",
@@ -404,6 +415,9 @@ Five decisions, and everything else follows from them:
   moment and the wrong one.
 - **`max:` in the end condition is load-bearing.** Drop it and the game ends at
   five points each. See *Somebody has reached ten* below.
+- **Each seat gets its own `to_zone`, not a shared one.** A `per_seat` zone's
+  contents are cloned into every seat's copy — right for `hand`, wrong for a
+  seat's own card, which must land in exactly one of them.
 
 ### Dealing and drawing
 
@@ -945,6 +959,15 @@ early (the validator warns when starting `contents` already exceed capacity).
 | `card` | the key of the card that **is** this seat. Leave it out and the engine injects an invisible stat bag, which is what a solitaire game has always had |
 | `stats` | starting numbers for an injected seat. A seat that names a card takes its numbers from that card's `card_stats` instead |
 | `text` | an injected seat's name. Defaults to "You" |
+| `to_zone` | where an injected seat's card lives. A seat that names a card gives it `to_zone` there instead — see below |
+
+**A seat must be somewhere on screen.** It is still a card, and a player has to
+be able to see and hover their own — hidden away in the engine's offscreen
+`system` zone, which is what a seat gets by default, nobody can read what it
+carries. The validator warns on a seat with no visible home; give the seat's
+card `to_zone` (or a `stats`-only seat its own `to_zone`) naming a small zone
+in a corner. Bottom-left or top-left, by convention — bottom-right is the
+undo button and event log's corner.
 
 **Whose a piece is** is not declared here. It is written on the piece when
 `setup.place` puts it down (`"owner": "player_white"`), because that is where

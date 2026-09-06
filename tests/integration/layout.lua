@@ -94,7 +94,8 @@ local function fixture(zone, style)
 	f:write(([[{
 		"title": "Layout",
 		"styles": { "shaped": %s },
-		"zones": [%s],
+		"zones": [%s, { "key": "seat_box", "layout": "stack", "status": "board", "pos": [0, 0, 0.19, 0.3] }],
+		"players": [{ "to_zone": "seat_box" }],
 		"cards": [{ "key": "hero", "text": "Hero" }],
 		"phases": [{ "key": "play", "type": "player_input" }]
 	}]]):format(style or "{}", zone))
@@ -113,7 +114,7 @@ local function has(problems, needle)
 end
 
 -- The shape is a style the zone tags, so what is checked is the style.
-local BOARD = '{ "key": "board", "layout": "grid", "grid": [8, 8], "pos": [0.2, 0, 1, 0.9], "tags": ["shaped"] }'
+local BOARD = '{ "key": "board", "layout": "grid", "grid": [8, 8], "pos": [0.2, 0, 0.8, 0.9], "tags": ["shaped"] }'
 
 function M.test_layout_a_ratio_is_checked(check)
 	check("a number passes", #fixture(BOARD, '{ "ratio": 1.5 }') == 0)

@@ -202,7 +202,7 @@
       "key": "seats",
       "layout": "grid",
       "grid": [2, 1],
-      "display": "offscreen",
+      "pos": [0.2, 0.42, 0.245, 0.6],
       "use": "abilities"
     },
     {

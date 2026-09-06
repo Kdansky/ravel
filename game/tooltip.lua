@@ -7,6 +7,7 @@ local zones       = require("zones")
 local tags        = require("tags")
 local rich        = require("richtext")
 local label       = require("label")
+local log         = require("log")
 
 local M = {}
 
@@ -152,6 +153,17 @@ local function blocks(c, def)
 				end
 				add("hint", line, C.ready)
 			end
+		end
+	end
+
+	-- A seat is where the corner log lives until it has a permanent home of its
+	-- own (a system zone, not built yet). The log is one and shared, so either
+	-- seat's tooltip shows the same tail — it is not a per-player record.
+	if declaration.G.seat_set and declaration.G.seat_set[c.def_key] then
+		local lines = log.tail(6)
+		if #lines > 0 then
+			add("rule")
+			for _, line in ipairs(lines) do add("prose", line) end
 		end
 	end
 	return out

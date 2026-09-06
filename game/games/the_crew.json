@@ -103,15 +103,39 @@
   },
   "zones": [
     {
+      "key": "seat_box_north",
+      "layout": "stack",
+      "status": "board",
+      "pos": [0.01, 0.195, 0.06, 0.325]
+    },
+    {
+      "key": "seat_box_east",
+      "layout": "stack",
+      "status": "board",
+      "pos": [0.505, 0.195, 0.555, 0.325]
+    },
+    {
+      "key": "seat_box_south",
+      "layout": "stack",
+      "status": "board",
+      "pos": [0.505, 0.755, 0.555, 0.895]
+    },
+    {
+      "key": "seat_box_west",
+      "layout": "stack",
+      "status": "board",
+      "pos": [0.01, 0.755, 0.06, 0.895]
+    },
+    {
       "key": "hand",
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",
       "pos": [
-        [0.01, 0.195, 0.395, 0.325],
-        [0.505, 0.195, 0.89, 0.325],
-        [0.505, 0.755, 0.89, 0.895],
-        [0.01, 0.755, 0.395, 0.895]
+        [0.07, 0.195, 0.395, 0.325],
+        [0.565, 0.195, 0.89, 0.325],
+        [0.565, 0.755, 0.89, 0.895],
+        [0.07, 0.755, 0.395, 0.895]
       ]
     },
     {
@@ -419,10 +443,10 @@
   ],
   "end_conditions": [],
   "cards": [
-    { "key": "north", "text": "North", "tags": ["north_side"] },
-    { "key": "east", "text": "East", "tags": ["east_side"] },
-    { "key": "south", "text": "South", "tags": ["south_side"] },
-    { "key": "west", "text": "West", "tags": ["west_side"] },
+    { "key": "north", "text": "North", "tags": ["north_side"], "to_zone": "seat_box_north" },
+    { "key": "east", "text": "East", "tags": ["east_side"], "to_zone": "seat_box_east" },
+    { "key": "south", "text": "South", "tags": ["south_side"], "to_zone": "seat_box_south" },
+    { "key": "west", "text": "West", "tags": ["west_side"], "to_zone": "seat_box_west" },
     {
       "key": "flight_plan",
       "text": "Flight plan",

@@ -929,7 +929,10 @@ function M.parse(filename)
 	-- different corners and both are stacks now: a box you cannot see into takes
 	-- the upper one.
 	local DEFAULT_POS = {
-		row       = { 0.19, 0.62, 0.97, 0.97 },
+		-- Right edge stops at 0.81, clear of the undo button and event log's
+		-- corner (validate.lua's own reserved 0.83); left edge already stops at
+		-- 0.19, clear of a seat's own corner on that side.
+		row       = { 0.19, 0.62, 0.81, 0.97 },
 		grid      = { 0.03, 0.05, 0.60, 0.55 },
 		stack     = { 0.75, 0.45, 0.95, 0.80 },
 		box       = { 0.75, 0.05, 0.95, 0.40 },
@@ -1100,9 +1103,12 @@ function M.parse(filename)
 				-- The engine owns these two, wherever a game tried to put them: a
 				-- second bearer of either would be counted twice and advanced once.
 				stats.plays, stats.round = 0, nil
+				-- A stat bag with nowhere else to say it: "players" is the only
+				-- place naming this seat at all, so "to_zone" travels here rather
+				-- than waiting for a card def that does not exist.
 				G.card_defs[key] = { key = key, text = entry.text or "You", injected = true,
 					tags = {}, tags_set = {}, style = {},
-					card_stats = stats, auto_play = true, to_zone = "system" }
+					card_stats = stats, auto_play = true, to_zone = entry.to_zone or "system" }
 				table.insert(G.card_list, i, key)
 			elseif entry.stats ~= nil then
 				pp[#pp + 1] = "player '" .. tostring(key) .. "' names a card, so its starting "
