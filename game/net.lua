@@ -46,6 +46,7 @@ local rng         = require("rng")
 local targeting   = require("targeting")
 local netpack     = require("netpack")
 local actions     = require("actions")
+local table_ext   = require("table_ext")
 
 local M = {}
 
@@ -209,13 +210,6 @@ local function forget_hash()
 end
 
 ---------------------------------------------------------------- deltas
-
-local function deep_copy(x)
-	if type(x) ~= "table" then return x end
-	local c = {}
-	for k, v in pairs(x) do c[k] = deep_copy(v) end
-	return c
-end
 
 local function same(a, b)
 	if a == b then return true end
@@ -428,7 +422,7 @@ local function restore(snap, ents)
 	-- is right for undo (a popped checkpoint is used once) and a trap here: the
 	-- caller's snapshot would become the live state and drift as the game is
 	-- played. Applying a state must never consume the thing it was given.
-	ents = deep_copy(ents)
+	ents = table_ext.deep_copy(ents)
 	for _, e in ipairs(ents) do
 		if type(e) ~= "table" then return false, "malformed entity list" end
 		-- Hit-testing reads place before the renderer's first sync, and a

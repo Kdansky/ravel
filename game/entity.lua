@@ -2,6 +2,8 @@
 -- Entities reference each other by integer ID (index into ALL), never by table pointer.
 -- This makes snapshots trivial: deep-copy ALL = full undo checkpoint.
 
+local table_ext = require("table_ext")
+
 local ALL = {}
 
 local function register(e)
@@ -30,15 +32,8 @@ local function reset()
 	ALL = {}
 end
 
-local function deep_copy(x)
-	if type(x) ~= "table" then return x end
-	local c = {}
-	for k, v in pairs(x) do c[k] = deep_copy(v) end
-	return c
-end
-
 local function snapshot()
-	return deep_copy(ALL)
+	return table_ext.deep_copy(ALL)
 end
 
 local function restore(snap)
