@@ -1152,14 +1152,6 @@ end
 -- drew nothing, and an empty hand with a name on it is the case that made it
 -- obvious — a box saying nothing is not a zone a player can learn.
 
--- What to call a seat on screen. A seat *is* a card, and the card's text is the
--- name the game gave it -- "Player One", a wizard, a colour. The key is a
--- spelling for the file to use and never one to show anybody.
-local function seat_name(seat)
-	local def = seat and declaration.G.card_defs[seat]
-	return def and def.text or seat
-end
-
 -- A zone's label is normally a fixed word, and two things a board most wants to
 -- say are not fixed: which phase it is in and whose turn it is. Both are read
 -- off the engine every frame, so they are reserved words rather than text a
@@ -1478,7 +1470,7 @@ local function draw_react_hint()
 		if c then names[#names + 1] = label.fill((cards.def(c) or {}).text or c.def_key, c) end
 	end
 	local msg = table.concat(names, ", ") .. ": " .. top.re_verb
-		.. "   —   " .. tostring(seat_name(zones.active_seat())) .. " to answer"
+		.. "   —   " .. tostring(label.seat_text(zones.active_seat())) .. " to answer"
 	-- As wide as it needs and no wider. A full-width bar would lie across the
 	-- stat row in the far corner, which is exactly what a player weighing whether
 	-- to answer is reading.

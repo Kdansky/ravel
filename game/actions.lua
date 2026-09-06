@@ -4,6 +4,7 @@ local zones       = require("zones")
 local cards       = require("cards")
 local phase       = require("phase")
 local predicate   = require("predicate")
+local label       = require("label")
 local log         = require("log")
 local geometry    = require("geometry")
 local rng         = require("rng")
@@ -1025,6 +1026,31 @@ HANDLERS["transform"] = function(p, ctx)
 	end
 end
 
+-- set_name:<target-scope>:<field>@<source-scope>  — every card in the target
+-- scope takes the named field off one card in the source scope as its own
+-- "name". Written for a seat whose text is "{name}": choosing a wizard writes
+-- that wizard's own text onto the seat picking it, e.g.
+-- set_name:mine.player:text@self on the wizard's own on_play.
+--
+-- The field is read the same way a label reads one — entity first, its def
+-- second, through label.fill — so anything a caption could already say is
+-- something a name can be built from, not a second vocabulary to learn.
+HANDLERS["set_name"] = function(p, ctx)
+	local tsc = predicate.parse_scope(p[2] or "")
+	local src = predicate.parse_subject(p[3] or "")
+	if not (tsc and src and src.scope) then
+		content_error("set_name: needs a target and field@scope, as set_name:<target>:<field>@<scope>")
+		return
+	end
+	local from = predicate.entities_in_scope(src.scope, ctx, src.owner)[1]
+	if not from then return end
+	local v = label.fill("{" .. src.arg .. "}", from)
+	if v == "{" .. src.arg .. "}" then return end
+	for _, e in ipairs(predicate.entities_in_scope(tsc.name, ctx, tsc.owner)) do
+		e.name = v
+	end
+end
+
 -- copy:<scope>[:<moment>[:<n>]]  — every card the scope names does what it does,
 -- n times over, without being played and without moving.
 --
@@ -1453,6 +1479,7 @@ local SPEC = {
 	save_game         = "save",
 	load_save         = "save",
 	compact           = "scope pattern",
+	set_name          = "scope any",
 }
 
 -- The full op vocabulary, for the validator's suggestions — and for the test

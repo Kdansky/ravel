@@ -56,19 +56,27 @@ a licence to punch holes in a layout.
 
 ## The seat's own name
 
-Separate axis, raised in the same conversation and deliberately parked: once
-wizards are picked, *"Player One"* is the wrong name for a seat, and the react
-bar (`render.lua:1481`) prints it faithfully. `{owner}` cannot fix it —
-`seat_name` returns the seat card's `text`, and Spellstorm's seat cards are
-literally `"text": "Player One"`. Something has to rename the seat.
+**Shipped**, as `set_name`, not the three shapes drafted here. `transform`
+turned out to be unsafe rather than merely unpicked: it swaps a card's
+`def_key`, and every seat lookup (`turn_seat`, `active_seat`, per-seat zones,
+`@mine`) is keyed by the seat card's original `def_key` — transforming the
+seat card itself would desync all of them. The fallthrough-to-a-zone option
+needed an unstated convention for which zone, the kind of default this repo
+avoids.
 
-Three shapes, none picked:
+The shape that shipped needed no new read path at all: a seat's `text` is
+already run through `label.fill` everywhere it is drawn, and `fill` already
+reads the live entity before the def. So a seat declares `"text": "{name}"`,
+and `set_name:<scope>:<field>@<source-scope>` (`game/actions.lua`) writes an
+`e.name` entity field, sourced the same way a label reads any field — entity
+first, def second, through `label.fill` itself. A wizard's own `on_play` runs
+`set_name:mine.player:text@self` once picked from an `options:` offer, and
+`{owner}`/`{active}` read the new name from then on with no changes to either.
 
-1. **`seat_name` falls through** to a zone the seat owns — the wizard zone's one
-   card names the seat once it holds one.
-2. **A `name:` verb**, so a pick writes the seat's own text.
-3. **`transform`**, with a per-wizard seat card, which the format already has.
-
-**[Assumption: 1 is the cheapest and the only one needing no format word, but
-which zone to fall through to is either a convention or a field, and a
-convention here is the kind of unstated default this repo has been burned by.]**
+Two read paths that bypassed `label.fill` and would have printed the literal
+`"{name}"` were fixed alongside it: `label.lua`'s own `seat_text` (backing
+`{owner}`/`{active}`) and `render.lua`'s duplicate of it (backing the
+response-bar text) — the latter deleted in favour of the newly-exported
+`label.seat_text`. `label.fill` gained a small recursion cap (depth 4) since
+`seat_text` now calls back into it, and a seat whose own text named `{owner}`
+of itself would otherwise recurse forever.

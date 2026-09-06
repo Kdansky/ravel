@@ -16,9 +16,11 @@
 -- name a thing by what the file called it, so a label is a caption and never an
 -- identity.
 --
--- Substituted once, and the result is not read again: a seat whose own text
--- said "{owner}" would otherwise be a label that resolves for ever.
+-- Substituted once for an ordinary label. A seat's own text is the one
+-- exception — {owner}/{active} resolve to it, and it may itself be a
+-- template a set_name verb feeds — so that one path recurses, capped below.
 local declaration = require("declaration")
+local entity      = require("entity")
 local phase       = require("phase")
 local predicate   = require("predicate")
 local zones       = require("zones")
@@ -44,10 +46,22 @@ function M.names(s)
 	return out
 end
 
+-- The seat's own card, live rather than the def: a renamed seat's card carries
+-- its new name as an entity field, and only the entity sees it.
+local function seat_card(seat)
+	for e in entity.each("card") do
+		if e.def_key == seat and e.zone_id then return e end
+	end
+end
+
+-- Run through fill rather than read raw, so a seat whose text is "{name}"
+-- shows the name a set_name verb gave it rather than the literal braces.
 local function seat_text(seat)
 	local def = seat and declaration.G.card_defs[seat]
-	return def and def.text or seat
+	if not def then return seat end
+	return M.fill(def.text, seat_card(seat))
 end
+M.seat_text = seat_text
 
 local function dig(t, name)
 	local v = t
@@ -100,11 +114,20 @@ end
 -- A name with no answer is left standing in its braces rather than blanked. A
 -- label that reads "{ownr}'s deck" says where the typo is; one that reads "'s
 -- deck" says a field went missing and not which.
+--
+-- Guarded rather than one-shot as the header still promises: seat_text now
+-- calls back into fill to resolve a renamed seat's own text, and a seat whose
+-- text names "{owner}" of itself would otherwise recurse without end. Depth
+-- 4 is more than any real chain — zone -> owner -> seat -> name -- needs.
+local depth = 0
 function M.fill(s, e)
-	if type(s) ~= "string" or not s:find("{", 1, true) then return s end
-	return (s:gsub(NAME, function(name)
+	if type(s) ~= "string" or not s:find("{", 1, true) or depth >= 4 then return s end
+	depth = depth + 1
+	local out = s:gsub(NAME, function(name)
 		return shown(value(name, e)) or ("{" .. name .. "}")
-	end))
+	end)
+	depth = depth - 1
+	return out
 end
 
 return M
