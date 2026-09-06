@@ -1408,7 +1408,17 @@ end
 -- answer its own answer forever.
 local STACK_LIMIT = 32
 
-local function push_event(z, verb, action, subject, event, targets, source, spent, let)
+-- The record's own fields, named. It was nine positional arguments in the order
+-- they happened to be written, which meant a caller with nothing to say about
+-- the second-to-last still had to write a nil for it, and a reader had to count
+-- commas to find out which of two card ids was the subject.
+--
+-- The zone is worked out here rather than handed in. Every caller asked
+-- stack_zone() for it and passed the answer straight back, which is a thing the
+-- callee already knows how to find.
+local function push_event(e)
+	local z = stack_zone()
+	if not z then return end
 	if #z.cards >= STACK_LIMIT then
 		local msg = "!! the stack reached " .. STACK_LIMIT
 			.. " — a reaction is answering its own answer; stopped"
@@ -1418,10 +1428,14 @@ local function push_event(z, verb, action, subject, event, targets, source, spen
 	end
 	local c = zones.add(z, "event")
 	if not c then return end
-	c.re_action, c.re_verb    = action or {}, verb
-	c.re_subject, c.re_event  = subject, event
-	c.re_targets, c.re_let    = targets or {}, let
-	c.re_source, c.re_spent   = source, spent
+	c.re_action, c.re_verb    = e.action or {}, e.verb
+	-- The subject is what the record is *about*; the event is what a deferred
+	-- action reads as @event. They are the same thing except where the record
+	-- stands for an answer rather than a move, so one defaults to the other.
+	c.re_subject              = e.subject
+	c.re_event                = e.event or e.subject
+	c.re_targets, c.re_let    = e.targets or {}, e.let
+	c.re_source, c.re_spent   = e.source, e.spent
 	c.re_actor, c.re_passed   = zones.active_seat(), {}
 	-- Which cards have already answered this. The stack no longer holds the cards
 	-- played to it, so nothing takes a reaction out of the hand it came from and
@@ -1529,12 +1543,12 @@ end
 --
 -- Fired here rather than through M.react, which checkpoints and settles — this
 -- runs inside settle already. Its verdict is `forced_verdict`'s, asked first.
-local function fire_forced(z, top, r)
+local function fire_forced(top, r)
 	local c = entity.get(r.card)
 	pay(r.reaction.cost, { card_id = r.card })
 	log.add(((cards.def(c) or {}).text or c.def_key) .. " triggers")
-	local rec = push_event(z, "play", r.reaction.action, { r.card }, top.re_subject, {},
-		r.card, r.reaction.spent)
+	local rec = push_event { verb = "play", action = r.reaction.action, subject = { r.card },
+		event = top.re_subject, source = r.card, spent = r.reaction.spent }
 	-- Marked as having had its go either way. A refused push is the stack at its
 	-- limit, and a trigger that fires again on the record it just failed on is
 	-- the runaway this bound exists to stop: saying it has answered lets the
@@ -1639,7 +1653,7 @@ function M.react_step()
 				-- A refused fire is the stack at its limit. It has been marked as
 				-- having had its go, so the window moves past it rather than
 				-- burning settle's budget on the record it just failed on.
-				if fire_forced(z, top, r) then return "resolved" end
+				if fire_forced(top, r) then return "resolved" end
 			end
 		end
 	end
@@ -1667,12 +1681,12 @@ end
 -- plays exactly as before.
 function M.cast(card_id, targets, verb)
 	local c = entity.get(card_id)
-	local z = stack_zone()
-	if not c or not z then return false end
+	if not c or not stack_zone() then return false end
 	checkpoint()
 	log.add("Cast " .. ((cards.def(c) or {}).text or c.def_key))
-	push_event(z, verb or "play", cards.behaviour(c, "on_play") or {}, { card_id }, { card_id },
-		targets, card_id, cards.behaviour(c, "spent"))
+	push_event { verb = verb or "play", action = cards.behaviour(c, "on_play"),
+		subject = { card_id }, targets = targets, source = card_id,
+		spent = cards.behaviour(c, "spent") }
 	M.settle()
 	return true
 end
@@ -1693,12 +1707,12 @@ end
 -- react_step then finds nobody to hold.
 function M.defer_play(card_id, targets)
 	local c = entity.get(card_id)
-	local z = c and stack_zone()
-	if not z then return false end
+	if not (c and stack_zone()) then return false end
 	for _, verb in ipairs(cards.emits(c, "play")) do
 		if reactions.anyone_answers(verb, { card_id }, zones.active_seat()) then
-			push_event(z, verb, cards.behaviour(c, "on_play") or {}, { card_id }, { card_id },
-				targets, card_id, cards.behaviour(c, "spent"))
+			push_event { verb = verb, action = cards.behaviour(c, "on_play"),
+				subject = { card_id }, targets = targets, source = card_id,
+				spent = cards.behaviour(c, "spent") }
 			return true
 		end
 	end
@@ -1730,10 +1744,9 @@ end
 -- were chosen before the window opened, and any compute it bound was worked out
 -- against the board as it stood then.
 function M.emit(verb, subject, action, source, ctx)
-	local z = stack_zone()
-	if not z or not reactions.anyone_answers(verb, subject, zones.active_seat()) then return false end
-	return push_event(z, verb, action, subject, subject, ctx and ctx.targets, source, nil,
-		ctx and ctx.let) ~= nil
+	if not reactions.anyone_answers(verb, subject, zones.active_seat()) then return false end
+	return push_event { verb = verb, action = action, subject = subject, source = source,
+		targets = ctx and ctx.targets, let = ctx and ctx.let } ~= nil
 end
 
 -- What is waiting to be answered, if anything. An input layer has to ask,
@@ -1823,7 +1836,8 @@ function M.react(card_id, index, targets)
 	checkpoint()
 	pay(r.cost, { card_id = card_id })
 	log.add(((cards.def(c) or {}).text or c.def_key) .. " in response")
-	local rec = push_event(z, "play", r.action, { card_id }, top.re_subject, targets, card_id, r.spent)
+	local rec = push_event { verb = "play", action = r.action, subject = { card_id },
+		event = top.re_subject, targets = targets, source = card_id, spent = r.spent }
 	if rec then rec.re_answering = top.id end
 	top.re_answered[#top.re_answered + 1] = card_id
 	M.settle()
