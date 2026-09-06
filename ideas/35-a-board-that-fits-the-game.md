@@ -80,3 +80,24 @@ response-bar text) — the latter deleted in favour of the newly-exported
 `label.seat_text`. `label.fill` gained a small recursion cap (depth 4) since
 `seat_text` now calls back into it, and a seat whose own text named `{owner}`
 of itself would otherwise recurse forever.
+
+### The customer is still unwired
+
+`set_name` works and is tested, and **no shipped game writes it** — the wizard
+whose pick was the whole reason for it still leaves the seat reading its printed
+`"Player One"`. `make_spellstorm.py:1083` builds `pick_action` (health, initiative
+rating, the wizard card, the spells, `destroy:roster.<key>`) and the line that
+would name the seat is simply absent; the seat cards at `make_spellstorm.py:1682`
+carry `"text": "Player One"` / `"Player Two"`.
+
+The wiring is one line — `"set_name:mine.player:text@self"` on `pick_action` —
+plus the seat's own `text`, and that second half is the question: `label.fill`
+reads the entity's `name` before the def, so `"text": "{name}"` shows the wizard
+once picked and has to show *something* before that. **[Assumption: the answer is
+whatever `label.fill` already does with a field nothing carries — it either falls
+through to the def or prints the braces, and which of the two decides whether the
+seat can keep `"Player One"` as its def text or needs a second field. Reading,
+not design.]**
+
+Worth doing rather than dropping the verb: a seat that says who is sitting in it
+is the general want, and Spellstorm is the game that has an answer to write there.
