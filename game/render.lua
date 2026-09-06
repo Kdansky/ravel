@@ -17,6 +17,10 @@ local label       = require("label")
 
 local M = {}
 
+-- A style that hides nothing, so the five "does this look leave that part out"
+-- reads below never have to test for the table first.
+local EMPTY_HIDE = {}
+
 local CARD_RATIO = 1.6
 
 local C = {
@@ -641,7 +645,7 @@ end
 local function badge_keys(look, card_e)
 	local out = {}
 	if not (type(look.badges) == "table" and card_e and card_e.stats) then return out end
-	local zeros = look.badge_zeros ~= false
+	local zeros = not (look.hide or EMPTY_HIDE).zero_badges
 	for _, key in ipairs(look.badges) do
 		local v = shown_stat(card_e, key)
 		if v and (zeros or v ~= 0) then out[#out + 1] = key end
@@ -671,7 +675,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	-- label costs a quarter of the height it needed for the drawing. Carried as
 	-- a tag so a zone can grant it too ("nothing on this board is titled")
 	-- rather than every template having to say it.
-	local no_title = look.title == false
+	local no_title = (look.hide or EMPTY_HIDE).title
 	-- What is left to put in the text band once the title is gone. A hand card
 	-- may still have a description worth the room; a board tile has nothing, and
 	-- gives the space back to the art.
@@ -707,7 +711,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 	-- transparency shows whatever the board is painted with. The card colour
 	-- would otherwise cover the square it stands on, which on a chessboard means
 	-- covering the chessboard.
-	local bare = look.color == false
+	local bare = (look.hide or EMPTY_HIDE).plate
 
 	love.graphics.push("all")
 	if not bare then
@@ -908,7 +912,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		love.graphics.setColor(unpack(C.selected))
 		love.graphics.setLineWidth(3 * S)
 		love.graphics.rectangle("line", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
-	elseif look.border ~= false then
+	elseif not (look.hide or EMPTY_HIDE).border then
 		-- A piece is not a card and should not be drawn inside one. The same
 		-- reasoning as `cell_outline` on the board it stands on: the rectangle
 		-- is chrome, and a chess knight in a rounded box reads as a card with a
@@ -1118,7 +1122,7 @@ end
 -- it is a chessboard nobody can move on.
 local function draw_grid_empty(zone_e)
 	if not zone_e.slots then return end
-	local bare = zone_e.style.cell_outline == false
+	local bare = (zone_e.style.hide or EMPTY_HIDE).cell_outline
 	love.graphics.push("all")
 	for _, slot_id in pairs(zone_e.slots) do
 		local slot = entity.get(slot_id)

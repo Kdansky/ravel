@@ -932,11 +932,11 @@ def styles():
     out["gem"] = {"color": [0.18, 0.46, 0.34]}
     out["wound"] = {"color": [0.34, 0.14, 0.14]}
     out["chip"] = {"badges": ["value", "plus_pow", "plus_act", "plus_draw", "plus_piggy", "hits", "react"],
-                   "badge_zeros": False}
+                   "hide": ["zero_badges"]}
     # What a chip wears only while it is on the shelf. Claimed by the tag the
     # bank hands out, so the same chip in a hand shows what it does and the one
     # in the shop shows what it costs and how many are left.
-    out["for_sale"] = {"badges": ["price", "stock"], "badge_run": "down", "badge_zeros": False}
+    out["for_sale"] = {"badges": ["price", "stock"], "badge_run": "down", "hide": ["zero_badges"]}
     out["character_card"] = {"color": [0.24, 0.26, 0.36]}
     # A button is a word you have to be able to read, not a picture of a chip,
     # so it takes the whole cell rather than a card-shaped slice of it.

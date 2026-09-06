@@ -306,10 +306,10 @@
     "arcane": { "color": [0.3, 0.24, 0.46] },
     "relic": { "color": [0.48, 0.4, 0.2] },
     "bone": { "color": [0.55, 0.52, 0.45] },
-    "fighter_face": { "badges": ["atk", "hp", "armor"], "badge_zeros": false },
-    "hero_face": { "badges": ["price", "atk", "life", "level", "armor"], "badge_zeros": false },
-    "build_face": { "badges": ["integrity"], "badge_zeros": false },
-    "spell_face": { "badges": ["price"], "badge_zeros": false }
+    "fighter_face": { "hide": ["zero_badges"], "badges": ["atk", "hp", "armor"] },
+    "hero_face": { "hide": ["zero_badges"], "badges": ["price", "atk", "life", "level", "armor"] },
+    "build_face": { "hide": ["zero_badges"], "badges": ["integrity"] },
+    "spell_face": { "hide": ["zero_badges"], "badges": ["price"] }
   },
   "tags": {
     "unit": { "zone": "army", "leaves": { "into": "discard", "action": ["emit:died"] } },

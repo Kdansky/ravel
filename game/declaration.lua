@@ -402,15 +402,36 @@ local function flatten_moments(def, pp, what)
 	end
 end
 
+-- The parts of a card or a board a style may draw none of. They were five
+-- separate fields taking the single value false — title, border, color, the
+-- grid's cell_outline, badge_zeros — which is a flag apiece for one question:
+-- what does this look leave out. A chess piece said three of them.
+M.HIDEABLE = { title = true, border = true, plate = true, cell_outline = true,
+	zero_badges = true }
+
 -- Every style a tag set names, merged into one flat table. Two styles claiming
 -- one property is an authoring conflict the validator reports, so nothing here
 -- has to invent a winner.
+--
+-- "hide" is the exception, and unions: two styles that each leave a part out
+-- both mean it, and there is nothing for them to disagree about. Kept as a set
+-- because the renderer asks about one part at a time, on every card it draws.
+local function merge_hide(out, list)
+	if type(list) ~= "table" then return end
+	out.hide = out.hide or {}
+	for _, word in ipairs(list) do out.hide[word] = true end
+end
+M.merge_hide = merge_hide
+
 local function merge_styles(G, tags_set)
 	local out = {}
 	for tag in pairs(tags_set or {}) do
 		local sd = G.style_defs[tag]
 		if type(sd) == "table" then
-			for k, v in pairs(sd) do out[k] = v end
+			for k, v in pairs(sd) do
+				if k ~= "hide" then out[k] = v end
+			end
+			merge_hide(out, sd.hide)
 		end
 	end
 	return out

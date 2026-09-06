@@ -60,9 +60,8 @@
   ],
   "styles": {
     "<your style name>": {
-      "color": "cards: [r, g, b] each 0 to 1 for the plate behind the art, or false for no plate at all — so a transparent PNG shows the board through it",
-      "title": "cards: false draws no title, giving the whole card to the picture",
-      "border": "cards: false draws no frame around the card. A chess piece is not a card and should not be drawn inside one; selection and eligibility outlines still draw, because those are the affordance rather than the frame.",
+      "color": "cards: [r, g, b] each 0 to 1 for the plate behind the art. Say \"plate\" under \"hide\" for no plate at all, so a transparent PNG shows the board through it.",
+      "hide": ["the parts of a card or a board this look draws none of: title (the whole card goes to the picture), border (no frame, for a chess piece that is not a card \u2014 the selection and eligibility outlines still draw, since those are the affordance), plate (no colour behind the art), cell_outline (grid zones: nothing on empty cells, for a board that paints its own squares \u2014 eligible ones still light up), zero_badges (a badge whose number is nought is left off, so a market card's cost of no rubies is not a line of the price while a creature's zero power still is). One field rather than five taking only false, because what a look leaves out is one question."],
       "fit": "zones: how a card sits in the box its layout gives it. card (the default) keeps card proportions and leaves breathing room; fill takes the whole box, for board tiles and for buttons \u2014 a word you have to read is not a picture of a card. On a row it also settles the shape, since a filled row has no card ratio to lay out against: it picks the column count whose cells come out closest to square",
       "fan": "stack zones: show the whole stack instead of only its top card, each card laid over the one before and leaving a strip of it showing. The word is the direction the next card goes — up, down, left or right — so down is a solitaire tableau and up is a row growing away from its owner. The strip is what the layout protects: cards shrink to keep it readable rather than the other way round. Not for grid zones, which place by slot.",
       "ratio": "zones: the shape it keeps whatever the window is — width over height, so 1 is square, or the word grid to read it from the cell count. The zone takes the largest rect of that shape inside what pos allotted, centred.",
@@ -72,12 +71,10 @@
       "paint": {
         "<absolute pattern name>": "grid zones: a colour or a picture for the squares that pattern names — terrain, goal rows, home rows"
       },
-      "cell_outline": "grid zones: false draws no outline on empty cells, for a board that paints its own squares. Eligible squares still light up during a move.",
       "badges": [
         "cards: stat keys drawn as numbers along the bottom edge of the face, left to right — [\"power\", \"health\"] is a creature card. Without it a card shows hp (with its hp_max companion) as a coloured bar's worth and nothing else, which is the default every game before this was written against. A card that carries numbers and names none of them here shows none of them."
       ],
-      "badge_run": "cards: which way that list runs — \"right\", the default, along the bottom edge, or \"down\" the left edge from the top corner. A column is for more numbers than go across a card: a printed price of five gems is the case that asked for it, and it is also how the card being copied prints it. A column leaves the title its full width, where a row makes way for it.",
-      "badge_zeros": "cards: false leaves out a badge whose number is zero. A separate word from badge_run deliberately — a market card's cost of no rubies is not a line of the price, while a creature's zero power is a fact and must still draw."
+      "badge_run": "cards: which way that list runs — \"right\", the default, along the bottom edge, or \"down\" the left edge from the top corner. A column is for more numbers than go across a card: a printed price of five gems is the case that asked for it, and it is also how the card being copied prints it. A column leaves the title its full width, where a row makes way for it."
     }
   },
   "cards": [

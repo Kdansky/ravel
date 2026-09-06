@@ -169,13 +169,13 @@
     "curse_held": { "all_of": ["curse", "held"] }
   },
   "styles": {
-    "ember": { "color": [0.62, 0.2, 0.16], "title": false },
-    "tide": { "color": [0.16, 0.36, 0.58], "title": false },
-    "loam": { "color": [0.45, 0.34, 0.14], "title": false },
-    "storm": { "color": [0.18, 0.36, 0.32], "title": false },
-    "wizard_card": { "color": [0.24, 0.16, 0.34], "title": false },
-    "chooser": { "color": [0.24, 0.16, 0.34], "title": false },
-    "potion": { "color": [0.32, 0.42, 0.18], "title": false }
+    "ember": { "color": [0.62, 0.2, 0.16], "hide": ["title"] },
+    "tide": { "color": [0.16, 0.36, 0.58], "hide": ["title"] },
+    "loam": { "color": [0.45, 0.34, 0.14], "hide": ["title"] },
+    "storm": { "color": [0.18, 0.36, 0.32], "hide": ["title"] },
+    "wizard_card": { "color": [0.24, 0.16, 0.34], "hide": ["title"] },
+    "chooser": { "color": [0.24, 0.16, 0.34], "hide": ["title"] },
+    "potion": { "color": [0.32, 0.42, 0.18], "hide": ["title"] }
   },
   "tags": {
     "takeable": {

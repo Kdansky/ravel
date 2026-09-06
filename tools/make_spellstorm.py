@@ -1817,13 +1817,13 @@ def build():
             "curse_held": {"all_of": ["curse", "held"]},
         },
         "styles": {
-            "ember": {"color": [0.62, 0.20, 0.16], "title": False},
-            "tide":  {"color": [0.16, 0.36, 0.58], "title": False},
-            "loam":  {"color": [0.45, 0.34, 0.14], "title": False},
-            "storm": {"color": [0.18, 0.36, 0.32], "title": False},
-            "wizard_card": {"color": [0.24, 0.16, 0.34], "title": False},
-            "chooser": {"color": [0.24, 0.16, 0.34], "title": False},
-            "potion": {"color": [0.32, 0.42, 0.18], "title": False},
+            "ember": {"color": [0.62, 0.20, 0.16], "hide": ["title"]},
+            "tide":  {"color": [0.16, 0.36, 0.58], "hide": ["title"]},
+            "loam":  {"color": [0.45, 0.34, 0.14], "hide": ["title"]},
+            "storm": {"color": [0.18, 0.36, 0.32], "hide": ["title"]},
+            "wizard_card": {"color": [0.24, 0.16, 0.34], "hide": ["title"]},
+            "chooser": {"color": [0.24, 0.16, 0.34], "hide": ["title"]},
+            "potion": {"color": [0.32, 0.42, 0.18], "hide": ["title"]},
         },
         "tags": {
             # What a card on a shelf does: it comes to your hand, if your Tier

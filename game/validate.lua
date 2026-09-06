@@ -26,6 +26,8 @@ local geometry    = require("geometry")
 -- MOMENTS only: the table that says which flat fields a block becomes. Pure
 -- data, and the loader requires nothing back, so there is no cycle here.
 local MOMENTS     = require("declaration").MOMENTS
+-- The parts a style may say it draws none of, from the one place that knows.
+local HIDEABLE    = require("declaration").HIDEABLE
 
 local M = {}
 
@@ -269,9 +271,9 @@ local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_t
 -- here too, so the source is checked by the same rules.
 -- What a style may carry. Presentation only, and deliberately closed: the
 -- moment a style could change a rule, every rules bug becomes a drawing bug.
-local STYLE_FIELDS    = { color = true, title = true, border = true, fit = true,
-	ratio = true, chequer = true, paint = true, cell_outline = true, fan = true,
-	badges = true, badge_run = true, badge_zeros = true }
+local STYLE_FIELDS    = { color = true, hide = true, fit = true,
+	ratio = true, chequer = true, paint = true, fan = true,
+	badges = true, badge_run = true }
 -- Which way a card's badges go. Two words rather than four: nothing has asked
 -- to run up or leftwards, and a direction nobody draws would be a silent shrug.
 local BADGE_RUNS      = { right = true, down = true }
@@ -1790,16 +1792,28 @@ function M.check(G)
 			warn('%s: should be a map of look, like { "color": [0.8, 0.2, 0.2] }', where)
 		else
 			check_fields(where, sd, STYLE_FIELDS)
-			-- One property for the plate: a colour, or false for none.
-			if sd.color ~= false then check_numbers(where, "color", sd.color, 3) end
-			if sd.title ~= nil and sd.title ~= false then
-				warn("%s: title takes only false, which means draw none", where)
+			check_numbers(where, "color", sd.color, 3)
+			-- The parts this look draws none of. Five fields taking only "false"
+			-- before, which is a flag apiece for one question — and a chess piece
+			-- answered three of them.
+			for _, old in ipairs({ "title", "border", "cell_outline", "badge_zeros" }) do
+				if sd[old] ~= nil then
+					warn('%s: "%s" is gone — a look says what it leaves out in one place,'
+						.. ' as "hide": ["%s"]', where, old,
+						old == "badge_zeros" and "zero_badges" or old)
+				end
 			end
-			if sd.cell_outline ~= nil and sd.cell_outline ~= false then
-				warn("%s: cell_outline takes only false, which means draw none", where)
-			end
-			if sd.border ~= nil and sd.border ~= false then
-				warn("%s: border takes only false, which means draw none", where)
+			if sd.hide ~= nil then
+				if type(sd.hide) ~= "table" or (next(sd.hide) ~= nil and sd.hide[1] == nil) then
+					warn('%s: hide should be a list, like ["title", "border"]', where)
+				else
+					for _, word in ipairs(sd.hide) do
+						if not HIDEABLE[word] then
+							warn("%s: hides '%s', which is not a part anything draws%s",
+								where, tostring(word), suggest(word, HIDEABLE))
+						end
+					end
+				end
 			end
 			if sd.fit ~= nil and sd.fit ~= "card" and sd.fit ~= "fill" then
 				warn("%s: fit should be 'card' or 'fill', not '%s'", where, tostring(sd.fit))
@@ -1815,10 +1829,7 @@ function M.check(G)
 			if sd.badge_run ~= nil and not BADGE_RUNS[sd.badge_run] then
 				warn('%s: badge_run should be "right" or "down", not %s', where, tostring(sd.badge_run))
 			end
-			if sd.badge_zeros ~= nil and sd.badge_zeros ~= false then
-				warn("%s: badge_zeros takes only false, which means leave a zero out", where)
-			end
-			if (sd.badge_run or sd.badge_zeros ~= nil) and sd.badges == nil then
+			if sd.badge_run and sd.badges == nil then
 				warn("%s: says how its badges are drawn but names none — add \"badges\"", where)
 			end
 			-- The shape a zone keeps whatever the window does: a number is width
@@ -1887,7 +1898,10 @@ function M.check(G)
 		local claimed = {}
 		for tag in pairs(def.tags_set or {}) do
 			for prop in pairs(type((G.style_defs or {})[tag]) == "table" and G.style_defs[tag] or {}) do
-				if claimed[prop] then
+				-- "hide" is the one property that adds rather than conflicts:
+				-- two looks that each leave a part out both mean it, and there
+				-- is nothing for them to disagree about.
+				if prop ~= "hide" and claimed[prop] then
 					warn("card '%s': styles '%s' and '%s' both set %s — one look, one word for it",
 						key, claimed[prop], tag, prop)
 				end

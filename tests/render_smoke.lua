@@ -280,10 +280,10 @@ do
 	flow.init("chess.json", 4)
 	render.rescale()
 	local board = zones.find("board")
-	assert(board.style.cell_outline == false, "chess.json is expected to style its board bare")
+	assert(board.style.hide.cell_outline, "chess.json is expected to style its board bare")
 
 	local bare = drawn()
-	board.style.cell_outline = nil
+	board.style.hide.cell_outline = nil
 	local lined = drawn()
 	local empty = 64 - #board.cards
 	assert(lined - bare == empty,
@@ -291,7 +291,7 @@ do
 
 	-- The affordance is not chrome: with the tag back on, the squares a piece
 	-- may move to are still drawn, or the board is unplayable.
-	board.style.cell_outline = false
+	board.style.hide.cell_outline = true
 	local piece
 	for _, id in ipairs(board.cards) do
 		for _, a in ipairs(cards.abilities(entity.get(id))) do

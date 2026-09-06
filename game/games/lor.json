@@ -42,8 +42,8 @@
   ],
   "styles": {
     "unit": { "fit": "card", "badges": ["power", "health"] },
-    "nexus_plate": { "fit": "card", "badges": ["nexus", "mana"], "cell_outline": false },
-    "lane": { "chequer": ["#243248", "#2b3a55"], "cell_outline": false }
+    "nexus_plate": { "hide": ["cell_outline"], "fit": "card", "badges": ["nexus", "mana"] },
+    "lane": { "hide": ["cell_outline"], "chequer": ["#243248", "#2b3a55"] }
   },
   "patterns": { "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] } },
   "tags": {

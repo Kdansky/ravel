@@ -263,7 +263,7 @@ def styles():
     s = {f"plate_{k}": {"color": colour} for k, _, _, colour, _, _ in GEMS}
     s["plate_gold"] = {"color": [0.80, 0.66, 0.24]}
     s["plate_noble"] = {"color": [0.44, 0.34, 0.56]}
-    s["market"] = {"fit": "card", "cell_outline": False}
+    s["market"] = {"fit": "card", "hide": ["cell_outline"]}
     # A style is claimed by carrying a tag of its name, and a *card* claims its
     # own: badges named on the zone's style are read by nobody, which is where
     # the old "badges": ["vp"] on market went. Both of these are worn by the
@@ -274,15 +274,15 @@ def styles():
     # go across a card and the zeros are most of them. Prestige leads, because
     # it is what the game is won on and it is top-left on the printed card.
     s["development"] = {"badges": ["vp"] + [f"cost_{k}" for k in KEYS],
-                        "badge_run": "down", "badge_zeros": False}
+                        "badge_run": "down", "hide": ["zero_badges"]}
     # A noble is the same card read the other way: a threshold rather than a
     # price, and worth three whatever it asks for. Untitled, because every one
     # of them is called "Noble": the word says nothing the plate colour has not
     # already said, and on a card two thirds the height of a market one it is
     # four requirements' worth of room.
     s["noble"] = {"badges": ["vp"] + [f"n_{k}" for k in KEYS],
-                  "badge_run": "down", "badge_zeros": False, "title": False}
-    s["tray"] = {"fit": "card", "cell_outline": False}
+                  "badge_run": "down", "hide": ["title", "zero_badges"]}
+    s["tray"] = {"fit": "card", "hide": ["cell_outline"]}
     # How many are left, on the pile itself: taking two of one colour needs four
     # still there, so it is a number a player has to be able to count.
     s["counter"] = {"badges": ["stock"]}

@@ -28,7 +28,20 @@ function M.style(e)
 				out = {}
 				for k, v in pairs(base) do out[k] = v end
 			end
-			for k, v in pairs(G.style_defs[name]) do out[k] = v end
+			local sd = G.style_defs[name]
+			for k, v in pairs(sd) do
+				if k ~= "hide" then out[k] = v end
+			end
+			-- "hide" unions rather than replacing, as it does at load. The set is
+			-- copied first: the base style's is cached and shared by every card
+			-- of that definition, and writing into it would hide a part on all
+			-- of them the moment one wore the computed tag.
+			if sd.hide then
+				local h = {}
+				for word in pairs(out.hide or {}) do h[word] = true end
+				out.hide = h
+				declaration.merge_hide(out, sd.hide)
+			end
 		end
 	end
 	return out or base

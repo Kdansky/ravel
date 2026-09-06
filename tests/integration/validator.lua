@@ -492,7 +492,7 @@ local CASES = {
 			g.style_defs = { priced = { badges = { "hp" }, badge_run = "sideways" } }
 			g.card_defs.c_flee.tags_set.priced = true
 		end },
-	{ "badge_zeros asked to be true", "badge_zeros takes only false",
+	{ "a style still written with badge_zeros", '"badge_zeros" is gone',
 		function(g)
 			g.style_defs = { priced = { badges = { "hp" }, badge_zeros = true } }
 			g.card_defs.c_flee.tags_set.priced = true

@@ -11,8 +11,8 @@
     "castle_button": { "src": ["Chess_klt60.png", "Chess_kdt60.png"] }
   },
   "styles": {
-    "piece": { "title": false, "color": false, "border": false },
-    "chessboard": { "fit": "fill", "ratio": "grid", "chequer": ["#b58863", "#f0d9b5"], "cell_outline": false }
+    "piece": { "hide": ["title", "border", "plate"] },
+    "chessboard": { "hide": ["cell_outline"], "fit": "fill", "ratio": "grid", "chequer": ["#b58863", "#f0d9b5"] }
   },
   "patterns": {
     "line_ortho": { "vectors": [[1, 0], [-1, 0], [0, 1], [0, -1]], "class": ["ray"] },

@@ -335,7 +335,8 @@ function M.test_splendor_the_price_is_on_the_face_and_not_in_the_title(check)
 	local look = G.style_defs.development
 	check("the market cards' style names the price", look ~= nil and look.badges ~= nil)
 	check("running down the side, since five will not go across", look.badge_run == "down")
-	check("and leaving the empty lines out", look.badge_zeros == false)
+	check("and leaving the empty lines out",
+		look.hide ~= nil and look.hide[1] == "zero_badges")
 
 	-- A style is claimed by carrying a tag of its name, and badges are read off
 	-- the card. Naming them on the zone's style — which is where they were —

@@ -70,8 +70,8 @@ local RETIRED = {
 	{ "exhausts", 'a cost — "exhaust": 1 on the ability that spends the card' },
 	{ "stays_ready", "nothing at all — an ability charging no exhaust stays ready" },
 	{ "transparent_background", 'the style property "color": false' },
-	{ "invisible_title_text", 'the style property "title": false' },
-	{ "invisible_slot_outlines", 'the style property "cell_outline": false' },
+	{ "invisible_title_text", 'the style property "hide": ["title"]' },
+	{ "invisible_slot_outlines", 'the style property "hide": ["cell_outline"]' },
 	{ "on_pick", 'the "play" block' },
 	-- The four that move a number are prefixed now, so they sort together and a
 	-- reader looking for "what can change a stat" finds them in one place.

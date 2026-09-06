@@ -2481,34 +2481,43 @@ A style carries everything about how a thing *looks*, for cards and zones alike:
 
 | Property | On | Means |
 |---|---|---|
-| `color` | cards | `[r, g, b]` for the plate behind the art, or **`false`** for no plate at all, so a transparent PNG shows the board through it |
-| `title` | cards | `false` draws none, giving the whole card to the picture |
-| `border` | cards | `false` draws no frame. A chess piece is not a card and should not be drawn inside one — selection and eligibility outlines still draw, because those are the affordance rather than the frame |
+| `color` | cards | `[r, g, b]` for the plate behind the art |
+| `hide` | cards, zones | the parts this look draws none of. See below |
 | `fit` | zones | `card` (default) keeps card proportions inside whatever box the layout gives; `fill` takes the whole of it. Board tiles want it, and so does a button — a word you have to read is not a picture of a card, and a portrait button in a wide strip gives most of the strip back. On a `row` it also settles the shape: a filled row has no card ratio to lay out against, so it picks the column count whose cells come out closest to square |
 | `fan` | stack zones | show the whole stack, not just its top card — `"up"`, `"down"`, `"left"` or `"right"`, the way the next card is laid. See below |
 | `ratio` | zones | the shape it keeps whatever the window is — width over height, or `"grid"` to read it from the cell count |
 | `chequer` | grid zones | two colours alternated across the squares. **The first is a1's** — the bottom-left square — and a board wanting the other way round swaps the two strings. There is no flag for it |
 | `badges` | cards | the stat keys drawn as numbers along the bottom of the face, left to right: `["power", "health"]` is a creature card. Without it a card shows `hp` and nothing else — **a card that carries numbers and names none of them here shows none of them**. Read off the **card**, so a style only a zone claims draws nothing; the validator says so |
 | `badge_run` | cards | which way that list runs: `"right"` (default) along the bottom, or `"down"` the left edge from the top corner, for more numbers than go across a card. A column leaves the title its full width; a row makes way for it |
-| `badge_zeros` | cards | `false` leaves out a badge whose number is zero. A separate word from `badge_run` on purpose — a market card's cost of no rubies is not a line of the price, while a creature's zero power is a fact and must still draw |
 | `paint` | grid zones | `{ "<absolute pattern>": colour-or-filename }` — terrain, goal rows, home rows |
-| `cell_outline` | grid zones | `false` draws no outline on empty cells. Eligible squares still light up during a move |
+
+**`hide` is what a look leaves out**, and there are five parts to name:
+
+| Word | Leaves out |
+|---|---|
+| `title` | the card's name, giving the whole card to the picture |
+| `border` | the frame. A chess piece is not a card and should not be drawn inside one — selection and eligibility outlines still draw, because those are the affordance rather than the frame |
+| `plate` | the colour behind the art, so a transparent PNG shows the board through it |
+| `cell_outline` | grid zones: the outline on empty cells. Eligible squares still light up during a move |
+| `zero_badges` | a badge whose number is nought — a market card's cost of no rubies is not a line of the price, while a creature's zero power is a fact and still draws |
+
+One field rather than five taking only `false`, because what a look leaves out
+is one question, and a chess piece answers three of it at once. Two styles on
+one card both get their way: `hide` is the only property that adds rather than
+conflicts, since there is nothing for "draw no title" and "draw no border" to
+disagree about.
 
 Every one of these was its own field or its own tag. Chess's whole board is now
 one word:
 
 ```json
 "styles": {
-  "chessboard": { "fit": "fill", "ratio": "grid",
-                  "chequer": ["#b58863", "#f0d9b5"], "cell_outline": false },
-  "piece":      { "title": false, "color": false }
+  "chessboard": { "hide": ["cell_outline"], "fit": "fill", "ratio": "grid",
+                  "chequer": ["#b58863", "#f0d9b5"] },
+  "piece":      { "hide": ["title", "border", "plate"] }
 },
 "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [8, 8], "tags": ["chessboard"] }]
 ```
-
-**`color: false` is where two ideas became one.** A card's colour and "draw no
-plate behind it" were a field and a tag deciding the same thing; now the plate
-has a colour, or it has none.
 
 **Badges draw wherever a card's face does** — a grid cell, a hand, the browse
 view. A card in a hand shows its description *and* its numbers, with the numbers
@@ -2526,7 +2535,7 @@ the exact words stay in the tooltip:
   { "key": "draw", "icon": "card",   "tags": ["hidden"] },
   { "key": "react", "icon": "shield", "number": false, "tags": ["hidden"] }
 ],
-"styles": { "chip": { "badges": ["act", "draw", "react"], "badge_zeros": false } },
+"styles": { "chip": { "badges": ["act", "draw", "react"], "hide": ["zero_badges"] } },
 "cards": [
   { "key": "roundhouse", "text": "Roundhouse", "tags": ["chip"],
     "tooltip": "+1 action, +2 chips",
@@ -2534,7 +2543,7 @@ the exact words stay in the tooltip:
 ]
 ```
 
-`badge_zeros: false` is what keeps a card that gives no buys from printing a
+`hide: ["zero_badges"]` is what keeps a card that gives no buys from printing a
 zero, and a stat a card never declares is simply absent — an absent stat draws
 nothing, which is what makes one style serve forty different chips.
 

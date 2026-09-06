@@ -150,9 +150,9 @@
     "wound": { "color": [0.34, 0.14, 0.14] },
     "chip": {
       "badges": ["value", "plus_pow", "plus_act", "plus_draw", "plus_piggy", "hits", "react"],
-      "badge_zeros": false
+      "hide": ["zero_badges"]
     },
-    "for_sale": { "badges": ["price", "stock"], "badge_run": "down", "badge_zeros": false },
+    "for_sale": { "badges": ["price", "stock"], "badge_run": "down", "hide": ["zero_badges"] },
     "character_card": { "color": [0.24, 0.26, 0.36] },
     "button": { "fit": "fill" }
   },
