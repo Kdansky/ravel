@@ -1478,4 +1478,21 @@ function M.test_spellstorm_a_declined_void_leaves_the_gain_a_gain(check)
 	check("and one card gained", #hand_of(one).cards == held + 1, #hand_of(one).cards)
 end
 
+-- A seat is a chair until somebody sits in it. Both seat cards print "{name}"
+-- and start as Player One and Player Two; the wizard's own pick action writes
+-- its text over that, so every place the engine already said whose something
+-- is — a per_seat zone's label, the phase banner, the end-of-game line — says
+-- the wizard rather than the number.
+function M.test_spellstorm_picking_a_wizard_names_the_chair(check)
+	local label = require("label")
+	flow.init("spellstorm.json", 5)
+	check("before a pick the seats are numbered",
+		label.seat_text("seat_one") == "Player One", label.seat_text("seat_one"))
+	opening(5, "derby", "eve")
+	check("seat one is the wizard sitting in it",
+		label.seat_text("seat_one") == "Derby Pocket", label.seat_text("seat_one"))
+	check("and so is seat two",
+		label.seat_text("seat_two") == "Eve Williams", label.seat_text("seat_two"))
+end
+
 return M

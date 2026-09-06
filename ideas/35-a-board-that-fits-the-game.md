@@ -56,48 +56,20 @@ a licence to punch holes in a layout.
 
 ## The seat's own name
 
-**Shipped**, as `set_name`, not the three shapes drafted here. `transform`
-turned out to be unsafe rather than merely unpicked: it swaps a card's
-`def_key`, and every seat lookup (`turn_seat`, `active_seat`, per-seat zones,
-`@mine`) is keyed by the seat card's original `def_key` — transforming the
-seat card itself would desync all of them. The fallthrough-to-a-zone option
-needed an unstated convention for which zone, the kind of default this repo
-avoids.
+**Shipped, and in use.** `transform` — the shape drafted here first — turned out
+unsafe rather than merely unpicked: it swaps a card's `def_key`, and every seat
+lookup (`turn_seat`, `active_seat`, per-seat zones, `@mine`) is keyed by the seat
+card's original one. The fallthrough-to-a-zone option needed an unstated
+convention for which zone.
 
-The shape that shipped needed no new read path at all: a seat's `text` is
-already run through `label.fill` everywhere it is drawn, and `fill` already
-reads the live entity before the def. So a seat declares `"text": "{name}"`,
-and `set_name:<scope>:<field>@<source-scope>` (`game/actions.lua`) writes an
-`e.name` entity field, sourced the same way a label reads any field — entity
-first, def second, through `label.fill` itself. A wizard's own `on_play` runs
-`set_name:mine.player:text@self` once picked from an `options:` offer, and
-`{owner}`/`{active}` read the new name from then on with no changes to either.
+What shipped needed no new read path: a seat declares `"text": "{name}"` and a
+`"name"` beside it, `label.fill` already reads the live entity before the def,
+and `set_name:<scope>:<field>@<source-scope>` writes the entity's `name`. Both
+halves are in `AUTHORING.md`'s *A caption that reads the board*.
 
-Two read paths that bypassed `label.fill` and would have printed the literal
-`"{name}"` were fixed alongside it: `label.lua`'s own `seat_text` (backing
-`{owner}`/`{active}`) and `render.lua`'s duplicate of it (backing the
-response-bar text) — the latter deleted in favour of the newly-exported
-`label.seat_text`. `label.fill` gained a small recursion cap (depth 4) since
-`seat_text` now calls back into it, and a seat whose own text named `{owner}`
-of itself would otherwise recurse forever.
-
-### The customer is still unwired
-
-`set_name` works and is tested, and **no shipped game writes it** — the wizard
-whose pick was the whole reason for it still leaves the seat reading its printed
-`"Player One"`. `make_spellstorm.py:1083` builds `pick_action` (health, initiative
-rating, the wizard card, the spells, `destroy:roster.<key>`) and the line that
-would name the seat is simply absent; the seat cards at `make_spellstorm.py:1682`
-carry `"text": "Player One"` / `"Player Two"`.
-
-The wiring is one line — `"set_name:mine.player:text@self"` on `pick_action` —
-plus the seat's own `text`, and that second half is the question: `label.fill`
-reads the entity's `name` before the def, so `"text": "{name}"` shows the wizard
-once picked and has to show *something* before that. **[Assumption: the answer is
-whatever `label.fill` already does with a field nothing carries — it either falls
-through to the def or prints the braces, and which of the two decides whether the
-seat can keep `"Player One"` as its def text or needs a second field. Reading,
-not design.]**
-
-Worth doing rather than dropping the verb: a seat that says who is sitting in it
-is the general want, and Spellstorm is the game that has an answer to write there.
+**The trap, three times over: a read path that bypassed `label.fill`.** Each one
+printed the literal `{name}`, and each was found only by giving a real seat a
+template — `label.lua`'s own `seat_text`, `render.lua`'s duplicate of it (deleted
+in favour of exporting the first), and `flow.winner()`, which is the end-of-game
+banner and the one a player was most likely to see. Anything else that reads a
+card's `text` off the def is the fourth.

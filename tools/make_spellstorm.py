@@ -1089,6 +1089,10 @@ def wizard_templates(w):
     for s in w["spells"]:
         pick_action.append("fill:mine.deck:%s:1" % s["key"])
     pick_action += list(w["start"])
+    # The chair takes the wizard's name. The seat prints "{name}" and starts as
+    # "Player One", so this is the moment it stops being a number and becomes
+    # somebody — and {owner}/{active} read it everywhere from here on.
+    pick_action.append("set_name:mine.player:text@self")
     pick_action.append("stat_gain:picked@mine.player:1")
     # The copy dealt into the offer spends the real card it was copied from, so
     # the second seat is offered seven wizards rather than eight including the
@@ -1680,7 +1684,7 @@ def build():
     # The two seats. Health carries its own ceiling because a wizard raises it
     # when it is chosen, and stat_boost can only move a ceiling that exists.
     for key, label in (("seat_one", "Player One"), ("seat_two", "Player Two")):
-        cards.append({"key": key, "text": label, "asset": "auto",
+        cards.append({"key": key, "text": "{name}", "name": label, "asset": "auto",
                       "tags": ["seat"],
                       "tooltip": "Your wizard, your health, your Storm Shards.",
                       "card_stats": {"health": {"value": 1, "min": 0, "max": 1}}})

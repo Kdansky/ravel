@@ -513,7 +513,9 @@ function M.test_puzzle_strike_ten_is_only_fatal_at_your_own_turns_end(check)
 	flow.activate(loose("done_acting").id, {})
 	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
-	check("ending the turn there is what loses it", flow.winner() == "North",
+	-- Setsuki, not North: opening() picks her for the second seat, and picking a
+	-- character is what names the chair after them.
+	check("ending the turn there is what loses it", flow.winner() == "Setsuki",
 		tostring(flow.winner()))
 end
 
@@ -1672,6 +1674,22 @@ function M.test_puzzle_strike_wartime_tactics_plays_what_it_can_afford(check)
 	check("and trashed rather than gained",
 		count_in("discard", "south", "draw_three") == 0
 		and find_in("bank", "draw_three").stats.stock == stock - 1)
+end
+
+-- South and North are where you sit; Jaina and Setsuki are who you are. The
+-- seat cards print "{name}" and start as the compass point, and the character's
+-- own play action writes its text over that — which is why the loss banner two
+-- tests above names a fighter.
+function M.test_puzzle_strike_picking_a_character_names_the_chair(check)
+	local label = require("label")
+	flow.init("puzzle_strike.json", 7)
+	check("before a pick the seats are compass points",
+		label.seat_text("south") == "South", label.seat_text("south"))
+	opening(7)
+	check("south is the fighter who took the chair",
+		label.seat_text("south") == "Jaina", label.seat_text("south"))
+	check("and north is theirs",
+		label.seat_text("north") == "Setsuki", label.seat_text("north"))
 end
 
 return M

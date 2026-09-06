@@ -1297,10 +1297,12 @@ end
 -- Who won, in the seat's own words. A seat is a card, so it already has the name
 -- a game gave it — "White", "North" — and there is nowhere else that name should
 -- come from.
+-- Through seat_text rather than off the def, since a seat's text may be the
+-- template a set_name verb feeds: a banner reading "{name} wins" is the third
+-- read path found bypassing label.fill, and the only one a player sees.
 function M.winner()
 	local won = victor()
-	local def = won and declaration.G.card_defs[won]
-	return won and ((def and def.text) or won) or nil
+	return won and (require("label").seat_text(won) or won) or nil
 end
 
 -- One entry per visible stat, for the end-of-run summary. Read as the seat

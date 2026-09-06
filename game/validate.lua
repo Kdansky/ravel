@@ -121,6 +121,11 @@ M.EFFECT_BASES = {
 local CARD_FIELDS = {
 	key = true, text = true, tooltip = true, story = true, asset = true,
 	tags = true, card_stats = true, outcome = true,
+	-- What the card is called, as against what it says. `text` is the caption and may be a
+	-- template; `name` is a plain word that template can read, and the one field set_name
+	-- overwrites — so a seat prints "{name}" and reads "Player One" until somebody takes
+	-- the chair. Every card has one for the same reason every card has a text.
+	name = true,
 	play = true, challenge = true, receive = true, round = true,
 	chosen = true, leaves = true,
 	-- Everything the card can be used for, one entry each. A card that does one

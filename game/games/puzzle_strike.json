@@ -468,8 +468,8 @@
   ],
   "players": [{ "card": "south" }, { "card": "north" }],
   "cards": [
-    { "key": "south", "text": "South", "tags": ["south_side"] },
-    { "key": "north", "text": "North", "tags": ["north_side"] },
+    { "key": "south", "text": "{name}", "name": "South", "tags": ["south_side"] },
+    { "key": "north", "text": "{name}", "name": "North", "tags": ["north_side"] },
     {
       "key": "clock",
       "text": "The bank",
@@ -3153,6 +3153,7 @@
           "fill:mine.bag:protective_ward:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3172,6 +3173,7 @@
           "fill:mine.bag:unstable_power:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3191,6 +3193,7 @@
           "fill:mine.bag:purge_bad_habits:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3210,6 +3213,7 @@
           "fill:mine.bag:speed_of_the_fox:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3229,6 +3233,7 @@
           "fill:mine.bag:jackpot:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3248,6 +3253,7 @@
           "fill:mine.bag:versatile_style:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3267,6 +3273,7 @@
           "fill:mine.bag:strength_of_earth:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3286,6 +3293,7 @@
           "fill:mine.bag:troublesome_rhetoric:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3305,6 +3313,7 @@
           "fill:mine.bag:creative_thoughts:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3324,6 +3333,7 @@
           "fill:mine.bag:its_time_for_the_past:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3343,6 +3353,7 @@
           "fill:mine.bag:patriot_mirror:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3362,6 +3373,7 @@
           "fill:mine.bag:riposte:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3381,6 +3393,7 @@
           "fill:mine.bag:crash_potato:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3400,6 +3413,7 @@
           "fill:mine.bag:saving_grace:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3419,6 +3433,7 @@
           "fill:mine.bag:shadowswarm:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3438,6 +3453,7 @@
           "fill:mine.bag:stunlock:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3457,6 +3473,7 @@
           "fill:mine.bag:more_shiny:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3476,6 +3493,7 @@
           "fill:mine.bag:always_in_control:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3495,6 +3513,7 @@
           "fill:mine.bag:cog_engine:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],
@@ -3514,6 +3533,7 @@
           "fill:mine.bag:into_oblivion:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "set_owner:self:mine"
         ],

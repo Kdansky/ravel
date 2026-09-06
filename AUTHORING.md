@@ -1208,6 +1208,20 @@ entity first, its template second, so `{text}` finds the template's word and
 `{stats.health}` finds the number as it is now. A dot walks in: `{stats.fuel}`,
 `{style.color}`.
 
+**`name` is the field written for this**, and the one `set_name` overwrites. A
+card's `text` is its caption and may be a template; its `name` is a plain word
+that template can read. That is how a seat says who is sitting in it:
+
+```json
+{ "key": "seat_one", "text": "{name}", "name": "Player One", "tags": ["seat"] }
+```
+
+It prints *Player One* from the moment the game starts, and the character's own
+`on_play` runs `set_name:mine.player:text@self` — take that card's `text` and
+make it my seat's name — so from the pick onwards the chair says *Aetheria*, and
+`{owner}` and `{active}` say it everywhere too. Nothing else reads `name`: the
+log, the network and every condition still say `seat_one`.
+
 It works on every string a player reads: a zone's `label` and `tooltip`, a
 card's `text`, `tooltip` and `story`, a phase's `label`, a stat's `label`. A
 stat's row is not about any one thing, so `{owner}` has nothing to answer there;

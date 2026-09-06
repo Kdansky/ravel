@@ -15,7 +15,7 @@ local GAME = [==[{
   "title": "Set Name",
   "players": [ { "card": "p1" }, { "card": "p2" } ],
   "cards": [
-    { "key": "p1", "text": "Player One" },
+    { "key": "p1", "text": "{name}", "name": "Player One" },
     { "key": "p2", "text": "Player Two" },
     { "key": "merlin", "text": "Merlin", "tags": ["wizard"] }
   ],
@@ -62,10 +62,25 @@ end
 function M.test_set_name_feeds_a_seat_s_own_template_text(check)
 	with_game(function(name)
 		flow.init(name, 3)
-		declaration.G.card_defs.p1.text = "{name}"
 		local wizard = zones.add(zones.find("roster"), "merlin")
 		actions.execute("set_name:mine.player:text@self", { card_id = wizard.id })
 		check("the seat's templated text now reads the wizard's name",
+			label.seat_text("p1") == "Merlin", label.seat_text("p1"))
+	end)
+end
+
+-- The other half of the template, and the reason "name" is a field a card may
+-- declare: a seat printing "{name}" has to say something before anybody has
+-- been named, and the braces are not it. Entity first, def second — the same
+-- fallthrough every other label name takes.
+function M.test_set_name_a_seat_reads_its_declared_name_until_one_is_written(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		check("before any pick the seat prints the name it declared",
+			label.seat_text("p1") == "Player One", label.seat_text("p1"))
+		local wizard = zones.add(zones.find("roster"), "merlin")
+		actions.execute("set_name:mine.player:text@self", { card_id = wizard.id })
+		check("and the written one wins from then on",
 			label.seat_text("p1") == "Merlin", label.seat_text("p1"))
 	end)
 end

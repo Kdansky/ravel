@@ -1791,6 +1791,7 @@
           "fill:mine.deck:derby_coffee:1",
           "fill:mine.deck:derby_reckless:1",
           "draw_from:spellstorm_deck:mine.discard:0",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "destroy:roster.derby"
         ]
@@ -1891,6 +1892,7 @@
           "draw_from:ice_pile:enemy.discard:1",
           "activate_zone:rules:by_column:dry_take_ice",
           "draw_from:ice_pile:mine.discard:1",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "destroy:roster.eve"
         ]
@@ -1973,6 +1975,7 @@
           "fill:mine.wizard:wiz_abra:1",
           "fill:mine.deck:abra_deepgems:1",
           "fill:mine.deck:abra_newcurriciulum:1",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "destroy:roster.abra"
         ]
@@ -2057,6 +2060,7 @@
           "fill:mine.wizard:wiz_croh:1",
           "fill:mine.deck:croh_sinking:1",
           "fill:mine.deck:croh_undertow:1",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "destroy:roster.croh"
         ]
@@ -2143,6 +2147,7 @@
           "fill:mine.wizard:wiz_omar:1",
           "fill:mine.deck:omar_beetle:1",
           "fill:mine.deck:omar_shuriken:1",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "destroy:roster.omar"
         ]
@@ -2222,6 +2227,7 @@
           "fill:mine.wizard:wiz_bunny:1",
           "fill:mine.deck:bunny_buddy:1",
           "fill:mine.deck:bunny_snowday:1",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "destroy:roster.bunny"
         ]
@@ -2309,6 +2315,7 @@
           "stat_set:water_el@mine.player:3",
           "fill:mine.sidecar:btn_potion_draw:1",
           "fill:mine.sidecar:btn_potion_stop:1",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "destroy:roster.oren"
         ]
@@ -2407,6 +2414,7 @@
           "fill:mine.deck:may_data:1",
           "fill:mine.deck:may_starshot:1",
           "stat_gain:energy@mine.player:2",
+          "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "destroy:roster.may"
         ]
@@ -3651,7 +3659,8 @@
     },
     {
       "key": "seat_one",
-      "text": "Player One",
+      "text": "{name}",
+      "name": "Player One",
       "asset": "auto",
       "tags": ["seat"],
       "tooltip": "Your wizard, your health, your *Storm Shards*.",
@@ -3659,7 +3668,8 @@
     },
     {
       "key": "seat_two",
-      "text": "Player Two",
+      "text": "{name}",
+      "name": "Player Two",
       "asset": "auto",
       "tags": ["seat"],
       "tooltip": "Your wizard, your health, your *Storm Shards*.",

@@ -2058,7 +2058,8 @@ def character_cards():
         deal.append("take:bank.gem_1:mine.bag:6")
         out.append({"key": "char_" + key, "text": name, "tags": ["character_card", "immutable"],
                     "asset": "star:6:%s" % colour, "tooltip": tip,
-                    "play": {"action": deal + ["stat_gain:picked@mine.player:1",
+                    "play": {"action": deal + ["set_name:mine.player:text@self",
+                                              "stat_gain:picked@mine.player:1",
                                               "set_owner:self:mine"],
                              "spent": "mine.fighter"}})
     return out
@@ -2127,7 +2128,8 @@ def other_cards():
 
 
 def seat_cards():
-    return [{"key": k, "text": name, "tags": [k + "_side"]} for k, name in SEATS]
+    return [{"key": k, "text": "{name}", "name": name, "tags": [k + "_side"]}
+            for k, name in SEATS]
 
 
 def roster_offer():
