@@ -1060,6 +1060,20 @@ function M.parse(filename)
 		end
 	end
 
+	-- A shelf: several zones on one rect, at most one of them showing. The one
+	-- that declares the rect is the host and every other says "pos": its key.
+	-- Built here, in file order, and held under every member's key — the group
+	-- is a property of the file both peers have, so nothing about it travels.
+	G.shelf_of = {}
+	for _, key in ipairs(G.zone_list) do
+		local host = G.zone_defs[key].pos
+		if type(host) == "string" and G.zone_defs[host] then
+			local group = G.shelf_of[host] or { host }
+			group[#group + 1] = key
+			G.shelf_of[host], G.shelf_of[key] = group, group
+		end
+	end
+
 	for _, sd in ipairs(entries(parsed.stats, "stats")) do
 		if type(sd) ~= "table" or not sd.key then
 			pp[#pp + 1] = "a stat has no \"key\" — every stat needs a unique one"

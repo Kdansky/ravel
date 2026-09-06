@@ -2470,7 +2470,25 @@ function M.check(G)
 					.. "between the several a card can have", where)
 			end
 		end
-		if def.copies == "per_seat" then
+		if type(def.pos) == "string" then
+			-- A shelf: this zone's rect is another zone's, and the two are never
+			-- open at once. Said as a key rather than as four numbers repeated,
+			-- so the overlap check below has the sentence it was missing — every
+			-- overlap nobody declared stays an error.
+			local host = G.zone_defs[def.pos]
+			if not host then
+				warn("%s: sits on zone '%s', but no zone has that key%s", where, def.pos,
+					suggest(def.pos, G.zone_defs))
+			elseif def.pos == key then
+				warn("%s: sits on itself", where)
+			elseif type(host.pos) == "string" then
+				warn("%s: sits on zone '%s', which is on a shelf itself — a shelf names the zone that "
+					.. "declares the rect, never another tenant of it", where, def.pos)
+			elseif (host.copies == "per_seat") ~= (def.copies == "per_seat") then
+				warn('%s: and zone \'%s\' disagree about "copies", so there is no one rect to share — '
+					.. "a per-seat shelf sits on a per-seat zone, seat by seat", where, def.pos)
+			end
+		elseif def.copies == "per_seat" then
 			local seats = #(G.seat_list or {})
 			if seats > 1 then
 				if type(def.pos) ~= "table" or #def.pos ~= seats then

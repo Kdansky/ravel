@@ -871,11 +871,38 @@ end
 M.MENU_W = 0.10
 
 -- Recompute pixel rects for all zones and their slots.
+-- A shelf's "pos" is another zone's key, meaning "wherever that one is". Read
+-- off the host's *def* rather than its entity, so the two may be built in any
+-- order; when both exist per seat, seat n sits on seat n's rect.
+local function rect_of(z)
+	if type(z.pos) ~= "string" then return z.pos end
+	local host = (declaration.G.zone_defs or {})[z.pos]
+	local p = host and host.pos
+	if type(p) ~= "table" or type(p[1]) ~= "table" then return p end
+	for i, seat in ipairs(declaration.G.seat_list or {}) do
+		if seat == z.seat then return p[i] end
+	end
+end
+
+-- Which of a shelf's zones is showing: the first holding a card, and failing
+-- that the host, so an empty shelf still paints the rect somebody declared.
+function M.shown(z)
+	if z.display == "offscreen" then return false end
+	local group = (declaration.G.shelf_of or {})[z.key]
+	if not group then return true end
+	for _, key in ipairs(group) do
+		local id = z.seat and (seat_map[key] or {})[z.seat] or key_map[key]
+		local m = id and entity.get(id)
+		if m and #m.cards > 0 then return m.id == z.id end
+	end
+	return group[1] == z.key
+end
+
 function M.resize()
 	local W, H = love.graphics.getDimensions()
 	local board = W / (1 + M.MENU_W)
 	for z in entity.each("zone") do
-		local p = z.pos
+		local p = rect_of(z) or z.pos
 		z.place = {
 			x = p[1] * board,
 			y = p[2] * H,
@@ -899,7 +926,7 @@ end
 function M.zone_at(x, y)
 	local result = nil
 	for z in entity.each("zone") do
-		if z.display ~= "offscreen" and M.contains(z.place, x, y) then result = z.id end
+		if M.shown(z) and M.contains(z.place, x, y) then result = z.id end
 	end
 	return result
 end
@@ -918,7 +945,7 @@ end
 -- is why this went unnoticed: only a zone that overrides that — an overlay,
 -- which must be somewhere visible when it opens — can cover anything.
 local function reachable(z, open_id)
-	return z.display ~= "offscreen" or z.id == open_id
+	return M.shown(z) or z.id == open_id
 end
 
 function M.card_at(x, y, open_id)

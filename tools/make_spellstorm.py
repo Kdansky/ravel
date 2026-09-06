@@ -1384,19 +1384,14 @@ def zones():
         # property of the place and not of the moment: `visibility` is declared,
         # so the only way to stop being face down is to be somewhere else.
         #
-        # They would share a rect if they could -- the two are never both
-        # occupied, so the reveal would be the card turning over where it lay --
-        # but the validator refuses overlapping zones and is right to in general:
-        # nothing in the format says "these two are never open at once". So the
-        # face-down card gets the free strip down the right edge instead, and
-        # the reveal is a slide to the middle.
-        {"key": "commit", "label": "Face down", "layout": "grid", "grid": [1, 1],
-         "copies": "per_seat", "visibility": "owner",
-         "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played.",
-         "pos": [P(0.910, 0.520, 0.995, 0.775), P(0.910, 0.215, 0.995, 0.470)]},
+        # One rect, though: the two are never both occupied, so `commit` sits on
+        # `battle` and the reveal is the card turning over where it lay.
         {"key": "battle", "label": "Battle", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat",
          "pos": [P(0.435, 0.575, 0.565, 0.785), P(0.435, 0.215, 0.565, 0.425)]},
+        {"key": "commit", "label": "Face down", "layout": "grid", "grid": [1, 1],
+         "copies": "per_seat", "visibility": "owner", "pos": "battle",
+         "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played."},
 
         # Shared.
         {"key": "storm_cloud", "use": "abilities", "label": "Storm Cloud", "layout": "grid",

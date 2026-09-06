@@ -53,7 +53,7 @@ says anything twice. These are its headings, grouped by the question each one
 answers; a test holds this list to them, so a section that exists is listed here
 and a line here names a section that exists:
 
-- **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
+- **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
@@ -963,7 +963,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `exile` is everything else and is the default. A `grid` is `board` and an `options` zone is `offer` without saying so. See *What counts as in play* |
 | `display` | `onscreen` (default) or `offscreen` — not drawn, and nothing in it clickable. For offers, fate decks and rules pages. Not the same as `secret`, which is a zone you can see and cannot read |
 | `copies` | `one` (default) or `per_seat` — one zone each, and `pos` then takes one rect per seat |
-| `pos` | `[x1, y1, x2, y2]` fractions **of the board**, which is 0 to 1 in both directions — optional; each layout has a default spot (an `offscreen` zone defaults off the edge, giving dealt cards their fly-in). x 1.0 is where the board ends: past it is the engine's own column, and a zone reaching there is refused. See *The system column* |
+| `pos` | `[x1, y1, x2, y2]` fractions **of the board**, which is 0 to 1 in both directions — optional; each layout has a default spot (an `offscreen` zone defaults off the edge, giving dealt cards their fly-in). x 1.0 is where the board ends: past it is the engine's own column, and a zone reaching there is refused. See *The system column*. May instead be another zone's key — several zones on one rect, only one of them showing: see *A shelf* |
 | `grid` | `[cols, rows]`. Legal only where `layout` is `grid` — **a value names its own parameter field**, and every word on every one of the seven is reserved against being a field name for anything else |
 | `row` | Which way a row fans, so every card in it can be read at once: `down` or `right`. Legal only where `layout` is `row`; left out, the cards sit side by side and do not overlap |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
@@ -981,6 +981,39 @@ with every other reserved tag.
 Cards entering a grid without slot targeting auto-occupy the first free slot.
 A full board refuses new arrivals: moves fail quietly and `fill` stops
 early (the validator warns when starting `contents` already exceed capacity).
+
+### A shelf — several zones on one rect
+
+Two zones that are never both open want the same rect, and saying so is `pos`
+naming a zone instead of four numbers:
+
+```json
+{ "key": "battle", "label": "Battle", "layout": "grid", "grid": [1, 1],
+  "pos": [0.435, 0.575, 0.565, 0.785] },
+{ "key": "commit", "label": "Face down", "layout": "grid", "grid": [1, 1],
+  "visibility": "owner", "pos": "battle" }
+```
+
+`"pos": "battle"` reads as *wherever that one is*. The zone naming the rect is
+the **host**; every zone sitting on it is a tenant.
+
+**Nothing decides which one shows — the cards do.** The one drawn is the first
+holding a card, host first and then the tenants in file order; with the shelf
+empty it is the host, so its label and art do not blink out between moves. What
+is drawn is what may be clicked: a tenant nobody can see swallows nothing.
+
+**Why it is worth a word.** The validator refuses overlapping zones, and is
+right to — nothing else in a game file says two zones are never open at once.
+This is that sentence. Spellstorm's face-down card used to be exiled to a strip
+down the right edge purely to satisfy the check, and the reveal was a slide
+across the screen; on a shelf the card turns over where it lay. Every overlap
+nobody declared is still an error.
+
+The rules: the host must declare a rect of its own (a tenant may not sit on
+another tenant), and host and tenant must agree about `copies` — a per-seat
+tenant sits on a per-seat host, seat by seat. Two zones on a shelf are still two
+zones in every other respect, which is the point: `visibility` is a property of
+the place, so *face down* and *revealed* stay two places while being one spot.
 
 ### The system column
 

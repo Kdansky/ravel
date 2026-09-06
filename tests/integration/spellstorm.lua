@@ -9,6 +9,7 @@
 -- Power Track is six tokens becoming a Tier, which is the only arithmetic in
 -- the game the action grammar cannot say in one line.
 
+local declaration = require("declaration")
 local entity  = require("entity")
 local zones   = require("zones")
 local phase   = require("phase")
@@ -982,7 +983,11 @@ end
 -- which is only right if you are really sitting opposite each other.
 function M.test_spellstorm_the_board_is_mirrored_not_rotated(check)
 	opening(5, "derby", "eve")
-	for _, key in ipairs({ "wizard", "hand", "deck", "discard", "battle", "commit" }) do
+	-- "commit" is not in the list because it has no rect of its own: it sits on
+	-- "battle", so the card turns over where it lay and one assertion covers both.
+	check("the face-down spot is the battle spot",
+		declaration.G.zone_defs.commit.pos == "battle", declaration.G.zone_defs.commit.pos)
+	for _, key in ipairs({ "wizard", "hand", "deck", "discard", "battle" }) do
 		local zs = zones.all_with_key(key)
 		check(key .. ": one for each seat", #zs == 2, #zs)
 		check(key .. ": the same place left to right for both seats",

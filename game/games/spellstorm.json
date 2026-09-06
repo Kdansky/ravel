@@ -250,22 +250,22 @@
       "pos": [[0.865, 0.795, 0.98, 0.995], [0.865, 0.005, 0.98, 0.205]]
     },
     {
-      "key": "commit",
-      "label": "Face down",
-      "layout": "grid",
-      "grid": [1, 1],
-      "copies": "per_seat",
-      "visibility": "owner",
-      "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played.",
-      "pos": [[0.91, 0.52, 0.995, 0.775], [0.91, 0.215, 0.995, 0.47]]
-    },
-    {
       "key": "battle",
       "label": "Battle",
       "layout": "grid",
       "grid": [1, 1],
       "copies": "per_seat",
       "pos": [[0.435, 0.575, 0.565, 0.785], [0.435, 0.215, 0.565, 0.425]]
+    },
+    {
+      "key": "commit",
+      "label": "Face down",
+      "layout": "grid",
+      "grid": [1, 1],
+      "copies": "per_seat",
+      "visibility": "owner",
+      "pos": "battle",
+      "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played."
     },
     {
       "key": "storm_cloud",

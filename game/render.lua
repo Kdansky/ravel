@@ -1545,7 +1545,7 @@ end
 -- pile yet, and is the one thing about a stack that is worth drawing twice.
 local function draw_animated_cards()
 	for z in entity.each("zone") do
-		if z.display ~= "offscreen" then
+		if zones.shown(z) then
 			for _, cid in ipairs(z.cards or {}) do
 				local vpl = cid and anim.visual_place(cid, (entity.get(cid) or {}).place)
 				if vpl then draw_flying_card(vpl, entity.get(cid)) end
@@ -1745,7 +1745,7 @@ function M.draw()
 	love.graphics.translate(shx, shy)
 
 	for z in entity.each("zone") do
-		if z.display ~= "offscreen" then draw_zone(z) end
+		if zones.shown(z) then draw_zone(z) end
 	end
 	draw_animated_cards()
 	fx.draw()

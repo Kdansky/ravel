@@ -219,4 +219,74 @@ function M.test_layout_a_named_grid_keeps_its_name_clear(check)
 	end)
 end
 
+-- A shelf: several zones on one rect. `pos` names a zone instead of four
+-- numbers, which is the sentence the overlap check was missing — two zones that
+-- are never both open say so, and every overlap nobody declared stays an error.
+local SHELF = [==[{
+	"title": "Shelf",
+	"zones": [
+		{ "key": "seat_box", "layout": "stack", "status": "board", "pos": [0, 0, 0.19, 0.3] },
+		{ "key": "here", "label": "Here", "layout": "row", "pos": [0.3, 0.3, 0.7, 0.6] },
+		{ "key": "there", "label": "There", "layout": "row", "pos": "here" },
+		{ "key": "hand", "layout": "row", "pos": [0.2, 0.8, 0.8, 0.95] }
+	],
+	"players": [{}],
+	"setup": { "place": [{ "card": "player", "zone": "seat_box" },
+		{ "card": "hero", "zone": "hand" }] },
+	"cards": [{ "key": "hero", "text": "Hero" }],
+	"phases": [{ "key": "play", "type": "player_input" }]
+}]==]
+
+function M.test_layout_a_shelf_is_one_rect_and_one_tenant(check)
+	local path = "game/games/tmp_shelf.json"
+	local f = assert(io.open(path, "w")) f:write(SHELF) f:close()
+	local ok, err = pcall(function()
+		flow.init("tmp_shelf.json", 1)
+		zones.resize()
+		local here, there = zones.find("here"), zones.find("there")
+		check("the shelf takes the rect it names",
+			there.place.x == here.place.x and there.place.w == here.place.w
+			and there.place.y == here.place.y and there.place.h == here.place.h,
+			("%s vs %s"):format(there.place.x, here.place.x))
+
+		-- Nothing decides which one shows: the cards do. Empty, it is the zone
+		-- that declared the rect, so its label and art do not blink out.
+		check("an empty shelf shows the one that owns the rect", zones.shown(here))
+		check("and not the one sitting on it", zones.shown(there) == false)
+
+		local hero = zones.find("hand").cards[1]
+		zones.move_card(hero, there.id)
+		check("the tenant holding a card is the one showing", zones.shown(there))
+		check("and the host stands down", zones.shown(here) == false)
+
+		local cx = here.place.x + here.place.w * 0.5
+		local cy = here.place.y + here.place.h * 0.5
+		check("what is drawn is what answers a click", zones.zone_at(cx, cy) == there.id)
+
+		zones.move_card(hero, here.id)
+		check("and it hands back when the card leaves", zones.shown(here))
+		check("leaving the tenant hidden again", zones.shown(there) == false)
+	end)
+	os.remove(path)
+	if not ok then error(err, 0) end
+end
+
+function M.test_layout_a_shelf_is_checked(check)
+	local HERE = '{ "key": "here", "layout": "row", "pos": [0.3, 0.3, 0.7, 0.6] }'
+	local on = function(host) return HERE .. ', { "key": "there", "layout": "row", "pos": "' .. host .. '" }' end
+
+	check("a zone may sit on another", #fixture(on("here")) == 0)
+	check("but not on one that isn't there",
+		has(fixture(on("nowhere")), "sits on zone 'nowhere', but no zone has that key"))
+	check("nor on itself", has(fixture(on("there")), "sits on itself"))
+	check("nor on another tenant",
+		has(fixture(on("here") .. ', { "key": "third", "layout": "row", "pos": "there" }'),
+			"which is on a shelf itself"))
+	check("and the two must agree about whose they are",
+		has(fixture(HERE .. ', { "key": "there", "layout": "row", "copies": "per_seat", "pos": "here" }'),
+			'disagree about "copies"'))
+	-- The whole point: what would be an overlap is a declaration instead.
+	check("a shelf is not an overlap", has(fixture(on("here")), "overlaps zone") == false)
+end
+
 return M

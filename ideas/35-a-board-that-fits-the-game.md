@@ -11,34 +11,28 @@ What is left is the case those two do not reach.
 
 ## The shelf — several zones, one rect
 
-`validate.lua:2482` refuses overlapping zones, and is right to: nothing in the
-format says two zones are never open at once. So a game with two zones that
-*are* mutually exclusive has to find two rects for one idea.
+**Shipped as `pos` naming a zone.** `"pos": "battle"` reads as *wherever that one
+is*, costs no new key, and gives the overlap check the sentence it was missing —
+two zones that are never both open declare it, and every overlap nobody declared
+stays an error. The whole of it is in `AUTHORING.md`'s *A shelf*.
 
-It already has customers, and they were written down before this was asked for:
+Two decisions worth keeping:
 
-- **`commit` and `battle`** in `make_spellstorm.py:1378` carry a comment saying
-  in as many words that *"they would share a rect if they could — the two are
-  never both occupied, so the reveal would be the card turning over where it
-  lay"*. They are two zones and not one because `visibility` is a property of
-  the place; the face-down card is exiled to a strip down the right edge purely
-  to satisfy the overlap check, and the reveal is a slide instead of a flip.
-- **A character's furniture.** The sidecar handles the *one* row case. A wizard
-  wanting a grid, or two zones, in the same space as another wizard's is the
-  shelf.
+**Which one shows is not declared, it is observed.** The zone drawn is the first
+holding a card, host first and then the tenants in file order; empty, it is the
+host, so a label and its art do not blink out between moves. A condition per zone
+would have been `shown_when` arriving through the back door.
 
-The spelling to argue about: **`pos` naming a zone instead of four numbers.**
-`"pos": "commit"` reads as *where that one is*, costs no new key, and gives the
-overlap check exactly the sentence it is missing — two zones on one shelf are
-declared as such, and every other overlap stays an error.
-**[Assumption: nothing was checked about what `zones.resize` does with a `pos`
-that is not four numbers, nor what `copies: "per_seat"` means when the zone it
-points at is per-seat too — presumably seat *n* follows seat *n*. Both are
-reading, not design.]**
+**The group is derived from the file, not stored on the entity.** `G.shelf_of`
+is built once in `parse` from the zone list and held under every member's key, so
+nothing about the layout crosses the wire or a save — both peers have the file.
+The rect is likewise read off the *host's def* rather than its entity, so the two
+may be built in any order.
 
-What a shelf does **not** decide is which of its zones is showing. An empty
-unlabelled zone already draws nothing, so for the two customers above the answer
-falls out of the contents.
+The customer it was written for is in: Spellstorm's face-down card was exiled to a
+strip down the right edge purely to satisfy the overlap check, and the reveal was
+a slide across the screen. `commit` sits on `battle` now and the card turns over
+where it lay.
 
 ## `shown_when` — and why to resist it
 
@@ -50,9 +44,10 @@ field write and already round-trips through save, undo and the network for free
 
 The problem is that a condition evaluated every frame is a new thing in the
 engine, and a zone that vanishes leaves a hole unless something else takes the
-space. **So the shelf comes first**: with two zones sharing a rect, "which one
-is showing" is a question with a bounded answer, and `shown_when` on its own is
-a licence to punch holes in a layout.
+space. **The shelf went first and may have answered it**: two zones sharing a
+rect ask "which one is showing" and get a bounded answer, computed rather than
+declared. Before building `shown_when`, find a customer the shelf does not
+already serve — a zone with nothing to hand its space to.
 
 ## The seat's own name
 
