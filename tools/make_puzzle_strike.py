@@ -19,6 +19,16 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jsonfmt
 import guard
 
+
+# A target spec with a range of picks rather than one. "count" is shorthand for
+# both bounds, so the bases below carry it for the ordinary "pick one" case and
+# this drops it — a spec saying count and min in the same breath answers one
+# question twice, and the engine takes the bound and ignores the count.
+def upto(base, lo, hi, **rest):
+    spec = {k: v for k, v in base.items() if k != "count"}
+    spec.update(min=lo, max=hi, **rest)
+    return spec
+
 # **South first, and south is the near edge.** A per-seat zone takes one rect
 # per seat in seat order, so seat one's rect is the first in every list below —
 # and seat one is who the game hands the first turn to. At one screen that is
@@ -1018,7 +1028,7 @@ def purple_cards():
          "asset": "dots:2:magenta",
          "tooltip": "As a Crash Gem, but up to two of your gems at once.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "target": dict(own_gems, min=1, max=2),
+                  "target": upto(own_gems, 1, 2),
                   "action": crash_action(2, 2), "spent": "mine.table"}},
         # No `play` at all, which is what makes it useless: it can be drawn,
         # it fills a hand slot, and there is nothing to do with it.
@@ -1234,7 +1244,7 @@ def puzzle_cards():
          "play": act(["stat_gain:act_red@mine.player:1"])},
         {"key": "degenerate_trasher", **shape("degenerate_trasher", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "target": dict(hand_chip, tags=["trashable"], min=0, max=2),
+                  "target": upto(hand_chip, 0, 2, tags=["trashable"]),
                   "action": ["destroy:target", "stat_gain:acts@mine.player:1"],
                   "spent": "mine.table"}},
         {"key": "ebb_or_flow", **shape("ebb_or_flow", "blue"),
@@ -1306,7 +1316,7 @@ def puzzle_cards():
          "chosen": {"action": ["move:target:mine.hand"]}},
         {"key": "the_hammer", **shape("the_hammer", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "target": dict(hand_gem, min=0, max=3),
+                  "target": upto(hand_gem, 0, 3),
                   "action": ["move:target:mine.gem_pile",
                              "stat_gain:acts@mine.player:count:gem@target",
                              "draw_from:mine.bag:mine.hand:count:gem@target"],
@@ -1563,7 +1573,7 @@ def character_chips():
          "asset": "polygon:7:pink",
          "tooltip": "Trash up to two chips out of your hand. Character chips cannot be trashed.",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "target": dict(hand_chip, tags=["trashable"], min=0, max=2),
+                  "target": upto(hand_chip, 0, 2, tags=["trashable"]),
                   "action": ["destroy:target", "stat_gain:act_red@mine.player:1",
                              "move_to:mine.table"]}},
         {"key": "troublesome_rhetoric", "text": "Troublesome Rhetoric",
@@ -1604,7 +1614,7 @@ def character_chips():
          # end of the bag, so the last one named is the first one drawn — which
          # is the whole of "in any order".
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "target": dict(hand_chip, min=0, max=2),
+                  "target": upto(hand_chip, 0, 2),
                   "action": ["draw_from:mine.bag:mine.hand:2",
                              "move:target:mine.bag:top", "move_to:mine.table"]}},
         {"key": "its_time_for_the_past", "text": "It's Time for the Past",
@@ -1830,7 +1840,7 @@ def character_chips():
          # One purse for both chips rather than one each: the allowance is money,
          # and money does not remember what it was given for.
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "target": dict(hand_chip, tags=["trashable"], min=1, max=2),
+                  "target": upto(hand_chip, 1, 2, tags=["trashable"]),
                   "action": ["stat_set:money@mine.player:sum:price@target",
                              "stat_gain:money@mine.player:count:chip@target",
                              "stat_gain:money@mine.player:1",

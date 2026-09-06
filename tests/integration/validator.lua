@@ -329,6 +329,8 @@ local CASES = {
 			g.zone_defs.board.abilities = { { key = "poke", action = { "next_phase" },
 				target = { type = "card", count = 1 } } }
 		end },
+	{ "count written beside a bound", "count already sets both",
+		function(g) g.card_defs.c_flee.target = { type = "card", count = 1, min = 0, max = 2 } end },
 	{ "an unknown fill word", "fill should be 'empty', 'enemy', 'open' or 'any'",
 		function(g) g.card_defs.c_flee.target = { type = "slot", count = 1, fill = "friendly" } end },
 	{ "a pattern that isn't a list of pairs", "should be a list of [x, y] pairs",

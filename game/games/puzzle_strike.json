@@ -1234,7 +1234,6 @@
           "type": "card",
           "tags": ["trashable"],
           "zones": ["hand"],
-          "count": 1,
           "owner": "anyone",
           "min": 0,
           "max": 2
@@ -1529,7 +1528,6 @@
           "type": "card",
           "tags": ["gem"],
           "zones": ["hand"],
-          "count": 1,
           "owner": "anyone",
           "min": 0,
           "max": 3
@@ -2092,7 +2090,6 @@
           "type": "card",
           "tags": ["trashable"],
           "zones": ["hand"],
-          "count": 1,
           "owner": "anyone",
           "min": 0,
           "max": 2
@@ -2197,7 +2194,6 @@
           "type": "card",
           "tags": ["chip"],
           "zones": ["hand"],
-          "count": 1,
           "owner": "anyone",
           "min": 0,
           "max": 2
@@ -2799,7 +2795,6 @@
           "type": "card",
           "tags": ["trashable"],
           "zones": ["hand"],
-          "count": 1,
           "owner": "anyone",
           "min": 1,
           "max": 2

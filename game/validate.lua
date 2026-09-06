@@ -1366,6 +1366,14 @@ function M.check(G)
 				warn("%s %s: searches zone '%s', but no zone has that key%s", where, field, zk, suggest(zk, G.zone_defs))
 			end
 		end
+		-- "count" is shorthand for both bounds, so writing it beside one of them
+		-- is two answers to one question — and targeting.bounds takes the bound,
+		-- silently. Said out loud it is always a mistake: puzzle_strike asked for
+		-- "count": 1 next to "max": 3 on five cards and got three every time.
+		if spec.count ~= nil and (spec.min ~= nil or spec.max ~= nil) then
+			warn('%s %s: says "count" and also "min"/"max" — count already sets both,'
+				.. ' so write one or the other', where, field)
+		end
 		-- Asked of each candidate with that candidate as the target, so its
 		-- subjects are checked exactly as a move rule's "where" already is.
 		check_conditions(where .. " " .. field .. " where", spec.where)
