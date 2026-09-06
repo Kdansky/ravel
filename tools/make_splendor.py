@@ -206,9 +206,12 @@ def stats():
     # A stat also says *whose* number it is. Carrying one is how a card says it
     # takes part, so the scratch registers of the pricing used to be ten zeros
     # written on all ninety development cards; "on" and "start" say it once.
-    # The ones with no "start" are the card's own to declare, and the validator
-    # holds the generator to it — a development card without a white cost is a
-    # bug in this file, not a card that costs nothing.
+    #
+    # The printed gem counts say it the same way. They used to be the card's own
+    # to declare so that a development missing a white cost would be caught —
+    # but the cost comes out of a table here and all five are always written, so
+    # what the strictness actually bought was two hundred and sixty-six zeros in
+    # a file people read. "tier" keeps no start: a tier of nought is not a card.
     scratch = {"short": ["development", "noble"], "gold_due": ["development"],
                "spent": ["development"], "buyable": ["development"],
                "reserved": ["development"], "ok": ["noble"],
@@ -248,7 +251,8 @@ def stats():
         # the two do not argue.
         gem = look.get(k)
         art = {"icon": gem[0], "color": gem[1]} if gem else {}
-        out.append({"key": k, **art, "min": 0, "max": 99, "tags": ["hidden"], "on": printed[k]})
+        out.append({"key": k, **art, "min": 0, "max": 99, "tags": ["hidden"],
+                    "on": printed[k], **({} if k == "tier" else {"start": 0})})
     for k in sorted(seat_start):
         out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"],
                     "on": ["player"], "start": seat_start[k]})
@@ -449,7 +453,7 @@ def development(rows):
         # Only what is printed on this card. The scratch numbers the pricing
         # writes start at the same zero on all ninety, so the stats node grants
         # them, and buying is one sentence the "development" tag carries.
-        stats = {f"cost_{k}": cost[k] for k in KEYS}
+        stats = {f"cost_{k}": cost[k] for k in KEYS if cost[k]}
         stats["tier"] = tier
         if vp:
             stats["vp"] = vp
@@ -472,7 +476,7 @@ def nobles(rows):
         words = " + ".join(f"{cost[k]} {k}" for k in KEYS if cost[k])
         # Every noble is worth three and starts unmet, and arriving is the same
         # act for all ten; only the threshold is this card's. See the tag.
-        stats = {f"n_{k}": cost[k] for k in KEYS}
+        stats = {f"n_{k}": cost[k] for k in KEYS if cost[k]}
         stats["vp"] = 3
         out.append({
             "key": f"noble_{i + 1}", "text": "Noble",
