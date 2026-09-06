@@ -70,10 +70,10 @@ COMPUTES = [
 def in_trick():
     return [
         {"key": "follows", "text": "Weigh",
-         "when": ["suit@self == led@plan"],
+         "needs": ["suit@self == led@plan"],
          "action": ["stat_set:contend@self:sum:value@self"]},
         {"key": "trumps", "text": "Weigh", "compute": ["trump_rank"],
-         "when": ["trump@self >= 1"],
+         "needs": ["trump@self >= 1"],
          "action": ["stat_set:contend@self:trump_rank"]},
         # The led card always contends, so the best is never zero and exactly one
         # card is short by nothing. Its own pass, because it needs a number the

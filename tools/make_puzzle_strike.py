@@ -1130,7 +1130,7 @@ def puzzle_cards():
                   "action": ["destroy:self", "next_phase"]}},
         {"key": "gems_to_gemonade", **shape("gems_to_gemonade", "purple"),
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
-         "reactions": [{"to": "crash", "text": "Negate the gems", "when": ANSWERABLE,
+         "reactions": [{"to": "crash", "text": "Negate the gems", "needs": ANSWERABLE,
                         "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
                         "spent": "mine.discard"}]},
         {"key": "its_a_trap", **shape("its_a_trap", "brown"),
@@ -1390,7 +1390,7 @@ def character_chips():
          # without saying while that row was a "hand" as far as the engine was
          # concerned, and the default — a reaction played out of a hand — caught
          # it by accident.
-         "reactions": [{"to": "crash", "when": ANSWERABLE, "from": "board",
+         "reactions": [{"to": "crash", "needs": ANSWERABLE, "from": "board",
                         "action": ["destroy:mine.gem_1:1",
                                    "move_to:mine.discard", "transform:self:bubble_shield"]}]},
         {"key": "protective_ward", "text": "Protective Ward", "tags": ["chip", "character", "brown"],
@@ -1490,7 +1490,7 @@ def character_chips():
         {"key": "reversal", "text": "Reversal", "tags": ["chip", "character", "purple"],
          "asset": "circle:navy",
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
-         "reactions": [{"to": "crash", "text": "Counter-crash", "when": ANSWERABLE,
+         "reactions": [{"to": "crash", "text": "Counter-crash", "needs": ANSWERABLE,
                         "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
                                    "owner": "mine", "count": 1},
                         "action": ["stat_set:crashed@mine.player:sum:value@target",
@@ -1525,7 +1525,7 @@ def character_chips():
          "asset": "circle:ash",
          "play": act(["draw_from:mine.bag:mine.hand:1", "stat_gain:piggy@mine.player:1"]),
          "reactions": [{"to": "crash", "text": "Send the gems back to the bank",
-                        "when": ANSWERABLE,
+                        "needs": ANSWERABLE,
                         "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
                         "spent": "mine.discard"}]},
         {"key": "big_rocks", "text": "Big Rocks", "tags": ["chip", "character", "brown"],
@@ -1656,7 +1656,7 @@ def character_chips():
          # seat. "Their pile" is only a fixed thing to compare against in the
          # second, so a seat word in a `where` would mean whatever the moment did.
          "reactions": [{"to": "buy", "forced": "mandatory", "from": "board",
-                        "when": ["sum:value@mine.gem_pile >= 3",
+                        "needs": ["sum:value@mine.gem_pile >= 3",
                                  "sum:price@event > sum:value@enemy.gem_pile"],
                         "action": ["counterspell"]},
                        {"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
@@ -1831,7 +1831,7 @@ def character_chips():
                         "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
                                    "owner": "anyone", "count": 1},
                         "action": crash_action(1, 0), "spent": "mine.discard"},
-                       {"to": "crash", "text": "Crash a 1-gem back", "when": ANSWERABLE,
+                       {"to": "crash", "text": "Crash a 1-gem back", "needs": ANSWERABLE,
                         "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
                                    "owner": "anyone", "count": 1},
                         "action": crash_action(1, 0), "spent": "mine.discard"}]},
@@ -1902,7 +1902,7 @@ def character_chips():
                         "where": ["tagged:puzzle@event"],
                         "action": ["stat_set:owed@mine.player:1"]},
                        {"to": "turn_end", "whose": "mine", "forced": "mandatory", "from": "board",
-                        "when": ["owed@mine.player >= 1"],
+                        "needs": ["owed@mine.player >= 1"],
                         "action": ["draw_from:mine.bag:mine.hand:1",
                                    "stat_set:owed@mine.player:0"]}]},
         {"key": "jackpot", "text": "Jackpot", "tags": ["chip", "character", "brown"],
@@ -1990,7 +1990,7 @@ def rule_cards():
 
     def rule(zone, key, when, action):
         out.append((zone, {"key": key, "text": key, "tags": ["immutable"],
-                           "abilities": [{"key": key, "text": key, "when": when, "action": action}]}))
+                           "abilities": [{"key": key, "text": key, "needs": when, "action": action}]}))
 
     def ante_gem(n, where):
         return ["take:bank.%s:%s:1" % (gem_key(n), where)]
@@ -2024,7 +2024,7 @@ def rule_cards():
     out.append(("rules_piggy", {
         "key": "piggy_bank", "text": "Piggy bank", "tags": ["immutable"],
         "abilities": [{"key": "piggy_bank", "text": "Piggy bank",
-                       "when": ["piggy@mine.player >= 1"],
+                       "needs": ["piggy@mine.player >= 1"],
                        "action": ["show:mine.hand:optional"]}],
         "chosen": {"action": ["move:target:mine.stash",
                               "stat_damage:to_draw@mine.player:1"]}}))
@@ -2110,7 +2110,7 @@ def button_cards():
          # A count, not a payment: the rule is a floor, so this asks whether the
          # floor was reached and takes nothing away for asking — a cost would have
          # spent the one purchase it was checking for.
-         "abilities": [{"phases": ["buy"], "when": ["bought@mine.player >= 1"],
+         "abilities": [{"phases": ["buy"], "needs": ["bought@mine.player >= 1"],
                       "action": ["next_phase"]}]},
     ]
 
@@ -2295,7 +2295,7 @@ def build():
                                    # at once, which was convenient and said none
                                    # of the three out loud. `take` is the record,
                                    # and the check is what `when` is for.
-                                   "when": ["stock@self >= 1"],
+                                   "needs": ["stock@self >= 1"],
                                    "cost": {"money@mine.player": "price@self"},
                                    "action": ["take:self:mine.discard:1",
                                               "stat_gain:bought@mine.player:1"]}]}},

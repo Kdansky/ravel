@@ -33,7 +33,7 @@ local GAME = [==[{
       "reactions": [
         { "to": "play",
           "where": ["tagged:fireball@event"],
-          "when": ["mana@mine.player >= 1"],
+          "needs": ["mana@mine.player >= 1"],
           "cost": { "mana@mine.player": 1 },
           "action": ["destroy:event"] }
       ] }

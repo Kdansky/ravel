@@ -358,7 +358,7 @@ function M.test_lor_a_when_is_the_rule_and_not_a_permission(check)
 		if a.key == "spill" then ab = a end
 	end
 	check("overwhelm's spill carries a when and a compute",
-		ab ~= nil and type(ab.when) == "table" and #ab.when == 2
+		ab ~= nil and type(ab.needs) == "table" and #ab.needs == 2
 		and type(ab.compute) == "table" and ab.compute[1] == "overkill")
 	check("and no colon-x arithmetic is left in the file",
 		#ab.action == 1 and ab.action[1]:find("x", 1, true) == nil, ab.action[1])

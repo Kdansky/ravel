@@ -355,7 +355,7 @@
           "text": "Attack the squad leader",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "when": ["ready_since@self >= 1", "not_tagged:cant_attack@self"],
+          "needs": ["ready_since@self >= 1", "not_tagged:cant_attack@self"],
           "target": {
             "type": "card",
             "count": 1,
@@ -394,7 +394,7 @@
           "phases": ["main"],
           "cost": { "exhaust": 1 },
           "compute": ["det", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"],
-          "when": [
+          "needs": [
             "ready_since@self >= 1",
             "not_tagged:cant_attack@self",
             "count:at_lead@enemy.patrol <= lead_skip"
@@ -453,7 +453,7 @@
             "rest_sneak",
             "rest_skip"
           ],
-          "when": [
+          "needs": [
             "ready_since@self >= 1",
             "not_tagged:cant_attack@self",
             "count:at_lead@enemy.patrol <= lead_skip",
@@ -491,7 +491,7 @@
           "phases": ["main"],
           "cost": { "exhaust": 1 },
           "tooltip": "Take a post. Left to right: squad leader, elite, scavenger, technician, lookout.",
-          "when": ["not_tagged:cant_patrol@self"],
+          "needs": ["not_tagged:cant_patrol@self"],
           "target": { "type": "slot", "count": 1, "owner": "mine", "zones": ["patrol"], "fill": "empty" },
           "action": [
             "move_to:target",
@@ -520,7 +520,7 @@
           "key": "attacks",
           "phases": [],
           "text": "Attacks",
-          "when": ["attacking@self >= 1"],
+          "needs": ["attacking@self >= 1"],
           "action": ["stat_set:fought@self:1"]
         },
         {
@@ -528,7 +528,7 @@
           "phases": [],
           "text": "Strike",
           "compute": ["lr_them", "lr_block"],
-          "when": ["sum:alt@across <= sum:aa@self", "lr_block <= 0"],
+          "needs": ["sum:alt@across <= sum:aa@self", "lr_block <= 0"],
           "action": [
             "stat_gain:incoming@across:sum:power@self",
             "stat_gain:raw@across:sum:power@self",
@@ -539,7 +539,7 @@
           "key": "armor",
           "phases": [],
           "text": "Armor",
-          "when": ["back@self >= 1"],
+          "needs": ["back@self >= 1"],
           "action": [
             "stat_damage:incoming@self:sum:guard@self",
             "stat_damage:back@self:sum:guard@self",
@@ -566,7 +566,7 @@
           "key": "venom",
           "phases": [],
           "text": "Deathtouch",
-          "when": ["raw@self >= 1", "count:deathtouch@across >= 1"],
+          "needs": ["raw@self >= 1", "count:deathtouch@across >= 1"],
           "action": ["stat_set:hp@self:0", "stat_set:life@self:0"]
         },
         {
@@ -587,7 +587,7 @@
           "key": "rage",
           "phases": [],
           "text": "Frenzy",
-          "when": ["attacking@self >= 1"],
+          "needs": ["attacking@self >= 1"],
           "action": ["stat_gain:power@self:sum:rage@self"]
         }
       ]
@@ -598,7 +598,7 @@
           "key": "spill",
           "phases": [],
           "text": "Overpower",
-          "when": ["attacking@self >= 1", "sum:slot@across >= 1", "sum:spill@across >= 1"],
+          "needs": ["attacking@self >= 1", "sum:slot@across >= 1", "sum:spill@across >= 1"],
           "action": ["stat_damage:integrity@enemy.base:sum:spill@across"]
         }
       ]
@@ -609,7 +609,7 @@
           "key": "sparked",
           "phases": [],
           "text": "Sparkshot",
-          "when": ["sparking@mine.player >= 1", "count:marked@beside >= 1"],
+          "needs": ["sparking@mine.player >= 1", "count:marked@beside >= 1"],
           "action": ["stat_damage:hp@self:1", "stat_damage:life@self:1"]
         }
       ]
@@ -1016,7 +1016,7 @@
           "text": "Hire (1 gold)",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1, "hired@mine.player": 1 },
-          "when": ["count:rich_earth@mine.ongoing == 0"],
+          "needs": ["count:rich_earth@mine.ongoing == 0"],
           "target": { "type": "card", "count": 1, "owner": "mine", "zones": ["hand"] },
           "action": ["move:target:mine.workers", "stat_gain:workers@mine.player:1"]
         },
@@ -1025,7 +1025,7 @@
           "text": "Hire (free)",
           "phases": ["main"],
           "cost": { "hired@mine.player": 1 },
-          "when": ["count:rich_earth@mine.ongoing >= 1"],
+          "needs": ["count:rich_earth@mine.ongoing >= 1"],
           "target": { "type": "card", "count": 1, "owner": "mine", "zones": ["hand"] },
           "action": ["move:target:mine.workers", "stat_gain:workers@mine.player:1"]
         }
@@ -1043,7 +1043,7 @@
           "text": "Build (1 gold)",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": [
+          "needs": [
             "workers@mine.player >= 6",
             "count:t1@mine.tech == 0",
             "count:t1@mine.site == 0",
@@ -1055,7 +1055,7 @@
           "key": "rebuild",
           "text": "Rebuild (free)",
           "phases": ["main"],
-          "when": [
+          "needs": [
             "workers@mine.player >= 6",
             "count:t1@mine.tech == 0",
             "count:t1@mine.site == 0",
@@ -1077,7 +1077,7 @@
           "text": "Build (1 gold)",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": [
+          "needs": [
             "workers@mine.player >= 8",
             "count:t1@mine.tech >= 1",
             "count:t2@mine.tech == 0",
@@ -1090,7 +1090,7 @@
           "key": "rebuild",
           "text": "Rebuild (free)",
           "phases": ["main"],
-          "when": [
+          "needs": [
             "workers@mine.player >= 8",
             "count:t1@mine.tech >= 1",
             "count:t2@mine.tech == 0",
@@ -1113,7 +1113,7 @@
           "text": "Build (1 gold)",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": [
+          "needs": [
             "workers@mine.player >= 10",
             "count:t2@mine.tech >= 1",
             "count:t3@mine.tech == 0",
@@ -1126,7 +1126,7 @@
           "key": "rebuild",
           "text": "Rebuild (free)",
           "phases": ["main"],
-          "when": [
+          "needs": [
             "workers@mine.player >= 10",
             "count:t2@mine.tech >= 1",
             "count:t3@mine.tech == 0",
@@ -1192,14 +1192,14 @@
           "key": "rich",
           "text": "Skip teching",
           "phases": ["tech"],
-          "when": ["workers@mine.player >= 10"],
+          "needs": ["workers@mine.player >= 10"],
           "action": ["stat_set:teched@mine.player:0"]
         },
         {
           "key": "empty",
           "text": "Codex is empty",
           "phases": ["tech"],
-          "when": ["count:deck_card@mine.codex == 0"],
+          "needs": ["count:deck_card@mine.codex == 0"],
           "action": ["stat_set:teched@mine.player:0"]
         }
       ]
@@ -1238,28 +1238,28 @@
           "key": "mine",
           "text": "Scavenger",
           "phases": [],
-          "when": ["count:dead@mine.patrol.at_scav >= 1"],
+          "needs": ["count:dead@mine.patrol.at_scav >= 1"],
           "action": ["stat_gain:gold@mine.player:1"]
         },
         {
           "key": "theirs",
           "text": "Scavenger",
           "phases": [],
-          "when": ["count:dead@enemy.patrol.at_scav >= 1"],
+          "needs": ["count:dead@enemy.patrol.at_scav >= 1"],
           "action": ["stat_gain:gold@enemy.player:1"]
         },
         {
           "key": "mine_h",
           "text": "Scavenger",
           "phases": [],
-          "when": ["count:fallen@mine.patrol.at_scav >= 1"],
+          "needs": ["count:fallen@mine.patrol.at_scav >= 1"],
           "action": ["stat_gain:gold@mine.player:1"]
         },
         {
           "key": "theirs_h",
           "text": "Scavenger",
           "phases": [],
-          "when": ["count:fallen@enemy.patrol.at_scav >= 1"],
+          "needs": ["count:fallen@enemy.patrol.at_scav >= 1"],
           "action": ["stat_gain:gold@enemy.player:1"]
         }
       ]
@@ -1273,28 +1273,28 @@
           "key": "mine",
           "text": "Technician",
           "phases": [],
-          "when": ["count:dead@mine.patrol.at_tech >= 1"],
+          "needs": ["count:dead@mine.patrol.at_tech >= 1"],
           "action": ["draw_from:mine.deck:mine.hand:1"]
         },
         {
           "key": "theirs",
           "text": "Technician",
           "phases": [],
-          "when": ["count:dead@enemy.patrol.at_tech >= 1"],
+          "needs": ["count:dead@enemy.patrol.at_tech >= 1"],
           "action": ["draw_from:enemy.deck:enemy.hand:1"]
         },
         {
           "key": "mine_h",
           "text": "Technician",
           "phases": [],
-          "when": ["count:fallen@mine.patrol.at_tech >= 1"],
+          "needs": ["count:fallen@mine.patrol.at_tech >= 1"],
           "action": ["draw_from:mine.deck:mine.hand:1"]
         },
         {
           "key": "theirs_h",
           "text": "Technician",
           "phases": [],
-          "when": ["count:fallen@enemy.patrol.at_tech >= 1"],
+          "needs": ["count:fallen@enemy.patrol.at_tech >= 1"],
           "action": ["draw_from:enemy.deck:enemy.hand:1"]
         }
       ]
@@ -1308,14 +1308,14 @@
           "key": "mine",
           "text": "Blood runes",
           "phases": [],
-          "when": ["count:bloodburn@mine.ongoing >= 1"],
+          "needs": ["count:bloodburn@mine.ongoing >= 1"],
           "action": ["stat_gain:runes@mine.ongoing.bloodburn:count:dead@anyone.unit"]
         },
         {
           "key": "theirs",
           "text": "Blood runes",
           "phases": [],
-          "when": ["count:bloodburn@enemy.ongoing >= 1"],
+          "needs": ["count:bloodburn@enemy.ongoing >= 1"],
           "action": ["stat_gain:runes@enemy.ongoing.bloodburn:count:dead@anyone.unit"]
         }
       ]
@@ -1329,14 +1329,14 @@
           "key": "mine",
           "text": "Fallen hero",
           "phases": [],
-          "when": ["count:fallen@mine.hero >= 1"],
+          "needs": ["count:fallen@mine.hero >= 1"],
           "action": ["stat_set:hero_wait@mine.player:2", "move:mine.fallen:mine.command"]
         },
         {
           "key": "theirs",
           "text": "Fallen hero",
           "phases": [],
-          "when": ["count:fallen@enemy.hero >= 1"],
+          "needs": ["count:fallen@enemy.hero >= 1"],
           "action": ["stat_set:hero_wait@enemy.player:2", "move:enemy.fallen:enemy.command"]
         }
       ]
@@ -1368,7 +1368,7 @@
           "key": "mine",
           "text": "Broken tech",
           "phases": [],
-          "when": ["count:rubble@mine.tech >= 1"],
+          "needs": ["count:rubble@mine.tech >= 1"],
           "action": [
             "stat_damage:integrity@mine.base:count:rubble@mine.tech:x:2",
             "destroy:mine.tech.rubble"
@@ -1378,7 +1378,7 @@
           "key": "theirs",
           "text": "Broken tech",
           "phases": [],
-          "when": ["count:rubble@enemy.tech >= 1"],
+          "needs": ["count:rubble@enemy.tech >= 1"],
           "action": [
             "stat_damage:integrity@enemy.base:count:rubble@enemy.tech:x:2",
             "destroy:enemy.tech.rubble"
@@ -1395,14 +1395,14 @@
           "key": "mine",
           "text": "Broken add-on",
           "phases": [],
-          "when": ["count:rubble@mine.addon >= 1"],
+          "needs": ["count:rubble@mine.addon >= 1"],
           "action": ["stat_damage:integrity@mine.base:2", "destroy:mine.addon.rubble"]
         },
         {
           "key": "theirs",
           "text": "Broken add-on",
           "phases": [],
-          "when": ["count:rubble@enemy.addon >= 1"],
+          "needs": ["count:rubble@enemy.addon >= 1"],
           "action": ["stat_damage:integrity@enemy.base:2", "destroy:enemy.addon.rubble"]
         }
       ]
@@ -1429,42 +1429,42 @@
           "key": "blood_m",
           "text": "Channeling",
           "phases": [],
-          "when": ["count:h_blood@mine.hero == 0"],
+          "needs": ["count:h_blood@mine.hero == 0"],
           "action": ["destroy:mine.ongoing.chan_blood"]
         },
         {
           "key": "blood_e",
           "text": "Channeling",
           "phases": [],
-          "when": ["count:h_blood@enemy.hero == 0"],
+          "needs": ["count:h_blood@enemy.hero == 0"],
           "action": ["destroy:enemy.ongoing.chan_blood"]
         },
         {
           "key": "feral_m",
           "text": "Channeling",
           "phases": [],
-          "when": ["count:h_feral@mine.hero == 0"],
+          "needs": ["count:h_feral@mine.hero == 0"],
           "action": ["destroy:mine.ongoing.chan_feral"]
         },
         {
           "key": "feral_e",
           "text": "Channeling",
           "phases": [],
-          "when": ["count:h_feral@enemy.hero == 0"],
+          "needs": ["count:h_feral@enemy.hero == 0"],
           "action": ["destroy:enemy.ongoing.chan_feral"]
         },
         {
           "key": "balance_m",
           "text": "Channeling",
           "phases": [],
-          "when": ["count:h_balance@mine.hero == 0"],
+          "needs": ["count:h_balance@mine.hero == 0"],
           "action": ["destroy:mine.ongoing.chan_balance"]
         },
         {
           "key": "balance_e",
           "text": "Channeling",
           "phases": [],
-          "when": ["count:h_balance@enemy.hero == 0"],
+          "needs": ["count:h_balance@enemy.hero == 0"],
           "action": ["destroy:enemy.ongoing.chan_balance"]
         }
       ]
@@ -1478,7 +1478,7 @@
           "key": "heal",
           "text": "Healing",
           "phases": [],
-          "when": ["count:healing@mine.healing >= 1"],
+          "needs": ["count:healing@mine.healing >= 1"],
           "action": [
             "stat_gain:hp@each.mine.unit:count:healing@mine.healing",
             "stat_gain:life@each.mine.hero:count:healing@mine.healing"
@@ -1508,7 +1508,7 @@
           "key": "back",
           "text": "Chameleon Lizzo returns",
           "phases": [],
-          "when": ["count:chameleon_lizzo@mine.unit >= 1"],
+          "needs": ["count:chameleon_lizzo@mine.unit >= 1"],
           "action": ["move:mine.chameleon_lizzo:mine.hand"]
         }
       ]
@@ -1590,7 +1590,7 @@
           "text": "Summon Zane",
           "phases": ["main"],
           "cost": { "gold@mine.player": 2 },
-          "when": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
+          "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
             "stat_set:atk@self:2",
@@ -1606,7 +1606,7 @@
           "text": "Level up to 2",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 1"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1614,7 +1614,7 @@
           "text": "Level up to 3",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 2"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1622,7 +1622,7 @@
           "text": "Level up to 4 — heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 3"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:3"]
         },
         {
@@ -1630,7 +1630,7 @@
           "text": "Level up to 5",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 4"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1638,7 +1638,7 @@
           "text": "Level up to 6 — max, heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 5"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 5"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:4", "stat_set:life@self:4"]
         },
         {
@@ -1646,7 +1646,7 @@
           "text": "Shove a patroller",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self >= 6"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self >= 6"],
           "target": {
             "type": "card",
             "count": 1,
@@ -1660,7 +1660,7 @@
           "key": "kills",
           "phases": [],
           "text": "Zane",
-          "when": ["level@self >= 4", "sum:slot@across == 3", "count:slain@across >= 1"],
+          "needs": ["level@self >= 4", "sum:slot@across == 3", "count:slain@across >= 1"],
           "action": ["stat_gain:gold@mine.player:1"]
         }
       ]
@@ -1678,7 +1678,7 @@
           "text": "Summon Drakk",
           "phases": ["main"],
           "cost": { "gold@mine.player": 2 },
-          "when": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
+          "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
             "stat_set:atk@self:1",
@@ -1694,7 +1694,7 @@
           "text": "Level up to 2",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 1"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1702,7 +1702,7 @@
           "text": "Level up to 3",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 2"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1710,7 +1710,7 @@
           "text": "Level up to 4 — heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 3"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:2", "stat_set:life@self:3"]
         },
         {
@@ -1718,7 +1718,7 @@
           "text": "Level up to 5",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 4"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1726,7 +1726,7 @@
           "text": "Level up to 6 — max, heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 5"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 5"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:4"]
         }
       ]
@@ -1744,7 +1744,7 @@
           "text": "Summon Jaina",
           "phases": ["main"],
           "cost": { "gold@mine.player": 2 },
-          "when": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
+          "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
             "stat_set:atk@self:2",
@@ -1760,7 +1760,7 @@
           "text": "Level up to 2",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 1"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1768,7 +1768,7 @@
           "text": "Level up to 3",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 2"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1776,7 +1776,7 @@
           "text": "Level up to 4 — heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 3"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:3"]
         },
         {
@@ -1784,7 +1784,7 @@
           "text": "Level up to 5",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 4"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1792,7 +1792,7 @@
           "text": "Level up to 6",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 5"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 5"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1800,7 +1800,7 @@
           "text": "Level up to 7 — max, heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 6"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 6"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:4", "stat_set:life@self:3"]
         },
         {
@@ -1808,7 +1808,7 @@
           "text": "Deal 1 damage to a patroller or building",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self >= 4", "level@self <= 6"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self >= 4", "level@self <= 6"],
           "target": {
             "type": "card",
             "count": 1,
@@ -1828,7 +1828,7 @@
           "text": "Deal 3 damage to a unit or building",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self >= 7"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self >= 7"],
           "target": {
             "type": "card",
             "count": 1,
@@ -1857,7 +1857,7 @@
           "text": "Summon Midori",
           "phases": ["main"],
           "cost": { "gold@mine.player": 2 },
-          "when": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
+          "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
             "stat_set:atk@self:2",
@@ -1873,7 +1873,7 @@
           "text": "Level up to 2",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 1"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1881,7 +1881,7 @@
           "text": "Level up to 3",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 2"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1889,7 +1889,7 @@
           "text": "Level up to 4",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 3"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1897,7 +1897,7 @@
           "text": "Level up to 5 — heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 4"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:4"]
         },
         {
@@ -1905,7 +1905,7 @@
           "text": "Level up to 6",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 5"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 5"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1913,7 +1913,7 @@
           "text": "Level up to 7",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 6"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 6"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1921,7 +1921,7 @@
           "text": "Level up to 8 — max, heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 7"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 7"],
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
@@ -1944,7 +1944,7 @@
           "text": "Summon Calamandra",
           "phases": ["main"],
           "cost": { "gold@mine.player": 2 },
-          "when": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
+          "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
             "stat_set:atk@self:2",
@@ -1960,7 +1960,7 @@
           "text": "Level up to 2",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 1"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1968,7 +1968,7 @@
           "text": "Level up to 3 — heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 2"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:4"]
         },
         {
@@ -1976,7 +1976,7 @@
           "text": "Level up to 4",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 3"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -1984,7 +1984,7 @@
           "text": "Level up to 5 — max, heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 4"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:4", "stat_set:life@self:5"]
         },
         {
@@ -1992,7 +1992,7 @@
           "text": "Search your codex for a tiger",
           "phases": ["main"],
           "cost": { "gold@mine.player": 4, "exhaust": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self >= 5"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self >= 5"],
           "action": ["show:mine.codex"]
         }
       ],
@@ -2014,7 +2014,7 @@
           "text": "Summon Argagarg",
           "phases": ["main"],
           "cost": { "gold@mine.player": 2 },
-          "when": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
+          "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
             "stat_set:atk@self:1",
@@ -2031,7 +2031,7 @@
           "text": "Level up to 2",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 1"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -2039,7 +2039,7 @@
           "text": "Level up to 3 — heals",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 2"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:1", "stat_set:life@self:4"]
         },
         {
@@ -2047,7 +2047,7 @@
           "text": "Level up to 4",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 3"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1"]
         },
         {
@@ -2055,7 +2055,7 @@
           "text": "Level up to 5 — max, heals, summons",
           "phases": ["main"],
           "cost": { "gold@mine.player": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self == 4"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": [
             "stat_gain:level@self:1",
             "stat_set:atk@self:1",
@@ -2068,7 +2068,7 @@
           "text": "Give a unit +1 ATK and +1 armor",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "when": ["count:hero@mine.hero >= 1", "level@self >= 3"],
+          "needs": ["count:hero@mine.hero >= 1", "level@self >= 3"],
           "target": {
             "type": "card",
             "count": 1,
@@ -2412,7 +2412,7 @@
           "key": "endturn",
           "phases": [],
           "text": "Bloodrage Ogre",
-          "when": ["ready_since@self >= 1", "fought@self == 0"],
+          "needs": ["ready_since@self >= 1", "fought@self == 0"],
           "action": ["move_to:mine.hand"]
         }
       ]
@@ -2439,7 +2439,7 @@
           "key": "rage",
           "phases": [],
           "text": "Siege",
-          "when": ["attacking@self >= 1", "count:building@across >= 1"],
+          "needs": ["attacking@self >= 1", "count:building@across >= 1"],
           "action": ["stat_gain:power@self:2"]
         }
       ]
@@ -2592,7 +2592,7 @@
           "key": "kills",
           "phases": [],
           "text": "Gunpoint Taxman",
-          "when": ["attacking@self >= 1", "sum:slot@across >= 1", "count:slain@across >= 1"],
+          "needs": ["attacking@self >= 1", "sum:slot@across >= 1", "count:slain@across >= 1"],
           "action": ["stat_gain:gold@mine.player:1", "stat_damage:gold@enemy.player:1"]
         }
       ]
@@ -2715,7 +2715,7 @@
           "key": "rage",
           "phases": [],
           "text": "Siege",
-          "when": ["attacking@self >= 1", "count:building@across >= 1"],
+          "needs": ["attacking@self >= 1", "count:building@across >= 1"],
           "action": ["stat_gain:power@self:4"]
         }
       ]
@@ -2753,7 +2753,7 @@
           "key": "attacks",
           "phases": [],
           "text": "Obliterate",
-          "when": ["attacking@self >= 1"],
+          "needs": ["attacking@self >= 1"],
           "action": ["destroy:enemy.army.unit:2"]
         }
       ]
@@ -3205,7 +3205,7 @@
           "key": "attacks",
           "phases": [],
           "text": "Attacks",
-          "when": ["attacking@self >= 1"],
+          "needs": ["attacking@self >= 1"],
           "action": ["stat_damage:integrity@enemy.base:3"]
         }
       ]
@@ -4000,7 +4000,7 @@
           "key": "attacks",
           "phases": [],
           "text": "Attacks",
-          "when": ["attacking@self >= 1"],
+          "needs": ["attacking@self >= 1"],
           "action": ["fill:mine.army:squirrel:3"]
         }
       ]
@@ -4265,7 +4265,7 @@
           "key": "attacks",
           "phases": [],
           "text": "Obliterate",
-          "when": ["attacking@self >= 1"],
+          "needs": ["attacking@self >= 1"],
           "action": ["destroy:enemy.army.unit:4"]
         }
       ]

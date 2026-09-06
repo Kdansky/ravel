@@ -87,11 +87,11 @@ function M.matches(reaction, e, subject, strict)
 	if not placed(e, reaction, strict) then return false end
 	local ctx = { event = subject, card_id = e.id, targets = {} }
 	if reaction.where and not predicate.meets_all(reaction.where, ctx) then return false end
-	if reaction.when then
+	if reaction.needs then
 		local seat = predicate.seat_of(e)
 		local ok = true
 		zones.as_seat(seat, function()
-			if not predicate.meets_all(reaction.when, ctx) then ok = false end
+			if not predicate.meets_all(reaction.needs, ctx) then ok = false end
 		end)
 		if not ok then return false end
 	end

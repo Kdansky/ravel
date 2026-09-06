@@ -175,7 +175,7 @@
           "text": "Buy it",
           "merge": "this",
           "phases": ["buy", "react_buy"],
-          "when": ["stock@self >= 1"],
+          "needs": ["stock@self >= 1"],
           "cost": { "money@mine.player": "price@self" },
           "action": ["take:self:mine.discard:1", "stat_gain:bought@mine.player:1"]
         }
@@ -532,7 +532,7 @@
       "tags": ["immutable"],
       "asset": "square:slate",
       "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
-      "abilities": [{ "phases": ["buy"], "when": ["bought@mine.player >= 1"], "action": ["next_phase"] }]
+      "abilities": [{ "phases": ["buy"], "needs": ["bought@mine.player >= 1"], "action": ["next_phase"] }]
     },
     {
       "key": "gem_1",
@@ -884,7 +884,7 @@
         {
           "to": "crash",
           "text": "Negate the gems",
-          "when": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
+          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
           "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
           "spent": "mine.discard"
         }
@@ -1677,7 +1677,7 @@
       "reactions": [
         {
           "to": "crash",
-          "when": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
+          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
           "from": "board",
           "action": ["destroy:mine.gem_1:1", "move_to:mine.discard", "transform:self:bubble_shield"]
         }
@@ -1924,7 +1924,7 @@
         {
           "to": "crash",
           "text": "Counter-crash",
-          "when": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
+          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
           "target": {
             "type": "card",
             "tags": ["gem"],
@@ -1994,7 +1994,7 @@
         {
           "to": "crash",
           "text": "Send the gems back to the bank",
-          "when": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
+          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
           "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
           "spent": "mine.discard"
         }
@@ -2249,7 +2249,7 @@
           "to": "buy",
           "forced": "mandatory",
           "from": "board",
-          "when": ["sum:value@mine.gem_pile >= 3", "sum:price@event > sum:value@enemy.gem_pile"],
+          "needs": ["sum:value@mine.gem_pile >= 3", "sum:price@event > sum:value@enemy.gem_pile"],
           "action": ["counterspell"]
         },
         {
@@ -2761,7 +2761,7 @@
         {
           "to": "crash",
           "text": "Crash a 1-gem back",
-          "when": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
+          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
           "target": {
             "type": "card",
             "tags": ["gem_1"],
@@ -2940,7 +2940,7 @@
           "whose": "mine",
           "forced": "mandatory",
           "from": "board",
-          "when": ["owed@mine.player >= 1"],
+          "needs": ["owed@mine.player >= 1"],
           "action": ["draw_from:mine.bag:mine.hand:1", "stat_set:owed@mine.player:0"]
         }
       ],
@@ -3528,7 +3528,7 @@
         {
           "key": "ante_1",
           "text": "ante_1",
-          "when": ["panic@clock <= 1"],
+          "needs": ["panic@clock <= 1"],
           "action": ["take:bank.gem_1:mine.gem_pile:1"]
         }
       ]
@@ -3541,7 +3541,7 @@
         {
           "key": "ante_2",
           "text": "ante_2",
-          "when": ["panic@clock >= 2", "panic@clock <= 2"],
+          "needs": ["panic@clock >= 2", "panic@clock <= 2"],
           "action": ["take:bank.gem_2:mine.gem_pile:1"]
         }
       ]
@@ -3554,7 +3554,7 @@
         {
           "key": "ante_3",
           "text": "ante_3",
-          "when": ["panic@clock >= 3", "panic@clock <= 3"],
+          "needs": ["panic@clock >= 3", "panic@clock <= 3"],
           "action": ["take:bank.gem_3:mine.gem_pile:1"]
         }
       ]
@@ -3567,7 +3567,7 @@
         {
           "key": "ante_4",
           "text": "ante_4",
-          "when": ["panic@clock >= 4"],
+          "needs": ["panic@clock >= 4"],
           "action": ["take:bank.gem_4:mine.gem_pile:1"]
         }
       ]
@@ -3580,7 +3580,7 @@
         {
           "key": "comb_2",
           "text": "comb_2",
-          "when": ["combined@mine.player == 2"],
+          "needs": ["combined@mine.player == 2"],
           "action": ["take:bank.gem_2:mine.gem_pile:1"]
         }
       ]
@@ -3593,7 +3593,7 @@
         {
           "key": "comb_3",
           "text": "comb_3",
-          "when": ["combined@mine.player == 3"],
+          "needs": ["combined@mine.player == 3"],
           "action": ["take:bank.gem_3:mine.gem_pile:1"]
         }
       ]
@@ -3606,7 +3606,7 @@
         {
           "key": "comb_4",
           "text": "comb_4",
-          "when": ["combined@mine.player == 4"],
+          "needs": ["combined@mine.player == 4"],
           "action": ["take:bank.gem_4:mine.gem_pile:1"]
         }
       ]
@@ -3619,7 +3619,7 @@
         {
           "key": "up_2",
           "text": "up_2",
-          "when": ["combined@mine.player == 1"],
+          "needs": ["combined@mine.player == 1"],
           "action": ["take:bank.gem_2:mine.discard:1"]
         }
       ]
@@ -3632,7 +3632,7 @@
         {
           "key": "up_3",
           "text": "up_3",
-          "when": ["combined@mine.player == 2"],
+          "needs": ["combined@mine.player == 2"],
           "action": ["take:bank.gem_3:mine.discard:1"]
         }
       ]
@@ -3645,7 +3645,7 @@
         {
           "key": "up_4",
           "text": "up_4",
-          "when": ["combined@mine.player == 3"],
+          "needs": ["combined@mine.player == 3"],
           "action": ["take:bank.gem_4:mine.discard:1"]
         }
       ]
@@ -3658,7 +3658,7 @@
         {
           "key": "uph_2",
           "text": "uph_2",
-          "when": ["combined@mine.player == 1"],
+          "needs": ["combined@mine.player == 1"],
           "action": ["take:bank.gem_2:mine.hand:1"]
         }
       ]
@@ -3671,7 +3671,7 @@
         {
           "key": "uph_3",
           "text": "uph_3",
-          "when": ["combined@mine.player == 2"],
+          "needs": ["combined@mine.player == 2"],
           "action": ["take:bank.gem_3:mine.hand:1"]
         }
       ]
@@ -3684,7 +3684,7 @@
         {
           "key": "uph_4",
           "text": "uph_4",
-          "when": ["combined@mine.player == 3"],
+          "needs": ["combined@mine.player == 3"],
           "action": ["take:bank.gem_4:mine.hand:1"]
         }
       ]
@@ -3697,7 +3697,7 @@
         {
           "key": "upp_2",
           "text": "upp_2",
-          "when": ["combined@mine.player == 1"],
+          "needs": ["combined@mine.player == 1"],
           "action": ["take:bank.gem_2:mine.gem_pile:1"]
         }
       ]
@@ -3710,7 +3710,7 @@
         {
           "key": "upp_3",
           "text": "upp_3",
-          "when": ["combined@mine.player == 2"],
+          "needs": ["combined@mine.player == 2"],
           "action": ["take:bank.gem_3:mine.gem_pile:1"]
         }
       ]
@@ -3723,7 +3723,7 @@
         {
           "key": "upp_4",
           "text": "upp_4",
-          "when": ["combined@mine.player == 3"],
+          "needs": ["combined@mine.player == 3"],
           "action": ["take:bank.gem_4:mine.gem_pile:1"]
         }
       ]
@@ -3736,7 +3736,7 @@
         {
           "key": "piggy_bank",
           "text": "Piggy bank",
-          "when": ["piggy@mine.player >= 1"],
+          "needs": ["piggy@mine.player >= 1"],
           "action": ["show:mine.hand:optional"]
         }
       ],
@@ -3766,7 +3766,7 @@
         {
           "key": "height_3",
           "text": "height_3",
-          "when": ["sum:value@mine.gem_pile >= 3"],
+          "needs": ["sum:value@mine.gem_pile >= 3"],
           "action": ["stat_gain:to_draw@mine.player:1"]
         }
       ]
@@ -3779,7 +3779,7 @@
         {
           "key": "height_6",
           "text": "height_6",
-          "when": ["sum:value@mine.gem_pile >= 6"],
+          "needs": ["sum:value@mine.gem_pile >= 6"],
           "action": ["stat_gain:to_draw@mine.player:1"]
         }
       ]
@@ -3792,7 +3792,7 @@
         {
           "key": "height_9",
           "text": "height_9",
-          "when": ["sum:value@mine.gem_pile >= 9"],
+          "needs": ["sum:value@mine.gem_pile >= 9"],
           "action": ["stat_gain:to_draw@mine.player:1"]
         }
       ]

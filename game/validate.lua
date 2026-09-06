@@ -221,7 +221,7 @@ local TAG_FIELDS      = { zone = true, tooltip = true, play = true,
 local RETIRED       = { activate = true, ends_after = true, zone_empty = true }
 
 local VERB_FIELDS   = { key = true, does = true, tooltip = true }
-local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, when = true, by = true }
+local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, needs = true, by = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it
 -- overwritten and no error — which is the shape of bug that costs an afternoon,
 -- because the number is right in the file and wrong in the game.
@@ -1484,7 +1484,15 @@ function M.check(G)
 				.. 'or "other" (mine only when the card offers nothing else), not \'%s\'',
 				where, tostring(ab.merge))
 		end
-		check_conditions(where .. " when", ab.when, bound)
+		-- The gate on the thing that owns the block, which is what "needs" means
+		-- everywhere it appears. It was "when" on an ability and on a reaction and
+		-- "needs" on a play, a challenge and a receive — one question under two
+		-- words, and no block ever had both.
+		check_conditions(where .. " needs", ab.needs, bound)
+		if ab.when ~= nil then
+			warn('%s: says "when", which is now "needs" — the gate on the thing whose'
+				.. ' block it is, wherever that block sits', where)
+		end
 		check_target(where, "target", ab.target)
 		check_moves(where, ab.moves)
 		if ab.moves and not ab.action then
@@ -2999,7 +3007,7 @@ function M.check(G)
 							where, tostring(ad.covers), suggest(named or ad.covers, scope_names))
 					end
 				end
-				check_conditions(where .. " when", ad.when)
+				check_conditions(where .. " needs", ad.needs)
 				if ad.by == nil then
 					warn('%s: needs a "by" saying how much it shifts what lands', where)
 				elseif tonumber(ad.by) == nil then

@@ -1038,7 +1038,7 @@ function M.usable_abilities(card_id)
 			or (a.target.moves == nil and #targeting.candidates(card_id, a.target) >= lo)
 		local ctx = predicate.bind(a.compute, { card_id = card_id })
 		if has_ability(a.action) and phase_ok(a.phases)
-			and predicate.meets_all(a.when, ctx)
+			and predicate.meets_all(a.needs, ctx)
 			and M.can_afford(a.cost, ctx)
 			and reaches then
 			out[#out + 1] = { index = i, ability = a }
@@ -1336,7 +1336,7 @@ function M.usable_zone_abilities(zone_id)
 	for i, a in ipairs(z.abilities or {}) do
 		local ctx = predicate.bind(a.compute, { zone_id = zone_id })
 		if has_ability(a.action) and phase_ok(a.phases)
-			and predicate.meets_all(a.when, ctx)
+			and predicate.meets_all(a.needs, ctx)
 			and M.can_afford(a.cost, ctx) then
 			out[#out + 1] = { index = i, ability = a }
 		end

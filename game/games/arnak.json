@@ -109,7 +109,7 @@
     },
     "site": {
       "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "when": ["guard@self == 0"],
+        { "key": "dig", "text": "Dig here", "phases": ["turn"], "needs": ["guard@self == 0"],
           "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1,
                     "travel@mine.player": "toll@self" },
           "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
@@ -118,7 +118,7 @@
                      "stat_gain:arrowhead@mine.player:sum:y_arrow@self",
                      "stat_gain:jewel@mine.player:sum:y_jewel@self"] },
         { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"],
-          "when": ["guard@self >= 1"],
+          "needs": ["guard@self >= 1"],
           "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1,
                     "travel@mine.player": "toll@self" },
           "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
@@ -128,7 +128,7 @@
                      "stat_gain:jewel@mine.player:sum:y_jewel@self",
                      "stat_gain:guarded@mine.player:1"] },
         { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "when": ["guard@self >= 1", "guarded@mine.player >= 1"],
+          "needs": ["guard@self >= 1", "guarded@mine.player >= 1"],
           "cost": { "main@mine.player": 1, "arrowhead@mine.player": "g_arrow@self",
                     "tablet@mine.player": "g_tablet@self", "jewel@mine.player": "g_jewel@self" },
           "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1",
@@ -436,7 +436,7 @@
     { "key": "idol", "text": "Idol", "tags": ["idol", "gilt"], "asset": "star:5:gold",
       "tooltip": "Three points at the end, kept or slotted. Slotting it is free, and you may do it once.",
       "abilities": [
-        { "key": "slot", "text": "Slot the idol", "phases": ["turn"], "when": ["used@self == 0"],
+        { "key": "slot", "text": "Slot the idol", "phases": ["turn"], "needs": ["used@self == 0"],
           "action": ["stat_set:used@self:1", "options:idol_coin,idol_compass,idol_dig,idol_draw"] }
       ] },
 
@@ -467,11 +467,11 @@
       "tooltip": "A compass to move either token. Glass: take a coin. Notebook: take a compass.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
-          "when": ["glass@mine.player == 0"],
+          "needs": ["glass@mine.player == 0"],
           "cost": { "main@mine.player": 1, "compass@mine.player": 1 },
           "action": ["stat_set:glass@mine.player:1", "stat_gain:coin@mine.player:1"] },
         { "key": "note", "text": "Advance the notebook", "phases": ["turn"],
-          "when": ["note@mine.player == 0", "glass@mine.player >= 1"],
+          "needs": ["note@mine.player == 0", "glass@mine.player >= 1"],
           "cost": { "main@mine.player": 1, "compass@mine.player": 1 },
           "action": ["stat_set:note@mine.player:1", "stat_gain:compass@mine.player:1"] }
       ] },
@@ -480,11 +480,11 @@
       "tooltip": "A tablet to move either token. Glass: take an arrowhead. Notebook: draw a card.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
-          "when": ["glass@mine.player == 1"],
+          "needs": ["glass@mine.player == 1"],
           "cost": { "main@mine.player": 1, "tablet@mine.player": 1 },
           "action": ["stat_set:glass@mine.player:2", "stat_gain:arrowhead@mine.player:1"] },
         { "key": "note", "text": "Advance the notebook", "phases": ["turn"],
-          "when": ["note@mine.player == 1", "glass@mine.player >= 2"],
+          "needs": ["note@mine.player == 1", "glass@mine.player >= 2"],
           "cost": { "main@mine.player": 1, "tablet@mine.player": 1 },
           "action": ["stat_set:note@mine.player:2", "draw_from:mine.bag:mine.hand:1"] }
       ] },
@@ -493,11 +493,11 @@
       "tooltip": "A tablet and an arrowhead. Glass: take a tablet. Notebook: recruit an assistant.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
-          "when": ["glass@mine.player == 2"],
+          "needs": ["glass@mine.player == 2"],
           "cost": { "main@mine.player": 1, "tablet@mine.player": 1, "arrowhead@mine.player": 1 },
           "action": ["stat_set:glass@mine.player:3", "stat_gain:tablet@mine.player:1"] },
         { "key": "note", "text": "Advance the notebook, and recruit", "phases": ["turn"],
-          "when": ["note@mine.player == 2", "glass@mine.player >= 3"],
+          "needs": ["note@mine.player == 2", "glass@mine.player >= 3"],
           "cost": { "main@mine.player": 1, "tablet@mine.player": 1, "arrowhead@mine.player": 1 },
           "action": ["stat_set:note@mine.player:3", "draw_from:assistant_box:mine.assistants:1"] }
       ] },
@@ -506,11 +506,11 @@
       "tooltip": "A jewel to move either token. Glass: take a jewel. Notebook: take two coins.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
-          "when": ["glass@mine.player == 3"],
+          "needs": ["glass@mine.player == 3"],
           "cost": { "main@mine.player": 1, "jewel@mine.player": 1 },
           "action": ["stat_set:glass@mine.player:4", "stat_gain:jewel@mine.player:1"] },
         { "key": "note", "text": "Advance the notebook", "phases": ["turn"],
-          "when": ["note@mine.player == 3", "glass@mine.player >= 4"],
+          "needs": ["note@mine.player == 3", "glass@mine.player >= 4"],
           "cost": { "main@mine.player": 1, "jewel@mine.player": 1 },
           "action": ["stat_set:note@mine.player:4", "stat_gain:coin@mine.player:2"] }
       ] },
@@ -519,11 +519,11 @@
       "tooltip": "A jewel and a tablet. Glass: take two compasses. Notebook: recruit an assistant.",
       "abilities": [
         { "key": "glass", "text": "Advance the magnifying glass", "phases": ["turn"],
-          "when": ["glass@mine.player == 4"],
+          "needs": ["glass@mine.player == 4"],
           "cost": { "main@mine.player": 1, "jewel@mine.player": 1, "tablet@mine.player": 1 },
           "action": ["stat_set:glass@mine.player:5", "stat_gain:compass@mine.player:2"] },
         { "key": "note", "text": "Advance the notebook, and recruit", "phases": ["turn"],
-          "when": ["note@mine.player == 4", "glass@mine.player >= 5"],
+          "needs": ["note@mine.player == 4", "glass@mine.player >= 5"],
           "cost": { "main@mine.player": 1, "jewel@mine.player": 1, "tablet@mine.player": 1 },
           "action": ["stat_set:note@mine.player:5", "draw_from:assistant_box:mine.assistants:1"] }
       ] },
@@ -532,7 +532,7 @@
       "tooltip": "The Lost Temple, and only the magnifying glass reaches it: two jewels for five points, and five more for whoever arrives first.",
       "abilities": [
         { "key": "glass", "text": "Reach the Lost Temple", "phases": ["turn"],
-          "when": ["glass@mine.player == 5"],
+          "needs": ["glass@mine.player == 5"],
           "cost": { "main@mine.player": 1, "jewel@mine.player": 2 },
           "action": ["stat_set:glass@mine.player:6", "stat_gain:score@mine.player:5",
                      "activate_zone:rules_temple"] }
@@ -540,19 +540,19 @@
 
     { "key": "first_temple", "text": "first_temple", "tags": ["immutable"],
       "abilities": [
-        { "key": "first_temple", "text": "first_temple", "when": ["temple_taken@clock == 0"],
+        { "key": "first_temple", "text": "first_temple", "needs": ["temple_taken@clock == 0"],
           "action": ["stat_gain:score@mine.player:5", "stat_set:temple_taken@clock:1"] }
       ] },
 
     { "key": "market_first", "text": "market_first", "tags": ["immutable"],
       "abilities": [
-        { "key": "market_first", "text": "market_first", "when": ["round_no@clock == 1"],
+        { "key": "market_first", "text": "market_first", "needs": ["round_no@clock == 1"],
           "action": ["draw_from:artifact_deck:artifacts:1", "draw_from:item_deck:items:5"] }
       ] },
 
     { "key": "market_staff", "text": "market_staff", "tags": ["immutable"],
       "abilities": [
-        { "key": "market_staff", "text": "market_staff", "when": ["round_no@clock >= 2"],
+        { "key": "market_staff", "text": "market_staff", "needs": ["round_no@clock >= 2"],
           "action": ["destroy:artifacts:1", "destroy:items:1",
                      "draw_from:artifact_deck:artifacts:2"] }
       ] },
@@ -560,7 +560,7 @@
     { "key": "end_turn", "text": "End turn", "tags": ["immutable"], "asset": "square:slate",
       "tooltip": "Hand the turn on. You have to take your one main action first — if there is nothing you want to do, pass instead.",
       "abilities": [
-        { "key": "end", "text": "End turn", "phases": ["turn"], "when": ["main@mine.player == 0"],
+        { "key": "end", "text": "End turn", "phases": ["turn"], "needs": ["main@mine.player == 0"],
           "action": ["next_phase"] }
       ] },
 
@@ -573,13 +573,13 @@
 
     { "key": "win_south", "text": "win_south", "tags": ["immutable"],
       "abilities": [
-        { "key": "win_south", "text": "win_south", "when": ["score@south_side > score@north_side"],
+        { "key": "win_south", "text": "win_south", "needs": ["score@south_side > score@north_side"],
           "action": ["stat_gain:won@south_side:1"] }
       ] },
 
     { "key": "win_north", "text": "win_north", "tags": ["immutable"],
       "abilities": [
-        { "key": "win_north", "text": "win_north", "when": ["score@north_side > score@south_side"],
+        { "key": "win_north", "text": "win_north", "needs": ["score@north_side > score@south_side"],
           "action": ["stat_gain:won@north_side:1"] }
       ] },
 

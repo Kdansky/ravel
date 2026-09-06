@@ -79,9 +79,13 @@ end
 -- which), "this" (mine alone, the rest of the card goes quiet) or "other" (mine
 -- only when the card offers nothing else). A word rather than a flag, for the
 -- same reason "whose" is one below: three readings do not fit in a yes or no.
+-- "needs" is the gate on the thing whose block this is, the same word a play, a
+-- challenge and a zone's receive use. It was "when" here, which was one question
+-- under two names: no block ever had both, and which name it wore depended only
+-- on where it sat.
 local ABILITY_FIELDS = { key = true, text = true, tooltip = true, asset = true,
 	cost = true, target = true, phases = true, action = true, moves = true,
-	when = true, compute = true, merge = true }
+	needs = true, compute = true, merge = true }
 
 -- Every activated ability, as one list. Cards, tags and zones all write the same
 -- `abilities`, and one that does a single thing writes a list of one — there is
@@ -126,7 +130,7 @@ local function abilities_of(def, pp, where)
 					tooltip = a.tooltip, asset = a.asset,
 					cost = a.cost, target = target, phases = a.phases,
 					action = a.action, moves = rules,
-					when = a.when, compute = a.compute, merge = a.merge }
+					needs = a.needs, compute = a.compute, merge = a.merge }
 			end
 		end
 	end
@@ -152,8 +156,10 @@ end
 -- Normalised here, the last place the authored entry exists, exactly as
 -- abilities_of is and for the same reason: a typo inside one is caught now, since
 -- what leaves this function cannot carry an unknown field.
+-- "where" is about the event and "needs" is about the reactor, which is the one
+-- distinction worth two words: the subject differs, so the conditions do.
 local REACTION_FIELDS = { key = true, text = true, tooltip = true, to = true,
-	where = true, ["when"] = true, forced = true, from = true, whose = true,
+	where = true, needs = true, forced = true, from = true, whose = true,
 	cost = true, target = true, action = true, moves = true, compute = true, spent = true }
 local FORCED = { optional = true, mandatory = true }
 -- The owner words a scope already takes, meaning here what they mean there:
@@ -303,7 +309,7 @@ local function reactions_of(def, pp, where)
 				target = { type = "slot", count = 1, moves = rules }
 			end
 			out[#out + 1] = { key = r.key or ("reaction_" .. i), text = r.text, tooltip = r.tooltip,
-				to = r.to, where = r.where, ["when"] = r["when"], forced = forced, from = r.from,
+				to = r.to, where = r.where, needs = r.needs, forced = forced, from = r.from,
 				whose = whose,
 				cost = r.cost, target = target, action = r.action,
 				moves = rules, compute = r.compute, spent = r.spent }

@@ -382,7 +382,7 @@ function M.test_spellstorm_the_shelf_is_gated_by_tier(check)
 	zones.move_card(find("fireball2").id, sc.id)
 	zones.move_card(find("fireball").id, sc.id)
 	local high, low = find("fireball2", "storm_cloud"), find("fireball", "storm_cloud")
-	-- Taking a card off the shelf is an ability, and its "when" is the Tier gate.
+	-- Taking a card off the shelf is an ability, and its "needs" is the Tier gate.
 	phase.push("gain")
 	check("a Tier III card is out of reach at Tier I", not flow.can_activate(high.id))
 	check("a Tier I card is not", flow.can_activate(low.id))

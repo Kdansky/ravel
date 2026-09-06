@@ -2,7 +2,7 @@
 --
 -- The suppression brain: given an event (a verb and its subject), who may answer
 -- it. A verb no card answers returns nothing before any card is weighed; a
--- reaction answers only the events its "where" names, only when its "when"
+-- reaction answers only the events its "where" names, only when its "needs"
 -- holds for the reactor, and only from a zone it can be answered out of. No
 -- window opens for an empty answer.
 
@@ -35,7 +35,7 @@ local GAME = [==[{
     { "key": "flame_counter", "text": "Flame Counter", "tags": ["counter"],
       "reactions": [
         { "to": "play", "where": ["tagged:fireball@event"],
-          "when": ["mana@mine.player >= 1"], "from": "board",
+          "needs": ["mana@mine.player >= 1"], "from": "board",
           "action": ["destroy:event"] }
       ] },
     { "key": "summon_counter", "text": "Summon Counter", "tags": ["counter"],
@@ -140,7 +140,7 @@ function M.test_react_match_from_may_name_a_zone(check)
 	end)
 end
 
--- "when" is about the reactor: no mana, no answer, even for the right event.
+-- "needs" is about the reactor: no mana, no answer, even for the right event.
 function M.test_react_match_when_gates_the_reactor(check)
 	with_game(function(name)
 		flow.init(name, 3)

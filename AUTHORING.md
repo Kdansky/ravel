@@ -56,7 +56,7 @@ and a line here names a section that exists:
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · Stats · Zones · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `when` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
+- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `origin` — back where it came from · `fan` — a stack you can read
@@ -939,7 +939,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `row` | Which way a row fans, so every card in it can be read at once: `down` or `right`. Legal only where `layout` is `row`; left out, the cards sit side by side and do not overlap |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
 | `tooltip` | Prose shown when the zone is hovered. A deck answers for itself — there are no cards in it to ask, only a deck |
-| `abilities` | The zone's **own** abilities, in a card's words: `cost`, `phases`, `when`, `action`. This is how a deck is drawn from — the box answers, rather than the card on top of it becoming clickable. Gated like a card's: the phase it works in, what it costs, and whose zone it is. Two of them opens the same chooser a card's two do. No `target` and no `moves` — there is no arrow to draw from a deck. Not to be confused with `applies`, which hands an ability to the cards *lying* there |
+| `abilities` | The zone's **own** abilities, in a card's words: `cost`, `phases`, `needs`, `action`. This is how a deck is drawn from — the box answers, rather than the card on top of it becoming clickable. Gated like a card's: the phase it works in, what it costs, and whose zone it is. Two of them opens the same chooser a card's two do. No `target` and no `moves` — there is no arrow to draw from a deck. Not to be confused with `applies`, which hands an ability to the cards *lying* there |
 | `refill_from` | The zone this one is rebuilt from when something tries to draw from it and finds it empty — a deckbuilder's draw pile naming its discard. Everything there moves in and the pile is shuffled; a per-seat zone takes the same seat's copy, so one line serves every player. **Asked for, not fired on emptying**: a rule that clears the pile on purpose is left alone, and the loop closes wherever it actually runs out — mid-draw, mid-action, inside a card that draws four, which is exactly where a phase loop cannot reach |
 | `applies` | Tags this zone hands to whatever sits in it, behaviour included (see *Tags as mixins*) |
 | `receive` | What this zone does about an arrival. `needs`: whether a card being played may be sent **here** — the zone answers for itself, as a card does. `action`: what happens when one lands, with the zone as `@self` and the newcomer as `@target` (a discard pile anybody may take from says `set_owner:target:none` here, once, rather than every card that might be thrown into it saying it) |
@@ -1284,8 +1284,8 @@ disk cache with no network at all.
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
 | `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a card that carries its own bounds writes them by name — `{ "value": 4, "max": 4 }`, and `min` beside them — which are the same three words the `stats` entry uses. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
 | `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate, asked once before targeting opens and so blind to targets — see *`needs` and `where`*, which also carries the escape hatch. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
-| `abilities` | What the card can be used for, one entry each — `cost`, `target`, `phases`, `when`, `compute`, `action` (no `needs` — an ability is gated by its cost, its phase and its `when`). A card that does one thing writes a list of one. **A `when` asks and takes nothing**, which is the difference from a cost: a button reading "you must have bought at least one chip" is a question, and writing it as a cost would spend the purchase it was checking for. **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
-| `reactions` | A list of subscriptions to another player's action — each with the verb it answers (`to`), a condition about the event (`where`), a condition about the reactor (`when`), and the `cost`, `target` and `action` an ability has. `spent` says where the card lands once its answer is over. See *Reactions* |
+| `abilities` | What the card can be used for, one entry each — `cost`, `target`, `phases`, `needs`, `compute`, `action`. A card that does one thing writes a list of one. **A `needs` asks and takes nothing**, which is the difference from a cost: a button reading "you must have bought at least one chip" is a question, and writing it as a cost would spend the purchase it was checking for. **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
+| `reactions` | A list of subscriptions to another player's action — each with the verb it answers (`to`), a condition about the event (`where`), a condition about the reactor (`needs`), and the `cost`, `target` and `action` an ability has. `spent` says where the card lands once its answer is over. See *Reactions* |
 | `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
 | `play.spent` | Where the card goes once its play is over, **however it ends** — resolved, or countered before it ever ran. Opt-in; without it the action list is answerable for its own card |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
@@ -2316,7 +2316,7 @@ five patrol slots answers *sparkshot* — 1 damage to a patroller adjacent to th
 one struck:
 
 ```json
-{ "key": "sparked", "when": ["count:marked@beside >= 1"],
+{ "key": "sparked", "needs": ["count:marked@beside >= 1"],
   "action": ["stat_damage:hp@self:1"] }
 ```
 
@@ -2624,20 +2624,20 @@ spare ability going free.
 Two abilities both claiming `this` is a contradiction — each wants the other
 silent — and the validator refuses it rather than picking a winner.
 
-### `when` — an ability with an if in it
+### `needs` — an ability with an if in it
 
-`phases` and `cost` say whether a **player** may use an ability. `when` says
+`phases` and `cost` say whether a **player** may use an ability. `needs` says
 whether the ability **happens at all**, and it is a list of ordinary conditions:
 
 ```json
 { "key": "spill", "text": "Overwhelm",
-  "when": ["attacking@self >= 1", "count:unit@across == 0"],
+  "needs": ["attacking@self >= 1", "count:unit@across == 0"],
   "action": ["stat_set:spill@self:sum:power@self"] }
 ```
 
 The difference matters because a phase walking a zone (`activate_zone`) is
-*ungated* — it has already decided it is time — but it still honours `when`.
-Permission is about the player; a `when` is part of the rule. "Damage past the
+*ungated* — it has already decided it is time — but it still honours `needs`.
+Permission is about the player; a `needs` is part of the rule. "Damage past the
 blocker hits the Nexus" is a sentence with an *if* in it, and without somewhere
 to write that if, the only spelling left is multiplying by a stat that is 0 or 1:
 
@@ -2693,7 +2693,7 @@ the other.
 "reactions": [
   { "to": "cast", "text": "Counter it",
     "where": ["tagged:fire@event >= 1"],
-    "when":  ["mana@mine.player >= 1"],
+    "needs": ["mana@mine.player >= 1"],
     "cost":  { "mana@mine.player": 1 },
     "action": ["counterspell"],
     "spent": "mine.graveyard" }
@@ -2704,7 +2704,7 @@ the other.
 |---|---|
 | `to` | the verb answered — the only required one |
 | `where` | a condition about **the event**, read through `@event` |
-| `when` | a condition about **the reactor**, asked as their seat |
+| `needs` | a condition about **the reactor**, asked as their seat |
 | `from` | `hand` (played out of one), `board` (used where it lies), or **a zone by name** — a row of ongoing effects laid face up in front of a player is in play and is a *hand* as far as zone types go, so `"from": "ongoing"` is how it says so. Left out, the zone decides |
 | `whose` | `enemy` (somebody else's announcement — the default), `mine` (your own), or `anyone`. See below |
 | `forced` | `optional` (the player is asked, the default) or `mandatory` (it fires on its own) |
@@ -2905,11 +2905,11 @@ judged and again before it runs:
 
 ```json
 { "key": "spill", "compute": ["overkill"],
-  "when": ["overkill >= 1"], "action": ["stat_gain:spill@self:overkill"] }
+  "needs": ["overkill >= 1"], "action": ["stat_gain:spill@self:overkill"] }
 ```
 
 The name then stands **as an amount** in that ability's actions and **as an
-operand** in its `when`. Nowhere else: it is not a stat, nothing carries it, and
+operand** in its `needs`. Nowhere else: it is not a stat, nothing carries it, and
 a compute sharing a stat's key is refused — one word cannot be two numbers.
 
 `from` is `"<term>"`, or `"<term> <op> <term>"` with one of `+ - *` and spaces
@@ -3020,14 +3020,14 @@ instead would leave a second one lying about for somebody to find.
 
 `copy:<scope>:activate` runs the card's **abilities** instead of its play, which
 is the same rule aimed at a card already on the board. Every one of them whose
-`when` holds, in the order they are written — the same thing `activate_zone`
+`needs` holds, in the order they are written — the same thing `activate_zone`
 does, and for the same reason: *resolve that card* means the card, not the first
 line of it. Running only the first ability dropped every rider with an if in it,
 and dropped any question the card asks, since a card that asks keeps the asking
 in a later ability so the offer opens after the rest has run.
 
 An ability that is **not** part of being resolved has to say so, since the list
-is flat and nothing else tells them apart. A `when` is how: Spellstorm's discard
+is flat and nothing else tells them apart. A `needs` is how: Spellstorm's discard
 effects are looking only when no card stands in a battle spot, which is every
 moment except a resolution.
 
@@ -3782,7 +3782,7 @@ The fields:
 
 ```json
 { "key": "ward", "verb": "damage", "stat": "hp", "covers": "self", "by": -2,
-  "when": ["tagged:witch@source >= 1"] }
+  "needs": ["tagged:witch@source >= 1"] }
 ```
 
 - **`by`** — how much, in the ordinary amount grammar.

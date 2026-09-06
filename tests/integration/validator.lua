@@ -299,6 +299,9 @@ local CASES = {
 		function(g) g.card_defs.c_flee.asset = 'https://evil.example.com/x".onerror=alert;//' end },
 	{ "a zone squatting on the UI corner", "lower-right corner",
 		function(g) g.zone_defs.hand.pos = { 0.60, 0.60, 0.97, 0.97 } end },
+	{ "an ability still written with when", 'says "when", which is now "needs"',
+		function(g) g.card_defs.c_flee.abilities = { { key = "a", when = { "gold >= 1" },
+			action = { "next_phase" } } } end },
 	{ "a phase still written with ends_after", "ends_after is gone",
 		function(g) g.phase_by_key.story.ends_after = 2 end },
 	{ "a phase still typed draw_and_play", "draw_and_play is gone",
@@ -576,7 +579,7 @@ local CASES = {
 	{ "a condition on an ability that names nothing", "uses the stat 'zeal'",
 		function(g)
 			g.card_defs.c_flee.abilities = { { key = "muster", action = { "next_phase" },
-				["when"] = { "zeal@self >= 1" } } }
+				needs = { "zeal@self >= 1" } } }
 		end },
 	-- compact takes a direction, and the three ways a pattern is not one.
 	{ "a compact along a pattern nothing declares", "names the pattern 'sidle'",
@@ -867,7 +870,7 @@ function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
 		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem"], "abilities": [
 			{ "key": "a", "action": ["destroy:vualt.gem"] },
 			{ "key": "b", "action": ["destroy:vault.gme"] },
-			{ "key": "c", "when": ["count:gem@vualt.gem >= 1"], "action": ["next_phase"] },
+			{ "key": "c", "needs": ["count:gem@vualt.gem >= 1"], "action": ["next_phase"] },
 			{ "key": "d", "action": ["destroy:vault.gem"] }] }]
 	}]==])
 	f:close()
@@ -940,11 +943,11 @@ function M.test_validator_reads_a_compute_on_either_side(check)
 			{ "key": "hand", "layout": "row" }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "clerk", "text": "Clerk", "abilities": [
-			{ "key": "right", "compute": ["spare"], "when": ["gold >= spare"],
+			{ "key": "right", "compute": ["spare"], "needs": ["gold >= spare"],
 			  "action": ["stat_gain:gold:1"] },
-			{ "key": "left", "compute": ["spare"], "when": ["spare >= gold"],
+			{ "key": "left", "compute": ["spare"], "needs": ["spare >= gold"],
 			  "action": ["stat_gain:gold:1"] },
-			{ "key": "typo", "when": ["gold >= resreve"], "action": ["stat_gain:gold:1"] }] }]
+			{ "key": "typo", "needs": ["gold >= resreve"], "action": ["stat_gain:gold:1"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_compute_operand.json")

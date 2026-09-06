@@ -768,7 +768,7 @@ WIZARDS = [
            # the battle spots when it does; `round_end` sweeps them a phase later.
            passive={"to": "round_over", "whose": "mine", "from": "wizard",
                     "cost": {"energy@mine.player": 1, "mana@mine.player": 1},
-                    "when": ["tier_req@enemy.battle == 2"],
+                    "needs": ["tier_req@enemy.battle == 2"],
                     "action": ["copy:enemy.battle:activate"]},
            blurb="A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating.",
            start=["stat_gain:energy@mine.player:2"],
@@ -958,7 +958,7 @@ def tip(base, flavour=None, simplified=None):
 def ability(key, actions, when=None, text=None):
     a = {"key": key}
     if text: a["text"] = text
-    if when: a["when"] = list(when)
+    if when: a["needs"] = list(when)
     a["action"] = list(actions)
     return a
 
@@ -1828,7 +1828,7 @@ def build():
         "tags": {
             # What a card on a shelf does: it comes to your hand, if your Tier
             # reaches it, and the shelf refills behind it. An ability rather than
-            # a play, because an ability's "when" is read where a granted play's
+            # a play, because an ability's "needs" is read where a granted play's
             # "needs" is not -- and because a card on a shelf must not be
             # castable, which "merge": "this" is what says.
             "takeable": {
@@ -1836,7 +1836,7 @@ def build():
                 "abilities": [{
                     "key": "take", "text": "Gain this card", "merge": "this",
                     "phases": ["gain_card"],
-                    "when": ["tier@mine.player >= tier_req@self"],
+                    "needs": ["tier@mine.player >= tier_req@self"],
                     "action": ["set_owner:self:mine", "move_to:mine.hand",
                                REFILL_CLOUD, "stat_gain:took@mine.player:1"]}]},
         },

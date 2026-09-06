@@ -202,7 +202,7 @@ local function adjusted(e, key, verb, delta, ctx)
 				end
 			end
 			local sub = { card_id = holder, targets = { e.id }, source = ctx and ctx.card_id }
-			if covered and h and predicate.meets_all(ad.when, sub) then
+			if covered and h and predicate.meets_all(ad.needs, sub) then
 				shift = shift + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
 			end
 		end
@@ -631,7 +631,7 @@ HANDLERS["activate_zone"] = function(p, ctx)
 			for _, a in ipairs(cards.abilities(e)) do
 				if type(a.action) == "table" and (step == nil or a.key == step) then
 					local c = predicate.bind(a.compute, { card_id = id, targets = {} })
-					if predicate.meets_all(a.when, c) then M.run(a.action, c) end
+					if predicate.meets_all(a.needs, c) then M.run(a.action, c) end
 				end
 			end
 		end
@@ -1118,7 +1118,7 @@ HANDLERS["copy"] = function(p, ctx)
 					for _, a in ipairs(cards.abilities(e)) do
 						if type(a.action) == "table" then
 							local c = predicate.bind(a.compute, { card_id = id, targets = {} })
-							if predicate.meets_all(a.when, c) then M.run(a.action, c) end
+							if predicate.meets_all(a.needs, c) then M.run(a.action, c) end
 						end
 					end
 				end
