@@ -963,7 +963,6 @@ function M.play_card(card_id, targets)
 	-- had their say.
 	local oz = offer and entity.get(offer)
 	if oz and oz.status == "offer" then clear_offer(oz, card_id) end
-	local before = phase.current()
 	-- Through behaviour, so a zone can grant what playing a card lying in it
 	-- does — which is how one offer deals a card the game has other plans for.
 	local lender = lent and asker and entity.get(asker)
@@ -993,14 +992,6 @@ function M.play_card(card_id, targets)
 		log.add("— no turning back —")
 	end
 
-	-- A phase with a play limit ends itself once it's reached (MTG-style:
-	-- the phase's own rule, not the card's). Discarding is the on_leave
-	-- hook's job, so card-driven next_phase gets the same treatment.
-	local cur = phase.current()
-	if not overlay and not actions.pending_load and cur == before and cur and cur.ends_after
-		and pl and (pl.stats.plays or 0) >= cur.ends_after then
-		phase.next()
-	end
 	M.settle()
 	return true
 end

@@ -941,7 +941,7 @@
       "zone": "hand",
       "label": "Play or discard",
       "seat": "next",
-      "ends_after": 1,
+      "ends_when": "plays >= 1",
       "next": [{ "then": "draw" }]
     },
     {

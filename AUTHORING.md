@@ -254,7 +254,7 @@ rulebook open alongside.
 | "Shuffle the deck" | a `deck` zone tagged `shuffle` with `contents` |
 | "Deal each player 8 cards" | an `automatic` setup phase: `draw_from:deck:mine.hand:8`, `draw_from:deck:enemy.hand:8` |
 | "On your turn, do X then Y" | two phases, the first tagged `"seat": "next"` |
-| "Play a card from your hand" | phase `"zone": "hand"`, `"ends_after": 1` |
+| "Play a card from your hand" | phase `"zone": "hand"`, `"ends_when": "plays >= 1"` |
 | "…to your own area" | a grid zone with `copies: "per_seat"`; `move_to:<zone>` resolves to yours |
 | "…or discard it instead" | a second destination in the same `target` spec |
 | "Cards must be played in ascending order" | `receive.needs` on the destination |
@@ -399,7 +399,7 @@ first to ten:
   "phases": [
     { "key": "deal", "type": "automatic", "actions": ["each_seat:draw_from:deck:mine.hand:3"] },
     { "key": "turn", "type": "player_input", "label": "Play one", "zone": "hand",
-      "seat": "next", "ends_after": 1,
+      "seat": "next", "ends_when": "plays >= 1",
       "actions": ["draw_from:deck:mine.hand:1"],
       "next": [{ "then": "turn", "ends_round": true }] }
   ],
@@ -414,7 +414,7 @@ Five decisions, and everything else follows from them:
   the engine would have to keep a table of.
 - **`copies: "per_seat"` gives one hand each**, and `pos` then takes one rect per
   seat. `mine.hand` reaches whoever is up, so no rule is written twice.
-- **`seat: "next"` hands over and `ends_after: 1` says when.** The route back to
+- **`seat: "next"` hands over and `ends_when: "plays >= 1"` says when.** The route back to
   `turn` says nothing about the seat, so the phase's own word answers. Saying
   `"seat": "same"` on that route is the other game entirely: a turn that carries
   on until the player is done with it.
@@ -443,7 +443,7 @@ different hand each time and four players cost the same line as two.
 including the loop back into the same phase:
 
 ```json
-{ "key": "turn", "type": "player_input", "seat": "next", "ends_after": 1,
+{ "key": "turn", "type": "player_input", "seat": "next", "ends_when": "plays >= 1",
   "actions": ["draw_from:deck:mine.hand:1"] }
 ```
 
@@ -666,10 +666,11 @@ from being played, and a game somebody sends you needs no installing.
 
 Longer shapes, each named with the game that already does it.
 
-**Forced plays, one card a turn** (`castle.json`). `draw_and_play` phases in
-list order: playing one card discards the hand and advances, and the list wraps
-to the first non-automatic phase, which ends the round. Always give these a
-`pass_card` — a forced play needs an out.
+**Forced plays, one card a turn** (`castle.json`). `player_input` phases with
+`"ends_when": "plays >= 1"` and the `discard_hand` tag, in list order: playing
+one card discards the hand and advances, and the list wraps to the first
+non-automatic phase, which ends the round. Always give these a `pass_card` — a
+forced play needs an out, and the validator says so.
 
 **A free hand with a Done button** (`kingdom.json`). A `player_input` phase with
 `deck`, `draw` and a `pass_card`, ended by a router token:
@@ -685,9 +686,9 @@ and it is exactly that which lets one card stand for sixty-four.
 **A story with no board** (`starter_cyoa.json`). Pages are cards with `story`,
 choices are cards with `tooltip`, and there is no phase plumbing at all — §2.
 
-**A trick-taking round** (`the_crew.json`). `ends_when` rather than
-`ends_after`, because putting a card in the middle ends your turn and everything
-else you may do does not:
+**A trick-taking round** (`the_crew.json`). `ends_when` on what was put in the
+middle rather than on the play count, because putting a card in the middle ends
+your turn and everything else you may do does not:
 
 ```json
 { "key": "lead", "type": "player_input", "zone": ["hand", "open"],
@@ -1089,9 +1090,9 @@ Four things about it are worth knowing before you write one:
   an empty zone still paints over what is under it. The offer is drawn over a
   dimmed board and is not there when it is not open; claim the `options` key
   and give it the middle of the screen.
-- **`ends_when`, not `ends_after`.** Choosing out of an offer is deliberately
-  not a play — the play counter belongs to the phase *under* the overlay — so
-  the phase watches a flag the chosen card sets instead.
+- **Do not end an overlay's parent on `plays`.** Choosing out of an offer is
+  deliberately not a play — the counter belongs to the phase *under* the
+  overlay — so the phase watches a flag the chosen card sets instead.
 - **`seat: "next"` goes on the first pick as well.** The turn counter starts at
   *nobody*, so the first handover in a game is what selects seat one. Leave it
   off and both picks resolve to the same player.
@@ -1379,22 +1380,20 @@ over between its members — those are one player's turn.
 | Field | Meaning |
 |---|---|
 | `key`, `label` | Identity, HUD label |
-| `type` | `automatic`, `player_input`, `draw_and_play`, `turn`, `overlay` |
+| `type` | `automatic`, `player_input`, `turn`, `overlay` |
 | `actions` | Run on every entry — including a loop back into the same phase |
 | `on_enter` | Run when the **turn** begins here, and not on a loop that keeps the same player. See *A phase that leads back to itself* |
 | `deck`, `draw`, `zone` | Deal `draw` cards from `deck` into `zone` (default `hand`) on fresh entry. **Naming `zone` also bounds what may be played**: only cards in it. `zone` may be **a list**, which is a player holding two hands — an open one beside a closed one; the *first* is where cards are dealt and what an overlay offers, because those are singular questions. A phase that names none lets any reachable card be played, which is what the menu relies on |
 | `pass_card` | Card key or array, dealt with every hand — forced plays always have an out |
-| `ends_after` | The phase advances itself after this many **plays** |
-| `ends_when` | A condition, asked every time the game comes to rest — **after every action, not only after a play**. See below |
+| `ends_when` | A condition, asked every time the game comes to rest — **after every action, not only after a play**. `"plays >= 1"` is one card a turn. See below |
 | `seat` | `"next"` hands over to the next seat on entry (see *Two or more players*). A route may overrule it. On a turn, `"each"` runs the whole group once per player |
 | `phases`, `order` | A turn's body, and which player it starts with — see *A turn each* |
-| `tags` | `discard_hand` and `keep_hand` — see *Every tag the engine reads* |
+| `tags` | `discard_hand` — see *Every tag the engine reads* |
 | `next` | Routing table (below) |
 
 Types: `automatic` runs its actions once and advances (if the actions opened
 an overlay — a revealed page, say — it waits and advances when the overlay
-closes); `player_input` lets you play freely; `draw_and_play` is shorthand
-for `player_input` with `ends_after: 1` and `discard_hand: true`; `turn` is a
+closes); `player_input` lets you play freely; `turn` is a
 phase whose body is other phases, run in the order it names them and, with
 `seat: "each"`, once per player (see *A turn each*); `overlay`
 dims the screen, deals into its zone, and is resolved by **playing** one of the
@@ -1410,14 +1409,15 @@ deals on entry (`deck`/`draw`/`pass_card`), how it ends, and whether leaving it
 sweeps the hand (`discard_hand` — the usual choice, so unpicked options don't
 pile up across turns).
 
-**How a phase ends is the phase's to say, and there are four ways.** A card
+**How a phase ends is the phase's to say, and there are three ways.** A card
 whose actions say `next_phase`; nothing at all, so the player decides via a pass
-card; `ends_after` N plays; or `ends_when`, a condition.
+card; or `ends_when`, a condition.
 
-`ends_after` counts **plays** and cannot tell one from another. That is true of
-a game where a turn is one card and false of most others — in a trick-taking
-game, putting a card into the middle ends your turn and everything else you may
-do does not:
+`plays` is a stat the engine keeps for the seat that is up, reset when the turn
+begins, so `"ends_when": "plays >= 1"` is one card a turn. It counts plays and
+cannot tell one from another, which is true of a game where a turn is one card
+and false of most others — in a trick-taking game, putting a card into the
+middle ends your turn and everything else you may do does not:
 
 ```json
 { "key": "lead", "type": "player_input", "zone": ["hand", "open"],
@@ -1983,7 +1983,7 @@ on entry, so alternation is just two phases:
 
 ```json
 { "key": "north_play", "type": "player_input", "zone": "hand",
-  "seat": "next", "ends_after": 1 },
+  "seat": "next", "ends_when": "plays >= 1" },
 { "key": "north_draw", "type": "player_input", "zone": "draw_choice",
   "pass_card": "draw_deck" }
 ```
@@ -2983,10 +2983,10 @@ it is a strip of board kept empty for an hour. Puzzle Strike claims the
   "ends_when": "picked@mine.player >= 1", "next": [{ "then": "pick_2" }] }
 ```
 
-`ends_when` rather than `ends_after`, because **choosing out of an offer is
-deliberately not a play** — the counter that bounds a hand belongs to the phase
-under the overlay, and counting a choice would end that phase early. So the
-chosen card sets a flag and the phase watches it.
+A flag the chosen card sets, rather than `"plays >= 1"`, because **choosing out
+of an offer is deliberately not a play** — the counter that bounds a hand
+belongs to the phase under the overlay, and counting a choice would end that
+phase early.
 
 ### A question that may go unanswered
 
@@ -3468,7 +3468,6 @@ nineteen are the exceptions — the words the engine itself looks for:
 | `shuffle` | zone | shuffled when its contents are created, and on every refill |
 | `stack` | zone | announcements wait here to be answered — see *Reactions*. A game with no such zone has no response window |
 | `discard_hand` | phase | leaving it discards the unplayed hand; tokens vanish |
-| `keep_hand` | phase | a draw_and_play phase opting out of the discard it would otherwise get |
 | `hidden` | stat | kept out of the HUD, while cards may still read and change it |
 
 **They are reserved.** A style, a tag with behaviour, or a computed tag may not

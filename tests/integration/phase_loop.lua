@@ -38,7 +38,7 @@ local GAME = [==[{
   ],
   "phases": [
     { "key": "setup", "type": "automatic", "next": [{ "then": "act" }] },
-    { "key": "act", "type": "player_input", "zone": "hand", "seat": "next", "ends_after": 1,
+    { "key": "act", "type": "player_input", "zone": "hand", "seat": "next", "ends_when": "plays >= 1",
       "on_enter": ["stat_gain:opened@mine.player:1"],
       "actions": ["stat_gain:rounds@mine.player:1"],
       "next": [
@@ -124,7 +124,7 @@ end
 -- the route can be moving it.
 function M.test_phase_loop_a_route_may_pass_the_turn_on(check)
 	local text = GAME
-		:gsub('"seat": "next", "ends_after": 1', '"ends_after": 1')
+		:gsub('"seat": "next", "ends_when"', '"ends_when"')
 		:gsub('{ "then": "act", "seat": "same" }', '{ "then": "act", "seat": "next" }')
 	with_game(text, function(name)
 		flow.init(name, 3)

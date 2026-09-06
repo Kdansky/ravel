@@ -295,7 +295,7 @@
   "phases": [
     {
       "key": "build1",
-      "type": "draw_and_play",
+      "type": "player_input", "ends_when": "plays >= 1", "tags": ["discard_hand"],
       "label": "Build I",
       "deck": "build_deck",
       "draw": 3,
@@ -303,7 +303,7 @@
     },
     {
       "key": "build2",
-      "type": "draw_and_play",
+      "type": "player_input", "ends_when": "plays >= 1", "tags": ["discard_hand"],
       "label": "Build II",
       "deck": "build_deck",
       "draw": 3,
@@ -311,7 +311,7 @@
     },
     {
       "key": "challenge",
-      "type": "draw_and_play",
+      "type": "player_input", "ends_when": "plays >= 1", "tags": ["discard_hand"],
       "label": "Challenge",
       "deck": "challenge_deck",
       "draw": 3,

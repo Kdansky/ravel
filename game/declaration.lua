@@ -1006,13 +1006,6 @@ function M.parse(filename)
 			end
 			pd.tags_set = tag_set(pd.tags)
 			pd.emits = emits_of(pd, pp, "phase '" .. tostring(pd.key) .. "'", PHASE_EMIT_MOMENTS)
-			-- draw_and_play is shorthand: play once, discard the rest, advance.
-			if pd.type == "draw_and_play" then
-				if pd.ends_after == nil then pd.ends_after = 1 end
-				-- It discards by default; `keep_hand` opts out, because a tag is
-				-- carried or it is not and there is no "false" to write.
-				if not pd.tags_set.keep_hand then pd.tags_set.discard_hand = true end
-			end
 			G.phase_by_key[pd.key] = pd
 		end
 	end

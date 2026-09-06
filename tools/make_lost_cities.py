@@ -314,7 +314,7 @@ def phases():
     # two draw steps, and a third seat would make it three.
     out += [
         {"key": "play", "type": "player_input", "zone": "hand",
-         "label": "Play or discard", "seat": "next", "ends_after": 1,
+         "label": "Play or discard", "seat": "next", "ends_when": "plays >= 1",
          "next": [{"then": "draw"}]},
         # The expedition deck running out ends the game, mid-round or not.
         {"key": "draw", "type": "player_input", "zone": "choice",

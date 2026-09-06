@@ -254,15 +254,14 @@ local CASES = {
 			g.phase_by_key.story.type = "automatic"
 			g.phase_by_key.story.ends_when = "gold >= 1"
 		end },
-	{ "a phase saying both ways of ending", "one phase, one way of ending",
-		function(g)
-			g.phase_by_key.story.ends_after = 1
-			g.phase_by_key.story.ends_when = "gold >= 1"
-		end },
 	{ "a pass card with no template", "its pass card 'excalibur'",
 		function(g) g.phase_by_key.story.pass_card = "excalibur" end },
-	{ "a forced-play phase without a pass card", "forces a play every turn",
-		function(g) g.phase_by_key.story.type = "draw_and_play" end },
+	{ "a forced-play phase without a pass card", "deals a hand and ends on a play",
+		function(g)
+			g.phase_by_key.story.draw = 3
+			g.phase_by_key.story.ends_when = "plays >= 1"
+			g.phase_by_key.story.pass_card = nil
+		end },
 	{ "a phase field that no longer exists", "the engine doesn't read",
 		function(g) g.phase_by_key.story.on_pick = { "destroy:hand" } end },
 	{ "routing that isn't a list", "next should be a list of routes",
@@ -300,10 +299,10 @@ local CASES = {
 		function(g) g.card_defs.c_flee.asset = 'https://evil.example.com/x".onerror=alert;//' end },
 	{ "a zone squatting on the UI corner", "lower-right corner",
 		function(g) g.zone_defs.hand.pos = { 0.60, 0.60, 0.97, 0.97 } end },
-	{ "a non-number ends_after", "ends_after should be a number",
-		function(g) g.phase_by_key.story.ends_after = "two" end },
-	{ "ends_after on an automatic phase", "only phases where cards are played",
-		function(g) g.phase_by_key.intro.ends_after = 1 end },
+	{ "a phase still written with ends_after", "ends_after is gone",
+		function(g) g.phase_by_key.story.ends_after = 2 end },
+	{ "a phase still typed draw_and_play", "draw_and_play is gone",
+		function(g) g.phase_by_key.story.type = "draw_and_play" end },
 	{ "discard_hand on an overlay", "overlays pop back — it never fires",
 		function(g) g.phase_by_key.reveal.discard_hand = true end },
 	{ "a misspelled outcome", "outcome should be 'victory' or 'defeat'",

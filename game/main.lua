@@ -212,7 +212,7 @@ local function primary_action(x, y)
 		return
 	end
 
-	if cur.type ~= "player_input" and cur.type ~= "draw_and_play" then return end
+	if cur.type ~= "player_input" then return end
 
 	-- During targeting: add eligible targets; click source card to cancel.
 	if targeting.active() then

@@ -705,7 +705,7 @@
   "phases": [
     {
       "key": "origin",
-      "type": "draw_and_play",
+      "type": "player_input", "ends_when": "plays >= 1", "tags": ["discard_hand"],
       "label": "Origin",
       "deck": "origins",
       "draw": 3,

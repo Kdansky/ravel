@@ -752,7 +752,7 @@ flow.play_card(hand_router("to_market"), {})
 check("leaving a phase discards the unplayed hand", zone_count("graveyard") > grave0)
 check("the next visit deals only the fresh hand", zone_count("hand") == 7)
 
-declaration.G.phase_by_key.market_visit.ends_after = 1
+declaration.G.phase_by_key.market_visit.ends_when = "plays >= 1"
 local r_ea = predicate.total("round")
 local first_ea
 for _, cid in ipairs(zones.find("hand").cards) do
@@ -760,7 +760,7 @@ for _, cid in ipairs(zones.find("hand").cards) do
 	if not (d.tags_set and d.tags_set.token) and flow.can_play(cid) then first_ea = cid; break end
 end
 flow.play_card(first_ea, {})
-check("ends_after advances the phase by itself", predicate.total("round") == r_ea + 1)
+check("a play count advances the phase by itself", predicate.total("round") == r_ea + 1)
 check("the phase it advanced into dealt fresh", zone_count("hand") == 7)
 
 -- === kingdom: failed trials persist as crises ===

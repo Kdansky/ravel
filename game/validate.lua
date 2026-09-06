@@ -72,7 +72,6 @@ M.ENGINE_TAGS = {
 	last_acted        = { on = "card", what = "the card a player most recently played or activated. Written by the engine, one at a time, and it lingers until the next thing a player does" },
 	-- phases
 	discard_hand = { on = "phase", what = "leaving it discards the unplayed hand; tokens vanish" },
-	keep_hand    = { on = "phase", what = "a draw_and_play phase opting out of the discard it would otherwise get" },
 }
 -- One word means two things, on two different kinds, and always has: a hidden
 -- zone is not drawn, a hidden stat is not in the HUD. Listed apart rather than
@@ -171,7 +170,7 @@ local ZONE_FIELDS = {
 local PHASE_FIELDS = {
 	key = true, label = true, type = true, actions = true, deck = true,
 	draw = true, zone = true, pass_card = true, next = true,
-	ends_after = true, ends_when = true, injected = true, tags = true, tags_set = true,
+	ends_when = true, injected = true, tags = true, tags_set = true,
 	seat = true, on_enter = true, emits = true, phases = true, order = true,
 	-- derived: "zone" normalised to a list (declaration.parse)
 	zone_list = true,
@@ -216,7 +215,10 @@ local TAG_FIELDS      = { zone = true, tooltip = true, play = true,
 
 -- Words the format had and dropped. declaration.parse reports each by name and
 -- says what replaced it, so check_fields stays quiet about them.
-local RETIRED       = { activate = true }
+-- Words that were the format's and are not. Each has a message of its own,
+-- said where the entry still is, so the generic "the engine doesn't read this"
+-- does not drown it out.
+local RETIRED       = { activate = true, ends_after = true, zone_empty = true }
 
 local VERB_FIELDS   = { key = true, does = true, tooltip = true }
 local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, when = true, by = true }
@@ -297,7 +299,7 @@ local PLAYER_FIELDS = { card = true, stats = true, text = true }
 -- is reserved: "layout": "grid" is what makes "grid" a legal field, and a
 -- parameter whose value was not chosen is a zone that thinks it is two shapes.
 local ZONE_PARAMS     = { grid = "layout", row = "layout" }
-local PHASE_TYPES     = { automatic = true, player_input = true, draw_and_play = true, overlay = true,
+local PHASE_TYPES     = { automatic = true, player_input = true, overlay = true,
 	turn = true }
 -- What a phase may say about whose it is. "each" belongs to a group alone: it is
 -- the word that turns one declaration into one turn per player.
@@ -305,7 +307,7 @@ local PHASE_SEATS     = { next = true, same = true, each = true }
 -- What a group does nothing of, because it is a wrapper: it holds no cards, runs
 -- no actions and ends when its members are done rather than on a condition.
 local TURN_REFUSES    = { actions = true, on_enter = true, zone = true, zone_list = true, deck = true,
-	draw = true, ends_when = true, ends_after = true, pass_card = true }
+	draw = true, ends_when = true, pass_card = true }
 
 -- The same tables, reachable. Named for the JSON section each belongs to, since
 -- that is how the schema document is organised and how an author meets them.
@@ -2551,10 +2553,14 @@ function M.check(G)
 		local where = "phase '" .. key .. "'"
 		check_fields(where, pd, PHASE_FIELDS)
 		check_labels(where, pd, "phase", PHASE_FIELDS, "label")
-		if pd.type == nil then
-			warn("%s: has no type (automatic, player_input, draw_and_play, turn or overlay)", where)
+		if pd.type == "draw_and_play" then
+			warn('%s: draw_and_play is gone — it was player_input that ended after one play'
+				.. ' and threw the rest away, so write those: "type": "player_input" with'
+				.. ' "ends_when": "plays >= 1" and the discard_hand tag', where)
+		elseif pd.type == nil then
+			warn("%s: has no type (automatic, player_input, turn or overlay)", where)
 		elseif not PHASE_TYPES[pd.type] then
-			warn("%s: '%s' is not a phase type (automatic, player_input, draw_and_play, turn or overlay)%s",
+			warn("%s: '%s' is not a phase type (automatic, player_input, turn or overlay)%s",
 				where, tostring(pd.type), suggest(pd.type, PHASE_TYPES))
 		end
 		-- A group and its members. The group says what runs and in what order and
@@ -2642,20 +2648,14 @@ function M.check(G)
 			warn("%s: draw should be a number", where)
 		end
 		if pd.ends_after ~= nil then
-			if type(pd.ends_after) ~= "number" then
-				warn("%s: ends_after should be a number of plays", where)
-			elseif pd.type ~= "player_input" and pd.type ~= "draw_and_play" then
-				warn("%s: has ends_after, but only phases where cards are played count plays", where)
-			end
+			warn('%s: ends_after is gone — "plays" is a stat the engine keeps, so write'
+				.. ' "ends_when": "plays >= %s"', where, tostring(pd.ends_after))
 		end
 		if pd.ends_when ~= nil then
 			check_cond(where .. " ends_when", { when = pd.ends_when })
 			if pd.type == "automatic" or pd.type == "overlay" then
 				warn("%s: has ends_when, but %s phases end themselves — the condition never decides",
 					where, pd.type)
-			end
-			if pd.ends_after ~= nil then
-				warn("%s: says both ends_after and ends_when — one phase, one way of ending", where)
 			end
 		end
 		if pd.discard_hand and pd.type == "overlay" then
@@ -2667,8 +2667,18 @@ function M.check(G)
 				warn("%s: its pass card '%s' has no template%s", where, tostring(pk), suggest(pk, G.card_defs))
 			end
 		end
-		if pd.type == "draw_and_play" and not pd.pass_card then
-			warn("%s: forces a play every turn but has no pass_card — players can get stuck with nothing playable", where)
+		-- A phase that deals a hand and ends on a play count forces a play every
+		-- turn, so the hand must always hold something playable. Read off the
+		-- condition rather than guessed from a phase type: the type said this
+		-- once ("draw_and_play"), which meant it could say nothing about the
+		-- games that deal and count in their own words.
+		if pd.draw and not pd.pass_card then
+			local c = predicate.parse_condition(pd.ends_when)
+			local subj = c and c.left and c.left.subject
+			if subj and subj.fn == nil and subj.arg == "plays" then
+				warn("%s: deals a hand and ends on a play, but has no pass_card — a player"
+					.. " holding nothing playable is stuck", where)
+			end
 		end
 		check_list(where .. " actions", pd.actions)
 		check_list(where .. " on_enter", pd.on_enter)

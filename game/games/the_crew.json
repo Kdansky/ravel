@@ -337,7 +337,7 @@
       "key": "draft",
       "type": "player_input",
       "zone": "task_offer",
-      "ends_after": 1,
+      "ends_when": "plays >= 1",
       "label": "Commander: take a task",
       "next": [{ "when": "count@task_offer == 0", "then": "first_lead" }, { "then": "draft_on" }]
     },
@@ -346,7 +346,7 @@
       "type": "player_input",
       "seat": "next",
       "zone": "task_offer",
-      "ends_after": 1,
+      "ends_when": "plays >= 1",
       "label": "Take a task",
       "next": [{ "when": "count@task_offer == 0", "then": "first_lead" }, { "then": "draft_on" }]
     },
