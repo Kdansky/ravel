@@ -74,12 +74,6 @@ function M.test_richtext_a_mark_that_never_closes_stays_a_character(check)
 		rich.strip("*open\nnext line") == "*open\nnext line")
 end
 
-function M.test_richtext_plain_text_is_recognised_as_plain(check)
-	check("no marks, nothing to do", rich.plain("Deal 2 damage to your opponent."))
-	check("a star counts as markup until proven otherwise", not rich.plain("Deal *2* damage."))
-	check("so does an underscore", not rich.plain("weather_now"))
-end
-
 function M.test_richtext_wrapping_measures_each_run_in_its_own_face(check)
 	local base = at(12)
 	local plain = "Gain a card at or below your Tier"

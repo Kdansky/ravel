@@ -45,10 +45,6 @@ function M.int(n)
 	return M.next() % n + 1
 end
 
-function M.range(lo, hi)
-	return lo + M.int(hi - lo + 1) - 1
-end
-
 -- Fisher-Yates, in place.
 function M.shuffle(list)
 	for i = #list, 2, -1 do

@@ -96,10 +96,6 @@ function M.setup()
 	return up
 end
 
-function M.available()
-	return up
-end
-
 -- What a net_* action asks for. The panel is not on screen until one of them
 -- runs, so a solitaire game never grows a networking widget it has no use for.
 --

@@ -109,12 +109,6 @@ function M.unclosed(s)
 	end
 end
 
--- Whether a string carries no mark at all, so a caller can skip the whole of
--- this module for the plain text that most text still is.
-function M.plain(s)
-	return not (s:find("*", 1, true) or s:find("_", 1, true))
-end
-
 -- The face a run is set in. Italic is a size down because the only thing a card
 -- writes in italic is flavour, and flavour the same size as the rules competes
 -- with them for the same glance.
@@ -210,12 +204,6 @@ function M.wrap(font, s, w)
 		end
 	end
 	return lines
-end
-
--- Every line advances by the base face's height even where it holds only the
--- smaller type, so a flavour line does not close up under the rule above it.
-function M.height(font, s, w)
-	return #M.wrap(font, s, w) * font:getHeight()
 end
 
 local OUTLINE = { {-1,-1},{0,-1},{1,-1},{-1,0},{1,0},{-1,1},{0,1},{1,1} }

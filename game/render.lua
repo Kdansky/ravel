@@ -1912,7 +1912,6 @@ function M.sync_places()
 end
 
 function M.set_selected(id) selected_id = id end
-function M.get_selected()   return selected_id end
 function M.set_detail(id)   detail_id = id end
 function M.get_detail()     return detail_id end
 

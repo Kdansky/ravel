@@ -1353,10 +1353,6 @@ function M.usable_zone_abilities(zone_id)
 	return out
 end
 
-function M.can_activate_zone(zone_id)
-	return #M.usable_zone_abilities(zone_id) > 0
-end
-
 -- With several usable, `index` says which — the one the chooser resolved to,
 -- exactly as for a card, and for the same reason: no index and more than one to
 -- pick from is a caller that has not asked the player yet.
