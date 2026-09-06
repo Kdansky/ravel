@@ -1182,38 +1182,44 @@ HANDLERS["net_invite"]  = net_ui("invite")
 HANDLERS["net_join"]    = net_ui("join")
 HANDLERS["net_seat"]    = net_ui("seat")
 
+-- The one seat a scope names, or nil. A scope names cards and the seat is whose
+-- they are, so "set_active_seat:owner_of.target" and "set_active_seat:target"
+-- say the same thing about an ordinary card and a seat card answers for itself.
+--
+-- Naming two is refused rather than resolved: a rule that cannot say who is up
+-- has not decided anything, and taking the first would make turn order depend on
+-- file order. Naming none does nothing, which is the honest answer to a scope
+-- that matched nothing.
+local function sole_seat(op, p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	if not sc or #(declaration.G.seat_list or {}) < 2 then return nil end
+	local seat
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		local k = predicate.seat_of(e)
+		if k and k ~= seat then
+			if seat then
+				content_error(op .. ": '" .. p[2] .. "' names both " .. seat .. " and " .. k)
+				return nil
+			end
+			seat = k
+		end
+	end
+	return seat
+end
+
 -- set_active_seat:<scope>  — whoever the scope names becomes the seat whose turn
 -- it is. Every other way of naming a seat was settled before the game started —
 -- "mine" and "enemy" are relative to whoever is already up, a seat key is a
 -- constant — so this is the only one that can be read off what just happened:
 -- the trick winner leads the next trick, the attack token holder acts first.
 --
--- **The scope names cards, and the seat is whose they are**, through the same
--- `seat_of` that "mine" asks. A seat card answers for itself, so
--- "set_active_seat:owner_of.target" and "set_active_seat:target" say the same
--- thing about an ordinary card and both work — one rule rather than two ways to
--- write it.
---
--- Naming two seats is refused: a rule that cannot say who is up has not decided
--- anything, and picking the first would make turn order depend on file order.
--- Naming none does nothing, which is an ordinary runtime state rather than a
--- mistake — the trick is not won until somebody has won it.
+-- Which seat the scope names is sole_seat's to answer. Naming none does nothing,
+-- which is an ordinary runtime state rather than a mistake — the trick is not
+-- won until somebody has won it.
 HANDLERS["set_active_seat"] = function(p, ctx)
 	if frozen("set_active_seat") then return end
-	local sc = predicate.parse_scope(p[2] or "")
-	local G  = declaration.G
-	if not sc or #(G.seat_list or {}) < 2 then return end
-	local seat
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
-		local k = predicate.seat_of(e)
-		if k and k ~= seat then
-			if seat then
-				content_error("set_active_seat: '" .. p[2] .. "' names both " .. seat .. " and " .. k)
-				return
-			end
-			seat = k
-		end
-	end
+	local G    = declaration.G
+	local seat = sole_seat("set_active_seat", p, ctx)
 	-- Two questions, and they used to be one. **Is the number already right** is
 	-- asked of the index, because two values of "turn" report the same seat:
 	-- nought means nobody has taken one yet and *reads* as the first seat, so
@@ -1243,29 +1249,16 @@ end
 -- plays counter and reachability all read active_seat — so this is the whole of
 -- letting a card be played out of turn.
 --
--- Written the same way set_active_seat is: the scope names cards and the seat is
--- whose they are, through the same seat_of. Naming two seats is refused; naming
--- none does nothing. It does not clear the undo history the way a handover does —
--- the turn has not changed, and how far undo may reach back into a window is the
--- window's own question, not this primitive's.
+-- A different thing from set_active_seat and not a mode of it: one hands over a
+-- turn, the other lends the moment inside one. They share only how a seat is
+-- named, which is sole_seat. It does not clear the undo history the way a
+-- handover does — the turn has not changed, and how far undo may reach back into
+-- a window is the window's own question, not this primitive's.
 HANDLERS["set_priority"] = function(p, ctx)
 	if frozen("set_priority") then return end
-	local sc = predicate.parse_scope(p[2] or "")
-	local G  = declaration.G
-	if not sc or #(G.seat_list or {}) < 2 then return end
-	local seat
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
-		local k = predicate.seat_of(e)
-		if k and k ~= seat then
-			if seat then
-				content_error("set_priority: '" .. p[2] .. "' names both " .. seat .. " and " .. k)
-				return
-			end
-			seat = k
-		end
-	end
-	local sys = zones.system_card()
-	local i   = seat and (G.seat_index or {})[seat]
+	local seat = sole_seat("set_priority", p, ctx)
+	local sys  = zones.system_card()
+	local i    = seat and (declaration.G.seat_index or {})[seat]
 	if not i or not sys then return end
 	sys.stats.priority = i
 end
