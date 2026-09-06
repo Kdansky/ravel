@@ -762,6 +762,33 @@ function M.parse(filename)
 		return list
 	end
 
+	-- **Anything the engine writes onto a game file wears "ravel_".** The two it
+	-- writes are ravel_fired (which end condition has gone off) and
+	-- ravel_menu_for (the card standing in for one ability in a chooser), and a
+	-- file that says either is refused rather than quietly overwritten.
+	--
+	-- Said as a prefix and not as a list, so the rule is one a reader can apply
+	-- without looking anything up: a word starting with ravel_ is the engine's,
+	-- everywhere and in every section. It is what lets SCHEMA.json be exactly
+	-- what a game file may contain — bookkeeping used to be listed among the
+	-- fields, described as "never authored", which is a distinction a document
+	-- can make and a reader has to remember.
+	--
+	-- Checked here rather than in the validator because this is the last place
+	-- the authored file exists on its own: by the time the validator runs, the
+	-- engine's own ravel_ fields are on it and the two cannot be told apart.
+	local function refuse_reserved(node, at, depth)
+		if type(node) ~= "table" or depth > 12 then return end
+		for k, v in pairs(node) do
+			if type(k) == "string" and k:sub(1, 6) == "ravel_" then
+				pp[#pp + 1] = ("%s writes '%s', which is the engine's to write: every field"):format(at, k)
+					.. " starting with \"ravel_\" is bookkeeping, and a game file says none of them"
+			end
+			refuse_reserved(v, type(k) == "string" and (at .. " " .. k) or at, depth + 1)
+		end
+	end
+	refuse_reserved(parsed, "this file", 0)
+
 	local sections = {}
 	for k in pairs(KNOWN_SECTIONS) do sections[#sections + 1] = k end
 	table.sort(sections)
@@ -1309,7 +1336,7 @@ function M.parse(filename)
 					.. " ability and could not tell them apart"):format(what, tostring(owner_key), tostring(a.key))
 			end
 			a.menu_card = mk
-			G.card_defs[mk] = { key = mk, injected = true, menu_for = { card = owner_key },
+			G.card_defs[mk] = { key = mk, injected = true, ravel_menu_for = { card = owner_key },
 				text = a.text or a.key, tooltip = a.tooltip or a.text,
 				-- A picture the ability named, or a shape from its name. A named
 				-- asset resolves per player like any other, so a chooser wears

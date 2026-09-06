@@ -53,7 +53,7 @@ says anything twice. These are its headings, grouped by the question each one
 answers; a test holds this list to them, so a section that exists is listed here
 and a line here names a section that exists:
 
-- **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · Stats · Zones · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
+- **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
@@ -883,6 +883,28 @@ generator no reader of the file will open.
 It is exempt by name rather than by being listed among each section's fields,
 which is deliberate — adding a real field to a section is still a decision, and
 `comments`, `note` or `why` remain typos.
+
+### `ravel_` — the fields that are the engine's
+
+The mirror of `comment`, and refused for the same reason it is allowed. Every
+field whose name starts with `ravel_` is bookkeeping the engine writes onto the
+game while it runs, and a game file that says one is refused:
+
+| Field | On | What the engine keeps there |
+|---|---|---|
+| `ravel_fired` | an end condition | that it has already gone off, so it fires once per game |
+| `ravel_menu_for` | a card | that this card stands for one ability in a chooser, and which |
+
+You will see both in a save file, which is a position rather than a game, and
+neither in `SCHEMA.json`, which is what a game file may contain. **A prefix
+instead of a list**: bookkeeping used to sit among the authorable fields with
+*never authored* written beside it, which is a distinction a document can make
+and a reader has to remember. Now it is a rule you can apply without looking
+anything up, and it holds in every section.
+
+Refused when the file is read rather than when it is checked, because that is
+the last moment the file exists on its own — once the game is loaded, the
+engine's own `ravel_` fields are on it and the two cannot be told apart.
 
 ### Stats
 

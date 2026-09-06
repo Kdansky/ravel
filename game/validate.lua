@@ -145,7 +145,6 @@ local CARD_FIELDS = {
 	-- Written by the engine onto the menu entry it generates for each ability of
 	-- a card that has several. Never authored: a game names abilities, not the
 	-- cards that stand for them in a chooser.
-	menu_for = true,
 }
 local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
@@ -265,7 +264,7 @@ local ROUTE_FIELDS    = { when = true, ["then"] = true, ends_round = true, seat 
 -- not the absence of one — a phase leading back to itself is asked for opposite
 -- answers by Splendor and by The Crew.
 local ROUTE_SEATS     = { next = true, same = true }
-local END_FIELDS      = { when = true, ["then"] = true, fired = true }
+local END_FIELDS      = { when = true, ["then"] = true }
 -- A computed tag is a condition about one card, plus the one thing a condition
 -- cannot say: a union of kinds. It used to be six comparison fields, which was a
 -- second comparison language with three operators, no "greater than" and no
@@ -355,7 +354,7 @@ M.SHAPES = { setup = SETUP_FIELDS, place = PLACE_FIELDS, move_rule = MOVE_RULE_F
 -- Fields declaration.parse adds to a def after reading it. They are legal on an
 -- entry the engine hands around and are not things an author ever writes, so
 -- the schema document must not describe them.
-M.DERIVED = { tags_set = true, injected = true, move_rules = true, fired = true, style = true,
+M.DERIVED = { tags_set = true, injected = true, move_rules = true, style = true,
 	-- flattened out of the moment blocks by declaration.parse, never authored
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	compute = true,
@@ -903,7 +902,13 @@ function M.check(G)
 		for k in pairs(def) do
 			-- RETIRED words have a message of their own, said where the authored
 			-- entry still exists; a second generic one would only muddy it.
-			if k ~= "comment" and not fields[k] and not RETIRED[k] then
+			--
+			-- "ravel_" is the engine's own prefix and is passed over here: by the
+			-- time this runs, what it writes is on the entry. A game file saying
+			-- one is refused at parse time, which is the last moment the authored
+			-- file exists on its own — see refuse_reserved in declaration.lua.
+			if k ~= "comment" and k:sub(1, 6) ~= "ravel_"
+				and not fields[k] and not RETIRED[k] then
 				warn("%s: has a field '%s' the engine doesn't read%s", where, tostring(k), suggest(k, fields))
 			end
 		end

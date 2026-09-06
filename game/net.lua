@@ -111,7 +111,7 @@ function M.snapshot()
 	end
 
 	local fired = {}
-	for i, cond in ipairs(declaration.G.end_conditions or {}) do fired[i] = cond.fired and true or false end
+	for i, cond in ipairs(declaration.G.end_conditions or {}) do fired[i] = cond.ravel_fired and true or false end
 
 	local ents = entity.snapshot()
 	for _, e in ipairs(ents) do e.place = nil end
@@ -440,7 +440,7 @@ local function restore(snap, ents)
 	phase.restore({ wrapped = snap.wrapped and true or false, stack = stack })
 	rng.set_state(snap.rng or rng.state())
 	for i, cond in ipairs(declaration.G.end_conditions or {}) do
-		cond.fired = (snap.fired and snap.fired[i]) or nil
+		cond.ravel_fired = (snap.fired and snap.fired[i]) or nil
 	end
 	targeting.clear()
 	-- The local undo stack describes states the sender never had; undoing into

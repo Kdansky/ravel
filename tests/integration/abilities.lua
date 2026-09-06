@@ -185,6 +185,38 @@ function M.test_abilities_two_with_the_same_key_are_refused(check)
 		table.concat(G.parse_problems or {}, "; "))
 end
 
+-- **The engine's own fields wear a prefix, and a game file says none of them.**
+-- Bookkeeping used to sit among the authorable fields with "never authored"
+-- written beside it, which is a distinction a document can make and a reader
+-- has to remember. Refused where the authored file still exists on its own:
+-- once the engine has written its own ravel_ fields onto the loaded game, the
+-- two cannot be told apart.
+function M.test_abilities_the_engine_prefix_is_not_a_games_to_write(check)
+	local path = "game/games/tmp_reserved.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+  "title": "Reserved",
+  "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
+  "phases": [{ "key": "turn", "type": "player_input" }],
+  "end_conditions": [{ "when": "count@board == 0", "then": ["next_phase"], "ravel_fired": true }],
+  "cards": [{ "key": "thing", "text": "Thing", "ravel_menu_for": { "card": "thing" } }]
+}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_reserved.json")
+	os.remove(path)
+	check("it parses", ok, tostring(G))
+	if not ok then return end
+	local said = {}
+	for _, p in ipairs(G.parse_problems or {}) do
+		if p:find("ravel_fired", 1, true) then said.fired = true end
+		if p:find("ravel_menu_for", 1, true) then said.menu = true end
+	end
+	check("the end condition is told its ravel_fired is the engine's", said.fired,
+		table.concat(G.parse_problems or {}, "; "))
+	check("and the card its ravel_menu_for", said.menu,
+		table.concat(G.parse_problems or {}, "; "))
+end
+
 -- A keyword is a tag that carries behaviour, and a card wearing the tag does the
 -- thing. Said once by the game, inherited by everything that has it — the
 -- alternative is the same action list copied onto every card and one of them

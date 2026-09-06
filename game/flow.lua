@@ -235,7 +235,7 @@ end
 
 local function fired_flags()
 	local f = {}
-	for i, cond in ipairs(declaration.G.end_conditions) do f[i] = cond.fired end
+	for i, cond in ipairs(declaration.G.end_conditions) do f[i] = cond.ravel_fired end
 	return f
 end
 
@@ -268,7 +268,7 @@ function M.undo()
 	entity.restore(h.ents)
 	phase.restore(h.phases)
 	rng.set_state(h.rng)
-	for i, cond in ipairs(declaration.G.end_conditions) do cond.fired = h.fired[i] end
+	for i, cond in ipairs(declaration.G.end_conditions) do cond.ravel_fired = h.fired[i] end
 	log.truncate(h.log_mark)
 	targeting.clear()
 	if M.on_reset then M.on_reset() end
@@ -280,8 +280,8 @@ end
 local function fire_end_condition()
 	local conds = declaration.G.end_conditions
 	for _, cond in ipairs(conds) do
-		if not cond.fired and predicate.met(cond) then
-			for _, c in ipairs(conds) do c.fired = true end
+		if not cond.ravel_fired and predicate.met(cond) then
+			for _, c in ipairs(conds) do c.ravel_fired = true end
 			actions.run(cond["then"], {})
 			return true
 		end
@@ -1160,7 +1160,7 @@ end
 function M.menu_choice(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
-	if not (def and def.menu_for) then return nil end
+	if not (def and def.ravel_menu_for) then return nil end
 	local z = c.zone_id and entity.get(c.zone_id)
 	local source = z and z.asked_by
 	if not (source and entity.get(source)) then return nil end

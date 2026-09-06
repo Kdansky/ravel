@@ -303,7 +303,7 @@ do
 	for i, a in ipairs(td.abilities) do
 		a.menu_card = "throne_room#" .. a.key
 		declaration.G.card_defs[a.menu_card] = { key = a.menu_card, injected = true,
-			menu_for = { card = "throne_room", index = i }, text = a.text, asset = "auto",
+			ravel_menu_for = { card = "throne_room", index = i }, text = a.text, asset = "auto",
 			tags = {}, tags_set = {}, abilities = {}, style = {} }
 	end
 	eval("stat_set:gold:9")
