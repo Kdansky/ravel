@@ -41,14 +41,14 @@ end
 
 local function use(card, key, targets)
 	for _, u in ipairs(flow.usable_abilities(card.id)) do
-		if u.ability.key == key then return flow.activate(card.id, targets or {}, u.index) end
+		if u.rule.key == key then return flow.activate(card.id, targets or {}, u.index) end
 	end
 	return false
 end
 
 local function offers(card, key)
 	for _, u in ipairs(flow.usable_abilities(card.id)) do
-		if u.ability.key == key then return true end
+		if u.rule.key == key then return true end
 	end
 	return false
 end

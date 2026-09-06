@@ -198,13 +198,13 @@ local function primary_action(x, y)
 		if pick then
 			flow.close_offer()
 			local src = entity.get(pick.source)
-			if pick.reaction then
-				begin_action(pick.source, pick.reaction.target, "react", pick.index)
+			if pick.kind == "reaction" then
+				begin_action(pick.source, pick.rule.target, "react", pick.index)
 			elseif src and src.kind == "zone" then
 				-- A place aims at nothing: there is no arrow to draw from a deck.
 				flow.activate_zone(pick.source, pick.index)
 			else
-				begin_action(pick.source, pick.ability.target, "activate", pick.index)
+				begin_action(pick.source, pick.rule.target, "activate", pick.index)
 			end
 		else
 			flow.play_card(cid, {})
@@ -247,7 +247,7 @@ local function primary_action(x, y)
 		-- card happens to lie, and "from" already decided which.
 		local answer = flow.sole_reaction(cid)
 		if answer then
-			begin_action(cid, answer.reaction.target, "react", answer.index)
+			begin_action(cid, answer.rule.target, "react", answer.index)
 			return
 		end
 		-- Two ways to answer with the one card, so the card stops being the
@@ -260,7 +260,7 @@ local function primary_action(x, y)
 		if z and z.use == "abilities" then
 			local sole = flow.sole_ability(cid)
 			if sole then
-				begin_action(cid, sole.ability.target, "activate", sole.index)
+				begin_action(cid, sole.rule.target, "activate", sole.index)
 			else
 				-- More than one thing this card can do, so the card stops being
 				-- the question and the chooser becomes it.

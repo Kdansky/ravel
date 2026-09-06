@@ -140,16 +140,16 @@ local function blocks(c, def)
 			add("hint", c.exhausted and "Exhausted — ready next round"
 				or "Not available now", C.wait)
 		elseif #ready == 1 then
-			local text = "Click to " .. (#all > 1 and (ready[1].ability.text or "activate") or "activate")
-			local ac = ready[1].ability.cost
+			local text = "Click to " .. (#all > 1 and (ready[1].rule.text or "activate") or "activate")
+			local ac = ready[1].rule.cost
 			if ac and next(ac) then text = text .. "  (" .. cards.cost_text(ac, c.id) .. ")" end
 			add("hint", text, C.ready)
 		else
 			add("hint", "Click to choose:", C.ready)
 			for _, u in ipairs(ready) do
-				local line = "  " .. (u.ability.text or u.ability.key)
-				if u.ability.cost and next(u.ability.cost) then
-					line = line .. "  (" .. cards.cost_text(u.ability.cost, c.id) .. ")"
+				local line = "  " .. (u.rule.text or u.rule.key)
+				if u.rule.cost and next(u.rule.cost) then
+					line = line .. "  (" .. cards.cost_text(u.rule.cost, c.id) .. ")"
 				end
 				add("hint", line, C.ready)
 			end

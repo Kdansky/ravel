@@ -78,7 +78,7 @@ end
 -- spec rather than a copy of it.
 local function offered(card_id)
 	local u = flow.usable_abilities(card_id)[1]
-	return u and targeting.candidates(card_id, u.ability.target) or {}
+	return u and targeting.candidates(card_id, u.rule.target) or {}
 end
 
 -- A card is born owned and stays owned. Until this, ownership was *derived*

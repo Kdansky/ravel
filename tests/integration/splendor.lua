@@ -52,7 +52,7 @@ end
 local function take(gem)
 	local p = pile(gem)
 	for _, u in ipairs(flow.usable_abilities(p.id)) do
-		if u.ability.key == "take_" .. gem then return flow.activate(p.id, {}, u.index) end
+		if u.rule.key == "take_" .. gem then return flow.activate(p.id, {}, u.index) end
 	end
 	return false
 end
@@ -162,7 +162,7 @@ function M.test_splendor_taking_tokens(check)
 	local function take2(gem)
 		local p = pile(gem)
 		for _, u in ipairs(flow.usable_abilities(p.id)) do
-			if u.ability.key == "take2_" .. gem then return flow.activate(p.id, {}, u.index) end
+			if u.rule.key == "take2_" .. gem then return flow.activate(p.id, {}, u.index) end
 		end
 		return false
 	end
@@ -241,7 +241,7 @@ function M.test_splendor_the_ten_token_limit(check)
 	local function give_back()
 		local p = pile("white")
 		for _, u in ipairs(flow.usable_abilities(p.id)) do
-			if u.ability.key == "back_white" then return flow.activate(p.id, {}, u.index) end
+			if u.rule.key == "back_white" then return flow.activate(p.id, {}, u.index) end
 		end
 		return false
 	end

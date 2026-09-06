@@ -342,7 +342,7 @@ do
 		flow.activate(throne.id, {}, 1) and entity.get(throne.id).exhausted)
 	local left = flow.usable_abilities(throne.id)
 	check("but the abilities that do not charge it are still there",
-		#left == 2 and left[1].ability.key == "fortify" and left[2].ability.key == "rest")
+		#left == 2 and left[1].rule.key == "fortify" and left[2].rule.key == "rest")
 
 	td.abilities = was
 	entity.get(throne.id).exhausted = nil
@@ -2554,8 +2554,8 @@ check("...and names nothing for a card that is not standing on a square",
 -- what let four cards, two zones and ten absolute patterns go.
 local function king_can(what)
 	for _, u in ipairs(flow.usable_abilities(on("e1").id)) do
-		if u.ability.key == what then
-			return #targeting.moves_by(on("e1").id, u.ability.moves) > 0
+		if u.rule.key == what then
+			return #targeting.moves_by(on("e1").id, u.rule.moves) > 0
 		end
 	end
 	return false
@@ -2714,8 +2714,8 @@ do
 	board = zones.find("board")
 	local function ep_squares(from)
 		for _, u in ipairs(flow.usable_abilities(on(from).id)) do
-			if u.ability.key == "en_passant" then
-				return #targeting.moves_by(on(from).id, u.ability.moves)
+			if u.rule.key == "en_passant" then
+				return #targeting.moves_by(on(from).id, u.rule.moves)
 			end
 		end
 		return 0
@@ -2741,8 +2741,8 @@ do
 	board = zones.find("board")
 	local function offered(from)
 		for _, u in ipairs(flow.usable_abilities(on(from).id)) do
-			if u.ability.key == "en_passant" then
-				return #targeting.moves_by(on(from).id, u.ability.moves) > 0
+			if u.rule.key == "en_passant" then
+				return #targeting.moves_by(on(from).id, u.rule.moves) > 0
 			end
 		end
 		return false
@@ -2765,8 +2765,8 @@ do
 	move("g5", "g6"); move("f7", "f6")
 	local offered = false
 	for _, u in ipairs(flow.usable_abilities(on("g6").id)) do
-		if u.ability.key == "en_passant" then
-			offered = #targeting.moves_by(on("g6").id, u.ability.moves) > 0
+		if u.rule.key == "en_passant" then
+			offered = #targeting.moves_by(on("g6").id, u.rule.moves) > 0
 		end
 	end
 	check("a pawn that stepped one square cannot be taken in passing", offered == false)

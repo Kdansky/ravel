@@ -64,7 +64,7 @@ end
 -- it says.
 local function lanes(card_id)
 	local u = flow.usable_abilities(card_id)[1]
-	return u and targeting.candidates(card_id, u.ability.target) or {}
+	return u and targeting.candidates(card_id, u.rule.target) or {}
 end
 
 local function bench_put(seat, key, col)
@@ -291,8 +291,8 @@ function M.test_lor_tough_never_heals_what_hits_it(check)
 	flow.activate(button("attack_button", "north"), {})
 	local offered = flow.usable_abilities(benched)
 	check("a tough unit waiting to attack is offered one thing, not two",
-		#offered == 1 and offered[1].ability.key == "attack",
-		#offered .. " " .. tostring(offered[1] and offered[1].ability.key))
+		#offered == 1 and offered[1].rule.key == "attack",
+		#offered .. " " .. tostring(offered[1] and offered[1].rule.key))
 end
 
 -- What the keyword is really keyed to is the *moment*, not the fight. Attacking

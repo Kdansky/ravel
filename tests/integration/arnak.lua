@@ -44,14 +44,14 @@ end
 
 local function offers(card)
 	local out = {}
-	for _, u in ipairs(flow.usable_abilities(card.id)) do out[#out + 1] = u.ability.key end
+	for _, u in ipairs(flow.usable_abilities(card.id)) do out[#out + 1] = u.rule.key end
 	table.sort(out)
 	return table.concat(out, "/")
 end
 
 local function use(card, key)
 	for _, u in ipairs(flow.usable_abilities(card.id)) do
-		if u.ability.key == key then return flow.activate(card.id, {}, u.index) end
+		if u.rule.key == key then return flow.activate(card.id, {}, u.index) end
 	end
 	return false
 end

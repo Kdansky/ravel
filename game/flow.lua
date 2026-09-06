@@ -1012,6 +1012,43 @@ end
 -- Exhaustion is not asked here any more: it is a cost, and "exhaust" is checked
 -- like the rest. A card with a tap ability beside a free one keeps offering the
 -- free one after the first is spent, which is half the reason it moved.
+-- Which of a list of rules may be used right now. A card's abilities, a zone's
+-- abilities: the same shape, so the same question, asked once.
+--
+-- **The list is the argument.** What differs between a card and a place is who
+-- may reach it, which the callers below answer before getting here; what a rule
+-- costs, when it works and whether it says anything are the rule's own business
+-- and read the same wherever it is written. That is the whole point of abilities
+-- and reactions sharing a shape in the file — an engine that then wrote the test
+-- twice would be keeping a distinction the format has already refused.
+--
+-- `ctx` seeds every rule's own bound computes: { card_id = ... } for a card's,
+-- { zone_id = ... } for a place's.
+local function usable_rules(list, ctx)
+	local out = {}
+	for i, a in ipairs(list) do
+		-- A rule that can reach nothing is not on offer. Without this a chooser
+		-- lists dead entries, and a piece with a conditional move looks like it
+		-- has two things to do when it has one. It used to ask only about
+		-- `moves`, which is one kind of target out of three: The Crew's radio has
+		-- twelve abilities and a hand answers two or three of them, so the other
+		-- nine were nine dead lines in the chooser.
+		local id = ctx.card_id
+		local lo = a.target and select(1, targeting.bounds(a.target)) or 0
+		local reaches = lo == 0
+			or (a.target.moves and #targeting.moves_by(id, a.target.moves) > 0)
+			or (a.target.moves == nil and #targeting.candidates(id, a.target) >= lo)
+		local bound = predicate.bind(a.compute, ctx)
+		if has_ability(a.action) and phase_ok(a.phases)
+			and predicate.meets_all(a.needs, bound)
+			and M.can_afford(a.cost, bound)
+			and reaches then
+			out[#out + 1] = { index = i, rule = a }
+		end
+	end
+	return out
+end
+
 function M.usable_abilities(card_id)
 	local c = entity.get(card_id)
 	if not c or not cards.def(c) or not reachable(c) or not on_top(c) then return {} end
@@ -1024,27 +1061,7 @@ function M.usable_abilities(card_id)
 	-- and an MTG graveyard both do not, and neither pair shares a zone type.
 	local z = entity.get(c.zone_id)
 	if not (z and z.use == "abilities") then return {} end
-	local out = {}
-	for i, a in ipairs(cards.abilities(c)) do
-		-- An ability that can reach nothing is not on offer. Without this a
-		-- chooser lists dead entries, and a piece with a conditional move looks
-		-- like it has two things to do when it has one. It used to ask only
-		-- about `moves`, which is one kind of target out of three: The Crew's
-		-- radio has twelve abilities and a hand answers two or three of them,
-		-- so the other nine were nine dead lines in the chooser.
-		local lo = a.target and select(1, targeting.bounds(a.target)) or 0
-		local reaches = lo == 0
-			or (a.target.moves and #targeting.moves_by(card_id, a.target.moves) > 0)
-			or (a.target.moves == nil and #targeting.candidates(card_id, a.target) >= lo)
-		local ctx = predicate.bind(a.compute, { card_id = card_id })
-		if has_ability(a.action) and phase_ok(a.phases)
-			and predicate.meets_all(a.needs, ctx)
-			and M.can_afford(a.cost, ctx)
-			and reaches then
-			out[#out + 1] = { index = i, ability = a }
-		end
-	end
-	return out
+	return usable_rules(cards.abilities(c), { card_id = card_id })
 end
 
 function M.can_activate(card_id)
@@ -1058,23 +1075,24 @@ function M.sole_ability(card_id)
 	return #u == 1 and u[1] or nil
 end
 
--- Deal one menu entry per choice into the offer and open it. Two things a card
--- gets asked about — which of its abilities to use, and which of its reactions
--- to answer with — and they differ only in the word written on the entry.
+-- Deal one menu entry per usable rule into the offer and open it. Three things
+-- get asked about this way — which of a card's abilities to use, which of a
+-- place's, and which of a card's reactions to answer with — and they differ only
+-- in the word written on the entry, because a rule is a rule.
 --
 -- Which one an entry means is written on the entry, not baked into its
 -- definition: *which number* an ability is depends on the zone the card is lying
 -- in, because a zone's "applies" adds to the list. The same menu card dealt for a
 -- rook in a pile and a rook on the board would otherwise resolve to two
 -- different abilities.
-local function offer_choices(card_id, picks, stat)
-	if #picks < 2 then return false end
+local function offer_choices(card_id, usable, stat)
+	if #usable < 2 then return false end
 	local zone_id = zones.find_id("options")
 	if not zone_id then return false end
 	local owner = (entity.get(card_id).stats or {}).owner
-	for _, p in ipairs(picks) do
-		local made = cards.create(p.menu_card, zone_id)
-		made.stats[stat] = p.index
+	for _, u in ipairs(usable) do
+		local made = cards.create(u.rule.menu_card, zone_id)
+		made.stats[stat] = u.index
 		if owner then made.stats.owner = owner end
 	end
 	local z = entity.get(zone_id)
@@ -1093,21 +1111,13 @@ end
 -- the same one `options` deals, and it remembers the card that asked, so the
 -- menu entry chosen knows whose ability it was.
 function M.offer_abilities(card_id)
-	local picks = {}
-	for _, u in ipairs(M.usable_abilities(card_id)) do
-		picks[#picks + 1] = { menu_card = u.ability.menu_card, index = u.index }
-	end
-	return offer_choices(card_id, picks, "ability")
+	return offer_choices(card_id, M.usable_abilities(card_id), "ability")
 end
 
 -- The same for a place that offers more than one thing: a deck that draws one or
 -- five is asked about exactly as a card with two abilities is.
 function M.offer_zone_abilities(zone_id)
-	local picks = {}
-	for _, u in ipairs(M.usable_zone_abilities(zone_id)) do
-		picks[#picks + 1] = { menu_card = u.ability.menu_card, index = u.index }
-	end
-	return offer_choices(zone_id, picks, "ability")
+	return offer_choices(zone_id, M.usable_zone_abilities(zone_id), "ability")
 end
 
 -- The same for a card that answers the open window more than one way. Rare, and
@@ -1115,13 +1125,11 @@ end
 -- window is a player_input phase so the board stays visible, and only the one
 -- card that needs a question asked about it opens an overlay.
 function M.offer_reactions(card_id)
-	local picks = {}
+	local mine = {}
 	for _, u in ipairs(M.usable_reactions()) do
-		if u.card == card_id then
-			picks[#picks + 1] = { menu_card = u.reaction.menu_card, index = u.index }
-		end
+		if u.card == card_id then mine[#mine + 1] = u end
 	end
-	return offer_choices(card_id, picks, "reaction")
+	return offer_choices(card_id, mine, "reaction")
 end
 
 -- Whether the offer on screen may be walked away from. Asked by the renderer,
@@ -1157,11 +1165,14 @@ function M.menu_choice(card_id)
 	local source = z and z.asked_by
 	if not (source and entity.get(source)) then return nil end
 	-- Which list the entry points into is the entry's own word. The two indices
-	-- are into different lists and would collide if one stat carried both.
+	-- are into different lists and would collide if one stat carried both. What
+	-- comes back says which in a word rather than by which field is present: a
+	-- reaction and an ability are one shape, and the caller is asking what to do
+	-- with it, not what it is made of.
 	local ridx = (c.stats or {}).reaction
 	if ridx and ridx > 0 then
 		local r = (cards.reactions(entity.get(source)) or {})[ridx]
-		return r and { source = source, index = ridx, reaction = r } or nil
+		return r and { source = source, index = ridx, rule = r, kind = "reaction" } or nil
 	end
 	local idx = (c.stats or {}).ability
 	-- A place asks with the same entries a card does, and what it is deciding
@@ -1170,7 +1181,7 @@ function M.menu_choice(card_id)
 	local src  = entity.get(source)
 	local list = src.kind == "zone" and (src.abilities or {}) or cards.abilities(src)
 	local a = idx and list[idx]
-	return a and { source = source, index = idx, ability = a } or nil
+	return a and { source = source, index = idx, rule = a, kind = "ability" } or nil
 end
 
 -- Shut the offer without choosing anything from it: the entries go, the offer
@@ -1211,7 +1222,7 @@ function M.activate(card_id, targets, index)
 	-- the player yet. Refusing beats guessing: choosing for them is how a
 	-- click spends the wrong thing.
 	if not chosen or (index == nil and #usable > 1) then return false end
-	local a   = chosen.ability
+	local a   = chosen.rule
 	local c   = entity.get(card_id)
 	local def = cards.def(c)
 	-- Flow is the single legality gate, exactly as in play_card: target counts
@@ -1332,16 +1343,7 @@ function M.usable_zone_abilities(zone_id)
 	-- card. A shared zone belongs to nobody and answers to whoever is playing.
 	if z.seat and z.seat ~= zones.active_seat() then return {} end
 	if window_locked() then return {} end
-	local out = {}
-	for i, a in ipairs(z.abilities or {}) do
-		local ctx = predicate.bind(a.compute, { zone_id = zone_id })
-		if has_ability(a.action) and phase_ok(a.phases)
-			and predicate.meets_all(a.needs, ctx)
-			and M.can_afford(a.cost, ctx) then
-			out[#out + 1] = { index = i, ability = a }
-		end
-	end
-	return out
+	return usable_rules(z.abilities or {}, { zone_id = zone_id })
 end
 
 -- With several usable, `index` says which — the one the chooser resolved to,
@@ -1354,7 +1356,7 @@ function M.activate_zone(zone_id, index)
 		if index == nil or u.index == index then chosen = chosen or u end
 	end
 	if not chosen or (index == nil and #usable > 1) then return false end
-	local a   = chosen.ability
+	local a   = chosen.rule
 	local z   = entity.get(zone_id)
 	local ctx = predicate.bind(a.compute, { zone_id = zone_id })
 	checkpoint()
@@ -1780,7 +1782,7 @@ function M.usable_reactions()
 		if r.seat == seat and reactions.answers_seat(r.reaction, seat, top.re_actor)
 			and not has_answered(top, r.card)
 			and M.can_afford(r.reaction.cost, { card_id = r.card }) then
-			out[#out + 1] = { card = r.card, index = r.index, reaction = r.reaction }
+			out[#out + 1] = { card = r.card, index = r.index, rule = r.reaction }
 		end
 	end
 	return out

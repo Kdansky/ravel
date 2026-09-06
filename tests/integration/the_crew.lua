@@ -404,7 +404,7 @@ end
 
 local function says(name)
 	for _, u in ipairs(flow.usable_abilities(radio())) do
-		if u.ability.key == name then return u end
+		if u.rule.key == name then return u end
 	end
 end
 
@@ -412,7 +412,7 @@ local function offers(name)
 	local u = says(name)
 	if not u then return {} end
 	local out = {}
-	for _, id in ipairs(require("targeting").candidates(radio(), u.ability.target)) do
+	for _, id in ipairs(require("targeting").candidates(radio(), u.rule.target)) do
 		out[#out + 1] = entity.get(id).def_key
 	end
 	table.sort(out)

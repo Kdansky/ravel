@@ -201,7 +201,7 @@ local function play_index(n)
 		local choice = flow.menu_choice(cid)
 		if choice then
 			flow.close_offer()
-			local spec = (choice.reaction or choice.ability).target
+			local spec = choice.rule.target
 			local targets = {}
 			if select(2, targeting.bounds(spec)) > 0 then
 				targets = prompt_targets(entity.get(choice.source), spec)
@@ -267,15 +267,15 @@ local function activate_slot(idx)
 			if #usable > 1 then
 				print("Which?")
 				for i, u in ipairs(usable) do
-					print("  [" .. i .. "] " .. (u.ability.text or u.ability.key))
+					print("  [" .. i .. "] " .. (u.rule.text or u.rule.key))
 				end
 				local n = tonumber((io.read() or ""):match("%d+"))
 				pick = n and usable[n]
 				if not pick then print("Not one of those."); return end
 			end
 			local targets = {}
-			if select(2, targeting.bounds(pick.ability.target)) > 0 then
-				targets = prompt_targets(entity.get(occ), pick.ability.target)
+			if select(2, targeting.bounds(pick.rule.target)) > 0 then
+				targets = prompt_targets(entity.get(occ), pick.rule.target)
 				if not targets then return end
 			end
 			if not flow.activate(occ, targets, pick.index) then

@@ -89,7 +89,7 @@ end
 
 local function use(name)
 	for _, u in ipairs(flow.usable_abilities(lever())) do
-		if u.ability.key == name then return flow.activate(lever(), {}, u.index) end
+		if u.rule.key == name then return flow.activate(lever(), {}, u.index) end
 	end
 	return false
 end
@@ -174,7 +174,7 @@ function M.test_turn_end_a_cost_may_be_per_seat_or_shared(check)
 
 		me.stats.purse = 0
 		local offered = {}
-		for _, u in ipairs(flow.usable_abilities(lever())) do offered[u.ability.key] = true end
+		for _, u in ipairs(flow.usable_abilities(lever())) do offered[u.rule.key] = true end
 		check("an empty purse takes its own ability off the table", offered.mine == nil)
 		check("and leaves the shared one standing", offered.shared == true)
 	end)

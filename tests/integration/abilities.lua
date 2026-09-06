@@ -85,7 +85,7 @@ function M.test_abilities_a_zone_grants_one_and_the_card_has_its_own(check)
 			local choice = flow.menu_choice(id)
 			check("an entry resolves to the card that asked",
 				choice ~= nil and choice.source == rook.id)
-			picked[choice.index] = choice.ability.text
+			picked[choice.index] = choice.rule.text
 		end
 		check("and the two entries mean two different abilities",
 			picked[1] == "Move it" and picked[2] == "Take it",
@@ -406,7 +406,7 @@ function M.test_abilities_a_place_may_offer_two_things(check)
 			local choice = flow.menu_choice(id)
 			check("an entry resolves to the place that asked",
 				choice ~= nil and choice.source == deck)
-			picked[choice.index] = choice.ability.text
+			picked[choice.index] = choice.rule.text
 		end
 		check("and the two entries mean two different abilities",
 			picked[1] == "Draw one" and picked[2] == "Draw two",

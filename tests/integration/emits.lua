@@ -302,7 +302,7 @@ function M.test_emits_a_card_answering_two_ways_is_asked_which(check)
 		check("with one entry each", #entries == 2, #entries)
 		local pick = flow.menu_choice(entries[2])
 		check("and the second entry is the second reaction",
-			pick ~= nil and pick.reaction ~= nil and pick.index == 2)
+			pick ~= nil and pick.kind == "reaction" and pick.index == 2)
 		flow.close_offer()
 		check("answering that way works", flow.react(pick.source, pick.index, {}))
 		check("it took one rather than denying", seat("two").stats.landed == 1,
