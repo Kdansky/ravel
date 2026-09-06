@@ -4021,7 +4021,7 @@ what a player reads.
 | `load_game:file` | Switch games (menu items, endings). `file` must be a bare `name.json` — no path, no `..` — and is refused otherwise |
 | `open_game` | Ask the player for a game file of *theirs* and play it — a file picker in the browser, a dropped file on the desktop. Nothing is uploaded and nothing is installed: the engine already runs a game handed to it as text, which is how a network invite carries its rules to somebody who has never seen the file, so this is only the asking. A build with no way to ask says nothing and does nothing |
 | `each_seat:<action>` | Run one action once per seat, in seat order, with each seat up in turn — so `mine` does the work and a four-seat deal is one line rather than four. Whoever was up is up again when it returns, and no handover happens: the undo history is not cleared, because dealing to everybody is not anybody's turn. See *Every seat, once* |
-| `net_invite` / `net_join` / `net_panel` / `net_seat:<who>` / `net_offline` | The networking layer's own UI, offered as actions so a game may put "Host" and "Join" on its own menu cards. The engine knows the words; the behaviour arrives only if the net module is loaded, and a game without one is unaffected. See *Playing over a network* |
+| `net_invite` / `net_join` / `net_seat:<who>` | The networking layer's own UI, offered as actions so a game may put "Host" and "Join" on its own menu cards. The engine knows the words; the behaviour arrives only if the net module is loaded, and a game without one is unaffected. See *Playing over a network* |
 | `save_game:<slot>` / `load_save:<slot>` | Write the position out, and put it back. The slot is a plain word your game picks; where it lands is the engine's business. See *Saving a game* below |
 
 ### Engine behaviors you get for free
@@ -4096,8 +4096,6 @@ at all. Five actions, checked by the validator like any other:
 | `net_invite` | build an invite to send someone |
 | `net_join` | open the box to paste one into |
 | `net_seat:<seat>` | sit in a particular chair (`net_seat:any` to give it up) |
-| `net_panel` | just show the networking controls |
-| `net_offline` | disconnect |
 
 The menu's own entry is one card:
 

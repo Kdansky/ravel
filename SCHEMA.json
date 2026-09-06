@@ -424,8 +424,6 @@
     "net_invite": "net_invite — build an invite to send somebody",
     "net_join": "net_join — open the box to paste one into",
     "net_seat": "net_seat:<seat> — sit in a chair, or any to give it up",
-    "net_panel": "net_panel — show the networking controls",
-    "net_offline": "net_offline — disconnect",
     "save_game": "save_game:<slot> — write the position to a save, under a plain word the game chooses. The slot says which save, never where it goes: the engine decides that, because a game file can arrive from a stranger. What is written is exactly what a networked opponent would be sent, so there is no second format to keep correct. Refused while a network game is connected, since two people saving one game write two files that both claim to be it.",
     "load_save": "load_save:<slot> — put a saved position back, whichever game it was of: the save names its own file and that file is loaded first. Refused if the game file has changed since it was written, because the same position means something else against different rules. The log comes back with it and the undo history does not, exactly as when a state arrives over the wire."
   },

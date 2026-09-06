@@ -1180,9 +1180,7 @@ end
 
 HANDLERS["net_invite"]  = net_ui("invite")
 HANDLERS["net_join"]    = net_ui("join")
-HANDLERS["net_panel"]   = net_ui("panel")
 HANDLERS["net_seat"]    = net_ui("seat")
-HANDLERS["net_offline"] = net_ui("offline")
 
 -- set_active_seat:<scope>  — whoever the scope names becomes the seat whose turn
 -- it is. Every other way of naming a seat was settled before the game started —
@@ -1450,9 +1448,7 @@ local SPEC = {
 	attach_to_target  = "",
 	net_invite        = "",
 	net_join          = "",
-	net_panel         = "",
 	net_seat          = "any",
-	net_offline       = "",
 	resolve_challenge = "",
 	next_phase        = "",
 	push_phase        = "phase",

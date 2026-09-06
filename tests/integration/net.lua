@@ -251,7 +251,7 @@ function M.test_net_ops_are_cards(check)
 	-- Networking as cards. The engine knows the words; net.lua supplies the
 	-- meaning, and a build without it leaves them as silent no-ops.
 	do
-		for _, op in ipairs({ "net_invite", "net_join", "net_panel", "net_seat", "net_offline" }) do
+		for _, op in ipairs({ "net_invite", "net_join", "net_seat" }) do
 			check(op .. " is an action the engine knows", actions.spec(op) ~= nil)
 		end
 
