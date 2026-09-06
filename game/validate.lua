@@ -3107,6 +3107,21 @@ function M.check(G)
 		end
 	end
 
+	-- Every game is a merge, so an entry may come from a file the author never
+	-- opened. Its name is already at the front of the message; this says whose
+	-- it is. Done once over the finished list rather than at forty call sites,
+	-- so a warning written later says it without anyone remembering to ask.
+	local SECTION = { card = "cards", zone = "zones", stat = "stats", phase = "phases",
+		compute = "computes", verb = "verbs", tag = "tags", pattern = "patterns",
+		asset = "assets", style = "styles", effect = "effects" }
+	for i, p in ipairs(problems) do
+		local kind, key = p:match("^(%a+) '([^']+)'")
+		local file = SECTION[kind] and (G.came_from or {})[SECTION[kind] .. "." .. key]
+		if file then
+			problems[i] = ("%s '%s' (from %s)%s"):format(kind, key, file, p:sub(#kind + #key + 4))
+		end
+	end
+
 	table.sort(problems)
 	return problems
 end

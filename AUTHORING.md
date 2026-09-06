@@ -844,6 +844,13 @@ reading.
 one entry and leaves the rest of the section alone. A section with nothing
 naming its entries can only be taken the first way.
 
+**A complaint names the file that wrote the thing.** `check.lua` and the launcher
+report a merged game as one game, so a warning about something you did not write
+says where it came from: `card 'sys_log' (from system.json): ...`. Your own file
+is never named back at you — you know what is in it — which is why a game with no
+`include` reads exactly as it did before. Every game merges the system column, so
+this is the usual case rather than the exotic one.
+
 **Over a network it is the merged game that travels**, not the file. A file
 naming two others is no use to a peer holding neither, and a hash of it would
 cover one game in three — two peers with different base files would agree they

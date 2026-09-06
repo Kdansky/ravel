@@ -83,10 +83,3 @@ Two consequences that fell out rather than being chosen:
    The layout and the phase list are the parts `include` answers; whether the
    rest is a module or a different game is unexamined, and a variant that
    validates but plays wrong is worse than none.]**
-2. **Provenance in validator messages.** `card 'lightning_bolt': ...` stops being
-   enough when the card came from a file you did not open — which is now every
-   game, since `system.json` is merged into all seventeen. The merge already
-   keeps a key → source-file map to name both sides of a collision; nothing
-   downstream reads it, because `parse` throws it away with the other merge
-   bookkeeping. Appending `(from sets/alpha.json)` to a validator warning is the
-   use it was built for.

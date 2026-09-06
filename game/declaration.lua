@@ -721,22 +721,29 @@ function M.read(filename, pp)
 	-- Included first, so the game's own definitions are the ones that collide
 	-- with it and the message names the game's file second.
 	local system = filename ~= SYSTEM and source(SYSTEM) and SYSTEM or nil
-	if not system and (type(top.include) ~= "table" or #top.include == 0) then return top, pp end
+	if not system and (type(top.include) ~= "table" or #top.include == 0) then return top, pp, {} end
 
 	local order, seen = {}, {}
 	if system then collect(system, seen, { order = {} }, order, pp) end
 	collect(filename, seen, { order = {} }, order, pp)
 	local out = { from = {}, at = {} }
 	for _, entry in ipairs(order) do fold(out, entry, entry, pp) end
+	-- Kept, minus everything the author wrote themselves: a message naming the
+	-- file they asked for tells them nothing, and one naming a file they never
+	-- opened is the whole point of saying it.
+	local came_from = {}
+	for k, f in pairs(out.from) do
+		if f ~= filename then came_from[k] = f end
+	end
 	out.from, out.at = nil, nil
 	-- The top file names the game, whatever the ones under it call themselves.
 	out.title, out.seed = top.title, top.seed
-	return out, pp
+	return out, pp, came_from
 end
 
 function M.parse(filename)
 	local include_problems = {}
-	local parsed = M.read(filename, include_problems)
+	local parsed, _, came_from = M.read(filename, include_problems)
 
 	local G = {
 		title          = parsed.title or "Ravel",
@@ -780,6 +787,10 @@ function M.parse(filename)
 		compute_defs   = {},
 		compute_list   = {},       -- ordered array of compute keys, for the validator
 		parse_problems = {},
+		-- "cards.sys_log" -> "system.json", for the entries this file did not
+		-- write. Every game is a merge now, so a complaint about a card is a
+		-- complaint about a file the author may never have opened.
+		came_from      = came_from,
 	}
 	local pp = G.parse_problems
 	for _, p in ipairs(include_problems) do pp[#pp + 1] = p end

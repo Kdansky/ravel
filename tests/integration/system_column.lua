@@ -86,4 +86,13 @@ function M.test_system_a_game_may_not_reach_into_the_column(check)
 	check("a zone past x 1.0 is refused", found, table.concat(problems, "; "))
 end
 
+-- The column is in every game and written by none of them, so a complaint about
+-- one of its cards is the case provenance exists for.
+function M.test_system_the_column_is_traceable_to_the_file_that_wrote_it(check)
+	local G = declaration.parse("chess.json")
+	check("a system card knows where it came from", G.came_from["cards.sys_log"] == "system.json")
+	check("and so does its zone", G.came_from["zones.menu"] == "system.json")
+	check("while the game's own cards say nothing", G.came_from["cards.wp"] == nil)
+end
+
 return M

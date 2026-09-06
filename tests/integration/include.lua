@@ -207,4 +207,28 @@ function M.test_include_sends_the_merged_game_not_the_file(check)
 	end)
 end
 
+-- A complaint about a file the author never opened has to say so. The merge
+-- already knew which file wrote each key — it names both sides of a collision —
+-- and threw it away one line after the last use.
+function M.test_include_a_warning_names_the_file_the_entry_came_from(check)
+	with({ ["tmp_inc_base.json"] = BASE:gsub('{ "key": "alpha", "text": "Alpha" }',
+			'{ "key": "alpha", "text": "Alpha", "play": { "do": ["x"] } }'),
+		["tmp_inc_mod.json"] = [==[{
+		"title": "Module",
+		"include": ["tmp_inc_base.json"],
+		"cards": [{ "key": "gamma", "text": "Gamma", "play": { "do": ["x"] } }]
+	}]==] }, function()
+		local G = declaration.parse("tmp_inc_mod.json")
+		check("the merge remembers whose card it is",
+			G.came_from["cards.alpha"] == "tmp_inc_base.json", G.came_from["cards.alpha"])
+		local said = table.concat(require("validate").check(G), "; ")
+		check("and the warning about it says which file",
+			said:find("card 'alpha' (from tmp_inc_base.json)", 1, true), said)
+		-- The author knows what is in the file they asked for, so saying its
+		-- name back to them is noise on every line of a game with no include.
+		check("while the file you asked for is not named back at you",
+			said:find("card 'gamma' play:", 1, true) and not said:find("gamma' (from", 1, true), said)
+	end)
+end
+
 return M
