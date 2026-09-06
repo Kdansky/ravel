@@ -272,8 +272,7 @@
       },
       "next": [
         {
-          "when": "the condition deciding whether this route is taken, written as one string \u2014 \"count:king@taken >= 1\". One comparison, a subject on the left and a number or another subject on the right. See _conditions.",
-          "zone_empty": ["zone keys that must all be empty for this route to be taken"],
+          "when": "the condition deciding whether this route is taken \u2014 \"count:king@taken >= 1\", or a list of them all of which must hold. One comparison per string, a subject on the left and a number or another subject on the right. See _conditions.",
           "then": "phase key to go to. An entry with no condition always matches, and the first match wins.",
           "ends_round": "true ticks the round here: the counter rises, exhausted cards ready, and every card's turn action runs. Nothing else does this, and it is never inferred from list position.",
     "seat": "next or same, overruling the phase's own seat for this transition. It exists for the phase that leads back to itself, which different games ask opposite things of: a turn that carries on until the player is done says same, a draft passing round the table says next. Without it each of those needed two phase keys, the second a copy of the first with one word missing."
@@ -286,8 +285,7 @@
   ],
   "end_conditions": [
     {
-      "when": "the condition deciding whether the game is over, written as one string \u2014 \"nexus@south_side <= 0\". See _conditions.",
-      "zone_empty": ["zone keys that must all be empty"],
+      "when": "the condition deciding whether the game is over \u2014 \"nexus@south_side <= 0\", or a list of them all of which must hold. An empty pile is \"count@deck == 0\". See _conditions.",
       "then": ["action strings run when it fires, usually push_phase to an ending overlay"],
       "fired": "engine bookkeeping: each condition fires once per game, first match wins, and open overlays are waited for"
     }
@@ -365,7 +363,7 @@
     }
   },
   "_conditions": {
-    "_what": "One vocabulary, used by every needs (a card's, a challenge's, a zone's receive), accepts, a phase's next entries and end_conditions. A subject is a stat key, count:<tag>, card:<key>, sum:<subject>, max:<subject> or min:<subject>, optionally carrying a scope after an @.",
+    "_what": "One vocabulary, used by every needs (a card's, a challenge's, a zone's receive), accepts, a phase's next entries and end_conditions. A subject is a stat key, count:<tag>, card:<key>, sum:<subject>, max:<subject> or min:<subject>, optionally carrying a scope after an @. Bare count is the exception that needs one: count@<scope> is everything lying there whatever it is, which is how \"the deck is empty\" is asked \u2014 a tag names a kind and empty is about none of them.",
     "_yes_no": "tagged:<tag> and not_tagged:<tag> answer a yes/no about a scope and are written on their own, with no comparison: \"tagged:pawn@behind\" is \"there is a pawn there\". Comparing one to a number is an error rather than a second spelling \u2014 a question has no arithmetic in it, and polarity lives in the word, which is why the pair exists. Prefer them to counting to one; count: is for when the number is the point. An empty scope has nothing tagged, so it answers no to the first and yes to the second. The four written this way are tagged:, not_tagged:, saved: and not_self.",
     "_not_self": "not_self@<scope> asks whether nothing in that scope is the card doing the asking. Written on its own, with no comparison. It takes no argument, unlike every other measuring fn: what it compares against is the card whose condition this is. \"a different Fire card in your hand\" is a target where of [\"not_self@target\"], and nothing else in the vocabulary can say it \u2014 every other question is about a property, and which one you are is not one. With no card asking, every candidate is somebody else and the answer is yes.",
     "_saved": "saved:<slot> is the same yes/no shape asked of the machine rather than of any card: 1 when that save slot holds a game, 0 when it does not — which is how a menu offers Continue only when there is something to continue. A build with no save layer in it answers 0, which is true there.",

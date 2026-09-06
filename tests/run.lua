@@ -1119,14 +1119,12 @@ check("a non-number at_most fails closed instead of crashing",
 	predicate.met({ stat = "hp", at_most = {} }) == false)
 check("a non-number bound fails closed instead of crashing",
 	predicate.met({ when = "hp == zero" }) == false)
-check("a condition with no when/zone_empty is just false",
+check("a condition with no when is just false",
 	predicate.met({}) == false)
-check("a zone_empty that isn't a list fails closed",
-	predicate.met({ zone_empty = "hand" }) == false)
 check("meets_all with a non-number requirement fails closed",
 	predicate.meets_all({ "hp >= plenty" }) == false)
-check("meets_all tolerates a non-table argument",
-	predicate.meets_all("garbage") == true)
+check("meets_all reads a bare string as the one condition it is, not as no conditions",
+	predicate.meets_all("garbage") == false and predicate.meets_all({}) == true)
 check("total tolerates a non-string subject",
 	predicate.total(42) == 0 and predicate.total(nil) == 0)
 

@@ -52,9 +52,12 @@ local FNS    = { count = true, card = true, sum = true, max = true, min = true,
 -- sentence, and `>= 1` after it was the grammar's tax, not the author's meaning.
 -- Kept as a set because the validator refuses the taxed spelling by name.
 local YESNO  = { tagged = true, not_tagged = true, saved = true, not_self = true }
--- The fns written bare, with no ":<something>" in front of the "@". Kept apart
--- from FNS so that "count@hand" is still the typo it always was.
-local NULLARY = { not_self = true }
+-- The fns written bare, with no ":<something>" in front of the "@". "count@road"
+-- is how many cards are lying there whatever they are, which is the one question
+-- the tag vocabulary could not ask: a tag names a kind, and "is this pile empty"
+-- is about none of them. It used to have its own field on a route and on an end
+-- condition ("zone_empty") because of it.
+local NULLARY = { not_self = true, count = true }
 local QUANTS = { any = true, each = true, random = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
 
@@ -447,6 +450,9 @@ function M.total(subject, ctx)
 
 	local ents = M.entities_in_scope(p.scope, ctx, p.owner)
 	if p.fn == "count" then
+		-- No tag named: everything there. "count@road == 0" is an empty road, and
+		-- "count:creature@road == 0" is a road with no creatures on it.
+		if p.arg == nil then return #ents end
 		local n = 0
 		for _, e in ipairs(ents) do if tags.entity_has(e, p.arg) then n = n + 1 end end
 		return n
@@ -693,26 +699,20 @@ function M.holds(c, ctx)
 	return l ~= nil and COMPARE[c.op](l, r)
 end
 
--- A routing entry or an end condition: { "when": "hp == 0" }, or
--- { "zone_empty": ["road", "hand"] } (all listed zones empty), which is the one
--- question the comparison grammar cannot ask — no subject counts a zone's cards
--- regardless of what they are.
+-- A routing entry or an end condition: { "when": "hp == 0" }. It used to carry
+-- a zone_empty beside the when, for the one question the comparison grammar
+-- could not ask; "count@road == 0" asks it now, so there is one field again.
 function M.met(cond, ctx)
 	if type(cond) == "string" then return M.holds(cond, ctx) end
-	if type(cond) ~= "table" then return false end
-	if cond.when ~= nil then return M.holds(cond.when, ctx) end
-	if type(cond.zone_empty) ~= "table" then return false end
-	for _, zk in ipairs(cond.zone_empty) do
-		local z = type(zk) == "string" and zones.find(zk)
-		if not z or #z.cards > 0 then return false end
-	end
-	return true
+	return type(cond) == "table" and cond.when ~= nil and M.meets_all(cond.when, ctx)
 end
 
--- Every condition in the list holds. A list rather than a map keyed by subject,
--- because such a map cannot hold one subject twice — "gold >= 3" with
--- "gold <= 8" is a range, which is an ordinary thing to want.
+-- Every condition holds. A list rather than a map keyed by subject, because such
+-- a map cannot hold one subject twice — "gold >= 3" with "gold <= 8" is a range,
+-- which is an ordinary thing to want. One condition may be written on its own,
+-- as a phase's zone and a card's emits are, since most gates are one sentence.
 function M.meets_all(list, ctx)
+	if type(list) == "string" then return M.holds(list, ctx) end
 	if type(list) ~= "table" then return true end
 	for _, s in ipairs(list) do
 		if not M.holds(s, ctx) then return false end

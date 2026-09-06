@@ -253,14 +253,13 @@ local FILL_WORDS      = { empty = true, enemy = true, open = true, any = true }
 -- A routing entry and an end condition ask the same question and do different
 -- things with the answer, which is the whole of what still separates them: one
 -- may end the round, the other remembers having fired.
-local ROUTE_FIELDS    = { when = true, zone_empty = true, ["then"] = true, ends_round = true,
-	seat = true }
+local ROUTE_FIELDS    = { when = true, ["then"] = true, ends_round = true, seat = true }
 -- What a route may say about whose turn it becomes, overruling the phase's own.
 -- Two words rather than a boolean, because "same" is a decision a game makes and
 -- not the absence of one — a phase leading back to itself is asked for opposite
 -- answers by Splendor and by The Crew.
 local ROUTE_SEATS     = { next = true, same = true }
-local END_FIELDS      = { when = true, zone_empty = true, ["then"] = true, fired = true }
+local END_FIELDS      = { when = true, ["then"] = true, fired = true }
 local COMPUTED_FIELDS = { stat = true, injected = true, less_than = true, less_than_stat = true,
 	at_least = true, equals = true, less_than_max = true, any_of = true, all_of = true }
 -- The assets table: named pictures, and the only place a picture carries
@@ -684,6 +683,13 @@ function M.check(G)
 				warn("%s: '%s' is not a save slot — letters, digits, - and _, and the engine decides where it lands",
 					where, tostring(p.arg))
 			end
+		elseif p.fn == "count" and p.arg == nil then
+			-- Bare "count" is everything in a scope, so the scope is the whole of
+			-- the question. Without one it reads as a stat somebody called count,
+			-- and "every card in play of any kind" is not a number a rule wants.
+			if not p.scope then
+				warn("%s: bare 'count' needs a scope to count, like \"count@road\"", where)
+			end
 		elseif p.fn == "count" or p.fn == "tagged" or p.fn == "not_tagged" then
 			if not known_tags[p.arg] then
 				warn("%s: %s the tag '%s', but no card has it%s", where,
@@ -775,6 +781,9 @@ function M.check(G)
 	-- object. Both are gone; this is what says so to a file that still has one.
 	local function check_conditions(where, list, bound)
 		if list == nil then return end
+		-- One on its own, which is what a route and an end condition write: the
+		-- same idiom a phase's "zone" and a card's "emits" already use.
+		if type(list) == "string" then return condition_ok(where, list, bound) end
 		if type(list) ~= "table" then
 			warn('%s: should be a list of conditions like ["gold >= 3"]', where)
 			return
@@ -858,20 +867,15 @@ function M.check(G)
 				.. 'write { "when": "%s >= 1" }', where, tostring(cond.stat))
 			return true
 		end
-		if cond.when ~= nil then
-			condition_ok(where, cond.when)
-			return
-		end
 		if cond.zone_empty ~= nil then
-			if type(cond.zone_empty) ~= "table" then
-				warn('%s: zone_empty should be a list of zones like ["road", "hand"]', where)
-				return
-			end
-			for _, zk in ipairs(cond.zone_empty) do
-				if not G.zone_defs[zk] then
-					warn("%s: watches zone '%s', but no zone has that key%s", where, zk, suggest(zk, G.zone_defs))
-				end
-			end
+			warn('%s: zone_empty is gone — the subject grammar counts a zone now, so'
+				.. ' write { "when": "count@%s == 0" }', where,
+				type(cond.zone_empty) == "table" and tostring(cond.zone_empty[1]) or "<zone>")
+			return true
+		end
+		if cond.when ~= nil then
+			check_conditions(where, cond.when)
+			return
 		end
 	end
 
@@ -2691,7 +2695,7 @@ function M.check(G)
 				if pd.type == "automatic" then
 					local fallback = false
 					for _, r in ipairs(pd.next) do
-						if r.zone_empty == nil and r.when == nil then fallback = true end
+						if r.when == nil then fallback = true end
 					end
 					if not fallback then
 						warn("%s: is automatic but every route has a condition — when none matches, the game stalls", where)
@@ -2716,7 +2720,7 @@ function M.check(G)
 							.. ' seat, "same" keeps the one that is up%s',
 							rwhere, tostring(r.seat), suggest(r.seat, ROUTE_SEATS))
 					end
-					if r.zone_empty == nil and r.when == nil then
+					if r.when == nil then
 						saw_unconditional = true
 					end
 				end
@@ -2847,7 +2851,7 @@ function M.check(G)
 	local function auto_successor(pd)
 		if pd.next then
 			for _, r in ipairs(type(pd.next) == "table" and pd.next or {}) do
-				if r.zone_empty == nil then return r["then"] end
+				if r.when == nil then return r["then"] end
 			end
 			return nil
 		end

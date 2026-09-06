@@ -240,7 +240,7 @@ rulebook open alongside.
 7. **Costs and prerequisites**: what is spent is `cost`; what merely has to be
    true is `needs`.
 8. **End of game**: a condition on a stat goes in `end_conditions`; "when the
-   deck runs out" is a route — `{ "zone_empty": ["deck"], "then": "scoring" }`
+   deck runs out" is a route — `{ "when": "count@deck == 0", "then": "scoring" }`
    on the last phase of the turn.
 9. **Scoring** is a phase whose `pass_card` list is one card per scoring rule,
    each gated by `needs` so it only appears when it applies, each ending in
@@ -267,7 +267,7 @@ rulebook open alongside.
 | "Destroy all enemy creatures" | `destroy:each.enemy.creature` |
 | "Choose an enemy creature" | `"target": { "tags": ["creature"], "owner": "enemy", "count": 1 }` |
 | "Roll / draw randomly" | `shuffle` then `reveal_top:<zone>` |
-| "The game ends when the deck is empty" | a route on `{ "zone_empty": ["deck"] }` |
+| "The game ends when the deck is empty" | a route on `{ "when": "count@deck == 0" }` |
 | "Score 3 points per set" | a scoring card: `stat_gain:score:3:x:count:<tag>` |
 | "(sum − 20) × multiplier" | two actions: `stat_gain:score:sum:…:x:…` then `stat_damage:score:20:x:…` |
 | "Whoever has more points wins" | a route: `{ "when": "score@north_side >= score@south_side" }` |
@@ -627,11 +627,12 @@ without slot targeting takes the first free cell.
 
 ### Ending
 
-**When a pile runs out.** The one question the comparison grammar cannot ask
-keeps a word of its own:
+**When a pile runs out.** `count@<zone>` is how many cards are lying there,
+whatever they are — the question a tag cannot ask, since a tag names a kind and
+"empty" is about none of them:
 
 ```json
-"end_conditions": [{ "zone_empty": ["deck", "hand"], "then": ["push_phase:victory"] }]
+"end_conditions": [{ "when": ["count@deck == 0", "count@hand == 0"], "then": ["push_phase:victory"] }]
 ```
 
 **With a screen rather than a jump to the menu.** An ending is an overlay
@@ -1487,6 +1488,11 @@ zone's. Subjects: a stat key,
 `count:<tag>` (cards **in play** with that tag), or `card:<key>` (instances of
 that specific template in play — "does the player have the rusty key?").
 
+`count` with no tag is everything in a scope, whatever it is: `"count@deck == 0"`
+is an empty deck. It needs the scope, because a tag names a *kind* and "empty"
+is about none of them — which is the question a route and an end condition used
+to need a `zone_empty` field for.
+
 `saved:<slot>` is the same yes/no shape asked of the machine rather than of any
 card: 1 when that save slot holds a game and 0 when it does not, which is how a
 menu offers *Continue* only when there is something to continue.
@@ -1504,9 +1510,9 @@ two abilities.
   of which must hold: `["might >= 8", "count:farm >= 3"]`. A list rather than a
   map keyed by its subject, because such a map cannot name one subject twice,
   and `["gold >= 3", "gold <= 8"]` is a range.
-- A routing entry and an `end_condition` take exactly one, under `when`:
-  `{ "when": "progress >= 12", "then": "trial" }`. `{ "zone_empty": ["road", "hand"] }`
-  is the one question the comparison grammar cannot ask, and it stays.
+- A routing entry and an `end_condition` say the same thing under `when`, and
+  one condition may be written on its own: `{ "when": "progress >= 12", "then":
+  "trial" }`, or `{ "when": ["count@road == 0", "count@hand == 0"] }`.
 - A **cost** is not a condition and keeps its map: `{ "gold": 2 }` is what gets
   *spent*, where `"gold >= 2"` would only say what to check.
 

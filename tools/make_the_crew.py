@@ -364,10 +364,10 @@ def phases():
         # rule about who starts.
         {"key": "draft", "type": "player_input", "zone": "task_offer", "ends_after": 1,
          "label": "Commander: take a task",
-         "next": [{"zone_empty": ["task_offer"], "then": "first_lead"}, {"then": "draft_on"}]},
+         "next": [{"when": "count@task_offer == 0", "then": "first_lead"}, {"then": "draft_on"}]},
         {"key": "draft_on", "type": "player_input", "seat": "next", "zone": "task_offer",
          "ends_after": 1, "label": "Take a task",
-         "next": [{"zone_empty": ["task_offer"], "then": "first_lead"}, {"then": "draft_on"}]},
+         "next": [{"when": "count@task_offer == 0", "then": "first_lead"}, {"then": "draft_on"}]},
         {"key": "first_lead", "type": "automatic", "actions": ["set_active_seat:commander"],
          "next": [{"then": "lead"}]},
         {"key": "lead", "type": "player_input", "zone": ["hand", "open"],

@@ -320,7 +320,7 @@ def phases():
         {"key": "draw", "type": "player_input", "zone": "choice",
          "label": "Draw from the deck, or take the top of a discard",
          "tags": ["discard_hand"],
-         "next": [{"zone_empty": ["deck"], "then": "tally"}, {"then": "play"}]},
+         "next": [{"when": "count@deck == 0", "then": "tally"}, {"then": "play"}]},
         # One tally phase, entered once per seat. It counts itself: each seat
         # marks its own card as it finishes, and the sum across both is how the
         # routing knows the second one is done.
