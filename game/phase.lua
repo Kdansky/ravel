@@ -204,7 +204,7 @@ function M.next()
 
 	if cur.next then
 		for _, r in ipairs(cur.next) do
-			local unconditional = r.stat == nil and r.zone_empty == nil and r.when == nil
+			local unconditional = r.zone_empty == nil and r.when == nil
 			if unconditional or predicate.met(r) then
 				local pd = G.phase_by_key[r["then"]]
 				if pd then

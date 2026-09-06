@@ -319,7 +319,7 @@ local CASES = {
 	{ "contents beyond the board's capacity", "only has 5 slots",
 		function(g) g.zone_defs.board.contents = { "pearl:9" } end },
 	{ "an automatic phase that can stall", "when none matches, the game stalls",
-		function(g) g.phase_by_key.intro.next = { { stat = "hp", at_least = 99, ["then"] = "story" } } end },
+		function(g) g.phase_by_key.intro.next = { { when = "hp >= 99", ["then"] = "story" } } end },
 	{ "half of the reveal pair replaced", "define both or neither",
 		function(g) g.zone_defs.reveal.injected = nil end },
 	{ "an uncarried tag near a carried one", "did you mean 'keepsake'",

@@ -2683,7 +2683,7 @@ function M.check(G)
 				if pd.type == "automatic" then
 					local fallback = false
 					for _, r in ipairs(pd.next) do
-						if r.stat == nil and r.zone_empty == nil and r.when == nil then fallback = true end
+						if r.zone_empty == nil and r.when == nil then fallback = true end
 					end
 					if not fallback then
 						warn("%s: is automatic but every route has a condition — when none matches, the game stalls", where)
@@ -2708,7 +2708,7 @@ function M.check(G)
 							.. ' seat, "same" keeps the one that is up%s',
 							rwhere, tostring(r.seat), suggest(r.seat, ROUTE_SEATS))
 					end
-					if r.stat == nil and r.zone_empty == nil and r.when == nil then
+					if r.zone_empty == nil and r.when == nil then
 						saw_unconditional = true
 					end
 				end
@@ -2839,7 +2839,7 @@ function M.check(G)
 	local function auto_successor(pd)
 		if pd.next then
 			for _, r in ipairs(type(pd.next) == "table" and pd.next or {}) do
-				if r.stat == nil and r.zone_empty == nil then return r["then"] end
+				if r.zone_empty == nil then return r["then"] end
 			end
 			return nil
 		end
