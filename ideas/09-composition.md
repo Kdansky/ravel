@@ -64,14 +64,11 @@ Two consequences that fell out rather than being chosen:
 
    **Spellstorm is the candidate.** Two seats, 26 zones of which 6 are
    `copies: "per_seat"` (`wizard`, `hand`, `deck`, `discard`, `commit`,
-   `battle`), and ten of its 25 phases are written as `_1`/`_2` pairs — `pick`,
-   `play`, `ult`, `resolve`, `gain`. So the module is: `replaces: ["players"]`
-   plus a third seat card, those six zones with a third rect, and *five more
-   phases*. The phases are the whole difficulty and they are somebody else's
-   problem — [32](32-a-third-player.md)'s `seat: "all"` is what collapses a
-   `_1`/`_2` pair into one phase, and until it exists a three-seat module has to
-   write `_3` by hand. **So do `seat: "all"` first, or the module proves the
-   include and buries the reader in phases.**
+   `battle`). So the module is `replaces: ["players"]`, a third seat card, and a
+   third rect for those six zones. **The phases, which were the whole
+   difficulty, cost nothing now**: [32](32-a-third-player.md)'s `type: "turn"`
+   collapsed all five `_1`/`_2` pairs, so a third seat adds no phase at all and
+   the module is layout and a seat count.
 
    Worth noting for the shape of it: `spellstorm.json` is generated
    (`tools/make_spellstorm.py`), and the module including it would be
@@ -87,7 +84,8 @@ Two consequences that fell out rather than being chosen:
    rest is a module or a different game is unexamined, and a variant that
    validates but plays wrong is worse than none.]**
 2. **Provenance in validator messages.** `card 'lightning_bolt': ...` stops being
-   enough when the card came from a file you did not open. The merge already
+   enough when the card came from a file you did not open — which is now every
+   game, since `system.json` is merged into all seventeen. The merge already
    keeps a key → source-file map to name both sides of a collision; nothing
    downstream reads it, because `parse` throws it away with the other merge
    bookkeeping. Appending `(from sets/alpha.json)` to a validator warning is the
