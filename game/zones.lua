@@ -864,15 +864,22 @@ local function keep_ratio(z)
 	p.w, p.h = w, h + head
 end
 
+-- The board is the 0-1 square a game file writes in, and the engine's own column
+-- sits to the right of it: x 1.0 is where the game ends, and the window is this
+-- much wider than the game. A game keeps the whole of its own space, so nothing
+-- any of the seventeen files says about where anything goes had to change.
+M.MENU_W = 0.10
+
 -- Recompute pixel rects for all zones and their slots.
 function M.resize()
 	local W, H = love.graphics.getDimensions()
+	local board = W / (1 + M.MENU_W)
 	for z in entity.each("zone") do
 		local p = z.pos
 		z.place = {
-			x = p[1] * W,
+			x = p[1] * board,
 			y = p[2] * H,
-			w = (p[3] - p[1]) * W,
+			w = (p[3] - p[1]) * board,
 			h = (p[4] - p[2]) * H,
 		}
 		keep_ratio(z)

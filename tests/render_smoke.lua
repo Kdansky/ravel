@@ -282,6 +282,10 @@ do
 	local board = zones.find("board")
 	assert(board.style.hide.cell_outline, "chess.json is expected to style its board bare")
 
+	-- A frame to settle on first: cards deal themselves in with a flight, and one
+	-- still in the air draws differently from one that has landed. The count is
+	-- only a difference of two frames if both are the board at rest.
+	drawn()
 	local bare = drawn()
 	board.style.hide.cell_outline = nil
 	local lined = drawn()

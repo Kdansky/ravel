@@ -13,6 +13,11 @@ if not ok then
 	os.exit(1)
 end
 
+if #(G.phase_list or {}) == 0 then
+	print(file .. ": no phases, so this is a module rather than a game — it is checked "
+		.. "in the games that include it. What follows is what it would mean on its own.")
+end
+
 local problems = validate.check(G)
 for _, p in ipairs(problems) do print("  " .. p) end
 if #problems == 0 then

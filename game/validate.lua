@@ -71,6 +71,7 @@ M.ENGINE_TAGS = {
 	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
 	refill_when_empty = { on = "zone", what = "recreates its contents when the last card leaves" },
 	optional          = { on = "zone", what = "nothing here ever has to be played, so a gated card stays gated" },
+	event_log         = { on = "card", what = "this card is the event log: pointing at it shows what has happened, and clicking it says how much of it to show. The engine's own system column carries one" },
 	last_acted        = { on = "card", what = "the card a player most recently played or activated. Written by the engine, one at a time, and it lingers until the next thing a player does" },
 	-- phases
 	discard_hand = { on = "phase", what = "leaving it discards the unplayed hand; tokens vanish" },
@@ -2484,10 +2485,19 @@ function M.check(G)
 		else
 			check_numbers(where, "pos", def.pos, 4)
 		end
+		-- x 1.0 is where the board ends and the engine's own column begins. A
+		-- game keeps the whole of its own space and may not reach past it, and
+		-- the two checks below are about the board rather than the window, so
+		-- both stop there.
+		if type(def.pos) == "table" and #def.pos == 4
+			and type(def.pos[3]) == "number" and def.pos[3] > 1.0 and key ~= "menu" then
+			warn("%s: reaches past x 1.0, which is where the board ends and the engine's system column "
+				.. "begins — a game has the whole of 0 to 1 and nothing outside it", where)
+		end
 		-- The lower-right corner belongs to the undo button and event log.
 		if type(def.pos) == "table" and #def.pos == 4
 			and type(def.pos[3]) == "number" and type(def.pos[4]) == "number"
-			and def.display ~= "offscreen"
+			and def.display ~= "offscreen" and def.pos[3] <= 1.0
 			and def.pos[3] > 0.83 and def.pos[4] > 0.82 then
 			warn("%s: covers the lower-right corner where the undo button and event log live — end it at x 0.81 or lower", where)
 		end

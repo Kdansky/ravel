@@ -1,0 +1,37 @@
+{
+  "title": "System",
+  "comment": "The engine's own column, merged into every game. It is a module and not a game: no players, no phases, nothing that would collide with the file including it. Its zone sits at x 1.0, which is where the board ends — a game keeps the whole of its own 0-1 space and the window is drawn a little wider than the game.",
+  "zones": [
+    {
+      "key": "menu",
+      "layout": "row",
+      "pos": [1.01, 0.02, 1.09, 0.98],
+      "contents": ["sys_save", "sys_menu", "sys_log"]
+    }
+  ],
+  "cards": [
+    {
+      "key": "sys_save",
+      "text": "Save",
+      "asset": "circle:slate",
+      "tags": ["immutable"],
+      "tooltip": "Keep this position. *Continue*, on the title screen, picks it up again. There is one save, so saving writes over the last one.",
+      "play": { "action": ["save_game:quick"] }
+    },
+    {
+      "key": "sys_menu",
+      "text": "Menu",
+      "asset": "square:slate",
+      "tags": ["immutable"],
+      "tooltip": "Back to the title screen. Save first if you want this game back.",
+      "play": { "action": ["load_game:menu.json"] }
+    },
+    {
+      "key": "sys_log",
+      "text": "Log",
+      "asset": "triangle:slate",
+      "tags": ["immutable", "event_log"],
+      "tooltip": "Everything that has happened, most recent last."
+    }
+  ]
+}

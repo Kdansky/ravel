@@ -49,13 +49,14 @@ function M.test_layout_the_slack_is_centred(check)
 	local p = z.pos
 	at(1600, 900, function()
 		zones.resize()
+		local bw = 1600 / (1 + zones.MENU_W)
 		local r = z.place
-		local left = r.x - p[1] * 1600
-		local right = (p[3] * 1600) - (r.x + r.w)
+		local left = r.x - p[1] * bw
+		local right = (p[3] * bw) - (r.x + r.w)
 		check("equal slack on both sides", math.abs(left - right) < 0.01,
 			("left %.2f right %.2f"):format(left, right))
 		check("and it never grows past what pos allotted",
-			r.w <= (p[3] - p[1]) * 1600 + 0.01 and r.h <= (p[4] - p[2]) * 900 + 0.01)
+			r.w <= (p[3] - p[1]) * bw + 0.01 and r.h <= (p[4] - p[2]) * 900 + 0.01)
 	end)
 end
 
@@ -82,8 +83,9 @@ function M.test_layout_without_a_ratio_nothing_changes(check)
 		zones.resize()
 		local z = zones.find("hand")
 		local p = z.pos
-		check("the rect is still pos times the window",
-			math.abs(z.place.w - (p[3] - p[1]) * 1600) < 0.01
+		local bw = 1600 / (1 + zones.MENU_W)
+		check("the rect is still pos times the board",
+			math.abs(z.place.w - (p[3] - p[1]) * bw) < 0.01
 			and math.abs(z.place.h - (p[4] - p[2]) * 900) < 0.01)
 	end)
 end

@@ -53,7 +53,7 @@ says anything twice. These are its headings, grouped by the question each one
 answers; a test holds this list to them, so a section that exists is listed here
 and a line here names a section that exists:
 
-- **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
+- **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
@@ -956,7 +956,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `exile` is everything else and is the default. A `grid` is `board` and an `options` zone is `offer` without saying so. See *What counts as in play* |
 | `display` | `onscreen` (default) or `offscreen` — not drawn, and nothing in it clickable. For offers, fate decks and rules pages. Not the same as `secret`, which is a zone you can see and cannot read |
 | `copies` | `one` (default) or `per_seat` — one zone each, and `pos` then takes one rect per seat |
-| `pos` | `[x1, y1, x2, y2]` window fractions — optional; each layout has a default spot (an `offscreen` zone defaults off the edge, giving dealt cards their fly-in) |
+| `pos` | `[x1, y1, x2, y2]` fractions **of the board**, which is 0 to 1 in both directions — optional; each layout has a default spot (an `offscreen` zone defaults off the edge, giving dealt cards their fly-in). x 1.0 is where the board ends: past it is the engine's own column, and a zone reaching there is refused. See *The system column* |
 | `grid` | `[cols, rows]`. Legal only where `layout` is `grid` — **a value names its own parameter field**, and every word on every one of the seven is reserved against being a field name for anything else |
 | `row` | Which way a row fans, so every card in it can be read at once: `down` or `right`. Legal only where `layout` is `row`; left out, the cards sit side by side and do not overlap |
 | `contents` | Starting cards: `"key"` or `"key:count"` strings |
@@ -974,6 +974,35 @@ with every other reserved tag.
 Cards entering a grid without slot targeting auto-occupy the first free slot.
 A full board refuses new arrivals: moves fail quietly and `fill` stops
 early (the validator warns when starting `contents` already exceed capacity).
+
+### The system column
+
+**Every game is given one thing it did not write.** `games/system.json` is
+merged into every game file as it is read — *Save*, *Menu* and the event log, in
+a narrow strip down the right-hand side. Nothing in your file mentions it and
+nothing in the engine draws it: it is an ordinary module, included the way one
+game file includes another, so its buttons are cards in a zone and the
+inspector, the network, a save and undo all know about them already.
+
+**It sits outside the board.** A `pos` is a fraction of the board, the board is
+0 to 1, and the column lives from x 1.0 — so a game has the whole of its own
+space and none of the seventeen files had to move a zone to make room. The
+window is drawn a little wider than the game. A zone of yours reaching past 1.0
+is refused, and so is a second zone keyed `menu`: that key is the column's.
+
+**Its cards are not moves.** They work in any phase, including one no player is
+acting in — a player shut out of their own menu by an automatic phase would have
+nowhere to go — and nothing they do is gated, costed, undone or sent to the
+other seat. Saving is not a turn.
+
+**The log lives there**, on the card tagged `event_log`: pointing at it shows
+what has happened, clicking it says how much to show, and `L` does the same.
+There is no permanent readout on the board.
+
+**A game may take the column over** the way it takes over anything an included
+file defines — `"replaces": ["zones.menu"]` and its own `menu` zone — but the
+ordinary way to put a button of your own up there is to place a card into the
+zone that is already there.
 
 ### Players
 
@@ -3499,10 +3528,11 @@ become a drawing bug too.
 ### Every tag the engine reads
 
 Tags are your own vocabulary and an unknown one is never an error. These
-nineteen are the exceptions — the words the engine itself looks for:
+twenty are the exceptions — the words the engine itself looks for:
 
 | Tag | On | What it does |
 |---|---|---|
+| `event_log` | card | this card is the event log: pointing at it shows what has happened, and clicking it says how much of it to show. The engine's own system column carries one |
 | `generate_art` | card | with no asset, draws a shape derived from its key rather than a bare colour |
 | `immutable` | card | scenery: nothing may target it and its template can never be edited |
 | `no_undo` | card | playing or picking it clears the undo stack — the choice is final |

@@ -156,12 +156,15 @@ local function blocks(c, def)
 		end
 	end
 
-	-- A seat is where the corner log lives until it has a permanent home of its
-	-- own (a system zone, not built yet). The log is one and shared, so either
-	-- seat's tooltip shows the same tail — it is not a per-player record.
-	if declaration.G.seat_set and declaration.G.seat_set[c.def_key] then
-		local lines = log.tail(6)
-		if #lines > 0 then
+	-- The log has a home of its own now: the card in the system column that wears
+	-- "event_log". Reading it is pointing at it, and clicking it says how much
+	-- to show — so the board carries no permanent readout, and neither does a
+	-- seat, which was only ever standing in for this card.
+	if tags.entity_has(c, "event_log") then
+		local lines = log.lines()
+		if #lines == 0 then
+			add("prose", "Nothing has happened yet.")
+		else
 			add("rule")
 			for _, line in ipairs(lines) do add("prose", line) end
 		end

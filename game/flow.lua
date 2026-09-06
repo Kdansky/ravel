@@ -908,6 +908,24 @@ end
 --
 -- Both used to live inside flow.pick, which also meant a card's own actions were
 -- silently ignored unless the overlay declared "page".
+-- The system column is outside the game, so its cards are not moves: they run
+-- in any phase, including one no player is acting in, and they are not gated,
+-- costed, undone or sent. A player locked out of their own menu by an automatic
+-- phase would have nowhere to go. Answers whether the card was one of its own,
+-- so the caller can carry on if it was not.
+function M.use_system_card(card_id)
+	local c = entity.get(card_id)
+	local z = c and entity.get(c.zone_id)
+	if not (z and z.key == "menu") then return false end
+	if tags.entity_has(c, "event_log") then
+		log.set_view("next")
+	else
+		local def = cards.def(c)
+		if def and def.on_play then actions.run(def.on_play, { card_id = card_id }) end
+	end
+	return true
+end
+
 function M.play_card(card_id, targets)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)

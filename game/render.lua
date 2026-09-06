@@ -1513,46 +1513,11 @@ local function draw_undo_button()
 	love.graphics.pop()
 end
 
--- Corner event log; L toggles the expanded view. Undo shortens it live.
--- Bottom-right, beside the undo button it grows above — bottom-left is a
--- seat's own corner now, per zones.lua's seat-visibility check.
-local log_expanded = false
-
+-- The log lives on a card in the system column now, and a card's hover panel is
+-- where it is read — so there is nothing to draw here. L still changes how much
+-- of it is shown, which is the same thing clicking that card does.
 function M.toggle_log()
-	log_expanded = not log_expanded
-end
-
-local function draw_log()
-	local lines = log.tail(log_expanded and 24 or 3)
-	if #lines == 0 then return end
-	local sf = get_small_font()
-	local fh = sf:getHeight()
-	local W, H = love.graphics.getDimensions()
-	local w  = (log_expanded and 320 or 170) * S
-	local h  = #lines * (fh + 2 * S) + 8 * S
-
-	local bottom = 10 * S
-	local mf_h   = love.graphics.getFont():getHeight()
-	if targeting.active() then
-		bottom = bottom + mf_h + 14 * S
-	elseif can_undo then
-		bottom = bottom + mf_h + 18 * S
-	end
-	local x, y = W - w - 8 * S, H - bottom - h
-
-	love.graphics.push("all")
-	love.graphics.setFont(sf)
-	love.graphics.setColor(0, 0, 0, log_expanded and 0.88 or 0.65)
-	love.graphics.rectangle("fill", x, y, w, h, 3 * S, 3 * S)
-	for i, line in ipairs(lines) do
-		local a = log_expanded and 0.95 or (0.55 + 0.40 * (i / #lines))
-		love.graphics.setColor(0.75, 0.85, 1.00, a)
-		print_at(truncate(sf, line, w - 22 * S),
-			x + 4 * S, y + 4 * S + (i - 1) * (fh + 2 * S))
-	end
-	love.graphics.setColor(0.45, 0.60, 0.80, 0.75)
-	print_at("L", x + w - fh - 3 * S, y + 4 * S)
-	love.graphics.pop()
+	log.set_view("next")
 end
 
 -- A mid-flight card: drawn at its interpolated rect, tilted into its motion.
@@ -1859,7 +1824,6 @@ function M.draw()
 	draw_targeting_arrow()
 	draw_react_hint()
 	draw_targeting_hint()
-	draw_log()
 	draw_undo_button()
 	draw_detail_overlay()
 end

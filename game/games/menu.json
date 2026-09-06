@@ -26,7 +26,7 @@
       "contents": ["play_demo", "play_castle", "play_kingdom", "play_tower", "play_road", "play_vigil"]
     },
     {
-      "key": "menu",
+      "key": "start",
       "layout": "row",
       "tags": ["optional"],
       "pos": [0.36, 0.83, 0.64, 0.99],

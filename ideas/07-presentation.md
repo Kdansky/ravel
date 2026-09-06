@@ -4,51 +4,39 @@
 Puzzle Strike.** Every item is something a player sees or does, not something the
 engine computes.
 
-## Still open — where a game puts its buttons
+## Shipped — where a game puts its buttons
 
-*From `todo.md`: "The save button in chess is not great, it should just be in the
-same area as the how to play button. We need a more elegant way to have menus,
-possibly most games should just reserve a right-hand column for menu-stuff."*
+**A column, and it is a game file.** `games/system.json` is merged into every
+game as it is read: *Save*, *Menu* and the event log in a strip down the right.
+The whole of it is in `AUTHORING.md`'s *The system column*.
 
-The immediate half was a content fix and is **done**: chess's *Save* and *How to
-play* sat at opposite ends of the board and are now a narrow stacked strip at
-`x` 0.82–0.92. The validator caught the first attempt overlapping the
-captured-pieces pile, which is a rule worth knowing exists — the lower-left
-corner belongs to the undo button and the event log, and a zone reaching into it
-is refused rather than drawn over.
+Three decisions are worth keeping:
 
-**The rest is untouched. Seven games have each invented their own chrome:**
+**Outside the board, not inside it.** The draft here weighed a named region
+against a menu layer and picked the region, because a layer "charges for it
+everywhere: `pos` fractions are of the *window*, so every existing game file's
+coordinates shift". That was the right worry and the wrong conclusion — the
+answer is to stop the fractions being of the window. A `pos` is a fraction of
+the **board**, the board is 0 to 1, and the column lives from x 1.0. Seventeen
+files, not one zone moved.
 
-| game | the chrome it invented |
-|---|---|
-| `chess.json` | `controls` hand left, `rules` pile right, both hand-placed |
-| `lor.json` | `controls` grid `[0.82, 0.32, 0.98, 0.68]`, per seat, between the decks |
-| `splendor.json` | buttons in the play area with the cards they act on |
-| `menu.json` | one hand zone that *is* the whole screen |
+**A module, not chrome.** The draft's own argument against a menu layer —
+"the moment the engine draws chrome that is not made of entities, the inspector
+cannot inspect it, the network does not carry it, and undo does not know about
+it" — is exactly why the column is a game file. It cost nothing to honour: the
+`include` machinery from [09](09-composition.md) already merged raw JSON before
+parse, so the strip arrives as ordinary zones and cards.
 
-Nothing is wrong with any of them individually. What is wrong is that an author
-must answer "where do the buttons go" before putting a button anywhere, and the
-answer is arithmetic rather than a word.
+**Its cards are not moves.** `flow.use_system_card` runs before the phase is
+consulted, because a player shut out of their own menu by an automatic phase has
+nowhere to go. Nothing there is gated, costed, undone or sent.
 
-**The cheap version is a named region**: a zone's `pos` takes a word instead of
-four fractions, out of a closed set (`"sidebar"`, and whatever the second
-customer asks for), resolved in `zones.resize` the way `ratio` already
-post-processes a rect. One branch in one function.
-
-**The expensive version is a menu layer** — chrome that is not a zone at all,
-drawn outside the board rect. That buys a right-hand column every game gets free
-and charges for it everywhere: `pos` fractions are of the *window*, so every
-existing game file's coordinates shift the moment something reserves part of it.
-
-**The cheap version first, and possibly only.** A word for a rect keeps the model
-— a button is a card in a zone — and the moment the engine draws chrome that is
-not made of entities, the inspector cannot inspect it, the network does not carry
-it, and undo does not know about it.
-
-*Not a settings screen*: `save_game:<slot>` is a card with an action and that is
-the right shape; the complaint is where the card sits. *Not a per-seat question*:
-LoR's controls are per seat because each seat passes and attacks, chess's *Save*
-is neither seat's, and a named region must keep working for both.
+What it cost to find: routing *every* game through the merge (rather than only
+files with an `include`) meant `fold` saw single files for the first time, and
+it silently swallowed two things the parser diagnoses better — a key written
+twice in one file read as an override, and a section written as an object
+instead of a list merged into an empty list. Both now pass through untouched. A
+merge that is on for everybody is held to a standard one that is opt-in is not.
 
 ## Shipped — a card that fills the zone it is in
 

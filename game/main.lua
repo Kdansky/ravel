@@ -30,6 +30,7 @@ local fx          = require("fx")
 local debugserver = require("debugserver")
 local validate    = require("validate")
 local log         = require("log")
+local tags        = require("tags")
 
 -- The offer that is open, if one is: the only hidden zone a click may reach.
 -- Mirrors what render draws for an overlay phase, and per_seat resolves to the
@@ -181,6 +182,10 @@ local function primary_action(x, y)
 		flow.pass_react()
 		return
 	end
+
+	-- Asked before the phase is, because the system column is not part of it.
+	local sys = card_at(x, y)
+	if sys and flow.use_system_card(sys) then return end
 
 	local cur = phase.current()
 	if not cur then return end

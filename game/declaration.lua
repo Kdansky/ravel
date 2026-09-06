@@ -560,6 +560,8 @@ end
 -- cannot be merged half-way, so two files writing it collide about the whole
 -- section. title and seed never travel: they say *this* game, arranged this
 -- way, and an included game has its own.
+local SYSTEM = "system.json"
+
 local KEYED_LISTS = { cards = true, zones = true, stats = true, phases = true, computes = true, verbs = true }
 local KEYED_MAPS  = { tags = true, patterns = true, assets = true, styles = true,
 	computed_tags = true, effects = true, setup = true }
@@ -616,6 +618,18 @@ local function replaced_by(entry)
 	return set
 end
 
+-- Is this section shaped the way the merge expects? A "cards" written as an
+-- object and a "tags" written as a list are both mistakes, and the parser
+-- diagnoses them in the author's own words — so a badly shaped section is
+-- handed over whole rather than merged into the wrong shape and silenced.
+local function shaped(v, as_list)
+	if type(v) ~= "table" then return false end
+	if next(v) == nil then return true end
+	local n = 0
+	for _ in pairs(v) do n = n + 1 end
+	return as_list == (#v == n)
+end
+
 -- Where each key came from, so a collision names two files rather than one.
 local function fold(out, from, entry, pp)
 	local said, taking = from.name, replaced_by(entry)
@@ -628,7 +642,9 @@ local function fold(out, from, entry, pp)
 	end
 	for section in pairs(KEYED_MAPS) do
 		local add = from.data[section]
-		if type(add) == "table" then
+		if from.data[section] ~= nil and not shaped(add, false) then
+			out[section], out.from[section] = add, said
+		elseif type(add) == "table" then
 			if taking.sections[section] then out[section] = nil end
 			out[section] = out[section] or {}
 			for k, v in pairs(add) do
@@ -642,14 +658,21 @@ local function fold(out, from, entry, pp)
 	end
 	for section in pairs(KEYED_LISTS) do
 		local add = from.data[section]
-		if type(add) == "table" then
+		if from.data[section] ~= nil and not shaped(add, true) then
+			out[section], out.from[section] = add, said
+		elseif type(add) == "table" then
 			if taking.sections[section] then out[section], out.at[section] = nil, nil end
 			out[section] = out[section] or {}
 			out.at[section] = out.at[section] or {}
+			-- Two entries of one key in *one* file is a duplicate, not an
+			-- override, and the parser says so in better words than an include
+			-- message could. Only a key another file already wrote is a collision.
+			local mine = {}
 			for _, v in ipairs(add) do
 				local k = type(v) == "table" and v.key
-				if type(k) ~= "string" then
+				if type(k) ~= "string" or mine[k] then
 					out[section][#out[section] + 1] = v
+					if type(k) == "string" then mine[k] = true end
 				elseif out.at[section][k] then
 					-- Replaced where it stood: position is file order, and file order
 					-- is what makes an unseeded setup deal the same cards twice.
@@ -661,6 +684,7 @@ local function fold(out, from, entry, pp)
 					out[section][#out[section] + 1] = v
 					out.at[section][k] = #out[section]
 					out.from[section .. "." .. k] = said
+					mine[k] = true
 				end
 			end
 		end
@@ -690,10 +714,18 @@ function M.read(filename, pp)
 	assert(data, "Cannot read game file: " .. filename)
 	local ok, top = pcall(json.decode, data)
 	assert(ok, "Bad JSON in " .. filename .. ": " .. tostring(top))
-	if type(top.include) ~= "table" or #top.include == 0 then return top, pp end
+	-- The engine's own column, merged into every game whether or not it asked.
+	-- It is a module rather than something drawn beside the board, so its
+	-- buttons are cards in a zone: the inspector reads them, the network carries
+	-- them, undo knows about them, and a game may take the zone over by name.
+	-- Included first, so the game's own definitions are the ones that collide
+	-- with it and the message names the game's file second.
+	local system = filename ~= SYSTEM and source(SYSTEM) and SYSTEM or nil
+	if not system and (type(top.include) ~= "table" or #top.include == 0) then return top, pp end
 
-	local order = {}
-	collect(filename, {}, { order = {} }, order, pp)
+	local order, seen = {}, {}
+	if system then collect(system, seen, { order = {} }, order, pp) end
+	collect(filename, seen, { order = {} }, order, pp)
 	local out = { from = {}, at = {} }
 	for _, entry in ipairs(order) do fold(out, entry, entry, pp) end
 	out.from, out.at = nil, nil
