@@ -1340,15 +1340,14 @@ def zones():
         # board puts your deck where your opponent's wizard is, which is only
         # right if you are actually sitting opposite each other.
         # A grid so it counts as in play: "who holds the Initiative Tracker" is
-        # asked of the seat cards as a computed tag, and a tag scope only
-        # reaches a board. Visible now too, in the one true gap in the board --
-        # between the void and the weather track -- since a seat must be
-        # somewhere a player can hover, not just something a tag scope can
-        # reach. One shared rect for both cells (a1/b1) rather than a per-seat
-        # pair like everything else here: this zone has no "your side" to be
-        # on, wizard already carries that, so there was no reason to split it.
-        {"key": "seats", "layout": "grid", "grid": [2, 1],
-         "pos": P(0.2, 0.42, 0.245, 0.6), "use": "abilities"},
+        # asked of the seat cards as a computed tag, and a tag scope only reaches
+        # a board. A copy each, beside that seat's own battle slot: the two used
+        # to share one pair of cells wedged between the void and the weather
+        # track, where they were too small to read and said nothing about whose
+        # was whose. A per_seat zone knows, and wears the seat's colour for it.
+        {"key": "seat_box", "layout": "grid", "grid": [1, 1], "copies": "per_seat",
+         "use": "abilities",
+         "pos": [P(0.600, 0.575, 0.730, 0.785), P(0.600, 0.215, 0.730, 0.425)]},
         {"key": "wizard", "label": "Wizard", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat", "use": "abilities",
          "pos": [P(0.005, 0.795, 0.135, 0.995), P(0.005, 0.005, 0.135, 0.205)]},
@@ -1364,7 +1363,7 @@ def zones():
         # "{owner}" is the seat this copy belongs to, read off the board.
         {"key": "hand", "label": "{owner}", "layout": "row", "visibility": "owner",
          "copies": "per_seat", "applies": ["in_hand"],
-         "pos": [P(0.145, 0.795, 0.550, 0.995), P(0.145, 0.005, 0.550, 0.205)]},
+         "pos": [P(0.275, 0.795, 0.550, 0.995), P(0.275, 0.005, 0.550, 0.205)]},
         # Whatever a wizard brings that nobody else has. Empty for seven of the
         # eight, and an empty row with no label draws nothing at all, so a board
         # that has to hold Oren's two potion buttons does not show a hole for
@@ -1394,60 +1393,60 @@ def zones():
          "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played."},
 
         # Shared.
+        # Its own column, full height, between the wizards and the hands. Five
+        # cards stacked in the middle band had 60 pixels of height each and could
+        # only be read by hovering them; the whole window gives them nearly
+        # double that, which is the difference between a market and a row of
+        # thumbnails. The weather took the column it left behind.
         {"key": "storm_cloud", "use": "abilities", "label": "Storm Cloud", "layout": "grid",
          "grid": [1, 5], "applies": ["takeable"],
          "tooltip": "Five cards to gain from. You may only take one at or below your Tier. After any card leaves, another is drawn to replace it.",
-         "pos": P(0.005, 0.215, 0.105, 0.785),
+         "pos": P(0.145, 0.005, 0.265, 0.995),
          "contents": ["fireessence", "wateressence", "earthessence"]},
         {"key": "spellstorm_deck", "label": "Deck", "layout": "stack",
          "visibility": "secret", "tags": ["shuffle"], "refill_from": "void",
          "tooltip": "The Spellstorm Deck. When it runs out, the VOID is shuffled to become the new one.",
-         "pos": P(0.115, 0.215, 0.20, 0.40),
+         "pos": P(0.290, 0.215, 0.390, 0.44),
          "contents": [c["key"] for c in SPELLS]},
         {"key": "void", "label": "VOID", "layout": "stack", "use": "none",
          "tooltip": "Cards removed from the game. When the Spellstorm Deck runs out, this becomes the new one.",
-         "pos": P(0.115, 0.42, 0.20, 0.605)},
+         "pos": P(0.290, 0.460, 0.390, 0.685)},
+
+        {"key": "announce", "label": "{phase}", "layout": "row", "use": "none",
+         "pos": P(0.385, 0.440, 0.615, 0.560)},
 
         {"key": "weather_now", "label": "Weather", "layout": "stack",
          "tooltip": "This round's weather. Only the current card is active.",
-         "pos": P(0.245, 0.40, 0.415, 0.60)},
+         "pos": P(0.005, 0.215, 0.135, 0.470)},
         {"key": "weather_calm", "label": "Calm", "layout": "stack",
          "visibility": "secret", "tags": ["shuffle"], "refill_from": "weather_main",
          "tooltip": "The eight Calm Before the Storm cards sit on top of the Weather Deck, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
-         "pos": P(0.115, 0.625, 0.20, 0.785),
+         "pos": P(0.005, 0.490, 0.068, 0.630),
          "contents": deck_of(True)},
         {"key": "weather_main", "label": "Storm", "layout": "stack",
          "visibility": "secret", "tags": ["shuffle"],
-         "pos": P(0.245, 0.625, 0.33, 0.785),
+         "pos": P(0.072, 0.490, 0.135, 0.630),
          "contents": deck_of(False)},
         {"key": "weather_discard", "layout": "stack", "use": "none",
-         "pos": P(0.34, 0.625, 0.425, 0.785)},
+         "pos": P(0.005, 0.650, 0.135, 0.785)},
 
         {"key": "ice_pile", "use": "abilities", "label": "Ice", "layout": "stack",
          "applies": ["takeable"], "contents": ["ice:6"],
          "tooltip": "Six ICE. Given to an opponent's discard, and returned here when VOIDed.",
-         "pos": P(0.600, 0.215, 0.690, 0.40)},
+         "pos": P(0.865, 0.215, 0.980, 0.395)},
         {"key": "ash_pile", "use": "abilities", "label": "Ash", "layout": "stack",
          "applies": ["takeable"], "contents": ["ash:6"],
          "tooltip": "Six ASH. Given to an opponent's discard, and returned here when VOIDed.",
-         "pos": P(0.700, 0.215, 0.790, 0.40)},
+         "pos": P(0.865, 0.405, 0.980, 0.585)},
         {"key": "curse_pile", "use": "abilities", "label": "Curse", "layout": "stack",
          "applies": ["takeable"], "contents": ["curse:6"],
          "tooltip": "Six CURSE. Given to an opponent's discard, and returned here when VOIDed.",
-         "pos": P(0.800, 0.215, 0.890, 0.40)},
+         "pos": P(0.865, 0.595, 0.980, 0.775)},
         {"key": "dragon_deck", "label": "Dragons", "layout": "stack",
          "tags": ["shuffle"], "use": "none",
          "tooltip": "Tier IV. Gained by filling your Power Track while already at Tier III.",
          "contents": [c["key"] for c in DRAGONS],
-         "pos": P(0.600, 0.44, 0.690, 0.625)},
-
-        # The two buttons anybody may press, side by side: the rules card and the
-        # unplayable hand. Oren's potion buttons used to sit in a second row
-        # under them and showed everybody two empty cells, which is what the
-        # sidecar is for -- a grid draws its empty cells on purpose.
-        {"key": "controls", "layout": "grid", "grid": [2, 1],
-         "use": "abilities", "tags": ["optional"],
-         "pos": P(0.710, 0.44, 0.895, 0.625)},
+         "pos": P(0.750, 0.440, 0.850, 0.625)},
 
         # The offer, claimed so a roster of eight wizards has the middle of the
         # screen for one click and no strip of board for the rest of the game.
@@ -1578,7 +1577,7 @@ def phases():
         {"key": "play", "type": "turn", "seat": "each", "order": "highest:initiative",
          "phases": ["play_card"], "next": [{"then": "showdown"}]},
         {"key": "play_card", "type": "player_input",
-         "label": "Play a card face down", "zone": ["hand", "wizard", "controls"],
+         "label": "Play a card face down", "zone": ["hand", "wizard", "menu"],
          "ends_when": "count:spell@mine.commit >= 1"},
 
         # This move is the reveal, and it has to come before anything that reads
@@ -1643,7 +1642,7 @@ def phases():
          "next": [{"then": "battle_start", "ends_round": True}]},
         {"key": "gain_card", "type": "player_input",
          "label": "Gain a card from the Storm Cloud",
-         "zone": ["wizard", "controls"],
+         "zone": ["wizard", "menu"],
          "ends_when": "took@mine.player >= 1"},
         # Oren's Ultimate pushes this over whatever he was doing and the two
         # potion buttons are the only things reachable while it is up. It ends
@@ -1692,7 +1691,7 @@ def build():
     # Two board buttons. Neither charges exhaust, so both stay clickable.
     cards.append({
         "key": "btn_unplayable", "text": "Unplayable hand",
-        "asset": "auto", "tags": ["immutable"],
+        "asset": "cross:slate", "tags": ["immutable"],
         "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
         "abilities": [{"phases": ["play_card"],
                      "action": ["move:mine.hand:mine.discard",
@@ -1710,7 +1709,7 @@ def build():
         "abilities": [{"phases": ["potion"], "action": list(POTION_END)}]})
     cards.append({
         "key": "btn_rules", "text": "The rules",
-        "asset": "auto", "tags": ["immutable"],
+        "asset": "diamond:slate", "tags": ["immutable"],
         "tooltip": ("SPELLSTORM. Win by reaching 8 Storm Shards, or by taking your "
                     "opponent to 0 health.\n\n"
                     "A battle is four rounds. Each round: the weather is flipped and "
@@ -1848,11 +1847,11 @@ def build():
             {"when": "min:health@anyone.player <= 0", "then": ["reveal:end_dead"]},
         ],
         "setup": {"place": [
-            {"card": "seat_one", "owner": "seat_one", "zone": "seats", "at": "a1"},
-            {"card": "seat_two", "owner": "seat_two", "zone": "seats", "at": "b1"},
+            {"card": "seat_one", "owner": "seat_one", "zone": "seat_box"},
+            {"card": "seat_two", "owner": "seat_two", "zone": "seat_box"},
             {"card": "plan", "zone": "table"},
-            {"card": "btn_rules", "zone": "controls"},
-            {"card": "btn_unplayable", "zone": "controls"},
+            {"card": "btn_rules", "zone": "menu"},
+            {"card": "btn_unplayable", "zone": "menu"},
         ]},
     }
 

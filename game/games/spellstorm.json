@@ -199,11 +199,12 @@
   },
   "zones": [
     {
-      "key": "seats",
+      "key": "seat_box",
       "layout": "grid",
-      "grid": [2, 1],
-      "pos": [0.2, 0.42, 0.245, 0.6],
-      "use": "abilities"
+      "grid": [1, 1],
+      "copies": "per_seat",
+      "use": "abilities",
+      "pos": [[0.6, 0.575, 0.73, 0.785], [0.6, 0.215, 0.73, 0.425]]
     },
     {
       "key": "wizard",
@@ -221,7 +222,7 @@
       "visibility": "owner",
       "copies": "per_seat",
       "applies": ["in_hand"],
-      "pos": [[0.145, 0.795, 0.55, 0.995], [0.145, 0.005, 0.55, 0.205]]
+      "pos": [[0.275, 0.795, 0.55, 0.995], [0.275, 0.005, 0.55, 0.205]]
     },
     {
       "key": "sidecar",
@@ -275,7 +276,7 @@
       "grid": [1, 5],
       "applies": ["takeable"],
       "tooltip": "Five cards to gain from. You may only take one at or below your *Tier*. After any card leaves, another is drawn to replace it.",
-      "pos": [0.005, 0.215, 0.105, 0.785],
+      "pos": [0.145, 0.005, 0.265, 0.995],
       "contents": ["fireessence", "wateressence", "earthessence"]
     },
     {
@@ -286,7 +287,7 @@
       "tags": ["shuffle"],
       "refill_from": "void",
       "tooltip": "The *Spellstorm Deck*. When it runs out, the *VOID* is shuffled to become the new one.",
-      "pos": [0.115, 0.215, 0.2, 0.4],
+      "pos": [0.29, 0.215, 0.39, 0.44],
       "contents": [
         "fireball",
         "fireball2",
@@ -332,14 +333,21 @@
       "layout": "stack",
       "use": "none",
       "tooltip": "Cards removed from the game. When the *Spellstorm Deck* runs out, this becomes the new one.",
-      "pos": [0.115, 0.42, 0.2, 0.605]
+      "pos": [0.29, 0.46, 0.39, 0.685]
+    },
+    {
+      "key": "announce",
+      "label": "{phase}",
+      "layout": "row",
+      "use": "none",
+      "pos": [0.385, 0.44, 0.615, 0.56]
     },
     {
       "key": "weather_now",
       "label": "Weather",
       "layout": "stack",
       "tooltip": "This round's weather. Only the current card is active.",
-      "pos": [0.245, 0.4, 0.415, 0.6]
+      "pos": [0.005, 0.215, 0.135, 0.47]
     },
     {
       "key": "weather_calm",
@@ -349,7 +357,7 @@
       "tags": ["shuffle"],
       "refill_from": "weather_main",
       "tooltip": "The eight Calm Before the Storm cards sit on top of the *Weather Deck*, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
-      "pos": [0.115, 0.625, 0.2, 0.785],
+      "pos": [0.005, 0.49, 0.068, 0.63],
       "contents": [
         "nice_breeze",
         "crystalflurries:2",
@@ -366,7 +374,7 @@
       "layout": "stack",
       "visibility": "secret",
       "tags": ["shuffle"],
-      "pos": [0.245, 0.625, 0.33, 0.785],
+      "pos": [0.072, 0.49, 0.135, 0.63],
       "contents": [
         "burningblizzard",
         "energywave:2",
@@ -386,7 +394,7 @@
       "key": "weather_discard",
       "layout": "stack",
       "use": "none",
-      "pos": [0.34, 0.625, 0.425, 0.785]
+      "pos": [0.005, 0.65, 0.135, 0.785]
     },
     {
       "key": "ice_pile",
@@ -396,7 +404,7 @@
       "applies": ["takeable"],
       "contents": ["ice:6"],
       "tooltip": "Six *ICE*. Given to an opponent's discard, and returned here when *VOIDed*.",
-      "pos": [0.6, 0.215, 0.69, 0.4]
+      "pos": [0.865, 0.215, 0.98, 0.395]
     },
     {
       "key": "ash_pile",
@@ -406,7 +414,7 @@
       "applies": ["takeable"],
       "contents": ["ash:6"],
       "tooltip": "Six *ASH*. Given to an opponent's discard, and returned here when *VOIDed*.",
-      "pos": [0.7, 0.215, 0.79, 0.4]
+      "pos": [0.865, 0.405, 0.98, 0.585]
     },
     {
       "key": "curse_pile",
@@ -416,7 +424,7 @@
       "applies": ["takeable"],
       "contents": ["curse:6"],
       "tooltip": "Six *CURSE*. Given to an opponent's discard, and returned here when *VOIDed*.",
-      "pos": [0.8, 0.215, 0.89, 0.4]
+      "pos": [0.865, 0.595, 0.98, 0.775]
     },
     {
       "key": "dragon_deck",
@@ -426,15 +434,7 @@
       "use": "none",
       "tooltip": "*Tier IV*. Gained by filling your *Power Track* while already at *Tier III*.",
       "contents": ["firedragon", "winddragon", "icedragon", "stormdragon", "earthdragon"],
-      "pos": [0.6, 0.44, 0.69, 0.625]
-    },
-    {
-      "key": "controls",
-      "layout": "grid",
-      "grid": [2, 1],
-      "use": "abilities",
-      "tags": ["optional"],
-      "pos": [0.71, 0.44, 0.895, 0.625]
+      "pos": [0.75, 0.44, 0.85, 0.625]
     },
     {
       "key": "options",
@@ -599,7 +599,7 @@
       "key": "play_card",
       "type": "player_input",
       "label": "Play a card face down",
-      "zone": ["hand", "wizard", "controls"],
+      "zone": ["hand", "wizard", "menu"],
       "ends_when": "count:spell@mine.commit >= 1"
     },
     {
@@ -685,7 +685,7 @@
       "key": "gain_card",
       "type": "player_input",
       "label": "Gain a card from the Storm Cloud",
-      "zone": ["wizard", "controls"],
+      "zone": ["wizard", "menu"],
       "ends_when": "took@mine.player >= 1"
     },
     {
@@ -3685,7 +3685,7 @@
     {
       "key": "btn_unplayable",
       "text": "Unplayable hand",
-      "asset": "auto",
+      "asset": "cross:slate",
       "tags": ["immutable"],
       "tooltip": "If your hand is nothing but *ICE*, *ASH* and *CURSE*, use this: discard them all with their effects, take *1 damage*, and draw a new hand of 4.",
       "abilities": [
@@ -3730,7 +3730,7 @@
     {
       "key": "btn_rules",
       "text": "The rules",
-      "asset": "auto",
+      "asset": "diamond:slate",
       "tags": ["immutable"],
       "tooltip": "SPELLSTORM. Win by reaching *8 Storm Shards*, or by taking your opponent to *0 health*.\n\nA battle is four rounds. Each round: the weather is flipped and resolved, both players play a card face down, the cards are revealed, and they resolve in *Initiative* order. Countering the opponent -- *Fire* beats *Earth*, *Earth* beats *Water*, *Water* beats *Fire* -- draws you a card.\n\nAfter four rounds comes the *Regroup*: discard effects fire, the cards you still hold are your *Blast Score*, the higher score takes *2 Storm Shards* (1 each on a tie), and each player gains one card from the *Storm Cloud* at or below their *Tier*.\n\nSix *Power Tokens* fill your track; filling it raises your *Tier*. At *Tier III* a filled track gains you a Dragon instead.",
       "abilities": [{ "action": ["effect:spark"] }]
@@ -3759,11 +3759,11 @@
   ],
   "setup": {
     "place": [
-      { "card": "seat_one", "owner": "seat_one", "zone": "seats", "at": "a1" },
-      { "card": "seat_two", "owner": "seat_two", "zone": "seats", "at": "b1" },
+      { "card": "seat_one", "owner": "seat_one", "zone": "seat_box" },
+      { "card": "seat_two", "owner": "seat_two", "zone": "seat_box" },
       { "card": "plan", "zone": "table" },
-      { "card": "btn_rules", "zone": "controls" },
-      { "card": "btn_unplayable", "zone": "controls" },
+      { "card": "btn_rules", "zone": "menu" },
+      { "card": "btn_unplayable", "zone": "menu" },
       { "card": "r_ctr_fire", "zone": "rules" },
       { "card": "r_ctr_earth", "zone": "rules" },
       { "card": "r_ctr_water", "zone": "rules" },
