@@ -2083,6 +2083,21 @@ hand. Say `enemy.arena` for the other. A per-seat zone also receives its own
 copy of every card `setup.place` puts there, so a marker placed once appears in each
 seat's copy.
 
+**A seat's zones wear that seat's colour, and no game has to say which.** From
+two seats up, every zone a seat owns is washed in a hue of its own — faintly on
+the panel, plainly on its border — and the card backs inside it take a stronger
+version of the same, because a deck has to be found across a board while a
+background only has to sit under one. Zones nobody owns keep the neutral colour
+they have always had, which is what makes the tinted ones mean anything. A
+one-seat game is untouched: there is nobody to be told apart from.
+
+The hues are the engine's, in seat order, unless the game has already chosen
+them. **A seat is a card, so the place a player's colour is named is that card's
+own `asset`**: `"asset": "circle:crimson"` makes the player crimson wherever
+they appear, and their character card and their half of the table are one colour
+rather than two. A filename or `"auto"` names no colour anybody chose, and falls
+through to the palette.
+
 **Turn order is the phase list.** A phase declaring `"seat": "next"` hands over
 on entry, so alternation is just two phases:
 

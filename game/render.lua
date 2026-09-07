@@ -30,7 +30,6 @@ local C = {
 	card_default    = { 0.16, 0.22, 0.36 },
 	card_text       = { 0.90, 0.93, 1.00 },
 	card_body       = { 0.68, 0.80, 0.96 },
-	card_back       = { 0.10, 0.15, 0.28 },
 	card_border     = { 0.30, 0.42, 0.65, 0.60 },
 	selected        = { 0.95, 0.80, 0.20 },
 	eligible        = { 0.20, 0.75, 1.00 },
@@ -45,6 +44,50 @@ local C = {
 	button_fill     = { 0.12, 0.18, 0.30, 0.92 },
 	button_border   = { 0.35, 0.50, 0.75 },
 }
+
+-- Six muted hues, in seat order, for the zones and decks a player owns. Kept
+-- away from the blue that means "you may click this" and the yellow that means
+-- "this is selected": who owns a thing is standing information, and a board
+-- where a player's colour reads as a state the board is in would be worse than
+-- one with no colours at all.
+--
+-- All six are the same brightness, which is not a nicety. Each at its own put
+-- one player's half of the table in a spotlight and the next player's in shade,
+-- and a board where one seat looks lit says something about that seat that is
+-- not true.
+local SEAT_HUES = {
+	{ 0.76, 0.61, 0.30 }, { 0.64, 0.54, 0.90 }, { 0.32, 0.74, 0.72 },
+	{ 0.90, 0.49, 0.52 }, { 0.46, 0.73, 0.42 }, { 0.78, 0.57, 0.40 },
+}
+
+-- The colour that means "this is theirs" — nil for everything that is nobody's,
+-- which is a shared board, a supply, and every zone of a one-seat game, where
+-- there is no second player to be told apart from.
+--
+-- **A seat is a card, so a game that has already chosen its players' colours has
+-- said so where a colour is named:** the seat card's own `asset`. Read before
+-- the palette, so a character card and the half of the board it plays on are
+-- the same colour rather than two. "auto" and a filename both come back nil
+-- from `art.parse` and fall through to the palette, which is right — a hue
+-- derived from a card key is not a choice anybody made.
+function M.seat_hue(seat)
+	local G = declaration.G
+	if not seat or #(G.seat_list or {}) < 2 then return nil end
+	local def  = (G.card_defs or {})[seat]
+	local spec = def and def.asset and art.parse(def.asset)
+	if spec then return spec.fg end
+	local i = (G.seat_index or {})[seat]
+	return i and SEAT_HUES[(i - 1) % #SEAT_HUES + 1]
+end
+
+-- A wash of that colour over a neutral panel. The border takes four times what
+-- the fill does: a hue reads on a line, and a rectangle bright enough to read
+-- across would fight the cards standing on it.
+local function tinted(base, hue, k)
+	if not hue then return base end
+	return { base[1] + (hue[1] - base[1]) * k, base[2] + (hue[2] - base[2]) * k,
+		base[3] + (hue[3] - base[3]) * k, base[4] }
+end
 
 -- Landing cards kick off impact effects: hard for board slams, soft for piles.
 anim.on_land = function(rect, kind)
@@ -548,24 +591,36 @@ local function card_places(zone_e)
 	return places
 end
 
-local function draw_card_back(pl)
+-- The blue a back has always been. The five colours below it were five constants
+-- that happened to be one hue at five strengths, and are now written that way,
+-- so a seat's deck is its own by handing in a different hue — which is where a
+-- back can afford the saturation a zone's background cannot: a deck is a small
+-- thing that has to be found across a board, not a field to lay cards on.
+local BACK = { 0.28, 0.46, 0.78 }
+
+local function shade(hue, k)
+	return hue[1] * k, hue[2] * k, hue[3] * k
+end
+
+local function draw_card_back(pl, hue)
+	local h = hue or BACK
 	love.graphics.push("all")
-	love.graphics.setColor(unpack(C.card_back))
+	love.graphics.setColor(shade(h, 0.36))
 	love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
-	love.graphics.setColor(0.22, 0.38, 0.65)
+	love.graphics.setColor(shade(h, 0.82))
 	love.graphics.setLineWidth(2 * S)
 	love.graphics.rectangle("line", pl.x + 2 * S, pl.y + 2 * S, pl.w - 4 * S, pl.h - 4 * S, 4 * S, 4 * S)
 	local m = 7 * S
-	love.graphics.setColor(0.16, 0.26, 0.46)
+	love.graphics.setColor(shade(h, 0.58))
 	love.graphics.setLineWidth(S)
 	love.graphics.rectangle("line", pl.x + m, pl.y + m, pl.w - m * 2, pl.h - m * 2, 2 * S, 2 * S)
 	local cx = pl.x + pl.w * 0.5
 	local cy = pl.y + pl.h * 0.5
 	local dw = pl.w * 0.30
 	local dh = pl.h * 0.22
-	love.graphics.setColor(0.14, 0.24, 0.44)
+	love.graphics.setColor(shade(h, 0.55))
 	love.graphics.polygon("fill", cx, cy - dh, cx + dw, cy, cx, cy + dh, cx - dw, cy)
-	love.graphics.setColor(0.28, 0.46, 0.78)
+	love.graphics.setColor(unpack(h))
 	love.graphics.polygon("line", cx, cy - dh, cx + dw, cy, cx, cy + dh, cx - dw, cy)
 	love.graphics.pop()
 end
@@ -1177,8 +1232,9 @@ local function draw_zone_label(zone_e)
 end
 
 local function draw_zone(zone_e)
-	local p  = zone_e.place
-	local zt = zone_e.layout
+	local p   = zone_e.place
+	local zt  = zone_e.layout
+	local hue = M.seat_hue(zone_e.seat)
 
 	love.graphics.push("all")
 	-- A zone can be a target in its own right, and eligibility never rides on
@@ -1199,9 +1255,9 @@ local function draw_zone(zone_e)
 		love.graphics.pop()
 		return
 	else
-		love.graphics.setColor(unpack(C.zone_fill))
+		love.graphics.setColor(unpack(tinted(C.zone_fill, hue, 0.16)))
 		love.graphics.rectangle("fill", p.x, p.y, p.w, p.h, 7 * S, 7 * S)
-		love.graphics.setColor(unpack(C.zone_border))
+		love.graphics.setColor(unpack(tinted(C.zone_border, hue, 0.65)))
 		love.graphics.setLineWidth(S)
 	end
 	love.graphics.rectangle("line", p.x, p.y, p.w, p.h, 7 * S, 7 * S)
@@ -1216,7 +1272,7 @@ local function draw_zone(zone_e)
 			if places[i] and not anim.visual_place(card_id, places[i]) then
 				local c = entity.get(card_id)
 				if zone_e.visibility == "secret" or not zones.visible(c) then
-					draw_card_back(places[i])
+					draw_card_back(places[i], hue)
 				else
 					draw_card_face(places[i], c, false,
 						fan_visible(places[i], places[i + 1], zone_e.row))
@@ -1236,12 +1292,12 @@ local function draw_zone(zone_e)
 			local pl = places[1]
 			love.graphics.push("all")
 			for i = 2, 1, -1 do
-				love.graphics.setColor(0.16, 0.24, 0.40)
+				love.graphics.setColor(shade(hue or BACK, 0.52))
 				love.graphics.rectangle("line",
 					pl.x + i * 2.5 * S, pl.y + i * 2.5 * S, pl.w, pl.h, 5 * S, 5 * S)
 			end
 			love.graphics.pop()
-			draw_card_back(pl)
+			draw_card_back(pl, hue)
 		end
 		love.graphics.push("all")
 		local band_h = fh * 2 + 8 * S
@@ -1261,7 +1317,7 @@ local function draw_zone(zone_e)
 			if zone_e.visibility ~= "secret" then
 				draw_card_face(places[1], top, false)
 			else
-				draw_card_back(places[1])
+				draw_card_back(places[1], hue)
 			end
 			love.graphics.push("all")
 			love.graphics.setColor(unpack(C.deck_count))
@@ -1273,7 +1329,7 @@ local function draw_zone(zone_e)
 			local top = entity.get(zone_e.cards[#zone_e.cards])
 			if not anim.visual_place(top.id, top.place) then
 				if zone_e.visibility == "secret" then
-					draw_card_back(places[1])
+					draw_card_back(places[1], hue)
 				else
 					draw_card_face(places[1], top, false)
 				end
@@ -1305,7 +1361,7 @@ local function draw_zone(zone_e)
 					-- Somebody else's hand. Backs, so the cards are still there
 					-- to count — how many an opponent holds is public in every
 					-- card game — and the faces are not.
-					draw_card_back(places[i])
+					draw_card_back(places[i], hue)
 				else
 					-- The face already left room for the badges; drawing them
 					-- was the half that only grids did, so a chip in hand wore
@@ -1533,7 +1589,7 @@ local function draw_flying_card(vpl, card_e)
 	end
 	local z = card_e and card_e.zone_id and entity.get(card_e.zone_id)
 	if (z and z.visibility == "secret") or not zones.visible(card_e) then
-		draw_card_back(vpl)
+		draw_card_back(vpl, M.seat_hue(z and z.seat))
 	else
 		draw_card_face(vpl, card_e, false)
 	end
@@ -1590,7 +1646,7 @@ local function draw_zone_browse(zone_e)
 			draw_card_face(pl, c, false)
 			draw_card_stats_overlay(pl, c)
 		else
-			draw_card_back(pl)
+			draw_card_back(pl, M.seat_hue(zone_e.seat))
 		end
 	end
 	love.graphics.pop()
