@@ -639,9 +639,16 @@ function M.move_card(card_id, to_id, where)
 		if e and worth > 1 then e.stats.stock = e.stats.stock + worth - 1 end
 		return e ~= nil
 	end
+	if not c or not to then return false end
+	-- **A rider wants no square, so a full grid still has room for it.** A card
+	-- already standing on something that lives in the destination is arriving on
+	-- its host rather than beside it — which is the whole of `attach` on a board
+	-- whose every cell is a tile, and the case that matters, since a site a
+	-- figure can be sent to is by definition a cell that is taken.
+	local riding = c.parent_id and (entity.get(c.parent_id) or {}).zone_id == to_id
 	-- A full board refuses new arrivals (checked before any mutation, so a
 	-- refused move leaves the card exactly where it was).
-	if not c or not to or not M.has_room(to) then return false end
+	if not riding and not M.has_room(to) then return false end
 
 	-- Whereabouts it lands. A list has two ends and a grid has cells, so the same
 	-- argument that says which end of a pile says which cell of a board, in the
@@ -653,8 +660,9 @@ function M.move_card(card_id, to_id, where)
 
 	-- Going somewhere is getting off whatever it was standing on, and taking
 	-- with it whatever was standing on it. Read before the move, because the
-	-- carry re-links against a list these very moves empty.
-	detach(c)
+	-- carry re-links against a list these very moves empty. A rider going where
+	-- it already stands is not going anywhere, so it keeps its host.
+	if not riding then detach(c) end
 	local riders = {}
 	for _, id in ipairs(c.attached or {}) do riders[#riders + 1] = id end
 
@@ -699,17 +707,15 @@ function M.move_card(card_id, to_id, where)
 	if M.on_change then M.on_change("move", card_id) end
 	fire_leaves(lent or from, to, card_id)
 	fire_receive(to, card_id)
-	-- The riders follow, as moves of their own, so a hand they were lent from
-	-- and a departure trigger watching them both still fire. One that cannot
-	-- make the trip is left where it was rather than dragged: it is detached
-	-- already, which is the honest state for a card whose host walked off.
+	-- The riders follow, as moves of their own, so a hand they were lent from and
+	-- a departure trigger watching them both still fire. Each is riding into the
+	-- zone its host has just reached, so the link survives the trip without being
+	-- rewritten. One that cannot make it gets off, rather than sitting in the old
+	-- zone claiming a host that has walked away.
 	for _, id in ipairs(riders) do
-		if M.move_card(id, to_id) then
+		if not M.move_card(id, to_id) then
 			local r = entity.get(id)
-			if r then
-				r.parent_id = card_id
-				c.attached[#c.attached + 1] = id
-			end
+			if r then detach(r) end
 		end
 	end
 	return true
@@ -819,15 +825,21 @@ function M.attach(child_id, host_id)
 		if up.id == child_id then return false end
 		up = up.parent_id and entity.get(up.parent_id)
 	end
-	if not M.move_card(child_id, host.zone_id) then return false end
+	-- Linked before the move, not after, so the move itself knows the arrival is
+	-- a rider and lets it onto a board with no free cell left.
+	detach(child)
+	child.parent_id = host_id
+	host.attached = host.attached or {}
+	host.attached[#host.attached + 1] = child_id
+	if not M.move_card(child_id, host.zone_id) then
+		detach(child)
+		return false
+	end
 	if child.slot_id then
 		local slot = entity.get(child.slot_id)
 		if slot and slot.occupant == child_id then slot.occupant = nil end
 		child.slot_id = nil
 	end
-	child.parent_id = host_id
-	host.attached = host.attached or {}
-	host.attached[#host.attached + 1] = child_id
 	return true
 end
 

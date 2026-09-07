@@ -215,6 +215,26 @@ function M.test_attachment_a_rider_claims_no_square(check)
 	end)
 end
 
+-- The case that matters on a board: a site a figure can be sent to is by
+-- definition a cell that is already taken, so a full grid must still let a
+-- rider on. It refused before, and the whole feature was unreachable on the one
+-- board it was built for.
+function M.test_attachment_a_full_board_still_has_room_for_a_rider(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local island = zones.find("island")
+		local third = zones.add(island, "site")
+		zones.place_in_slot(third.id, island.slots[3])
+		check("every cell is taken", zones.has_room(island) == false)
+
+		local fig = meeple("south_row")
+		check("the figure still gets on", zones.attach(fig.id, at("a1").id))
+		check("standing on the site", entity.get(fig.id).parent_id == at("a1").id)
+		check("and an ordinary arrival is still refused",
+			zones.move_card(meeple("north_row").id, island.id) == false)
+	end)
+end
+
 -- A cycle is not a rule any game means, and it is a carry that never ends.
 function M.test_attachment_nothing_stands_on_what_stands_on_it(check)
 	with_game(function(name)

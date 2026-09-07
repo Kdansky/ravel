@@ -78,17 +78,17 @@ that one.
 | five rounds, then score | `round_no` on the `clock` card, raised in `round_start`; the route out is `{ "when": "round_no@clock >= 6", "then": "scoring" }` |
 | one main action a turn, plus free actions | a `main` stat, set to 1 by the `turn` phase's `actions`, spent as `{ "main@mine.player": 1 }` by everything the rulebook calls a main action |
 | pass, and be skipped for the rest of the round | a `passed` stat and three routes on `turn`: both passed → `cleanup`; the *other* one passed → `turn` with `"seat": "same"`; otherwise `turn` with `"seat": "next"` |
-| two archaeologists, no more | `workers`, set to 2 each round, spent 1 at a time by Dig and Discover |
-| a space is occupied for the rest of the round | `"exhaust": 1` in the dig ability's cost. `ends_round: true` on the cleanup route readies every one of them at once |
+| two archaeologists, no more | two `digger` cards in each seat's `camp`. They are the limit, so there is no number to keep: a figure out on the board is not at home to be sent |
+| a space is occupied for the rest of the round | a figure is standing on it. `where: ["count:digger@attached_to.target == 0"]` on the dig, so a site with somebody on it is not offered — a fact about the board rather than a number on either player |
 | five resource types | five stats on the player card |
 | a card's travel value, spent as a second currency | `trek` printed on the card, `travel` banked on the player and zeroed at the start of every turn |
 | dig at a site: pay its travel cost, resolve its effect | one ability on the `site` tag, whose cost reads the toll off the tile: `"travel@mine.player": "toll@self"` |
 | a guardian wakes when a site is discovered | `guard: 1` in the revealed tile's `card_stats`; the tile *is* the guardian |
-| a guardian does not block digging | a second ability, `dig_guarded`, gated `"when": ["guard@self >= 1"]`, identical except that it raises `guarded`. `when` decides which of the two is *offered*, so the player is shown one |
-| overcome one by paying a flat price | a third ability, no `exhaust`, so an exhausted space still offers it. Its price is read off the tile too — `g_arrow`, `g_tablet`, `g_jewel` |
-| an archaeologist coming home from a guarded site earns a Fear card | `each_seat:fill:mine.table:fear:sum:guarded@mine.player` in `cleanup`, then the counter is cleared |
-| discovery reveals a printed position | the position is a `pos_1`/`pos_2` marker card sitting in the `island` grid. Discovering it runs `destroy_self` and then `draw_from:site_1_deck:island:1`, and the freed cell is the only one the grid has |
-| idols come only from discovery | `fill:mine.idols:idol:1` in the same list, before the marker destroys itself |
+| a guardian does not block digging | nothing in the dig asks about `guard`, so one ability serves both. The two used to differ by a line that raised a counter, and the counter is gone |
+| overcome one by paying a flat price | the figure's own second ability, gated `"needs": ["guard@host_of.self >= 1"]` — *the guardian over the site I am standing on*. No `exhaust`, so a figure spent digging can still fight later, which is the rulebook. Its price is read off the tile through the same link: `"arrowhead@mine.player": "sum:g_arrow@host_of.self"` |
+| an archaeologist coming home from a guarded site earns a Fear card | literally that. `afraid` is a computed tag, `["guard@host_of.self >= 1"]`, and `cleanup` deals `count:afraid@mine.everywhere` before `move:each.digger:origin` sends the figures home |
+| discovery reveals a printed position | the position is a `pos_1`/`pos_2` marker card sitting in the `island` grid, tagged `level_1`/`level_2`. A figure is sent to it: `destroy:target` and then `draw_from:site_1_deck:island:1`, and the freed cell is the only one the grid has. Two abilities rather than one, because two decks are two things |
+| idols come only from discovery | `fill:mine.idols:idol:1` in the same list, before the marker is destroyed |
 | slot an idol, free, once, for one of several effects | `"when": ["used@self == 0"]` and `options:idol_coin,idol_compass,idol_dig,idol_draw` |
 | the card row, split by the moon staff | one `grid: [7, 1]` zone with the staff standing in it as a card. Its own ability is `destroy:beside`, `place:self:one_right`, a `compact` of each side and two artifacts dealt at the near end — run by `activate_zone:row:by_column:step` at round start, which names the ability so that nothing else in the row is activated. Position on the shelf is how old a card is, so the exile is the rulebook's card rather than an arbitrary one |
 | buying refills the row | the buy compacts both sides towards the staff and deals at `a1` and `g1`. Whichever end did not open refuses its own card, since a cell holds one — so one list serves both halves and nothing asks what was bought |
@@ -167,13 +167,13 @@ inventing a number rather than diverging from one.
    `guard: 1` and its own overcome price, and no boon. **§13.9** — the tile
    table is not in the rulebook either. Two prices are used: Level I guardians
    cost an arrowhead and a tablet, Level II two arrowheads and a jewel.
-5. **Fear is counted, not tracked per figure.** The real rule is *this
-   archaeologist came home from a site that still had a guardian*. The file
-   raises `guarded` when you dig at a guarded site and lowers it when you
-   overcome one, then deals that many Fear cards at cleanup. The difference
-   shows only when you overcome a guardian at a site your archaeologist is not
-   standing on — which the file also cannot forbid, for the same reason. See
-   *What the engine has no word for*, below.
+5. ~~**Fear is counted, not tracked per figure.**~~ **Closed.** It is tracked per
+   figure now, because there are figures: an archaeologist is a card standing on
+   the site, `afraid` is the computed tag `["guard@host_of.self >= 1"]`, and
+   cleanup counts it. The exploit it left behind — dig the best-yielding guarded
+   site, then pay off the cheapest guardian anywhere on the board, because
+   `overcome`'s only gate was a per-seat tally — is closed with it. See
+   [36](../36-a-card-on-a-card.md).
 6. **You keep nothing from your hand.** The rulebook lets a player choose which
    hand cards to keep into the next round; here the whole hand joins the play
    area at cleanup and everyone draws five fresh. Keeping would want an offer
@@ -248,32 +248,33 @@ position argument every destination op already carried, so `draw_from:item_deck:
 deals at the far end and a deal aimed at an occupied cell does nothing — which is
 what lets one refill serve both halves of the row without asking what was bought.
 
-**1. Who spent a card's exhaust — and the file can say it.** The engine records
-that a card is exhausted and not by whom, and the first draft of this gap wanted
-a stat the engine writes on exhaustion the way `last_acted` is written on play.
-It does not need one. **The ability that pays the exhaust can stamp the spender
-itself**, with words that all have customers already:
+**1. ~~Who spent a card's exhaust~~ — the question stopped being asked.** The
+engine records that a card is exhausted and not by whom, and the shared site
+space is the thing that hurt. Two answers were written; the second is the one
+that shipped.
 
-- the seats carry a number — `card_stats: { "side": 1 }` on `south`, `2` on `north`;
-- the dig ability writes it onto the space it is exhausting,
-  `stat_set:spender@self:sum:side@mine.player` (the shape The Crew's
-  `stat_set:contend@self:sum:value@self` already uses);
-- the Fear rule asks `spender@self == sum:side@mine.player`, which is
-  `row@target == side@mine.player` with both sides live.
+**The stamp**, which worked and was not used: the ability paying the exhaust
+names the spender itself — `stat_set:spender@self:sum:side@mine.player` — and the
+gate asks it back. Checked end to end on a two-seat fixture and offered to the
+spender alone. It costs a stat declared on every bearer, a wipe on the round
+boundary that nobody may forget, and a number standing where a pointer was meant.
 
-Checked end to end on a two-seat fixture: the second ability is offered to the
-seat that spent the exhaust and to nobody else. **Two traps, both cheap:**
-the space must declare `spender` in its own `card_stats`, because a stat nobody
-carries has no bearer and the write goes nowhere *silently*; and the round
-boundary readies every card without clearing the stamp, so cleanup has to wipe
-it — `stat_set:spender@each.<zone>:0`, one line on the route that already ends
-the round. The wipe is not optional, since
-[21](../21-lost-ruins-of-arnak.md)'s other flag still stands: `predicate` cannot
-read a card's own exhaustion back as a condition, so a stale stamp is
-indistinguishable from a live one.
+**The figure**, which shipped. A stamp is a number where a pointer was meant: it
+says *you took some space*, never *you took this one*, and it needs declaring on
+every bearer, wiping every round, and a cleanup line nobody may forget. An
+archaeologist standing on the site is a card, cards have owners, and the site is
+occupied because somebody is on it. `guarded`, `workers` and the `exhaust` on the
+space all went; `overcome` gates on `guard@host_of.self`. See
+[36](../36-a-card-on-a-card.md), and `tests/integration/attachment.lua` for the
+engine half.
 
-So this is a game-file change, not an engine one, and divergence 5 costs no new
-word.
+**One thing got worse, on purpose.** Discovery no longer earns a Fear card. It
+used to raise `guarded` on the discovering seat, which was the counter standing in
+for *your archaeologist is on the site you just turned up*. The figure cannot be
+put there — `draw_from` deals into a grid cell and nothing can name the card that
+lands in it, so there is no host to attach to — so the guardian simply waits on
+the board for whoever digs there. Fixing it wants the same word the guardian deck
+wants: dealing a card **onto** a card.
 
 ---
 

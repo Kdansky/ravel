@@ -8,13 +8,11 @@
     { "key": "jewel", "label": "Jewel", "icon": "diamond", "color": "violet", "min": 0, "max": 99, "on": ["player"], "start": 0, "subject": "jewel@mine.player" },
     { "key": "travel", "label": "Travel", "icon": "arrow", "color": "teal", "min": 0, "max": 99, "on": ["player"], "start": 0, "subject": "travel@mine.player" },
     { "key": "main", "label": "Action", "icon": "fist", "color": "crimson", "min": 0, "max": 1, "on": ["player"], "start": 0, "subject": "main@mine.player" },
-    { "key": "workers", "label": "Diggers", "icon": "heart", "color": "amber", "min": 0, "max": 2, "on": ["player"], "start": 0, "subject": "workers@mine.player" },
     { "key": "glass", "label": "Glass", "icon": "pot", "color": "orange", "min": 0, "max": 6, "on": ["player"], "start": 0, "subject": "glass@mine.player" },
     { "key": "note", "label": "Notes", "icon": "shield", "color": "brown", "min": 0, "max": 6, "on": ["player"], "start": 0, "subject": "note@mine.player" },
 
     { "key": "score", "min": -99, "max": 999, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "passed", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "guarded", "min": 0, "max": 9, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "guardians", "min": 0, "max": 9, "on": ["player"], "start": 0, "tags": ["hidden"] },
 
     { "key": "coin_price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"] },
@@ -61,8 +59,13 @@
     "gilt": { "color": [0.58, 0.47, 0.14], "fit": "fill" },
     "hire": { "hide": ["zero_badges"], "color": [0.18, 0.40, 0.44], "badge_run": "down", "badges": ["y_coin", "y_compass", "y_tablet", "y_arrow", "y_jewel", "y_travel", "y_draw"] },
     "study": { "color": [0.25, 0.27, 0.48] },
+    "figure": { "color": [0.55, 0.42, 0.20], "fit": "fill" },
     "tile": { "fit": "fill" },
     "button": { "fit": "fill" }
+  },
+
+  "computed_tags": {
+    "afraid": { "needs": ["guard@host_of.self >= 1"] }
   },
 
   "tags": {
@@ -110,32 +113,33 @@
                      "move_to:mine.table"] }
       ]
     },
-    "site": {
+    "digger": {
       "abilities": [
-        { "key": "dig", "text": "Dig here", "phases": ["turn"], "needs": ["guard@self == 0"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1,
-                    "travel@mine.player": "toll@self" },
-          "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
-                     "stat_gain:compass@mine.player:sum:y_compass@self",
-                     "stat_gain:tablet@mine.player:sum:y_tablet@self",
-                     "stat_gain:arrowhead@mine.player:sum:y_arrow@self",
-                     "stat_gain:jewel@mine.player:sum:y_jewel@self"] },
-        { "key": "dig_guarded", "text": "Dig here, under the guardian's eye", "phases": ["turn"],
-          "needs": ["guard@self >= 1"],
-          "cost": { "exhaust": 1, "main@mine.player": 1, "workers@mine.player": 1,
-                    "travel@mine.player": "toll@self" },
-          "action": ["stat_gain:coin@mine.player:sum:y_coin@self",
-                     "stat_gain:compass@mine.player:sum:y_compass@self",
-                     "stat_gain:tablet@mine.player:sum:y_tablet@self",
-                     "stat_gain:arrowhead@mine.player:sum:y_arrow@self",
-                     "stat_gain:jewel@mine.player:sum:y_jewel@self",
-                     "stat_gain:guarded@mine.player:1"] },
-        { "key": "overcome", "text": "Overcome the guardian", "phases": ["turn"],
-          "needs": ["guard@self >= 1", "guarded@mine.player >= 1"],
-          "cost": { "main@mine.player": 1, "arrowhead@mine.player": "g_arrow@self",
-                    "tablet@mine.player": "g_tablet@self", "jewel@mine.player": "g_jewel@self" },
-          "action": ["stat_set:guard@self:0", "stat_gain:guardians@mine.player:1",
-                     "stat_damage:guarded@mine.player:1"] }
+        { "key": "dig", "text": "Dig at a site", "phases": ["turn"],
+          "cost": { "exhaust": 1, "main@mine.player": 1, "travel@mine.player": "toll@target" },
+          "target": { "type": "card", "count": 1, "tags": ["site"], "zones": ["island"],
+                      "where": ["count:digger@attached_to.target == 0"] },
+          "action": ["attach_to_target",
+                     "stat_gain:coin@mine.player:sum:y_coin@target",
+                     "stat_gain:compass@mine.player:sum:y_compass@target",
+                     "stat_gain:tablet@mine.player:sum:y_tablet@target",
+                     "stat_gain:arrowhead@mine.player:sum:y_arrow@target",
+                     "stat_gain:jewel@mine.player:sum:y_jewel@target"] },
+        { "key": "discover_1", "text": "Discover a Level I position", "phases": ["turn"],
+          "cost": { "exhaust": 1, "main@mine.player": 1, "travel@mine.player": "toll@target" },
+          "target": { "type": "card", "count": 1, "tags": ["level_1"], "zones": ["island"] },
+          "action": ["fill:mine.idols:idol:1", "destroy:target", "draw_from:site_1_deck:island:1"] },
+        { "key": "discover_2", "text": "Discover a Level II position", "phases": ["turn"],
+          "cost": { "exhaust": 1, "main@mine.player": 1, "travel@mine.player": "toll@target" },
+          "target": { "type": "card", "count": 1, "tags": ["level_2"], "zones": ["island"] },
+          "action": ["fill:mine.idols:idol:1", "destroy:target", "draw_from:site_2_deck:island:1"] },
+        { "key": "overcome", "text": "Overcome the guardian standing over them", "phases": ["turn"],
+          "needs": ["guard@host_of.self >= 1"],
+          "cost": { "main@mine.player": 1,
+                    "arrowhead@mine.player": "sum:g_arrow@host_of.self",
+                    "tablet@mine.player": "sum:g_tablet@host_of.self",
+                    "jewel@mine.player": "sum:g_jewel@host_of.self" },
+          "action": ["stat_set:guard@host_of.self:0", "stat_gain:guardians@mine.player:1"] }
       ]
     },
     "assistant": {
@@ -223,8 +227,12 @@
       "tooltip": "Recruited from the research track. Each works once a round." },
     {
       "key": "seat_box", "status": "board", "layout": "stack", "copies": "per_seat",
-      "pos": [[0.005, 0.815, 0.185, 0.995], [0.86, 0.005, 0.995, 0.185]]
-    }
+      "pos": [[0.005, 0.815, 0.185, 0.925], [0.86, 0.005, 0.995, 0.115]]
+    },
+    { "key": "camp", "label": "Camp", "layout": "row", "use": "abilities", "copies": "per_seat",
+      "tags": ["tile"],
+      "pos": [[0.005, 0.930, 0.185, 0.995], [0.86, 0.120, 0.995, 0.185]],
+      "tooltip": "Your two archaeologists. Send one to a site to dig; it stays there until the round wraps, and comes home with a Fear card if a guardian was still standing when it left." }
   ],
 
   "phases": [
@@ -239,7 +247,6 @@
       "actions": ["stat_gain:round_no@clock:1",
                   "activate_zone:rules_market",
                   "activate_zone:row:by_column:step",
-                  "each_seat:stat_set:workers@mine.player:2",
                   "each_seat:stat_set:passed@mine.player:0",
                   "each_seat:draw_from:mine.bag:mine.hand:5"],
       "next": [{ "when": "round_no@clock >= 6", "then": "scoring" }, { "then": "turn" }] },
@@ -251,8 +258,8 @@
                { "then": "turn", "seat": "next" }] },
 
     { "key": "cleanup", "type": "automatic",
-      "actions": ["each_seat:fill:mine.table:fear:sum:guarded@mine.player",
-                  "each_seat:stat_set:guarded@mine.player:0",
+      "actions": ["each_seat:fill:mine.table:fear:count:afraid@mine.everywhere",
+                  "move:each.digger:origin",
                   "each_seat:stat_set:travel@mine.player:0",
                   "each_seat:move:mine.hand:mine.table",
                   "each_seat:shuffle:mine.table",
@@ -278,6 +285,8 @@
     "place": [
       { "card": "south", "zone": "seat_box" },
       { "card": "north", "zone": "seat_box" },
+      { "card": "digger", "zone": "camp" },
+      { "card": "digger", "zone": "camp" },
       { "card": "clock", "zone": "sys" },
       { "card": "end_turn", "zone": "controls", "at": "a1" },
       { "card": "pass_turn", "zone": "controls", "at": "b1" },
@@ -407,25 +416,16 @@
       "tooltip": "Its guardian asks two arrowheads and a jewel.",
       "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1, "y_jewel": 1, "y_compass": 2 } },
 
-    { "key": "pos_1", "text": "Level I", "tags": ["marker", "veiled"], "asset": "diamond:slate",
-      "tooltip": "Undiscovered. Discover it for 2 travel: take an idol, turn up a Level I site, and wake the guardian standing on it.",
-      "card_stats": { "toll": 2 },
-      "abilities": [
-        { "key": "discover", "text": "Discover this site", "phases": ["turn"],
-          "cost": { "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 2 },
-          "action": ["fill:mine.idols:idol:1", "stat_gain:guarded@mine.player:1",
-                     "destroy:self", "draw_from:site_1_deck:island:1"] }
-      ] },
+    { "key": "pos_1", "text": "Level I", "tags": ["marker", "level_1", "veiled"], "asset": "diamond:slate",
+      "tooltip": "Undiscovered. Send an archaeologist here for 2 travel: take an idol and turn up a Level I site, with whatever is standing on it.",
+      "card_stats": { "toll": 2 } },
 
-    { "key": "pos_2", "text": "Level II", "tags": ["marker", "veiled"], "asset": "diamond:indigo",
-      "tooltip": "Undiscovered. Discover it for 4 travel: take an idol, turn up a Level II site, and wake the guardian standing on it.",
-      "card_stats": { "toll": 4 },
-      "abilities": [
-        { "key": "discover", "text": "Discover this site", "phases": ["turn"],
-          "cost": { "main@mine.player": 1, "workers@mine.player": 1, "travel@mine.player": 4 },
-          "action": ["fill:mine.idols:idol:1", "stat_gain:guarded@mine.player:1",
-                     "destroy:self", "draw_from:site_2_deck:island:1"] }
-      ] },
+    { "key": "pos_2", "text": "Level II", "tags": ["marker", "level_2", "veiled"], "asset": "diamond:indigo",
+      "tooltip": "Undiscovered. Send an archaeologist here for 4 travel: take an idol and turn up a Level II site, with whatever is standing on it.",
+      "card_stats": { "toll": 4 } },
+
+    { "key": "digger", "text": "Archaeologist", "tags": ["digger", "figure"], "asset": "circle:amber",
+      "tooltip": "Send them to a site or an unexplored position: pay the travel printed on it and take what it yields. One figure a site. They work once each and come home when the round wraps — and a figure that leaves a site with its guardian still standing brings back a Fear card." },
 
     { "key": "idol", "text": "Idol", "tags": ["idol", "gilt"], "asset": "star:5:gold",
       "tooltip": "Three points at the end, kept or slotted. Slotting it is free, and you may do it once.",

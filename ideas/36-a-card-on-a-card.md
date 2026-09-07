@@ -1,7 +1,7 @@
 # 36 — A card on a card
 
-**Status:** the engine is in — steps 1–3 below, with `tests/integration/attachment.lua`
-as the record. **Left:** step 4, Arnak's rework, which is content.
+**Status:** shipped, both halves — the engine and Arnak on top of it.
+**Left:** the guardian deck, which wants one word the format has not got.
 
 A meeple stands on a site. A guardian tile lies on it. Both are one card sitting
 on another, visibly, and readable apart from it — and that is the thing
@@ -100,10 +100,13 @@ is what is wanted.
 
 ### 4. Then Arnak, which is content
 
-Two or three `meeple` cards per seat in their own row, activated onto a site;
-`workers@mine.player` stops being a counter; `overcome` gates on
-`sum:side@attached_to.self`; guardians become a deck per tier; cleanup is
-`move:each.meeple:origin` on the route that already readies everything.
+Two `digger` cards in each seat's `camp`, sent to a site. `workers` and `guarded`
+are both deleted — the figures are the limit, and Fear is what a figure brings
+home. `overcome` is the figure's own second ability, gated
+`guard@host_of.self >= 1` and priced off the same link. `dig` and `dig_guarded`
+collapse into one, since the only thing separating them was the counter. Cleanup
+counts `afraid` — the computed tag `["guard@host_of.self >= 1"]` — and then
+`move:each.digger:origin` sends the figures back to their own squares.
 
 ## Order
 
@@ -116,9 +119,25 @@ Two or three `meeple` cards per seat in their own row, activated onto a site;
 3. ~~Drawing a child on its host.~~ **done**, as a pass over whatever the layout
    worked out, so no layout knows attachment exists. The count badge went with
    it — it was standing in for a card that never drew, and the card draws now.
-4. Arnak: meeples, guardian decks, the rules rewrite.
+4. ~~Arnak: the rules rewrite.~~ **done.** `tests/integration/arnak.lua` now
+   asserts that the space is taken because somebody is standing on it, that only
+   the figure standing there may fight the guardian, and that Fear is counted off
+   the figures.
+5. **The guardian deck** — a tier per deck, restoring
+   [arnak](arnak/design.md)'s divergence 4. Blocked on one word, below.
 
-4 is where
+## The word it is missing
+
+**Dealing a card onto a card.** `draw_from:<deck>:<zone>` puts a card in a grid
+cell, and nothing can name the card that lands there — so a guardian cannot be
+dealt onto a freshly revealed site, and a figure cannot be sent to one either.
+Two things want it: the guardian deck, and discovery, which no longer earns a
+Fear card because the discovering figure has no host to stand on. It is a
+destination argument that names a host rather than a place, or an `attach` that
+takes a scope; either is a new word and therefore a decision to take rather than
+one to make in passing.
+
+Step 4 is also where
 [21](21-lost-ruins-of-arnak.md)'s remaining flag — that `predicate` cannot read
 a card's own exhaustion back as a condition — stops mattering, because nothing
 is asking about exhaustion any more.

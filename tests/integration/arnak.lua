@@ -42,6 +42,18 @@ local function find_in(zone_key, def_key, i)
 	end
 end
 
+-- One of a seat's archaeologists, still at home. `i` is which seat's camp.
+local function digger(i, nth)
+	local found = 0
+	for _, cid in ipairs(zone("camp", i or 1).cards) do
+		local c = entity.get(cid)
+		if c.def_key == "digger" then
+			found = found + 1
+			if found == (nth or 1) then return c end
+		end
+	end
+end
+
 local function offers(card)
 	local out = {}
 	for _, u in ipairs(flow.usable_abilities(card.id)) do out[#out + 1] = u.rule.key end
@@ -49,9 +61,9 @@ local function offers(card)
 	return table.concat(out, "/")
 end
 
-local function use(card, key)
+local function use(card, key, targets)
 	for _, u in ipairs(flow.usable_abilities(card.id)) do
-		if u.rule.key == key then return flow.activate(card.id, {}, u.index) end
+		if u.rule.key == key then return flow.activate(card.id, targets or {}, u.index) end
 	end
 	return false
 end
@@ -92,34 +104,102 @@ function M.test_arnak_fear_can_only_be_travelled_with(check)
 	check("−1 a piece at the end", (fear.stats.points or 0) == 0)
 end
 
--- Worker placement, as ideas/21 predicted it: the *space* carries the exhaust,
--- the player carries a capped counter, and the two gates are independent.
-function M.test_arnak_a_space_is_taken_and_an_archaeologist_is_spent(check)
+-- Worker placement, and the figure is the worker. ideas/21 predicted the space
+-- would carry an exhaust and the player a capped counter; it does neither now,
+-- because a counter says *you took some space* and never *you took this one* —
+-- which is the hole ideas/36 was written to close.
+function M.test_arnak_a_figure_takes_the_space_it_is_standing_on(check)
 	flow.init("arnak.json", 7)
 	local me = seat("south")
 	funded(me)
 	local beach = find_in("island", "site_beach")
+	local one, two = digger(1, 1), digger(1, 2)
 
-	check("two archaeologists to start the round", me.stats.workers == 2)
-	check("digging works", use(beach, "dig"))
-	check("it spends one of them", me.stats.workers == 1, tostring(me.stats.workers))
-	check("and the main action", me.stats.main == 0)
+	check("two archaeologists, at home", one ~= nil and two ~= nil and one.id ~= two.id)
+	check("digging works", use(one, "dig", { beach.id }))
+	check("the figure is standing on the site", entity.get(one.id).parent_id == beach.id)
+	check("it is spent for the round", entity.get(one.id).exhausted == true)
+	check("and the main action went with it", me.stats.main == 0)
 
-	-- The space itself is now taken, for everybody, until the round wraps.
+	-- The space is taken because somebody is standing on it, which is a fact
+	-- about the board and not a number on either player.
 	me.stats.main = 1
-	check("nobody may dig there again this round", offers(beach) == "", offers(beach))
+	check("the other figure may not join it there", use(two, "dig", { beach.id }) == false)
 
-	-- The other gate, asked of the player rather than of the space.
 	local jungle = find_in("island", "site_jungle")
-	check("a second, different site is still open", offers(jungle) == "dig", offers(jungle))
-	check("digging there spends the last archaeologist", use(jungle, "dig"))
+	check("but a free site takes it", use(two, "dig", { jungle.id }))
+	check("and it is standing there", entity.get(two.id).parent_id == jungle.id)
 	me.stats.main = 1
 	local cliffs = find_in("island", "site_cliffs")
-	check("and now no site will take one", offers(cliffs) == "", offers(cliffs))
+	check("with both figures out, nothing is left to send",
+		use(one, "dig", { cliffs.id }) == false and use(two, "dig", { cliffs.id }) == false)
 end
 
--- Discovery reveals a printed position rather than growing the board, wakes a
--- guardian with the tile, and hands out the idol.
+-- The bug this replaced: `overcome` gated on a per-seat tally, so digging the
+-- site with the best yield and then paying off the cheapest guardian anywhere
+-- on the board cost no Fear at all. The gate is now the figure.
+function M.test_arnak_a_guardian_is_fought_by_whoever_is_standing_there(check)
+	flow.init("arnak.json", 7)
+	local me = seat("south")
+	funded(me)
+	local one, two = digger(1, 1), digger(1, 2)
+
+	check("discovering works", use(one, "discover_1", { find_in("island", "pos_1").id }))
+	local site
+	for _, cid in ipairs(zone("island").cards) do
+		local c = entity.get(cid)
+		if (c.stats.guard or 0) >= 1 then site = c end
+	end
+	check("a guardian came up with the site", site ~= nil)
+	check("the figure at home cannot fight it", offers(two):find("overcome") == nil, offers(two))
+
+	me.stats.main = 1
+	check("so send it there", use(two, "dig", { site.id }))
+	me.stats.main = 1
+	check("now it can fight", offers(two):find("overcome") ~= nil, offers(two))
+	check("overcoming it works", use(two, "overcome"))
+	check("the guardian is gone", entity.get(site.id).stats.guard == 0)
+	check("and it is worth five at the end", me.stats.guardians == 1)
+end
+
+-- Fear is what a figure brings home, not a number a rule keeps: the archaeologist
+-- that left a site with the guardian still standing is the one that earns it.
+function M.test_arnak_fear_is_counted_off_the_figures(check)
+	flow.init("arnak.json", 7)
+	local me = seat("south")
+	funded(me)
+	local one, two = digger(1, 1), digger(1, 2)
+
+	use(one, "discover_1", { find_in("island", "pos_1").id })
+	local site
+	for _, cid in ipairs(zone("island").cards) do
+		local c = entity.get(cid)
+		if (c.stats.guard or 0) >= 1 then site = c end
+	end
+	me.stats.main = 1
+	check("a figure digs where a guardian still stands", use(two, "dig", { site.id }))
+
+	local function fears()
+		local n = 0
+		for _, key in ipairs({ "bag", "hand", "table" }) do
+			for _, cid in ipairs(zone(key, 1).cards) do
+				if entity.get(cid).def_key == "fear" then n = n + 1 end
+			end
+		end
+		return n
+	end
+	local before = fears()
+	check("the deck opens with two of them", before == 2, tostring(before))
+	use(find_in("controls", "pass_turn"), "pass")
+	use(find_in("controls", "pass_turn"), "pass")
+	check("one more came home with the figure", fears() == before + 1, tostring(fears()))
+	check("and the figures are back in camp",
+		entity.get(two.id).parent_id == nil and entity.get(two.id).zone_id == zone("camp", 1).id)
+end
+
+-- Discovery reveals a printed position rather than growing the board, and hands
+-- out the idol. The marker is a card a figure is sent to, so the level it names
+-- is which of the two decks answers.
 function M.test_arnak_discovery_reveals_a_position_that_was_always_there(check)
 	flow.init("arnak.json", 7)
 	local me = seat("south")
@@ -127,11 +207,10 @@ function M.test_arnak_discovery_reveals_a_position_that_was_always_there(check)
 	local before = #zone("island").cards
 	local marker = find_in("island", "pos_1")
 
-	check("discovering works", use(marker, "discover"))
+	check("discovering works", use(digger(1, 1), "discover_1", { marker.id }))
 	check("the island is the same size it was", #zone("island").cards == before,
 		tostring(#zone("island").cards))
 	check("an idol came back with it", keys(zone("idols", 1)) == "idol", keys(zone("idols", 1)))
-	check("and an archaeologist stands under a guardian", me.stats.guarded == 1)
 
 	local site
 	for _, cid in ipairs(zone("island").cards) do
@@ -139,13 +218,6 @@ function M.test_arnak_discovery_reveals_a_position_that_was_always_there(check)
 		if (c.stats.guard or 0) >= 1 then site = c end
 	end
 	check("the new site woke a guardian", site ~= nil)
-	me.stats.main, me.stats.workers = 1, 2
-	check("which offers to be fought and does not block the dig",
-		offers(site) == "dig_guarded/overcome", site and offers(site))
-
-	check("overcoming it works", use(site, "overcome"))
-	check("it is worth five at the end", me.stats.guardians == 1)
-	check("and the archaeologist is no longer under one", me.stats.guarded == 0)
 end
 
 -- The notebook may never sit above the magnifying glass. Written as a condition
@@ -249,7 +321,7 @@ function M.test_arnak_five_rounds_and_then_the_count(check)
 	use(find_in("controls", "pass_turn"), "pass")
 	check("north is up", zones.active_seat() == "north", tostring(zones.active_seat()))
 	funded(north)
-	check("north discovers", use(find_in("island", "pos_1"), "discover"))
+	check("north discovers", use(digger(2, 1), "discover_1", { find_in("island", "pos_1").id }))
 
 	for _ = 1, 30 do
 		if phase.current().key ~= "turn" then break end
@@ -260,10 +332,11 @@ function M.test_arnak_five_rounds_and_then_the_count(check)
 	check("round six is the one nobody plays", seat("clock").stats.round_no == 6,
 		tostring(seat("clock").stats.round_no))
 
-	-- Three for the idol, less one for each of the two starting fear cards, and
-	-- one more for the fear the guarded site cost at the round's end.
+	-- Three for the idol, less one for each of the two starting fear cards. The
+	-- figure that discovered came straight home, so no guardian was left standing
+	-- over it and no third fear was earned.
 	check("north scored the idol and paid for the fear",
-		north.stats.score == 0, tostring(north.stats.score))
+		north.stats.score == 1, tostring(north.stats.score))
 	check("south, who did nothing, is two fear down",
 		south.stats.score == -2, tostring(south.stats.score))
 	check("and the engine knows who won", north.stats.won == 1 and (south.stats.won or 0) == 0,
