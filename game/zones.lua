@@ -612,6 +612,13 @@ end
 function M.move_card(card_id, to_id, where)
 	local c  = entity.get(card_id)
 	local to = entity.get(to_id)
+	-- **A destination may be a card**, and then the arrival stands on it rather
+	-- than beside it, landing in whatever zone the host is in. Written here for
+	-- the same reason the supply rule below is: every way of moving a card comes
+	-- through, so a deal, a take and a rule sending a whole scope somewhere all
+	-- understand it without being told. `attach` moves it on to the host's zone,
+	-- which is a destination that is a zone, so this does not recur.
+	if c and to and to.kind == "card" then return M.attach(card_id, to_id) end
 	-- **Into a supply, a card stops being one.** A stock counts rather than
 	-- keeps, so putting a gem back in the box is the number going up and the
 	-- gem going away — which is what "the cards in it are interchangeable"
@@ -706,7 +713,12 @@ function M.move_card(card_id, to_id, where)
 	if want_slot then bind_slot(card_id, want_slot) else M.auto_slot(card_id) end
 	if M.on_change then M.on_change("move", card_id) end
 	fire_leaves(lent or from, to, card_id)
-	fire_receive(to, card_id)
+	-- **A rider does not land in the zone, it lands on a card.** So the zone's
+	-- "what happens when something arrives here" is not its business, the same
+	-- way a square is not: a shelf that deals a guardian onto every site that
+	-- arrives must not deal one onto the guardian, and a hand that stamps what
+	-- lands in it has nothing to say about a token standing on one of its cards.
+	if not riding then fire_receive(to, card_id) end
 	-- The riders follow, as moves of their own, so a hand they were lent from and
 	-- a departure trigger watching them both still fire. Each is riding into the
 	-- zone its host has just reached, so the link survives the trip without being

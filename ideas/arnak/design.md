@@ -83,10 +83,10 @@ that one.
 | five resource types | five stats on the player card |
 | a card's travel value, spent as a second currency | `trek` printed on the card, `travel` banked on the player and zeroed at the start of every turn |
 | dig at a site: pay its travel cost, resolve its effect | one ability on the `site` tag, whose cost reads the toll off the tile: `"travel@mine.player": "toll@self"` |
-| a guardian wakes when a site is discovered | `guard: 1` in the revealed tile's `card_stats`; the tile *is* the guardian |
+| a guardian wakes when a site is discovered | the island's `receive` deals one from `guard_deck` onto the arriving site: `draw_from:guard_deck:target:1`, a destination that names a card. The five that start face up are cleared in `setup` |
 | a guardian does not block digging | nothing in the dig asks about `guard`, so one ability serves both. The two used to differ by a line that raised a counter, and the counter is gone |
-| overcome one by paying a flat price | the figure's own second ability, gated `"needs": ["guard@host_of.self >= 1"]` — *the guardian over the site I am standing on*. No `exhaust`, so a figure spent digging can still fight later, which is the rulebook. Its price is read off the tile through the same link: `"arrowhead@mine.player": "sum:g_arrow@host_of.self"` |
-| an archaeologist coming home from a guarded site earns a Fear card | literally that. `afraid` is a computed tag, `["guard@host_of.self >= 1"]`, and `cleanup` deals `count:afraid@mine.everywhere` before `move:each.digger:origin` sends the figures home |
+| overcome one by paying a flat price | the guardian's own ability. It knows its price (`sum:g_arrow@self`) and asks who is standing under it — `count:digger@mine.attached_to.host_of.self >= 1`, *one of mine is on the site I am lying on*. No `exhaust`, so a figure spent digging can still fight later, which is the rulebook |
+| an archaeologist coming home from a guarded site earns a Fear card | literally that. `afraid` is a computed tag, `["count:guardian@attached_to.host_of.self >= 1"]` — *something is still lying on the site I am standing on* — and `cleanup` deals `count:afraid@mine.everywhere` before `move:each.digger:origin` sends the figures home |
 | discovery reveals a printed position | the position is a `pos_1`/`pos_2` marker card sitting in the `island` grid, tagged `level_1`/`level_2`. A figure is sent to it: `destroy:target` and then `draw_from:site_1_deck:island:1`, and the freed cell is the only one the grid has. Two abilities rather than one, because two decks are two things |
 | idols come only from discovery | `fill:mine.idols:idol:1` in the same list, before the marker is destroyed |
 | slot an idol, free, once, for one of several effects | `"when": ["used@self == 0"]` and `options:idol_coin,idol_compass,idol_dig,idol_draw` |
@@ -162,11 +162,13 @@ inventing a number rather than diverging from one.
    the file would change.
 3. **Site and region costs are invented** (**§13.2**), as are the per-site
    yields. They are priced to be playable, not to match the board.
-4. **The guardian is folded into the site tile.** Arnak has 36 guardian tiles
-   with their own costs and boons; here the tile that is revealed carries
-   `guard: 1` and its own overcome price, and no boon. **§13.9** — the tile
-   table is not in the rulebook either. Two prices are used: Level I guardians
-   cost an arrowhead and a tablet, Level II two arrowheads and a jewel.
+4. ~~**The guardian is folded into the site tile.**~~ **Closed.** A guardian is a
+   card lying on the site, dealt from `guard_deck` by the island's own `receive`
+   as the site arrives, and it carries its own price. Eleven of them, sixteen
+   tiles; the real game has 36 with boons as well, and the boons are still out
+   (**§13.9** — that table is not in the rulebook either). The five sites that
+   start face up are cleared in `setup`, which is the sense in which they are
+   known: `destroy:each.guardian` before the first round.
 5. ~~**Fear is counted, not tracked per figure.**~~ **Closed.** It is tracked per
    figure now, because there are figures: an archaeologist is a card standing on
    the site, `afraid` is the computed tag `["guard@host_of.self >= 1"]`, and
@@ -268,13 +270,14 @@ space all went; `overcome` gates on `guard@host_of.self`. See
 [36](../36-a-card-on-a-card.md), and `tests/integration/attachment.lua` for the
 engine half.
 
-**One thing got worse, on purpose.** Discovery no longer earns a Fear card. It
-used to raise `guarded` on the discovering seat, which was the counter standing in
-for *your archaeologist is on the site you just turned up*. The figure cannot be
-put there — `draw_from` deals into a grid cell and nothing can name the card that
-lands in it, so there is no host to attach to — so the guardian simply waits on
-the board for whoever digs there. Fixing it wants the same word the guardian deck
-wants: dealing a card **onto** a card.
+**One thing got worse, on purpose.** Discovery no longer earns a Fear card. The
+figure that discovers cannot be put on the site it turned up: `draw_from` deals
+into a grid cell and nothing can name the card that lands in it, so there is no
+host to attach it to. The guardian is dealt there and waits for whoever digs
+next, which is a smaller divergence than the counter was. Closing it wants a card
+that is already on the board face down rather than a deal — an unexplored
+position holding its site tile from the start — which is a different feature and
+has no other customer yet.
 
 ---
 

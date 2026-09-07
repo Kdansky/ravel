@@ -1,7 +1,7 @@
 # 36 — A card on a card
 
-**Status:** shipped, both halves — the engine and Arnak on top of it.
-**Left:** the guardian deck, which wants one word the format has not got.
+**Status:** closed. The engine, the destination word, Arnak's figures and the
+guardian deck all shipped.
 
 A meeple stands on a site. A guardian tile lies on it. Both are one card sitting
 on another, visibly, and readable apart from it — and that is the thing
@@ -123,19 +123,22 @@ counts `afraid` — the computed tag `["guard@host_of.self >= 1"]` — and then
    asserts that the space is taken because somebody is standing on it, that only
    the figure standing there may fight the guardian, and that Fear is counted off
    the figures.
-5. **The guardian deck** — a tier per deck, restoring
-   [arnak](arnak/design.md)'s divergence 4. Blocked on one word, below.
+5. ~~**Dealing a card onto a card.**~~ **done, and it was not a word.** A
+   destination is already a scope expression — `zone_id` parses it and merely
+   happens to look it up as a zone — so one that resolves to a card names a host
+   and the arrival stands on it. `draw_from`, `fill`, `move` and `take` all
+   gained it at once; `move_to` was left out, since it already reads a target
+   specially. Nothing has to say which is meant, because the checker already
+   refuses a game that names a zone and a tag the same thing.
+6. ~~**The guardian deck.**~~ **done.** A guardian is a card with its own price,
+   dealt by the island's own `receive` — `draw_from:guard_deck:target:1` — and
+   `overcome` is the guardian's ability, asking `count:digger@mine.attached_to.host_of.self >= 1`.
+   Two prefix scopes composing is what makes that one line.
 
-## The word it is missing
-
-**Dealing a card onto a card.** `draw_from:<deck>:<zone>` puts a card in a grid
-cell, and nothing can name the card that lands there — so a guardian cannot be
-dealt onto a freshly revealed site, and a figure cannot be sent to one either.
-Two things want it: the guardian deck, and discovery, which no longer earns a
-Fear card because the discovering figure has no host to stand on. It is a
-destination argument that names a host rather than a place, or an `attach` that
-takes a scope; either is a new word and therefore a decision to take rather than
-one to make in passing.
+**One thing a rider taught the engine along the way:** a rider's arrival is not
+the zone's business. `receive` does not fire for it — a shelf dealing a guardian
+onto every site that lands must not deal one onto the guardian — which is the
+same rule as taking no square, said about arrivals.
 
 Step 4 is also where
 [21](21-lost-ruins-of-arnak.md)'s remaining flag — that `predicate` cannot read

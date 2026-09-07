@@ -2122,6 +2122,28 @@ owner's row rather than in a heap.
 back. `@mine.attached_to.self` is my figures on this card, however many other
 people also have one there.
 
+**A destination may be a card.** `draw_from`, `fill`, `move` and `take` all say
+where a card is going, and that argument is a scope expression — so one that
+names a card names a **host**, and the arrival stands on it:
+
+```
+draw_from:guard_deck:target:1   deal a guardian onto the site
+fill:target:token:1             one out of the box, onto that card
+move:mine.camp:target           every figure in the camp goes and stands there
+take:bank.gem:target:1          a component off the shelf, onto that card
+```
+
+Nothing says which is meant, and nothing has to: a name that resolves to a zone
+is a zone, one that resolves to a card is a host, and the checker refuses a game
+that gives a zone and a tag the same name. This is how Arnak deals a guardian
+onto the site it guards — the island's own `receive` says
+`draw_from:guard_deck:target:1`, and `@target` there is the site that just
+arrived.
+
+A rider's arrival is not the zone's business: `receive` does not fire for it, and
+neither does a zone's `accepts`. A shelf that deals a guardian onto every site
+that lands must not deal one onto the guardian.
+
 ### The player is a card
 
 There is no player object. A seat that names no card becomes an invisible one tagged

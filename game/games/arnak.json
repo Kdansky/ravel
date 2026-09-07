@@ -20,7 +20,6 @@
     { "key": "trek", "min": 0, "max": 4, "icon": "arrow", "color": "teal", "tags": ["hidden"] },
     { "key": "points", "min": 0, "max": 9, "icon": "banner", "color": "gold", "tags": ["hidden"] },
     { "key": "toll", "min": 0, "max": 9, "icon": "arrow", "color": "crimson", "tags": ["hidden"] },
-    { "key": "guard", "min": 0, "max": 1, "icon": "shield", "color": "red", "number": false, "on": ["site"], "start": 0, "tags": ["hidden"] },
     { "key": "used", "min": 0, "max": 1, "on": ["idol"], "start": 0, "tags": ["hidden"] },
 
     { "key": "y_coin", "min": 0, "max": 9, "icon": "coin", "color": "gold", "tags": ["hidden"] },
@@ -32,9 +31,9 @@
     { "key": "y_draw", "min": 0, "max": 9, "icon": "card", "color": "white", "tags": ["hidden"] },
     { "key": "y_idol", "min": 0, "max": 9, "icon": "heart", "color": "gold", "tags": ["hidden"] },
 
-    { "key": "g_arrow", "min": 0, "max": 9, "on": ["site"], "start": 0, "tags": ["hidden"] },
-    { "key": "g_tablet", "min": 0, "max": 9, "on": ["site"], "start": 0, "tags": ["hidden"] },
-    { "key": "g_jewel", "min": 0, "max": 9, "on": ["site"], "start": 0, "tags": ["hidden"] },
+    { "key": "g_arrow", "min": 0, "max": 9, "on": ["guardian"], "start": 0, "tags": ["hidden"] },
+    { "key": "g_tablet", "min": 0, "max": 9, "on": ["guardian"], "start": 0, "tags": ["hidden"] },
+    { "key": "g_jewel", "min": 0, "max": 9, "on": ["guardian"], "start": 0, "tags": ["hidden"] },
 
     { "key": "round_no", "label": "Round", "icon": "none", "min": 0, "max": 9, "subject": "sum:round_no@clock" },
     { "key": "temple_taken", "min": 0, "max": 1, "tags": ["hidden"] }
@@ -54,7 +53,7 @@
     "relic": { "hide": ["zero_badges"], "color": [0.40, 0.25, 0.48], "badge_run": "down", "badges": ["compass_price", "points", "trek", "y_coin", "y_compass", "y_tablet",
                  "y_arrow", "y_jewel", "y_travel", "y_draw", "y_idol"] },
     "dread": { "hide": ["zero_badges"], "color": [0.32, 0.13, 0.14], "badge_run": "down", "badges": ["trek"] },
-    "field": { "hide": ["zero_badges"], "color": [0.20, 0.38, 0.27], "badges": ["toll", "guard", "y_coin", "y_compass", "y_tablet", "y_arrow", "y_jewel"] },
+    "field": { "hide": ["zero_badges"], "color": [0.20, 0.38, 0.27], "badges": ["toll", "y_coin", "y_compass", "y_tablet", "y_arrow", "y_jewel"] },
     "veiled": { "hide": ["zero_badges"], "color": [0.16, 0.18, 0.22], "badges": ["toll"] },
     "gilt": { "color": [0.58, 0.47, 0.14], "fit": "fill" },
     "hire": { "hide": ["zero_badges"], "color": [0.18, 0.40, 0.44], "badge_run": "down", "badges": ["y_coin", "y_compass", "y_tablet", "y_arrow", "y_jewel", "y_travel", "y_draw"] },
@@ -65,7 +64,7 @@
   },
 
   "computed_tags": {
-    "afraid": { "needs": ["guard@host_of.self >= 1"] }
+    "afraid": { "needs": ["count:guardian@attached_to.host_of.self >= 1"] }
   },
 
   "tags": {
@@ -132,14 +131,17 @@
         { "key": "discover_2", "text": "Discover a Level II position", "phases": ["turn"],
           "cost": { "exhaust": 1, "main@mine.player": 1, "travel@mine.player": "toll@target" },
           "target": { "type": "card", "count": 1, "tags": ["level_2"], "zones": ["island"] },
-          "action": ["fill:mine.idols:idol:1", "destroy:target", "draw_from:site_2_deck:island:1"] },
-        { "key": "overcome", "text": "Overcome the guardian standing over them", "phases": ["turn"],
-          "needs": ["guard@host_of.self >= 1"],
-          "cost": { "main@mine.player": 1,
-                    "arrowhead@mine.player": "sum:g_arrow@host_of.self",
-                    "tablet@mine.player": "sum:g_tablet@host_of.self",
-                    "jewel@mine.player": "sum:g_jewel@host_of.self" },
-          "action": ["stat_set:guard@host_of.self:0", "stat_gain:guardians@mine.player:1"] }
+          "action": ["fill:mine.idols:idol:1", "destroy:target", "draw_from:site_2_deck:island:1"] }
+      ]
+    },
+    "guardian": {
+      "tooltip": "It stands on the site until somebody standing there beats it. Leave it behind and your archaeologist brings home a Fear card.",
+      "abilities": [
+        { "key": "overcome", "text": "Overcome it", "phases": ["turn"],
+          "needs": ["count:digger@mine.attached_to.host_of.self >= 1"],
+          "cost": { "main@mine.player": 1, "arrowhead@mine.player": "sum:g_arrow@self",
+                    "tablet@mine.player": "sum:g_tablet@self", "jewel@mine.player": "sum:g_jewel@self" },
+          "action": ["stat_gain:guardians@mine.player:1", "destroy:self"] }
       ]
     },
     "assistant": {
@@ -186,6 +188,7 @@
       "tooltip": "Artifacts to the left of the moon staff, bought with compasses; items to its right, bought with coins. Every round the two cards beside the staff are cleared away and it steps one place right, so the artifact side grows as the item side shrinks. Buying closes the row up towards the staff and a new card is dealt at the open end, which is why where a card sits is how long it has been on show. Whatever you buy goes to the bottom of your deck; an artifact read out of hand later costs a tablet on top of the action." },
     { "key": "island", "label": "The island", "layout": "grid", "grid": [5, 3], "use": "abilities",
       "tags": ["tile"], "pos": [0.160, 0.508, 0.995, 0.805],
+      "receive": { "action": ["draw_from:guard_deck:target:1"] },
       "tooltip": "Known sites along the bottom, unexplored Level I positions above them, Level II above those. Send an archaeologist to one: pay the travel printed on it and take what it yields. One figure a site, whoever gets there first, until the round wraps." },
 
     { "key": "options", "layout": "row", "status": "offer", "pos": [0.150, 0.250, 0.850, 0.750] },
@@ -199,6 +202,9 @@
       "contents": ["s1_lagoon", "s1_temple", "s1_quarry", "s1_grotto", "s1_terrace", "s1_spring"] },
     { "key": "site_2_deck", "layout": "stack", "visibility": "secret", "display": "offscreen", "tags": ["shuffle"],
       "contents": ["s2_vault", "s2_obelisk", "s2_gate", "s2_pyramid", "s2_observatory"] },
+    { "key": "guard_deck", "layout": "stack", "visibility": "secret", "display": "offscreen", "tags": ["shuffle"],
+      "contents": ["g_serpent:2", "g_jaguar:2", "g_condor:2", "g_spider:2", "g_crocodile:2",
+                   "g_wolf", "g_bat", "g_scorpion", "g_owl", "g_hound", "g_lizard"] },
     { "key": "assistant_box", "layout": "stack", "visibility": "secret", "display": "offscreen", "tags": ["shuffle"],
       "contents": ["asst_scout", "asst_digger", "asst_scribe", "asst_trader"] },
 
@@ -237,7 +243,8 @@
 
   "phases": [
     { "key": "setup", "type": "automatic",
-      "actions": ["each_seat:fill:mine.bag:funding:2",
+      "actions": ["destroy:each.guardian",
+                  "each_seat:fill:mine.bag:funding:2",
                   "each_seat:fill:mine.bag:exploration:2",
                   "each_seat:fill:mine.bag:fear:2",
                   "each_seat:shuffle:mine.bag"],
@@ -380,41 +387,28 @@
       "card_stats": { "toll": 3, "y_jewel": 1 } },
 
     { "key": "s1_lagoon", "text": "Sunken Lagoon", "tags": ["site", "field"], "asset": "polygon:5:cyan",
-      "tooltip": "Its guardian asks an arrowhead and a tablet.",
-      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_compass": 1, "y_jewel": 1 } },
+      "card_stats": { "toll": 2, "y_compass": 1, "y_jewel": 1 } },
     { "key": "s1_temple", "text": "Broken Temple", "tags": ["site", "field"], "asset": "polygon:5:sand",
-      "tooltip": "Its guardian asks an arrowhead and a tablet.",
-      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_tablet": 2 } },
+      "card_stats": { "toll": 2, "y_tablet": 2 } },
     { "key": "s1_quarry", "text": "Old Quarry", "tags": ["site", "field"], "asset": "polygon:5:silver",
-      "tooltip": "Its guardian asks an arrowhead and a tablet.",
-      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_arrow": 2 } },
+      "card_stats": { "toll": 2, "y_arrow": 2 } },
     { "key": "s1_grotto", "text": "Painted Grotto", "tags": ["site", "field"], "asset": "polygon:5:violet",
-      "tooltip": "Its guardian asks an arrowhead and a tablet.",
-      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1,
-                      "y_tablet": 1, "y_coin": 1, "y_compass": 1 } },
+      "card_stats": { "toll": 2, "y_tablet": 1, "y_coin": 1, "y_compass": 1 } },
     { "key": "s1_terrace", "text": "Stone Terrace", "tags": ["site", "field"], "asset": "polygon:5:gold",
-      "tooltip": "Its guardian asks an arrowhead and a tablet.",
-      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_coin": 3 } },
+      "card_stats": { "toll": 2, "y_coin": 3 } },
     { "key": "s1_spring", "text": "Hot Spring", "tags": ["site", "field"], "asset": "polygon:5:orange",
-      "tooltip": "Its guardian asks an arrowhead and a tablet.",
-      "card_stats": { "toll": 2, "guard": 1, "g_arrow": 1, "g_tablet": 1, "y_jewel": 1, "y_coin": 1 } },
+      "card_stats": { "toll": 2, "y_jewel": 1, "y_coin": 1 } },
 
     { "key": "s2_vault", "text": "Sealed Vault", "tags": ["site", "field"], "asset": "polygon:8:violet",
-      "tooltip": "Its guardian asks two arrowheads and a jewel.",
-      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1, "y_jewel": 2 } },
+      "card_stats": { "toll": 3, "y_jewel": 2 } },
     { "key": "s2_obelisk", "text": "Fallen Obelisk", "tags": ["site", "field"], "asset": "polygon:8:sand",
-      "tooltip": "Its guardian asks two arrowheads and a jewel.",
-      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1, "y_tablet": 2, "y_arrow": 1 } },
+      "card_stats": { "toll": 3, "y_tablet": 2, "y_arrow": 1 } },
     { "key": "s2_gate", "text": "Serpent Gate", "tags": ["site", "field"], "asset": "polygon:8:forest",
-      "tooltip": "Its guardian asks two arrowheads and a jewel.",
-      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1,
-                      "y_jewel": 1, "y_tablet": 1, "y_compass": 1 } },
+      "card_stats": { "toll": 3, "y_jewel": 1, "y_tablet": 1, "y_compass": 1 } },
     { "key": "s2_pyramid", "text": "Step Pyramid", "tags": ["site", "field"], "asset": "polygon:8:gold",
-      "tooltip": "Its guardian asks two arrowheads and a jewel.",
-      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1, "y_arrow": 2, "y_coin": 2 } },
+      "card_stats": { "toll": 3, "y_arrow": 2, "y_coin": 2 } },
     { "key": "s2_observatory", "text": "Sky Observatory", "tags": ["site", "field"], "asset": "polygon:8:cyan",
-      "tooltip": "Its guardian asks two arrowheads and a jewel.",
-      "card_stats": { "toll": 3, "guard": 1, "g_arrow": 2, "g_jewel": 1, "y_jewel": 1, "y_compass": 2 } },
+      "card_stats": { "toll": 3, "y_jewel": 1, "y_compass": 2 } },
 
     { "key": "pos_1", "text": "Level I", "tags": ["marker", "level_1", "veiled"], "asset": "diamond:slate",
       "tooltip": "Undiscovered. Send an archaeologist here for 2 travel: take an idol and turn up a Level I site, with whatever is standing on it.",
@@ -423,6 +417,29 @@
     { "key": "pos_2", "text": "Level II", "tags": ["marker", "level_2", "veiled"], "asset": "diamond:indigo",
       "tooltip": "Undiscovered. Send an archaeologist here for 4 travel: take an idol and turn up a Level II site, with whatever is standing on it.",
       "card_stats": { "toll": 4 } },
+
+    { "key": "g_serpent", "text": "Feathered Serpent", "tags": ["guardian", "dread"], "asset": "polygon:3:crimson",
+      "card_stats": { "g_arrow": 1, "g_tablet": 1 } },
+    { "key": "g_jaguar", "text": "Stone Jaguar", "tags": ["guardian", "dread"], "asset": "polygon:3:maroon",
+      "card_stats": { "g_arrow": 2 } },
+    { "key": "g_condor", "text": "Condor of the Peak", "tags": ["guardian", "dread"], "asset": "polygon:3:slate",
+      "card_stats": { "g_tablet": 2 } },
+    { "key": "g_spider", "text": "Weaver in the Dark", "tags": ["guardian", "dread"], "asset": "polygon:3:indigo",
+      "card_stats": { "g_arrow": 1, "g_jewel": 1 } },
+    { "key": "g_crocodile", "text": "River Crocodile", "tags": ["guardian", "dread"], "asset": "polygon:3:forest",
+      "card_stats": { "g_arrow": 2, "g_jewel": 1 } },
+    { "key": "g_wolf", "text": "Grey Wolf", "tags": ["guardian", "dread"], "asset": "polygon:3:silver",
+      "card_stats": { "g_arrow": 1, "g_tablet": 1 } },
+    { "key": "g_bat", "text": "Cave Bat", "tags": ["guardian", "dread"], "asset": "polygon:3:violet",
+      "card_stats": { "g_tablet": 1, "g_jewel": 1 } },
+    { "key": "g_scorpion", "text": "Black Scorpion", "tags": ["guardian", "dread"], "asset": "polygon:3:brown",
+      "card_stats": { "g_arrow": 3 } },
+    { "key": "g_owl", "text": "Owl of the Ruins", "tags": ["guardian", "dread"], "asset": "polygon:3:sand",
+      "card_stats": { "g_tablet": 1, "g_arrow": 1, "g_jewel": 1 } },
+    { "key": "g_hound", "text": "Temple Hound", "tags": ["guardian", "dread"], "asset": "polygon:3:gold",
+      "card_stats": { "g_arrow": 2, "g_tablet": 1 } },
+    { "key": "g_lizard", "text": "Sun Lizard", "tags": ["guardian", "dread"], "asset": "polygon:3:orange",
+      "card_stats": { "g_jewel": 2 } },
 
     { "key": "digger", "text": "Archaeologist", "tags": ["digger", "figure"], "asset": "circle:amber",
       "tooltip": "Send them to a site or an unexplored position: pay the travel printed on it and take what it yields. One figure a site. They work once each and come home when the round wraps — and a figure that leaves a site with its guardian still standing brings back a Fear card." },

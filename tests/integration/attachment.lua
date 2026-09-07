@@ -29,7 +29,9 @@ local GAME = [==[{
     { "key": "island", "layout": "grid", "use": "abilities", "grid": [3, 1], "pos": [0.05, 0.05, 0.80, 0.30] },
     { "key": "south_row", "layout": "row", "pos": [0.05, 0.35, 0.80, 0.55] },
     { "key": "north_row", "layout": "row", "pos": [0.05, 0.60, 0.80, 0.78] },
-    { "key": "tray", "layout": "row", "pos": [0.05, 0.82, 0.80, 0.95] }
+    { "key": "tray", "layout": "row", "pos": [0.05, 0.82, 0.80, 0.95] },
+    { "key": "guard_deck", "layout": "stack", "display": "offscreen", "contents": ["guardian", "guardian"] },
+    { "key": "box", "layout": "stack", "status": "supply", "display": "offscreen", "contents": ["guardian:4"] }
   ],
   "phases": [
     { "key": "turn", "type": "player_input", "next": [{ "then": "turn" }] }
@@ -38,6 +40,7 @@ local GAME = [==[{
     { "key": "south", "text": "South", "card_stats": { "side": 1 } },
     { "key": "north", "text": "North", "card_stats": { "side": 2 } },
     { "key": "site", "text": "A site", "tags": ["site"], "card_stats": { "guard": 1 } },
+    { "key": "guardian", "text": "A guardian", "tags": ["guardian"] },
     { "key": "meeple", "text": "A figure", "tags": ["meeple"],
       "abilities": [
         { "key": "stand", "text": "Stand here", "phases": ["turn"],
@@ -232,6 +235,37 @@ function M.test_attachment_a_full_board_still_has_room_for_a_rider(check)
 		check("standing on the site", entity.get(fig.id).parent_id == at("a1").id)
 		check("and an ordinary arrival is still refused",
 			zones.move_card(meeple("north_row").id, island.id) == false)
+	end)
+end
+
+-- The word the guardian deck was waiting on, and it turned out not to be a word:
+-- a destination is already a scope expression, so one that names a card names a
+-- host. Every op that takes a destination understands it at once.
+function M.test_attachment_a_destination_may_be_a_card(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local site = at("a1")
+		local ctx = { targets = { site.id } }
+
+		actions.execute("draw_from:guard_deck:target:1", ctx)
+		check("the deal landed on the site", #entity.get(site.id).attached == 1,
+			tostring(#entity.get(site.id).attached))
+		check("and it is the card that was dealt",
+			entity.get(entity.get(site.id).attached[1]).def_key == "guardian")
+
+		actions.execute("fill:target:guardian:1", ctx)
+		check("a fill lands there too", #entity.get(site.id).attached == 2,
+			tostring(#entity.get(site.id).attached))
+
+		actions.execute("take:box:target:1", ctx)
+		check("and so does a take out of a supply", #entity.get(site.id).attached == 3,
+			tostring(#entity.get(site.id).attached))
+
+		actions.execute("move:south_row:target", ctx)
+		check("a move sends a whole scope to stand on it",
+			predicate.total("count:meeple@attached_to.self", { card_id = site.id }) == 1,
+			tostring(predicate.total("count:meeple@attached_to.self", { card_id = site.id })))
+		check("the site still holds its own square", entity.get(site.id).slot_id ~= nil)
 	end)
 end
 

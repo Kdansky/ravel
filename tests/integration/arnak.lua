@@ -54,6 +54,29 @@ local function digger(i, nth)
 	end
 end
 
+local function has_tag(e, tag)
+	for _, t in ipairs((cards.def(e) or {}).tags or {}) do
+		if t == tag then return true end
+	end
+	return false
+end
+
+local function guardian_on(site)
+	for _, id in ipairs(entity.get(site.id).attached or {}) do
+		local c = entity.get(id)
+		if c and has_tag(c, "guardian") then return c end
+	end
+end
+
+-- The site a guardian is lying on. There is none until a position is discovered:
+-- the five that start face up are the ones nothing is standing over.
+local function guarded_site()
+	for _, cid in ipairs(zone("island").cards) do
+		local c = entity.get(cid)
+		if not c.parent_id and guardian_on(c) then return c end
+	end
+end
+
 local function offers(card)
 	local out = {}
 	for _, u in ipairs(flow.usable_abilities(card.id)) do out[#out + 1] = u.rule.key end
@@ -145,20 +168,21 @@ function M.test_arnak_a_guardian_is_fought_by_whoever_is_standing_there(check)
 	local one, two = digger(1, 1), digger(1, 2)
 
 	check("discovering works", use(one, "discover_1", { find_in("island", "pos_1").id }))
-	local site
-	for _, cid in ipairs(zone("island").cards) do
-		local c = entity.get(cid)
-		if (c.stats.guard or 0) >= 1 then site = c end
-	end
+	local site = guarded_site()
 	check("a guardian came up with the site", site ~= nil)
-	check("the figure at home cannot fight it", offers(two):find("overcome") == nil, offers(two))
+	local beast = guardian_on(site)
+	check("it is lying on the site rather than printed on it", beast.parent_id == site.id)
+	check("nobody is standing there, so nobody may fight it",
+		offers(beast) == "", offers(beast))
 
 	me.stats.main = 1
-	check("so send it there", use(two, "dig", { site.id }))
+	check("so send a figure", use(two, "dig", { site.id }))
 	me.stats.main = 1
-	check("now it can fight", offers(two):find("overcome") ~= nil, offers(two))
-	check("overcoming it works", use(two, "overcome"))
-	check("the guardian is gone", entity.get(site.id).stats.guard == 0)
+	check("now it can be fought", offers(beast) == "overcome", offers(beast))
+	check("overcoming it works", use(beast, "overcome"))
+	check("the guardian is gone from the board", entity.get(beast.id) == nil
+		or entity.get(beast.id).zone_id == nil)
+	check("the site is clear of it", guardian_on(site) == nil)
 	check("and it is worth five at the end", me.stats.guardians == 1)
 end
 
@@ -171,11 +195,7 @@ function M.test_arnak_fear_is_counted_off_the_figures(check)
 	local one, two = digger(1, 1), digger(1, 2)
 
 	use(one, "discover_1", { find_in("island", "pos_1").id })
-	local site
-	for _, cid in ipairs(zone("island").cards) do
-		local c = entity.get(cid)
-		if (c.stats.guard or 0) >= 1 then site = c end
-	end
+	local site = guarded_site()
 	me.stats.main = 1
 	check("a figure digs where a guardian still stands", use(two, "dig", { site.id }))
 
@@ -204,20 +224,24 @@ function M.test_arnak_discovery_reveals_a_position_that_was_always_there(check)
 	flow.init("arnak.json", 7)
 	local me = seat("south")
 	funded(me)
-	local before = #zone("island").cards
+	-- Counting what stands in a cell. A guardian is in the zone too, lying on a
+	-- site, and the point of the check is that the board is fifteen squares.
+	local function tiles()
+		local n = 0
+		for _, cid in ipairs(zone("island").cards) do
+			if not entity.get(cid).parent_id then n = n + 1 end
+		end
+		return n
+	end
+	local before = tiles()
 	local marker = find_in("island", "pos_1")
 
 	check("discovering works", use(digger(1, 1), "discover_1", { marker.id }))
-	check("the island is the same size it was", #zone("island").cards == before,
-		tostring(#zone("island").cards))
+	check("the island is the same size it was", tiles() == before, tostring(tiles()))
 	check("an idol came back with it", keys(zone("idols", 1)) == "idol", keys(zone("idols", 1)))
-
-	local site
-	for _, cid in ipairs(zone("island").cards) do
-		local c = entity.get(cid)
-		if (c.stats.guard or 0) >= 1 then site = c end
-	end
-	check("the new site woke a guardian", site ~= nil)
+	check("the new site came up with a guardian lying on it", guarded_site() ~= nil)
+	check("and the five that started face up have none",
+		guardian_on(find_in("island", "site_beach")) == nil)
 end
 
 -- The notebook may never sit above the magnifying glass. Written as a condition

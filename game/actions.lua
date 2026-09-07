@@ -78,6 +78,22 @@ local function zone_of(arg)
 	return id and entity.get(id)
 end
 
+-- Where a card is being sent. Almost always a zone; a scope naming a card names
+-- a **host**, and the arrival stands on it. That is how a guardian is dealt onto
+-- the site it guards, and it needed no word of its own: a destination is already
+-- a scope expression, and zones, tags and patterns are already one namespace
+-- that the checker refuses to let a game make ambiguous (validate.lua). So a
+-- name that is a zone is a zone, and one that is a card is a host.
+local function destination(arg, ctx)
+	local id = zone_id(arg)
+	if id then return id end
+	local sc = predicate.parse_scope(arg or "")
+	if not sc then return nil end
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		if e.kind == "card" and e.zone_id then return e.id end
+	end
+end
+
 -- "origin" — the zone a card was in immediately before its last move, which the
 -- engine records and nothing else can know. It is a *destination* and never a
 -- source, because every card carries its own: one line sending a whole zone home
@@ -311,11 +327,15 @@ local HANDLERS = {}
 -- thing that knows which. Every card in scope contributes its n, so a wider one
 -- deals a set rather than picking a winner out of it.
 HANDLERS["fill"] = function(p, ctx)
-	local zone = zone_of(p[2] or "")
-	if not zone then
-		content_error("fill: unknown zone " .. tostring(p[2]))
+	local into = entity.get(destination(p[2] or "", ctx))
+	if not into then
+		content_error("fill: unknown destination " .. tostring(p[2]))
 		return
 	end
+	-- A host is filled by making the card where the host stands and standing it
+	-- on top, since a card is made in a zone and only ever in a zone.
+	local host = into.kind == "card" and into or nil
+	local zone = host and entity.get(host.zone_id) or into
 	local keys, named = {}, p[3] or ""
 	if named:sub(1, 1) == "@" then
 		local sc = predicate.parse_scope(named:sub(2))
@@ -335,7 +355,9 @@ HANDLERS["fill"] = function(p, ctx)
 	local n = amount(p, 4, 1, ctx)
 	for _, key in ipairs(keys) do
 		for _ = 1, n do
-			if not zones.add(zone, key) then break end
+			local e = zones.add(zone, key)
+			if not e then break end
+			if host then zones.attach(e.id, host.id) end
 		end
 	end
 end
@@ -362,9 +384,9 @@ HANDLERS["take"] = function(p, ctx)
 		content_error("take: '" .. tostring(p[2]) .. "' is not a scope")
 		return
 	end
-	local to_id = zone_id(p[3])
+	local to_id = destination(p[3], ctx)
 	if not to_id then
-		content_error("take: unknown zone " .. tostring(p[3]))
+		content_error("take: unknown destination " .. tostring(p[3]))
 		return
 	end
 	local n, pos = count_and_pos(p, 4, 1, ctx)
@@ -377,9 +399,15 @@ HANDLERS["take"] = function(p, ctx)
 			.. "a scope of ordinary cards is what `move` is for")
 		return
 	end
+	-- A host is taken onto the same way a fill lands on one: out of the box into
+	-- the zone the host stands in, and then up onto the host.
+	local host = entity.get(to_id)
+	host = host and host.kind == "card" and host or nil
 	for _, shelf in ipairs(shelves) do
 		for _ = 1, (n or 1) do
-			if not zones.take(shelf, to_id, pos) then break end
+			local e = zones.take(shelf, host and host.zone_id or to_id, not host and pos or nil)
+			if not e then break end
+			if host then zones.attach(e.id, host.id) end
 		end
 	end
 end
@@ -392,7 +420,7 @@ end
 HANDLERS["draw_from"] = function(p, ctx)
 	-- draw_from:from:to:n[:where]  (n defaults to 1)
 	local from_id = zone_id(p[2])
-	local to_id   = zone_id(p[3] or "hand")
+	local to_id   = destination(p[3] or "hand", ctx)
 	if not from_id or not to_id then return end
 	local n, where = count_and_pos(p, 4, 1, ctx)
 	for _ = 1, n do
@@ -706,7 +734,7 @@ end
 HANDLERS["move"] = function(p, ctx)
 	local sc    = predicate.parse_scope(p[2] or "")
 	local home  = p[3] == "origin"
-	local to_id = not home and zone_id(p[3]) or nil
+	local to_id = not home and destination(p[3], ctx) or nil
 	if not (sc and (to_id or home)) then return end
 	-- Snapshot before moving: the scope is recomputed from live zones, and a
 	-- card that has already left would be counted from the zone it landed in.
