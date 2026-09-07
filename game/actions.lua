@@ -969,17 +969,26 @@ end
 -- gate is what makes a two-piece placement all-or-nothing.
 HANDLERS["place"] = function(p, ctx)
 	local sc = predicate.parse_scope(p[2] or "")
-	local z  = zones.sole_grid()
 	local at = p[3]
-	if not (sc and z and at) then
+	if not (sc and at) then
 		content_error("place: needs a scope and a square, as place:<who>:<square>")
 		return
 	end
+	local who = {}
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		if e.kind == "card" and e.zone_id then who[#who + 1] = e end
+	end
+	-- Which board a named square is on. A piece already standing on one is
+	-- moving about *that* one — the moon staff steps along the row it is in, and
+	-- nothing should have to say which row that is twice. Only a card arriving
+	-- from somewhere that is not a board needs the game to have exactly one.
+	local standing = who[1] and who[1].slot_id and entity.get(who[1].slot_id)
+	local z = standing and entity.get(standing.zone_id) or zones.sole_grid()
 	-- A square by name, or a pattern pointing at one from the acting card. The
 	-- second is what lets a rule that works for both sides of a board say where
 	-- something goes: "one column left of me" is the same sentence whichever end
 	-- you are sitting at, where "f1" is only ever white's.
-	local slot_id = geometry.slot_named(z, at)
+	local slot_id = z and geometry.slot_named(z, at)
 	if not slot_id and declaration.G.pattern_defs[at] then
 		slot_id = predicate.pattern_slots(at, ctx)[1]
 	end
@@ -987,9 +996,7 @@ HANDLERS["place"] = function(p, ctx)
 		content_error("place: '" .. tostring(at) .. "' is neither a square nor a pattern pointing at one")
 		return
 	end
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
-		if e.kind == "card" and e.zone_id then zones.place_in_slot(e.id, slot_id) end
-	end
+	for _, e in ipairs(who) do zones.place_in_slot(e.id, slot_id) end
 end
 
 -- transform:<scope>:<card>  — replace each card in scope with a new one of that

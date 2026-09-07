@@ -56,10 +56,12 @@ Three more things fall out of it that no other spelling gives:
 - **Fear is a card with one ability.** No `effect` half at all, so the chooser
   never appears and clicking it spends it for travel. *This chip does nothing*
   said without a special case.
-- **The market can lend the same card a third thing to do.** The `items` and
-  `artifacts` zones `applies` a `for_sale_*` tag whose buy ability says
-  `"merge": "this"`, so a card lying on the shelf is merchandise and its own
-  two abilities go quiet. Take it into a hand and they come back.
+- **The market can lend the same card a third thing to do.** The `row` zone
+  `applies` a `for_sale` tag whose buy ability says `"merge": "this"`, so a card
+  lying on the shelf is merchandise and its own two abilities go quiet. Take it
+  into a hand and they come back. The moon staff stands in the same zone and so
+  is handed the same ability — which is why its own step says `"merge": "this"`
+  too, or the shelf would have silenced the furniture.
 - **`ends_after` never had to be right.** Activating is not playing, so the
   play counter is not measuring anything, and the turn ends when a button says
   it does.
@@ -88,9 +90,9 @@ that one.
 | discovery reveals a printed position | the position is a `pos_1`/`pos_2` marker card sitting in the `island` grid. Discovering it runs `destroy_self` and then `draw_from:site_1_deck:island:1`, and the freed cell is the only one the grid has |
 | idols come only from discovery | `fill:mine.idols:idol:1` in the same list, before the marker destroys itself |
 | slot an idol, free, once, for one of several effects | `"when": ["used@self == 0"]` and `options:idol_coin,idol_compass,idol_dig,idol_draw` |
-| the card row, split by the moon staff | two zones and two rule cards in `rules_market`, gated on the round: the first round deals one artifact and five items, and every round after exiles one of each and deals **two** artifacts. The row is always six wide and one slot crosses every round, with no arithmetic in it |
-| buying refills the row | `draw_from` of one, in the buy ability, so the shelf fills before the next player looks at it |
-| an item costs coins, an artifact costs compasses | two tags, `for_sale_item` and `for_sale_art`, differing in one word of one cost map |
+| the card row, split by the moon staff | one `grid: [7, 1]` zone with the staff standing in it as a card. Its own ability is `destroy:beside`, `place:self:one_right`, a `compact` of each side and two artifacts dealt at the near end — run by `activate_zone:row:by_column:step` at round start, which names the ability so that nothing else in the row is activated. Position on the shelf is how old a card is, so the exile is the rulebook's card rather than an arbitrary one |
+| buying refills the row | the buy compacts both sides towards the staff and deals at `a1` and `g1`. Whichever end did not open refuses its own card, since a cell holds one — so one list serves both halves and nothing asks what was bought |
+| an item costs coins, an artifact costs compasses | one `for_sale` tag, and two price stats: a card costs what it prints, in the currency it prints. `coin_price` on the items, `compass_price` on the artifacts, each drawn with its own icon |
 | a bought card goes to the bottom of your deck | `move:self:mine.bag:bottom` |
 | round cleanup: shuffle the play area and put it under the deck | `each_seat:shuffle:mine.table` then `each_seat:return_to:mine.table:mine.bag:bottom`. Cards bought during the round are already down there, so they are drawn first — which is what the rulebook's parenthesis means |
 | research: two tokens, the notebook never above the glass | six row cards, each with a `glass` and a `note` ability. The notebook's is gated `["note@mine.player == n−1", "glass@mine.player >= n"]`, and that second clause is the whole rule |
@@ -239,15 +241,14 @@ format promises.
 Neither of these was worked around with a new field — both are recorded here
 and nowhere else.
 
-**1. Dealing into a named cell.** `draw_from:<deck>:<zone>:<n>` puts arrivals in
-the first free slot, and there is no spelling for "deal it into c1". That is why
-the card row is two zones sized by arithmetic rather than one zone with a staff
-moving across it: with a single `row` grid there is no way to say that artifacts
-fill from the left and items from the right. `setup.place` already has `at`, and
-`place:<who>:<where>` already names a square, so the word exists twice — just
-not on the verb that deals.
+**~~1. Dealing into a named cell.~~ Shipped 2026-09-07**, and the card row with
+it: one `grid: [7, 1]` zone, the moon staff a card standing in it, `destroy:beside`
+for the exile and `place:self:one_right` for the step. The word is a cell in the
+position argument every destination op already carried, so `draw_from:item_deck:row:1:g1`
+deals at the far end and a deal aimed at an occupied cell does nothing — which is
+what lets one refill serve both halves of the row without asking what was bought.
 
-**2. Who spent a card's exhaust.** The engine records that a card is exhausted
+**1. Who spent a card's exhaust.** The engine records that a card is exhausted
 and not by whom. Arnak's Fear rule is *your* archaeologist coming home from a
 guarded site, and the site space is the thing that carries the occupancy — so
 the two halves cannot be joined, and divergence 5 above is the price. A stat the
@@ -264,7 +265,7 @@ the missing thing is not the boolean but the seat.
 | | |
 |---|---|
 | the turn, and how a round ends | `phases`: `turn`'s three `next` routes |
-| the moon staff | `market_first` and `market_staff` in `rules_market`, and the two `for_sale_*` tags |
+| the moon staff | the `moon_staff` card, and `market_first` in `rules_market` for the opening deal |
 | what every kind of card does | the `tags` section — `deck_card`, `basic`, `item`, `artifact`, `site`, `assistant` |
 | what a card is worth | its `card_stats`, and the badge list of the style it wears |
 | discovery | `pos_1` and `pos_2`, the only two cards with abilities of their own |

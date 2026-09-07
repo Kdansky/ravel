@@ -168,24 +168,73 @@ function M.test_arnak_the_notebook_follows_the_glass(check)
 		find_in("research", "res_6").def_key == "res_6")
 end
 
--- The moon staff. One artifact and five items at the start; one slot moves
--- across every round, and the row always shows six cards.
-function M.test_arnak_the_moon_staff_moves_one_slot_a_round(check)
+-- The moon staff, and the row it stands in. One grid of seven: artifacts to its
+-- left, items to its right. Every round the two cards beside it are cleared
+-- away, it steps one place right, and the row closes up towards it — so where a
+-- card sits is how long it has been on show, which two fixed halves sized by
+-- arithmetic could say nothing about.
+function M.test_arnak_the_moon_staff_steps_along_the_row(check)
 	flow.init("arnak.json", 7)
-	local function shown()
-		return #zone("artifacts").cards, #zone("items").cards
+	-- The row read left to right: the kind of each card, or a dot for a free cell.
+	local function row()
+		local z, out = zone("row"), {}
+		for i, sid in ipairs(z.slots) do
+			local occ = entity.get(sid).occupant
+			local c   = occ and entity.get(occ)
+			out[i] = c and (c.def_key == "moon_staff" and "staff" or c.def_key:sub(1, 2)) or "."
+		end
+		return table.concat(out, ",")
 	end
-	local a, i = shown()
-	check("round one deals one artifact and five items", a == 1 and i == 5, a .. "/" .. i)
+	local function wrap_the_round()
+		use(find_in("controls", "pass_turn"), "pass")
+		use(find_in("controls", "pass_turn"), "pass")
+	end
 
-	-- Both seats pass, which is the only thing that ends a round.
-	use(find_in("controls", "pass_turn"), "pass")
-	use(find_in("controls", "pass_turn"), "pass")
+	check("one artifact, the staff, then five items",
+		row() == "ar,staff,it,it,it,it,it", row())
+
+	wrap_the_round()
 	check("the round wrapped", seat("clock").stats.round_no == 2,
 		tostring(seat("clock").stats.round_no))
-	a, i = shown()
-	check("round two deals two artifacts and four items", a == 2 and i == 4, a .. "/" .. i)
-	check("the row is still six cards wide", a + i == 6)
+	-- The artifact and the item flanking the staff are gone, the staff has moved
+	-- into the cell the item left, and two fresh artifacts fill the near end.
+	check("the staff has stepped, and the artifact side has grown",
+		row() == "ar,ar,staff,it,it,it,it", row())
+
+	wrap_the_round()
+	check("and again, the row still seven wide and six cards deep",
+		row() == "ar,ar,ar,staff,it,it,it", row())
+end
+
+-- What position on the shelf is *for*. A bought card leaves a hole; the row
+-- closes up towards the staff and the new card is dealt at the far end, so the
+-- oldest card is always the one next to the staff and the exile is never
+-- arbitrary. Under the old two-zone shape the new card dropped into the hole
+-- and nothing on the board said which card had been there longest.
+function M.test_arnak_a_bought_card_is_replaced_at_the_end_of_the_row(check)
+	flow.init("arnak.json", 7)
+	-- Cards by identity, not by key: the deck holds three of each item, so a
+	-- fresh card can arrive wearing a name that is already on the shelf.
+	local function shelf()
+		local z, out = zone("row"), {}
+		for i, sid in ipairs(z.slots) do out[i] = entity.get(sid).occupant end
+		return out
+	end
+	local before = shelf()
+	funded(seat("south"))
+	local bought = entity.get(before[5])
+	check("the middle item is merchandise and nothing else", offers(bought) == "buy", offers(bought))
+	check("bought it", use(bought, "buy"))
+
+	local after = shelf()
+	check("the cards nearer the staff did not move",
+		after[1] == before[1] and after[2] == before[2] and after[3] == before[3]
+		and after[4] == before[4])
+	check("the two beyond the hole slid one place towards it",
+		after[5] == before[6] and after[6] == before[7])
+	check("and a new card came in at the far end", after[7] ~= before[7] and after[7] ~= nil)
+	check("the bought card went to the bottom of the buyer's deck",
+		zone("bag", 1).cards[1] == bought.id)
 end
 
 -- Five rounds and then the count. Nothing scores while the game is running

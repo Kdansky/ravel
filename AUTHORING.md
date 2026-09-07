@@ -2375,6 +2375,20 @@ A cell that is not there, one somebody is standing on, or a zone with no cells a
 all **refuses the whole move** — the card stays where it was, the way a full grid
 already refuses. Nothing lands somewhere it was not asked to land.
 
+That refusal is worth having on purpose. A cell holds one card, so a count in
+front of a cell deals **one** and stops, and a deal aimed at a cell that is still
+occupied does nothing at all — which is how a market row refills without asking
+what was bought:
+
+```
+"action": ["compact:row.artifact:rightward", "compact:row.item:leftward",
+           "draw_from:artifact_deck:row:1:a1", "draw_from:item_deck:row:1:g1"]
+```
+
+Buy an artifact and the artifact side closes up, `a1` opens, and the artifact
+deal takes it; `g1` is still occupied, so the item deal is a no-op. The same six
+words serve both halves, and no condition anywhere says which was bought.
+
 ### `origin` — back where it came from
 
 Every destination names one place, which is wrong for a set of cards gathered
