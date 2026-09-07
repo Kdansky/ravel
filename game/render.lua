@@ -1400,7 +1400,7 @@ local function draw_stats()
 	local y  = 10 * S
 	local x  = W - 10 * S
 	local cur = phase.current()
-	if cur and cur.label then
+	if cur and cur.label and not declaration.G.shows_phase then
 		love.graphics.push("all")
 		local ph_label = label.fill(cur.label, cur)
 		love.graphics.setColor(0.70, 0.88, 1.00)

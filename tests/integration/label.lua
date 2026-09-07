@@ -193,4 +193,16 @@ function M.test_label_the_validator_names_a_name_nothing_answers(check)
 	check("and that the good one beside it is fine", not s:find("{phase}", 1, true), s)
 end
 
+-- The engine prints the phase in the top-right corner because most games leave
+-- it unsaid, and a corner is the only place no layout has claimed. A game that
+-- writes "{phase}" of its own has claimed one, so the corner goes quiet rather
+-- than saying the same words twice in two places.
+function M.test_label_a_game_that_names_the_phase_is_not_told_it_twice(check)
+	check("a game that never says it is told", declaration.parse("chess.json").shows_phase == false)
+	local G = declaration.parse("spellstorm.json")
+	check("and one that writes it on a zone is not", G.shows_phase == true)
+	check("which is the zone it wrote it on", G.zone_defs.announce.label == "{phase}",
+		G.zone_defs.announce.label)
+end
+
 return M

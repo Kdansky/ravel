@@ -1450,6 +1450,25 @@ function M.parse(filename)
 
 	for _, zd in pairs(G.zone_defs) do M.normalise_zone(zd, pp) end
 
+	-- Whether the board says which phase it is in. The engine prints it in the
+	-- top-right corner because most games leave it unsaid, and a corner is the
+	-- only place no layout has claimed — but it is a corner, and it lies across
+	-- whatever the game put there. A game that writes "{phase}" on a card or a
+	-- zone has answered the question in its own layout, so the engine stops
+	-- answering it too rather than saying the same words twice.
+	-- label.lua's own pattern, spelled again rather than required: label reads
+	-- this file, and a cycle for one gmatch would be the expensive way to say it.
+	local function names_phase(str)
+		return type(str) == "string" and str:find("{phase}", 1, true) ~= nil
+	end
+	G.shows_phase = false
+	for _, zd in pairs(G.zone_defs) do
+		if names_phase(zd.label) then G.shows_phase = true end
+	end
+	for _, cd in pairs(G.card_defs) do
+		if names_phase(cd.text) then G.shows_phase = true end
+	end
+
 	-- The zones a phase's player may play out of. One is the common case and
 	-- stays a bare word; a list is a player holding two hands — an open one
 	-- beside a closed one — and it is normalised here so that nothing

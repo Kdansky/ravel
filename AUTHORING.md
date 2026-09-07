@@ -1284,6 +1284,23 @@ Three names are the engine's own, and mean the same wherever they are written:
 | `{active}` | whoever is up |
 | `{phase}` | the phase's `label`, or its key where it has none |
 
+**Writing `{phase}` anywhere quiets the corner.** With nothing else saying it,
+the engine prints the current phase's label in the top-right of the window,
+because that is the one place no layout has claimed — and it is a corner, so it
+lies across whatever the game put there. A zone label or a card's text naming
+`{phase}` is the game claiming a place for it, and the engine then stops saying
+the same words twice. Spellstorm puts an empty labelled zone in the gap between
+the two players' battle slots, which is the middle of the screen:
+
+```json
+{ "key": "announce", "label": "{phase}", "layout": "row", "use": "none",
+  "pos": [0.385, 0.44, 0.615, 0.56] }
+```
+
+A zone rather than a card, because the answer is a sentence and a card's title
+is one line: *Play a card face down* came out as *Play a c...* on the widest
+card that gap will hold.
+
 **Anything else is a field of the thing the string is written on** — the live
 entity first, its template second, so `{text}` finds the template's word and
 `{stats.health}` finds the number as it is now. A dot walks in: `{stats.fuel}`,
