@@ -18,6 +18,7 @@ local M = {}
 --   hp@each.follower        every follower, individually
 --   hp@random.follower      one follower, chosen by the seeded RNG
 --   hp@each.enemy.creature  every creature an opponent owns
+--   health@opponent         the other seat, in a game that has exactly one
 --   hp@self                 the acting card
 --   hp@target               the cards the player chose for this card
 --   hp@event                the card an event is about, for a reaction to read
@@ -196,6 +197,27 @@ function M.entities_in_scope(scope, ctx, owner)
 		end
 		for _, id in ipairs((zones.find("system") or {}).cards or {}) do
 			if not seen[id] then out[#out + 1] = entity.get(id) end
+		end
+	elseif scope == "opponent" then
+		-- The other player, as "@self" is the acting card: one entity with a name,
+		-- not a filter over a pool. That is the whole difference from "enemy",
+		-- which means "not me" and is a pool of any size — and which the default
+		-- quantifier then reduces to whichever member came first, so a duel's
+		-- "your opponent" quietly became an arbitrary opponent the moment a third
+		-- player sat down.
+		--
+		-- **Only in a game with exactly two seats.** Anywhere else there is no
+		-- one seat to name, so it names nobody rather than guessing. Failing
+		-- closed is the runtime half of the word; the validator says it at
+		-- authoring time, where somebody can act on it.
+		local seats = declaration.G.seat_list or {}
+		if #seats == 2 then
+			local active = zones.active_seat()
+			for _, id in ipairs(tags.find_targets({ "player" }, tags.IN_PLAY)) do
+				local e = entity.get(id)
+				local seat = M.seat_of(e)
+				if seat ~= nil and seat ~= active then out[#out + 1] = e end
+			end
 		end
 	elseif scope == "all" then
 		for e in entity.each() do out[#out + 1] = e end

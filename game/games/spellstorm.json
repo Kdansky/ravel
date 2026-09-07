@@ -705,7 +705,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@enemy.player:1"]
+          "action": ["stat_damage:health@opponent:1"]
         }
       ]
     },
@@ -723,7 +723,7 @@
           "text": "Resolve",
           "action": [
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0",
+            "stat_set:initiative@opponent:0",
             "stat_gain:health@mine.player:count:fire@battle"
           ]
         }
@@ -759,7 +759,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_damage:health@enemy.player:1", "move_to:void"]
+          "action": ["stat_damage:health@opponent:1", "move_to:void"]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.fire:optional"] }
       ],
@@ -824,7 +824,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:health@enemy.player:1",
+            "stat_damage:health@opponent:1",
             "activate_zone:rules:by_column:dry_take_ash",
             "draw_from:ash_pile:mine.discard:1"
           ]
@@ -834,9 +834,9 @@
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
           "action": [
-            "stat_damage:health@enemy.player:2",
+            "stat_damage:health@opponent:2",
             "stat_set:initiative@mine.player:0",
-            "stat_set:initiative@enemy.player:1"
+            "stat_set:initiative@opponent:1"
           ]
         }
       ]
@@ -850,12 +850,12 @@
       "play": { "action": ["set_owner:self:mine", "move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:2"] },
+        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@opponent:2"] },
         {
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@enemy.player:2"]
+          "action": ["stat_damage:health@opponent:2"]
         }
       ]
     },
@@ -869,7 +869,7 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
-        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:1"] },
+        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@opponent:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
       "chosen": { "action": ["copy:target:activate", "move:target:mine.discard"] }
@@ -938,7 +938,7 @@
           "action": [
             "stat_gain:mana@mine.player:1",
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0"
+            "stat_set:initiative@opponent:0"
           ]
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:enemy.discard:optional"] }
@@ -1002,7 +1002,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@enemy.player:2", "move_to:mine.hand"]
+          "action": ["stat_damage:health@opponent:2", "move_to:mine.hand"]
         }
       ]
     },
@@ -1018,7 +1018,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:mine.deck:mine.discard:3", "stat_damage:health@enemy.player:1"]
+          "action": ["draw_from:mine.deck:mine.discard:3", "stat_damage:health@opponent:1"]
         }
       ]
     },
@@ -1035,11 +1035,11 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:power@enemy.player:2",
+            "stat_damage:power@opponent:2",
             "move:random.enemy.hand:enemy.discard",
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0",
-            "stat_damage:health@enemy.player:1"
+            "stat_set:initiative@opponent:0",
+            "stat_damage:health@opponent:1"
           ]
         }
       ]
@@ -1066,13 +1066,13 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_set:initiative@mine.player:0", "stat_set:initiative@enemy.player:1"]
+          "action": ["stat_set:initiative@mine.player:0", "stat_set:initiative@opponent:1"]
         },
         {
           "key": "cast3",
           "text": "Resolve",
           "needs": ["initiative@mine.player <= 0"],
-          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
+          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
         }
       ]
     },
@@ -1091,9 +1091,9 @@
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
           "action": [
-            "stat_damage:health@enemy.player:3",
+            "stat_damage:health@opponent:3",
             "stat_set:initiative@mine.player:0",
-            "stat_set:initiative@enemy.player:1",
+            "stat_set:initiative@opponent:1",
             "move_to:enemy.discard"
           ]
         }
@@ -1158,7 +1158,7 @@
             "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1",
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0"
+            "stat_set:initiative@opponent:0"
           ]
         },
         {
@@ -1197,7 +1197,7 @@
           "text": "Resolve",
           "action": [
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0",
+            "stat_set:initiative@opponent:0",
             "stat_gain:health@mine.player:1"
           ]
         },
@@ -1236,7 +1236,7 @@
           "action": [
             "draw_from:mine.deck:mine.hand:1",
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0",
+            "stat_set:initiative@opponent:0",
             "stat_gain:health@mine.player:1"
           ]
         },
@@ -1244,7 +1244,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["count:fire@enemy.battle >= 1"],
-          "action": ["stat_damage:health@enemy.player:2"]
+          "action": ["stat_damage:health@opponent:2"]
         }
       ]
     },
@@ -1290,13 +1290,13 @@
           "key": "cast3",
           "text": "Resolve",
           "needs": ["initiative@mine.player <= 0"],
-          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
+          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
         }
       ],
       "leaves": {
         "from": "hand",
         "into": "discard",
-        "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
+        "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
       }
     },
     {
@@ -1491,7 +1491,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:power@enemy.player:2",
+            "stat_damage:power@opponent:2",
             "activate_zone:rules:by_column:dry_give_ash",
             "draw_from:ash_pile:enemy.discard:1"
           ]
@@ -1654,7 +1654,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:health@enemy.player:4",
+            "stat_damage:health@opponent:4",
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1"
           ]
@@ -1676,7 +1676,7 @@
           "text": "Resolve",
           "action": [
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0",
+            "stat_set:initiative@opponent:0",
             "stat_gain:shards@mine.player:1"
           ]
         },
@@ -1719,7 +1719,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_damage:health@enemy.player:3", "stat_gain:shards@mine.player:1"]
+          "action": ["stat_damage:health@opponent:3", "stat_gain:shards@mine.player:1"]
         }
       ]
     },
@@ -1737,7 +1737,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:health@enemy.player:2",
+            "stat_damage:health@opponent:2",
             "stat_gain:shards@mine.player:1",
             "activate_zone:rules:by_column:dry_give_ash",
             "draw_from:ash_pile:enemy.discard:1"
@@ -1766,7 +1766,7 @@
           "whose": "mine",
           "from": "wizard",
           "cost": { "mana@mine.player": 6 },
-          "action": ["stat_damage:health@enemy.player:2", "stat_gain:mana@mine.player:1"]
+          "action": ["stat_damage:health@opponent:2", "stat_gain:mana@mine.player:1"]
         }
       ]
     },
@@ -1813,7 +1813,7 @@
           "move:target:mine.hand",
           "draw_from:spellstorm_deck:storm_cloud:1",
           "stat_set:initiative@mine.player:1",
-          "stat_set:initiative@enemy.player:0"
+          "stat_set:initiative@opponent:0"
         ],
         "where": ["tier@mine.player >= tier_req@target"]
       }
@@ -1834,7 +1834,7 @@
           "action": [
             "stat_gain:mana@mine.player:1",
             "stat_gain:power@mine.player:1",
-            "stat_damage:health@enemy.player:1",
+            "stat_damage:health@opponent:1",
             "activate_zone:rules:by_column:dry_take_ash",
             "draw_from:ash_pile:mine.discard:1"
           ]
@@ -1843,7 +1843,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@enemy.player:1"]
+          "action": ["stat_damage:health@opponent:1"]
         }
       ]
     },
@@ -1907,8 +1907,8 @@
           "text": "Resolve",
           "action": [
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0",
-            "stat_damage:mana@enemy.player:1",
+            "stat_set:initiative@opponent:0",
+            "stat_damage:mana@opponent:1",
             "stat_gain:mana@mine.player:1",
             "move:random.enemy.hand:enemy.discard"
           ]
@@ -1930,7 +1930,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_damage:health@enemy.player:count:earth@mine.hand",
+            "stat_damage:health@opponent:count:earth@mine.hand",
             "move:mine.hand:quiet",
             "move:quiet:mine.discard",
             "draw_from:mine.deck:mine.hand:1",
@@ -2076,7 +2076,7 @@
           "action": [
             "stat_gain:mana@mine.player:1",
             "stat_gain:mana@mine.player:1",
-            "stat_damage:health@enemy.player:sum:doom@mine.player"
+            "stat_damage:health@opponent:sum:doom@mine.player"
           ]
         },
         {
@@ -2160,7 +2160,7 @@
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
-      "chosen": { "action": ["move:target:mine.discard", "stat_damage:health@enemy.player:2"] }
+      "chosen": { "action": ["move:target:mine.discard", "stat_damage:health@opponent:2"] }
     },
     {
       "key": "omar_shuriken",
@@ -2177,7 +2177,7 @@
           "text": "Resolve",
           "action": [
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0",
+            "stat_set:initiative@opponent:0",
             "draw_from:mine.deck:mine.hand:1"
           ]
         }
@@ -2203,7 +2203,7 @@
           "copy:target:activate:2",
           "move:target:void",
           "stat_gain:health@mine.player:1",
-          "stat_gain:health@enemy.player:1"
+          "stat_gain:health@opponent:1"
         ]
       }
     },
@@ -2245,8 +2245,8 @@
         {
           "key": "cast2",
           "text": "Resolve",
-          "needs": ["tier@enemy.player <= 1"],
-          "action": ["stat_gain:power@enemy.player:1"]
+          "needs": ["tier@opponent <= 1"],
+          "action": ["stat_gain:power@opponent:1"]
         }
       ]
     },
@@ -2325,7 +2325,7 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
-        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@enemy.player:1"] },
+        { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@opponent:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
       "chosen": {
@@ -2458,7 +2458,7 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
-      "chosen": { "action": ["move:target:mine.discard", "stat_damage:health@enemy.player:1"] }
+      "chosen": { "action": ["move:target:mine.discard", "stat_damage:health@opponent:1"] }
     },
     {
       "key": "nice_breeze",
@@ -2731,7 +2731,7 @@
           "needs": ["initiative@mine.player <= 0"],
           "action": [
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0",
+            "stat_set:initiative@opponent:0",
             "activate_zone:rules:by_column:dry_take_curse",
             "draw_from:curse_pile:mine.discard:1",
             "stat_gain:mana@mine.player:1"
@@ -2834,7 +2834,7 @@
         {
           "key": "sip",
           "needs": ["fire_el@mine.player >= 1", "initiative@mine.player >= 1"],
-          "action": ["stat_damage:fire_el@mine.player:1", "stat_damage:health@enemy.player:1"]
+          "action": ["stat_damage:fire_el@mine.player:1", "stat_damage:health@opponent:1"]
         },
         {
           "key": "sip2",
@@ -2842,7 +2842,7 @@
           "action": [
             "stat_damage:fire_el@mine.player:1",
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0"
+            "stat_set:initiative@opponent:0"
           ]
         },
         {
@@ -2852,7 +2852,7 @@
             "doubled@mine.player >= 1",
             "initiative@mine.player >= 1"
           ],
-          "action": ["stat_damage:health@enemy.player:1", "stat_set:doubled@mine.player:0"]
+          "action": ["stat_damage:health@opponent:1", "stat_set:doubled@mine.player:0"]
         },
         {
           "key": "again2",
@@ -2863,7 +2863,7 @@
           ],
           "action": [
             "stat_set:initiative@mine.player:1",
-            "stat_set:initiative@enemy.player:0",
+            "stat_set:initiative@opponent:0",
             "stat_set:doubled@mine.player:0"
           ]
         }
@@ -2930,7 +2930,7 @@
           "needs": ["fire_el@mine.player >= 3"],
           "action": [
             "stat_damage:fire_el@mine.player:3",
-            "stat_damage:health@enemy.player:1",
+            "stat_damage:health@opponent:1",
             "stat_gain:fire_el@mine.player:1",
             "stat_gain:earth_el@mine.player:1",
             "stat_gain:water_el@mine.player:1"
@@ -2940,7 +2940,7 @@
           "key": "again",
           "needs": ["fire_el@mine.player >= 3", "doubled@mine.player >= 1"],
           "action": [
-            "stat_damage:health@enemy.player:1",
+            "stat_damage:health@opponent:1",
             "stat_gain:fire_el@mine.player:1",
             "stat_gain:earth_el@mine.player:1",
             "stat_gain:water_el@mine.player:1",
@@ -3072,7 +3072,7 @@
           "needs": ["water_el@mine.player >= 2"],
           "action": [
             "stat_damage:water_el@mine.player:2",
-            "stat_damage:mana@enemy.player:1",
+            "stat_damage:mana@opponent:1",
             "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1"
           ]
@@ -3081,7 +3081,7 @@
           "key": "again",
           "needs": ["water_el@mine.player >= 2", "doubled@mine.player >= 1"],
           "action": [
-            "stat_damage:mana@enemy.player:1",
+            "stat_damage:mana@opponent:1",
             "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1",
             "stat_set:doubled@mine.player:0"
@@ -3302,12 +3302,12 @@
         },
         {
           "key": "award_win",
-          "needs": ["blast@mine.player > blast@enemy.player"],
+          "needs": ["blast@mine.player > blast@opponent"],
           "action": ["stat_gain:shards@mine.player:2"]
         },
         {
           "key": "award_tie",
-          "needs": ["blast@mine.player == blast@enemy.player"],
+          "needs": ["blast@mine.player == blast@opponent"],
           "action": ["stat_gain:shards@mine.player:1"]
         }
       ]
@@ -3350,7 +3350,7 @@
         {
           "key": "dry_give_ash",
           "needs": ["count:junk@ash_pile <= 0"],
-          "action": ["move:random.enemy.everywhere.ash_held:ash_pile", "stat_damage:power@enemy.player:2"]
+          "action": ["move:random.enemy.everywhere.ash_held:ash_pile", "stat_damage:power@opponent:2"]
         }
       ]
     },
@@ -3374,7 +3374,7 @@
           "needs": ["count:junk@curse_pile <= 0"],
           "action": [
             "move:random.enemy.everywhere.curse_held:curse_pile",
-            "stat_damage:health@enemy.player:1"
+            "stat_damage:health@opponent:1"
           ]
         }
       ]
@@ -3416,7 +3416,7 @@
         {
           "key": "dry_dragon",
           "needs": ["count:dragon@dragon_deck <= 0"],
-          "action": ["stat_damage:health@enemy.player:2", "stat_gain:shards@mine.player:2"]
+          "action": ["stat_damage:health@opponent:2", "stat_gain:shards@mine.player:2"]
         }
       ]
     },
@@ -3429,13 +3429,13 @@
       "abilities": [
         {
           "key": "first",
-          "needs": ["init_rating@mine.player < init_rating@enemy.player"],
-          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
+          "needs": ["init_rating@mine.player < init_rating@opponent"],
+          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
         },
         {
           "key": "first_tie",
-          "needs": ["initiative@mine.player <= 0", "initiative@enemy.player <= 0"],
-          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
+          "needs": ["initiative@mine.player <= 0", "initiative@opponent <= 0"],
+          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
         }
       ]
     },

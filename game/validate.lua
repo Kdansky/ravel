@@ -90,7 +90,7 @@ M.ENGINE_TAGS_ALSO_ON_STATS = { hidden = "kept out of the HUD, while cards may s
 -- are the five the engine claims. "player" is deliberately NOT reserved — it is
 -- an ordinary tag that content puts on one card, which is what makes finding
 -- that card trivial.
-local RESERVED_SCOPES = { "self", "all", "reach", "owner_of", "everywhere" }
+local RESERVED_SCOPES = { "self", "all", "reach", "owner_of", "everywhere", "opponent" }
 
 -- The shapes a stat may ask to be drawn with. Named by shape rather than by
 -- meaning, so a game's own word for its currency is its own business — and a
@@ -649,6 +649,36 @@ function M.check(G)
 		return sc and scope_named(sc.name) or inner
 	end
 
+	-- "@opponent" is the other seat, so a game with any other number of them has
+	-- written something the engine can only answer with nobody. Said here rather
+	-- than left to the runtime because the whole point of the word is to turn a
+	-- silent misreading into a sentence somebody can act on: "@enemy.player" with
+	-- three seats is a pool of two that the default quantifier reduces to
+	-- whichever came first, and that is the bug this word exists to make
+	-- unwritable.
+	--
+	-- It takes nothing after it, being one entity rather than a place to look —
+	-- said separately because "@opponent.player" is what somebody who knows
+	-- "@enemy.player" will write first, and "no zone called opponent" is not the
+	-- sentence that helps them.
+	local function opponent_ok(where, what, expr, sc)
+		local name = sc and sc.name
+		if type(name) ~= "string" then return end
+		if name:match("^opponent%.") then
+			warn("%s: %s '%s' — '@opponent' is the other seat itself and takes nothing after it. "
+				.. "Write '@opponent'", where, what, expr)
+			return true
+		end
+		if name ~= "opponent" then return end
+		local seats = #(G.seat_list or {})
+		if seats ~= 2 then
+			warn("%s: %s '%s' says 'opponent', which is *the* other seat — this game has %d, so there "
+				.. "is no one seat it names. Write 'enemy' for all of them, or name the seat",
+				where, what, expr, seats)
+		end
+		return true
+	end
+
 	-- "<zone>.<tag>" is two names, and both have to exist. Reported as the half
 	-- that is wrong rather than as the whole expression, since "no zone called
 	-- gem_pyle" is the sentence somebody can act on.
@@ -686,7 +716,9 @@ function M.check(G)
 			return
 		end
 		local named = p.scope and scope_named(p.scope)
-		if p.scope and not scope_names[named] and scope_pair_ok(where, "the subject", key, named) then
+		if opponent_ok(where, "the subject", key, { name = named }) then
+			-- said, as the word it is
+		elseif p.scope and not scope_names[named] and scope_pair_ok(where, "the subject", key, named) then
 			-- said already, as the half that is wrong
 		elseif p.scope and not scope_names[named] then
 			warn("%s: '@%s' is neither a zone nor a tag%s",
@@ -1094,7 +1126,9 @@ function M.check(G)
 				-- key to check is the last word. An unknown owner word simply
 				-- stays part of the name and is caught as an unknown zone.
 				local sc = predicate.parse_scope(a)
-				if sc and sc.name == "origin" then
+				if opponent_ok(where, "'" .. op .. "'", a, sc) then
+					-- said, and a seat is not a zone to move cards into anyway
+				elseif sc and sc.name == "origin" then
 					if MOVES_TO[op] ~= i then
 						warn("%s: '%s' cannot take cards out of 'origin' — it is where each card came "
 							.. "from, a different place for every one of them, so it only reads as a "
@@ -1155,7 +1189,9 @@ function M.check(G)
 			elseif t == "scope" then
 				local sc = predicate.parse_scope(a)
 				local named = sc and scope_named(sc.name)
-				if named == "origin" then
+				if opponent_ok(where, "'" .. op .. "'", a, { name = named }) then
+					-- said, as the word it is
+				elseif named == "origin" then
 					-- Said as a scope now that move names its source as one, and the
 					-- answer is the same as it was on a zone argument.
 					warn("%s: '%s' cannot take cards out of 'origin' — it is where each card came "

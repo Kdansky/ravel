@@ -1036,7 +1036,7 @@ def purple_cards():
 # the way, and the *largest gem broken to send it* has to be under a four — the
 # rulebook's one exception, and the reason "broke" is a second number rather
 # than the same one read twice.
-ANSWERABLE = ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"]
+ANSWERABLE = ["crashed@opponent >= 1", "broke@opponent <= 3"]
 
 
 # A wound is gained rather than bought when a chip inflicts one, and both go to
@@ -1125,7 +1125,7 @@ def puzzle_cards():
         {"key": "gems_to_gemonade", **shape("gems_to_gemonade", "purple"),
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
          "reactions": [{"to": "crash", "text": "Negate the gems", "needs": ANSWERABLE,
-                        "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
+                        "action": ["destroy:mine.gem_1:sum:crashed@opponent"],
                         "spent": "mine.discard"}]},
         {"key": "its_a_trap", **shape("its_a_trap", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1494,12 +1494,12 @@ def character_chips():
                                    # holds our side while theirs is being reduced,
                                    # because both numbers are needed at once and a
                                    # stat cannot be read after it has been changed.
-                                   "destroy:mine.gem_1:sum:crashed@enemy.player",
+                                   "destroy:mine.gem_1:sum:crashed@opponent",
                                    "stat_set:sent@mine.player:sum:crashed@mine.player",
-                                   "stat_damage:sent@mine.player:sum:crashed@enemy.player",
-                                   "stat_damage:crashed@enemy.player:sum:crashed@mine.player",
+                                   "stat_damage:sent@mine.player:sum:crashed@opponent",
+                                   "stat_damage:crashed@opponent:sum:crashed@mine.player",
                                    "stat_set:crashed@mine.player:sum:sent@mine.player",
-                                   "take:bank.gem_1:mine.gem_pile:sum:crashed@enemy.player",
+                                   "take:bank.gem_1:mine.gem_pile:sum:crashed@opponent",
                                    "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
                                    "emit:crash"],
                         "spent": "mine.discard"}]},
@@ -1520,7 +1520,7 @@ def character_chips():
          "play": act(["draw_from:mine.bag:mine.hand:1", "stat_gain:piggy@mine.player:1"]),
          "reactions": [{"to": "crash", "text": "Send the gems back to the bank",
                         "needs": ANSWERABLE,
-                        "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
+                        "action": ["destroy:mine.gem_1:sum:crashed@opponent"],
                         "spent": "mine.discard"}]},
         {"key": "big_rocks", "text": "Big Rocks", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:ash",
@@ -1927,9 +1927,9 @@ def choice_cards():
         # while the offer is up, so the seat that gets the benefit is "enemy"
         # from in here, and each branch hands priority home.
         choice("tr_tempo", "Give them an action and a chip",
-               ["stat_gain:acts@enemy.player:1", "draw_from:enemy.bag:enemy.hand:1", "clear_priority"]),
+               ["stat_gain:acts@opponent:1", "draw_from:enemy.bag:enemy.hand:1", "clear_priority"]),
         choice("tr_money", "Give them two gem power and a piggy bank",
-               ["stat_gain:money@enemy.player:2", "stat_gain:piggy@enemy.player:1", "clear_priority"]),
+               ["stat_gain:money@opponent:2", "stat_gain:piggy@opponent:1", "clear_priority"]),
         choice("ct_ab", "An action and a piggy bank", [A, P]),
         choice("ct_am", "An action and a gem power", [A, Mo]),
         choice("ct_ac", "An action and a chip", [A, C]),

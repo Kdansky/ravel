@@ -37,14 +37,14 @@ MANA  = "stat_gain:mana@mine.player:1"
 POWER = "stat_gain:power@mine.player:1"
 DRAW  = "draw_from:mine.deck:mine.hand:1"
 HEAL  = lambda n: "stat_gain:health@mine.player:%d" % n
-DMG   = lambda n: "stat_damage:health@enemy.player:%d" % n
+DMG   = lambda n: "stat_damage:health@opponent:%d" % n
 SELF_DMG = lambda n: "stat_damage:health@mine.player:%d" % n
 SHARD = lambda n: "stat_gain:shards@mine.player:%d" % n
 
 # Initiative is one tracker, so taking it is two writes and there is no way to
 # say it as one. Both spellings exist because both directions appear on cards.
-GAIN_INIT = ["stat_set:initiative@mine.player:1", "stat_set:initiative@enemy.player:0"]
-LOSE_INIT = ["stat_set:initiative@mine.player:0", "stat_set:initiative@enemy.player:1"]
+GAIN_INIT = ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
+LOSE_INIT = ["stat_set:initiative@mine.player:0", "stat_set:initiative@opponent:1"]
 
 HAS_INIT = "initiative@mine.player >= 1"
 NO_INIT  = "initiative@mine.player <= 0"
@@ -229,7 +229,7 @@ SPELLS = [
     card("shockwave", "Shockwave", FIRE, tier=2,
          tooltip="Your opponent loses 2 Power Tokens and discards a card. You gain Initiative. Deal 1 damage.",
          flavour='The 1981 hit song "Shockwave" is often credited with creating the Bonepunk genre.',
-         cast=["stat_damage:power@enemy.player:2",
+         cast=["stat_damage:power@opponent:2",
                DISCARD_RANDOM("enemy")] + GAIN_INIT + [DMG(1)]),
     card("swampsilt", "Swamp Silt", FIRE, tier=1,
          tooltip="Draw a card. Whoever has Initiative loses it. Give your opponent a CURSE.",
@@ -333,7 +333,7 @@ SPELLS = [
     card("quake", "Quake", EARTH, tier=1,
          tooltip="Your opponent loses 2 Power Tokens and gains an ASH. You may gain a card from the Storm Cloud at or below your Tier. On discard: power up.",
          flavour="A huge earthquake that happened in 1951 is attributed to the emergence of the Business Demons.",
-         cast=["stat_damage:power@enemy.player:2"] + GIVE("ash") + [OFFER_CLOUD],
+         cast=["stat_damage:power@opponent:2"] + GIVE("ash") + [OFFER_CLOUD],
          chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER]),
     card("shatter", "Shatter", EARTH, tier=2,
          tooltip="You may VOID a card from your hand; if you do, power up. On discard: power up.",
@@ -607,13 +607,13 @@ WIZARDS = [
                card("eve_facepunch", "Face Punch", WATER, kind="wizard_spell", ult=True,
                     tooltip="Gain Initiative. Steal 1 mana from your opponent and they discard a card.",
                     flavour='"We use voices to avoid having to use fists. We use fists to avoid having to use bombs."',
-                    cast=GAIN_INIT + ["stat_damage:mana@enemy.player:1", MANA,
+                    cast=GAIN_INIT + ["stat_damage:mana@opponent:1", MANA,
                                       DISCARD_RANDOM("enemy")]),
                card("eve_riot", "Riot", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Discard your hand without triggering any discard effects. Deal 1 damage per Earth card discarded. Draw 2 cards.",
                     flavour='"Destroying the Omni-Gem was only the first step in our struggle against colonial oppression."',
                     comment="The two moves are one discard, and the detour is the whole of \"without triggering any discard effects\". An On Discard fires on a card going from a hand to a discard; leaving a hand for the quiet is not that, and leaving the quiet for a discard is not either. The cards are there for the length of one step and this is the only card in the box that needs it.",
-                    cast=["stat_damage:health@enemy.player:count:earth@mine.hand",
+                    cast=["stat_damage:health@opponent:count:earth@mine.hand",
                           "move:mine.hand:quiet", "move:quiet:mine.discard", DRAW, DRAW]),
            ]),
 
@@ -656,7 +656,7 @@ WIZARDS = [
                     tooltip="Gain 2 mana. Deal damage equal to your number of DOOM Tokens. If the CURSE pile is empty, gain a DOOM Token.",
                     flavour="Long ago, Croh Vosh was betrayed and killed at Dragon Bridge by his longtime ally, Salutaire Ruupart.",
                     cast=[MANA, MANA,
-                          "stat_damage:health@enemy.player:sum:doom@mine.player"],
+                          "stat_damage:health@opponent:sum:doom@mine.player"],
                     cast2=("count:junk@curse_pile <= 0",
                            ["stat_gain:doom@mine.player:1"])),
                card("croh_undertow", "Undertow", WATER, kind="wizard_spell", ult=True,
@@ -692,7 +692,7 @@ WIZARDS = [
            "Reveal a card from your hand, resolve it twice and VOID it. All players heal 1.",
            ["show:mine.hand:optional"],
            ult_chosen=["copy:target:activate:2", "move:target:void",
-                       HEAL(1), "stat_gain:health@enemy.player:1"],
+                       HEAL(1), "stat_gain:health@opponent:1"],
            simplified="Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires",
            blurb="A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.",
            spells=[
@@ -701,8 +701,8 @@ WIZARDS = [
                     flavour='"Bunny is wondering if it would be okay to hold your hand." - Bunny\'s Handler',
                     simplified="resolving a different revealed Earth card is not offered",
                     cast=[POWER, MANA],
-                    cast2=("tier@enemy.player <= 1",
-                           ["stat_gain:power@enemy.player:1"])),
+                    cast2=("tier@opponent <= 1",
+                           ["stat_gain:power@opponent:1"])),
                card("bunny_snowday", "Snow Day", WATER, kind="wizard_spell", ult=True,
                     tooltip="Heal 2. Give an ICE to your opponent if they have none in their discard.",
                     flavour="The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic.",
@@ -839,7 +839,7 @@ POTIONS = [
      EARTH, 4, False, (None, ["activate_zone:rules:by_column:dry_dragon",
                               "copy:dragon_deck:activate"]), None),
     ("pot_frost", "Frost Bomb", "Your opponent loses 1 mana. Give an ICE.",
-     WATER, 2, False, (None, ["stat_damage:mana@enemy.player:1"] + GIVE("ice")), None),
+     WATER, 2, False, (None, ["stat_damage:mana@opponent:1"] + GIVE("ice")), None),
     ("pot_storm", "Storm Juice", "Draw a card and power up.",
      WATER, 3, False, (None, [DRAW, POWER]), None),
     ("pot_soda", "Health Soda", "Heal 2.",
@@ -1144,9 +1144,9 @@ def rules_templates():
         [ability("score", ["stat_set:blast@mine.player:count:spell@mine.hand",
                            "stat_damage:blast@mine.player:sum:ice_pen@mine.player"]),
          ability("award_win", [SHARD(2)],
-                 when=["blast@mine.player > blast@enemy.player"]),
+                 when=["blast@mine.player > blast@opponent"]),
          ability("award_tie", [SHARD(1)],
-                 when=["blast@mine.player == blast@enemy.player"])]))
+                 when=["blast@mine.player == blast@opponent"])]))
 
     # The Power Track. Six tokens fill it; the seventh is a Tier, and at Tier III
     # a filled track is a Dragon instead. Checked between rounds rather than the
@@ -1173,7 +1173,7 @@ def rules_templates():
     # received the card.
     for kind, take, give in (
             ("ash",   ["stat_damage:power@mine.player:2"],
-                      ["stat_damage:power@enemy.player:2"]),
+                      ["stat_damage:power@opponent:2"]),
             ("curse", [SELF_DMG(1)], [DMG(1)]),
             ("ice",   [DISCARD_RANDOM("mine")] * 2, [DISCARD_RANDOM("enemy")] * 2)):
         # VOIDing one is a move back onto the pile, which is where a VOIDed junk
@@ -1204,7 +1204,7 @@ def rules_templates():
         "r_first", "Initiative rating",
         "The wizard with the lower Initiative rating takes the Initiative Tracker at the start of the game.",
         [ability("first", GAIN_INIT,
-                 when=["init_rating@mine.player < init_rating@enemy.player"]),
+                 when=["init_rating@mine.player < init_rating@opponent"]),
          # "At all times exactly one player holds the Initiative Tracker", and
          # two wizards with the same rating -- a mirror match -- left nobody
          # holding it, which quietly turned every "starting with the player who
@@ -1214,7 +1214,7 @@ def rules_templates():
          # per seat, or the second seat would take it back off the first.
          ability("first_tie", GAIN_INIT,
                  when=["initiative@mine.player <= 0",
-                       "initiative@enemy.player <= 0"])]))
+                       "initiative@opponent <= 0"])]))
 
     # Abragail's journal: every researched space fires at battle start. The
     # three that ask a question run under their own step so a phase can open

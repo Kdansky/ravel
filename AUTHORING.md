@@ -1975,6 +1975,32 @@ pass it over and only `anyone` — or no word at all — reaches it. In a
 one-player game every word names the same cards and `enemy` names none, so
 none of this is visible until a second seat exists.
 
+**`@opponent` is the other player**, and it is not an owner word — it is a seat,
+the way `@self` is a card. It takes nothing after it: write `health@opponent`,
+not `health@opponent.player`.
+
+```
+stat_damage:health@opponent:2      two off the other player
+blast@mine.player > blast@opponent  am I ahead
+```
+
+`enemy` is a **pool** and `opponent` is a **person**, and in a duel they name the
+same seat, which is why this distinction is invisible until a third player sits
+down. Use `enemy` wherever you mean *all of them* — "every creature an opponent
+controls" is a pool, and `count:fire@enemy.battle` should grow with the table.
+
+It is a trap wherever you meant *the* opponent. `stat_damage:health@enemy.player:2`
+reads as one player's health in a duel; at three seats it names a pool of two,
+and the default `any` quantifier lands on whichever of them the file declared
+**first** — silently, with nothing in the file changed, and the third player
+never touched.
+
+`@opponent` exists only in a game with exactly two seats. Anywhere else the
+checker says so, and at run time it names nobody rather than guessing which
+opponent you meant. It is a *subject* word: a **target** asking the player to
+choose still says `"owner": "enemy"`, because choosing one of several is what a
+target is for.
+
 **Quantifiers** say which member, and they work identically in conditions,
 costs and effects:
 

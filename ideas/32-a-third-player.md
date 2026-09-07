@@ -3,7 +3,7 @@
 *From building Spellstorm, whose `play_1` and `play_2` are the same phase
 written twice, and from the reveal question in [16](16-the-player-at-this-screen.md).*
 
-**The phase half shipped as `type: "turn"`; the `enemy` half is still open.**
+**The phase half shipped as `type: "turn"`. The `enemy` half shipped as `opponent`, with the zone scopes left open.**
 Spellstorm is a two-player game and stays one — what this bought is that its
 phases no longer say so.
 
@@ -22,31 +22,56 @@ written against `seat_list` rather than against two, and already generalises:
 So a three-player game loads and runs today. What it cannot do is *say things
 about* three players.
 
-## The one real missing word: `enemy` means "not me"
+## Shipped: `opponent`, and what `enemy` turns out to do
 
-`predicate.owned_by` (`predicate.lua:115`) is three lines: `mine` is `seat ==
-active`, and `enemy` is `seat ~= active`. As a **filter** that is exactly right
-for any number — "every creature an opponent controls" wants all of them.
+`predicate.owned_by` is three lines: `mine` is `seat == active`, `enemy` is
+`seat ~= active`. As a **filter** `enemy` is exactly right for any number —
+"every creature an opponent controls" wants all of them. As a **subject** it was
+a trap, and **not the trap this file predicted**: the draft said
+`stat_damage:health@enemy.player:2` would damage both opponents at three seats.
+It does not. The default quantifier is `any`, so it lands on the *first* member
+of the pool — one arbitrary opponent, chosen by declaration order, with the
+third player never touched. Said `each.enemy` it hits them all, which at least
+says so out loud.
 
-As a **subject** it is a trap. `stat_damage:health@enemy.player:2` resolves
-through `bearers`, which returns every entity in scope, so with three seats it
-damages both opponents for 2. Spellstorm writes `@enemy.player` 53 times meaning
-*the* opponent, and every one of them would silently become a table-wide effect.
+`@opponent` is in, and **it is a scope rather than an owner word** — a seat, the
+way `@self` is a card, so it takes nothing after it. That was the second try:
+written as an owner word it needed `@opponent.player`, which is `@enemy.player`
+with a concept added and not a word saved. If the reason to have it is that
+`enemy` names a pool where the rule meant a person, then the word should *be*
+the person; `.player` was the tell that it was still a filter.
 
-The format has no way to say any of:
+It resolves only in a game with exactly two seats, is refused by the validator
+anywhere else, and names nobody at run time if it gets there anyway. Failing
+closed is deliberate — the word exists to turn a silent misreading into a
+sentence somebody can act on, so silence would be the same bug with a new
+spelling. `opponent` joins `self`, `all`, `reach`, `owner_of` and `everywhere`
+as a name content may not claim.
 
-- **one opponent, chosen by the player** — a `target` can already do this
-  (`owner: "enemy"`), so the gap is only that an *action's* subject cannot;
+34 sites migrated: every `@enemy.player` in the corpus, across Spellstorm,
+Puzzle Strike, Codex and Arnak, all of them two-seat games where the two words
+agree today. Each one lost a word as well as gaining a meaning.
+
+**The open half is the zone scopes** — `@enemy.hand`, `@enemy.patrol`,
+`@enemy.taken`, 40 of them. `zones.lua` picks the first matching seat there too,
+so the trap is the same shape, but a zone scope is a place *and* a filter and
+the two readings are genuinely different per site: `count:king@enemy.taken` may
+well want the pool. Migrating them blind would be the same silent widening in
+reverse, so each wants looking at.
+
+Still missing, and none of it blocking any game in the corpus:
+
+- **one opponent, chosen by the player** — a `target` already does this
+  (`owner: "enemy"`), and `opponent` deliberately does not, since choosing one
+  of several is what a target is for;
 - **the seat to my left** — turn order exists in `seat_index` and nothing can
   read it relationally;
 - **the seat with the most/least of something** — `set_active_seat:has_init`
   does this in Spellstorm by putting a computed tag on a seat card, which is the
   idiom and probably the answer.
 
-**The decision to make first is whether `enemy` keeps its meaning.** It should:
-it is honest, and the games written against it are two-player, where both
-readings agree. What is missing is a *narrower* word beside it, and that is a new
-word in the format — so it needs consent before anything is built.
+`opponents` and `any_opponent` are the variants that may want writing later; a
+three-seat game is what would ask for them.
 
 ## Shipped: the phase shape
 

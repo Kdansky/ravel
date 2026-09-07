@@ -884,8 +884,8 @@
         {
           "to": "crash",
           "text": "Negate the gems",
-          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
-          "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
+          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
+          "action": ["destroy:mine.gem_1:sum:crashed@opponent"],
           "spent": "mine.discard"
         }
       ],
@@ -1677,7 +1677,7 @@
       "reactions": [
         {
           "to": "crash",
-          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
+          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
           "from": "board",
           "action": ["destroy:mine.gem_1:1", "move_to:mine.discard", "transform:self:bubble_shield"]
         }
@@ -1924,7 +1924,7 @@
         {
           "to": "crash",
           "text": "Counter-crash",
-          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
+          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
           "target": {
             "type": "card",
             "tags": ["gem"],
@@ -1936,12 +1936,12 @@
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
             "destroy:target",
-            "destroy:mine.gem_1:sum:crashed@enemy.player",
+            "destroy:mine.gem_1:sum:crashed@opponent",
             "stat_set:sent@mine.player:sum:crashed@mine.player",
-            "stat_damage:sent@mine.player:sum:crashed@enemy.player",
-            "stat_damage:crashed@enemy.player:sum:crashed@mine.player",
+            "stat_damage:sent@mine.player:sum:crashed@opponent",
+            "stat_damage:crashed@opponent:sum:crashed@mine.player",
             "stat_set:crashed@mine.player:sum:sent@mine.player",
-            "take:bank.gem_1:mine.gem_pile:sum:crashed@enemy.player",
+            "take:bank.gem_1:mine.gem_pile:sum:crashed@opponent",
             "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "emit:crash"
           ],
@@ -1994,8 +1994,8 @@
         {
           "to": "crash",
           "text": "Send the gems back to the bank",
-          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
-          "action": ["destroy:mine.gem_1:sum:crashed@enemy.player"],
+          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
+          "action": ["destroy:mine.gem_1:sum:crashed@opponent"],
           "spent": "mine.discard"
         }
       ],
@@ -2761,7 +2761,7 @@
         {
           "to": "crash",
           "text": "Crash a 1-gem back",
-          "needs": ["crashed@enemy.player >= 1", "broke@enemy.player <= 3"],
+          "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
           "target": {
             "type": "card",
             "tags": ["gem_1"],
@@ -2988,7 +2988,7 @@
       "tags": ["token", "immutable"],
       "asset": "square:slate",
       "play": {
-        "action": ["stat_gain:acts@enemy.player:1", "draw_from:enemy.bag:enemy.hand:1", "clear_priority"]
+        "action": ["stat_gain:acts@opponent:1", "draw_from:enemy.bag:enemy.hand:1", "clear_priority"]
       }
     },
     {
@@ -2997,7 +2997,7 @@
       "tags": ["token", "immutable"],
       "asset": "square:slate",
       "play": {
-        "action": ["stat_gain:money@enemy.player:2", "stat_gain:piggy@enemy.player:1", "clear_priority"]
+        "action": ["stat_gain:money@opponent:2", "stat_gain:piggy@opponent:1", "clear_priority"]
       }
     },
     {

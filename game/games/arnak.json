@@ -247,7 +247,7 @@
     { "key": "turn", "type": "player_input", "seat": "next", "label": "Your turn",
       "actions": ["stat_set:main@mine.player:1", "stat_set:travel@mine.player:0"],
       "next": [{ "when": "passed@each.anyone.player >= 1", "then": "cleanup" },
-               { "when": "passed@enemy.player >= 1", "then": "turn", "seat": "same" },
+               { "when": "passed@opponent >= 1", "then": "turn", "seat": "same" },
                { "then": "turn", "seat": "next" }] },
 
     { "key": "cleanup", "type": "automatic",

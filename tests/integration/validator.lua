@@ -971,4 +971,50 @@ function M.test_validator_reads_a_compute_on_either_side(check)
 		said:find("a compute this ability lists", 1, true), said)
 end
 
+-- "opponent" is the one owner word with a seat count behind it, and the reason
+-- to have it is that the wrong number must be an error rather than a silent
+-- widening. Both readings in one file: the same subject written twice, once in
+-- a duel and once at a table of three.
+function M.test_validator_refuses_opponent_where_there_is_more_than_one(check)
+	local function said(seats, subject)
+		local path = "game/games/tmp_opponent_seats.json"
+		local f = assert(io.open(path, "w"))
+		f:write([==[{
+			"title": "Seats",
+			"stats": [{ "key": "health", "min": 0 }],
+			"zones": [
+				{ "key": "board", "layout": "grid", "grid": [1, 1], "use": "abilities" },
+				{ "key": "seat_box", "status": "board", "layout": "row" }],
+			"players": []==] .. seats .. [==[],
+			"phases": [{ "key": "turn", "type": "player_input" }],
+			"cards": [{ "key": "bolt", "text": "Bolt", "abilities": [
+				{ "action": ["stat_damage:]==] .. (subject or "health@opponent") .. [==[:2"] }] }]
+		}]==])
+		f:close()
+		local ok, G = pcall(declaration.parse, "tmp_opponent_seats.json")
+		os.remove(path)
+		if not ok then error(G, 2) end
+		return table.concat(validate.check(G), "; ")
+	end
+
+	local two = said('{ "stats": { "health": 20 } }, { "stats": { "health": 20 } }')
+	check("two seats: 'opponent' names one of them and nothing is said",
+		not two:find("opponent", 1, true), two)
+
+	local three = said('{ "stats": { "health": 20 } }, { "stats": { "health": 20 } }, '
+		.. '{ "stats": { "health": 20 } }')
+	check("three seats: it is refused, with the count in the sentence",
+		three:find("this game has 3", 1, true), three)
+	check("and it says what to write instead",
+		three:find("Write 'enemy' for all of them", 1, true), three)
+
+	-- The mistake somebody who knows "@enemy.player" makes on their first try.
+	-- Worth its own sentence: read as an ordinary scope it is "no zone called
+	-- opponent", which sends them looking for a zone they never meant to write.
+	local long = said('{ "stats": { "health": 20 } }, { "stats": { "health": 20 } }',
+		"health@opponent.player")
+	check("'@opponent.player' is told that the seat is the whole of it",
+		long:find("takes nothing after it", 1, true), long)
+end
+
 return M

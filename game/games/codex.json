@@ -900,7 +900,7 @@
     },
     {
       "when": "integrity@mine.base <= 0",
-      "then": ["stat_gain:won@enemy.player:1", "push_phase:game_over"]
+      "then": ["stat_gain:won@opponent:1", "push_phase:game_over"]
     }
   ],
   "setup": {
@@ -1242,7 +1242,7 @@
           "text": "Scavenger",
           "phases": [],
           "needs": ["count:dead@enemy.patrol.at_scav >= 1"],
-          "action": ["stat_gain:gold@enemy.player:1"]
+          "action": ["stat_gain:gold@opponent:1"]
         },
         {
           "key": "mine_h",
@@ -1256,7 +1256,7 @@
           "text": "Scavenger",
           "phases": [],
           "needs": ["count:fallen@enemy.patrol.at_scav >= 1"],
-          "action": ["stat_gain:gold@enemy.player:1"]
+          "action": ["stat_gain:gold@opponent:1"]
         }
       ]
     },
@@ -1333,7 +1333,7 @@
           "text": "Fallen hero",
           "phases": [],
           "needs": ["count:fallen@enemy.hero >= 1"],
-          "action": ["stat_set:hero_wait@enemy.player:2", "move:enemy.fallen:enemy.command"]
+          "action": ["stat_set:hero_wait@opponent:2", "move:enemy.fallen:enemy.command"]
         }
       ]
     },
@@ -2589,7 +2589,7 @@
           "phases": [],
           "text": "Gunpoint Taxman",
           "needs": ["attacking@self >= 1", "sum:slot@across >= 1", "count:slain@across >= 1"],
-          "action": ["stat_gain:gold@mine.player:1", "stat_damage:gold@enemy.player:1"]
+          "action": ["stat_gain:gold@mine.player:1", "stat_damage:gold@opponent:1"]
         }
       ]
     },
