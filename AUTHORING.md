@@ -1030,19 +1030,26 @@ space and none of the seventeen files had to move a zone to make room. The
 window is drawn a little wider than the game. A zone of yours reaching past 1.0
 is refused, and so is a second zone keyed `menu`: that key is the column's.
 
-**Its cards are not moves.** They work in any phase, including one no player is
-acting in — a player shut out of their own menu by an automatic phase would have
-nowhere to go — and nothing they do is gated, costed, undone or sent to the
-other seat. Saving is not a turn.
+**The engine's own cards there are not moves.** They work in any phase,
+including one no player is acting in — a player shut out of their own menu by an
+automatic phase would have nowhere to go — and nothing they do is gated, costed,
+undone or sent to the other seat. Saving is not a turn, and neither is it
+something an animation still playing gets to swallow.
 
 **The log lives there**, on the card tagged `event_log`: pointing at it shows
 what has happened, clicking it says how much to show, and `L` does the same.
 There is no permanent readout on the board.
 
-**A game may take the column over** the way it takes over anything an included
-file defines — `"replaces": ["zones.menu"]` and its own `menu` zone — but the
-ordinary way to put a button of your own up there is to place a card into the
-zone that is already there.
+**A button of your own goes there by being placed there** — `"zone": "menu"` in
+`setup.place`, no `replaces` and no second zone. It stays a move: it is one of
+your cards, so it is gated by phase, costs what it costs, and is undone and sent
+like anything else. Only a card that plays straight from the column is the
+engine's kind. Spellstorm's rules card and its *Unplayable hand* button live
+there, and its `play_card` phase names `menu` alongside `hand` and `wizard`, the
+way it would name any zone a player may act out of.
+
+**A game may still take the column over** the way it takes over anything an
+included file defines — `"replaces": ["zones.menu"]` and its own `menu` zone.
 
 ### Players
 

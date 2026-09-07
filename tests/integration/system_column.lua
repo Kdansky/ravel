@@ -95,4 +95,29 @@ function M.test_system_the_column_is_traceable_to_the_file_that_wrote_it(check)
 	check("while the game's own cards say nothing", G.came_from["cards.wp"] == nil)
 end
 
+-- The column's own buttons act on the click that pressed them. Loading a game
+-- and restoring a save are deferred — the action only asks — so a column that
+-- ran the action and stopped there left the load sitting in the queue until
+-- some later click settled for its own reasons, and the game changed under a
+-- player who had given up on the button.
+function M.test_system_the_menu_button_loads_on_the_click_that_pressed_it(check)
+	flow.init("chess.json", 3)
+	local menu = card_in("menu", "sys_menu")
+	check("the click is the column's own", flow.use_system_card(menu.id))
+	check("and the title screen is up before it returns", declaration.filename == "menu.json",
+		declaration.filename)
+end
+
+-- A game may put its own buttons in the column beside the engine's. They are
+-- moves — phase-gated, costed, somebody's — so the column hands them back to
+-- the phase rather than swallowing the click and doing nothing with it.
+function M.test_system_a_games_own_button_is_not_the_columns(check)
+	flow.init("spellstorm.json", 7)
+	local rules = card_in("menu", "btn_rules")
+	check("a game may place a card in the column", rules ~= nil)
+	check("the column knows it is one of its cards", rules and flow.is_system_card(rules.id))
+	check("but does not claim the click", rules and flow.use_system_card(rules.id) == false)
+	check("so the ordinary ability path answers it", rules and flow.can_activate(rules.id))
+end
+
 return M

@@ -5,6 +5,7 @@
     {
       "key": "menu",
       "layout": "row",
+      "use": "abilities",
       "pos": [1.01, 0.02, 1.09, 0.98],
       "contents": ["sys_save", "sys_menu", "sys_log"]
     }

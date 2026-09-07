@@ -926,16 +926,32 @@ end
 -- costed, undone or sent. A player locked out of their own menu by an automatic
 -- phase would have nowhere to go. Answers whether the card was one of its own,
 -- so the caller can carry on if it was not.
-function M.use_system_card(card_id)
-	local c = entity.get(card_id)
+function M.is_system_card(card_id)
+	local c = card_id and entity.get(card_id)
 	local z = c and entity.get(c.zone_id)
-	if not (z and z.key == "menu") then return false end
+	return z ~= nil and z.key == "menu"
+end
+
+function M.use_system_card(card_id)
+	if not M.is_system_card(card_id) then return false end
+	local c = entity.get(card_id)
 	if tags.entity_has(c, "event_log") then
 		log.set_view("next")
-	else
-		local def = cards.def(c)
-		if def and def.on_play then actions.run(def.on_play, { card_id = card_id }) end
+		return true
 	end
+	local def = cards.def(c)
+	-- A game may put its own buttons in the column beside the engine's, and
+	-- those are moves: they cost, they are gated by phase, and they belong to
+	-- whoever is acting. Only a card that plays straight from the column is the
+	-- engine's kind — anything else falls through to the phase, which is what
+	-- decides whether an ability may be used at all.
+	if not (def and def.on_play) then return false end
+	actions.run(def.on_play, { card_id = card_id })
+	-- Loading a game and restoring a save are both deferred: the action only
+	-- asks, and settle is what carries it out. Without this the Menu button did
+	-- nothing at all, and the game then changed under a player who had given up
+	-- on it — on whatever later click settled for its own reasons.
+	M.settle()
 	return true
 end
 

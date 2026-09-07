@@ -406,11 +406,20 @@ end
 local press      = nil
 local LONG_PRESS = 0.45
 
+-- A click in the middle of a run is impatience and the run speeds up (stage.lua)
+-- — but the system column is not part of the run. Somebody reaching for Menu
+-- while the board is still playing itself out is leaving, not asking to see the
+-- rest of it faster, and eating that click was the one answer they did not want.
+local function system_card_at(x, y)
+	local cid = card_at(x, y)
+	return cid and flow.is_system_card(cid)
+end
+
 function love.mousepressed(x, y, button)
 	-- Reading a card must not risk playing it: while ctrl is held the pointer
 	-- is a magnifying glass and nothing else.
 	if ctrl_down() then return end
-	if stage.busy() then stage.hurry(); return end
+	if stage.busy() and not system_card_at(x, y) then stage.hurry(); return end
 	if button == 2 then
 		stage.arm()
 		if render.get_detail() then
@@ -445,7 +454,7 @@ function love.mousereleased(x, y, button)
 	local was_long = press.long
 	press = nil
 	if was_long then return end
-	if stage.busy() then stage.hurry(); return end
+	if stage.busy() and not system_card_at(x, y) then stage.hurry(); return end
 	stage.arm()
 	primary_action(x, y)
 	stage.seal()
