@@ -18,40 +18,12 @@ see A2, which was written wrong the first time and is corrected below.
 
 ## A. The one big word: an automatic step that can ask
 
-### A1. ~~Ultimates are cast on play, not on resolve~~ — done, and the answer was yes
+### A1. Ultimates are cast on play, not on resolve — done, and the answer was yes (09 §2)
 
 **The open question was whether `reactions.responders` may open a window from
-inside an *automatic* phase's action list.** It may. Nothing in the scheduler
-had to learn anything: `settle` puts the response window ahead of every phase
-decision, so an `emit:` from a phase's own actions leaves the stack waiting and
-the phases behind it unrun. That made A1 a game-file change and no engine change
-at all.
-
-**What it is.** A card carrying the `[ULT]` icon carries one more ability,
-
-```json
-{ "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] }
-```
-
-and the wizard carries the answer:
-
-```json
-{ "to": "resolving", "whose": "mine", "from": "wizard",
-  "cost": { "mana@mine.player": 6 }, "action": [ … ] }
-```
-
-`"whose": "mine"` is the whole of *your own* card: the announcement is made by
-whichever seat is resolving, and only that seat's wizard may answer it. The
-subject is the card rather than a rule about the round, which is what lets the
-window name the card that opened it — the engine already draws that line across
-the top of the screen, with the Pass beside it.
-
-**And the one thing it needed was a phase.** An action list has no cursor, so an
-ask in the middle of one is answered after the rest of the list has run. A phase
-that *ends* on the ask leaves the next phase waiting, so each side's resolution
-became two: `ult_1` then `resolve_1`, `ult_2` then `resolve_2`. The seat is named
-once per side, in the announce phase, since the resolve that follows is the same
-seat's.
+inside an *automatic* phase's action list.** It may — `settle` puts the response
+window ahead of every phase decision, so nothing in the scheduler had to learn
+anything. The fix and shape are in 09 §2; not repeated here.
 
 **Two latent engine bugs surfaced doing it**, neither reachable from any game
 shipped at the time, both now fixed with tests:
@@ -65,133 +37,65 @@ shipped at the time, both now fixed with tests:
   empty stack under an open page stopped end conditions and automatic phases
   both. The interjection rule is right; it just has to be asked second.
 
-**What is still not the printed rule**: *Obsidian* (D4). It waives the mana, and
-nothing in the format waives a cost.
+### A2. A question inside an automatic step — done (Abragail, Falling Star, May)
 
-*Energy Wave* was listed here beside it and should not have been. It waives the
-**icon**, not the mana — and the icon is not a permission, it is a card saying it
-is resolving. So the weather card says it instead, once per player, in a phase
-after both spells have resolved. No new word; the third weather moment, `wz`.
-
-### A2. ~~A question inside an automatic step~~ — done (09 §2, Abragail, Falling Star, May)
-
-**What is actually true, tested rather than assumed.** An automatic step *can*
-ask. `show:` opens an offer from inside an ability that an automatic phase
-activated, and Spellstorm already depends on it: every `cast_ask` runs that way.
-Verified on a three-card game — an `automatic` phase running
-`each_seat:activate_zone:rules:by_column:bstart` over an ability whose whole
-body is `show:shelf:optional` leaves a live, dismissable offer on the table.
-
-So the earlier framing here, and the comment in `make_spellstorm.py` that says a
-battle-start step "cannot open a question", are both wrong. Three narrower
-things are true instead:
+An automatic step *can* ask — `show:` already opens an offer from inside an
+ability an automatic phase activated. Three narrower things are true instead of
+"it cannot ask":
 
 - **It cannot open targeting.** `activate_zone` runs every ability with
-  `targets = {}`, hardcoded (`actions.lua`), so an ability's `target` spec is
-  never asked about and no targeting opens. An offer is the only way to ask.
+  `targets = {}`, hardcoded — an offer is the only way to ask.
 - **It cannot ask each seat in turn.** `each_seat:` runs both seats inside one
-  step and there is one `options` zone. The first seat's offer holds it; the
-  second seat's `show:` finds the source zone already lent out and returns
-  silently, so the question is asked once and nobody is told. **This is the real
-  blocker**, and it is Falling Star exactly.
+  step and there is one `options` zone — the real blocker, and it is Falling
+  Star exactly.
 - **It cannot resume.** An action list has no cursor, so whatever follows the
   ask runs before the answer arrives.
 
-**The queue is done, and the middle bullet above was wrong about how it failed.**
-The second `show:` did not return silently: both offers opened, stacked, and the
-two hands *merged* into the one `options` zone, so one seat was asked to pick out
-of the other's cards. And the first offer was already going to the wrong seat —
-`each_seat:` had put the turn back by the time the overlay was drawn, so it was
-answered by whoever happened to be up.
+**The fault, once found, was not the middle bullet as guessed.** Both offers
+opened and the two hands *merged* into the one `options` zone, so one seat
+picked out of the other's cards — and the first offer was already going to the
+wrong seat, since `each_seat:` had moved the turn on by the time the overlay
+drew.
 
 **What it is.** `show:` writes the question down when the offer is busy, and
 settle asks the next one when the last is answered — the same place a response
-window is settled, and for the same reason: it is after an action. No new word;
-`each_seat:show:mine.hand:optional` was always the sentence and now it works.
+window is settled, and for the same reason. No new word;
+`each_seat:show:mine.hand:optional` was always the sentence.
 
-Three things make it small:
-
-- **The request waits, not the cards.** The scope is read again when the question
-  opens, against the board the previous answer left — so a question asked of a
-  player whose hand somebody else has just emptied opens nothing, which is the
-  rule an empty offer already had.
-- **The asking seat is written down, not acted on.** An ask that moved the seat
-  where it stood would move it out from under the list still running, and every
-  remaining question would go to whoever asked first. Flow hands priority over
-  once the game has come to rest — priority being the word that already means
-  "who is acting, when it is not the turn player".
-- **It is plain data on a zone**, so `entity.snapshot()` carries it into saves,
-  net messages and undo checkpoints with nothing taught to any of them. Tested by
-  encode/decode/apply mid-queue.
+- **The request waits, not the cards** — the scope is read again when the
+  question opens, against whatever board the previous answer left.
+- **The asking seat is written down, not acted on** — moving it would pull it
+  out from under the list still running. Flow hands priority over once the game
+  has come to rest.
+- **It is plain data on a zone**, so saves, net messages and undo cross it for
+  free.
 
 **Two things it dragged into the light.** Priority was released on the stack's
-way past, so a game with offers and no stack zone would have kept it — that rule
-is its own line in settle now. And closing an offer never settled, which nothing
-had noticed because there was never anything waiting behind one.
+way past, so a game with offers and no stack zone would have kept it — its own
+line in settle now. And closing an offer never settled, unnoticed because
+nothing had ever waited behind one.
 
-**Falling Star is exact**, order included. `each_seat:` goes round the table from
-whoever is up rather than always from the first seat — which is what "each
-player" means wherever a rulebook bothers to say, and Spellstorm says it twice
-("starting with the player with Initiative, then clockwise") — so naming the seat
-before the loop is how a game chooses the order, with a word it already had.
+**Falling Star is exact**, order included: `each_seat:` goes round the table
+from whoever is up, which is what "each player" means wherever a rulebook
+bothers to say it.
 
-For targeting, an ability run by a zone could open it the way a play does — but
-nothing in this box needs that.
-
-**And: Abragail's journal — done, all three asking spaces, and there were
-three.** Space 6 (`[GAIN]`) was missing too and nobody had noticed. Two things
-turned out to be true that the paragraph above did not say. One seat asking is
-not one ask: a fully-researched journal asks *three* times in one battle-start
-list, and an action list has no cursor, so all three overlays would land on one
-table. And "only Abragail has a journal" is false in a mirror, where both seats
-do. So each asking space gets **a phase**, and each phase **one seat** — six
-short automatic phases, empty for every other wizard. An ask is the last thing a
-phase does, and the next phase waits for the answer, which is the cursor an
-action list has not got.
+**Abragail's journal — all three asking spaces**, and space 6 (`[GAIN]`) was a
+fourth nobody had noticed. One seat asking is not one ask: a fully-researched
+journal asks three times in one battle-start list, and a mirror match means
+both seats have a journal. Each asking space got its own phase, one seat per
+phase — six short automatic phases, empty for every other wizard.
 
 Worth keeping as the shape: **a phase is the engine's word for "and then".**
 
-**Size:** the queue came in at about seventy lines across two files. Abragail was
-a generator change and no engine work at all.
+### A3. An offer opened inside an offer deadlocks — done (09 §3)
 
-### A3. ~~An offer opened inside an offer deadlocks~~ — done
+Two faults, fixed as described in 09 §3: the offer-cleanup ordering, and
+`copy:<scope>:activate` running only a card's first ability. `leaves.from` is
+the engine word that came out of it.
 
-Two faults, not one, and the second only showed once the first was out of the
-way.
-
-**The lock.** Picking from an offer popped the overlay, ran the `chosen` block,
-then swept the `options` zone. There is one such zone and it knows its contents
-by what is lying in it, so an offer the chosen block opened was eaten by the
-cleanup meant for the offer that had just closed — cards and `dismissable` flag
-together, which is why `can_dismiss` refused: it reads the flag that had just
-been cleared. **Fixed by the ordering**: the leftovers go home before the chosen
-actions run, and only the picked card waits for them.
-
-**The half-resolved copy.** `copy:<scope>:activate` ran a card's *first* ability
-and stopped. That dropped every rider with an if in it, and every question the
-card asks — a card that asks keeps the asking in a later ability so the offer
-opens after the rest has run, which is exactly the ability a copy never reached.
-**Fixed**: `copy` now runs every ability whose `when` holds, in order, the same
-thing `activate_zone` does.
-
-**What that cost, and what it bought.** A flat ability list cannot say which of
-its entries are part of being *resolved*, so a copy fired the discard effect
-too. The first patch was a `when` on every `disc` step — looking only while no
-card stands in a battle spot — which is a card carrying a condition about the
-world to answer a question about itself, and reads as nothing at all.
-
-**Fixed properly**: On Discard is not an ability. An ability is something the
-card does; this is something that happens *to* it. It is a `leaves` trigger now,
-`{ "from": "hand", "into": "discard" }`, which is the rulebook sentence — and
-"does not trigger when you VOID" comes free, since a VOID lands somewhere else.
-The engine gained one word for it, `leaves.from`, naming which departure a
-`leaves` answers. Nineteen conditions went, two `activate_zone` lines went, and
-*Flame* and *Spirit Crystal* began firing the On Discard they had been eating.
-
-Worth noting as a shape rather than a fix: **the four-pass resolve had a second
-job, keeping `disc` out of a stepless pass**, and no longer has it. Each battle
-spot holds one card, so `activate_zone:mine.battle:by_column` with no step would
-now run the same four abilities in the same order, in one line instead of four.
+**Worth keeping as a shape, not in 09:** the four-pass resolve had a second job
+— keeping `disc` out of a stepless pass — and no longer has it, since `leaves`
+now carries that rule instead of a condition on the step.
 
 The `cast`/`cast_ask` split stays, and should: it is what keeps the offer last
 within one card, so a rider does not read a hand that has been lent out to a
@@ -253,96 +157,59 @@ the verb itself, emitted from the damage path rather than from a card.
 
 ## C. Offers that cannot be narrowed or repeated
 
-### C1. ~~`[GAIN]` ignores the Tier limit and the element~~ — done, and the proposal above was wrong
+### C1. `[GAIN]` ignores the Tier limit and the element — done
 
-**What it was.** Any of the five Storm Cloud cards could be taken from a card
-effect, whatever its Tier; the Essences offered the whole shelf rather than their
-own element; nine cards said "not narrowed" in their tooltips.
-
-**Why the proposal above was the wrong shape.** It asked `chosen.where` to narrow
-what is *shown* as well as what may be taken. But `where` is documented to leave
-the whole scope up on purpose — reading somebody's hand is usually half the rule
-— and one field cannot mean both "show me less" and "show me everything, and grey
-out the rest" without the author saying which.
+**The proposal in an earlier draft here was the wrong shape**: it asked
+`chosen.where` to narrow what is *shown* as well as what may be taken, but
+`where` is documented to leave the whole scope up on purpose, and one field
+cannot mean both "show less" and "show everything, greyed out" without saying
+which.
 
 **They are two questions, and the engine already had a word for each.**
 
-- **Which cards come up** is a property of the *scope*, and a scope is narrowed
-  by `<zone>.<tag>` — one place and one kind, the word that already writes
-  `destroy:mine.discard.wound`. So `show:mine.hand.fire:optional` is the whole of
-  "a Fire card from your hand", and the Water and Earth cards never leave the
-  hand. Nothing has to be greyed out, because a card that never comes up is one
-  nobody has to be told they may not click.
-- **Which of them may be taken** stays `chosen.where`, and it has to be separate
-  because it can ask about the *player*. "Tier I or II" is a number on the card
-  (`tier_req@target <= 2`); "at or below **your** Tier" is not a property of the
-  card being looked at at all, and no tag could ever say it.
+- **Which cards come up** is a property of the *scope* — `<zone>.<tag>` narrows
+  it, the same word `destroy:mine.discard.wound` already uses. So
+  `show:mine.hand.fire:optional` is the whole of "a Fire card from your hand".
+- **Which of them may be taken** stays `chosen.where`, because it can ask about
+  the *player* — "at or below your Tier" is not a property of the card at all,
+  and no tag could ever say it.
 
-Both were already there. Nine cards became exact — the three Essences, Flame,
-Mana Font, Ice Flume, Ultimate, Spirit Crystal, Deep Gems and Beetle Buster — for
-a lambda in the generator and no engine change.
+Both words were already there; nine cards became exact for a lambda in the
+generator.
 
-**What is left is only where a card names two of something.** One scope names one
-kind and one place: *Doom Bauble* ("a CURSE or ICE") gets the junk in the
-discard, so an ASH comes up too, and *Ice Flume* ("from your hand or discard")
-gets the hand. Both are recorded in `09`.
+**The lesson, again**, and it is the one worth keeping: ask which *question* a
+rule is asking before proposing a field — "which cards" and "which of these"
+look alike on a card and are answered in different places.
 
-**The lesson, again.** Twice on this page now, the fix has been a word the engine
-already had, used where it belongs. It is worth asking, before proposing a field,
-which *question* the rule is asking — "which cards" and "which of these" look
-alike on a card and are answered in different places.
+**Left:** where a card names two of something in one scope (one place, one
+kind) — Doom Bauble's "a CURSE or ICE", Ice Flume's "hand or discard" — see 09.
 
-### C1b. ~~A `[GAIN]` from a card effect ignored your Tier~~ — done
+### C1b. A `[GAIN]` from a card effect ignored your Tier — done
 
-Noticed while wiring Falling Star, and worth its own entry because it is C1's
-lesson going unapplied for a while. The Regroup gain was gated on the shelf card
-itself and the three Essences on the number they print, but every plain `[GAIN]`
-— Power Gem, Amber, Opal, Quake, Two Power, Three Power, Earth Dragon, Coffee
-Run, New Curriculum, journal space 6 — offered the whole shelf.
+C1's lesson, unapplied for a while: every plain `[GAIN]` but the Essences and
+Regroup offered the whole shelf regardless of Tier, fixed the same way as C1 —
+`chosen.where`, not a narrower scope, since your Tier is not a property of the
+card being looked at.
 
-The icon table says it outright: *"May gain a card from the Storm Cloud of your
-Tier or lower, to hand"*, and the rulebook says both halves again for the Regroup
-step. So two things were wrong, and the second was mine from the day before:
+**Trap:** Falling Star's gain went to the discard because it was copied from
+Power Gem, which is the one card that sends a gain to the discard by its own
+text; everything else goes to hand.
 
-```json
-"chosen": { "action": ["move_target_to:mine.hand", "draw_from:spellstorm_deck:storm_cloud:1"],
-            "where":  ["tier@mine.player >= tier_req@target"] }
-```
+### C2. "Gain twice" gains once — done (Amber, Earth Dragon)
 
-**A `chosen.where` and not a narrower scope**, for the reason C1 gives: your Tier
-is not a property of the card being looked at, so no tag could say it. The whole
-shelf comes up — seeing what is there is half the decision — and only what you
-may take can be clicked. An offer where nothing qualifies does not open at all,
-which is what *may* means.
+No new word needed: two `show:` lines on one card are already two questions,
+held one at a time, both answered by the same `chosen`.
 
-And **Falling Star's gain went to the discard**, because I copied Power Gem. Power
-Gem is the one card that says otherwise in its own text ("if you gained a card,
-discard it"); everything else goes to hand.
+**The rejected alternative is the trap worth keeping.** A counter in one
+`chosen` block, telling the questions apart by how many had been answered,
+reads well until the first "up to" is declined — nothing runs on a decline, so
+the count never advances and every question after it means the wrong thing.
 
-Three keep their own rule and are untouched: the Essences say "any Tier I or II",
-Meteorite says "regardless of tier", and Mana Font and Deep Gems VOID rather than
-gain.
-
-### C2. ~~"Gain twice" gains once~~ — done (Amber, Earth Dragon)
-
-The proposal here was a `times` on the `chosen` block, and it was never needed.
-The offer queue had already closed this: **two `show:` lines on one card are two
-questions**, held one at a time, and both come back to the same `chosen`. Amber
-gains twice and may decline neither — the rulebook's one MUST. Earth Dragon gains
-twice.
-
-Abragail's *New Curriculum* was miscounted here from the start. It is one
-`[GAIN]` **and** "VOID up to 2 cards in the Storm Cloud" — two different fates
-for a chosen card, and a card has one `chosen` block. It looked like it wanted a
-`chosen` per offer. It did not: **a second asker is a second answer.** The VOIDs
-are asked by a rules card that is about VOIDing, the gain by the card itself, and
-each owns what happens to its own pick. That is the idiom the journal's asking
-spaces already use — a rule that asks needs a card to itself.
-
-The alternative was a counter in one `chosen` block, telling the questions apart
-by how many had been answered. It reads well until the first "up to" somebody
-declines: nothing runs on a decline, so the count never advances and every
-question after it means the wrong thing. Whichever order the offers are asked in.
+Abragail's *New Curriculum* looked like a double gain and was not: one
+`[GAIN]` and a separate VOID are two different fates for a chosen card, and a
+card has one `chosen` block — so **a second asker is a second answer**, each
+owning what happens to its own pick, the same idiom the journal's asking
+spaces use.
 
 ### C3. Diamond discards the first three rather than three of your choosing
 
@@ -362,20 +229,14 @@ for one card in the box. Sift stays as it is: draw 2, discard 1.
 
 ## D. Counting and arithmetic
 
-### D1. ~~Random discards are not random~~ — done, and it was already there
+### D1. Random discards are not random — done, and it was already there
 
-`move:` has honoured `random.` since the quantifier existed — the same three
-lines `destroy` and `show` carry. Nobody had written it down: the reference said
-`show` and `destroy` took it and the `move` row did not, so six cards discarded
-the top of a hand for want of a sentence in `AUTHORING.md`. Now said in both, and
-in `SCHEMA.json`.
+`move:` had honoured `random.` since the quantifier existed; nobody had written
+it down, so six cards discarded the top of a hand for want of a sentence in
+`AUTHORING.md`. Now said there and in `SCHEMA.json`.
 
-**The lesson is about the docs, not the engine.** A word the engine knows and the
-reference does not is a word the game cannot use.
-
-Shockwave, Dust Cloud, Tidal Wave, Undertow, Face Punch and Data Breach are
-exact. Two cards is the line twice; there is no count on a move, and doubling it
-is what "discard two random cards" says.
+**The lesson is about the docs, not the engine.** A word the engine knows and
+the reference does not is a word the game cannot use.
 
 ### D2. Ruby counts what was just discarded
 
@@ -418,7 +279,7 @@ game in twenty.
 
 ---
 
-## E. ~~Things that are not gaps at all~~ — done, all five
+## E. Things that are not gaps at all — done, all five
 
 They read like engine limits in `09` and were not one of them. Each was a to-do
 in the generator, and all five are written.
@@ -460,22 +321,17 @@ name worth printing in that sentence.
 
 **Size:** small. Not scheduled — hot-seat simultaneity is a niche of a niche.
 
-### F2. ~~Oren's potion push-your-luck~~ — done
+### F2. Oren's potion push-your-luck — done
 
-It was free, and it needed no `ends_when` at all: the phase is pushed by the
-Ultimate and popped by whatever ends it, which is an action either way — the
-*Stop drinking* button, or the rule that watches for a third TOXIC. A phase that
-is ended by a condition and a phase that is ended by a button are different
-shapes, and this is the second one.
+Needed no `ends_when` at all: the phase is pushed by the Ultimate and popped by
+whatever ends it, an action either way — the *Stop drinking* button, or the
+rule watching for a third TOXIC. A phase ended by a condition and a phase ended
+by a button are different shapes; this is the second one.
 
-The Chemistry Board came with it and was never the hard part: three stats, and a
-potion's Element cost is a `when` on the step that spends it. A beaker too low is
-a potion that does nothing, which is the printed rule.
-
-One thing had to change beside it. An Ultimate is now `phases: ["play_1",
-"play_2"]` — **an Ultimate that may be used inside anything can be used inside
-itself**, and Oren's opens a phase to be used inside. That is where §2 already
-said Ultimates live; it just had never been written down as a restriction.
+**Trap worth keeping:** an Ultimate is now `phases: ["play_1", "play_2"]`,
+because an Ultimate that may be used inside anything can be used inside
+itself — Oren's opens a phase to be used inside it, a restriction A1's rule
+had never had to state until this card needed it.
 
 ### F3. The Tier check runs between rounds
 
@@ -509,43 +365,27 @@ wanted.
 
 ## G. Found while closing the others
 
-### G1. ~~Riot fires the discard effects it says it does not~~ — done, without a new word
+### G1. Riot fires the discard effects it says it does not — done, without a new word
 
-**What it was.** Eve's *Riot* reads "discard your hand without triggering any
-discard effects". That was accidentally true while On Discard was an ability
-nothing ran outside Regroup, and went false the moment the trigger was made
-right: a `leaves` fires on a card going from a hand to a discard, and
-`move:mine.hand:mine.discard` is exactly that.
+Eve's *Riot* ("discard your hand without triggering any discard effects") broke
+once On Discard became a real `leaves` trigger on hand→discard. **Rejected:** a
+verb argument meaning "and this one does not count" — a new idea in the format
+bought for one card, and the format is the product.
 
-**What it did not get.** A keyword. A verb argument meaning "and this one does
-not count" is a whole new idea in the format bought for one card in one box, and
-the format is the product — every game file afterwards would have to know it.
+**What it got instead: a detour**, through `quiet`, an offscreen exile zone —
+leaving a hand for `quiet` is not a discard, and leaving `quiet` for a discard
+is not leaving a hand. Two moves, words already there.
 
-**What it got instead: a detour.** The cards go by way of `quiet`, an offscreen
-zone with `status: "exile"`, and neither hop is the trigger — leaving a hand for
-the quiet is not a discard, and leaving the quiet for a discard is not leaving a
-hand. Two lines on one card, using words that were already there:
+**The lesson worth keeping:** a detour needs a `comment` on the card explaining
+why, since a reader would otherwise find two moves where the card says one —
+**the format did not need a word for this; it needed somewhere to write down
+why.**
 
-```json
-"action": ["move:mine.hand:quiet", "move:quiet:mine.discard"]
-```
+### G2. "A CURSE or an ICE" cannot be said — done, and it is a tag now
 
-**And the thing that makes a detour honest is a comment.** A reader of the game
-file would otherwise find two moves where the card says one thing, so the card
-carries a `comment` saying why — a field the engine reads nowhere and that may
-sit on anything with named fields. That is the general lesson, and it is worth
-more than the trick: **the format did not need a word for this; it needed
-somewhere to write down why.**
-
-The zone is empty between any two steps, and Riot is the only card that uses it.
-
-### G2. ~~"A CURSE or an ICE" cannot be said~~ — done, and it is a tag now
-
-**What it was.** A condition list is an `and`; a scope names one tag and one
-place. So *a CURSE or an ICE* had nowhere to be written — the two cards have
-nothing in common to point at — and *from your hand or discard* had nowhere
-either, since no zone key covers two zones. Between them they cost Doom Bauble,
-Ice Flume, Bloodstone and all three empty-pile VOIDs.
+A condition list is an `and`; a scope names one tag and one place — so *a
+CURSE or an ICE* and *from your hand or discard* both had nowhere to be
+written. Cost Doom Bauble, Ice Flume, Bloodstone and the empty-pile VOIDs.
 
 **What it got: a name.** `computed_tags` already meant "a tag a card wears
 because something is true of it"; it learned two more ways to work one out.

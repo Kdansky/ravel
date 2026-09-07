@@ -103,10 +103,6 @@ wrong:
 - `zones.check_recipes(zone_id)` — called from `settle`, after any card enters
   or leaves a zone that declares recipes. Finds the first matching recipe,
   creates the in-progress card, and moves the consumed inputs out.
-- ~~One action, `consume:<subject>:<n>`~~ — **already exists.** `destroy`
-  generalised from "empty a zone" to a scope expression, so
-  `destroy:each.mine.fuel` is the selective form this asked for, and
-  `destroy:random.mine.fuel` takes exactly one. No new verb needed.
 - Recipe fields in `validate.lua`'s known-field tables, plus checks that
   `then` ops exist and `requires` subjects are real.
 

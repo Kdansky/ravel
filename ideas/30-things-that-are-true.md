@@ -319,14 +319,9 @@ handler and one index lookup once that is answered.
 
 ## Open questions
 
-1. ~~**The name.**~~ Settled as `adjusts`, because it says what it does and pairs
-   with `buffs` — one shifts a number *on* a card, one shifts a number *done to*
-   one. Against `aura`: Ravel already has `attached`, and MTG's Aura is an
-   attachment, so the word would arrive meaning something else.
-2. ~~**`@source`.**~~ Shipped. `@event` was taken and means a reaction's record.
-3. **Which engine verbs a game verb may stand for.** `stat_damage` and
+1. **Which engine verbs a game verb may stand for.** `stat_damage` and
    `stat_gain` shipped. Counts — draw two fewer, destroy one less — are a later
    widening and want their own evidence.
-4. **Whether `emits` may name a declared verb**, or the two vocabularies stay
+2. **Whether `emits` may name a declared verb**, or the two vocabularies stay
    apart. See above.
-5. **The preview**, above.
+3. **The preview**, above.
