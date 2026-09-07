@@ -248,15 +248,32 @@ position argument every destination op already carried, so `draw_from:item_deck:
 deals at the far end and a deal aimed at an occupied cell does nothing — which is
 what lets one refill serve both halves of the row without asking what was bought.
 
-**1. Who spent a card's exhaust.** The engine records that a card is exhausted
-and not by whom. Arnak's Fear rule is *your* archaeologist coming home from a
-guarded site, and the site space is the thing that carries the occupancy — so
-the two halves cannot be joined, and divergence 5 above is the price. A stat the
-engine writes on exhaustion, the way `last_acted` is written on play, would
-close it: `owner_of.<the card that exhausted it>`. This is the same shape
-[21](../21-lost-ruins-of-arnak.md) flagged as *`predicate` cannot read a card's
-own exhaustion state back as a condition*, one step further on — it turns out
-the missing thing is not the boolean but the seat.
+**1. Who spent a card's exhaust — and the file can say it.** The engine records
+that a card is exhausted and not by whom, and the first draft of this gap wanted
+a stat the engine writes on exhaustion the way `last_acted` is written on play.
+It does not need one. **The ability that pays the exhaust can stamp the spender
+itself**, with words that all have customers already:
+
+- the seats carry a number — `card_stats: { "side": 1 }` on `south`, `2` on `north`;
+- the dig ability writes it onto the space it is exhausting,
+  `stat_set:spender@self:sum:side@mine.player` (the shape The Crew's
+  `stat_set:contend@self:sum:value@self` already uses);
+- the Fear rule asks `spender@self == sum:side@mine.player`, which is
+  `row@target == side@mine.player` with both sides live.
+
+Checked end to end on a two-seat fixture: the second ability is offered to the
+seat that spent the exhaust and to nobody else. **Two traps, both cheap:**
+the space must declare `spender` in its own `card_stats`, because a stat nobody
+carries has no bearer and the write goes nowhere *silently*; and the round
+boundary readies every card without clearing the stamp, so cleanup has to wipe
+it — `stat_set:spender@each.<zone>:0`, one line on the route that already ends
+the round. The wipe is not optional, since
+[21](../21-lost-ruins-of-arnak.md)'s other flag still stands: `predicate` cannot
+read a card's own exhaustion back as a condition, so a stale stamp is
+indistinguishable from a live one.
+
+So this is a game-file change, not an engine one, and divergence 5 costs no new
+word.
 
 ---
 

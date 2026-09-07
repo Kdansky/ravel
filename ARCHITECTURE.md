@@ -50,8 +50,10 @@ rng ─ the engine's own PRNG (never the host's, below this line)
 
 Optional and additive, required by nothing: `net` (state transfer for
 networked play), `netpack` (its base64 and LZSS), `netlink` (transports),
-`netpanel` (its browser controls), and `save` (a game written to a file and read
-back, which is `net`'s own snapshot with somewhere to live).
+`netpanel` (its browser controls), `save` (a game written to a file and read
+back, which is `net`'s own snapshot with somewhere to live), and `opponent`
+(every legal move right now, as closures — the substrate an engine-played seat
+will pick from, and what the random terminator plays whole games with).
 They sit beside the engine rather than in it — see
 [ideas/DONE](ideas/DONE.md).
 

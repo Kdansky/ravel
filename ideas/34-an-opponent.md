@@ -1,33 +1,31 @@
 # 34 — An opponent
 
-**Status:** not started. **Size:** the first version is small and already
-written; every version after it is a design question about where the thinking
-lives.
+**Status:** step 1 shipped — `game/opponent.lua` holds `M.legal()`, every move
+available right now as closures, and the test harness is its second caller
+rather than its owner. **Size:** every version after it is a design question
+about where the thinking lives.
 
 > *We could also put some AI logic in there for single player gameplay.*
 > — the board-game opponent kind, not the LLM kind.
 
-## The substrate exists, in the test harness
+## The substrate is `game/opponent.lua`
 
-`tests/run.lua`'s `legal_moves()` already enumerates every move available right
-now as a list of closures: the cards in hand `flow.can_play` allows (targets
-filled from `targeting.eligible`), every offer card while an overlay is up, and
-every `flow.usable_abilities` on every card standing on a grid. The random
-terminator then plays whole games with `moves[math.random(#moves)]()`.
+`M.legal()` returns every move available right now as closures: the cards in
+hand `flow.can_play` allows (targets filled from `targeting.eligible`), every
+offer card while an overlay is up, and every `flow.usable_abilities` on every
+card standing on a grid. **A random opponent is that list and one
+`math.random`** — the terminator has been playing whole games with it all along.
 
-So **a random opponent is a solved problem that happens to live in a test**, and
-the first honest version of this track is moving that function somewhere the
-game can call it. Everything harder is a matter of choosing *which* move rather
-than finding the moves.
+Everything harder is choosing *which* move rather than finding the moves.
 
-That also says what the first real question is: `legal_moves` is written against
-`flow`, `zones`, `targeting` and `cards` — the same four modules the interfaces
-use — so an opponent is another interface, not a new layer.
-**[Assumption: nothing was checked about whether an opponent driving `flow`
-directly would fight `net.lua`'s wrappers, which intercept `play_card`,
-`activate`, `react` and `undo` to decide whether this seat may act. A local
-opponent taking a seat is exactly the case those wrappers were written to
-refuse, so this is the first thing to look at.]**
+The move itself was verbatim, and the suite passing unchanged is the check that
+nothing was lost. It reads `flow`, `zones`, `targeting` and `cards` — the same
+four modules the interfaces use — so an opponent is another interface, not a new
+layer. **[Assumption: still unchecked, because nothing yet drives it from a
+seat — whether an opponent calling `flow` directly fights `net.lua`'s wrappers,
+which intercept `play_card`, `activate`, `react` and `undo` to decide whether
+this seat may act. A local opponent taking a seat is exactly the case those
+wrappers were written to refuse, so this is step 2's first surprise.]**
 
 ## The three versions, and the honest gap between them
 
@@ -80,9 +78,7 @@ lands has to be one algorithm reading what the game file already says.
 
 ## Order
 
-1. `legal_moves` out of the test harness and into a module both the tests and a
-   seat can call. No new format words, and the terminator keeps working — which
-   is the check that nothing was lost in the move.
+1. ~~`legal_moves` out of the test harness~~ — **done**, as `game/opponent.lua`.
 2. A random opponent taking a seat, and whatever `net.lua`'s wrappers turn out
    to say about that.
 3. Only then the question of what a game file says about winning, which is where

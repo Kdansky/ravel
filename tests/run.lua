@@ -29,6 +29,7 @@ local validate    = require("validate")
 local predicate   = require("predicate")
 local geometry    = require("geometry")
 local tags        = require("tags")
+local opponent    = require("opponent")
 
 local harness = require("harness")
 local check   = harness.check
@@ -1201,49 +1202,9 @@ check("a section that isn't a list is explained",
 	has_problem(sp, "the 'cards' section should be a list"))
 
 -- === random terminator: every game ends at the menu ===
--- All currently legal moves, as closures. Shared by the terminator and the
--- undo fuzz below.
-local function legal_moves()
-	local moves = {}
-	local cur = phase.current()
-	if cur and cur.type == "overlay" then
-		local oz = zones.find(cur.zone or "hand")
-		for _, cid in ipairs(oz and oz.cards or {}) do
-			moves[#moves + 1] = function() flow.play_card(cid, {}) end
-		end
-		return moves
-	end
-	local h = zones.find("hand")
-	for _, cid in ipairs(h and h.cards or {}) do
-		if flow.can_play(cid) then
-			local spec = cards.def(entity.get(cid)).target
-			moves[#moves + 1] = function()
-				local targets = {}
-				if spec then
-					targeting.start(cid, spec)
-					for k = 1, math.min(spec.min or spec.count or 0, #targeting.eligible) do
-						targets[k] = targeting.eligible[k]
-					end
-					targeting.clear()
-				end
-				flow.play_card(cid, targets)
-			end
-		end
-	end
-	for e in entity.each("card") do
-		local z = entity.get(e.zone_id)
-		-- Asked of the card, because a cost may be paid *with* it: "exhaust" asks
-		-- whether this one is still ready, and a cost asked in the abstract has
-		-- no answer. usable_abilities asks all of that, one entry at a time.
-		if z and z.layout == "grid" then
-			for _, u in ipairs(flow.usable_abilities(e.id)) do
-				local id, idx = e.id, u.index
-				moves[#moves + 1] = function() flow.activate(id, {}, idx) end
-			end
-		end
-	end
-	return moves
-end
+-- The move list is the engine's own now (game/opponent.lua), because a seat the
+-- engine plays wants exactly what the terminator wants. This suite is its
+-- second caller, not its owner.
 
 -- Random legal moves (with a little undo fuzzing) must reach the menu
 -- within a step budget: this catches softlocks nothing else will.
@@ -1252,7 +1213,7 @@ local function random_playthrough(file, seed)
 	math.randomseed(seed * 7919)
 	for step = 1, 400 do
 		if declaration.G.title == "Ravel" then return true end
-		local moves = legal_moves()
+		local moves = opponent.legal()
 		if #moves == 0 then return false, "no legal moves at step " .. step end
 		if flow.can_undo() and math.random() < 0.04 then
 			flow.undo()
@@ -1295,7 +1256,7 @@ flow.init("kingdom.json", 11)
 math.randomseed(11)
 local fp0, steps = fingerprint(), 0
 for _ = 1, 12 do
-	local moves = legal_moves()
+	local moves = opponent.legal()
 	if #moves == 0 then break end
 	moves[math.random(#moves)]()
 	steps = steps + 1
