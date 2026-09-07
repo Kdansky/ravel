@@ -3,7 +3,7 @@
 *From the observation that most of the animation in the engine plays after the
 thing it is animating has already happened.*
 
-**Stages 1 and 2 shipped.** A click is recorded as it happens, sealed into a
+**Shipped.** A click is recorded as it happens, sealed into a
 queue of beats, and played back one beat at a time — and each beat is a whole
 state, so the board the player is looking at is one the rules have already left
 behind. `game/stage.lua`, tested by `tests/integration/stage.lua` and exercised
@@ -46,13 +46,14 @@ a genuine `fill`, and if a supply stocks the kind the renderer still guesses at
 it — gated on a run being in progress, or every chip in the box would fly to its
 seat the moment a game loaded.
 
-## Left
+**The pruning found one thing to delete and one to relabel.** `fx.after` and the
+queue behind it had no callers and went. `actions.on_act` stayed: nothing in the
+engine sets it any more, but a zone resolves in one instant, so a test asking
+which card acted first — and on which step — has nothing else to watch, and two
+do. Its comments had gone on claiming the presentation as their customer, which
+is the shape of a hook that gets deleted by the next person to read them.
 
-**Stage 3 — pruning.** `actions.on_act(id, ordinal, step)` was the only ordering
-signal the presentation owned and the queue replaced it; it still carries its
-`step` argument. `fx.after` and the `pending` list behind it are a hand-rolled
-queue with no callers left. Both want one pass to find out whether anything still
-wants a delay that is not a beat.
+## Left
 
 **A destroyed card disappears on its beat rather than leaving.** It is drawn
 until the step that removes it, which is the honest half; an exit — a fade, a

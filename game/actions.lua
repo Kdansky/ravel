@@ -20,8 +20,9 @@ M.on_net         = nil   -- optional hook(what, arg): the networking layer's UI,
 M.on_save        = nil   -- optional hook(what, slot): the save layer, if one is loaded
 M.on_open        = nil   -- optional hook(): asks the machine for a game file, if that layer is loaded
 M.on_stat_change = nil   -- optional hook(entity, key, delta, ctx) for visual feedback
--- optional hook(card_id, ordinal): a zone's cards acting in turn, so the
--- presentation can space them out. ordinal 0 with no card means the run is over.
+-- optional hook(card_id, ordinal, step): a zone's cards acting in turn, then ordinal 0 with no card for the end of the run.
+-- Not the presentation's any more — stage.lua's queue does the spacing — but a zone still resolves in one instant, so a test
+-- asking which card went first, and on which step of the run, has nothing else to watch.
 M.on_act         = nil
 M.on_effect      = nil   -- optional hook(name, ctx): presentation plays the named effect
 -- optional hook(): the turn changed hands, so whatever is scoped to a turn ends.
@@ -633,10 +634,9 @@ HANDLERS["activate_zone"] = function(p, ctx)
 	for i, id in ipairs(order) do
 		local e = entity.get(id)
 		if e and e.zone_id == z.id then
-			-- Which of the run this is, and which part of it. The rules resolve the
-			-- whole zone in one instant — they have to, or a snapshot could be taken
-			-- halfway through a combat — so this is the only thing the presentation
-			-- has to tell one act from the next and space them out.
+			-- Which of the run this is, and which part of it. The rules resolve the whole zone in one instant — they have to,
+			-- or a snapshot could be taken halfway through a combat — so an observer outside the call has no other way to
+			-- tell one act from the next.
 			if M.on_act then M.on_act(id, i, step) end
 			for _, a in ipairs(cards.abilities(e)) do
 				if type(a.action) == "table" and (step == nil or a.key == step) then
