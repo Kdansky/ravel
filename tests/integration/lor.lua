@@ -509,8 +509,14 @@ end
 -- is an ordinary zone; the only thing the engine had to be told is where.
 function M.test_lor_each_seat_has_a_nexus_on_the_table(check)
 	flow.init("lor.json", 5)
+	-- One zone with a rect each, not two zones: a seat's own card is the one
+	-- thing a per-seat zone places rather than clones, so the plate that holds
+	-- it is also the plate that knows whose it is.
 	for _, seat in ipairs({ "north", "south" }) do
-		local z = zones.find("nexus_" .. seat)
+		local z
+		for _, inst in ipairs(zones.all_with_key("seat_box")) do
+			if inst.seat == seat then z = inst end
+		end
 		check(seat .. " has a plate of its own", z ~= nil and #z.cards == 1)
 		local e = z and z.cards[1] and entity.get(z.cards[1])
 		check("holding that seat's card", e ~= nil and e.def_key == seat)
@@ -519,7 +525,7 @@ function M.test_lor_each_seat_has_a_nexus_on_the_table(check)
 	-- Badges are drawn for a card in a grid zone and nowhere else, so a plate
 	-- that stopped being a grid would go blank without failing anything above.
 	check("the plates are grids, which is what draws a badge",
-		declaration.G.zone_defs.nexus_north.layout == "grid")
+		declaration.G.zone_defs.seat_box.layout == "grid")
 	check("and the card claims the style that names the badges",
 		declaration.G.card_defs.north.tags_set.nexus_plate == true)
 

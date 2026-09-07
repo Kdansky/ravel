@@ -339,16 +339,11 @@
       "tooltip": "A chip you kept out of the discard. It returns to your hand at the start of your next turn."
     },
     {
-      "key": "seat_box_south",
+      "key": "seat_box",
       "layout": "stack",
       "status": "board",
-      "pos": [0.005, 0.818, 0.11, 0.995]
-    },
-    {
-      "key": "seat_box_north",
-      "layout": "stack",
-      "status": "board",
-      "pos": [0.115, 0.818, 0.225, 0.995]
+      "copies": "per_seat",
+      "pos": [[0.005, 0.818, 0.11, 0.995], [0.115, 0.818, 0.225, 0.995]]
     }
   ],
   "phases": [
@@ -3820,8 +3815,8 @@
   ],
   "setup": {
     "place": [
-      { "card": "south", "zone": "seat_box_south" },
-      { "card": "north", "zone": "seat_box_north" },
+      { "card": "south", "zone": "seat_box" },
+      { "card": "north", "zone": "seat_box" },
       { "card": "clock", "zone": "sys" },
       { "card": "done_acting", "zone": "controls", "at": ["a1"] },
       { "card": "end_turn", "zone": "controls", "at": ["b1"] },

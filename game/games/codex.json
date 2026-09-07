@@ -773,12 +773,8 @@
       "tooltip": "Your draw pile. Run it out and your discard is shuffled back in."
     },
     {
-      "key": "seat_box_south", "status": "board", "layout": "stack",
-      "pos": [0.005, 0.805, 0.04, 0.995]
-    },
-    {
-      "key": "seat_box_north", "status": "board", "layout": "stack",
-      "pos": [0.005, 0.005, 0.04, 0.195]
+      "key": "seat_box", "status": "board", "layout": "stack", "copies": "per_seat",
+      "pos": [[0.005, 0.805, 0.04, 0.995], [0.005, 0.005, 0.04, 0.195]]
     },
     {
       "key": "discard",
@@ -909,8 +905,8 @@
   ],
   "setup": {
     "place": [
-      { "card": "south", "zone": "seat_box_south" },
-      { "card": "north", "zone": "seat_box_north" },
+      { "card": "south", "zone": "seat_box" },
+      { "card": "north", "zone": "seat_box" },
       { "card": "home_base", "zone": "base" },
       { "card": "end_turn", "zone": "controls", "at": ["a1"] },
       { "card": "hire_worker", "zone": "controls", "at": ["b1"] },

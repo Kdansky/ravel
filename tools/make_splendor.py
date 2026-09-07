@@ -308,10 +308,8 @@ def zones(rows):
         # South's own copy of that gap falls inside the undo button and event
         # log's own reserved corner (bottom-right), so it takes the other free
         # rect instead -- between reserve's top edge and the supply's own top.
-        {"key": "seat_box_north", "layout": "stack", "status": "board",
-         "pos": [0.82, 0.01, 0.98, 0.15]},
-        {"key": "seat_box_south", "layout": "stack", "status": "board",
-         "pos": [0.82, 0.17, 0.98, 0.32]},
+        {"key": "seat_box", "layout": "stack", "status": "board", "copies": "per_seat",
+         "pos": [[0.82, 0.01, 0.98, 0.15], [0.82, 0.17, 0.98, 0.32]]},
         {"key": "nobles", "label": "Nobles", "layout": "grid", "grid": [3, 1],
          "tags": ["optional", "market"], "pos": [0.02, 0.17, 0.40, 0.30]},
         {"key": "noble_deck", "layout": "stack", "visibility": "secret", "display": "offscreen", "tags": ["shuffle"],
@@ -638,8 +636,8 @@ def build(here):
         "end_conditions": [],
         "cards": (seat_cards() + piles() + buttons()
                   + development(rows) + nobles(noble_rows) + endings()),
-        "setup": {"place": [{"card": "north", "zone": "seat_box_north"},
-                            {"card": "south", "zone": "seat_box_south"}]},
+        "setup": {"place": [{"card": "north", "zone": "seat_box"},
+                            {"card": "south", "zone": "seat_box"}]},
     }
 
 

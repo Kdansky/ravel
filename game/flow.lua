@@ -582,7 +582,20 @@ function M.init(filename, seed)
 			-- and one per seat otherwise: a per-seat board wants its marker in
 			-- each seat's copy, not a single one in whoever happens to be first.
 			local zkey = e.zone or cards.home_zone(def) or "board"
-			for _, to in ipairs(zones.all_with_key(zkey)) do
+			-- A seat's own card is the one thing a per-seat zone does not copy:
+			-- it goes in that seat's instance and in no other. Everything else
+			-- is a copy each, which is what a marker every player starts with
+			-- wants — but four seat boxes holding all four players apiece is a
+			-- table where nobody is anywhere.
+			local into = zones.all_with_key(zkey)
+			if G.seat_set[e.card] then
+				local own = {}
+				for _, to in ipairs(into) do
+					if not to.seat or to.seat == e.card then own[#own + 1] = to end
+				end
+				into = own
+			end
+			for _, to in ipairs(into) do
 				-- One entry may name several squares, and then it is several
 				-- pieces: eight pawns are one line naming eight squares.
 				for _, at in ipairs(e.at or NOWHERE) do

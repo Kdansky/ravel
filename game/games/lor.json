@@ -114,18 +114,12 @@
   },
   "zones": [
     {
-      "key": "nexus_north",
+      "key": "seat_box",
       "layout": "grid",
       "grid": [1, 1],
+      "copies": "per_seat",
       "tags": ["nexus_plate"],
-      "pos": [0.01, 0.18, 0.15, 0.45]
-    },
-    {
-      "key": "nexus_south",
-      "layout": "grid",
-      "grid": [1, 1],
-      "tags": ["nexus_plate"],
-      "pos": [0.01, 0.55, 0.15, 0.82]
+      "pos": [[0.01, 0.18, 0.15, 0.45], [0.01, 0.55, 0.15, 0.82]]
     },
     {
       "key": "deck",
@@ -496,8 +490,8 @@
   ],
   "setup": {
     "place": [
-      { "card": "north", "zone": "nexus_north" },
-      { "card": "south", "zone": "nexus_south" },
+      { "card": "north", "zone": "seat_box" },
+      { "card": "south", "zone": "seat_box" },
       { "card": "pass_button", "zone": "controls", "at": ["a1"] },
       { "card": "attack_button", "zone": "controls", "at": ["b1"] }
     ]

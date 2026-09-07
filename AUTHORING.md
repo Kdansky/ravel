@@ -2083,6 +2083,24 @@ hand. Say `enemy.arena` for the other. A per-seat zone also receives its own
 copy of every card `setup.place` puts there, so a marker placed once appears in each
 seat's copy.
 
+**A seat's own card is the exception, and it is the one that lets a seat box be
+one zone.** Place a seat into a per-seat zone and it lands in that seat's copy
+and in no other, so four players' boxes are one declaration with four rects:
+
+```json
+{ "key": "seat_box", "layout": "stack", "status": "board", "copies": "per_seat",
+  "pos": [[0.01, 0.20, 0.06, 0.33], [0.50, 0.20, 0.56, 0.33]] }
+```
+
+```json
+{ "card": "north", "zone": "seat_box" },
+{ "card": "south", "zone": "seat_box" }
+```
+
+Worth doing rather than declaring `seat_box_north` and `seat_box_south`: a zone
+that is one of a seat's copies knows whose it is, which is what an owner word
+reads and what puts the seat's colour on it.
+
 **A seat's zones wear that seat's colour, and no game has to say which.** From
 two seats up, every zone a seat owns is washed in a hue of its own — faintly on
 the panel, plainly on its border — and the card backs inside it take a stronger

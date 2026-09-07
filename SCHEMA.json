@@ -285,7 +285,7 @@
       {
         "card": "the key of a card that starts already in play — a throne, a board, a button, a chess piece",
         "owner": "the key of the player this piece belongs to. Ownership is decided where a piece is put down, which is here; without it a card belongs to the seat of the zone it sits in, which is enough for per-seat tableaus. It is what lets one card be placed for both players.",
-        "zone": "where it goes. Leave it out and its home tag decides, then the only board. A per-seat zone gets one copy in each seat's.",
+        "zone": "where it goes. Leave it out and its home tag decides, then the only board. A per-seat zone gets one copy in each seat's \u2014 except a seat's own card, which goes in that seat's copy and in no other, so one per_seat zone is the home of every seat card rather than one zone per player.",
         "at": "the square, named the way a player would say it — a column letter and a rank counted from the near edge, \"e1\". A list places one card per square, so eight pawns are one entry. Grid zones only; without it the card takes the first free cell."
       }
     ]

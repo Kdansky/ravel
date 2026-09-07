@@ -220,12 +220,8 @@
       "pos": [[0.900, 0.815, 0.995, 0.995], [0.745, 0.005, 0.855, 0.185]],
       "tooltip": "Recruited from the research track. Each works once a round." },
     {
-      "key": "seat_box_south", "status": "board", "layout": "stack",
-      "pos": [0.005, 0.815, 0.185, 0.995]
-    },
-    {
-      "key": "seat_box_north", "status": "board", "layout": "stack",
-      "pos": [0.86, 0.005, 0.995, 0.185]
+      "key": "seat_box", "status": "board", "layout": "stack", "copies": "per_seat",
+      "pos": [[0.005, 0.815, 0.185, 0.995], [0.86, 0.005, 0.995, 0.185]]
     }
   ],
 
@@ -277,8 +273,8 @@
 
   "setup": {
     "place": [
-      { "card": "south", "zone": "seat_box_south" },
-      { "card": "north", "zone": "seat_box_north" },
+      { "card": "south", "zone": "seat_box" },
+      { "card": "north", "zone": "seat_box" },
       { "card": "clock", "zone": "sys" },
       { "card": "end_turn", "zone": "controls", "at": "a1" },
       { "card": "pass_turn", "zone": "controls", "at": "b1" },

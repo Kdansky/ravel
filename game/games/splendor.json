@@ -456,16 +456,11 @@
       "pos": [[0.57, 0.01, 0.8, 0.15], [0.57, 0.85, 0.8, 0.99]]
     },
     {
-      "key": "seat_box_north",
+      "key": "seat_box",
       "layout": "stack",
       "status": "board",
-      "pos": [0.82, 0.01, 0.98, 0.15]
-    },
-    {
-      "key": "seat_box_south",
-      "layout": "stack",
-      "status": "board",
-      "pos": [0.82, 0.17, 0.98, 0.32]
+      "copies": "per_seat",
+      "pos": [[0.82, 0.01, 0.98, 0.15], [0.82, 0.17, 0.98, 0.32]]
     },
     {
       "key": "nobles",
@@ -1920,9 +1915,6 @@
     }
   ],
   "setup": {
-    "place": [
-      { "card": "north", "zone": "seat_box_north" },
-      { "card": "south", "zone": "seat_box_south" }
-    ]
+    "place": [{ "card": "north", "zone": "seat_box" }, { "card": "south", "zone": "seat_box" }]
   }
 }

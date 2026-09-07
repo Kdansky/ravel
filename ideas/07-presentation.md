@@ -108,27 +108,6 @@ wall of fifty-one.] Worth confirming against the screenshot harness before
 building anything: the draft may only look bad because the two draft buttons in
 the same row are 23px squares, which is the gap above and not this one.
 
-## Still open — a zone that is about a seat without being one of its copies
-
-A seat's zones now wear a colour (`render.seat_hue`, keyed on `zone_e.seat`),
-and `zone_e.seat` is set by `copies: "per_seat"` and by nothing else. Every zone
-a game declares twice by hand is therefore neutral among the tinted ones, and
-two shipped games do that where it shows: The Crew's four `seat_box_*` boxes sit
-in blue beside the hands they name, and LoR's `nexus_north`/`nexus_south` do the
-same. Both are single-cell zones whose whole job is to say whose they are.
-
-Wanted: **a way for a zone to name the seat it belongs to when it is not a
-copy.** That is a new field on a zone, so the word has to be agreed before
-anything is written.
-
-`per_seat` is not the answer for these, and the reason is worth writing down:
-its four rects would be fine, but a per-seat zone receives a *copy* of every
-card `setup.place` puts in it, and each of these boxes holds one named seat card
-— `{"card": "north", "zone": "seat_box_north"}`. There is no word for "this
-seat's own card" in `setup.place`, so a `per_seat` seat box would put all four
-seats in all four boxes. [Assumption: whichever way it is closed, the same field
-would answer LoR's two nexuses, which are one cell each and belong to a side.]
-
 ## What shipped, and what each cost to find
 
 **Text, contrast and layout.** The text band is gone — a card was a picture plus

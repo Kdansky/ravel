@@ -823,13 +823,8 @@ def zones():
         # gap in the whole board. A seat's card lives there so it can be
         # hovered, side by side rather than stacked since there is no matching
         # free strip along the top-left to split them the usual way. Two zone
-        # keys, not one per_seat zone -- a per_seat zone's contents are shared
-        # markers cloned into every seat's copy, and a seat's own card must
-        # land in exactly one copy, not both.
-        {"key": "seat_box_" + SEATS[0][0], "layout": "stack", "status": "board",
-         "pos": [0.005, 0.818, 0.11, 0.995]},
-        {"key": "seat_box_" + SEATS[1][0], "layout": "stack", "status": "board",
-         "pos": [0.115, 0.818, 0.225, 0.995]},
+        {"key": "seat_box", "layout": "stack", "status": "board", "copies": "per_seat",
+         "pos": [[0.005, 0.818, 0.11, 0.995], [0.115, 0.818, 0.225, 0.995]]},
     ]
     return z
 
@@ -2308,7 +2303,7 @@ def build():
                   + by_colour(priced(named(lands(say(gem_cards() + purple_cards() + puzzle_cards()
                                                      + character_chips())))))
                   + character_cards() + [c for _, c in rule_cards()]),
-        "setup": {"place": [{"card": k, "zone": "seat_box_" + k} for k, _ in SEATS]
+        "setup": {"place": [{"card": k, "zone": "seat_box"} for k, _ in SEATS]
                            + [{"card": "clock", "zone": "sys"},
                             {"card": "done_acting", "zone": "controls", "at": ["a1"]},
                             {"card": "end_turn", "zone": "controls", "at": ["b1"]},

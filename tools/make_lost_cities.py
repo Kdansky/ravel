@@ -228,8 +228,8 @@ def zones():
            {"key": "rules", "layout": "stack", "pos": RULES_POS,
             "contents": ["how_to_play"]},
            {"key": "choice", "layout": "row", "row": "down", "tags": ["stacked"], "pos": CHOICE_POS},
-           {"key": "seat_box_north", "layout": "stack", "status": "board", "pos": SEAT_BOX_POS["north"]},
-           {"key": "seat_box_south", "layout": "stack", "status": "board", "pos": SEAT_BOX_POS["south"]}]
+           {"key": "seat_box", "layout": "stack", "status": "board", "copies": "per_seat",
+            "pos": [SEAT_BOX_POS["north"], SEAT_BOX_POS["south"]]}]
     for i, (c, label, _, _) in enumerate(COLOURS):
         # A stack, not a grid of slots: an expedition is a run of cards in the
         # order they were played, which is what a pile is, and "stacked" fans it
@@ -371,8 +371,8 @@ def build():
         "tags": TAG_DEFS,
         "zones": z,
         "cards": tpl,
-        "setup": {"place": [{"card": "north", "zone": "seat_box_north"},
-                             {"card": "south", "zone": "seat_box_south"}]},
+        "setup": {"place": [{"card": "north", "zone": "seat_box"},
+                             {"card": "south", "zone": "seat_box"}]},
         "phases": phases(),
         "end_conditions": [],
     }

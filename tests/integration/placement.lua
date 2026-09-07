@@ -206,4 +206,43 @@ function M.test_placement_where_can_ask_about_the_square_itself(check)
 	end)
 end
 
+-- What a per-seat zone copies and what it does not. Every game with two seats
+-- used to declare its seat boxes twice by hand, with a comment in two of the
+-- generators explaining that it had to: a per-seat zone clones what setup puts
+-- in it, and four boxes each holding all four players is a table where nobody
+-- is anywhere. The zone already knows whose copy it is, so a seat is the one
+-- card it places rather than clones.
+local function held_by(zone_key, seat)
+	for z in entity.each("zone") do
+		if z.key == zone_key and z.seat == seat then
+			local names = {}
+			for _, cid in ipairs(z.cards) do names[#names + 1] = entity.get(cid).def_key end
+			return names
+		end
+	end
+	return {}
+end
+
+function M.test_placement_a_seat_goes_only_in_its_own_copy(check)
+	flow.init("the_crew.json", 1)
+	for _, seat in ipairs(require("declaration").G.seat_list) do
+		local held = held_by("seat_box", seat)
+		check(seat .. "'s box holds " .. seat .. " and nobody else",
+			#held == 1 and held[1] == seat, table.concat(held, ","))
+	end
+end
+
+function M.test_placement_everything_else_a_per_seat_zone_still_copies(check)
+	-- Codex gives every seat the same base, which is what one entry into a
+	-- per-seat zone has always meant and must go on meaning.
+	flow.init("codex.json", 1)
+	local seen = 0
+	for _, seat in ipairs(require("declaration").G.seat_list) do
+		local names = held_by("base", seat)
+		check(seat .. " got a base of their own", names[1] == "home_base", table.concat(names, ","))
+		seen = seen + 1
+	end
+	check("both seats, not one", seen == 2)
+end
+
 return M

@@ -268,14 +268,10 @@ def zones():
     tasks = [[0.805, round(top + i * step, 3), 0.995, round(top + (i + 1) * step - 0.008, 3)]
              for i in range(len(SEATS))]
 
-    # One zone key per seat rather than one per_seat zone: a per_seat zone's
-    # contents are shared markers cloned into every seat's copy, and a seat's
-    # own card must land in exactly one copy, not all four.
-    seat_box_zones = [{"key": "seat_box_" + k, "layout": "stack", "status": "board", "pos": seats[k][0]}
-                       for k in order]
+    boxes = [seats[k][0] for k in order]
 
     return [
-        *seat_box_zones,
+        {"key": "seat_box", "layout": "stack", "status": "board", "copies": "per_seat", "pos": boxes},
         {"key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": hands},
         # Face up, so it is everybody's to read — which is the whole point of
         # saying something, and what the tag has always claimed to mean.
@@ -476,7 +472,7 @@ def build():
         "end_conditions": [],
         "cards": (seat_cards() + other_cards() + mission_cards() + [radio_card()]
                   + playing_cards() + task_cards()),
-        "setup": {"place": [{"card": k, "zone": "seat_box_" + k} for k, _ in SEATS]
+        "setup": {"place": [{"card": k, "zone": "seat_box"} for k, _ in SEATS]
                            + [{"card": "flight_plan", "zone": "console", "at": ["a1"]},
                               {"card": "radio", "zone": "controls", "at": ["a1"]}]},
     }
