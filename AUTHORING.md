@@ -1294,8 +1294,12 @@ the two players' battle slots, which is the middle of the screen:
 
 ```json
 { "key": "announce", "label": "{phase}", "layout": "row", "use": "none",
-  "pos": [0.385, 0.44, 0.615, 0.56] }
+  "tags": ["bare"], "pos": [0.45, 0.435, 0.61, 0.565] }
 ```
+
+`bare` is what stops it being drawn as a box: no frame, no fill, and the label
+centred in the rect instead of sat along the top edge where cards would have to
+keep clear of it. Nothing will ever be put in this one.
 
 A zone rather than a card, because the answer is a sentence and a card's title
 is one line: *Play a card face down* came out as *Play a c...* on the widest
@@ -3641,6 +3645,7 @@ twenty are the exceptions — the words the engine itself looks for:
 | `player` | card | this card is a seat. Stamped by the engine from the players section, not written by hand |
 | `token` | card | vanishes when a hand is swept, instead of joining the discard |
 | `optional` | zone | nothing here ever has to be played, so a gated card stays gated |
+| `bare` | zone | drawn without a frame or a fill, and its label centred in the rect rather than sat along the top: a zone that exists only to say something is the something |
 | `refill_when_empty` | zone | recreates its contents when the last card leaves |
 | `shuffle` | zone | shuffled when its contents are created, and on every refill |
 | `stack` | zone | announcements wait here to be answered — see *Reactions*. A game with no such zone has no response window |

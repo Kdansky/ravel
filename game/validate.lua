@@ -71,6 +71,7 @@ M.ENGINE_TAGS = {
 	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
 	refill_when_empty = { on = "zone", what = "recreates its contents when the last card leaves" },
 	optional          = { on = "zone", what = "nothing here ever has to be played, so a gated card stays gated" },
+	bare              = { on = "zone", what = "drawn without a frame or a fill, and its label centred in the rect rather than sat along the top: a zone that exists only to say something is the something" },
 	event_log         = { on = "card", what = "this card is the event log: pointing at it shows what has happened, and clicking it says how much of it to show. The engine's own system column carries one" },
 	last_acted        = { on = "card", what = "the card a player most recently played or activated. Written by the engine, one at a time, and it lingers until the next thing a player does" },
 	-- phases

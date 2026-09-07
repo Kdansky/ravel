@@ -1240,10 +1240,19 @@ end
 local function draw_zone_label(zone_e)
 	local text = zone_e.label and label.fill(zone_e.label, zone_e)
 	if not text then return end
-	local p = zone_e.place
+	local p  = zone_e.place
+	local f  = love.graphics.getFont()
+	-- A label normally sits along the top edge and the cards keep clear of it. A
+	-- bare zone has no cards and no box: it *is* its label, so the label takes
+	-- the whole rect and is centred both ways.
+	local y = p.y + 3 * S
+	if zone_e.tags.bare then
+		local _, lines = f:getWrap(text, p.w - 4)
+		y = p.y + (p.h - #lines * f:getHeight()) * 0.5
+	end
 	love.graphics.push("all")
 	love.graphics.setColor(0.30, 0.42, 0.60, 0.65)
-	printf(text, p.x + 2, p.y + 3 * S, p.w - 4, "center")
+	printf(text, p.x + 2, y, p.w - 4, "center")
 	love.graphics.pop()
 end
 
@@ -1252,11 +1261,22 @@ local function draw_zone(zone_e)
 	local zt  = zone_e.layout
 	local hue = M.seat_hue(zone_e.seat)
 
+	-- A zone that exists only to say something is the something, and not a box
+	-- drawn round it. What it says still comes from the board — "{phase}" in the
+	-- middle of Spellstorm's table — so it is a zone and not a line of chrome;
+	-- what it does not need is a frame and a fill announcing that a place is
+	-- there when nothing will ever be put in it.
+	local bare = zone_e.tags.bare
+
 	love.graphics.push("all")
 	-- A zone can be a target in its own right, and eligibility never rides on
 	-- hue alone: border colour, a pulsing fill, and the same blue every other
 	-- eligible thing wears.
-	if targeting.active() and targeting.is_eligible(zone_e.id) then
+	if bare then
+		love.graphics.pop()
+		draw_zone_label(zone_e)
+		return
+	elseif targeting.active() and targeting.is_eligible(zone_e.id) then
 		love.graphics.setColor(C.eligible[1], C.eligible[2], C.eligible[3],
 			0.10 + 0.14 * pulse(5))
 		love.graphics.rectangle("fill", p.x, p.y, p.w, p.h, 7 * S, 7 * S)
