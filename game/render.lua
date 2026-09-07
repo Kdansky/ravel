@@ -17,6 +17,11 @@ local label       = require("label")
 
 local M = {}
 
+-- Held while the player is reading rather than playing: every card's text sits
+-- on flat black instead of a scrim. Set from main.lua each frame, because a key
+-- being held is not an event.
+M.plates = false
+
 -- A style that hides nothing, so the five "does this look leave that part out"
 -- reads below never have to test for the table first.
 local EMPTY_HIDE = {}
@@ -884,11 +889,22 @@ local function draw_card_face(pl, card_e, show_text, vis)
 
 		-- A dark strip under the words, softest at its top edge so the picture
 		-- fades into it instead of ending at a line.
+		--
+		-- Held shift replaces the gradient with flat black. The soft version is
+		-- right for a board being looked at and wrong for eight cards being read
+		-- against each other, where every one of them is a paragraph over its own
+		-- bright picture — so reading is a key you hold, not a mode the game is
+		-- left in.
 		love.graphics.setScissor(vis.x, vis.y, vis.w, vis.h)
-		local steps = 6
-		for i = 0, steps - 1 do
-			love.graphics.setColor(0, 0, 0, 0.72 * (i / (steps - 1)) ^ 0.6)
-			love.graphics.rectangle("fill", vis.x, top + band * i / steps, vis.w, band / steps + 1)
+		if M.plates then
+			love.graphics.setColor(0, 0, 0, 0.96)
+			love.graphics.rectangle("fill", vis.x, top, vis.w, band)
+		else
+			local steps = 6
+			for i = 0, steps - 1 do
+				love.graphics.setColor(0, 0, 0, 0.72 * (i / (steps - 1)) ^ 0.6)
+				love.graphics.rectangle("fill", vis.x, top + band * i / steps, vis.w, band / steps + 1)
+			end
 		end
 
 		local y = top + pad

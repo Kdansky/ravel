@@ -24,6 +24,11 @@ broken in plain language — typo'd fields and sections, missing references,
 conflicts — with "did you mean" suggestions; the game plays on regardless.
 `luajit check.lua mygame.json` runs the same checks without starting a game.
 
+**Hold shift** to put every card's text on flat black instead of a scrim. Card
+art gets the whole card and the words float over it, which is right for a board
+being looked at and wrong for eight cards being read against each other — so
+reading is a key you hold, not a mode the game is left in.
+
 **Hold ctrl and point at anything** in the running game — a card, the square
 under it, the zone it lies in — to read the JSON behind it: the template (your
 JSON, plus whatever the parser derived from it — a card with `moves` grew the

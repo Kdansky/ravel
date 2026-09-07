@@ -55,6 +55,11 @@ local function ctrl_down()
 		and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
 end
 
+local function shift_down()
+	return love.keyboard ~= nil and love.keyboard.isDown ~= nil
+		and (love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift"))
+end
+
 -- Which ability the open targeting session is for, when the player picked one
 -- out of a chooser. Kept here rather than in targeting because it is a fact
 -- about the question being asked, not about the answers.
@@ -512,6 +517,7 @@ function love.update(dt)
 	stage.leave()
 	anim.update(dt * stage.speed())
 	fx.update(dt)
+	render.plates = shift_down()
 	render.set_can_undo(flow.can_undo())
 	watch_game_file(dt)
 
