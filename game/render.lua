@@ -131,6 +131,18 @@ local function print_at(text, x, y, ...)
 	return love.graphics.print(text, math.floor(x + 0.5), math.floor(y + 0.5), ...)
 end
 
+-- Prose a player reads, wherever it is being read. The two marks are the card's
+-- own (richtext.lua) and a panel that printed them raw was showing a player the
+-- file's punctuation when they had asked what the card does — the card face has
+-- always set them, and the panel you open to read the long version had not.
+-- Returns the y below the last line, since every caller is stacking paragraphs.
+local function prose(text, x, y, w, align, color)
+	local f = love.graphics.getFont()
+	local n = rich.printf(f, text, math.floor(x + 0.5), math.floor(y + 0.5), w, align,
+		{ color = color })
+	return y + n * f:getHeight()
+end
+
 local function font_at(px)
 	px = math.max(6, math.floor(px + 0.5))
 	if not font_cache[px] then
@@ -1103,9 +1115,8 @@ local function draw_page(pl, card_e)
 
 	local hint_h = sf:getHeight() + 12 * S
 	love.graphics.setScissor(pl.x, y, pl.w, math.max(0, pl.y + pl.h - hint_h - y))
-	love.graphics.setColor(0.80, 0.88, 1.00)
-	printf(label.fill(def and (def.story or def.tooltip) or "", card_e),
-		pl.x + m, y, pl.w - m * 2, "left")
+	prose(label.fill(def and (def.story or def.tooltip) or "", card_e),
+		pl.x + m, y, pl.w - m * 2, "left", { 0.80, 0.88, 1.00 })
 	love.graphics.setScissor()
 
 	love.graphics.setFont(sf)
@@ -1729,10 +1740,7 @@ local function draw_card_detail(card_e)
 
 		local tooltip = label.fill(def and def.tooltip or "", card_e)
 		if tooltip ~= "" then
-			love.graphics.setColor(0.82, 0.91, 1.00)
-			printf(tooltip, info_x, y, info_w, "left")
-			local _, wrapped = main_font:getWrap(tooltip, info_w)
-			y = y + #wrapped * main_font:getHeight() + 14 * S
+			y = prose(tooltip, info_x, y, info_w, "left", { 0.82, 0.91, 1.00 }) + 14 * S
 		end
 
 		-- What the card's keywords mean, said once by the game rather than copied
@@ -1740,19 +1748,13 @@ local function draw_card_detail(card_e)
 		-- find out*, so it is the one place the sentence has to appear.
 		for _, kw in ipairs(cards.keywords(card_e)) do
 			if kw.text ~= tooltip then
-				love.graphics.setColor(0.72, 0.86, 0.98)
-				printf(kw.text, info_x, y, info_w, "left")
-				local _, wrapped = main_font:getWrap(kw.text, info_w)
-				y = y + #wrapped * main_font:getHeight() + 8 * S
+				y = prose(kw.text, info_x, y, info_w, "left", { 0.72, 0.86, 0.98 }) + 8 * S
 			end
 		end
 
 		local story = def and def.story or ""
 		if story ~= "" then
-			love.graphics.setColor(0.68, 0.78, 0.94)
-			printf(story, info_x, y, info_w, "left")
-			local _, swrapped = main_font:getWrap(story, info_w)
-			y = y + #swrapped * main_font:getHeight() + 14 * S
+			y = prose(story, info_x, y, info_w, "left", { 0.68, 0.78, 0.94 }) + 14 * S
 		end
 
 		local stats = card_e.stats
