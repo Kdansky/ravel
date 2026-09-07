@@ -1,126 +1,76 @@
 # 25 — A stat that keeps itself
 
-**Status:** not started, written up before any code on purpose · **Size:** small
-engine change, one large decision, and it competes with an existing track rather
-than sitting beside it — see *Against 17*.
+**Closed 2026-09-07, unbuilt.** The question was whether a stat should carry a
+`from` saying how it is kept, once `computes` had shipped a formula that sits at
+its use site with a name on it. The way to answer it was to migrate everything
+`computes` could reach and look at what was left. What is left does not want
+`from`.
 
-Found by measuring the game files for repetition. Four of the five things that
-pass turned up have shipped; this is the fifth and the largest, and the one
-nearest a line `DESIGN.md` draws.
+## What the migration found
 
-> *In The Crew, a ton of cards have a lot of 0 stat values… I want to get rid of
-> that* → answered by `on`/`start`. This is the sentence after it: the zeros are
-> gone, and what is left holding them is arithmetic written as a sequence of
-> assignments because there is nowhere to write an expression.
+Three scratch stats went, and **not one of them for the reason this file
+predicted**:
 
----
+- **The Crew's `best`** was `max:contend@trick` written onto every card in the
+  trick so that one compute could read it back. It is inside the compute now
+  (`behind` is `max:contend@trick - contend@self`), which deletes the stat and
+  the pass that filled it.
+- **Splendor's `plenty`** was `max(0, stock - 3)` per gem plate, restated once a
+  turn, spent as a cost to gate "take two of one colour". It was never
+  arithmetic: it existed because the generator believed *an ability is gated by
+  its cost and its phase and by nothing else*, which is false — `usable_rules`
+  reads an ability's `needs` (`flow.lua:1088`). It is `stock@self >= 4` now, and
+  ten actions and a stat went with it.
+- **Puzzle Strike's `to_pick`** was `max(0, 10 - count:puzzle@bank)`. The floor
+  is unreachable — nobody can draft an eleventh chip — so it is an ordinary
+  compute read straight into the deal's count slot.
 
-## The measurement
+## Why `from` has no customer
 
-Half of every action string in every shipped game is stat arithmetic, and half
-of *that* writes to a hidden scratch register rather than to a number anybody
-reads:
+**Every derived number still standing in the corpus is a sequence, not an
+expression.** That is the whole finding. `from` says one thing once; the
+arithmetic these games do is a little program:
 
-| | |
-|---|---|
-| action strings, all games | 934 |
-| of those, `stat_*` | 467 (50%) |
-| of those, writing to a `hidden` stat | 218 (47%) |
+- **Chained intermediates.** Splendor's price is `due = max(0, cost - bonus)`,
+  then `short = max(0, due - tokens)`, then `due -= short` — six lines per
+  colour, five colours. The noble check folds five shortfalls into one boolean.
+  Codex's draw is `min(hand + 2, 5)`, which is the floor used twice.
+- **A stat reassigned from its own derivative.** Puzzle Strike's `sent` is
+  `max(0, crashed@mine - crashed@enemy)`, and the two lines after it write
+  `crashed` on *both* seats using it. Codex's `over` sits between two writes to
+  `to_draw`.
+- **A conditional write.** The Crew's `contend` is set by whichever of two
+  `when`-gated abilities matches — following and trumping are two ways to be in
+  the running. `from` has no if.
 
-Three concrete ones, all of which are one formula each:
+`from` as drafted refused chaining and refused sitting on a stat anything writes.
+Held to that, it expresses none of the above. Loosened enough to reach them it is
+a dependency graph with an evaluation order, which is the thing the draft was
+right to refuse.
 
-- **Splendor's `price`** — 40 actions computing 7 numbers, structurally five
-  copies of the same six-line block plus a fold.
-- **Splendor's noble `check`** — 16 actions for one boolean.
-- **The Crew's `contend`** — 16 actions, run twice per trick.
+## The three blocking questions were the wrong three
 
-These are not effects. Nothing about them is a *change to the game*; they are
-values that are always a function of other values, restated by hand every time
-anything they depend on moves.
+- **"What does `@owner` mean on a card nobody owns?"** — thought most likely to
+  sink it. It is not a blocker at all: `mine` is not a context. `owned_by` reads
+  `zones.active_seat()` off the game (`predicate.lua:143`), so a declaration
+  resolves `b_white@mine.player` exactly as an action list does.
+- **"How much arithmetic?"** — not the cap either. Computes chain, in the order
+  the ability lists them, and Codex chains eighteen.
+- **"When is it evaluated?"** — the whole of it, and the corpus shows the answer
+  is *not* on read. `sent` and `over` are both read between two mutations of
+  the numbers they are made of. A derived value whose inputs move inside the
+  list that reads it has to be **frozen at a step**, and a stored register is
+  what freezing looks like. A stat that keeps itself is the opposite of what
+  these games want.
 
-## The shape
+## What `computes` cannot reach, for the next time it comes up
 
-`stats` already says four things about a number — floor, ceiling, icon, and (as
-of the `on`/`start` pass) whose it is and where it starts. `from` would say how
-it is kept:
+The clamp: `from` on a compute is `+ - *` and no floor, where
+`stat_damage` against `min: 0` is `max(0, a - b)` — the identity most of this
+corpus's arithmetic is made of. And a compute is bound by a *rule*, so a
+**computed tag** and a **phase's `actions`** cannot name one (both are asked with
+nobody acting); that alone keeps Codex's `left`, Splendor's `ok` and The Crew's
+`gap` as stats. Recorded in AUTHORING.md under `computes`.
 
-```json
-{ "key": "due_white", "on": ["development"], "min": 0,
-  "from": "cost_white@self - b_white@owner" }
-```
-
-Two properties make this fit rather than merely work:
-
-- **The clamp is already declared.** `min: 0` is what makes `max(0, a − b)` — the
-  identity the Splendor track discovered and the Crew track confirmed — fall out
-  of the stat's own floor instead of being an idiom spelled with `stat_damage`.
-- **It removes a hazard rather than only lines.** `short` and `gap` are *shared*
-  scratch registers today, reused by different formulas in sequence. Two derived
-  values wanting one register at once is a bug that cannot be written once each
-  value is its own stat.
-
-## Against 17
-
-[17](17-conditions-as-expressions.md) already owns the arithmetic question, and
-its position 2 — *one parser for conditions and for action value slots, which
-would delete `:x:` rather than add a notation* — is a different answer to the
-same pressure. **These two should not both be built.** The comparison, stated
-plainly:
-
-| | 17 step 5 / position 2 | this |
-|---|---|---|
-| What it adds | arithmetic inside an existing string | a field on a stat |
-| Where the formula lives | at every use site | at the declaration, once |
-| What it deletes | `:x:`, a whole notation | nothing |
-| Recomputation | none — evaluated where written | the open question, below |
-| Risk | every rules bug can be an arithmetic bug in a string | a value that is stale, or recomputed at the wrong moment |
-
-[Assumption: they are alternatives and not stages, because a `from` written in
-the same grammar 17 would introduce is 17 having happened first. If 17 lands, the
-right question is whether `from` is then worth anything at all, and it may not
-be — a formula at its use site is one place to look, and a stat that keeps itself
-is two. That is a real argument against this file and it is not resolved here.]
-
-## The open questions, which are why this is not built
-
-1. **When is it evaluated?** Three candidates, and they are not equivalent:
-   on read (correct always, costs per frame on a path that is a bare table
-   lookup today — `cards.def`'s comment says so explicitly); on write of any
-   input (needs a dependency graph the engine has nothing like); at settle
-   (cheap, predictable, and *wrong* for the half-updated moment inside an action
-   list, which is exactly where Splendor's pricing runs).
-2. **How much arithmetic?** The cap has to be stated before the first line, and
-   the discipline conditions already have is the model: one comparison, no
-   boolean operators. The equivalent here is **one binary operator**, and the
-   test of whether that is enough is Splendor's `price` — which needs
-   `cost − discount`, then `clamp0`, then a five-term sum. The five-term sum is
-   the part that does not fit, and if the answer is "so allow n-ary `+`" then
-   the cap has already moved once before anything is written.
-3. **What does `@owner` mean on a card nobody owns?** `due_white` is about the
-   buyer, and a development card lying in the row has no owner until it is
-   bought. Today the pricing runs under `activate_zone` with `mine` meaning the
-   player whose turn it is, which is a *context*, not a property of the card. A
-   declaration has no context. This may be the thing that sinks it.
-
-**Question 3 is the one to answer first.** If a derived stat cannot say "less the
-discounts of whoever is currently considering buying me", then the biggest case
-in the corpus is not expressible and the rest is not worth a new field.
-
-## Refuse
-
-- **Chained derivation** — a `from` that reads another `from`. It is a dependency
-  graph, then a cycle check, then an evaluation order to explain in the schema.
-  One level, reading only stored numbers.
-- **`from` on a stat that anything also writes.** A number that is both computed
-  and assigned has two sources of truth and the last writer wins, which is the
-  shape of bug that costs an afternoon. If a stat has `from`, `stat_set` on it is
-  an authoring error the validator refuses.
-
-## Build order, if it is built
-
-1. Answer question 3 against Splendor's pricing, on paper, before anything else.
-2. Pick the evaluation moment and write down why, in this file.
-3. `from` with one binary operator, refused on any stat an action writes.
-4. Splendor's `price` and noble `check`, and The Crew's `contend`, as the proof —
-   with the trick-winner fuzz and the Splendor turn probe as the evidence that
-   nothing moved.
+Reopen this only with a number that is (a) one expression, (b) read at more than
+one moment, and (c) never reassigned. Nothing in seventeen games is all three.

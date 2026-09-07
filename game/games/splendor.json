@@ -100,7 +100,6 @@
       "on": ["player"],
       "start": 0
     },
-    { "key": "plenty", "min": 0, "max": 99, "tags": ["hidden"] },
     { "key": "stock", "icon": "none", "min": 0, "max": 99, "tags": ["hidden"] },
     {
       "key": "buyable",
@@ -729,16 +728,6 @@
         "ready:supply"
       ],
       "actions": [
-        "stat_set:plenty@supply.pile_white:sum:stock@supply.pile_white",
-        "stat_damage:plenty@supply.pile_white:3",
-        "stat_set:plenty@supply.pile_blue:sum:stock@supply.pile_blue",
-        "stat_damage:plenty@supply.pile_blue:3",
-        "stat_set:plenty@supply.pile_green:sum:stock@supply.pile_green",
-        "stat_damage:plenty@supply.pile_green:3",
-        "stat_set:plenty@supply.pile_red:sum:stock@supply.pile_red",
-        "stat_damage:plenty@supply.pile_red:3",
-        "stat_set:plenty@supply.pile_black:sum:stock@supply.pile_black",
-        "stat_damage:plenty@supply.pile_black:3",
         "activate_zone:t1_row",
         "activate_zone:t2_row",
         "activate_zone:t3_row",
@@ -845,7 +834,6 @@
       "text": "Diamond",
       "tooltip": "Diamond tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
       "tags": ["pile_white", "plate_white", "counter"],
-      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_white",
@@ -864,7 +852,8 @@
           "key": "take2_white",
           "text": "Take two diamond",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "needs": ["stock@self >= 4"],
+          "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_white@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -886,7 +875,6 @@
       "text": "Sapphire",
       "tooltip": "Sapphire tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
       "tags": ["pile_blue", "plate_blue", "counter"],
-      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_blue",
@@ -905,7 +893,8 @@
           "key": "take2_blue",
           "text": "Take two sapphire",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "needs": ["stock@self >= 4"],
+          "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_blue@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -927,7 +916,6 @@
       "text": "Emerald",
       "tooltip": "Emerald tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
       "tags": ["pile_green", "plate_green", "counter"],
-      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_green",
@@ -946,7 +934,8 @@
           "key": "take2_green",
           "text": "Take two emerald",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "needs": ["stock@self >= 4"],
+          "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_green@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -968,7 +957,6 @@
       "text": "Ruby",
       "tooltip": "Ruby tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
       "tags": ["pile_red", "plate_red", "counter"],
-      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_red",
@@ -987,7 +975,8 @@
           "key": "take2_red",
           "text": "Take two ruby",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "needs": ["stock@self >= 4"],
+          "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_red@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -1009,7 +998,6 @@
       "text": "Onyx",
       "tooltip": "Onyx tokens. Take one — up to three different colours a turn — or take two of this colour alone, which needs four still here.",
       "tags": ["pile_black", "plate_black", "counter"],
-      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "take_black",
@@ -1028,7 +1016,8 @@
           "key": "take2_black",
           "text": "Take two onyx",
           "phases": ["act"],
-          "cost": { "exhaust": 1, "stock@self": 2, "plenty@self": 1, "first_take@mine.player": 1 },
+          "needs": ["stock@self >= 4"],
+          "cost": { "exhaust": 1, "stock@self": 2, "first_take@mine.player": 1 },
           "action": [
             "stat_gain:t_black@mine.player:2",
             "stat_gain:t_total@mine.player:2",
@@ -1050,7 +1039,6 @@
       "text": "Gold",
       "tooltip": "Gold is wild: it pays for any colour. It is never taken directly — reserving a card is what earns one.",
       "tags": ["pile_gold", "plate_gold", "counter"],
-      "card_stats": { "plenty": 0 },
       "abilities": [
         {
           "key": "back_gold",

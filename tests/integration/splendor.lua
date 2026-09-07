@@ -146,8 +146,9 @@ function M.test_splendor_buying_settles_every_number(check)
 end
 
 -- Three different colours, or two of one — and the second only while four of
--- that colour remain. Both are gated by an ability's cost, because an ability
--- is gated by its cost and its phase and by nothing else.
+-- that colour remain. What the player may spend is the cost; how many are left
+-- on the plate is a `needs`, read off the pile itself rather than off a number
+-- restated once a turn.
 function M.test_splendor_taking_tokens(check)
 	flow.init("splendor.json", 3)
 	local me = seat("north")

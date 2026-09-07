@@ -911,7 +911,6 @@ def stats():
         # How many Puzzle chips the bank is still short. Floored at zero, which
         # is what makes "ten less however many are already there" one subtraction
         # rather than a branch.
-        {"key": "to_pick", "min": 0, "max": 10, "tags": ["hidden"]},
     ]
 
 
@@ -2086,11 +2085,9 @@ def button_cards():
          "asset": "square:amber",
          "tooltip": "Fill whatever is left of the bank at random. Press it first for a random bank, or after "
                     "choosing a few to leave the rest to chance.",
-         "abilities": [{"phases": ["build_bank"],
+         "abilities": [{"phases": ["build_bank"], "compute": ["to_pick"],
                       "action": ["shuffle:chip_box",
-                                 "stat_set:to_pick@clock:10",
-                                 "stat_damage:to_pick@clock:count:puzzle@bank",
-                                 "draw_from:chip_box:bank:sum:to_pick@clock",
+                                 "draw_from:chip_box:bank:to_pick",
                                  "stat_set:stock@each.bank.puzzle:%d" % PUZZLE_STOCK]}]},
         # The way out of a borrowed buy phase. No cost: buying at least one chip
         # is a rule about your own turn, and this is not one.
@@ -2114,7 +2111,7 @@ def button_cards():
 def other_cards():
     return [
         {"key": "clock", "text": "The bank", "tags": ["clock", "immutable"],
-         "card_stats": {"panic": 0, "to_pick": 0, "shown": 0}},
+         "card_stats": {"panic": 0, "shown": 0}},
         {"key": "game_over", "text": "The gem pile filled up",
          "story": "A gem pile reached ten at the end of its owner's turn, and that is the game. "
                   "Whoever kept theirs lower wins.",
@@ -2243,6 +2240,11 @@ def build():
         "title": "Puzzle Strike",
         "stats": stats(),
         "styles": styles(),
+        # The bank holds ten Puzzle chips; "the rest" is however many of them
+        # nobody drafted. Never negative — you cannot pick an eleventh — so the
+        # subtraction wants no floor and needs nothing stored.
+        "computes": [{"key": "to_pick", "from": "%d - count:puzzle@bank" % len(DEFAULT_BANK),
+                      "tooltip": "How many Puzzle chips the bank is still short of a game."}],
         # A stack nobody can buy from any more is what drives the ante up, and
         # it is the plate's own number read as a word.
         "computed_tags": {"spent": {"needs": ["stock@self < 1"]},

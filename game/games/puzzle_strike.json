@@ -138,8 +138,7 @@
       "tags": ["hidden"]
     },
     { "key": "hits", "min": 0, "max": 1, "icon": "fist", "number": false, "tags": ["hidden"] },
-    { "key": "panic", "min": 0, "max": 9, "tags": ["hidden"] },
-    { "key": "to_pick", "min": 0, "max": 10, "tags": ["hidden"] }
+    { "key": "panic", "min": 0, "max": 9, "tags": ["hidden"] }
   ],
   "styles": {
     "brown": { "color": [0.42, 0.33, 0.24] },
@@ -156,6 +155,13 @@
     "character_card": { "color": [0.24, 0.26, 0.36] },
     "button": { "fit": "fill" }
   },
+  "computes": [
+    {
+      "key": "to_pick",
+      "from": "10 - count:puzzle@bank",
+      "tooltip": "How many Puzzle chips the bank is still short of a game."
+    }
+  ],
   "computed_tags": {
     "spent": { "needs": ["stock@self < 1"] },
     "discounted": { "needs": ["on_sale@self >= 1"] },
@@ -469,7 +475,7 @@
       "key": "clock",
       "text": "The bank",
       "tags": ["clock", "immutable"],
-      "card_stats": { "panic": 0, "to_pick": 0, "shown": 0 }
+      "card_stats": { "panic": 0, "shown": 0 }
     },
     {
       "key": "game_over",
@@ -503,11 +509,10 @@
       "abilities": [
         {
           "phases": ["build_bank"],
+          "compute": ["to_pick"],
           "action": [
             "shuffle:chip_box",
-            "stat_set:to_pick@clock:10",
-            "stat_damage:to_pick@clock:count:puzzle@bank",
-            "draw_from:chip_box:bank:sum:to_pick@clock",
+            "draw_from:chip_box:bank:to_pick",
             "stat_set:stock@each.bank.puzzle:5"
           ]
         }

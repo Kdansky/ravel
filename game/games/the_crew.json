@@ -56,7 +56,6 @@
       "on": ["play_card"],
       "start": 0
     },
-    { "key": "best", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 },
     { "key": "gap", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 }
   ],
   "computes": [
@@ -67,7 +66,7 @@
     },
     {
       "key": "behind",
-      "from": "best@self - contend@self",
+      "from": "max:contend@trick - contend@self",
       "tooltip": "How far short of the trick's best this card falls. Zero for exactly one card."
     }
   ],
@@ -366,7 +365,6 @@
         "stat_set:contend@each.trick:0",
         "activate_zone:trick:by_column:follows",
         "activate_zone:trick:by_column:trumps",
-        "stat_set:best@each.trick:max:contend@trick",
         "activate_zone:trick:by_column:measure",
         "activate_zone:trick:by_column:claim",
         "set_active_seat:taker"

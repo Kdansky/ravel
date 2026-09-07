@@ -159,8 +159,10 @@ function M.test_puzzle_strike_the_bank_is_drafted_from_the_whole_box(check)
 	check("the bank is nine chips short of a game", count_in("bank") == 9, count_in("bank"))
 end
 
--- The button that fills the rest. It is one subtraction and a deal: ten less
--- however many Puzzle chips are already standing there, floored at nothing.
+-- The button that fills the rest. It is one deal counted by a compute: ten less
+-- however many Puzzle chips are already standing there. The bank is a supply
+-- and a supply has no capacity, so the number has to be right — a grid does not
+-- stop the deal at its own last cell.
 function M.test_puzzle_strike_randomising_fills_the_rest_of_the_bank(check)
 	flow.init("puzzle_strike.json", 7)
 	flow.play_card(find_in("options", "char_jaina").id, {})

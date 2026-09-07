@@ -171,17 +171,6 @@ def noble_check():
     return a
 
 
-# Taking a token is the only thing a gem pile does, and "at least four left"
-# is a number rather than a condition so that an ability can be gated on it —
-# an ability is gated by its cost and its phase, and by nothing else.
-def plenty():
-    out = []
-    for k in KEYS:
-        out += [f"stat_set:plenty@supply.pile_{k}:sum:stock@supply.pile_{k}",
-                f"stat_damage:plenty@supply.pile_{k}:3"]
-    return out
-
-
 REPRICE = ["activate_zone:t1_row", "activate_zone:t2_row", "activate_zone:t3_row",
            "activate_zone:mine.reserve"]
 
@@ -231,7 +220,7 @@ def stats():
     # "stock" is badged on the six token plates, whose plate colour and label
     # already say which gem they hold — so the count needs no shape beside it,
     # and the diamond it fell back to is the silhouette of a gem it is not.
-    hidden = {"stock": {"icon": "none"}, "plenty": {}}
+    hidden = {"stock": {"icon": "none"}}
     for k, extra in sorted(hidden.items()):
         out.append({"key": k, **extra, "min": 0, "max": 99, "tags": ["hidden"]})
     for k in sorted(scratch):
@@ -376,7 +365,6 @@ def piles():
             "tooltip": f"{label} tokens. Take one — up to three different colours a turn — "
                        "or take two of this colour alone, which needs four still here.",
             "tags": [f"pile_{k}", f"plate_{k}", "counter"],
-            "card_stats": {"plenty": 0},
             "abilities": [
                 {"key": f"take_{k}", "text": f"Take one {label.lower()}",
                  "phases": ["act"], "cost": {"exhaust": 1, "stock@self": 1},
@@ -387,7 +375,8 @@ def piles():
                             "next_phase"]},
                 {"key": f"take2_{k}", "text": f"Take two {label.lower()}",
                  "phases": ["act"],
-                 "cost": {"exhaust": 1, "stock@self": 2, "plenty@self": 1,
+                 "needs": ["stock@self >= 4"],
+                 "cost": {"exhaust": 1, "stock@self": 2,
                           "first_take@mine.player": 1},
                  "action": [f"stat_gain:t_{k}@mine.player:2",
                             "stat_gain:t_total@mine.player:2",
@@ -405,7 +394,6 @@ def piles():
         "tooltip": "Gold is wild: it pays for any colour. It is never taken directly — "
                    "reserving a card is what earns one.",
         "tags": ["pile_gold", "plate_gold", "counter"],
-        "card_stats": {"plenty": 0},
         "abilities": [
             {"key": "back_gold", "text": "Put back a gold",
              "phases": ["discard"], "cost": {"t_gold@mine.player": 1},
@@ -527,7 +515,7 @@ def phases():
         # second a copy of the first with its first four lines and one word gone.
         {"key": "act", "type": "player_input", "seat": "next",
          "label": "Take tokens, buy a card, or reserve one",
-         "on_enter": turn_top, "actions": plenty() + REPRICE, "next": routes},
+         "on_enter": turn_top, "actions": REPRICE, "next": routes},
         {"key": "noble_check", "type": "automatic", "actions": ["activate_zone:nobles"],
          "next": [{"when": "count:noble_ready >= 1", "then": "noble_pick"},
                   {"then": "cleanup"}]},

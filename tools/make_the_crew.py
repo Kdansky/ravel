@@ -40,7 +40,7 @@ MAX_TASKS = 5
 # Every scratch number the trick arithmetic writes, and the bound that makes it
 # arithmetic: **a floor of zero is what turns stat_damage into max(0, a - b)**,
 # which is the only clamp the amount grammar has.
-SCRATCH = ["suit", "value", "trump", "contend", "best", "gap"]
+SCRATCH = ["suit", "value", "trump", "contend", "gap"]
 # suit and value are this card's own and every playing card says them; the rest
 # start at zero on all forty, so the stats section says that once.
 
@@ -62,7 +62,7 @@ SCRATCH = ["suit", "value", "trump", "contend", "best", "gap"]
 COMPUTES = [
     {"key": "trump_rank", "from": "value@self + 100",
      "tooltip": "What a rocket is worth in the running: above every colour card however low it is."},
-    {"key": "behind", "from": "best@self - contend@self",
+    {"key": "behind", "from": "max:contend@trick - contend@self",
      "tooltip": "How far short of the trick's best this card falls. Zero for exactly one card."},
 ]
 
@@ -95,9 +95,10 @@ def in_trick():
 # tag inside a hand — which there is no such thing as.
 
 # "Only" is the two others agreeing: if the highest card of a colour I hold is
-# also the lowest, I hold exactly one. An ability takes no `needs` — only a
-# card's play moment does — so this had to be a comparison between two subjects,
-# and it turned out to be the better sentence anyway.
+# also the lowest, I hold exactly one. A `needs` could not have said it: it is
+# asked before there is a target to be about, and every one of these is about
+# the card being pointed at — so it is a `where`, a comparison between two
+# subjects, and that turned out to be the better sentence anyway.
 POSITIONS = [
     ("high", "highest", "{c}@target >= max:{c}@mine.hand"),
     ("only", "only", "max:{c}@mine.hand <= min:{c}@mine.hand"),
@@ -379,12 +380,11 @@ def phases():
          "actions": [
              "stat_set:hit@each.task:0",
              # A pass per part of the resolution, named. The last one needs a
-             # number the first two produce: contend is a card's own business,
-             # best is the trick's.
+             # number the first two produce: every card has said what it
+             # contends with before any card asks what the best of them was.
              "stat_set:contend@each.trick:0",
              "activate_zone:trick:by_column:follows",
              "activate_zone:trick:by_column:trumps",
-             "stat_set:best@each.trick:max:contend@trick",
              "activate_zone:trick:by_column:measure",
              # Each card marks the task that wanted it. Its own pass because it
              # is the card's own ability rather than the zone's, and a named pass

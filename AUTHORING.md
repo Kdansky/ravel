@@ -3143,6 +3143,12 @@ The name then stands **as an amount** in that ability's actions and **as an
 operand** in its `needs`. Nowhere else: it is not a stat, nothing carries it, and
 a compute sharing a stat's key is refused — one word cannot be two numbers.
 
+**What may name one is anything that is a rule with an author behind it**: an
+ability (clicked, or walked by `activate_zone`), a card's `play`, a reaction, and
+a move rule. A **computed tag** may not, and neither may a **phase's** `actions`
+— both are asked without anyone acting, so there is no rule to have listed the
+names. A number those two need is a stat.
+
 `from` is `"<term>"`, or `"<term> <op> <term>"` with one of `+ - *` and spaces
 around it. A term is a number or a subject. **One operator and no parentheses**,
 so there is no precedence to remember. n-ary addition already has a spelling —
