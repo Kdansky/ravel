@@ -64,7 +64,7 @@ and a line here names a section that exists:
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
-- **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · `origin` — back where it came from · `fan` — a stack you can read
+- **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
 
 ---
@@ -2375,6 +2375,23 @@ A cell that is not there, one somebody is standing on, or a zone with no cells a
 all **refuses the whole move** — the card stays where it was, the way a full grid
 already refuses. Nothing lands somewhere it was not asked to land.
 
+#### Filling a row up
+
+A count is a maximum, not a promise. `draw_from` deals until the count runs out,
+or the source is empty, or the destination has no room — whichever comes first,
+and none of the three is an error. That is worth knowing because it is how *deal
+until it is full* is written:
+
+```
+draw_from:market_deck:row:99      the free cells, from the left, until there are none
+draw_from:market_deck:row:3       the three leftmost free cells
+```
+
+Free cells are taken **by index**, so a hole in the middle of a row is filled
+before the end of it. A row that should fill from one end and stay packed wants
+`compact:<scope>:<direction>` on whatever emptied it, and then the deal. There is no "until full" word: the number is the cheaper lie, and a count
+that overshoots reads the same as one that does not.
+
 That refusal is worth having on purpose. A cell holds one card, so a count in
 front of a cell deals **one** and stops, and a deal aimed at a cell that is still
 occupied does nothing at all — which is how a market row refills without asking
@@ -4212,7 +4229,7 @@ what a player reads.
 |---|---|
 | `fill:zone:card:n` | Create n instances of card in zone. The card slot takes a template key, or `@<scope>` to read the template off a card that is already lying somewhere — `fill:mine.discard:@self:1` is a shop selling what it is. Not a clone: what arrives is fresh off the template, with the stats the game declared |
 | `shuffle:zone` | Shuffle |
-| `draw_from:from:to:n` | Move n cards off the top |
+| `draw_from:from:to:n` | Move n cards off the top. **A count it cannot meet is not an error**: it deals what there is and stops, whether the source ran dry or the destination filled up. So a number larger than the row can hold is how *fill it up* is written — `draw_from:market_deck:row:99` deals into the free cells from the left and stops when there are none |
 | `move_to:zone` | Move the acting card (uses a slot target when given); without a zone, its home tag decides |
 | `move_to:target` | Move the acting card into the **chosen target's** zone — how one card offers two destinations ("advance the expedition, or discard it") |
 | `move_to:target:<what>` | …and say what becomes of a piece already standing there: `destroy`, or the zone it goes to (a captured-pieces tray). Left out, an occupied square refuses the move. This is capture; with it, aiming at a *piece* means taking its square rather than joining its zone |

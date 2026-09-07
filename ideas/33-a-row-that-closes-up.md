@@ -43,6 +43,20 @@ cell does nothing**: the buy compacts both sides and deals at `a1` and `g1`, and
 whichever end did not open refuses its own card. Six words for both halves, with
 nothing anywhere asking what was bought.
 
+## What it is not
+
+**A zone that closes itself up, declared once instead of asked for.** Rejected
+2026-09-07 on the row this track built: Arnak's packs in *two* directions at
+once, split by the staff, so a zone with one answer could not describe it — and
+compaction on removal breaks the staff's own step, sliding an item into the cell
+`place:self:one_right` is about to move it into. The direction and the moment
+are both the caller's to know, which is what makes it a verb.
+
+**An "until full" word on the deal.** Rejected the same day: a count is already
+a maximum, and `draw_from` stops when the source empties or the destination
+fills. `draw_from:deck:row:99` is a number that overshoots on purpose, and a
+word for it would be a second spelling of what the count already does.
+
 ## Why it is worth more than Arnak
 
 A row that closes up is not one game's rule. Any market with a river — Century,
