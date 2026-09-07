@@ -527,6 +527,39 @@ local function unhook(c)
 	c.stats   = {}
 end
 
+-- **A card standing on another goes where it goes, and leaves when it leaves.**
+-- Written here rather than in the ops because move_card and destroy_card are
+-- what every one of them funnels through — the same reason the supply rule is
+-- here and not in `add`. A draw, a take, a fill and a reclaim then all keep the
+-- link honest without knowing it exists, which is what the first attempt did
+-- not: `parent_id` had one write and no reader, so a host that moved left its
+-- riders behind still claiming it.
+local function detach(c)
+	local host = c.parent_id and entity.get(c.parent_id)
+	if host and host.attached then
+		for i, id in ipairs(host.attached) do
+			if id == c.id then table.remove(host.attached, i); break end
+		end
+	end
+	c.parent_id = nil
+end
+
+-- What was standing on it when it stopped being a card. Home rather than down
+-- with it: a site tile swept off the board must not take the figure standing on
+-- it, and a rider with nowhere to go stays put rather than being destroyed for
+-- the convenience of the sweep.
+local function release(c)
+	for _, id in ipairs(c.attached or {}) do
+		local r = entity.get(id)
+		if r then
+			r.parent_id = nil
+			local home = r.origin_zone_id and entity.get(r.origin_zone_id)
+			if home then M.move_card(id, home.id) end
+		end
+	end
+	c.attached = {}
+end
+
 -- A piece knows where it stands, as its own stats: "col" and "row" straight off
 -- the square, and "rank" counted from its owner's own side so that a pawn's
 -- home is rank 2 whichever colour it is. Conditions and computed tags then read
@@ -599,6 +632,8 @@ function M.move_card(card_id, to_id, where)
 		-- box; its own number for a stack lent to a question and sent somewhere
 		-- other than home, which has to arrive as deep as it left.
 		local worth = tonumber(c.stats and c.stats.stock) or 1
+		release(c)
+		detach(c)
 		unhook(c)
 		local e = M.add(to, key)
 		if e and worth > 1 then e.stats.stock = e.stats.stock + worth - 1 end
@@ -615,6 +650,13 @@ function M.move_card(card_id, to_id, where)
 	-- saying nothing.
 	local want_slot = landing_slot(to, where, card_id)
 	if want_slot == false then return false end
+
+	-- Going somewhere is getting off whatever it was standing on, and taking
+	-- with it whatever was standing on it. Read before the move, because the
+	-- carry re-links against a list these very moves empty.
+	detach(c)
+	local riders = {}
+	for _, id in ipairs(c.attached or {}) do riders[#riders + 1] = id end
 
 	-- The square it is standing on, read before the next lines let it go: on a
 	-- grid, "where it came from" is a cell and not a zone, and a fight that sent
@@ -657,6 +699,19 @@ function M.move_card(card_id, to_id, where)
 	if M.on_change then M.on_change("move", card_id) end
 	fire_leaves(lent or from, to, card_id)
 	fire_receive(to, card_id)
+	-- The riders follow, as moves of their own, so a hand they were lent from
+	-- and a departure trigger watching them both still fire. One that cannot
+	-- make the trip is left where it was rather than dragged: it is detached
+	-- already, which is the honest state for a card whose host walked off.
+	for _, id in ipairs(riders) do
+		if M.move_card(id, to_id) then
+			local r = entity.get(id)
+			if r then
+				r.parent_id = card_id
+				c.attached[#c.attached + 1] = id
+			end
+		end
+	end
 	return true
 end
 
@@ -721,7 +776,11 @@ end
 function M.auto_slot(card_id)
 	local c = entity.get(card_id)
 	local z = c and entity.get(c.zone_id)
-	if not z or z.layout ~= "grid" or c.slot_id then return end
+	-- A card standing on another has a place already, and it is not a square.
+	-- Without this a meeple attached to a tile took a free cell of the same
+	-- grid, so the board showed two pieces for one and the tile it was meant to
+	-- be on had nothing on it.
+	if not z or z.layout ~= "grid" or c.slot_id or c.parent_id then return end
 	for _, sid in ipairs(z.slots) do
 		local s = entity.get(sid)
 		if s and not s.occupant then
@@ -746,6 +805,32 @@ end
 --
 -- Nothing stocks it: it stops existing, which is what happens to every card that
 -- is not a component and is the whole of what this used to do.
+-- Standing on a card rather than beside it: the host's zone, and no square of
+-- its own. Attaching is a move, so a hand it is leaving, a departure trigger
+-- and an origin to be sent back to all still happen — which is what makes
+-- "every figure goes home" `move:<scope>:origin` and not a word of its own.
+function M.attach(child_id, host_id)
+	local child, host = entity.get(child_id), entity.get(host_id)
+	if not (child and host and host.zone_id) then return false end
+	-- Nothing may stand on something already standing on it. A cycle is not a
+	-- rule any game means, and it is a carry that never ends.
+	local up = host
+	while up do
+		if up.id == child_id then return false end
+		up = up.parent_id and entity.get(up.parent_id)
+	end
+	if not M.move_card(child_id, host.zone_id) then return false end
+	if child.slot_id then
+		local slot = entity.get(child.slot_id)
+		if slot and slot.occupant == child_id then slot.occupant = nil end
+		child.slot_id = nil
+	end
+	child.parent_id = host_id
+	host.attached = host.attached or {}
+	host.attached[#host.attached + 1] = child_id
+	return true
+end
+
 function M.destroy_card(card_id)
 	local c = entity.get(card_id)
 	if not c then return end
@@ -757,6 +842,8 @@ function M.destroy_card(card_id)
 		-- arithmetic a move into the box does.
 		home.stats.stock = (home.stats.stock or 0) + (tonumber(c.stats and c.stats.stock) or 1)
 	end
+	release(c)
+	detach(c)
 	unhook(c)
 	if M.on_change then M.on_change("destroy", card_id) end
 end

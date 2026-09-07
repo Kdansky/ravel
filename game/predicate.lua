@@ -336,6 +336,42 @@ function M.entities_in_scope(scope, ctx, owner)
 				out[#out + 1] = cards[key]
 			end
 		end
+	elseif scope == "attached_to" or (type(scope) == "string" and scope:sub(1, 12) == "attached_to.") then
+		-- What is standing on these, and the reason the link is worth keeping: a
+		-- shared space records that it is taken and never by whom, so a site asks
+		-- "count:meeple@attached_to.self" and gets the figures on it. Both halves
+		-- of "is this taken, and whose" in one question, where an exhaust answers
+		-- only the first and a per-seat tally standing in for the second is a
+		-- number where a pointer was meant.
+		--
+		-- A pool, so the owner word narrows it as it does anywhere else — and it
+		-- narrows the riders, not the hosts, because it is written on this side
+		-- of the prefix. "@mine.attached_to.self" is my figures on this site.
+		local inner = M.parse_scope(scope == "attached_to" and "self" or scope:sub(13))
+		if not inner then return out end
+		for _, e in ipairs(M.entities_in_scope(inner.name, ctx, inner.owner)) do
+			for _, id in ipairs(e.attached or {}) do
+				local child = entity.get(id)
+				if child then out[#out + 1] = child end
+			end
+		end
+	elseif scope == "host_of" or (type(scope) == "string" and scope:sub(1, 8) == "host_of.") then
+		-- The card underneath, read from the rider. "guard@host_of.self" is a
+		-- figure asking about the tile it stands on, which is what its second
+		-- activation is about — and the one thing @self cannot reach, since the
+		-- figure and the tile are two cards.
+		--
+		-- Deduplicated, because several riders on one host are one host.
+		local inner = M.parse_scope(scope == "host_of" and "self" or scope:sub(9))
+		if not inner then return out end
+		local seen = {}
+		for _, e in ipairs(M.entities_in_scope(inner.name, ctx, inner.owner)) do
+			local host = e.parent_id and entity.get(e.parent_id)
+			if host and not seen[host.id] then
+				seen[host.id] = true
+				out[#out + 1] = host
+			end
+		end
 	elseif (declaration.G.pattern_defs or {})[scope] then
 		-- A pattern names a shape, and a shape answers "what is standing there"
 		-- as readily as "where may I go" — so the same word serves a move and a

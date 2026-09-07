@@ -90,7 +90,13 @@ M.ENGINE_TAGS_ALSO_ON_STATS = { hidden = "kept out of the HUD, while cards may s
 -- are the five the engine claims. "player" is deliberately NOT reserved — it is
 -- an ordinary tag that content puts on one card, which is what makes finding
 -- that card trivial.
-local RESERVED_SCOPES = { "self", "all", "reach", "owner_of", "everywhere", "opponent" }
+local RESERVED_SCOPES = { "self", "all", "reach", "owner_of", "everywhere", "opponent", "attached_to", "host_of" }
+
+-- The scopes written as a prefix over another scope, rather than as a name of
+-- their own. Each says a relation — who owns these, what stands on them, what
+-- they stand on — so what follows the dot is an ordinary scope and is what has
+-- to exist.
+local RELATION_SCOPES = { "owner_of", "attached_to", "host_of" }
 
 -- The shapes a stat may ask to be drawn with. Named by shape rather than by
 -- meaning, so a game's own word for its currency is its own business — and a
@@ -639,14 +645,19 @@ function M.check(G)
 	-- readily as "where may I go", so it is a scope too.
 	for k in pairs(G.pattern_defs or {}) do scope_names[k] = true end
 
-	-- The name a scope expression really has to resolve. "owner_of.<scope>" is a
-	-- prefix — it names the seats owning what the rest of it names — so the rest
-	-- is what has to exist, and a typo in it is a typo in an ordinary scope.
+	-- The name a scope expression really has to resolve. A relation is a prefix
+	-- over an ordinary scope, so the rest is what has to exist and a typo in it is
+	-- a typo in an ordinary scope.
 	local function scope_named(name)
-		local inner = type(name) == "string" and name:match("^owner_of%.(.+)$")
-		if not inner then return name end
-		local sc = predicate.parse_scope(inner)
-		return sc and scope_named(sc.name) or inner
+		if type(name) ~= "string" then return name end
+		for _, rel in ipairs(RELATION_SCOPES) do
+			local inner = name:match("^" .. rel .. "%.(.+)$")
+			if inner then
+				local sc = predicate.parse_scope(inner)
+				return sc and scope_named(sc.name) or inner
+			end
+		end
+		return name
 	end
 
 	-- "@opponent" is the other seat, so a game with any other number of them has

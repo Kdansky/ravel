@@ -60,7 +60,7 @@ and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
-- **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
@@ -1701,7 +1701,7 @@ run their `then` actions — usually `push_phase:` to an ending overlay.
 **Scopes: which cards a subject is about.** The part after `@` is a *scope
 expression*: `[<quant>.][<owner>.]<zone-or-tag>`, where the name is a zone key,
 a tag, a movement pattern, or one of `self` / `target` / `event` / `all` /
-`reach` / `owner_of.<scope>`.
+`reach` / `owner_of.<scope>` / `attached_to.<scope>` / `host_of.<scope>`.
 Without any scope, a subject means **your own cards** — see *The player is a
 card* below.
 
@@ -1718,6 +1718,8 @@ min:rank@tableau     the smallest — over the cards that carry the stat
 count:farm@board     count, narrowed to a zone
 count:king@enemy.reach  a king standing where an opponent could move — check
 score@owner_of.target   the score of whoever owns the card the player chose
+count:meeple@attached_to.self  the figures standing on this card
+guard@host_of.self      the card this one is standing on
 ```
 
 ### `needs` and `where` — asked once, or asked of each
@@ -2070,6 +2072,55 @@ refused rather than resolved (picking the first would make turn order depend on
 the order cards sit in the file); one naming **none** does nothing, because the
 trick is not won until somebody has won it. Handing over ends the undo history,
 exactly as the end of a turn does.
+
+### `@attached_to` and `@host_of` — a card standing on another
+
+A card can stand **on** another rather than beside it — a figure on a space, a
+tile on a site, an aura on a creature. `attach_to_target` puts it there, and
+these two scopes are how the file asks about it afterwards, one in each
+direction:
+
+```
+count:meeple@attached_to.self       the figures standing on this card
+sum:side@attached_to.self           whose they are, added up
+count:meeple@mine.attached_to.self  ...only mine
+guard@host_of.self                  the card this one is standing on
+```
+
+**Why it is worth a figure rather than a number.** A shared space can record
+that it is taken — that is what a cost of `{ "exhaust": 1 }` does — but never by
+whom, and a per-seat counter standing in for the second half is a number where a
+pointer was meant: it says *you took some space* and not *you took this one*. A
+card standing on the space says both, because it is a card and cards have
+owners.
+
+An attached card **keeps no square of its own**; it is in its host's zone and
+drawn on it. It also goes where its host goes, and gets off when it goes
+anywhere itself:
+
+| | |
+|---|---|
+| the rider moves | it detaches |
+| the host moves | the riders follow, still attached |
+| the host is destroyed, or goes into a supply | the riders detach and go to `origin` — nothing is carried off with it |
+
+So sending every figure home at the end of a round needs no word of its own,
+because `move` already takes a scope and already understands `origin`:
+
+```json
+{ "key": "cleanup", "type": "automatic",
+  "actions": ["move:each.meeple:origin"],
+  "next": [{ "then": "round_start", "ends_round": true }] }
+```
+
+`origin` is *the zone a card was in immediately before its last move*, and it
+restores the square too — so each figure lands back in its own place in its
+owner's row rather than in a heap.
+
+**An owner word means whichever side of the prefix it stands on**, as with
+`owner_of`: inside it picks the hosts, before it it filters the riders that come
+back. `@mine.attached_to.self` is my figures on this card, however many other
+people also have one there.
 
 ### The player is a card
 

@@ -509,7 +509,7 @@ local function fan_visible(pl, next_pl, dir)
 	end
 end
 
-local function card_places(zone_e)
+local function laid_out(zone_e)
 	local p  = zone_e.place
 	local n  = #zone_e.cards
 	local zt = zone_e.layout
@@ -604,6 +604,31 @@ local function card_places(zone_e)
 		local wide = math.min(cols, n - row * cols)
 		local left = p.x + (p.w - (wide * card_w + (wide - 1) * gap)) / 2
 		places[i] = { x = left + col * (card_w + gap), y = top + row * (card_h + gap), w = card_w, h = card_h }
+	end
+	return places
+end
+
+-- A card standing on another has no place of its own in the layout: it draws on
+-- its host, small and along the bottom edge, so the face underneath still reads
+-- and two figures on one space do not become one. Written over whatever the
+-- layout worked out, so a rider on a grid, a fan and a row all land the same way
+-- and no layout has to know that attachment exists.
+local function card_places(zone_e)
+	local places = laid_out(zone_e)
+	local at = {}
+	for i, id in ipairs(zone_e.cards) do at[id] = i end
+	for i, id in ipairs(zone_e.cards) do
+		local c    = entity.get(id)
+		local host = c and c.parent_id and at[c.parent_id] and places[at[c.parent_id]]
+		if host then
+			local kin, nth = entity.get(c.parent_id).attached or {}, 1
+			for k, rid in ipairs(kin) do if rid == id then nth = k end end
+			local n = math.max(#kin, 1)
+			local w = math.min(host.w * 0.42, host.w / n)
+			local h = math.min(w * CARD_RATIO, host.h * 0.55)
+			places[i] = { x = host.x + (host.w - n * w) / 2 + (nth - 1) * w,
+				y = host.y + host.h - h - 2 * S, w = w, h = h }
+		end
 	end
 	return places
 end
@@ -1004,18 +1029,6 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		love.graphics.setColor(unpack(C.card_border))
 		love.graphics.setLineWidth(S)
 		love.graphics.rectangle("line", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
-	end
-
-	if card_e.attached and #card_e.attached > 0 then
-		local sf = get_small_font()
-		local bs = sf:getHeight() + 2 * S
-		local bx = pl.x + pl.w - bs - 2 * S
-		local by = pl.y + 3 * S
-		love.graphics.setFont(sf)
-		love.graphics.setColor(0.80, 0.60, 1.00)
-		love.graphics.rectangle("fill", bx, by, bs, bs, 2 * S, 2 * S)
-		love.graphics.setColor(0.05, 0.05, 0.10)
-		printf(tostring(#card_e.attached), bx, by + S, bs, "center")
 	end
 
 	love.graphics.pop()

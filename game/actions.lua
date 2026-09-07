@@ -1141,13 +1141,7 @@ end
 -- attach_to_target  — attach ctx.card_id as a child of ctx.targets[1].
 HANDLERS["attach_to_target"] = function(p, ctx)
 	if not ctx or not ctx.card_id or not ctx.targets or #ctx.targets == 0 then return end
-	local child  = entity.get(ctx.card_id)
-	local parent = entity.get(ctx.targets[1])
-	if not child or not parent then return end
-
-	zones.move_card(child.id, parent.zone_id)
-	child.parent_id = parent.id
-	parent.attached[#parent.attached + 1] = child.id
+	zones.attach(ctx.card_id, ctx.targets[1])
 end
 
 -- Argument shape of every op: one word per colon-separated argument after
