@@ -1500,4 +1500,36 @@ function M.test_spellstorm_picking_a_wizard_names_the_chair(check)
 		label.seat_text("seat_two") == "Eve Williams", label.seat_text("seat_two"))
 end
 
+-- The rules button opened a sparkle and nothing else: the rules themselves were
+-- in its tooltip, which is a thing you hover, on a card that plainly wants
+-- clicking. Now the click is what opens them.
+function M.test_spellstorm_the_rules_button_opens_the_rules(check)
+	opening(7, "derby", "eve")
+	local btn = find("btn_rules", "menu")
+	check("the button is in the engine's column", btn ~= nil)
+	local usable = flow.usable_abilities(btn.id)
+	check("and it has one thing to do", #usable == 1, #usable)
+	flow.activate(btn.id, {}, usable[1].index)
+	check("which is a page", phase.current() and phase.current().key == "reveal",
+		phase.current() and phase.current().key)
+	local page = zones.find("reveal")
+	check("holding the rules", page and #page.cards == 1
+		and entity.get(page.cards[1]).def_key == "rules_page")
+end
+
+-- The chair and the wizard are one box. The seat card used to sit wherever the
+-- middle of the board had room, which was nowhere near the thing it is read
+-- beside.
+function M.test_spellstorm_a_seat_sits_beside_its_own_wizard(check)
+	opening(7, "derby", "eve")
+	for _, seat in ipairs({ "seat_one", "seat_two" }) do
+		local z = zone_of("wizard", seat)
+		check(seat .. " has a wizard box", z ~= nil)
+		local keys = {}
+		for _, id in ipairs(z and z.cards or {}) do keys[entity.get(id).def_key] = true end
+		check("the chair is in it", keys[seat], seat)
+		check("and nobody else's is", not keys[seat == "seat_one" and "seat_two" or "seat_one"])
+	end
+end
+
 return M

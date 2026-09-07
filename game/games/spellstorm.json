@@ -175,7 +175,8 @@
     "storm": { "color": [0.18, 0.36, 0.32], "hide": ["title"] },
     "wizard_card": { "color": [0.24, 0.16, 0.34], "hide": ["title"] },
     "chooser": { "color": [0.24, 0.16, 0.34], "hide": ["title"] },
-    "potion": { "color": [0.32, 0.42, 0.18], "hide": ["title"] }
+    "potion": { "color": [0.32, 0.42, 0.18], "hide": ["title"] },
+    "chair": { "color": [0.13, 0.15, 0.22] }
   },
   "tags": {
     "takeable": {
@@ -199,21 +200,13 @@
   },
   "zones": [
     {
-      "key": "seat_box",
-      "layout": "grid",
-      "grid": [1, 1],
-      "copies": "per_seat",
-      "use": "abilities",
-      "pos": [[0.6, 0.575, 0.73, 0.785], [0.6, 0.215, 0.73, 0.425]]
-    },
-    {
       "key": "wizard",
-      "label": "Wizard",
+      "label": "{owner}",
       "layout": "grid",
-      "grid": [1, 1],
+      "grid": [2, 1],
       "copies": "per_seat",
       "use": "abilities",
-      "pos": [[0.005, 0.795, 0.135, 0.995], [0.005, 0.005, 0.135, 0.205]]
+      "pos": [[0.005, 0.795, 0.195, 0.995], [0.005, 0.005, 0.195, 0.205]]
     },
     {
       "key": "hand",
@@ -222,14 +215,14 @@
       "visibility": "owner",
       "copies": "per_seat",
       "applies": ["in_hand"],
-      "pos": [[0.275, 0.795, 0.55, 0.995], [0.275, 0.005, 0.55, 0.205]]
+      "pos": [[0.335, 0.795, 0.73, 0.995], [0.335, 0.005, 0.73, 0.205]]
     },
     {
       "key": "sidecar",
       "layout": "row",
       "copies": "per_seat",
       "use": "abilities",
-      "pos": [[0.56, 0.795, 0.73, 0.995], [0.56, 0.005, 0.73, 0.205]]
+      "pos": [[0.335, 0.575, 0.445, 0.785], [0.335, 0.215, 0.445, 0.425]]
     },
     {
       "key": "deck",
@@ -256,7 +249,7 @@
       "layout": "grid",
       "grid": [1, 1],
       "copies": "per_seat",
-      "pos": [[0.435, 0.575, 0.565, 0.785], [0.435, 0.215, 0.565, 0.425]]
+      "pos": [[0.465, 0.575, 0.595, 0.785], [0.465, 0.215, 0.595, 0.425]]
     },
     {
       "key": "commit",
@@ -276,18 +269,18 @@
       "grid": [1, 5],
       "applies": ["takeable"],
       "tooltip": "Five cards to gain from. You may only take one at or below your *Tier*. After any card leaves, another is drawn to replace it.",
-      "pos": [0.145, 0.005, 0.265, 0.995],
+      "pos": [0.205, 0.005, 0.325, 0.995],
       "contents": ["fireessence", "wateressence", "earthessence"]
     },
     {
       "key": "spellstorm_deck",
-      "label": "Deck",
+      "label": "Spellstorm",
       "layout": "stack",
       "visibility": "secret",
       "tags": ["shuffle"],
       "refill_from": "void",
       "tooltip": "The *Spellstorm Deck*. When it runs out, the *VOID* is shuffled to become the new one.",
-      "pos": [0.29, 0.215, 0.39, 0.44],
+      "pos": [0.62, 0.215, 0.74, 0.4],
       "contents": [
         "fireball",
         "fireball2",
@@ -333,21 +326,22 @@
       "layout": "stack",
       "use": "none",
       "tooltip": "Cards removed from the game. When the *Spellstorm Deck* runs out, this becomes the new one.",
-      "pos": [0.29, 0.46, 0.39, 0.685]
+      "pos": [0.62, 0.41, 0.74, 0.595]
     },
     {
       "key": "announce",
       "label": "{phase}",
       "layout": "row",
       "use": "none",
-      "pos": [0.385, 0.44, 0.615, 0.56]
+      "tags": ["bare"],
+      "pos": [0.45, 0.435, 0.61, 0.565]
     },
     {
       "key": "weather_now",
       "label": "Weather",
       "layout": "stack",
       "tooltip": "This round's weather. Only the current card is active.",
-      "pos": [0.005, 0.215, 0.135, 0.47]
+      "pos": [0.005, 0.215, 0.195, 0.47]
     },
     {
       "key": "weather_calm",
@@ -357,7 +351,7 @@
       "tags": ["shuffle"],
       "refill_from": "weather_main",
       "tooltip": "The eight Calm Before the Storm cards sit on top of the *Weather Deck*, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
-      "pos": [0.005, 0.49, 0.068, 0.63],
+      "pos": [0.005, 0.49, 0.098, 0.63],
       "contents": [
         "nice_breeze",
         "crystalflurries:2",
@@ -374,7 +368,7 @@
       "layout": "stack",
       "visibility": "secret",
       "tags": ["shuffle"],
-      "pos": [0.072, 0.49, 0.135, 0.63],
+      "pos": [0.102, 0.49, 0.195, 0.63],
       "contents": [
         "burningblizzard",
         "energywave:2",
@@ -394,7 +388,7 @@
       "key": "weather_discard",
       "layout": "stack",
       "use": "none",
-      "pos": [0.005, 0.65, 0.135, 0.785]
+      "pos": [0.005, 0.65, 0.195, 0.785]
     },
     {
       "key": "ice_pile",
@@ -434,7 +428,7 @@
       "use": "none",
       "tooltip": "*Tier IV*. Gained by filling your *Power Track* while already at *Tier III*.",
       "contents": ["firedragon", "winddragon", "icedragon", "stormdragon", "earthdragon"],
-      "pos": [0.75, 0.44, 0.85, 0.625]
+      "pos": [0.62, 0.605, 0.74, 0.785]
     },
     {
       "key": "options",
@@ -3661,8 +3655,7 @@
       "key": "seat_one",
       "text": "{name}",
       "name": "Player One",
-      "asset": "auto",
-      "tags": ["seat"],
+      "tags": ["seat", "chair"],
       "tooltip": "Your wizard, your health, your *Storm Shards*.",
       "card_stats": { "health": { "value": 1, "min": 0, "max": 1 } }
     },
@@ -3670,8 +3663,7 @@
       "key": "seat_two",
       "text": "{name}",
       "name": "Player Two",
-      "asset": "auto",
-      "tags": ["seat"],
+      "tags": ["seat", "chair"],
       "tooltip": "Your wizard, your health, your *Storm Shards*.",
       "card_stats": { "health": { "value": 1, "min": 0, "max": 1 } }
     },
@@ -3732,8 +3724,15 @@
       "text": "The rules",
       "asset": "diamond:slate",
       "tags": ["immutable"],
-      "tooltip": "SPELLSTORM. Win by reaching *8 Storm Shards*, or by taking your opponent to *0 health*.\n\nA battle is four rounds. Each round: the weather is flipped and resolved, both players play a card face down, the cards are revealed, and they resolve in *Initiative* order. Countering the opponent -- *Fire* beats *Earth*, *Earth* beats *Water*, *Water* beats *Fire* -- draws you a card.\n\nAfter four rounds comes the *Regroup*: discard effects fire, the cards you still hold are your *Blast Score*, the higher score takes *2 Storm Shards* (1 each on a tie), and each player gains one card from the *Storm Cloud* at or below their *Tier*.\n\nSix *Power Tokens* fill your track; filling it raises your *Tier*. At *Tier III* a filled track gains you a Dragon instead.",
-      "abilities": [{ "action": ["effect:spark"] }]
+      "tooltip": "How Spellstorm is won and how a battle runs. Click to read it.",
+      "abilities": [{ "action": ["reveal:rules_page"] }]
+    },
+    {
+      "key": "rules_page",
+      "text": "Spellstorm",
+      "asset": "diamond:slate",
+      "tags": ["immutable"],
+      "story": "SPELLSTORM. Win by reaching *8 Storm Shards*, or by taking your opponent to *0 health*.\n\nA battle is four rounds. Each round: the weather is flipped and resolved, both players play a card face down, the cards are revealed, and they resolve in *Initiative* order. Countering the opponent -- *Fire* beats *Earth*, *Earth* beats *Water*, *Water* beats *Fire* -- draws you a card.\n\nAfter four rounds comes the *Regroup*: discard effects fire, the cards you still hold are your *Blast Score*, the higher score takes *2 Storm Shards* (1 each on a tie), and each player gains one card from the *Storm Cloud* at or below their *Tier*.\n\nSix *Power Tokens* fill your track; filling it raises your *Tier*. At *Tier III* a filled track gains you a Dragon instead."
     },
     {
       "key": "end_shards",
@@ -3759,8 +3758,8 @@
   ],
   "setup": {
     "place": [
-      { "card": "seat_one", "owner": "seat_one", "zone": "seat_box" },
-      { "card": "seat_two", "owner": "seat_two", "zone": "seat_box" },
+      { "card": "seat_one", "owner": "seat_one", "zone": "wizard" },
+      { "card": "seat_two", "owner": "seat_two", "zone": "wizard" },
       { "card": "plan", "zone": "table" },
       { "card": "btn_rules", "zone": "menu" },
       { "card": "btn_unplayable", "zone": "menu" },

@@ -1339,18 +1339,18 @@ def zones():
         # discard on the right -- and not turned through half a circle. A rotated
         # board puts your deck where your opponent's wizard is, which is only
         # right if you are actually sitting opposite each other.
-        # A grid so it counts as in play: "who holds the Initiative Tracker" is
-        # asked of the seat cards as a computed tag, and a tag scope only reaches
-        # a board. A copy each, beside that seat's own battle slot: the two used
-        # to share one pair of cells wedged between the void and the weather
-        # track, where they were too small to read and said nothing about whose
-        # was whose. A per_seat zone knows, and wears the seat's colour for it.
-        {"key": "seat_box", "layout": "grid", "grid": [1, 1], "copies": "per_seat",
-         "use": "abilities",
-         "pos": [P(0.600, 0.575, 0.730, 0.785), P(0.600, 0.215, 0.730, 0.425)]},
-        {"key": "wizard", "label": "Wizard", "layout": "grid", "grid": [1, 1],
+        # The chair and whoever is sitting in it, side by side in one box. They
+        # were two zones and the seat half was a cell wedged into whatever gap
+        # the middle of the board had left, which is how a thing that is only
+        # ever read next to the wizard ended up nowhere near it. A grid so it
+        # counts as in play: "who holds the Initiative Tracker" is asked of the
+        # seat cards as a computed tag, and a tag scope only reaches a board.
+        # Labelled with the seat rather than "Wizard": before the pick the box is
+        # the only thing that says which chair this is, and after it the wizard's
+        # own name is what the chair took.
+        {"key": "wizard", "label": "{owner}", "layout": "grid", "grid": [2, 1],
          "copies": "per_seat", "use": "abilities",
-         "pos": [P(0.005, 0.795, 0.135, 0.995), P(0.005, 0.005, 0.135, 0.205)]},
+         "pos": [P(0.005, 0.795, 0.195, 0.995), P(0.005, 0.005, 0.195, 0.205)]},
         # Named so the box stays on screen when the hand is empty -- which it is
         # across `regroup` and both gain steps, and whenever somebody plays their
         # last card. An unlabelled empty zone draws nothing at all (render.lua).
@@ -1363,14 +1363,14 @@ def zones():
         # "{owner}" is the seat this copy belongs to, read off the board.
         {"key": "hand", "label": "{owner}", "layout": "row", "visibility": "owner",
          "copies": "per_seat", "applies": ["in_hand"],
-         "pos": [P(0.275, 0.795, 0.550, 0.995), P(0.275, 0.005, 0.550, 0.205)]},
+         "pos": [P(0.335, 0.795, 0.730, 0.995), P(0.335, 0.005, 0.730, 0.205)]},
         # Whatever a wizard brings that nobody else has. Empty for seven of the
         # eight, and an empty row with no label draws nothing at all, so a board
         # that has to hold Oren's two potion buttons does not show a hole for
         # them to everybody else. Populated on the pick rather than at setup,
         # which is the only moment that knows which wizard this is.
         {"key": "sidecar", "layout": "row", "copies": "per_seat", "use": "abilities",
-         "pos": [P(0.560, 0.795, 0.730, 0.995), P(0.560, 0.005, 0.730, 0.205)]},
+         "pos": [P(0.335, 0.575, 0.445, 0.785), P(0.335, 0.215, 0.445, 0.425)]},
         {"key": "deck", "label": "Deck", "layout": "stack", "visibility": "secret",
          "copies": "per_seat", "tags": ["shuffle"], "refill_from": "discard",
          "tooltip": "Your draw deck. When you need a card and it is empty, your discard is shuffled into it.",
@@ -1387,7 +1387,7 @@ def zones():
         # `battle` and the reveal is the card turning over where it lay.
         {"key": "battle", "label": "Battle", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat",
-         "pos": [P(0.435, 0.575, 0.565, 0.785), P(0.435, 0.215, 0.565, 0.425)]},
+         "pos": [P(0.465, 0.575, 0.595, 0.785), P(0.465, 0.215, 0.595, 0.425)]},
         {"key": "commit", "label": "Face down", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat", "visibility": "owner", "pos": "battle",
          "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played."},
@@ -1401,34 +1401,34 @@ def zones():
         {"key": "storm_cloud", "use": "abilities", "label": "Storm Cloud", "layout": "grid",
          "grid": [1, 5], "applies": ["takeable"],
          "tooltip": "Five cards to gain from. You may only take one at or below your Tier. After any card leaves, another is drawn to replace it.",
-         "pos": P(0.145, 0.005, 0.265, 0.995),
+         "pos": P(0.205, 0.005, 0.325, 0.995),
          "contents": ["fireessence", "wateressence", "earthessence"]},
-        {"key": "spellstorm_deck", "label": "Deck", "layout": "stack",
+        {"key": "spellstorm_deck", "label": "Spellstorm", "layout": "stack",
          "visibility": "secret", "tags": ["shuffle"], "refill_from": "void",
          "tooltip": "The Spellstorm Deck. When it runs out, the VOID is shuffled to become the new one.",
-         "pos": P(0.290, 0.215, 0.390, 0.44),
+         "pos": P(0.620, 0.215, 0.740, 0.400),
          "contents": [c["key"] for c in SPELLS]},
         {"key": "void", "label": "VOID", "layout": "stack", "use": "none",
          "tooltip": "Cards removed from the game. When the Spellstorm Deck runs out, this becomes the new one.",
-         "pos": P(0.290, 0.460, 0.390, 0.685)},
+         "pos": P(0.620, 0.410, 0.740, 0.595)},
 
         {"key": "announce", "label": "{phase}", "layout": "row", "use": "none",
-         "pos": P(0.385, 0.440, 0.615, 0.560)},
+         "tags": ["bare"], "pos": P(0.450, 0.435, 0.610, 0.565)},
 
         {"key": "weather_now", "label": "Weather", "layout": "stack",
          "tooltip": "This round's weather. Only the current card is active.",
-         "pos": P(0.005, 0.215, 0.135, 0.470)},
+         "pos": P(0.005, 0.215, 0.195, 0.470)},
         {"key": "weather_calm", "label": "Calm", "layout": "stack",
          "visibility": "secret", "tags": ["shuffle"], "refill_from": "weather_main",
          "tooltip": "The eight Calm Before the Storm cards sit on top of the Weather Deck, so the first battles are gentle. When they run out the sixteen standard cards are shuffled in.",
-         "pos": P(0.005, 0.490, 0.068, 0.630),
+         "pos": P(0.005, 0.490, 0.098, 0.630),
          "contents": deck_of(True)},
         {"key": "weather_main", "label": "Storm", "layout": "stack",
          "visibility": "secret", "tags": ["shuffle"],
-         "pos": P(0.072, 0.490, 0.135, 0.630),
+         "pos": P(0.102, 0.490, 0.195, 0.630),
          "contents": deck_of(False)},
         {"key": "weather_discard", "layout": "stack", "use": "none",
-         "pos": P(0.005, 0.650, 0.135, 0.785)},
+         "pos": P(0.005, 0.650, 0.195, 0.785)},
 
         {"key": "ice_pile", "use": "abilities", "label": "Ice", "layout": "stack",
          "applies": ["takeable"], "contents": ["ice:6"],
@@ -1446,7 +1446,7 @@ def zones():
          "tags": ["shuffle"], "use": "none",
          "tooltip": "Tier IV. Gained by filling your Power Track while already at Tier III.",
          "contents": [c["key"] for c in DRAGONS],
-         "pos": P(0.750, 0.440, 0.850, 0.625)},
+         "pos": P(0.620, 0.605, 0.740, 0.785)},
 
         # The offer, claimed so a roster of eight wizards has the middle of the
         # screen for one click and no strip of board for the rest of the game.
@@ -1678,8 +1678,8 @@ def build():
     # The two seats. Health carries its own ceiling because a wizard raises it
     # when it is chosen, and stat_boost can only move a ceiling that exists.
     for key, label in (("seat_one", "Player One"), ("seat_two", "Player Two")):
-        cards.append({"key": key, "text": "{name}", "name": label, "asset": "auto",
-                      "tags": ["seat"],
+        cards.append({"key": key, "text": "{name}", "name": label,
+                      "tags": ["seat", "chair"],
                       "tooltip": "Your wizard, your health, your Storm Shards.",
                       "card_stats": {"health": {"value": 1, "min": 0, "max": 1}}})
 
@@ -1707,23 +1707,31 @@ def build():
         "asset": "auto", "tags": ["immutable"],
         "tooltip": "End your Ultimate while you are ahead. Your Elements go back to 3.",
         "abilities": [{"phases": ["potion"], "action": list(POTION_END)}]})
+    # The button opens the page; the page is where the rules are. Hovering it
+    # for the same words worked and read as nothing happening -- a sparkle and
+    # no answer -- because the only place the text lived was a tooltip nobody
+    # thought to hover on a thing that plainly wanted clicking.
     cards.append({
         "key": "btn_rules", "text": "The rules",
         "asset": "diamond:slate", "tags": ["immutable"],
-        "tooltip": ("SPELLSTORM. Win by reaching 8 Storm Shards, or by taking your "
-                    "opponent to 0 health.\n\n"
-                    "A battle is four rounds. Each round: the weather is flipped and "
-                    "resolved, both players play a card face down, the cards are "
-                    "revealed, and they resolve in Initiative order. Countering the "
-                    "opponent -- Fire beats Earth, Earth beats Water, Water beats Fire "
-                    "-- draws you a card.\n\n"
-                    "After four rounds comes the Regroup: discard effects fire, the "
-                    "cards you still hold are your Blast Score, the higher score takes "
-                    "2 Storm Shards (1 each on a tie), and each player gains one card "
-                    "from the Storm Cloud at or below their Tier.\n\n"
-                    "Six Power Tokens fill your track; filling it raises your Tier. At "
-                    "Tier III a filled track gains you a Dragon instead."),
-        "abilities": [{"action": ["effect:spark"]}]})
+        "tooltip": "How Spellstorm is won and how a battle runs. Click to read it.",
+        "abilities": [{"action": ["reveal:rules_page"]}]})
+    cards.append({
+        "key": "rules_page", "text": "Spellstorm", "asset": "diamond:slate",
+        "tags": ["immutable"],
+        "story": ("SPELLSTORM. Win by reaching 8 Storm Shards, or by taking your "
+                 "opponent to 0 health.\n\n"
+                 "A battle is four rounds. Each round: the weather is flipped and "
+                 "resolved, both players play a card face down, the cards are "
+                 "revealed, and they resolve in Initiative order. Countering the "
+                 "opponent -- Fire beats Earth, Earth beats Water, Water beats Fire "
+                 "-- draws you a card.\n\n"
+                 "After four rounds comes the Regroup: discard effects fire, the "
+                 "cards you still hold are your Blast Score, the higher score takes "
+                 "2 Storm Shards (1 each on a tie), and each player gains one card "
+                 "from the Storm Cloud at or below their Tier.\n\n"
+                 "Six Power Tokens fill your track; filling it raises your Tier. At "
+                 "Tier III a filled track gains you a Dragon instead.")})
 
     # Endings.
     cards.append({"key": "end_shards", "outcome": "victory",
@@ -1822,6 +1830,7 @@ def build():
             "wizard_card": {"color": [0.24, 0.16, 0.34], "hide": ["title"]},
             "chooser": {"color": [0.24, 0.16, 0.34], "hide": ["title"]},
             "potion": {"color": [0.32, 0.42, 0.18], "hide": ["title"]},
+            "chair": {"color": [0.13, 0.15, 0.22]},
         },
         "tags": {
             # What a card on a shelf does: it comes to your hand, if your Tier
@@ -1847,8 +1856,8 @@ def build():
             {"when": "min:health@anyone.player <= 0", "then": ["reveal:end_dead"]},
         ],
         "setup": {"place": [
-            {"card": "seat_one", "owner": "seat_one", "zone": "seat_box"},
-            {"card": "seat_two", "owner": "seat_two", "zone": "seat_box"},
+            {"card": "seat_one", "owner": "seat_one", "zone": "wizard"},
+            {"card": "seat_two", "owner": "seat_two", "zone": "wizard"},
             {"card": "plan", "zone": "table"},
             {"card": "btn_rules", "zone": "menu"},
             {"card": "btn_unplayable", "zone": "menu"},
