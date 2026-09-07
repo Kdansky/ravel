@@ -527,6 +527,55 @@ local function unhook(c)
 	c.stats   = {}
 end
 
+-- A piece knows where it stands, as its own stats: "col" and "row" straight off
+-- the square, and "rank" counted from its owner's own side so that a pawn's
+-- home is rank 2 whichever colour it is. Conditions and computed tags then read
+-- a piece's position with the vocabulary they already have — "promoting" is
+-- the computed tag { "stat": "rank", "at_least": 8 } and needs nothing new at all.
+--
+-- Only stamped on cards that already carry the stat, following the same rule as
+-- every other stat change: a board game declares them in card_stats, and a card
+-- game that never asks where anything is stays untouched.
+local function stamp_position(card_id)
+	local c    = entity.get(card_id)
+	local slot = c and c.slot_id and entity.get(c.slot_id)
+	local z    = slot and entity.get(slot.zone_id)
+	if not (z and z.grid and c.stats) then return end
+	local facing = geometry.facing(tags.owner_of(c), declaration.G.seat_list or {})
+	if c.stats.col  then c.stats.col  = slot.stats.col end
+	if c.stats.row  then c.stats.row  = slot.stats.row end
+	if c.stats.rank then c.stats.rank = geometry.rank(z, slot.stats.row, facing) end
+end
+
+-- A cell of the destination, named where an end of a pile would be. Nil when
+-- nothing is named, and false when what is named cannot take the card: a zone
+-- with no cells, a cell that is not there, or one somebody is standing on. Read
+-- before anything moves, so a refusal leaves the card exactly where it was.
+local function landing_slot(to, where, card_id)
+	if not where or where == "top" or where == "bottom" then return nil end
+	if to.layout ~= "grid" then return false end
+	local sid = geometry.slot_named(to, where)
+	local s   = sid and entity.get(sid)
+	if not s or (s.occupant and s.occupant ~= card_id) then return false end
+	return sid
+end
+
+-- A card and its square, bound in the one place. A slot pointing at a card that
+-- does not point back is the fault this exists to make impossible, and the
+-- position stats go stale the moment either half is written on its own.
+local function bind_slot(card_id, slot_id)
+	local c = entity.get(card_id)
+	local s = entity.get(slot_id)
+	if not (c and s) then return end
+	if c.slot_id and c.slot_id ~= slot_id then
+		local old = entity.get(c.slot_id)
+		if old and old.occupant == card_id then old.occupant = nil end
+	end
+	c.slot_id  = slot_id
+	s.occupant = card_id
+	stamp_position(card_id)
+end
+
 function M.move_card(card_id, to_id, where)
 	local c  = entity.get(card_id)
 	local to = entity.get(to_id)
@@ -558,6 +607,14 @@ function M.move_card(card_id, to_id, where)
 	-- A full board refuses new arrivals (checked before any mutation, so a
 	-- refused move leaves the card exactly where it was).
 	if not c or not to or not M.has_room(to) then return false end
+
+	-- Whereabouts it lands. A list has two ends and a grid has cells, so the same
+	-- argument that says which end of a pile says which cell of a board, in the
+	-- spelling every other square is written in. A cell that cannot take the card
+	-- refuses the whole move rather than dropping it in the first free one and
+	-- saying nothing.
+	local want_slot = landing_slot(to, where, card_id)
+	if want_slot == false then return false end
 
 	-- The square it is standing on, read before the next lines let it go: on a
 	-- grid, "where it came from" is a cell and not a zone, and a fight that sent
@@ -596,7 +653,7 @@ function M.move_card(card_id, to_id, where)
 	c.origin_zone_id = c.zone_id
 	c.origin_slot_id = from_slot
 	c.zone_id = to_id
-	M.auto_slot(card_id)
+	if want_slot then bind_slot(card_id, want_slot) else M.auto_slot(card_id) end
 	if M.on_change then M.on_change("move", card_id) end
 	fire_leaves(lent or from, to, card_id)
 	fire_receive(to, card_id)
@@ -633,6 +690,8 @@ function M.take(shelf, to_id, where)
 	-- Docked before the card is made, so the step `add` records is a state where
 	-- the box and the card already agree about how many there are. Put back if
 	-- the destination refuses the arrival, which a full grid does.
+	local want_slot = landing_slot(to, where)
+	if want_slot == false then return nil end
 	shelf.stats.stock = shelf.stats.stock - 1
 	local e = M.add(to, shelf.def_key)
 	if not e then
@@ -643,6 +702,7 @@ function M.take(shelf, to_id, where)
 	-- anywhere; the shelf it came off is the only card in the story.
 	if to.status ~= "supply" then
 		e.origin_zone_id = from.id
+		if want_slot then bind_slot(e.id, want_slot) end
 		if where == "bottom" then
 			for i, id in ipairs(to.cards) do
 				if id == e.id then table.remove(to.cards, i); break end
@@ -654,25 +714,6 @@ function M.take(shelf, to_id, where)
 	return e
 end
 
--- A piece knows where it stands, as its own stats: "col" and "row" straight off
--- the square, and "rank" counted from its owner's own side so that a pawn's
--- home is rank 2 whichever colour it is. Conditions and computed tags then read
--- a piece's position with the vocabulary they already have — "promoting" is
--- the computed tag { "stat": "rank", "at_least": 8 } and needs nothing new at all.
---
--- Only stamped on cards that already carry the stat, following the same rule as
--- every other stat change: a board game declares them in card_stats, and a card
--- game that never asks where anything is stays untouched.
-local function stamp_position(card_id)
-	local c    = entity.get(card_id)
-	local slot = c and c.slot_id and entity.get(c.slot_id)
-	local z    = slot and entity.get(slot.zone_id)
-	if not (z and z.grid and c.stats) then return end
-	local facing = geometry.facing(tags.owner_of(c), declaration.G.seat_list or {})
-	if c.stats.col  then c.stats.col  = slot.stats.col end
-	if c.stats.row  then c.stats.row  = slot.stats.row end
-	if c.stats.rank then c.stats.rank = geometry.rank(z, slot.stats.row, facing) end
-end
 
 -- A card in a grid zone without a chosen slot takes the first free one, so
 -- cards can be placed friction-free (creation, drafts) or precisely
@@ -684,9 +725,7 @@ function M.auto_slot(card_id)
 	for _, sid in ipairs(z.slots) do
 		local s = entity.get(sid)
 		if s and not s.occupant then
-			s.occupant = card_id
-			c.slot_id  = sid
-			stamp_position(card_id)
+			bind_slot(card_id, sid)
 			return
 		end
 	end
@@ -748,14 +787,8 @@ function M.place_in_slot(card_id, slot_id, on_occupied)
 	-- and binding it to a square it no longer stands on would leave the slot
 	-- pointing at a card in another zone.
 	if card.zone_id ~= slot.zone_id then return false end
-	-- release whatever slot move_card auto-assigned on grid entry
-	if card.slot_id and card.slot_id ~= slot_id then
-		local old = entity.get(card.slot_id)
-		if old and old.occupant == card_id then old.occupant = nil end
-	end
-	card.slot_id  = slot_id
-	slot.occupant = card_id
-	stamp_position(card_id)
+	-- bind_slot releases whatever slot move_card auto-assigned on grid entry
+	bind_slot(card_id, slot_id)
 	return true
 end
 

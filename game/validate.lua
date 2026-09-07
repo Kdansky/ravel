@@ -1070,11 +1070,12 @@ function M.check(G)
 			i = i + 1
 			local t, optional = word:match("^(%w+)(%??)$")
 			local a = p[i]
-			if t == "n" and optional == "?" and (a == "top" or a == "bottom") then
+			if t == "n" and optional == "?" and a ~= nil and not amount_ok(a) and spec:find("n%? pos%?") then
 				-- The count left out and the position written where it would
-				-- have gone. "top" and "bottom" are not numbers, so nothing is
-				-- ambiguous — and it is the grammar that says so rather than the
-				-- op, which is why the rule lives here.
+				-- have gone. Nothing in the grammar reads a bare word as an
+				-- amount, so a slot holding one is holding the position — and it
+				-- is the grammar that says so rather than the op, which is why
+				-- the rule lives here.
 				i = i - 1
 			elseif a == nil then
 				if optional == "" and t ~= "n" and t ~= "any" then
@@ -1110,12 +1111,29 @@ function M.check(G)
 						.. 'for a source that counts', where, op, sc.name, sc.name)
 				end
 			elseif t == "pos" then
-				-- Where in the destination the card lands. Two words, because a
-				-- list has two ends and a deck is the only zone where the
-				-- difference is a rule rather than a detail.
+				-- Where in the destination the card lands: which end of a list,
+				-- or which cell of a grid. The destination is written two
+				-- arguments back, so a cell is checked against the grid it names
+				-- rather than only against the spelling of a square.
 				if a ~= "top" and a ~= "bottom" then
-					warn("%s: '%s' says the card lands '%s' — it should be 'top' or 'bottom'",
-						where, op, tostring(a))
+					local sc   = predicate.parse_scope(p[3] or "")
+					local dest = sc and G.zone_defs[sc.name]
+					local col, rank
+					if dest and dest.grid then col, rank = geometry.square(dest, a) end
+					if not dest then
+						warn("%s: '%s' says the card lands '%s' — it should be 'top' or 'bottom'",
+							where, op, tostring(a))
+					elseif not dest.grid then
+						warn("%s: '%s' lands the card on '%s', but zone '%s' is a %s and has no cells "
+							.. "to name — only a grid does, and every other zone has two ends",
+							where, op, tostring(a), sc.name, dest.layout or "stack")
+					elseif not col then
+						warn("%s: '%s' lands the card on '%s', which is not a square — a cell is a "
+							.. "column letter and a row number, as 'a1'", where, op, tostring(a))
+					elseif col > dest.grid[1] or rank > dest.grid[2] then
+						warn("%s: '%s' lands the card on '%s', which is off zone '%s' — it is %d by %d",
+							where, op, tostring(a), sc.name, dest.grid[1], dest.grid[2])
+					end
 				end
 			elseif t == "moment" then
 				if a ~= "play" and a ~= "activate" then

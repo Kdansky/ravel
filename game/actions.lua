@@ -139,6 +139,21 @@ local function amount(p, i, default, ctx)
 	return v, j
 end
 
+-- A count and a position stand in the same slot, and what is written says which
+-- is there: a number, a measure, or a name the ability bound is the count —
+-- anything else is whereabouts the card lands. Written once because three verbs
+-- take the pair, and a fourth reading of it would be a fourth chance to read
+-- them differently.
+local function count_and_pos(p, i, default, ctx)
+	local a = p[i]
+	if a == nil then return default, nil end
+	if tonumber(a) or FN_TERMS[a] or (ctx and ctx.let and ctx.let[a] ~= nil) then
+		local n, j = amount(p, i, default, ctx)
+		return n, p[j]
+	end
+	return default, a
+end
+
 -- The floor and the ceiling a stat is held between on this card: its own if it
 -- declared one, the global "stats" entry's otherwise, and nothing at all if
 -- neither said — a stat with no ceiling grows, and one with no floor may go
@@ -351,12 +366,7 @@ HANDLERS["take"] = function(p, ctx)
 		content_error("take: unknown zone " .. tostring(p[3]))
 		return
 	end
-	local pos, n = p[4], nil
-	if pos and pos ~= "top" and pos ~= "bottom" then
-		local j
-		n, j = amount(p, 4, 1, ctx)
-		pos = p[j]
-	end
+	local n, pos = count_and_pos(p, 4, 1, ctx)
 	local shelves = {}
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
 		if e.kind == "card" and zones.supply_home(e) then shelves[#shelves + 1] = e end
@@ -378,14 +388,14 @@ HANDLERS["shuffle"] = function(p)
 	if zid then zones.shuffle(zid) end
 end
 
-HANDLERS["draw_from"] = function(p)
-	-- draw_from:from:to:n[:top|bottom]  (n defaults to 1)
+HANDLERS["draw_from"] = function(p, ctx)
+	-- draw_from:from:to:n[:where]  (n defaults to 1)
 	local from_id = zone_id(p[2])
 	local to_id   = zone_id(p[3] or "hand")
 	if not from_id or not to_id then return end
-	local n, next_arg = amount(p, 4, 1)
+	local n, where = count_and_pos(p, 4, 1, ctx)
 	for _ = 1, n do
-		if not zones.move_top(from_id, to_id, p[next_arg]) then break end
+		if not zones.move_top(from_id, to_id, where) then break end
 	end
 end
 
@@ -713,15 +723,7 @@ HANDLERS["move"] = function(p, ctx)
 	-- How many, and then whereabouts they land. The count is optional and
 	-- everything moves without one, which is what "move" meant before it could
 	-- be told a number and what every spelling written before this still means.
-	-- A position standing where the count would go is still a position: "top"
-	-- and "bottom" are not numbers, and nothing else in the grammar is a bare
-	-- word there.
-	local pos, want = p[4], nil
-	if pos and pos ~= "top" and pos ~= "bottom" then
-		local j
-		want, j = amount(p, 4, nil, ctx)
-		pos = p[j]
-	end
+	local want, pos = count_and_pos(p, 4, nil, ctx)
 	-- Taken one at a time, the way `destroy` takes them, so that a random scope
 	-- asked for three picks three different cards rather than the same one
 	-- thrice. Without a count a random scope still means one, which is what it

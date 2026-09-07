@@ -64,7 +64,7 @@ and a line here names a section that exists:
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
-- **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · `origin` — back where it came from · `fan` — a stack you can read
+- **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
 
 ---
@@ -2355,6 +2355,26 @@ names a destination. It means something in any zone,
 since every zone is a list, but it only *reads* as anything in a deck, which is
 where somebody is about to draw.
 
+#### A cell, where the destination is a grid
+
+A grid is a list *and* a set of squares, so the same argument names one of them:
+
+```
+draw_from:item_deck:market:1:g1         dealt into the far end of the row
+move:mine.hand:board:1:e4               played onto a named square
+take:box.chip:board:c1                  out of the box and onto a cell
+```
+
+Written in the spelling squares are written in everywhere else — a column letter
+and a row number. Say nothing and an arrival still takes the first free cell,
+which is what a hand of five wants and what a row filling from *both* ends never
+did: without the word, "deal the new item at the right-hand end" could only be
+said by making the right-hand end a zone of its own.
+
+A cell that is not there, one somebody is standing on, or a zone with no cells at
+all **refuses the whole move** — the card stays where it was, the way a full grid
+already refuses. Nothing lands somewhere it was not asked to land.
+
 ### `origin` — back where it came from
 
 Every destination names one place, which is wrong for a set of cards gathered
@@ -4183,6 +4203,7 @@ what a player reads.
 | `move_to:target` | Move the acting card into the **chosen target's** zone — how one card offers two destinations ("advance the expedition, or discard it") |
 | `move_to:target:<what>` | …and say what becomes of a piece already standing there: `destroy`, or the zone it goes to (a captured-pieces tray). Left out, an occupied square refuses the move. This is capture; with it, aiming at a *piece* means taking its square rather than joining its zone |
 | `…:top` / `…:bottom` | **Which end of the destination a card lands on**, as a last argument to `move`, `take` and `draw_from`. Every zone is a list and the top of a pile is the end of it, so an arrival lands on top unless told otherwise — `bottom` is the word that buries a card, and `draw_from:bag:bag:1:bottom` puts the top card of a deck underneath it |
+| `…:<cell>` | **Which cell of the destination a card lands in**, in the same slot and on the same three ops — `draw_from:item_deck:market:1:g1`. A grid is a list and a set of squares both, so the argument that names an end names a square when there are squares to name, spelled the way every other square is (`a1`, `e4`). Say nothing and the arrival takes the first free cell by index, which is right for a hand and wrong for a row that fills from both ends. A cell that is taken, is off the grid, or belongs to a zone with no cells refuses the whole move rather than landing the card elsewhere |
 | `place:<who>:<where>` | Put every card the scope names on a square of the only board. `<where>` is a square by name (`"g1"`) or a **pattern pointing at one from the acting card** (`"one_left"`) — the second is how a rule works for both sides of a board, since a named square is only ever one player's. Refuses an occupied square |
 | `compact:<scope>:<pattern>` | Slide every card the scope names as far along the pattern as free cells allow, keeping the order they are in — how a market row closes the gap a bought card left, so that **where a card sits goes on meaning how long it has been there**. The pattern carries one direction, taken as written: a shelf slides one way for everything on it, so `y` is not turned around per owner the way a move rule's is, and how far is the pattern's business too — a `ray` runs to the end, a bare pair is a one-cell nudge. The card furthest along moves first and packs against the end, so nothing behind can overtake something in front, and the answer does not depend on the order the scope hands its cards over |
 | `stat_gain:<subject>:n` / `stat_damage:<subject>:n` | Change the current value, held between its floor and its ceiling, logged, and floated on the card. Two words for one arithmetic, because "damage 2" and "gain −2" read differently to everybody but the engine. The subject may carry a scope: `hp@target`, `hp@each.follower`, `hp@random.beast` |

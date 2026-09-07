@@ -460,11 +460,11 @@ local CASES = {
 			g.zone_defs.hand.pos = { 0.3, 0.3, 0.8, 0.8 } end },
 	{ "an order the engine does not know", "is not an order the engine knows",
 		function(g) g.card_defs.c_flee.on_play = { "activate_zone:board:widdershins" } end },
-	{ "a third word for which end of a pile", "it should be 'top' or 'bottom'",
+	{ "a third word for which end of a pile", "which is not a square",
 		function(g) g.card_defs.c_flee.on_play = { "move:hand:board:sideways" } end },
 	-- The one that needed the validator to count the way the engine does: an
 	-- amount is one slot or five, so the end has to be looked for past the measure.
-	{ "the same mistake written after a measured amount", "it should be 'top' or 'bottom'",
+	{ "the same mistake written after a measured amount", "which is not a square",
 		function(g) g.card_defs.c_flee.on_play = { "draw_from:hand:board:count:keepsake:sideways" } end },
 	{ "a copy of something a card does not have", "a card has two action lists to copy",
 		function(g) g.card_defs.c_flee.on_play = { "copy:target:sing" } end },
@@ -633,6 +633,10 @@ local CASES = {
 		function(g) g.phase_by_key.story.seat = "each" end },
 	{ "a seat word the engine does not know", 'says seat "everyone"',
 		function(g) g.phase_by_key.story.seat = "everyone" end },
+	{ "a cell named off the end of the grid", "which is off zone 'board'",
+		function(g) g.card_defs.c_flee.on_play = { "move:hand:board:1:f1" } end },
+	{ "a cell named on a zone that has no cells", "has no cells to name",
+		function(g) g.card_defs.c_flee.on_play = { "move:board:hand:1:a1" } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once
