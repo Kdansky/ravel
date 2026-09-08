@@ -1,5 +1,17 @@
 {
   "title": "Codex — Core Set, 1 Hero",
+  "verbs": [
+    {
+      "key": "attack",
+      "does": "target",
+      "tooltip": "One fighter picking what it throws itself at."
+    },
+    {
+      "key": "cast",
+      "does": "target",
+      "tooltip": "A spell or an ability picking what it lands on. Untargetable refuses this and not the other."
+    }
+  ],
   "stats": [
     {
       "key": "gold",
@@ -8,6 +20,17 @@
       "color": "gold",
       "min": 0,
       "max": 20,
+      "on": ["player"],
+      "start": 0,
+      "pays_for": ["xp"]
+    },
+    {
+      "key": "xp",
+      "label": "Free levels",
+      "icon": "banner",
+      "color": "amber",
+      "min": 0,
+      "max": 9,
       "on": ["player"],
       "start": 0
     },
@@ -172,6 +195,7 @@
     { "key": "slot", "min": 0, "max": 5, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "rage", "min": 0, "max": 9, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "fought", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "ripe", "min": 0, "max": 9, "on": ["hero"], "start": 0, "tags": ["hidden"] },
     { "key": "picked", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "hired", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "teched", "min": 0, "max": 2, "on": ["player"], "start": 0, "tags": ["hidden"] },
@@ -201,6 +225,7 @@
     "at_elite": { "needs": ["slot@self == 2"] },
     "at_scav": { "needs": ["slot@self == 3"] },
     "at_tech": { "needs": ["slot@self == 4"] },
+    "at_lookout": { "needs": ["slot@self == 5"] },
     "marked": { "needs": ["mark@self >= 1"] }
   },
   "patterns": {
@@ -321,7 +346,7 @@
       "play": {
         "phases": ["main"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:0"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
       }
     },
     "tech1": {
@@ -329,7 +354,7 @@
         "phases": ["main"],
         "needs": ["count:t1@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:0"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
       }
     },
     "tech2": {
@@ -337,7 +362,7 @@
         "phases": ["main"],
         "needs": ["count:t2@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:0"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
       }
     },
     "tech3": {
@@ -345,7 +370,7 @@
         "phases": ["main"],
         "needs": ["count:t3@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:0"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
       }
     },
     "fighter": {
@@ -357,6 +382,7 @@
           "cost": { "exhaust": 1 },
           "needs": ["ready_since@self >= 1", "not_tagged:cant_attack@self"],
           "target": {
+            "verb": "attack",
             "type": "card",
             "count": 1,
             "owner": "enemy",
@@ -376,6 +402,7 @@
             "activate_zone:duel:by_column:rage",
             "activate_zone:duel:by_column:attacks",
             "activate_zone:duel:by_column:aim",
+            "activate_zone:duel:by_column:sting",
             "activate_zone:duel:by_column:armor",
             "activate_zone:duel:by_column:land",
             "activate_zone:duel:by_column:venom",
@@ -384,6 +411,9 @@
             "activate_zone:duel:by_column:kills",
             "stat_set:attacking@each.duel:0",
             "move:duel:origin",
+            "move_to:mine.army",
+            "stat_set:slot@self:0",
+            "stat_set:guard@self:0",
             "activate_zone:rules_death"
           ],
           "compute": ["det", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"]
@@ -400,6 +430,7 @@
             "count:at_lead@enemy.patrol <= lead_skip"
           ],
           "target": {
+            "verb": "attack",
             "type": "card",
             "count": 1,
             "owner": "enemy",
@@ -419,6 +450,7 @@
             "activate_zone:duel:by_column:rage",
             "activate_zone:duel:by_column:attacks",
             "activate_zone:duel:by_column:aim",
+            "activate_zone:duel:by_column:sting",
             "activate_zone:duel:by_column:armor",
             "activate_zone:duel:by_column:land",
             "activate_zone:duel:by_column:venom",
@@ -427,6 +459,9 @@
             "activate_zone:duel:by_column:kills",
             "stat_set:attacking@each.duel:0",
             "move:duel:origin",
+            "move_to:mine.army",
+            "stat_set:slot@self:0",
+            "stat_set:guard@self:0",
             "activate_zone:rules_death"
           ]
         },
@@ -460,11 +495,12 @@
             "pat_rest <= rest_skip"
           ],
           "target": {
+            "verb": "attack",
             "type": "card",
             "count": 1,
             "owner": "enemy",
             "zones": ["army", "base", "tech", "structures", "addon"],
-            "where": ["alt@target <= sum:aa@self", "not_tagged:untargetable@target"]
+            "where": ["alt@target <= sum:aa@self"]
           },
           "action": [
             "stat_set:attacking@self:1",
@@ -474,6 +510,7 @@
             "activate_zone:duel:by_column:rage",
             "activate_zone:duel:by_column:attacks",
             "activate_zone:duel:by_column:aim",
+            "activate_zone:duel:by_column:sting",
             "activate_zone:duel:by_column:armor",
             "activate_zone:duel:by_column:land",
             "activate_zone:duel:by_column:venom",
@@ -482,6 +519,9 @@
             "activate_zone:duel:by_column:kills",
             "stat_set:attacking@each.duel:0",
             "move:duel:origin",
+            "move_to:mine.army",
+            "stat_set:slot@self:0",
+            "stat_set:guard@self:0",
             "activate_zone:rules_death"
           ]
         },
@@ -490,7 +530,7 @@
           "text": "Patrol",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "tooltip": "Take a post. Left to right: squad leader, elite, scavenger, technician, lookout.",
+          "tooltip": "Take a post. Left to right: squad leader, elite, scavenger, technician, lookout. Attacking gives the post up, so a patroller cannot do both.",
           "needs": ["not_tagged:cant_patrol@self"],
           "target": { "type": "slot", "count": 1, "owner": "mine", "zones": ["patrol"], "fill": "empty" },
           "action": [
@@ -534,6 +574,14 @@
             "stat_gain:raw@across:sum:power@self",
             "stat_gain:back@across:sum:power@self"
           ]
+        },
+        {
+          "key": "sting",
+          "phases": [],
+          "text": "Tower",
+          "tooltip": "A tower on the base being attacked hits the attacker for 1, whatever it is attacking and however high it flies.",
+          "needs": ["attacking@self >= 1", "count:detector@enemy.addon >= 1"],
+          "action": ["stat_gain:incoming@self:1", "stat_gain:back@self:1"]
         },
         {
           "key": "armor",
@@ -614,7 +662,20 @@
         }
       ]
     },
-    "at_elite": { "buffs": { "atk": 1 } }
+    "at_elite": { "buffs": { "atk": 1 } },
+    "at_lookout": {
+      "tooltip": "Lookout — resist 1 while it holds the post.",
+      "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1,
+        "needs": ["count@enemy.self >= 1"] }]
+    },
+    "resist_1": {
+      "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1,
+        "needs": ["count@enemy.self >= 1"] }]
+    },
+    "resist_2": {
+      "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 2,
+        "needs": ["count@enemy.self >= 1"] }]
+    }
   },
   "zones": [
     { "key": "options", "layout": "row", "status": "offer", "pos": [0.04, 0.1, 0.96, 0.9] },
@@ -843,6 +904,7 @@
         "ready:mine.upgrade",
         "ready:mine.ongoing_spell",
         "stat_set:ready_since@each.mine.fighter:1",
+        "stat_set:ripe@each.mine.hero:max:level@mine.hero",
         "stat_set:hired@mine.player:1",
         "stat_set:teched@mine.player:2",
         "stat_damage:hero_wait@mine.player:1",
@@ -1142,6 +1204,7 @@
       "abilities": [{
         "phases": ["main"],
         "cost": { "gold@mine.player": 2 },
+        "needs": ["count:attachment@mine.addon == 0", "count:attachment@mine.site == 0"],
         "action": ["fill:mine.site:surplus:1"]
       }]
     },
@@ -1154,6 +1217,7 @@
       "abilities": [{
         "phases": ["main"],
         "cost": { "gold@mine.player": 3 },
+        "needs": ["count:attachment@mine.addon == 0", "count:attachment@mine.site == 0"],
         "action": ["fill:mine.site:tower:1"]
       }]
     },
@@ -1165,6 +1229,7 @@
       "tooltip": "Make room for a different add-on. Your base takes 2 damage.",
       "abilities": [{
         "phases": ["main"],
+        "needs": ["count:attachment@mine.addon >= 1"],
         "action": ["destroy:mine.addon", "stat_damage:integrity@mine.base:2"]
       }]
     },
@@ -1321,6 +1386,28 @@
       "text": "Fallen heroes",
       "tags": ["immutable"],
       "abilities": [
+        {
+          "key": "boon_m",
+          "text": "Two free levels",
+          "phases": [],
+          "needs": [
+            "count:fallen@mine.hero >= 1",
+            "count:hero@enemy.hero >= 1",
+            "count:fallen@enemy.hero == 0"
+          ],
+          "action": ["stat_gain:xp@opponent:2"]
+        },
+        {
+          "key": "boon_t",
+          "text": "Two free levels",
+          "phases": [],
+          "needs": [
+            "count:fallen@enemy.hero >= 1",
+            "count:hero@mine.hero >= 1",
+            "count:fallen@mine.hero == 0"
+          ],
+          "action": ["stat_gain:xp@mine.player:2"]
+        },
         {
           "key": "mine",
           "text": "Fallen hero",
@@ -1589,6 +1676,7 @@
           "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
             "stat_set:atk@self:2",
             "stat_set:life@self:2",
             "stat_set:armor@self:0",
@@ -1601,7 +1689,7 @@
           "key": "lvl2",
           "text": "Level up to 2",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1609,7 +1697,7 @@
           "key": "lvl3",
           "text": "Level up to 3",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1617,7 +1705,7 @@
           "key": "lvl4",
           "text": "Level up to 4 — heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:3"]
         },
@@ -1625,7 +1713,7 @@
           "key": "lvl5",
           "text": "Level up to 5",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1633,7 +1721,7 @@
           "key": "lvl6",
           "text": "Level up to 6 — max, heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 5"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:4", "stat_set:life@self:4"]
         },
@@ -1644,11 +1732,11 @@
           "cost": { "exhaust": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self >= 6"],
           "target": {
+            "verb": "cast",
             "type": "card",
             "count": 1,
             "owner": "enemy",
-            "zones": ["patrol"],
-            "where": ["not_tagged:untargetable@target"]
+            "zones": ["patrol"]
           },
           "action": ["stat_damage:hp@target:1", "stat_damage:life@target:1", "activate_zone:rules_death"]
         },
@@ -1677,11 +1765,12 @@
           "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
             "stat_set:atk@self:1",
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:0",
+            "stat_set:ready_since@self:count:haste@self",
             "move_to:mine.army"
           ]
         },
@@ -1689,7 +1778,7 @@
           "key": "lvl2",
           "text": "Level up to 2",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1697,7 +1786,7 @@
           "key": "lvl3",
           "text": "Level up to 3",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1705,7 +1794,7 @@
           "key": "lvl4",
           "text": "Level up to 4 — heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:2", "stat_set:life@self:3"]
         },
@@ -1713,7 +1802,7 @@
           "key": "lvl5",
           "text": "Level up to 5",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1721,7 +1810,7 @@
           "key": "lvl6",
           "text": "Level up to 6 — max, heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 5"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:4"]
         }
@@ -1743,11 +1832,12 @@
           "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
             "stat_set:atk@self:2",
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:0",
+            "stat_set:ready_since@self:count:haste@self",
             "move_to:mine.army"
           ]
         },
@@ -1755,7 +1845,7 @@
           "key": "lvl2",
           "text": "Level up to 2",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1763,7 +1853,7 @@
           "key": "lvl3",
           "text": "Level up to 3",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1771,7 +1861,7 @@
           "key": "lvl4",
           "text": "Level up to 4 — heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:3"]
         },
@@ -1779,7 +1869,7 @@
           "key": "lvl5",
           "text": "Level up to 5",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1787,7 +1877,7 @@
           "key": "lvl6",
           "text": "Level up to 6",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 5"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1795,7 +1885,7 @@
           "key": "lvl7",
           "text": "Level up to 7 — max, heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 6"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:4", "stat_set:life@self:3"]
         },
@@ -1806,11 +1896,11 @@
           "cost": { "exhaust": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self >= 4", "level@self <= 6"],
           "target": {
+            "verb": "cast",
             "type": "card",
             "count": 1,
             "owner": "anyone",
-            "zones": ["base", "tech", "structures", "addon", "patrol"],
-            "where": ["not_tagged:untargetable@target"]
+            "zones": ["base", "tech", "structures", "addon", "patrol"]
           },
           "action": [
             "stat_damage:hp@target:1",
@@ -1826,11 +1916,11 @@
           "cost": { "exhaust": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self >= 7"],
           "target": {
+            "verb": "cast",
             "type": "card",
             "count": 1,
             "owner": "anyone",
-            "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-            "where": ["not_tagged:untargetable@target"]
+            "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
           },
           "action": [
             "stat_damage:hp@target:3",
@@ -1856,11 +1946,12 @@
           "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
             "stat_set:atk@self:2",
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:0",
+            "stat_set:ready_since@self:count:haste@self",
             "move_to:mine.army"
           ]
         },
@@ -1868,7 +1959,7 @@
           "key": "lvl2",
           "text": "Level up to 2",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1876,7 +1967,7 @@
           "key": "lvl3",
           "text": "Level up to 3",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1884,7 +1975,7 @@
           "key": "lvl4",
           "text": "Level up to 4",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1892,7 +1983,7 @@
           "key": "lvl5",
           "text": "Level up to 5 — heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:4"]
         },
@@ -1900,7 +1991,7 @@
           "key": "lvl6",
           "text": "Level up to 6",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 5"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1908,7 +1999,7 @@
           "key": "lvl7",
           "text": "Level up to 7",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 6"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1916,7 +2007,7 @@
           "key": "lvl8",
           "text": "Level up to 8 — max, heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 7"],
           "action": [
             "stat_gain:level@self:1",
@@ -1943,11 +2034,12 @@
           "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
             "stat_set:atk@self:2",
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:0",
+            "stat_set:ready_since@self:count:haste@self",
             "move_to:mine.army"
           ]
         },
@@ -1955,7 +2047,7 @@
           "key": "lvl2",
           "text": "Level up to 2",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1963,7 +2055,7 @@
           "key": "lvl3",
           "text": "Level up to 3 — heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:3", "stat_set:life@self:4"]
         },
@@ -1971,7 +2063,7 @@
           "key": "lvl4",
           "text": "Level up to 4",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -1979,7 +2071,7 @@
           "key": "lvl5",
           "text": "Level up to 5 — max, heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:4", "stat_set:life@self:5"]
         },
@@ -2013,11 +2105,12 @@
           "needs": ["count:hero@mine.hero == 0", "hero_wait@mine.player == 0"],
           "action": [
             "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
             "stat_set:atk@self:1",
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:0",
+            "stat_set:ready_since@self:count:haste@self",
             "move_to:mine.army",
             "fill:mine.army:wisp:1"
           ]
@@ -2026,7 +2119,7 @@
           "key": "lvl2",
           "text": "Level up to 2",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 1"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -2034,7 +2127,7 @@
           "key": "lvl3",
           "text": "Level up to 3 — heals",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 2"],
           "action": ["stat_gain:level@self:1", "stat_set:atk@self:1", "stat_set:life@self:4"]
         },
@@ -2042,7 +2135,7 @@
           "key": "lvl4",
           "text": "Level up to 4",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 3"],
           "action": ["stat_gain:level@self:1"]
         },
@@ -2050,7 +2143,7 @@
           "key": "lvl5",
           "text": "Level up to 5 — max, heals, summons",
           "phases": ["main"],
-          "cost": { "gold@mine.player": 1 },
+          "cost": { "xp@mine.player": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self == 4"],
           "action": [
             "stat_gain:level@self:1",
@@ -2066,12 +2159,12 @@
           "cost": { "exhaust": 1 },
           "needs": ["count:hero@mine.hero >= 1", "level@self >= 3"],
           "target": {
+            "verb": "cast",
             "type": "card",
             "count": 1,
             "owner": "anyone",
             "tags": ["unit"],
-            "zones": ["army", "patrol"],
-            "where": ["not_tagged:untargetable@target"]
+            "zones": ["army", "patrol"]
           },
           "action": ["stat_gain:atk@target:1", "stat_gain:armor@target:1"]
         }
@@ -2342,12 +2435,12 @@
         "phases": ["main"],
         "cost": { "gold@mine.player": 1, "sacrifice:bombaster": 1 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "enemy",
           "tags": ["unit"],
-          "zones": ["patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["patrol"]
         },
         "action": ["stat_damage:hp@target:2", "activate_zone:rules_death"]
       }]
@@ -2372,11 +2465,11 @@
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
           "stat_damage:hp@target:1",
@@ -2450,11 +2543,11 @@
         "phases": ["main"],
         "cost": { "exhaust": 1, "runes@self": 2 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
           "stat_damage:hp@target:1",
@@ -2475,11 +2568,11 @@
         "needs": ["count:hero@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "enemy",
-          "zones": ["base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
           "stat_damage:hp@target:2",
@@ -2501,6 +2594,7 @@
         "needs": ["count:hero@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "mine",
@@ -2521,7 +2615,7 @@
         "phases": ["main"],
         "needs": ["count:hero@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "target": { "type": "card", "count": 1, "owner": "enemy", "zones": ["base"] },
+        "target": { "verb": "cast", "type": "card", "count": 1, "owner": "enemy", "zones": ["base"] },
         "action": [
           "stat_set:extra@mine.player:0",
           "stat_gain:extra@mine.player:count:pirate@mine.unit",
@@ -2555,12 +2649,12 @@
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "enemy",
           "tags": ["fighter"],
-          "zones": ["patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["patrol"]
         },
         "action": ["move:target:enemy.army"]
       }]
@@ -2676,6 +2770,7 @@
         "phases": ["main"],
         "cost": { "gold@mine.player": 1, "exhaust": 1 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "min": 0,
           "max": 2,
@@ -2729,13 +2824,13 @@
         "flying",
         "haste",
         "long_range",
-        "resist",
+        "resist_2",
         "obliterate",
         "flame",
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying, haste, long-range, resist 2, obliterate 2. NOT MODELLED: resist, and obliterate takes the first two units rather than the lowest tech ones.",
+      "tooltip": "Flying, haste, long-range, resist 2, obliterate 2. NOT MODELLED: obliterate takes the first two units rather than the lowest tech ones.",
       "card_stats": {
         "price": 6,
         "atk": 7,
@@ -2772,12 +2867,12 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_anarchy@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
           "tags": ["building"],
-          "zones": ["tech", "structures"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["tech", "structures"]
         },
         "action": ["stat_set:integrity@target:0", "activate_zone:rules_death"],
         "spent": "mine.discard"
@@ -2805,7 +2900,7 @@
       "card_stats": { "price": 3 },
       "play": {
         "phases": ["main"],
-        "needs": ["count:h_anarchy@mine.hero >= 1", "max:level@mine.h_anarchy >= 6"],
+        "needs": ["count:h_anarchy@mine.hero >= 1", "max:ripe@mine.h_anarchy >= 6"],
         "cost": { "gold@mine.player": "price@self" },
         "action": [
           "stat_set:hp@each.anyone.unit:0",
@@ -2985,6 +3080,7 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_blood@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "min": 0,
           "max": 2,
@@ -3014,12 +3110,12 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_blood@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "enemy",
           "tags": ["unit"],
-          "zones": ["army", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "patrol"]
         },
         "action": [
           "set_owner:target:mine",
@@ -3051,7 +3147,7 @@
         "phases": ["main"],
         "needs": ["count:t3@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:0", "fill:mine.army:pirate_token:3"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "fill:mine.army:pirate_token:3"]
       }
     },
     {
@@ -3073,7 +3169,7 @@
       "card_stats": { "price": 2 },
       "play": {
         "phases": ["main"],
-        "needs": ["count:h_blood@mine.hero >= 1", "max:level@mine.h_blood >= 6"],
+        "needs": ["count:h_blood@mine.hero >= 1", "max:ripe@mine.h_blood >= 6"],
         "cost": { "gold@mine.player": "price@self" },
         "action": ["move_to:mine.ongoing"]
       }
@@ -3098,11 +3194,11 @@
         "phases": ["main"],
         "cost": { "gold@mine.player": 1, "exhaust": 1 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "enemy",
-          "zones": ["base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
           "stat_damage:hp@target:2",
@@ -3133,6 +3229,7 @@
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "enemy",
@@ -3163,17 +3260,17 @@
         "needs": ["count:t2@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "min": 0,
           "max": 1,
           "owner": "anyone",
           "tags": ["unit"],
-          "zones": ["army", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "patrol"]
         },
         "action": [
           "move_to",
-          "stat_set:ready_since@self:0",
+          "stat_set:ready_since@self:count:haste@self",
           "stat_damage:hp@target:3",
           "activate_zone:rules_death"
         ]
@@ -3216,11 +3313,11 @@
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
           "stat_damage:hp@target:2",
@@ -3266,7 +3363,7 @@
         "unit",
         "fighter",
         "flying",
-        "resist",
+        "resist_2",
         "flame",
         "fighter_face",
         "generate_art"
@@ -3285,11 +3382,11 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_fire@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "enemy",
-          "zones": ["base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
           "stat_damage:hp@target:3",
@@ -3311,11 +3408,11 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_fire@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
           "stat_damage:hp@target:3",
@@ -3336,11 +3433,11 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_fire@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
           "stat_damage:hp@target:4",
@@ -3359,14 +3456,14 @@
       "card_stats": { "price": 3 },
       "play": {
         "phases": ["main"],
-        "needs": ["count:h_fire@mine.hero >= 1", "max:level@mine.h_fire >= 7"],
+        "needs": ["count:h_fire@mine.hero >= 1", "max:ripe@mine.h_fire >= 7"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": ["army", "base", "tech", "structures", "addon", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
           "stat_damage:hp@target:5",
@@ -3425,7 +3522,7 @@
       "play": {
         "phases": ["main"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:0", "fill:mine.army:wisp:1"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "fill:mine.army:wisp:1"]
       }
     },
     {
@@ -3446,7 +3543,7 @@
         "cost": { "gold@mine.player": "price@self" },
         "action": [
           "move_to",
-          "stat_set:ready_since@self:0",
+          "stat_set:ready_since@self:count:haste@self",
           "stat_gain:atk@self:2",
           "stat_boost:hp@self:2",
           "stat_gain:hp@self:2"
@@ -3456,6 +3553,7 @@
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "mine",
@@ -3530,7 +3628,7 @@
       "play": {
         "phases": ["main"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:0", "draw_from:mine.deck:mine.hand:1"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "draw_from:mine.deck:mine.hand:1"]
       }
     },
     {
@@ -3544,6 +3642,7 @@
         "needs": ["count:hero@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "mine",
@@ -3571,6 +3670,7 @@
         "needs": ["count:hero@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "mine",
@@ -3593,12 +3693,12 @@
         "fighter",
         "flying",
         "cant_attack",
-        "resist",
+        "resist_1",
         "moss",
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying, but can't attack. Upkeep: gain 1 gold. Resist 1 (NOT MODELLED).",
+      "tooltip": "Flying, resist 1, but can't attack. Upkeep: gain 1 gold.",
       "card_stats": { "price": 1, "atk": 0, "hp": { "value": 1, "max": 1 }, "alt": 1 },
       "abilities": [
         {
@@ -3699,12 +3799,13 @@
       ],
       "tooltip": "Untargetable, deathtouch. Arrives: you may destroy an upgrade or ongoing spell.",
       "card_stats": { "price": 4, "atk": 3, "hp": { "value": 5, "max": 5 } },
+      "receive": { "needs": ["not_verb:cast"] },
       "play": {
         "phases": ["main"],
         "needs": ["count:t2@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "target": { "type": "card", "min": 0, "max": 1, "owner": "anyone", "zones": ["ongoing"] },
-        "action": ["move_to", "stat_set:ready_since@self:0", "destroy:target"]
+        "target": { "verb": "cast", "type": "card", "min": 0, "max": 1, "owner": "anyone", "zones": ["ongoing"] },
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "destroy:target"]
       }
     },
     {
@@ -3735,26 +3836,26 @@
         "unit",
         "fighter",
         "overpower",
-        "resist",
+        "resist_2",
         "moss",
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Overpower, resist 2 (resist NOT MODELLED). Arrives: destroy up to two units or upgrades.",
+      "tooltip": "Overpower, resist 2. Arrives: destroy up to two units or upgrades.",
       "card_stats": { "price": 8, "atk": 10, "hp": { "value": 10, "max": 10 } },
       "play": {
         "phases": ["main"],
         "needs": ["count:t3@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "min": 0,
           "max": 2,
           "owner": "anyone",
-          "zones": ["army", "ongoing", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "ongoing", "patrol"]
         },
-        "action": ["move_to", "stat_set:ready_since@self:0", "destroy:target"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "destroy:target"]
       }
     },
     {
@@ -3793,11 +3894,11 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_balance@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": ["ongoing", "structures", "tech"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["ongoing", "structures", "tech"]
         },
         "action": ["stat_set:integrity@target:0", "activate_zone:rules_death", "destroy:target"],
         "spent": "mine.discard"
@@ -3821,9 +3922,10 @@
       "card_stats": { "price": 3 },
       "play": {
         "phases": ["main"],
-        "needs": ["count:h_balance@mine.hero >= 1", "max:level@mine.h_balance >= 8"],
+        "needs": ["count:h_balance@mine.hero >= 1", "max:ripe@mine.h_balance >= 8"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "mine",
@@ -3887,13 +3989,13 @@
         "tech2",
         "unit",
         "fighter",
-        "resist",
+        "resist_2",
         "overpower",
         "moss",
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Resist 2 (NOT MODELLED), overpower.",
+      "tooltip": "Resist 2, overpower.",
       "card_stats": { "price": 4, "atk": 5, "hp": { "value": 5, "max": 5 } }
     },
     {
@@ -3985,11 +4087,12 @@
       ],
       "tooltip": "Untargetable. Arrives or attacks: summon three 1/1 green Squirrel tokens. NOT MODELLED: the Squirrels are ordinary rather than hasty and invisible.",
       "card_stats": { "price": 7, "atk": 8, "hp": { "value": 9, "max": 9 } },
+      "receive": { "needs": ["not_verb:cast"] },
       "play": {
         "phases": ["main"],
         "needs": ["count:t3@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:0", "fill:mine.army:squirrel:3"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "fill:mine.army:squirrel:3"]
       },
       "abilities": [
         {
@@ -4088,12 +4191,23 @@
         "unit",
         "fighter",
         "legendary",
+        "galina_glimmer",
         "moss",
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Legendary. Upkeep: gain 1 gold for every two of your green units. NOT MODELLED: the grammar has no division.",
-      "card_stats": { "price": 1, "atk": 2, "hp": { "value": 2, "max": 2 } }
+      "tooltip": "Legendary: a second copy stays in hand while the first stands. Upkeep: gain 1 gold for every two of your green units. NOT MODELLED: the gold, because the grammar has no division.",
+      "card_stats": { "price": 1, "atk": 2, "hp": { "value": 2, "max": 2 } },
+      "play": {
+        "phases": ["main"],
+        "needs": [
+          "count:t1@mine.tech >= 1",
+          "count:galina_glimmer@mine.army == 0",
+          "count:galina_glimmer@mine.patrol == 0"
+        ],
+        "cost": { "gold@mine.player": "price@self" },
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
+      }
     },
     {
       "key": "giant_panda",
@@ -4116,7 +4230,7 @@
         "phases": ["main"],
         "needs": ["count:t1@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:0", "fill:mine.army:wisp:1"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "fill:mine.army:wisp:1"]
       }
     },
     {
@@ -4140,6 +4254,7 @@
         "needs": ["count:t2@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "min": 0,
           "max": 1,
@@ -4147,7 +4262,7 @@
           "tags": ["building"],
           "zones": ["base", "tech", "structures", "addon"]
         },
-        "action": ["move_to", "stat_set:ready_since@self:0", "stat_gain:integrity@target:3"]
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "stat_gain:integrity@target:3"]
       }
     },
     {
@@ -4169,6 +4284,7 @@
       "abilities": [{
         "phases": ["main"],
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "mine",
@@ -4204,6 +4320,7 @@
         "phases": ["main"],
         "cost": { "exhaust": 1 },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "mine",
@@ -4248,14 +4365,25 @@
         "unit",
         "fighter",
         "legendary",
-        "resist",
+        "guargum",
+        "resist_2",
         "obliterate",
         "moss",
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Legendary. Resist 2, obliterate 4. You may play Growth spells for free and without having a Growth hero. NOT MODELLED: resist and the free spells, and obliterate takes the first four units rather than the lowest tech ones.",
+      "tooltip": "Legendary: a second copy stays in hand while the first stands. Resist 2, obliterate 4. You may play Growth spells for free and without having a Growth hero. NOT MODELLED: the free spells, and obliterate takes the first four units rather than the lowest tech ones.",
       "card_stats": { "price": 10, "atk": 12, "hp": { "value": 12, "max": 12 } },
+      "play": {
+        "phases": ["main"],
+        "needs": [
+          "count:t3@mine.tech >= 1",
+          "count:guargum@mine.army == 0",
+          "count:guargum@mine.patrol == 0"
+        ],
+        "cost": { "gold@mine.player": "price@self" },
+        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
+      },
       "abilities": [
         {
           "key": "attacks",
@@ -4277,12 +4405,12 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_growth@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
           "tags": ["fighter"],
-          "zones": ["army", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "patrol"]
         },
         "action": ["stat_gain:atk@target:6", "stat_gain:armor@target:6"],
         "spent": "mine.discard"
@@ -4299,12 +4427,12 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_growth@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "anyone",
           "tags": ["unit"],
-          "zones": ["army", "patrol"],
-          "where": ["not_tagged:untargetable@target"]
+          "zones": ["army", "patrol"]
         },
         "action": ["transform:target:squirrel"],
         "spent": "mine.discard"
@@ -4331,6 +4459,7 @@
         "needs": ["count:hero@mine.hero >= 1", "count:h_growth@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": {
+          "verb": "cast",
           "type": "card",
           "count": 1,
           "owner": "mine",
@@ -4354,7 +4483,7 @@
       "card_stats": { "price": 6 },
       "play": {
         "phases": ["main"],
-        "needs": ["count:h_growth@mine.hero >= 1", "max:level@mine.h_growth >= 5"],
+        "needs": ["count:h_growth@mine.hero >= 1", "max:ripe@mine.h_growth >= 5"],
         "cost": { "gold@mine.player": "price@self" },
         "action": ["stat_gain:atk@each.mine.unit:3", "stat_gain:armor@each.mine.unit:3"],
         "spent": "mine.discard"
