@@ -672,6 +672,46 @@ local function same_scope(subject, stat)
 	return stat .. (subject:match("^[^@]+(@.*)$") or "")
 end
 
+-- **What an aim costs on top, because of what it is aimed at.** The other half
+-- of `adjusts`: a verb that `does: "target"` changes no stat on a card, it
+-- changes the price of pointing at one. Resist is the whole of it — *opponents
+-- pay 1 more gold each time they target this with a spell or an ability* — and
+-- it is the same index, the same `covers`, the same `by` as armour, read at the
+-- one moment a cost can know what it is being spent on.
+--
+-- Every chosen target is asked, so aiming at two resisting things costs two.
+-- **Who is charged is the game's business, not the engine's**: Codex's resist
+-- says *opponents* pay, and says so in the aura's own needs — "count@enemy.self",
+-- the holder read from the acting seat's side. A game wanting everyone to pay
+-- writes no needs at all. Nothing is charged before targeting: `can_play` and
+-- the ability chooser judge affordability with no targets, so a card in hand
+-- quotes its printed price and learns the surcharge once you pick.
+local function resisted(stat, ctx)
+	local list = ctx and ctx.verb and declaration.G.adjust_index[ctx.verb .. ":" .. stat]
+	if not list or not ctx.targets then return 0 end
+	local more = 0
+	for _, entry in ipairs(list) do
+		for _, holder in ipairs(tags.find_targets({ entry.tag }, tags.IN_PLAY)) do
+			local ad, covered = entry.adjust, {}
+			if ad.covers == "self" then
+				covered[holder] = true
+			else
+				local sc = predicate.parse_scope(ad.covers)
+				for _, c in ipairs(sc and predicate.entities_in_scope(sc.name, { card_id = holder }, sc.owner) or {}) do
+					covered[c.id] = true
+				end
+			end
+			for _, aimed in ipairs(ctx.targets) do
+				local sub = { card_id = holder, targets = { aimed }, source = ctx.card_id }
+				if covered[aimed] and predicate.meets_all(ad.needs, sub) then
+					more = more + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
+				end
+			end
+		end
+	end
+	return math.max(0, more)
+end
+
 -- What is owed, and out of which pools, in the order they should be drained.
 -- nil when some part of it cannot be paid.
 local function plan(cost, ctx)
@@ -687,6 +727,7 @@ local function plan(cost, ctx)
 			-- arithmetic a cost has no room for.
 			local need = tonumber(n) or predicate.total(tostring(n), ctx)
 			local p    = predicate.parse_subject(subject)
+			need = need + resisted(stat_name(subject), ctx)
 			-- Only a pool takes part in the matching. "each" asks a different
 			-- question — *every* member paying, not a total — and substituting
 			-- across members would answer neither; a cost the targets pay cannot
@@ -982,7 +1023,7 @@ function M.play_card(card_id, targets)
 	-- The targets are in, so a compute that measures them measures the right
 	-- ones: "deal damage equal to what you aimed at" is a number about the pair.
 	local ctx = predicate.bind(cards.behaviour(c, "compute"),
-		{ card_id = card_id, targets = targets or {} })
+		{ card_id = card_id, targets = targets or {}, verb = def.target and def.target.verb })
 	-- A cost the targets pay could not be judged before they were chosen.
 	if not overlay and not M.can_afford(def.cost, ctx) then return false end
 	checkpoint()
@@ -1278,7 +1319,8 @@ function M.activate(card_id, targets, index)
 	local lo, hi = targeting.bounds(a.target)
 	if #(targets or {}) < lo or #(targets or {}) > hi then return false end
 	if not targets_legal(card_id, a.target, targets) then return false end
-	local ctx = predicate.bind(a.compute, { card_id = card_id, targets = targets or {} })
+	local ctx = predicate.bind(a.compute,
+		{ card_id = card_id, targets = targets or {}, verb = a.target and a.target.verb })
 	if not M.can_afford(a.cost, ctx) then return false end
 	checkpoint()
 	mark_acted(card_id)

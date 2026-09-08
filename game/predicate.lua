@@ -46,13 +46,25 @@ local M = {}
 --
 -- It takes no argument, which no other fn does: there is nothing to name, since
 -- the card it compares against is the one whose condition this is.
+-- "verb" and "not_verb" are the same yes/no shape asked about the *aim* rather
+-- than about a card: is what is pointing at me a cast, an attack, a throw. They
+-- take no scope, because an aim is not a card and has nowhere to be — the same
+-- reason resist reads it off the moment rather than off whoever is casting.
+-- "cannot be targeted by spells" is why they exist: the aimer's own tags cannot
+-- say it, since the hero that casts is the hero that attacks, and every game
+-- that has the keyword was writing the exception on every spell instead.
+-- An aim whose game never named it answers no to "verb" and yes to "not_verb":
+-- being interfered with is opted into here as everywhere else, so a file with
+-- no "verbs" of its own is a file where no aim is a cast.
 local FNS    = { count = true, card = true, sum = true, max = true, min = true,
-	tagged = true, not_tagged = true, saved = true, not_self = true }
+	tagged = true, not_tagged = true, saved = true, not_self = true,
+	verb = true, not_verb = true }
 -- The fns that answer a question rather than measure a quantity. They are the
 -- conditions that need no comparison: "there is a pawn behind it" is the whole
 -- sentence, and `>= 1` after it was the grammar's tax, not the author's meaning.
 -- Kept as a set because the validator refuses the taxed spelling by name.
-local YESNO  = { tagged = true, not_tagged = true, saved = true, not_self = true }
+local YESNO  = { tagged = true, not_tagged = true, saved = true, not_self = true,
+	verb = true, not_verb = true }
 -- The fns written bare, with no ":<something>" in front of the "@". "count@road"
 -- is how many cards are lying there whatever they are, which is the one question
 -- the tag vocabulary could not ask: a tag names a kind, and "is this pile empty"
@@ -472,6 +484,15 @@ function M.total(subject, ctx)
 
 	if p.fn == "saved" then
 		return (M.saved_slot and M.saved_slot(p.arg)) and 1 or 0
+	end
+
+	-- Which kind of aim is being made. Read off the moment, not off a card: the
+	-- ctx carries it wherever an aim is being judged, and is silent everywhere
+	-- else, so a condition written for a ward answers "not this one" when the
+	-- engine asks it with nobody aiming.
+	if p.fn == "verb" or p.fn == "not_verb" then
+		local said = ctx and ctx.verb
+		return (p.fn == "verb") == (said ~= nil and said == p.arg) and 1 or 0
 	end
 
 	-- Is nothing in this scope the card asking? Written as 1 or 0 like the other

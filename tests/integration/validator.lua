@@ -129,6 +129,30 @@ local CASES = {
 			{ key = "a", verb = "poison", stat = "hp", covers = "each.wombat", by = -1 } } end },
 	{ "an aura that says nothing about how much", 'needs a "by"',
 		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "poison", stat = "hp", covers = "self" } } end },
+	-- verbs that name a kind of aim, and the wards that read them
+	{ "an aim nothing declares", 'which no "verbs" entry declares',
+		function(g) g.card_defs.c_flee.target = { type = "card", count = 1, verb = "cast" } end },
+	{ "an aim named after a verb that does something else", 'has to say "does": "target"',
+		function(g)
+			g.verb_defs.poison        = { key = "poison", does = "stat_damage" }
+			g.verb_list               = { "poison" }
+			g.card_defs.c_flee.target = { type = "card", count = 1, verb = "poison" }
+		end },
+	{ "a ward asking about an aim nothing declares", "which no \"verbs\" entry declares",
+		function(g) g.card_defs.c_flee.accepts = { "not_verb:cast" } end },
+	{ "a ward asking about a verb that does something else", 'only a verb that does "target"',
+		function(g)
+			g.verb_defs.poison          = { key = "poison", does = "stat_damage" }
+			g.verb_list                 = { "poison" }
+			g.card_defs.c_flee.accepts = { "not_verb:poison" }
+		end },
+	{ "a ward asking what kind of aim a card is", "so it takes no '@'",
+		function(g)
+			g.verb_defs.cast            = { key = "cast", does = "target" }
+			g.verb_list                 = { "cast" }
+			g.card_defs.c_flee.target  = { type = "card", count = 1, verb = "cast" }
+			g.card_defs.c_flee.accepts = { "not_verb:cast@target" }
+		end },
 	-- verbs a game names, and the auras that watch them
 	{ "a verb standing for nothing", 'needs a "does"',
 		function(g)

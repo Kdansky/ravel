@@ -61,7 +61,7 @@ and a line here names a section that exists:
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
+- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
@@ -4140,6 +4140,81 @@ it is asked before the change              "1 less while damaged" reads the hp n
 
 And an aura only works while its card is in play, which is what a tag scope has
 always meant. A shield in a deck shields nothing.
+
+### `does: "target"` — naming the aim, so the target can answer it
+
+A verb may stand for the act of **aiming** rather than for an action:
+
+```json
+"verbs": [
+  { "key": "attack", "does": "target", "tooltip": "One fighter picking what it throws itself at." },
+  { "key": "cast",   "does": "target", "tooltip": "A spell or an ability picking what it lands on." }
+]
+```
+
+Nothing performs it in an action string. A **target spec** says which kind of
+aim it is, and that is the whole of the declaration:
+
+```json
+"target": { "verb": "attack", "type": "card", "count": 1, "owner": "enemy", "zones": ["patrol"] }
+"target": { "verb": "cast",   "type": "card", "count": 1, "owner": "anyone", "zones": ["army"] }
+```
+
+Two things read it, and both were unsayable before.
+
+**"Cannot be targeted by spells."** `receive.needs` is asked of every candidate
+with the candidate as `@self` and the aiming card as `@target`, so a ward has
+always been able to read *who* is aiming. What it could not read is *what kind
+of aim this is* — and that is not a question about the aimer, because the hero
+that casts is the hero that attacks. `verb:` and `not_verb:` ask it:
+
+```json
+{ "key": "moss_ancient", "tags": ["unit", "untargetable"],
+  "receive": { "needs": ["not_verb:cast"] } }
+```
+
+The rule now lives **on the card that has it**. Nothing that aims says anything,
+so printing a new spell cannot forget the exception, and printing a new ward
+touches one card. Codex traded twenty-two clauses spread over its spells and
+abilities for two lines on the two units that are untargetable.
+
+They take no `@`: an aim is not a card and has nowhere to be. And an aim whose
+game never named it answers no to `verb:` and yes to `not_verb:` — being
+interfered with is opted into here as everywhere else.
+
+**Resist.** The same verb, watched by an `adjusts` whose `stat` is what the
+aimer *pays*:
+
+```json
+"tags": {
+  "resist_1": {
+    "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1,
+      "needs": ["count@enemy.self >= 1"] }]
+  }
+}
+```
+
+Every chosen target is asked, so aiming at two resisting things costs two. **Who
+is charged is the game's business**: the `needs` above is what makes it
+*opponents* who pay — `count@enemy.self` is the aura's own card read from the
+acting seat's side. Leave it out and everyone pays.
+
+The one thing to know before using it: **a price that depends on the target
+cannot be quoted before there is one.** A card in hand is dimmed on its printed
+cost, because playability is judged with nothing chosen yet; the surcharge
+arrives when you pick, and an unaffordable aim is refused then. The resisting
+card is face up on the board, which is what makes that honest rather than a
+trap.
+
+A computed tag may carry `adjusts`, exactly as it may carry `buffs` — both are
+things that are true rather than things that happen. Codex's lookout post is the
+case: resist 1 for as long as something stands on the fifth patrol square.
+
+```json
+"computed_tags": { "at_lookout": { "needs": ["slot@self == 5"] } },
+"tags": { "at_lookout": { "adjusts": [{ "key": "resist", "verb": "cast",
+  "stat": "gold", "covers": "self", "by": 1, "needs": ["count@enemy.self >= 1"] }] } }
+```
 
 ### Keywords: a tag that means something to the player
 

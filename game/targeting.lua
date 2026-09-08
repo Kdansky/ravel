@@ -240,6 +240,11 @@ function M.candidates(card_id, spec)
 	-- A zone answers for itself, exactly as a card does — which is what lets
 	-- "cards must ascend" be one line on the expedition rather than a rule every
 	-- card in the game has to know.
+	--
+	-- The spec's verb rides along, so the ward can ask what kind of aim this is
+	-- and not only who is making it. "Cannot be targeted by spells" is not a
+	-- question about the caster — the hero that casts is the hero that attacks —
+	-- so without it the exception had to be written on every spell in the game.
 	local kept = {}
 	for _, id in ipairs(out) do
 		local e   = entity.get(id)
@@ -248,7 +253,7 @@ function M.candidates(card_id, spec)
 		if not (def and def.accepts) then
 			kept[#kept + 1] = id
 		elseif predicate.meets_all(def.accepts, { card_id = id, zone_id = e.kind == "zone" and id or nil,
-			targets = { card_id } }) then
+			targets = { card_id }, verb = spec.verb }) then
 			kept[#kept + 1] = id
 		end
 	end

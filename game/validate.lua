@@ -257,7 +257,7 @@ local ENGINE_STATS    = {
 }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
-	owner = true, fill = true, moves = true, where = true }
+	owner = true, fill = true, moves = true, where = true, verb = true }
 -- How a pattern's vectors are walked. A closed set the engine defines, unlike
 -- card and zone tags, which are the game's own vocabulary — hence the different
 -- word for it in the JSON.
@@ -762,6 +762,22 @@ function M.check(G)
 			if not G.card_defs[p.arg] then
 				warn("%s: checks for the card '%s', but no template has that key%s",
 					where, p.arg, suggest(p.arg, G.card_defs))
+			end
+		elseif p.fn == "verb" or p.fn == "not_verb" then
+			-- Which kind of aim is being made. The game's own word, held to the
+			-- same cross-check a target spec's is — and it takes no scope,
+			-- because an aim is not a card and has nowhere to be.
+			local vd = G.verb_defs[p.arg]
+			if not vd then
+				warn("%s: asks about the aim '%s', which no \"verbs\" entry declares%s",
+					where, tostring(p.arg), suggest(p.arg, G.verb_defs))
+			elseif vd.does ~= "target" then
+				warn("%s: asks about '%s', which stands for '%s' — only a verb that does \"target\" "
+					.. "names a kind of aim", where, tostring(p.arg), tostring(vd.does))
+			end
+			if p.scope then
+				warn("%s: '%s' asks what kind of aim this is, which is not a question about a card, "
+					.. "so it takes no '@'", where, p.fn)
 			end
 		elseif p.fn == "not_self" then
 			-- Nothing to name: what it compares against is the card whose
@@ -1498,6 +1514,22 @@ function M.check(G)
 			warn('%s %s: says "count" and also "min"/"max" — count already sets both,'
 				.. ' so write one or the other', where, field)
 		end
+		-- What kind of aim this is, for a ward or a resist to read. It is the
+		-- game's own word, so it is held to the same cross-check an action's verb
+		-- is: declared under "verbs", standing for "target", and noted as used so
+		-- an aura watching a kind of aim nothing makes can be told so.
+		if spec.verb ~= nil then
+			local vd = G.verb_defs[spec.verb]
+			if type(spec.verb) ~= "string" or not vd then
+				warn('%s %s: aims with \'%s\', which no "verbs" entry declares%s', where, field,
+					tostring(spec.verb), suggest(spec.verb, G.verb_defs))
+			elseif vd.does ~= "target" then
+				warn("%s %s: aims with '%s', which stands for '%s' — a verb naming a kind of aim "
+					.. "has to say \"does\": \"target\"", where, field, tostring(spec.verb), tostring(vd.does))
+			else
+				used_verbs[spec.verb] = true
+			end
+		end
 		-- Asked of each candidate with that candidate as the target, so its
 		-- subjects are checked exactly as a move rule's "where" already is.
 		check_conditions(where .. " " .. field .. " where", spec.where)
@@ -1794,13 +1826,20 @@ function M.check(G)
 			-- behaviour version of it to belong to.
 			-- The loader always leaves an "abilities" and an "emits" behind, so
 			-- an empty one is not something the game said.
-			local buff_only = td.buffs ~= nil
+			-- Both halves of "things that are true" are reads rather than moments:
+			-- one says what a number on a card is, the other how much a verb does
+			-- to it. Neither needs a card to belong to, so a computed tag may
+			-- carry either — the lookout post is resist 1 while something stands
+			-- on square five, and that is a condition about one card.
+			local read_only = td.buffs ~= nil or td.adjusts ~= nil
 			for field, v in pairs(td) do
-				if field ~= "buffs" and not (type(v) == "table" and next(v) == nil) then buff_only = false end
+				if field ~= "buffs" and field ~= "adjusts" and field ~= "tooltip"
+					and not (type(v) == "table" and next(v) == nil) then read_only = false end
 			end
-			if G.computed_tags[tag] and not buff_only then
+			if G.computed_tags[tag] and not read_only then
 				warn("%s: is defined under both 'tags' and 'computed_tags' — a computed tag can carry "
-					.. "\"buffs\" and nothing else, since there is no card for behaviour to belong to", where)
+					.. "\"buffs\" and \"adjusts\" and nothing else, since there is no card for "
+					.. "behaviour to belong to", where)
 			end
 			if not carried_tags[tag] and not G.computed_tags[tag] then
 				warn("%s: has behaviour defined, but no card carries this tag%s",
@@ -3106,7 +3145,11 @@ function M.check(G)
 	-- halves are written in different places and nothing else holds them
 	-- together, which is the same typo the reaction cross-check below catches
 	-- and is caught the same way.
-	local ADJUSTABLE = { stat_damage = true, stat_gain = true }
+	-- "target" is the act of aiming rather than an action: a verb standing for
+	-- it is named by a target spec and watched by an aura that changes what
+	-- pointing costs, which is resist. It has no action string to be found in,
+	-- so check_target notes it used instead of check_action.
+	local ADJUSTABLE = { stat_damage = true, stat_gain = true, target = true }
 	for _, key in ipairs(G.verb_list) do
 		local vd    = G.verb_defs[key]
 		local where = "verb '" .. tostring(key) .. "'"
@@ -3124,7 +3167,7 @@ function M.check(G)
 		elseif not ADJUSTABLE[vd.does] then
 			warn("%s: stands for '%s', which is not a verb an aura may watch%s — a named moment is one "
 				.. "something can answer, and only %s can be adjusted so far", where, tostring(vd.does),
-				suggest(vd.does, ADJUSTABLE), "stat_damage and stat_gain")
+				suggest(vd.does, ADJUSTABLE), "stat_damage, stat_gain and target")
 		elseif not used_verbs[key] then
 			warn("%s: is declared but no action performs it — a moment nothing reaches is a word "
 				.. "the file has to keep in step for nothing", where)
