@@ -24,6 +24,9 @@ local rich        = require("richtext")
 -- with both files deleted.
 local ok_net, net = pcall(require, "net")
 local netlink     = ok_net and require("netlink") or nil
+-- Optional for net's reason, and it requires net: an engine-played seat is this
+-- machine acting, which is a thing the turn gate has to be told.
+local ok_bot, bot = pcall(require, "opponent")
 pcall(require, "save")   -- likewise: loading it is what makes the save ops work
 
 local function wrap(text, width)
@@ -49,6 +52,17 @@ local function card_line(e)
 	return table.concat(bits, " ")
 end
 
+-- What a hand *is*, now that a zone is its parts: a row of cards somebody holds,
+-- which is any row that is not in play. It was one word — `zone_type == "hand"`
+-- — until [28] split the word into seven, and the two reads here were left
+-- behind and have quietly been false ever since.
+local function a_hand(z)
+	-- The system column is a row of cards nobody is holding: Save and Menu sit
+	-- outside the game, which is what is_system_card is for.
+	if z.cards[1] and flow.is_system_card(z.cards[1]) then return false end
+	return z.layout == "row" and z.status ~= "board" and z.display ~= "offscreen" and not z.tags.hidden
+end
+
 -- The hand the player at this prompt is holding. Asked of zones rather than
 -- walked for, because a per-seat hand has one instance per seat and walking
 -- found the *first* — so a two-seat game showed north's cards whoever was to
@@ -56,12 +70,29 @@ end
 local function hand_zone()
 	local cur = phase.current()
 	local z   = zones.find(cur and cur.zone or "hand")
-	if z and z.zone_type == "hand" and not z.tags.hidden then return z end
+	if z and a_hand(z) then return z end
 	if cur and cur.type == "overlay" then return z end
 	for zz in entity.each("zone") do
-		if zz.zone_type == "hand" and not zz.tags.hidden and zz.seat == nil then return zz end
+		if a_hand(zz) and zz.seat == nil then return zz end
 	end
 	return z
+end
+
+-- Every place that can be used right now, in a stable order, so the number the
+-- board printed is the number the command means. The CLI had no way to reach a
+-- zone's abilities at all — which is how a deck is drawn from and a bank bought
+-- out of, so half the corpus could not finish a turn from this prompt.
+local function usable_places()
+	local out = {}
+	for z in entity.each("zone") do
+		if z.display ~= "offscreen" then
+			for _, u in ipairs(flow.usable_zone_abilities(z.id)) do
+				out[#out + 1] = { zone = z.id, index = u.index,
+					text = label.fill(z.label or z.key, z) .. (u.rule.text and (" — " .. u.rule.text) or "") }
+			end
+		end
+	end
+	return out
 end
 
 local function show()
@@ -88,7 +119,7 @@ local function show()
 	if #stats > 0 then print(table.concat(stats, "   ")) end
 
 	for z in entity.each("zone") do
-		if z.zone_type == "grid" and not z.tags.hidden then
+		if z.layout == "grid" and z.display ~= "offscreen" and not z.tags.hidden then
 			print(label.fill(z.label or "Board", z) .. " ('a <slot>' activates, ~ = exhausted):")
 			local row = {}
 			for idx, slot_id in ipairs(z.slots) do
@@ -109,11 +140,17 @@ local function show()
 
 	local counts = {}
 	for z in entity.each("zone") do
-		if (z.zone_type == "deck" or z.zone_type == "pile") and not z.tags.hidden then
+		if z.layout == "stack" and z.display ~= "offscreen" and not z.tags.hidden then
 			counts[#counts + 1] = label.fill(z.label or z.key, z) .. "(" .. #z.cards .. ")"
 		end
 	end
 	if #counts > 0 then print(table.concat(counts, "  ")) end
+
+	local places = usable_places()
+	if #places > 0 then
+		print("Places ('z <n>'):")
+		for i, u in ipairs(places) do print("  [" .. i .. "] " .. u.text) end
+	end
 
 	-- A response window looks like nothing from the outside — the turn has not
 	-- moved and the phase is the same one — so it is said out loud, above the
@@ -171,7 +208,12 @@ local function prompt_targets(card_e, spec)
 	print("Targets for " .. (cards.def(card_e).text or card_e.def_key) .. ":")
 	for i, id in ipairs(eligible) do
 		local t = entity.get(id)
-		print("  [" .. i .. "] " .. (t.kind == "slot" and ("slot " .. t.slot_idx) or card_line(t)))
+		-- A spec may name a place rather than a thing: a square is a slot and an
+		-- expedition is a zone, and neither has a card's definition to print.
+		-- Printing one through card_line crashed the prompt outright.
+		print("  [" .. i .. "] " .. (t.kind == "card" and card_line(t)
+			or t.kind == "slot" and ("slot " .. t.slot_idx)
+			or (t.label or t.key)))
 	end
 	io.write(string.format("choose %d-%d (space-separated, c=cancel)> ", min, max))
 	local line = io.read("*l")
@@ -242,7 +284,7 @@ end
 local function slot_owner_zone(idx)
 	local fallback
 	for z in entity.each("zone") do
-		if z.zone_type == "grid" and z.slots[idx] and entity.get(z.slots[idx]).occupant then
+		if z.layout == "grid" and z.slots[idx] and entity.get(z.slots[idx]).occupant then
 			local occ = entity.get(z.slots[idx]).occupant
 			if flow.can_activate(occ) then return z end
 			fallback = fallback or z
@@ -321,6 +363,7 @@ end
 local HELP = [[
   <n>          play (or pick) card n
   a <slot>     activate the board card in that slot
+  z <n>        use place n — a deck to draw from, a bank to buy from
   r <n>        answer what is announced with reaction n
   p            pass on answering it
   i <n>        inspect card n
@@ -331,6 +374,7 @@ local HELP = [[
   reload       re-read templates from the game file, keep playing
   load <file>  load a game json
   n ...        networked play (n help)
+  bot <seat>   let the engine play that seat ("bot off" hands them all back)
   q            quit]]
 
 local NET_HELP = [[
@@ -405,6 +449,26 @@ local function net_command(rest)
 	end
 end
 
+-- Which seats the engine plays. Naming the other seat of a two-player game is
+-- the whole of single player; "off" hands them all back.
+local function bot_command(rest)
+	if not ok_bot then print("this build has no opponent module"); return end
+	local name = rest:match("^%S+")
+	if not name then
+		for _, k in ipairs(declaration.G.seat_list or {}) do
+			print("  " .. k .. (bot.seats[k] and "   (engine)" or ""))
+		end
+	elseif name == "off" then
+		bot.leave()
+		print("every seat is yours again")
+	elseif not (declaration.G.seat_set or {})[name] then
+		print("no seat called '" .. name .. "' in this game")
+	else
+		bot.take(name)
+		print("the engine plays " .. name)
+	end
+end
+
 -- Echo log lines written since the last command: the play-by-play record.
 local log_seen = 0
 local function echo_log()
@@ -436,6 +500,9 @@ while true do
 		play_index(tonumber(cmd))
 	elseif cmd == "a" and tonumber(rest) then
 		activate_slot(tonumber(rest))
+	elseif cmd == "z" and tonumber(rest) then
+		local u = usable_places()[tonumber(rest)]
+		if u then flow.activate_zone(u.zone, u.index) else print("No place [" .. rest .. "].") end
 	elseif cmd == "r" and tonumber(rest) then
 		react_index(tonumber(rest))
 	elseif cmd == "p" then
@@ -468,12 +535,23 @@ while true do
 	elseif cmd == "load" then
 		local ok, err = pcall(flow.init, rest)
 		if not ok then print(err); flow.init("menu.json") end
+	elseif cmd == "bot" then
+		bot_command(rest)
 	elseif cmd == "n" then
 		net_command(rest)
 	elseif cmd == "h" then
 		print(HELP)
 	else
 		print("? (h for help)")
+	end
+	-- The engine takes its seats before the board is drawn again, so the prompt
+	-- comes back when it is the player's turn and not once per bot move. Capped
+	-- rather than looped to exhaustion: two engine seats would otherwise play
+	-- the whole game at the prompt, and a stuck one would never give it back.
+	if ok_bot then
+		for _ = 1, 200 do
+			if not bot.act() then break end
+		end
 	end
 	-- A linked transport is checked after every command, so an opponent's move
 	-- lands without anyone having to ask for it.
