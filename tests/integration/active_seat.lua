@@ -20,7 +20,7 @@ local GAME = [==[{
   "players": [{ "card": "one" }, { "card": "two" }],
   "stats": [{ "key": "score", "label": "Score", "subject": "score@mine.player" }],
   "zones": [
-    { "key": "board", "layout": "grid", "use": "abilities", "grid": [4, 1],
+    { "key": "board", "layout": "grid", "use": "play", "grid": [4, 1],
       "pos": [0.05, 0.40, 0.95, 0.60] },
     { "key": "commons", "layout": "stack", "pos": [0.30, 0.70, 0.45, 0.90] }
   ],

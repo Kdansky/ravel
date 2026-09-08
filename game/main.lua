@@ -20,6 +20,10 @@ require("save")
 -- Beside those two and for the same reason: requiring it is what makes
 -- `open_game` do anything. Held, unlike save, because a dropped file arrives
 -- through an event rather than through an action.
+-- Beside net and save: additive, required by nothing, and requiring it is what
+-- lets a seat be played by the engine. It requires net back, because a move made
+-- for a seat nobody is sitting at has to get past the turn gate.
+local opponent    = require("opponent")
 local openfile    = require("openfile")
 local render      = require("render")
 local tooltip     = require("tooltip")
@@ -402,6 +406,23 @@ function love.keypressed(key)
 		if not targeting.active() then flow.undo() end
 	elseif key == "l" then
 		render.toggle_log()
+	elseif key == "o" then
+		-- Single player, as one gesture: you keep the seat you are watching and
+		-- the engine takes the rest. Sitting down is part of it, because an
+		-- opponent implies a side to be on — and claiming a seat is also what
+		-- turns the other hand face down, which is the half a player would
+		-- otherwise have to know to ask for.
+		local seats = declaration.G.seat_list or {}
+		if next(opponent.seats) then
+			opponent.leave()
+			log.add("Every seat is yours again.")
+		elseif #seats > 1 then
+			local mine = zones.watching() or net.claim_seat(seats[1])
+			for _, k in ipairs(seats) do
+				if k ~= mine then opponent.take(k) end
+			end
+			log.add("You are " .. tostring(mine) .. "; the engine plays the rest.")
+		end
 	end
 	stage.seal()
 end
@@ -511,6 +532,14 @@ function love.update(dt)
 	-- against the live registry instead, every card would be asked for its final
 	-- position on the first frame of a run and the whole thing would happen at
 	-- once, which is what the run exists to stop.
+	-- A seat the engine plays moves between runs and is bracketed exactly as a
+	-- click is, so its turn is played back a beat at a time like anybody else's
+	-- — and never starts while the last one is still being watched.
+	if opponent.due() and not stage.busy() then
+		stage.arm()
+		opponent.act()
+		stage.seal()
+	end
 	stage.update(dt)
 	stage.enter()
 	render.sync_places()

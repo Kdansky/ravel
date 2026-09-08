@@ -850,6 +850,13 @@ function M.can_play(card_id)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
 	if not def or not reachable(c) or not in_play_zone(c) or not on_top(c) then return false end
+	local z = c.zone_id and entity.get(c.zone_id)
+	-- What may be done with a card here at all. The renderer and the hit-test
+	-- have always honoured it (zones.card_at) and flow never did, so the top
+	-- card of a face-down deck was playable to anything that did not come
+	-- through a mouse — a script, the debug API, the network, an engine-played
+	-- seat. Flow is the single legality gate, which has to mean this one too.
+	if z and z.use ~= "play" then return false end
 	-- A card lying in an open offer is the answer to the question the offer is,
 	-- and the gates below are about playing a card from a hand. The one thing
 	-- that may still refuse it is the asking card saying which of them it will
@@ -885,7 +892,6 @@ function M.can_play(card_id)
 	local ctx = predicate.bind(cards.behaviour(c, "compute"), { card_id = card_id })
 	if not M.can_afford(def.cost, ctx) then return false end
 	if predicate.meets_all(def.needs, ctx) then return true end
-	local z = entity.get(c.zone_id)
 	-- A zone tagged "optional" holds buttons, not a hand: nothing in it ever has
 	-- to be played, so there is no soft-lock for the hatch below to break, and
 	-- opening it would offer a move the rules had just refused. Chess's castling

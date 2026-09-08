@@ -575,10 +575,35 @@ end
 
 ---------------------------------------------------------------- turn gating
 
+-- A move this machine is making for a seat nobody is sitting at — an
+-- engine-played opponent, which is this client acting and not a remote player.
+-- Scoped and restored even when the body raises, for zones.as_seat's reason: a
+-- latch left standing would hand every later click the permission it granted.
+local unattended = false
+
+-- The game the seat below was claimed in; see may_act.
+local claimed_in = nil
+
+function M.unattended(fn)
+	local prev = unattended
+	unattended = true
+	local ok, err = pcall(fn)
+	unattended = prev
+	if not ok then error(err, 0) end
+end
+
 -- Which seat this client may move. nil means "whoever is up", which is what a
 -- solo game, a hot-seat game and a spectator all want.
+--
+-- **A claim belongs to the game it was made in.** It outlived one before:
+-- sitting down as North and then loading another game left every move refused
+-- and nothing on screen saying why — and where the second game has a North of
+-- its own, checking the name against `seat_set` the way `zones.watching` does
+-- would not have caught it. Found by an engine-played seat, which picked "play
+-- online" out of a menu and locked the next game out.
 function M.may_act()
-	if not M.seat then return true end
+	if unattended then return true end
+	if not M.seat or claimed_in ~= declaration.filename then return true end
 	return zones.active_seat() == M.seat
 end
 
@@ -596,6 +621,7 @@ end
 -- halves drift apart the next time one of them is set somewhere else.
 function M.claim_seat(name)
 	M.seat = (name and name ~= "" and name ~= "any") and name or nil
+	claimed_in = M.seat and declaration.filename or nil
 	zones.viewer = M.seat
 	return M.seat
 end

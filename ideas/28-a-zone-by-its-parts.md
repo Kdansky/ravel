@@ -132,3 +132,60 @@ were already offscreen, and an offscreen zone cannot be hovered or browsed, so i
 had never refused anything. What went with it is a combination nothing has asked
 for — the top card public and the rest unsearchable — because browsing
 deliberately reaches past `reach: "top"`. A known hole rather than an oversight.
+
+## Reopened: a refill nobody may gate (2026-09-08)
+
+Codex's rulebook allows **one reshuffle per main phase**; a draw after that draws
+nothing. `deck` says `refill_from: "discard"` and the engine shuffles as often as
+the pile runs out, so the one card in the format that stops the loop is missing.
+
+**The inbox note had the moment wrong, and being wrong makes it cheaper.** The
+refill does not fire when the pile empties — `move_card` does that, for the
+`refill_when_empty` *tag*, which recreates a zone's declared `contents`.
+`refill_from` fires **on demand**, in `zones.move_top` (`zones.lua:406`), when
+somebody tries to draw and finds nothing. The comment there says why, and the
+two moments are deliberately different. So a cap has exactly one site to sit at,
+and that site is already the draw attempt.
+
+What a game still cannot say is *whether this refill may happen*. A stat cannot
+stand in: `M.restock` (`zones.lua:280`) tips the pile over one card at a time
+through `move_card`, so the deck's `receive` fires once **per card** rather than
+once per refill, and by the time it fires the pile is no longer empty.
+
+### The candidate word
+
+The zone says how it restocks, in one block, where the deck already is:
+
+```json
+"restock": {
+  "from": "discard",
+  "needs": ["reshuffled@mine.player == 0"],
+  "action": ["stat_gain:reshuffled@mine.player:1"]
+}
+```
+
+`refill_from: "discard"` stays as the short form of `{ "from": "discard" }` — the
+`normalise_moves` precedent (`declaration.lua:59`), where a bare string is the
+one-field case of the block beside it. A refused `needs` leaves the pile empty
+and `move_top` returns false, which is already what a draw off an empty pile
+does, so nothing downstream learns the word.
+
+[Assumption: the three-field shape is mine, not dictated. The user asked for
+"marking decks for restocking directly on the deck", and the fields are the ones
+`restock` would have to be told; `needs`/`action` are named after the pair every
+other block in the format uses.]
+
+Where it lands: `M.restock` asks `needs` before it moves anything and runs
+`action` after the shuffle; `declaration.lua` normalises the string; the zone
+field table in `validate.lua:178` gains `restock`, checked with `check_conditions`
+and `check_list` exactly as `on_receive` is at `validate.lua:2665`.
+
+**The risk is the action list, not the gate.** Running actions inside a draw loop
+is what `fire_receive` does (`zones.lua:487`), and a restock whose action draws is
+the same circle its depth guard exists for — so the guard is **shared**, not
+copied.
+
+**The weakness is one customer.** Three games say `refill_from` at six sites;
+Puzzle Strike's bag and Spellstorm's four want no gate at all, and only Codex has
+a rule to write. Ranked on that rather than on difficulty. Needs consent before
+it is built.

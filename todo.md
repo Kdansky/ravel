@@ -6,12 +6,11 @@ Remove fully completed entries when we have done them or moved them to other fil
 
 ## Open
 
-- **Codex: reshuffling is unlimited, and the cap needs the engine.** The
-  rulebook allows one reshuffle per main phase, and refuses further draws that
-  phase. Codex's deck has `refill_from: "discard"`, so `zones.move_card` calls
-  `restock` the instant the pile empties — engine-driven, ungated, and invisible
-  to the game. A stat cannot count it: `restock` moves the cards one at a time
-  through `move_card`, so the deck's `receive` fires once *per card* rather than
-  once per reshuffle, and by the time it fires the pile is no longer empty. The
-  missing word is a gate or a count on the refill itself. Low stakes — it only
-  bites when a deck is emptied twice in one main phase.
+- **The log says `{name}`.** A seat renamed by `set_name` reads correctly on its
+  card, in its tooltip and on the ending banner, because `label.fill` runs when
+  a string is *drawn*. A log line is not drawn from anything: `flow` writes
+  `log.add("Played " .. def.text)` and the finished string keeps the template, so
+  `tooltip.lua`'s event-log card prints `{name} +1 mana` and `— {name} to play —`.
+  Filling it at write time would defeat the whole point of [27]'s answer-when-drawn
+  rule; filling it at read time needs the entity the line was about, which the log
+  does not keep. Found by watching an engine-played Spellstorm seat.

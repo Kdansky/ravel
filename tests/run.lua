@@ -1224,8 +1224,13 @@ local function random_playthrough(file, seed)
 	return false, "step budget exhausted"
 end
 
+-- The six it was written against, and six more it could not reach until the
+-- move list grew a window, a place and a card outside the hand. They are the
+-- games with something to catch: two seats, a stack, a bank, a board.
 for _, file in ipairs({ "demo.json", "castle.json", "kingdom.json",
-	"tower.json", "road.json", "starter_cyoa.json" }) do
+	"tower.json", "road.json", "starter_cyoa.json",
+	"chess.json", "splendor.json", "the_crew.json", "arnak.json",
+	"puzzle_strike.json", "lor.json" }) do
 	for _, seed in ipairs({ 1, 2, 3 }) do
 		local ok, why = random_playthrough(file, seed)
 		check(file .. " seed " .. seed .. " terminates at the menu", ok)

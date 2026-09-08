@@ -144,20 +144,19 @@ function M.test_net_seat_gating(check)
 	net.begin("lost_cities.json", 7)
 	dismiss_mode()
 	check("with no seat claimed, anyone may act", net.may_act())
-	net.seat = zones.active_seat()
+	net.claim_seat(zones.active_seat())
 	check("the active seat may act", net.may_act())
 	local mine, my_targets = first_playable()
 	check("...and can play", mine ~= nil and flow.play_card(mine, my_targets))
-	net.seat = "south"
 	net.begin("lost_cities.json", 7)
 	dismiss_mode()
-	net.seat = "south"                        -- north is up first
+	net.claim_seat("south")                   -- north is up first
 	check("the inactive seat may not act", not net.may_act())
 	local theirs = zones.find("hand")
 	check("the inactive seat's cards read as unplayable",
 		theirs and #theirs.cards > 0 and not flow.can_play(theirs.cards[1]))
 	check("...and flow refuses the play outright", not flow.play_card(theirs.cards[1], {}))
-	net.seat = nil
+	net.claim_seat(nil)
 end
 
 function M.test_net_invite(check)
