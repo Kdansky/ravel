@@ -36,30 +36,58 @@ generalise.
 ## Gap 1 — the squares a move passes over (checkers)
 
 A checkers jump is `[2,2]`, and it takes the piece it flies *past* — a square
-that is neither where the piece started nor where it lands. Nothing can name
-that square. Chess never asked, because a piece on the path just stops the move:
-the path is consulted and discarded inside `geometry.reach`, and nothing above
-ever sees it.
+that is neither where the piece started nor where it lands.
 
-**Three unbuilt rules want the same word**, which is this document's own signal
-to generalise:
+**This file said no word could name that square. It was wrong** (probed
+2026-09-08), and both halves — asking about the mid square and taking the piece
+on it — work today:
 
-| Rule | Asks about the path |
-|---|---|
-| A checkers jump | is there exactly one enemy on it, and take that piece |
-| Castling through check | is any square on it attacked |
-| En passant | *(shipped instead as `where` + `last_acted`, which is the cheaper answer where the square is nameable)* |
+```json
+"patterns": { "hop_ne": { "vectors": [[2, 2]] }, "back_sw": { "vectors": [[-1, -1]] } },
+"abilities": [
+  { "key": "hop",
+    "moves": [{ "patterns": ["hop_ne"], "fill": "empty",
+                "where": ["count:piece@back_sw == 1"] }],
+    "action": ["move_to:target", "destroy:back_sw"] }
+]
+```
 
-So: `geometry.reach` already walks the squares between origin and destination —
-**return them**, and expose them as a scope anchored on the move being
-considered. This is close kin to [08](08-grid-movement-notation.md)'s missing
-anchor word, and the two should be designed together rather than growing two
-ways to say "relative to something other than me".
+An empty mid square offers no jump; with a victim on d4 the jump to e5 is
+offered, and taking it removes the victim. Two things that were built for other
+reasons meet: **a pattern is already a scope** (`entities_in_scope` has a branch
+for `pattern_defs`, so `@back_sw` names whoever stands there), and **the anchor
+follows the piece** — `where` is asked with `anchor = sid`, so the pattern is
+read from the *destination*; then `move_to:target` runs first in the action, so
+`pattern_slots`' fallback to `c.slot_id` is the landing square by the time
+`destroy:back_sw` is read. The same pattern names the same square twice, for two
+different reasons.
 
-The other half is **chained jumps**: the move action re-pushes a targeting phase
-while more jumps exist. One move per piece per turn is already the default —
-what bounds a turn is the handover, not the piece being spent — so the chain is
-the exception and has to say so.
+Castling through check is the asking half alone and needs nothing either — an
+absolute pattern named as a scope is `count:piece@castle_path`.
+
+### The word, if it is ever wanted — **only implement when needed**
+
+The cost of the spelling above is **one rule per direction**. A pattern is a set
+of vectors and the mid square depends on which vector was taken, so
+`[[2,2],[-2,2]]` in one pattern would make `@back_sw` name a square the piece
+never flew over. A checkers man is 2 rules and 4 patterns; a king is 4 and 8.
+Verbose, correct, and it ships today.
+
+A word would collapse that to one rule: *the squares this move passed over*,
+anchored on the move actually made. It is not free — `geometry.reach` returns a
+flat list of slot ids and would have to report which vector produced each
+square, which changes what a pure function hands back, and interpolation is only
+defined for vectors that are a line (a knight's `[1,2]` has no meaningful
+midpoint). **Do not build it until checkers is written and the four-rule version
+has actually been read.** If it reads fine, the word is not wanted.
+
+### What is genuinely left
+
+**Chained jumps**: the move action re-pushes a targeting phase while more jumps
+exist. One move per piece per turn is already the default — what bounds a turn
+is the handover, not the piece being spent — so the chain is the exception and
+has to say so. This is a flow question, not a targeting word, and it is the only
+part of this gap that needs anything new.
 
 **Milestone: checkers plays end to end, without forced-capture rules.**
 

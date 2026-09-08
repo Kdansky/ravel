@@ -1,9 +1,15 @@
 # 30 — Things that are true
 
-**Built, first cut** (2026-09-01). The stat half of `adjusts` ships with the
-declared-verb rule; the cost half (`"verb": "target"`, and resist with it) is
-still a draft, because it carries the preview question below. A fourth card
-moment was asked for, beside `play`,
+**Built whole** (2026-09-08). The stat half shipped 2026-09-01; the cost half
+shipped with this note's second pass, and it is *not* the `"verb": "target"` the
+draft below proposed. A game names its own aims — `attack`, `cast`, each a verb
+that `does: "target"` — a target spec says which one it is, and both halves read
+that: `verb:`/`not_verb:` in a ward, and the same key on an `adjusts` for
+resist. That puts resist back inside the rule the first cut set, that an aura
+may watch a declared verb and never an engine one, which `"verb": "target"`
+would have broken. The preview question was answered by **option 1**: a card in
+hand quotes its printed price, and an unaffordable aim is refused at the pick.
+A fourth card moment was asked for, beside `play`,
 `activate` and a reaction: an **aura** that modifies behaviour rather than
 causing it. "Cannot be targeted by spells." "Blue spells cannot target this."
 "This takes 1 less damage."
@@ -25,9 +31,9 @@ Sorted that way there are three of them, and they were never one word:
 
 | what it settles | word | state |
 |---|---|---|
-| whether a thing may happen at all | `receive.needs` | **ships today, unused** |
+| whether a thing may happen at all | `receive.needs` | shipped long ago; **first used 2026-09-08**, once the aim could be named |
 | what a number on a card *is* | `buffs` | shipped 2026-09-01 |
-| how much a verb *does* | `adjusts` | this draft |
+| how much a verb *does* | `adjusts` | stat half 2026-09-01, cost half 2026-09-08 |
 
 ## The first one already works
 
@@ -76,6 +82,37 @@ already carrying Codex's elite post.
 What it cannot do is the reason there is a third word. A buff changes a number
 **on a card**. It cannot change a number in a **sentence** — how much this
 particular damage is, what this particular spell costs.
+
+### Stacking, asked and already answered (2026-09-08)
+
+Two tags buffing the same stat **already add** — `buff_index` is keyed by the
+stat and `tags.buff` sums every tag the card wears. What does not add is one tag
+counted twice, and it cannot: a tag is a word a card either wears or does not,
+and multiplicity on a set membership is not worth building.
+
+**Rejected: a subject as a buff amount** (`"buffs": { "atk": "count:lord@army" }`),
+the spelling `adjusts.by` and a cost already allow. It lost because a buff is
+read on *every* stat read, so it would put a board query — and a chain behind it
+— inside the hottest path in the engine, and the cycle walk would then only be
+as good as its edge extraction over an arbitrary subject.
+
+What scaling actually costs is a ladder of computed rungs, all plain numbers:
+
+```json
+"computed_tags": {
+  "lorded_1": { "needs": ["tagged:fish@self", "count:lord@army >= 1"] },
+  "lorded_2": { "needs": ["tagged:fish@self", "count:lord@army >= 2"] }
+},
+"tags": { "lorded_1": { "buffs": { "atk": 1 } }, "lorded_2": { "buffs": { "atk": 1 } } }
+```
+
+One lord reads 2, two read 3, and the ceiling is however many rungs were
+written — which card games bound anyway, exactly as Codex bounds resist at 2.
+
+**The trap, and it cost the first probe:** the rungs must be *purely computed*.
+A tag printed in a card's `tags` holds unconditionally — `tags.entity_has` finds
+it in `tags_set` and never asks the condition — so the card carries only `fish`
+and each rung asks `tagged:fish@self` itself.
 
 ## The third: `adjusts`
 
@@ -312,16 +349,39 @@ the index is keyed `"<verb>:<stat>"` so a game with no auras pays one nil lookup
 per stat change. Ten validator refusals, seven integration tests, and a section
 in AUTHORING.
 
-**Not shipped**: `"verb": "target"` and the cost hook in `flow.plan` — which is
-resist. Everything about it is settled except the preview, and that is a
-question about what a player is shown rather than about the word. It is one
-handler and one index lookup once that is answered.
+**Shipped in the second pass (2026-09-08)**: a verb may `does: "target"`, a
+target spec names which aim it is, `verb:`/`not_verb:` read it as conditions,
+and `flow.plan` levies the surcharge once the targets are in. A computed tag may
+carry `adjusts` as it may carry `buffs` — both are things that are true — which
+is what makes Codex's lookout post resist 1 while somebody stands on square
+five. Six integration tests in `aims.lua`, five validator refusals, an AUTHORING
+section and a SCHEMA entry.
+
+**What the aim buys that `"verb": "target"` would not.** The draft's spelling
+made the engine's own act of aiming watchable, which is the rule the first cut
+exists to refuse. Naming the aims in the file keeps the opt-in *and* answers the
+other half: a ward can ask which kind of aim this is, which no tag on the aiming
+card can say, because the hero that casts is the hero that attacks. Codex traded
+twenty-two `not_tagged:untargetable@target` clauses, spread over its spells,
+abilities and arrival triggers, for two lines on the two units that have the
+keyword.
+
+**Who pays is the game's business.** The engine charges whoever aims; Codex's
+`needs: ["count@enemy.self >= 1"]` is what makes it *opponents*, read off the
+acting seat's side. A game wanting everyone to pay writes no needs.
 
 ## Open questions
 
-1. **Which engine verbs a game verb may stand for.** `stat_damage` and
-   `stat_gain` shipped. Counts — draw two fewer, destroy one less — are a later
+1. **Which engine verbs a game verb may stand for.** `stat_damage`, `stat_gain`
+   and `target` ship. Counts — draw two fewer, destroy one less — are a later
    widening and want their own evidence.
 2. **Whether `emits` may name a declared verb**, or the two vocabularies stay
    apart. See above.
-3. **The preview**, above.
+3. ~~The preview~~ — answered: the printed price in hand, the surcharge at the
+   pick, and the resisting card face up on the board in between. A range in the
+   cost row stays available if it ever reads as a trap in play.
+4. **Whether a tag may carry `receive`.** It cannot today: `TAG_FIELDS` has no
+   `accepts`, and `targeting.candidates` reads it straight off the card def
+   rather than through `cards.behaviour`. Codex's ward is therefore written on
+   its two untargetable cards rather than once on the `untargetable` tag, which
+   is right for two and would not be for twenty.

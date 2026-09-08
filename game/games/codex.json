@@ -125,6 +125,7 @@
     },
     { "key": "aa", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "sneak", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "spotted", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
     {
       "key": "ready_since",
       "min": 0,
@@ -239,9 +240,19 @@
       "tooltip": "Does the defender have a detector on their base."
     },
     {
+      "key": "unspent",
+      "from": "1 - sum:spotted@opponent",
+      "tooltip": "One while their tower has not yet spotted anything this turn."
+    },
+    {
+      "key": "watching",
+      "from": "det * unspent",
+      "tooltip": "A detector that still has its one look left."
+    },
+    {
       "key": "no_det",
-      "from": "1 - det",
-      "tooltip": "One when the defender has no detector, so sneaking works."
+      "from": "1 - watching",
+      "tooltip": "One when nothing is watching \u2014 no detector, or its look is already spent \u2014 so sneaking works."
     },
     {
       "key": "sneak_ok",
@@ -395,6 +406,7 @@
             "activate_zone:enemy.patrol:by_column:sparked",
             "stat_set:mark@target:0",
             "stat_set:sparking@mine.player:0",
+            "stat_gain:spotted@opponent:sum:sneak@self",
             "stat_set:attacking@self:1",
             "move_to:duel",
             "move:target:duel",
@@ -416,14 +428,14 @@
             "stat_set:guard@self:0",
             "activate_zone:rules_death"
           ],
-          "compute": ["det", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"]
+          "compute": ["det", "unspent", "watching", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"]
         },
         {
           "key": "strike_patrol",
           "text": "Attack a patroller",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "compute": ["det", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"],
+          "compute": ["det", "unspent", "watching", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"],
           "needs": [
             "ready_since@self >= 1",
             "not_tagged:cant_attack@self",
@@ -443,6 +455,7 @@
             "activate_zone:enemy.patrol:by_column:sparked",
             "stat_set:mark@target:0",
             "stat_set:sparking@mine.player:0",
+            "stat_gain:spotted@opponent:sum:sneak@self",
             "stat_set:attacking@self:1",
             "move_to:duel",
             "move:target:duel",
@@ -472,6 +485,8 @@
           "cost": { "exhaust": 1 },
           "compute": [
             "det",
+            "unspent",
+            "watching",
             "no_det",
             "sneak_ok",
             "lead_alt",
@@ -503,6 +518,7 @@
             "where": ["alt@target <= sum:aa@self"]
           },
           "action": [
+            "stat_gain:spotted@opponent:sum:sneak@self",
             "stat_set:attacking@self:1",
             "move_to:duel",
             "move:target:duel",
@@ -905,6 +921,7 @@
         "ready:mine.ongoing_spell",
         "stat_set:ready_since@each.mine.fighter:1",
         "stat_set:ripe@each.mine.hero:max:level@mine.hero",
+        "stat_set:spotted@opponent:0",
         "stat_set:hired@mine.player:1",
         "stat_set:teched@mine.player:2",
         "stat_damage:hero_wait@mine.player:1",
@@ -1051,7 +1068,7 @@
       "text": "Tower",
       "tags": ["building", "attachment", "detector", "stone", "build_face"],
       "asset": "polygon:6:slate",
-      "tooltip": "Add-on. A detector: nothing sneaks past your patrollers. It also deals 1 combat damage to each attacker.",
+      "tooltip": "Add-on. A detector: the first stealthy attacker each turn cannot sneak past your patrollers. It also deals 1 combat damage to every attacker it can see, fliers included.",
       "card_stats": { "integrity": { "value": 4, "max": 4 } }
     },
     {
@@ -1213,7 +1230,7 @@
       "text": "Build a tower",
       "tags": ["immutable"],
       "asset": "polygon:6:slate",
-      "tooltip": "Add-on, 3 gold. A detector, and it stings every attacker for 1.",
+      "tooltip": "Add-on, 3 gold. A detector \u2014 one look per turn \u2014 and it stings every attacker for 1.",
       "abilities": [{
         "phases": ["main"],
         "cost": { "gold@mine.player": 3 },

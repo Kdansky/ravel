@@ -148,11 +148,6 @@ whole entities, so a scalar on a card needed nothing added to either format.
 Its reach was wider than this fight, as expected. A bounce, "return it to the
 deck you drew it from", and every temporary reveal want the same word.
 
-## What this does not fix
-
-**Resist N** — Gemscout Owl, Calamandra, Final Showdown, and five more. It is a
-cost that depends on the target, not a step in a fight, and it stays open.
-
 ## What it drags in behind it
 
 **The five patrol zones want to be one grid.** Sparkshot hits the patrollers
@@ -220,8 +215,16 @@ step, keeps half of his flagged.
 
 ## Open
 
-- **Resist N** — eight cards. A cost that depends on the target, not a step in a
-  fight, and untouched by this.
+- ~~Resist N~~ — **shipped with [30](30-things-that-are-true.md)** (2026-09-08).
+  It was never a step in a fight: it is a surcharge on whoever aims, so it lives
+  in `flow.plan` as an `adjusts` keyed to the `cast` verb, and the lookout post
+  is a computed tag over `slot@self == 5`.
+- **Overpower's spill.** `clear` still zeroes a `spill` stat that nothing reads
+  — there is no `spill` step, so overkill stops at the card it killed. The
+  drafted step needs an attacker's excess to reach *another attackable thing*,
+  which is a second victim chosen after the first is dead, and nothing in the
+  walk picks a card mid-step. [Assumption: this is why it was left out; the
+  file records the step in the design table and never in the game.]
 - ~~Sparkshot and Zane's shove want adjacency~~ — **done** (2026-09-01). The
   five patrol zones are one `grid: [5, 1]`, and a `beside` pattern answers
   sparkshot: the row is asked *before* the defender leaves it, and each
