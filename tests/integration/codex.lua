@@ -159,6 +159,40 @@ function M.test_codex_patrol_rules(check)
 	check("which is then the only thing it may hit", offers(ground, "strike_lead"))
 end
 
+-- **Unstoppable by tech 0 units.** Two more terms on the two skip computes, and
+-- nothing in the engine learned a word: who may be walked past has always been a
+-- count of reasons, and "their patroller is tech 0 and I ignore those" is one more.
+function M.test_codex_unstoppable_by_tech_0(check)
+	start("pick_zane", "pick_argagarg")
+	local ground = summon("mad_man", "army")
+	local tiger  = summon("predator_tiger", "army")
+	local lead   = post("nautical_dog", "enemy", 1)   -- tech 0
+
+	check("a tech 0 leader stops an ordinary attacker", not offers(ground, "strike_free"))
+	check("but not one that ignores them", offers(tiger, "strike_free"))
+
+	zones.destroy_card(lead.id)
+	post("centaur", "enemy", 1)                       -- tech 1
+	check("a tech 1 leader stops it like anything else", not offers(tiger, "strike_free"))
+	check("and is still the thing it may hit", offers(tiger, "strike_lead"))
+end
+
+-- The other four posts are the same rule said again, and they are a *count*
+-- rather than a yes/no: two tech 0 patrollers are two walked past.
+function M.test_codex_unstoppable_counts_the_other_posts(check)
+	start("pick_zane", "pick_argagarg")
+	local ground = summon("mad_man", "army")
+	local tiger  = summon("predator_tiger", "army")
+	post("nautical_dog", "enemy", 3)
+	post("mad_man", "enemy", 4)
+
+	check("two tech 0 patrollers stop an ordinary attacker", not offers(ground, "strike_free"))
+	check("and neither stops the tiger", offers(tiger, "strike_free"))
+
+	post("centaur", "enemy", 5)
+	check("one tech 1 among them is enough to stop it", not offers(tiger, "strike_free"))
+end
+
 -- The fight happens somewhere. Both sides step into the duel zone, the steps
 -- run, and "origin" puts each of them back where it stood — which for a
 -- patroller is its own slot and not the army.
@@ -832,6 +866,49 @@ function M.test_codex_a_post_that_changes_the_card(check)
 	check("and taking the post stamps two armour", tree.stats.guard == 2, tostring(tree.stats.guard))
 end
 
+-- **A lend that outlives the turn it was made in.** Every other bonus the endturn
+-- column hands back is cleared outright; armor piercing is counted down from two,
+-- so it survives one turn-end and goes at the next. Both seats end their turn
+-- through the same column, which is what puts the second one at the caster's own
+-- upkeep — "until your next upkeep" without a word for a duration.
+function M.test_codex_ferocity_lasts_until_the_next_upkeep(check)
+	start("pick_calamandra", "pick_argagarg")
+	take_the_field("calamandra")
+	local cub = summon("tiger_cub", "mine.army")
+	local roar = require("cards").create("ferocity", zones.find_id("hand", "mine"))
+
+	flow.play_card(roar.id, { })
+	flow.settle()
+	check("the cub is piercing", read(cub, "pierce") == 2, tostring(read(cub, "pierce")))
+
+	actions.run({ "activate_zone:mine.army:by_column:endturn" }, {})
+	check("its own turn ending does not take it", read(cub, "pierce") == 1,
+		tostring(read(cub, "pierce")))
+	actions.run({ "activate_zone:mine.army:by_column:endturn" }, {})
+	check("the opponent's turn ending does", read(cub, "pierce") == 0,
+		tostring(read(cub, "pierce")))
+end
+
+-- The elephant's first attack each turn is free of its readiness, and its second
+-- is not. "romp" is the one look, spent in the duel's own kills column.
+function M.test_codex_rampaging_elephant(check)
+	start("pick_calamandra", "pick_argagarg")
+	take_the_field("calamandra")
+	local bull = summon("rampaging_elephant", "mine.army")
+	actions.run({ "activate_zone:mine.army:by_column:upkeep" }, {})
+	post("mad_man", "enemy", 1)
+
+	use(bull, "strike_lead", { in_zone("enemy.patrol").id })
+	flow.settle()
+	check("the first attack leaves it ready", not entity.get(bull.id).exhausted)
+	check("and the look is spent", read(bull, "romp") == 0, tostring(read(bull, "romp")))
+
+	post("mad_man", "enemy", 1)
+	use(bull, "strike_lead", { in_zone("enemy.patrol").id })
+	flow.settle()
+	check("the second costs it", entity.get(bull.id).exhausted == true)
+end
+
 -- Hotter Fire is the reason "harm" is a verb. Combat damage stays plain
 -- `stat_damage` and is therefore unreachable; a spell says `harm`, and an
 -- `adjusts` on the upgrade answers it.
@@ -1334,7 +1411,7 @@ function M.test_codex_armour_can_be_pierced(check)
 	local rage = require("cards").create("ferocity", zones.find_id("hand", "mine"))
 	flow.play_card(rage.id, {})
 	flow.settle()
-	check("ferocity marks your units", cub2.stats.pierce == 1, tostring(cub2.stats.pierce))
+	check("ferocity marks your units", cub2.stats.pierce == 2, tostring(cub2.stats.pierce))
 
 	local hp2 = read(tree2, "hp")
 	use(cub2, "strike_lead", { tree2.id })

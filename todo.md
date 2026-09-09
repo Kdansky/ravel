@@ -28,6 +28,19 @@ Remove fully completed entries when we have done them or moved them to other fil
   reaching for its target spec, which is the same question `choosing()` already
   answers inside flow.
 
+- **A ward cannot refuse one kind of aim from one kind of card.** **Tiny
+  Basilisk**: *"Deathtouch. Unattackable and unstoppable by tech 0 units."* The
+  unstoppable half is written now — it is a count of reasons an attacker may walk
+  past a post, and "their patroller is tech 0 and I ignore those" is one more term
+  on `lead_skip` and `rest_skip`. The unattackable half is not. `receive.needs` can
+  ask both of its questions — `not_verb:attack` reads what kind of aim it is,
+  `not_count:tech0@target` reads who is making it — but a condition list is an
+  *and*, so together they refuse an aim that is neither an attack nor from a tech 0
+  card, where the card wants the one that is both. Written as `not_count:tech0@target`
+  alone it would also turn away Bombaster, Careless Musketeer, Bloodburn and Spore
+  Shambler, which are tech 0 cards that cast. It is `or` between conditions —
+  `ideas/31`, ranked at 16 with "no customer yet" — and this is the customer.
+
 - **Nothing can say "this card costs nothing".** Four cards want it and none of
   them is an aim, so `adjusts` cannot reach any of them — it is keyed on a verb
   and a chosen target, and a unit played out of a hand has neither. **Guargum,

@@ -221,7 +221,7 @@
     { "key": "taken", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "romp", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "rampage", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
-    { "key": "pierce", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "pierce", "min": 0, "max": 2, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "unseen", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "feather", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "fleeting", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
@@ -356,8 +356,23 @@
       "tooltip": "A flying squad leader this attacker cannot reach."
     },
     {
-      "key": "lead_skip",
+      "key": "lead_pass",
       "from": "lead_air + sneak_ok",
+      "tooltip": "A squad leader this attacker may walk past for being out of reach or unseen."
+    },
+    {
+      "key": "t0_lead",
+      "from": "count:tech0@enemy.patrol.at_lead",
+      "tooltip": "One when their squad leader is a tech 0 unit."
+    },
+    {
+      "key": "lead_t0",
+      "from": "t0_lead * count:ignores_t0@self",
+      "tooltip": "A tech 0 squad leader that cannot stop this attacker."
+    },
+    {
+      "key": "lead_skip",
+      "from": "lead_pass + lead_t0",
       "tooltip": "How many squad leaders this attacker is allowed to walk past."
     },
     {
@@ -401,8 +416,28 @@
       "tooltip": "Every other patroller, when this attacker is unseen."
     },
     {
-      "key": "rest_skip",
+      "key": "rest_pass",
       "from": "rest_air + rest_sneak",
+      "tooltip": "Other patrollers this attacker may walk past for being out of reach or unseen."
+    },
+    {
+      "key": "t0_all",
+      "from": "count:tech0@enemy.patrol",
+      "tooltip": "How many of their patrollers are tech 0 units."
+    },
+    {
+      "key": "t0_rest",
+      "from": "t0_all - t0_lead",
+      "tooltip": "Their tech 0 patrollers other than the squad leader."
+    },
+    {
+      "key": "rest_t0",
+      "from": "t0_rest * count:ignores_t0@self",
+      "tooltip": "Tech 0 patrollers that cannot stop this attacker."
+    },
+    {
+      "key": "rest_skip",
+      "from": "rest_pass + rest_t0",
       "tooltip": "How many other patrollers this attacker may walk past."
     },
     {
@@ -530,14 +565,14 @@
             "stat_set:guard@self:0",
             "activate_zone:rules_death"
           ],
-          "compute": ["det", "unspent", "watching", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"]
+          "compute": ["det", "unspent", "watching", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_pass", "t0_lead", "lead_t0", "lead_skip"]
         },
         {
           "key": "strike_patrol",
           "text": "Attack a patroller",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "compute": ["det", "unspent", "watching", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_skip"],
+          "compute": ["det", "unspent", "watching", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_pass", "t0_lead", "lead_t0", "lead_skip"],
           "needs": [
             "ready_since@self >= 1",
             "not_tagged:cant_attack@self",
@@ -594,6 +629,9 @@
             "lead_alt",
             "lead_seen",
             "lead_air",
+            "lead_pass",
+            "t0_lead",
+            "lead_t0",
             "lead_skip",
             "pat_all",
             "pat_lead",
@@ -603,6 +641,10 @@
             "rest_seen",
             "rest_air",
             "rest_sneak",
+            "rest_pass",
+            "t0_all",
+            "t0_rest",
+            "rest_t0",
             "rest_skip"
           ],
           "needs": [
@@ -688,7 +730,7 @@
           "key": "endturn",
           "phases": [],
           "text": "This turn only",
-          "tooltip": "Bonuses that lasted the turn are handed back, and anything bleeding takes its damage.",
+          "tooltip": "Bonuses that lasted the turn are handed back, and anything bleeding takes its damage. Armor piercing is counted down rather than cleared, since it was lent until its caster's next upkeep.",
           "action": [
             "stat_damage:atk@self:sum:lent@self",
             "stat_set:lent@self:0",
@@ -696,7 +738,7 @@
             "stat_set:plate@self:0",
             "stat_set:veil@self:0",
             "stat_set:rampage@self:0",
-            "stat_set:pierce@self:0",
+            "stat_damage:pierce@self:1",
             "stat_damage:hp@self:sum:bleeds@self",
             "stat_damage:life@self:sum:bleeds@self",
             "stat_set:bleeds@self:0"
@@ -4144,11 +4186,12 @@
         "unit",
         "fighter",
         "deathtouch",
+        "ignores_t0",
         "moss",
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Deathtouch. Unattackable and unstoppable by tech 0 units. NOT MODELLED: the last two — no rule can ask the attacker's tier.",
+      "tooltip": "Deathtouch. Unstoppable by tech 0 units. NOT MODELLED: unattackable by tech 0 units. A ward can ask both halves — \"not_verb:attack\" and \"not_count:tech0@target\" — but a condition list is an and, so it refuses only what fails both, where the card wants what fails neither. It is one \"or\" away.",
       "card_stats": { "price": 2, "atk": 1, "hp": { "value": 2, "max": 2 } }
     },
     {
@@ -4455,11 +4498,12 @@
         "unit",
         "fighter",
         "tiger",
+        "ignores_t0",
         "moss",
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Whenever it deals combat damage to a base, trash a worker there. NOT MODELLED: unstoppable by tech 0 units, since no rule can ask the attacker's tier.",
+      "tooltip": "Unstoppable by tech 0 units. Whenever it deals combat damage to a base, trash a worker there.",
       "card_stats": { "price": 4, "atk": 4, "hp": { "value": 4, "max": 4 } },
       "abilities": [{
         "key": "kills",
@@ -4483,7 +4527,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "The first attack Rampaging Elephant makes each turn does not cost him his readiness. NOT MODELLED: any other way of exhausting him.",
+      "tooltip": "The first attack Rampaging Elephant makes each turn does not cost him his readiness.",
       "card_stats": { "price": 6, "atk": 6, "hp": { "value": 7, "max": 7 } },
       "abilities": [
         {
@@ -4571,13 +4615,13 @@
       "key": "ferocity",
       "text": "Ferocity",
       "tags": ["deck_card", "green", "feral", "spell", "buff", "arcane", "spell_face", "generate_art"],
-      "tooltip": "Your units get armor piercing this turn. NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it; and \"until your next upkeep\", which is a turn longer than this file can lend anything for.",
+      "tooltip": "Your units get armor piercing until your next upkeep. NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it.",
       "card_stats": { "price": 2 },
       "play": {
         "phases": ["main"],
         "needs": ["count:hero@mine.hero >= 1", "count:h_feral@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["stat_set:pierce@each.mine.unit:1"],
+        "action": ["stat_set:pierce@each.mine.unit:2"],
         "spent": "mine.discard"
       }
     },
