@@ -607,11 +607,38 @@ function M.test_codex_options(check)
 	local spell = require("cards").create("murkwood_allies", zones.find_id("hand", "mine"))
 	flow.play_card(spell.id, {})
 	flow.settle()
-	check("two shapes are offered", count_in("options") == 2, tostring(count_in("options")))
+	check("three shapes are offered", count_in("options") == 3, tostring(count_in("options")))
+	check("and the boosted one among them", in_zone("options", "ma_both") ~= nil)
 	flow.play_card(in_zone("options", "ma_frogs").id, {})
 	flow.settle()
 	check("four frogs joined the hero", count_in("army") == 5, tostring(count_in("army")))
+	check("the plain half cost nothing extra", seat("south").stats.gold == 4,
+		tostring(seat("south").stats.gold))
 	check("and the spell is spent", in_zone("discard", "murkwood_allies") ~= nil)
+end
+
+-- **An answer may have a price, and it says so itself.** A card the offer dealt
+-- is what runs when it is taken, so the cost written on it is the cost of that
+-- answer — no word beside "cost", and the dearer half is simply not on the table
+-- until it can be paid for.
+function M.test_codex_an_answer_may_have_a_price(check)
+	start("pick_calamandra", "pick_argagarg")
+	use(in_zone("command", "calamandra"), "summon")
+	flow.settle()
+	seat("south").stats.gold = 5
+	local spell = require("cards").create("murkwood_allies", zones.find_id("hand", "mine"))
+	flow.play_card(spell.id, {})
+	flow.settle()
+	check("the free halves are takeable", flow.can_play(in_zone("options", "ma_beast").id))
+	check("the dear one is not, with nothing left over",
+		not flow.can_play(in_zone("options", "ma_both").id))
+
+	seat("south").stats.gold = 9
+	check("and is once it can be paid for", flow.can_play(in_zone("options", "ma_both").id))
+	flow.play_card(in_zone("options", "ma_both").id, {})
+	flow.settle()
+	check("four more gold went", seat("south").stats.gold == 5, tostring(seat("south").stats.gold))
+	check("and both halves arrived", count_in("army") == 6, tostring(count_in("army")))
 end
 
 function M.test_codex_coin(check)
@@ -708,10 +735,11 @@ end
 
 -- The witness half. A unit's death is announced once, on the `unit` tag, so a
 -- card watching from the board answers an ordinary reaction and no unit in the
--- game knows anything about being watched.
+-- game knows anything about being watched. The watcher is theirs, so the point
+-- it deals lands on the base its own side is not standing in front of.
 function M.test_codex_a_witness_answers_a_death(check)
 	start("pick_drakk", "pick_argagarg")
-	local watcher = summon("captured_bugblatter", "army")        -- 4/2, watching only
+	local watcher = summon("captured_bugblatter", "enemy.army")  -- 4/2, watching only
 	local ox      = summon("land_octopus", "army")               -- 8/7, does the killing
 	local prey    = post("tiger_cub", "enemy", 1)     -- 2/2
 	prey.stats.guard = 0
@@ -728,24 +756,656 @@ function M.test_codex_a_witness_answers_a_death(check)
 end
 
 -- Bounce is the same word pointed somewhere else, and a card that names the
--- discard says nothing at all about being returned to a hand.
+-- discard says nothing at all about being returned to a hand. The bomber is
+-- theirs, because its own owner's turn is the half it stays quiet for.
 function M.test_codex_leaves_only_where_it_says(check)
 	start("pick_drakk", "pick_argagarg")
-	local bomber = summon("crash_bomber", "army")
+	local bomber = summon("crash_bomber", "enemy.army")
 	local mybase = entity.get(entity.get(zones.find_id("base", "mine")).cards[1])
 
-	zones.move_card(bomber.id, zones.find_id("hand", "mine"))
+	zones.move_card(bomber.id, zones.find_id("hand", "enemy"))
 	check("bounced to hand, the death rule stayed quiet",
 		mybase.stats.integrity == 20, tostring(mybase.stats.integrity))
 
-	zones.move_card(bomber.id, zones.find_id("army", "mine"))
-	zones.move_card(bomber.id, zones.find_id("patrol_lead", "mine"))
+	zones.move_card(bomber.id, zones.find_id("army", "enemy"))
+	zones.move_card(bomber.id, zones.find_id("patrol_lead", "enemy"))
 	check("and walking between two board zones is not leaving anything",
 		mybase.stats.integrity == 20, tostring(mybase.stats.integrity))
 
-	zones.move_card(bomber.id, zones.find_id("discard", "mine"))
+	zones.move_card(bomber.id, zones.find_id("discard", "enemy"))
 	check("into the discard, it goes off", mybase.stats.integrity == 19,
 		tostring(mybase.stats.integrity))
+end
+
+-- What a stat reads, buffs and all. Half of what follows is a number nothing
+-- ever wrote down, so asking the card its own stat would answer the wrong thing.
+local function read(c, key) return tags.stat(entity.get(c.id), key) end
+
+local function base_of(owner)
+	return entity.get(entity.get(zones.find_id("base", owner)).cards[1])
+end
+
+-- Summon a hero the ordinary way, since a hero in play is what every spell in
+-- Codex is gated on.
+local function take_the_field(hero_key)
+	seat("south").stats.gold = 20
+	use(in_zone("command", hero_key), "summon")
+	flow.settle()
+end
+
+-- "This turn" is a stat that records what was lent and an endturn column that
+-- hands it back. The alternative — undoing the gain wherever a unit can leave
+-- by — is the bookkeeping `buffs` exists to avoid, and it cannot be used here
+-- because a buff's amount is a plain number and these are four different ones.
+function M.test_codex_a_bonus_that_lasts_the_turn(check)
+	start("pick_zane", "pick_argagarg")
+	take_the_field("zane")
+	local dog = summon("mad_man", "mine.army")
+	local charge = require("cards").create("charge", zones.find_id("hand", "mine"))
+
+	flow.play_card(charge.id, { dog.id })
+	flow.settle()
+	check("the attack went up", read(dog, "atk") == 2, tostring(read(dog, "atk")))
+	check("and the file remembers whose it was", dog.stats.lent == 1, tostring(dog.stats.lent))
+
+	actions.run({ "activate_zone:mine.army:by_column:endturn" }, {})
+	check("the end of the turn hands it back", read(dog, "atk") == 1, tostring(read(dog, "atk")))
+	check("and asks for it only once", dog.stats.lent == 0, tostring(dog.stats.lent))
+end
+
+-- Ironbark Treant is what a computed tag with `buffs` is for, and where the line
+-- between a buff and a stamped stat runs. The lost attack is a buff: nothing
+-- spends it, so it can arrive and leave with the post. The armour is not, because
+-- absorbing a blow *writes* to the card's own number — under a buff that write
+-- goes negative, and the debt would follow the treant off the post.
+function M.test_codex_a_post_that_changes_the_card(check)
+	start("pick_zane", "pick_midori")
+	local tree = summon("ironbark_treant", "mine.army")
+
+	check("in the army it reads what is printed",
+		read(tree, "atk") == 3 and tree.stats.guard == 0, tostring(read(tree, "atk")))
+	tree.stats.slot = 3
+	check("on a post it gives up two attack", read(tree, "atk") == 1, tostring(read(tree, "atk")))
+
+	tree.stats.slot = 0
+	use(tree, "go_patrol", { zones.find("patrol", "mine").slots[3] })
+	check("and taking the post stamps two armour", tree.stats.guard == 2, tostring(tree.stats.guard))
+end
+
+-- Hotter Fire is the reason "harm" is a verb. Combat damage stays plain
+-- `stat_damage` and is therefore unreachable; a spell says `harm`, and an
+-- `adjusts` on the upgrade answers it.
+function M.test_codex_a_named_damage_can_be_answered(check)
+	start("pick_jaina", "pick_argagarg")
+	take_the_field("jaina")
+	local beef = summon("gigadon", "enemy.army")
+	local dart = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local before = read(beef, "hp")
+
+	flow.play_card(dart.id, { beef.id })
+	flow.settle()
+	check("a dart is three", before - read(beef, "hp") == 3,
+		before .. "->" .. read(beef, "hp"))
+
+	start("pick_jaina", "pick_argagarg")
+	take_the_field("jaina")
+	require("cards").create("hotter_fire", zones.find_id("ongoing", "mine"))
+	local beef2 = summon("gigadon", "enemy.army")
+	local dart2 = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local was = read(beef2, "hp")
+
+	flow.play_card(dart2.id, { beef2.id })
+	flow.settle()
+	check("and four with Hotter Fire out", was - read(beef2, "hp") == 4,
+		was .. "->" .. read(beef2, "hp"))
+end
+
+-- An anthem is a computed tag whose condition names the active seat, because
+-- nothing else can say "the side this card is on". That reads right for every
+-- Codex anthem, since all of them are about attacking.
+function M.test_codex_an_anthem_reads_from_the_seat_that_is_up(check)
+	start("pick_calamandra", "pick_argagarg")
+	local cub = summon("tiger_cub", "mine.army")
+	check("no stealth before the spell", read(cub, "sneak") == 0, tostring(read(cub, "sneak")))
+	require("cards").create("behind_the_ferns", zones.find_id("ongoing", "mine"))
+	check("and stealth once it is down", read(cub, "sneak") == 1, tostring(read(cub, "sneak")))
+
+	start("pick_drakk", "pick_argagarg")
+	take_the_field("drakk")
+	local ogre = summon("bloodrage_ogre", "mine.army")
+	check("no frenzy from a first-level Drakk", read(ogre, "rage") == 0, tostring(read(ogre, "rage")))
+	in_zone("mine.army", "drakk").stats.level = 4
+	check("frenzy 1 from his second band", read(ogre, "rage") == 1, tostring(read(ogre, "rage")))
+end
+
+-- A rune is a number on the unit now rather than an attack point with a story.
+-- Two cards were waiting on that: one asks whether there is a rune already, and
+-- one hands out overpower to whatever is wearing one.
+function M.test_codex_runes_are_a_number(check)
+	start("pick_argagarg", "pick_midori")
+	take_the_field("argagarg")
+	local cub = summon("tiger_cub", "mine.army")
+	local favour = require("cards").create("forests_favor", zones.find_id("hand", "mine"))
+
+	flow.play_card(favour.id, { cub.id })
+	flow.settle()
+	check("the rune is recorded", cub.stats.runes == 1, tostring(cub.stats.runes))
+	check("and it is worth a point", read(cub, "atk") == 3, tostring(read(cub, "atk")))
+
+	local again = require("cards").create("forests_favor", zones.find_id("hand", "mine"))
+	local named = {}
+	for _, id in ipairs(require("targeting").candidates(again.id,
+		require("cards").def(entity.get(again.id)).target)) do
+		named[entity.get(id).def_key] = true
+	end
+	check("a runed unit is not offered a second one", not named.tiger_cub)
+
+	summon("blooming_elm", "mine.structures")
+	check("and the elm sees it as overpowering",
+		tags.entity_has(entity.get(cub.id), "runed"))
+end
+
+-- Control that lasts a turn is given back at the *victim's* upkeep, not at the
+-- taker's end of turn: "set_owner" names a seat or "mine", and only the seat
+-- getting the unit back can say "mine" about it.
+function M.test_codex_a_kidnapping_ends(check)
+	start("pick_drakk", "pick_argagarg")
+	take_the_field("drakk")
+	local theirs = summon("tiger_cub", "enemy.army")
+	local kidnap = require("cards").create("kidnapping", zones.find_id("hand", "mine"))
+
+	flow.play_card(kidnap.id, { theirs.id })
+	flow.settle()
+	check("it came over", tags.owner_of(entity.get(theirs.id)) == "south",
+		tostring(tags.owner_of(entity.get(theirs.id))))
+	check("and is marked as borrowed", theirs.stats.taken == 1, tostring(theirs.stats.taken))
+
+	actions.run({ "activate_zone:rules_upkeep" }, {})
+	check("the taker's own upkeep does not hand it back", theirs.stats.taken == 1,
+		tostring(theirs.stats.taken))
+end
+
+-- A trigger on the card an ongoing spell is standing on. The spell is in the
+-- ongoing row and never enters the duel, so the rule is asked of the fighter
+-- and reaches back through "attached_to".
+function M.test_codex_an_attachment_speaks_in_combat(check)
+	start("pick_argagarg", "pick_midori")
+	take_the_field("argagarg")
+	local bear   = summon("barkcoat_bear", "mine.army")
+	local spirit = require("cards").create("spirit_of_the_panda", zones.find_id("hand", "mine"))
+	flow.play_card(spirit.id, { bear.id })
+	flow.settle()
+	post("mad_man", "enemy", 1)
+
+	local gold = seat("south").stats.gold
+	use(bear, "strike_lead", { in_zone("enemy.patrol").id })
+	flow.settle()
+	check("attacking paid a gold", seat("south").stats.gold == gold + 1,
+		tostring(seat("south").stats.gold - gold))
+end
+
+-- Upkeep rules that read the whole table. The horselord asks only whether it
+-- should join *this* seat, so each player's own upkeep decides it and neither
+-- has to name the other's chair.
+function M.test_codex_the_horselord_walks(check)
+	start("pick_midori", "pick_argagarg")
+	local horse = summon("dothram_horselord", "enemy.army")
+	summon("gigadon", "mine.army")
+
+	actions.run({ "activate_zone:rules_upkeep" }, {})
+	check("it joined the bigger army", tags.owner_of(entity.get(horse.id)) == "south",
+		tostring(tags.owner_of(entity.get(horse.id))))
+end
+
+-- The drums are beaten once, at upkeep, and what they lend is handed back with
+-- everything else at the end of the turn. A continuous count is not sayable;
+-- a count taken at a moment is, and the moment the card is about is the attack.
+function M.test_codex_war_drums_beat_at_upkeep(check)
+	start("pick_drakk", "pick_argagarg")
+	take_the_field("drakk")
+	require("cards").create("war_drums", zones.find_id("ongoing", "mine"))
+	local dog = summon("mad_man", "mine.army")
+	summon("tiger_cub", "mine.army")
+
+	actions.run({ "activate_zone:rules_upkeep" }, {})
+	check("two units, so two more attack", read(dog, "atk") == 3, tostring(read(dog, "atk")))
+	actions.run({ "activate_zone:mine.army:by_column:endturn" }, {})
+	check("and the turn takes it back", read(dog, "atk") == 1, tostring(read(dog, "atk")))
+end
+
+-- Nothing in the engine records who did a killing, and a reaction to "died"
+-- names the corpse rather than the killer. So the killer marks what it aimed at
+-- and asks afterwards whether the mark is still standing — the same "mark" the
+-- sparkshot column uses, cleared on the way out.
+function M.test_codex_a_kill_can_be_answered(check)
+	start("pick_jaina", "pick_argagarg")
+	seat("south").stats.gold = 20
+	local house = require("cards").create("firehouse", zones.find_id("structures", "mine"))
+	local weak  = require("cards").create("wisp", zones.find_id("army", "enemy"))
+
+	flow.activate(house.id, { weak.id }, 1)
+	flow.settle()
+	check("a kill leaves the firehouse ready", not entity.get(house.id).exhausted,
+		tostring(entity.get(house.id).exhausted))
+
+	local tough = require("cards").create("gigadon", zones.find_id("army", "enemy"))
+	flow.activate(house.id, { tough.id }, 1)
+	flow.settle()
+	check("a survivor does not", entity.get(house.id).exhausted == true,
+		tostring(entity.get(house.id).exhausted))
+	check("and no mark is left lying about", entity.get(tough.id).stats.mark == 0,
+		tostring(entity.get(tough.id).stats.mark))
+end
+
+-- Paying more for the better half is a question with two answers, and the dearer
+-- one carries its own cost. Declining is the offer's own "No choice" button,
+-- since the plain half of this card is doing nothing.
+function M.test_codex_a_dearer_half_is_offered_only_when_it_can_be_paid(check)
+	start("pick_zane", "pick_argagarg")
+	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+	local me, them = seat("south"), seat("north")
+	me.stats.gold = 4
+	local raider = require("cards").create("marauder", zones.find_id("hand", "mine"))
+
+	flow.play_card(raider.id, {})
+	flow.settle()
+	check("the offer opened", phase.current().key == "options", phase.current().key)
+	check("the boost is refused with one gold left",
+		not flow.can_play(in_zone("options", "mr_boost").id))
+
+	me.stats.gold = 9
+	check("and offered once it is affordable", flow.can_play(in_zone("options", "mr_boost").id))
+	local workers = them.stats.workers
+	flow.play_card(in_zone("options", "mr_boost").id, {})
+	flow.settle()
+	check("three more gold went", me.stats.gold == 6, tostring(me.stats.gold))
+	check("and a worker of theirs with it", them.stats.workers == workers - 1,
+		tostring(them.stats.workers))
+end
+
+-- "leaves" carries a "needs" like every other block, and this is the shape that
+-- wanted it: one departure with two answers, told apart by something that is not
+-- a place. On its owner's turn the bomber is quiet; on anybody else's it goes off
+-- in the face of whoever is up.
+function M.test_codex_a_departure_may_ask_a_question(check)
+	start("pick_drakk", "pick_argagarg")
+	local mine   = summon("crash_bomber", "mine.army")
+	local mybase = base_of("mine")
+
+	zones.move_card(mine.id, zones.find_id("discard", "mine"))
+	flow.settle()
+	check("dying on its own owner's turn, it spares that base",
+		mybase.stats.integrity == 20, tostring(mybase.stats.integrity))
+
+	local theirs = summon("crash_bomber", "enemy.army")
+	zones.move_card(theirs.id, zones.find_id("discard", "enemy"))
+	flow.settle()
+	check("theirs going off on this turn takes a point off the base of whoever is up",
+		mybase.stats.integrity == 19, tostring(mybase.stats.integrity))
+end
+
+-- "3 damage divided as you choose" is three picks, not three targets. The share
+-- is how many times a card was pointed at, so nothing carries an amount beside
+-- the list — "@target" already means every pick, in the order they were made.
+function M.test_codex_damage_divides_by_being_aimed_twice(check)
+	start("pick_jaina", "pick_argagarg")
+	take_the_field("jaina")
+	local z = zones.find("patrol", "enemy")
+	local a = require("cards").create("gigadon", z.id)
+	local b = require("cards").create("gigadon", z.id)
+	zones.place_in_slot(a.id, z.slots[1]); a.stats.slot = 1
+	zones.place_in_slot(b.id, z.slots[2]); b.stats.slot = 2
+
+	seat("south").stats.gold = 20
+	local sparks = require("cards").create("ember_sparks", zones.find_id("hand", "mine"))
+	flow.play_card(sparks.id, { a.id, a.id, a.id })
+	flow.settle()
+	check("all three points went onto the one it was aimed at three times",
+		read(a, "hp") == 5, tostring(read(a, "hp")))
+	check("and none onto the other", read(b, "hp") == 8, tostring(read(b, "hp")))
+
+	seat("south").stats.gold = 20
+	local again = require("cards").create("ember_sparks", zones.find_id("hand", "mine"))
+	flow.play_card(again.id, { b.id, b.id, a.id })
+	flow.settle()
+	check("two and one lands two and one", read(a, "hp") == 4 and read(b, "hp") == 6,
+		read(a, "hp") .. "/" .. read(b, "hp"))
+end
+
+-- The click path is the whole of the difference, and which word said how many
+-- picks there are is what decides it: an aim written with a count refuses a card
+-- it already holds, because "up to two units" means two different ones.
+function M.test_codex_only_a_spread_aim_takes_a_card_twice(check)
+	local targeting = require("targeting")
+	start("pick_jaina", "pick_argagarg")
+	take_the_field("jaina")
+	local prey = summon("gigadon", "enemy.army")
+	seat("south").stats.gold = 20
+
+	local volley = require("cards").create("burning_volley", zones.find_id("hand", "mine"))
+	in_zone("mine.army", "jaina").stats.ripe = 7
+	targeting.start(volley.id, require("cards").def(entity.get(volley.id)).target)
+	check("the first point goes on", targeting.add(prey.id))
+	check("and so does the second", targeting.add(prey.id))
+	check("the share is counted", targeting.share(prey.id) == 2,
+		tostring(targeting.share(prey.id)))
+	targeting.clear()
+
+	local lust = require("cards").create("bloodlust", zones.find_id("hand", "mine"))
+	local mine = summon("mad_man", "mine.army")
+	targeting.start(lust.id, require("cards").def(entity.get(lust.id)).target)
+	check("an ordinary aim takes it once", targeting.add(mine.id))
+	check("and refuses it twice", not targeting.add(mine.id))
+	targeting.clear()
+end
+
+-- A keyword is granted by saying once what it does, under a name, and letting a
+-- condition decide who is wearing it. Overpower is an ability, so the computed
+-- tag carries "abilities" — it joins the card's own and its zone's in one list.
+function M.test_codex_a_keyword_can_be_lent(check)
+	start("pick_argagarg", "pick_midori")
+	local runner = summon("tiger_cub", "mine.army")
+	runner.stats.runes = 1
+	check("a rune alone is not the grant", not tags.entity_has(entity.get(runner.id), "runed"))
+
+	local before = #require("cards").abilities(entity.get(runner.id))
+	summon("blooming_elm", "mine.structures")
+	check("the elm is what lends it", tags.entity_has(entity.get(runner.id), "runed"))
+	check("and the ability comes with the word",
+		#require("cards").abilities(entity.get(runner.id)) == before + 1,
+		tostring(#require("cards").abilities(entity.get(runner.id))))
+
+	local lent = {}
+	for _, kw in ipairs(require("cards").keywords(entity.get(runner.id))) do
+		if kw.granted then lent[#lent + 1] = kw.tag end
+	end
+	check("the panel says it was lent rather than printed", lent[1] == "runed",
+		table.concat(lent, ","))
+
+	local weak = post("wisp", "enemy", 1)
+	weak.stats.guard = 0
+	local base = base_of("enemy").stats.integrity
+	use(runner, "strike_lead", { weak.id })
+	flow.settle()
+	check("and it overpowers", base_of("enemy").stats.integrity < base,
+		base .. "->" .. base_of("enemy").stats.integrity)
+end
+
+-- "others." is what makes a rule about the rest of the board sayable. Without it
+-- the mimic's borrowed flight is the flier it is looking for, which is a question
+-- that needs its own answer — and the validator refuses that shape outright.
+function M.test_codex_a_card_reads_the_rest_of_the_board(check)
+	start("pick_midori", "pick_argagarg")
+	local mimic = summon("wandering_mimic", "mine.army")
+	check("alone it is grounded", read(mimic, "alt") == 0, tostring(read(mimic, "alt")))
+	check("and unseen", read(mimic, "sneak") == 0, tostring(read(mimic, "sneak")))
+
+	local flier = summon("shoddy_glider", "enemy.army")
+	local tiger = summon("stalking_tiger", "enemy.army")
+	check("another flier lends it flight and the anti-air to use it",
+		read(mimic, "alt") == 1 and read(mimic, "aa") == 1,
+		read(mimic, "alt") .. "/" .. read(mimic, "aa"))
+	check("a stealthy card lends it stealth", read(mimic, "sneak") == 1,
+		tostring(read(mimic, "sneak")))
+
+	zones.move_card(flier.id, zones.find_id("discard", "enemy"))
+	zones.move_card(tiger.id, zones.find_id("discard", "enemy"))
+	check("and both go when they do", read(mimic, "alt") == 0 and read(mimic, "sneak") == 0,
+		read(mimic, "alt") .. "/" .. read(mimic, "sneak"))
+end
+
+-- A keyword with no number under it is copied the same way: ask whether anybody
+-- else carries the tag, and wear one that grants what the tag grants. Nothing
+-- has to be counted into a stat first.
+function M.test_codex_a_keyword_with_no_number_is_copied_too(check)
+	start("pick_midori", "pick_argagarg")
+	local mimic = summon("wandering_mimic", "mine.army")
+	local before = #require("cards").abilities(entity.get(mimic.id))
+	check("nobody to copy", not tags.entity_has(entity.get(mimic.id), "mimic_over"))
+
+	summon("dothram_horselord", "enemy.army")
+	check("an overpowering card lends it the word",
+		tags.entity_has(entity.get(mimic.id), "mimic_over"))
+	check("and the ability with it",
+		#require("cards").abilities(entity.get(mimic.id)) == before + 1,
+		tostring(#require("cards").abilities(entity.get(mimic.id))))
+
+	local weak = post("wisp", "enemy", 1)
+	weak.stats.guard = 0
+	local base = base_of("enemy").stats.integrity
+	use(mimic, "strike_lead", { weak.id })
+	flow.settle()
+	check("so the excess reaches the base", base_of("enemy").stats.integrity < base,
+		base .. "->" .. base_of("enemy").stats.integrity)
+end
+
+-- Haste is read once, as the card lands, so a granted one has to be worn by
+-- then. "hasty" is the union every play block asks about now — the printed word
+-- or the copied one — and an ordinary hasty card notices nothing.
+function M.test_codex_haste_is_asked_as_a_union(check)
+	start("pick_midori", "pick_argagarg")
+	seat("south").stats.gold = 20
+	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+
+	local slow = require("cards").create("wandering_mimic", zones.find_id("hand", "mine"))
+	flow.play_card(slow.id, {})
+	flow.settle()
+	check("with nothing hasty about, the mimic waits a turn",
+		slow.stats.ready_since == 0, tostring(slow.stats.ready_since))
+
+	summon("mad_man", "enemy.army")
+	seat("south").stats.gold = 20
+	local quick = require("cards").create("wandering_mimic", zones.find_id("hand", "mine"))
+	flow.play_card(quick.id, {})
+	flow.settle()
+	check("with a hasty card out there, it attacks at once",
+		quick.stats.ready_since == 1, tostring(quick.stats.ready_since))
+
+	start("pick_zane", "pick_argagarg")
+	seat("south").stats.gold = 20
+	local dog = require("cards").create("mad_man", zones.find_id("hand", "mine"))
+	flow.play_card(dog.id, {})
+	flow.settle()
+	check("and a printed haste still arrives ready", dog.stats.ready_since == 1,
+		tostring(dog.stats.ready_since))
+end
+
+-- A ward is a keyword far more often than it is one card, and "accepts" is read
+-- through behaviour now, so it comes from the same four places everything else
+-- about a card does. Untargetable is one line on the tag rather than one per
+-- card that has the word — and being grantable falls out of that for free.
+function M.test_codex_a_ward_is_a_keyword(check)
+	local targeting = require("targeting")
+	local function aimable(card_id, spec)
+		local seen = {}
+		for _, id in ipairs(targeting.candidates(card_id, spec)) do
+			seen[entity.get(id).def_key] = true
+		end
+		return seen
+	end
+
+	start("pick_jaina", "pick_argagarg")
+	take_the_field("jaina")
+	summon("moss_ancient", "enemy.army")
+	summon("gigadon", "enemy.army")
+	local dart = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local can  = aimable(dart.id, require("cards").def(entity.get(dart.id)).target)
+	check("an ordinary unit may be darted", can.gigadon == true)
+	check("one wearing the word may not", can.moss_ancient == nil)
+
+	start("pick_midori", "pick_argagarg")
+	take_the_field("midori")
+	local mimic = summon("wandering_mimic", "enemy.army")
+	local blast = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local spec  = require("cards").def(entity.get(blast.id)).target
+	check("with nobody to copy, the mimic is fair game",
+		aimable(blast.id, spec).wandering_mimic == true)
+
+	summon("potent_basilisk", "enemy.army")
+	check("a warded card out there lends it the ward",
+		aimable(blast.id, spec).wandering_mimic == nil)
+	check("and the basilisk still guards itself",
+		aimable(blast.id, spec).potent_basilisk == nil)
+
+	local striker, hit = summon("gigadon", "mine.army"), {}
+	for _, u in ipairs(flow.usable_abilities(striker.id)) do
+		if u.rule.key == "strike_free" then
+			for _, id in ipairs(targeting.candidates(striker.id, u.rule.target)) do
+				hit[entity.get(id).def_key] = true
+			end
+		end
+	end
+	check("an attack is not a cast, so it still lands", hit.wandering_mimic == true)
+end
+
+-- A price with arithmetic in it is a compute the block named, and flow.plan has
+-- always read a cost amount through the same total() a condition uses. Two places
+-- had not been told: the validator refused the shape, and the tooltip quoted the
+-- number with nothing bound, so a hand said nought and the pile took seven.
+function M.test_codex_a_price_may_be_worked_out(check)
+	start("pick_argagarg", "pick_midori")
+	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+	seat("south").stats.gold = 20
+	local beast = require("cards").create("gigadon", zones.find_id("hand", "mine"))
+	local cost  = require("cards").def(entity.get(beast.id)).cost
+
+	check("printed nine with nothing green out",
+		require("cards").cost_text(cost, beast.id) == "9 gold@mine.player",
+		require("cards").cost_text(cost, beast.id))
+	summon("tiger_cub", "mine.army")
+	summon("tiger_cub", "mine.army")
+	check("seven with two of them",
+		require("cards").cost_text(cost, beast.id) == "7 gold@mine.player",
+		require("cards").cost_text(cost, beast.id))
+
+	local purse = seat("south").stats.gold
+	flow.play_card(beast.id, {})
+	flow.settle()
+	check("and seven is what the pile took", purse - seat("south").stats.gold == 7,
+		tostring(purse - seat("south").stats.gold))
+end
+
+-- Overpower for one turn: the keyword's ability under a computed tag, worn while
+-- a stat says so and handed back where every other lent thing is.
+function M.test_codex_overpower_can_be_lent_for_a_turn(check)
+	start("pick_argagarg", "pick_midori")
+	take_the_field("argagarg")
+	local cub = summon("tiger_cub", "mine.army")
+	check("it does not rampage on its own", not tags.entity_has(entity.get(cub.id), "rampaging"))
+
+	in_zone("mine.army", "argagarg").stats.ripe = 5
+	seat("south").stats.gold = 20
+	local herd = require("cards").create("stampede", zones.find_id("hand", "mine"))
+	flow.play_card(herd.id, {})
+	flow.settle()
+	check("the stampede lends it", tags.entity_has(entity.get(cub.id), "rampaging"))
+
+	local weak = post("wisp", "enemy", 1)
+	weak.stats.guard = 0
+	local base = base_of("enemy").stats.integrity
+	use(cub, "strike_lead", { weak.id })
+	flow.settle()
+	check("so the excess reaches the base", base_of("enemy").stats.integrity < base,
+		base .. "->" .. base_of("enemy").stats.integrity)
+
+	actions.run({ "activate_zone:mine.army:by_column:endturn" }, {})
+	check("and the turn takes it back", not tags.entity_has(entity.get(cub.id), "rampaging"))
+end
+
+-- Armour piercing is not a number on the attacker, it is the armour step not
+-- happening: the column asks whether the thing across it goes straight through.
+function M.test_codex_armour_can_be_pierced(check)
+	start("pick_calamandra", "pick_argagarg")
+	take_the_field("calamandra")
+	local tree = post("ironbark_treant", "enemy", 1)
+	tree.stats.guard = 3
+	local cub = summon("tiger_cub", "mine.army")
+	local hp = read(tree, "hp")
+	use(cub, "strike_lead", { tree.id })
+	flow.settle()
+	check("armour eats it first", read(tree, "hp") == hp, tostring(read(tree, "hp")))
+
+	start("pick_calamandra", "pick_argagarg")
+	take_the_field("calamandra")
+	local tree2 = post("ironbark_treant", "enemy", 1)
+	tree2.stats.guard = 3
+	local cub2 = summon("tiger_cub", "mine.army")
+	seat("south").stats.gold = 20
+	local rage = require("cards").create("ferocity", zones.find_id("hand", "mine"))
+	flow.play_card(rage.id, {})
+	flow.settle()
+	check("ferocity marks your units", cub2.stats.pierce == 1, tostring(cub2.stats.pierce))
+
+	local hp2 = read(tree2, "hp")
+	use(cub2, "strike_lead", { tree2.id })
+	flow.settle()
+	check("and the armour is stepped over", read(tree2, "hp") < hp2,
+		hp2 .. "->" .. read(tree2, "hp"))
+end
+
+-- Invisible is a ward with a condition on the aimer: only a player holding a
+-- detector may point at it. A "receive" on a computed tag says exactly that, and
+-- taking a post is what gives it up.
+function M.test_codex_invisible_is_a_ward_with_a_condition(check)
+	local targeting = require("targeting")
+	start("pick_jaina", "pick_argagarg")
+	take_the_field("jaina")
+	local tiger = summon("stalking_tiger", "enemy.army")
+	local dart  = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local spec  = require("cards").def(entity.get(dart.id)).target
+	local function aimable()
+		local seen = {}
+		for _, id in ipairs(targeting.candidates(dart.id, spec)) do
+			seen[entity.get(id).def_key] = true
+		end
+		return seen
+	end
+
+	check("with no Feral hero it is fair game", aimable().stalking_tiger == true)
+	require("cards").create("calamandra", zones.find_id("army", "north"))
+	check("with one, nothing may point at it", aimable().stalking_tiger == nil)
+	tiger.stats.slot = 1
+	check("a post gives the hiding up", aimable().stalking_tiger == true)
+
+	tiger.stats.slot = 0
+	require("cards").create("tower", zones.find_id("addon", "mine"))
+	check("and a tower sees it anyway", aimable().stalking_tiger == true)
+end
+
+-- "Put up to two units from your hand into play if you have tech buildings of
+-- the same tech level as them" is four questions with one answer, which is what
+-- a union of computed tags is for: each tier asks its own, "buildable" says any.
+function M.test_codex_a_tier_gate_is_a_union(check)
+	local targeting = require("targeting")
+	start("pick_calamandra", "pick_argagarg")
+	take_the_field("calamandra")
+	in_zone("mine.army", "calamandra").stats.ripe = 5
+	seat("south").stats.gold = 20
+
+	local cub   = require("cards").create("tiger_cub", zones.find_id("hand", "mine"))
+	local tiger = require("cards").create("stalking_tiger", zones.find_id("hand", "mine"))
+	local blow  = require("cards").create("feral_strike", zones.find_id("hand", "mine"))
+	local spec  = require("cards").def(entity.get(blow.id)).target
+	local function pool()
+		local seen = {}
+		for _, id in ipairs(targeting.candidates(blow.id, spec)) do
+			seen[entity.get(id).def_key] = true
+		end
+		return seen
+	end
+
+	check("a tech 0 unit needs no building", pool().tiger_cub == true)
+	check("a tech 2 one does", pool().stalking_tiger == nil)
+	require("cards").create("tech_1", zones.find_id("tech", "mine"))
+	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+	check("and is offered once it stands", pool().stalking_tiger == true)
+
+	flow.play_card(blow.id, { cub.id, tiger.id })
+	flow.settle()
+	check("both walked onto the table", in_zone("mine.army", "tiger_cub") ~= nil
+		and in_zone("mine.army", "stalking_tiger") ~= nil)
+	check("with the arrival fatigue they came with",
+		entity.get(cub.id).stats.ready_since == 0, tostring(entity.get(cub.id).stats.ready_since))
 end
 
 return M

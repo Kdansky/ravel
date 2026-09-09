@@ -7,6 +7,11 @@
       "tooltip": "One fighter picking what it throws itself at."
     },
     {
+      "key": "harm",
+      "does": "stat_damage",
+      "tooltip": "Damage a spell or an ability deals. Combat damage is not this, and nothing may reach into a fight."
+    },
+    {
       "key": "cast",
       "does": "target",
       "tooltip": "A spell or an ability picking what it lands on. Untargetable refuses this and not the other."
@@ -207,6 +212,19 @@
     { "key": "t2_ever", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "t3_ever", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
     { "key": "extra", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
+    { "key": "spells", "min": 0, "max": 9, "on": ["player"], "start": 0, "tags": ["hidden"] },
+    { "key": "rush", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
+    { "key": "lent", "min": 0, "max": 20, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "plate", "min": 0, "max": 20, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "veil", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "bleeds", "min": 0, "max": 9, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "taken", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "romp", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "rampage", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "pierce", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "unseen", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "feather", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "fleeting", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     {
       "key": "runes",
       "label": "Runes",
@@ -214,6 +232,8 @@
       "color": "violet",
       "min": 0,
       "max": 9,
+      "on": ["fighter"],
+      "start": 0,
       "tags": ["hidden"]
     }
   ],
@@ -227,7 +247,68 @@
     "at_scav": { "needs": ["slot@self == 3"] },
     "at_tech": { "needs": ["slot@self == 4"] },
     "at_lookout": { "needs": ["slot@self == 5"] },
-    "marked": { "needs": ["mark@self >= 1"] }
+    "marked": { "needs": ["mark@self >= 1"] },
+    "fading": { "needs": ["fleeting@self >= 1"] },
+    "green_unit": { "needs": ["count:green@self >= 1", "count:unit@self >= 1"] },
+    "veiled": { "needs": ["veil@self >= 1"] },
+    "barked": { "needs": ["count:bark@self >= 1", "slot@self >= 1"] },
+    "ferned": {
+      "needs": [
+        "count@mine.self >= 1",
+        "count:unit@self >= 1",
+        "atk@self <= 3",
+        "count:ferns@mine.ongoing >= 1"
+      ]
+    },
+    "mighty": {
+      "needs": [
+        "count@mine.self >= 1",
+        "count:fighter@self >= 1",
+        "sum:runes@mine.ongoing.might >= 5"
+      ]
+    },
+    "drakked": {
+      "needs": ["count@mine.self >= 1", "count:unit@self >= 1", "max:level@mine.h_blood >= 4"]
+    },
+    "midori_air": { "needs": ["count@mine.self >= 1", "count:h_balance@self >= 1", "level@self >= 8"] },
+    "cala_guard": {
+      "needs": ["count@enemy.self >= 1", "count:unit@self >= 1", "max:level@enemy.h_feral >= 3"]
+    },
+    "showdown": { "needs": ["count:finale@attached_to.self >= 1"] },
+    "held": { "needs": ["taken@self >= 1"] },
+    "rampaging": { "needs": ["rampage@self >= 1", "count:overpower@self == 0"] },
+    "feathered": { "needs": ["feather@self >= 1"] },
+    "tok_unseen": { "needs": ["unseen@self >= 1", "slot@self == 0"] },
+    "tiger_unseen": {
+      "needs": [
+        "count:stalker@self >= 1",
+        "slot@self == 0",
+        "count@enemy.self >= 1",
+        "count:h_feral@enemy.hero >= 1"
+      ]
+    },
+    "hidden": { "any_of": ["tok_unseen", "tiger_unseen"] },
+    "t0_ok": { "needs": ["count:tech0@self >= 1"] },
+    "t1_ok": { "needs": ["count:tech1@self >= 1", "count:t1@mine.tech >= 1"] },
+    "t2_ok": { "needs": ["count:tech2@self >= 1", "count:t2@mine.tech >= 1"] },
+    "t3_ok": { "needs": ["count:tech3@self >= 1", "count:t3@mine.tech >= 1"] },
+    "buildable": { "any_of": ["t0_ok", "t1_ok", "t2_ok", "t3_ok"] },
+    "finished": { "any_of": ["dead", "fallen", "rubble"] },
+    "runed": {
+      "needs": ["runes@self >= 1", "count:overpower@self == 0", "count:elm@mine.structures >= 1"]
+    },
+    "hasty": { "any_of": ["haste", "mimic_haste"] },
+    "mimic_air": { "needs": ["count:mimic@self >= 1", "sum:alt@others.anyone.fighter >= 1"] },
+    "mimic_haste": {
+      "needs": ["count:mimic@self >= 1", "count:haste@others.anyone.fighter >= 1"]
+    },
+    "mimic_over": {
+      "needs": ["count:mimic@self >= 1", "count:overpower@others.anyone.fighter >= 1"]
+    },
+    "mimic_ward": {
+      "needs": ["count:mimic@self >= 1", "count:untargetable@others.anyone.fighter >= 1"]
+    },
+    "mimic_sneak": { "needs": ["count:mimic@self >= 1", "sum:sneak@others.anyone.fighter >= 1"] }
   },
   "patterns": {
     "across": { "vectors": [[0, 1], [0, -1]], "class": ["step"] },
@@ -325,6 +406,11 @@
       "tooltip": "How many other patrollers this attacker may walk past."
     },
     {
+      "key": "gigadon_price",
+      "from": "9 - count:green@mine.unit",
+      "tooltip": "What Gigadon comes to: nine, less one for every green unit already standing."
+    },
+    {
       "key": "lr_them",
       "from": "count:long_range@across * sum:attacking@across",
       "tooltip": "One when the card across this one is attacking with long-range."
@@ -349,7 +435,19 @@
   },
   "tags": {
     "unit": { "zone": "army", "leaves": { "into": "discard", "action": ["emit:died"] } },
-    "hero": { "zone": "army" },
+    "hero": {
+      "zone": "army",
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Final Showdown",
+          "needs": ["attacking@self >= 1", "count:finale@attached_to.self >= 1"],
+          "action": ["draw_from:mine.deck:mine.hand:1"]
+        }
+      ]
+    },
+    "spell": { "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:spells@mine.player:1"] } },
     "building": { "zone": "structures" },
     "upgrade": { "zone": "ongoing" },
     "ongoing_spell": { "zone": "ongoing" },
@@ -357,7 +455,8 @@
       "play": {
         "phases": ["main"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
+        "action": ["activate_zone:rules_arrive", "move_to", "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:ready_since@self:sum:rush@mine.player", "stat_damage:rush@mine.player:1"]
       }
     },
     "tech1": {
@@ -365,7 +464,8 @@
         "phases": ["main"],
         "needs": ["count:t1@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
+        "action": ["activate_zone:rules_arrive", "move_to", "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:ready_since@self:sum:rush@mine.player", "stat_damage:rush@mine.player:1"]
       }
     },
     "tech2": {
@@ -373,7 +473,8 @@
         "phases": ["main"],
         "needs": ["count:t2@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
+        "action": ["activate_zone:rules_arrive", "move_to", "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:ready_since@self:sum:rush@mine.player", "stat_damage:rush@mine.player:1"]
       }
     },
     "tech3": {
@@ -381,7 +482,8 @@
         "phases": ["main"],
         "needs": ["count:t3@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
+        "action": ["activate_zone:rules_arrive", "move_to", "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:ready_since@self:sum:rush@mine.player", "stat_damage:rush@mine.player:1"]
       }
     },
     "fighter": {
@@ -553,7 +655,51 @@
             "move_to:target",
             "stat_set:guard@self:0",
             "stat_set:slot@self:sum:col@self",
-            "stat_gain:guard@self:count:at_lead@self"
+            "stat_gain:guard@self:count:at_lead@self",
+            "stat_gain:guard@self:count:bark@self:x:2"
+          ]
+        },
+        {
+          "key": "rage",
+          "phases": [],
+          "text": "Frenzy",
+          "needs": ["attacking@self >= 1", "sum:rage@self >= 1"],
+          "action": ["stat_gain:power@self:sum:rage@self"]
+        },
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Spirit of the Panda",
+          "needs": ["attacking@self >= 1", "count:spirit@attached_to.self >= 1"],
+          "action": ["stat_gain:gold@mine.player:1"]
+        },
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Might of Leaf and Claw",
+          "needs": [
+            "attacking@self >= 1",
+            "sum:power@self >= 1",
+            "count:might@mine.ongoing >= 1"
+          ],
+          "action": ["stat_gain:runes@mine.ongoing.might:1"]
+        },
+        {
+          "key": "endturn",
+          "phases": [],
+          "text": "This turn only",
+          "tooltip": "Bonuses that lasted the turn are handed back, and anything bleeding takes its damage.",
+          "action": [
+            "stat_damage:atk@self:sum:lent@self",
+            "stat_set:lent@self:0",
+            "stat_damage:armor@self:sum:plate@self",
+            "stat_set:plate@self:0",
+            "stat_set:veil@self:0",
+            "stat_set:rampage@self:0",
+            "stat_set:pierce@self:0",
+            "stat_damage:hp@self:sum:bleeds@self",
+            "stat_damage:life@self:sum:bleeds@self",
+            "stat_set:bleeds@self:0"
           ]
         }
       ]
@@ -603,7 +749,7 @@
           "key": "armor",
           "phases": [],
           "text": "Armor",
-          "needs": ["back@self >= 1"],
+          "needs": ["back@self >= 1", "sum:pierce@across == 0"],
           "action": [
             "stat_damage:incoming@self:sum:guard@self",
             "stat_damage:back@self:sum:guard@self",
@@ -645,17 +791,6 @@
         }
       ]
     },
-    "frenzy": {
-      "abilities": [
-        {
-          "key": "rage",
-          "phases": [],
-          "text": "Frenzy",
-          "needs": ["attacking@self >= 1"],
-          "action": ["stat_gain:power@self:sum:rage@self"]
-        }
-      ]
-    },
     "overpower": {
       "abilities": [
         {
@@ -691,6 +826,89 @@
     "resist_2": {
       "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 2,
         "needs": ["count@enemy.self >= 1"] }]
+    },
+    "showdown": {
+      "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1,
+        "needs": ["count@enemy.self >= 1"] }]
+    },
+    "cala_guard": {
+      "adjusts": [{ "key": "resist", "verb": "cast", "stat": "gold", "covers": "self", "by": 1,
+        "needs": ["count@enemy.self >= 1"] }]
+    },
+    "untargetable": { "receive": { "needs": ["not_verb:cast"] } },
+    "mimic_ward": {
+      "tooltip": "Untargetable, copied from somebody else who has it.",
+      "receive": { "needs": ["not_verb:cast"] }
+    },
+    "rampaging": {
+      "tooltip": "Overpower, for this turn.",
+      "abilities": [
+        {
+          "key": "spill",
+          "phases": [],
+          "text": "Stampede",
+          "needs": ["attacking@self >= 1", "sum:slot@across >= 1", "sum:spill@across >= 1"],
+          "action": ["stat_damage:integrity@enemy.base:sum:spill@across"]
+        }
+      ]
+    },
+    "hidden": {
+      "tooltip": "Invisible — only a player with a detector may point at this, and it may not take a post and stay hidden.",
+      "receive": { "needs": ["count:detector@mine.addon >= 1"] }
+    },
+    "feathered": { "buffs": { "alt": 1 } },
+    "veiled": { "buffs": { "sneak": 1 } },
+    "ferned": { "buffs": { "sneak": 1 } },
+    "barked": { "buffs": { "atk": -2 } },
+    "mighty": { "buffs": { "atk": 5, "hp": 5 } },
+    "drakked": { "buffs": { "rage": 1 } },
+    "midori_air": { "buffs": { "alt": 1 } },
+    "mimic_air": { "buffs": { "alt": 1, "aa": 1 } },
+    "mimic_over": {
+      "tooltip": "Overpower, copied from somebody else who has it.",
+      "abilities": [
+        {
+          "key": "spill",
+          "phases": [],
+          "text": "Wandering Mimic",
+          "needs": ["attacking@self >= 1", "sum:slot@across >= 1", "sum:spill@across >= 1"],
+          "action": ["stat_damage:integrity@enemy.base:sum:spill@across"]
+        }
+      ]
+    },
+    "runed": {
+      "tooltip": "Overpower, lent by a Blooming Elm to anything wearing a +1/+1 rune.",
+      "abilities": [
+        {
+          "key": "spill",
+          "phases": [],
+          "text": "Blooming Elm",
+          "needs": ["attacking@self >= 1", "sum:slot@across >= 1", "sum:spill@across >= 1"],
+          "action": ["stat_damage:integrity@enemy.base:sum:spill@across"]
+        }
+      ]
+    },
+    "mimic_sneak": { "buffs": { "sneak": 1 } },
+    "h_anarchy": {
+      "abilities": [
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Captain Zane",
+          "needs": ["level@self >= 4", "sum:slot@across == 4", "count:slain@across >= 1"],
+          "action": ["draw_from:mine.deck:mine.hand:1"]
+        }
+      ]
+    },
+    "hotter": {
+      "adjusts": [
+        { "key": "hotter", "verb": "harm", "stat": "hp", "covers": "each.anyone.fighter", "by": 1,
+          "needs": ["count@mine.self >= 1"] },
+        { "key": "hotter", "verb": "harm", "stat": "life", "covers": "each.anyone.hero", "by": 1,
+          "needs": ["count@mine.self >= 1"] },
+        { "key": "hotter", "verb": "harm", "stat": "integrity", "covers": "each.anyone.building", "by": 1,
+          "needs": ["count@mine.self >= 1"] }
+      ]
     }
   },
   "zones": [
@@ -714,6 +932,7 @@
       "tooltip": "Where an attacker and its target stand while the blows land. Nothing waits here: a combat begins and ends inside one action."
     },
     { "key": "rules_death", "layout": "stack", "visibility": "secret", "display": "offscreen" },
+    { "key": "rules_arrive", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     { "key": "rules_upkeep", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     {
       "key": "rules_endturn",
@@ -922,13 +1141,17 @@
         "stat_set:ready_since@each.mine.fighter:1",
         "stat_set:ripe@each.mine.hero:max:level@mine.hero",
         "stat_set:spotted@opponent:0",
+        "stat_set:spells@mine.player:0",
+        "stat_set:rush@mine.player:0",
         "stat_set:hired@mine.player:1",
         "stat_set:teched@mine.player:2",
         "stat_damage:hero_wait@mine.player:1",
         "move:mine.site.tech_building:mine.tech",
         "move:mine.site.attachment:mine.addon",
         "stat_gain:gold@mine.player:sum:workers@mine.player",
+        "stat_set:guard@each.mine.patrol:0",
         "stat_set:guard@each.mine.patrol.at_lead:1",
+        "stat_gain:guard@each.mine.patrol.bark:2",
         "activate_zone:mine.army:by_column:upkeep",
         "activate_zone:mine.patrol:by_column:upkeep",
         "activate_zone:mine.structures:by_column:upkeep",
@@ -944,6 +1167,9 @@
       "actions": [
         "activate_zone:mine.army:by_column:endturn",
         "activate_zone:mine.patrol:by_column:endturn",
+        "activate_zone:enemy.army:by_column:endturn",
+        "activate_zone:enemy.patrol:by_column:endturn",
+        "activate_zone:rules_death",
         "activate_zone:rules_endturn",
         "stat_set:to_draw@mine.player:count:deck_card@mine.hand",
         "stat_gain:to_draw@mine.player:2",
@@ -1000,14 +1226,21 @@
       { "card": "r_scav", "zone": "rules_death" },
       { "card": "r_techie", "zone": "rules_death" },
       { "card": "r_bloodburn", "zone": "rules_death" },
+      { "card": "r_gang", "zone": "rules_death" },
+      { "card": "r_drakk", "zone": "rules_death" },
       { "card": "r_heroes", "zone": "rules_death" },
       { "card": "r_units", "zone": "rules_death" },
       { "card": "r_tech_rubble", "zone": "rules_death" },
       { "card": "r_addon_rubble", "zone": "rules_death" },
       { "card": "r_buildings", "zone": "rules_death" },
       { "card": "r_channel", "zone": "rules_death" },
+      { "card": "r_arrive", "zone": "rules_arrive" },
       { "card": "r_channel", "zone": "rules_upkeep" },
       { "card": "r_heal", "zone": "rules_upkeep" },
+      { "card": "r_drums", "zone": "rules_upkeep" },
+      { "card": "r_rush", "zone": "rules_upkeep" },
+      { "card": "r_dothram", "zone": "rules_upkeep" },
+      { "card": "r_kidnap", "zone": "rules_upkeep" },
       { "card": "r_ephemeral", "zone": "rules_endturn" },
       { "card": "r_lizzo", "zone": "rules_endturn" }
     ]
@@ -1018,7 +1251,7 @@
     {
       "key": "home_base",
       "text": "Base",
-      "tags": ["building", "stone", "build_face"],
+      "tags": ["building", "home", "stone", "build_face"],
       "asset": "square:slate",
       "tooltip": "Twenty hit points. Destroy the opponent's and you win.",
       "card_stats": { "integrity": { "value": 20, "max": 20 } }
@@ -1399,6 +1632,48 @@
       ]
     },
     {
+      "key": "r_gang",
+      "text": "Pirate-Gang Commander",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "mine",
+          "text": "Pirate-Gang Commander",
+          "phases": [],
+          "needs": ["count@mine.gang >= 1", "count:dead@mine.unit >= 1"],
+          "action": ["stat_damage:integrity@enemy.base:count:dead@mine.unit"]
+        },
+        {
+          "key": "theirs",
+          "text": "Pirate-Gang Commander",
+          "phases": [],
+          "needs": ["count@enemy.gang >= 1", "count:dead@enemy.unit >= 1"],
+          "action": ["stat_damage:integrity@mine.base:count:dead@enemy.unit"]
+        }
+      ]
+    },
+    {
+      "key": "r_drakk",
+      "text": "Drakk falls",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "mine",
+          "text": "Drakk falls",
+          "phases": [],
+          "needs": ["count:fallen@mine.h_blood >= 1", "max:level@mine.h_blood <= 3"],
+          "action": ["stat_damage:integrity@enemy.base:1"]
+        },
+        {
+          "key": "theirs",
+          "text": "Drakk falls",
+          "phases": [],
+          "needs": ["count:fallen@enemy.h_blood >= 1", "max:level@enemy.h_blood <= 3"],
+          "action": ["stat_damage:integrity@mine.base:1"]
+        }
+      ]
+    },
+    {
       "key": "r_heroes",
       "text": "Fallen heroes",
       "tags": ["immutable"],
@@ -1587,6 +1862,102 @@
       ]
     },
     {
+      "key": "r_arrive",
+      "text": "Blooming Ancient",
+      "tags": ["immutable"],
+      "tooltip": "Another unit of yours arriving puts a +1/+1 rune on every Blooming Ancient you have.",
+      "abilities": [
+        {
+          "key": "bloom",
+          "text": "Blooming Ancient",
+          "phases": [],
+          "needs": ["count@mine.ancient >= 1"],
+          "action": [
+            "stat_gain:runes@each.mine.ancient:1",
+            "stat_gain:atk@each.mine.ancient:1",
+            "stat_boost:hp@each.mine.ancient:1",
+            "stat_gain:hp@each.mine.ancient:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "r_drums",
+      "text": "War Drums",
+      "tags": ["immutable"],
+      "tooltip": "The drums are beaten at your upkeep, so the bonus is worked out once and lasts your turn.",
+      "abilities": [
+        {
+          "key": "beat",
+          "text": "War Drums",
+          "phases": [],
+          "needs": ["count:drums@mine.ongoing >= 1"],
+          "action": [
+            "stat_gain:atk@each.mine.unit:count:unit@mine.unit",
+            "stat_gain:lent@each.mine.unit:count:unit@mine.unit"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "r_rush",
+      "text": "Drakk Ramhorn",
+      "tags": ["immutable"],
+      "abilities": [
+        {
+          "key": "horn",
+          "text": "Drakk Ramhorn",
+          "phases": [],
+          "needs": ["max:level@mine.h_blood >= 6"],
+          "action": ["stat_set:rush@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "r_dothram",
+      "text": "Dothram Horselord",
+      "tags": ["immutable"],
+      "tooltip": "Each player looks at their own upkeep, so the horselord walks to whoever has the bigger army.",
+      "abilities": [
+        {
+          "key": "join",
+          "text": "Dothram Horselord",
+          "phases": [],
+          "needs": [
+            "count@enemy.dothram >= 1",
+            "sum:atk@mine.fighter > sum:atk@enemy.fighter"
+          ],
+          "action": [
+            "stat_set:slot@each.enemy.dothram:0",
+            "stat_set:guard@each.enemy.dothram:0",
+            "move:enemy.dothram:mine.army",
+            "set_owner:enemy.dothram:mine"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "r_kidnap",
+      "text": "Kidnapping ends",
+      "tags": ["immutable"],
+      "tooltip": "Anything taken from you comes home at your upkeep, which is before you would have wanted it.",
+      "abilities": [
+        {
+          "key": "home",
+          "text": "Kidnapping ends",
+          "phases": [],
+          "needs": ["count:held@enemy.army >= 1"],
+          "action": [
+            "stat_set:slot@each.enemy.army.held:0",
+            "stat_set:guard@each.enemy.army.held:0",
+            "move:enemy.army.held:mine.army",
+            "set_owner:enemy.army.held:mine",
+            "stat_set:taken@each.mine.army.held:0"
+          ]
+        }
+      ]
+    },
+    {
       "key": "r_ephemeral",
       "text": "Ephemeral",
       "tags": ["immutable"],
@@ -1595,7 +1966,7 @@
           "key": "fade",
           "text": "Ephemeral",
           "phases": [],
-          "action": ["destroy:mine.ephemeral"]
+          "action": ["destroy:mine.ephemeral", "destroy:mine.fading"]
         }
       ]
     },
@@ -1614,6 +1985,17 @@
       ]
     },
     {
+      "key": "mr_boost",
+      "text": "Boost 3",
+      "tags": ["immutable"],
+      "asset": "cross:crimson",
+      "tooltip": "Pay 3 more and trash one of their workers.",
+      "play": {
+        "cost": { "gold@mine.player": 3 },
+        "action": ["stat_damage:workers@opponent:1", "destroy:enemy.workers:1"]
+      }
+    },
+    {
       "key": "wisp",
       "text": "Wisp",
       "tags": ["unit", "fighter", "token", "green", "moss", "fighter_face"],
@@ -1624,7 +2006,7 @@
     {
       "key": "squirrel",
       "text": "Squirrel",
-      "tags": ["unit", "fighter", "token", "green", "moss", "fighter_face"],
+      "tags": ["unit", "fighter", "token", "green", "squirrel", "moss", "fighter_face"],
       "asset": "triangle:brown",
       "tooltip": "A 1/1 green Squirrel token.",
       "card_stats": { "atk": 1, "hp": { "value": 1, "max": 1 } }
@@ -1682,7 +2064,7 @@
       "text": "Captain Zane",
       "tags": ["hero", "fighter", "h_anarchy", "red", "haste", "flame", "hero_face"],
       "asset": "star:5:crimson",
-      "tooltip": "Blood Guard Anarchist. Levels 1-3 haste, 2/2. Levels 4-5 3/3: whenever Zane kills a scavenger get 1 gold, a technician draws you a card (the technician half is NOT MODELLED: one card may not carry two abilities under one name). Level 6 4/4: shove a patroller to an empty slot in its patrol zone, then deal 1 damage to it (the shove is NOT MODELLED: it needs a card and a square chosen together, and an ability takes one kind of target).",
+      "tooltip": "Blood Guard Anarchist. Levels 1-3 haste, 2/2. Levels 4-5 3/3: whenever Zane kills a scavenger get 1 gold, and a technician draws you a card. Level 6 4/4: shove a patroller to an empty slot in its patrol zone, then deal 1 damage to it (the shove is NOT MODELLED: it needs a card and a square chosen together, and an ability takes one kind of target).",
       "card_stats": { "price": 2, "atk": 2, "life": { "value": 2, "max": 4 }, "level": 1, "ready_since": 1 },
       "abilities": [
         {
@@ -1698,6 +2080,7 @@
             "stat_set:life@self:2",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:1",
             "move_to:mine.army"
           ]
@@ -1755,7 +2138,7 @@
             "owner": "enemy",
             "zones": ["patrol"]
           },
-          "action": ["stat_damage:hp@target:1", "stat_damage:life@target:1", "activate_zone:rules_death"]
+          "action": ["harm:hp@target:1", "harm:life@target:1", "activate_zone:rules_death"]
         },
         {
           "key": "kills",
@@ -1771,7 +2154,7 @@
       "text": "Drakk Ramhorn",
       "tags": ["hero", "fighter", "h_blood", "red", "flame", "hero_face"],
       "asset": "star:6:maroon",
-      "tooltip": "War Drummer. Levels 1-3 1/3: Dies — deal 1 damage to each opponent's base. Levels 4-5 2/3: your units get Frenzy 1. Level 6 3/4: the first unit that arrives from your hand each turn gets haste. NOT MODELLED: all three, which are triggers the engine has no word for.",
+      "tooltip": "War Drummer. Levels 1-3 1/3: Dies — deal 1 damage to each opponent's base. Levels 4-5 2/3: your units get Frenzy 1. Level 6 3/4: the first unit that arrives from your hand each turn gets haste.",
       "card_stats": { "price": 2, "atk": 1, "life": { "value": 3, "max": 4 }, "level": 1 },
       "abilities": [
         {
@@ -1787,7 +2170,8 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:count:haste@self",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
         },
@@ -1854,7 +2238,8 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:count:haste@self",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
         },
@@ -1920,9 +2305,9 @@
             "zones": ["base", "tech", "structures", "addon", "patrol"]
           },
           "action": [
-            "stat_damage:hp@target:1",
-            "stat_damage:life@target:1",
-            "stat_damage:integrity@target:1",
+            "harm:hp@target:1",
+            "harm:life@target:1",
+            "harm:integrity@target:1",
             "activate_zone:rules_death"
           ]
         },
@@ -1940,8 +2325,8 @@
             "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
           },
           "action": [
-            "stat_damage:hp@target:3",
-            "stat_damage:integrity@target:3",
+            "harm:hp@target:3",
+            "harm:integrity@target:3",
             "activate_zone:rules_death"
           ]
         }
@@ -1952,7 +2337,7 @@
       "text": "Master Midori",
       "tags": ["hero", "fighter", "h_balance", "green", "moss", "hero_face"],
       "asset": "star:4:forest",
-      "tooltip": "Mentor Dragon. Levels 1-4 2/3. Levels 5-7 3/4: your units with no abilities get +1/+1. Level 8 4/5: during your turn, flying. NOT MODELLED: both text abilities, which are continuous effects.",
+      "tooltip": "Mentor Dragon. Levels 1-4 2/3. Levels 5-7 3/4: your units with no abilities get +1/+1 (NOT MODELLED: no condition asks whether a card has abilities). Level 8 4/5: during your turn, flying.",
       "card_stats": { "price": 2, "atk": 2, "life": { "value": 3, "max": 5 }, "level": 1 },
       "abilities": [
         {
@@ -1968,7 +2353,8 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:count:haste@self",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
         },
@@ -2040,7 +2426,7 @@
       "text": "Calamandra Moss",
       "tags": ["hero", "fighter", "h_feral", "green", "moss", "hero_face"],
       "asset": "star:5:olive",
-      "tooltip": "Tiger Magus. Levels 1-2 2/3: discard two cards for stealth this turn (NOT MODELLED — there is no discard-as-cost). Levels 3-4 3/4: your units get resist 1 (NOT MODELLED). Level 5 4/5: 4 gold and exhaust to search your codex for a tiger unit and put it into play.",
+      "tooltip": "Tiger Magus. Levels 1-2 2/3: discard two cards for stealth this turn (NOT MODELLED — there is no discard-as-cost). Levels 3-4 3/4: your units get resist 1. Level 5 4/5: 4 gold and exhaust to search your codex for a tiger unit and put it into play.",
       "card_stats": { "price": 2, "atk": 2, "life": { "value": 3, "max": 5 }, "level": 1 },
       "abilities": [
         {
@@ -2056,7 +2442,8 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:count:haste@self",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
         },
@@ -2127,7 +2514,8 @@
             "stat_set:life@self:3",
             "stat_set:armor@self:0",
             "stat_set:guard@self:0",
-            "stat_set:ready_since@self:count:haste@self",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army",
             "fill:mine.army:wisp:1"
           ]
@@ -2459,7 +2847,7 @@
           "tags": ["unit"],
           "zones": ["patrol"]
         },
-        "action": ["stat_damage:hp@target:2", "activate_zone:rules_death"]
+        "action": ["harm:hp@target:2", "activate_zone:rules_death"]
       }]
     },
     {
@@ -2489,9 +2877,9 @@
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
-          "stat_damage:hp@target:1",
-          "stat_damage:life@target:1",
-          "stat_damage:integrity@target:1",
+          "harm:hp@target:1",
+          "harm:life@target:1",
+          "harm:integrity@target:1",
           "stat_damage:integrity@mine.base:1",
           "activate_zone:rules_death"
         ]
@@ -2518,7 +2906,7 @@
           "key": "endturn",
           "phases": [],
           "text": "Bloodrage Ogre",
-          "needs": ["ready_since@self >= 1", "fought@self == 0"],
+          "needs": ["count@mine.self >= 1", "ready_since@self >= 1", "fought@self == 0"],
           "action": ["move_to:mine.hand"]
         }
       ]
@@ -2567,9 +2955,9 @@
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
-          "stat_damage:hp@target:1",
-          "stat_damage:life@target:1",
-          "stat_damage:integrity@target:1",
+          "harm:hp@target:1",
+          "harm:life@target:1",
+          "harm:integrity@target:1",
           "activate_zone:rules_death"
         ]
       }]
@@ -2592,9 +2980,9 @@
           "zones": ["base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
-          "stat_damage:hp@target:2",
-          "stat_damage:life@target:2",
-          "stat_damage:integrity@target:2",
+          "harm:hp@target:2",
+          "harm:life@target:2",
+          "harm:integrity@target:2",
           "activate_zone:rules_death"
         ],
         "spent": "mine.discard"
@@ -2604,7 +2992,7 @@
       "key": "charge",
       "text": "Charge",
       "tags": ["deck_card", "red", "spell", "minor_spell", "buff", "arcane", "generate_art"],
-      "tooltip": "Give one of your units haste and +1 ATK this turn. NOT MODELLED: the attack bonus is permanent here.",
+      "tooltip": "Give one of your units haste and +1 ATK this turn.",
       "card_stats": { "price": 2 },
       "play": {
         "phases": ["main"],
@@ -2618,7 +3006,11 @@
           "tags": ["unit"],
           "zones": ["army", "patrol"]
         },
-        "action": ["stat_gain:atk@target:1", "stat_set:ready_since@target:1"],
+        "action": [
+          "stat_gain:atk@target:1",
+          "stat_gain:lent@target:1",
+          "stat_set:ready_since@target:1"
+        ],
         "spent": "mine.discard"
       }
     },
@@ -2636,8 +3028,8 @@
         "action": [
           "stat_set:extra@mine.player:0",
           "stat_gain:extra@mine.player:count:pirate@mine.unit",
-          "stat_damage:integrity@target:1",
-          "stat_damage:integrity@target:sum:extra@mine.player",
+          "harm:integrity@target:1",
+          "harm:integrity@target:sum:extra@mine.player",
           "stat_damage:gold@owner_of.target:1",
           "stat_damage:gold@owner_of.target:sum:extra@mine.player",
           "stat_gain:gold@mine.player:1",
@@ -2660,11 +3052,12 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Exhaust: if you played a spell this turn, sideline a patroller. NOT MODELLED: nothing records that a spell was cast this turn, so this sidelines unconditionally.",
+      "tooltip": "Exhaust: if you played a spell this turn, sideline a patroller.",
       "card_stats": { "price": 1, "atk": 2, "hp": { "value": 2, "max": 2 } },
       "abilities": [{
         "phases": ["main"],
         "cost": { "exhaust": 1 },
+        "needs": ["spells@mine.player >= 1"],
         "target": {
           "verb": "cast",
           "type": "card",
@@ -2673,7 +3066,11 @@
           "tags": ["fighter"],
           "zones": ["patrol"]
         },
-        "action": ["move:target:enemy.army"]
+        "action": [
+          "move:target:enemy.army",
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0"
+        ]
       }]
     },
     {
@@ -2739,13 +3136,13 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Haste. Arrives: gets stealth this turn. NOT MODELLED: the stealth here is permanent.",
+      "tooltip": "Haste. Arrives: gets stealth this turn.",
       "card_stats": { "price": 2, "atk": 3, "hp": { "value": 3, "max": 3 }, "ready_since": 1 },
       "play": {
         "phases": ["main"],
         "needs": ["count:t2@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:1", "stat_set:sneak@self:1"]
+        "action": ["move_to", "stat_set:ready_since@self:1", "stat_set:veil@self:1"]
       }
     },
     {
@@ -2765,8 +3162,17 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Boost 3. Haste. If you boosted, trash a worker. NOT MODELLED: boost, so this is the unboosted half.",
-      "card_stats": { "price": 3, "atk": 4, "hp": { "value": 3, "max": 3 }, "ready_since": 1 }
+      "tooltip": "Boost 3. Haste. If you boosted, trash a worker.",
+      "card_stats": { "price": 3, "atk": 4, "hp": { "value": 3, "max": 3 }, "ready_since": 1 },
+      "play": {
+        "phases": ["main"],
+        "needs": ["count:t2@mine.tech >= 1"],
+        "cost": { "gold@mine.player": "price@self" },
+        "action": ["activate_zone:rules_arrive", "move_to", "stat_set:ready_since@self:1",
+          "stat_gain:ready_since@self:sum:rush@mine.player", "stat_damage:rush@mine.player:1",
+          "options:mr_boost:optional"]
+      },
+      "story": "Three more and somebody stops digging."
     },
     {
       "key": "sanatorium",
@@ -2781,7 +3187,7 @@
         "build_face",
         "generate_art"
       ],
-      "tooltip": "1 gold, exhaust: draw a card, and put up to two tech 0/I/II units from your hand into play with haste. NOT MODELLED: those units should be ephemeral.",
+      "tooltip": "1 gold, exhaust: draw a card, and put up to two tech 0/I/II units from your hand into play with haste. They die at end of turn.",
       "card_stats": { "price": 4, "integrity": { "value": 4, "max": 4 } },
       "abilities": [{
         "phases": ["main"],
@@ -2798,7 +3204,8 @@
         "action": [
           "draw_from:mine.deck:mine.hand:1",
           "move:target:mine.army",
-          "stat_set:ready_since@target:1"
+          "stat_set:ready_since@target:1",
+          "stat_set:fleeting@target:1"
         ]
       }]
     },
@@ -2930,21 +3337,14 @@
     {
       "key": "crash_bomber",
       "text": "Crash Bomber",
-      "tags": [
-        "deck_card",
-        "red",
-        "blood",
-        "tech1",
-        "unit",
-        "fighter",
-        "pirate",
-        "flame",
-        "fighter_face",
-        "generate_art"
-      ],
-      "tooltip": "Dies on your turn: deal 1 damage to a patroller or building (NOT MODELLED: the choice, and whose turn it is — it hits the base of whoever is up). Dies on another player's turn: deal 1 damage to that player's base.",
+      "tags": ["deck_card", "red", "blood", "tech1", "unit", "fighter", "pirate", "bomber", "flame", "fighter_face", "generate_art"],
+      "tooltip": "Dies on another player's turn: deal 1 damage to that player's base. NOT MODELLED: \"Dies on your turn: deal 1 damage to a patroller or building\" — the choice can be opened from the departure, but an offer borrows the cards it shows, and the base leaving its own zone is a base no end condition can find.",
       "card_stats": { "price": 1, "atk": 2, "hp": { "value": 2, "max": 2 } },
-      "leaves": { "into": "discard", "action": ["stat_damage:integrity@mine.base:1", "emit:died"] }
+      "leaves": {
+        "into": "discard",
+        "needs": ["count:player@enemy.owner_of >= 1"],
+        "action": ["stat_damage:integrity@mine.base:1", "emit:died"]
+      }
     },
     {
       "key": "rickety_mine",
@@ -2982,7 +3382,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Whenever a unit dies on an opponent's turn, their base takes 1 damage. Whenever a unit dies on your turn, deal 1 damage to an opponent's base. NOT MODELLED: which turn it is — either way the base of whoever is up takes it.",
+      "tooltip": "Whenever a unit dies, deal 1 damage to the base of whoever this card is not fighting for.",
       "card_stats": { "price": 3, "atk": 4, "hp": { "value": 2, "max": 2 } },
       "reactions": [
         {
@@ -2990,7 +3390,10 @@
           "whose": "anyone",
           "forced": "mandatory",
           "from": "board",
-          "action": ["stat_damage:integrity@mine.base:1"]
+          "action": [
+            "stat_damage:integrity@enemy.base:count:player@mine.owner_of",
+            "stat_damage:integrity@mine.base:count:player@enemy.owner_of"
+          ]
         }
       ]
     },
@@ -3090,7 +3493,7 @@
       "key": "bloodlust",
       "text": "Bloodlust",
       "tags": ["deck_card", "red", "blood", "spell", "buff", "arcane", "generate_art"],
-      "tooltip": "Give up to two units and/or heroes +1 ATK and haste this turn. They each take 1 damage at end of turn. NOT MODELLED: the bonus is permanent and nobody takes the damage.",
+      "tooltip": "Give up to two units and/or heroes +1 ATK and haste this turn. They each take 1 damage at end of turn.",
       "card_stats": { "price": 2 },
       "play": {
         "phases": ["main"],
@@ -3105,7 +3508,12 @@
           "tags": ["fighter"],
           "zones": ["army", "patrol"]
         },
-        "action": ["stat_gain:atk@target:1", "stat_set:ready_since@target:1"],
+        "action": [
+          "stat_gain:atk@target:1",
+          "stat_gain:lent@target:1",
+          "stat_gain:bleeds@target:1",
+          "stat_set:ready_since@target:1"
+        ],
         "spent": "mine.discard"
       }
     },
@@ -3120,7 +3528,7 @@
       "key": "kidnapping",
       "text": "Kidnapping",
       "tags": ["deck_card", "red", "blood", "spell", "debuff", "arcane", "generate_art"],
-      "tooltip": "Gain control of an opposing tech 0, I or II unit until end of turn. Ready it and it gets haste. NOT MODELLED: you keep it, and the tier is not checked.",
+      "tooltip": "Gain control of an opposing tech 0, I or II unit until end of turn. Ready it and it gets haste. It goes home at its owner's upkeep.",
       "card_stats": { "price": 4 },
       "play": {
         "phases": ["main"],
@@ -3132,13 +3540,17 @@
           "count": 1,
           "owner": "enemy",
           "tags": ["unit"],
-          "zones": ["army", "patrol"]
+          "zones": ["army", "patrol"],
+          "where": ["count:tech3@target == 0"]
         },
         "action": [
           "set_owner:target:mine",
           "move:target:mine.army",
           "ready:target",
-          "stat_set:ready_since@target:1"
+          "stat_set:ready_since@target:1",
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "stat_set:taken@target:1"
         ],
         "spent": "mine.discard"
       }
@@ -3146,43 +3558,21 @@
     {
       "key": "pirategang_commander",
       "text": "Pirate-Gang Commander",
-      "tags": [
-        "deck_card",
-        "red",
-        "blood",
-        "tech3",
-        "unit",
-        "fighter",
-        "pirate",
-        "flame",
-        "fighter_face",
-        "generate_art"
-      ],
-      "tooltip": "Arrives: summon three 2/2 red Pirate tokens. Your units have \"Dies: deal 1 damage to each opposing base\" and you may play tech I or II Blood units for free. NOT MODELLED: the last two lines.",
+      "tags": ["deck_card", "red", "blood", "tech3", "unit", "fighter", "pirate", "gang", "flame", "fighter_face", "generate_art"],
+      "tooltip": "Arrives: summon three 2/2 red Pirate tokens. Your units have \"Dies: deal 1 damage to each opposing base\". NOT MODELLED: playing tech I or II Blood units for free, since a cost has no place to say it is waived.",
       "card_stats": { "price": 6, "atk": 6, "hp": { "value": 6, "max": 6 } },
       "play": {
         "phases": ["main"],
         "needs": ["count:t3@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "fill:mine.army:pirate_token:3"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self", "fill:mine.army:pirate_token:3"]
       }
     },
     {
       "key": "war_drums",
       "text": "War Drums",
-      "tags": [
-        "deck_card",
-        "red",
-        "blood",
-        "spell",
-        "ultimate",
-        "ongoing_spell",
-        "channeling",
-        "chan_blood",
-        "relic",
-        "generate_art"
-      ],
-      "tooltip": "Ultimate ongoing spell, channeling. Your units get +X ATK where X is the number of units you have. NOT MODELLED: the continuous bonus; it sits in play and does nothing.",
+      "tags": ["deck_card", "red", "blood", "spell", "ultimate", "ongoing_spell", "channeling", "chan_blood", "drums", "relic", "generate_art"],
+      "tooltip": "Ultimate ongoing spell, channeling. Your units get +X ATK where X is the number of units you have. The drums are beaten at your upkeep, so the count is taken once and the bonus lasts your turn.",
       "card_stats": { "price": 2 },
       "play": {
         "phases": ["main"],
@@ -3218,9 +3608,9 @@
           "zones": ["base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
-          "stat_damage:hp@target:2",
-          "stat_damage:life@target:2",
-          "stat_damage:integrity@target:2",
+          "harm:hp@target:2",
+          "harm:life@target:2",
+          "harm:integrity@target:2",
           "activate_zone:rules_death"
         ]
       }]
@@ -3253,7 +3643,7 @@
           "tags": ["building"],
           "zones": ["base", "tech", "structures", "addon"]
         },
-        "action": ["stat_damage:integrity@target:1", "activate_zone:rules_death"]
+        "action": ["harm:integrity@target:1", "activate_zone:rules_death"]
       }]
     },
     {
@@ -3287,8 +3677,8 @@
         },
         "action": [
           "move_to",
-          "stat_set:ready_since@self:count:haste@self",
-          "stat_damage:hp@target:3",
+          "stat_set:ready_since@self:count:hasty@self",
+          "harm:hp@target:3",
           "activate_zone:rules_death"
         ]
       }
@@ -3324,31 +3714,44 @@
       "key": "firehouse",
       "text": "Firehouse",
       "tags": ["deck_card", "red", "fire", "tech2", "building", "stone", "build_face", "generate_art"],
-      "tooltip": "Exhaust: deal 2 damage to a unit, hero or building. If you destroy it that way, ready this (NOT MODELLED).",
+      "tooltip": "Exhaust: deal 2 damage to a unit, hero or building. If you destroy it that way, ready this.",
       "card_stats": { "price": 3, "integrity": { "value": 4, "max": 4 } },
-      "abilities": [{
-        "phases": ["main"],
-        "cost": { "exhaust": 1 },
-        "target": {
-          "verb": "cast",
-          "type": "card",
-          "count": 1,
-          "owner": "anyone",
-          "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
+      "abilities": [
+        {
+          "phases": ["main"],
+          "cost": { "exhaust": 1 },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "anyone",
+            "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
+          },
+          "action": [
+            "stat_set:mark@target:1",
+            "harm:hp@target:2",
+            "harm:life@target:2",
+            "harm:integrity@target:2",
+            "activate_zone:mine.structures:by_column:blaze",
+            "stat_set:mark@each.anyone.marked:0",
+            "activate_zone:rules_death"
+          ]
         },
-        "action": [
-          "stat_damage:hp@target:2",
-          "stat_damage:life@target:2",
-          "stat_damage:integrity@target:2",
-          "activate_zone:rules_death"
-        ]
-      }]
+        {
+          "key": "blaze",
+          "phases": [],
+          "text": "Firehouse",
+          "tooltip": "Nothing records who did a killing, so the firehouse marks what it aimed at and asks afterwards whether the mark is still standing.",
+          "needs": ["count:marked@anyone.finished >= 1"],
+          "action": ["ready:self"]
+        }
+      ]
     },
     {
       "key": "hotter_fire",
       "text": "Hotter Fire",
-      "tags": ["deck_card", "red", "fire", "tech2", "upgrade", "relic", "generate_art"],
-      "tooltip": "Your red spells and abilities that deal damage deal 1 more. NOT MODELLED: nothing can modify a number on its way out.",
+      "tags": ["deck_card", "red", "fire", "tech2", "upgrade", "hotter", "relic", "generate_art"],
+      "tooltip": "Your red spells and abilities that deal damage deal 1 more.",
       "card_stats": { "price": 3 }
     },
     {
@@ -3366,8 +3769,15 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying. Damages a building: deal 1 damage to every unit and hero that opponent controls. NOT MODELLED: the trigger.",
-      "card_stats": { "price": 4, "atk": 4, "hp": { "value": 3, "max": 3 }, "alt": 1, "aa": 1 }
+      "tooltip": "Flying. Damages a building: deal 1 damage to every unit and hero that opponent controls.",
+      "card_stats": { "price": 4, "atk": 4, "hp": { "value": 3, "max": 3 }, "alt": 1, "aa": 1 },
+      "abilities": [{
+        "key": "kills",
+        "phases": [],
+        "text": "Molting Firebird",
+        "needs": ["attacking@self >= 1", "sum:power@self >= 1", "count:building@across >= 1"],
+        "action": ["stat_damage:hp@each.enemy.unit:1", "stat_damage:life@each.enemy.hero:1"]
+      }]
     },
     {
       "key": "cinderblast_dragon",
@@ -3385,14 +3795,14 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying, resist 2. Arrives or attacks: you may play a non-ultimate Fire spell from your hand or codex for free. NOT MODELLED: resist and the free spell.",
+      "tooltip": "Flying, resist 2. Arrives or attacks: you may play a non-ultimate Fire spell from your hand or codex for free. NOT MODELLED: the free spell.",
       "card_stats": { "price": 7, "atk": 6, "hp": { "value": 6, "max": 6 }, "alt": 1, "aa": 1 }
     },
     {
       "key": "ember_sparks",
       "text": "Ember Sparks",
       "tags": ["deck_card", "red", "fire", "spell", "burn", "arcane", "generate_art"],
-      "tooltip": "Deal 3 damage divided as you choose among one, two or three patrollers and/or buildings. NOT MODELLED: the division — all 3 land on one target.",
+      "tooltip": "Deal 3 damage divided as you choose among one, two or three patrollers and/or buildings. Click a target again to put another point on it.",
       "card_stats": { "price": 3 },
       "play": {
         "phases": ["main"],
@@ -3401,14 +3811,14 @@
         "target": {
           "verb": "cast",
           "type": "card",
-          "count": 1,
+          "spread": 3,
           "owner": "enemy",
           "zones": ["base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
-          "stat_damage:hp@target:3",
-          "stat_damage:life@target:3",
-          "stat_damage:integrity@target:3",
+          "harm:hp@target:1",
+          "harm:life@target:1",
+          "harm:integrity@target:1",
           "activate_zone:rules_death"
         ],
         "spent": "mine.discard"
@@ -3432,8 +3842,8 @@
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
-          "stat_damage:hp@target:3",
-          "stat_damage:integrity@target:2",
+          "harm:hp@target:3",
+          "harm:integrity@target:2",
           "activate_zone:rules_death"
         ],
         "spent": "mine.discard"
@@ -3457,9 +3867,9 @@
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
-          "stat_damage:hp@target:4",
-          "stat_damage:life@target:4",
-          "stat_damage:integrity@target:3",
+          "harm:hp@target:4",
+          "harm:life@target:4",
+          "harm:integrity@target:3",
           "activate_zone:rules_death"
         ],
         "spent": "mine.discard"
@@ -3469,7 +3879,7 @@
       "key": "burning_volley",
       "text": "Burning Volley",
       "tags": ["deck_card", "red", "fire", "spell", "ultimate", "burn", "arcane", "generate_art"],
-      "tooltip": "Ultimate spell. Deal 5 damage divided as you choose among any number of units, heroes and/or buildings. NOT MODELLED: the division — all 5 land on one target.",
+      "tooltip": "Ultimate spell. Deal 5 damage divided as you choose among any number of units, heroes and/or buildings. Click a target again to put another point on it.",
       "card_stats": { "price": 3 },
       "play": {
         "phases": ["main"],
@@ -3478,14 +3888,14 @@
         "target": {
           "verb": "cast",
           "type": "card",
-          "count": 1,
+          "spread": 5,
           "owner": "anyone",
           "zones": ["army", "base", "tech", "structures", "addon", "patrol"]
         },
         "action": [
-          "stat_damage:hp@target:5",
-          "stat_damage:life@target:5",
-          "stat_damage:integrity@target:5",
+          "harm:hp@target:1",
+          "harm:life@target:1",
+          "harm:integrity@target:1",
           "activate_zone:rules_death"
         ],
         "spent": "mine.discard"
@@ -3494,18 +3904,8 @@
     {
       "key": "ironbark_treant",
       "text": "Ironbark Treant",
-      "tags": [
-        "deck_card",
-        "green",
-        "tech0",
-        "unit",
-        "fighter",
-        "tree",
-        "moss",
-        "fighter_face",
-        "generate_art"
-      ],
-      "tooltip": "-2 ATK / +2 armor while patrolling. NOT MODELLED: the bonus is conditional on where it stands, and a zone cannot say a rule about one card.",
+      "tags": ["deck_card", "green", "tech0", "unit", "fighter", "tree", "bark", "moss", "fighter_face", "generate_art"],
+      "tooltip": "-2 ATK / +2 armor while patrolling.",
       "card_stats": { "price": 3, "atk": 3, "hp": { "value": 2, "max": 2 } }
     },
     {
@@ -3539,7 +3939,7 @@
       "play": {
         "phases": ["main"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "fill:mine.army:wisp:1"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self", "fill:mine.army:wisp:1"]
       }
     },
     {
@@ -3560,7 +3960,7 @@
         "cost": { "gold@mine.player": "price@self" },
         "action": [
           "move_to",
-          "stat_set:ready_since@self:count:haste@self",
+          "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:atk@self:2",
           "stat_boost:hp@self:2",
           "stat_gain:hp@self:2"
@@ -3645,14 +4045,44 @@
       "play": {
         "phases": ["main"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "draw_from:mine.deck:mine.hand:1"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self", "draw_from:mine.deck:mine.hand:1"]
       }
     },
     {
       "key": "forests_favor",
       "text": "Forest's Favor",
       "tags": ["deck_card", "green", "spell", "minor_spell", "buff", "arcane", "generate_art"],
-      "tooltip": "Put a +1/+1 rune on a friendly unit or hero that doesn't have one. NOT MODELLED: the check that it has none.",
+      "tooltip": "Put a +1/+1 rune on a friendly unit or hero that doesn't have one.",
+      "card_stats": { "price": 2 },
+      "play": {
+        "phases": ["main"],
+        "needs": ["count:hero@mine.hero >= 1"],
+        "cost": { "gold@mine.player": "price@self" },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": ["fighter"],
+          "zones": ["army", "patrol"],
+          "where": ["runes@target == 0"]
+        },
+        "action": [
+          "stat_gain:runes@target:1",
+          "stat_gain:atk@target:1",
+          "stat_boost:hp@target:1",
+          "stat_gain:hp@target:1",
+          "stat_boost:life@target:1",
+          "stat_gain:life@target:1"
+        ],
+        "spent": "mine.discard"
+      }
+    },
+    {
+      "key": "rampant_growth",
+      "text": "Rampant Growth",
+      "tags": ["deck_card", "green", "spell", "minor_spell", "buff", "arcane", "generate_art"],
+      "tooltip": "Give a unit or hero +2 ATK / +2 armor this turn.",
       "card_stats": { "price": 2 },
       "play": {
         "phases": ["main"],
@@ -3667,34 +4097,11 @@
           "zones": ["army", "patrol"]
         },
         "action": [
-          "stat_gain:atk@target:1",
-          "stat_boost:hp@target:1",
-          "stat_gain:hp@target:1",
-          "stat_boost:life@target:1",
-          "stat_gain:life@target:1"
+          "stat_gain:atk@target:2",
+          "stat_gain:lent@target:2",
+          "stat_gain:armor@target:2",
+          "stat_gain:plate@target:2"
         ],
-        "spent": "mine.discard"
-      }
-    },
-    {
-      "key": "rampant_growth",
-      "text": "Rampant Growth",
-      "tags": ["deck_card", "green", "spell", "minor_spell", "buff", "arcane", "generate_art"],
-      "tooltip": "Give a unit or hero +2 ATK / +2 armor this turn. NOT MODELLED: it lasts.",
-      "card_stats": { "price": 2 },
-      "play": {
-        "phases": ["main"],
-        "needs": ["count:hero@mine.hero >= 1"],
-        "cost": { "gold@mine.player": "price@self" },
-        "target": {
-          "verb": "cast",
-          "type": "card",
-          "count": 1,
-          "owner": "mine",
-          "tags": ["fighter"],
-          "zones": ["army", "patrol"]
-        },
-        "action": ["stat_gain:atk@target:2", "stat_gain:armor@target:2"],
         "spent": "mine.discard"
       }
     },
@@ -3765,19 +4172,8 @@
     {
       "key": "dothram_horselord",
       "text": "Dothram Horselord",
-      "tags": [
-        "deck_card",
-        "green",
-        "balance",
-        "tech2",
-        "unit",
-        "fighter",
-        "overpower",
-        "moss",
-        "fighter_face",
-        "generate_art"
-      ],
-      "tooltip": "Overpower. Upkeep: if a player has more total ATK than each other player, Dothram Horselord joins their forces. NOT MODELLED: the upkeep half.",
+      "tags": ["deck_card", "green", "balance", "tech2", "unit", "fighter", "overpower", "dothram", "moss", "fighter_face", "generate_art"],
+      "tooltip": "Overpower. Upkeep: if a player has more total ATK than each other player, Dothram Horselord joins their forces.",
       "card_stats": { "price": 3, "atk": 6, "hp": { "value": 5, "max": 5 } }
     },
     {
@@ -3795,8 +4191,26 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying. Arrives: you may put a feather rune on a tech I or II unit; units with feather runes are 3/1 and have flying. NOT MODELLED: the feather rune.",
-      "card_stats": { "price": 4, "atk": 4, "hp": { "value": 2, "max": 2 }, "alt": 1, "aa": 1 }
+      "tooltip": "Flying. Arrives: you may put a feather rune on a tech I or II unit, and a unit with a feather rune flies. NOT MODELLED: that it also becomes 3/1 — a buff shifts a number and this one replaces two.",
+      "card_stats": { "price": 4, "atk": 4, "hp": { "value": 2, "max": 2 }, "alt": 1, "aa": 1 },
+      "play": {
+        "phases": ["main"],
+        "needs": ["count:t2@mine.tech >= 1"],
+        "cost": { "gold@mine.player": "price@self" },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "min": 0,
+          "max": 1,
+          "owner": "mine",
+          "tags": ["unit"],
+          "zones": ["army", "patrol"],
+          "where": ["count:tech3@target == 0", "count:tech0@target == 0"]
+        },
+        "action": ["activate_zone:rules_arrive", "move_to", "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:ready_since@self:sum:rush@mine.player", "stat_damage:rush@mine.player:1",
+          "stat_set:feather@target:1"]
+      }
     },
     {
       "key": "potent_basilisk",
@@ -3816,13 +4230,12 @@
       ],
       "tooltip": "Untargetable, deathtouch. Arrives: you may destroy an upgrade or ongoing spell.",
       "card_stats": { "price": 4, "atk": 3, "hp": { "value": 5, "max": 5 } },
-      "receive": { "needs": ["not_verb:cast"] },
       "play": {
         "phases": ["main"],
         "needs": ["count:t2@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
         "target": { "verb": "cast", "type": "card", "min": 0, "max": 1, "owner": "anyone", "zones": ["ongoing"] },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "destroy:target"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self", "destroy:target"]
       }
     },
     {
@@ -3838,8 +4251,8 @@
         "moss",
         "fighter_face",
         "generate_art"
-      ],
-      "tooltip": "As long as a unit or hero with flying is in play, Wandering Mimic has flying. The same is true for overpower, haste, sparkshot, untargetable and stealth. NOT MODELLED: keywords cannot be gained.",
+      , "mimic"],
+      "tooltip": "As long as another unit or hero with flying is in play, Wandering Mimic has flying. The same is true for overpower, haste, sparkshot, untargetable and stealth. NOT MODELLED: sparkshot, which is read off the attacker in the middle of a combat walk.",
       "card_stats": { "price": 4, "atk": 4, "hp": { "value": 4, "max": 4 } }
     },
     {
@@ -3872,19 +4285,19 @@
           "owner": "anyone",
           "zones": ["army", "ongoing", "patrol"]
         },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "destroy:target"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self", "destroy:target"]
       }
     },
     {
       "key": "circle_of_life",
       "text": "Circle of Life",
       "tags": ["deck_card", "green", "balance", "spell", "summon", "arcane", "generate_art"],
-      "tooltip": "Sacrifice a unit. If you do, put a green unit costing 5 or less from your codex into play. NOT MODELLED: it does not check that the sacrifice was green or that the new unit is one tech higher.",
+      "tooltip": "Sacrifice a green unit. If you do, put a green unit costing 5 or less from your codex into play. NOT MODELLED: that the new unit is one tech higher.",
       "card_stats": { "price": 3 },
       "play": {
         "phases": ["main"],
         "needs": ["count:hero@mine.hero >= 1", "count:h_balance@mine.hero >= 1"],
-        "cost": { "gold@mine.player": "price@self", "sacrifice:unit": 1 },
+        "cost": { "gold@mine.player": "price@self", "sacrifice:green_unit": 1 },
         "action": ["show:mine.codex"],
         "spent": "mine.discard"
       },
@@ -3924,18 +4337,8 @@
     {
       "key": "final_showdown",
       "text": "Final Showdown",
-      "tags": [
-        "deck_card",
-        "green",
-        "balance",
-        "spell",
-        "ultimate",
-        "ongoing_spell",
-        "chan_balance",
-        "relic",
-        "generate_art"
-      ],
-      "tooltip": "Ultimate ongoing spell. Attach to your Balance hero: +3/+3, readiness, resist 1, and it draws a card when it attacks. Summon two 3/3 green Hunter tokens with anti-air for an opponent, so that it's fair. NOT MODELLED: readiness, resist and the draw.",
+      "tags": ["deck_card", "green", "balance", "spell", "ultimate", "ongoing_spell", "chan_balance", "finale", "relic", "generate_art"],
+      "tooltip": "Ultimate ongoing spell. Attach to your Balance hero: +3/+3, resist 1, and it draws a card when it attacks. Summon two 3/3 green Hunter tokens with anti-air for an opponent, so that it's fair. NOT MODELLED: readiness, which is a cost that is not paid and costs have no such word.",
       "card_stats": { "price": 3 },
       "play": {
         "phases": ["main"],
@@ -4030,8 +4433,16 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Gigadon costs 1 less for each green unit you have. Overpower. NOT MODELLED: the discount — a play block has no place to bind the arithmetic, so it costs the printed 9.",
-      "card_stats": { "price": 9, "atk": 8, "hp": { "value": 8, "max": 8 } }
+      "tooltip": "Gigadon costs 1 less for each green unit you have. Overpower.",
+      "card_stats": { "price": 9, "atk": 8, "hp": { "value": 8, "max": 8 } },
+      "play": {
+        "phases": ["main"],
+        "needs": ["count:t2@mine.tech >= 1"],
+        "compute": ["gigadon_price"],
+        "cost": { "gold@mine.player": "gigadon_price" },
+        "action": ["activate_zone:rules_arrive", "move_to", "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:ready_since@self:sum:rush@mine.player", "stat_damage:rush@mine.player:1"]
+      }
     },
     {
       "key": "predator_tiger",
@@ -4048,8 +4459,15 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unstoppable by tech 0 units. Whenever it deals combat damage to a base, trash a worker there. NOT MODELLED: both.",
-      "card_stats": { "price": 4, "atk": 4, "hp": { "value": 4, "max": 4 } }
+      "tooltip": "Whenever it deals combat damage to a base, trash a worker there. NOT MODELLED: unstoppable by tech 0 units, since no rule can ask the attacker's tier.",
+      "card_stats": { "price": 4, "atk": 4, "hp": { "value": 4, "max": 4 } },
+      "abilities": [{
+        "key": "kills",
+        "phases": [],
+        "text": "Predator Tiger",
+        "needs": ["attacking@self >= 1", "sum:power@self >= 1", "count:home@across >= 1"],
+        "action": ["stat_damage:workers@opponent:1", "destroy:enemy.workers:1"]
+      }]
     },
     {
       "key": "rampaging_elephant",
@@ -4065,8 +4483,23 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "The first time Rampaging Elephant exhausts each turn, ready him. NOT MODELLED: exhaustion has no trigger.",
-      "card_stats": { "price": 6, "atk": 6, "hp": { "value": 7, "max": 7 } }
+      "tooltip": "The first attack Rampaging Elephant makes each turn does not cost him his readiness. NOT MODELLED: any other way of exhausting him.",
+      "card_stats": { "price": 6, "atk": 6, "hp": { "value": 7, "max": 7 } },
+      "abilities": [
+        {
+          "key": "upkeep",
+          "phases": [],
+          "text": "Rampaging Elephant",
+          "action": ["stat_set:romp@self:1"]
+        },
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Rampaging Elephant",
+          "needs": ["attacking@self >= 1", "romp@self >= 1"],
+          "action": ["stat_set:romp@self:0", "ready:self"]
+        }
+      ]
     },
     {
       "key": "stalking_tiger",
@@ -4083,8 +4516,8 @@
         "moss",
         "fighter_face",
         "generate_art"
-      ],
-      "tooltip": "Stealth while attacking a unit; invisible while you have a Feral hero. NOT MODELLED: the invisibility, and the stealth is unconditional here.",
+      , "stalker"],
+      "tooltip": "Stealth while attacking a unit; invisible while you have a Feral hero. NOT MODELLED: the stealth is unconditional here, and a post makes it visible to spells as well as to attacks.",
       "card_stats": { "price": 3, "atk": 4, "hp": { "value": 4, "max": 4 }, "sneak": 1 }
     },
     {
@@ -4102,14 +4535,13 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Untargetable. Arrives or attacks: summon three 1/1 green Squirrel tokens. NOT MODELLED: the Squirrels are ordinary rather than hasty and invisible.",
+      "tooltip": "Untargetable. Arrives or attacks: summon three 1/1 green Squirrel tokens with haste, invisible until they take a post. NOT MODELLED: a squirrel that was already yours goes invisible too, since the summon cannot name only the three it has just made.",
       "card_stats": { "price": 7, "atk": 8, "hp": { "value": 9, "max": 9 } },
-      "receive": { "needs": ["not_verb:cast"] },
       "play": {
         "phases": ["main"],
         "needs": ["count:t3@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "fill:mine.army:squirrel:3"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self", "fill:mine.army:squirrel:3"]
       },
       "abilities": [
         {
@@ -4117,25 +4549,16 @@
           "phases": [],
           "text": "Attacks",
           "needs": ["attacking@self >= 1"],
-          "action": ["fill:mine.army:squirrel:3"]
+          "action": ["fill:mine.army:squirrel:3", "stat_set:ready_since@each.mine.squirrel:1",
+            "stat_set:unseen@each.mine.squirrel:1"]
         }
       ]
     },
     {
       "key": "behind_the_ferns",
       "text": "Behind the Ferns",
-      "tags": [
-        "deck_card",
-        "green",
-        "feral",
-        "spell",
-        "ongoing_spell",
-        "channeling",
-        "chan_feral",
-        "relic",
-        "generate_art"
-      ],
-      "tooltip": "Ongoing, channeling. Your units with 3 ATK or less have stealth. NOT MODELLED: the continuous grant; it sits in play and does nothing.",
+      "tags": ["deck_card", "green", "feral", "spell", "ongoing_spell", "channeling", "chan_feral", "ferns", "relic", "generate_art"],
+      "tooltip": "Ongoing, channeling. Your units with 3 ATK or less have stealth on your own turn, which is the turn it matters on.",
       "card_stats": { "price": 2 },
       "play": {
         "phases": ["main"],
@@ -4148,20 +4571,27 @@
       "key": "ferocity",
       "text": "Ferocity",
       "tags": ["deck_card", "green", "feral", "spell", "buff", "arcane", "spell_face", "generate_art"],
-      "tooltip": "Your units get armor piercing and swift strike until your next upkeep. NOT MODELLED AT ALL: neither keyword has a number to move, so this cannot be cast.",
-      "card_stats": { "price": 2 }
+      "tooltip": "Your units get armor piercing this turn. NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it; and \"until your next upkeep\", which is a turn longer than this file can lend anything for.",
+      "card_stats": { "price": 2 },
+      "play": {
+        "phases": ["main"],
+        "needs": ["count:hero@mine.hero >= 1", "count:h_feral@mine.hero >= 1"],
+        "cost": { "gold@mine.player": "price@self" },
+        "action": ["stat_set:pierce@each.mine.unit:1"],
+        "spent": "mine.discard"
+      }
     },
     {
       "key": "murkwood_allies",
       "text": "Murkwood Allies",
       "tags": ["deck_card", "green", "feral", "spell", "summon", "arcane", "generate_art"],
-      "tooltip": "Boost 4 (NOT MODELLED). Choose one: summon a 4/4 green Beast token, or four 1/1 green Frog tokens.",
+      "tooltip": "Boost 4. Choose one: summon a 4/4 green Beast token, or four 1/1 green Frog tokens. Boosted, take both.",
       "card_stats": { "price": 5 },
       "play": {
         "phases": ["main"],
         "needs": ["count:hero@mine.hero >= 1", "count:h_feral@mine.hero >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["options:ma_beast,ma_frogs"],
+        "action": ["options:ma_beast,ma_frogs,ma_both"],
         "spent": "mine.discard"
       }
     },
@@ -4182,6 +4612,17 @@
       "play": { "action": ["fill:mine.army:frog:4"] }
     },
     {
+      "key": "ma_both",
+      "text": "Boost 4: both",
+      "tags": ["immutable"],
+      "asset": "star:6:forest",
+      "tooltip": "Pay 4 more and summon the Beast and the Frogs.",
+      "play": {
+        "cost": { "gold@mine.player": 4 },
+        "action": ["fill:mine.army:beast_token:1", "fill:mine.army:frog:4"]
+      }
+    },
+    {
       "key": "feral_strike",
       "text": "Feral Strike",
       "tags": [
@@ -4194,8 +4635,28 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ultimate spell. Boost 4. Choose one: fetch up to two units from your codex, reveal them, then put them in your hand; or put up to two units from your hand into play if you have tech buildings of the same tech level as them. If you boosted, choose both. NOT MODELLED AT ALL: neither half fits, so this cannot be cast.",
-      "card_stats": { "price": 4 }
+      "tooltip": "Ultimate spell. Put up to two units from your hand into play, if you have tech buildings of the same tech level as them. NOT MODELLED: the other half — \"fetch up to two units from your codex, reveal them, then put them in your hand\" — and with it the Boost 4 that takes both, because a pick out of an offer cannot then aim at anything and each half aims somewhere else.",
+      "card_stats": { "price": 4 },
+      "play": {
+        "phases": ["main"],
+        "needs": ["count:h_feral@mine.hero >= 1", "max:ripe@mine.h_feral >= 5"],
+        "cost": { "gold@mine.player": "price@self" },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "min": 0,
+          "max": 2,
+          "owner": "mine",
+          "tags": ["unit"],
+          "zones": ["hand"],
+          "where": ["count:buildable@target >= 1"]
+        },
+        "action": [
+          "move:target:mine.army",
+          "stat_set:ready_since@each.target:count:hasty@each.target"
+        ],
+        "spent": "mine.discard"
+      }
     },
     {
       "key": "galina_glimmer",
@@ -4223,7 +4684,7 @@
           "count:galina_glimmer@mine.patrol == 0"
         ],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self"]
       }
     },
     {
@@ -4247,7 +4708,7 @@
         "phases": ["main"],
         "needs": ["count:t1@mine.tech >= 1"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "fill:mine.army:wisp:1"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self", "fill:mine.army:wisp:1"]
       }
     },
     {
@@ -4279,27 +4740,18 @@
           "tags": ["building"],
           "zones": ["base", "tech", "structures", "addon"]
         },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self", "stat_gain:integrity@target:3"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self", "stat_gain:integrity@target:3"]
       }
     },
     {
       "key": "blooming_ancient",
       "text": "Blooming Ancient",
-      "tags": [
-        "deck_card",
-        "green",
-        "growth",
-        "tech2",
-        "unit",
-        "fighter",
-        "moss",
-        "fighter_face",
-        "generate_art"
-      ],
-      "tooltip": "Whenever another unit or hero of yours arrives, put a +1/+1 rune on this (NOT MODELLED). Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
+      "tags": ["deck_card", "green", "growth", "tech2", "unit", "fighter", "ancient", "moss", "fighter_face", "generate_art"],
+      "tooltip": "Whenever another unit or hero of yours arrives, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
       "card_stats": { "price": 4, "atk": 2, "hp": { "value": 4, "max": 4 } },
       "abilities": [{
         "phases": ["main"],
+        "needs": ["runes@self >= 1"],
         "target": {
           "verb": "cast",
           "type": "card",
@@ -4309,8 +4761,10 @@
           "zones": ["army", "patrol"]
         },
         "action": [
+          "stat_damage:runes@self:1",
           "stat_damage:atk@self:1",
           "stat_boost:hp@self:-1",
+          "stat_gain:runes@target:1",
           "stat_gain:atk@target:1",
           "stat_boost:hp@target:1",
           "stat_gain:hp@target:1"
@@ -4320,18 +4774,8 @@
     {
       "key": "blooming_elm",
       "text": "Blooming Elm",
-      "tags": [
-        "deck_card",
-        "green",
-        "growth",
-        "tech2",
-        "building",
-        "tree",
-        "stone",
-        "build_face",
-        "generate_art"
-      ],
-      "tooltip": "Your units and heroes with +1/+1 runes have overpower (NOT MODELLED). Exhaust: put three +1/+1 runes on a unit.",
+      "tags": ["deck_card", "green", "growth", "tech2", "building", "tree", "elm", "stone", "build_face", "generate_art"],
+      "tooltip": "Your units and heroes with +1/+1 runes have overpower. Exhaust: put three +1/+1 runes on a unit.",
       "card_stats": { "price": 3, "integrity": { "value": 4, "max": 4 } },
       "abilities": [{
         "phases": ["main"],
@@ -4344,14 +4788,19 @@
           "tags": ["unit"],
           "zones": ["army", "patrol"]
         },
-        "action": ["stat_gain:atk@target:3", "stat_boost:hp@target:3", "stat_gain:hp@target:3"]
+        "action": [
+          "stat_gain:runes@target:3",
+          "stat_gain:atk@target:3",
+          "stat_boost:hp@target:3",
+          "stat_gain:hp@target:3"
+        ]
       }]
     },
     {
       "key": "might_of_leaf_and_claw",
       "text": "Might of Leaf and Claw",
-      "tags": ["deck_card", "green", "growth", "tech2", "upgrade", "relic", "generate_art"],
-      "tooltip": "Whenever you deal combat damage with an attacker, put a growth rune on this. While it has at least five, your units and heroes get +5/+5. NOT MODELLED: both halves.",
+      "tags": ["deck_card", "green", "growth", "tech2", "upgrade", "might", "relic", "generate_art"],
+      "tooltip": "Whenever you deal combat damage with an attacker, put a growth rune on this. While it has at least five, your units and heroes get +5/+5 on your own turn.",
       "card_stats": { "price": 3, "runes": { "value": 0, "max": 9 } }
     },
     {
@@ -4399,7 +4848,7 @@
           "count:guargum@mine.patrol == 0"
         ],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["move_to", "stat_set:ready_since@self:count:haste@self"]
+        "action": ["move_to", "stat_set:ready_since@self:count:hasty@self"]
       },
       "abilities": [
         {
@@ -4415,7 +4864,7 @@
       "key": "dinosize",
       "text": "Dinosize",
       "tags": ["deck_card", "green", "growth", "spell", "buff", "arcane", "generate_art"],
-      "tooltip": "Give a unit or hero +6 ATK / +6 armor this turn. NOT MODELLED: it lasts.",
+      "tooltip": "Give a unit or hero +6 ATK / +6 armor this turn.",
       "card_stats": { "price": 4 },
       "play": {
         "phases": ["main"],
@@ -4429,7 +4878,12 @@
           "tags": ["fighter"],
           "zones": ["army", "patrol"]
         },
-        "action": ["stat_gain:atk@target:6", "stat_gain:armor@target:6"],
+        "action": [
+          "stat_gain:atk@target:6",
+          "stat_gain:lent@target:6",
+          "stat_gain:armor@target:6",
+          "stat_gain:plate@target:6"
+        ],
         "spent": "mine.discard"
       }
     },
@@ -4458,18 +4912,8 @@
     {
       "key": "spirit_of_the_panda",
       "text": "Spirit of the Panda",
-      "tags": [
-        "deck_card",
-        "green",
-        "growth",
-        "spell",
-        "ongoing_spell",
-        "buff",
-        "healing",
-        "relic",
-        "generate_art"
-      ],
-      "tooltip": "Ongoing. Attach to a unit: it gets +2/+2 and \"Attacks: gain 1 gold\" (that trigger is NOT MODELLED). Healing 1.",
+      "tags": ["deck_card", "green", "growth", "spell", "ongoing_spell", "buff", "healing", "spirit", "relic", "generate_art"],
+      "tooltip": "Ongoing. Attach to a unit: it gets +2/+2 and \"Attacks: gain 1 gold\". Healing 1.",
       "card_stats": { "price": 4 },
       "play": {
         "phases": ["main"],
@@ -4496,13 +4940,19 @@
       "key": "stampede",
       "text": "Stampede",
       "tags": ["deck_card", "green", "growth", "spell", "ultimate", "buff", "arcane", "generate_art"],
-      "tooltip": "Ultimate spell. Your units get +3 ATK / +3 armor this turn, and excess combat damage they would deal to units and heroes hits that opponent's base. NOT MODELLED: the spill, and the bonus lasts.",
+      "tooltip": "Ultimate spell. Your units get +3 ATK / +3 armor this turn, and excess combat damage they would deal to units and heroes hits that opponent's base.",
       "card_stats": { "price": 6 },
       "play": {
         "phases": ["main"],
         "needs": ["count:h_growth@mine.hero >= 1", "max:ripe@mine.h_growth >= 5"],
         "cost": { "gold@mine.player": "price@self" },
-        "action": ["stat_gain:atk@each.mine.unit:3", "stat_gain:armor@each.mine.unit:3"],
+        "action": [
+          "stat_gain:atk@each.mine.unit:3",
+          "stat_gain:lent@each.mine.unit:3",
+          "stat_gain:armor@each.mine.unit:3",
+          "stat_gain:plate@each.mine.unit:3",
+          "stat_set:rampage@each.mine.unit:1"
+        ],
         "spent": "mine.discard"
       }
     }
