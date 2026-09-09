@@ -1055,7 +1055,10 @@ function M.check(G)
 			local c = predicate.parse_condition(str)
 			for _, side in ipairs({ c and c.left, c and c.right }) do
 				local p = side and side.subject
-				if p and p.arg then
+				-- Read off the rest of the board and not off this card, so the
+				-- shift cannot be part of what decides it. That is the whole of
+				-- what "others" is for, and the cycle guard has to know it.
+				if p and p.arg and p.quant ~= "others" then
 					if p.fn == nil or p.fn == "sum" or p.fn == "max" or p.fn == "min" then
 						stats_read[#stats_read + 1] = p.arg
 					else
@@ -1845,18 +1848,23 @@ function M.check(G)
 			-- an empty one is not something the game said.
 			-- Both halves of "things that are true" are reads rather than moments:
 			-- one says what a number on a card is, the other how much a verb does
-			-- to it. Neither needs a card to belong to, so a computed tag may
-			-- carry either — the lookout post is resist 1 while something stands
-			-- on square five, and that is a condition about one card.
-			local read_only = td.buffs ~= nil or td.adjusts ~= nil
+			-- to it. **And what a card may do**, which is the third: a keyword is
+			-- granted by saying once what it does and letting a condition decide
+			-- who is wearing it. What a computed tag still may not carry is a
+			-- moment it would have to *be* the subject of — a "play" belongs to
+			-- the card being played, and there is no card here to be it.
+			local grantable = { buffs = true, adjusts = true, abilities = true, tooltip = true,
+				accepts = true, receive = true }
+			local read_only = td.buffs ~= nil or td.adjusts ~= nil or td.abilities ~= nil
+				or td.accepts ~= nil
 			for field, v in pairs(td) do
-				if field ~= "buffs" and field ~= "adjusts" and field ~= "tooltip"
+				if not grantable[field]
 					and not (type(v) == "table" and next(v) == nil) then read_only = false end
 			end
 			if G.computed_tags[tag] and not read_only then
 				warn("%s: is defined under both 'tags' and 'computed_tags' — a computed tag can carry "
-					.. "\"buffs\" and \"adjusts\" and nothing else, since there is no card for "
-					.. "behaviour to belong to", where)
+					.. "\"buffs\", \"adjusts\" and \"abilities\" and nothing else, since there is "
+					.. "no card for a moment to belong to", where)
 			end
 			if not carried_tags[tag] and not G.computed_tags[tag] then
 				warn("%s: has behaviour defined, but no card carries this tag%s",

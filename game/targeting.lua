@@ -252,12 +252,15 @@ function M.candidates(card_id, spec)
 	-- so without it the exception had to be written on every spell in the game.
 	local kept = {}
 	for _, id in ipairs(out) do
-		local e   = entity.get(id)
-		local def = e and (e.kind == "card" and declaration.G.card_defs[e.def_key]
-			or e.kind == "zone" and declaration.G.zone_defs[e.key])
-		if not (def and def.accepts) then
+		local e = entity.get(id)
+		-- Through behaviour for a card, so a ward may be a keyword: its own
+		-- block, its zone's, its tags' and whatever it is wearing right now. A
+		-- zone wears no tags, so it answers for itself.
+		local list = e and (e.kind == "card" and require("cards").accepts(e)
+			or e.kind == "zone" and (declaration.G.zone_defs[e.key] or {}).accepts)
+		if not (list and #list > 0) then
 			kept[#kept + 1] = id
-		elseif predicate.meets_all(def.accepts, { card_id = id, zone_id = e.kind == "zone" and id or nil,
+		elseif predicate.meets_all(list, { card_id = id, zone_id = e.kind == "zone" and id or nil,
 			targets = { card_id }, verb = spec.verb }) then
 			kept[#kept + 1] = id
 		end

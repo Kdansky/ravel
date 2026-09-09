@@ -71,7 +71,13 @@ local YESNO  = { tagged = true, not_tagged = true, saved = true, not_self = true
 -- is about none of them. It used to have its own field on a route and on an end
 -- condition ("zone_empty") because of it.
 local NULLARY = { not_self = true, count = true }
-local QUANTS = { any = true, each = true, random = true }
+-- "others" is a pool with the asking card taken out of it, and it is the scope
+-- half of what "not_self" answers as a yes/no. A rule about the rest of the board
+-- could not be written before: "as long as a unit with flying is in play" read
+-- as a card asking whether it was itself flying, which is a question that needs
+-- its own answer to have one. It stands in the quantifier's slot because the
+-- pool is the whole of what it means -- there is no "one of the others".
+local QUANTS = { any = true, each = true, random = true, others = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
 
 -- The three closed vocabularies, reachable. Both documents teach them, and a
@@ -186,7 +192,7 @@ end
 -- The circle names nothing rather than hanging.
 local reaching = false
 
-function M.entities_in_scope(scope, ctx, owner)
+function M.entities_in_scope(scope, ctx, owner, quant)
 	local out = {}
 	if scope == nil then
 		-- No scope means "mine": the card this player's stats live on, plus the
@@ -341,7 +347,7 @@ function M.entities_in_scope(scope, ctx, owner)
 			if seats[e.def_key] and e.zone_id then cards[e.def_key] = e end
 		end
 		local seen = {}
-		for _, e in ipairs(M.entities_in_scope(inner.name, ctx, inner.owner)) do
+		for _, e in ipairs(M.entities_in_scope(inner.name, ctx, inner.owner, inner.quant)) do
 			local key = M.seat_of(e)
 			if key and cards[key] and not seen[key] then
 				seen[key] = true
@@ -361,7 +367,7 @@ function M.entities_in_scope(scope, ctx, owner)
 		-- of the prefix. "@mine.attached_to.self" is my figures on this site.
 		local inner = M.parse_scope(scope == "attached_to" and "self" or scope:sub(13))
 		if not inner then return out end
-		for _, e in ipairs(M.entities_in_scope(inner.name, ctx, inner.owner)) do
+		for _, e in ipairs(M.entities_in_scope(inner.name, ctx, inner.owner, inner.quant)) do
 			for _, id in ipairs(e.attached or {}) do
 				local child = entity.get(id)
 				if child then out[#out + 1] = child end
@@ -377,7 +383,7 @@ function M.entities_in_scope(scope, ctx, owner)
 		local inner = M.parse_scope(scope == "host_of" and "self" or scope:sub(9))
 		if not inner then return out end
 		local seen = {}
-		for _, e in ipairs(M.entities_in_scope(inner.name, ctx, inner.owner)) do
+		for _, e in ipairs(M.entities_in_scope(inner.name, ctx, inner.owner, inner.quant)) do
 			local host = e.parent_id and entity.get(e.parent_id)
 			if host and not seen[host.id] then
 				seen[host.id] = true
@@ -443,6 +449,17 @@ function M.entities_in_scope(scope, ctx, owner)
 			end
 		end
 	end
+	-- "others" drops whoever is asking, which is what keeps a rule about the
+	-- board from reading itself. Done here rather than in each caller because
+	-- every one of them wants the same answer, and a pool that quietly included
+	-- the asker is the bug the word exists to stop.
+	if quant == "others" and ctx and ctx.card_id then
+		local rest = {}
+		for _, e in ipairs(out) do
+			if e.id ~= ctx.card_id then rest[#rest + 1] = e end
+		end
+		out = rest
+	end
 	if owner == nil then return out end
 	local active, kept = zones.active_seat(), {}
 	for _, e in ipairs(out) do
@@ -457,7 +474,7 @@ end
 -- Pass `ents` when the caller has already resolved the scope.
 function M.bearers(p, ctx, ents)
 	local out = {}
-	for _, e in ipairs(ents or M.entities_in_scope(p.scope, ctx, p.owner)) do
+	for _, e in ipairs(ents or M.entities_in_scope(p.scope, ctx, p.owner, p.quant)) do
 		if e.stats and e.stats[p.arg] ~= nil then out[#out + 1] = e end
 	end
 	return out
@@ -503,7 +520,7 @@ function M.total(subject, ctx)
 	if p.fn == "not_self" then
 		local me = ctx and ctx.card_id
 		if not me then return 1 end
-		for _, e in ipairs(M.entities_in_scope(p.scope, ctx, p.owner)) do
+		for _, e in ipairs(M.entities_in_scope(p.scope, ctx, p.owner, p.quant)) do
 			if e.id == me then return 0 end
 		end
 		return 1
@@ -527,7 +544,7 @@ function M.total(subject, ctx)
 		end
 	end
 
-	local ents = M.entities_in_scope(p.scope, ctx, p.owner)
+	local ents = M.entities_in_scope(p.scope, ctx, p.owner, p.quant)
 	if p.fn == "count" then
 		-- No tag named: everything there. "count@road == 0" is an empty road, and
 		-- "count:creature@road == 0" is a road with no creatures on it.
@@ -767,7 +784,7 @@ function M.holds(c, ctx)
 
 	local p = c.left.subject
 	if p and p.fn == nil and p.quant == "each" then
-		local ents = M.entities_in_scope(p.scope, ctx, p.owner)
+		local ents = M.entities_in_scope(p.scope, ctx, p.owner, p.quant)
 		if #ents == 0 or #M.bearers(p, ctx, ents) == 0 then return false end
 		for _, e in ipairs(ents) do
 			if not COMPARE[c.op](tonumber((e.stats or {})[p.arg]) or 0, r) then return false end

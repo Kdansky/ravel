@@ -213,7 +213,53 @@ function M.abilities(card_entity)
 		local td = declaration.G.tag_defs[tag]
 		for _, a in ipairs((td and td.abilities) or EMPTY) do out[#out + 1] = a end
 	end
+	-- **And what it is doing right now.** A computed tag is worn the same way a
+	-- printed one is, so the abilities under its name reach the same cards — the
+	-- difference is only that the wearing comes and goes. That is how a keyword
+	-- is *granted*: say what the keyword does once, under its name, and let a
+	-- condition decide who is wearing it.
+	--
+	-- Last, and after the card's own, so an index into this list is stable for
+	-- everything that does not depend on the board. It still moves when the
+	-- condition flips, which is the same thing a zone's "applies" already does
+	-- and the reason a menu entry carries the index it meant.
+	for _, tag in ipairs(declaration.G.computed_list or EMPTY) do
+		local td = declaration.G.tag_defs[tag]
+		if td and td.abilities and #td.abilities > 0 and require("tags").entity_has(card_entity, tag) then
+			for _, a in ipairs(td.abilities) do out[#out + 1] = a end
+		end
+	end
 	return merged(out)
+end
+
+-- **What a card will let be aimed at it**, from all four places anything else
+-- about it comes from: its own `receive`, its zone's `applies`, its own tags,
+-- and the computed tags it is wearing. A list of conditions is an *and*, so
+-- several wards are several gates and the order they are gathered in says
+-- nothing.
+--
+-- It read only the card's own block until now, which is why "cannot be targeted
+-- by spells" had to be written on every card that has it rather than once on the
+-- keyword, and why nothing could ever grant it.
+function M.accepts(card_entity)
+	local out = {}
+	local function take(list)
+		for _, c in ipairs(list or EMPTY) do out[#out + 1] = c end
+	end
+	local def = M.def(card_entity)
+	take(def and def.accepts)
+	local z = card_entity and card_entity.zone_id and entity.get(card_entity.zone_id)
+	for _, tag in ipairs(z and z.applies or EMPTY) do
+		take((declaration.G.tag_defs[tag] or EMPTY).accepts)
+	end
+	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
+		take((declaration.G.tag_defs[tag] or EMPTY).accepts)
+	end
+	for tag in pairs(declaration.G.computed_tags or EMPTY) do
+		local td = declaration.G.tag_defs[tag]
+		if td and td.accepts and require("tags").entity_has(card_entity, tag) then take(td.accepts) end
+	end
+	return out
 end
 
 -- Every reaction a card carries, in the order it is asked. Its own, written on
@@ -301,6 +347,18 @@ function M.keywords(card_entity)
 		local td = declaration.G.tag_defs[tag]
 		if td and type(td.tooltip) == "string" and td.tooltip ~= "" then
 			out[#out + 1] = { tag = tag, text = td.tooltip }
+		end
+	end
+	-- **And what it is wearing at the moment.** A granted keyword is the one a
+	-- player most needs told, because it is not printed anywhere on the card:
+	-- the sentence is written once under the tag that grants it, and the card
+	-- shows it for as long as the condition holds. Marked, so the panel can say
+	-- it was lent rather than printed.
+	for tag in pairs(declaration.G.computed_tags or EMPTY) do
+		local td = declaration.G.tag_defs[tag]
+		if td and type(td.tooltip) == "string" and td.tooltip ~= ""
+			and require("tags").entity_has(card_entity, tag) then
+			out[#out + 1] = { tag = tag, text = td.tooltip, granted = true }
 		end
 	end
 	return out

@@ -1709,6 +1709,7 @@ card* below.
 insight@player       the stat on cards carrying the "player" tag
 hp@each.follower     every follower, individually
 hp@random.follower   one follower, chosen by the seeded shuffle
+hp@others.follower   every follower except the one asking
 hp@self              the acting card
 hp@target            the cards the player chose for this card
 hp@event             what an announcement is about, for a reaction to read
@@ -2403,6 +2404,24 @@ which is why the pair exists.
 
 The four that are written this way: `tagged:`, `not_tagged:`, `saved:` and
 `not_self`.
+
+**`others.`** is the pool half of the same idea, and it stands where a
+quantifier stands. `sum:alt@others.anyone.fighter` is every flier on the table
+except the card asking — which is the whole of what makes a rule about *the rest
+of the board* sayable:
+
+```json
+"computed_tags": { "mimic_air": { "needs": ["sum:alt@others.anyone.fighter >= 1"] } },
+"tags":          { "mimic_air": { "buffs": { "alt": 1 } } }
+```
+
+*As long as another flier is in play, this one flies.* Written without the word
+it reads as a card asking whether it is itself flying — a question that needs its
+own answer to have one — and the buff-cycle guard refuses that shape, so `others.`
+is also what gets such a card past the validator.
+
+There is no *one* of the others: the pool is the whole of what the word means, so
+it takes the quantifier's slot rather than sitting beside `random.`.
 
 **`not_self`** is the same yes/no shape asked about identity: *is nothing in
 this scope the card doing the asking*. It takes no argument, which no other
@@ -4064,15 +4083,52 @@ that is wrong.
 "computed_tags": { "hurt": ... }          how it is DOING     "+2 while hurt"
 ```
 
-The last is the single exception to the rule that a computed tag carries no
-behaviour. A buff is not behaviour — it is a property of wearing the word, the
-same as a style is — and there is no card for the behaviour version to belong
-to. So a computed tag may write `buffs` and nothing else:
+The last is the interesting one, because a computed tag is worn the same way a
+printed one is — the difference is only that the wearing comes and goes:
 
 ```json
 "computed_tags": { "hurt": { "needs": ["hp@self < 3"] } },
 "tags":          { "hurt": { "buffs": { "atk": 2 } } }
 ```
+
+**Four things a computed tag may carry, and one it may not.** `buffs`, `adjusts`,
+`abilities` and `receive` — what a card *reads as*, what is *done to* it, what it
+may *do*, and what it will let be *aimed at* it. All four are true of whoever is
+wearing the word, and none of them needs a particular card to belong to. What it
+may not carry is a moment it would have to be the subject of: a `play` belongs to
+the card being played, and there is no card here to be it.
+
+**`abilities` is how a keyword is granted.** Say once what the keyword does, under
+its own name, and let a condition decide who is wearing it:
+
+```json
+"computed_tags": { "runed": { "needs": ["runes@self >= 1", "count:elm@mine.structures >= 1"] } },
+"tags": { "runed": {
+  "tooltip": "Overpower, lent by a Blooming Elm to anything wearing a +1/+1 rune.",
+  "abilities": [{ "key": "spill", "phases": [], "text": "Blooming Elm", "action": [ … ] }] } }
+```
+
+The ability joins the card's own and its zone's in one list, last, so an index
+into that list moves only when the condition does — which is what a zone's
+`applies` already does, and the reason a menu entry carries the index it meant. A
+tag with a `tooltip` also shows on the card while it is worn, marked **Lent**, so
+a player can see a keyword that is not printed anywhere and know it can go.
+
+**A keyword with no number under it is copied the same way.** Nothing has to be
+counted into a stat first: `count:` asks about a tag, and `others.` says *anybody
+but me*, so *"as long as another card has overpower, this one does"* is one
+condition wearing one grant.
+
+```json
+"computed_tags": { "mimic_over": { "needs": ["count:overpower@others.anyone.fighter >= 1"] } },
+"tags":          { "mimic_over": { "abilities": [ … the same ability "overpower" grants … ] } }
+```
+
+A keyword the *engine* is not asked about needs one more line, because the
+question is written somewhere already: haste is read as `count:haste@self` as a
+card lands, so the union goes in the file — `"hasty": { "any_of": ["haste",
+"mimic_haste"] }` — and every play block asks `count:hasty@self` instead. One
+word changed, and a printed haste notices nothing.
 
 **The ceiling rises with the value; the floor stays.** Both ends matter and they
 want opposite treatment. A 1/1 handed +1 hp has to be able to reach 2, or the

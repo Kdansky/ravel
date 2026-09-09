@@ -765,6 +765,9 @@ function M.parse(filename)
 		phase_list     = {},       -- ordered array of phase keys
 		phase_by_key   = {},
 		computed_tags  = parsed.computed_tags or {},
+		-- The computed tags, in the order the file wrote them. "cards.abilities"
+		-- walks this, and an ability's index has to be the same on both machines.
+		computed_list  = {},
 		-- A style is a named bundle of presentation properties, claimed by
 		-- tagging it. "This card is crimson" becomes a word instead of three
 		-- numbers repeated on fourteen cards, and the word can be a computed
@@ -872,6 +875,17 @@ function M.parse(filename)
 		end
 		G.tag_defs[name] = td
 	end
+
+	-- The computed tags that grant an ability, in one settled order. A map has
+	-- none, and an ability's index has to be the same number on both machines —
+	-- so they are sorted by name rather than walked as they come out of a hash.
+	for name in pairs(G.computed_tags) do
+		local td = G.tag_defs[name]
+		if td and type(td.abilities) == "table" and #td.abilities > 0 then
+			G.computed_list[#G.computed_list + 1] = name
+		end
+	end
+	table.sort(G.computed_list)
 
 	-- **A game names the moments it means to be answerable.** "stat_damage" is a
 	-- mechanism and not a meaning: poison and a sword both take hp and armour

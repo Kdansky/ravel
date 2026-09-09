@@ -89,7 +89,7 @@ local function destination(arg, ctx)
 	if id then return id end
 	local sc = predicate.parse_scope(arg or "")
 	if not sc then return nil end
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and e.zone_id then return e.id end
 	end
 end
@@ -229,7 +229,7 @@ local function adjusted(e, key, verb, delta, ctx)
 			local covered = holder == e.id
 			if not covered and ad.covers ~= "self" then
 				local sc = predicate.parse_scope(ad.covers)
-				for _, c in ipairs(sc and predicate.entities_in_scope(sc.name, { card_id = holder }, sc.owner) or EMPTY) do
+				for _, c in ipairs(sc and predicate.entities_in_scope(sc.name, { card_id = holder }, sc.owner, sc.quant) or EMPTY) do
 					if c.id == e.id then covered = true; break end
 				end
 			end
@@ -343,7 +343,7 @@ HANDLERS["fill"] = function(p, ctx)
 			content_error("fill: '" .. named .. "' is not a scope")
 			return
 		end
-		for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+		for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 			if e.kind == "card" and declaration.G.card_defs[e.def_key] then keys[#keys + 1] = e.def_key end
 		end
 	elseif declaration.G.card_defs[named] then
@@ -391,7 +391,7 @@ HANDLERS["take"] = function(p, ctx)
 	end
 	local n, pos = count_and_pos(p, 4, 1, ctx)
 	local shelves = {}
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and zones.supply_home(e) then shelves[#shelves + 1] = e end
 	end
 	if #shelves == 0 then
@@ -685,7 +685,7 @@ end
 HANDLERS["ready"] = function(p, ctx)
 	local sc = predicate.parse_scope(p[2] or "")
 	if not sc then return end
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" then e.exhausted = nil end
 	end
 end
@@ -706,7 +706,7 @@ HANDLERS["destroy"] = function(p, ctx)
 	local sc = predicate.parse_scope(p[2] or "")
 	if not sc then return end
 	local doomed = {}
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and e.zone_id then doomed[#doomed + 1] = e.id end
 	end
 	table.sort(doomed)
@@ -739,7 +739,7 @@ HANDLERS["move"] = function(p, ctx)
 	-- Snapshot before moving: the scope is recomputed from live zones, and a
 	-- card that has already left would be counted from the zone it landed in.
 	local moving = {}
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and e.zone_id and e.zone_id ~= to_id then moving[#moving + 1] = e.id end
 	end
 	-- **In the order the scope handed them over**, which for a zone is the order
@@ -790,7 +790,7 @@ HANDLERS["set_owner"] = function(p, ctx)
 		content_error("set_owner: '" .. tostring(who) .. "' is not a seat")
 		return
 	end
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and e.stats then e.stats.owner = i end
 	end
 end
@@ -841,7 +841,7 @@ HANDLERS["show"] = function(p, ctx)
 	-- Snapshot before moving, exactly as "move" does: the scope is recomputed
 	-- from live zones and a card that has already left would be counted twice.
 	local moving = {}
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and e.zone_id and e.zone_id ~= zone_id then moving[#moving + 1] = e.id end
 	end
 	table.sort(moving)
@@ -1003,7 +1003,7 @@ HANDLERS["place"] = function(p, ctx)
 		return
 	end
 	local who = {}
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and e.zone_id then who[#who + 1] = e end
 	end
 	-- Which board a named square is on. A piece already standing on one is
@@ -1046,7 +1046,7 @@ HANDLERS["transform"] = function(p, ctx)
 	-- Collected before any of it changes: the scope is recomputed from the
 	-- board, and replacing the first card would move the ground under the rest.
 	local doomed = {}
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and e.zone_id then doomed[#doomed + 1] = e end
 	end
 	for _, e in ipairs(doomed) do
@@ -1079,11 +1079,11 @@ HANDLERS["set_name"] = function(p, ctx)
 		content_error("set_name: needs a target and field@scope, as set_name:<target>:<field>@<scope>")
 		return
 	end
-	local from = predicate.entities_in_scope(src.scope, ctx, src.owner)[1]
+	local from = predicate.entities_in_scope(src.scope, ctx, src.owner, src.quant)[1]
 	if not from then return end
 	local v = label.fill("{" .. src.arg .. "}", from)
 	if v == "{" .. src.arg .. "}" then return end
-	for _, e in ipairs(predicate.entities_in_scope(tsc.name, ctx, tsc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(tsc.name, ctx, tsc.owner, tsc.quant)) do
 		e.name = v
 	end
 end
@@ -1128,7 +1128,7 @@ HANDLERS["copy"] = function(p, ctx)
 	-- Snapshot before running: an action may move or destroy what the scope
 	-- names, and the second time round would then read a different set.
 	local doing = {}
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" then doing[#doing + 1] = e.id end
 	end
 	table.sort(doing)
@@ -1225,7 +1225,7 @@ local function sole_seat(op, p, ctx)
 	local sc = predicate.parse_scope(p[2] or "")
 	if not sc or #(declaration.G.seat_list or {}) < 2 then return nil end
 	local seat
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		local k = predicate.seat_of(e)
 		if k and k ~= seat then
 			if seat then
@@ -1439,7 +1439,7 @@ HANDLERS["compact"] = function(p, ctx)
 		return
 	end
 	local moving = {}
-	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner)) do
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		local slot = e.kind == "card" and e.slot_id and entity.get(e.slot_id)
 		if slot then
 			moving[#moving + 1] = { id = e.id, along = slot.stats.col * v[1] + slot.stats.row * v[2] }

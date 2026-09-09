@@ -74,8 +74,11 @@ local function blocks(c, def)
 	-- Prose, not a labelled row: a keyword is a sentence, and a row is a line.
 	-- The tag def's own text carries the name ("Tough — takes 1 less damage from
 	-- every source"), so the engine makes no decision about how it reads.
+	-- A lent keyword says so. It is not printed on the card, so a player reading
+	-- it needs to know it can go — and the sentence itself is the "granted by",
+	-- since the tag that grants it is what wrote the sentence.
 	for _, kw in ipairs(cards.keywords(c)) do
-		if kw.text ~= own then add("prose", kw.text) end
+		if kw.text ~= own then add("prose", kw.granted and ("Lent: " .. kw.text) or kw.text) end
 	end
 
 	-- The engine's own counters are not the card's business. `round` and `plays`
