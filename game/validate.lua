@@ -150,7 +150,7 @@ local CARD_FIELDS = {
 	-- derived by declaration.parse from the blocks above
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	compute = true,
-	on_leaves = true, leaves_into = true, leaves_from = true,
+	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true,
 	requires = true, on_pass = true, on_fail = true,
 	accepts = true, on_receive = true, on_round = true, on_chosen = true, chosen_where = true,
 	auto_play = true, to_slot = true, tags_set = true, injected = true,
@@ -169,7 +169,7 @@ local ROUND_FIELDS     = { action = true }
 local CHOSEN_FIELDS    = { where = true, action = true }
 -- A card on its way out. "from" is which departure is meant -- out of play
 -- when it is left out, out of the zone it names when it is not.
-local LEAVES_FIELDS    = { from = true, into = true, action = true }
+local LEAVES_FIELDS    = { from = true, into = true, needs = true, action = true }
 local ZONE_FIELDS = {
 	key = true, label = true, pos = true, style = true,
 	-- the seven, and the two parameters a layout value makes legal
@@ -222,7 +222,10 @@ end
 
 local TAG_FIELDS      = { zone = true, tooltip = true, play = true,
 	abilities = true, emits = true, leaves = true, on_leaves = true, leaves_into = true,
-	leaves_from = true,
+	leaves_from = true, leaves_needs = true,
+	-- What a card wearing this will let be aimed at it. A ward is a keyword more
+	-- often than it is a card, which is the whole reason it may be written here.
+	receive = true, accepts = true, on_receive = true,
 	-- derived from the blocks, as on a card
 	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true,
 	compute = true, buffs = true, adjusts = true }
@@ -373,7 +376,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, style = true,
 	compute = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
 	on_receive = true, on_round = true, on_chosen = true, chosen_where = true,
-	on_leaves = true, leaves_into = true, leaves_from = true,
+	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true,
 	zone_list = true, auto_play = true, to_slot = true }
 
 -- Edit distance (with swapped-letter typos counting as one edit), for
@@ -2420,6 +2423,14 @@ function M.check(G)
 		-- would match nothing and the rule would silently never run, which is
 		-- the failure a "dies" trigger is least likely to be noticed missing.
 		check_list(where .. " leaves action", def.on_leaves)
+		-- Asked of the departing card, so "@self" is it. The same word every other
+		-- block carries, and here for the reason "into" is not enough on its own:
+		-- one departure is often two rules, told apart by something that is not a
+		-- place.
+		check_conditions(where .. " leaves needs", def.leaves_needs)
+		if def.leaves_needs ~= nil and def.on_leaves == nil then
+			warn('%s leaves: asks a question and does nothing with the answer — add "action"', where)
+		end
 		if def.leaves_into ~= nil then
 			if not G.zone_defs[def.leaves_into] then
 				warn("%s leaves: goes \"into\" '%s', but no zone has that key%s",

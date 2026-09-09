@@ -48,7 +48,15 @@ local MOMENTS = {
 	-- a game with no board at all -- a whole hand of them -- had no way to say
 	-- the second until this existed, so it wrote the trigger as an ability and
 	-- then had to keep every other rule from running it.
-	leaves    = { from = "leaves_from", into = "leaves_into", action = "on_leaves" },
+	--
+	-- `needs` is the same word every other block carries, and it is here for the
+	-- same reason: a departure a rule cares about is often only *some* of them.
+	-- "Dies on your turn" and "dies on anybody else's" are one moment with a
+	-- condition on it, and without this the only gate a leaving card had was
+	-- arithmetic — an amount that comes to zero, which says nothing about a rule
+	-- that chooses or moves.
+	leaves    = { from = "leaves_from", into = "leaves_into", needs = "leaves_needs",
+		action = "on_leaves" },
 }
 M.MOMENTS = MOMENTS
 

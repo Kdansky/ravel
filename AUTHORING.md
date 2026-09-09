@@ -3641,6 +3641,18 @@ an ability is a thing the card *does*: every rule that runs abilities will then
 run it, and each of those rules needs a reason not to. A trigger is something
 that happens *to* the card, and belongs here.
 
+**`needs` is here for what `from` and `into` cannot say.** They are both places,
+and one departure is often two rules told apart by something that is not a place:
+
+```json
+"leaves": { "into": "discard", "needs": ["count:player@enemy.owner_of >= 1"],
+            "action": ["stat_damage:integrity@mine.base:1", "emit:died"] }
+```
+
+*Dies on somebody else's turn: a point off that player's base* — and nothing at
+all on its owner's. Asked of the departing card as `@self`, and asked after the
+move, so it reads the world the action will run in.
+
 **Write it on a tag and a whole class announces itself.** The other half of a
 trigger is usually a card *watching*, and that is an ordinary reaction — so one
 line makes every unit's death answerable and no unit knows it is being watched:

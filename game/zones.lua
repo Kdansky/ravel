@@ -469,6 +469,9 @@ local function fire_leaves(from, to, card_id)
 	end
 	local want = def.leaves_into
 	if want and want ~= to.key then return end
+	-- Asked with the departing card as @self, and asked here rather than before
+	-- the move so it reads the world the action will run in.
+	if not require("predicate").meets_all(def.leaves_needs, { card_id = card_id }) then return end
 	-- The same depth guard receive keeps, for the same reason: a rule that moves
 	-- the card it just watched leave says so in the log rather than taking the
 	-- process with it.
