@@ -97,6 +97,7 @@
           "min": "number of targets that must be chosen",
           "max": "number that may be chosen",
           "count": "number setting min and max at once",
+          "spread": "how many points this aim has to divide, when what it spends is an amount rather than a list of cards. \"Deal 3 damage divided as you choose among one, two or three patrollers\" is \"spread\": 3 - three picks, each worth what the action says, all of which have to land somewhere, and the same card may take more than one. It fixes both bounds the way \"count\" does, so saying it beside a count is two answers to one question and is refused; two or more, since one point is a count of one. Which of the three words a spec uses is what tells an aim that may repeat from one that may not, so nothing carries a flag: the share is simply how many times a card was picked, and @target already means every pick in the order they were made.",
           "tags": ["every tag a candidate must carry; computed tags count"],
           "zones": [
             "only look in these zones. A per-seat key means yours unless an owner word says otherwise."

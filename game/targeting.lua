@@ -94,8 +94,13 @@ end
 -- How many targets a spec asks for. "count" is shorthand for both bounds.
 -- The one definition: flow gates on it, the input layers decide whether to
 -- open targeting at all, and targeting.start sizes itself from it.
+-- How many picks an aim takes, and both ends of it. "spread" is the third way of
+-- saying it and the one that says *what is being counted*: not cards but points,
+-- all of which have to go somewhere, so it fixes both bounds the way "count"
+-- does and reads back as an amount rather than a flag on a number.
 function M.bounds(spec)
 	if type(spec) ~= "table" then return 0, 0 end
+	if spec.spread then return spec.spread, spec.spread end
 	return spec.min or spec.count or 0, spec.max or spec.count or 0
 end
 
@@ -265,7 +270,7 @@ function M.start(card_id, spec, intent)
 	M.card_id  = card_id
 	M.kind     = spec.type or "card"
 	M.intent   = intent or "play"
-	M.spec     = { min = min, max = max, tags = spec.tags or {} }
+	M.spec     = { min = min, max = max, tags = spec.tags or {}, spread = spec.spread }
 	M.targets  = {}
 	M.eligible = M.candidates(card_id, spec)
 end
@@ -304,12 +309,28 @@ function M.is_selected(id)
 	return false
 end
 
-function M.add(id)
-	if M.is_eligible(id) and not M.is_selected(id) then
-		M.targets[#M.targets + 1] = id
-		return true
+-- How many of the aim's picks this card is holding. One for an ordinary target,
+-- and the whole of "3 damage divided as you choose" for a spread one — the share
+-- *is* the number of times it was picked, so nothing has to carry an amount
+-- beside the list of what was aimed at.
+function M.share(id)
+	local n = 0
+	for _, tid in ipairs(M.targets) do
+		if tid == id then n = n + 1 end
 	end
-	return false
+	return n
+end
+
+-- **An aim that spends points may land on the same card twice.** "Deal 3 damage
+-- divided as you choose among one, two or three patrollers" is three picks, each
+-- worth what the action says, and the division is which card the player points
+-- at each time. Nothing downstream needed teaching: "@target" already means
+-- every pick in the order they were made, and a card named twice takes it twice.
+function M.add(id)
+	if not M.is_eligible(id) then return false end
+	if M.is_selected(id) and not (M.spec and M.spec.spread) then return false end
+	M.targets[#M.targets + 1] = id
+	return true
 end
 
 function M.is_full()

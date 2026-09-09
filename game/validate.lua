@@ -260,7 +260,7 @@ local ENGINE_STATS    = {
 }
 local EFFECT_FIELDS   = { base = true, size = true, speed = true, count = true, color = true }
 local TARGET_FIELDS   = { type = true, min = true, max = true, count = true, tags = true, zones = true,
-	owner = true, fill = true, moves = true, where = true, verb = true }
+	owner = true, fill = true, moves = true, where = true, verb = true, spread = true }
 -- How a pattern's vectors are walked. A closed set the engine defines, unlike
 -- card and zone tags, which are the game's own vocabulary — hence the different
 -- word for it in the JSON.
@@ -1516,6 +1516,20 @@ function M.check(G)
 		if spec.count ~= nil and (spec.min ~= nil or spec.max ~= nil) then
 			warn('%s %s: says "count" and also "min"/"max" — count already sets both,'
 				.. ' so write one or the other', where, field)
+		end
+		-- **An aim that spreads is picks, not cards.** "3 damage divided as you
+		-- choose among one, two or three patrollers" is three points worth what the
+		-- action says, all of which have to land somewhere, and the same card may
+		-- take more than one. So it fixes both bounds, like "count", and says
+		-- nothing at all about a single point.
+		if spec.spread ~= nil then
+			if (tonumber(spec.spread) or 0) < 2 then
+				warn('%s %s: "spread" is how many points there are to divide, so it is two'
+					.. " or more — one point is a \"count\" of one", where, field)
+			elseif spec.count ~= nil or spec.min ~= nil or spec.max ~= nil then
+				warn('%s %s: says "spread" and also a count — spread is how many picks there'
+					.. " are, and they are all spent, so it sets both bounds itself", where, field)
+			end
 		end
 		-- What kind of aim this is, for a ward or a resist to read. It is the
 		-- game's own word, so it is held to the same cross-check an action's verb

@@ -989,7 +989,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 		-- beside it glowed: the decoration existed all along, nothing asked for
 		-- it. Same seam as targeting.aim, and the same one line fixes both.
 		local aimed = targeting.aim(card_e.id)
-		local marker_col, marker_a = nil, 1
+		local marker_col, marker_a, share = nil, 1, nil
 		if card_e.id == targeting.card_id then
 			love.graphics.setColor(unpack(C.selected))
 			love.graphics.setLineWidth(3 * S)
@@ -999,6 +999,7 @@ local function draw_card_face(pl, card_e, show_text, vis)
 			love.graphics.setColor(unpack(C.target_chosen))
 			love.graphics.setLineWidth(3 * S)
 			marker_col = C.target_chosen
+			share = targeting.spec.spread and targeting.share(aimed) or nil
 		elseif targeting.is_eligible(aimed) then
 			love.graphics.setColor(C.eligible[1], C.eligible[2], C.eligible[3], 0.06 + 0.12 * pulse(5))
 			love.graphics.rectangle("fill", pl.x, pl.y, pl.w, pl.h, 5 * S, 5 * S)
@@ -1015,6 +1016,12 @@ local function draw_card_face(pl, card_e, show_text, vis)
 			love.graphics.setColor(marker_col[1], marker_col[2], marker_col[3], marker_a)
 			love.graphics.polygon("fill",
 				pl.x, pl.y + 4 * S, pl.x + ms, pl.y + 4 * S + ms * 0.5, pl.x, pl.y + 4 * S + ms)
+			-- How much of a divided aim landed here. One is what every other
+			-- chosen target holds, so it says nothing worth the ink.
+			if share and share > 1 then
+				love.graphics.setColor(1, 1, 1)
+				print_at("x" .. share, pl.x + ms + 4 * S, pl.y + 3 * S)
+			end
 		end
 	elseif card_e.id == selected_id then
 		love.graphics.setColor(unpack(C.selected))
@@ -1593,7 +1600,12 @@ local function draw_targeting_hint()
 	local spec  = targeting.spec
 	local n_sel = #targeting.targets
 	local msg
-	if spec.min == spec.max then
+	if spec.spread then
+		-- Points, not cards: the player is spending an amount and the only
+		-- question left is where each of it goes.
+		msg = string.format("Spread %d  [%d left — click a target again to add another]",
+			spec.spread, spec.spread - n_sel)
+	elseif spec.min == spec.max then
 		msg = string.format("Select %d target(s)  [%d/%d chosen]", spec.max, n_sel, spec.max)
 	else
 		msg = string.format("Select %d-%d target(s)  [%d chosen, %d eligible]",

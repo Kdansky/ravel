@@ -49,9 +49,14 @@ local function targets_for(card_id, spec)
 	local min = targeting.bounds(spec)
 	if min == 0 then return {} end
 	local pool = targeting.candidates(card_id, spec)
-	if #pool < min then return nil end
+	if #pool == 0 or (#pool < min and not spec.spread) then return nil end
 	local out = {}
-	for k = 1, min do out[k] = table.remove(pool, math.random(#pool)) end
+	-- An aim that spends points spends picks rather than candidates, so the same
+	-- card may come back — which is also the only way it fills its minimum when
+	-- the board holds fewer things than the aim has points to spread.
+	for k = 1, min do
+		out[k] = spec.spread and pool[math.random(#pool)] or table.remove(pool, math.random(#pool))
+	end
 	return out
 end
 

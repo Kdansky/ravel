@@ -60,7 +60,7 @@ and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
-- **Asking the board a question** — Conditions (one vocabulary everywhere) · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
@@ -1721,6 +1721,37 @@ score@owner_of.target   the score of whoever owns the card the player chose
 count:meeple@attached_to.self  the figures standing on this card
 guard@host_of.self      the card this one is standing on
 ```
+
+### `spread` — an aim that spends points rather than cards
+
+*"Deal 3 damage divided as you choose among one, two or three patrollers"* is not
+three targets. It is **three points**, each worth what the action says, and the
+division is which card the player points at each time:
+
+```json
+"play": {
+  "target": { "verb": "cast", "type": "card", "spread": 3,
+              "owner": "enemy", "zones": ["base", "tech", "structures", "addon", "patrol"] },
+  "action": ["stat_damage:hp@target:1", "stat_damage:integrity@target:1"]
+}
+```
+
+All three on one thing, or one each on three, or two and one. Nothing carries an
+amount beside the list of what was aimed at, because **the share is how many
+times a card was picked** — `@target` already means every pick in the order they
+were made, and a card named twice takes it twice.
+
+**It is a third way of saying how many picks there are, and the one that says
+what is being counted.** `count` fixes both bounds and means *that many cards*;
+`min`/`max` are a range of cards; `spread` fixes both bounds and means *that many
+points, all of which have to land somewhere*. Which word a spec uses is what
+tells an aim that may repeat from one that may not, so nothing needs a flag —
+and saying `spread` beside a count is refused, because they are two answers to
+one question.
+
+At the screen it is the ordinary targeting mode: click a chosen target again to
+put another point on it, the count shows on the card past the first, and the bar
+counts down what is left to spread.
 
 ### `needs` and `where` — asked once, or asked of each
 
@@ -4185,10 +4216,24 @@ that casts is the hero that attacks. `verb:` and `not_verb:` ask it:
   "receive": { "needs": ["not_verb:cast"] } }
 ```
 
-The rule now lives **on the card that has it**. Nothing that aims says anything,
-so printing a new spell cannot forget the exception, and printing a new ward
-touches one card. Codex traded twenty-two clauses spread over its spells and
-abilities for two lines on the two units that are untargetable.
+The rule now lives **on the word**. `accepts` is read through the same behaviour
+lookup everything else about a card goes through, so a `receive` may be written on
+a tag — and a ward is a keyword far more often than it is one card:
+
+```json
+"tags": { "untargetable": { "receive": { "needs": ["not_verb:cast"] } } }
+```
+
+Said once. Nothing that aims says anything, so printing a new spell cannot forget
+the exception, and printing a new *ward* is putting a word on a card. The lists
+from the card, its zone's `applies`, its own tags and the tags it is wearing are
+gathered into one, and a condition list is an *and*, so several wards are several
+gates. Codex traded twenty-two clauses spread over its spells and abilities for
+one line on the keyword.
+
+Being **grantable** falls out of that: a computed tag may carry a `receive` like
+any other, so *"as long as another card is untargetable, this one is"* is the
+same shape as every other borrowed keyword.
 
 They take no `@`: an aim is not a card and has nowhere to be. And an aim whose
 game never named it answers no to `verb:` and yes to `not_verb:` — being
