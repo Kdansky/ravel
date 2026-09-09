@@ -776,6 +776,21 @@
       "tags": [
         "hidden"
       ]
+    },
+    {
+      "key": "disabled",
+      "min": 0,
+      "max": 1,
+      "on": [
+        "fighter",
+        "building",
+        "upgrade",
+        "ongoing_spell"
+      ],
+      "start": 0,
+      "tags": [
+        "hidden"
+      ]
     }
   ],
   "computed_tags": {
@@ -1093,6 +1108,24 @@
         "count:juggernaut@self >= 1",
         "hp@self >= 1",
         "lives@self == 2"
+      ]
+    },
+    "rousable": {
+      "needs": [
+        "disabled@self == 0"
+      ]
+    },
+    "disabled_kw": {
+      "needs": [
+        "disabled@self >= 1"
+      ]
+    },
+    "exhaustable": {
+      "any_of": [
+        "fighter",
+        "building",
+        "upgrade",
+        "ongoing_spell"
       ]
     }
   },
@@ -2187,6 +2220,9 @@
       "buffs": {
         "atk": 2
       }
+    },
+    "disabled_kw": {
+      "tooltip": "Disabled — exhausted, and it stays that way through its owner's next ready step."
     }
   },
   "zones": [
@@ -2728,10 +2764,8 @@
       "zone": "hand",
       "label": "Main phase",
       "actions": [
-        "ready:mine.fighter",
-        "ready:mine.building",
-        "ready:mine.upgrade",
-        "ready:mine.ongoing_spell",
+        "ready:mine.rousable",
+        "stat_damage:disabled@each.mine.fighter:1",
         "stat_set:ready_since@each.mine.fighter:1",
         "stat_set:ripe@each.mine.hero:max:level@mine.hero",
         "stat_set:spotted@opponent:0",
@@ -5503,7 +5537,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "1 gold, exhaust: disable a unit or hero. Its controller draws a card. NOT MODELLED: the disable — nothing can exhaust a card that is not the one acting.",
+      "tooltip": "1 gold, exhaust: disable a unit or hero. Its controller draws a card.",
       "card_stats": {
         "price": 3,
         "atk": 2,
@@ -5511,7 +5545,41 @@
           "value": 3,
           "max": 3
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "bribe",
+          "text": "Disable a unit or hero",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 1,
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "tags": [
+              "fighter"
+            ],
+            "zones": [
+              "army",
+              "patrol",
+              "command"
+            ]
+          },
+          "action": [
+            "exhaust:target",
+            "stat_set:disabled@target:1",
+            "stat_set:slot@target:0",
+            "stat_set:guard@target:0",
+            "draw_from:enemy.deck:enemy.hand:1"
+          ]
+        }
+      ]
     },
     {
       "key": "reputable_newsman",
@@ -5600,9 +5668,40 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Disable a patrolling unit. NOT MODELLED AT ALL: nothing can exhaust a card that is not the one acting.",
+      "tooltip": "Disable a patrolling unit: it is exhausted, does not ready during its next ready step, and leaves its post.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "patrol"
+          ]
+        },
+        "action": [
+          "exhaust:target",
+          "stat_set:disabled@target:1",
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:enemy.army"
+        ],
+        "spent": "mine.discard"
       }
     },
     {
@@ -5755,7 +5854,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Exhaust: disable a tech 0, I or II unit. NOT MODELLED: nothing can exhaust a card that is not the one acting.",
+      "tooltip": "Exhaust: disable a tech 0, I or II unit.",
       "card_stats": {
         "price": 4,
         "atk": 2,
@@ -5763,7 +5862,41 @@
           "value": 3,
           "max": 3
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "arrest",
+          "text": "Disable a tech 0, I or II unit",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "anyone",
+            "tags": [
+              "unit"
+            ],
+            "zones": [
+              "army",
+              "patrol"
+            ],
+            "where": [
+              "count:tech3@target == 0"
+            ]
+          },
+          "action": [
+            "exhaust:target",
+            "stat_set:disabled@target:1",
+            "stat_set:slot@target:0",
+            "stat_set:guard@target:0"
+          ]
+        }
+      ]
     },
     {
       "key": "censorship_council",
@@ -5802,7 +5935,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Can't attack. Deals combat damage to a unit: disable it. NOT MODELLED: the disable.",
+      "tooltip": "Can't attack. Whenever it deals combat damage to a unit, disable that unit.",
       "card_stats": {
         "price": 3,
         "atk": 1,
@@ -5810,7 +5943,24 @@
           "value": 6,
           "max": 6
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Guardian of the Gates",
+          "needs": [
+            "sum:power@self >= 1",
+            "count:unit@across >= 1"
+          ],
+          "action": [
+            "exhaust:across",
+            "stat_set:disabled@across:1",
+            "stat_set:slot@across:0",
+            "stat_set:guard@across:0"
+          ]
+        }
+      ]
     },
     {
       "key": "insurance_agent",
@@ -5980,9 +6130,43 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Disable a level I or II tech building and all of that player's units of the same tech level. NOT MODELLED AT ALL: nothing can exhaust a card that is not the one acting.",
+      "tooltip": "Disable a tech I or II building and every unit that player has of the same tech level. NOT MODELLED: the building half — a building has no readiness to spend, and \"not operational next turn\" is a permission suspended for a turn, which nothing can say.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_law@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "tech_building"
+          ],
+          "zones": [
+            "tech"
+          ],
+          "where": [
+            "count:t3@target == 0"
+          ]
+        },
+        "action": [
+          "exhaust:each.enemy.unit",
+          "stat_set:disabled@each.enemy.unit:1",
+          "stat_set:slot@each.enemy.unit:0",
+          "stat_set:guard@each.enemy.unit:0"
+        ],
+        "spent": "mine.discard"
       }
     },
     {
@@ -6311,9 +6495,46 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Exhaust a unit or non-Peace hero and put a +1/+1 rune on it. Draw a card. NOT MODELLED: the exhaust — nothing can exhaust a card that is not the one acting.",
+      "tooltip": "Exhaust one of your units and put a +1/+1 rune on it. Draw a card. NOT MODELLED: aiming it at somebody else's non-Peace hero, which is a second pool one aim cannot hold.",
       "card_stats": {
         "price": 1
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_peace@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "exhaust:target",
+          "stat_set:disabled@target:1",
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "stat_gain:runes@target:1",
+          "stat_gain:atk@target:1",
+          "stat_boost:hp@target:1",
+          "stat_gain:hp@target:1",
+          "draw_from:mine.deck:mine.hand:1"
+        ],
+        "spent": "mine.discard"
       }
     },
     {

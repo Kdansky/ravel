@@ -10,16 +10,6 @@ Remove fully completed entries when we have done them or moved them to other fil
   win games against red and green. What it could not say, worst first. The full
   rule for each card is on the card, in its own tooltip.
 
-  - **Nothing can exhaust a card that is not the one acting.** `exhaust` is a
-    *cost*, spent by the card paying it; `ready:<scope>` is an action and has no
-    opposite. Six cards want one: **Arrest**, **Arresting Constable**, **Porkhand
-    Magistrate**, **Injunction**, **Boot Camp**, **Guardian of the Gates**. The
-    action is a six-line mirror of `ready` (`e.exhausted = true`), and Codex's
-    half of *disable* — *"it doesn't ready during its next ready step"* — is then
-    a `disabled` stat, a computed tag `steady`, and `ready:mine.steady` in place
-    of `ready:mine.fighter` at the upkeep. Cheapest thing on this list by a
-    distance, and it unlocks the most cards.
-
   - **An aim has no answering moment, so an Illusion cannot die of being pointed
     at.** *"Illusions die when they are targeted by spells or abilities"* is the
     whole of the Truth spec: **Spectral Aven, Hound, Flagbearer, Roc, Tiger**,

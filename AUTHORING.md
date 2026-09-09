@@ -61,7 +61,7 @@ and a line here names a section that exists:
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
+- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
@@ -2992,6 +2992,53 @@ gated separately, and **only the ones usable right now are offered**. The third
 above has no cost, so it stays available after the first two are spent, which is
 what `exhaust` being a *cost* rather than a consequence buys.
 
+### Readiness — spent, given back, and asked about
+
+Three words, and the third is the one that makes the other two reach anything.
+
+```
+"cost": { "exhaust": 1 }        this card spends its own readiness to act
+"exhaust:<scope>"               spend theirs — an effect, not a cost
+"ready:<scope>"                 give it back
+```
+
+**`exhausted` is a tag the engine grants**, so readiness is readable wherever a
+tag is: in a scope, in `tagged:`, in a count, in a computed tag, in a target
+spec's `where`. Nothing declares it and no card may claim the name.
+
+```json
+"phases": [{ "key": "upkeep", "type": "automatic", "actions": ["ready:mine.exhausted"] }]
+```
+
+That is a whole upkeep. *"Ready all your cards at the start of your turn"* is the
+commonest line in the genre, and before this a game had to name every kind of
+card it owned — Codex readied `mine.fighter`, `mine.building`, `mine.upgrade` and
+`mine.ongoing_spell` on four lines, and printing a fifth kind meant remembering a
+fifth. The scope now says what it means: the cards that are spent.
+
+**A spending that does not wear off next turn** is a stat beside the tag, not a
+new word. Declare `disabled`, exclude it from the readying, and count it down:
+
+```json
+"computed_tags": { "rousable": { "needs": ["disabled@self == 0"] } }
+```
+
+```json
+"phases": [{ "key": "upkeep", "type": "automatic",
+  "actions": ["ready:mine.rousable", "stat_damage:disabled@each.mine.fighter:1"] }]
+```
+
+**Declare the stat on every kind of card that can be spent** — `"on": ["fighter",
+"building", "upgrade", "ongoing_spell"]` — because a stat nobody carries is
+*absent* rather than zero and fails every comparison, so a building without it
+would never be roused rather than always. With that, *"exhaust it, and it does
+not ready during its next ready step"* is `exhaust:target` beside
+`stat_set:disabled@target:1`.
+
+**What it is not.** `exhausted` is a field on the card, not a stat, so nothing
+can `stat_set` it and no badge shows it — the engine dims a spent card and says
+so in its tooltip. Use the two actions to change it and the tag to read it.
+
 `text` is the label in the chooser, so a card with more than one ability needs
 it. The engine generates the menu entry itself, with a shape derived from the
 ability's name — you do not write a card per option.
@@ -4604,6 +4651,7 @@ what a player reads.
 | `set_owner:<scope>:<who>` | Hand those cards to a seat, to the one that is up (`mine`), or to nobody (`none`). Whose a card is is settled when it is dealt and stays settled, so this is the only thing that changes it: mind control, and a pile that disowns whatever lands in it |
 | `activate_zone:<zone>[:<order>[:<step>]]` | Every card lying there does what it does — how a *phase* makes cards act instead of waiting for a click. Put the rule on a card, the card in a hidden zone, and have the phase say so. **Ungated** for permission — the phase has already decided it is time — but an ability's own `when` is honoured, because that is the rule and not the permission. The order is the game's to state — naming none acts in the order the cards are in, `by_column` reads a board left to right; any other word is refused. A **step** names abilities: give one and only the abilities keyed to that word run, so a phase can walk the same zone several times and order things *between* cards — every unit works out what it is dealt, then every keyword that reduces a number reduces it, then every unit takes it. Naming none runs every ability |
 | `ready:<scope>` | Un-spend those cards, the counterpart to the `exhaust` cost. A phase's own actions run when it begins, so this is how a game says *when* being spent wears off rather than taking the engine's round boundary for it |
+| `exhaust:<scope>` | Spend those cards' readiness, whoever they belong to — the `exhaust` cost said as an effect. See *Readiness* below |
 | `attach_to_target` | Attach the acting card under the first target |
 | `options:<source>[:optional]` | Offer a choice and open it. `<source>` is a zone, whose cards name the choices, or a comma-separated list of card keys. The chosen card is played with **the asking card as its target**. `optional` puts a No choice button on the offer |
 | `show:<scope>[:optional]` | Put the **real** cards a scope names into the offer, face up, and open it — how one player reads another's hand. They go home when it closes. Choosing one runs the asking card's `chosen` block with the pick as `@target`, rather than playing it. The scope may say `random.`, and then one of them comes up rather than all: `show:random.enemy.hand` is the whole of "reveal a card from their hand" |

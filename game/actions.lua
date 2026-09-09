@@ -690,6 +690,20 @@ HANDLERS["ready"] = function(p, ctx)
 	end
 end
 
+-- exhaust:<scope>  — spend the cards in scope, whoever they belong to.
+--
+-- The same state the "exhaust" cost writes, said as an effect. A cost is a card
+-- spending *itself*, which is the whole of "once per turn" and reaches nothing
+-- else; disabling, tapping down, arresting -- every rule that spends somebody
+-- else's readiness -- had no spelling at all, and "ready:" had no opposite.
+HANDLERS["exhaust"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	if not sc then return end
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
+		if e.kind == "card" then e.exhausted = true end
+	end
+end
+
 -- destroy:<scope>[:<n>]  — every card the scope names, or that many of them.
 --
 -- The count is what "trash three of these" needs and repeating the line cannot
@@ -1482,6 +1496,7 @@ local SPEC = {
 	open_game         = "",
 	destroy           = "scope n?",
 	ready             = "scope",
+	exhaust           = "scope",
 	activate_zone     = "zone order? step?",
 	move              = "scope zone n? pos?",
 	take              = "scope zone n? pos?",

@@ -941,6 +941,46 @@ function M.test_codex_rampaging_elephant(check)
 	check("the second costs it", entity.get(bull.id).exhausted == true)
 end
 
+-- **Disable**, which is two words and a stat. `exhaust:` spends somebody else's
+-- readiness; `disabled` keeps it spent past the next ready step, because the
+-- upkeep readies what is *rousable* rather than every kind of card it can name.
+function M.test_codex_disable(check)
+	start("pick_bigby", "pick_argagarg")
+	take_the_field("bigby")
+	local prey = post("tiger_cub", "enemy", 1)
+	local cuffs = require("cards").create("arrest", zones.find_id("hand", "mine"))
+	seat("south").stats.gold = 20
+
+	flow.play_card(cuffs.id, { prey.id })
+	flow.settle()
+	local p = entity.get(prey.id)
+	check("the patroller is spent", tags.entity_has(p, "exhausted"))
+	check("and left its post", p.stats.slot == 0, tostring(p.stats.slot))
+	check("and is not roused by an ordinary readying",
+		not tags.entity_has(entity.get(prey.id), "rousable"))
+
+	actions.run({ "ready:enemy.rousable" }, {})
+	check("so their upkeep leaves it spent", tags.entity_has(entity.get(prey.id), "exhausted"))
+	actions.run({ "stat_damage:disabled@each.enemy.fighter:1", "ready:enemy.rousable" }, {})
+	check("but the one after that gives it back", not tags.entity_has(entity.get(prey.id), "exhausted"))
+end
+
+-- One line where four stood: the scope names what is spent rather than every kind
+-- of card that can be, so printing a fifth kind needs no fifth line.
+function M.test_codex_the_upkeep_readies_what_is_spent(check)
+	start("pick_bigby", "pick_argagarg")
+	local unit = summon("tiger_cub", "mine.army")
+	local hall = require("cards").create("flagstone_garrison", zones.find_id("structures", "mine"))
+	actions.run({ "exhaust:mine.exhaustable" }, {})
+	check("a unit and a building are both spent",
+		tags.entity_has(entity.get(unit.id), "exhausted")
+		and tags.entity_has(entity.get(hall.id), "exhausted"))
+	actions.run({ "ready:mine.rousable" }, {})
+	check("and one line gives both back",
+		not tags.entity_has(entity.get(unit.id), "exhausted")
+		and not tags.entity_has(entity.get(hall.id), "exhausted"))
+end
+
 -- Blue, and the four of its rules that are not a keyword something already had.
 -- A death replacement said twice (Brave Knight's hand, the Juggernaut's second
 -- life), a keyword a card only sometimes has, and a walk-past reason keyed on a

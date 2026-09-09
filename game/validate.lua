@@ -66,6 +66,7 @@ M.ENGINE_TAGS = {
 	token        = { on = "card", what = "vanishes when a hand is swept, instead of joining the discard" },
 	immutable    = { on = "card", what = "scenery: nothing may target it and its template can never be edited" },
 	no_undo      = { on = "card", what = "playing or picking it clears the undo stack — the choice is final" },
+	exhausted    = { on = "card", what = "this card has spent its readiness. Written by the engine off the \"exhaust\" cost and the \"exhaust\" action, cleared by \"ready:\" and at the round wrap — never printed on a card, and readable wherever a tag is" },
 	generate_art = { on = "card", what = "with no asset, draws a shape derived from its key rather than a bare colour" },
 	-- zones
 	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
