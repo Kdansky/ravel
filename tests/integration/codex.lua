@@ -159,6 +159,38 @@ function M.test_codex_patrol_rules(check)
 	check("which is then the only thing it may hit", offers(ground, "strike_lead"))
 end
 
+-- **Unattackable by tech 0 units**, which is the other half and a different shape:
+-- "t0" and "open_t0" are two numbers compared in the attack's own where, exactly
+-- as "alt" and "aa" are. Walking past falls out of it — the tech 0 attacker finds
+-- nothing to aim at in the leader post, so `aims:strike_lead` is zero and it is
+-- free to go round without a compute anywhere saying why.
+function M.test_codex_unattackable_by_tech_0(check)
+	start("pick_calamandra", "pick_argagarg")
+	local cub  = summon("tiger_cub", "mine.army")          -- tech 0
+	local bear = summon("barkcoat_bear", "mine.army")      -- tech 2
+	local snake = post("tiny_basilisk", "enemy", 1)
+
+	check("a tech 0 unit cannot strike it", not offers(cub, "strike_lead"))
+	check("but a tech 2 one can", offers(bear, "strike_lead"))
+	check("and the tech 0 unit may go round it", offers(cub, "strike_free"))
+	check("while the tech 2 one is held", not offers(bear, "strike_free"))
+
+	-- A spell is a different aim and the ward is not on one: the basilisk's rule
+	-- lives in what an attack may point at, so casting is untouched.
+	zones.destroy_card(snake.id)
+	local free = summon("tiny_basilisk", "enemy.army")
+	seat("south").stats.gold = 20
+	use(in_zone("command", "calamandra"), "summon")
+	flow.settle()
+	local dart = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local targeting = require("targeting")
+	local hit = false
+	for _, id in ipairs(targeting.candidates(dart.id, require("cards").def(entity.get(dart.id)).play.target)) do
+		if id == free.id then hit = true end
+	end
+	check("a spell may still be aimed at it", hit)
+end
+
 -- **Unstoppable by tech 0 units.** Two more terms on the two skip computes, and
 -- nothing in the engine learned a word: who may be walked past has always been a
 -- count of reasons, and "their patroller is tech 0 and I ignore those" is one more.

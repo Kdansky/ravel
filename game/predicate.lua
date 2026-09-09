@@ -46,6 +46,19 @@ local M = {}
 --
 -- It takes no argument, which no other fn does: there is nothing to name, since
 -- the card it compares against is the one whose condition this is.
+-- "aims:<ability>" is how many cards one of this card's own abilities could point
+-- at right now. It exists because "may I go past this" and "may I attack this"
+-- were being answered twice: a rule the target spec already carries -- a "where"
+-- clause, a ward the candidate wears -- had to be restated as a chain of computes
+-- before anything else could read it, and every new reason to be unreachable cost
+-- the chain again. Codex derived "a flying squad leader this attacker cannot
+-- reach" in three computes beside the one line of "where" that said it.
+--
+-- It counts *candidates*, never the ability's own "needs". That is what the
+-- question means -- must I face something first, not may I act -- and it is also
+-- what keeps an ability that asks about another from asking through the gate that
+-- named it.
+--
 -- "verb" and "not_verb" are the same yes/no shape asked about the *aim* rather
 -- than about a card: is what is pointing at me a cast, an attack, a throw. They
 -- take no scope, because an aim is not a card and has nowhere to be — the same
@@ -58,7 +71,7 @@ local M = {}
 -- no "verbs" of its own is a file where no aim is a cast.
 local FNS    = { count = true, card = true, sum = true, max = true, min = true,
 	tagged = true, not_tagged = true, saved = true, not_self = true,
-	verb = true, not_verb = true }
+	verb = true, not_verb = true, aims = true }
 -- The fns that answer a question rather than measure a quantity. They are the
 -- conditions that need no comparison: "there is a pawn behind it" is the whole
 -- sentence, and `>= 1` after it was the grammar's tax, not the author's meaning.
@@ -488,6 +501,11 @@ function M.awaits_targets(subject, ctx)
 	return p ~= nil and p.scope == "target" and (ctx == nil or ctx.targets == nil)
 end
 
+-- Which abilities "aims:" is in the middle of asking about. See its branch in
+-- M.total: an ability's "where" may name another ability, and there is nothing
+-- to stop two of them naming each other.
+local asking = {}
+
 -- hook(slot) -> boolean, set by save.lua when it is loaded.
 M.saved_slot = nil
 
@@ -501,6 +519,28 @@ function M.total(subject, ctx)
 
 	if p.fn == "saved" then
 		return (M.saved_slot and M.saved_slot(p.arg)) and 1 or 0
+	end
+
+	-- Asked of the card doing the asking, so it takes no scope: the ability is
+	-- one of its own. With nobody asking there is no ability to have, and an
+	-- ability that aims at nothing and one that is not there answer alike.
+	if p.fn == "aims" then
+		local me = ctx and ctx.card_id
+		if not me then return 0 end
+		-- A "where" may name an ability, and working out what that ability aims
+		-- at runs its "where". The circle aims at nothing rather than hanging,
+		-- the way a pattern asking what its own side reaches already does.
+		if asking[p.arg] then return 0 end
+		for _, a in ipairs(require("cards").abilities(entity.get(me)) or {}) do
+			if a.key == p.arg then
+				if not a.target then return 0 end
+				asking[p.arg] = true
+				local ok, n = pcall(function() return #require("targeting").candidates(me, a.target) end)
+				asking[p.arg] = nil
+				return ok and n or 0
+			end
+		end
+		return 0
 	end
 
 	-- Which kind of aim is being made. Read off the moment, not off a card: the

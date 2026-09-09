@@ -225,6 +225,8 @@
     { "key": "unseen", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "feather", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
     { "key": "fleeting", "min": 0, "max": 1, "on": ["fighter"], "start": 0, "tags": ["hidden"] },
+    { "key": "t0", "min": 0, "max": 1, "on": ["tech0"], "start": 1, "tags": ["hidden"] },
+    { "key": "open_t0", "min": 0, "max": 1, "on": ["fighter", "building"], "start": 1, "tags": ["hidden"] },
     {
       "key": "runes",
       "label": "Runes",
@@ -341,93 +343,23 @@
       "tooltip": "One when this attacker may slip past patrollers unseen."
     },
     {
-      "key": "lead_alt",
-      "from": "sum:alt@enemy.patrol.at_lead",
-      "tooltip": "One when their squad leader is flying."
-    },
-    {
-      "key": "lead_seen",
-      "from": "lead_alt * sum:aa@self",
-      "tooltip": "A flying squad leader this attacker can reach."
-    },
-    {
-      "key": "lead_air",
-      "from": "lead_alt - lead_seen",
-      "tooltip": "A flying squad leader this attacker cannot reach."
-    },
-    {
-      "key": "lead_pass",
-      "from": "lead_air + sneak_ok",
-      "tooltip": "A squad leader this attacker may walk past for being out of reach or unseen."
-    },
-    {
-      "key": "t0_lead",
-      "from": "count:tech0@enemy.patrol.at_lead",
-      "tooltip": "One when their squad leader is a tech 0 unit."
-    },
-    {
       "key": "lead_t0",
-      "from": "t0_lead * count:ignores_t0@self",
+      "from": "count:tech0@enemy.patrol.at_lead * count:ignores_t0@self",
       "tooltip": "A tech 0 squad leader that cannot stop this attacker."
     },
     {
-      "key": "lead_skip",
+      "key": "lead_pass",
+      "from": "aims:strike_lead * sneak_ok",
+      "tooltip": "A squad leader this attacker could reach but slips past unseen."
+    },
+    {
+      "key": "lead_hold",
       "from": "lead_pass + lead_t0",
       "tooltip": "How many squad leaders this attacker is allowed to walk past."
     },
     {
-      "key": "pat_all",
-      "from": "count:fighter@enemy.patrol",
-      "tooltip": "How many patrollers they have."
-    },
-    {
-      "key": "pat_lead",
-      "from": "count:at_lead@enemy.patrol",
-      "tooltip": "One when the squad leader post is filled."
-    },
-    {
-      "key": "pat_rest",
-      "from": "pat_all - pat_lead",
-      "tooltip": "Their patrollers other than the squad leader."
-    },
-    {
-      "key": "air_all",
-      "from": "sum:alt@enemy.patrol",
-      "tooltip": "How many of their patrollers are flying."
-    },
-    {
-      "key": "air_rest",
-      "from": "air_all - lead_alt",
-      "tooltip": "Flying patrollers other than the squad leader."
-    },
-    {
-      "key": "rest_seen",
-      "from": "air_rest * sum:aa@self",
-      "tooltip": "Those fliers this attacker can reach."
-    },
-    {
-      "key": "rest_air",
-      "from": "air_rest - rest_seen",
-      "tooltip": "Those fliers this attacker cannot reach."
-    },
-    {
-      "key": "rest_sneak",
-      "from": "sneak_ok * pat_rest",
-      "tooltip": "Every other patroller, when this attacker is unseen."
-    },
-    {
-      "key": "rest_pass",
-      "from": "rest_air + rest_sneak",
-      "tooltip": "Other patrollers this attacker may walk past for being out of reach or unseen."
-    },
-    {
-      "key": "t0_all",
-      "from": "count:tech0@enemy.patrol",
-      "tooltip": "How many of their patrollers are tech 0 units."
-    },
-    {
       "key": "t0_rest",
-      "from": "t0_all - t0_lead",
+      "from": "count:tech0@enemy.patrol - count:tech0@enemy.patrol.at_lead",
       "tooltip": "Their tech 0 patrollers other than the squad leader."
     },
     {
@@ -436,9 +368,14 @@
       "tooltip": "Tech 0 patrollers that cannot stop this attacker."
     },
     {
-      "key": "rest_skip",
+      "key": "rest_pass",
+      "from": "aims:strike_patrol * sneak_ok",
+      "tooltip": "The other patrollers this attacker could reach but slips past unseen."
+    },
+    {
+      "key": "rest_hold",
       "from": "rest_pass + rest_t0",
-      "tooltip": "How many other patrollers this attacker may walk past."
+      "tooltip": "How many other patrollers this attacker is allowed to walk past."
     },
     {
       "key": "gigadon_price",
@@ -535,7 +472,7 @@
             "count": 1,
             "owner": "enemy",
             "zones": ["patrol"],
-            "where": ["slot@target == 1", "alt@target <= sum:aa@self"]
+            "where": ["slot@target == 1", "alt@target <= sum:aa@self", "sum:t0@self <= sum:open_t0@target"]
           },
           "action": [
             "stat_set:sparking@mine.player:count:sparkshot@self",
@@ -564,19 +501,18 @@
             "stat_set:slot@self:0",
             "stat_set:guard@self:0",
             "activate_zone:rules_death"
-          ],
-          "compute": ["det", "unspent", "watching", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_pass", "t0_lead", "lead_t0", "lead_skip"]
+          ]
         },
         {
           "key": "strike_patrol",
           "text": "Attack a patroller",
           "phases": ["main"],
           "cost": { "exhaust": 1 },
-          "compute": ["det", "unspent", "watching", "no_det", "sneak_ok", "lead_alt", "lead_seen", "lead_air", "lead_pass", "t0_lead", "lead_t0", "lead_skip"],
+          "compute": ["det", "unspent", "watching", "no_det", "sneak_ok", "lead_t0", "lead_pass", "lead_hold"],
           "needs": [
             "ready_since@self >= 1",
             "not_tagged:cant_attack@self",
-            "count:at_lead@enemy.patrol <= lead_skip"
+            "aims:strike_lead <= lead_hold"
           ],
           "target": {
             "verb": "attack",
@@ -584,7 +520,7 @@
             "count": 1,
             "owner": "enemy",
             "zones": ["patrol"],
-            "where": ["slot@target >= 2", "alt@target <= sum:aa@self"]
+            "where": ["slot@target >= 2", "alt@target <= sum:aa@self", "sum:t0@self <= sum:open_t0@target"]
           },
           "action": [
             "stat_set:sparking@mine.player:count:sparkshot@self",
@@ -626,32 +562,19 @@
             "watching",
             "no_det",
             "sneak_ok",
-            "lead_alt",
-            "lead_seen",
-            "lead_air",
-            "lead_pass",
-            "t0_lead",
             "lead_t0",
-            "lead_skip",
-            "pat_all",
-            "pat_lead",
-            "pat_rest",
-            "air_all",
-            "air_rest",
-            "rest_seen",
-            "rest_air",
-            "rest_sneak",
-            "rest_pass",
-            "t0_all",
+            "lead_pass",
+            "lead_hold",
             "t0_rest",
             "rest_t0",
-            "rest_skip"
+            "rest_pass",
+            "rest_hold"
           ],
           "needs": [
             "ready_since@self >= 1",
             "not_tagged:cant_attack@self",
-            "count:at_lead@enemy.patrol <= lead_skip",
-            "pat_rest <= rest_skip"
+            "aims:strike_lead <= lead_hold",
+            "aims:strike_patrol <= rest_hold"
           ],
           "target": {
             "verb": "attack",
@@ -659,7 +582,7 @@
             "count": 1,
             "owner": "enemy",
             "zones": ["army", "base", "tech", "structures", "addon"],
-            "where": ["alt@target <= sum:aa@self"]
+            "where": ["alt@target <= sum:aa@self", "sum:t0@self <= sum:open_t0@target"]
           },
           "action": [
             "stat_gain:spotted@opponent:sum:sneak@self",
@@ -4191,8 +4114,8 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Deathtouch. Unstoppable by tech 0 units. NOT MODELLED: unattackable by tech 0 units. A ward can ask both halves — \"not_verb:attack\" and \"not_count:tech0@target\" — but a condition list is an and, so it refuses only what fails both, where the card wants what fails neither. It is one \"or\" away.",
-      "card_stats": { "price": 2, "atk": 1, "hp": { "value": 2, "max": 2 } }
+      "tooltip": "Deathtouch. Unattackable and unstoppable by tech 0 units.",
+      "card_stats": { "price": 2, "atk": 1, "hp": { "value": 2, "max": 2 }, "open_t0": 0 }
     },
     {
       "key": "chameleon",

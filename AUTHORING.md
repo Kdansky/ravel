@@ -60,7 +60,7 @@ and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
-- **Asking the board a question** — Conditions (one vocabulary everywhere) · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
@@ -1722,6 +1722,47 @@ score@owner_of.target   the score of whoever owns the card the player chose
 count:meeple@attached_to.self  the figures standing on this card
 guard@host_of.self      the card this one is standing on
 ```
+
+### `aims:` — what an ability could point at
+
+Two rules keep asking the same question from opposite ends. *"You may attack
+anything, if no patroller stops you"* has to know which patrollers could stop
+this attacker — and the attack ability already says it, in the `where` that
+decides what it may point at.
+
+```json
+{ "key": "strike_lead",
+  "target": { "verb": "attack", "type": "card", "count": 1, "owner": "enemy", "zones": ["patrol"],
+              "where": ["slot@target == 1", "alt@target <= sum:aa@self"] } }
+```
+
+`aims:strike_lead` is **how many cards that ability could point at right now**.
+
+```json
+{ "key": "strike_free",
+  "needs": ["aims:strike_lead == 0", "aims:strike_patrol == 0"] }
+```
+
+It takes no `@` — the ability is one of this card's own, so there is nowhere else
+for the question to be about. What it counts is the **candidates**: the target
+spec's zones and owner, its `where`, and every ward the candidates wear. Its own
+`needs` are not asked, because *"must I face something first"* is not *"may I
+act"* — and because an ability asking about another must not ask through the gate
+that named it.
+
+**What it is for is not having to say a rule twice.** Codex wrote
+`alt@target <= sum:aa@self` in the attack's `where`, and then wrote *"a flying
+squad leader this attacker cannot reach"* again as `lead_alt` → `lead_seen` →
+`lead_air` so that walking past could read it — and again over four more posts as
+`air_all` → `air_rest` → `rest_seen` → `rest_air`. Seven computes restating one
+line, and a *second* reason to be unreachable cost the seven again. Written this
+way there is no second copy: a new `where` clause, or a new ward on the thing
+being aimed at, feeds the permission rule the moment it is written.
+
+An ability the card is not carrying answers 0, and so does one with no `target`
+at all — but the validator refuses the second, since a word that quietly answers
+0 forever is the worse of the two mistakes. Two abilities naming each other
+answer 0 rather than hanging.
 
 ### `spread` — an aim that spends points rather than cards
 

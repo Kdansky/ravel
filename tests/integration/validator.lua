@@ -22,6 +22,19 @@ local CASES = {
 	-- condition subjects
 	{ "an unknown tag in a count", "counts the tag 'dragons'",
 		function(g) g.card_defs.c_flee.needs = { "count:dragons >= 1" } end },
+	{ "an aims at an ability nobody has", "no ability has that key",
+		function(g) g.card_defs.c_flee.needs = { "aims:pounce == 0" } end },
+	{ "an aims at an ability that points at nothing", "aims at nothing",
+		function(g)
+			g.card_defs.c_flee.abilities = { { key = "pounce", text = "Pounce", action = { "destroy:self" } } }
+			g.card_defs.c_flee.needs = { "aims:pounce == 0" }
+		end },
+	{ "an aims given a scope", "so it takes no '@'",
+		function(g)
+			g.card_defs.c_flee.abilities = { { key = "pounce", text = "Pounce",
+				target = { type = "card", count = 1 }, action = { "destroy:self" } } }
+			g.card_defs.c_flee.needs = { "aims:pounce@self == 0" }
+		end },
 	{ "a card check for a missing template", "checks for the card 'excalibur'",
 		function(g) g.card_defs.c_flee.requires = { "card:excalibur >= 1" } end },
 	{ "an unknown stat in routing", "uses the stat 'mana'",

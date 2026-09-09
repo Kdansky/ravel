@@ -437,6 +437,22 @@ function M.check(G)
 			carried_tags[t] = true
 		end
 	end
+	-- Every ability key in the file, and the ones that aim at something. "aims:"
+	-- names one, and the two ways to get it wrong are naming a key nothing
+	-- carries and naming a key that points at nothing — the second silently
+	-- answers 0 forever, which is the worse of the two.
+	local ability_keys, aiming_keys = {}, {}
+	local function note_abilities(list)
+		for _, a in ipairs(type(list) == "table" and list or {}) do
+			if type(a) == "table" and type(a.key) == "string" then
+				ability_keys[a.key] = true
+				if a.target ~= nil then aiming_keys[a.key] = true end
+			end
+		end
+	end
+	for _, cd in pairs(G.card_defs) do note_abilities(cd.abilities) end
+	for _, td in pairs(tag_defs) do note_abilities(td.abilities) end
+
 	local known_tags = {}
 	for t in pairs(carried_tags) do known_tags[t] = true end
 	for t in pairs(G.computed_tags) do known_tags[t] = true end
@@ -781,6 +797,20 @@ function M.check(G)
 			if p.scope then
 				warn("%s: '%s' asks what kind of aim this is, which is not a question about a card, "
 					.. "so it takes no '@'", where, p.fn)
+			end
+		elseif p.fn == "aims" then
+			-- How many cards one of this card's own abilities could point at.
+			-- The ability is its own, so there is nowhere else for the question
+			-- to be about and it takes no scope.
+			if not aiming_keys[p.arg] then
+				warn("%s: asks what '%s' aims at, but %s%s", where, tostring(p.arg),
+					ability_keys[p.arg] and "that ability has no \"target\", so it aims at nothing"
+						or "no ability has that key",
+					suggest(p.arg, aiming_keys))
+			end
+			if p.scope then
+				warn("%s: 'aims' asks about an ability of the card doing the asking, "
+					.. "so it takes no '@'", where)
 			end
 		elseif p.fn == "not_self" then
 			-- Nothing to name: what it compares against is the card whose

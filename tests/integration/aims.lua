@@ -7,6 +7,10 @@
 -- spell instead. A target spec that says which kind of aim it is moves the rule
 -- back onto the card that has it — and the same word, watched by an `adjusts`,
 -- is resist.
+--
+-- The third reader is `aims:`, which asks one of a card's own abilities how many
+-- cards it could point at. Everything above decides what an aim may reach; this
+-- is the rule that has to know the answer without restating any of it.
 
 local entity    = require("entity")
 local flow      = require("flow")
@@ -20,7 +24,7 @@ local GAME = [==[{
   "title": "Aims",
   "players": [{ "card": "one" }],
   "stats": [
-    { "key": "hp", "on": ["unit"], "start": 10, "min": 0, "max": 10 },
+    { "key": "hp", "on": ["unit", "beast"], "start": 10, "min": 0, "max": 10 },
     { "key": "gold", "on": ["player"], "start": 10, "min": 0, "max": 99 }
   ],
   "verbs": [
@@ -58,14 +62,28 @@ local GAME = [==[{
         "action": ["stat_damage:hp@target:1"] } },
     { "key": "shove", "text": "Shove", "tags": ["spell"],
       "play": { "target": { "type": "card", "tags": ["unit"], "count": 1 },
-        "action": ["stat_damage:hp@target:1"] } }
+        "action": ["stat_damage:hp@target:1"] } },
+    { "key": "deer", "text": "Deer", "tags": ["beast", "prey"] },
+    { "key": "ghost", "text": "Ghost", "tags": ["beast", "prey"],
+      "receive": { "needs": ["not_verb:attack"] } },
+    { "key": "hunter", "text": "Hunter", "tags": ["beast"],
+      "abilities": [
+        { "key": "strike", "text": "Strike", "phases": ["act"],
+          "target": { "verb": "attack", "type": "card", "tags": ["prey"], "count": 1, "zones": ["field"] },
+          "action": ["stat_damage:hp@target:1"] },
+        { "key": "roam", "text": "Roam", "phases": ["act"],
+          "needs": ["aims:strike == 0"],
+          "action": ["stat_gain:gold@mine.player:1"] }
+      ] }
   ],
   "setup": {
     "place": [
       { "card": "grunt", "zone": "field" }, { "card": "warded", "zone": "field" },
       { "card": "tough", "zone": "field" },
       { "card": "bolt", "zone": "hand" }, { "card": "punch", "zone": "hand" },
-      { "card": "shove", "zone": "hand" }
+      { "card": "shove", "zone": "hand" },
+      { "card": "hunter", "zone": "field" }, { "card": "deer", "zone": "field" },
+      { "card": "ghost", "zone": "field" }
     ]
   }
 }]==]
@@ -179,6 +197,64 @@ function M.test_aims_every_target_is_asked(check)
 		local second = cards.create("tough", zones.find_id("field"))
 		flow.play_card(find("bolt").id, { find("tough").id, second.id })
 		check("aiming at two costs two more", seat.stats.gold == 5, tostring(seat.stats.gold))
+	end)
+end
+
+-- **A rule that reads what another rule decided.** `roam` says nothing about
+-- prey, about wards, or about which zone the hunt happens in — it asks `strike`
+-- what it could point at, and `strike` answers with its own target spec run in
+-- full. The ward on the ghost is a rule `roam` has never heard of and obeys.
+function M.test_aims_counts_what_an_ability_could_point_at(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local predicate = require("predicate")
+		local hunter = find("hunter")
+		local function roams()
+			return predicate.meets_all(require("declaration").G.card_defs.hunter.abilities[2].needs,
+				{ card_id = hunter.id })
+		end
+
+		check("both prey are on the table", predicate.total("count:prey@field", {}) == 2,
+			tostring(predicate.total("count:prey@field", {})))
+		check("but the ward keeps one of them out of the aim",
+			predicate.total("aims:strike", { card_id = hunter.id }) == 1,
+			tostring(predicate.total("aims:strike", { card_id = hunter.id })))
+		check("so with something to hunt, it does not roam", not roams())
+
+		zones.destroy_card(find("deer").id)
+		check("with only what it cannot touch, it does", roams())
+		cards.create("deer", zones.find_id("field"))
+		check("and a new one holds it again", not roams())
+	end)
+end
+
+-- It counts candidates and not offerability, which is what lets one ability ask
+-- about another without asking through the gate that named it: `roam` would be
+-- its own answer if `aims` ran an ability's needs.
+function M.test_aims_reads_the_target_spec_and_not_the_needs(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local predicate = require("predicate")
+		local hunter = find("hunter")
+		require("declaration").G.card_defs.hunter.abilities[1].needs = { "gold@mine.player >= 99" }
+		check("the aim's own gate says no", not predicate.meets_all(
+			require("declaration").G.card_defs.hunter.abilities[1].needs, { card_id = hunter.id }))
+		check("and what it could point at is unchanged",
+			predicate.total("aims:strike", { card_id = hunter.id }) == 1,
+			tostring(predicate.total("aims:strike", { card_id = hunter.id })))
+	end)
+end
+
+-- An ability nobody is asking for, and a card with no ability of that name: both
+-- answer 0, and nothing has to guard the call sites for either.
+function M.test_aims_answers_nothing_with_nobody_asking(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local predicate = require("predicate")
+		check("with no card asking there is no ability to have",
+			predicate.total("aims:strike", {}) == 0)
+		check("and a card without it answers the same",
+			predicate.total("aims:strike", { card_id = find("grunt").id }) == 0)
 	end)
 end
 
