@@ -1375,6 +1375,27 @@
         0.36,
         0.58
       ]
+    },
+    "pitch": {
+      "color": [
+        0.24,
+        0.2,
+        0.28
+      ]
+    },
+    "chalk": {
+      "color": [
+        0.62,
+        0.6,
+        0.55
+      ]
+    },
+    "aether": {
+      "color": [
+        0.4,
+        0.3,
+        0.56
+      ]
     }
   },
   "tags": {
@@ -7507,6 +7528,4123 @@
           ]
         }
       ]
+    },
+    {
+      "key": "abomination",
+      "text": "Abomination",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Horror. All other units get -1/-1.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6,
+        "atk": 6,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "aged_sensei",
+      "text": "Aged Sensei",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "tech0",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Monk. ⤵ → Give a friendly unit or hero +1 ATK/+1 armor this turn. (Armor absorbs damage before HP and is then destroyed.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "appel_stomp",
+      "text": "Appel Stomp",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell — Debuff. Sideline a patroller (move it out of the patrol zone), draw a card, then you may put Appel Stomp on top of your draw pile. \"Appel\" is a kind of stomp in fencing. Apples are different.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "ardras_boulder",
+      "text": "Ardra's Boulder",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "tech1",
+        "unit",
+        "fighter",
+        "legendary",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Legendary Unit — Rock.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 0,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "argonaut",
+      "text": "Argonaut",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "tech1",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Soldier. Readiness (Doesn't exhaust to attack, but can only attack once per turn.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "assimilate",
+      "text": "Assimilate",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Gain control of an upgrade, ongoing spell, or building card (not add-on).  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "backstabber",
+      "text": "Backstabber",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Rogue. Invisible (To opponents without a detector, this is untargetable, unattackable, and can sneak past patrollers. While patrolling, this is attackable.) Don't let him slip behind you.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "banefire_golem",
+      "text": "Banefire Golem",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Demon. Upkeep: Sacrifice a unit. If you do, deal 1 damage to each opposing unit, hero, and building.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6,
+        "atk": 7,
+        "hp": {
+          "value": 7,
+          "max": 7
+        }
+      }
+    },
+    {
+      "key": "battle_suits",
+      "text": "Battle Suits",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "tech0",
+        "upgrade",
+        "relic",
+        "generate_art"
+      ],
+      "tooltip": "Upgrade. Your non-token Soldiers and Mystics get +1 ATK.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "birds_nest",
+      "text": "Bird's Nest",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "spell",
+        "ongoing_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ongoing Spell — Summon. Channeling (Stays in play. Sacrifice it when you lose your Strength hero.) Summon two 1/1 white Bird tokens with flying (limit: 2). Upkeep: Re-summon lost birds (limit: 2).  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "blackhand_dozer",
+      "text": "Blackhand Dozer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Demon. Overpower Damage you deal can reduce opposing bases' HP to 6, but not lower. Dies: Active player destroys one of your lowest tech units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 7,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "blackhand_resurrector",
+      "text": "Blackhand Resurrector",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Spellcaster. ⤵, Sacrifice Blackhand Resurrector → Summon a hero from your command zone that died previously this game. It arrives at max level.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "blademaster",
+      "text": "Blademaster",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "tech3",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Virtuoso. Your units and heroes have swift strike. (They deal combat damage before units and heroes without swift strike.) It'll be over before you know it started.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6,
+        "atk": 7,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "bloom",
+      "text": "Bloom",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell — Buff. Put a +1/+1 rune on a friendly unit or hero that doesn't have a +1/+1 rune. Bigger is better, and slightly bigger is slightly better.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "bone_collector",
+      "text": "Bone Collector",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "tech1",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Zombie. Attacks: Summon a 1/1 black Skeleton token.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "brick_thief",
+      "text": "Brick Thief",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "tech0",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mercenary. Arrives or attacks: Deal 1 damage to a building and repair 1 damage from another building. Resist 1 (Opponents must pay ① each time they would ◎ this with a spell or ability.) He has sometimes regretted not being a feather thief.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "carrion_curse",
+      "text": "Carrion Curse",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Look at an opponent's hand. Choose up to two non-unit cards for them to discard.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "chronofixer",
+      "text": "Chronofixer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mystic. Untargetable Opposing heroes can't level up.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "cloud_sprite",
+      "text": "Cloud Sprite",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Fairy. Flying (Can fly over ground patrollers. Ground forces without anti-air can't attack this or deal combat damage to it when attacked.) She dances in the sky, avoiding the hassles of the ground.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 3,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "colossus",
+      "text": "Colossus",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Golem. Unstoppable when attacking a base.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6,
+        "atk": 6,
+        "hp": {
+          "value": 7,
+          "max": 7
+        }
+      }
+    },
+    {
+      "key": "corpse_catapult",
+      "text": "Corpse Catapult",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Contraption. Whenever one of your units dies, put a corpse rune on this. ⤵, Remove two corpse runes → Deal 6 damage to a building.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 1,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "crypt_crawler",
+      "text": "Crypt Crawler",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "tech1",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Insect. Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) ① -> A flier loses flying this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "cursed_crow",
+      "text": "Cursed Crow",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Bird. Flying Damages a base: Defending player discards a card at random.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "cursed_ghoul",
+      "text": "Cursed Ghoul",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Ghoul. Arrives: Put a -1/-1 rune on a unit. Unstoppable by units with -1/-1 runes. (Can ignore those patrollers when attacking.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 4,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "dark_pact",
+      "text": "Dark Pact",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Deal 2 damage to a base, then that player draws 2 cards.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 0
+      }
+    },
+    {
+      "key": "death_and_decay",
+      "text": "Death and Decay",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell — Debuff. Give all an opponent's units and heroes -3/-3 this turn. Deal 3 damage to all their buildings.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 8
+      }
+    },
+    {
+      "key": "death_rites",
+      "text": "Death Rites",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell. Whenever one of your units dies this turn, destroy one of an opponent's lowest tech units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4
+      }
+    },
+    {
+      "key": "deteriorate",
+      "text": "Deteriorate",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell — Debuff. Give a unit -1/-1 this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 0
+      }
+    },
+    {
+      "key": "discord",
+      "text": "Discord",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Debuff. Give all of an opponent's tech 0 and I units -2/-1 until end of turn. CLANG!  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "doom_grasp",
+      "text": "Doom Grasp",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Sacrifice a unit. If you do, destroy a tech 0, I, or II unit or hero.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4
+      }
+    },
+    {
+      "key": "double_time",
+      "text": "Double Time",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell. Forecast 3 (Starts off in the future, not in play. Put three time runes on this and remove one each upkeep. When you remove the last, it resolves.) Take an extra turn after this one, then trash this card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6
+      }
+    },
+    {
+      "key": "doubling_barbarbarian",
+      "text": "Doubling Barbarbarian",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Warrior. Overpower (Excess combat damage this would deal to a patroller hits something else this could attack.) Whenever he would gain ATK, HP, or armor, he gains double that much instead.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "earthquake",
+      "text": "Earthquake",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell. Deal 4 damage to all an opponent's damaged buildings. Deal 1 damage to all their undamaged buildings.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5
+      }
+    },
+    {
+      "key": "ebbflow_archon",
+      "text": "Ebbflow Archon",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "tech3",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Archon. Fading 7 (Arrives with seven time runes. Remove one each upkeep. When you remove the last, sacrifice this.) Gets -1/-1 for each time rune on it. Remove a time rune → Return a unit to its owner's hand or a hero to its command zone.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 8,
+        "atk": 12,
+        "hp": {
+          "value": 12,
+          "max": 12
+        }
+      }
+    },
+    {
+      "key": "eggship",
+      "text": "Eggship",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Contraption. Flying (Can fly over ground patrollers. Ground forces without anti-air can't attack this or deal combat damage to it when attacked.) This somewhat-safe mode of transportation has been converted to a warship.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 4,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "entangling_vines",
+      "text": "Entangling Vines",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "spell",
+        "ongoing_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ongoing Spell — Debuff. Attach to a patrolling unit. Sideline the unit. It can't attack or patrol.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "fading_argonaut",
+      "text": "Fading Argonaut",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "tech0",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Soldier. Fading 3 (Arrives with three time runes. Remove one each upkeep. When you remove the last, sacrifice this.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "final_smash",
+      "text": "Final Smash",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell — Debuff. Destroy a tech 0 unit, return a tech I unit to its owner's hand, and gain control of a tech II unit. Troq Smash!  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6
+      }
+    },
+    {
+      "key": "flying_fox",
+      "text": "Flying Fox",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Ninja Contraption. Flying (Can fly over ground patrollers. Ground forces without anti-air can't attack this or deal combat damage to it when attacked.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 3,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "focus_master",
+      "text": "Focus Master",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Monk Mystic. Arrives: Put three focus runes on this. Whenever a friendly unit or hero would take exactly lethal damage, remove a focus rune to prevent 1 damage.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 4,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "forgotten_fighter",
+      "text": "Forgotten Fighter",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell — Bounce. Return a patrolling tech 0 or I unit with 2 ATK or less to its owner's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "fox_primus",
+      "text": "Fox Primus",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "tech0",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Ninja. Frenzy 1 (Gets +1 ATK on your turn.) Anti-air (Can attack fliers, but can ignore patrolling fliers. Deals combat damage to fliers it fights or that fly over this while it patrols.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "fox_viper",
+      "text": "Fox Viper",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "tech0",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Ninja. Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "foxs_den_school",
+      "text": "Fox's Den School Legendary",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "tech2",
+        "building",
+        "stone",
+        "build_face",
+        "generate_art"
+      ],
+      "tooltip": "Building. Invisible Your Ninjas and Cute Animals are invisible. ②, ⤵ → One of your units becomes a Ninja (in addition to its other types.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "integrity": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "foxs_den_students",
+      "text": "Fox's Den Students",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell — Summon. Summon four 1/1 white Ninja tokens. This turn, your Ninja units have haste and stealth.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4
+      }
+    },
+    {
+      "key": "fruit_ninja",
+      "text": "Fruit Ninja",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "tech0",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Ninja. Frenzy 1 (Gets +1 ATK on your turn.) Quick to slice fruit. Quick to slice YOU.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "fuzz_cuddles",
+      "text": "Fuzz Cuddles",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "tech1",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Cute Animal. Healing 2 (During your upkeep, heal 2 damage from all friendly units and heroes.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "gargoyle",
+      "text": "Gargoyle",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "tech1",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Horror. Indestructible (If this would die, exhaust it and remove all damage and attachments from it instead. You can't sacrifice it.) Can't attack or patrol. ① → Until your next upkeep, Gargoyle isn't indestructible, gains flying, +3 ATK, and it can attack and patrol. Once-per-turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 0,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "garth_torken",
+      "text": "Garth Torken",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_necromancy",
+        "black",
+        "pitch",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Dark Anatomist. Level 1- 3 : ① → Summon a 1/1 black Skeleton token. Once-per-turn. • ATK: 1 • HP: 3 Level 4 - 6 : Sacrifice a Skeleton → Draw a card. • ATK: 2 • HP: 4 Level 7 : Max Level: You may put a tech I or II unit that costs ⑤ or less from your discard pile into play if you meet the tech reqs for it. • ATK: 3 • HP: 4  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "garus_rook",
+      "text": "Garus Rook",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_strength",
+        "white",
+        "chalk",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Stone Golem. Level 1- 4 : • ATK: 2 • HP: 4 Level 5 - 7 : Unstoppable by patrol zones with only one patroller. • ATK: 3 • HP: 5 Level 8 : Two Lives (If this would die, heal all damage on it and put a crumbling rune on it instead. While it has a crumbling rune, it can really die.) • ATK: 4 • HP: 6  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 4,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "gilded_glaxx",
+      "text": "Gilded Glaxx",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "tech1",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Soldier. While you have gold in your gold pile, you can't sacrifice Gilded Glaxx and he can't leave play unless he dies from combat damage.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "glorious_ninja",
+      "text": "Glorious Ninja",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Ninja. Haste Swift Strike (Deals its combat damage before units and heroes without swift strike.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "atk": 4,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "gorgon",
+      "text": "Gorgon",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Horror. Deathtouch (Combat damage this deals to units or heroes, even to their armor, kills them.) Dies: Draw a card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 2,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "granfalloon_flagbearer",
+      "text": "Granfalloon Flagbearer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "tech0",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Flagbearer. Whenever an opponent plays a spell or ability that can ◎ a flagbearer, it must ◎ a flagbearer at least once. \"My flag flies for associations and societies based on a shared but ultimately fabricated premise, such as any company or nation.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "grappling_hook",
+      "text": "Grappling Hook",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell. Pull a patroller to an empty slot in its patrol zone.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 0
+      }
+    },
+    {
+      "key": "grave_stormborne",
+      "text": "Grave Stormborne",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_discipline",
+        "white",
+        "chalk",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Wind Warrior. Level 1- 2 : Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) • ATK: 2 • HP: 3 Level 3 - 6 : Readiness (Doesn't exhaust to attack, but can only attack once per turn.) • ATK: 3 • HP: 4 Level 7 : Max Level: Put a sword rune on this. ⤵, Remove a sword rune → Destroy a unit or hero. ◎ • ATK: 4 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "graveyard",
+      "text": "Graveyard",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "tech0",
+        "building",
+        "stone",
+        "build_face",
+        "generate_art"
+      ],
+      "tooltip": "Building. Whenever your non-token units die, bury them here. Sacrifice Graveyard when four or more units are buried in it (and discard those units). ⤵ → Play a buried unit. (You still pay for it and must meet the tech reqs for it.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "integrity": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "grounded_guide",
+      "text": "Grounded Guide",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Thespian. Your other units get +1 ATK. Your Virtuosos get +2/+1, instead. He'll teach you the fundamentals.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "atk": 4,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "hardened_mox",
+      "text": "Hardened Mox",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "tech0",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Soldier. Indestructible (If this would die, exhaust it and remove all damage and attachments from it instead. You can't sacrifice it.) When you have a tech II unit (even a forecasted one), trash Hardened Mox.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "harmony",
+      "text": "Harmony",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "spell",
+        "ongoing_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ongoing Spell — Buff. Channeling (Stays in play. Sacrifice it when you lose your Finesse hero.) Whenever you play a spell, summon a 0/1 neutral Dancer token (limit: 3). Sacrifice Harmony → \"Stop the music.\" (Your Dancers will flip over!)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "harvest_reaper",
+      "text": "Harvest Reaper",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Contraption. Overpower (Excess combat damage this would deal to a patroller hits something else this could attack.) It reaps the fields. It reaps you.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "atk": 6,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "helpful_turtle",
+      "text": "Helpful Turtle",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "tech0",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Cute Animal. Healing 1 (During your upkeep, heal 1 damage from all friendly units and heroes.) \"I'm helping.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "heros_monument",
+      "text": "Hero's Monument Legendary",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "tech3",
+        "building",
+        "stone",
+        "build_face",
+        "generate_art"
+      ],
+      "tooltip": "Building — Monument. Untargetable Arrives: Summon an 8/8 legendary white Ghost token named \"Daigo Stormborne.\" He's indestructible, untargetable, and unstoppable, but can't patrol. Trash him when this leaves play. Your heroes get +1/+1.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "integrity": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "hidden_ninja",
+      "text": "Hidden Ninja",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Buff. Up to two of your units and/or heroes with 4 ATK or less have stealth this turn. (Can sneak past patrollers if that opponent has no detector.) If either is a Ninja or Ninjutsu hero, draw a card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "hired_stomper",
+      "text": "Hired Stomper",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Lizardman. Arrives: Deal 3 damage to a unit. (Heroes aren't units.) \"Ragoroggggg! Hssssss!\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 4,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "hive",
+      "text": "Hive",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Airship. Flying, resist 1 Arrives: Summon five 1/1 purple Stinger tokens with flying. ① → Re-summon a lost Stinger (limit: 5 per Hive.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6,
+        "atk": 0,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "hooded_executioner",
+      "text": "Hooded Executioner",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "tech1",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Soldier. Boost ③ (You may pay an additional ③ when you play this to get the boost effect.) If you boosted, destroy each opponent's weakest unit. (The lowest tech unit with the least ATK. You choose if there's a tie for least ATK.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "hyperion",
+      "text": "Hyperion",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Soldier. Haste Attacks: Draw a card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "atk": 4,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "immortal",
+      "text": "Immortal",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech. Indestructible (If this would die, exhaust it and remove all damage and attachments from it instead. You can't sacrifice it.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6,
+        "atk": 5,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "intimidate",
+      "text": "Intimidate",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Debuff. Give a unit or hero -4 ATK this turn. Ready to fight now??  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "inverse_power_ninja",
+      "text": "Inverse Power Ninja",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "tech1",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Ninja. Gets -1/-1 for each other unit or hero you have.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 6,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "iron_man",
+      "text": "Iron Man",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "tech1",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mercenary. \"I'm Iron Man.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "jade_fox_dens_headmistress",
+      "text": "Jade Fox, Den's Headmistress",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "tech3",
+        "unit",
+        "fighter",
+        "legendary",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Legendary Unit — Ninja. Arrives: Summon four 1/1 white Ninja tokens. Your Ninjas have flying and swift strike.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 8,
+        "atk": 4,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "jandra_the_negator",
+      "text": "Jandra, the Negator",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "tech0",
+        "unit",
+        "fighter",
+        "legendary",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Legendary Unit — Demon Horror. Overpower (Excess combat damage this would deal to a patroller hits something else this could attack.) Dies from combat damage: Destroy all your units except for Demons.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "jefferson_degrey_ghostly_diplomat",
+      "text": "Jefferson DeGrey, Ghostly Diplomat",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "tech2",
+        "unit",
+        "fighter",
+        "legendary",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Legendary Unit — Barrister. Arrives: Destroy all tokens.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 4,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "knight_of_the_conclave",
+      "text": "Knight of the Conclave",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "tech1",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Soldier. Forecast 3 (Starts off in the future, not in play. Put three time runes on this and remove one each upkeep. When you remove the last, it arrives.) Resist 1 (Opponents must pay ① each time they would ◎ this with a spell or ability.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 0,
+        "atk": 4,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "leaping_lizard",
+      "text": "Leaping Lizard",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Lizardman. Anti-air (Can attack fliers, but can ignore patrolling fliers. Deals combat damage to fliers it fights or that fly over this while it patrols.) He can reach for the sky.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "atk": 3,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "lichs_bargain",
+      "text": "Lich's Bargain",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Summon. Sacrifice a worker. Your base takes 4 damage. Summon three black tokens: a 1/1 Skeleton, a 2/2 Zombie, a 3/3 Horror with deathtouch  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "lord_of_shadows",
+      "text": "Lord of Shadows",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "tech3",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Overlord. Your black units are invisible. (To opponents without a detector, they are untargetable, unattackable, and can sneak past patrollers. While patrolling, they are attackable.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 7,
+        "atk": 8,
+        "hp": {
+          "value": 7,
+          "max": 7
+        }
+      }
+    },
+    {
+      "key": "maestro",
+      "text": "Maestro",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Thespian. Your virtuosos cost ⓪ to play and gain \"⤵ → Deal 2 damage to a building. ◎\" His enthusiasm is infectious.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "martial_mastery",
+      "text": "Martial Mastery",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Discard a card, draw two cards, then look at the opponent's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "masked_raccoon",
+      "text": "Masked Raccoon",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Cute Animal Ninja. Unstoppable by units if you have another Ninja. Unattackable by units if you have another Cute Animal.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 3,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "max_geiger",
+      "text": "Max Geiger",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_present",
+        "purple",
+        "aether",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Vortoss Emissary. Level 1- 2 : Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) • ATK: 2 • HP: 3 Level 3 - 4 : ⤵, Discard a card → Draw a card. • ATK: 2 • HP: 4 Level 5 : Max Level: You may trash a friendly unit then return it to play. ◎ • ATK: 3 • HP: 4  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "metamorphosis",
+      "text": "Metamorphosis",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell — Buff. Sacrifice all units you control. Your non-Demon heroes level to max and become Demons. Put two +1/+1 runes on each, they get readiness, and are invisible until they leave play.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6
+      }
+    },
+    {
+      "key": "mindparry_monk",
+      "text": "Mind-Parry Monk",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Monk Mystic. Opponents can't ◎ your units or heroes with spells or abilities.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "atk": 5,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "morningstar_flagbearer",
+      "text": "Morningstar Flagbearer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "tech0",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Flagbearer. Whenever an opponent plays a spell or ability that can ◎ a flagbearer, it must ◎ a flagbearer at least once.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "morningstar_pass",
+      "text": "Morningstar Pass Legendary",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "tech2",
+        "building",
+        "stone",
+        "build_face",
+        "generate_art"
+      ],
+      "tooltip": "Building. Prevent all damage that would be dealt to your other buildings. Opponents must pay ① each time they would attack Morningstar Pass.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "integrity": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "mythmaking",
+      "text": "Mythmaking Legendary",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "tech1",
+        "upgrade",
+        "relic",
+        "generate_art"
+      ],
+      "tooltip": "Upgrade. Your legendary units get +2/+2 and your legendary buildings get +2 HP. Opponents' legendary units get -1/-1.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "nebula",
+      "text": "Nebula",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "tech3",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Airship. Flying, resist 3 Your other units are invisible. ⓪ → Destroy a tech 0, I, or II unit. Once-per-turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 7,
+        "atk": 7,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "necromancer",
+      "text": "Necromancer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Spellcaster. Long-range (Defenders without long-range deal no damage to this when it attacks.) Whenever another non-token unit of yours dies, summon a 1/1 black Skeleton token.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "neo_plexus",
+      "text": "Neo Plexus",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "tech0",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Soldier.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "nether_drain",
+      "text": "Nether Drain",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Debuff. One hero loses two levels and can't level up this turn. Another hero gains two levels. (Heroes can't go below level 1 or above their max level.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "nimble_fencer",
+      "text": "Nimble Fencer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "tech1",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Virtuoso. Your virtuosos have haste. (Can attack and ⤵ the turn they arrive.) \"En Garde!\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "now",
+      "text": "Now!",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Buff. Give a unit or hero haste this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "nullcraft",
+      "text": "Nullcraft",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "tech0",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Airship. Flying, haste Can't be the ◎ of Buff or Debuff spells.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "oathkeeper_of_kor_mountain",
+      "text": "Oathkeeper of Kor Mountain",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "tech3",
+        "unit",
+        "fighter",
+        "legendary",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Legendary Unit — Warrior. Arrives: Choose an oath: \"I won't play cards from my hand besides workers\" or \"I will skip my draw/discard phase.\" You can't break that oath while Oathkeeper is in play. Swift strike, resist 2 ② → Sideline all patrolling units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 7,
+        "atk": 7,
+        "hp": {
+          "value": 8,
+          "max": 8
+        }
+      }
+    },
+    {
+      "key": "octavian",
+      "text": "Octavian",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "tech3",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Behemoth. ⑧, ⤵ → Ready Octavian and disable up to eight units and/or heroes. (Exhaust them and they don't ready during their next ready step. Sideline them if they were patrolling.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 8,
+        "atk": 8,
+        "hp": {
+          "value": 8,
+          "max": 8
+        }
+      }
+    },
+    {
+      "key": "older_brother",
+      "text": "Older Brother",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "tech0",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Drunkard. \"You said what about my little brother?\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "omegacron",
+      "text": "Omegacron",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Drone. Forecast 6, Haste, untargetable Sacrifice a unit, hero, worker, or upgrade → Remove a time rune from Omegacron while it's forecasted.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 9,
+        "hp": {
+          "value": 7,
+          "max": 7
+        }
+      }
+    },
+    {
+      "key": "origin_story",
+      "text": "Origin Story",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Return a hero to its command zone.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "orpal_gloor",
+      "text": "Orpal Gloor",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_disease",
+        "black",
+        "pitch",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Plague Lord. Level 1- 3 : Deals damage to units and heroes in the form of -1/-1 runes. • ATK: 1 • HP: 3 Level 4 - 5 : Sacrifice a non-Demon unit → Put a -1/-1 rune on a unit. ◎ Once-per-turn. • ATK: 2 • HP: 4 Level 6 : The first time a unit with a -1/-1 rune dies each turn, the active player puts a -1/-1 rune on two units friendly to the dead unit. ◎ • ATK: 2 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "pestering_haunt",
+      "text": "Pestering Haunt",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "tech0",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Ghost. Unstoppable but can't patrol (Can ignore patrollers when attacking.) Can't be sacrificed. Can't have more than 1 ATK.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 0,
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "plague_lab",
+      "text": "Plague Lab",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "tech2",
+        "building",
+        "stone",
+        "build_face",
+        "generate_art"
+      ],
+      "tooltip": "Building. Arrives: Put a -1/-1 rune on all of an opponent's units. ②, ⤵ → For any number of cards with runes, add another rune of a kind already there.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "integrity": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "plague_lord",
+      "text": "Plague Lord",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "tech3",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Horror. Arrives or attacks: Put a -1/-1 rune on each opposing unit and hero. Upkeep: Each player's base takes 1 damage for each -1/-1 rune on their units and heroes. Resist 2  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6,
+        "atk": 4,
+        "hp": {
+          "value": 7,
+          "max": 7
+        }
+      }
+    },
+    {
+      "key": "plague_spitter",
+      "text": "Plague Spitter",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "tech1",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Horror. Anti-air (Can attack fliers, but can ignore patrolling fliers. Deals combat damage to fliers it fights or that fly over this while it patrols.) Deals damage to units and heroes in the form of -1/-1 runes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "plasmodium",
+      "text": "Plasmodium",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "tech0",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Beast. Forecast 3 (Starts off in the future, not in play. Put three time runes on this and remove one each upkeep. When you remove the last, it arrives.) Haste (Can attack and play ⤵ abilities, if he had any, the turn he arrives.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 4,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "poisonblade_rogue",
+      "text": "Poisonblade Rogue",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "tech0",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Rogue. Attacks: Gets armor piercing and deals damage to units and heroes in the form of -1/-1 runes this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "porcupine",
+      "text": "Porcupine",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Cute Animal. Deathtouch (Combat damage this deals to units or heroes, even to their armor, kills them.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 2,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "promise_of_payment",
+      "text": "Promise of Payment",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. The next card you play this turn costs ⓪. Pay its gold cost during your next upkeep or lose the game.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 0
+      }
+    },
+    {
+      "key": "prynn_pasternaak",
+      "text": "Prynn Pasternaak",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_past",
+        "purple",
+        "aether",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Templar Historian. Level 1- 3 : Fading 4 Attacks: Put a time rune on this. • ATK: 1 • HP: 3 Level 4 - 6 : Dies from fading: Opponents skip their next draw/discard step (they keep their hand cards). • ATK: 2 • HP: 4 Level 7 : Remove two time runes → Trash a unit. ◎ Leaves: Return all cards to play that Pasternaak trashed. • ATK: 3 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "rambasa_twin",
+      "text": "Rambasa Twin",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "tech1",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Tiger Monk. Arrives: You may put a Rambasa Twin from your codex into play. The first time a Rambasa Twin dies each turn, return him to his owner's codex.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 3,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "ready_or_not",
+      "text": "Ready or Not",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Ready one of your units. Opposing exhausted units don't ready during their next ready step.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4
+      }
+    },
+    {
+      "key": "reaver",
+      "text": "Reaver",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Drone. Forecast 2 (Starts off in the future, not in play. Put two time runes on this and remove one each upkeep. When you remove the last, it arrives.) ①, ⤵, Discard a card → Choose one: Trash 2 workers. Deal 6 damage to up to 2 units and/or heroes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 0,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "regularsized_rhinoceros",
+      "text": "Regular-sized Rhinoceros",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Rhino. As rhinoceroses go, this rhinoceros is a similar size to most rhinoceroses.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 5,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "rememberer",
+      "text": "Rememberer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mystic. Fading 3 Whenever you remove a time rune from Rememberer, you may put a unit with fading from your discard pile into play if you meet the tech requirements for it.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "research__development",
+      "text": "Research & Development",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell. Draw five cards. (You can only reshuffle once per main phase.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "reversal",
+      "text": "Reversal",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Debuff. Deal 3 damage to a patroller, then disable it. (Exhaust it and it doesn't ready during its next ready step. Sideline it if it was patrolling.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "revolver_ocelot",
+      "text": "Revolver Ocelot",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "tech1",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Leopard. Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) What's an ocelot, anyway?  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "rewind",
+      "text": "Rewind",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell — Bounce. Your max level Past hero can cast this no matter when she arrived or maxed. Return all tech 0, I, and II units to their owner's hands.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4
+      }
+    },
+    {
+      "key": "river_montoya",
+      "text": "River Montoya",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_finesse",
+        "neutral",
+        "bone",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Dancing Fencer. Level 1- 2 : • ATK: 2 • HP: 3 Level 3 - 4 : ⤵ → Sideline a tech 0 or tech I patroller. (Move it out of the patrol zone.) ◎ • ATK: 2 • HP: 4 Level 5 : Your tech 0 units cost ① less to play. • ATK: 3 • HP: 4  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "sacrifice_the_weak",
+      "text": "Sacrifice the Weak",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell. Each player sacrifices their weakest unit. (The lowest tech unit with the least ATK. You choose if there's a tie for least ATK.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "safe_attacking",
+      "text": "Safe Attacking",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "tech0",
+        "upgrade",
+        "relic",
+        "generate_art"
+      ],
+      "tooltip": "Upgrade. Your tech 0 and I units get +1 armor while they attack. (Armor absorbs damage before HP and is then destroyed.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "savior_monk",
+      "text": "Savior Monk",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "tech0",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Monk. Healing 1 (During your upkeep, heal 1 damage from all friendly units and heroes.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "second_chances",
+      "text": "Second Chances",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "tech2",
+        "upgrade",
+        "relic",
+        "generate_art"
+      ],
+      "tooltip": "Upgrade. Whenever one of your non-token units leaves play from something other than combat damage, return it to play. Once-per-turn. (Choose randomly if multiples leave at once.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "seer",
+      "text": "Seer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "tech1",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mystic. Arrives: You may add or remove a time rune from a card (or forcasted card) with at least one time rune.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "atk": 2,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "senseis_advice",
+      "text": "Sensei's Advice",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell — Buff. Give up to two of your units +1 ATK/+1 armor this turn. (Armor absorbs damage before HP and is then destroyed.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "sentry",
+      "text": "Sentry",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "tech1",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Drone. Sparkshot, anti-air Prevent the first damage per turn that a spell or ability would deal to one of your patrollers. (Choose randomly if multiple patrollers are damaged at once.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 3,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "setsuki_hiruki",
+      "text": "Setsuki Hiruki",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_ninjutsu",
+        "white",
+        "chalk",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Fox's Den Student. Level 1- 3 : While Setsuki isn't patrolling, opponents must pay ① each time they would attack her. • ATK: 1 • HP: 3 Level 4 - 5 : Attacks: Swift strike this turn. (Deals combat damage before units and heroes without swift strike.) • ATK: 2 • HP: 3 Level 6 : Upkeep: Draw 2 cards. • ATK: 3 • HP: 4  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "shadow_blade",
+      "text": "Shadow Blade",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Debuff. Deal 3 damage to a patroller. If it dies from Shadow Blade, its controller discards a card at random.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "shimmer_ray",
+      "text": "Shimmer Ray",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Airship. Flying, Fading 2 (Arrives with two time runes. Remove one each upkeep. When you remove the last, sacrifice this.) Discard a card → Add a time rune to this.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "atk": 3,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "shrine_of_forbidden_knowledge",
+      "text": "Shrine of Forbidden Knowledge",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "tech2",
+        "building",
+        "stone",
+        "build_face",
+        "generate_art"
+      ],
+      "tooltip": "Building. Upkeep: Your base takes 1 damage. Draw/Discard phase: Card draw +1, hand size +1 Your Demons are unstoppable by units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "integrity": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "shuriken_hail",
+      "text": "Shuriken Hail",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Deal 1 damage to each patroller.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "sickness",
+      "text": "Sickness",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Debuff. Put a -1/-1 rune on up to two units and/or heroes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "skeletal_archery",
+      "text": "Skeletal Archery",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "tech0",
+        "upgrade",
+        "relic",
+        "generate_art"
+      ],
+      "tooltip": "Upgrade. Your Skeletons have long-range and anti-air. (Defenders without long-range deal no damage to them when they attack. They can attack fliers, but can ignore patrolling fliers. They deal combat damage to fliers they fight or that fly over them while they patrol.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "skeletal_lord",
+      "text": "Skeletal Lord",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Spellcaster. Your Skeletons get +1/+1. Exhaust five of your Skeletons → Put a unit from your hand into play.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "skeleton_javelineer",
+      "text": "Skeleton Javelineer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "tech0",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Skeleton. Arrives: Put a javelin rune on this. Remove a javelin rune → This gets long-range this turn. (Defenders without long-range deal no damage to this when it attacks.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "slowtime_generator",
+      "text": "Slow-Time Generator",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "tech2",
+        "building",
+        "stone",
+        "build_face",
+        "generate_art"
+      ],
+      "tooltip": "Building. Each player's workers can't produce more than ④ total during their upkeep.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "integrity": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "smoker",
+      "text": "Smoker",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "tech0",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Ninja. Stealth (Can sneak past patrollers if that opponent has no detector.) When Smoker is ◎ by a spell or ability, return him to his owner's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "snapback",
+      "text": "Snapback",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell. Return an opposing hero to its command zone. It can't be summoned until after its owner's next turn. Put another hero from that command zone into play, or the same hero if there isn't another.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "sneaky_pig",
+      "text": "Sneaky Pig",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "tech2",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Pig. Haste Arrives: Gets stealth this turn. (Can sneak past patrollers if that opponent has no detector.) Have you ever seen a sneaky pig? Exactly.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "soul_stone",
+      "text": "Soul Stone",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "spell",
+        "ongoing_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ongoing Spell — Buff. Attach to a unit. Attached unit gets +1/+1. If it would die, instead remove all damage from it and sacrifice all Soul Stones on it.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "spark",
+      "text": "Spark",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell — Burn. Deal 1 damage to a patroller. Practice mastery of all things, large and small.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "sparring_partner",
+      "text": "Sparring Partner",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "tech1",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Monk. ⤵ → Put a +1/+1 rune on a friendly unit or hero that doesn't have a +1/+1 rune. ② → Ready Sparring Partner, but he can't attack this turn (he can only spar).  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "speed_of_the_fox",
+      "text": "Speed of the Fox",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "ninjutsu",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Buff. Your Ninjutsu hero gets haste, readiness, armor piercing, and +1 ATK this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "spreading_plague",
+      "text": "Spreading Plague",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "disease",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Destroy all tech 0, I, or II units and heroes that have -1/-1 runes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4
+      }
+    },
+    {
+      "key": "starcrossed_starlet",
+      "text": "Star-Crossed Starlet",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "tech1",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Virtuoso. Upkeep: This takes 1 damage. This gets +1 ATK for each damage on her. \"Now's your time to shine.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 3,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "stewardess_of_the_undone",
+      "text": "Stewardess of the Undone",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "tech1",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mystic. Arrives: You may return a tech 0 unit to its owner's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 2,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "summon_skeletons",
+      "text": "Summon Skeletons",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell — Summon. Summon two 1/1 black Skeleton tokens.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "temporal_distortion",
+      "text": "Temporal Distortion",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Return a tech I or II unit of yours to its owner's hand. If you do, you may put a unit of the same tech level and the same cost or less from your codex into play. (Even if you don't meet the tech reqs for it.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "temporal_research",
+      "text": "Temporal Research",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell. Draw a card. If you have 3 or more time runes, draw another card. If you have 10 or more time runes, draw another card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "tenderfoot",
+      "text": "Tenderfoot",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "tech0",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Virtuoso. \"I practice every day. I'm rapidly improving. At this rate, I'll be a Blademaster in no time. Sometimes I have bad days though. Like last week my dog ran away.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "atk": 1,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "terras_q_the_shackled",
+      "text": "Terras Q, the Shackled",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "tech2",
+        "unit",
+        "fighter",
+        "legendary",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Legendary Unit — Demon Overlord. Resist 3, Obliterate 2 (Whenever this attacks, destroy the defender's two lowest tech units first.) Arrives: Summon four 0/1 black Warlock tokens for an opponent. Terras Q can't attack or patrol while any of those tokens are in play.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 6,
+        "atk": 15,
+        "hp": {
+          "value": 15,
+          "max": 15
+        }
+      }
+    },
+    {
+      "key": "the_boot",
+      "text": "The Boot",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Debuff. Destroy a tech 0 or tech I unit. (Heroes aren't units.) When you get the boot, you're out.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "thieving_imp",
+      "text": "Thieving Imp",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "tech0",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Imp Demon. Arrives: An opponent discards a card at random.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "thunderclap",
+      "text": "Thunderclap",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Debuff. Sideline up to three units without flying that cost ② or less. (Move them out of the patrol zone.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "time_spiral",
+      "text": "Time Spiral",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell. Add or remove a time rune from a card (or forcasted card) with at least one time rune.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1
+      }
+    },
+    {
+      "key": "timely_messenger",
+      "text": "Timely Messenger",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "tech0",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mercenary. Haste (Can attack and play ⤵ abilities, if he had any, the turn he arrives.) \"I'm never late.\"  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "tinkerer",
+      "text": "Tinkerer",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "tech0",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Scientist. ⤵ → Add or remove a time rune from a card (or forcasted card) with at least one time rune.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "training_grounds",
+      "text": "Training Grounds",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "tech2",
+        "building",
+        "stone",
+        "build_face",
+        "generate_art"
+      ],
+      "tooltip": "Building. Your heroes get +1 ATK. ⤵ → Level up a hero to max level.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 1,
+        "integrity": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "tricycloid",
+      "text": "Tricycloid",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Drone. Arrives: Put three time runes on this. Gets +1/+1 for each time rune on it. Remove a time rune → Deal 1 damage to a unit, hero, or building.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "trojan_duck",
+      "text": "Trojan Duck",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "tech3",
+        "unit",
+        "fighter",
+        "bone",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Contraption. Obliterate 2 (Whenever this attacks, destroy the defender's two lowest tech units first.) Arrives or attacks: Deal 4 damage to a building. This weapon of war was disguised as a gift. It didn't fool many.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 7,
+        "atk": 8,
+        "hp": {
+          "value": 9,
+          "max": 9
+        }
+      }
+    },
+    {
+      "key": "troq_bashar",
+      "text": "Troq Bashar",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_bashing",
+        "neutral",
+        "bone",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Renegade Beast. Level 1- 4 : • ATK: 2 • HP: 3 Level 5 - 7 : Attacks: Deal 1 damage to that opponent's base. ◎ • ATK: 3 • HP: 4 Level 8 : Readiness (Doesn't exhaust to attack, but can only attack once per turn.) • ATK: 4 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "true_power_of_storms",
+      "text": "True Power of Storms",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "spell",
+        "ultimate",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ultimate Spell. Reveal and discard two other cards that cost ③. If you do, deal 10 damage to a unit, hero, or building.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "twilight_baron",
+      "text": "Twilight Baron",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "tech1",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Demon. Overpower (Excess combat damage this would deal to a patroller hits something else this could attack.) You can't play tech II or III units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 4,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "two_step",
+      "text": "Two Step",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "finesse",
+        "spell",
+        "ongoing_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ongoing Spell — Buff. Channeling (Stays in play. Sacrifice it when you lose your Finesse hero.) Two of your units become dance partners if they aren't partnered already. While you control both, they each get +2/+2. If you lose one, sacrifice Two Step. The two units had a special time together.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "undo",
+      "text": "Undo",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Bounce. Return a tech 0, I, or II unit to its owner's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3
+      }
+    },
+    {
+      "key": "unphase",
+      "text": "Unphase",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell — Buff. Make a unit or hero invisible until your next upkeep. (To opponents without a detector, it's untargetable, unattackable, and can sneak past patrollers. While patrolling, it's attackable.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "vandy_anadrose",
+      "text": "Vandy Anadrose",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_demonology",
+        "black",
+        "pitch",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Queen of Demons. Level 1- 2 : Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) • ATK: 2 • HP: 3 Level 3 - 4 : Resist 1 ①, ⤵, Discard a card → Fetch a Demonology spell from your codex, reveal it, then put it in your hand. • ATK: 3 • HP: 4 Level 5 : Max Level: Give +2/+2 to one friendly and one opposing tech 0 or I unit. They lose +2/+2 and die at your next upkeep. • ATK: 4 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "versatile_style",
+      "text": "Versatile Style",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Choose one of the following: Destroy an upgrade. Disable a unit or hero with flying. Repair 2 damage from a building. Your Discipline hero is a detector this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "vigor_adept",
+      "text": "Vigor Adept",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Monk. Frenzy 1 (Gets +1 ATK on your turn.) Readiness (Doesn't exhaust to attack, but can only attack once per turn.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 5,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "vir_garbarean",
+      "text": "Vir Garbarean",
+      "tags": [
+        "scaffold",
+        "hero",
+        "fighter",
+        "h_future",
+        "purple",
+        "aether",
+        "hero_face",
+        "generate_art"
+      ],
+      "tooltip": "Hero — Inventive Engineer. Level 1- 4 : ⓪ → Look at the top card of your draw pile. ① → Exchange the top card of your draw pile with a card from your hand. • ATK: 2 • HP: 3 Level 5 - 6 : ⤵ → Play the top card of your draw pile. (You still pay for it and must meet the reqs for it.) • ATK: 3 • HP: 3 Level 7 : Max Level: Summon a 6/7 purple Mech token with forecast 2 that's untargetable. (It will arrive in two turns.) • ATK: 3 • HP: 5  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      }
+    },
+    {
+      "key": "void_star",
+      "text": "Void Star",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Airship. Flying, overpower ④ → Gets +4 ATK until your next upkeep. Once-per-turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 5,
+        "atk": 5,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "voidblocker",
+      "text": "Voidblocker",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Demon. Whenever an opponent attacks Voidblocker, they exhaust another of their ready units or heroes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 2,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "vortoss_emblem",
+      "text": "Vortoss Emblem",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "spell",
+        "ongoing_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Ongoing Spell. Fading 3 Attach to a unit. That unit is a flagbearer. Whenever an opponent plays a spell or ability that can ◎ a flagbearer, it must ◎ a flagbearer at least once.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 0
+      }
+    },
+    {
+      "key": "warp_gate_disciple",
+      "text": "Warp Gate Disciple",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "present",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mystic. ①, ⤵ → Put a tech I or II unit from your codex into play. (You don't have to meet the tech reqs for it.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "whitestar_grappler",
+      "text": "Whitestar Grappler",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "strength",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Warrior. ⤵ → Deal 4 damage to a unit. If it's still alive, it deals its ATK to Whitestar Grappler. Sideline it if it was patrolling.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "key": "wight",
+      "text": "Wight",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "necromancy",
+        "tech2",
+        "unit",
+        "fighter",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Horror. Unstoppable when attacking heroes. Deathtouch when attacking heroes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 4,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "wither",
+      "text": "Wither",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "spell",
+        "minor_spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Minor Spell — Debuff. Put a -1/-1 rune on a unit or hero.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 2
+      }
+    },
+    {
+      "key": "wrecking_ball",
+      "text": "Wrecking Ball",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "neutral",
+        "bashing",
+        "spell",
+        "arcane",
+        "spell_face",
+        "generate_art"
+      ],
+      "tooltip": "Spell. Deal 2 damage to a building. Wrecked.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 0
+      }
+    },
+    {
+      "key": "xenostalker",
+      "text": "Xenostalker",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "future",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Mech Drone. Unstoppable (Can ignore patrollers when attacking.) Attacks: Deal 1 damage to up to four patrollers without flying.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 4,
+        "atk": 3,
+        "hp": {
+          "value": 6,
+          "max": 6
+        }
+      }
+    },
+    {
+      "key": "yesterdays_golgort",
+      "text": "Yesterday's Golgort",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "purple",
+        "past",
+        "tech2",
+        "unit",
+        "fighter",
+        "aether",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Beast. Fading 2 (Arrives with two time runes. Remove one each upkeep. When you remove the last, sacrifice this.) Whenever you deal combat damage to a building, put a time rune on this.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 6,
+        "hp": {
+          "value": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "key": "young_lightning_dragon",
+      "text": "Young Lightning Dragon",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "white",
+        "discipline",
+        "tech2",
+        "unit",
+        "fighter",
+        "chalk",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Unit — Dragon. Flying (Can fly over ground patrollers. Ground forces without anti-air can't attack this or deal combat damage to it when attacked.) ① → Gets +1 ATK this turn. Thrice-per-turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 3,
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "zarramonde_the_obliterator",
+      "text": "Zarramonde, the Obliterator",
+      "tags": [
+        "deck_card",
+        "scaffold",
+        "black",
+        "demonology",
+        "tech3",
+        "unit",
+        "fighter",
+        "legendary",
+        "pitch",
+        "fighter_face",
+        "generate_art"
+      ],
+      "tooltip": "Legendary Unit — Demon. Arrives: If you played Zarramonde from your hand, destroy a unit, hero, worker, upgrade, or ongoing spell. Untargetable, obliterate 4 (Whenever this attacks, destroy the defender's four lowest tech units first.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "card_stats": {
+        "price": 10,
+        "atk": 11,
+        "hp": {
+          "value": 11,
+          "max": 11
+        }
+      }
     },
     {
       "key": "pick_zane",

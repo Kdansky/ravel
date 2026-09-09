@@ -6,6 +6,49 @@ Remove fully completed entries when we have done them or moved them to other fil
 
 ## Open
 
+- **What the whole box wants.** All 330 Codex cards are in the file now: red,
+  green and blue play; black, white, purple and the two neutral specs are
+  *scaffolding* — printed for their numbers and their text, tagged `scaffold`,
+  with none of what they say running. They are not inert, because the tag-level
+  `play` and the fighter abilities reach them like anything else, so a scaffolded
+  unit is a vanilla one of the right size. Every card's art is listed in
+  `ideas/codex/card_art.md`. Counting mechanics over all 330 rather than over the
+  92 we had changes the order of this list, and the top of it is not what the blue
+  survey guessed:
+
+  - **A named counter on a card — 44 cards, 33 of them new.** `+1/+1`, `-1/-1`,
+    `time`, `crumbling`, `insurance`, `blood`, `feather`, `rune`. Every one of
+    them is a number sat on a card with a name, and every one of them currently
+    costs its own stat: Codex declares `runes`, `feather`, `insured`, `lives`,
+    `bleeds` and `plate` for what is one idea. It is the single commonest thing in
+    the box by a distance, and the one place a word would pay for itself most.
+
+  - **Sacrifice as an effect — 30 cards, 23 new.** `sacrifice:<tag>` exists only
+    as a *cost*, takes the oldest match, and the player never chooses. *"Sacrifice
+    a unit. If you do…"* is a choice with a consequence, and *"Sacrifice this →"*
+    is a card spending itself, which the cost cannot say either since a cost
+    cannot name its own card.
+
+  - **Forecast — 7 cards, the whole of purple's Future spec.** *"Starts off in the
+    future, not in play. Put three time runes on this and remove one each upkeep.
+    When you remove the last, it arrives."* A zone that is not in play, a counter
+    ticking at the upkeep, and an arrival when it empties — most of which the file
+    can already say. What it cannot say is Hardened Mox's *"when you have a tech II
+    unit (even a forecasted one)"*, which asks about a card that is deliberately
+    nowhere.
+
+  - **Sideline — 15 cards, 8 new.** Move a unit out of the patrol zone. Written
+    inline three times in blue already (`stat_set:slot@x:0`, `stat_set:guard@x:0`,
+    `move:x:…army`); a name for it would stop the fourth being written wrong.
+
+  - **Return to hand — 12 cards, 8 new.** A bounce, and half the time a death
+    replacement. With Brave Knight, Justice Juggernaut's Two Lives, Reteller of
+    Truths and purple's Indestructible, *replacing* a death is now five cards and
+    wants generalising rather than another rules column each.
+
+  - **Swift strike — 6 cards, 4 new.** A blow struck before the exchange rather
+    than in it. Ferocity and The Art of War already say so on the card.
+
 - **Blue's gaps, grouped.** Blue is in and playable — Bigby, Onimaru and Sirus all
   win games against red and green. What it could not say, worst first. The full
   rule for each card is on the card, in its own tooltip.

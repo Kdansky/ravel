@@ -517,11 +517,24 @@ function M.test_codex_shape(check)
 	for _, key in ipairs({ "dead", "fallen", "rubble" }) do
 		check("'" .. key .. "' is a computed tag", G.computed_tags[key] ~= nil)
 	end
-	local n = 0
-	for key, def in pairs(G.card_defs) do
-		if def.tags_set and def.tags_set.deck_card then n = n + 1 end
+	-- Two counts, because half the box is scaffolding: cards printed for their
+	-- numbers and their text so that a survey has something to survey, with none
+	-- of what they *say* running. They are not inert — the tag-level play and the
+	-- fighter abilities reach them like anything else, so a scaffolded unit is a
+	-- vanilla one of the right size. The tag and the word in the tooltip go
+	-- together, so a card cannot quietly become finished.
+	local live, held = 0, 0
+	for _, def in pairs(G.card_defs) do
+		if def.tags_set and def.tags_set.deck_card then
+			if def.tags_set.scaffold then held = held + 1 else live = live + 1 end
+		end
+		if def.tags_set and def.tags_set.scaffold then
+			check("the scaffold '" .. (def.text or "?") .. "' says that it is one",
+				type(def.tooltip) == "string" and def.tooltip:find("SCAFFOLD", 1, true) ~= nil)
+		end
 	end
-	check("the box holds a hundred and thirty-eight printed cards", n == 138, tostring(n))
+	check("a hundred and thirty-eight printed cards are played", live == 138, tostring(live))
+	check("and a hundred and seventy-two more are only printed", held == 172, tostring(held))
 end
 
 -- The hero waits in a zone that is not in play, which is what lets "do I have a
