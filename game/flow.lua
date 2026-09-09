@@ -86,7 +86,26 @@ end
 -- Only borrowed cards are asked. An entry the offer *dealt* is a line the
 -- engine wrote from the asker's own list, and narrowing a list you wrote is
 -- writing a shorter list.
+-- **An answer minted for the question may have a price, and it says so itself.**
+-- "options:" writes the cards it deals, so one of them *is* an answer and
+-- nothing else — the cost and the gate on it are the cost and the gate of taking
+-- it, which is the whole of "pay more for the better half" in words a card
+-- already has. Neither was read until now, so an option could ask four gold and
+-- come free.
+--
+-- The other two things that lie in an offer are real game cards and are not
+-- charged. One the offer *borrowed* with "show:" is somebody else's chip and the
+-- asker is what acts. One a phase *dealt* out of a deck is a draft, and the
+-- price on it is the price of playing it later, not of choosing it — Castle's
+-- three buildings would otherwise cost gold to look at, and a hand nobody can
+-- afford would be a question with no answer.
 local function pickable(c)
+	if c.minted then
+		local def = cards.def(c)
+		if not def then return true end
+		local ctx = predicate.bind(cards.behaviour(c, "compute"), { card_id = c.id })
+		return M.can_afford(def.cost, ctx) and predicate.meets_all(def.needs, ctx)
+	end
 	if not c.borrowed_from then return true end
 	local oz = entity.get(c.zone_id)
 	local asker = oz and oz.asked_by and entity.get(oz.asked_by)
@@ -697,7 +716,7 @@ local function resisted(stat, ctx)
 				covered[holder] = true
 			else
 				local sc = predicate.parse_scope(ad.covers)
-				for _, c in ipairs(sc and predicate.entities_in_scope(sc.name, { card_id = holder }, sc.owner) or {}) do
+				for _, c in ipairs(sc and predicate.entities_in_scope(sc.name, { card_id = holder }, sc.owner, sc.quant) or {}) do
 					covered[c.id] = true
 				end
 			end
@@ -709,7 +728,13 @@ local function resisted(stat, ctx)
 			end
 		end
 	end
-	return math.max(0, more)
+	-- Signed, and the clamp belongs to the caller. An aura that made a cost
+	-- *dearer* was the only one the arithmetic here allowed, because clamping the
+	-- shift threw a discount away before anything could spend it — while the same
+	-- word aimed at damage has always been allowed to subtract, which is the whole
+	-- of what armour is. One word, one rule: several sum, and the total may not
+	-- change the sign of what it adjusts.
+	return more
 end
 
 -- What is owed, and out of which pools, in the order they should be drained.
@@ -727,7 +752,9 @@ local function plan(cost, ctx)
 			-- arithmetic a cost has no room for.
 			local need = tonumber(n) or predicate.total(tostring(n), ctx)
 			local p    = predicate.parse_subject(subject)
-			need = need + resisted(stat_name(subject), ctx)
+			-- Never below free: a discount that outruns the price is a price of
+			-- nothing, not a card that pays you to play it.
+			need = math.max(0, need + resisted(stat_name(subject), ctx))
 			-- Only a pool takes part in the matching. "each" asks a different
 			-- question — *every* member paying, not a total — and substituting
 			-- across members would answer neither; a cost the targets pay cannot
@@ -1025,13 +1052,17 @@ function M.play_card(card_id, targets)
 	-- the offer *borrowed* carries nothing of ours — it is somebody's chip — so
 	-- it is the answer and the asker is the actor.
 	local lent    = overlay and c.borrowed_from ~= nil
+	-- Whose price this is. A card played from a hand pays its own, and so does an
+	-- answer the offer minted; a borrowed chip and a card dealt out of a deck are
+	-- real game cards whose price is the price of playing them, not of taking them.
+	local charged = not overlay or c.minted == true
 	if asker and entity.get(asker) and not lent then targets = { asker } end
 	-- The targets are in, so a compute that measures them measures the right
 	-- ones: "deal damage equal to what you aimed at" is a number about the pair.
 	local ctx = predicate.bind(cards.behaviour(c, "compute"),
 		{ card_id = card_id, targets = targets or {}, verb = def.target and def.target.verb })
 	-- A cost the targets pay could not be judged before they were chosen.
-	if not overlay and not M.can_afford(def.cost, ctx) then return false end
+	if charged and not M.can_afford(def.cost, ctx) then return false end
 	checkpoint()
 	log.add((overlay and "Chose " or "Played ") .. (def.text or c.def_key))
 	local pl = player()
@@ -1039,7 +1070,7 @@ function M.play_card(card_id, targets)
 	-- belongs to the phase underneath it: counting a choice as a play would end
 	-- that phase early, since the count survives the pop.
 	if pl and not overlay then pl.stats.plays = (pl.stats.plays or 0) + 1 end
-	if not overlay then pay(def.cost, ctx) end
+	if charged then pay(def.cost, ctx) end
 	-- A choice taken out of an offer is not a card acting, it is the card that
 	-- opened the offer still acting — so the mark stays where it was.
 	if not overlay then mark_acted(card_id) end

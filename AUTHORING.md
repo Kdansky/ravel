@@ -62,7 +62,7 @@ and a line here names a section that exists:
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
-- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
+- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
@@ -3511,6 +3511,30 @@ Same word and same vocabulary as a target's `where`, asked the same way: the
 candidate is `@target` and the asking card is `@self`. **The whole scope still
 comes up** — revealing a hand is usually half the rule — and only the cards that
 qualify can be clicked; the rest are shown and dimmed.
+
+#### An answer may have a price
+
+A card the offer **dealt** is what runs when it is taken, so the `cost` and the
+`needs` written on it are the cost and the gate of that answer. No word beside
+`cost`: an option is a card, and a card has always said what it costs.
+
+```json
+{ "key": "one_beast", "text": "A Beast",
+  "play": { "action": ["fill:mine.army:beast:1"] } },
+{ "key": "beast_and_frogs", "text": "Pay 4 more: both",
+  "play": { "cost": { "gold@mine.player": 4 },
+            "action": ["fill:mine.army:beast:1", "fill:mine.army:frog:4"] } }
+```
+
+*Choose one; or pay four more and take both.* A half nobody can pay for is not on
+the table — it is dimmed with everything else the offer refuses — and the payment
+is an ordinary cost, so a pool that stands in for gold settles it and the panel
+quotes it.
+
+**Only a card the offer dealt.** A card it **borrowed** with `show:` is somebody
+else's chip and the *asker* is what acts, so the price printed on it is not the
+price of taking it: a codex unit shown to be fetched must not cost what it would
+cost to play. Those are gated by the asker's `chosen.where` instead.
 
 **If you wanted fewer cards to come up, narrow the scope instead.** "A Fire card
 from your hand" is one place and one kind, which is `<zone>.<tag>`:

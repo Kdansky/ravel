@@ -937,6 +937,7 @@ HANDLERS["options"] = function(p, ctx)
 	for _, key in ipairs(keys) do
 		if declaration.G.card_defs[key] then
 			local made = cards.create(key, zone_id)
+			made.minted = true
 			if owner then made.stats.owner = owner end
 		else
 			content_error("options: no card is called '" .. tostring(key) .. "'")

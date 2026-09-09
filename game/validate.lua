@@ -882,7 +882,7 @@ function M.check(G)
 	-- A cost: a map of subject to number, and it stays one. A cost is what gets
 	-- *spent*, which is a subject and an amount — "mana >= 3" says what to check
 	-- and not what to take away, so the two never wanted the same shape.
-	local function check_cost(where, map, kind)
+	local function check_cost(where, map, kind, bound)
 		if map == nil then return end
 		if type(map) ~= "table" then
 			warn('%s: should be written like { "gold": 2 }', where)
@@ -926,7 +926,11 @@ function M.check(G)
 					warn('%s: the value of \'%s\' is the text "%s" rather than the number %s — '
 						.. "a quoted amount is read as a subject to measure, and measures nothing",
 						where, tostring(key), v, v)
-				else
+				elseif not (bound and bound[v]) then
+					-- A compute the block named is a number with a name, and
+					-- flow.plan reads a cost amount through the same total() a
+					-- condition uses — so it stands here for the same reason it
+					-- stands on either side of a comparison.
 					subject_ok(where, v, true)
 				end
 			elseif type(v) ~= "number" then
@@ -1644,10 +1648,10 @@ function M.check(G)
 
 	local function check_ability(where, ab)
 		if type(ab) ~= "table" then return end
-		check_cost(where .. " cost", ab.cost, "activate")
+		local bound = check_compute(where, ab.compute)
+		check_cost(where .. " cost", ab.cost, "activate", bound)
 		check_list(where .. " action", ab.action)
 		check_phases(where, ab.phases)
-		local bound = check_compute(where, ab.compute)
 		-- What this ability says when it meets the others on the same card.
 		if ab.merge ~= nil and ab.merge ~= "both" and ab.merge ~= "this" and ab.merge ~= "other" then
 			warn('%s: merge is "both" (the default — the player is asked which), "this" (mine alone) '
@@ -2383,8 +2387,8 @@ function M.check(G)
 		if def.tags ~= nil and type(def.tags) ~= "table" then
 			warn('%s: tags should be a list like ["item", "weapon"]', where)
 		end
-		check_cost(where .. " cost", def.cost)
 		local played = check_compute(where .. " play", def.compute)
+		check_cost(where .. " cost", def.cost, nil, played)
 		check_conditions(where .. " needs", def.needs, played)
 		check_conditions(where .. " requires", def.requires)
 		-- "accepts" is asked of this card about the one arriving, so @self is

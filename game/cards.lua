@@ -501,15 +501,23 @@ end
 -- measured wore the expression on its face. Measured against the card the cost
 -- is about, since `@self` names it; with no card to ask, the expression is all
 -- there is to say.
-function M.cost_amount(v, card_id)
+function M.cost_amount(v, card_id, rule)
 	if type(v) ~= "string" or not card_id then return v end
-	return require("predicate").total(v, { card_id = card_id })
+	local predicate = require("predicate")
+	-- Bound the same way flow does before it pays, so the number quoted in a
+	-- hand is the number that comes out of the pile. A price with arithmetic in
+	-- it is a compute the block named, and reading it with nothing bound made it
+	-- nought — right in the file, wrong on the card.
+	local c   = entity.get(card_id)
+	local ctx = predicate.bind((rule and rule.compute) or (c and M.behaviour(c, "compute")),
+		{ card_id = card_id })
+	return predicate.total(v, ctx)
 end
 
 -- "2 gold, 1 food" for a cost, "at least 3 gold" for a condition. One function
 -- because one tooltip row shows either: a cost is a map of what gets spent, and
 -- `needs` / `accepts` are lists of conditions.
-function M.cost_text(cost, card_id)
+function M.cost_text(cost, card_id, rule)
 	local parts = {}
 	if type(cost) ~= "table" then return "" end
 	if type(cost[1]) == "string" then
@@ -521,7 +529,7 @@ function M.cost_text(cost, card_id)
 	table.sort(keys)
 	for _, k in ipairs(keys) do
 		local tag = k:match("^sacrifice:(.+)$")
-		local n   = tostring(M.cost_amount(cost[k], card_id))
+		local n   = tostring(M.cost_amount(cost[k], card_id, rule))
 		parts[#parts + 1] = tag and ("sacrifice " .. n .. " " .. tag) or (n .. " " .. k)
 	end
 	return table.concat(parts, ", ")
