@@ -521,7 +521,7 @@ function M.test_codex_shape(check)
 	for key, def in pairs(G.card_defs) do
 		if def.tags_set and def.tags_set.deck_card then n = n + 1 end
 	end
-	check("the box holds ninety-two printed cards", n == 92, tostring(n))
+	check("the box holds a hundred and thirty-eight printed cards", n == 138, tostring(n))
 end
 
 -- The hero waits in a zone that is not in play, which is what lets "do I have a
@@ -939,6 +939,80 @@ function M.test_codex_rampaging_elephant(check)
 	use(bull, "strike_lead", { in_zone("enemy.patrol").id })
 	flow.settle()
 	check("the second costs it", entity.get(bull.id).exhausted == true)
+end
+
+-- Blue, and the four of its rules that are not a keyword something already had.
+-- A death replacement said twice (Brave Knight's hand, the Juggernaut's second
+-- life), a keyword a card only sometimes has, and a walk-past reason keyed on a
+-- number rather than a tag.
+function M.test_codex_blue_deals(check)
+	start("pick_bigby", "pick_onimaru")
+	check("the blue starter is ten cards", count_in("hand") + count_in("deck") == 10,
+		tostring(count_in("hand") + count_in("deck")))
+	check("and the codex is twenty-four", count_in("codex") == 24, tostring(count_in("codex")))
+	check("Bigby is in command", in_zone("command", "bigby") ~= nil)
+end
+
+function M.test_codex_blue_arrivals(check)
+	start("pick_bigby", "pick_onimaru")
+	take_the_field("bigby")
+	local scribe = require("cards").create("scribe", zones.find_id("hand", "mine"))
+	local held = count_in("hand")
+	require("cards").create("tech_1", zones.find_id("tech", "mine"))
+	seat("south").stats.gold = 20
+	flow.play_card(scribe.id, {})
+	flow.settle()
+	check("the scribe drew as it arrived", count_in("hand") == held, tostring(count_in("hand")))
+
+	local gold = seat("south").stats.gold
+	seat("north").stats.gold = 5
+	local theirs = seat("north").stats.gold
+	local tax = require("cards").create("tax_collector", zones.find_id("hand", "mine"))
+	flow.play_card(tax.id, {})
+	flow.settle()
+	check("the tax collector took a gold off them",
+		seat("north").stats.gold == theirs - 1, tostring(seat("north").stats.gold))
+	check("and put it in its own purse", seat("south").stats.gold == gold - 2 + 1,
+		tostring(seat("south").stats.gold))
+end
+
+-- Two deaths that are not deaths, both written as a rules_death column that runs
+-- before the sweep — which is the only place a card can be caught on its way out.
+function M.test_codex_blue_second_chances(check)
+	start("pick_onimaru", "pick_argagarg")
+	local knight = summon("brave_knight", "mine.army")
+	knight.stats.hp = 0
+	actions.run({ "activate_zone:rules_death" }, {})
+	check("the knight went back to hand instead of dying",
+		in_zone("hand", "brave_knight") ~= nil)
+	check("and is whole again", read(entity.get(knight.id), "hp") == 3,
+		tostring(read(entity.get(knight.id), "hp")))
+
+	local bull = summon("justice_juggernaut", "mine.army")
+	bull.stats.hp = 0
+	actions.run({ "activate_zone:rules_death" }, {})
+	check("the juggernaut healed rather than died", read(bull, "hp") == 6, tostring(read(bull, "hp")))
+	check("and is crumbling now", bull.stats.lives >= 2, tostring(bull.stats.lives))
+	bull.stats.hp = 0
+	actions.run({ "activate_zone:rules_death" }, {})
+	check("so the second death is a real one", entity.get(bull.id) == nil
+		or entity.get(bull.id).zone_id ~= zones.find_id("army", "mine"))
+end
+
+-- A keyword a card has only while a number holds, and one that reads a number on
+-- the *other* side. Both are computed tags, which is what makes them free.
+function M.test_codex_blue_conditional_keywords(check)
+	start("pick_onimaru", "pick_argagarg")
+	local shot = summon("bluecoat_musketeer", "mine.army")
+	check("at one attack it is long-range", tags.entity_has(entity.get(shot.id), "ranged"))
+	shot.stats.atk = 2
+	check("buffed past one it is not", not tags.entity_has(entity.get(shot.id), "ranged"))
+
+	local bird = summon("patriot_gryphon", "mine.army")
+	post("tiger_cub", "enemy", 1)                     -- 2 ATK, and so too weak to hold it
+	check("a weak leader does not stop the gryphon", offers(bird, "strike_free"))
+	local ground = summon("mad_man", "mine.army")
+	check("but it stops anything else", not offers(ground, "strike_free"))
 end
 
 -- Hotter Fire is the reason "harm" is a verb. Combat damage stays plain

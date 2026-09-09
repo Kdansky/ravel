@@ -6,6 +6,60 @@ Remove fully completed entries when we have done them or moved them to other fil
 
 ## Open
 
+- **Blue's gaps, grouped.** Blue is in and playable — Bigby, Onimaru and Sirus all
+  win games against red and green. What it could not say, worst first. The full
+  rule for each card is on the card, in its own tooltip.
+
+  - **Nothing can exhaust a card that is not the one acting.** `exhaust` is a
+    *cost*, spent by the card paying it; `ready:<scope>` is an action and has no
+    opposite. Six cards want one: **Arrest**, **Arresting Constable**, **Porkhand
+    Magistrate**, **Injunction**, **Boot Camp**, **Guardian of the Gates**. The
+    action is a six-line mirror of `ready` (`e.exhausted = true`), and Codex's
+    half of *disable* — *"it doesn't ready during its next ready step"* — is then
+    a `disabled` stat, a computed tag `steady`, and `ready:mine.steady` in place
+    of `ready:mine.fighter` at the upkeep. Cheapest thing on this list by a
+    distance, and it unlocks the most cards.
+
+  - **An aim has no answering moment, so an Illusion cannot die of being pointed
+    at.** *"Illusions die when they are targeted by spells or abilities"* is the
+    whole of the Truth spec: **Spectral Aven, Hound, Flagbearer, Roc, Tiger**,
+    **Reteller of Truths**, **Liberty Gryphon**, and the three cards that hand the
+    word out — **Dreamscape**, **Hallucination**, **Macciatus** (who takes it
+    away). `receive.needs` already reads an aim and answers yes or no; what is
+    missing is the *write* half. A zone has both (`accepts` and `on_receive`); a
+    card and a tag have only the first. `receive: { needs: [...], action: [...] }`,
+    run on each chosen target once the aim resolves, is the same word finished —
+    and it would also give **Guardian of the Gates** its disable-on-damage and
+    **Spectral Flagbearer** half of its compulsion. Ten cards.
+
+  - **A card cannot become another card and come back.** `transform` destroys and
+    creates, keeping no memory of what it replaced. **Manufactured Truth** and
+    both of **Sirus Quince**'s copying levels want it, and so does Green's
+    **Polymorph: Squirrel** and **Fairie Dragon**. Five cards across two colours.
+
+  - **Obliterate still takes the first units rather than the lowest tech ones.**
+    **Lawbringer Gryphon** is the third customer, after Pirate Gunship and
+    Guargum. `QUANTS` is `any / each / random / others`; a phase's `order` already
+    spells `highest:<stat>`.
+
+  - Single-customer, listed so they are not rediscovered: **Jail** (nothing can
+    redirect somebody else's play), **Reputable Newsman** (a choice is made among
+    cards, and a number is not one), **Censorship Council** (no card may put a
+    condition on what another player may play), **Free Speech** (nothing takes a
+    card's abilities away), **Building Inspector** (a cost is adjustable only
+    through an aim, and a building is raised from a board button), **Jurisdiction**
+    (a pick out of an offer cannot then pay a price the picked card names),
+    **Eyes of the Chancellor** (hands revealed), **Bigby's stash** (nothing may be
+    held back through the draw), **Traffic Director** (unstoppable against one
+    kind of target only), **Drill Sergeant** (spending a rune to move it), **The
+    Art of War** and **Ferocity** both want swift strike.
+
+  - **Modelled with a stated simplification:** **Insurance Agent** insures only
+    your own units, because a rune does not remember who put it there; **Brave
+    Knight** returns to hand from any death rather than only from combat damage;
+    **Community Service** and **Lawful Search** look at a hand but not at the
+    choice of a discard pile instead.
+
 - **The log says `{name}`.** A seat renamed by `set_name` reads correctly on its
   card, in its tooltip and on the ending banner, because `label.fill` runs when
   a string is *drawn*. A log line is not drawn from anything: `flow` writes
