@@ -24,6 +24,8 @@ local CASES = {
 	-- to tell a check that cannot happen from one nobody had got round to. Their
 	-- absence is the failure mode this file exists for.
 	-- names the engine already reads
+	{ "a card printing a word the engine writes", "which the engine writes for itself",
+		function(g) g.card_defs.pearl.tags[#g.card_defs.pearl.tags + 1] = "exhausted" end },
 	{ "a tag one letter from an engine word", "did you mean",
 		function(g) g.card_defs.pearl.tags_set.optionai = true end },
 	{ "a style named after an engine word", "redefines a word the engine already reads",

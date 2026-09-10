@@ -66,7 +66,7 @@ M.ENGINE_TAGS = {
 	token        = { on = "card", what = "vanishes when a hand is swept, instead of joining the discard" },
 	immutable    = { on = "card", what = "scenery: nothing may target it and its template can never be edited" },
 	no_undo      = { on = "card", what = "playing or picking it clears the undo stack — the choice is final" },
-	exhausted    = { on = "card", what = "this card has spent its readiness. Written by the engine off the \"exhaust\" cost and the \"exhaust\" action, cleared by \"ready:\" and at the round wrap — never printed on a card, and readable wherever a tag is" },
+	exhausted    = { on = "card", writes = true, what = "this card has spent its readiness. Written by the engine off the \"exhaust\" cost and the \"exhaust\" action, cleared by \"ready:\" and at the round wrap — never printed on a card, and readable wherever a tag is" },
 	generate_art = { on = "card", what = "with no asset, draws a shape derived from its key rather than a bare colour" },
 	-- zones
 	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
@@ -462,8 +462,25 @@ function M.check(G)
 	-- they are: "exhausted" is granted rather than printed, so no card carries it
 	-- and nothing else here would vouch for it — and a game asking who is spent
 	-- was told the word did not exist.
+	--
+	-- **Readable is not writable.** "exhausted" is answered from the engine's own
+	-- state *before* a card's printed list is ever looked at, so a card carrying
+	-- the word would be a card whose tag is silently ignored. Refused below rather
+	-- than left to surprise somebody. The others here are stamped into a def at
+	-- load — "player" is written on every seat card in the box — so they are only
+	-- reserved, not refused.
 	for t, e in pairs(M.ENGINE_TAGS) do
 		if e.on == "card" then known_tags[t] = true end
+	end
+	for _, def in pairs(G.card_defs) do
+		for _, t in ipairs(type(def.tags) == "table" and def.tags or {}) do
+			local e = M.ENGINE_TAGS[t]
+			if e and e.writes and not def.injected then
+				warn("card '%s': prints '%s', which the engine writes for itself — a card carrying it "
+					.. "is read from the engine's own answer and never from the word, so printing it "
+					.. "does nothing", tostring(def.key or "?"), t)
+			end
+		end
 	end
 	for t in pairs(carried_tags) do known_tags[t] = true end
 	for t in pairs(G.computed_tags) do known_tags[t] = true end
