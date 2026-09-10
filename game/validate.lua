@@ -458,6 +458,13 @@ function M.check(G)
 	for _, td in pairs(tag_defs) do note_abilities(td.abilities) end
 
 	local known_tags = {}
+	-- The engine's own card words count as tags a condition may ask about, because
+	-- they are: "exhausted" is granted rather than printed, so no card carries it
+	-- and nothing else here would vouch for it — and a game asking who is spent
+	-- was told the word did not exist.
+	for t, e in pairs(M.ENGINE_TAGS) do
+		if e.on == "card" then known_tags[t] = true end
+	end
 	for t in pairs(carried_tags) do known_tags[t] = true end
 	for t in pairs(G.computed_tags) do known_tags[t] = true end
 	for t in pairs(tag_defs) do known_tags[t] = true end

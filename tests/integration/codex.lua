@@ -533,8 +533,8 @@ function M.test_codex_shape(check)
 				type(def.tooltip) == "string" and def.tooltip:find("SCAFFOLD", 1, true) ~= nil)
 		end
 	end
-	check("a hundred and eighty-four printed cards are played", live == 184, tostring(live))
-	check("and a hundred and twenty-six more are only printed", held == 126, tostring(held))
+	check("two hundred and thirty printed cards are played", live == 230, tostring(live))
+	check("and eighty more are only printed", held == 80, tostring(held))
 end
 
 -- The hero waits in a zone that is not in play, which is what lets "do I have a
@@ -992,6 +992,48 @@ function M.test_codex_the_upkeep_readies_what_is_spent(check)
 	check("and one line gives both back",
 		not tags.entity_has(entity.get(unit.id), "exhausted")
 		and not tags.entity_has(entity.get(hall.id), "exhausted"))
+end
+
+-- White leans on words the file gained this week rather than on new ones of its
+-- own: a rune put on by an exhausting ability, a disable written into a spell,
+-- and a ward lent by a unit standing on the table.
+function M.test_codex_white_sparring_partner(check)
+	start("pick_grave", "pick_argagarg")
+	local coach = summon("sparring_partner", "mine.army")
+	local cub   = summon("tiger_cub", "mine.army")
+	for _, u in ipairs(flow.usable_abilities(coach.id)) do
+		if u.rule.key == "train" then flow.activate(coach.id, { cub.id }, u.index) end
+	end
+	flow.settle()
+	check("the cub took a rune", read(cub, "atk") == 3, tostring(read(cub, "atk")))
+	check("and the coach spent itself for it", tags.entity_has(entity.get(coach.id), "exhausted"))
+end
+
+-- Reversal is three damage and a disable in one spell, which is the pair of words
+-- exhaust: and "disabled" working together where neither alone would do.
+function M.test_codex_white_reversal(check)
+	start("pick_grave", "pick_argagarg")
+	take_the_field("grave")
+	local prey = post("ironbark_treant", "enemy", 3)
+	local spell = require("cards").create("reversal", zones.find_id("hand", "mine"))
+	seat("south").stats.gold = 20
+	flow.play_card(spell.id, { prey.id })
+	flow.settle()
+	local p = entity.get(prey.id)
+	check("it is spent", p and tags.entity_has(p, "exhausted"))
+	check("and stays spent through a readying", p and (p.stats.disabled or 0) >= 1,
+		p and tostring(p.stats.disabled) or "gone")
+	check("and left its post", p and p.stats.slot == 0, p and tostring(p.stats.slot) or "gone")
+end
+
+-- A ward that is not printed on the card wearing it: the Monk stands, and every
+-- unit on its side refuses a spell for as long as it does.
+function M.test_codex_white_mindparry(check)
+	start("pick_grave", "pick_argagarg")
+	local cub = summon("tiger_cub", "mine.army")
+	check("ordinarily a spell may aim at it", not tags.entity_has(entity.get(cub.id), "parried"))
+	summon("mindparry_monk", "mine.army")
+	check("with the Monk out it may not", tags.entity_has(entity.get(cub.id), "parried"))
 end
 
 -- Black, whose whole idea is a counter that subtracts. "minus" declares what one

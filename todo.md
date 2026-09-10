@@ -113,6 +113,11 @@ Remove fully completed entries when we have done them or moved them to other fil
   rule; filling it at read time needs the entity the line was about, which the log
   does not keep. Found by watching an engine-played Spellstorm seat.
 
+- **The offer stall is now the top bot bug, and it grows with the box.** Six games
+  in sixty, up from three, as blue, black and white put more cards with offers in
+  front of a seat that cannot answer them. Same cause as the entry below; what has
+  changed is how often it is reached.
+
 - **The engine seat stalls on an offer whose cards cannot fill their own aim.**
   `opponent.lua`'s `M.legal` builds targets for every playable card out of
   `cards.def(e).target`, and drops the move when the pool is short. But a card

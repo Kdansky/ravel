@@ -740,6 +740,30 @@
       }
     },
     {
+      "key": "focus",
+      "label": "Focus",
+      "icon": "orb",
+      "color": "silver",
+      "min": 0,
+      "max": 3,
+      "on": [
+        "fighter"
+      ],
+      "start": 0
+    },
+    {
+      "key": "sword",
+      "min": 0,
+      "max": 1,
+      "on": [
+        "fighter"
+      ],
+      "start": 0,
+      "tags": [
+        "hidden"
+      ]
+    },
+    {
       "key": "corpse",
       "label": "Corpses",
       "icon": "orb",
@@ -1006,7 +1030,8 @@
       "any_of": [
         "tok_unseen",
         "tiger_unseen",
-        "shadowed"
+        "shadowed",
+        "denned"
       ]
     },
     "t0_ok": {
@@ -1235,6 +1260,72 @@
         "count:unit@self >= 1",
         "slot@self == 0",
         "count:shadowlord@mine.unit >= 1"
+      ]
+    },
+    "safe_attacker": {
+      "needs": [
+        "count:unit@self >= 1",
+        "attacking@self >= 1",
+        "count:tech2@self == 0",
+        "count:tech3@self == 0",
+        "count:safely@mine.safely >= 1"
+      ]
+    },
+    "parried": {
+      "needs": [
+        "count:fighter@self >= 1",
+        "count@mine.self >= 1",
+        "count:mindparry@mine.unit >= 1"
+      ]
+    },
+    "drilled": {
+      "needs": [
+        "count:hero@self >= 1",
+        "count@mine.self >= 1",
+        "count:dojo@mine.structures >= 1"
+      ]
+    },
+    "monumented": {
+      "needs": [
+        "count:hero@self >= 1",
+        "count@mine.self >= 1",
+        "count:monument@mine.structures >= 1"
+      ]
+    },
+    "denned": {
+      "needs": [
+        "count:ninja@self >= 1",
+        "slot@self == 0",
+        "count@mine.self >= 1",
+        "count:den@mine.structures >= 1"
+      ]
+    },
+    "ninja_air": {
+      "needs": [
+        "count:ninja@self >= 1",
+        "count@mine.self >= 1",
+        "count:headmistress@mine.unit >= 1"
+      ]
+    },
+    "mythed": {
+      "needs": [
+        "count:legendary@self >= 1",
+        "count@mine.self >= 1",
+        "count:myth@mine.ongoing >= 1"
+      ]
+    },
+    "unmythed": {
+      "needs": [
+        "count:legendary@self >= 1",
+        "count@enemy.self >= 1",
+        "count:myth@mine.ongoing >= 1"
+      ]
+    },
+    "hurt_build": {
+      "needs": [
+        "count:building@self >= 1",
+        "integrity@self >= 1",
+        "integrity@self < 4"
       ]
     }
   },
@@ -2368,6 +2459,69 @@
         "hp": 1
       },
       "tooltip": "A Skeletal Lord stands: +1/+1."
+    },
+    "safe_attacker": {
+      "buffs": {
+        "armor": 1
+      },
+      "tooltip": "Safe Attacking: +1 armor while it attacks."
+    },
+    "parried": {
+      "tooltip": "A Mindparry Monk stands: nothing may aim a spell at this.",
+      "receive": {
+        "needs": [
+          "not_verb:cast"
+        ]
+      }
+    },
+    "drilled": {
+      "buffs": {
+        "atk": 1
+      },
+      "tooltip": "Training Grounds: +1 ATK."
+    },
+    "monumented": {
+      "buffs": {
+        "atk": 1,
+        "life": 1
+      },
+      "tooltip": "Hero's Monument: +1/+1."
+    },
+    "ninja_air": {
+      "buffs": {
+        "alt": 1,
+        "aa": 1
+      },
+      "tooltip": "The Headmistress stands: flying."
+    },
+    "mythed": {
+      "buffs": {
+        "atk": 2,
+        "hp": 2
+      },
+      "tooltip": "Mythmaking: +2/+2."
+    },
+    "unmythed": {
+      "buffs": {
+        "atk": -1,
+        "hp": -1
+      },
+      "tooltip": "Somebody else's Mythmaking: -1/-1."
+    },
+    "slippery": {
+      "adjusts": [
+        {
+          "key": "slip",
+          "verb": "attack",
+          "stat": "gold",
+          "covers": "self",
+          "by": 1,
+          "needs": [
+            "count@enemy.self >= 1",
+            "slot@self == 0"
+          ]
+        }
+      ]
     }
   },
   "zones": [
@@ -2885,7 +3039,7 @@
       "zone": "hand",
       "label": "Choose your hero",
       "actions": [
-        "options:pick_zane,pick_drakk,pick_jaina,pick_midori,pick_calamandra,pick_argagarg,pick_bigby,pick_onimaru,pick_sirus,pick_vandy,pick_orpal,pick_garth"
+        "options:pick_zane,pick_drakk,pick_jaina,pick_midori,pick_calamandra,pick_argagarg,pick_bigby,pick_onimaru,pick_sirus,pick_vandy,pick_orpal,pick_garth,pick_grave,pick_setsuki,pick_garus"
       ],
       "ends_when": "picked@mine.player >= 1"
     },
@@ -7707,7 +7861,6 @@
       "text": "Aged Sensei",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "tech0",
         "unit",
@@ -7716,7 +7869,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Monk. ⤵ → Give a friendly unit or hero +1 ATK/+1 armor this turn. (Armor absorbs damage before HP and is then destroyed.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Exhaust: give a friendly unit or hero +1 ATK and +1 armor for the turn.",
       "card_stats": {
         "price": 1,
         "atk": 1,
@@ -7724,7 +7877,37 @@
           "value": 1,
           "max": 1
         }
-      }
+      },
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "mine",
+            "tags": [
+              "fighter"
+            ],
+            "zones": [
+              "army",
+              "patrol",
+              "command"
+            ]
+          },
+          "action": [
+            "stat_gain:atk@target:1",
+            "stat_gain:lent@target:1",
+            "stat_gain:armor@target:1",
+            "stat_gain:plate@target:1"
+          ]
+        }
+      ]
     },
     {
       "key": "appel_stomp",
@@ -7750,7 +7933,6 @@
       "text": "Ardra's Boulder",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "tech1",
@@ -7761,7 +7943,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Legendary Unit — Rock.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "A 0/6 that simply sits there.",
       "card_stats": {
         "price": 2,
         "atk": 0,
@@ -7885,18 +8067,34 @@
       "text": "Bird's Nest",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "spell",
         "ongoing_spell",
         "arcane",
         "spell_face",
-        "generate_art"
+        "generate_art",
+        "channeled"
       ],
-      "tooltip": "Ongoing Spell — Summon. Channeling (Stays in play. Sacrifice it when you lose your Strength hero.) Summon two 1/1 white Bird tokens with flying (limit: 2). Upkeep: Re-summon lost birds (limit: 2).  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Channelled: summon two 1/1 white Bird tokens with flying.  NOT MODELLED: re-summoning the ones that die, which needs the limit counted at the upkeep.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_strength@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "fill:mine.army:white_bird:2",
+          "move_to:mine.ongoing"
+        ]
       }
     },
     {
@@ -8144,7 +8342,6 @@
       "text": "Colossus",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "tech2",
@@ -8154,7 +8351,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Golem. Unstoppable when attacking a base.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Unstoppable when attacking a base.  NOT MODELLED: that it holds only against one kind of target, so it is judged after the aim rather than before it.",
       "card_stats": {
         "price": 6,
         "atk": 6,
@@ -8575,7 +8772,6 @@
       "text": "Doubling Barbarbarian",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "tech2",
@@ -8585,7 +8781,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Warrior. Overpower (Excess combat damage this would deal to a patroller hits something else this could attack.) Whenever he would gain ATK, HP, or armor, he gains double that much instead.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Overpower.  NOT MODELLED: that everything it gains it gains twice, which is a multiplier on a change rather than on a reading.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -8600,7 +8796,6 @@
       "text": "Earthquake",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "spell",
@@ -8609,9 +8804,27 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ultimate Spell. Deal 4 damage to all an opponent's damaged buildings. Deal 1 damage to all their undamaged buildings.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Deal 4 damage to an opponent's damaged buildings and 1 to the rest.",
       "card_stats": {
         "price": 5
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_strength@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "harm:integrity@each.enemy.building:1",
+          "harm:integrity@each.enemy.hurt_build:3",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -8669,7 +8882,6 @@
       "text": "Entangling Vines",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "spell",
@@ -8678,9 +8890,40 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ongoing Spell — Debuff. Attach to a patrolling unit. Sideline the unit. It can't attack or patrol.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Attach to a patrolling unit: sideline it, and it can't attack or patrol.  NOT MODELLED: that it keeps the unit down — the vines fall off when the unit next moves.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_strength@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:enemy.army",
+          "move_to:mine.ongoing",
+          "attach_to_target"
+        ]
       }
     },
     {
@@ -8731,7 +8974,6 @@
       "text": "Flying Fox",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "tech2",
@@ -8741,7 +8983,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Ninja Contraption. Flying (Can fly over ground patrollers. Ground forces without anti-air can't attack this or deal combat damage to it when attacked.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Flying.",
       "card_stats": {
         "price": 2,
         "atk": 3,
@@ -8756,7 +8998,6 @@
       "text": "Focus Master",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "tech2",
@@ -8766,7 +9007,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Monk Mystic. Arrives: Put three focus runes on this. Whenever a friendly unit or hero would take exactly lethal damage, remove a focus rune to prevent 1 damage.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: put three focus runes on this.  NOT MODELLED: spending one to turn exactly lethal damage aside, which asks what a blow would come to before it lands.",
       "card_stats": {
         "price": 3,
         "atk": 4,
@@ -8774,6 +9015,23 @@
           "value": 3,
           "max": 3
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_set:focus@self:3"
+        ]
       }
     },
     {
@@ -8799,7 +9057,6 @@
       "text": "Fox Primus",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "tech0",
         "unit",
@@ -8808,7 +9065,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Ninja. Frenzy 1 (Gets +1 ATK on your turn.) Anti-air (Can attack fliers, but can ignore patrolling fliers. Deals combat damage to fliers it fights or that fly over this while it patrols.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Frenzy 1, anti-air.",
       "card_stats": {
         "price": 3,
         "atk": 2,
@@ -8823,16 +9080,16 @@
       "text": "Fox Viper",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "tech0",
         "unit",
         "fighter",
         "chalk",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "sparkshot"
       ],
-      "tooltip": "Unit — Ninja. Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Sparkshot.",
       "card_stats": {
         "price": 2,
         "atk": 2,
@@ -8847,16 +9104,16 @@
       "text": "Fox's Den School Legendary",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "tech2",
         "building",
         "stone",
         "build_face",
-        "generate_art"
+        "generate_art",
+        "den"
       ],
-      "tooltip": "Building. Invisible Your Ninjas and Cute Animals are invisible. ②, ⤵ → One of your units becomes a Ninja (in addition to its other types.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Invisible. Your Ninjas and Cute Animals are invisible.  NOT MODELLED: making one of your units a Ninja, which is a tag granted to a card the player picks.",
       "card_stats": {
         "price": 4,
         "integrity": {
@@ -8870,7 +9127,6 @@
       "text": "Fox's Den Students",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "spell",
@@ -8879,9 +9135,26 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ultimate Spell — Summon. Summon four 1/1 white Ninja tokens. This turn, your Ninja units have haste and stealth.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Summon four 1/1 white Ninja tokens with haste for the turn.",
       "card_stats": {
         "price": 4
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_ninjutsu@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "fill:mine.army:ninja:4",
+          "stat_set:ready_since@each.mine.ninja:1"
+        ]
       }
     },
     {
@@ -8913,7 +9186,6 @@
       "text": "Fuzz Cuddles",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "tech1",
@@ -8921,9 +9193,11 @@
         "fighter",
         "chalk",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "healing",
+        "healing2"
       ],
-      "tooltip": "Unit — Cute Animal. Healing 2 (During your upkeep, heal 2 damage from all friendly units and heroes.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Healing 2.",
       "card_stats": {
         "price": 2,
         "atk": 2,
@@ -9038,7 +9312,6 @@
       "text": "Glorious Ninja",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "tech2",
@@ -9048,7 +9321,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Ninja. Haste Swift Strike (Deals its combat damage before units and heroes without swift strike.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Haste.  NOT MODELLED: swift strike, which wants a blow struck before the exchange rather than in it.",
       "card_stats": {
         "price": 5,
         "atk": 4,
@@ -9116,7 +9389,6 @@
       "text": "Grappling Hook",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "spell",
         "minor_spell",
@@ -9124,9 +9396,38 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Minor Spell. Pull a patroller to an empty slot in its patrol zone.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Pull a patroller out of its post.  NOT MODELLED: the empty slot it is pulled to — a card and a square chosen together is one aim too many.",
       "card_stats": {
         "price": 0
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:enemy.army"
+        ]
       }
     },
     {
@@ -9296,22 +9597,39 @@
       "text": "Hero's Monument Legendary",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "tech3",
         "building",
         "stone",
         "build_face",
-        "generate_art"
+        "generate_art",
+        "monument"
       ],
-      "tooltip": "Building — Monument. Untargetable Arrives: Summon an 8/8 legendary white Ghost token named \"Daigo Stormborne.\" He's indestructible, untargetable, and unstoppable, but can't patrol. Trash him when this leaves play. Your heroes get +1/+1.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Untargetable. Arrives: summon Daigo Stormborne, an 8/8 who cannot patrol. Your heroes get +1/+1.",
       "card_stats": {
         "price": 5,
         "integrity": {
           "value": 6,
           "max": 6
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t3_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "fill:mine.army:daigo:1"
+        ]
       }
     },
     {
@@ -9319,7 +9637,6 @@
       "text": "Hidden Ninja",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "spell",
@@ -9327,9 +9644,43 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Buff. Up to two of your units and/or heroes with 4 ATK or less have stealth this turn. (Can sneak past patrollers if that opponent has no detector.) If either is a Ninja or Ninjutsu hero, draw a card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Up to two of your units or heroes with 4 ATK or less get stealth this turn.  NOT MODELLED: the card drawn when one of them is a Ninja.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_ninjutsu@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "min": 1,
+          "max": 2,
+          "owner": "mine",
+          "tags": [
+            "fighter"
+          ],
+          "zones": [
+            "army",
+            "patrol",
+            "command"
+          ],
+          "where": [
+            "atk@target <= 4"
+          ]
+        },
+        "action": [
+          "stat_set:veil@target:1"
+        ]
       }
     },
     {
@@ -9479,7 +9830,6 @@
       "text": "Inverse Power Ninja",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "tech1",
@@ -9489,7 +9839,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Ninja. Gets -1/-1 for each other unit or hero you have.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Gets -1/-1 for each other unit or hero you have.  NOT MODELLED: the whole of it: a buff is a plain number, and this one counts a side.",
       "card_stats": {
         "price": 3,
         "atk": 6,
@@ -9529,7 +9879,6 @@
       "text": "Jade Fox, Den's Headmistress",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "tech3",
@@ -9538,9 +9887,10 @@
         "legendary",
         "chalk",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "headmistress"
       ],
-      "tooltip": "Legendary Unit — Ninja. Arrives: Summon four 1/1 white Ninja tokens. Your Ninjas have flying and swift strike.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: summon four 1/1 white Ninja tokens. Your Ninjas fly.  NOT MODELLED: swift strike for them.",
       "card_stats": {
         "price": 8,
         "atk": 4,
@@ -9548,6 +9898,23 @@
           "value": 6,
           "max": 6
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t3_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "fill:mine.army:ninja:4"
+        ]
       }
     },
     {
@@ -9579,7 +9946,6 @@
       "text": "Jefferson DeGrey, Ghostly Diplomat",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "tech2",
@@ -9590,7 +9956,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Legendary Unit — Barrister. Arrives: Destroy all tokens.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: destroy all tokens.",
       "card_stats": {
         "price": 3,
         "atk": 4,
@@ -9598,6 +9964,24 @@
           "value": 3,
           "max": 3
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "destroy:each.anyone.token",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -9744,7 +10128,6 @@
       "text": "Martial Mastery",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "spell",
@@ -9752,9 +10135,26 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Discard a card, draw two cards, then look at the opponent's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Discard a card, then draw two.",
       "card_stats": {
         "price": 1
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_discipline@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "move:random.mine.hand:mine.discard",
+          "draw_from:mine.deck:mine.hand:2"
+        ]
       }
     },
     {
@@ -9762,7 +10162,6 @@
       "text": "Masked Raccoon",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "tech2",
@@ -9772,7 +10171,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Cute Animal Ninja. Unstoppable by units if you have another Ninja. Unattackable by units if you have another Cute Animal.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "A 3/4 for four.  NOT MODELLED: both halves — each holds only against one kind of attacker and so is judged after the aim rather than before it.",
       "card_stats": {
         "price": 4,
         "atk": 3,
@@ -9829,7 +10228,6 @@
       "text": "Mind-Parry Monk",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "tech2",
@@ -9837,9 +10235,10 @@
         "fighter",
         "chalk",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "mindparry"
       ],
-      "tooltip": "Unit — Monk Mystic. Opponents can't ◎ your units or heroes with spells or abilities.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Opponents can't aim spells or abilities at your units or heroes.",
       "card_stats": {
         "price": 5,
         "atk": 5,
@@ -9854,7 +10253,6 @@
       "text": "Morningstar Flagbearer",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "tech0",
         "unit",
@@ -9863,7 +10261,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Flagbearer. Whenever an opponent plays a spell or ability that can ◎ a flagbearer, it must ◎ a flagbearer at least once.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "A spell or ability that could aim at a flagbearer must aim at one.  NOT MODELLED: the compulsion, which narrows somebody else's aim after they have made it.",
       "card_stats": {
         "price": 3,
         "atk": 2,
@@ -9878,16 +10276,16 @@
       "text": "Morningstar Pass Legendary",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "tech2",
         "building",
         "stone",
         "build_face",
-        "generate_art"
+        "generate_art",
+        "resist_1"
       ],
-      "tooltip": "Building. Prevent all damage that would be dealt to your other buildings. Opponents must pay ① each time they would attack Morningstar Pass.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Opponents must pay 1 more to aim at this.  NOT MODELLED: preventing damage to your other buildings, which is a shield on somebody else's number.",
       "card_stats": {
         "price": 4,
         "integrity": {
@@ -9901,15 +10299,15 @@
       "text": "Mythmaking Legendary",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "tech1",
         "upgrade",
         "relic",
-        "generate_art"
+        "generate_art",
+        "myth"
       ],
-      "tooltip": "Upgrade. Your legendary units get +2/+2 and your legendary buildings get +2 HP. Opponents' legendary units get -1/-1.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Your legendary units get +2/+2; opponents' legendary units get -1/-1.  NOT MODELLED: the +2 HP for legendary buildings.",
       "card_stats": {
         "price": 2
       }
@@ -10108,7 +10506,6 @@
       "text": "Oathkeeper of Kor Mountain",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "tech3",
@@ -10117,9 +10514,10 @@
         "legendary",
         "chalk",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "resist_2"
       ],
-      "tooltip": "Legendary Unit — Warrior. Arrives: Choose an oath: \"I won't play cards from my hand besides workers\" or \"I will skip my draw/discard phase.\" You can't break that oath while Oathkeeper is in play. Swift strike, resist 2 ② → Sideline all patrolling units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Resist 2. 2 gold: sideline every patrolling unit.  NOT MODELLED: the oath, which binds what its own player may do for as long as it stands; and swift strike.",
       "card_stats": {
         "price": 7,
         "atk": 7,
@@ -10127,7 +10525,24 @@
           "value": 8,
           "max": 8
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "oath",
+          "text": "Sideline every patroller",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "action": [
+            "stat_set:slot@each.enemy.patrol:0",
+            "stat_set:guard@each.enemy.patrol:0",
+            "move:enemy.patrol:enemy.army"
+          ]
+        }
+      ]
     },
     {
       "key": "octavian",
@@ -10479,7 +10894,6 @@
       "text": "Porcupine",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "tech2",
@@ -10489,7 +10903,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Cute Animal. Deathtouch (Combat damage this deals to units or heroes, even to their armor, kills them.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Deathtouch.",
       "card_stats": {
         "price": 3,
         "atk": 2,
@@ -10546,7 +10960,6 @@
       "text": "Rambasa Twin",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "tech1",
@@ -10556,7 +10969,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Tiger Monk. Arrives: You may put a Rambasa Twin from your codex into play. The first time a Rambasa Twin dies each turn, return him to his owner's codex.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "A 3/2 for four.  NOT MODELLED: both halves — fetching its twin out of the codex, and the first death each turn sending it back there.",
       "card_stats": {
         "price": 4,
         "atk": 3,
@@ -10683,7 +11096,6 @@
       "text": "Reversal",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "spell",
@@ -10691,9 +11103,42 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Debuff. Deal 3 damage to a patroller, then disable it. (Exhaust it and it doesn't ready during its next ready step. Sideline it if it was patrolling.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Deal 3 damage to a patroller, then disable it.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_discipline@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "patrol"
+          ]
+        },
+        "action": [
+          "harm:hp@target:3",
+          "exhaust:target",
+          "stat_set:disabled@target:1",
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -10786,14 +11231,14 @@
       "text": "Safe Attacking",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "tech0",
         "upgrade",
         "relic",
-        "generate_art"
+        "generate_art",
+        "safely"
       ],
-      "tooltip": "Upgrade. Your tech 0 and I units get +1 armor while they attack. (Armor absorbs damage before HP and is then destroyed.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Your tech 0 and I units get +1 armor while they attack.",
       "card_stats": {
         "price": 1
       }
@@ -10803,16 +11248,16 @@
       "text": "Savior Monk",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "tech0",
         "unit",
         "fighter",
         "chalk",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "healing"
       ],
-      "tooltip": "Unit — Monk. Healing 1 (During your upkeep, heal 1 damage from all friendly units and heroes.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Healing 1.",
       "card_stats": {
         "price": 2,
         "atk": 2,
@@ -10870,7 +11315,6 @@
       "text": "Sensei's Advice",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "spell",
         "minor_spell",
@@ -10878,9 +11322,41 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Minor Spell — Buff. Give up to two of your units +1 ATK/+1 armor this turn. (Armor absorbs damage before HP and is then destroyed.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Give up to two of your units +1 ATK and +1 armor for the turn.",
       "card_stats": {
         "price": 1
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "min": 1,
+          "max": 2,
+          "owner": "mine",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_gain:atk@target:1",
+          "stat_gain:lent@target:1",
+          "stat_gain:armor@target:1",
+          "stat_gain:plate@target:1"
+        ]
       }
     },
     {
@@ -11043,7 +11519,6 @@
       "text": "Shuriken Hail",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "spell",
@@ -11051,9 +11526,26 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Deal 1 damage to each patroller.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Deal 1 damage to each patroller.",
       "card_stats": {
         "price": 1
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_ninjutsu@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "harm:hp@each.enemy.patrol:1",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -11215,7 +11707,6 @@
       "text": "Smoker",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "tech0",
         "unit",
@@ -11224,7 +11715,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Ninja. Stealth (Can sneak past patrollers if that opponent has no detector.) When Smoker is ◎ by a spell or ability, return him to his owner's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Stealth.  NOT MODELLED: that a spell aimed at him sends him home, which is a ward that answers rather than refuses.",
       "card_stats": {
         "price": 1,
         "atk": 1,
@@ -11239,7 +11730,6 @@
       "text": "Snapback",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "spell",
         "minor_spell",
@@ -11247,9 +11737,40 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Minor Spell. Return an opposing hero to its command zone. It can't be summoned until after its owner's next turn. Put another hero from that command zone into play, or the same hero if there isn't another.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Return an opposing hero to its command zone and put a +1/+1 rune on one of your units.  NOT MODELLED: that the hero may not be summoned again for a turn.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "hero"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:enemy.command",
+          "stat_gain:plus@each.mine.unit:0"
+        ]
       }
     },
     {
@@ -11348,7 +11869,6 @@
       "text": "Sparring Partner",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "tech1",
@@ -11358,7 +11878,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Monk. ⤵ → Put a +1/+1 rune on a friendly unit or hero that doesn't have a +1/+1 rune. ② → Ready Sparring Partner, but he can't attack this turn (he can only spar).  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Exhaust: put a +1/+1 rune on one of your units or heroes that has none. 2 gold: ready this.",
       "card_stats": {
         "price": 1,
         "atk": 2,
@@ -11366,14 +11886,61 @@
           "value": 2,
           "max": 2
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "train",
+          "text": "Put a +1/+1 rune on a friendly fighter",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "mine",
+            "tags": [
+              "fighter"
+            ],
+            "zones": [
+              "army",
+              "patrol",
+              "command"
+            ],
+            "where": [
+              "plus@target == 0"
+            ]
+          },
+          "action": [
+            "stat_gain:plus@target:1"
+          ]
+        },
+        {
+          "key": "rouse",
+          "text": "Ready Sparring Partner",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "tagged:exhausted@self"
+          ],
+          "action": [
+            "ready:self"
+          ]
+        }
+      ]
     },
     {
       "key": "speed_of_the_fox",
       "text": "Speed of the Fox",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "ninjutsu",
         "spell",
@@ -11381,9 +11948,28 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Buff. Your Ninjutsu hero gets haste, readiness, armor piercing, and +1 ATK this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Your Ninjutsu hero gets haste, armor piercing and +1 ATK this turn.  NOT MODELLED: readiness, which is a per-turn look rather than a number lent.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_ninjutsu@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "stat_gain:atk@each.mine.h_ninjutsu:1",
+          "stat_gain:lent@each.mine.h_ninjutsu:1",
+          "stat_set:pierce@each.mine.h_ninjutsu:1",
+          "stat_set:ready_since@each.mine.h_ninjutsu:1"
+        ]
       }
     },
     {
@@ -11667,7 +12253,6 @@
       "text": "Thunderclap",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "spell",
@@ -11675,9 +12260,44 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Debuff. Sideline up to three units without flying that cost ② or less. (Move them out of the patrol zone.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Sideline up to three grounded units that cost 2 or less.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_strength@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "min": 1,
+          "max": 3,
+          "owner": "enemy",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "patrol"
+          ],
+          "where": [
+            "alt@target == 0",
+            "price@target <= 2"
+          ]
+        },
+        "action": [
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:enemy.army"
+        ]
       }
     },
     {
@@ -11751,16 +12371,16 @@
       "text": "Training Grounds",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "tech2",
         "building",
         "stone",
         "build_face",
-        "generate_art"
+        "generate_art",
+        "dojo"
       ],
-      "tooltip": "Building. Your heroes get +1 ATK. ⤵ → Level up a hero to max level.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Your heroes get +1 ATK. Exhaust: level a hero to max.  NOT MODELLED: the levelling, which is a ladder each hero writes for itself rather than a number to set.",
       "card_stats": {
         "price": 1,
         "integrity": {
@@ -11848,7 +12468,6 @@
       "text": "True Power of Storms",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "spell",
@@ -11857,9 +12476,42 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ultimate Spell. Reveal and discard two other cards that cost ③. If you do, deal 10 damage to a unit, hero, or building.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Deal 10 damage to a unit, hero or building.  NOT MODELLED: its price — two other cards costing three, revealed and discarded, which is a cost counted in cards.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_discipline@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "zones": [
+            "army",
+            "base",
+            "tech",
+            "structures",
+            "addon",
+            "patrol"
+          ]
+        },
+        "action": [
+          "harm:hp@target:10",
+          "harm:life@target:10",
+          "harm:integrity@target:10",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -11970,7 +12622,6 @@
       "text": "Versatile Style",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "spell",
@@ -11978,9 +12629,45 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Choose one of the following: Destroy an upgrade. Disable a unit or hero with flying. Repair 2 damage from a building. Your Discipline hero is a detector this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Disable a unit or hero with flying.  NOT MODELLED: the other two choices — destroying an upgrade and repairing a building — which are three pools one aim cannot hold.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_discipline@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "fighter"
+          ],
+          "zones": [
+            "army",
+            "patrol",
+            "command"
+          ],
+          "where": [
+            "alt@target >= 1"
+          ]
+        },
+        "action": [
+          "exhaust:target",
+          "stat_set:disabled@target:1",
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0"
+        ]
       }
     },
     {
@@ -11988,7 +12675,6 @@
       "text": "Vigor Adept",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "tech2",
@@ -11998,7 +12684,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Monk. Frenzy 1 (Gets +1 ATK on your turn.) Readiness (Doesn't exhaust to attack, but can only attack once per turn.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Frenzy 1 and readiness.",
       "card_stats": {
         "price": 4,
         "atk": 5,
@@ -12006,7 +12692,30 @@
           "value": 5,
           "max": 5
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "upkeep",
+          "phases": [],
+          "text": "Vigor Adept",
+          "action": [
+            "stat_set:romp@self:1"
+          ]
+        },
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Vigor Adept",
+          "needs": [
+            "attacking@self >= 1",
+            "romp@self >= 1"
+          ],
+          "action": [
+            "stat_set:romp@self:0",
+            "ready:self"
+          ]
+        }
+      ]
     },
     {
       "key": "vir_garbarean",
@@ -12143,7 +12852,6 @@
       "text": "Whitestar Grappler",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "strength",
         "tech2",
@@ -12153,7 +12861,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Warrior. ⤵ → Deal 4 damage to a unit. If it's still alive, it deals its ATK to Whitestar Grappler. Sideline it if it was patrolling.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Exhaust: deal 4 damage to a unit, and sideline it if it was patrolling.  NOT MODELLED: that a survivor hits back.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -12161,7 +12869,37 @@
           "value": 5,
           "max": 5
         }
-      }
+      },
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "tags": [
+              "unit"
+            ],
+            "zones": [
+              "army",
+              "patrol"
+            ]
+          },
+          "action": [
+            "harm:hp@target:4",
+            "stat_set:slot@target:0",
+            "stat_set:guard@target:0",
+            "move:target:enemy.army",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
     },
     {
       "key": "wight",
@@ -12278,7 +13016,6 @@
       "text": "Young Lightning Dragon",
       "tags": [
         "deck_card",
-        "scaffold",
         "white",
         "discipline",
         "tech2",
@@ -12288,7 +13025,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Dragon. Flying (Can fly over ground patrollers. Ground forces without anti-air can't attack this or deal combat damage to it when attacked.) ① → Gets +1 ATK this turn. Thrice-per-turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Flying.  NOT MODELLED: that it grows into an Elder Lightning Dragon, which is a transform that has to remember what it was.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -12900,6 +13637,617 @@
           ],
           "action": [
             "draw_from:mine.deck:mine.hand:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "ninja",
+      "text": "Ninja",
+      "tags": [
+        "unit",
+        "fighter",
+        "token",
+        "white",
+        "chalk",
+        "fighter_face",
+        "ninja"
+      ],
+      "asset": "circle:ash",
+      "tooltip": "A 1/1 white Ninja token.",
+      "card_stats": {
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "white_bird",
+      "text": "Bird",
+      "tags": [
+        "unit",
+        "fighter",
+        "token",
+        "white",
+        "chalk",
+        "fighter_face",
+        "bird",
+        "flying"
+      ],
+      "asset": "circle:ash",
+      "tooltip": "A 1/1 white Bird token.",
+      "card_stats": {
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        },
+        "alt": 1,
+        "aa": 1
+      }
+    },
+    {
+      "key": "daigo",
+      "text": "Daigo Stormborne",
+      "tags": [
+        "unit",
+        "fighter",
+        "token",
+        "white",
+        "chalk",
+        "fighter_face",
+        "legendary",
+        "untargetable",
+        "unstoppable",
+        "cant_patrol"
+      ],
+      "asset": "circle:ash",
+      "tooltip": "A 8/8 white Daigo Stormborne token.",
+      "card_stats": {
+        "atk": 8,
+        "hp": {
+          "value": 8,
+          "max": 8
+        }
+      }
+    },
+    {
+      "key": "grave",
+      "text": "Grave Stormborne",
+      "tags": [
+        "hero",
+        "fighter",
+        "h_discipline",
+        "white",
+        "chalk",
+        "hero_face",
+        "sparkshot"
+      ],
+      "asset": "star:7:ash",
+      "tooltip": "Storm Disciple. Levels 1-2 2/3 with sparkshot. Levels 3-6 3/4 with readiness. Level 7 4/5: exhaust and spend a sword rune to destroy a unit or hero.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 6
+        },
+        "level": 1
+      },
+      "abilities": [
+        {
+          "key": "summon",
+          "text": "Summon Grave",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "count:hero@mine.hero == 0",
+            "hero_wait@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:3",
+            "stat_set:armor@self:0",
+            "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
+            "move_to:mine.army"
+          ]
+        },
+        {
+          "key": "lvl2",
+          "text": "Level up to 2",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 1"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl3",
+          "text": "Level up to 3 — heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 2"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:3",
+            "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "lvl4",
+          "text": "Level up to 4",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 3"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl5",
+          "text": "Level up to 5",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 4"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl6",
+          "text": "Level up to 6",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 5"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl7",
+          "text": "Level up to 7 — max, heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 6"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:4",
+            "stat_set:life@self:5"
+          ]
+        },
+        {
+          "key": "upkeep",
+          "phases": [],
+          "text": "Grave Stormborne",
+          "needs": [
+            "level@self >= 3"
+          ],
+          "action": [
+            "stat_set:romp@self:1"
+          ]
+        },
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Grave Stormborne",
+          "needs": [
+            "attacking@self >= 1",
+            "romp@self >= 1"
+          ],
+          "action": [
+            "stat_set:romp@self:0",
+            "ready:self"
+          ]
+        },
+        {
+          "key": "strike",
+          "text": "Spend a sword rune to destroy a fighter",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1,
+            "sword@self": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self >= 7"
+          ],
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "tags": [
+              "fighter"
+            ],
+            "zones": [
+              "army",
+              "patrol",
+              "command"
+            ]
+          },
+          "action": [
+            "destroy:target",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "setsuki",
+      "text": "Setsuki Hiruki",
+      "tags": [
+        "hero",
+        "fighter",
+        "h_ninjutsu",
+        "white",
+        "chalk",
+        "hero_face",
+        "slippery"
+      ],
+      "asset": "star:6:ash",
+      "tooltip": "Fox Ninja. Levels 1-3 1/3: costs an extra gold to be attacked while she is off patrol. Levels 4-5 2/3. Level 6 3/4: draw two at your upkeep. NOT MODELLED: her level 4 swift strike.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "life": {
+          "value": 3,
+          "max": 6
+        },
+        "level": 1
+      },
+      "abilities": [
+        {
+          "key": "summon",
+          "text": "Summon Setsuki",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "count:hero@mine.hero == 0",
+            "hero_wait@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
+            "stat_set:atk@self:1",
+            "stat_set:life@self:3",
+            "stat_set:armor@self:0",
+            "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
+            "move_to:mine.army"
+          ]
+        },
+        {
+          "key": "lvl2",
+          "text": "Level up to 2",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 1"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl3",
+          "text": "Level up to 3",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 2"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl4",
+          "text": "Level up to 4 — heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 3"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:3"
+          ]
+        },
+        {
+          "key": "lvl5",
+          "text": "Level up to 5",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 4"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl6",
+          "text": "Level up to 6 — max, heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 5"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:3",
+            "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "upkeep",
+          "phases": [],
+          "text": "Setsuki Hiruki",
+          "needs": [
+            "level@self >= 6"
+          ],
+          "action": [
+            "draw_from:mine.deck:mine.hand:2"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "garus",
+      "text": "Garus Rook",
+      "tags": [
+        "hero",
+        "fighter",
+        "h_strength",
+        "white",
+        "chalk",
+        "hero_face",
+        "juggernaut"
+      ],
+      "asset": "star:8:ash",
+      "tooltip": "Warlord. Levels 1-4 2/4. Levels 5-7 3/5. Level 8 4/6 with two lives. NOT MODELLED: that a lone patroller does not stop him, which asks how many of a post there are rather than what is in it.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 4,
+          "max": 6
+        },
+        "level": 1
+      },
+      "abilities": [
+        {
+          "key": "summon",
+          "text": "Summon Garus",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "count:hero@mine.hero == 0",
+            "hero_wait@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:4",
+            "stat_set:armor@self:0",
+            "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
+            "move_to:mine.army"
+          ]
+        },
+        {
+          "key": "lvl2",
+          "text": "Level up to 2",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 1"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl3",
+          "text": "Level up to 3",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 2"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl4",
+          "text": "Level up to 4",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 3"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl5",
+          "text": "Level up to 5 — heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 4"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:3",
+            "stat_set:life@self:5"
+          ]
+        },
+        {
+          "key": "lvl6",
+          "text": "Level up to 6",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 5"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl7",
+          "text": "Level up to 7",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 6"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl8",
+          "text": "Level up to 8 — max, heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 7"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:4",
+            "stat_set:life@self:6"
           ]
         }
       ]
@@ -17290,6 +18638,117 @@
           "fill:mine.codex:lichs_bargain:2",
           "fill:mine.codex:nether_drain:2",
           "fill:mine.command:garth:1",
+          "stat_gain:picked@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "pick_grave",
+      "text": "Grave Stormborne — Discipline",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "star:7:ash",
+      "tooltip": "White. Runes, readiness, and a monument at the end of it.",
+      "play": {
+        "action": [
+          "fill:mine.deck:aged_sensei:1",
+          "fill:mine.deck:fox_primus:1",
+          "fill:mine.deck:fox_viper:1",
+          "fill:mine.deck:morningstar_flagbearer:1",
+          "fill:mine.deck:safe_attacking:1",
+          "fill:mine.deck:savior_monk:1",
+          "fill:mine.deck:smoker:1",
+          "fill:mine.deck:grappling_hook:1",
+          "fill:mine.deck:senseis_advice:1",
+          "fill:mine.deck:snapback:1",
+          "fill:mine.codex:rambasa_twin:2",
+          "fill:mine.codex:sparring_partner:2",
+          "fill:mine.codex:focus_master:2",
+          "fill:mine.codex:mindparry_monk:2",
+          "fill:mine.codex:training_grounds:2",
+          "fill:mine.codex:vigor_adept:2",
+          "fill:mine.codex:young_lightning_dragon:2",
+          "fill:mine.codex:heros_monument:2",
+          "fill:mine.codex:martial_mastery:2",
+          "fill:mine.codex:reversal:2",
+          "fill:mine.codex:true_power_of_storms:2",
+          "fill:mine.codex:versatile_style:2",
+          "fill:mine.command:grave:1",
+          "stat_gain:picked@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "pick_setsuki",
+      "text": "Setsuki Hiruki — Ninjutsu",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "star:6:ash",
+      "tooltip": "White. Small, quick, and hard to point at.",
+      "play": {
+        "action": [
+          "fill:mine.deck:aged_sensei:1",
+          "fill:mine.deck:fox_primus:1",
+          "fill:mine.deck:fox_viper:1",
+          "fill:mine.deck:morningstar_flagbearer:1",
+          "fill:mine.deck:safe_attacking:1",
+          "fill:mine.deck:savior_monk:1",
+          "fill:mine.deck:smoker:1",
+          "fill:mine.deck:grappling_hook:1",
+          "fill:mine.deck:senseis_advice:1",
+          "fill:mine.deck:snapback:1",
+          "fill:mine.codex:fuzz_cuddles:2",
+          "fill:mine.codex:inverse_power_ninja:2",
+          "fill:mine.codex:flying_fox:2",
+          "fill:mine.codex:foxs_den_school:2",
+          "fill:mine.codex:glorious_ninja:2",
+          "fill:mine.codex:masked_raccoon:2",
+          "fill:mine.codex:porcupine:2",
+          "fill:mine.codex:jade_fox_dens_headmistress:2",
+          "fill:mine.codex:foxs_den_students:2",
+          "fill:mine.codex:hidden_ninja:2",
+          "fill:mine.codex:shuriken_hail:2",
+          "fill:mine.codex:speed_of_the_fox:2",
+          "fill:mine.command:setsuki:1",
+          "stat_gain:picked@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "pick_garus",
+      "text": "Garus Rook — Strength",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "star:8:ash",
+      "tooltip": "White. Big things, and a pass nobody gets through.",
+      "play": {
+        "action": [
+          "fill:mine.deck:aged_sensei:1",
+          "fill:mine.deck:fox_primus:1",
+          "fill:mine.deck:fox_viper:1",
+          "fill:mine.deck:morningstar_flagbearer:1",
+          "fill:mine.deck:safe_attacking:1",
+          "fill:mine.deck:savior_monk:1",
+          "fill:mine.deck:smoker:1",
+          "fill:mine.deck:grappling_hook:1",
+          "fill:mine.deck:senseis_advice:1",
+          "fill:mine.deck:snapback:1",
+          "fill:mine.codex:ardras_boulder:2",
+          "fill:mine.codex:mythmaking:2",
+          "fill:mine.codex:colossus:2",
+          "fill:mine.codex:doubling_barbarbarian:2",
+          "fill:mine.codex:jefferson_degrey_ghostly_diplomat:2",
+          "fill:mine.codex:morningstar_pass:2",
+          "fill:mine.codex:whitestar_grappler:2",
+          "fill:mine.codex:oathkeeper_of_kor_mountain:2",
+          "fill:mine.codex:birds_nest:2",
+          "fill:mine.codex:earthquake:2",
+          "fill:mine.codex:entangling_vines:2",
+          "fill:mine.codex:thunderclap:2",
+          "fill:mine.command:garus:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
