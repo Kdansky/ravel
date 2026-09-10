@@ -16,13 +16,6 @@ Remove fully completed entries when we have done them or moved them to other fil
   92 we had changes the order of this list, and the top of it is not what the blue
   survey guessed:
 
-  - **A named counter on a card — 44 cards, 33 of them new.** `+1/+1`, `-1/-1`,
-    `time`, `crumbling`, `insurance`, `blood`, `feather`, `rune`. Every one of
-    them is a number sat on a card with a name, and every one of them currently
-    costs its own stat: Codex declares `runes`, `feather`, `insured`, `lives`,
-    `bleeds` and `plate` for what is one idea. It is the single commonest thing in
-    the box by a distance, and the one place a word would pay for itself most.
-
   - **Sacrifice as an effect — 30 cards, 23 new.** `sacrifice:<tag>` exists only
     as a *cost*, takes the oldest match, and the player never chooses. *"Sacrifice
     a unit. If you do…"* is a choice with a consequence, and *"Sacrifice this →"*

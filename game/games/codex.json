@@ -663,7 +663,10 @@
       "start": 0,
       "tags": [
         "hidden"
-      ]
+      ],
+      "buffs": {
+        "alt": 1
+      }
     },
     {
       "key": "fleeting",
@@ -703,8 +706,8 @@
       ]
     },
     {
-      "key": "runes",
-      "label": "Runes",
+      "key": "plus",
+      "label": "+1/+1",
       "icon": "orb",
       "color": "violet",
       "min": 0,
@@ -713,9 +716,35 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "buffs": {
+        "atk": 1,
+        "hp": 1,
+        "life": 1
+      }
+    },
+    {
+      "key": "blood",
+      "label": "Blood",
+      "icon": "orb",
+      "color": "crimson",
+      "min": 0,
+      "max": 9,
+      "on": [
+        "ongoing_spell"
+      ],
+      "start": 0
+    },
+    {
+      "key": "might",
+      "label": "Might",
+      "icon": "orb",
+      "color": "olive",
+      "min": 0,
+      "max": 9,
+      "on": [
+        "ongoing_spell"
+      ],
+      "start": 0
     },
     {
       "key": "insured",
@@ -878,7 +907,7 @@
       "needs": [
         "count@mine.self >= 1",
         "count:fighter@self >= 1",
-        "sum:runes@mine.ongoing.might >= 5"
+        "sum:might@mine.ongoing.might >= 5"
       ]
     },
     "drakked": {
@@ -916,11 +945,6 @@
       "needs": [
         "rampage@self >= 1",
         "count:overpower@self == 0"
-      ]
-    },
-    "feathered": {
-      "needs": [
-        "feather@self >= 1"
       ]
     },
     "tok_unseen": {
@@ -983,7 +1007,7 @@
     },
     "runed": {
       "needs": [
-        "runes@self >= 1",
+        "plus@self >= 1",
         "count:overpower@self == 0",
         "count:elm@mine.structures >= 1"
       ]
@@ -1793,7 +1817,7 @@
             "count:might@mine.ongoing >= 1"
           ],
           "action": [
-            "stat_gain:runes@mine.ongoing.might:1"
+            "stat_gain:might@mine.ongoing.might:1"
           ]
         },
         {
@@ -2079,11 +2103,6 @@
         "needs": [
           "count:detector@mine.addon >= 1"
         ]
-      }
-    },
-    "feathered": {
-      "buffs": {
-        "alt": 1
       }
     },
     "veiled": {
@@ -3721,7 +3740,7 @@
             "count:bloodburn@mine.ongoing >= 1"
           ],
           "action": [
-            "stat_gain:runes@mine.ongoing.bloodburn:count:dead@anyone.unit"
+            "stat_gain:blood@mine.ongoing.bloodburn:count:dead@anyone.unit"
           ]
         },
         {
@@ -3732,7 +3751,7 @@
             "count:bloodburn@enemy.ongoing >= 1"
           ],
           "action": [
-            "stat_gain:runes@enemy.ongoing.bloodburn:count:dead@anyone.unit"
+            "stat_gain:blood@enemy.ongoing.bloodburn:count:dead@anyone.unit"
           ]
         }
       ]
@@ -4078,10 +4097,7 @@
             "count@mine.ancient >= 1"
           ],
           "action": [
-            "stat_gain:runes@each.mine.ancient:1",
-            "stat_gain:atk@each.mine.ancient:1",
-            "stat_boost:hp@each.mine.ancient:1",
-            "stat_gain:hp@each.mine.ancient:1"
+            "stat_gain:plus@each.mine.ancient:1"
           ]
         }
       ]
@@ -6383,7 +6399,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Whenever you play a unit from your hand, put a +1/+1 rune on this. NOT MODELLED: spending a rune to move it onto another unit, which is a cost paid in a stat this file has, aimed at a card the ability would also have to choose.",
+      "tooltip": "Whenever you play a unit from your hand, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -6391,7 +6407,37 @@
           "value": 3,
           "max": 3
         }
-      }
+      },
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "needs": [
+            "plus@self >= 1"
+          ],
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "mine",
+            "tags": [
+              "unit"
+            ],
+            "zones": [
+              "army",
+              "patrol"
+            ],
+            "where": [
+              "not_self@target"
+            ]
+          },
+          "action": [
+            "stat_damage:plus@self:1",
+            "stat_gain:plus@target:1"
+          ]
+        }
+      ]
     },
     {
       "key": "flagstone_garrison",
@@ -6549,10 +6595,7 @@
           "stat_set:disabled@target:1",
           "stat_set:slot@target:0",
           "stat_set:guard@target:0",
-          "stat_gain:runes@target:1",
-          "stat_gain:atk@target:1",
-          "stat_boost:hp@target:1",
-          "stat_gain:hp@target:1",
+          "stat_gain:plus@target:1",
           "draw_from:mine.deck:mine.hand:1"
         ],
         "spent": "mine.discard"
@@ -12131,7 +12174,7 @@
           ],
           "cost": {
             "exhaust": 1,
-            "runes@self": 2
+            "plus@self": 2
           },
           "target": {
             "verb": "cast",
@@ -13894,7 +13937,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Arrives: put two +1/+1 runes on this. Exhaust, then remove a +1/+1 rune: put a +1/+1 rune on another unit.",
+      "tooltip": "Arrives: put two +1/+1 runes on this. Exhaust, then move a +1/+1 rune from this to another unit.",
       "card_stats": {
         "price": 3,
         "atk": 0,
@@ -13913,9 +13956,7 @@
         "action": [
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "stat_gain:atk@self:2",
-          "stat_boost:hp@self:2",
-          "stat_gain:hp@self:2"
+          "stat_gain:plus@self:2"
         ]
       },
       "abilities": [
@@ -13940,11 +13981,8 @@
             ]
           },
           "action": [
-            "stat_damage:atk@self:1",
-            "stat_boost:hp@self:-1",
-            "stat_gain:atk@target:1",
-            "stat_boost:hp@target:1",
-            "stat_gain:hp@target:1"
+            "stat_damage:plus@self:1",
+            "stat_gain:plus@target:1"
           ]
         }
       ]
@@ -14086,16 +14124,11 @@
             "patrol"
           ],
           "where": [
-            "runes@target == 0"
+            "plus@target == 0"
           ]
         },
         "action": [
-          "stat_gain:runes@target:1",
-          "stat_gain:atk@target:1",
-          "stat_boost:hp@target:1",
-          "stat_gain:hp@target:1",
-          "stat_boost:life@target:1",
-          "stat_gain:life@target:1"
+          "stat_gain:plus@target:1"
         ],
         "spent": "mine.discard"
       }
@@ -15285,7 +15318,7 @@
             "main"
           ],
           "needs": [
-            "runes@self >= 1"
+            "plus@self >= 1"
           ],
           "target": {
             "verb": "cast",
@@ -15301,13 +15334,8 @@
             ]
           },
           "action": [
-            "stat_damage:runes@self:1",
-            "stat_damage:atk@self:1",
-            "stat_boost:hp@self:-1",
-            "stat_gain:runes@target:1",
-            "stat_gain:atk@target:1",
-            "stat_boost:hp@target:1",
-            "stat_gain:hp@target:1"
+            "stat_damage:plus@self:1",
+            "stat_gain:plus@target:1"
           ]
         }
       ]
@@ -15357,10 +15385,7 @@
             ]
           },
           "action": [
-            "stat_gain:runes@target:3",
-            "stat_gain:atk@target:3",
-            "stat_boost:hp@target:3",
-            "stat_gain:hp@target:3"
+            "stat_gain:plus@target:3"
           ]
         }
       ]
@@ -15792,10 +15817,7 @@
             "count@mine.sergeant >= 1"
           ],
           "action": [
-            "stat_gain:runes@each.mine.sergeant:1",
-            "stat_gain:atk@each.mine.sergeant:1",
-            "stat_boost:hp@each.mine.sergeant:1",
-            "stat_gain:hp@each.mine.sergeant:1"
+            "stat_gain:plus@each.mine.sergeant:1"
           ]
         }
       ]

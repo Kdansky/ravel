@@ -61,7 +61,7 @@ and a line here names a section that exists:
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
-- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
+- **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
@@ -4158,7 +4158,7 @@ moves. What a card's own tags say about it never changes, so it is settled once
 at load — which is also why `dump` shows you a card with the moment already on
 it.
 
-### `buffs` — a tag that changes a number
+### `buffs` — a tag, or a counter, that changes a number
 
 Every continuous effect in every card game is the same sentence: *while this is
 true, that number is different*. `buffs` is that sentence.
@@ -4241,6 +4241,45 @@ question is written somewhere already: haste is read as `count:haste@self` as a
 card lands, so the union goes in the file — `"hasty": { "any_of": ["haste",
 "mimic_haste"] }` — and every play block asks `count:hasty@self` instead. One
 word changed, and a printed haste notices nothing.
+
+**A counter carries one too, and then it is per point.** A tag is a carrier that
+only ever holds *one*. A stat is the same carrier holding more:
+
+```json
+"stats": [
+  { "key": "plus", "label": "+1/+1", "icon": "orb", "on": ["unit"], "start": 0,
+    "min": 0, "max": 9, "buffs": { "atk": 1, "hp": 1 } }
+]
+```
+
+That is a **+1/+1 rune**, and the whole of it. Putting one on is
+`stat_gain:plus@target:1`; three of them read +3/+3; taking one off is
+`stat_damage:plus@target:1` and the card reads lower the instant it happens.
+
+**What it replaces is two facts that had to be kept in step.** Written without
+it, a rune is a number recording that it is there and a separate shift paying for
+it:
+
+```json
+"stat_gain:runes@target:1", "stat_gain:atk@target:1",
+"stat_boost:hp@target:1",   "stat_gain:hp@target:1"
+```
+
+— and now *removing* a rune has to remember all four. Codex had that at five
+sites and nothing took the three back off, which is why *"remove a +1/+1 rune and
+put it on another unit"* could not be written at all.
+
+**Counters that mean nothing on their own simply say nothing.** A time rune, a
+crumbling rune, an insurance rune are counters with no `buffs` — they are read by
+conditions like any other number. And a threshold is still a computed tag, because
+*"5 or more runes"* is not per point:
+
+```json
+"computed_tags": { "mighty": { "needs": ["sum:runes@mine.ongoing.might >= 5"] } }
+```
+
+The counter is read **raw** — its own stored number, never through its own buffs —
+so a count cannot decide its own size, and a stat buffing itself is refused.
 
 **The ceiling rises with the value; the floor stays.** Both ends matter and they
 want opposite treatment. A 1/1 handed +1 hp has to be able to reach 2, or the

@@ -103,9 +103,18 @@ function M.buff(e, key)
     local list = declaration.G.buff_index and declaration.G.buff_index[key]
     if not list or not e or busy[key] then return 0 end
     busy[key] = true
+    -- **How much of the carrier the card has, times what one of it is worth.**
+    -- A tag is the carrier that only ever holds one, so the two cases are one
+    -- sum. The counter is read raw off the card rather than through M.stat: a
+    -- counter that was itself buffed would be a bonus deciding its own size,
+    -- and reading the stored number is also what keeps this off the recursion.
     local n = 0
     for _, b in ipairs(list) do
-        if M.entity_has(e, b.tag) then n = n + b.n end
+        if b.kind == "stat" then
+            n = n + (tonumber((e.stats or {})[b.tag]) or 0) * b.n
+        elseif M.entity_has(e, b.tag) then
+            n = n + b.n
+        end
     end
     busy[key] = nil
     return n

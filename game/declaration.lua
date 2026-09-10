@@ -907,21 +907,38 @@ function M.parse(filename)
 	-- Which tags shift which stat, keyed by the stat so a read that has no buff
 	-- to find costs one nil lookup. A game with no "buffs" anywhere therefore
 	-- pays nothing per stat read, which is every shipped game but Codex.
-	for name, td in pairs(G.tag_defs) do
-		for stat, n in pairs(type(td) == "table" and type(td.buffs) == "table" and td.buffs or {}) do
+	--
+	-- **A stat may carry one too, and then it is per point.** A tag is a carrier
+	-- that only ever holds one, and a counter is the same carrier holding more —
+	-- so "+1/+1 rune" is a stat that says what one of it is worth, and three of
+	-- them are worth three. Written any other way the count and the bonus are two
+	-- facts to keep in step: Codex put a rune on with four lines, one to record it
+	-- and three to pay for it, and nothing took the three back off.
+	local function note(carrier, kind, buffs)
+		for stat, n in pairs(type(buffs) == "table" and buffs or {}) do
 			if tonumber(n) then
 				local list = G.buff_index[stat] or {}
-				list[#list + 1] = { tag = name, n = tonumber(n) }
+				list[#list + 1] = { tag = carrier, kind = kind, n = tonumber(n) }
 				G.buff_index[stat] = list
 			end
 		end
 	end
+	for name, td in pairs(G.tag_defs) do
+		note(name, "tag", type(td) == "table" and td.buffs)
+	end
 	-- Sorted, so the sum is the same on every machine: pairs() over the tags is
 	-- not, and a replay that adds the same numbers in a different order would
-	-- still be a replay that could disagree about a clamp.
-	for _, list in pairs(G.buff_index) do
-		table.sort(list, function(a, b) return a.tag < b.tag end)
+	-- still be a replay that could disagree about a clamp. Called again once the
+	-- stats are in, since they are parsed below this and would read as none here.
+	local function sort_buffs()
+		for _, list in pairs(G.buff_index) do
+			table.sort(list, function(a, b)
+				if a.kind ~= b.kind then return a.kind < b.kind end
+				return a.tag < b.tag
+			end)
+		end
 	end
+	sort_buffs()
 
 	-- The same index one level along: which tags change what a verb lands for,
 	-- keyed by the pair a change can be identified by. A game with no auras
@@ -1111,6 +1128,12 @@ function M.parse(filename)
 			G.stat_defs[sd.key] = sd
 		end
 	end
+
+	-- The counters' half of the buff index, now that there are counters to read.
+	for name, sd in pairs(G.stat_defs) do
+		note(name, "stat", type(sd) == "table" and sd.buffs)
+	end
+	sort_buffs()
 
 	for _, cd in ipairs(entries(parsed.computes, "computes")) do
 		if type(cd) ~= "table" or not cd.key then

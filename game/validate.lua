@@ -202,6 +202,9 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 	-- Other stats a unit of this one may be spent as ("a plain arrow can be
 	-- spent as a red one"), said here rather than on every card that might.
 	pays_for = true,
+	-- What one point of this counter is worth, read on every stat read the way a
+	-- tag's is. See the check below.
+	buffs = true,
 	-- false when the badge is the shape alone. A banner meaning "this is an
 	-- attack" has no quantity, and the 1 carrying it is noise on the card.
 	number = true }
@@ -1808,6 +1811,26 @@ function M.check(G)
 			if not known_tags[tg] then
 				warn("%s: is a number about '%s', which nothing defines or wears%s",
 					where, tostring(tg), suggest(tg, known_tags))
+			end
+		end
+		-- **A counter says what one of it is worth.** The same word a tag carries,
+		-- and the same sum: a tag is a carrier that only ever holds one, and this
+		-- is the carrier holding more. What it may not be is a number about
+		-- itself — three runes worth a rune each is a count that decides its own
+		-- size, and the answer would depend on the order it was worked out in.
+		if def.buffs ~= nil and type(def.buffs) ~= "table" then
+			warn('%s: "buffs" should be written like { "atk": 1 } — what one point of it is worth', where)
+		end
+		for stat, n in pairs(type(def.buffs) == "table" and def.buffs or {}) do
+			if tonumber(n) == nil then
+				warn("%s: buffs '%s' by '%s', which is not a number — a buff is a plain shift, and "
+					.. "anything worked out belongs in a compute", where, tostring(stat), tostring(n))
+			elseif stat == key then
+				warn("%s: buffs itself, so how much of it there is would decide how much of it there is",
+					where)
+			elseif not card_stats[stat] and not G.stat_defs[stat] then
+				warn("%s: buffs '%s', but no card carries a stat by that name%s",
+					where, tostring(stat), suggest(stat, card_stats))
 			end
 		end
 		if type(def.on) == "table" and def.start == nil then

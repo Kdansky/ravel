@@ -1114,6 +1114,70 @@ function M.test_codex_an_anthem_reads_from_the_seat_that_is_up(check)
 	check("frenzy 1 from his second band", read(ogre, "rage") == 1, tostring(read(ogre, "rage")))
 end
 
+-- **A counter says what one of it is worth.** The rune used to be two facts —
+-- a number recording it and a shift paying for it — written four lines apart, and
+-- nothing took the shift back off. It is one fact now, and the bonus is a reading
+-- of it, so moving a rune is a thing a card can say.
+function M.test_codex_a_rune_is_worth_its_points(check)
+	start("pick_argagarg", "pick_midori")
+	local cub = summon("tiger_cub", "mine.army")           -- 2/2
+	actions.run({ "stat_gain:plus@self:2" }, { card_id = cub.id })
+	check("two runes are +2/+2", read(cub, "atk") == 4 and read(cub, "hp") == 4,
+		read(cub, "atk") .. "/" .. read(cub, "hp"))
+	check("and the ceiling came with them", tags.stat_max(entity.get(cub.id), "hp") == 4,
+		tostring(tags.stat_max(entity.get(cub.id), "hp")))
+
+	actions.run({ "stat_damage:plus@self:1" }, { card_id = cub.id })
+	check("taking one off takes its point with it",
+		read(cub, "atk") == 3 and read(cub, "hp") == 3, read(cub, "atk") .. "/" .. read(cub, "hp"))
+	check("and nothing was written on the card", cub.stats.atk == 2, tostring(cub.stats.atk))
+end
+
+-- The wound is what is left. A 2/2 under two runes that takes three is standing at
+-- 1 of 4; move a rune off and the ceiling drops under the damage, which is the
+-- rulebook's answer and was unreachable while the shift was a stored number.
+function M.test_codex_a_rune_removed_can_kill(check)
+	start("pick_argagarg", "pick_midori")
+	local cub = summon("tiger_cub", "mine.army")
+	actions.run({ "stat_gain:plus@self:2", "stat_damage:hp@self:3" }, { card_id = cub.id })
+	check("hurt but standing", read(cub, "hp") == 1, tostring(read(cub, "hp")))
+	check("and not dead", not tags.entity_has(entity.get(cub.id), "dead"))
+
+	actions.run({ "stat_damage:plus@self:1" }, { card_id = cub.id })
+	check("a rune off drops it under its own damage", read(cub, "hp") == 0,
+		tostring(read(cub, "hp")))
+	check("which is dead", tags.entity_has(entity.get(cub.id), "dead"))
+end
+
+-- Two cards were waiting on exactly that: both move a rune rather than make one.
+function M.test_codex_a_rune_may_be_moved(check)
+	start("pick_argagarg", "pick_midori")
+	take_the_field("argagarg")
+	local shambler = summon("spore_shambler", "mine.army")
+	local cub      = summon("tiger_cub", "mine.army")
+	actions.run({ "stat_gain:plus@self:2" }, { card_id = shambler.id })
+	check("the shambler carries two", read(shambler, "atk") == 2, tostring(read(shambler, "atk")))
+
+	for _, u in ipairs(flow.usable_abilities(shambler.id)) do
+		flow.activate(shambler.id, { cub.id }, u.index); break
+	end
+	flow.settle()
+	check("one moved to the cub", read(cub, "atk") == 3, tostring(read(cub, "atk")))
+	check("and left the shambler", read(shambler, "atk") == 1, tostring(read(shambler, "atk")))
+end
+
+-- A counter that means something needs no tag to say so: "feathered" was a
+-- computed tag whose whole job was turning a number into a shift.
+function M.test_codex_a_feather_is_a_counter(check)
+	start("pick_argagarg", "pick_midori")
+	local cub = summon("tiger_cub", "mine.army")
+	check("grounded", read(cub, "alt") == 0, tostring(read(cub, "alt")))
+	actions.run({ "stat_gain:feather@self:1" }, { card_id = cub.id })
+	check("a feather rune flies it", read(cub, "alt") == 1, tostring(read(cub, "alt")))
+	check("and no tag was needed to say so",
+		require("declaration").G.computed_tags.feathered == nil)
+end
+
 -- A rune is a number on the unit now rather than an attack point with a story.
 -- Two cards were waiting on that: one asks whether there is a rune already, and
 -- one hands out overpower to whatever is wearing one.
@@ -1125,7 +1189,7 @@ function M.test_codex_runes_are_a_number(check)
 
 	flow.play_card(favour.id, { cub.id })
 	flow.settle()
-	check("the rune is recorded", cub.stats.runes == 1, tostring(cub.stats.runes))
+	check("the rune is recorded", cub.stats.plus == 1, tostring(cub.stats.plus))
 	check("and it is worth a point", read(cub, "atk") == 3, tostring(read(cub, "atk")))
 
 	local again = require("cards").create("forests_favor", zones.find_id("hand", "mine"))
@@ -1341,7 +1405,7 @@ end
 function M.test_codex_a_keyword_can_be_lent(check)
 	start("pick_argagarg", "pick_midori")
 	local runner = summon("tiger_cub", "mine.army")
-	runner.stats.runes = 1
+	runner.stats.plus = 1
 	check("a rune alone is not the grant", not tags.entity_has(entity.get(runner.id), "runed"))
 
 	local before = #require("cards").abilities(entity.get(runner.id))
