@@ -723,6 +723,47 @@
       }
     },
     {
+      "key": "minus",
+      "label": "-1/-1",
+      "icon": "orb",
+      "color": "indigo",
+      "min": 0,
+      "max": 9,
+      "on": [
+        "fighter"
+      ],
+      "start": 0,
+      "buffs": {
+        "atk": -1,
+        "hp": -1,
+        "life": -1
+      }
+    },
+    {
+      "key": "corpse",
+      "label": "Corpses",
+      "icon": "orb",
+      "color": "grey",
+      "min": 0,
+      "max": 9,
+      "on": [
+        "building"
+      ],
+      "start": 0
+    },
+    {
+      "key": "javelin",
+      "min": 0,
+      "max": 1,
+      "on": [
+        "fighter"
+      ],
+      "start": 0,
+      "tags": [
+        "hidden"
+      ]
+    },
+    {
       "key": "blood",
       "label": "Blood",
       "icon": "orb",
@@ -964,7 +1005,8 @@
     "hidden": {
       "any_of": [
         "tok_unseen",
-        "tiger_unseen"
+        "tiger_unseen",
+        "shadowed"
       ]
     },
     "t0_ok": {
@@ -1150,6 +1192,49 @@
         "building",
         "upgrade",
         "ongoing_spell"
+      ]
+    },
+    "runed_down": {
+      "needs": [
+        "minus@self >= 1"
+      ]
+    },
+    "skeletal": {
+      "needs": [
+        "count:skeleton@self >= 1",
+        "count:archery@mine.structures >= 1"
+      ]
+    },
+    "javelined": {
+      "needs": [
+        "javelin@self >= 1"
+      ]
+    },
+    "abominated": {
+      "needs": [
+        "count:unit@self >= 1",
+        "count:abom@self == 0",
+        "count:abom@others.anyone.unit >= 1"
+      ]
+    },
+    "plagued": {
+      "needs": [
+        "minus@self >= 1",
+        "count:tech3@self == 0"
+      ]
+    },
+    "bonelorded": {
+      "needs": [
+        "count:skeleton@self >= 1",
+        "count:bonelord@mine.unit >= 1"
+      ]
+    },
+    "shadowed": {
+      "needs": [
+        "count:black@self >= 1",
+        "count:unit@self >= 1",
+        "slot@self == 0",
+        "count:shadowlord@mine.unit >= 1"
       ]
     }
   },
@@ -2263,6 +2348,26 @@
     },
     "disabled_kw": {
       "tooltip": "Disabled — exhausted, and it stays that way through its owner's next ready step."
+    },
+    "skeletal": {
+      "buffs": {
+        "aa": 1
+      },
+      "tooltip": "Skeletal Archery: long-range and anti-air while it stands."
+    },
+    "abominated": {
+      "buffs": {
+        "atk": -1,
+        "hp": -1
+      },
+      "tooltip": "An Abomination is on the table: -1/-1."
+    },
+    "bonelorded": {
+      "buffs": {
+        "atk": 1,
+        "hp": 1
+      },
+      "tooltip": "A Skeletal Lord stands: +1/+1."
     }
   },
   "zones": [
@@ -2780,7 +2885,7 @@
       "zone": "hand",
       "label": "Choose your hero",
       "actions": [
-        "options:pick_zane,pick_drakk,pick_jaina,pick_midori,pick_calamandra,pick_argagarg,pick_bigby,pick_onimaru,pick_sirus"
+        "options:pick_zane,pick_drakk,pick_jaina,pick_midori,pick_calamandra,pick_argagarg,pick_bigby,pick_onimaru,pick_sirus,pick_vandy,pick_orpal,pick_garth"
       ],
       "ends_when": "picked@mine.player >= 1"
     },
@@ -7577,7 +7682,6 @@
       "text": "Abomination",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "tech2",
@@ -7585,9 +7689,10 @@
         "fighter",
         "pitch",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "abom"
       ],
-      "tooltip": "Unit — Horror. All other units get -1/-1.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "All other units get -1/-1.",
       "card_stats": {
         "price": 6,
         "atk": 6,
@@ -7739,7 +7844,6 @@
       "text": "Banefire Golem",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "tech2",
@@ -7749,7 +7853,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Demon. Upkeep: Sacrifice a unit. If you do, deal 1 damage to each opposing unit, hero, and building.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Upkeep: sacrifice a unit to deal 1 damage to each opposing unit, hero and building.  NOT MODELLED: which unit — a sacrifice takes the oldest match and never asks.",
       "card_stats": {
         "price": 6,
         "atk": 7,
@@ -7800,7 +7904,6 @@
       "text": "Blackhand Dozer",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "tech2",
@@ -7810,7 +7913,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Demon. Overpower Damage you deal can reduce opposing bases' HP to 6, but not lower. Dies: Active player destroys one of your lowest tech units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Overpower. Dies: the active player destroys one of your lowest tech units.  NOT MODELLED: both halves — a damage floor that is not the stat's own, and an ordering a scope cannot make.",
       "card_stats": {
         "price": 4,
         "atk": 7,
@@ -7825,7 +7928,6 @@
       "text": "Blackhand Resurrector",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "tech2",
@@ -7835,7 +7937,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Spellcaster. ⤵, Sacrifice Blackhand Resurrector → Summon a hero from your command zone that died previously this game. It arrives at max level.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Exhaust and sacrifice it to bring a fallen hero back at max level.  NOT MODELLED: all of it: a hero that died is gone rather than kept anywhere to be fetched from.",
       "card_stats": {
         "price": 2,
         "atk": 3,
@@ -7893,7 +7995,6 @@
       "text": "Bone Collector",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "tech1",
@@ -7903,7 +8004,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Zombie. Attacks: Summon a 1/1 black Skeleton token.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Attacks: summon a 1/1 black Skeleton token.",
       "card_stats": {
         "price": 2,
         "atk": 3,
@@ -7911,7 +8012,20 @@
           "value": 3,
           "max": 3
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Bone Collector",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "fill:mine.army:skeleton:1"
+          ]
+        }
+      ]
     },
     {
       "key": "brick_thief",
@@ -7942,7 +8056,6 @@
       "text": "Carrion Curse",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "spell",
@@ -7950,9 +8063,30 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Look at an opponent's hand. Choose up to two non-unit cards for them to discard.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Look at an opponent's hand and take a card from it to their discard.  NOT MODELLED: choosing two, and that it may only take what is not a unit.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_disease@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "show:enemy.hand:optional"
+        ]
+      },
+      "chosen": {
+        "action": [
+          "move:target:enemy.discard"
+        ]
       }
     },
     {
@@ -8035,7 +8169,6 @@
       "text": "Corpse Catapult",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "tech2",
@@ -8045,7 +8178,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Contraption. Whenever one of your units dies, put a corpse rune on this. ⤵, Remove two corpse runes → Deal 6 damage to a building.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Whenever one of your units dies, put a corpse rune on this. Exhaust and spend two: deal 6 damage to a building.",
       "card_stats": {
         "price": 3,
         "atk": 1,
@@ -8053,14 +8186,43 @@
           "value": 4,
           "max": 4
         }
-      }
+      },
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1,
+            "corpse@self": 2
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "tags": [
+              "building"
+            ],
+            "zones": [
+              "base",
+              "tech",
+              "structures",
+              "addon"
+            ]
+          },
+          "action": [
+            "harm:integrity@target:6",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
     },
     {
       "key": "crypt_crawler",
       "text": "Crypt Crawler",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "tech1",
@@ -8068,9 +8230,10 @@
         "fighter",
         "pitch",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "sparkshot"
       ],
-      "tooltip": "Unit — Insect. Sparkshot (When attacking a patroller, deals 1 damage to an adjacent patroller.) ① -> A flier loses flying this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Sparkshot.  NOT MODELLED: grounding a flier for a turn, which is a keyword taken away rather than lent.",
       "card_stats": {
         "price": 2,
         "atk": 3,
@@ -8085,7 +8248,6 @@
       "text": "Cursed Crow",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "tech2",
@@ -8095,7 +8257,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Bird. Flying Damages a base: Defending player discards a card at random.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Flying. Damages a base: the defending player discards a card at random.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -8103,14 +8265,28 @@
           "value": 3,
           "max": 3
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Cursed Crow",
+          "needs": [
+            "attacking@self >= 1",
+            "sum:power@self >= 1",
+            "count:building@across >= 1"
+          ],
+          "action": [
+            "move:random.enemy.hand:enemy.discard"
+          ]
+        }
+      ]
     },
     {
       "key": "cursed_ghoul",
       "text": "Cursed Ghoul",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "tech2",
@@ -8118,15 +8294,46 @@
         "fighter",
         "pitch",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "ignores_runed"
       ],
-      "tooltip": "Unit — Ghoul. Arrives: Put a -1/-1 rune on a unit. Unstoppable by units with -1/-1 runes. (Can ignore those patrollers when attacking.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: put a -1/-1 rune on a unit. Unstoppable by units carrying one.",
       "card_stats": {
         "price": 4,
         "atk": 4,
         "hp": {
           "value": 5,
           "max": 5
+        }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:minus@target:1"
+        ],
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "anyone",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
         }
       }
     },
@@ -8135,7 +8342,6 @@
       "text": "Dark Pact",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "spell",
@@ -8143,9 +8349,36 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Deal 2 damage to a base, then that player draws 2 cards.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Deal 2 damage to a base, then that player draws two cards.",
       "card_stats": {
         "price": 0
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_demonology@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "zones": [
+            "base"
+          ]
+        },
+        "action": [
+          "harm:integrity@target:2",
+          "draw_from:enemy.deck:enemy.hand:2",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -8153,7 +8386,6 @@
       "text": "Death and Decay",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "spell",
@@ -8162,9 +8394,27 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ultimate Spell — Debuff. Give all an opponent's units and heroes -3/-3 this turn. Deal 3 damage to all their buildings.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Give all an opponent's units and heroes -3/-3, and deal 3 damage to their buildings.  NOT MODELLED: that it wears off — the runes are permanent here.",
       "card_stats": {
         "price": 8
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_disease@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "stat_gain:minus@each.enemy.fighter:3",
+          "harm:integrity@each.enemy.building:3",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -8172,7 +8422,6 @@
       "text": "Death Rites",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "spell",
@@ -8181,7 +8430,7 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ultimate Spell. Whenever one of your units dies this turn, destroy one of an opponent's lowest tech units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Whenever one of your units dies this turn, destroy one of an opponent's lowest tech units.  NOT MODELLED: all of it — \"lowest tech\" is an ordering a scope cannot make.",
       "card_stats": {
         "price": 4
       }
@@ -8191,7 +8440,6 @@
       "text": "Deteriorate",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "spell",
         "minor_spell",
@@ -8199,9 +8447,38 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Minor Spell — Debuff. Give a unit -1/-1 this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Give a unit -1/-1 this turn. NOT MODELLED: that it wears off — the rune is permanent here.",
       "card_stats": {
         "price": 0
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "anyone",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_gain:minus@target:1",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -8227,7 +8504,6 @@
       "text": "Doom Grasp",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "spell",
@@ -8235,9 +8511,44 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Sacrifice a unit. If you do, destroy a tech 0, I, or II unit or hero.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Sacrifice a unit to destroy a tech 0, I or II unit or hero.",
       "card_stats": {
         "price": 4
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_necromancy@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self",
+          "sacrifice:unit": 1
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "fighter"
+          ],
+          "zones": [
+            "army",
+            "patrol",
+            "command"
+          ],
+          "where": [
+            "count:tech3@target == 0"
+          ]
+        },
+        "action": [
+          "destroy:target",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -8627,7 +8938,6 @@
       "text": "Gargoyle",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "tech1",
@@ -8635,9 +8945,12 @@
         "fighter",
         "pitch",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "cant_attack",
+        "cant_patrol",
+        "stony"
       ],
-      "tooltip": "Unit — Horror. Indestructible (If this would die, exhaust it and remove all damage and attachments from it instead. You can't sacrifice it.) Can't attack or patrol. ① → Until your next upkeep, Gargoyle isn't indestructible, gains flying, +3 ATK, and it can attack and patrol. Once-per-turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Can't attack or patrol. Indestructible: the first death exhausts it and heals it instead.  NOT MODELLED: the ability that trades the word away for a turn of flying and +3 attack.",
       "card_stats": {
         "price": 3,
         "atk": 0,
@@ -8750,7 +9063,6 @@
       "text": "Gorgon",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "tech2",
@@ -8760,7 +9072,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Horror. Deathtouch (Combat damage this deals to units or heroes, even to their armor, kills them.) Dies: Draw a card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Deathtouch. Dies: draw a card.",
       "card_stats": {
         "price": 3,
         "atk": 2,
@@ -8768,6 +9080,11 @@
           "value": 4,
           "max": 4
         }
+      },
+      "leaves": {
+        "action": [
+          "draw_from:mine.deck:mine.hand:1"
+        ]
       }
     },
     {
@@ -8841,7 +9158,6 @@
       "text": "Graveyard",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "tech0",
         "building",
@@ -8849,7 +9165,7 @@
         "build_face",
         "generate_art"
       ],
-      "tooltip": "Building. Whenever your non-token units die, bury them here. Sacrifice Graveyard when four or more units are buried in it (and discard those units). ⤵ → Play a buried unit. (You still pay for it and must meet the tech reqs for it.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Whenever your non-token units die, bury them here. NOT MODELLED: the burying, which needs a death to choose a destination other than the discard, and the sacrifice at four.",
       "card_stats": {
         "price": 2,
         "integrity": {
@@ -9071,7 +9387,6 @@
       "text": "Hooded Executioner",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "tech1",
@@ -9081,7 +9396,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Soldier. Boost ③ (You may pay an additional ③ when you play this to get the boost effect.) If you boosted, destroy each opponent's weakest unit. (The lowest tech unit with the least ATK. You choose if there's a tie for least ATK.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "A 3/3 for two.  NOT MODELLED: Boost, and the weakest unit it kills — both want an ordering.",
       "card_stats": {
         "price": 2,
         "atk": 3,
@@ -9240,7 +9555,6 @@
       "text": "Jandra, the Negator",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "tech0",
         "unit",
@@ -9250,7 +9564,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Legendary Unit — Demon Horror. Overpower (Excess combat damage this would deal to a patroller hits something else this could attack.) Dies from combat damage: Destroy all your units except for Demons.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Overpower. NOT MODELLED: that spells and abilities aimed at your other cards hit Jandra instead, which is an aim redirected after it is made.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -9341,7 +9655,6 @@
       "text": "Lich's Bargain",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "spell",
@@ -9349,9 +9662,30 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Summon. Sacrifice a worker. Your base takes 4 damage. Summon three black tokens: a 1/1 Skeleton, a 2/2 Zombie, a 3/3 Horror with deathtouch  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Sacrifice a worker and take 4 damage to your base: summon a Skeleton, a Zombie and a Demon.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_necromancy@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self",
+          "workers@mine.player": 1
+        },
+        "spent": "mine.discard",
+        "action": [
+          "harm:integrity@mine.base:4",
+          "fill:mine.army:skeleton:1",
+          "fill:mine.army:black_zombie:1",
+          "fill:mine.army:black_demon:1",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -9359,7 +9693,6 @@
       "text": "Lord of Shadows",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "tech3",
@@ -9367,9 +9700,10 @@
         "fighter",
         "pitch",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "shadowlord"
       ],
-      "tooltip": "Unit — Overlord. Your black units are invisible. (To opponents without a detector, they are untargetable, unattackable, and can sneak past patrollers. While patrolling, they are attackable.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Your black units are invisible.",
       "card_stats": {
         "price": 7,
         "atk": 8,
@@ -9377,7 +9711,8 @@
           "value": 7,
           "max": 7
         }
-      }
+      },
+      "abilities": []
     },
     {
       "key": "maestro",
@@ -9476,7 +9811,6 @@
       "text": "Metamorphosis",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "spell",
@@ -9485,7 +9819,7 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ultimate Spell — Buff. Sacrifice all units you control. Your non-Demon heroes level to max and become Demons. Put two +1/+1 runes on each, they get readiness, and are invisible until they leave play.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Sacrifice all units you control; your non-Demon heroes level to max and become Demons.  NOT MODELLED: all of it — a hero changing kind is a transform that keeps its level, and nothing turns back.",
       "card_stats": {
         "price": 6
       }
@@ -9610,7 +9944,6 @@
       "text": "Necromancer",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "tech2",
@@ -9618,9 +9951,11 @@
         "fighter",
         "pitch",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "long_range",
+        "necro"
       ],
-      "tooltip": "Unit — Spellcaster. Long-range (Defenders without long-range deal no damage to this when it attacks.) Whenever another non-token unit of yours dies, summon a 1/1 black Skeleton token.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Long-range. Whenever another non-token unit of yours dies, summon a Skeleton.",
       "card_stats": {
         "price": 4,
         "atk": 3,
@@ -9659,7 +9994,6 @@
       "text": "Nether Drain",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "spell",
@@ -9667,9 +10001,39 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Debuff. One hero loses two levels and can't level up this turn. Another hero gains two levels. (Heroes can't go below level 1 or above their max level.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "One hero loses two levels; another gains two.  NOT MODELLED: the second half — one aim names one pool, and these are two.",
       "card_stats": {
         "price": 1
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_necromancy@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "hero"
+          ],
+          "zones": [
+            "command",
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_damage:level@target:2"
+        ]
       }
     },
     {
@@ -9886,7 +10250,6 @@
       "text": "Pestering Haunt",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "tech0",
         "unit",
@@ -9895,7 +10258,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Ghost. Unstoppable but can't patrol (Can ignore patrollers when attacking.) Can't be sacrificed. Can't have more than 1 ATK.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Unstoppable but can't patrol. Can't be sacrificed and can't be blocked by anything that would kill it. NOT MODELLED: the last, which asks what a fight would come to before it happens.",
       "card_stats": {
         "price": 0,
         "atk": 1,
@@ -9910,7 +10273,6 @@
       "text": "Plague Lab",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "tech2",
@@ -9919,13 +10281,30 @@
         "build_face",
         "generate_art"
       ],
-      "tooltip": "Building. Arrives: Put a -1/-1 rune on all of an opponent's units. ②, ⤵ → For any number of cards with runes, add another rune of a kind already there.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: put a -1/-1 rune on all of an opponent's units.  NOT MODELLED: the second half, which adds another rune of whatever kind is already there — a counter naming itself.",
       "card_stats": {
         "price": 3,
         "integrity": {
           "value": 4,
           "max": 4
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:minus@each.enemy.unit:1"
+        ]
       }
     },
     {
@@ -9933,7 +10312,6 @@
       "text": "Plague Lord",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "tech3",
@@ -9941,9 +10319,10 @@
         "fighter",
         "pitch",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "resist_2"
       ],
-      "tooltip": "Unit — Horror. Arrives or attacks: Put a -1/-1 rune on each opposing unit and hero. Upkeep: Each player's base takes 1 damage for each -1/-1 rune on their units and heroes. Resist 2  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives or attacks: a -1/-1 rune on each opposing unit and hero. Resist 2.  NOT MODELLED: the upkeep, which bases a base's damage on a count of runes across a side.",
       "card_stats": {
         "price": 6,
         "atk": 4,
@@ -9951,14 +10330,43 @@
           "value": 7,
           "max": 7
         }
-      }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t3_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:minus@each.enemy.fighter:1"
+        ]
+      },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Plague Lord",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "stat_gain:minus@each.enemy.fighter:1"
+          ]
+        }
+      ]
     },
     {
       "key": "plague_spitter",
       "text": "Plague Spitter",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "tech1",
@@ -9968,7 +10376,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Horror. Anti-air (Can attack fliers, but can ignore patrolling fliers. Deals combat damage to fliers it fights or that fly over this while it patrols.) Deals damage to units and heroes in the form of -1/-1 runes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Anti-air. Its damage to units and heroes lands as -1/-1 runes.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -9976,7 +10384,22 @@
           "value": 3,
           "max": 3
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Plague Spitter",
+          "needs": [
+            "attacking@self >= 1",
+            "sum:power@self >= 1",
+            "count:fighter@across >= 1"
+          ],
+          "action": [
+            "stat_gain:minus@across:1"
+          ]
+        }
+      ]
     },
     {
       "key": "plasmodium",
@@ -10007,7 +10430,6 @@
       "text": "Poisonblade Rogue",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "tech0",
         "unit",
@@ -10016,7 +10438,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Rogue. Attacks: Gets armor piercing and deals damage to units and heroes in the form of -1/-1 runes this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Attacks: armor piercing, and its damage to units and heroes lands as -1/-1 runes.",
       "card_stats": {
         "price": 2,
         "atk": 2,
@@ -10024,7 +10446,33 @@
           "value": 1,
           "max": 1
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Poisonblade Rogue",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "stat_set:pierce@self:1"
+          ]
+        },
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Poisonblade Rogue",
+          "needs": [
+            "attacking@self >= 1",
+            "sum:power@self >= 1",
+            "count:fighter@across >= 1"
+          ],
+          "action": [
+            "stat_gain:minus@across:1"
+          ]
+        }
+      ]
     },
     {
       "key": "porcupine",
@@ -10321,7 +10769,6 @@
       "text": "Sacrifice the Weak",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "spell",
         "minor_spell",
@@ -10329,7 +10776,7 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Minor Spell. Each player sacrifices their weakest unit. (The lowest tech unit with the least ATK. You choose if there's a tie for least ATK.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Each player sacrifices their weakest unit. NOT MODELLED: which one is weakest — \"lowest tech, then least attack\" is an ordering, and a scope names a pool rather than sorting one.",
       "card_stats": {
         "price": 2
       }
@@ -10490,7 +10937,6 @@
       "text": "Shadow Blade",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "spell",
@@ -10498,9 +10944,41 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Debuff. Deal 3 damage to a patroller. If it dies from Shadow Blade, its controller discards a card at random.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Deal 3 damage to a patroller. If it dies, its controller discards a card at random.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_demonology@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_set:mark@target:1",
+          "harm:hp@target:3",
+          "activate_zone:rules_death",
+          "move:random.enemy.hand:enemy.discard",
+          "stat_set:mark@each.anyone.marked:0"
+        ]
       }
     },
     {
@@ -10533,7 +11011,6 @@
       "text": "Shrine of Forbidden Knowledge",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "tech2",
@@ -10542,14 +11019,24 @@
         "build_face",
         "generate_art"
       ],
-      "tooltip": "Building. Upkeep: Your base takes 1 damage. Draw/Discard phase: Card draw +1, hand size +1 Your Demons are unstoppable by units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Upkeep: your base takes 1 damage. Your Demons are unstoppable by units.  NOT MODELLED: the extra card drawn and held, which is a number the draw step owns.",
       "card_stats": {
         "price": 3,
         "integrity": {
           "value": 5,
           "max": 5
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "upkeep",
+          "phases": [],
+          "text": "Shrine of Forbidden Knowledge",
+          "action": [
+            "stat_damage:integrity@mine.base:1"
+          ]
+        }
+      ]
     },
     {
       "key": "shuriken_hail",
@@ -10574,7 +11061,6 @@
       "text": "Sickness",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "spell",
@@ -10582,9 +11068,41 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Debuff. Put a -1/-1 rune on up to two units and/or heroes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Put a -1/-1 rune on up to two units or heroes.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_disease@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "min": 1,
+          "max": 2,
+          "owner": "anyone",
+          "tags": [
+            "fighter"
+          ],
+          "zones": [
+            "army",
+            "patrol",
+            "command"
+          ]
+        },
+        "action": [
+          "stat_gain:minus@target:1",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -10592,14 +11110,14 @@
       "text": "Skeletal Archery",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "tech0",
         "upgrade",
         "relic",
-        "generate_art"
+        "generate_art",
+        "archery"
       ],
-      "tooltip": "Upgrade. Your Skeletons have long-range and anti-air. (Defenders without long-range deal no damage to them when they attack. They can attack fliers, but can ignore patrolling fliers. They deal combat damage to fliers they fight or that fly over them while they patrol.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Your Skeletons have long-range and anti-air. NOT MODELLED: the long-range half, which is read off the defender in the middle of the duel walk.",
       "card_stats": {
         "price": 2
       }
@@ -10609,7 +11127,6 @@
       "text": "Skeletal Lord",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "tech2",
@@ -10617,9 +11134,10 @@
         "fighter",
         "pitch",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "bonelord"
       ],
-      "tooltip": "Unit — Spellcaster. Your Skeletons get +1/+1. Exhaust five of your Skeletons → Put a unit from your hand into play.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Your Skeletons get +1/+1.  NOT MODELLED: spending five of them to put a unit into play, which is a cost counted in cards rather than in a stat.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -10634,7 +11152,6 @@
       "text": "Skeleton Javelineer",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "tech0",
         "unit",
@@ -10643,7 +11160,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Skeleton. Arrives: Put a javelin rune on this. Remove a javelin rune → This gets long-range this turn. (Defenders without long-range deal no damage to this when it attacks.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: put a javelin rune on this. Remove it: long-range this turn. NOT MODELLED: the long-range, which is read off the attacker mid-duel.",
       "card_stats": {
         "price": 1,
         "atk": 1,
@@ -10651,6 +11168,23 @@
           "value": 1,
           "max": 1
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t0_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_set:javelin@self:1"
+        ]
       }
     },
     {
@@ -10748,7 +11282,6 @@
       "text": "Soul Stone",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "spell",
@@ -10757,9 +11290,39 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ongoing Spell — Buff. Attach to a unit. Attached unit gets +1/+1. If it would die, instead remove all damage from it and sacrifice all Soul Stones on it.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Attach to one of your units: it gets +1/+1.  NOT MODELLED: the death replacement, which wants the stone spent rather than the unit.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_demonology@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_gain:plus@target:1",
+          "move_to:mine.ongoing",
+          "attach_to_target"
+        ]
       }
     },
     {
@@ -10828,7 +11391,6 @@
       "text": "Spreading Plague",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "disease",
         "spell",
@@ -10836,9 +11398,26 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Destroy all tech 0, I, or II units and heroes that have -1/-1 runes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Destroy every tech 0, I or II unit and hero carrying a -1/-1 rune.",
       "card_stats": {
         "price": 4
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_disease@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "destroy:each.anyone.plagued",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -10896,7 +11475,6 @@
       "text": "Summon Skeletons",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "spell",
         "minor_spell",
@@ -10904,9 +11482,24 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Minor Spell — Summon. Summon two 1/1 black Skeleton tokens.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Summon two 1/1 black Skeleton tokens.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "fill:mine.army:skeleton:2"
+        ]
       }
     },
     {
@@ -10974,7 +11567,6 @@
       "text": "Terras Q, the Shackled",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "tech2",
@@ -10985,7 +11577,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Legendary Unit — Demon Overlord. Resist 3, Obliterate 2 (Whenever this attacks, destroy the defender's two lowest tech units first.) Arrives: Summon four 0/1 black Warlock tokens for an opponent. Terras Q can't attack or patrol while any of those tokens are in play.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Resist 3. Arrives: summon four 0/1 black Warlock tokens for an opponent.  NOT MODELLED: obliterate, and that Terras Q is shackled while those tokens stand.",
       "card_stats": {
         "price": 6,
         "atk": 15,
@@ -10993,6 +11585,23 @@
           "value": 15,
           "max": 15
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "fill:enemy.army:warlock:4"
+        ]
       }
     },
     {
@@ -11018,7 +11627,6 @@
       "text": "Thieving Imp",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "tech0",
         "unit",
@@ -11027,7 +11635,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Imp Demon. Arrives: An opponent discards a card at random.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: an opponent discards a card at random.",
       "card_stats": {
         "price": 3,
         "atk": 2,
@@ -11035,6 +11643,23 @@
           "value": 2,
           "max": 2
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t0_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "move:random.enemy.hand:enemy.discard"
+        ]
       }
     },
     {
@@ -11242,7 +11867,6 @@
       "text": "Twilight Baron",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "tech1",
@@ -11252,7 +11876,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Demon. Overpower (Excess combat damage this would deal to a patroller hits something else this could attack.) You can't play tech II or III units.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Overpower. You can't play tech II or III units.  NOT MODELLED: the cost — no card can put a condition on what another card may play.",
       "card_stats": {
         "price": 4,
         "atk": 4,
@@ -11438,7 +12062,6 @@
       "text": "Voidblocker",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "tech2",
@@ -11448,7 +12071,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Demon. Whenever an opponent attacks Voidblocker, they exhaust another of their ready units or heroes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Whenever an opponent attacks it, they spend one of their ready units.  NOT MODELLED: which one — the engine picks the first rather than asking them.",
       "card_stats": {
         "price": 3,
         "atk": 2,
@@ -11456,7 +12079,20 @@
           "value": 6,
           "max": 6
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "clear",
+          "phases": [],
+          "text": "Voidblocker",
+          "needs": [
+            "count:fighter@across >= 1"
+          ],
+          "action": [
+            "exhaust:enemy.fighter"
+          ]
+        }
+      ]
     },
     {
       "key": "vortoss_emblem",
@@ -11532,7 +12168,6 @@
       "text": "Wight",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "necromancy",
         "tech2",
@@ -11542,7 +12177,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Horror. Unstoppable when attacking heroes. Deathtouch when attacking heroes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Unstoppable when attacking heroes, and deathtouch against them.  NOT MODELLED: both, which hold only against one kind of target and so are judged after the aim rather than before it.",
       "card_stats": {
         "price": 4,
         "atk": 4,
@@ -11668,7 +12303,6 @@
       "text": "Zarramonde, the Obliterator",
       "tags": [
         "deck_card",
-        "scaffold",
         "black",
         "demonology",
         "tech3",
@@ -11677,9 +12311,10 @@
         "legendary",
         "pitch",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "untargetable"
       ],
-      "tooltip": "Legendary Unit — Demon. Arrives: If you played Zarramonde from your hand, destroy a unit, hero, worker, upgrade, or ongoing spell. Untargetable, obliterate 4 (Whenever this attacks, destroy the defender's four lowest tech units first.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Untargetable. Arrives: destroy a unit, hero, upgrade or ongoing spell.  NOT MODELLED: obliterate, and that it only fires from your hand.",
       "card_stats": {
         "price": 10,
         "atk": 11,
@@ -11687,7 +12322,587 @@
           "value": 11,
           "max": 11
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t3_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "destroy:target"
+        ],
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "zones": [
+            "army",
+            "patrol",
+            "addon",
+            "ongoing"
+          ]
+        }
       }
+    },
+    {
+      "key": "skeleton",
+      "text": "Skeleton",
+      "tags": [
+        "unit",
+        "fighter",
+        "token",
+        "black",
+        "pitch",
+        "fighter_face",
+        "skeleton"
+      ],
+      "asset": "circle:slate",
+      "tooltip": "A 1/1 black Skeleton token.",
+      "card_stats": {
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "black_zombie",
+      "text": "Zombie",
+      "tags": [
+        "unit",
+        "fighter",
+        "token",
+        "black",
+        "pitch",
+        "fighter_face"
+      ],
+      "asset": "circle:slate",
+      "tooltip": "A 2/2 black Zombie token.",
+      "card_stats": {
+        "atk": 2,
+        "hp": {
+          "value": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "key": "black_demon",
+      "text": "Demon",
+      "tags": [
+        "unit",
+        "fighter",
+        "token",
+        "black",
+        "pitch",
+        "fighter_face",
+        "demon"
+      ],
+      "asset": "circle:slate",
+      "tooltip": "A 3/3 black Demon token.",
+      "card_stats": {
+        "atk": 3,
+        "hp": {
+          "value": 3,
+          "max": 3
+        }
+      }
+    },
+    {
+      "key": "warlock",
+      "text": "Warlock",
+      "tags": [
+        "unit",
+        "fighter",
+        "token",
+        "black",
+        "pitch",
+        "fighter_face"
+      ],
+      "asset": "circle:slate",
+      "tooltip": "A 0/1 black Warlock token.",
+      "card_stats": {
+        "atk": 0,
+        "hp": {
+          "value": 1,
+          "max": 1
+        }
+      }
+    },
+    {
+      "key": "vandy",
+      "text": "Vandy Anadrose",
+      "tags": [
+        "hero",
+        "fighter",
+        "h_demonology",
+        "black",
+        "pitch",
+        "hero_face"
+      ],
+      "asset": "star:5:indigo",
+      "tooltip": "Demon Queen. Levels 1-2 2/3 with sparkshot. Levels 3-4 3/4 with resist 1. Level 5 4/5. NOT MODELLED: fetching a Demonology spell out of the codex, which is a search with a discard as its price; and the max-level gift, which lends +2/+2 to two units and takes them both at your next upkeep.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      },
+      "abilities": [
+        {
+          "key": "summon",
+          "text": "Summon Vandy Anadrose",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "count:hero@mine.hero == 0",
+            "hero_wait@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:3",
+            "stat_set:armor@self:0",
+            "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
+            "move_to:mine.army"
+          ]
+        },
+        {
+          "key": "lvl2",
+          "text": "Level up to 2",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 1"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl3",
+          "text": "Level up to 3 — heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 2"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:3",
+            "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "lvl4",
+          "text": "Level up to 4",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 3"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl5",
+          "text": "Level up to 5 — max, heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 4"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:4",
+            "stat_set:life@self:5"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "orpal",
+      "text": "Orpal Gloor",
+      "tags": [
+        "hero",
+        "fighter",
+        "h_disease",
+        "black",
+        "pitch",
+        "hero_face"
+      ],
+      "asset": "star:6:indigo",
+      "tooltip": "Plaguelord. Levels 1-3 1/3: its damage to units and heroes lands as -1/-1 runes. Levels 4-5 2/4, level 6 2/5. NOT MODELLED: the level 4 sacrifice, which wants a chosen unit; and the level 6 answer to a runed death.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      },
+      "abilities": [
+        {
+          "key": "summon",
+          "text": "Summon Orpal Gloor",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "count:hero@mine.hero == 0",
+            "hero_wait@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
+            "stat_set:atk@self:1",
+            "stat_set:life@self:3",
+            "stat_set:armor@self:0",
+            "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
+            "move_to:mine.army"
+          ]
+        },
+        {
+          "key": "lvl2",
+          "text": "Level up to 2",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 1"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl3",
+          "text": "Level up to 3",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 2"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl4",
+          "text": "Level up to 4 — heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 3"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "lvl5",
+          "text": "Level up to 5",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 4"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl6",
+          "text": "Level up to 6 — max, heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 5"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:5"
+          ]
+        },
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Orpal Gloor",
+          "needs": [
+            "attacking@self >= 1",
+            "sum:power@self >= 1",
+            "count:fighter@across >= 1"
+          ],
+          "action": [
+            "stat_gain:minus@across:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "garth",
+      "text": "Garth Torken",
+      "tags": [
+        "hero",
+        "fighter",
+        "h_necromancy",
+        "black",
+        "pitch",
+        "hero_face"
+      ],
+      "asset": "star:7:indigo",
+      "tooltip": "Bone Lord. Levels 1-3 1/3: one gold summons a Skeleton, once a turn. Levels 4-6 2/4: sacrifice a Skeleton to draw. Level 7 3/4. NOT MODELLED: the max level, which puts a unit back from the discard.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "life": {
+          "value": 3,
+          "max": 5
+        },
+        "level": 1
+      },
+      "abilities": [
+        {
+          "key": "summon",
+          "text": "Summon Garth Torken",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "count:hero@mine.hero == 0",
+            "hero_wait@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
+            "stat_set:atk@self:1",
+            "stat_set:life@self:3",
+            "stat_set:armor@self:0",
+            "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
+            "move_to:mine.army"
+          ]
+        },
+        {
+          "key": "lvl2",
+          "text": "Level up to 2",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 1"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl3",
+          "text": "Level up to 3",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 2"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl4",
+          "text": "Level up to 4 — heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 3"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "lvl5",
+          "text": "Level up to 5",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 4"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl6",
+          "text": "Level up to 6",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 5"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl7",
+          "text": "Level up to 7 — max, heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 6"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:3",
+            "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "raise",
+          "text": "Summon a Skeleton",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 1,
+            "exhaust": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self <= 3"
+          ],
+          "action": [
+            "fill:mine.army:skeleton:1"
+          ]
+        },
+        {
+          "key": "reap",
+          "text": "Sacrifice a Skeleton to draw",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "sacrifice:skeleton": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self >= 4"
+          ],
+          "action": [
+            "draw_from:mine.deck:mine.hand:1"
+          ]
+        }
+      ]
     },
     {
       "key": "pick_zane",
@@ -15967,6 +17182,117 @@
           ]
         }
       ]
+    },
+    {
+      "key": "pick_vandy",
+      "text": "Vandy Anadrose — Demonology",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "star:5:indigo",
+      "tooltip": "Black. Demons, sacrifices, and a 15/15 at the end of it.",
+      "play": {
+        "action": [
+          "fill:mine.deck:graveyard:1",
+          "fill:mine.deck:jandra_the_negator:1",
+          "fill:mine.deck:pestering_haunt:1",
+          "fill:mine.deck:poisonblade_rogue:1",
+          "fill:mine.deck:skeletal_archery:1",
+          "fill:mine.deck:skeleton_javelineer:1",
+          "fill:mine.deck:thieving_imp:1",
+          "fill:mine.deck:deteriorate:1",
+          "fill:mine.deck:sacrifice_the_weak:1",
+          "fill:mine.deck:summon_skeletons:1",
+          "fill:mine.codex:gargoyle:2",
+          "fill:mine.codex:twilight_baron:2",
+          "fill:mine.codex:banefire_golem:2",
+          "fill:mine.codex:blackhand_dozer:2",
+          "fill:mine.codex:shrine_of_forbidden_knowledge:2",
+          "fill:mine.codex:terras_q_the_shackled:2",
+          "fill:mine.codex:voidblocker:2",
+          "fill:mine.codex:zarramonde_the_obliterator:2",
+          "fill:mine.codex:dark_pact:2",
+          "fill:mine.codex:metamorphosis:2",
+          "fill:mine.codex:shadow_blade:2",
+          "fill:mine.codex:soul_stone:2",
+          "fill:mine.command:vandy:1",
+          "stat_gain:picked@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "pick_orpal",
+      "text": "Orpal Gloor — Disease",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "star:6:indigo",
+      "tooltip": "Black. Everything they own gets a little smaller, and then it dies.",
+      "play": {
+        "action": [
+          "fill:mine.deck:graveyard:1",
+          "fill:mine.deck:jandra_the_negator:1",
+          "fill:mine.deck:pestering_haunt:1",
+          "fill:mine.deck:poisonblade_rogue:1",
+          "fill:mine.deck:skeletal_archery:1",
+          "fill:mine.deck:skeleton_javelineer:1",
+          "fill:mine.deck:thieving_imp:1",
+          "fill:mine.deck:deteriorate:1",
+          "fill:mine.deck:sacrifice_the_weak:1",
+          "fill:mine.deck:summon_skeletons:1",
+          "fill:mine.codex:crypt_crawler:2",
+          "fill:mine.codex:plague_spitter:2",
+          "fill:mine.codex:abomination:2",
+          "fill:mine.codex:cursed_crow:2",
+          "fill:mine.codex:cursed_ghoul:2",
+          "fill:mine.codex:gorgon:2",
+          "fill:mine.codex:plague_lab:2",
+          "fill:mine.codex:plague_lord:2",
+          "fill:mine.codex:carrion_curse:2",
+          "fill:mine.codex:death_and_decay:2",
+          "fill:mine.codex:sickness:2",
+          "fill:mine.codex:spreading_plague:2",
+          "fill:mine.command:orpal:1",
+          "stat_gain:picked@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "pick_garth",
+      "text": "Garth Torken — Necromancy",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "star:7:indigo",
+      "tooltip": "Black. Skeletons, and more of them every time something dies.",
+      "play": {
+        "action": [
+          "fill:mine.deck:graveyard:1",
+          "fill:mine.deck:jandra_the_negator:1",
+          "fill:mine.deck:pestering_haunt:1",
+          "fill:mine.deck:poisonblade_rogue:1",
+          "fill:mine.deck:skeletal_archery:1",
+          "fill:mine.deck:skeleton_javelineer:1",
+          "fill:mine.deck:thieving_imp:1",
+          "fill:mine.deck:deteriorate:1",
+          "fill:mine.deck:sacrifice_the_weak:1",
+          "fill:mine.deck:summon_skeletons:1",
+          "fill:mine.codex:bone_collector:2",
+          "fill:mine.codex:hooded_executioner:2",
+          "fill:mine.codex:blackhand_resurrector:2",
+          "fill:mine.codex:corpse_catapult:2",
+          "fill:mine.codex:necromancer:2",
+          "fill:mine.codex:skeletal_lord:2",
+          "fill:mine.codex:wight:2",
+          "fill:mine.codex:lord_of_shadows:2",
+          "fill:mine.codex:death_rites:2",
+          "fill:mine.codex:doom_grasp:2",
+          "fill:mine.codex:lichs_bargain:2",
+          "fill:mine.codex:nether_drain:2",
+          "fill:mine.command:garth:1",
+          "stat_gain:picked@mine.player:1"
+        ]
+      }
     }
   ]
 }

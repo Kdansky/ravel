@@ -533,8 +533,8 @@ function M.test_codex_shape(check)
 				type(def.tooltip) == "string" and def.tooltip:find("SCAFFOLD", 1, true) ~= nil)
 		end
 	end
-	check("a hundred and thirty-eight printed cards are played", live == 138, tostring(live))
-	check("and a hundred and seventy-two more are only printed", held == 172, tostring(held))
+	check("a hundred and eighty-four printed cards are played", live == 184, tostring(live))
+	check("and a hundred and twenty-six more are only printed", held == 126, tostring(held))
 end
 
 -- The hero waits in a zone that is not in play, which is what lets "do I have a
@@ -992,6 +992,45 @@ function M.test_codex_the_upkeep_readies_what_is_spent(check)
 	check("and one line gives both back",
 		not tags.entity_has(entity.get(unit.id), "exhausted")
 		and not tags.entity_has(entity.get(hall.id), "exhausted"))
+end
+
+-- Black, whose whole idea is a counter that subtracts. "minus" declares what one
+-- of it is worth and the rest is arithmetic: a rune put on is a unit read lower,
+-- and enough of them is a unit that is dead without anything having killed it.
+function M.test_codex_black_runes_subtract(check)
+	start("pick_orpal", "pick_argagarg")
+	local prey = summon("tiger_cub", "enemy.army")          -- 2/2
+	actions.run({ "stat_gain:minus@self:1" }, { card_id = prey.id })
+	check("one rune is -1/-1", read(prey, "atk") == 1 and read(prey, "hp") == 1,
+		read(prey, "atk") .. "/" .. read(prey, "hp"))
+	actions.run({ "stat_gain:minus@self:1" }, { card_id = prey.id })
+	check("two is dead without a blow struck", tags.entity_has(entity.get(prey.id), "dead"))
+end
+
+-- The hero writes it, and so does anything that says its damage lands as runes.
+function M.test_codex_orpal_damages_in_runes(check)
+	start("pick_orpal", "pick_argagarg")
+	take_the_field("orpal")
+	local hero = in_zone("army", "orpal")
+	hero.stats.ready_since = 1                         -- past the turn it arrived
+	-- The scavenger post lends no armour, so the blow lands and there is a
+	-- survivor to read: Orpal is 1 ATK and the cub is a 2/2.
+	local prey = post("tiger_cub", "enemy", 3)
+	use(hero, "strike_patrol", { prey.id })
+	flow.settle()
+	local p = entity.get(prey.id)
+	check("the fight left a rune behind it", p and (p.stats.minus or 0) >= 1,
+		p and tostring(p.stats.minus) or "gone")
+end
+
+-- An anthem that subtracts, written as every other anthem is: a computed tag that
+-- asks about the rest of the board, and "others" is what keeps it off itself.
+function M.test_codex_abomination_shrinks_everyone_else(check)
+	start("pick_orpal", "pick_argagarg")
+	local cub  = summon("tiger_cub", "mine.army")
+	local abom = summon("abomination", "mine.army")
+	check("everything else is a point smaller", read(cub, "atk") == 1, tostring(read(cub, "atk")))
+	check("but not the Abomination itself", read(abom, "atk") == 6, tostring(read(abom, "atk")))
 end
 
 -- Blue, and the four of its rules that are not a keyword something already had.
