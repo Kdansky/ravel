@@ -464,9 +464,13 @@ function M.check(G)
 	-- A tag named by a union is read, even when nothing is printed with it: a
 	-- zone that hands out "in_hand" for a union to gather is the whole of
 	-- "your hand or your discard", and it has no other reader by design.
+	-- A union written as a bare word rather than a list reaches here before the
+	-- check that says so, and ipairs over a string is not a warning, it is the
+	-- validator falling over on the file it was asked to read.
 	local union_members = {}
 	for _, cd in pairs(G.computed_tags) do
-		for _, t in ipairs(type(cd) == "table" and (cd.any_of or cd.all_of) or {}) do
+		local named = type(cd) == "table" and (cd.any_of or cd.all_of)
+		for _, t in ipairs(type(named) == "table" and named or {}) do
 			union_members[t] = true
 		end
 	end
@@ -2400,7 +2404,7 @@ function M.check(G)
 		local where = "card '" .. key .. "'"
 		check_fields(where, def, CARD_FIELDS)
 		check_labels(where, def, "card", CARD_FIELDS, "text", "tooltip", "story")
-		for moment, fields in pairs({ play = PLAY_FIELDS, activate = ACTIVATE_FIELDS,
+		for moment, fields in pairs({ play = PLAY_FIELDS,
 			receive = RECEIVE_FIELDS, round = ROUND_FIELDS, challenge = CHALLENGE_FIELDS,
 			chosen = CHOSEN_FIELDS, leaves = LEAVES_FIELDS }) do
 			if type(def[moment]) == "table" then
@@ -2656,19 +2660,10 @@ function M.check(G)
 				end
 			end
 		end
-		if type(def.activate) == "table" then
-			check_fields(where .. " activate", def.activate, ACTIVATE_FIELDS)
-			if def.activate.action == nil then
-				warn('%s: has an "activate" block with no action — nothing would happen', where)
-			end
-			-- A zone has one ability and nothing to meet, so precedence between
-			-- abilities is a card's word. Refused rather than ignored: a field
-			-- that quietly does nothing is worse than one that is not allowed.
-			if def.activate.merge ~= nil then
-				warn('%s: says "merge" on its own ability, which only settles precedence '
-					.. "between the several a card can have", where)
-			end
-		end
+		-- No "activate" block is checked here, because none can arrive: the word
+		-- was replaced by "abilities" and the loader refuses it on a card, a tag
+		-- and a zone alike, saying so in the one place the authored entry still
+		-- exists. What stood here read a field table that was never declared.
 		if type(def.pos) == "string" then
 			-- A shelf: this zone's rect is another zone's, and the two are never
 			-- open at once. Said as a key rather than as four numbers repeated,

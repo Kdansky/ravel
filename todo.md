@@ -95,14 +95,14 @@ Remove fully completed entries when we have done them or moved them to other fil
   nobody holds. Worth re-reading only if a card ever wants the other answer, and
   then it wants a word rather than a change — the asymmetry is the design.
 
-- **Roughly 85 validator messages have no case pinning them.** 305 `warn()` sites
-  against 220 entries in `tests/integration/validator.lua`; some messages are
-  raised from more than one site so the true gap is smaller, but it is not zero.
-  That file's own header is the argument for caring: *"a case that stops firing
-  means the check silently died — which is the failure mode a validator has, since
-  a check that never runs looks exactly like a file with no problems."* One was
-  found this way already: the computed-tag guard was passing on a flag seeded from
-  a field the loader writes on every tag.
+- **Two validator messages still cannot be reached.** 300 of 302 `warn()` calls
+  fire under the suite now, measured by counting the lines a full run touches
+  rather than by matching prose. The two left are both in the action-argument
+  walk and both look like the *binder* rather than the check: `"cannot take cards
+  out of 'origin'"` has a twin one loop above that does fire, and `"it should be
+  'top' or 'bottom', or a count and then one"` wants an argument to land in an
+  `n?` slot where every spelling tried put it in `pos?` instead. Worth an hour on
+  `SPEC` argument binding rather than on the messages.
 
 - **The log says `{name}`.** A seat renamed by `set_name` reads correctly on its
   card, in its tooltip and on the ending banner, because `label.fill` runs when

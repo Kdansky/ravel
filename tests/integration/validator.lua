@@ -19,7 +19,188 @@ local function has_problem(list, needle)
 end
 
 local CASES = {
+	-- **Sixty-eight of these were written and never fired.** Found by counting the
+	-- lines a full test run reaches rather than by reading, which is the only way
+	-- to tell a check that cannot happen from one nobody had got round to. Their
+	-- absence is the failure mode this file exists for.
+	-- names the engine already reads
+	{ "a tag one letter from an engine word", "did you mean",
+		function(g) g.card_defs.pearl.tags_set.optionai = true end },
+	{ "a style named after an engine word", "redefines a word the engine already reads",
+		function(g) g.style_defs.immutable = { color = { 0.5, 0.5, 0.5 } } end },
+	{ "an everywhere scope for a tag nobody wears", "everywhere, but no card carries that tag",
+		function(g) g.card_defs.c_flee.on_play = { "destroy:everywhere.dragons" } end },
+	{ "a cost keyed on nothing measurable", "is not something the engine can measure",
+		function(g) g.card_defs.c_flee.cost = { ["@"] = 1 } end },
+	-- action arguments, the rest
+	{ "cards taken out of origin by take", "cannot take cards out of 'origin'",
+		function(g) g.card_defs.c_flee.on_play = { "take:origin:hand" } end },
+	{ "a destroy and a fill that are one move", "written as a death and a birth",
+		function(g) g.card_defs.c_flee.on_play = { "destroy:board.pearl:1", "fill:board:pearl:1" } end },
+	{ "a fill and a spend that are one take", "written as a birth and a payment",
+		function(g) g.card_defs.c_flee.on_play = { "stat_damage:stock@board.pearl:1", "fill:board:pearl:1" } end },
+	-- abilities with nowhere to be used
+	{ "an ability in a game that allows none", 'no zone is tagged "activate"',
+		function(g) for _, z in pairs(g.zone_defs) do z.use = nil end
+			g.card_defs.pearl.abilities = { { key = "go", action = { "next_phase" } } } end },
+	-- looks
+	{ "squares painted with something that is not a colour", "should be a colour or a filename",
+		function(g) g.pattern_defs.here = { absolute = true, zone = "board", squares = { "a1" } }
+			g.style_defs.glow = { paint = { here = 3 } } end },
+	{ "two styles claiming one look", "both set color",
+		function(g) g.style_defs.dim = { color = { 0.1, 0.1, 0.1 } }
+			g.style_defs.bright = { color = { 0.9, 0.9, 0.9 } }
+			g.card_defs.pearl.tags_set.dim = true
+			g.card_defs.pearl.tags_set.bright = true end },
+	{ "an asset URL that is not one", "aren't valid in a URL",
+		function(g) g.raw_assets = g.raw_assets or {}
+			g.raw_assets.pic = { src = "https://example.com/a b\"c.png" } end },
+	{ "a named asset drawn as no shape", "isn't a shape the engine can draw",
+		function(g) g.raw_assets = g.raw_assets or {}
+			g.raw_assets.pic = { src = "wobble:red" } end },
+	-- a square that could be on either board
+	{ "an absolute pattern with two boards to mean", 'is absolute, so it needs a "zone"',
+		function(g) g.zone_defs.other = { key = "other", layout = "grid", grid = { 2, 2 },
+			pos = { 0.6, 0.1, 0.9, 0.4 } }
+			g.raw_patterns = g.raw_patterns or {}
+			g.raw_patterns.here = { vectors = { "a1" }, class = { "absolute" } } end },
+	-- a turn whose body names something it cannot run
+	{ "a turn running an overlay", "which is an overlay",
+		function(g) g.phase_by_key.options.type = "overlay"
+			g.phase_by_key.story.type = "turn"
+			g.phase_by_key.story.phases = { "options" } end },
+	{ "a player whose card is not a key", 'its "card" should be the key of a card',
+		function(g) g.players[1].card = 3 end },
+	-- condition subjects, said as subjects
+
+	{ "a subject that is not a subject at all", "is not something the engine can measure",
+		function(g) g.card_defs.c_flee.needs = { "@ >= 1" } end },
+	{ "a bare count with nothing to count", "bare 'count' needs a scope",
+		function(g) g.card_defs.c_flee.needs = { "count >= 1" } end },
+	{ "not_self with nobody to be", "'not_self' needs a scope to ask about",
+		function(g) g.card_defs.c_flee.needs = { "not_self" } end },
+	-- costs
+	{ "a cost written as a list of conditions", "a cost is what gets spent, not a condition",
+		function(g) g.card_defs.c_flee.cost = { "hp >= 2" } end },
+	{ "a cost written as two ways to pay", "a cost is one map of what is owed",
+		function(g) g.card_defs.c_flee.cost = { { hp = 2 } } end },
+	{ "exhaust outside an activate cost", "'exhaust' belongs in an activate cost",
+		function(g) g.card_defs.c_flee.cost = { exhaust = 1 } end },
+	{ "a cost whose amount is neither", "should be a number, or a subject to measure it by",
+		function(g) g.card_defs.c_flee.cost = { hp = true } end },
+	-- action arguments
+	{ "a landing word that is not one", "it should be 'top' or 'bottom'",
+		function(g) g.card_defs.c_flee.on_play = { "move:hand:target:1:sideways" } end },
+	{ "the word optional misspelled", "takes the word 'optional' in that slot",
+		function(g) g.card_defs.c_flee.on_play = { "show:hand:maybe" } end },
+	{ "a scope that is neither zone nor tag", "which is neither a zone nor a tag",
+		function(g) g.card_defs.c_flee.on_play = { "move:nowhere:hand" } end },
+	{ "an amount that is not one", "takes an amount, and", 
+		function(g) g.card_defs.c_flee.on_play = { "fill:hand:pearl:lots" } end },
+	{ "a card handed to nobody", "which is neither a seat nor",
+		function(g) g.card_defs.c_flee.on_play = { "set_owner:self:nobody" } end },
+	{ "cards taken out of origin", "cannot take cards out of 'origin'",
+		function(g) g.card_defs.c_flee.on_play = { "move:origin:hand" } end },
+	-- phases, computes and targets on an ability
+	{ "phases written as neither key nor list", "phases should be a phase key or a list",
+		function(g) g.card_defs.c_flee.phases = 3 end },
+	{ "an ability limited to an overlay", "which is an overlay",
+		function(g) g.phase_by_key.options.type = "overlay"; g.card_defs.c_flee.phases = { "options" } end },
+	{ "a compute list that is not a list", 'should be a list of compute keys',
+		function(g) g.card_defs.c_flee.compute = "overkill" end },
+	{ "a target with nothing to do", "has a target but no action",
+		function(g) g.card_defs.c_flee.abilities = { { key = "aim",
+			target = { type = "card", count = 1 } } } end },
+	-- an aim that spends points
+	{ "a spread of one", '"spread" is how many points there are to divide',
+		function(g) g.card_defs.c_flee.target = { type = "card", count = nil, spread = 1 } end },
+	{ "a spread beside a count", 'says "spread" and also a count',
+		function(g) g.card_defs.c_flee.target = { type = "card", count = 2, spread = 3 } end },
+	-- stats
+	{ "pays_for that is not a list", "pays_for is a list of stat keys",
+		function(g) g.stat_defs.hp.pays_for = "gold" end },
+	{ "pays_for naming itself", "pays_for names itself",
+		function(g) g.stat_defs.hp.pays_for = { "hp" } end },
+	{ "a stat drawn as no shape", "which is not a shape the engine has",
+		function(g) g.stat_defs.hp.icon = "wobble" end },
+	{ "a stat about a tag nobody wears", "is a number about 'dragons'",
+		function(g) g.stat_defs.hp.on = { "dragons" } end },
+	-- a counter that says what it is worth
+	{ "counter buffs that are not a map", '"buffs" should be written like { "atk": 1 }',
+		function(g) g.stat_defs.hp.buffs = 3 end },
+	{ "a counter worth something unmeasurable", "which is not a number — a buff is a plain shift",
+		function(g) g.stat_defs.hp.buffs = { vigour = "lots" } end },
+	{ "a counter worth itself", "buffs itself, so how much of it there is",
+		function(g) g.stat_defs.hp.buffs = { hp = 1 } end },
+	{ "a counter worth a stat nobody has", "buffs 'vigour', but no card carries a stat",
+		function(g) g.stat_defs.hp.buffs = { vigour = 1 } end },
+	-- tags, unions and what a zone hands out
+	{ "a tag and a card answering one question", "carries the tag and defines it too",
+		function(g) g.tag_defs.keepsake.tooltip = "A thing worth keeping"
+			g.card_defs.pearl.tooltip = "This one especially" end },
+	{ "a union that is not a list", '"any_of" is a list of tag names',
+		function(g) g.computed_tags.mix = { any_of = "keepsake" } end },
+	{ "a union holding something else", '"any_of" holds something that is not a tag name',
+		function(g) g.computed_tags.mix = { any_of = { 3 } } end },
+	{ "a union naming itself", "names itself, so it can never be worked out",
+		function(g) g.computed_tags.mix = { any_of = { "mix" } } end },
+	{ "applies that is not a list", "applies should be a list of tag names",
+		function(g) g.zone_defs.hand.applies = "keepsake" end },
+	{ "a zone handing out a computed tag", "which is a computed tag",
+		function(g) g.zone_defs.hand.applies = { "last_acted" } end },
+	-- card_stats
+	{ "a card_stats bound that is not a number", "has a min that is not a number",
+		function(g) g.card_defs.pearl.card_stats = { hp = { value = 1, min = "low" } } end },
+	{ "a card_stats floor above its ceiling", "has a floor above its ceiling",
+		function(g) g.card_defs.pearl.card_stats = { hp = { value = 1, min = 5, max = 2 } } end },
+	{ "a card_stats key the engine owns", "is the engine's own",
+		function(g) g.card_defs.pearl.card_stats = { owner = 1 } end },
+	-- leaves
+	{ "a leaves that asks and does nothing", 'asks a question and does nothing with the answer',
+		function(g) g.card_defs.pearl.leaves_needs = { "hp@self >= 1" } end },
+	{ "a leaves from a zone that is not there", 'comes "from"',
+		function(g) g.card_defs.pearl.leaves_from = "vault"
+			g.card_defs.pearl.on_leaves = { "destroy:self" } end },
+	{ "a leaves that says where and not what", "says where it comes from but does nothing",
+		function(g) g.card_defs.pearl.leaves_from = "hand" end },
+	{ "a leaves from and into one zone", 'and goes "into" the same zone, so it never fires',
+		function(g) g.card_defs.pearl.leaves_from = "hand"; g.card_defs.pearl.leaves_into = "hand"
+			g.card_defs.pearl.on_leaves = { "destroy:self" } end },
+	-- setup, players and text
+	{ "a setup placement into nowhere", "places into 'vault'",
+		function(g) g.setup.place[#g.setup.place + 1] = { card = "pearl", zone = "vault" } end },
+	{ "a players entry that is not an object", 'should be an object, like { "card"',
+		function(g) g.players[#g.players + 1] = "north" end },
+	{ "a bold mark left open", "and never closes it",
+		function(g) g.card_defs.pearl.tooltip = "A *shining pearl" end },
+	-- adjusts
+	{ "an adjusts that is not an object", 'should be written like { "verb": "damage"',
+		function(g) g.tag_defs.keepsake.adjusts = { "armour" } end },
+	{ "an adjusts watching nothing", 'needs a "verb" saying what it watches',
+		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", stat = "hp", covers = "self", by = 1 } } end },
+	{ "an adjusts changing nothing", 'needs a "stat" saying which number it changes',
+		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "damage", covers = "self", by = 1 } } end },
+	{ "an adjusts about nobody", 'needs a "covers" saying who it is about',
+		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "damage", stat = "hp", by = 1 } } end },
+	-- looks
+	{ "an effect that is not an object", 'should be written like { "base": "sparkle"',
+		function(g) g.effect_defs = g.effect_defs or {}; g.effect_defs.pop = "sparkle" end },
+	{ "a style that is not a map", "should be a map of look",
+		function(g) g.style_defs.glow = "red" end },
+	{ "a style hiding by a word not a list", 'hide should be a list',
+		function(g) g.style_defs.glow = { hide = "title" } end },
+	{ "a style hiding what nothing draws", "which is not a part anything draws",
+		function(g) g.style_defs.glow = { hide = { "wobble" } } end },
+	-- an asset that is not one
+	{ "a named asset that is no source", "is not a source",
+		function(g) g.raw_assets = g.raw_assets or {}; g.raw_assets.pic = { src = { 3 } } end },
+	{ "an asset drawn as no shape", "isn't a shape the engine can draw",
+		function(g) g.card_defs.pearl.asset = "wobble:red" end },
+	-- a challenge that never decides
+	{ "a challenge with nothing to ask", 'a challenge with no "needs"',
+		function(g) g.card_defs.c_flee.challenge = { on_pass = { "next_phase" } } end },
 	-- condition subjects
+
 	{ "an unknown tag in a count", "counts the tag 'dragons'",
 		function(g) g.card_defs.c_flee.needs = { "count:dragons >= 1" } end },
 	{ "an aims at an ability nobody has", "no ability has that key",
