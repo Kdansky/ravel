@@ -50,6 +50,7 @@ copies it, so a dump can go straight back into the game file.
 | to turn a rulebook into a file | §3, which is a procedure rather than a feature list |
 | a working two-player game | §4, first recipe — it is a whole file, and the suite runs it |
 | "how do I say *X*" | §4, which is a list of those questions |
+| an effect, and the JSON that says it | `COOKBOOK.md` — 141 of them, indexed by the sentence a card would print |
 | what a field means | §5, indexed below |
 | every field there is, alphabetically | `SCHEMA.json` |
 
