@@ -193,4 +193,27 @@ function M.test_adjusts_an_anthem_covers_a_side_while_it_stands(check)
 	end)
 end
 
+-- **One word, one implementation.** Damage went through actions.adjusted and a
+-- cost through flow.resisted, walking the same index the same way, and the two
+-- had drifted: one built a set of covered cards and the other a boolean. Both
+-- read tags.shift now, so this asks the sum directly. What it must be is signed
+-- and unclamped — holding a delta's size at nought and a price at free is what
+-- each caller keeps of its own, and neither belongs to the summing.
+function M.test_adjusts_the_sum_is_signed_and_unclamped(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local tags = require("tags")
+		local function shift(who, verb, stat) return tags.shift(find(who).id, verb, stat, nil) end
+
+		check("armour takes one off damage", shift("knight", "damage", "hp") == -1,
+			tostring(shift("knight", "damage", "hp")))
+		check("and nothing off poison, which it never named",
+			shift("knight", "poison", "hp") == 0)
+		check("a card no aura covers is nought", shift("grunt", "damage", "hp") == 0)
+		check("the seat is not a unit and is nought too", shift("one", "damage", "hp") == 0)
+		check("and a shift upward comes back positive, not clamped away",
+			shift("saint", "mend", "hp") == 1, tostring(shift("saint", "mend", "hp")))
+	end)
+end
+
 return M

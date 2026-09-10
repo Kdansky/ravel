@@ -138,6 +138,50 @@ function M.stat_max(e, key)
     return hi + M.buff(e, key)
 end
 
+-- **What is done to a card, as against what it is.** `M.buff` above answers the
+-- first; this answers the second, and they sit together because they are the two
+-- halves of the same sentence — a tag says what a number *is*, and a tag says
+-- what a verb aimed at it *comes to*.
+--
+-- The signed sum of every `adjusts` watching this verb and this stat, from every
+-- aura in play that covers this card and whose own `needs` hold. Signed, and
+-- nothing is clamped here: what "may not change the sign" means depends on what
+-- is being shifted — a delta may not turn harm into help, a price may not fall
+-- below free — and neither rule belongs to the summing.
+--
+-- One function because there was one word and two copies of it: damage went
+-- through `actions.adjusted` and a cost through `flow.resisted`, walking the same
+-- index the same way, and the pair had already drifted far enough that one built
+-- a set of covered cards and the other a boolean.
+function M.shift(card_id, verb, stat, source_id)
+    local list = verb and declaration.G.adjust_index[verb .. ":" .. stat]
+    if not list or not card_id then return 0 end
+    local predicate = require("predicate")
+    local n = 0
+    for _, entry in ipairs(list) do
+        local ad = entry.adjust
+        for _, holder in ipairs(M.find_targets({ entry.tag }, M.IN_PLAY)) do
+            -- "self" is the whole of a keyword and does not go the long way round
+            -- through a scope; anything else is read from the card holding the
+            -- aura, so an anthem says who it covers in the words a scope already
+            -- uses.
+            local covered = holder == card_id
+            if not covered and ad.covers ~= "self" then
+                local sc = predicate.parse_scope(ad.covers)
+                for _, c in ipairs(sc and predicate.entities_in_scope(sc.name,
+                    { card_id = holder }, sc.owner, sc.quant) or {}) do
+                    if c.id == card_id then covered = true; break end
+                end
+            end
+            local sub = { card_id = holder, targets = { card_id }, source = source_id }
+            if covered and entity.get(holder) and predicate.meets_all(ad.needs, sub) then
+                n = n + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
+            end
+        end
+    end
+    return n
+end
+
 -- Whose *piece* this is: the seat written on it when it was placed, or failing
 -- that the seat of the per-seat zone it lies in.
 --

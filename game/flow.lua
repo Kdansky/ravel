@@ -706,27 +706,11 @@ end
 -- the ability chooser judge affordability with no targets, so a card in hand
 -- quotes its printed price and learns the surcharge once you pick.
 local function resisted(stat, ctx)
-	local list = ctx and ctx.verb and declaration.G.adjust_index[ctx.verb .. ":" .. stat]
-	if not list or not ctx.targets then return 0 end
+	if not (ctx and ctx.targets) then return 0 end
 	local more = 0
-	for _, entry in ipairs(list) do
-		for _, holder in ipairs(tags.find_targets({ entry.tag }, tags.IN_PLAY)) do
-			local ad, covered = entry.adjust, {}
-			if ad.covers == "self" then
-				covered[holder] = true
-			else
-				local sc = predicate.parse_scope(ad.covers)
-				for _, c in ipairs(sc and predicate.entities_in_scope(sc.name, { card_id = holder }, sc.owner, sc.quant) or {}) do
-					covered[c.id] = true
-				end
-			end
-			for _, aimed in ipairs(ctx.targets) do
-				local sub = { card_id = holder, targets = { aimed }, source = ctx.card_id }
-				if covered[aimed] and predicate.meets_all(ad.needs, sub) then
-					more = more + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
-				end
-			end
-		end
+	-- Every chosen target is asked, so aiming at two resisting things costs two.
+	for _, aimed in ipairs(ctx.targets) do
+		more = more + tags.shift(aimed, ctx.verb, stat, ctx.card_id)
 	end
 	-- Signed, and the clamp belongs to the caller. An aura that made a cost
 	-- *dearer* was the only one the arithmetic here allowed, because clamping the

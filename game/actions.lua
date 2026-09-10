@@ -212,31 +212,13 @@ end
 -- Asked before the change, so it sees the board as it was: "takes one less
 -- while damaged" reads the hp this damage has not yet come off.
 local function adjusted(e, key, verb, delta, ctx)
-	local list = verb and declaration.G.adjust_index[verb .. ":" .. key]
-	if not list or delta == 0 then return delta end
+	if delta == 0 then return delta end
+	local shift = tags.shift(e.id, verb, key, ctx and ctx.card_id)
+	if shift == 0 then return delta end
+	-- The clamp is this caller's, not the sum's: a delta may not turn harm into
+	-- help, so it is the *size* that is held at nought and the sign that is put
+	-- back afterwards.
 	local sign, size = delta < 0 and -1 or 1, math.abs(delta)
-	local shift = 0
-	for _, entry in ipairs(list) do
-		local ad = entry.adjust
-		for _, holder in ipairs(tags.find_targets({ entry.tag }, tags.IN_PLAY)) do
-			local h = entity.get(holder)
-			-- "self" is the whole of a keyword and does not go the long way round
-			-- through a scope; anything else is read from the card holding the
-			-- aura, so an anthem says who it covers in the words a scope already
-			-- uses.
-			local covered = holder == e.id
-			if not covered and ad.covers ~= "self" then
-				local sc = predicate.parse_scope(ad.covers)
-				for _, c in ipairs(sc and predicate.entities_in_scope(sc.name, { card_id = holder }, sc.owner, sc.quant) or EMPTY) do
-					if c.id == e.id then covered = true; break end
-				end
-			end
-			local sub = { card_id = holder, targets = { e.id }, source = ctx and ctx.card_id }
-			if covered and h and predicate.meets_all(ad.needs, sub) then
-				shift = shift + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
-			end
-		end
-	end
 	return sign * math.max(0, size + shift)
 end
 

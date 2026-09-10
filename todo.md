@@ -86,6 +86,24 @@ Remove fully completed entries when we have done them or moved them to other fil
     **Community Service** and **Lawful Search** look at a hand but not at the
     choice of a discard pile instead.
 
+- **An empty pool answers 0 to `max:` and `sum:`, and is absent to `min:`.**
+  Deliberate and tested — *"nothing adds to nothing, nothing is at most nothing"*,
+  while a zero minimum would sit below every real value and open a gate exactly
+  when the thing it measures is not there. Six live conditions lean on it:
+  `max:level@enemy.h_blood <= 3` means yes when they hold no Blood hero at all,
+  and The Crew's four `max:v_<colour>@mine.hand <= min` say the same about a suit
+  nobody holds. Worth re-reading only if a card ever wants the other answer, and
+  then it wants a word rather than a change — the asymmetry is the design.
+
+- **Roughly 85 validator messages have no case pinning them.** 305 `warn()` sites
+  against 220 entries in `tests/integration/validator.lua`; some messages are
+  raised from more than one site so the true gap is smaller, but it is not zero.
+  That file's own header is the argument for caring: *"a case that stops firing
+  means the check silently died — which is the failure mode a validator has, since
+  a check that never runs looks exactly like a file with no problems."* One was
+  found this way already: the computed-tag guard was passing on a flag seeded from
+  a field the loader writes on every tag.
+
 - **The log says `{name}`.** A seat renamed by `set_name` reads correctly on its
   card, in its tooltip and on the ending banner, because `label.fill` runs when
   a string is *drawn*. A log line is not drawn from anything: `flow` writes
