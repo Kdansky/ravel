@@ -48,10 +48,23 @@ local function content_error(msg)
 	print(msg)
 end
 
+-- A sorting quantifier carries its number after a colon, which is also what
+-- separates an action's arguments — so "lowest" and "highest" are glued back to
+-- the word that follows them. They are the only two, and the alternative was a
+-- second separator inside a scope for the benefit of one position.
+local ORDERING = { lowest = true, highest = true }
+
 -- Parse "op:p1:p2:..." into { "op", "p1", "p2", ... }
 local function parse(str)
 	local parts = {}
-	for p in str:gmatch("[^:]+") do parts[#parts + 1] = p end
+	for p in str:gmatch("[^:]+") do
+		local prev = parts[#parts]
+		if prev and (ORDERING[prev] or ORDERING[prev:match("([%w_]+)$") or ""]) then
+			parts[#parts] = prev .. ":" .. p
+		else
+			parts[#parts + 1] = p
+		end
+	end
 	return parts
 end
 
@@ -703,7 +716,7 @@ HANDLERS["destroy"] = function(p, ctx)
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and e.zone_id then doomed[#doomed + 1] = e.id end
 	end
-	table.sort(doomed)
+	if not predicate.is_ordered(sc.quant) then table.sort(doomed) end
 	local n = p[3] and amount(p, 3, 0, ctx) or (sc.quant == "random" and 1 or #doomed)
 	if n > #doomed then n = #doomed end
 	local taken = {}
@@ -838,7 +851,7 @@ HANDLERS["show"] = function(p, ctx)
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" and e.zone_id and e.zone_id ~= zone_id then moving[#moving + 1] = e.id end
 	end
-	table.sort(moving)
+	if not predicate.is_ordered(sc.quant) then table.sort(moving) end
 	-- "random." narrows it to one, the same word and the same meaning it has in
 	-- move and destroy. That is the whole of "reveal a card from their hand":
 	-- the scope says whose hand and the quantifier says how much of it.
@@ -1126,7 +1139,7 @@ HANDLERS["copy"] = function(p, ctx)
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
 		if e.kind == "card" then doing[#doing + 1] = e.id end
 	end
-	table.sort(doing)
+	if not predicate.is_ordered(sc.quant) then table.sort(doing) end
 	if sc.quant == "random" and #doing > 0 then
 		doing = { doing[rng.int(#doing)] }
 	end

@@ -68,6 +68,21 @@
       ]
     },
     {
+      "key": "tech_level",
+      "label": "Tech",
+      "min": 0,
+      "max": 3,
+      "on": [
+        "deck_card",
+        "token",
+        "hero"
+      ],
+      "start": 0,
+      "tags": [
+        "hidden"
+      ]
+    },
+    {
       "key": "atk",
       "label": "Attack",
       "icon": "blade",
@@ -1134,7 +1149,7 @@
     "judged": {
       "needs": [
         "count:unit@self >= 1",
-        "count:tech3@self == 0"
+        "tech_level@self <= 2"
       ]
     },
     "bluecoat_lr": {
@@ -1262,7 +1277,7 @@
     "plagued": {
       "needs": [
         "minus@self >= 1",
-        "count:tech3@self == 0"
+        "tech_level@self <= 2"
       ]
     },
     "bonelorded": {
@@ -1376,7 +1391,7 @@
     "rewound": {
       "needs": [
         "count:unit@self >= 1",
-        "count:tech3@self == 0",
+        "tech_level@self <= 2",
         "count:token@self == 0"
       ]
     },
@@ -1736,6 +1751,9 @@
           "stat_gain:ready_since@self:sum:rush@mine.player",
           "stat_damage:rush@mine.player:1"
         ]
+      },
+      "buffs": {
+        "tech_level": 1
       }
     },
     "tech2": {
@@ -1756,6 +1774,9 @@
           "stat_gain:ready_since@self:sum:rush@mine.player",
           "stat_damage:rush@mine.player:1"
         ]
+      },
+      "buffs": {
+        "tech_level": 2
       }
     },
     "tech3": {
@@ -1776,6 +1797,9 @@
           "stat_gain:ready_since@self:sum:rush@mine.player",
           "stat_damage:rush@mine.player:1"
         ]
+      },
+      "buffs": {
+        "tech_level": 3
       }
     },
     "fighter": {
@@ -6272,7 +6296,7 @@
               "patrol"
             ],
             "where": [
-              "count:tech3@target == 0"
+              "tech_level@target <= 2"
             ]
           },
           "action": [
@@ -6445,7 +6469,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying, resist 2. Your base gains flying. Obliterate 4. NOT MODELLED: obliterate, which takes the first four units rather than the lowest tech ones, and the base's flying, which is a keyword lent to a building.",
+      "tooltip": "Flying, resist 2. Obliterate 4: attacking destroys the defender's four lowest tech units first. Your base gains flying.  NOT MODELLED: the base's flying, which is a keyword lent to a building.",
       "card_stats": {
         "price": 10,
         "atk": 7,
@@ -6455,7 +6479,22 @@
         },
         "alt": 1,
         "aa": 1
-      }
+      },
+      "abilities": [
+        {
+          "key": "obliterate",
+          "phases": [],
+          "text": "Obliterate 4",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "destroy:lowest:tech_level.enemy.army:4",
+            "destroy:lowest:tech_level.enemy.patrol:4",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
     },
     {
       "key": "community_service",
@@ -6493,8 +6532,8 @@
       "chosen": {
         "where": [
           "tagged:unit@target",
-          "count:tech3@target == 0",
-          "count:tech0@target == 0"
+          "tech_level@target <= 2",
+          "tech_level@target >= 1"
         ],
         "action": [
           "move:target:mine.army",
@@ -7538,7 +7577,7 @@
             ],
             "where": [
               "count:tech2@target == 0",
-              "count:tech3@target == 0"
+              "tech_level@target <= 2"
             ]
           },
           "action": [
@@ -8248,7 +8287,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Overpower. Dies: the active player destroys one of your lowest tech units.  NOT MODELLED: both halves — a damage floor that is not the stat's own, and an ordering a scope cannot make.",
+      "tooltip": "Overpower. Dies: the active player destroys one of your lowest tech units.  NOT MODELLED: the damage floor that stops it taking a base below 6, which is not the stat's own.",
       "card_stats": {
         "price": 4,
         "atk": 7,
@@ -8256,6 +8295,12 @@
           "value": 6,
           "max": 6
         }
+      },
+      "leaves": {
+        "action": [
+          "destroy:lowest:tech_level.mine.army:1",
+          "activate_zone:rules_death"
+        ]
       }
     },
     {
@@ -8764,9 +8809,26 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Whenever one of your units dies this turn, destroy one of an opponent's lowest tech units.  NOT MODELLED: all of it — \"lowest tech\" is an ordering a scope cannot make.",
+      "tooltip": "Whenever one of your units dies this turn, destroy one of an opponent's lowest tech units.  NOT MODELLED: that it lasts only the turn — this fires once, when the spell is cast.",
       "card_stats": {
         "price": 4
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_necromancy@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "destroy:lowest:tech_level.enemy.army:1",
+          "activate_zone:rules_death"
+        ],
+        "spent": "mine.discard"
       }
     },
     {
@@ -8876,7 +8938,7 @@
             "command"
           ],
           "where": [
-            "count:tech3@target == 0"
+            "tech_level@target <= 2"
           ]
         },
         "action": [
@@ -9291,7 +9353,7 @@
           "where": [
             "atk@target <= 2",
             "count:tech2@target == 0",
-            "count:tech3@target == 0"
+            "tech_level@target <= 2"
           ]
         },
         "action": [
@@ -10649,7 +10711,7 @@
               "patrol"
             ],
             "where": [
-              "count:tech3@target == 0"
+              "tech_level@target <= 2"
             ]
           },
           "action": [
@@ -12716,7 +12778,7 @@
             "patrol"
           ],
           "where": [
-            "count:tech0@target >= 1"
+            "tech_level@target == 0"
           ]
         }
       }
@@ -12794,8 +12856,8 @@
             "patrol"
           ],
           "where": [
-            "count:tech0@target == 0",
-            "count:tech3@target == 0"
+            "tech_level@target >= 1",
+            "tech_level@target <= 2"
           ]
         },
         "action": [
@@ -12876,7 +12938,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Resist 3. Arrives: summon four 0/1 black Warlock tokens for an opponent.  NOT MODELLED: obliterate, and that Terras Q is shackled while those tokens stand.",
+      "tooltip": "Resist 3. Arrives: summon four 0/1 black Warlock tokens for an opponent.  NOT MODELLED: that Terras Q is shackled while those tokens stand.",
       "card_stats": {
         "price": 6,
         "atk": 15,
@@ -12901,7 +12963,22 @@
           "stat_set:ready_since@self:count:hasty@self",
           "fill:enemy.army:warlock:4"
         ]
-      }
+      },
+      "abilities": [
+        {
+          "key": "obliterate",
+          "phases": [],
+          "text": "Obliterate 2",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "destroy:lowest:tech_level.enemy.army:2",
+            "destroy:lowest:tech_level.enemy.patrol:2",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
     },
     {
       "key": "the_boot",
@@ -13414,7 +13491,7 @@
             "patrol"
           ],
           "where": [
-            "count:tech3@target == 0"
+            "tech_level@target <= 2"
           ]
         },
         "action": [
@@ -13785,8 +13862,8 @@
       "chosen": {
         "where": [
           "tagged:unit@target",
-          "count:tech0@target == 0",
-          "count:tech3@target == 0"
+          "tech_level@target >= 1",
+          "tech_level@target <= 2"
         ],
         "action": [
           "move:target:mine.army",
@@ -14044,7 +14121,7 @@
         "generate_art",
         "untargetable"
       ],
-      "tooltip": "Untargetable. Arrives: destroy a unit, hero, upgrade or ongoing spell.  NOT MODELLED: obliterate, and that it only fires from your hand.",
+      "tooltip": "Untargetable. Arrives: destroy a unit, hero, upgrade or ongoing spell.  NOT MODELLED: that it only fires from your hand.",
       "card_stats": {
         "price": 10,
         "atk": 11,
@@ -14081,7 +14158,22 @@
             "ongoing"
           ]
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "obliterate",
+          "phases": [],
+          "text": "Obliterate 4",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "destroy:lowest:tech_level.enemy.army:4",
+            "destroy:lowest:tech_level.enemy.patrol:4",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
     },
     {
       "key": "skeleton",
@@ -16706,7 +16798,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying, haste, long-range, resist 2, obliterate 2. NOT MODELLED: obliterate takes the first two units rather than the lowest tech ones.",
+      "tooltip": "Flying, haste, long-range, resist 2. Obliterate 2.",
       "card_stats": {
         "price": 6,
         "atk": 7,
@@ -16719,6 +16811,19 @@
         "aa": 1
       },
       "abilities": [
+        {
+          "key": "obliterate",
+          "phases": [],
+          "text": "Obliterate 2",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "destroy:lowest:tech_level.enemy.army:2",
+            "destroy:lowest:tech_level.enemy.patrol:2",
+            "activate_zone:rules_death"
+          ]
+        },
         {
           "key": "attacks",
           "phases": [],
@@ -17199,7 +17304,7 @@
             "patrol"
           ],
           "where": [
-            "count:tech3@target == 0"
+            "tech_level@target <= 2"
           ]
         },
         "action": [
@@ -18388,8 +18493,8 @@
             "patrol"
           ],
           "where": [
-            "count:tech3@target == 0",
-            "count:tech0@target == 0"
+            "tech_level@target <= 2",
+            "tech_level@target >= 1"
           ]
         },
         "action": [
@@ -19494,7 +19599,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Legendary: a second copy stays in hand while the first stands. Resist 2, obliterate 4. You may play Growth spells for free and without having a Growth hero. NOT MODELLED: the free spells, and obliterate takes the first four units rather than the lowest tech ones.",
+      "tooltip": "Legendary: a second copy stays in hand while the first stands. Resist 2, obliterate 4. You may play Growth spells for free and without having a Growth hero.  NOT MODELLED: the free spells.",
       "card_stats": {
         "price": 10,
         "atk": 12,
@@ -19521,6 +19626,19 @@
         ]
       },
       "abilities": [
+        {
+          "key": "obliterate",
+          "phases": [],
+          "text": "Obliterate 4",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "destroy:lowest:tech_level.enemy.army:4",
+            "destroy:lowest:tech_level.enemy.patrol:4",
+            "activate_zone:rules_death"
+          ]
+        },
         {
           "key": "attacks",
           "phases": [],

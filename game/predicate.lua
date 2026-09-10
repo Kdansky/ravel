@@ -513,6 +513,14 @@ function M.entities_in_scope(scope, ctx, owner, quant)
 	return M.ordered(out, quant)
 end
 
+-- Whether a quantifier put the pool in an order of its own. Callers that sort by
+-- id for determinism ask this first: a pool the author has ordered is already
+-- deterministic, and re-sorting it throws the order away.
+function M.is_ordered(quant)
+	local word = tostring(quant or ""):match("^([%w_]+):")
+	return word == "lowest" or word == "highest"
+end
+
 -- Put a pool in the order its quantifier asked for, or leave it as it was. The
 -- sort is stable on entity id so two cards reading the same number come back in
 -- the same order on every machine, which a seeded replay needs.

@@ -1006,30 +1006,57 @@ end
 function M.test_codex_the_engine_seat_can_answer_an_unaimable_offer(check)
 	local opponent = require("opponent")
 	start("pick_vir", "pick_argagarg")
-	take_the_field("vir")
-	-- Nothing of theirs is on the table, so Assimilate has nothing to point at.
-	local disciple = require("cards").create("warp_gate_disciple", zones.find_id("hand", "mine"))
-	seat("south").stats.gold = 20
-	require("cards").create("tech_1", zones.find_id("tech", "mine"))
-	require("cards").create("tech_2", zones.find_id("tech", "mine"))
-	flow.play_card(disciple.id, {})
-	flow.settle()
-	for _, u in ipairs(flow.usable_abilities(disciple.id)) do
-		flow.activate(disciple.id, {}, u.index); break
-	end
+	-- The codex holds Assimilate, which aims at a building or an ongoing spell.
+	-- Nothing of theirs is on the table, so it can point at nothing at all.
+	actions.run({ "show:mine.codex" }, {})
 	flow.settle()
 	check("the codex is on the table", count_in("options") > 0, tostring(count_in("options")))
 
 	local aimless = in_zone("options", "assimilate")
 	check("and it is holding a card that can aim at nothing", aimless ~= nil)
 	if aimless then
-		check("which flow will take as a choice", flow.is_choosing(aimless.id))
+		check("which flow will take as a choice rather than a play",
+			flow.is_choosing(aimless.id))
+		check("so it needs no targets to be answered", flow.play_card(aimless.id, {}))
 	end
 
 	opponent.seats = {}
 	opponent.take(zones.active_seat())
-	check("so the seat has a move rather than none", #opponent.legal() > 0,
+	check("and the seat is never left with none", #opponent.legal() > 0,
 		tostring(#opponent.legal()))
+end
+
+-- **Obliterate, which is the sorting quantifier and a number on a tag.** Tech
+-- level is a tag on 213 cards and was never a number; it is one now because the
+-- tag says what it is worth, the way a counter does — so "the four lowest tech
+-- units" is destroy's own count over a pool put in order.
+function M.test_codex_tech_level_is_a_number_the_tag_carries(check)
+	start("pick_jaina", "pick_argagarg")
+	local cub  = summon("tiger_cub", "mine.army")        -- tech 0
+	local horse = summon("centaur", "mine.army")         -- tech 1
+	local tiger = summon("stalking_tiger", "mine.army")  -- tech 2
+	check("a tech 0 card reads nought", read(cub, "tech_level") == 0, tostring(read(cub, "tech_level")))
+	check("a tech 1 card reads one", read(horse, "tech_level") == 1, tostring(read(horse, "tech_level")))
+	check("a tech 2 card reads two", read(tiger, "tech_level") == 2, tostring(read(tiger, "tech_level")))
+	check("and nothing was written on any of them", cub.stats.tech_level == 0
+		and horse.stats.tech_level == 0, tostring(horse.stats.tech_level))
+end
+
+function M.test_codex_obliterate_takes_the_lowest_tech(check)
+	start("pick_zane", "pick_argagarg")
+	local gun = summon("pirate_gunship", "mine.army")    -- obliterate 2
+	summon("stalking_tiger", "enemy.army")               -- tech 2, should survive
+	summon("tiger_cub", "enemy.army")                    -- tech 0, should go
+	summon("centaur", "enemy.army")                      -- tech 1, should go
+	check("three of theirs are standing", count_in("enemy.army") == 3,
+		tostring(count_in("enemy.army")))
+
+	actions.run({ "destroy:lowest:tech_level.enemy.army:2", "activate_zone:rules_death" },
+		{ card_id = gun.id })
+	flow.settle()
+	check("two went", count_in("enemy.army") == 1, tostring(count_in("enemy.army")))
+	check("and it is the tech 2 one that is left",
+		in_zone("enemy.army", "stalking_tiger") ~= nil)
 end
 
 -- **Purple is two clocks, and both are the counter plus a place.** Forecast is a

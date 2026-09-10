@@ -1190,10 +1190,21 @@ function M.check(G)
 	-- not a zone — can be allowed there and nowhere else.
 	local MOVES_TO = { move_to = 2, move = 3 }
 
+	-- The same gluing actions.parse does: a sorting quantifier carries its number
+	-- after a colon, and a colon is also what separates an action's arguments.
+	local ORDERING = { lowest = true, highest = true }
+
 	local check_action
 	function check_action(where, str)
 		local p = {}
-		for w in str:gmatch("[^:]+") do p[#p + 1] = w end
+		for w in str:gmatch("[^:]+") do
+			local prev = p[#p]
+			if prev and (ORDERING[prev] or ORDERING[prev:match("([%w_]+)$") or ""]) then
+				p[#p] = prev .. ":" .. w
+			else
+				p[#p + 1] = w
+			end
+		end
 		local op = p[1]
 		-- A verb the game named is checked against the engine verb it stands
 		-- for, and noted as used, so an aura watching for one no card performs
