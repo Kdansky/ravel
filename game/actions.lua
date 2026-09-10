@@ -310,8 +310,8 @@ end
 
 local HANDLERS = {}
 
--- fill:<zone>:<card_key>:<n>, or fill:<zone>:@<scope>:<n> — n more of what the
--- scope is already holding, rather than of something named here.
+-- create:<zone>:<card_key>:<n>, or create:<zone>:@<scope>:<n> — n more of what
+-- the scope is already holding, rather than of something named here.
 --
 -- **Which is not a clone.** What arrives is a fresh card off the template, with
 -- its stats at the numbers the game declared and no memory of the one that named
@@ -319,13 +319,13 @@ local HANDLERS = {}
 -- hands out, so it cannot name a key, and the card it is asked about is the only
 -- thing that knows which. Every card in scope contributes its n, so a wider one
 -- deals a set rather than picking a winner out of it.
-HANDLERS["fill"] = function(p, ctx)
+HANDLERS["create"] = function(p, ctx)
 	local into = entity.get(destination(p[2] or "", ctx))
 	if not into then
-		content_error("fill: unknown destination " .. tostring(p[2]))
+		content_error("create: unknown destination " .. tostring(p[2]))
 		return
 	end
-	-- A host is filled by making the card where the host stands and standing it
+	-- A host takes one by making the card where the host stands and standing it
 	-- on top, since a card is made in a zone and only ever in a zone.
 	local host = into.kind == "card" and into or nil
 	local zone = host and entity.get(host.zone_id) or into
@@ -333,7 +333,7 @@ HANDLERS["fill"] = function(p, ctx)
 	if named:sub(1, 1) == "@" then
 		local sc = predicate.parse_scope(named:sub(2))
 		if not sc then
-			content_error("fill: '" .. named .. "' is not a scope")
+			content_error("create: '" .. named .. "' is not a scope")
 			return
 		end
 		for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
@@ -342,7 +342,7 @@ HANDLERS["fill"] = function(p, ctx)
 	elseif declaration.G.card_defs[named] then
 		keys[1] = named
 	else
-		content_error("fill: unknown card " .. tostring(named))
+		content_error("create: unknown card " .. tostring(named))
 		return
 	end
 	local n = amount(p, 4, 1, ctx)
@@ -367,7 +367,7 @@ end
 -- its own rather than a flag on `move`: two spellings that read alike and mean
 -- opposite things would be worse than two words.
 --
--- Every shelf in scope hands over n, the way every card in a `fill` scope
+-- Every shelf in scope hands over n, the way every card in a `create` scope
 -- contributes its own — a wider scope deals a set rather than picking a winner.
 -- A shelf that is short hands over what it has and stops, and an empty one says
 -- nothing: an empty box is a legal state and not a mistake.
@@ -392,7 +392,7 @@ HANDLERS["take"] = function(p, ctx)
 			.. "a scope of ordinary cards is what `move` is for")
 		return
 	end
-	-- A host is taken onto the same way a fill lands on one: out of the box into
+	-- A host is taken onto the same way a create lands on one: out of the box into
 	-- the zone the host stands in, and then up onto the host.
 	local host = entity.get(to_id)
 	host = host and host.kind == "card" and host or nil
@@ -1466,7 +1466,7 @@ HANDLERS["compact"] = function(p, ctx)
 end
 
 local SPEC = {
-	fill              = "zone card n",
+	create            = "zone card n",
 	shuffle           = "zone",
 	draw_from         = "zone zone n pos?",
 	move_to           = "zone? occupied?",

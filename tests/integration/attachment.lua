@@ -253,7 +253,7 @@ function M.test_attachment_a_destination_may_be_a_card(check)
 		check("and it is the card that was dealt",
 			entity.get(entity.get(site.id).attached[1]).def_key == "guardian")
 
-		actions.execute("fill:target:guardian:1", ctx)
+		actions.execute("create:target:guardian:1", ctx)
 		check("a fill lands there too", #entity.get(site.id).attached == 2,
 			tostring(#entity.get(site.id).attached))
 

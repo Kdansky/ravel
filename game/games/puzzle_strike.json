@@ -946,7 +946,7 @@
       },
       "chosen": {
         "where": ["not_tagged:gem@target", "not_tagged:puzzle@target"],
-        "action": ["fill:mine.discard:@target:1", "stat_damage:stock@target:1", "next_phase"]
+        "action": ["create:mine.discard:@target:1", "stat_damage:stock@target:1", "next_phase"]
       },
       "tooltip": "Choose any number of different non-gem, non-Puzzle chips in the bank. Play them, gain them, then end your action phase.\n\nDEV: one chip is gained off the shelf, and it ends your action phase and trashes itself. Two things are short of the print. \"Any number of different\" is one, because an offer takes one answer. And they are gained rather than played: these four are the purples and Wound, whose plays resolve a challenge, and a challenge's pass is an ordinary action list that moves the card it belongs to — which would drag the shelf out of the bank. copy: promises not to move a card; it cannot promise that about what the card's own rules do once they are running.",
       "card_stats": { "price": 12 }
@@ -3148,9 +3148,9 @@
       "tooltip": "Defensive disruption: wounds that clog an opponent's bag, and a ward that taxes the whole table.",
       "play": {
         "action": [
-          "fill:mine.bag:hex_of_murkwood:1",
-          "fill:mine.bag:bubble_shield:1",
-          "fill:mine.bag:protective_ward:1",
+          "create:mine.bag:hex_of_murkwood:1",
+          "create:mine.bag:bubble_shield:1",
+          "create:mine.bag:protective_ward:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3168,9 +3168,9 @@
       "tooltip": "Rushdown: burn your own wounds for tempo, ante gems at the other side, and finish with an uncounterable double crash.",
       "play": {
         "action": [
-          "fill:mine.bag:playing_with_fire:1",
-          "fill:mine.bag:burning_vigor:1",
-          "fill:mine.bag:unstable_power:1",
+          "create:mine.bag:playing_with_fire:1",
+          "create:mine.bag:burning_vigor:1",
+          "create:mine.bag:unstable_power:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3188,9 +3188,9 @@
       "tooltip": "An economy engine: trash the chips you have outgrown and buy bigger gems into your hand.",
       "play": {
         "action": [
-          "fill:mine.bag:dragon_form:1",
-          "fill:mine.bag:rigorous_training:1",
-          "fill:mine.bag:purge_bad_habits:1",
+          "create:mine.bag:dragon_form:1",
+          "create:mine.bag:rigorous_training:1",
+          "create:mine.bag:purge_bad_habits:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3208,9 +3208,9 @@
       "tooltip": "Speed: more actions, more chips, and a chip kept back for next turn.",
       "play": {
         "action": [
-          "fill:mine.bag:double_take:1",
-          "fill:mine.bag:bag_of_tricks:1",
-          "fill:mine.bag:speed_of_the_fox:1",
+          "create:mine.bag:double_take:1",
+          "create:mine.bag:bag_of_tricks:1",
+          "create:mine.bag:speed_of_the_fox:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3228,9 +3228,9 @@
       "tooltip": "A gambler happiest near the edge — the fuller your gem pile, the more you draw.",
       "play": {
         "action": [
-          "fill:mine.bag:living_on_the_edge:1",
-          "fill:mine.bag:pandas_bargain:1",
-          "fill:mine.bag:jackpot:1",
+          "create:mine.bag:living_on_the_edge:1",
+          "create:mine.bag:pandas_bargain:1",
+          "create:mine.bag:jackpot:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3248,9 +3248,9 @@
       "tooltip": "A generalist who takes whatever the turn needs, and answers a crash with a crash.",
       "play": {
         "action": [
-          "fill:mine.bag:reversal:1",
-          "fill:mine.bag:martial_mastery:1",
-          "fill:mine.bag:versatile_style:1",
+          "create:mine.bag:reversal:1",
+          "create:mine.bag:martial_mastery:1",
+          "create:mine.bag:versatile_style:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3268,9 +3268,9 @@
       "tooltip": "Stone: turn small gems into big ones and hand the incoming ones straight back.",
       "play": {
         "action": [
-          "fill:mine.bag:stone_wall:1",
-          "fill:mine.bag:big_rocks:1",
-          "fill:mine.bag:strength_of_earth:1",
+          "create:mine.bag:stone_wall:1",
+          "create:mine.bag:big_rocks:1",
+          "create:mine.bag:strength_of_earth:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3288,9 +3288,9 @@
       "tooltip": "A talker: thin your own deck, make the other player answer questions, and take what falls out.",
       "play": {
         "action": [
-          "fill:mine.bag:pilebunker:1",
-          "fill:mine.bag:no_more_lies:1",
-          "fill:mine.bag:troublesome_rhetoric:1",
+          "create:mine.bag:pilebunker:1",
+          "create:mine.bag:no_more_lies:1",
+          "create:mine.bag:troublesome_rhetoric:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3308,9 +3308,9 @@
       "tooltip": "A painter of options — every chip is a choice, and one of them is another whole turn.",
       "play": {
         "action": [
-          "fill:mine.bag:burst_of_speed:1",
-          "fill:mine.bag:chromatic_orb:1",
-          "fill:mine.bag:creative_thoughts:1",
+          "create:mine.bag:burst_of_speed:1",
+          "create:mine.bag:chromatic_orb:1",
+          "create:mine.bag:creative_thoughts:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3328,9 +3328,9 @@
       "tooltip": "Time: put the chips you want back where you will draw them, and pull the ones you need out of the past.",
       "play": {
         "action": [
-          "fill:mine.bag:research_development:1",
-          "fill:mine.bag:future_sight:1",
-          "fill:mine.bag:its_time_for_the_past:1",
+          "create:mine.bag:research_development:1",
+          "create:mine.bag:future_sight:1",
+          "create:mine.bag:its_time_for_the_past:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3348,9 +3348,9 @@
       "tooltip": "Flagstone's mayor: a tax that prices the other side out of the bank, and a question they have to answer for you.",
       "play": {
         "action": [
-          "fill:mine.bag:two_truths:1",
-          "fill:mine.bag:flagstone_tax:1",
-          "fill:mine.bag:patriot_mirror:1",
+          "create:mine.bag:two_truths:1",
+          "create:mine.bag:flagstone_tax:1",
+          "create:mine.bag:patriot_mirror:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3368,9 +3368,9 @@
       "tooltip": "A swordsman's economy: an exact double crash, and a chip pulled back out of the discard the moment you are hit.",
       "play": {
         "action": [
-          "fill:mine.bag:wartime_tactics:1",
-          "fill:mine.bag:double_slash:1",
-          "fill:mine.bag:riposte:1",
+          "create:mine.bag:wartime_tactics:1",
+          "create:mine.bag:double_slash:1",
+          "create:mine.bag:riposte:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3388,9 +3388,9 @@
       "tooltip": "Chaos: every hand at the table thrown away and drawn again, and crashes paid for in gem power.",
       "play": {
         "action": [
-          "fill:mine.bag:crash_bomb:1",
-          "fill:mine.bag:maximum_anarchy:1",
-          "fill:mine.bag:crash_potato:1",
+          "create:mine.bag:crash_bomb:1",
+          "create:mine.bag:maximum_anarchy:1",
+          "create:mine.bag:crash_potato:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3408,9 +3408,9 @@
       "tooltip": "The healer: a gem trimmed off every pile at once, and chips dealt round the table.",
       "play": {
         "action": [
-          "fill:mine.bag:healing_touch:1",
-          "fill:mine.bag:radiant_healing:1",
-          "fill:mine.bag:saving_grace:1",
+          "create:mine.bag:healing_touch:1",
+          "create:mine.bag:radiant_healing:1",
+          "create:mine.bag:saving_grace:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3428,9 +3428,9 @@
       "tooltip": "The shadows: a chip that wounds you for being discarded, and a swarm that empties the other hand.",
       "play": {
         "action": [
-          "fill:mine.bag:shadow_plague:1",
-          "fill:mine.bag:burnbarrow:1",
-          "fill:mine.bag:shadowswarm:1",
+          "create:mine.bag:shadow_plague:1",
+          "create:mine.bag:burnbarrow:1",
+          "create:mine.bag:shadowswarm:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3448,9 +3448,9 @@
       "tooltip": "Precision: any two arrows you like, and a strike that picks what they throw away.",
       "play": {
         "action": [
-          "fill:mine.bag:acrobatics:1",
-          "fill:mine.bag:surgical_strike:1",
-          "fill:mine.bag:stunlock:1",
+          "create:mine.bag:acrobatics:1",
+          "create:mine.bag:surgical_strike:1",
+          "create:mine.bag:stunlock:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3468,9 +3468,9 @@
       "tooltip": "The brute: paid for a heavy gem pile, and small gems traded up for bigger ones.",
       "play": {
         "action": [
-          "fill:mine.bag:giant_growth:1",
-          "fill:mine.bag:beast_unleashed:1",
-          "fill:mine.bag:more_shiny:1",
+          "create:mine.bag:giant_growth:1",
+          "create:mine.bag:beast_unleashed:1",
+          "create:mine.bag:more_shiny:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3488,9 +3488,9 @@
       "tooltip": "Control: wounds pushed into their bag, and a chip drawn for every one already lying in a discard pile.",
       "play": {
         "action": [
-          "fill:mine.bag:pleasure_and_pain:1",
-          "fill:mine.bag:mistress_command:1",
-          "fill:mine.bag:always_in_control:1",
+          "create:mine.bag:pleasure_and_pain:1",
+          "create:mine.bag:mistress_command:1",
+          "create:mine.bag:always_in_control:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3508,9 +3508,9 @@
       "tooltip": "A machine: a punch that answers being punched, and an engine that pays a little every turn.",
       "play": {
         "action": [
-          "fill:mine.bag:rocket_punch:1",
-          "fill:mine.bag:upgrade:1",
-          "fill:mine.bag:cog_engine:1",
+          "create:mine.bag:rocket_punch:1",
+          "create:mine.bag:upgrade:1",
+          "create:mine.bag:cog_engine:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",
@@ -3528,9 +3528,9 @@
       "tooltip": "Death: their largest gem taken out of their hand, and a bank stack removed from the game.",
       "play": {
         "action": [
-          "fill:mine.bag:deathstrike_dragon:1",
-          "fill:mine.bag:bonecracker:1",
-          "fill:mine.bag:into_oblivion:1",
+          "create:mine.bag:deathstrike_dragon:1",
+          "create:mine.bag:bonecracker:1",
+          "create:mine.bag:into_oblivion:1",
           "take:bank.crash_gem:mine.bag:1",
           "take:bank.gem_1:mine.bag:6",
           "set_name:mine.player:text@self",

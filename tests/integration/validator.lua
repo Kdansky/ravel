@@ -42,9 +42,9 @@ local CASES = {
 	{ "cards taken out of origin by take", "cannot take cards out of 'origin'",
 		function(g) g.card_defs.c_flee.on_play = { "take:origin:hand" } end },
 	{ "a destroy and a fill that are one move", "written as a death and a birth",
-		function(g) g.card_defs.c_flee.on_play = { "destroy:board.pearl:1", "fill:board:pearl:1" } end },
+		function(g) g.card_defs.c_flee.on_play = { "destroy:board.pearl:1", "create:board:pearl:1" } end },
 	{ "a fill and a spend that are one take", "written as a birth and a payment",
-		function(g) g.card_defs.c_flee.on_play = { "stat_damage:stock@board.pearl:1", "fill:board:pearl:1" } end },
+		function(g) g.card_defs.c_flee.on_play = { "stat_damage:stock@board.pearl:1", "create:board:pearl:1" } end },
 	-- abilities with nowhere to be used
 	{ "an ability in a game that allows none", 'no zone is tagged "activate"',
 		function(g) for _, z in pairs(g.zone_defs) do z.use = nil end
@@ -104,7 +104,7 @@ local CASES = {
 	{ "a scope that is neither zone nor tag", "which is neither a zone nor a tag",
 		function(g) g.card_defs.c_flee.on_play = { "move:nowhere:hand" } end },
 	{ "an amount that is not one", "takes an amount, and", 
-		function(g) g.card_defs.c_flee.on_play = { "fill:hand:pearl:lots" } end },
+		function(g) g.card_defs.c_flee.on_play = { "create:hand:pearl:lots" } end },
 	{ "a card handed to nobody", "which is neither a seat nor",
 		function(g) g.card_defs.c_flee.on_play = { "set_owner:self:nobody" } end },
 	{ "cards taken out of origin", "cannot take cards out of 'origin'",
@@ -259,7 +259,7 @@ local CASES = {
 	{ "an action pointing at a missing zone", "points at zone 'vault'",
 		function(g) g.card_defs.c_flee.on_play = { "draw_from:vault:hand:1" } end },
 	{ "a fill of a missing card", "names the card 'excalibur'",
-		function(g) g.card_defs.c_flee.on_play = { "fill:hand:excalibur:1" } end },
+		function(g) g.card_defs.c_flee.on_play = { "create:hand:excalibur:1" } end },
 	{ "a push_phase to a missing phase", "points at phase 'finale'",
 		function(g) g.card_defs.c_flee.on_play = { "push_phase:finale" } end },
 	{ "a load_game path-traversal attempt", "no folders or '..' are allowed",
@@ -1074,9 +1074,9 @@ function M.test_validator_reads_fills_scope_form(check)
 			{ "key": "hand", "layout": "row" }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "thing", "text": "Thing", "abilities": [
-			{ "key": "ok",   "action": ["fill:hand:@self:1"] },
-			{ "key": "bad",  "action": ["fill:hand:@nowhere:1"] },
-			{ "key": "typo", "action": ["fill:hand:thign:1"] }] }]
+			{ "key": "ok",   "action": ["create:hand:@self:1"] },
+			{ "key": "bad",  "action": ["create:hand:@nowhere:1"] },
+			{ "key": "typo", "action": ["create:hand:thign:1"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_fill_scope.json")
@@ -1137,7 +1137,7 @@ function M.test_validator_holds_a_supply_to_its_promise(check)
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "gem", "text": "Gem", "tags": ["gem"], "abilities": [
 			{ "key": "a", "action": ["draw_from:shop:hand:1"] },
-			{ "key": "b", "cost": { "stock@self": 1 }, "action": ["fill:hand:@self:1"] },
+			{ "key": "b", "cost": { "stock@self": 1 }, "action": ["create:hand:@self:1"] },
 			{ "key": "c", "action": ["move:shop:hand"] }] }]
 	}]==])
 	f:close()

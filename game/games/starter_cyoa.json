@@ -28,7 +28,7 @@
       "key": "p_start",
       "text": "TODO: Opening Page Title",
       "story": "TODO: your opening paragraph. The player reads this, clicks to continue, and receives the choices below in hand.",
-      "play": { "action": ["fill:hand:c_look:1", "fill:hand:c_leave:1"] }
+      "play": { "action": ["create:hand:c_look:1", "create:hand:c_leave:1"] }
     },
     {
       "key": "c_look",
@@ -54,7 +54,7 @@
       "text": "TODO: A page that gives an item",
       "story": "TODO: describe finding the key. It lands on the keepsake board because its tag's home zone says so. Note the destroy:hand opener — every page that deals new choices needs it, or old choices pile up.",
       "play": {
-        "action": ["destroy:hand", "fill:board:the_key:1", "fill:hand:c_leave:1", "fill:hand:c_gamble:1"]
+        "action": ["destroy:hand", "create:board:the_key:1", "create:hand:c_leave:1", "create:hand:c_gamble:1"]
       }
     },
     {

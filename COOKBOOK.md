@@ -537,10 +537,10 @@ market row refills without any condition asking what was bought.
 ### Put two skeletons into your army.
 
 ```json
-"action": ["fill:mine.army:skeleton:2"]
+"action": ["create:mine.army:skeleton:2"]
 ```
 
-`fill` **makes** cards out of nothing, which is what a token is. It is not "top up to two".
+`create` **makes** cards out of nothing, which is what a token is: two more, never up to two.
 
 ### Take control of the target.
 

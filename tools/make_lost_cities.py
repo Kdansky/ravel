@@ -303,7 +303,7 @@ def phases():
     # cycle of its own, closed by south_draw routing back to north_play.
     out = [{"key": "setup", "type": "automatic",
             "actions": ["draw_from:deck:mine.hand:8", "draw_from:deck:enemy.hand:8",
-                        "fill:mode:mode_local:1", "fill:mode:mode_online:1",
+                        "create:mode:mode_local:1", "create:mode:mode_online:1",
                         "push_phase:mode"]}]
 
     # A turn is play-then-draw, and there is exactly one of each. Both seats

@@ -264,7 +264,7 @@ local SHOP = [==[{
   "tags": {
     "for_sale": { "abilities": [
       { "key": "buy", "text": "Buy it", "merge": "this",
-        "action": ["stat_gain:bought@self:1", "fill:hand:@self:1"] }] },
+        "action": ["stat_gain:bought@self:1", "create:hand:@self:1"] }] },
     "odd_job": { "abilities": [
       { "key": "scrap", "text": "Scrap it", "merge": "other", "action": ["stat_gain:scrapped@self:1"] }] },
     "takeable": { "abilities": [

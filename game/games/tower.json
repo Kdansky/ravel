@@ -31,7 +31,7 @@
       "key": "p_shore",
       "text": "The Black Shingle",
       "story": "The ferryman will not wait. He leaves you on the black shingle as the light goes, and rows back toward the living shore without once turning his head. Out in the lake the drowned tower stands hip-deep in its own reflection: an iron-bound door crusted shut at the waterline, and high above it a gallery window, gaping like a pulled tooth.",
-      "play": { "action": ["fill:hand:c_search:1", "fill:hand:c_door:1", "fill:hand:c_climb:1"] }
+      "play": { "action": ["create:hand:c_search:1", "create:hand:c_door:1", "create:hand:c_climb:1"] }
     },
     {
       "key": "p_beach",
@@ -40,10 +40,10 @@
       "play": {
         "action": [
           "destroy:hand",
-          "fill:board:rusty_key:1",
-          "fill:board:lantern:1",
-          "fill:hand:c_door:1",
-          "fill:hand:c_climb:1"
+          "create:board:rusty_key:1",
+          "create:board:lantern:1",
+          "create:hand:c_door:1",
+          "create:hand:c_climb:1"
         ]
       }
     },
@@ -57,19 +57,19 @@
       "key": "p_hall",
       "text": "The Flooded Hall",
       "story": "The key turns with a snap like old bone, and the door lets you into a hall ankle-deep in still water. A stair winds up into dark and down into darker. On the dry landing between them sits a sea-chest, unlocked — which is never a good sign.",
-      "play": { "action": ["destroy:hand", "fill:hand:c_chest:1", "fill:hand:c_descend:1"] }
+      "play": { "action": ["destroy:hand", "create:hand:c_chest:1", "create:hand:c_descend:1"] }
     },
     {
       "key": "p_gallery",
       "text": "Over the Sill",
       "story": "You go up the outside of the tower the hard way, palms raw on wet stone, and haul yourself over the gallery sill before your arms give out. Below you the flooded hall glimmers: a stair descending into black water, and on the landing a sea-chest, unlocked — which is never a good sign.",
-      "play": { "action": ["destroy:hand", "fill:hand:c_chest:1", "fill:hand:c_descend:1"] }
+      "play": { "action": ["destroy:hand", "create:hand:c_chest:1", "create:hand:c_descend:1"] }
     },
     {
       "key": "p_chest_pearl",
       "text": "Under the Oilcloth",
       "story": "Under a fold of oilcloth, nested like an egg: a pearl the size of a knuckle, cold as the lake and just as patient. It hums faintly against your palm, in a pitch you feel rather than hear.",
-      "play": { "action": ["fill:board:pearl:1"] }
+      "play": { "action": ["create:board:pearl:1"] }
     },
     {
       "key": "p_chest_mimic",
@@ -81,14 +81,14 @@
       "key": "p_stair_lit",
       "text": "The Pilot's Trick",
       "story": "Lantern light slides down the steps and shows you the trick: the stair only seems drowned. Angled glass, an old lake-pilot's mirror-work, keeps the water standing aside like a held breath. You walk down dry between the mirrors, all the way to the bell room.",
-      "play": { "action": ["destroy:hand", "fill:hand:c_bell:1", "fill:hand:c_flee:1"] }
+      "play": { "action": ["destroy:hand", "create:hand:c_bell:1", "create:hand:c_flee:1"] }
     },
     {
       "key": "p_stair_dark",
       "text": "Down in the Dark",
       "story": "You feel your way down step by step in the pitch dark. Something thin and sharp — glass? mirrors? — gashes your shins twice before the stair spits you, bleeding, into the bell room.",
       "play": {
-        "action": ["stat_damage:hp:2", "destroy:hand", "fill:hand:c_bell:1", "fill:hand:c_flee:1"]
+        "action": ["stat_damage:hp:2", "destroy:hand", "create:hand:c_bell:1", "create:hand:c_flee:1"]
       }
     },
     {

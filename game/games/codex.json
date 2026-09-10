@@ -3695,7 +3695,7 @@
             "t1_ever@mine.player == 0"
           ],
           "action": [
-            "fill:mine.site:tech_1:1",
+            "create:mine.site:tech_1:1",
             "stat_set:t1_ever@mine.player:1"
           ]
         },
@@ -3712,7 +3712,7 @@
             "t1_ever@mine.player >= 1"
           ],
           "action": [
-            "fill:mine.site:tech_1:1"
+            "create:mine.site:tech_1:1"
           ]
         }
       ]
@@ -3743,7 +3743,7 @@
             "t2_ever@mine.player == 0"
           ],
           "action": [
-            "fill:mine.site:tech_2:1",
+            "create:mine.site:tech_2:1",
             "stat_set:t2_ever@mine.player:1"
           ]
         },
@@ -3761,7 +3761,7 @@
             "t2_ever@mine.player >= 1"
           ],
           "action": [
-            "fill:mine.site:tech_2:1"
+            "create:mine.site:tech_2:1"
           ]
         }
       ]
@@ -3792,7 +3792,7 @@
             "t3_ever@mine.player == 0"
           ],
           "action": [
-            "fill:mine.site:tech_3:1",
+            "create:mine.site:tech_3:1",
             "stat_set:t3_ever@mine.player:1"
           ]
         },
@@ -3810,7 +3810,7 @@
             "t3_ever@mine.player >= 1"
           ],
           "action": [
-            "fill:mine.site:tech_3:1"
+            "create:mine.site:tech_3:1"
           ]
         }
       ]
@@ -3836,7 +3836,7 @@
             "count:attachment@mine.site == 0"
           ],
           "action": [
-            "fill:mine.site:surplus:1"
+            "create:mine.site:surplus:1"
           ]
         }
       ]
@@ -3862,7 +3862,7 @@
             "count:attachment@mine.site == 0"
           ],
           "action": [
-            "fill:mine.site:tower:1"
+            "create:mine.site:tower:1"
           ]
         }
       ]
@@ -5714,7 +5714,7 @@
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army",
-            "fill:mine.army:wisp:1"
+            "create:mine.army:wisp:1"
           ]
         },
         {
@@ -5787,7 +5787,7 @@
             "stat_gain:level@self:1",
             "stat_set:atk@self:1",
             "stat_set:life@self:5",
-            "fill:mine.army:water_elemental:1"
+            "create:mine.army:water_elemental:1"
           ]
         },
         {
@@ -7846,7 +7846,7 @@
             "level@self >= 8"
           ],
           "action": [
-            "fill:mine.army:blue_soldier:3"
+            "create:mine.army:blue_soldier:3"
           ]
         }
       ]
@@ -7897,7 +7897,7 @@
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army",
-            "fill:mine.army:mirror:1"
+            "create:mine.army:mirror:1"
           ]
         },
         {
@@ -7986,7 +7986,7 @@
             "count:mirror@mine.army <= 1"
           ],
           "action": [
-            "fill:mine.army:mirror:1"
+            "create:mine.army:mirror:1"
           ]
         }
       ]
@@ -8299,7 +8299,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "fill:mine.army:white_bird:2",
+          "create:mine.army:white_bird:2",
           "move_to:mine.ongoing"
         ]
       }
@@ -8433,7 +8433,7 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "fill:mine.army:skeleton:1"
+            "create:mine.army:skeleton:1"
           ]
         }
       ]
@@ -9496,7 +9496,7 @@
         },
         "spent": "mine.discard",
         "action": [
-          "fill:mine.army:ninja:4",
+          "create:mine.army:ninja:4",
           "stat_set:ready_since@each.mine.ninja:1"
         ]
       }
@@ -9970,7 +9970,7 @@
           "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "fill:mine.army:daigo:1"
+          "create:mine.army:daigo:1"
         ]
       }
     },
@@ -10087,7 +10087,7 @@
           "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "fill:mine.army:stinger:5"
+          "create:mine.army:stinger:5"
         ]
       }
     },
@@ -10282,7 +10282,7 @@
           "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "fill:mine.army:ninja:4"
+          "create:mine.army:ninja:4"
         ]
       }
     },
@@ -10450,9 +10450,9 @@
         "spent": "mine.discard",
         "action": [
           "harm:integrity@mine.base:4",
-          "fill:mine.army:skeleton:1",
-          "fill:mine.army:black_zombie:1",
-          "fill:mine.army:black_demon:1",
+          "create:mine.army:skeleton:1",
+          "create:mine.army:black_zombie:1",
+          "create:mine.army:black_demon:1",
           "activate_zone:rules_death"
         ]
       }
@@ -12854,7 +12854,7 @@
         },
         "spent": "mine.discard",
         "action": [
-          "fill:mine.army:skeleton:2"
+          "create:mine.army:skeleton:2"
         ]
       }
     },
@@ -13004,7 +13004,7 @@
           "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "fill:enemy.army:warlock:4"
+          "create:enemy.army:warlock:4"
         ]
       },
       "abilities": [
@@ -14747,7 +14747,7 @@
             "level@self <= 3"
           ],
           "action": [
-            "fill:mine.army:skeleton:1"
+            "create:mine.army:skeleton:1"
           ]
         },
         {
@@ -15548,7 +15548,7 @@
             "level@self >= 7"
           ],
           "action": [
-            "fill:mine.soon:mech:1",
+            "create:mine.soon:mech:1",
             "stat_set:time@each.mine.soon:2"
           ]
         }
@@ -15874,29 +15874,29 @@
       "tooltip": "Red. Wild, fast and destructive: haste, stolen units, and a gunship.",
       "play": {
         "action": [
-          "fill:mine.deck:nautical_dog:1",
-          "fill:mine.deck:mad_man:1",
-          "fill:mine.deck:bombaster:1",
-          "fill:mine.deck:careless_musketeer:1",
-          "fill:mine.deck:bloodrage_ogre:1",
-          "fill:mine.deck:makeshift_rambaster:1",
-          "fill:mine.deck:bloodburn:1",
-          "fill:mine.deck:scorch:1",
-          "fill:mine.deck:charge:1",
-          "fill:mine.deck:pillage:1",
-          "fill:mine.codex:calypso_vystari:2",
-          "fill:mine.codex:gunpoint_taxman:2",
-          "fill:mine.codex:chameleon_lizzo:2",
-          "fill:mine.codex:disguised_monkey:2",
-          "fill:mine.codex:marauder:2",
-          "fill:mine.codex:sanatorium:2",
-          "fill:mine.codex:steam_tank:2",
-          "fill:mine.codex:pirate_gunship:2",
-          "fill:mine.codex:chaos_mirror:2",
-          "fill:mine.codex:detonate:2",
-          "fill:mine.codex:surprise_attack:2",
-          "fill:mine.codex:maximum_anarchy:2",
-          "fill:mine.command:zane:1",
+          "create:mine.deck:nautical_dog:1",
+          "create:mine.deck:mad_man:1",
+          "create:mine.deck:bombaster:1",
+          "create:mine.deck:careless_musketeer:1",
+          "create:mine.deck:bloodrage_ogre:1",
+          "create:mine.deck:makeshift_rambaster:1",
+          "create:mine.deck:bloodburn:1",
+          "create:mine.deck:scorch:1",
+          "create:mine.deck:charge:1",
+          "create:mine.deck:pillage:1",
+          "create:mine.codex:calypso_vystari:2",
+          "create:mine.codex:gunpoint_taxman:2",
+          "create:mine.codex:chameleon_lizzo:2",
+          "create:mine.codex:disguised_monkey:2",
+          "create:mine.codex:marauder:2",
+          "create:mine.codex:sanatorium:2",
+          "create:mine.codex:steam_tank:2",
+          "create:mine.codex:pirate_gunship:2",
+          "create:mine.codex:chaos_mirror:2",
+          "create:mine.codex:detonate:2",
+          "create:mine.codex:surprise_attack:2",
+          "create:mine.codex:maximum_anarchy:2",
+          "create:mine.command:zane:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -15911,29 +15911,29 @@
       "tooltip": "Red. Ogres, contraptions and a pirate gang: throw bodies at the problem.",
       "play": {
         "action": [
-          "fill:mine.deck:nautical_dog:1",
-          "fill:mine.deck:mad_man:1",
-          "fill:mine.deck:bombaster:1",
-          "fill:mine.deck:careless_musketeer:1",
-          "fill:mine.deck:bloodrage_ogre:1",
-          "fill:mine.deck:makeshift_rambaster:1",
-          "fill:mine.deck:bloodburn:1",
-          "fill:mine.deck:scorch:1",
-          "fill:mine.deck:charge:1",
-          "fill:mine.deck:pillage:1",
-          "fill:mine.codex:crash_bomber:2",
-          "fill:mine.codex:rickety_mine:2",
-          "fill:mine.codex:captured_bugblatter:2",
-          "fill:mine.codex:crashbarrow:2",
-          "fill:mine.codex:land_octopus:2",
-          "fill:mine.codex:ogre_recruiter:2",
-          "fill:mine.codex:shoddy_glider:2",
-          "fill:mine.codex:pirategang_commander:2",
-          "fill:mine.codex:bloodlust:2",
-          "fill:mine.codex:desperation:2",
-          "fill:mine.codex:kidnapping:2",
-          "fill:mine.codex:war_drums:2",
-          "fill:mine.command:drakk:1",
+          "create:mine.deck:nautical_dog:1",
+          "create:mine.deck:mad_man:1",
+          "create:mine.deck:bombaster:1",
+          "create:mine.deck:careless_musketeer:1",
+          "create:mine.deck:bloodrage_ogre:1",
+          "create:mine.deck:makeshift_rambaster:1",
+          "create:mine.deck:bloodburn:1",
+          "create:mine.deck:scorch:1",
+          "create:mine.deck:charge:1",
+          "create:mine.deck:pillage:1",
+          "create:mine.codex:crash_bomber:2",
+          "create:mine.codex:rickety_mine:2",
+          "create:mine.codex:captured_bugblatter:2",
+          "create:mine.codex:crashbarrow:2",
+          "create:mine.codex:land_octopus:2",
+          "create:mine.codex:ogre_recruiter:2",
+          "create:mine.codex:shoddy_glider:2",
+          "create:mine.codex:pirategang_commander:2",
+          "create:mine.codex:bloodlust:2",
+          "create:mine.codex:desperation:2",
+          "create:mine.codex:kidnapping:2",
+          "create:mine.codex:war_drums:2",
+          "create:mine.command:drakk:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -15948,29 +15948,29 @@
       "tooltip": "Red. Burn: reach past the patrol zone and finish with a dragon.",
       "play": {
         "action": [
-          "fill:mine.deck:nautical_dog:1",
-          "fill:mine.deck:mad_man:1",
-          "fill:mine.deck:bombaster:1",
-          "fill:mine.deck:careless_musketeer:1",
-          "fill:mine.deck:bloodrage_ogre:1",
-          "fill:mine.deck:makeshift_rambaster:1",
-          "fill:mine.deck:bloodburn:1",
-          "fill:mine.deck:scorch:1",
-          "fill:mine.deck:charge:1",
-          "fill:mine.deck:pillage:1",
-          "fill:mine.codex:firebat:2",
-          "fill:mine.codex:lobber:2",
-          "fill:mine.codex:bamstamper_lizzo:2",
-          "fill:mine.codex:doubleshot_archer:2",
-          "fill:mine.codex:firehouse:2",
-          "fill:mine.codex:hotter_fire:2",
-          "fill:mine.codex:molting_firebird:2",
-          "fill:mine.codex:cinderblast_dragon:2",
-          "fill:mine.codex:ember_sparks:2",
-          "fill:mine.codex:fire_dart:2",
-          "fill:mine.codex:flame_arrow:2",
-          "fill:mine.codex:burning_volley:2",
-          "fill:mine.command:jaina:1",
+          "create:mine.deck:nautical_dog:1",
+          "create:mine.deck:mad_man:1",
+          "create:mine.deck:bombaster:1",
+          "create:mine.deck:careless_musketeer:1",
+          "create:mine.deck:bloodrage_ogre:1",
+          "create:mine.deck:makeshift_rambaster:1",
+          "create:mine.deck:bloodburn:1",
+          "create:mine.deck:scorch:1",
+          "create:mine.deck:charge:1",
+          "create:mine.deck:pillage:1",
+          "create:mine.codex:firebat:2",
+          "create:mine.codex:lobber:2",
+          "create:mine.codex:bamstamper_lizzo:2",
+          "create:mine.codex:doubleshot_archer:2",
+          "create:mine.codex:firehouse:2",
+          "create:mine.codex:hotter_fire:2",
+          "create:mine.codex:molting_firebird:2",
+          "create:mine.codex:cinderblast_dragon:2",
+          "create:mine.codex:ember_sparks:2",
+          "create:mine.codex:fire_dart:2",
+          "create:mine.codex:flame_arrow:2",
+          "create:mine.codex:burning_volley:2",
+          "create:mine.command:jaina:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -15985,29 +15985,29 @@
       "tooltip": "Green. Odd shapes and a tyrannosaur: answers for everything.",
       "play": {
         "action": [
-          "fill:mine.deck:ironbark_treant:1",
-          "fill:mine.deck:merfolk_prospector:1",
-          "fill:mine.deck:playful_panda:1",
-          "fill:mine.deck:rich_earth:1",
-          "fill:mine.deck:spore_shambler:1",
-          "fill:mine.deck:tiger_cub:1",
-          "fill:mine.deck:verdant_tree:1",
-          "fill:mine.deck:young_treant:1",
-          "fill:mine.deck:forests_favor:1",
-          "fill:mine.deck:rampant_growth:1",
-          "fill:mine.codex:gemscout_owl:2",
-          "fill:mine.codex:tiny_basilisk:2",
-          "fill:mine.codex:chameleon:2",
-          "fill:mine.codex:dothram_horselord:2",
-          "fill:mine.codex:fairie_dragon:2",
-          "fill:mine.codex:potent_basilisk:2",
-          "fill:mine.codex:wandering_mimic:2",
-          "fill:mine.codex:tyrannosaurus_rex:2",
-          "fill:mine.codex:circle_of_life:2",
-          "fill:mine.codex:moments_peace:2",
-          "fill:mine.codex:nature_reclaims:2",
-          "fill:mine.codex:final_showdown:2",
-          "fill:mine.command:midori:1",
+          "create:mine.deck:ironbark_treant:1",
+          "create:mine.deck:merfolk_prospector:1",
+          "create:mine.deck:playful_panda:1",
+          "create:mine.deck:rich_earth:1",
+          "create:mine.deck:spore_shambler:1",
+          "create:mine.deck:tiger_cub:1",
+          "create:mine.deck:verdant_tree:1",
+          "create:mine.deck:young_treant:1",
+          "create:mine.deck:forests_favor:1",
+          "create:mine.deck:rampant_growth:1",
+          "create:mine.codex:gemscout_owl:2",
+          "create:mine.codex:tiny_basilisk:2",
+          "create:mine.codex:chameleon:2",
+          "create:mine.codex:dothram_horselord:2",
+          "create:mine.codex:fairie_dragon:2",
+          "create:mine.codex:potent_basilisk:2",
+          "create:mine.codex:wandering_mimic:2",
+          "create:mine.codex:tyrannosaurus_rex:2",
+          "create:mine.codex:circle_of_life:2",
+          "create:mine.codex:moments_peace:2",
+          "create:mine.codex:nature_reclaims:2",
+          "create:mine.codex:final_showdown:2",
+          "create:mine.command:midori:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -16022,29 +16022,29 @@
       "tooltip": "Green. Big animals, and tigers that arrive out of the codex.",
       "play": {
         "action": [
-          "fill:mine.deck:ironbark_treant:1",
-          "fill:mine.deck:merfolk_prospector:1",
-          "fill:mine.deck:playful_panda:1",
-          "fill:mine.deck:rich_earth:1",
-          "fill:mine.deck:spore_shambler:1",
-          "fill:mine.deck:tiger_cub:1",
-          "fill:mine.deck:verdant_tree:1",
-          "fill:mine.deck:young_treant:1",
-          "fill:mine.deck:forests_favor:1",
-          "fill:mine.deck:rampant_growth:1",
-          "fill:mine.codex:centaur:2",
-          "fill:mine.codex:huntress:2",
-          "fill:mine.codex:barkcoat_bear:2",
-          "fill:mine.codex:gigadon:2",
-          "fill:mine.codex:predator_tiger:2",
-          "fill:mine.codex:rampaging_elephant:2",
-          "fill:mine.codex:stalking_tiger:2",
-          "fill:mine.codex:moss_ancient:2",
-          "fill:mine.codex:behind_the_ferns:2",
-          "fill:mine.codex:ferocity:2",
-          "fill:mine.codex:murkwood_allies:2",
-          "fill:mine.codex:feral_strike:2",
-          "fill:mine.command:calamandra:1",
+          "create:mine.deck:ironbark_treant:1",
+          "create:mine.deck:merfolk_prospector:1",
+          "create:mine.deck:playful_panda:1",
+          "create:mine.deck:rich_earth:1",
+          "create:mine.deck:spore_shambler:1",
+          "create:mine.deck:tiger_cub:1",
+          "create:mine.deck:verdant_tree:1",
+          "create:mine.deck:young_treant:1",
+          "create:mine.deck:forests_favor:1",
+          "create:mine.deck:rampant_growth:1",
+          "create:mine.codex:centaur:2",
+          "create:mine.codex:huntress:2",
+          "create:mine.codex:barkcoat_bear:2",
+          "create:mine.codex:gigadon:2",
+          "create:mine.codex:predator_tiger:2",
+          "create:mine.codex:rampaging_elephant:2",
+          "create:mine.codex:stalking_tiger:2",
+          "create:mine.codex:moss_ancient:2",
+          "create:mine.codex:behind_the_ferns:2",
+          "create:mine.codex:ferocity:2",
+          "create:mine.codex:murkwood_allies:2",
+          "create:mine.codex:feral_strike:2",
+          "create:mine.command:calamandra:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -16059,29 +16059,29 @@
       "tooltip": "Green. Runes, tokens and steady growth into an enormous ancient.",
       "play": {
         "action": [
-          "fill:mine.deck:ironbark_treant:1",
-          "fill:mine.deck:merfolk_prospector:1",
-          "fill:mine.deck:playful_panda:1",
-          "fill:mine.deck:rich_earth:1",
-          "fill:mine.deck:spore_shambler:1",
-          "fill:mine.deck:tiger_cub:1",
-          "fill:mine.deck:verdant_tree:1",
-          "fill:mine.deck:young_treant:1",
-          "fill:mine.deck:forests_favor:1",
-          "fill:mine.deck:rampant_growth:1",
-          "fill:mine.codex:galina_glimmer:2",
-          "fill:mine.codex:giant_panda:2",
-          "fill:mine.codex:artisan_mantis:2",
-          "fill:mine.codex:blooming_ancient:2",
-          "fill:mine.codex:blooming_elm:2",
-          "fill:mine.codex:might_of_leaf_and_claw:2",
-          "fill:mine.codex:oversized_rhinoceros:2",
-          "fill:mine.codex:guargum:2",
-          "fill:mine.codex:dinosize:2",
-          "fill:mine.codex:polymorph_squirrel:2",
-          "fill:mine.codex:spirit_of_the_panda:2",
-          "fill:mine.codex:stampede:2",
-          "fill:mine.command:argagarg:1",
+          "create:mine.deck:ironbark_treant:1",
+          "create:mine.deck:merfolk_prospector:1",
+          "create:mine.deck:playful_panda:1",
+          "create:mine.deck:rich_earth:1",
+          "create:mine.deck:spore_shambler:1",
+          "create:mine.deck:tiger_cub:1",
+          "create:mine.deck:verdant_tree:1",
+          "create:mine.deck:young_treant:1",
+          "create:mine.deck:forests_favor:1",
+          "create:mine.deck:rampant_growth:1",
+          "create:mine.codex:galina_glimmer:2",
+          "create:mine.codex:giant_panda:2",
+          "create:mine.codex:artisan_mantis:2",
+          "create:mine.codex:blooming_ancient:2",
+          "create:mine.codex:blooming_elm:2",
+          "create:mine.codex:might_of_leaf_and_claw:2",
+          "create:mine.codex:oversized_rhinoceros:2",
+          "create:mine.codex:guargum:2",
+          "create:mine.codex:dinosize:2",
+          "create:mine.codex:polymorph_squirrel:2",
+          "create:mine.codex:spirit_of_the_panda:2",
+          "create:mine.codex:stampede:2",
+          "create:mine.command:argagarg:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -16971,7 +16971,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "fill:mine.army:shark:2"
+          "create:mine.army:shark:2"
         ],
         "spent": "mine.discard"
       }
@@ -17400,7 +17400,7 @@
         "action": [
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "fill:mine.army:pirate_token:3"
+          "create:mine.army:pirate_token:3"
         ]
       }
     },
@@ -18091,7 +18091,7 @@
         "action": [
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "fill:mine.army:wisp:1"
+          "create:mine.army:wisp:1"
         ]
       }
     },
@@ -18834,7 +18834,7 @@
           "stat_gain:atk@target:3",
           "stat_boost:life@target:3",
           "stat_gain:life@target:3",
-          "fill:enemy.army:hunter_token:2",
+          "create:enemy.army:hunter_token:2",
           "move_to:mine.ongoing",
           "attach_to_target"
         ]
@@ -19118,7 +19118,7 @@
         "action": [
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "fill:mine.army:squirrel:3"
+          "create:mine.army:squirrel:3"
         ]
       },
       "abilities": [
@@ -19130,7 +19130,7 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "fill:mine.army:squirrel:3",
+            "create:mine.army:squirrel:3",
             "stat_set:ready_since@each.mine.squirrel:1",
             "stat_set:unseen@each.mine.squirrel:1"
           ]
@@ -19249,7 +19249,7 @@
       "tooltip": "Summon a 4/4 green Beast token.",
       "play": {
         "action": [
-          "fill:mine.army:beast_token:1"
+          "create:mine.army:beast_token:1"
         ]
       }
     },
@@ -19263,7 +19263,7 @@
       "tooltip": "Summon four 1/1 green Frog tokens.",
       "play": {
         "action": [
-          "fill:mine.army:frog:4"
+          "create:mine.army:frog:4"
         ]
       }
     },
@@ -19280,8 +19280,8 @@
           "gold@mine.player": 4
         },
         "action": [
-          "fill:mine.army:beast_token:1",
-          "fill:mine.army:frog:4"
+          "create:mine.army:beast_token:1",
+          "create:mine.army:frog:4"
         ]
       }
     },
@@ -19416,7 +19416,7 @@
         "action": [
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "fill:mine.army:wisp:1"
+          "create:mine.army:wisp:1"
         ]
       }
     },
@@ -19890,29 +19890,29 @@
       "tooltip": "Blue. Order: tax, arrest, and a gryphon that ends it.",
       "play": {
         "action": [
-          "fill:mine.deck:bluecoat_musketeer:1",
-          "fill:mine.deck:building_inspector:1",
-          "fill:mine.deck:jail:1",
-          "fill:mine.deck:porkhand_magistrate:1",
-          "fill:mine.deck:reputable_newsman:1",
-          "fill:mine.deck:spectral_aven:1",
-          "fill:mine.deck:traffic_director:1",
-          "fill:mine.deck:arrest:1",
-          "fill:mine.deck:lawful_search:1",
-          "fill:mine.deck:manufactured_truth:1",
-          "fill:mine.codex:scribe:2",
-          "fill:mine.codex:tax_collector:2",
-          "fill:mine.codex:arresting_constable:2",
-          "fill:mine.codex:censorship_council:2",
-          "fill:mine.codex:guardian_of_the_gates:2",
-          "fill:mine.codex:insurance_agent:2",
-          "fill:mine.codex:justice_juggernaut:2",
-          "fill:mine.codex:lawbringer_gryphon:2",
-          "fill:mine.codex:community_service:2",
-          "fill:mine.codex:injunction:2",
-          "fill:mine.codex:jurisdiction:2",
-          "fill:mine.codex:judgment_day:2",
-          "fill:mine.command:bigby:1",
+          "create:mine.deck:bluecoat_musketeer:1",
+          "create:mine.deck:building_inspector:1",
+          "create:mine.deck:jail:1",
+          "create:mine.deck:porkhand_magistrate:1",
+          "create:mine.deck:reputable_newsman:1",
+          "create:mine.deck:spectral_aven:1",
+          "create:mine.deck:traffic_director:1",
+          "create:mine.deck:arrest:1",
+          "create:mine.deck:lawful_search:1",
+          "create:mine.deck:manufactured_truth:1",
+          "create:mine.codex:scribe:2",
+          "create:mine.codex:tax_collector:2",
+          "create:mine.codex:arresting_constable:2",
+          "create:mine.codex:censorship_council:2",
+          "create:mine.codex:guardian_of_the_gates:2",
+          "create:mine.codex:insurance_agent:2",
+          "create:mine.codex:justice_juggernaut:2",
+          "create:mine.codex:lawbringer_gryphon:2",
+          "create:mine.codex:community_service:2",
+          "create:mine.codex:injunction:2",
+          "create:mine.codex:jurisdiction:2",
+          "create:mine.codex:judgment_day:2",
+          "create:mine.command:bigby:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -19927,29 +19927,29 @@
       "tooltip": "Blue. An army that grows every time you play a unit.",
       "play": {
         "action": [
-          "fill:mine.deck:bluecoat_musketeer:1",
-          "fill:mine.deck:building_inspector:1",
-          "fill:mine.deck:jail:1",
-          "fill:mine.deck:porkhand_magistrate:1",
-          "fill:mine.deck:reputable_newsman:1",
-          "fill:mine.deck:spectral_aven:1",
-          "fill:mine.deck:traffic_director:1",
-          "fill:mine.deck:arrest:1",
-          "fill:mine.deck:lawful_search:1",
-          "fill:mine.deck:manufactured_truth:1",
-          "fill:mine.codex:overeager_cadet:2",
-          "fill:mine.codex:brave_knight:2",
-          "fill:mine.codex:air_hammer:2",
-          "fill:mine.codex:debilitator_alpha:2",
-          "fill:mine.codex:drill_sergeant:2",
-          "fill:mine.codex:flagstone_garrison:2",
-          "fill:mine.codex:flagstone_spy:2",
-          "fill:mine.codex:patriot_gryphon:2",
-          "fill:mine.codex:boot_camp:2",
-          "fill:mine.codex:elite_training:2",
-          "fill:mine.codex:generals_hammer:2",
-          "fill:mine.codex:the_art_of_war:2",
-          "fill:mine.command:onimaru:1",
+          "create:mine.deck:bluecoat_musketeer:1",
+          "create:mine.deck:building_inspector:1",
+          "create:mine.deck:jail:1",
+          "create:mine.deck:porkhand_magistrate:1",
+          "create:mine.deck:reputable_newsman:1",
+          "create:mine.deck:spectral_aven:1",
+          "create:mine.deck:traffic_director:1",
+          "create:mine.deck:arrest:1",
+          "create:mine.deck:lawful_search:1",
+          "create:mine.deck:manufactured_truth:1",
+          "create:mine.codex:overeager_cadet:2",
+          "create:mine.codex:brave_knight:2",
+          "create:mine.codex:air_hammer:2",
+          "create:mine.codex:debilitator_alpha:2",
+          "create:mine.codex:drill_sergeant:2",
+          "create:mine.codex:flagstone_garrison:2",
+          "create:mine.codex:flagstone_spy:2",
+          "create:mine.codex:patriot_gryphon:2",
+          "create:mine.codex:boot_camp:2",
+          "create:mine.codex:elite_training:2",
+          "create:mine.codex:generals_hammer:2",
+          "create:mine.codex:the_art_of_war:2",
+          "create:mine.command:onimaru:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -19964,29 +19964,29 @@
       "tooltip": "Blue. Illusions: cheap, huge, and gone the moment they are pointed at.",
       "play": {
         "action": [
-          "fill:mine.deck:bluecoat_musketeer:1",
-          "fill:mine.deck:building_inspector:1",
-          "fill:mine.deck:jail:1",
-          "fill:mine.deck:porkhand_magistrate:1",
-          "fill:mine.deck:reputable_newsman:1",
-          "fill:mine.deck:spectral_aven:1",
-          "fill:mine.deck:traffic_director:1",
-          "fill:mine.deck:arrest:1",
-          "fill:mine.deck:lawful_search:1",
-          "fill:mine.deck:manufactured_truth:1",
-          "fill:mine.codex:spectral_flagbearer:2",
-          "fill:mine.codex:spectral_hound:2",
-          "fill:mine.codex:eyes_of_the_chancellor:2",
-          "fill:mine.codex:macciatus:2",
-          "fill:mine.codex:reteller_of_truths:2",
-          "fill:mine.codex:spectral_roc:2",
-          "fill:mine.codex:spectral_tiger:2",
-          "fill:mine.codex:liberty_gryphon:2",
-          "fill:mine.codex:dreamscape:2",
-          "fill:mine.codex:free_speech:2",
-          "fill:mine.codex:hallucination:2",
-          "fill:mine.codex:mind_control:2",
-          "fill:mine.command:sirus:1",
+          "create:mine.deck:bluecoat_musketeer:1",
+          "create:mine.deck:building_inspector:1",
+          "create:mine.deck:jail:1",
+          "create:mine.deck:porkhand_magistrate:1",
+          "create:mine.deck:reputable_newsman:1",
+          "create:mine.deck:spectral_aven:1",
+          "create:mine.deck:traffic_director:1",
+          "create:mine.deck:arrest:1",
+          "create:mine.deck:lawful_search:1",
+          "create:mine.deck:manufactured_truth:1",
+          "create:mine.codex:spectral_flagbearer:2",
+          "create:mine.codex:spectral_hound:2",
+          "create:mine.codex:eyes_of_the_chancellor:2",
+          "create:mine.codex:macciatus:2",
+          "create:mine.codex:reteller_of_truths:2",
+          "create:mine.codex:spectral_roc:2",
+          "create:mine.codex:spectral_tiger:2",
+          "create:mine.codex:liberty_gryphon:2",
+          "create:mine.codex:dreamscape:2",
+          "create:mine.codex:free_speech:2",
+          "create:mine.codex:hallucination:2",
+          "create:mine.codex:mind_control:2",
+          "create:mine.command:sirus:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -20179,29 +20179,29 @@
       "tooltip": "Black. Demons, sacrifices, and a 15/15 at the end of it.",
       "play": {
         "action": [
-          "fill:mine.deck:graveyard:1",
-          "fill:mine.deck:jandra_the_negator:1",
-          "fill:mine.deck:pestering_haunt:1",
-          "fill:mine.deck:poisonblade_rogue:1",
-          "fill:mine.deck:skeletal_archery:1",
-          "fill:mine.deck:skeleton_javelineer:1",
-          "fill:mine.deck:thieving_imp:1",
-          "fill:mine.deck:deteriorate:1",
-          "fill:mine.deck:sacrifice_the_weak:1",
-          "fill:mine.deck:summon_skeletons:1",
-          "fill:mine.codex:gargoyle:2",
-          "fill:mine.codex:twilight_baron:2",
-          "fill:mine.codex:banefire_golem:2",
-          "fill:mine.codex:blackhand_dozer:2",
-          "fill:mine.codex:shrine_of_forbidden_knowledge:2",
-          "fill:mine.codex:terras_q_the_shackled:2",
-          "fill:mine.codex:voidblocker:2",
-          "fill:mine.codex:zarramonde_the_obliterator:2",
-          "fill:mine.codex:dark_pact:2",
-          "fill:mine.codex:metamorphosis:2",
-          "fill:mine.codex:shadow_blade:2",
-          "fill:mine.codex:soul_stone:2",
-          "fill:mine.command:vandy:1",
+          "create:mine.deck:graveyard:1",
+          "create:mine.deck:jandra_the_negator:1",
+          "create:mine.deck:pestering_haunt:1",
+          "create:mine.deck:poisonblade_rogue:1",
+          "create:mine.deck:skeletal_archery:1",
+          "create:mine.deck:skeleton_javelineer:1",
+          "create:mine.deck:thieving_imp:1",
+          "create:mine.deck:deteriorate:1",
+          "create:mine.deck:sacrifice_the_weak:1",
+          "create:mine.deck:summon_skeletons:1",
+          "create:mine.codex:gargoyle:2",
+          "create:mine.codex:twilight_baron:2",
+          "create:mine.codex:banefire_golem:2",
+          "create:mine.codex:blackhand_dozer:2",
+          "create:mine.codex:shrine_of_forbidden_knowledge:2",
+          "create:mine.codex:terras_q_the_shackled:2",
+          "create:mine.codex:voidblocker:2",
+          "create:mine.codex:zarramonde_the_obliterator:2",
+          "create:mine.codex:dark_pact:2",
+          "create:mine.codex:metamorphosis:2",
+          "create:mine.codex:shadow_blade:2",
+          "create:mine.codex:soul_stone:2",
+          "create:mine.command:vandy:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -20216,29 +20216,29 @@
       "tooltip": "Black. Everything they own gets a little smaller, and then it dies.",
       "play": {
         "action": [
-          "fill:mine.deck:graveyard:1",
-          "fill:mine.deck:jandra_the_negator:1",
-          "fill:mine.deck:pestering_haunt:1",
-          "fill:mine.deck:poisonblade_rogue:1",
-          "fill:mine.deck:skeletal_archery:1",
-          "fill:mine.deck:skeleton_javelineer:1",
-          "fill:mine.deck:thieving_imp:1",
-          "fill:mine.deck:deteriorate:1",
-          "fill:mine.deck:sacrifice_the_weak:1",
-          "fill:mine.deck:summon_skeletons:1",
-          "fill:mine.codex:crypt_crawler:2",
-          "fill:mine.codex:plague_spitter:2",
-          "fill:mine.codex:abomination:2",
-          "fill:mine.codex:cursed_crow:2",
-          "fill:mine.codex:cursed_ghoul:2",
-          "fill:mine.codex:gorgon:2",
-          "fill:mine.codex:plague_lab:2",
-          "fill:mine.codex:plague_lord:2",
-          "fill:mine.codex:carrion_curse:2",
-          "fill:mine.codex:death_and_decay:2",
-          "fill:mine.codex:sickness:2",
-          "fill:mine.codex:spreading_plague:2",
-          "fill:mine.command:orpal:1",
+          "create:mine.deck:graveyard:1",
+          "create:mine.deck:jandra_the_negator:1",
+          "create:mine.deck:pestering_haunt:1",
+          "create:mine.deck:poisonblade_rogue:1",
+          "create:mine.deck:skeletal_archery:1",
+          "create:mine.deck:skeleton_javelineer:1",
+          "create:mine.deck:thieving_imp:1",
+          "create:mine.deck:deteriorate:1",
+          "create:mine.deck:sacrifice_the_weak:1",
+          "create:mine.deck:summon_skeletons:1",
+          "create:mine.codex:crypt_crawler:2",
+          "create:mine.codex:plague_spitter:2",
+          "create:mine.codex:abomination:2",
+          "create:mine.codex:cursed_crow:2",
+          "create:mine.codex:cursed_ghoul:2",
+          "create:mine.codex:gorgon:2",
+          "create:mine.codex:plague_lab:2",
+          "create:mine.codex:plague_lord:2",
+          "create:mine.codex:carrion_curse:2",
+          "create:mine.codex:death_and_decay:2",
+          "create:mine.codex:sickness:2",
+          "create:mine.codex:spreading_plague:2",
+          "create:mine.command:orpal:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -20253,29 +20253,29 @@
       "tooltip": "Black. Skeletons, and more of them every time something dies.",
       "play": {
         "action": [
-          "fill:mine.deck:graveyard:1",
-          "fill:mine.deck:jandra_the_negator:1",
-          "fill:mine.deck:pestering_haunt:1",
-          "fill:mine.deck:poisonblade_rogue:1",
-          "fill:mine.deck:skeletal_archery:1",
-          "fill:mine.deck:skeleton_javelineer:1",
-          "fill:mine.deck:thieving_imp:1",
-          "fill:mine.deck:deteriorate:1",
-          "fill:mine.deck:sacrifice_the_weak:1",
-          "fill:mine.deck:summon_skeletons:1",
-          "fill:mine.codex:bone_collector:2",
-          "fill:mine.codex:hooded_executioner:2",
-          "fill:mine.codex:blackhand_resurrector:2",
-          "fill:mine.codex:corpse_catapult:2",
-          "fill:mine.codex:necromancer:2",
-          "fill:mine.codex:skeletal_lord:2",
-          "fill:mine.codex:wight:2",
-          "fill:mine.codex:lord_of_shadows:2",
-          "fill:mine.codex:death_rites:2",
-          "fill:mine.codex:doom_grasp:2",
-          "fill:mine.codex:lichs_bargain:2",
-          "fill:mine.codex:nether_drain:2",
-          "fill:mine.command:garth:1",
+          "create:mine.deck:graveyard:1",
+          "create:mine.deck:jandra_the_negator:1",
+          "create:mine.deck:pestering_haunt:1",
+          "create:mine.deck:poisonblade_rogue:1",
+          "create:mine.deck:skeletal_archery:1",
+          "create:mine.deck:skeleton_javelineer:1",
+          "create:mine.deck:thieving_imp:1",
+          "create:mine.deck:deteriorate:1",
+          "create:mine.deck:sacrifice_the_weak:1",
+          "create:mine.deck:summon_skeletons:1",
+          "create:mine.codex:bone_collector:2",
+          "create:mine.codex:hooded_executioner:2",
+          "create:mine.codex:blackhand_resurrector:2",
+          "create:mine.codex:corpse_catapult:2",
+          "create:mine.codex:necromancer:2",
+          "create:mine.codex:skeletal_lord:2",
+          "create:mine.codex:wight:2",
+          "create:mine.codex:lord_of_shadows:2",
+          "create:mine.codex:death_rites:2",
+          "create:mine.codex:doom_grasp:2",
+          "create:mine.codex:lichs_bargain:2",
+          "create:mine.codex:nether_drain:2",
+          "create:mine.command:garth:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -20290,29 +20290,29 @@
       "tooltip": "White. Runes, readiness, and a monument at the end of it.",
       "play": {
         "action": [
-          "fill:mine.deck:aged_sensei:1",
-          "fill:mine.deck:fox_primus:1",
-          "fill:mine.deck:fox_viper:1",
-          "fill:mine.deck:morningstar_flagbearer:1",
-          "fill:mine.deck:safe_attacking:1",
-          "fill:mine.deck:savior_monk:1",
-          "fill:mine.deck:smoker:1",
-          "fill:mine.deck:grappling_hook:1",
-          "fill:mine.deck:senseis_advice:1",
-          "fill:mine.deck:snapback:1",
-          "fill:mine.codex:rambasa_twin:2",
-          "fill:mine.codex:sparring_partner:2",
-          "fill:mine.codex:focus_master:2",
-          "fill:mine.codex:mindparry_monk:2",
-          "fill:mine.codex:training_grounds:2",
-          "fill:mine.codex:vigor_adept:2",
-          "fill:mine.codex:young_lightning_dragon:2",
-          "fill:mine.codex:heros_monument:2",
-          "fill:mine.codex:martial_mastery:2",
-          "fill:mine.codex:reversal:2",
-          "fill:mine.codex:true_power_of_storms:2",
-          "fill:mine.codex:versatile_style:2",
-          "fill:mine.command:grave:1",
+          "create:mine.deck:aged_sensei:1",
+          "create:mine.deck:fox_primus:1",
+          "create:mine.deck:fox_viper:1",
+          "create:mine.deck:morningstar_flagbearer:1",
+          "create:mine.deck:safe_attacking:1",
+          "create:mine.deck:savior_monk:1",
+          "create:mine.deck:smoker:1",
+          "create:mine.deck:grappling_hook:1",
+          "create:mine.deck:senseis_advice:1",
+          "create:mine.deck:snapback:1",
+          "create:mine.codex:rambasa_twin:2",
+          "create:mine.codex:sparring_partner:2",
+          "create:mine.codex:focus_master:2",
+          "create:mine.codex:mindparry_monk:2",
+          "create:mine.codex:training_grounds:2",
+          "create:mine.codex:vigor_adept:2",
+          "create:mine.codex:young_lightning_dragon:2",
+          "create:mine.codex:heros_monument:2",
+          "create:mine.codex:martial_mastery:2",
+          "create:mine.codex:reversal:2",
+          "create:mine.codex:true_power_of_storms:2",
+          "create:mine.codex:versatile_style:2",
+          "create:mine.command:grave:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -20327,29 +20327,29 @@
       "tooltip": "White. Small, quick, and hard to point at.",
       "play": {
         "action": [
-          "fill:mine.deck:aged_sensei:1",
-          "fill:mine.deck:fox_primus:1",
-          "fill:mine.deck:fox_viper:1",
-          "fill:mine.deck:morningstar_flagbearer:1",
-          "fill:mine.deck:safe_attacking:1",
-          "fill:mine.deck:savior_monk:1",
-          "fill:mine.deck:smoker:1",
-          "fill:mine.deck:grappling_hook:1",
-          "fill:mine.deck:senseis_advice:1",
-          "fill:mine.deck:snapback:1",
-          "fill:mine.codex:fuzz_cuddles:2",
-          "fill:mine.codex:inverse_power_ninja:2",
-          "fill:mine.codex:flying_fox:2",
-          "fill:mine.codex:foxs_den_school:2",
-          "fill:mine.codex:glorious_ninja:2",
-          "fill:mine.codex:masked_raccoon:2",
-          "fill:mine.codex:porcupine:2",
-          "fill:mine.codex:jade_fox_dens_headmistress:2",
-          "fill:mine.codex:foxs_den_students:2",
-          "fill:mine.codex:hidden_ninja:2",
-          "fill:mine.codex:shuriken_hail:2",
-          "fill:mine.codex:speed_of_the_fox:2",
-          "fill:mine.command:setsuki:1",
+          "create:mine.deck:aged_sensei:1",
+          "create:mine.deck:fox_primus:1",
+          "create:mine.deck:fox_viper:1",
+          "create:mine.deck:morningstar_flagbearer:1",
+          "create:mine.deck:safe_attacking:1",
+          "create:mine.deck:savior_monk:1",
+          "create:mine.deck:smoker:1",
+          "create:mine.deck:grappling_hook:1",
+          "create:mine.deck:senseis_advice:1",
+          "create:mine.deck:snapback:1",
+          "create:mine.codex:fuzz_cuddles:2",
+          "create:mine.codex:inverse_power_ninja:2",
+          "create:mine.codex:flying_fox:2",
+          "create:mine.codex:foxs_den_school:2",
+          "create:mine.codex:glorious_ninja:2",
+          "create:mine.codex:masked_raccoon:2",
+          "create:mine.codex:porcupine:2",
+          "create:mine.codex:jade_fox_dens_headmistress:2",
+          "create:mine.codex:foxs_den_students:2",
+          "create:mine.codex:hidden_ninja:2",
+          "create:mine.codex:shuriken_hail:2",
+          "create:mine.codex:speed_of_the_fox:2",
+          "create:mine.command:setsuki:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -20364,29 +20364,29 @@
       "tooltip": "White. Big things, and a pass nobody gets through.",
       "play": {
         "action": [
-          "fill:mine.deck:aged_sensei:1",
-          "fill:mine.deck:fox_primus:1",
-          "fill:mine.deck:fox_viper:1",
-          "fill:mine.deck:morningstar_flagbearer:1",
-          "fill:mine.deck:safe_attacking:1",
-          "fill:mine.deck:savior_monk:1",
-          "fill:mine.deck:smoker:1",
-          "fill:mine.deck:grappling_hook:1",
-          "fill:mine.deck:senseis_advice:1",
-          "fill:mine.deck:snapback:1",
-          "fill:mine.codex:ardras_boulder:2",
-          "fill:mine.codex:mythmaking:2",
-          "fill:mine.codex:colossus:2",
-          "fill:mine.codex:doubling_barbarbarian:2",
-          "fill:mine.codex:jefferson_degrey_ghostly_diplomat:2",
-          "fill:mine.codex:morningstar_pass:2",
-          "fill:mine.codex:whitestar_grappler:2",
-          "fill:mine.codex:oathkeeper_of_kor_mountain:2",
-          "fill:mine.codex:birds_nest:2",
-          "fill:mine.codex:earthquake:2",
-          "fill:mine.codex:entangling_vines:2",
-          "fill:mine.codex:thunderclap:2",
-          "fill:mine.command:garus:1",
+          "create:mine.deck:aged_sensei:1",
+          "create:mine.deck:fox_primus:1",
+          "create:mine.deck:fox_viper:1",
+          "create:mine.deck:morningstar_flagbearer:1",
+          "create:mine.deck:safe_attacking:1",
+          "create:mine.deck:savior_monk:1",
+          "create:mine.deck:smoker:1",
+          "create:mine.deck:grappling_hook:1",
+          "create:mine.deck:senseis_advice:1",
+          "create:mine.deck:snapback:1",
+          "create:mine.codex:ardras_boulder:2",
+          "create:mine.codex:mythmaking:2",
+          "create:mine.codex:colossus:2",
+          "create:mine.codex:doubling_barbarbarian:2",
+          "create:mine.codex:jefferson_degrey_ghostly_diplomat:2",
+          "create:mine.codex:morningstar_pass:2",
+          "create:mine.codex:whitestar_grappler:2",
+          "create:mine.codex:oathkeeper_of_kor_mountain:2",
+          "create:mine.codex:birds_nest:2",
+          "create:mine.codex:earthquake:2",
+          "create:mine.codex:entangling_vines:2",
+          "create:mine.codex:thunderclap:2",
+          "create:mine.command:garus:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -20504,29 +20504,29 @@
       "tooltip": "Purple. Cards played into the future that arrive when their clock runs out.",
       "play": {
         "action": [
-          "fill:mine.deck:battle_suits:1",
-          "fill:mine.deck:fading_argonaut:1",
-          "fill:mine.deck:hardened_mox:1",
-          "fill:mine.deck:neo_plexus:1",
-          "fill:mine.deck:nullcraft:1",
-          "fill:mine.deck:plasmodium:1",
-          "fill:mine.deck:tinkerer:1",
-          "fill:mine.deck:forgotten_fighter:1",
-          "fill:mine.deck:temporal_research:1",
-          "fill:mine.deck:time_spiral:1",
-          "fill:mine.codex:gilded_glaxx:2",
-          "fill:mine.codex:knight_of_the_conclave:2",
-          "fill:mine.codex:hive:2",
-          "fill:mine.codex:omegacron:2",
-          "fill:mine.codex:reaver:2",
-          "fill:mine.codex:void_star:2",
-          "fill:mine.codex:xenostalker:2",
-          "fill:mine.codex:nebula:2",
-          "fill:mine.codex:assimilate:2",
-          "fill:mine.codex:double_time:2",
-          "fill:mine.codex:promise_of_payment:2",
-          "fill:mine.codex:unphase:2",
-          "fill:mine.command:vir:1",
+          "create:mine.deck:battle_suits:1",
+          "create:mine.deck:fading_argonaut:1",
+          "create:mine.deck:hardened_mox:1",
+          "create:mine.deck:neo_plexus:1",
+          "create:mine.deck:nullcraft:1",
+          "create:mine.deck:plasmodium:1",
+          "create:mine.deck:tinkerer:1",
+          "create:mine.deck:forgotten_fighter:1",
+          "create:mine.deck:temporal_research:1",
+          "create:mine.deck:time_spiral:1",
+          "create:mine.codex:gilded_glaxx:2",
+          "create:mine.codex:knight_of_the_conclave:2",
+          "create:mine.codex:hive:2",
+          "create:mine.codex:omegacron:2",
+          "create:mine.codex:reaver:2",
+          "create:mine.codex:void_star:2",
+          "create:mine.codex:xenostalker:2",
+          "create:mine.codex:nebula:2",
+          "create:mine.codex:assimilate:2",
+          "create:mine.codex:double_time:2",
+          "create:mine.codex:promise_of_payment:2",
+          "create:mine.codex:unphase:2",
+          "create:mine.command:vir:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -20541,29 +20541,29 @@
       "tooltip": "Purple. Everything is on a clock, yours and theirs.",
       "play": {
         "action": [
-          "fill:mine.deck:battle_suits:1",
-          "fill:mine.deck:fading_argonaut:1",
-          "fill:mine.deck:hardened_mox:1",
-          "fill:mine.deck:neo_plexus:1",
-          "fill:mine.deck:nullcraft:1",
-          "fill:mine.deck:plasmodium:1",
-          "fill:mine.deck:tinkerer:1",
-          "fill:mine.deck:forgotten_fighter:1",
-          "fill:mine.deck:temporal_research:1",
-          "fill:mine.deck:time_spiral:1",
-          "fill:mine.codex:seer:2",
-          "fill:mine.codex:stewardess_of_the_undone:2",
-          "fill:mine.codex:rememberer:2",
-          "fill:mine.codex:second_chances:2",
-          "fill:mine.codex:shimmer_ray:2",
-          "fill:mine.codex:slowtime_generator:2",
-          "fill:mine.codex:yesterdays_golgort:2",
-          "fill:mine.codex:ebbflow_archon:2",
-          "fill:mine.codex:origin_story:2",
-          "fill:mine.codex:rewind:2",
-          "fill:mine.codex:undo:2",
-          "fill:mine.codex:vortoss_emblem:2",
-          "fill:mine.command:prynn:1",
+          "create:mine.deck:battle_suits:1",
+          "create:mine.deck:fading_argonaut:1",
+          "create:mine.deck:hardened_mox:1",
+          "create:mine.deck:neo_plexus:1",
+          "create:mine.deck:nullcraft:1",
+          "create:mine.deck:plasmodium:1",
+          "create:mine.deck:tinkerer:1",
+          "create:mine.deck:forgotten_fighter:1",
+          "create:mine.deck:temporal_research:1",
+          "create:mine.deck:time_spiral:1",
+          "create:mine.codex:seer:2",
+          "create:mine.codex:stewardess_of_the_undone:2",
+          "create:mine.codex:rememberer:2",
+          "create:mine.codex:second_chances:2",
+          "create:mine.codex:shimmer_ray:2",
+          "create:mine.codex:slowtime_generator:2",
+          "create:mine.codex:yesterdays_golgort:2",
+          "create:mine.codex:ebbflow_archon:2",
+          "create:mine.codex:origin_story:2",
+          "create:mine.codex:rewind:2",
+          "create:mine.codex:undo:2",
+          "create:mine.codex:vortoss_emblem:2",
+          "create:mine.command:prynn:1",
           "stat_gain:picked@mine.player:1"
         ]
       }
@@ -20578,29 +20578,29 @@
       "tooltip": "Purple. Readiness, draws, and an 8/8 that spends a fortune.",
       "play": {
         "action": [
-          "fill:mine.deck:battle_suits:1",
-          "fill:mine.deck:fading_argonaut:1",
-          "fill:mine.deck:hardened_mox:1",
-          "fill:mine.deck:neo_plexus:1",
-          "fill:mine.deck:nullcraft:1",
-          "fill:mine.deck:plasmodium:1",
-          "fill:mine.deck:tinkerer:1",
-          "fill:mine.deck:forgotten_fighter:1",
-          "fill:mine.deck:temporal_research:1",
-          "fill:mine.deck:time_spiral:1",
-          "fill:mine.codex:argonaut:2",
-          "fill:mine.codex:sentry:2",
-          "fill:mine.codex:chronofixer:2",
-          "fill:mine.codex:hyperion:2",
-          "fill:mine.codex:immortal:2",
-          "fill:mine.codex:tricycloid:2",
-          "fill:mine.codex:warp_gate_disciple:2",
-          "fill:mine.codex:octavian:2",
-          "fill:mine.codex:now:2",
-          "fill:mine.codex:ready_or_not:2",
-          "fill:mine.codex:research__development:2",
-          "fill:mine.codex:temporal_distortion:2",
-          "fill:mine.command:maxg:1",
+          "create:mine.deck:battle_suits:1",
+          "create:mine.deck:fading_argonaut:1",
+          "create:mine.deck:hardened_mox:1",
+          "create:mine.deck:neo_plexus:1",
+          "create:mine.deck:nullcraft:1",
+          "create:mine.deck:plasmodium:1",
+          "create:mine.deck:tinkerer:1",
+          "create:mine.deck:forgotten_fighter:1",
+          "create:mine.deck:temporal_research:1",
+          "create:mine.deck:time_spiral:1",
+          "create:mine.codex:argonaut:2",
+          "create:mine.codex:sentry:2",
+          "create:mine.codex:chronofixer:2",
+          "create:mine.codex:hyperion:2",
+          "create:mine.codex:immortal:2",
+          "create:mine.codex:tricycloid:2",
+          "create:mine.codex:warp_gate_disciple:2",
+          "create:mine.codex:octavian:2",
+          "create:mine.codex:now:2",
+          "create:mine.codex:ready_or_not:2",
+          "create:mine.codex:research__development:2",
+          "create:mine.codex:temporal_distortion:2",
+          "create:mine.command:maxg:1",
           "stat_gain:picked@mine.player:1"
         ]
       }

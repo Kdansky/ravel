@@ -29,9 +29,9 @@ local GAME = [==[{
   ],
   "phases": [
     { "key": "deal", "type": "automatic",
-      "actions": ["set_active_seat:seat_one", "fill:mine.hand:ruby:1", "fill:mine.hand:opal:1",
-                  "fill:mine.hand:brick:1",
-                  "set_active_seat:seat_two", "fill:mine.hand:opal:1",
+      "actions": ["set_active_seat:seat_one", "create:mine.hand:ruby:1", "create:mine.hand:opal:1",
+                  "create:mine.hand:brick:1",
+                  "set_active_seat:seat_two", "create:mine.hand:opal:1",
                   "set_active_seat:seat_one"],
       "next": [{ "then": "act" }] },
     { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }],

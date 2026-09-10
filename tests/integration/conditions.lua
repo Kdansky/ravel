@@ -407,7 +407,7 @@ function M.test_conditions_everywhere_reaches_a_hand_and_a_deck(check)
 		flow.init("tmp_everywhere.json", 3)
 		-- One gem on the board (owned by seat one, from setup), one into the
 		-- active seat's hand, one into the shared deck.
-		require("actions").run({ "fill:mine.hand:gem:1", "fill:vault:gem:1" }, {})
+		require("actions").run({ "create:mine.hand:gem:1", "create:vault:gem:1" }, {})
 
 		-- The default is unchanged, and it is two spellings of the same board.
 		check("a bare tag still sees the board alone",

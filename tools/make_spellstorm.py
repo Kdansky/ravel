@@ -718,8 +718,8 @@ WIZARDS = [
            start=["stat_set:fire_el@mine.player:3",
                   "stat_set:earth_el@mine.player:3",
                   "stat_set:water_el@mine.player:3",
-                  "fill:mine.sidecar:btn_potion_draw:1",
-                  "fill:mine.sidecar:btn_potion_stop:1"],
+                  "create:mine.sidecar:btn_potion_draw:1",
+                  "create:mine.sidecar:btn_potion_stop:1"],
            blurb="A chemistry student who loves danger and whose experiments keep exploding. A good character for players who like to gamble.",
            spells=[
                card("oren_potion", "Potion Gun", FIRE, kind="wizard_spell", ult=True,
@@ -1084,10 +1084,10 @@ def wizard_templates(w):
         "stat_boost:health@mine.player:%d" % (w["health"] - 1),
         "stat_set:health@mine.player:%d" % w["health"],
         "stat_set:init_rating@mine.player:%d" % w["rating"],
-        "fill:mine.wizard:wiz_%s:1" % w["key"],
+        "create:mine.wizard:wiz_%s:1" % w["key"],
     ]
     for s in w["spells"]:
-        pick_action.append("fill:mine.deck:%s:1" % s["key"])
+        pick_action.append("create:mine.deck:%s:1" % s["key"])
     pick_action += list(w["start"])
     # The chair takes the wizard's name. The seat prints "{name}" and starts as
     # "Player One", so this is the moment it stops being a number and becomes
@@ -1523,9 +1523,9 @@ def phases():
          "ends_when": "picked@mine.player >= 1"},
 
         {"key": "begin", "type": "automatic",
-         "actions": ["each_seat:fill:mine.deck:magicdart:2",
-                     "each_seat:fill:mine.deck:block:2",
-                     "each_seat:fill:mine.deck:powergem:2",
+         "actions": ["each_seat:create:mine.deck:magicdart:2",
+                     "each_seat:create:mine.deck:block:2",
+                     "each_seat:create:mine.deck:powergem:2",
                      "each_seat:shuffle:mine.deck",
                      "each_seat:activate_zone:rules:by_column:first",
                      "activate_zone:rules:by_column:first_tie"],

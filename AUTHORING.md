@@ -160,7 +160,7 @@ from this two-page story:
       "key": "p_door",
       "text": "The Cellar Door",
       "story": "It was locked all your childhood. Tonight it stands open.",
-      "play": { "action": ["fill:hand:c_down:1", "fill:hand:c_away:1"] }
+      "play": { "action": ["create:hand:c_down:1", "create:hand:c_away:1"] }
     },
     {
       "key": "c_down",
@@ -178,7 +178,7 @@ from this two-page story:
       "key": "p_dark",
       "text": "Down",
       "story": "The stairs go further than the house is tall.",
-      "play": { "action": ["destroy:hand", "fill:hand:c_away:1"] }
+      "play": { "action": ["destroy:hand", "create:hand:c_away:1"] }
     },
     {
       "key": "e_away",
@@ -204,7 +204,7 @@ Two rules carry every story:
   is given a small zone of its own rather than left in the engine's hidden
   one — its key is always `player` when nothing named it.
 
-From there: keepsakes are cards with a home-zone tag (`fill:` them into it, test
+From there: keepsakes are cards with a home-zone tag (`create:` them into it, test
 them with `card:<key>`), shuffle secrets are `reveal_top:` over a hidden
 deck, and endings are pages whose `play.action` is `load_game:menu.json` plus
 `end_conditions` that `reveal:` a death page. Zones may omit `pos` — every
@@ -502,7 +502,7 @@ a hand has nothing left to stay spent.
 after the colon is a **tag**, not a card key, so one line prices a whole class:
 
 ```json
-"play": { "cost": { "sacrifice:unit": 1 }, "action": ["fill:board:garrison:1"] }
+"play": { "cost": { "sacrifice:unit": 1 }, "action": ["create:board:garrison:1"] }
 ```
 
 It destroys that many of your board cards carrying the tag, oldest first.
@@ -514,7 +514,7 @@ typed, which is the whole of a shop:
 
 ```json
 "abilities": [{ "cost": { "coin@mine.player": "price@self", "stock@self": 1 },
-              "action": ["fill:mine.discard:@self:1"] }]
+              "action": ["create:mine.discard:@self:1"] }]
 ```
 
 One ability, on the tag the shelf hands out, reading each shelf's own price. A
@@ -985,7 +985,7 @@ The words the engine reads on a zone are in *Every tag the engine reads*,
 with every other reserved tag.
 
 Cards entering a grid without slot targeting auto-occupy the first free slot.
-A full board refuses new arrivals: moves fail quietly and `fill` stops
+A full board refuses new arrivals: moves fail quietly and `create` stops
 early (the validator warns when starting `contents` already exceed capacity).
 
 ### A shelf — several zones on one rect
@@ -1179,10 +1179,10 @@ offer, and each pick configuring the seat that made it.
 
 ```json
 { "key": "char_jaina", "text": "Jaina", "tags": ["immutable"],
-  "play": { "action": ["fill:mine.bag:playing_with_fire:1",
-                       "fill:mine.bag:burning_vigor:1",
-                       "fill:mine.bag:unstable_power:1",
-                       "fill:mine.bag:crash_gem:1", "fill:mine.bag:gem_1:6",
+  "play": { "action": ["create:mine.bag:playing_with_fire:1",
+                       "create:mine.bag:burning_vigor:1",
+                       "create:mine.bag:unstable_power:1",
+                       "create:mine.bag:crash_gem:1", "create:mine.bag:gem_1:6",
                        "stat_gain:picked@mine.player:1",
                        "set_owner:self:mine", "move_to:mine.fighter"] } }
 ```
@@ -1983,11 +1983,11 @@ candidate list, exactly as `immutable` scenery is — and it is that nobody can
 point which lets one card stand for sixty-four. A rule able to tell two gems
 apart would find out there is only one.
 
-**Buying is a cost and a fill, not a draw:**
+**Buying is a cost and a create, not a draw:**
 
 ```json
 { "key": "buy", "cost": { "coin@mine.player": "price@self", "stock@self": 1 },
-  "action": ["fill:mine.discard:@self:1"] }
+  "action": ["create:mine.discard:@self:1"] }
 ```
 
 **A cost amount may be measured rather than typed.** A shared buy cannot write a
@@ -2003,7 +2003,7 @@ stack refuse, with no rule written for it. Drawing *from* a supply is refused by
 the validator, since it would move the one card standing for the whole stock —
 and so are `reach` and `refill_from`, because a stock has no order to have a top
 or to run out in. Filling a supply raises the number instead of minting a card,
-so `contents`, `fill:` and a rule returning something to the box all land right
+so `contents`, `create:` and a rule returning something to the box all land right
 without knowing.
 
 **An empty shelf keeps its card.** That is what lets a game count how many stacks
@@ -2227,13 +2227,13 @@ owner's row rather than in a heap.
 back. `@mine.attached_to.self` is my figures on this card, however many other
 people also have one there.
 
-**A destination may be a card.** `draw_from`, `fill`, `move` and `take` all say
+**A destination may be a card.** `draw_from`, `create`, `move` and `take` all say
 where a card is going, and that argument is a scope expression — so one that
 names a card names a **host**, and the arrival stands on it:
 
 ```
 draw_from:guard_deck:target:1   deal a guardian onto the site
-fill:target:token:1             one out of the box, onto that card
+create:target:token:1             one out of the box, onto that card
 move:mine.camp:target           every figure in the camp goes and stands there
 take:bank.gem:target:1          a component off the shelf, onto that card
 ```
@@ -3127,7 +3127,7 @@ ability may say what it does when it meets the others:
 "tags": {
   "for_sale": { "abilities": [
     { "key": "buy", "text": "Buy it", "merge": "this",
-      "cost": { "money": 3 }, "action": ["fill:hand:widget:1"] }] }
+      "cost": { "money": 3 }, "action": ["create:hand:widget:1"] }] }
 },
 "zones": [{ "key": "shop", "layout": "grid", "use": "abilities", "applies": ["for_sale"] }]
 ```
@@ -3661,10 +3661,10 @@ A card the offer **dealt** is what runs when it is taken, so the `cost` and the
 
 ```json
 { "key": "one_beast", "text": "A Beast",
-  "play": { "action": ["fill:mine.army:beast:1"] } },
+  "play": { "action": ["create:mine.army:beast:1"] } },
 { "key": "beast_and_frogs", "text": "Pay 4 more: both",
   "play": { "cost": { "gold@mine.player": 4 },
-            "action": ["fill:mine.army:beast:1", "fill:mine.army:frog:4"] } }
+            "action": ["create:mine.army:beast:1", "create:mine.army:frog:4"] } }
 ```
 
 *Choose one; or pay four more and take both.* A half nobody can pay for is not on
@@ -3803,7 +3803,7 @@ And this does, because `chosen` runs **after** the offer has closed:
 
 ```json
 "play":   { "action": ["show:bank:optional"] },
-"chosen": { "action": ["fill:mine.discard:@target:1", "next_phase"] }
+"chosen": { "action": ["create:mine.discard:@target:1", "next_phase"] }
 ```
 
 The refusal is deliberate rather than the engine tidying up for you. A rule that
@@ -4724,7 +4724,7 @@ what a player reads.
 
 | Action | Effect |
 |---|---|
-| `fill:zone:card:n` | Create n instances of card in zone. The card slot takes a template key, or `@<scope>` to read the template off a card that is already lying somewhere — `fill:mine.discard:@self:1` is a shop selling what it is. Not a clone: what arrives is fresh off the template, with the stats the game declared |
+| `create:zone:card:n` | Create n instances of card in zone. The card slot takes a template key, or `@<scope>` to read the template off a card that is already lying somewhere — `create:mine.discard:@self:1` is a shop selling what it is. Not a clone: what arrives is fresh off the template, with the stats the game declared |
 | `shuffle:zone` | Shuffle |
 | `draw_from:from:to:n` | Move n cards off the top. **A count it cannot meet is not an error**: it deals what there is and stops, whether the source ran dry or the destination filled up. So a number larger than the row can hold is how *fill it up* is written — `draw_from:market_deck:row:99` deals into the free cells from the left and stops when there are none |
 | `move_to:zone` | Move the acting card (uses a slot target when given); without a zone, its home tag decides |

@@ -117,7 +117,7 @@ direction, as Heroes explore. `DESIGN.md`'s "Setup Is the Manual, Not the
 Cards" already explains why `setup.place`'s order is load-bearing — entity IDs
 are handed out as cards are created, so a seeded replay only holds if setup
 builds the board the same way every time — but that constrains *when* content
-is created, not whether it can be: `fill:zone:card:n` and `gain:card:n`
+is created, not whether it can be: `create:zone:card:n` and `gain:card:n`
 already create entities mid-game under the same seeded RNG. What doesn't fit
 is that a `grid` zone's `[cols, rows]` size is fixed at zone-creation time,
 and Mage Knight's map is not a fixed rectangle slowly filling in — its extent

@@ -93,7 +93,7 @@
                      "stat_gain:jewel@mine.player:sum:y_jewel@self",
                      "stat_gain:travel@mine.player:sum:y_travel@self",
                      "draw_from:mine.bag:mine.hand:sum:y_draw@self",
-                     "fill:mine.idols:idol:sum:y_idol@self",
+                     "create:mine.idols:idol:sum:y_idol@self",
                      "move_to:mine.table"] }
       ]
     },
@@ -108,7 +108,7 @@
                      "stat_gain:jewel@mine.player:sum:y_jewel@self",
                      "stat_gain:travel@mine.player:sum:y_travel@self",
                      "draw_from:mine.bag:mine.hand:sum:y_draw@self",
-                     "fill:mine.idols:idol:sum:y_idol@self",
+                     "create:mine.idols:idol:sum:y_idol@self",
                      "move_to:mine.table"] }
       ]
     },
@@ -127,11 +127,11 @@
         { "key": "discover_1", "text": "Discover a Level I position", "phases": ["turn"],
           "cost": { "exhaust": 1, "main@mine.player": 1, "travel@mine.player": "toll@target" },
           "target": { "type": "card", "count": 1, "tags": ["level_1"], "zones": ["island"] },
-          "action": ["fill:mine.idols:idol:1", "destroy:target", "draw_from:site_1_deck:island:1"] },
+          "action": ["create:mine.idols:idol:1", "destroy:target", "draw_from:site_1_deck:island:1"] },
         { "key": "discover_2", "text": "Discover a Level II position", "phases": ["turn"],
           "cost": { "exhaust": 1, "main@mine.player": 1, "travel@mine.player": "toll@target" },
           "target": { "type": "card", "count": 1, "tags": ["level_2"], "zones": ["island"] },
-          "action": ["fill:mine.idols:idol:1", "destroy:target", "draw_from:site_2_deck:island:1"] }
+          "action": ["create:mine.idols:idol:1", "destroy:target", "draw_from:site_2_deck:island:1"] }
       ]
     },
     "guardian": {
@@ -244,9 +244,9 @@
   "phases": [
     { "key": "setup", "type": "automatic",
       "actions": ["destroy:each.guardian",
-                  "each_seat:fill:mine.bag:funding:2",
-                  "each_seat:fill:mine.bag:exploration:2",
-                  "each_seat:fill:mine.bag:fear:2",
+                  "each_seat:create:mine.bag:funding:2",
+                  "each_seat:create:mine.bag:exploration:2",
+                  "each_seat:create:mine.bag:fear:2",
                   "each_seat:shuffle:mine.bag"],
       "next": [{ "then": "round_start" }] },
 
@@ -265,7 +265,7 @@
                { "then": "turn", "seat": "next" }] },
 
     { "key": "cleanup", "type": "automatic",
-      "actions": ["each_seat:fill:mine.table:fear:count:afraid@mine.everywhere",
+      "actions": ["each_seat:create:mine.table:fear:count:afraid@mine.everywhere",
                   "move:each.digger:origin",
                   "each_seat:stat_set:travel@mine.player:0",
                   "each_seat:move:mine.hand:mine.table",

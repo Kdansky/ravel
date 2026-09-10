@@ -362,7 +362,7 @@ end
 function M.test_puzzle_strike_the_pile_is_read_as_a_sum_of_values(check)
 	opening(7)
 	local predicate = require("predicate")
-	actions.run({ "fill:mine.gem_pile:gem_4:1", "fill:mine.gem_pile:gem_2:1" }, {})
+	actions.run({ "create:mine.gem_pile:gem_4:1", "create:mine.gem_pile:gem_2:1" }, {})
 	check("four plus two plus the ante is seven",
 		predicate.holds("sum:value@mine.gem_pile == 7", {}),
 		table.concat(keys_in("gem_pile", "south"), " "))
@@ -375,7 +375,7 @@ end
 -- other side. Four abilities keyed to four values would have been the other way.
 function M.test_puzzle_strike_a_crash_breaks_one_gem_into_that_many_ones(check)
 	opening(7)
-	actions.run({ "fill:mine.gem_pile:gem_3:1", "fill:mine.hand:crash_gem:1" }, {})
+	actions.run({ "create:mine.gem_pile:gem_3:1", "create:mine.hand:crash_gem:1" }, {})
 	local crash = find_in("hand", "crash_gem", "south")
 	local three = find_in("gem_pile", "gem_3", "south")
 	check("the crash is playable in the action phase", flow.can_play(crash.id))
@@ -391,7 +391,7 @@ end
 -- in a hidden zone, walked by the action, each with its own `when`.
 function M.test_puzzle_strike_combining_makes_the_gem_they_add_up_to(check)
 	opening(7)
-	actions.run({ "fill:mine.gem_pile:gem_1:1", "fill:mine.hand:combine:1" }, {})
+	actions.run({ "create:mine.gem_pile:gem_1:1", "create:mine.hand:combine:1" }, {})
 	local ones = {}
 	for _, id in ipairs(zone_of("gem_pile", "south").cards) do
 		if entity.get(id).def_key == "gem_1" then ones[#ones + 1] = id end
@@ -408,8 +408,8 @@ end
 -- 4 or less" and is asked of the targets rather than of the card.
 function M.test_puzzle_strike_a_combine_over_four_is_refused(check)
 	opening(7)
-	actions.run({ "fill:mine.gem_pile:gem_4:1", "fill:mine.gem_pile:gem_3:1",
-	              "fill:mine.hand:combine:1" }, {})
+	actions.run({ "create:mine.gem_pile:gem_4:1", "create:mine.gem_pile:gem_3:1",
+	              "create:mine.hand:combine:1" }, {})
 	local big = { find_in("gem_pile", "gem_4", "south").id, find_in("gem_pile", "gem_3", "south").id }
 	local before = count_in("gem_pile", "south")
 	flow.play_card(find_in("hand", "combine", "south").id, big)
@@ -487,7 +487,7 @@ function M.test_puzzle_strike_the_bag_refills_from_the_discard_mid_draw(check)
 	opening(7)
 	-- Empty the bag and put something in the discard that was never in it, so a
 	-- recreated starting deck and a genuine reshuffle look different.
-	actions.run({ "move:mine.bag:mine.discard", "fill:mine.discard:gem_4:1" }, {})
+	actions.run({ "move:mine.bag:mine.discard", "create:mine.discard:gem_4:1" }, {})
 	check("the bag is empty", count_in("bag", "south") == 0)
 	flow.activate(loose("done_acting").id, {})
 	flow.activate(loose("wound").id, {})
@@ -507,8 +507,8 @@ end
 -- under before it ends is the game's whole defensive layer.
 function M.test_puzzle_strike_ten_is_only_fatal_at_your_own_turns_end(check)
 	opening(7)
-	actions.run({ "fill:mine.gem_pile:gem_4:1", "fill:mine.gem_pile:gem_4:1",
-	              "fill:mine.gem_pile:gem_1:1" }, {})
+	actions.run({ "create:mine.gem_pile:gem_4:1", "create:mine.gem_pile:gem_4:1",
+	              "create:mine.gem_pile:gem_1:1" }, {})
 	check("the pile is over ten", require("predicate").holds("sum:value@mine.gem_pile >= 10", {}),
 		table.concat(keys_in("gem_pile", "south"), " "))
 	check("and the game has not ended", phase.current().key == "action")
@@ -525,8 +525,8 @@ end
 -- rule read the other way.
 function M.test_puzzle_strike_crashing_back_under_ten_saves_the_turn(check)
 	opening(7)
-	actions.run({ "fill:mine.gem_pile:gem_4:1", "fill:mine.gem_pile:gem_4:1",
-	              "fill:mine.gem_pile:gem_1:1", "fill:mine.hand:crash_gem:1" }, {})
+	actions.run({ "create:mine.gem_pile:gem_4:1", "create:mine.gem_pile:gem_4:1",
+	              "create:mine.gem_pile:gem_1:1", "create:mine.hand:crash_gem:1" }, {})
 	local four = find_in("gem_pile", "gem_4", "south")
 	flow.play_card(find_in("hand", "crash_gem", "south").id, { four.id })
 	check("the pile came back under ten",
@@ -543,7 +543,7 @@ end
 -- bonus is three separate ifs that add up, rather than one table lookup.
 function M.test_puzzle_strike_a_fuller_pile_draws_more_chips(check)
 	opening(7)
-	actions.run({ "fill:mine.gem_pile:gem_4:1", "fill:mine.gem_pile:gem_4:1" }, {})
+	actions.run({ "create:mine.gem_pile:gem_4:1", "create:mine.gem_pile:gem_4:1" }, {})
 	check("the pile stands at nine", require("predicate").holds("sum:value@mine.gem_pile == 9", {}),
 		table.concat(keys_in("gem_pile", "south"), " "))
 	flow.activate(loose("done_acting").id, {})
@@ -573,7 +573,7 @@ end
 -- exhaustive set, and cheaper to read than two questions in a row.
 function M.test_puzzle_strike_a_choice_is_an_offer_of_its_branches(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:versatile_style:1" }, {})
+	actions.run({ "create:mine.hand:versatile_style:1" }, {})
 	flow.play_card(find_in("hand", "versatile_style", "south").id, {})
 	check("the offer is open", phase.current().type == "overlay", phase.current().key)
 	check("with a card for each branch", count_in("options") == 3,
@@ -588,7 +588,7 @@ end
 -- phase about the seat — which is the whole of "again, same player".
 function M.test_puzzle_strike_an_extra_turn_keeps_the_same_seat(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:burst_of_speed:1" }, {})
+	actions.run({ "create:mine.hand:burst_of_speed:1" }, {})
 	flow.play_card(find_in("hand", "burst_of_speed", "south").id, {})
 	check("the chip is gone rather than played to the table",
 		find_in("table", "burst_of_speed", "south") == nil)
@@ -608,7 +608,7 @@ end
 -- different places for the answer to land: the discard, the hand, the pile.
 function M.test_puzzle_strike_an_upgrade_lands_where_the_chip_says(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:gem_2:1", "fill:mine.hand:big_rocks:1" }, {})
+	actions.run({ "create:mine.hand:gem_2:1", "create:mine.hand:big_rocks:1" }, {})
 	flow.play_card(find_in("hand", "big_rocks", "south").id,
 		{ find_in("hand", "gem_2", "south").id })
 	check("Big Rocks puts the bigger gem in your hand",
@@ -621,10 +621,10 @@ end
 -- them, and a copy would leave the original where it was.
 function M.test_puzzle_strike_an_opponents_hand_opens_in_the_offer(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:pilebunker:1" }, {})
+	actions.run({ "create:mine.hand:pilebunker:1" }, {})
 	-- A known gem in the other hand, so there is something worth trashing.
 	local south = zone_of("hand", "north")
-	actions.run({ "fill:enemy.hand:gem_3:1" }, {})
+	actions.run({ "create:enemy.hand:gem_3:1" }, {})
 	local held = count_in("hand", "north")
 
 	flow.play_card(find_in("hand", "pilebunker", "south").id, {})
@@ -657,9 +657,9 @@ end
 -- and "largest" is the candidate compared with the offer it is lying in.
 function M.test_puzzle_strike_pilebunker_takes_only_the_largest_gem(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:pilebunker:1" }, {})
-	actions.run({ "fill:enemy.hand:gem_3:1" }, {})
-	actions.run({ "fill:enemy.hand:wound:1" }, {})
+	actions.run({ "create:mine.hand:pilebunker:1" }, {})
+	actions.run({ "create:enemy.hand:gem_3:1" }, {})
+	actions.run({ "create:enemy.hand:wound:1" }, {})
 	local held = count_in("hand", "north")
 
 	flow.play_card(find_in("hand", "pilebunker", "south").id, {})
@@ -683,11 +683,11 @@ end
 -- a mandatory one would never close. Nothing to take is nothing to look at.
 function M.test_puzzle_strike_an_offer_nothing_qualifies_for_does_not_open(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:pilebunker:1" }, {})
+	actions.run({ "create:mine.hand:pilebunker:1" }, {})
 	-- Their hand emptied of gems and filled with wounds: a full hand, and not one
 	-- card in it that Pilebunker will take.
 	actions.run({ "move:enemy.hand:enemy.discard" }, {})
-	actions.run({ "fill:enemy.hand:wound:3" }, {})
+	actions.run({ "create:enemy.hand:wound:3" }, {})
 
 	flow.play_card(find_in("hand", "pilebunker", "south").id, {})
 	check("no offer opened over a hand with nothing in it to take",
@@ -702,7 +702,7 @@ end
 -- pick would trash something it never asked for.
 function M.test_puzzle_strike_a_hand_read_may_be_declined(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:pilebunker:1" }, {})
+	actions.run({ "create:mine.hand:pilebunker:1" }, {})
 	local held = count_in("hand", "north")
 
 	flow.play_card(find_in("hand", "pilebunker", "south").id, {})
@@ -718,7 +718,7 @@ end
 -- this one was.
 function M.test_puzzle_strike_a_forced_choice_has_no_way_out(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:versatile_style:1" }, {})
+	actions.run({ "create:mine.hand:versatile_style:1" }, {})
 	flow.play_card(find_in("hand", "versatile_style", "south").id, {})
 	check("the branches are offered", count_in("options") == 3, tostring(count_in("options")))
 	check("and there is no No choice button", not flow.can_dismiss())
@@ -730,7 +730,7 @@ end
 -- an action list cannot branch and no phase runs between two draws.
 function M.test_puzzle_strike_a_chip_that_draws_reshuffles_too(check)
 	opening(7)
-	actions.run({ "move:mine.bag:mine.discard", "fill:mine.hand:draw_three:1" }, {})
+	actions.run({ "move:mine.bag:mine.discard", "create:mine.hand:draw_three:1" }, {})
 	check("the bag is empty on purpose and stays that way",
 		count_in("bag", "south") == 0, tostring(count_in("bag", "south")))
 	local held = count_in("hand", "south")
@@ -750,7 +750,7 @@ function M.test_puzzle_strike_a_coloured_arrow_only_pays_its_own_colour(check)
 	check("a turn opens with one plain arrow and no coloured ones",
 		me.stats.acts == 1 and me.stats.act_red == 0 and me.stats.act_brown == 0)
 
-	actions.run({ "fill:mine.hand:sneak_attack:1", "fill:mine.hand:draw_three:1" }, {})
+	actions.run({ "create:mine.hand:sneak_attack:1", "create:mine.hand:draw_three:1" }, {})
 	flow.play_card(find_in("hand", "sneak_attack", "south").id, {})
 	check("the plain arrow paid for the red chip", me.stats.acts == 0)
 	check("and it gave a red one back", me.stats.act_red == 1)
@@ -770,7 +770,7 @@ end
 -- halves a turn apart, so the chip kept back needs somewhere to sit.
 function M.test_puzzle_strike_a_piggy_bank_keeps_a_chip_for_next_turn(check)
 	opening(7)
-	actions.run({ "stat_gain:piggy@mine.player:1", "fill:mine.hand:gem_4:1" }, {})
+	actions.run({ "stat_gain:piggy@mine.player:1", "create:mine.hand:gem_4:1" }, {})
 	flow.activate(loose("done_acting").id, {})
 	flow.activate(loose("wound").id, {})
 	flow.activate(loose("end_turn").id, {})
@@ -879,7 +879,7 @@ end
 -- exists to stop a soft-lock would offer one forever.
 function M.test_puzzle_strike_a_wound_is_not_a_move(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:wound:1" }, {})
+	actions.run({ "create:mine.hand:wound:1" }, {})
 	local w = find_in("hand", "wound", "south")
 	check("the wound is in hand", w ~= nil)
 	check("and it cannot be played", not flow.can_play(w.id))
@@ -891,7 +891,7 @@ end
 -- and a chip that gives nothing numeric wears nothing.
 function M.test_puzzle_strike_a_chip_wears_what_it_gives(check)
 	opening(7)
-	actions.run({ "fill:mine.hand:one_of_each:1", "fill:mine.hand:draw_three:1" }, {})
+	actions.run({ "create:mine.hand:one_of_each:1", "create:mine.hand:draw_three:1" }, {})
 	local one = find_in("hand", "one_of_each", "south").stats
 	check("one of each is one of each",
 		one.plus_act == 1 and one.plus_piggy == 1 and one.plus_pow == 1 and one.plus_draw == 1)

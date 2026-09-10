@@ -41,7 +41,7 @@ local GAME = [==[{
     "for_sale": { "abilities": [
       { "key": "buy", "text": "Buy it", "merge": "this",
         "cost": { "coin@mine.player": "price@self", "stock@self": 1 },
-        "action": ["fill:mine.hand:@self:1"] }] }
+        "action": ["create:mine.hand:@self:1"] }] }
   },
   "cards": [
     { "key": "one", "text": "One" },
@@ -100,18 +100,18 @@ end
 function M.test_supply_counts_whatever_is_added_to_it(check)
 	with_game(function(name)
 		flow.init(name, 3)
-		actions.run({ "fill:shop:gem:6" }, {})
+		actions.run({ "create:shop:gem:6" }, {})
 		check("filling a supply raises the number", shelf("gem").stats.stock == 70,
 			tostring(shelf("gem").stats.stock))
 		check("and mints no cards", count_in("shop") == 2)
 
-		actions.run({ "fill:shop:idol:1" }, {})
+		actions.run({ "create:shop:idol:1" }, {})
 		check("a kind it did not have gets its own card",
 			count_in("shop") == 3 and shelf("idol").stats.stock == 1)
 		-- A number has no capacity, so the grid's three cells never run out —
 		-- a supply of four kinds in a [3,1] would, which is a layout question
 		-- and not this one.
-		actions.run({ "fill:shop:idol:99" }, {})
+		actions.run({ "create:shop:idol:99" }, {})
 		check("and it keeps counting past any room a layout has",
 			shelf("idol").stats.stock == 100, tostring(shelf("idol").stats.stock))
 	end)
@@ -234,7 +234,7 @@ end
 function M.test_supply_an_ordinary_card_put_back_is_worth_one(check)
 	with_game(function(name)
 		flow.init(name, 3)
-		actions.run({ "fill:table:gem:1" }, {})
+		actions.run({ "create:table:gem:1" }, {})
 		local loose
 		for _, id in ipairs(zones.find("table").cards) do
 			if entity.get(id).def_key == "gem" then loose = entity.get(id) end

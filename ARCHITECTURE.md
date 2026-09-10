@@ -371,7 +371,7 @@ is only one.
 **What the engine does with it.** `zones.add` counts instead of creating: the
 first card of a kind becomes the shelf's face card, stamped with a `stock` the
 game never declares, and every one after it is that number going up. `contents`
-of `["gem_1:64"]` therefore yields one entity, and so does `fill:bank:gem_1:8`
+of `["gem_1:64"]` therefore yields one entity, and so does `create:bank:gem_1:8`
 and a rule putting a gem back in the box. `zones.move_card` funnels into the
 same place, so every route in lands right — and it reads the incoming card's own
 `stock` as its worth, because an offer borrows the *real* card and a stack lent
@@ -398,7 +398,7 @@ the word at a real game rather than a fixture:
   plate lent to an offer is still a shelf. An offer keeps the picked card until
   the `chosen` actions have had their say, which is exactly when a card that
   offered the bank says what to take out of it — without that, the only spelling
-  left was a `fill`, which conjures and leaves the box's count untouched.
+  left was a `create`, which conjures and leaves the box's count untouched.
 - **A card going back to the zone that lent it is returning, not arriving**, so
   the collapse above is skipped for it. A shelf that is rebuilt is a shelf with a
   new id, and whatever borrowed it may still be holding the old one — a buy
@@ -409,7 +409,7 @@ the word at a real game rather than a fixture:
   The two return sites used to clear `borrowed_from` before the move, which is
   what left `move_card` unable to tell the two apart; it clears the field itself.
 
-**A component leaving the box was two statements until `take`.** A `fill` that
+**A component leaving the box was two statements until `take`.** A `create` that
 conjured it beside a `stat_damage:stock` that paid for it: nothing tied them
 together, so a game file could put them out of step and only find out by
 counting, and the presentation had no origin to fly the card out of — 95 sites in

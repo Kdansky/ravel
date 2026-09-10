@@ -115,7 +115,7 @@ check("demo starts with 1 hand card", zone_count("hand") == 1)
 check("road holds the other 10 cards", zone_count("road") == 10)
 check("player starts at 5 hp", predicate.total("hp") == 5)
 
-eval("fill:hand:storm:1")
+eval("create:hand:storm:1")
 local storm = find_card("storm", "hand")
 local hp0   = predicate.total("hp")
 flow.play_card(storm.id, {})
@@ -351,13 +351,13 @@ end
 
 -- === castle: play cost gating ===
 eval("stat_set:gold:0")
-eval("fill:hand:mercenaries:1")
+eval("create:hand:mercenaries:1")
 check("cannot afford mercenaries at 0 gold",
 	flow.play_card(find_card("mercenaries", "hand").id, {}) == false)
 
 -- === castle: slot targeting ===
 eval("stat_set:gold:5")
-eval("fill:hand:farm:1")
+eval("create:hand:farm:1")
 local farm  = find_card("farm", "hand")
 local slot  = empty_slot()
 local gold0 = predicate.total("gold")
@@ -376,7 +376,7 @@ check("healing clamps at hp_max", farm.stats.hp == 3)
 
 -- === castle: tag targeting ===
 actions.execute("stat_damage:hp@target:1", { targets = { farm.id } })
-eval("fill:hand:repair:1")
+eval("create:hand:repair:1")
 local rep = find_card("repair", "hand")
 targeting.start(rep.id, cards.def(rep).target)
 check("a building is eligible for repair", targeting.is_eligible(farm.id))
@@ -386,7 +386,7 @@ actions.execute("stat_gain:hp@target:1", { targets = { farm.id } })
 
 -- === castle: draft overlay via architect ===
 eval("stat_set:gold:5")
-eval("fill:hand:architect:1")
+eval("create:hand:architect:1")
 local deck0 = zone_count("build_deck")
 local hand0 = zone_count("hand")
 flow.play_card(find_card("architect", "hand").id, {})
@@ -402,7 +402,7 @@ check("hand kept its size (architect out, pick in)", zone_count("hand") == hand0
 
 -- === castle: sub-card choice via an internal deck (royal decree) ===
 eval("stat_set:gold:9")
-eval("fill:hand:royal_decree:1")
+eval("create:hand:royal_decree:1")
 flow.play_card(find_card("royal_decree", "hand").id, {})
 check("decree opens the edict overlay", phase.current().key == "decree")
 check("three edicts offered from their deck",
@@ -488,7 +488,7 @@ check("edit: json value",
 	cards.edit("farm", "cost", '{"gold": 7}') and fdef.cost.gold == 7)
 
 eval("stat_set:gold:3")
-eval("fill:hand:farm:1")
+eval("create:hand:farm:1")
 check("edited cost gates play immediately",
 	flow.play_card(find_card("farm", "hand").id, {}) == false)
 
@@ -646,7 +646,7 @@ flow.play_card(hand_router("to_barracks"), {})
 check("router chose the barracks", phase.current().key == "barracks_visit")
 
 -- === kingdom: counting synergies ===
-eval("fill:hand:homestead:2")
+eval("create:hand:homestead:2")
 flow.play_card(find_card("homestead", "hand").id, {})
 flow.play_card(find_card("homestead", "hand").id, {})
 -- count board farms independently (the random market play may have added one)
@@ -663,10 +663,10 @@ eval("stat_gain:food:count:farm")
 check("count amounts resolve board tags",
 	farms >= 2 and predicate.total("food") == food0 + farms)
 
-eval("fill:hand:rally_banner:1")
+eval("create:hand:rally_banner:1")
 check("count-needs gate blocks below threshold",
 	flow.can_play(find_card("rally_banner", "hand").id) == false)
-eval("fill:hand:militia:1")
+eval("create:hand:militia:1")
 flow.play_card(find_card("militia", "hand").id, {})
 check("count-needs gate opens at threshold",
 	flow.can_play(find_card("rally_banner", "hand").id) == true)
@@ -701,7 +701,7 @@ local fired = {}
 actions.on_effect = function(name) fired[#fired + 1] = name end
 flow.init("road.json", 9)
 flow.play_card(zones.find("reveal").cards[1], {})
-eval("fill:hand:outrider:1")
+eval("create:hand:outrider:1")
 flow.play_card(find_card("outrider", "hand").id, {})
 flow.activate(find_card("outrider", "battlefield").id)
 actions.on_effect = nil
@@ -746,7 +746,7 @@ check("story pages carry outcomes too", flow.outcome() == "defeat")
 -- === phases end and discard like MTG turns ===
 flow.init("kingdom.json", 5)
 flow.play_card(find_card("warlord", "hand").id, {})
-eval("fill:hand:laborers:1")
+eval("create:hand:laborers:1")
 flow.play_card(find_card("laborers", "hand").id, {})
 local grave0 = zone_count("graveyard")
 flow.play_card(hand_router("to_market"), {})
@@ -768,7 +768,7 @@ check("the phase it advanced into dealt fresh", zone_count("hand") == 7)
 flow.init("kingdom.json", 5)
 flow.play_card(find_card("warlord", "hand").id, {})
 eval("stat_set:might:0")
-eval("fill:hand:war_host:1")
+eval("create:hand:war_host:1")
 flow.play_card(find_card("war_host", "hand").id, {})
 check("a failed trial squats on the board as a crisis", find_card("war_host", "board") ~= nil)
 local stab1 = predicate.total("stability")
@@ -847,7 +847,7 @@ check("the lantern lights the stair", top_page() == "p_stair_lit")
 flow.play_card(zones.find("reveal").cards[1], {})
 check("the bell room offers the finale", find_card("c_bell", "hand") ~= nil)
 
-eval("fill:board:pearl:1")
+eval("create:board:pearl:1")
 check("undo is available before the bell", flow.can_undo() == true)
 flow.play_card(find_card("c_bell", "hand").id, {})
 check("the pearl earns the good ending", top_page() == "e_pearl")
@@ -863,7 +863,7 @@ check("death fires the collapse page", phase.is_overlay() and top_page() == "e_c
 -- === placement: tag homes and the single-board fallback ===
 flow.init("tower.json", 3)
 flow.play_card(zones.find("reveal").cards[1], {})
-eval("fill:board:pearl:1")
+eval("create:board:pearl:1")
 check("a card filled onto a grid takes a slot", find_card("pearl", "board").slot_id ~= nil)
 actions.execute("move_to", { card_id = find_card("c_search", "hand").id, targets = {} })
 flow.settle()
@@ -873,10 +873,10 @@ check("bare move_to falls back to the only board", find_card("c_search", "board"
 flow.init("tower.json", 3)
 flow.play_card(zones.find("reveal").cards[1], {})
 cards.edit("c_flee", "cost", '{"sacrifice:keepsake": 1}')
-eval("fill:hand:c_flee:1")
+eval("create:hand:c_flee:1")
 local flee = find_card("c_flee", "hand")
 check("a sacrifice cost gates without the board card", flow.can_play(flee.id) == false)
-eval("fill:board:pearl:1")
+eval("create:board:pearl:1")
 check("the sacrifice cost opens with it on the board", flow.can_play(flee.id) == true)
 flow.play_card(flee.id, {})
 check("paying destroyed the sacrificed card", zone_count("board") == 0)
@@ -890,7 +890,7 @@ check("sacrifice costs read as text", cards.cost_text({ ["sacrifice:farm"] = 2 }
 
 -- === flow is the single legality gate ===
 flow.init("castle.json")
-eval("fill:hand:watchtower:1")
+eval("create:hand:watchtower:1")
 local wt2 = find_card("watchtower", "hand")
 check("play with missing targets is refused", flow.play_card(wt2.id, {}) == false)
 check("the refused card stayed in hand", entity.get(wt2.id).zone_id == zones.find_id("hand"))
@@ -900,7 +900,7 @@ check("the same play with a slot target works", find_card("watchtower", "board")
 -- === grid capacity: full boards refuse new arrivals ===
 flow.init("tower.json", 3)
 flow.play_card(zones.find("reveal").cards[1], {})
-eval("fill:board:pearl:8")
+eval("create:board:pearl:8")
 check("fill stops at the board's capacity", zone_count("board") == 5)
 local held = find_card("c_search", "hand")
 check("a move onto a full board is refused",
@@ -923,10 +923,10 @@ flow.play_card(zones.find("reveal").cards[1], {})
 check("dawn dealt a threat onto the battlefield", battlefield_threat() ~= nil)
 check("camp offers a draft plus both marches", zone_count("hand") == 5)
 
-eval("fill:hand:outrider:1")
+eval("create:hand:outrider:1")
 flow.play_card(find_card("outrider", "hand").id, {})
 check("units muster on the battlefield by tag", find_card("outrider", "battlefield") ~= nil)
-eval("fill:hand:torch:1")
+eval("create:hand:torch:1")
 flow.play_card(find_card("torch", "hand").id, {})
 check("items stow in the wagons by tag", find_card("torch", "inventory") ~= nil)
 
@@ -937,7 +937,7 @@ check("units wound threats once per day", th.stats.hp < hp0)
 eval("stat_damage:hp@random.threat:9")
 check("a dead threat is slain, not gone", th.stats.hp == 0 and th.zone_id ~= nil)
 
-eval("fill:hand:scavenge:1")
+eval("create:hand:scavenge:1")
 flow.play_card(find_card("scavenge", "hand").id, { th.id })
 check("scavenging clears the corpse for supplies",
 	entity.get(th.id).zone_id == zones.find_id("graveyard"))
@@ -957,7 +957,7 @@ eval("stat_set:distance:7")
 flow.play_card(hand_router("hard_march"), {})
 check("past six miles the far road deals the threats", zone_count("road_far") == far0 - 1)
 
-eval("fill:hand:burn_the_wagons:1")
+eval("create:hand:burn_the_wagons:1")
 flow.play_card(find_card("burn_the_wagons", "hand").id, {})
 check("burning the wagons sacrificed the unit", find_card("outrider", "battlefield") == nil)
 
@@ -1274,7 +1274,7 @@ check("undo rewinds a random run to its opening state", fingerprint() == fp0)
 -- castle's farm carries "economic"; the throne carries "building" but not
 -- "economic", which is what makes the two scopes distinguishable here.
 flow.init("castle.json", 7)
-eval("fill:board:farm:3")
+eval("create:board:farm:3")
 local board_id  = zones.find_id("board")
 local function scope_hp(pred)
 	local s = 0
@@ -1296,7 +1296,7 @@ check("each: not every farm has 4 hp", predicate.met("hp@each.economic >= 4") ==
 check("any: the pool reaches 9",       predicate.met("hp@any.economic >= 9"))
 
 -- A tag reaches cards in play, never a hand: "@economic" is not "every farm I own".
-eval("fill:hand:farm:1")
+eval("create:hand:farm:1")
 check("a tag scope ignores cards in hand", predicate.total("hp@economic") == econ_hp)
 -- ...and @everywhere is the word that opts back in: same tag, every zone. The
 -- bare count is the three on the board; everywhere is every economic card there
@@ -1387,7 +1387,7 @@ check("the hero is the player card",
 -- forever. It is a stat on the tower now, read by an aggregate over the
 -- buildings still standing.
 local base_defense = predicate.total("sum:defense@standing")
-eval("fill:board:watchtower:1")
+eval("create:board:watchtower:1")
 local tower = find_card("watchtower", "board")
 check("a watchtower defends the castle",
 	predicate.total("sum:defense@standing") == base_defense + 2)
@@ -1557,9 +1557,9 @@ check("the owner words reach the seat cards themselves",
 local north_arena = zones.find("arena")
 check("north is on the clock", zones.active_seat() == "north")
 check("a per_seat zone is one entity per seat", #zones.all_with_key("arena") == 2)
-eval("fill:arena:wolf:1")
-eval("fill:enemy.arena:wolf:2")
-eval("fill:commons:statue:1")
+eval("create:arena:wolf:1")
+eval("create:enemy.arena:wolf:2")
+eval("create:commons:statue:1")
 check("a bare key filled the active seat's arena", #north_arena.cards == 1)
 check("an owner word filled the other one", #zones.find("arena", "enemy").cards == 2)
 
@@ -1614,8 +1614,8 @@ check("undo history did not cross the handover", flow.can_undo() == false)
 -- so it never offers the other seat's copy of one. move_to:target then puts
 -- the acting card where the player pointed — the only way one card can offer
 -- two destinations, which is what "advance or discard" needs.
-eval("fill:arena:wolf:1")          -- south's arena now, the seat having rotated
-eval("fill:commons:statue:1")
+eval("create:arena:wolf:1")          -- south's arena now, the seat having rotated
+eval("create:commons:statue:1")
 local banner = cards.create("banner", zones.find_id("hand"))
 targeting.start(banner.id, cards.def(banner).target, "play")
 local offered = {}
@@ -1847,7 +1847,7 @@ check("and the rules gate agrees, so the shot actually lands",
 -- Two gaps a real published game found: a gate that compares downwards, and a
 -- multiplication that repeated addition cannot stand in for.
 flow.init("castle.json", 7)
-eval("fill:board:watchtower:2")
+eval("create:board:watchtower:2")
 check("a condition says which way it compares",
 	predicate.meets_all({ "sum:defense@standing >= 4" })
 	and predicate.meets_all({ "sum:defense@standing >= 5" }) == false)
@@ -1885,7 +1885,7 @@ do   -- scoped: Lua 5.4 allows only 200 live locals in the main chunk,
 		return false
 	end
 	local function drawn(key)
-		eval("fill:hand:" .. key .. ":1")
+		eval("create:hand:" .. key .. ":1")
 		local c = find_card(key, "hand")
 		return c, targeting.candidates(c.id, cards.def(c).target)
 	end
@@ -1935,7 +1935,7 @@ do   -- scoped: Lua 5.4 allows only 200 live locals in the main chunk,
 	-- colour, and all of them go in.
 	for _, key in ipairs({ "red_w1", "red_w2", "red_w3", "red_2", "red_3", "red_4",
 		"red_5", "red_6", "red_8", "red_9", "red_10" }) do
-		eval("fill:mine.red:" .. key .. ":1")
+		eval("create:mine.red:" .. key .. ":1")
 	end
 	check("a stack has no room to run out of", #my_red.cards == 12 and zones.has_room(my_red),
 		tostring(#my_red.cards) .. " cards")

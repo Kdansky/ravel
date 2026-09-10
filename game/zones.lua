@@ -218,7 +218,7 @@ end
 
 -- The supply card that stocks this kind, if one does.
 --
--- Presentation asks it where a conjured card should have come from: a `fill`
+-- Presentation asks it where a conjured card should have come from: a `create`
 -- says what appears and never where it was, so a crash puts gems in a pile out
 -- of nowhere when the bank they were taken out of is sitting right there. Lives
 -- here rather than in the renderer for the same reason `visible` does — it is a
@@ -246,7 +246,7 @@ end
 -- **A supply counts instead.** Its cards are interchangeable by declaration, so
 -- the second one is not a card at all — it is the first one's "stock" going up.
 -- Every existing way of filling a zone therefore lands right without knowing:
--- a "contents" line of "gem_1:64", a "fill:bank:gem_1:8", a rule returning a gem
+-- a "contents" line of "gem_1:64", a "create:bank:gem_1:8", a rule returning a gem
 -- to the box. What a supply refuses is running out of room, since a number has
 -- no capacity.
 function M.add(z, def_key)
@@ -533,7 +533,7 @@ end
 -- **A card standing on another goes where it goes, and leaves when it leaves.**
 -- Written here rather than in the ops because move_card and destroy_card are
 -- what every one of them funnels through — the same reason the supply rule is
--- here and not in `add`. A draw, a take, a fill and a reclaim then all keep the
+-- here and not in `add`. A draw, a take, a create and a reclaim then all keep the
 -- link honest without knowing it exists, which is what the first attempt did
 -- not: `parent_id` had one write and no reader, so a host that moved left its
 -- riders behind still claiming it.

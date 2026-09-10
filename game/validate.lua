@@ -1485,13 +1485,13 @@ function M.check(G)
 
 		-- **A move written as a death and a birth.** `destroy` could be told how
 		-- many and `move` could not, so "send two of my gems over there" was
-		-- spelled as a kill beside a `fill`. It costs the cards their identity,
+		-- spelled as a kill beside a `create`. It costs the cards their identity,
 		-- their history and any chance of the player watching them go, and it
 		-- reads as two events. `move` takes a count now, so the workaround has an
 		-- honest spelling and every place it survives should say so out loud.
 		--
 		-- A kind that trades with the box in the same list is doing *that*, and
-		-- the two are easy to confuse: a destroy that puts stock back and a fill
+		-- the two are easy to confuse: a destroy that puts stock back and a create
 		-- that spends it are the honest halves of a supply, and they share a key
 		-- and an amount without being one move. Puzzle Strike's Reversal does
 		-- both in one breath, which is what this exception is measured against.
@@ -1506,7 +1506,7 @@ function M.check(G)
 		end
 		for _, str in ipairs(list) do
 			if type(str) == "string" then
-				local zone, key, n = str:match("^fill:([^:]+):([^:]+):(.+)$")
+				local zone, key, n = str:match("^create:([^:]+):([^:]+):(.+)$")
 				local gone = key and not stocked[key] and killed[key]
 				if gone and gone.n == n then
 					warn("%s: '%s' and '%s' are one move written as a death and a birth — "
@@ -1517,12 +1517,12 @@ function M.check(G)
 		end
 
 		-- **The same fault against the box.** A component leaving a supply is a
-		-- `fill` that conjures it beside a decrement that pays for it: two
+		-- `create` that conjures it beside a decrement that pays for it: two
 		-- statements a game file can put out of step, and nothing tying them
 		-- together, so the presentation had to guess which box a gem came out of.
 		-- `take` is one statement that does both.
 		--
-		-- Matched on the amount as well as the kind, because a fill and a
+		-- Matched on the amount as well as the kind, because a create and a
 		-- decrement of the same kind that disagree about how many are not this —
 		-- they are a bug, and one this cannot tell from an author's arithmetic.
 		local paid = {}
@@ -1534,7 +1534,7 @@ function M.check(G)
 		end
 		for _, str in ipairs(list) do
 			if type(str) == "string" then
-				local zone, key, n = str:match("^fill:([^:]+):([^:]+):(.+)$")
+				local zone, key, n = str:match("^create:([^:]+):([^:]+):(.+)$")
 				local out = key and paid[key]
 				if out and out.n == n then
 					warn("%s: '%s' and '%s' are one component leaving the box, written as a birth "

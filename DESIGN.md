@@ -226,7 +226,7 @@ A zone declares its starting cards in its own definition, as `"card_key"` or `"c
   "contents": ["watchtower:3", "farm:3", "market:2"] }
 ```
 
-Contents are created (and shuffled, if tagged) when the zone is created, and recreated by `refill_when_empty`. The `fill:` action still exists for dynamic cases.
+Contents are created (and shuffled, if tagged) when the zone is created, and recreated by `refill_when_empty`. The `create:` action still exists for dynamic cases.
 
 ---
 

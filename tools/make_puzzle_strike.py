@@ -1150,7 +1150,7 @@ def puzzle_cards():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["destroy:self", "show:bank:optional"]},
          "chosen": {"where": ["not_tagged:gem@target", "not_tagged:puzzle@target"],
-                    "action": ["fill:mine.discard:@target:1",
+                    "action": ["create:mine.discard:@target:1",
                                "stat_damage:stock@target:1", "next_phase"]}},
         {"key": "mix_master", **shape("mix_master", "red"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -2047,7 +2047,7 @@ def character_cards():
     """The roster. Picking one is what deals your starting ten."""
     out = []
     for key, name, colour, tip, chips in CHARACTERS:
-        deal = ["fill:mine.bag:%s:1" % c for c in chips]
+        deal = ["create:mine.bag:%s:1" % c for c in chips]
         deal.append("take:bank.crash_gem:mine.bag:1")
         deal.append("take:bank.gem_1:mine.bag:6")
         out.append({"key": "char_" + key, "text": name, "tags": ["character_card", "immutable"],

@@ -128,7 +128,7 @@ render.hit_button(12, 520)
 assert(select(1, render.stat_pos("gold")) ~= nil, "expected a HUD stat position")
 
 -- targeting arrow over the board (slots eligible, cursor mid-screen)
-eval("fill:hand:watchtower:1")
+eval("create:hand:watchtower:1")
 local wt = hand_card("watchtower")
 targeting.start(wt.id, cards.def(wt).target)
 assert(#targeting.eligible > 0, "expected eligible slots")
@@ -179,7 +179,7 @@ render.set_detail(nil)
 
 -- choose overlay: options flying in above the dim
 eval("stat_set:gold:9")
-eval("fill:hand:royal_decree:1")
+eval("create:hand:royal_decree:1")
 flow.play_card(hand_card("royal_decree").id, {})
 for _ = 1, 30 do frame(0.016) end
 
@@ -391,7 +391,7 @@ do
 	render.rescale()
 	local red = zones.find("red")
 	for _, key in ipairs({ "red_w1", "red_2", "red_4", "red_6", "red_9" }) do
-		eval("fill:mine.red:" .. key .. ":1")
+		eval("create:mine.red:" .. key .. ":1")
 	end
 	frame(0.016)
 
