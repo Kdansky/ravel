@@ -752,6 +752,21 @@
       "start": 0
     },
     {
+      "key": "time",
+      "label": "Time",
+      "icon": "orb",
+      "color": "violet",
+      "min": 0,
+      "max": 9,
+      "on": [
+        "fighter",
+        "building",
+        "upgrade",
+        "ongoing_spell"
+      ],
+      "start": 0
+    },
+    {
       "key": "sword",
       "min": 0,
       "max": 1,
@@ -1031,7 +1046,8 @@
         "tok_unseen",
         "tiger_unseen",
         "shadowed",
-        "denned"
+        "denned",
+        "nebulous"
       ]
     },
     "t0_ok": {
@@ -1327,6 +1343,47 @@
         "count:building@self >= 1",
         "integrity@self >= 1",
         "integrity@self < 4"
+      ]
+    },
+    "faded": {
+      "needs": [
+        "count:fading@self >= 1",
+        "time@self == 0",
+        "slot@self >= 0"
+      ]
+    },
+    "due": {
+      "needs": [
+        "time@self == 0"
+      ]
+    },
+    "grounded": {
+      "needs": [
+        "count:unit@self >= 1",
+        "slot@self >= 1",
+        "alt@self == 0"
+      ]
+    },
+    "nebulous": {
+      "needs": [
+        "count:unit@self >= 1",
+        "slot@self == 0",
+        "count@mine.self >= 1",
+        "count:nebular@mine.unit >= 1",
+        "count:nebular@self == 0"
+      ]
+    },
+    "rewound": {
+      "needs": [
+        "count:unit@self >= 1",
+        "count:tech3@self == 0",
+        "count:token@self == 0"
+      ]
+    },
+    "spent_now": {
+      "needs": [
+        "exhausted@self",
+        "count:fighter@self >= 1"
       ]
     }
   },
@@ -2523,6 +2580,13 @@
           ]
         }
       ]
+    },
+    "nullcraft": {
+      "receive": {
+        "needs": [
+          "not_verb:cast"
+        ]
+      }
     }
   },
   "zones": [
@@ -2654,6 +2718,27 @@
       "tooltip": "Upgrades and ongoing spells. They cannot be attacked."
     },
     {
+      "key": "soon",
+      "label": "Soon",
+      "layout": "row",
+      "copies": "per_seat",
+      "visibility": "public",
+      "pos": [
+        [
+          0.625,
+          0.65,
+          0.748,
+          0.8
+        ],
+        [
+          0.625,
+          0.2,
+          0.748,
+          0.35
+        ]
+      ]
+    },
+    {
       "key": "patrol",
       "label": "Patrol",
       "layout": "grid",
@@ -2770,13 +2855,13 @@
         [
           0.005,
           0.65,
-          0.75,
+          0.62,
           0.8
         ],
         [
           0.005,
           0.2,
-          0.75,
+          0.62,
           0.35
         ]
       ],
@@ -3040,7 +3125,7 @@
       "zone": "hand",
       "label": "Choose your hero",
       "actions": [
-        "options:pick_zane,pick_drakk,pick_jaina,pick_midori,pick_calamandra,pick_argagarg,pick_bigby,pick_onimaru,pick_sirus,pick_vandy,pick_orpal,pick_garth,pick_grave,pick_setsuki,pick_garus"
+        "options:pick_zane,pick_drakk,pick_jaina,pick_midori,pick_calamandra,pick_argagarg,pick_bigby,pick_onimaru,pick_sirus,pick_vandy,pick_orpal,pick_garth,pick_grave,pick_setsuki,pick_garus,pick_vir,pick_prynn,pick_maxg"
       ],
       "ends_when": "picked@mine.player >= 1"
     },
@@ -3334,6 +3419,10 @@
       {
         "card": "r_blue_arrive",
         "zone": "rules_arrive"
+      },
+      {
+        "card": "r_time",
+        "zone": "rules_upkeep"
       }
     ]
   },
@@ -7959,7 +8048,6 @@
       "text": "Argonaut",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "tech1",
@@ -7969,7 +8057,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Soldier. Readiness (Doesn't exhaust to attack, but can only attack once per turn.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Readiness.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -7977,14 +8065,36 @@
           "value": 4,
           "max": 4
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "upkeep",
+          "phases": [],
+          "text": "Argonaut",
+          "action": [
+            "stat_set:romp@self:1"
+          ]
+        },
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Argonaut",
+          "needs": [
+            "attacking@self >= 1",
+            "romp@self >= 1"
+          ],
+          "action": [
+            "stat_set:romp@self:0",
+            "ready:self"
+          ]
+        }
+      ]
     },
     {
       "key": "assimilate",
       "text": "Assimilate",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "spell",
@@ -7992,9 +8102,36 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Gain control of an upgrade, ongoing spell, or building card (not add-on).  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Gain control of an opposing building or ongoing spell.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_future@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "zones": [
+            "structures",
+            "ongoing"
+          ]
+        },
+        "action": [
+          "move:target:mine.structures",
+          "set_owner:target:mine"
+        ]
       }
     },
     {
@@ -8051,14 +8188,13 @@
       "text": "Battle Suits",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "tech0",
         "upgrade",
         "relic",
         "generate_art"
       ],
-      "tooltip": "Upgrade. Your non-token Soldiers and Mystics get +1 ATK.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Your non-token Soldiers and Mystics get +1 ATK.  NOT MODELLED: which kinds it lifts — Codex has no Soldier or Mystic tag on this side of the box.",
       "card_stats": {
         "price": 2
       }
@@ -8293,7 +8429,6 @@
       "text": "Chronofixer",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "tech2",
@@ -8301,9 +8436,10 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "chrono"
       ],
-      "tooltip": "Unit — Mystic. Untargetable Opposing heroes can't level up.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Untargetable. Opposing heroes can't level up.",
       "card_stats": {
         "price": 2,
         "atk": 1,
@@ -8754,18 +8890,33 @@
       "text": "Double Time",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "spell",
         "ultimate",
         "arcane",
         "spell_face",
-        "generate_art"
+        "generate_art",
+        "fcast"
       ],
-      "tooltip": "Ultimate Spell. Forecast 3 (Starts off in the future, not in play. Put three time runes on this and remove one each upkeep. When you remove the last, it resolves.) Take an extra turn after this one, then trash this card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Forecast 3: three upkeeps from now, take an extra turn.  NOT MODELLED: the extra turn, which is a phase the file cannot insert into its own run.",
       "card_stats": {
         "price": 6
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "move_to:mine.soon",
+          "stat_set:time@self:3"
+        ]
       }
     },
     {
@@ -8833,7 +8984,6 @@
       "text": "Ebbflow Archon",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "tech3",
@@ -8841,9 +8991,10 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "fading"
       ],
-      "tooltip": "Unit — Archon. Fading 7 (Arrives with seven time runes. Remove one each upkeep. When you remove the last, sacrifice this.) Gets -1/-1 for each time rune on it. Remove a time rune → Return a unit to its owner's hand or a hero to its command zone.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Fading 7. Spend a time rune to send a unit home.  NOT MODELLED: that it shrinks as its clock runs down, which is a buff counting a card's own counter.",
       "card_stats": {
         "price": 8,
         "atk": 12,
@@ -8851,7 +9002,54 @@
           "value": 12,
           "max": 12
         }
-      }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t3_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_set:time@self:7"
+        ]
+      },
+      "abilities": [
+        {
+          "key": "ebb",
+          "text": "Spend a time rune to return a unit",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "time@self": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "tags": [
+              "unit"
+            ],
+            "zones": [
+              "army",
+              "patrol"
+            ]
+          },
+          "action": [
+            "stat_set:slot@target:0",
+            "stat_set:guard@target:0",
+            "move:target:enemy.hand"
+          ]
+        }
+      ]
     },
     {
       "key": "eggship",
@@ -8932,16 +9130,16 @@
       "text": "Fading Argonaut",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "tech0",
         "unit",
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "fading"
       ],
-      "tooltip": "Unit — Soldier. Fading 3 (Arrives with three time runes. Remove one each upkeep. When you remove the last, sacrifice this.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Fading 3: it arrives with three time runes and goes when the last comes off.",
       "card_stats": {
         "price": 2,
         "atk": 2,
@@ -8949,6 +9147,23 @@
           "value": 3,
           "max": 3
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t0_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_set:time@self:3"
+        ]
       }
     },
     {
@@ -9040,7 +9255,6 @@
       "text": "Forgotten Fighter",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "spell",
         "minor_spell",
@@ -9048,9 +9262,43 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Minor Spell — Bounce. Return a patrolling tech 0 or I unit with 2 ATK or less to its owner's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Return a patrolling tech 0 or I unit with 2 ATK or less to its owner's hand.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "patrol"
+          ],
+          "where": [
+            "atk@target <= 2",
+            "count:tech2@target == 0",
+            "count:tech3@target == 0"
+          ]
+        },
+        "action": [
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:enemy.hand"
+        ]
       }
     },
     {
@@ -9288,7 +9536,6 @@
       "text": "Gilded Glaxx",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "tech1",
@@ -9298,7 +9545,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Mech Soldier. While you have gold in your gold pile, you can't sacrifice Gilded Glaxx and he can't leave play unless he dies from combat damage.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "A 3/4.  NOT MODELLED: that gold in your pile pins it in play, which is a permission suspended by a number.",
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -9506,7 +9753,6 @@
       "text": "Hardened Mox",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "tech0",
         "unit",
@@ -9515,7 +9761,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Mech Soldier. Indestructible (If this would die, exhaust it and remove all damage and attachments from it instead. You can't sacrifice it.) When you have a tech II unit (even a forecasted one), trash Hardened Mox.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Indestructible.  NOT MODELLED: both halves — the death replacement, and that a tech II unit of yours trashes it, which asks about a card that may be forecast and so nowhere.",
       "card_stats": {
         "price": 3,
         "atk": 1,
@@ -9714,7 +9960,6 @@
       "text": "Hive",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "tech2",
@@ -9724,7 +9969,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Mech Airship. Flying, resist 1 Arrives: Summon five 1/1 purple Stinger tokens with flying. ① → Re-summon a lost Stinger (limit: 5 per Hive.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Flying, resist 1. Arrives: summon five 1/1 purple Stinger tokens with flying.  NOT MODELLED: re-summoning a lost Stinger, which wants the limit counted.",
       "card_stats": {
         "price": 6,
         "atk": 0,
@@ -9732,6 +9977,23 @@
           "value": 6,
           "max": 6
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "fill:mine.army:stinger:5"
+        ]
       }
     },
     {
@@ -9763,7 +10025,6 @@
       "text": "Hyperion",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "tech2",
@@ -9773,7 +10034,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Soldier. Haste Attacks: Draw a card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Haste. Attacks: draw a card.",
       "card_stats": {
         "price": 5,
         "atk": 4,
@@ -9781,14 +10042,26 @@
           "value": 5,
           "max": 5
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Hyperion",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "draw_from:mine.deck:mine.hand:1"
+          ]
+        }
+      ]
     },
     {
       "key": "immortal",
       "text": "Immortal",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "tech2",
@@ -9798,7 +10071,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Mech. Indestructible (If this would die, exhaust it and remove all damage and attachments from it instead. You can't sacrifice it.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "A 5/5 for six.  NOT MODELLED: Indestructible, which is a death replacement.",
       "card_stats": {
         "price": 6,
         "atk": 5,
@@ -9990,7 +10263,6 @@
       "text": "Knight of the Conclave",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "tech1",
@@ -9998,9 +10270,11 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "fcast",
+        "resist_1"
       ],
-      "tooltip": "Unit — Mech Soldier. Forecast 3 (Starts off in the future, not in play. Put three time runes on this and remove one each upkeep. When you remove the last, it arrives.) Resist 1 (Opponents must pay ① each time they would ◎ this with a spell or ability.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Forecast 3, resist 1.",
       "card_stats": {
         "price": 0,
         "atk": 4,
@@ -10008,6 +10282,21 @@
           "value": 4,
           "max": 4
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t1_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "move_to:mine.soon",
+          "stat_set:time@self:3"
+        ]
       }
     },
     {
@@ -10318,7 +10607,6 @@
       "text": "Nebula",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "tech3",
@@ -10326,9 +10614,10 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "nebular"
       ],
-      "tooltip": "Unit — Mech Airship. Flying, resist 3 Your other units are invisible. ⓪ → Destroy a tech 0, I, or II unit. Once-per-turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Flying, resist 3. Your other units are invisible. Free and once a turn: destroy a tech 0, I or II unit.",
       "card_stats": {
         "price": 7,
         "atk": 7,
@@ -10336,7 +10625,39 @@
           "value": 6,
           "max": 6
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "erase",
+          "text": "Destroy a tech 0, I or II unit",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "tags": [
+              "unit"
+            ],
+            "zones": [
+              "army",
+              "patrol"
+            ],
+            "where": [
+              "count:tech3@target == 0"
+            ]
+          },
+          "action": [
+            "destroy:target",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
     },
     {
       "key": "necromancer",
@@ -10369,7 +10690,6 @@
       "text": "Neo Plexus",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "tech0",
         "unit",
@@ -10378,7 +10698,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Soldier.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "A 2/2 for two.",
       "card_stats": {
         "price": 2,
         "atk": 2,
@@ -10465,7 +10785,6 @@
       "text": "Now!",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "spell",
@@ -10473,9 +10792,39 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Buff. Give a unit or hero haste this turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Give a unit or hero haste this turn.",
       "card_stats": {
         "price": 1
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_present@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": [
+            "fighter"
+          ],
+          "zones": [
+            "army",
+            "patrol",
+            "command"
+          ]
+        },
+        "action": [
+          "stat_set:ready_since@target:1"
+        ]
       }
     },
     {
@@ -10483,16 +10832,16 @@
       "text": "Nullcraft",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "tech0",
         "unit",
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "nullcraft"
       ],
-      "tooltip": "Unit — Mech Airship. Flying, haste Can't be the ◎ of Buff or Debuff spells.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Flying, haste. Can't be aimed at by Buff or Debuff spells.",
       "card_stats": {
         "price": 2,
         "atk": 1,
@@ -10550,7 +10899,6 @@
       "text": "Octavian",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "tech3",
@@ -10560,7 +10908,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Behemoth. ⑧, ⤵ → Ready Octavian and disable up to eight units and/or heroes. (Exhaust them and they don't ready during their next ready step. Sideline them if they were patrolling.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "8 gold and exhaust: ready this and disable up to eight units or heroes.",
       "card_stats": {
         "price": 8,
         "atk": 8,
@@ -10568,7 +10916,40 @@
           "value": 8,
           "max": 8
         }
-      }
+      },
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 8,
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "min": 1,
+            "max": 8,
+            "owner": "enemy",
+            "tags": [
+              "fighter"
+            ],
+            "zones": [
+              "army",
+              "patrol",
+              "command"
+            ]
+          },
+          "action": [
+            "ready:self",
+            "exhaust:target",
+            "stat_set:disabled@target:1",
+            "stat_set:slot@target:0",
+            "stat_set:guard@target:0"
+          ]
+        }
+      ]
     },
     {
       "key": "older_brother",
@@ -10599,7 +10980,6 @@
       "text": "Omegacron",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "tech2",
@@ -10607,9 +10987,11 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "fcast",
+        "untargetable"
       ],
-      "tooltip": "Unit — Mech Drone. Forecast 6, Haste, untargetable Sacrifice a unit, hero, worker, or upgrade → Remove a time rune from Omegacron while it's forecasted.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Forecast 6, haste, untargetable. Sacrifice a unit to take a rune off it while it waits.",
       "card_stats": {
         "price": 2,
         "atk": 9,
@@ -10617,14 +10999,46 @@
           "value": 7,
           "max": 7
         }
-      }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "move_to:mine.soon",
+          "stat_set:time@self:6"
+        ]
+      },
+      "abilities": [
+        {
+          "key": "hurry",
+          "text": "Sacrifice a unit to hurry Omegacron",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "sacrifice:unit": 1
+          },
+          "needs": [
+            "time@self >= 1"
+          ],
+          "action": [
+            "stat_damage:time@self:1"
+          ]
+        }
+      ]
     },
     {
       "key": "origin_story",
       "text": "Origin Story",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "spell",
@@ -10632,9 +11046,40 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Return a hero to its command zone.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Return a hero to its command zone.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_past@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "hero"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:enemy.command"
+        ]
       }
     },
     {
@@ -10822,16 +11267,16 @@
       "text": "Plasmodium",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "tech0",
         "unit",
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "fcast"
       ],
-      "tooltip": "Unit — Beast. Forecast 3 (Starts off in the future, not in play. Put three time runes on this and remove one each upkeep. When you remove the last, it arrives.) Haste (Can attack and play ⤵ abilities, if he had any, the turn he arrives.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Forecast 3, haste: played into the future, and it arrives three upkeeps later.",
       "card_stats": {
         "price": 2,
         "atk": 4,
@@ -10839,6 +11284,21 @@
           "value": 4,
           "max": 4
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t0_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "move_to:mine.soon",
+          "stat_set:time@self:3"
+        ]
       }
     },
     {
@@ -10919,7 +11379,6 @@
       "text": "Promise of Payment",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "spell",
@@ -10927,7 +11386,7 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. The next card you play this turn costs ⓪. Pay its gold cost during your next upkeep or lose the game.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "The next card you play this turn costs nothing.  NOT MODELLED: all of it — a cost waived for a card not yet chosen, and a debt that loses you the game.",
       "card_stats": {
         "price": 0
       }
@@ -10985,7 +11444,6 @@
       "text": "Ready or Not",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "spell",
@@ -10993,9 +11451,39 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Ready one of your units. Opposing exhausted units don't ready during their next ready step.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Ready one of your units, and hold their spent ones spent.",
       "card_stats": {
         "price": 4
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_present@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "ready:target",
+          "stat_set:disabled@each.enemy.spent_now:1"
+        ]
       }
     },
     {
@@ -11003,7 +11491,6 @@
       "text": "Reaver",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "tech2",
@@ -11011,9 +11498,10 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "fcast"
       ],
-      "tooltip": "Unit — Mech Drone. Forecast 2 (Starts off in the future, not in play. Put two time runes on this and remove one each upkeep. When you remove the last, it arrives.) ①, ⤵, Discard a card → Choose one: Trash 2 workers. Deal 6 damage to up to 2 units and/or heroes.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Forecast 2. Once here: 1 gold and exhaust to deal 6 damage to a unit or hero.  NOT MODELLED: the discard it costs, and trashing two workers as the other half of the choice.",
       "card_stats": {
         "price": 3,
         "atk": 0,
@@ -11021,7 +11509,52 @@
           "value": 4,
           "max": 4
         }
-      }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "move_to:mine.soon",
+          "stat_set:time@self:2"
+        ]
+      },
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 1,
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "tags": [
+              "fighter"
+            ],
+            "zones": [
+              "army",
+              "patrol",
+              "command"
+            ]
+          },
+          "action": [
+            "harm:hp@target:6",
+            "harm:life@target:6",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
     },
     {
       "key": "regularsized_rhinoceros",
@@ -11053,7 +11586,6 @@
       "text": "Rememberer",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "tech2",
@@ -11061,9 +11593,10 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "fading"
       ],
-      "tooltip": "Unit — Mystic. Fading 3 Whenever you remove a time rune from Rememberer, you may put a unit with fading from your discard pile into play if you meet the tech requirements for it.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Fading 3.  NOT MODELLED: putting a fading unit back from the discard when a rune comes off, which needs the removal itself to be a moment.",
       "card_stats": {
         "price": 5,
         "atk": 3,
@@ -11071,6 +11604,23 @@
           "value": 3,
           "max": 3
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_set:time@self:3"
+        ]
       }
     },
     {
@@ -11078,7 +11628,6 @@
       "text": "Research & Development",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "spell",
@@ -11087,9 +11636,25 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ultimate Spell. Draw five cards. (You can only reshuffle once per main phase.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Draw five cards.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_present@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "draw_from:mine.deck:mine.hand:5"
+        ]
       }
     },
     {
@@ -11172,7 +11737,6 @@
       "text": "Rewind",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "spell",
@@ -11181,9 +11745,29 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Ultimate Spell — Bounce. Your max level Past hero can cast this no matter when she arrived or maxed. Return all tech 0, I, and II units to their owner's hands.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Ultimate spell. Return every tech 0, I and II unit to its owner's hand.",
       "card_stats": {
         "price": 4
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_past@mine.hero >= 1",
+          "max:level@mine.h_past >= 7"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "stat_set:slot@each.anyone.rewound:0",
+          "stat_set:guard@each.anyone.rewound:0",
+          "move:mine.rewound:mine.hand",
+          "move:enemy.rewound:enemy.hand"
+        ]
       }
     },
     {
@@ -11273,7 +11857,6 @@
       "text": "Second Chances",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "tech2",
@@ -11281,7 +11864,7 @@
         "relic",
         "generate_art"
       ],
-      "tooltip": "Upgrade. Whenever one of your non-token units leaves play from something other than combat damage, return it to play. Once-per-turn. (Choose randomly if multiples leave at once.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Whenever one of your non-token units leaves play other than in combat, return it.  NOT MODELLED: all of it — a death replacement counted once a turn and choosing at random between several.",
       "card_stats": {
         "price": 2
       }
@@ -11291,7 +11874,6 @@
       "text": "Seer",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "tech1",
@@ -11301,13 +11883,45 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Mystic. Arrives: You may add or remove a time rune from a card (or forcasted card) with at least one time rune.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: add a time rune to something that already has one.  NOT MODELLED: taking one off instead.",
       "card_stats": {
         "price": 1,
         "atk": 2,
         "hp": {
           "value": 1,
           "max": 1
+        }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t1_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_gain:time@target:1"
+        ],
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "zones": [
+            "army",
+            "patrol",
+            "soon",
+            "ongoing"
+          ],
+          "where": [
+            "time@target >= 1"
+          ]
         }
       }
     },
@@ -11365,7 +11979,6 @@
       "text": "Sentry",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "tech1",
@@ -11373,9 +11986,10 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "sparkshot"
       ],
-      "tooltip": "Unit — Mech Drone. Sparkshot, anti-air Prevent the first damage per turn that a spell or ability would deal to one of your patrollers. (Choose randomly if multiple patrollers are damaged at once.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Sparkshot, anti-air.  NOT MODELLED: turning aside the first damage a spell would deal to one of your patrollers, which asks what a blow comes to before it lands.",
       "card_stats": {
         "price": 2,
         "atk": 3,
@@ -11463,7 +12077,6 @@
       "text": "Shimmer Ray",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "tech2",
@@ -11471,9 +12084,10 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "fading"
       ],
-      "tooltip": "Unit — Mech Airship. Flying, Fading 2 (Arrives with two time runes. Remove one each upkeep. When you remove the last, sacrifice this.) Discard a card → Add a time rune to this.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Flying, fading 2.",
       "card_stats": {
         "price": 1,
         "atk": 3,
@@ -11481,6 +12095,23 @@
           "value": 4,
           "max": 4
         }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_set:time@self:2"
+        ]
       }
     },
     {
@@ -11685,7 +12316,6 @@
       "text": "Slow-Time Generator",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "tech2",
@@ -11694,7 +12324,7 @@
         "build_face",
         "generate_art"
       ],
-      "tooltip": "Building. Each player's workers can't produce more than ④ total during their upkeep.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Each player's workers produce no more than 4 gold at their upkeep.  NOT MODELLED: the cap, which is a ceiling on somebody else's income.",
       "card_stats": {
         "price": 5,
         "integrity": {
@@ -12037,7 +12667,6 @@
       "text": "Stewardess of the Undone",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "tech1",
@@ -12047,13 +12676,48 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Mystic. Arrives: You may return a tech 0 unit to its owner's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: return a tech 0 unit to its owner's hand.",
       "card_stats": {
         "price": 3,
         "atk": 2,
         "hp": {
           "value": 3,
           "max": 3
+        }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t1_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:enemy.hand"
+        ],
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ],
+          "where": [
+            "count:tech0@target >= 1"
+          ]
         }
       }
     },
@@ -12094,7 +12758,6 @@
       "text": "Temporal Distortion",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "spell",
@@ -12102,9 +12765,44 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell. Return a tech I or II unit of yours to its owner's hand. If you do, you may put a unit of the same tech level and the same cost or less from your codex into play. (Even if you don't meet the tech reqs for it.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Return one of your tech I or II units to your hand.  NOT MODELLED: putting another of the same tech level into play from your codex, which is a second aim.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_present@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ],
+          "where": [
+            "count:tech0@target == 0",
+            "count:tech3@target == 0"
+          ]
+        },
+        "action": [
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:mine.hand"
+        ]
       }
     },
     {
@@ -12112,7 +12810,6 @@
       "text": "Temporal Research",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "spell",
         "minor_spell",
@@ -12120,9 +12817,24 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Minor Spell. Draw a card. If you have 3 or more time runes, draw another card. If you have 10 or more time runes, draw another card.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Draw a card, and another if you have three or more time runes.  NOT MODELLED: the third card at ten runes, which is a second threshold on one line.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "action": [
+          "draw_from:mine.deck:mine.hand:1"
+        ]
       }
     },
     {
@@ -12306,7 +13018,6 @@
       "text": "Time Spiral",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "spell",
         "minor_spell",
@@ -12314,9 +13025,39 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Minor Spell. Add or remove a time rune from a card (or forcasted card) with at least one time rune.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Add a time rune to something that already has one.  NOT MODELLED: taking one off instead.",
       "card_stats": {
         "price": 1
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "anyone",
+          "zones": [
+            "army",
+            "patrol",
+            "soon",
+            "ongoing"
+          ],
+          "where": [
+            "time@target >= 1"
+          ]
+        },
+        "action": [
+          "stat_gain:time@target:1"
+        ]
       }
     },
     {
@@ -12348,7 +13089,6 @@
       "text": "Tinkerer",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "tech0",
         "unit",
@@ -12357,7 +13097,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Scientist. ⤵ → Add or remove a time rune from a card (or forcasted card) with at least one time rune.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Exhaust: add or take a time rune from something that already has one.  NOT MODELLED: the choice of which — this only adds.",
       "card_stats": {
         "price": 2,
         "atk": 1,
@@ -12365,7 +13105,35 @@
           "value": 2,
           "max": 2
         }
-      }
+      },
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "mine",
+            "zones": [
+              "army",
+              "patrol",
+              "soon",
+              "ongoing"
+            ],
+            "where": [
+              "time@target >= 1"
+            ]
+          },
+          "action": [
+            "stat_gain:time@target:1"
+          ]
+        }
+      ]
     },
     {
       "key": "training_grounds",
@@ -12395,7 +13163,6 @@
       "text": "Tricycloid",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "tech2",
@@ -12405,7 +13172,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Mech Drone. Arrives: Put three time runes on this. Gets +1/+1 for each time rune on it. Remove a time rune → Deal 1 damage to a unit, hero, or building.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Arrives: three time runes. Spend one to deal 1 damage to a unit or hero.  NOT MODELLED: that it reads +1/+1 for each rune, which is a buff counting a card's own counter.",
       "card_stats": {
         "price": 5,
         "atk": 3,
@@ -12413,7 +13180,55 @@
           "value": 3,
           "max": 3
         }
-      }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_set:time@self:3"
+        ]
+      },
+      "abilities": [
+        {
+          "key": "spin",
+          "text": "Spend a time rune for a point of damage",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "time@self": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "enemy",
+            "tags": [
+              "fighter"
+            ],
+            "zones": [
+              "army",
+              "patrol",
+              "command"
+            ]
+          },
+          "action": [
+            "harm:hp@target:1",
+            "harm:life@target:1",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
     },
     {
       "key": "trojan_duck",
@@ -12563,7 +13378,6 @@
       "text": "Undo",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "spell",
@@ -12571,9 +13385,43 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Bounce. Return a tech 0, I, or II unit to its owner's hand.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Return a tech 0, I or II unit to its owner's hand.",
       "card_stats": {
         "price": 3
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_past@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "enemy",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ],
+          "where": [
+            "count:tech3@target == 0"
+          ]
+        },
+        "action": [
+          "stat_set:slot@target:0",
+          "stat_set:guard@target:0",
+          "move:target:enemy.hand"
+        ]
       }
     },
     {
@@ -12581,7 +13429,6 @@
       "text": "Unphase",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "spell",
@@ -12589,9 +13436,39 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Spell — Buff. Make a unit or hero invisible until your next upkeep. (To opponents without a detector, it's untargetable, unattackable, and can sneak past patrollers. While patrolling, it's attackable.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Make one of your units invisible until your next upkeep.",
       "card_stats": {
         "price": 2
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_future@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "spent": "mine.discard",
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_set:unseen@target:1",
+          "stat_set:slot@target:0"
+        ]
       }
     },
     {
@@ -12747,7 +13624,6 @@
       "text": "Void Star",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "tech2",
@@ -12757,7 +13633,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Mech Airship. Flying, overpower ④ → Gets +4 ATK until your next upkeep. Once-per-turn.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Flying, overpower. 4 gold: +4 ATK until your next upkeep.",
       "card_stats": {
         "price": 5,
         "atk": 5,
@@ -12765,7 +13641,23 @@
           "value": 4,
           "max": 4
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "surge",
+          "text": "+4 ATK until your next upkeep",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 4
+          },
+          "action": [
+            "stat_gain:atk@self:4",
+            "stat_gain:lent@self:4"
+          ]
+        }
+      ]
     },
     {
       "key": "voidblocker",
@@ -12809,18 +13701,48 @@
       "text": "Vortoss Emblem",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "spell",
         "ongoing_spell",
         "arcane",
         "spell_face",
-        "generate_art"
+        "generate_art",
+        "fading"
       ],
-      "tooltip": "Ongoing Spell. Fading 3 Attach to a unit. That unit is a flagbearer. Whenever an opponent plays a spell or ability that can ◎ a flagbearer, it must ◎ a flagbearer at least once.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Fading 3. Attach to one of your units.  NOT MODELLED: the flagbearer half, which narrows somebody else's aim after they have made it.",
       "card_stats": {
         "price": 0
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:hero@mine.hero >= 1",
+          "count:h_past@mine.hero >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "target": {
+          "verb": "cast",
+          "type": "card",
+          "count": 1,
+          "owner": "mine",
+          "tags": [
+            "unit"
+          ],
+          "zones": [
+            "army",
+            "patrol"
+          ]
+        },
+        "action": [
+          "stat_set:time@self:3",
+          "move_to:mine.ongoing",
+          "attach_to_target"
+        ]
       }
     },
     {
@@ -12828,7 +13750,6 @@
       "text": "Warp Gate Disciple",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "present",
         "tech2",
@@ -12838,7 +13759,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Unit — Mystic. ①, ⤵ → Put a tech I or II unit from your codex into play. (You don't have to meet the tech reqs for it.)  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "1 gold and exhaust: put a tech I or II unit from your codex into play.",
       "card_stats": {
         "price": 4,
         "atk": 1,
@@ -12846,6 +13767,31 @@
           "value": 1,
           "max": 1
         }
+      },
+      "abilities": [
+        {
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 1,
+            "exhaust": 1
+          },
+          "action": [
+            "show:mine.codex"
+          ]
+        }
+      ],
+      "chosen": {
+        "where": [
+          "tagged:unit@target",
+          "count:tech0@target == 0",
+          "count:tech3@target == 0"
+        ],
+        "action": [
+          "move:target:mine.army",
+          "stat_set:ready_since@target:0"
+        ]
       }
     },
     {
@@ -12967,7 +13913,6 @@
       "text": "Xenostalker",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "future",
         "tech2",
@@ -12975,9 +13920,10 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "unstoppable"
       ],
-      "tooltip": "Unit — Mech Drone. Unstoppable (Can ignore patrollers when attacking.) Attacks: Deal 1 damage to up to four patrollers without flying.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Unstoppable. Attacks: 1 damage to up to four grounded patrollers.",
       "card_stats": {
         "price": 4,
         "atk": 3,
@@ -12985,14 +13931,27 @@
           "value": 6,
           "max": 6
         }
-      }
+      },
+      "abilities": [
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Xenostalker",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "harm:hp@each.enemy.grounded:1",
+            "activate_zone:rules_death"
+          ]
+        }
+      ]
     },
     {
       "key": "yesterdays_golgort",
       "text": "Yesterday's Golgort",
       "tags": [
         "deck_card",
-        "scaffold",
         "purple",
         "past",
         "tech2",
@@ -13000,9 +13959,10 @@
         "fighter",
         "aether",
         "fighter_face",
-        "generate_art"
+        "generate_art",
+        "fading"
       ],
-      "tooltip": "Unit — Beast. Fading 2 (Arrives with two time runes. Remove one each upkeep. When you remove the last, sacrifice this.) Whenever you deal combat damage to a building, put a time rune on this.  SCAFFOLD: printed here for its numbers and its text only — nothing of it runs yet.",
+      "tooltip": "Fading 2. Damages a building: put a time rune back on it.",
       "card_stats": {
         "price": 3,
         "atk": 6,
@@ -13010,7 +13970,39 @@
           "value": 4,
           "max": 4
         }
-      }
+      },
+      "play": {
+        "phases": [
+          "main"
+        ],
+        "needs": [
+          "count:t2_ok@self >= 1"
+        ],
+        "cost": {
+          "gold@mine.player": "price@self"
+        },
+        "action": [
+          "activate_zone:rules_arrive",
+          "move_to",
+          "stat_set:ready_since@self:count:hasty@self",
+          "stat_set:time@self:2"
+        ]
+      },
+      "abilities": [
+        {
+          "key": "kills",
+          "phases": [],
+          "text": "Yesterday's Golgort",
+          "needs": [
+            "attacking@self >= 1",
+            "sum:power@self >= 1",
+            "count:building@across >= 1"
+          ],
+          "action": [
+            "stat_gain:time@self:1"
+          ]
+        }
+      ]
     },
     {
       "key": "young_lightning_dragon",
@@ -14249,6 +15241,490 @@
             "stat_gain:level@self:1",
             "stat_set:atk@self:4",
             "stat_set:life@self:6"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "vir",
+      "text": "Vir Garbarean",
+      "tags": [
+        "hero",
+        "fighter",
+        "h_future",
+        "purple",
+        "aether",
+        "hero_face"
+      ],
+      "asset": "star:7:violet",
+      "tooltip": "Chronomancer. Levels 1-4 2/3. Levels 5-6 3/3. Level 7 3/5: summon a 6/7 Mech with forecast 2. NOT MODELLED: looking at and swapping the top of your deck, and playing it from there.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 6
+        },
+        "level": 1
+      },
+      "abilities": [
+        {
+          "key": "summon",
+          "text": "Summon Vir",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "count:hero@mine.hero == 0",
+            "hero_wait@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:3",
+            "stat_set:armor@self:0",
+            "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
+            "move_to:mine.army"
+          ]
+        },
+        {
+          "key": "lvl2",
+          "text": "Level up to 2",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 1"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl3",
+          "text": "Level up to 3",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 2"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl4",
+          "text": "Level up to 4",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 3"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl5",
+          "text": "Level up to 5 — heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 4"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:3",
+            "stat_set:life@self:3"
+          ]
+        },
+        {
+          "key": "lvl6",
+          "text": "Level up to 6",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 5"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl7",
+          "text": "Level up to 7 — max, heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 6"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:3",
+            "stat_set:life@self:5"
+          ]
+        },
+        {
+          "key": "mech",
+          "text": "Summon a Mech into the future",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self >= 7"
+          ],
+          "action": [
+            "fill:mine.soon:mech:1",
+            "stat_set:time@each.mine.soon:2"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "prynn",
+      "text": "Prynn Pasternaak",
+      "tags": [
+        "hero",
+        "fighter",
+        "h_past",
+        "purple",
+        "aether",
+        "hero_face",
+        "fading"
+      ],
+      "asset": "star:7:violet",
+      "tooltip": "Timeshaper. Levels 1-3 1/3 with fading 4: attacking puts a rune back on her. Levels 4-6 2/4, level 7 3/5. NOT MODELLED: the opponent's skipped draw when she fades away, and her level 7 trashing.",
+      "card_stats": {
+        "price": 2,
+        "atk": 1,
+        "life": {
+          "value": 3,
+          "max": 6
+        },
+        "level": 1
+      },
+      "abilities": [
+        {
+          "key": "summon",
+          "text": "Summon Prynn",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "count:hero@mine.hero == 0",
+            "hero_wait@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
+            "stat_set:atk@self:1",
+            "stat_set:life@self:3",
+            "stat_set:armor@self:0",
+            "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
+            "move_to:mine.army",
+            "stat_set:time@self:4"
+          ]
+        },
+        {
+          "key": "lvl2",
+          "text": "Level up to 2",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 1"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl3",
+          "text": "Level up to 3",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 2"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl4",
+          "text": "Level up to 4 — heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 3"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "lvl5",
+          "text": "Level up to 5",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 4"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl6",
+          "text": "Level up to 6",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 5"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl7",
+          "text": "Level up to 7 — max, heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 6"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:3",
+            "stat_set:life@self:5"
+          ]
+        },
+        {
+          "key": "attacks",
+          "phases": [],
+          "text": "Prynn Pasternaak",
+          "needs": [
+            "attacking@self >= 1"
+          ],
+          "action": [
+            "stat_gain:time@self:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "maxg",
+      "text": "Max Geiger",
+      "tags": [
+        "hero",
+        "fighter",
+        "h_present",
+        "purple",
+        "aether",
+        "hero_face",
+        "sparkshot"
+      ],
+      "asset": "star:5:violet",
+      "tooltip": "Tinkerer. Levels 1-2 2/3 with sparkshot. Levels 3-4 2/4: exhaust and discard to draw. Level 5 3/4. NOT MODELLED: the max level, which trashes one of your units and puts it straight back.",
+      "card_stats": {
+        "price": 2,
+        "atk": 2,
+        "life": {
+          "value": 3,
+          "max": 6
+        },
+        "level": 1
+      },
+      "abilities": [
+        {
+          "key": "summon",
+          "text": "Summon Max",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "gold@mine.player": 2
+          },
+          "needs": [
+            "count:hero@mine.hero == 0",
+            "hero_wait@mine.player == 0"
+          ],
+          "action": [
+            "stat_set:level@self:1",
+            "stat_set:ripe@self:0",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:3",
+            "stat_set:armor@self:0",
+            "stat_set:guard@self:0",
+            "activate_zone:rules_arrive",
+            "stat_set:ready_since@self:count:hasty@self",
+            "move_to:mine.army"
+          ]
+        },
+        {
+          "key": "lvl2",
+          "text": "Level up to 2",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 1"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl3",
+          "text": "Level up to 3 — heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 2"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:2",
+            "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "lvl4",
+          "text": "Level up to 4",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 3"
+          ],
+          "action": [
+            "stat_gain:level@self:1"
+          ]
+        },
+        {
+          "key": "lvl5",
+          "text": "Level up to 5 — max, heals",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "xp@mine.player": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self == 4"
+          ],
+          "action": [
+            "stat_gain:level@self:1",
+            "stat_set:atk@self:3",
+            "stat_set:life@self:4"
+          ]
+        },
+        {
+          "key": "sift",
+          "text": "Discard a card to draw one",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1
+          },
+          "needs": [
+            "count:hero@mine.hero >= 1",
+            "level@self >= 3"
+          ],
+          "action": [
+            "move:random.mine.hand:mine.discard",
+            "draw_from:mine.deck:mine.hand:1"
           ]
         }
       ]
@@ -18750,6 +20226,220 @@
           "fill:mine.codex:entangling_vines:2",
           "fill:mine.codex:thunderclap:2",
           "fill:mine.command:garus:1",
+          "stat_gain:picked@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "r_time",
+      "text": "Time runes",
+      "tags": [
+        "immutable"
+      ],
+      "tooltip": "Every clock on your side ticks once at your upkeep: what is fading loses a rune and dies when the last one goes, and what is forecast loses a rune and arrives.",
+      "abilities": [
+        {
+          "key": "tick_play",
+          "text": "Fading",
+          "phases": [],
+          "needs": [
+            "count:fading@mine.fading >= 1"
+          ],
+          "action": [
+            "stat_damage:time@each.mine.fading:1"
+          ]
+        },
+        {
+          "key": "tick_future",
+          "text": "Forecast",
+          "phases": [],
+          "needs": [
+            "count@mine.soon >= 1"
+          ],
+          "action": [
+            "stat_damage:time@each.mine.soon:1"
+          ]
+        },
+        {
+          "key": "expire",
+          "text": "Fading",
+          "phases": [],
+          "needs": [
+            "count:faded@mine.fading >= 1"
+          ],
+          "action": [
+            "destroy:each.mine.faded",
+            "activate_zone:rules_death"
+          ]
+        },
+        {
+          "key": "arrive",
+          "text": "Forecast",
+          "phases": [],
+          "needs": [
+            "count:due@mine.soon >= 1"
+          ],
+          "action": [
+            "activate_zone:rules_arrive",
+            "move:mine.soon.due:mine.army",
+            "stat_set:ready_since@each.mine.army:1"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "stinger",
+      "text": "Stinger",
+      "tags": [
+        "unit",
+        "fighter",
+        "token",
+        "purple",
+        "flying",
+        "aether",
+        "fighter_face"
+      ],
+      "asset": "circle:violet",
+      "tooltip": "A 1/1 purple Stinger token with flying.",
+      "card_stats": {
+        "atk": 1,
+        "hp": {
+          "value": 1,
+          "max": 1
+        },
+        "alt": 1,
+        "aa": 1
+      }
+    },
+    {
+      "key": "mech",
+      "text": "Mech",
+      "tags": [
+        "unit",
+        "fighter",
+        "token",
+        "purple",
+        "untargetable",
+        "aether",
+        "fighter_face"
+      ],
+      "asset": "circle:violet",
+      "tooltip": "A 6/7 purple Mech token, untargetable, that arrives two upkeeps from now.",
+      "card_stats": {
+        "atk": 6,
+        "hp": {
+          "value": 7,
+          "max": 7
+        }
+      }
+    },
+    {
+      "key": "pick_vir",
+      "text": "Vir Garbarean — Future",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "star:7:violet",
+      "tooltip": "Purple. Cards played into the future that arrive when their clock runs out.",
+      "play": {
+        "action": [
+          "fill:mine.deck:battle_suits:1",
+          "fill:mine.deck:fading_argonaut:1",
+          "fill:mine.deck:hardened_mox:1",
+          "fill:mine.deck:neo_plexus:1",
+          "fill:mine.deck:nullcraft:1",
+          "fill:mine.deck:plasmodium:1",
+          "fill:mine.deck:tinkerer:1",
+          "fill:mine.deck:forgotten_fighter:1",
+          "fill:mine.deck:temporal_research:1",
+          "fill:mine.deck:time_spiral:1",
+          "fill:mine.codex:gilded_glaxx:2",
+          "fill:mine.codex:knight_of_the_conclave:2",
+          "fill:mine.codex:hive:2",
+          "fill:mine.codex:omegacron:2",
+          "fill:mine.codex:reaver:2",
+          "fill:mine.codex:void_star:2",
+          "fill:mine.codex:xenostalker:2",
+          "fill:mine.codex:nebula:2",
+          "fill:mine.codex:assimilate:2",
+          "fill:mine.codex:double_time:2",
+          "fill:mine.codex:promise_of_payment:2",
+          "fill:mine.codex:unphase:2",
+          "fill:mine.command:vir:1",
+          "stat_gain:picked@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "pick_prynn",
+      "text": "Prynn Pasternaak — Past",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "star:7:violet",
+      "tooltip": "Purple. Everything is on a clock, yours and theirs.",
+      "play": {
+        "action": [
+          "fill:mine.deck:battle_suits:1",
+          "fill:mine.deck:fading_argonaut:1",
+          "fill:mine.deck:hardened_mox:1",
+          "fill:mine.deck:neo_plexus:1",
+          "fill:mine.deck:nullcraft:1",
+          "fill:mine.deck:plasmodium:1",
+          "fill:mine.deck:tinkerer:1",
+          "fill:mine.deck:forgotten_fighter:1",
+          "fill:mine.deck:temporal_research:1",
+          "fill:mine.deck:time_spiral:1",
+          "fill:mine.codex:seer:2",
+          "fill:mine.codex:stewardess_of_the_undone:2",
+          "fill:mine.codex:rememberer:2",
+          "fill:mine.codex:second_chances:2",
+          "fill:mine.codex:shimmer_ray:2",
+          "fill:mine.codex:slowtime_generator:2",
+          "fill:mine.codex:yesterdays_golgort:2",
+          "fill:mine.codex:ebbflow_archon:2",
+          "fill:mine.codex:origin_story:2",
+          "fill:mine.codex:rewind:2",
+          "fill:mine.codex:undo:2",
+          "fill:mine.codex:vortoss_emblem:2",
+          "fill:mine.command:prynn:1",
+          "stat_gain:picked@mine.player:1"
+        ]
+      }
+    },
+    {
+      "key": "pick_maxg",
+      "text": "Max Geiger — Present",
+      "tags": [
+        "immutable"
+      ],
+      "asset": "star:5:violet",
+      "tooltip": "Purple. Readiness, draws, and an 8/8 that spends a fortune.",
+      "play": {
+        "action": [
+          "fill:mine.deck:battle_suits:1",
+          "fill:mine.deck:fading_argonaut:1",
+          "fill:mine.deck:hardened_mox:1",
+          "fill:mine.deck:neo_plexus:1",
+          "fill:mine.deck:nullcraft:1",
+          "fill:mine.deck:plasmodium:1",
+          "fill:mine.deck:tinkerer:1",
+          "fill:mine.deck:forgotten_fighter:1",
+          "fill:mine.deck:temporal_research:1",
+          "fill:mine.deck:time_spiral:1",
+          "fill:mine.codex:argonaut:2",
+          "fill:mine.codex:sentry:2",
+          "fill:mine.codex:chronofixer:2",
+          "fill:mine.codex:hyperion:2",
+          "fill:mine.codex:immortal:2",
+          "fill:mine.codex:tricycloid:2",
+          "fill:mine.codex:warp_gate_disciple:2",
+          "fill:mine.codex:octavian:2",
+          "fill:mine.codex:now:2",
+          "fill:mine.codex:ready_or_not:2",
+          "fill:mine.codex:research__development:2",
+          "fill:mine.codex:temporal_distortion:2",
+          "fill:mine.command:maxg:1",
           "stat_gain:picked@mine.player:1"
         ]
       }

@@ -113,24 +113,6 @@ Remove fully completed entries when we have done them or moved them to other fil
   rule; filling it at read time needs the entity the line was about, which the log
   does not keep. Found by watching an engine-played Spellstorm seat.
 
-- **The offer stall is now the top bot bug, and it grows with the box.** Six games
-  in sixty, up from three, as blue, black and white put more cards with offers in
-  front of a seat that cannot answer them. Same cause as the entry below; what has
-  changed is how often it is reached.
-
-- **The engine seat stalls on an offer whose cards cannot fill their own aim.**
-  `opponent.lua`'s `M.legal` builds targets for every playable card out of
-  `cards.def(e).target`, and drops the move when the pool is short. But a card
-  lying in an offer is being *chosen*, not played: `flow.play_card` skips the
-  target check entirely for an overlay (`flow.lua:1013`) and hands the choice the
-  asker as its target. So a codex offer holding two Final Showdowns in front of a
-  seat with no Balance hero is a question the engine cannot answer, and the game
-  stops with a legal move on the table — one in forty random Codex games, seed 5,
-  around move 231. A player at the screen is not blocked: `flow.play_card(card, {})`
-  succeeds there. The fix is to ask `flow` whether the card is being chosen before
-  reaching for its target spec, which is the same question `choosing()` already
-  answers inside flow.
-
 - **Nothing can say "this card costs nothing".** Four cards want it and none of
   them is an aim, so `adjusts` cannot reach any of them — it is keyed on a verb
   and a chosen target, and a unit played out of a hand has neither. **Guargum,

@@ -533,8 +533,8 @@ function M.test_codex_shape(check)
 				type(def.tooltip) == "string" and def.tooltip:find("SCAFFOLD", 1, true) ~= nil)
 		end
 	end
-	check("two hundred and thirty printed cards are played", live == 230, tostring(live))
-	check("and eighty more are only printed", held == 80, tostring(held))
+	check("two hundred and seventy-six printed cards are played", live == 276, tostring(live))
+	check("and thirty-four more are only printed", held == 34, tostring(held))
 end
 
 -- The hero waits in a zone that is not in play, which is what lets "do I have a
@@ -996,6 +996,84 @@ function M.test_codex_the_upkeep_readies_what_is_spent(check)
 	actions.run({ "ready:mine.rousable" }, {})
 	check("and one line gives both back",
 		not spent(unit.id) and not spent(hall.id))
+end
+
+-- **A card in an offer is chosen, not played.** The engine seat used to build
+-- targets for everything it could play, and a card lying in a codex offer has a
+-- target spec that will never be filled — flow skips the check for a choice and
+-- hands it the asker instead. So a seat sat in front of a question it could have
+-- answered, and the game stopped with a legal move on the table.
+function M.test_codex_the_engine_seat_can_answer_an_unaimable_offer(check)
+	local opponent = require("opponent")
+	start("pick_vir", "pick_argagarg")
+	take_the_field("vir")
+	-- Nothing of theirs is on the table, so Assimilate has nothing to point at.
+	local disciple = require("cards").create("warp_gate_disciple", zones.find_id("hand", "mine"))
+	seat("south").stats.gold = 20
+	require("cards").create("tech_1", zones.find_id("tech", "mine"))
+	require("cards").create("tech_2", zones.find_id("tech", "mine"))
+	flow.play_card(disciple.id, {})
+	flow.settle()
+	for _, u in ipairs(flow.usable_abilities(disciple.id)) do
+		flow.activate(disciple.id, {}, u.index); break
+	end
+	flow.settle()
+	check("the codex is on the table", count_in("options") > 0, tostring(count_in("options")))
+
+	local aimless = in_zone("options", "assimilate")
+	check("and it is holding a card that can aim at nothing", aimless ~= nil)
+	if aimless then
+		check("which flow will take as a choice", flow.is_choosing(aimless.id))
+	end
+
+	opponent.seats = {}
+	opponent.take(zones.active_seat())
+	check("so the seat has a move rather than none", #opponent.legal() > 0,
+		tostring(#opponent.legal()))
+end
+
+-- **Purple is two clocks, and both are the counter plus a place.** Forecast is a
+-- card played into a zone that is not in play, losing a rune each upkeep and
+-- arriving when the last goes. Fading is the same clock on the table, and what
+-- happens at nought is a death rather than an arrival. Neither wanted a word.
+function M.test_codex_forecast_arrives_when_its_clock_runs_out(check)
+	start("pick_vir", "pick_argagarg")
+	seat("south").stats.gold = 20
+	local card = require("cards").create("plasmodium", zones.find_id("hand", "mine"))
+	flow.play_card(card.id, {})
+	flow.settle()
+	local function where()
+		local e = entity.get(card.id)
+		local z = e and e.zone_id and entity.get(e.zone_id)
+		return z and z.key or "nowhere"
+	end
+	check("it went to the future rather than the table", where() == "soon", where())
+	check("with three runes on it", entity.get(card.id).stats.time == 3,
+		tostring(entity.get(card.id).stats.time))
+
+	for _ = 1, 2 do actions.run({ "activate_zone:rules_upkeep" }, {}) end
+	check("two upkeeps later it is still waiting", where() == "soon", where())
+	check("and the clock has run down", entity.get(card.id).stats.time == 1,
+		tostring(entity.get(card.id).stats.time))
+
+	actions.run({ "activate_zone:rules_upkeep" }, {})
+	check("the third brings it in", where() == "army", where())
+end
+
+function M.test_codex_fading_leaves_when_its_clock_runs_out(check)
+	start("pick_prynn", "pick_argagarg")
+	seat("south").stats.gold = 20
+	local card = require("cards").create("fading_argonaut", zones.find_id("hand", "mine"))
+	flow.play_card(card.id, {})
+	flow.settle()
+	check("it arrives on the table", in_zone("army", "fading_argonaut") ~= nil)
+	check("carrying three runes", entity.get(card.id).stats.time == 3,
+		tostring(entity.get(card.id).stats.time))
+
+	for _ = 1, 2 do actions.run({ "activate_zone:rules_upkeep" }, {}) end
+	check("two upkeeps and it is still standing", in_zone("army", "fading_argonaut") ~= nil)
+	actions.run({ "activate_zone:rules_upkeep" }, {})
+	check("the third takes it", in_zone("army", "fading_argonaut") == nil)
 end
 
 -- White leans on words the file gained this week rather than on new ones of its

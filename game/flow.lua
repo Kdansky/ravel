@@ -74,6 +74,15 @@ local function choosing(c)
 	return z ~= nil and c ~= nil and c.zone_id == z.id
 end
 
+-- The same question, for anything outside this file that has to ask it. The bot
+-- is the one caller: a card lying in an offer is being *chosen*, and a choice
+-- takes no targets, so reaching for its target spec and dropping the move when
+-- the pool is short is how a seat came to sit in front of a question it could
+-- have answered.
+function M.is_choosing(card_id)
+	return choosing(entity.get(card_id))
+end
+
 -- Whether a card in an open offer may be the answer.
 --
 -- `show:` borrows the *real* cards a scope names, so the offer is somebody's

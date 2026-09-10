@@ -86,7 +86,12 @@ function M.legal()
 		-- gate that would otherwise refuse them.
 		if z and not flow.is_system_card(e.id) then
 			if flow.can_play(e.id) then
-				local targets = targets_for(e.id, cards.def(e).target)
+				-- A card in an offer is being *chosen*, not played: flow skips the
+				-- target check for it and hands the choice the asker. Asking for
+				-- targets it will never be given is how a seat stalled in front of
+				-- a question it could have answered.
+				local targets = flow.is_choosing(e.id) and {}
+					or targets_for(e.id, cards.def(e).target)
 				if targets then
 					local id = e.id
 					moves[#moves + 1] = function() flow.play_card(id, targets) end
