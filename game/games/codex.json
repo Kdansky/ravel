@@ -83,6 +83,19 @@
       ]
     },
     {
+      "key": "bars_t0",
+      "min": 0,
+      "max": 1,
+      "on": [
+        "fighter",
+        "building"
+      ],
+      "start": 0,
+      "tags": [
+        "hidden"
+      ]
+    },
+    {
       "key": "atk",
       "label": "Attack",
       "icon": "blade",
@@ -696,31 +709,6 @@
       ]
     },
     {
-      "key": "t0",
-      "min": 0,
-      "max": 1,
-      "on": [
-        "tech0"
-      ],
-      "start": 1,
-      "tags": [
-        "hidden"
-      ]
-    },
-    {
-      "key": "open_t0",
-      "min": 0,
-      "max": 1,
-      "on": [
-        "fighter",
-        "building"
-      ],
-      "start": 1,
-      "tags": [
-        "hidden"
-      ]
-    },
-    {
       "key": "plus",
       "label": "+1/+1",
       "icon": "orb",
@@ -753,6 +741,18 @@
         "hp": -1,
         "life": -1
       }
+    },
+    {
+      "key": "sank",
+      "min": 0,
+      "max": 9,
+      "on": [
+        "fighter"
+      ],
+      "start": 0,
+      "tags": [
+        "hidden"
+      ]
     },
     {
       "key": "focus",
@@ -1828,7 +1828,7 @@
             "where": [
               "slot@target == 1",
               "alt@target <= sum:aa@self",
-              "sum:t0@self <= sum:open_t0@target"
+              "bars_t0@target <= tech_level@self"
             ]
           },
           "action": [
@@ -1899,7 +1899,7 @@
             "where": [
               "slot@target >= 2",
               "alt@target <= sum:aa@self",
-              "sum:t0@self <= sum:open_t0@target"
+              "bars_t0@target <= tech_level@self"
             ]
           },
           "action": [
@@ -1984,7 +1984,7 @@
             ],
             "where": [
               "alt@target <= sum:aa@self",
-              "sum:t0@self <= sum:open_t0@target"
+              "bars_t0@target <= tech_level@self"
             ]
           },
           "action": [
@@ -2086,6 +2086,8 @@
           "action": [
             "stat_damage:atk@self:sum:lent@self",
             "stat_set:lent@self:0",
+            "stat_damage:minus@self:sum:sank@self",
+            "stat_set:sank@self:0",
             "stat_damage:armor@self:sum:plate@self",
             "stat_set:plate@self:0",
             "stat_set:veil@self:0",
@@ -7186,10 +7188,39 @@
         "relic",
         "generate_art"
       ],
-      "tooltip": "Detector, haste. NOT MODELLED: opponents playing with their hands revealed, and exhausting to make a unit invisible.",
+      "tooltip": "Detector, haste. Exhaust: make one of your units invisible until your next upkeep.  NOT MODELLED: opponents playing with their hands revealed.",
       "card_stats": {
         "price": 3
-      }
+      },
+      "abilities": [
+        {
+          "key": "veil",
+          "text": "Make a friendly unit invisible",
+          "phases": [
+            "main"
+          ],
+          "cost": {
+            "exhaust": 1
+          },
+          "target": {
+            "verb": "cast",
+            "type": "card",
+            "count": 1,
+            "owner": "mine",
+            "tags": [
+              "unit"
+            ],
+            "zones": [
+              "army",
+              "patrol"
+            ]
+          },
+          "action": [
+            "stat_set:unseen@target:1",
+            "stat_set:slot@target:0"
+          ]
+        }
+      ]
     },
     {
       "key": "macciatus",
@@ -8773,7 +8804,7 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Give all an opponent's units and heroes -3/-3, and deal 3 damage to their buildings.  NOT MODELLED: that it wears off — the runes are permanent here.",
+      "tooltip": "Give all an opponent's units and heroes -3/-3 this turn, and deal 3 damage to their buildings.",
       "card_stats": {
         "price": 8
       },
@@ -8788,12 +8819,13 @@
         "cost": {
           "gold@mine.player": "price@self"
         },
-        "spent": "mine.discard",
         "action": [
           "stat_gain:minus@each.enemy.fighter:3",
+          "stat_gain:sank@each.enemy.fighter:3",
           "harm:integrity@each.enemy.building:3",
           "activate_zone:rules_death"
-        ]
+        ],
+        "spent": "mine.discard"
       }
     },
     {
@@ -8843,7 +8875,7 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Give a unit -1/-1 this turn. NOT MODELLED: that it wears off — the rune is permanent here.",
+      "tooltip": "Give a unit -1/-1 this turn.",
       "card_stats": {
         "price": 0
       },
@@ -8857,7 +8889,6 @@
         "cost": {
           "gold@mine.player": "price@self"
         },
-        "spent": "mine.discard",
         "target": {
           "verb": "cast",
           "type": "card",
@@ -8873,8 +8904,10 @@
         },
         "action": [
           "stat_gain:minus@target:1",
+          "stat_gain:sank@target:1",
           "activate_zone:rules_death"
-        ]
+        ],
+        "spent": "mine.discard"
       }
     },
     {
@@ -11245,7 +11278,7 @@
         "generate_art",
         "resist_2"
       ],
-      "tooltip": "Arrives or attacks: a -1/-1 rune on each opposing unit and hero. Resist 2.  NOT MODELLED: the upkeep, which bases a base's damage on a count of runes across a side.",
+      "tooltip": "Arrives or attacks: a -1/-1 rune on each opposing unit and hero. Resist 2. Upkeep: each base takes a point of damage for every -1/-1 rune its side carries.",
       "card_stats": {
         "price": 6,
         "atk": 4,
@@ -11281,6 +11314,16 @@
           ],
           "action": [
             "stat_gain:minus@each.enemy.fighter:1"
+          ]
+        },
+        {
+          "key": "upkeep",
+          "phases": [],
+          "text": "Plague Lord",
+          "action": [
+            "harm:integrity@mine.base:sum:minus@mine.fighter",
+            "harm:integrity@enemy.base:sum:minus@enemy.fighter",
+            "activate_zone:rules_death"
           ]
         }
       ]
@@ -18388,7 +18431,7 @@
           "value": 2,
           "max": 2
         },
-        "open_t0": 0
+        "bars_t0": 1
       }
     },
     {

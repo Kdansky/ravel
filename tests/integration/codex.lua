@@ -1026,6 +1026,29 @@ function M.test_codex_the_engine_seat_can_answer_an_unaimable_offer(check)
 		tostring(#opponent.legal()))
 end
 
+-- A rune lent for the turn, recorded the way every other lending already is:
+-- what was given is remembered on its own stat and handed back at the turn's end.
+function M.test_codex_a_rune_may_be_lent_for_a_turn(check)
+	start("pick_orpal", "pick_argagarg")
+	take_the_field("orpal")
+	local prey = summon("gigadon", "enemy.army")
+	local spell = require("cards").create("deteriorate", zones.find_id("hand", "mine"))
+	seat("south").stats.gold = 20
+	local was = read(prey, "atk")
+
+	flow.play_card(spell.id, { prey.id })
+	flow.settle()
+	check("it is a point smaller", read(prey, "atk") == was - 1, tostring(read(prey, "atk")))
+	check("and the file remembers the rune was lent", prey.stats.sank == 1,
+		tostring(prey.stats.sank))
+
+	actions.run({ "activate_zone:enemy.army:by_column:endturn" }, {})
+	check("the end of the turn takes it back", read(prey, "atk") == was,
+		tostring(read(prey, "atk")))
+	check("and the rune with it", (entity.get(prey.id).stats.minus or 0) == 0,
+		tostring(entity.get(prey.id).stats.minus))
+end
+
 -- **Obliterate, which is the sorting quantifier and a number on a tag.** Tech
 -- level is a tag on 213 cards and was never a number; it is one now because the
 -- tag says what it is worth, the way a counter does — so "the four lowest tech
