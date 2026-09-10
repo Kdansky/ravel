@@ -606,17 +606,28 @@ function M.total(subject, ctx)
 		return n
 	end
 
-	local sum, best, least = 0, 0, nil
+	-- **Nothing is clamped on the way.** Both ends start empty rather than at
+	-- nought: a nought seeded into the largest is a floor nobody asked for, and
+	-- it answers 0 for a pool whose every member is below it. That is not an
+	-- edge — a stat stores what is left after its buffs, so a card wounded under
+	-- a rune it has since lost is holding a negative number, and "the highest hp
+	-- here" would have said 0 about a board with nothing above -1 on it.
+	local sum, best, least = 0, nil, nil
 	for _, e in ipairs(M.bearers(p, ctx, ents)) do
 		-- Through tags.stat, so a buff a tag is holding open counts as part of
 		-- the number. Every condition, compute, cost and amount in the game
 		-- arrives here, which is what makes one read site enough.
 		local v = tags.stat(e, p.arg)
 		sum = sum + v
-		if v > best then best = v end
+		if best == nil or v > best then best = v end
 		if least == nil or v < least then least = v end
 	end
-	if p.fn == "max" then return best end
+	-- An empty pool still answers 0 to both, which is what every game reads
+	-- today: six conditions ask "max:level@... <= 3" of a seat that may hold no
+	-- such hero at all, and mean yes. Whether an empty pool should be *absent*
+	-- here the way a bare stat already is, is a separate question with live
+	-- customers — see todo.md.
+	if p.fn == "max" then return best or 0 end
 	-- A pool with nothing in it has no smallest thing, and answering 0 would put
 	-- one *below* everything rather than beside nothing. Callers that need a
 	-- number get one; a condition asks through measure(), which reads the empty

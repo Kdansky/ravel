@@ -1913,16 +1913,19 @@ function M.check(G)
 			-- the card being played, and there is no card here to be it.
 			local grantable = { buffs = true, adjusts = true, abilities = true, tooltip = true,
 				accepts = true, receive = true }
-			local read_only = td.buffs ~= nil or td.adjusts ~= nil or td.abilities ~= nil
-				or td.accepts ~= nil
+			-- Seeded false and earned by the loop below, rather than read off a
+			-- field: "abilities" is left behind empty on every tag by the loader,
+			-- so seeding from it was seeding from something no game ever said,
+			-- and the check was passing for a reason unrelated to what it asks.
+			local read_only = true
 			for field, v in pairs(td) do
 				if not grantable[field]
 					and not (type(v) == "table" and next(v) == nil) then read_only = false end
 			end
 			if G.computed_tags[tag] and not read_only then
-				warn("%s: is defined under both 'tags' and 'computed_tags' — a computed tag can carry "
-					.. "\"buffs\", \"adjusts\" and \"abilities\" and nothing else, since there is "
-					.. "no card for a moment to belong to", where)
+				warn("%s: is defined under both 'tags' and 'computed_tags' — a computed tag may carry "
+					.. "\"buffs\", \"adjusts\", \"abilities\", \"receive\" and a \"tooltip\", and "
+					.. "nothing else, since there is no card for a moment to belong to", where)
 			end
 			if not carried_tags[tag] and not G.computed_tags[tag] then
 				warn("%s: has behaviour defined, but no card carries this tag%s",

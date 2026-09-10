@@ -220,8 +220,6 @@ local function adjusted(e, key, verb, delta, ctx)
 		local ad = entry.adjust
 		for _, holder in ipairs(tags.find_targets({ entry.tag }, tags.IN_PLAY)) do
 			local h = entity.get(holder)
-			-- "self" is the common case and the whole of a keyword, so it does
-			-- not go the long way round through a scope.
 			-- "self" is the whole of a keyword and does not go the long way round
 			-- through a scope; anything else is read from the card holding the
 			-- aura, so an anthem says who it covers in the words a scope already

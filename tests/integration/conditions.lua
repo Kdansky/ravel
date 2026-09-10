@@ -282,6 +282,29 @@ function M.test_conditions_min_is_the_smallest_of_what_carries_it(check)
 	end)
 end
 
+-- **Neither end is clamped on the way.** An empty pool answers 0 (below), but a
+-- pool with something *below* zero in it must answer what is there. A stat stores
+-- what is left once its buffs are off, so a card wounded under a counter it has
+-- since lost holds a negative number — and a largest seeded at nought would call
+-- that board nought.
+function M.test_conditions_the_largest_may_be_below_nothing(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local board = zones.find("board")
+		local a, b = entity.get(board.cards[1]), entity.get(board.cards[2])
+		a.stats.hp, b.stats.hp = -3, -1
+
+		check("max takes the largest of them, not zero",
+			predicate.total("max:hp@board") == -1, tostring(predicate.total("max:hp@board")))
+		check("min takes the smallest", predicate.total("min:hp@board") == -3,
+			tostring(predicate.total("min:hp@board")))
+		check("and the sum is the sum", predicate.total("sum:hp@board") == -4,
+			tostring(predicate.total("sum:hp@board")))
+		check("so a comparison is not quietly floored",
+			predicate.holds("max:hp@board < 0"))
+	end)
+end
+
 -- Nothing is not *at least* nothing. `sum:` and `max:` of an empty pool are
 -- honestly 0 — nothing adds to nothing, nothing is at most nothing — but a zero
 -- minimum would sit *below* every real value, so a gate would open exactly when
