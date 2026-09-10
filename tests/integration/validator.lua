@@ -77,6 +77,8 @@ local CASES = {
 			g.phase_by_key.story.phases = { "options" } end },
 	{ "a player whose card is not a key", 'its "card" should be the key of a card',
 		function(g) g.players[1].card = 3 end },
+	{ "a sort by a number nobody carries", "sorts by 'vigour'",
+		function(g) g.card_defs.c_flee.needs = { "count:keepsake@lowest:vigour.board >= 1" } end },
 	-- condition subjects, said as subjects
 
 	{ "a subject that is not a subject at all", "is not something the engine can measure",

@@ -765,6 +765,18 @@ function M.check(G)
 
 	-- A subject: [<fn>:]<stat|tag|card>[@[<quant>.]<scope>]. allow_fn is false
 	-- for costs, where count:/card:/sum:/max:/min: have nothing to spend.
+	-- A sorting quantifier names the number it sorts by, and a number nobody
+	-- carries would order a pool by nought — silently, and the same way every
+	-- time, which is the worst way for it to be wrong.
+	local function scope_order_ok(where, what, scope)
+		local word, stat = tostring(scope or ""):match("^([%w_]+):([%w_]+)%.")
+		if not (word == "lowest" or word == "highest") then return end
+		if not (card_stats[stat] or G.stat_defs[stat] or SLOT_STATS[stat]) then
+			warn("%s: %s sorts by '%s', but no card carries a stat by that name%s",
+				where, what, stat, suggest(stat, card_stats))
+		end
+	end
+
 	local function subject_ok(where, key, allow_fn)
 		if allow_fn == nil then allow_fn = true end
 		local p = predicate.parse_subject(key)
@@ -772,6 +784,8 @@ function M.check(G)
 			warn("%s: '%s' is not something the engine can measure", where, tostring(key))
 			return
 		end
+		scope_order_ok(where, "'" .. tostring(key) .. "'", p.quant and p.scope
+			and (p.quant .. "." .. p.scope) or nil)
 		local named = p.scope and scope_named(p.scope)
 		if opponent_ok(where, "the subject", key, { name = named }) then
 			-- said, as the word it is

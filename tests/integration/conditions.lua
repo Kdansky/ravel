@@ -518,4 +518,53 @@ function M.test_conditions_a_question_is_written_on_its_own(check)
 	end)
 end
 
+-- **A quantifier that orders rather than narrows.** It says what order the pool
+-- is in and nothing about how many of it is meant, which is what lets a consumer
+-- keep its own count: one takes the first, four take the first four.
+function M.test_conditions_a_pool_may_be_put_in_order(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local board = zones.find("board")
+		local a, b = entity.get(board.cards[1]), entity.get(board.cards[2])
+		a.stats.hp, b.stats.hp = 7, 4
+
+		local function order(scope)
+			local sc = predicate.parse_scope(scope)
+			local out = {}
+			for _, e in ipairs(predicate.entities_in_scope(sc.name, {}, sc.owner, sc.quant)) do
+				out[#out + 1] = e.id
+			end
+			return out
+		end
+		-- The board also holds a ghost carrying no hp at all, which reads nought
+		-- and so sorts to the front of "lowest" and the back of "highest".
+		local low, high = order("lowest:hp.board"), order("highest:hp.board")
+		check("the one with no number at all comes first", low[1] ~= a.id and low[1] ~= b.id,
+			tostring(low[1]))
+		check("then the smaller of the two", low[2] == b.id, tostring(low[2]))
+		check("and the larger last", low[3] == a.id, tostring(low[3]))
+		check("highest reads the other way", high[1] == a.id and high[2] == b.id)
+		a.stats.hp = 1
+		check("and it follows the numbers", order("lowest:hp.board")[2] == a.id)
+
+		-- The order is the whole of what it says: everything is still named.
+		local sc = predicate.parse_scope("lowest:hp.board")
+		check("the pool is the same pool",
+			#predicate.entities_in_scope(sc.name, {}, sc.owner, sc.quant)
+			== #predicate.entities_in_scope("board", {}, nil, "any"))
+	end)
+end
+
+-- A scope keeps reading as a scope: an owner word and a zone still follow, and
+-- the sort carries its own number in front of them.
+function M.test_conditions_ordering_combines_with_owner_and_zone(check)
+	local p = predicate.parse_scope("lowest:tier.enemy.patrol.unit")
+	check("the quantifier keeps its number", p.quant == "lowest:tier", tostring(p.quant))
+	check("the owner word is still read", p.owner == "enemy", tostring(p.owner))
+	check("and so is the zone, narrowed by a tag", p.name == "patrol.unit", tostring(p.name))
+	check("a plain quantifier is untouched", predicate.parse_scope("each.mine.unit").quant == "each")
+	check("and a word with a colon that is not a sort is not one",
+		predicate.parse_scope("random.beast").quant == "random")
+end
+
 return M

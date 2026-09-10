@@ -60,7 +60,7 @@ and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
-- **Asking the board a question** — Conditions (one vocabulary everywhere) · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
@@ -1763,6 +1763,37 @@ An ability the card is not carrying answers 0, and so does one with no `target`
 at all — but the validator refuses the second, since a word that quietly answers
 0 forever is the worse of the two mistakes. Two abilities naming each other
 answer 0 rather than hanging.
+
+### `lowest:` and `highest:` — a pool in order
+
+Every other quantifier says *which* of a pool is meant. These two say what
+**order** it is in, and nothing else:
+
+```
+lowest:tier.enemy.patrol        their patrollers, cheapest tech first
+highest:atk.mine.army           my army, biggest attacker first
+lowest:price.enemy.patrol.unit  the cheapest unit at their posts
+```
+
+They carry the number they sort by — the spelling a phase's `order` already uses
+— and they sit in the quantifier's slot, so the rest of a scope reads exactly as
+it did: an owner word may follow, then a zone or a tag, and `<zone>.<tag>` still
+narrows.
+
+**Order, never how many.** That is what lets them fit beside `any`, `each`,
+`random` and `others` rather than replace them. A consumer that takes one takes
+the first; one that takes four takes the first four:
+
+```json
+"action": ["destroy:lowest:tier.enemy.patrol:4"]
+```
+
+*Destroy the four lowest-tech patrollers* — which is `destroy`'s own count, over
+a pool that has been put in order. Nothing about counting changed.
+
+**Ties keep the order the pool was already in**, so a seeded replay is a replay.
+And a card carrying no such number reads nought, which puts it at the front of
+`lowest` — the one reading that needs no rule to remember.
 
 ### `spread` — an aim that spends points rather than cards
 

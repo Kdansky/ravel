@@ -103,7 +103,19 @@ local NULLARY = { not_self = true, count = true, exhausted = true, ready = true 
 -- as a card asking whether it was itself flying, which is a question that needs
 -- its own answer to have one. It stands in the quantifier's slot because the
 -- pool is the whole of what it means -- there is no "one of the others".
-local QUANTS = { any = true, each = true, random = true, others = true }
+-- "lowest" and "highest" carry the number they sort by, spelled as a phase's
+-- "order" already spells it: "lowest:tier.enemy.patrol". They say what *order*
+-- the pool is in and not how many of it is named, which is what makes them fit
+-- beside the others rather than replace them — a consumer that takes one takes
+-- the first, and one that takes four takes the first four, so "destroy the four
+-- lowest tech units" is destroy's own count over an ordered pool.
+--
+-- Ties keep entity order, so a replay is a replay. A card with no such number
+-- reads nought and sorts to the front of "lowest", which is the one reading that
+-- does not need a rule to remember.
+local QUANTS = { any = true, each = true, random = true, others = true,
+	lowest = true, highest = true }
+local ORDERED = { lowest = true, highest = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
 
 -- The three closed vocabularies, reachable. Both documents teach them, and a
@@ -127,9 +139,14 @@ function M.parse_scope(s)
 	if type(s) ~= "string" or s == "" then return nil end
 	local quant, owner, rest = nil, nil, s
 	for _ = 1, 2 do
-		local word, tail = rest:match("^([%w_]+)%.(.+)$")
+		-- A sorting quantifier brings its number with it, so the word may carry
+		-- one colon before the dot that ends it.
+		local word, tail = rest:match("^([%w_]+:[%w_]+)%.(.+)$")
+		if not word then word, tail = rest:match("^([%w_]+)%.(.+)$") end
 		if not word then break end
-		if QUANTS[word] and not quant then quant, rest = word, tail
+		local base = word:match("^([%w_]+):") or word
+		if QUANTS[base] and not quant and (ORDERED[base] ~= nil) == (base ~= word) then
+			quant, rest = word, tail
 		elseif OWNERS[word] and not owner then owner, rest = word, tail
 		else break end
 	end
@@ -486,12 +503,33 @@ function M.entities_in_scope(scope, ctx, owner, quant)
 		end
 		out = rest
 	end
-	if owner == nil then return out end
-	local active, kept = zones.active_seat(), {}
-	for _, e in ipairs(out) do
-		if owned_by(e, owner, active) then kept[#kept + 1] = e end
+	if owner ~= nil then
+		local active, kept = zones.active_seat(), {}
+		for _, e in ipairs(out) do
+			if owned_by(e, owner, active) then kept[#kept + 1] = e end
+		end
+		out = kept
 	end
-	return kept
+	return M.ordered(out, quant)
+end
+
+-- Put a pool in the order its quantifier asked for, or leave it as it was. The
+-- sort is stable on entity id so two cards reading the same number come back in
+-- the same order on every machine, which a seeded replay needs.
+function M.ordered(out, quant)
+	local word, stat = tostring(quant or ""):match("^([%w_]+):([%w_]+)$")
+	if not (word and ORDERED[word]) then return out end
+	local n = {}
+	for i, e in ipairs(out) do n[e.id] = { i = i, v = tags.stat(e, stat) } end
+	table.sort(out, function(a, b)
+		local x, y = n[a.id], n[b.id]
+		if x.v ~= y.v then
+			if word == "lowest" then return x.v < y.v end
+			return x.v > y.v
+		end
+		return x.i < y.i
+	end)
+	return out
 end
 
 -- Entities in a subject's scope that actually carry its stat. Filtering here
