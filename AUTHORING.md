@@ -2994,33 +2994,53 @@ what `exhaust` being a *cost* rather than a consequence buys.
 
 ### Readiness — spent, given back, and asked about
 
-Three words, and the third is the one that makes the other two reach anything.
+Five words, and they are readiness's own: two that change it, two that read it,
+and the cost that started it.
 
 ```
 "cost": { "exhaust": 1 }        this card spends its own readiness to act
 "exhaust:<scope>"               spend theirs — an effect, not a cost
 "ready:<scope>"                 give it back
+"exhausted@<scope>"             is anything there spent?
+"ready@<scope>"                 or is none of it?
 ```
 
-**`exhausted` is a tag the engine grants**, so readiness is readable wherever a
-tag is: in a scope, in `tagged:`, in a count, in a computed tag, in a target
-spec's `where`. Nothing declares it and no card may claim the name.
+**Asking is its own word, and there are two of them.** `exhausted@<scope>` is yes
+when anything there has spent itself; `ready@<scope>` is its exact complement.
+Written bare, with no comparison and no argument:
 
 ```json
-"phases": [{ "key": "upkeep", "type": "automatic", "actions": ["ready:mine.exhausted"] }]
+"needs": ["ready@self"]
+"where": ["exhausted@target"]
 ```
 
-That is a whole upkeep. *"Ready all your cards at the start of your turn"* is the
-commonest line in the genre, and before this a game had to name every kind of
-card it owned — Codex readied `mine.fighter`, `mine.building`, `mine.upgrade` and
-`mine.ongoing_spell` on four lines, and printing a fifth kind meant remembering a
-fifth. The scope now says what it means: the cards that are spent.
+They are *not* a tag and *not* a stat. The tag and stat namespaces belong to the
+game — every other word in them is one an author wrote — and readiness is the
+engine's own state. It is also strictly yes or no: a card is spent or it is not,
+never spent twice. A game wanting a spending that outlasts a turn counts that
+itself, in a stat of its own (below). Neither word may be the name of a stat, a
+tag, a computed tag or a style, and no card may set one in `card_stats`.
 
-**A spending that does not wear off next turn** is a stat beside the tag, not a
-new word. Declare `disabled`, exclude it from the readying, and count it down:
+**To make readiness mean something, name it yourself.** *"Exhausted units get
+-1/-1"* is a computed tag like any other:
 
 ```json
-"computed_tags": { "rousable": { "needs": ["disabled@self == 0"] } }
+"computed_tags": { "spent": { "needs": ["exhausted@self"] } },
+"tags":          { "spent": { "buffs": { "atk": -1, "hp": -1 } } }
+```
+
+That is also how an upkeep says what it readies. *"Ready all your cards at the
+start of your turn"* is the commonest line in the genre, and a game used to have
+to name every kind of card it owned — Codex readied `mine.fighter`,
+`mine.building`, `mine.upgrade` and `mine.ongoing_spell` on four lines, and
+printing a fifth kind meant remembering a fifth.
+
+**A spending that does not wear off next turn** is a stat beside the word, not a
+new word. Declare `disabled`, fold it into the same computed tag, and count it
+down:
+
+```json
+"computed_tags": { "rousable": { "needs": ["exhausted@self", "disabled@self == 0"] } }
 ```
 
 ```json
@@ -3035,9 +3055,10 @@ would never be roused rather than always. With that, *"exhaust it, and it does
 not ready during its next ready step"* is `exhaust:target` beside
 `stat_set:disabled@target:1`.
 
-**What it is not.** `exhausted` is a field on the card, not a stat, so nothing
-can `stat_set` it and no badge shows it — the engine dims a spent card and says
-so in its tooltip. Use the two actions to change it and the tag to read it.
+**What it is not.** Readiness is a field on the card, not a stat and not a tag,
+so nothing can `stat_set` it and no badge shows it — the engine dims a spent card
+and says so in its tooltip. Use the two actions to change it and the two words to
+read it.
 
 `text` is the label in the chooser, so a card with more than one ability needs
 it. The engine generates the menu entry itself, with a shape derived from the

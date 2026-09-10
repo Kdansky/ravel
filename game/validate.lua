@@ -66,7 +66,6 @@ M.ENGINE_TAGS = {
 	token        = { on = "card", what = "vanishes when a hand is swept, instead of joining the discard" },
 	immutable    = { on = "card", what = "scenery: nothing may target it and its template can never be edited" },
 	no_undo      = { on = "card", what = "playing or picking it clears the undo stack — the choice is final" },
-	exhausted    = { on = "card", writes = true, what = "this card has spent its readiness. Written by the engine off the \"exhaust\" cost and the \"exhaust\" action, cleared by \"ready:\" and at the round wrap — never printed on a card, and readable wherever a tag is" },
 	generate_art = { on = "card", what = "with no asset, draws a shape derived from its key rather than a bare colour" },
 	-- zones
 	shuffle           = { on = "zone", what = "shuffled when its contents are created, and on every refill" },
@@ -457,31 +456,27 @@ function M.check(G)
 	for _, cd in pairs(G.card_defs) do note_abilities(cd.abilities) end
 	for _, td in pairs(tag_defs) do note_abilities(td.abilities) end
 
-	local known_tags = {}
-	-- The engine's own card words count as tags a condition may ask about, because
-	-- they are: "exhausted" is granted rather than printed, so no card carries it
-	-- and nothing else here would vouch for it — and a game asking who is spent
-	-- was told the word did not exist.
-	--
-	-- **Readable is not writable.** "exhausted" is answered from the engine's own
-	-- state *before* a card's printed list is ever looked at, so a card carrying
-	-- the word would be a card whose tag is silently ignored. Refused below rather
-	-- than left to surprise somebody. The others here are stamped into a def at
-	-- load — "player" is written on every seat card in the box — so they are only
-	-- reserved, not refused.
-	for t, e in pairs(M.ENGINE_TAGS) do
-		if e.on == "card" then known_tags[t] = true end
-	end
-	for _, def in pairs(G.card_defs) do
-		for _, t in ipairs(type(def.tags) == "table" and def.tags or {}) do
-			local e = M.ENGINE_TAGS[t]
-			if e and e.writes and not def.injected then
-				warn("card '%s': prints '%s', which the engine writes for itself — a card carrying it "
-					.. "is read from the engine's own answer and never from the word, so printing it "
-					.. "does nothing", tostring(def.key or "?"), t)
+	-- **Readiness is nobody's tag and nobody's stat.** It has its own two words in
+	-- the condition vocabulary — "exhausted@" and "ready@" — so the name may not
+	-- be claimed here for anything else: a stat, a tag or a style called either
+	-- would read as one thing to an author and another to the engine.
+	for _, word in ipairs({ "exhausted", "ready" }) do
+		for kind, defs in pairs({ stat = G.stat_defs or {}, tag = tag_defs,
+			["computed tag"] = G.computed_tags or {}, style = G.style_defs or {} }) do
+			if defs[word] then
+				warn("%s '%s': readiness has its own word in a condition — \"%s@<scope>\" — so it "
+					.. "cannot also be the name of a %s", kind, word, word, kind)
+			end
+		end
+		for key, def in pairs(G.card_defs) do
+			if type(def.card_stats) == "table" and def.card_stats[word] ~= nil then
+				warn("card '%s' card_stats: '%s' is readiness, which the engine keeps for itself and "
+					.. "a card may not set", tostring(key), word)
 			end
 		end
 	end
+
+	local known_tags = {}
 	for t in pairs(carried_tags) do known_tags[t] = true end
 	for t in pairs(G.computed_tags) do known_tags[t] = true end
 	for t in pairs(tag_defs) do known_tags[t] = true end
@@ -843,6 +838,12 @@ function M.check(G)
 			if p.scope then
 				warn("%s: 'aims' asks about an ability of the card doing the asking, "
 					.. "so it takes no '@'", where)
+			end
+		elseif p.fn == "exhausted" or p.fn == "ready" then
+			-- Nothing to name: a card is spent or it is not. The scope is the whole
+			-- of the question, and without one there is nobody for it to be about.
+			if p.scope == nil then
+				warn("%s: '%s' needs a scope to ask about, like \"%s@self\"", where, p.fn, p.fn)
 			end
 		elseif p.fn == "not_self" then
 			-- Nothing to name: what it compares against is the card whose

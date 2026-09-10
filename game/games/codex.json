@@ -1203,6 +1203,7 @@
     },
     "rousable": {
       "needs": [
+        "exhausted@self",
         "disabled@self == 0"
       ]
     },
@@ -11928,7 +11929,7 @@
             "gold@mine.player": 2
           },
           "needs": [
-            "tagged:exhausted@self"
+            "exhausted@self"
           ],
           "action": [
             "ready:self"

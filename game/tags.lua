@@ -17,17 +17,8 @@ local resolving = {}
 -- tags a game declares, and to a fixed list on the zone. A computed tag's
 -- condition is worked out on every ask rather than stored, which is what keeps
 -- it honest: there is no cached answer to fall out of step with the card.
--- **Readiness is a tag the engine grants.** It is a field on the card rather than
--- anything a game wrote, and it was invisible to every question a game can ask:
--- readiness could be spent (the "exhaust" cost) and given back ("ready:"), but
--- nobody could ask who had it. Answered here rather than as a new fn because this
--- is the one funnel every tag question comes through, so one line reaches a scope,
--- a "tagged:", a count, a computed tag and a target spec at once -- "ready:mine
--- .exhausted" is a whole upkeep, and "not_tagged:exhausted@target" is a card
--- refusing to be aimed at something already spent.
 function M.entity_has(e, tag)
     local G = declaration.G
-    if tag == "exhausted" then return e.kind == "card" and e.exhausted == true end
     if e.kind == "card" then
         local def = G.card_defs[e.def_key]
         if def and def.tags_set and def.tags_set[tag] then return true end

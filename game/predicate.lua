@@ -46,6 +46,19 @@ local M = {}
 --
 -- It takes no argument, which no other fn does: there is nothing to name, since
 -- the card it compares against is the one whose condition this is.
+-- **Readiness has its own two words, and they are not a tag and not a stat.**
+-- "exhausted@<scope>" is yes when anything there has spent itself; "ready@<scope>"
+-- is its exact complement, yes when nothing there has. Written bare, with no
+-- comparison and no argument, because there is nothing to compare: a card is spent
+-- or it is not, never spent twice. A game that wants a spending which outlasts a
+-- turn counts that itself, in a stat of its own.
+--
+-- Its own words rather than a tag, because the tag namespace is the *game's* —
+-- every other word in it is one an author wrote — and readiness is the engine's
+-- own state, written by the "exhaust" cost, the "exhaust:" action and the round
+-- wrap. A game that wants it to *mean* something says so in its own computed tag:
+-- { "spent": { "needs": ["exhausted@self"] } } and a buff under that name.
+--
 -- "aims:<ability>" is how many cards one of this card's own abilities could point
 -- at right now. It exists because "may I go past this" and "may I attack this"
 -- were being answered twice: a rule the target spec already carries -- a "where"
@@ -71,19 +84,19 @@ local M = {}
 -- no "verbs" of its own is a file where no aim is a cast.
 local FNS    = { count = true, card = true, sum = true, max = true, min = true,
 	tagged = true, not_tagged = true, saved = true, not_self = true,
-	verb = true, not_verb = true, aims = true }
+	verb = true, not_verb = true, aims = true, exhausted = true, ready = true }
 -- The fns that answer a question rather than measure a quantity. They are the
 -- conditions that need no comparison: "there is a pawn behind it" is the whole
 -- sentence, and `>= 1` after it was the grammar's tax, not the author's meaning.
 -- Kept as a set because the validator refuses the taxed spelling by name.
 local YESNO  = { tagged = true, not_tagged = true, saved = true, not_self = true,
-	verb = true, not_verb = true }
+	verb = true, not_verb = true, exhausted = true, ready = true }
 -- The fns written bare, with no ":<something>" in front of the "@". "count@road"
 -- is how many cards are lying there whatever they are, which is the one question
 -- the tag vocabulary could not ask: a tag names a kind, and "is this pile empty"
 -- is about none of them. It used to have its own field on a route and on an end
 -- condition ("zone_empty") because of it.
-local NULLARY = { not_self = true, count = true }
+local NULLARY = { not_self = true, count = true, exhausted = true, ready = true }
 -- "others" is a pool with the asking card taken out of it, and it is the scope
 -- half of what "not_self" answers as a yes/no. A rule about the rest of the board
 -- could not be written before: "as long as a unit with flying is in play" read
@@ -550,6 +563,17 @@ function M.total(subject, ctx)
 	if p.fn == "verb" or p.fn == "not_verb" then
 		local said = ctx and ctx.verb
 		return (p.fn == "verb") == (said ~= nil and said == p.arg) and 1 or 0
+	end
+
+	-- Any of them spent, and its exact complement. An empty scope has nothing
+	-- spent in it, so it answers no to the first and yes to the second — the same
+	-- reading "tagged" and "not_tagged" already keep.
+	if p.fn == "exhausted" or p.fn == "ready" then
+		local any = false
+		for _, e in ipairs(M.entities_in_scope(p.scope, ctx, p.owner, p.quant)) do
+			if e.kind == "card" and e.exhausted == true then any = true; break end
+		end
+		return (p.fn == "exhausted") == any and 1 or 0
 	end
 
 	-- Is nothing in this scope the card asking? Written as 1 or 0 like the other

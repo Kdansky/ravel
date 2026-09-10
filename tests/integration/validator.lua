@@ -24,8 +24,12 @@ local CASES = {
 	-- to tell a check that cannot happen from one nobody had got round to. Their
 	-- absence is the failure mode this file exists for.
 	-- names the engine already reads
-	{ "a card printing a word the engine writes", "which the engine writes for itself",
-		function(g) g.card_defs.pearl.tags[#g.card_defs.pearl.tags + 1] = "exhausted" end },
+	{ "a stat claiming readiness's word", "readiness has its own word in a condition",
+		function(g) g.stat_defs.exhausted = { key = "exhausted", min = 0 } end },
+	{ "a card setting readiness in card_stats", "which the engine keeps for itself",
+		function(g) g.card_defs.pearl.card_stats = { ready = 1 } end },
+	{ "asking who is spent without saying where", "needs a scope to ask about",
+		function(g) g.card_defs.c_flee.needs = { "exhausted" } end },
 	{ "a tag one letter from an engine word", "did you mean",
 		function(g) g.card_defs.pearl.tags_set.optionai = true end },
 	{ "a style named after an engine word", "redefines a word the engine already reads",

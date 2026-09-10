@@ -860,6 +860,12 @@ end
 -- ever wrote down, so asking the card its own stat would answer the wrong thing.
 local function read(c, key) return tags.stat(entity.get(c.id), key) end
 
+-- Readiness is its own word rather than a tag, so a test asks it the way a card
+-- would: through a condition.
+local function spent(id)
+	return require("predicate").holds("exhausted@self", { card_id = id })
+end
+
 local function base_of(owner)
 	return entity.get(entity.get(zones.find_id("base", owner)).cards[1])
 end
@@ -967,15 +973,15 @@ function M.test_codex_disable(check)
 	flow.play_card(cuffs.id, { prey.id })
 	flow.settle()
 	local p = entity.get(prey.id)
-	check("the patroller is spent", tags.entity_has(p, "exhausted"))
+	check("the patroller is spent", spent(prey.id))
 	check("and left its post", p.stats.slot == 0, tostring(p.stats.slot))
 	check("and is not roused by an ordinary readying",
 		not tags.entity_has(entity.get(prey.id), "rousable"))
 
 	actions.run({ "ready:enemy.rousable" }, {})
-	check("so their upkeep leaves it spent", tags.entity_has(entity.get(prey.id), "exhausted"))
+	check("so their upkeep leaves it spent", spent(prey.id))
 	actions.run({ "stat_damage:disabled@each.enemy.fighter:1", "ready:enemy.rousable" }, {})
-	check("but the one after that gives it back", not tags.entity_has(entity.get(prey.id), "exhausted"))
+	check("but the one after that gives it back", not spent(prey.id))
 end
 
 -- One line where four stood: the scope names what is spent rather than every kind
@@ -986,12 +992,10 @@ function M.test_codex_the_upkeep_readies_what_is_spent(check)
 	local hall = require("cards").create("flagstone_garrison", zones.find_id("structures", "mine"))
 	actions.run({ "exhaust:mine.exhaustable" }, {})
 	check("a unit and a building are both spent",
-		tags.entity_has(entity.get(unit.id), "exhausted")
-		and tags.entity_has(entity.get(hall.id), "exhausted"))
+		spent(unit.id) and spent(hall.id))
 	actions.run({ "ready:mine.rousable" }, {})
 	check("and one line gives both back",
-		not tags.entity_has(entity.get(unit.id), "exhausted")
-		and not tags.entity_has(entity.get(hall.id), "exhausted"))
+		not spent(unit.id) and not spent(hall.id))
 end
 
 -- White leans on words the file gained this week rather than on new ones of its
@@ -1006,7 +1010,7 @@ function M.test_codex_white_sparring_partner(check)
 	end
 	flow.settle()
 	check("the cub took a rune", read(cub, "atk") == 3, tostring(read(cub, "atk")))
-	check("and the coach spent itself for it", tags.entity_has(entity.get(coach.id), "exhausted"))
+	check("and the coach spent itself for it", spent(coach.id))
 end
 
 -- Reversal is three damage and a disable in one spell, which is the pair of words
@@ -1020,7 +1024,7 @@ function M.test_codex_white_reversal(check)
 	flow.play_card(spell.id, { prey.id })
 	flow.settle()
 	local p = entity.get(prey.id)
-	check("it is spent", p and tags.entity_has(p, "exhausted"))
+	check("it is spent", p and spent(prey.id))
 	check("and stays spent through a readying", p and (p.stats.disabled or 0) >= 1,
 		p and tostring(p.stats.disabled) or "gone")
 	check("and left its post", p and p.stats.slot == 0, p and tostring(p.stats.slot) or "gone")
