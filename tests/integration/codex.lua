@@ -1921,4 +1921,34 @@ function M.test_codex_a_tier_gate_is_a_union(check)
 		entity.get(cub.id).stats.ready_since == 0, tostring(entity.get(cub.id).stats.ready_since))
 end
 
+-- **Killing a unit is a death, not an erasure.** Every obliterate in the box used
+-- to reach for the verb that removes a card from the game, so Gorgon's "Dies:
+-- draw a card" went off when damage killed it and said nothing when Zarramonde
+-- did — one rule, two roads, and only one of them worked.
+function M.test_codex_an_effect_kills_the_same_way_damage_does(check)
+	start("pick_zane", "pick_argagarg")
+	actions.execute("create:mine.deck:nautical_dog:6", {})
+	local before = count_in("mine.hand")
+	summon("gorgon", "mine.army")
+	actions.execute("destroy:mine.army.unit", {})
+	check("the gorgon is lying in the discard", in_zone("mine.discard", "gorgon") ~= nil)
+	check("and its Dies trigger drew the card", count_in("mine.hand") == before + 1,
+		count_in("mine.hand") .. " vs " .. before)
+end
+
+-- A hero is the case that needed the grave to be answered per kind: it goes back
+-- to its own command zone to wait, not to the discard the units go to. And the
+-- wait is the *hero's* seat's, which the column could not say — it wrote "mine",
+-- and a hero killed on somebody else's turn put the clock on the wrong player.
+function M.test_codex_a_killed_hero_goes_home_to_wait(check)
+	start("pick_zane", "pick_argagarg")
+	local them = summon("drakk", "enemy.army")
+	actions.execute("destroy:enemy.army.hero", {})
+	check("the hero fell back to their command zone", in_zone("enemy.command", "drakk") ~= nil)
+	check("and the clock is on its own player, not on whoever killed it",
+		seat("north").stats.hero_wait == 2, tostring(seat("north").stats.hero_wait))
+	check("while the killer waits for nothing", seat("south").stats.hero_wait == 0,
+		tostring(seat("south").stats.hero_wait))
+end
+
 return M

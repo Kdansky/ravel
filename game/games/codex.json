@@ -1683,6 +1683,9 @@
     },
     "hero": {
       "zone": "army",
+      "grave": "command",
+      "leaves": { "into": "command",
+        "action": ["stat_set:hero_wait@owner_of.self:2"] },
       "abilities": [
         {
           "key": "attacks",
@@ -2955,10 +2958,7 @@
       "key": "command",
       "label": "Command",
       "layout": "grid",
-      "grid": [
-        1,
-        1
-      ],
+      "grid": [1, 3],
       "use": "abilities",
       "status": "exile",
       "copies": "per_seat",
@@ -3023,6 +3023,7 @@
     },
     {
       "key": "discard",
+      "status": "grave",
       "label": "Discard",
       "layout": "stack",
       "visibility": "owner",
@@ -3884,7 +3885,7 @@
             "count:attachment@mine.addon >= 1"
           ],
           "action": [
-            "purge:mine.addon",
+            "destroy:mine.addon",
             "stat_damage:integrity@mine.base:2"
           ]
         }
@@ -3989,7 +3990,7 @@
       "story": "The props give way. The mine caves in and the base shakes.",
       "play": {
         "action": [
-          "purge:mine.structures.rickety_mine",
+          "destroy:mine.structures.rickety_mine",
           "stat_damage:integrity@mine.base:2"
         ]
       }
@@ -4238,7 +4239,6 @@
             "count:fallen@mine.hero >= 1"
           ],
           "action": [
-            "stat_set:hero_wait@mine.player:2",
             "move:mine.fallen:mine.command"
           ]
         },
@@ -4250,7 +4250,6 @@
             "count:fallen@enemy.hero >= 1"
           ],
           "action": [
-            "stat_set:hero_wait@opponent:2",
             "move:enemy.fallen:enemy.command"
           ]
         }
@@ -4375,7 +4374,7 @@
             "count:h_blood@mine.hero == 0"
           ],
           "action": [
-            "purge:mine.ongoing.chan_blood"
+            "destroy:mine.ongoing.chan_blood"
           ]
         },
         {
@@ -4386,7 +4385,7 @@
             "count:h_blood@enemy.hero == 0"
           ],
           "action": [
-            "purge:enemy.ongoing.chan_blood"
+            "destroy:enemy.ongoing.chan_blood"
           ]
         },
         {
@@ -4397,7 +4396,7 @@
             "count:h_feral@mine.hero == 0"
           ],
           "action": [
-            "purge:mine.ongoing.chan_feral"
+            "destroy:mine.ongoing.chan_feral"
           ]
         },
         {
@@ -4408,7 +4407,7 @@
             "count:h_feral@enemy.hero == 0"
           ],
           "action": [
-            "purge:enemy.ongoing.chan_feral"
+            "destroy:enemy.ongoing.chan_feral"
           ]
         },
         {
@@ -4419,7 +4418,7 @@
             "count:h_balance@mine.hero == 0"
           ],
           "action": [
-            "purge:mine.ongoing.chan_balance"
+            "destroy:mine.ongoing.chan_balance"
           ]
         },
         {
@@ -4430,7 +4429,7 @@
             "count:h_balance@enemy.hero == 0"
           ],
           "action": [
-            "purge:enemy.ongoing.chan_balance"
+            "destroy:enemy.ongoing.chan_balance"
           ]
         }
       ]
@@ -6491,8 +6490,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "purge:lowest:tech_level.enemy.army:4",
-            "purge:lowest:tech_level.enemy.patrol:4",
+            "destroy:lowest:tech_level.enemy.army:4",
+            "destroy:lowest:tech_level.enemy.patrol:4",
             "activate_zone:rules_death"
           ]
         }
@@ -6643,7 +6642,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "purge:each.anyone.judged",
+          "destroy:each.anyone.judged",
           "activate_zone:rules_death"
         ],
         "spent": "mine.discard"
@@ -8329,7 +8328,7 @@
       },
       "leaves": {
         "action": [
-          "purge:lowest:tech_level.mine.army:1",
+          "destroy:lowest:tech_level.mine.army:1",
           "activate_zone:rules_death"
         ]
       }
@@ -8857,7 +8856,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "purge:lowest:tech_level.enemy.army:1",
+          "destroy:lowest:tech_level.enemy.army:1",
           "activate_zone:rules_death"
         ],
         "spent": "mine.discard"
@@ -8975,7 +8974,7 @@
           ]
         },
         "action": [
-          "purge:target",
+          "destroy:target",
           "activate_zone:rules_death"
         ]
       }
@@ -10748,7 +10747,7 @@
             ]
           },
           "action": [
-            "purge:target",
+            "destroy:target",
             "activate_zone:rules_death"
           ]
         }
@@ -12737,7 +12736,7 @@
         },
         "spent": "mine.discard",
         "action": [
-          "purge:each.anyone.plagued",
+          "destroy:each.anyone.plagued",
           "activate_zone:rules_death"
         ]
       }
@@ -13016,8 +13015,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "purge:lowest:tech_level.enemy.army:2",
-            "purge:lowest:tech_level.enemy.patrol:2",
+            "destroy:lowest:tech_level.enemy.army:2",
+            "destroy:lowest:tech_level.enemy.patrol:2",
             "activate_zone:rules_death"
           ]
         }
@@ -14187,7 +14186,7 @@
           "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "purge:target"
+          "destroy:target"
         ],
         "target": {
           "verb": "cast",
@@ -14211,8 +14210,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "purge:lowest:tech_level.enemy.army:4",
-            "purge:lowest:tech_level.enemy.patrol:4",
+            "destroy:lowest:tech_level.enemy.army:4",
+            "destroy:lowest:tech_level.enemy.patrol:4",
             "activate_zone:rules_death"
           ]
         }
@@ -15049,7 +15048,7 @@
             ]
           },
           "action": [
-            "purge:target",
+            "destroy:target",
             "activate_zone:rules_death"
           ]
         }
@@ -16862,8 +16861,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "purge:lowest:tech_level.enemy.army:2",
-            "purge:lowest:tech_level.enemy.patrol:2",
+            "destroy:lowest:tech_level.enemy.army:2",
+            "destroy:lowest:tech_level.enemy.patrol:2",
             "activate_zone:rules_death"
           ]
         },
@@ -16875,7 +16874,7 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "purge:enemy.army.unit:2"
+            "destroy:enemy.army.unit:2"
           ]
         }
       ]
@@ -18598,7 +18597,7 @@
         "action": [
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "purge:target"
+          "destroy:target"
         ]
       }
     },
@@ -18677,7 +18676,7 @@
         "action": [
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "purge:target"
+          "destroy:target"
         ]
       }
     },
@@ -18782,7 +18781,7 @@
         "action": [
           "stat_set:integrity@target:0",
           "activate_zone:rules_death",
-          "purge:target"
+          "destroy:target"
         ],
         "spent": "mine.discard"
       }
@@ -19677,8 +19676,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "purge:lowest:tech_level.enemy.army:4",
-            "purge:lowest:tech_level.enemy.patrol:4",
+            "destroy:lowest:tech_level.enemy.army:4",
+            "destroy:lowest:tech_level.enemy.patrol:4",
             "activate_zone:rules_death"
           ]
         },
@@ -19690,7 +19689,7 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "purge:enemy.army.unit:4"
+            "destroy:enemy.army.unit:4"
           ]
         }
       ]
