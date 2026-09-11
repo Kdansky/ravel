@@ -443,17 +443,24 @@ answer left.
 
 Bare `move_to` sends the card to whatever its own tag names as its `zone` — "where this lives".
 
-### Return the target to its owner's hand.
+### Return their unit to their hand.
 
 ```json
-"action": ["move:target:mine.hand"]
+"target": { "type": "card", "count": 1, "owner": "enemy", "zones": ["army", "patrol"] },
+"action": ["move:target:enemy.hand"]
 ```
+
+Trap: **there is no owner-relative destination.** `mine.hand` is the *acting seat's* hand, not
+the target's owner's, so a bounce names the side it works on and the target spec pins the same
+`owner`. A card that may bounce either side is two rules.
 
 ### Discard the target.
 
 ```json
 "action": ["move:target:mine.discard"]
 ```
+
+Same ownership rule as the bounce: `enemy.discard` when the card is theirs.
 
 ### Destroy the target.
 
@@ -462,7 +469,9 @@ Bare `move_to` sends the card to whatever its own tag names as its `zone` — "w
 ```
 
 Trap: a destroyed card lands in no zone, so **`leaves` does not fire** and its stats are gone.
-If you want a removal something can answer, give it a zone and `move` there instead.
+If you want a removal something can answer, give it a zone and `move` there instead — a unit
+killed by an effect and a unit killed by damage must take the same road, or only one of them
+sets off the death triggers. `destroy:` is for what nobody may ask about: a token, a swept husk.
 
 ### Destroy this.
 
