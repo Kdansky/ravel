@@ -896,7 +896,7 @@ function M.test_spellstorm_the_tier_limit_gates_the_take(check)
 	-- the card under test with it.
 	local essence = stage_battle(one, "fireessence")
 	local shelf = zones.find("storm_cloud")
-	for _, id in ipairs({ unpack(shelf.cards) }) do zones.destroy_card(id) end
+	for _, id in ipairs({ unpack(shelf.cards) }) do zones.purge_card(id) end
 	for _, key in ipairs({ "fireball", "fireball2", "block" }) do zones.add(shelf, key) end
 	actions.execute("activate_zone:mine.battle:by_column:cast_ask",
 		{ card_id = essence.id, targets = {} })
@@ -1009,7 +1009,7 @@ function M.test_spellstorm_a_gain_is_limited_to_your_own_tier(check)
 	opening(5, "derby", "eve")
 	local one = zones.active_seat()
 	local shelf = zones.find("storm_cloud")
-	for _, id in ipairs({ unpack(shelf.cards) }) do zones.destroy_card(id) end
+	for _, id in ipairs({ unpack(shelf.cards) }) do zones.purge_card(id) end
 	for _, key in ipairs({ "fireball", "rapidfire", "fireball2" }) do zones.add(shelf, key) end
 
 	local gem = stage_battle(one, "twopower")

@@ -9,7 +9,7 @@ local log         = require("log")
 local M = {}
 
 -- Optional hook(what, id) for the presentation: something visible happened, and
--- this is the order it happened in. `what` is "move", "add", "destroy" or
+-- this is the order it happened in. `what` is "move", "add", "purge" or
 -- "shuffle"; `id` is the card it happened to, or the zone for a shuffle. Nil
 -- everywhere but the game window, which is the whole of what keeps the rules
 -- from knowing there is a screen.
@@ -447,11 +447,11 @@ local receiving = 0
 -- trigger as an ability, and then had to stop every rule that runs abilities
 -- from running it.
 --
--- **`destroy:` does not fire it, deliberately.** A destroyed card lands nowhere,
--- so there is no zone to name, and `destroy_card` clears its stats — a rule
+-- **`purge:` does not fire it, deliberately.** A purged card lands nowhere,
+-- so there is no zone to name, and `purge_card` clears its stats — a rule
 -- asked to run after that has no numbers left to read. The rule an author needs
 -- instead is one sentence: *if you want a removal answered, give it a zone*,
--- which is what naming one has always been for. `destroy:` stays the verb for
+-- which is what naming one has always been for. `purge:` stays the verb for
 -- things nobody may ask about.
 --
 -- Fired after the move so the card is standing where it landed and `into` is
@@ -531,7 +531,7 @@ local function unhook(c)
 end
 
 -- **A card standing on another goes where it goes, and leaves when it leaves.**
--- Written here rather than in the ops because move_card and destroy_card are
+-- Written here rather than in the ops because move_card and purge_card are
 -- what every one of them funnels through — the same reason the supply rule is
 -- here and not in `add`. A draw, a take, a create and a reclaim then all keep the
 -- link honest without knowing it exists, which is what the first attempt did
@@ -858,7 +858,7 @@ function M.attach(child_id, host_id)
 	return true
 end
 
-function M.destroy_card(card_id)
+function M.purge_card(card_id)
 	local c = entity.get(card_id)
 	if not c then return end
 	local home = M.supply_of(c.def_key, tags.owner_of(c))
@@ -872,7 +872,7 @@ function M.destroy_card(card_id)
 	release(c)
 	detach(c)
 	unhook(c)
-	if M.on_change then M.on_change("destroy", card_id) end
+	if M.on_change then M.on_change("purge", card_id) end
 end
 
 -- Place a card into a specific slot on a grid zone. What happens to a slot that
@@ -888,8 +888,8 @@ function M.place_in_slot(card_id, slot_id, on_occupied)
 	local held = slot.occupant
 	if held ~= nil and held ~= card_id then
 		if on_occupied == nil or on_occupied == "refuse" then return false end
-		if on_occupied == "destroy" then
-			M.destroy_card(held)
+		if on_occupied == "purge" then
+			M.purge_card(held)
 		else
 			local to = M.find_id(on_occupied)
 			if not (to and M.move_card(held, to)) then return false end

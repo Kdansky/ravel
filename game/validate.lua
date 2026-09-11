@@ -1306,9 +1306,9 @@ function M.check(G)
 				end
 			elseif t == "occupied" then
 				-- Either of the two words, or the zone a taken piece goes to.
-				local sc = a ~= "refuse" and a ~= "destroy" and predicate.parse_scope(a)
+				local sc = a ~= "refuse" and a ~= "purge" and predicate.parse_scope(a)
 				if sc and not G.zone_defs[sc.name] then
-					warn("%s: '%s' says '%s' happens to a piece already standing there — it should be 'destroy', 'refuse', or the zone taken pieces go to%s",
+					warn("%s: '%s' says '%s' happens to a piece already standing there — it should be 'purge', 'refuse', or the zone taken pieces go to%s",
 						where, op, a, suggest(sc.name, G.zone_defs))
 				end
 			elseif t == "scope" then
@@ -1483,7 +1483,7 @@ function M.check(G)
 			end
 		end
 
-		-- **A move written as a death and a birth.** `destroy` could be told how
+		-- **A move written as a death and a birth.** `purge` could be told how
 		-- many and `move` could not, so "send two of my gems over there" was
 		-- spelled as a kill beside a `create`. It costs the cards their identity,
 		-- their history and any chance of the player watching them go, and it
@@ -1491,7 +1491,7 @@ function M.check(G)
 		-- honest spelling and every place it survives should say so out loud.
 		--
 		-- A kind that trades with the box in the same list is doing *that*, and
-		-- the two are easy to confuse: a destroy that puts stock back and a create
+		-- the two are easy to confuse: a purge that puts stock back and a create
 		-- that spends it are the honest halves of a supply, and they share a key
 		-- and an amount without being one move. Puzzle Strike's Reversal does
 		-- both in one breath, which is what this exception is measured against.
@@ -1500,7 +1500,7 @@ function M.check(G)
 			if type(str) == "string" then
 				local traded = str:match("^stat_%a+:stock@[^.:]+%.([^:]+)")
 				if traded then stocked[traded] = true end
-				local scope, n = str:match("^destroy:([^:]+):(.+)$")
+				local scope, n = str:match("^purge:([^:]+):(.+)$")
 				if scope then killed[scope:match("[^.]+$")] = { n = n, scope = scope, said = str } end
 			end
 		end
@@ -1544,21 +1544,21 @@ function M.check(G)
 			end
 		end
 
-		-- **And the same fault on the way in.** A destroy used to lose the
-		-- component, so a finite box had to be paid back by hand; now a destroy
+		-- **And the same fault on the way in.** A purge used to lose the
+		-- component, so a finite box had to be paid back by hand; now a purge
 		-- puts it back itself and the payment is counted twice. Matched on the
 		-- list rather than the kind, because the scope that names what dies
 		-- ("mine.hand") often does not name a kind at all — and a top-up written
-		-- beside a destroy for some unrelated reason is a game nobody has
+		-- beside a purge for some unrelated reason is a game nobody has
 		-- written.
 		local kills
 		for _, str in ipairs(list) do
-			if type(str) == "string" and str:match("^destroy") then kills = str; break end
+			if type(str) == "string" and str:match("^purge") then kills = str; break end
 		end
 		if kills then
 			for _, str in ipairs(list) do
 				if type(str) == "string" and str:match("^stat_gain:stock@") then
-					warn("%s: '%s' pays the box back for '%s', which now pays itself — a destroyed "
+					warn("%s: '%s' pays the box back for '%s', which now pays itself — a purged "
 						.. "card goes home to the supply that stocks its kind, so this counts twice",
 						where, str, kills)
 				end

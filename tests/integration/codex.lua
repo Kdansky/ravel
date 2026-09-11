@@ -177,7 +177,7 @@ function M.test_codex_unattackable_by_tech_0(check)
 
 	-- A spell is a different aim and the ward is not on one: the basilisk's rule
 	-- lives in what an attack may point at, so casting is untouched.
-	zones.destroy_card(snake.id)
+	zones.purge_card(snake.id)
 	local free = summon("tiny_basilisk", "enemy.army")
 	seat("south").stats.gold = 20
 	use(in_zone("command", "calamandra"), "summon")
@@ -203,7 +203,7 @@ function M.test_codex_unstoppable_by_tech_0(check)
 	check("a tech 0 leader stops an ordinary attacker", not offers(ground, "strike_free"))
 	check("but not one that ignores them", offers(tiger, "strike_free"))
 
-	zones.destroy_card(lead.id)
+	zones.purge_card(lead.id)
 	post("centaur", "enemy", 1)                       -- tech 1
 	check("a tech 1 leader stops it like anything else", not offers(tiger, "strike_free"))
 	check("and is still the thing it may hit", offers(tiger, "strike_lead"))
@@ -1074,7 +1074,7 @@ function M.test_codex_obliterate_takes_the_lowest_tech(check)
 	check("three of theirs are standing", count_in("enemy.army") == 3,
 		tostring(count_in("enemy.army")))
 
-	actions.run({ "destroy:lowest:tech_level.enemy.army:2", "activate_zone:rules_death" },
+	actions.run({ "purge:lowest:tech_level.enemy.army:2", "activate_zone:rules_death" },
 		{ card_id = gun.id })
 	flow.settle()
 	check("two went", count_in("enemy.army") == 1, tostring(count_in("enemy.army")))

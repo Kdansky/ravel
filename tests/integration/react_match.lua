@@ -36,12 +36,12 @@ local GAME = [==[{
       "reactions": [
         { "to": "play", "where": ["tagged:fireball@event"],
           "needs": ["mana@mine.player >= 1"], "from": "board",
-          "action": ["destroy:event"] }
+          "action": ["purge:event"] }
       ] },
     { "key": "summon_counter", "text": "Summon Counter", "tags": ["counter"],
       "reactions": [
         { "to": "summon", "where": ["tagged:creature@event"], "from": "board",
-          "action": ["destroy:event"] }
+          "action": ["purge:event"] }
       ] }
   ],
   "setup": {

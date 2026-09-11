@@ -35,7 +35,7 @@ local GAME = [==[{
           "where": ["tagged:fireball@event"],
           "needs": ["mana@mine.player >= 1"],
           "cost": { "mana@mine.player": 1 },
-          "action": ["destroy:event"] }
+          "action": ["purge:event"] }
       ] }
   ],
   "setup": {

@@ -3884,7 +3884,7 @@
             "count:attachment@mine.addon >= 1"
           ],
           "action": [
-            "destroy:mine.addon",
+            "purge:mine.addon",
             "stat_damage:integrity@mine.base:2"
           ]
         }
@@ -3989,7 +3989,7 @@
       "story": "The props give way. The mine caves in and the base shakes.",
       "play": {
         "action": [
-          "destroy:mine.structures.rickety_mine",
+          "purge:mine.structures.rickety_mine",
           "stat_damage:integrity@mine.base:2"
         ]
       }
@@ -4270,8 +4270,8 @@
           "action": [
             "move:mine.dead:mine.discard",
             "move:enemy.dead:enemy.discard",
-            "destroy:mine.discard.token",
-            "destroy:enemy.discard.token"
+            "purge:mine.discard.token",
+            "purge:enemy.discard.token"
           ]
         }
       ]
@@ -4292,7 +4292,7 @@
           ],
           "action": [
             "stat_damage:integrity@mine.base:count:rubble@mine.tech:x:2",
-            "destroy:mine.tech.rubble"
+            "purge:mine.tech.rubble"
           ]
         },
         {
@@ -4304,7 +4304,7 @@
           ],
           "action": [
             "stat_damage:integrity@enemy.base:count:rubble@enemy.tech:x:2",
-            "destroy:enemy.tech.rubble"
+            "purge:enemy.tech.rubble"
           ]
         }
       ]
@@ -4325,7 +4325,7 @@
           ],
           "action": [
             "stat_damage:integrity@mine.base:2",
-            "destroy:mine.addon.rubble"
+            "purge:mine.addon.rubble"
           ]
         },
         {
@@ -4337,7 +4337,7 @@
           ],
           "action": [
             "stat_damage:integrity@enemy.base:2",
-            "destroy:enemy.addon.rubble"
+            "purge:enemy.addon.rubble"
           ]
         }
       ]
@@ -4354,8 +4354,8 @@
           "text": "Rubble",
           "phases": [],
           "action": [
-            "destroy:mine.structures.rubble",
-            "destroy:enemy.structures.rubble"
+            "purge:mine.structures.rubble",
+            "purge:enemy.structures.rubble"
           ]
         }
       ]
@@ -4375,7 +4375,7 @@
             "count:h_blood@mine.hero == 0"
           ],
           "action": [
-            "destroy:mine.ongoing.chan_blood"
+            "purge:mine.ongoing.chan_blood"
           ]
         },
         {
@@ -4386,7 +4386,7 @@
             "count:h_blood@enemy.hero == 0"
           ],
           "action": [
-            "destroy:enemy.ongoing.chan_blood"
+            "purge:enemy.ongoing.chan_blood"
           ]
         },
         {
@@ -4397,7 +4397,7 @@
             "count:h_feral@mine.hero == 0"
           ],
           "action": [
-            "destroy:mine.ongoing.chan_feral"
+            "purge:mine.ongoing.chan_feral"
           ]
         },
         {
@@ -4408,7 +4408,7 @@
             "count:h_feral@enemy.hero == 0"
           ],
           "action": [
-            "destroy:enemy.ongoing.chan_feral"
+            "purge:enemy.ongoing.chan_feral"
           ]
         },
         {
@@ -4419,7 +4419,7 @@
             "count:h_balance@mine.hero == 0"
           ],
           "action": [
-            "destroy:mine.ongoing.chan_balance"
+            "purge:mine.ongoing.chan_balance"
           ]
         },
         {
@@ -4430,7 +4430,7 @@
             "count:h_balance@enemy.hero == 0"
           ],
           "action": [
-            "destroy:enemy.ongoing.chan_balance"
+            "purge:enemy.ongoing.chan_balance"
           ]
         }
       ]
@@ -4581,8 +4581,8 @@
           "text": "Ephemeral",
           "phases": [],
           "action": [
-            "destroy:mine.ephemeral",
-            "destroy:mine.fading"
+            "purge:mine.ephemeral",
+            "purge:mine.fading"
           ]
         }
       ]
@@ -4621,7 +4621,7 @@
         },
         "action": [
           "stat_damage:workers@opponent:1",
-          "destroy:enemy.workers:1"
+          "purge:enemy.workers:1"
         ]
       }
     },
@@ -6491,8 +6491,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "destroy:lowest:tech_level.enemy.army:4",
-            "destroy:lowest:tech_level.enemy.patrol:4",
+            "purge:lowest:tech_level.enemy.army:4",
+            "purge:lowest:tech_level.enemy.patrol:4",
             "activate_zone:rules_death"
           ]
         }
@@ -6643,7 +6643,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "destroy:each.anyone.judged",
+          "purge:each.anyone.judged",
           "activate_zone:rules_death"
         ],
         "spent": "mine.discard"
@@ -8329,7 +8329,7 @@
       },
       "leaves": {
         "action": [
-          "destroy:lowest:tech_level.mine.army:1",
+          "purge:lowest:tech_level.mine.army:1",
           "activate_zone:rules_death"
         ]
       }
@@ -8857,7 +8857,7 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "destroy:lowest:tech_level.enemy.army:1",
+          "purge:lowest:tech_level.enemy.army:1",
           "activate_zone:rules_death"
         ],
         "spent": "mine.discard"
@@ -8975,7 +8975,7 @@
           ]
         },
         "action": [
-          "destroy:target",
+          "purge:target",
           "activate_zone:rules_death"
         ]
       }
@@ -10348,7 +10348,7 @@
           "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "destroy:each.anyone.token",
+          "purge:each.anyone.token",
           "activate_zone:rules_death"
         ]
       }
@@ -10748,7 +10748,7 @@
             ]
           },
           "action": [
-            "destroy:target",
+            "purge:target",
             "activate_zone:rules_death"
           ]
         }
@@ -12737,7 +12737,7 @@
         },
         "spent": "mine.discard",
         "action": [
-          "destroy:each.anyone.plagued",
+          "purge:each.anyone.plagued",
           "activate_zone:rules_death"
         ]
       }
@@ -13016,8 +13016,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "destroy:lowest:tech_level.enemy.army:2",
-            "destroy:lowest:tech_level.enemy.patrol:2",
+            "purge:lowest:tech_level.enemy.army:2",
+            "purge:lowest:tech_level.enemy.patrol:2",
             "activate_zone:rules_death"
           ]
         }
@@ -14187,7 +14187,7 @@
           "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "destroy:target"
+          "purge:target"
         ],
         "target": {
           "verb": "cast",
@@ -14211,8 +14211,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "destroy:lowest:tech_level.enemy.army:4",
-            "destroy:lowest:tech_level.enemy.patrol:4",
+            "purge:lowest:tech_level.enemy.army:4",
+            "purge:lowest:tech_level.enemy.patrol:4",
             "activate_zone:rules_death"
           ]
         }
@@ -15049,7 +15049,7 @@
             ]
           },
           "action": [
-            "destroy:target",
+            "purge:target",
             "activate_zone:rules_death"
           ]
         }
@@ -16862,8 +16862,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "destroy:lowest:tech_level.enemy.army:2",
-            "destroy:lowest:tech_level.enemy.patrol:2",
+            "purge:lowest:tech_level.enemy.army:2",
+            "purge:lowest:tech_level.enemy.patrol:2",
             "activate_zone:rules_death"
           ]
         },
@@ -16875,7 +16875,7 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "destroy:enemy.army.unit:2"
+            "purge:enemy.army.unit:2"
           ]
         }
       ]
@@ -17180,7 +17180,7 @@
           "phases": [],
           "action": [
             "stat_damage:workers@mine.player:2",
-            "destroy:mine.workers:2"
+            "purge:mine.workers:2"
           ]
         }
       ]
@@ -18598,7 +18598,7 @@
         "action": [
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "destroy:target"
+          "purge:target"
         ]
       }
     },
@@ -18677,7 +18677,7 @@
         "action": [
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
-          "destroy:target"
+          "purge:target"
         ]
       }
     },
@@ -18782,7 +18782,7 @@
         "action": [
           "stat_set:integrity@target:0",
           "activate_zone:rules_death",
-          "destroy:target"
+          "purge:target"
         ],
         "spent": "mine.discard"
       }
@@ -19001,7 +19001,7 @@
           ],
           "action": [
             "stat_damage:workers@opponent:1",
-            "destroy:enemy.workers:1"
+            "purge:enemy.workers:1"
           ]
         }
       ]
@@ -19677,8 +19677,8 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "destroy:lowest:tech_level.enemy.army:4",
-            "destroy:lowest:tech_level.enemy.patrol:4",
+            "purge:lowest:tech_level.enemy.army:4",
+            "purge:lowest:tech_level.enemy.patrol:4",
             "activate_zone:rules_death"
           ]
         },
@@ -19690,7 +19690,7 @@
             "attacking@self >= 1"
           ],
           "action": [
-            "destroy:enemy.army.unit:4"
+            "purge:enemy.army.unit:4"
           ]
         }
       ]
@@ -20429,7 +20429,7 @@
             "count:faded@mine.fading >= 1"
           ],
           "action": [
-            "destroy:each.mine.faded",
+            "purge:each.mine.faded",
             "activate_zone:rules_death"
           ]
         },

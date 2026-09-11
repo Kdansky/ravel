@@ -260,7 +260,7 @@
       "key": "after_combat",
       "type": "automatic",
       "actions": [
-        "destroy:dead",
+        "purge:dead",
         "stat_set:attacking@each.battle:0",
         "stat_set:spill@each.battle:0",
         "move:mine.battle:mine.bench",

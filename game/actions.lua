@@ -435,7 +435,7 @@ HANDLERS["move_to"] = function(p, ctx)
 	if not ctx or not ctx.card_id then return end
 	local dest = p[2]
 	-- A third argument says what to do about a piece already standing there:
-	-- "destroy", or the zone the taken piece goes to. Left out, an occupied
+	-- "purge", or the zone the taken piece goes to. Left out, an occupied
 	-- square refuses the move, which is what every game before this expected.
 	local on_occupied = p[3]
 	-- move_to:target — the card goes where the player chose. It is the only way
@@ -575,11 +575,11 @@ HANDLERS["load_game"] = function(p)
 	M.pending_load = p[2]
 end
 
--- destroy:<scope>  — remove every card the scope names from play. A bare zone
--- key is a scope, so "destroy:hand" means exactly what it always did, and
--- "destroy:each.enemy.creature" needs no second verb. A card cannot be partly
--- destroyed, so the pooled quantifiers coincide here: only "random." narrows,
--- to one victim. Ids are collected before anything is removed — destroying
+-- purge:<scope>  — remove every card the scope names from the game. A bare zone
+-- key is a scope, so "purge:hand" means exactly what it always did, and
+-- "purge:each.enemy.creature" needs no second verb. A card cannot be partly
+-- purged, so the pooled quantifiers coincide here: only "random." narrows,
+-- to one victim. Ids are collected before anything is removed — purging
 -- while walking a zone's own card list is how you skip half of it.
 -- activate_zone:<zone>[:<order>[:<step>]]  — every card lying there does what it does.
 --
@@ -631,7 +631,7 @@ HANDLERS["activate_zone"] = function(p, ctx)
 		content_error("activate_zone: unknown zone " .. tostring(p[2]))
 		return
 	end
-	-- Snapshot first: an ability may destroy a card, move one in, or empty the
+	-- Snapshot first: an ability may purge a card, move one in, or empty the
 	-- zone entirely, and the list being walked must not be the one changing.
 	local order = {}
 	for i, id in ipairs(z.cards) do order[i] = id end
@@ -697,7 +697,7 @@ HANDLERS["exhaust"] = function(p, ctx)
 	end
 end
 
--- destroy:<scope>[:<n>]  — every card the scope names, or that many of them.
+-- purge:<scope>[:<n>]  — every card the scope names, or that many of them.
 --
 -- The count is what "trash three of these" needs and repeating the line cannot
 -- give: how many is usually known only as the game runs — the size of a crash,
@@ -709,7 +709,7 @@ end
 -- and burning rng on a choice that does not matter costs a reproducible game for
 -- nothing. Left out, the count is every one of them — except after "random",
 -- which has always meant one and still does.
-HANDLERS["destroy"] = function(p, ctx)
+HANDLERS["purge"] = function(p, ctx)
 	local sc = predicate.parse_scope(p[2] or "")
 	if not sc then return end
 	local doomed = {}
@@ -724,7 +724,7 @@ HANDLERS["destroy"] = function(p, ctx)
 		local i = sc.quant == "random" and rng.int(#doomed) or 1
 		taken[#taken + 1] = table.remove(doomed, i)
 	end
-	for _, id in ipairs(taken) do zones.destroy_card(id) end
+	for _, id in ipairs(taken) do zones.purge_card(id) end
 end
 
 -- move:<scope>:<zone>  — every card the scope names goes to that zone.
@@ -759,7 +759,7 @@ HANDLERS["move"] = function(p, ctx)
 	-- everything moves without one, which is what "move" meant before it could
 	-- be told a number and what every spelling written before this still means.
 	local want, pos = count_and_pos(p, 4, nil, ctx)
-	-- Taken one at a time, the way `destroy` takes them, so that a random scope
+	-- Taken one at a time, the way `purge` takes them, so that a random scope
 	-- asked for three picks three different cards rather than the same one
 	-- thrice. Without a count a random scope still means one, which is what it
 	-- has always meant.
@@ -853,7 +853,7 @@ HANDLERS["show"] = function(p, ctx)
 	end
 	if not predicate.is_ordered(sc.quant) then table.sort(moving) end
 	-- "random." narrows it to one, the same word and the same meaning it has in
-	-- move and destroy. That is the whole of "reveal a card from their hand":
+	-- move and purge. That is the whole of "reveal a card from their hand":
 	-- the scope says whose hand and the quantifier says how much of it.
 	if sc.quant == "random" and #moving > 0 then
 		moving = { moving[rng.int(#moving)] }
@@ -1062,7 +1062,7 @@ HANDLERS["transform"] = function(p, ctx)
 		local owner = e.stats and e.stats.owner
 		-- Out before in: the square has to be free, since place_in_slot refuses
 		-- an occupied one and would otherwise leave the new card in limbo.
-		zones.destroy_card(e.id)
+		zones.purge_card(e.id)
 		local new = cards.create(key, zone)
 		if owner then new.stats.owner = owner end
 		if slot then zones.place_in_slot(new.id, slot) else zones.auto_slot(new.id) end
@@ -1133,7 +1133,7 @@ HANDLERS["copy"] = function(p, ctx)
 		content_error("copy: a card is copying itself round in a circle — stopped")
 		return
 	end
-	-- Snapshot before running: an action may move or destroy what the scope
+	-- Snapshot before running: an action may move or purge what the scope
 	-- names, and the second time round would then read a different set.
 	local doing = {}
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
@@ -1187,7 +1187,7 @@ end
 -- Types: zone, card, stat (a full subject, so it may carry a scope),
 -- phase, effect, gamefile, n (amount: number, count:<tag> or card:<key>),
 -- occupied (what to do with a piece already standing there: "refuse",
--- "destroy", or the zone it goes to), any. A trailing "?" marks the argument
+-- "purge", or the zone it goes to), any. A trailing "?" marks the argument
 -- optional.
 -- Networking, as something a card can do. The engine knows the *words* — so
 -- the validator does too, and a game file naming them is checked like any other
@@ -1487,7 +1487,7 @@ local SPEC = {
 	pop_phase         = "",
 	load_game         = "gamefile",
 	open_game         = "",
-	destroy           = "scope n?",
+	purge             = "scope n?",
 	ready             = "scope",
 	exhaust           = "scope",
 	activate_zone     = "zone order? step?",

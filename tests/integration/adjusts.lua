@@ -186,7 +186,7 @@ function M.test_adjusts_an_anthem_covers_a_side_while_it_stands(check)
 		hit("damage", "grunt", 3)
 		check("the banner protects the whole line", find("grunt").stats.hp == 8,
 			tostring(find("grunt").stats.hp))
-		zones.destroy_card(banner.id)
+		zones.purge_card(banner.id)
 		hit("damage", "grunt", 3)
 		check("and stops the moment it is gone", find("grunt").stats.hp == 5,
 			tostring(find("grunt").stats.hp))

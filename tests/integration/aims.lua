@@ -221,7 +221,7 @@ function M.test_aims_counts_what_an_ability_could_point_at(check)
 			tostring(predicate.total("aims:strike", { card_id = hunter.id })))
 		check("so with something to hunt, it does not roam", not roams())
 
-		zones.destroy_card(find("deer").id)
+		zones.purge_card(find("deer").id)
 		check("with only what it cannot touch, it does", roams())
 		cards.create("deer", zones.find_id("field"))
 		check("and a new one holds it again", not roams())

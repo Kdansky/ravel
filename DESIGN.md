@@ -324,7 +324,7 @@ A card can fork into specific sub-cards: play it, choose one option, the chosen 
   "zone": "decree_offer" }   // whose zone applies a tag: "play": { "action": ["add_to:hand", "return_to:decree_offer:edicts"] }
 ```
 
-The parent card is just `"play": { "action": ["move_to:graveyard", "push_phase:decree"] }`, and the offer zone grants what choosing from it means — behaviour belonging to the place, so the option cards need say nothing about being offered. While an overlay is open, all other actions (plays, activations, end conditions) are locked until the choice resolves. `destroy:zone` and `destroy_self` remove cards from play entirely — the flat array keeps the husks (IDs stay valid) but they hold no zone and no stats, so nothing renders, targets or counts them; undo restores them.
+The parent card is just `"play": { "action": ["move_to:graveyard", "push_phase:decree"] }`, and the offer zone grants what choosing from it means — behaviour belonging to the place, so the option cards need say nothing about being offered. While an overlay is open, all other actions (plays, activations, end conditions) are locked until the choice resolves. `purge:zone` and `destroy_self` remove cards from play entirely — the flat array keeps the husks (IDs stay valid) but they hold no zone and no stats, so nothing renders, targets or counts them; undo restores them.
 
 ---
 
@@ -344,10 +344,10 @@ many routes out of play as it has ways to kill something. Missing one is a
 trigger that silently does not happen, which is the failure a death trigger is
 least likely to be noticed missing.
 
-**`destroy:` fires nothing, and that is what the verb is for.** A destroyed card
+**`purge:` fires nothing, and that is what the verb is for.** A destroyed card
 lands in no zone, so there is no `into` to name, and `destroy_card` clears its
 stats, so a rule asked to run afterwards would have nothing left to read. Rather
-than invent a name for landing nowhere, the format keeps the pair: `destroy:`
+than invent a name for landing nowhere, the format keeps the pair: `purge:`
 removes what nobody may ask about — a token vanishing, a swept husk — and a
 removal that *is* answerable is a move into a zone. Naming a zone has always been
 how a rule reaches something, and this is that rule once more.

@@ -608,7 +608,7 @@
         "needs": ["sum:value@target <= 4"],
         "pass": [
           "stat_set:combined@mine.player:sum:value@target",
-          "destroy:target",
+          "purge:target",
           "activate_zone:rules_combine",
           "stat_damage:money@mine.player:1",
           "stat_gain:acts@mine.player:1",
@@ -637,7 +637,7 @@
         "action": [
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
-          "destroy:target",
+          "purge:target",
           "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:1",
           "emit:crash"
@@ -666,7 +666,7 @@
         "action": [
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
-          "destroy:target",
+          "purge:target",
           "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:2",
           "emit:crash"
@@ -784,7 +784,7 @@
         "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["gem"], "zones": ["hand"], "count": 1, "owner": "anyone" },
         "action": [
-          "destroy:target",
+          "purge:target",
           "stat_gain:act_brown@mine.player:1",
           "stat_gain:act_red@mine.player:1",
           "stat_gain:act_blue@mine.player:1",
@@ -864,7 +864,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["destroy:self", "next_phase"]
+        "action": ["purge:self", "next_phase"]
       },
       "tooltip": "If this is the only action you play this turn, gain any two different non-Puzzle chips from the bank, end your action phase, then trash this chip.\n\nDEV: it ends your action phase and trashes itself. \"The only action you play this turn\" cannot be asked — nothing counts the actions a player has played — so the two chips are not given.",
       "card_stats": { "price": 6 }
@@ -885,7 +885,7 @@
           "to": "crash",
           "text": "Negate the gems",
           "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
-          "action": ["destroy:mine.gem_1:sum:crashed@opponent"],
+          "action": ["purge:mine.gem_1:sum:crashed@opponent"],
           "spent": "mine.discard"
         }
       ],
@@ -900,7 +900,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["destroy:self", "stat_gain:acts@mine.player:1"]
+        "action": ["purge:self", "stat_gain:acts@mine.player:1"]
       },
       "tooltip": "+1 action. Put a trap token on a stack in the bank, then trash this chip. Each token gives a wound to each player who buys from that stack.\n\nDEV: the action is built and the chip trashes itself. A token that sits on a bank stack and changes what buying from it does is a rule on somebody else's card, which nothing writes.",
       "card_stats": { "plus_act": 1, "price": 2 }
@@ -942,7 +942,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["destroy:self", "show:bank:optional"]
+        "action": ["purge:self", "show:bank:optional"]
       },
       "chosen": {
         "where": ["not_tagged:gem@target", "not_tagged:puzzle@target"],
@@ -973,7 +973,7 @@
         "needs": ["sum:value@target <= 4"],
         "pass": [
           "stat_set:combined@mine.player:sum:value@target",
-          "destroy:target",
+          "purge:target",
           "activate_zone:rules_combine",
           "stat_gain:act_red@mine.player:1"
         ],
@@ -1037,7 +1037,7 @@
           "count": 1,
           "owner": "anyone"
         },
-        "action": ["destroy:target"],
+        "action": ["purge:target"],
         "spent": "mine.table"
       },
       "reactions": [
@@ -1077,7 +1077,7 @@
         "action": ["stat_gain:money@mine.player:1"],
         "spent": "mine.table"
       },
-      "reactions": [{ "to": "attack", "text": "Become immune", "action": ["destroy:self", "counterspell"] }],
+      "reactions": [{ "to": "attack", "text": "Become immune", "action": ["purge:self", "counterspell"] }],
       "tooltip": "Main: +$1. You may put any chips you buy this turn on top of your bag. Reaction: Trash this chip to become immune to a red chip.\n\nDEV: the gem power and the immunity are built. Redirecting what you buy onto your bag is answerable now, but the event names the *plate*, not the chip it dealt into your discard, so there is nothing to move.",
       "card_stats": { "plus_pow": 1, "react": 1, "price": 2 }
     },
@@ -1100,7 +1100,7 @@
           "stat_gain:piggy@mine.player:1",
           "stat_set:budget@mine.player:sum:price@target",
           "stat_gain:budget@mine.player:2",
-          "destroy:target",
+          "purge:target",
           "show:bank:optional"
         ],
         "spent": "mine.table"
@@ -1172,7 +1172,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["destroy:self", "stat_gain:acts@mine.player:2"]
+        "action": ["purge:self", "stat_gain:acts@mine.player:2"]
       },
       "tooltip": "+2 actions, then trash this chip.",
       "card_stats": { "plus_act": 2, "price": 3 }
@@ -1196,7 +1196,7 @@
           "draw_from:mine.bag:mine.hand:2",
           "stat_set:budget@mine.player:sum:price@target",
           "stat_gain:budget@mine.player:2",
-          "destroy:target",
+          "purge:target",
           "show:bank:optional"
         ],
         "spent": "mine.table"
@@ -1238,7 +1238,7 @@
           "min": 0,
           "max": 2
         },
-        "action": ["destroy:target", "stat_gain:acts@mine.player:1"],
+        "action": ["purge:target", "stat_gain:acts@mine.player:1"],
         "spent": "mine.table"
       },
       "tooltip": "+1 action. Trash up to two chips from your hand. (Character chips can't be trashed.)",
@@ -1293,7 +1293,7 @@
           "action": [
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
-            "destroy:target",
+            "purge:target",
             "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "stat_gain:money@mine.player:0",
             "emit:crash"
@@ -1393,7 +1393,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "acts@mine.player": 1 },
-        "action": ["destroy:self", "show:bank:optional"]
+        "action": ["purge:self", "show:bank:optional"]
       },
       "chosen": { "where": ["sum:price@target <= 5"], "action": ["copy:target:play"] },
       "tooltip": "Play this as if it were any bank chip of cost 5 or less, then trash this chip.\n\nDEV: built whole, now that the bank holds chips and not plates: the shelf comes up as an offer, and copy: runs what the chosen chip does. A copy carries no targets, so a chip that waits to be aimed — a Crash Gem — is played and goes off at nothing.",
@@ -1602,7 +1602,7 @@
         },
         "action": [
           "stat_gain:act_brown@mine.player:1",
-          "destroy:target",
+          "purge:target",
           "take:bank.gem_1:enemy.gem_pile:1"
         ],
         "spent": "mine.table"
@@ -1679,7 +1679,7 @@
           "to": "crash",
           "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
           "from": "board",
-          "action": ["destroy:mine.gem_1:1", "move_to:mine.discard", "transform:self:bubble_shield"]
+          "action": ["purge:mine.gem_1:1", "move_to:mine.discard", "transform:self:bubble_shield"]
         }
       ],
       "tooltip": "Ongoing: Negate a gem sent to you, then discard this chip.",
@@ -1728,7 +1728,7 @@
         "phases": ["action"],
         "cost": { "act_red@mine.player": 1 },
         "target": { "type": "card", "tags": ["wound"], "zones": ["hand"], "count": 1, "owner": "anyone" },
-        "action": ["destroy:target", "stat_gain:acts@mine.player:1", "take:bank.gem_1:enemy.gem_pile:1"],
+        "action": ["purge:target", "stat_gain:acts@mine.player:1", "take:bank.gem_1:enemy.gem_pile:1"],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1, "hits": 1 }
@@ -1753,7 +1753,7 @@
         "action": [
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
-          "destroy:target",
+          "purge:target",
           "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:2",
           "move_to:mine.table",
@@ -1777,7 +1777,7 @@
           "action": [
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
-            "destroy:target",
+            "purge:target",
             "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "stat_gain:money@mine.player:2",
             "take:bank.wound:mine.discard:1",
@@ -1823,7 +1823,7 @@
           "action": [
             "stat_set:budget@mine.player:sum:price@target",
             "stat_gain:budget@mine.player:2",
-            "destroy:target",
+            "purge:target",
             "show:bank:optional"
           ],
           "spent": "mine.discard"
@@ -1852,7 +1852,7 @@
           "count": 1,
           "owner": "anyone"
         },
-        "action": ["destroy:target", "take:bank.gem_2:mine.hand:1"],
+        "action": ["purge:target", "take:bank.gem_2:mine.hand:1"],
         "spent": "mine.table"
       }
     },
@@ -1861,7 +1861,7 @@
       "text": "Double-take",
       "tags": ["chip", "character", "brown"],
       "asset": "polygon:7:amber",
-      "tooltip": "Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.\n\nDEV: built: \"copy:target:play:2\" runs the chosen chip's play twice without playing the chip, and \"destroy:target\" trashes it. Two things are short of the print. The pick is your hand alone — a discard is a stack, and a stack offers only the card on top of it. And a copy carries no targets, so a chip that waits to be aimed — a Crash Gem — is trashed without going off.",
+      "tooltip": "Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.\n\nDEV: built: \"copy:target:play:2\" runs the chosen chip's play twice without playing the chip, and \"purge:target\" trashes it. Two things are short of the print. The pick is your hand alone — a discard is a stack, and a stack offers only the card on top of it. And a copy carries no targets, so a chip that waits to be aimed — a Crash Gem — is trashed without going off.",
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
@@ -1873,7 +1873,7 @@
           "count": 1,
           "where": ["not_tagged:puzzle@target"]
         },
-        "action": ["copy:target:play:2", "destroy:target", "next_phase"],
+        "action": ["copy:target:play:2", "purge:target", "next_phase"],
         "spent": "mine.table"
       }
     },
@@ -1935,8 +1935,8 @@
           "action": [
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
-            "destroy:target",
-            "destroy:mine.gem_1:sum:crashed@opponent",
+            "purge:target",
+            "purge:mine.gem_1:sum:crashed@opponent",
             "stat_set:sent@mine.player:sum:crashed@mine.player",
             "stat_damage:sent@mine.player:sum:crashed@opponent",
             "stat_damage:crashed@opponent:sum:crashed@mine.player",
@@ -1961,7 +1961,7 @@
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
         "target": { "type": "card", "tags": ["chip"], "zones": ["hand"], "count": 1, "owner": "anyone" },
-        "action": ["destroy:target", "stat_gain:acts@mine.player:1"],
+        "action": ["purge:target", "stat_gain:acts@mine.player:1"],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1 }
@@ -1995,7 +1995,7 @@
           "to": "crash",
           "text": "Send the gems back to the bank",
           "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
-          "action": ["destroy:mine.gem_1:sum:crashed@opponent"],
+          "action": ["purge:mine.gem_1:sum:crashed@opponent"],
           "spent": "mine.discard"
         }
       ],
@@ -2020,7 +2020,7 @@
         },
         "action": [
           "stat_set:combined@mine.player:sum:value@target",
-          "destroy:target",
+          "purge:target",
           "activate_zone:rules_upgrade_hand"
         ],
         "spent": "mine.table"
@@ -2044,7 +2044,7 @@
         },
         "action": [
           "stat_set:combined@mine.player:sum:value@target",
-          "destroy:target",
+          "purge:target",
           "activate_zone:rules_upgrade_pile",
           "stat_damage:stock@bank.gem_1:1",
           "stat_gain:act_brown@mine.player:1"
@@ -2069,7 +2069,7 @@
         "action": [
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
-          "destroy:target",
+          "purge:target",
           "take:bank.gem_1:enemy.discard:sum:crashed@mine.player",
           "emit:crash"
         ]
@@ -2094,7 +2094,7 @@
           "min": 0,
           "max": 2
         },
-        "action": ["destroy:target", "stat_gain:act_red@mine.player:1"],
+        "action": ["purge:target", "stat_gain:act_red@mine.player:1"],
         "spent": "mine.table"
       },
       "card_stats": { "plus_act": 1, "hits": 1 }
@@ -2121,7 +2121,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["stat_gain:extra@mine.player:1", "destroy:self"]
+        "action": ["stat_gain:extra@mine.player:1", "purge:self"]
       }
     },
     {
@@ -2144,7 +2144,7 @@
           "draw_from:mine.bag:mine.hand:1",
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
-          "destroy:target",
+          "purge:target",
           "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:0",
           "emit:crash"
@@ -2321,7 +2321,7 @@
         "action": [
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
-          "destroy:target",
+          "purge:target",
           "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:0",
           "emit:crash"
@@ -2369,7 +2369,7 @@
           "count": 1
         },
         "action": [
-          "destroy:target",
+          "purge:target",
           "stat_set:crashed@mine.player:2",
           "stat_set:broke@mine.player:1",
           "move:mine.gem_1:enemy.gem_pile:2",
@@ -2418,7 +2418,7 @@
         "action": [
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
-          "destroy:target",
+          "purge:target",
           "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:0",
           "emit:crash"
@@ -2442,7 +2442,7 @@
         {
           "to": "crash",
           "text": "Trim a gem off every pile",
-          "action": ["destroy:mine.gem_1:1", "destroy:enemy.gem_1:1", "draw_from:mine.bag:mine.hand:1"],
+          "action": ["purge:mine.gem_1:1", "purge:enemy.gem_1:1", "draw_from:mine.bag:mine.hand:1"],
           "spent": "mine.discard"
         }
       ],
@@ -2652,7 +2652,7 @@
           "owner": "mine",
           "count": 1
         },
-        "action": ["destroy:target", "stat_gain:money@mine.player:1", "take:bank.gem_2:mine.discard:1"],
+        "action": ["purge:target", "stat_gain:money@mine.player:1", "take:bank.gem_2:mine.discard:1"],
         "spent": "mine.table"
       },
       "tooltip": "Trash a 1-gem from your hand or gem pile. If you do, +$1 and gain a 2-gem.",
@@ -2730,7 +2730,7 @@
         "action": [
           "stat_set:crashed@mine.player:sum:value@target",
           "stat_set:broke@mine.player:max:value@target",
-          "destroy:target",
+          "purge:target",
           "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
           "stat_gain:money@mine.player:0",
           "emit:crash"
@@ -2751,7 +2751,7 @@
           "action": [
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
-            "destroy:target",
+            "purge:target",
             "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "stat_gain:money@mine.player:0",
             "emit:crash"
@@ -2772,7 +2772,7 @@
           "action": [
             "stat_set:crashed@mine.player:sum:value@target",
             "stat_set:broke@mine.player:max:value@target",
-            "destroy:target",
+            "purge:target",
             "take:bank.gem_1:enemy.gem_pile:sum:crashed@mine.player",
             "stat_gain:money@mine.player:0",
             "emit:crash"
@@ -2803,7 +2803,7 @@
           "stat_set:money@mine.player:sum:price@target",
           "stat_gain:money@mine.player:count:chip@target",
           "stat_gain:money@mine.player:1",
-          "destroy:target",
+          "purge:target",
           "push_phase:react_buy"
         ],
         "spent": "mine.table"
@@ -2862,8 +2862,8 @@
         "cost": { "act_purple@mine.player": 1 },
         "action": [
           "stat_set:crashed@mine.player:count:gem_1@mine.gem_pile",
-          "destroy:mine.gem_1",
-          "destroy:self"
+          "purge:mine.gem_1",
+          "purge:self"
         ]
       },
       "tooltip": "Trash all 1-gems from your gem pile. Send half that many 1-gems (rounded down) to an opponent, then trash this chip.\n\nDEV: the pile is emptied of 1-gems and the chip trashes itself. Half of them is not sent: the amount grammar multiplies and does not divide, so there is no way to write half of a number that is only known as the game runs."
@@ -3089,7 +3089,7 @@
       "text": "Everybody trashes a 1-gem",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": { "action": ["each_seat:destroy:mine.gem_1:1"] }
+      "play": { "action": ["each_seat:purge:mine.gem_1:1"] }
     },
     {
       "key": "ef_ante",
@@ -3110,7 +3110,7 @@
       "text": "Trash a wound and take a red action",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": { "action": ["destroy:mine.hand:1", "stat_gain:act_red@mine.player:1"] }
+      "play": { "action": ["purge:mine.hand:1", "stat_gain:act_red@mine.player:1"] }
     },
     {
       "key": "nl_chips",
@@ -3124,7 +3124,7 @@
       "text": "Trash a gem and a wound from your hand",
       "tags": ["token", "immutable"],
       "asset": "square:slate",
-      "play": { "action": ["destroy:mine.hand:2"] }
+      "play": { "action": ["purge:mine.hand:2"] }
     },
     {
       "key": "pp_ante",

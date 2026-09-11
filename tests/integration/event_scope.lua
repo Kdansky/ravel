@@ -117,8 +117,8 @@ function M.test_event_an_action_reaches_the_subject(check)
 		actions.execute("stat_gain:value@event:2", ctx)
 		check("the subject's own stat moved", at("a1").stats.value == 5,
 			tostring(at("a1").stats.value))
-		actions.execute("destroy:event", ctx)
-		check("and destroy:event removes what was reacted to", at("a1") == nil)
+		actions.execute("purge:event", ctx)
+		check("and purge:event removes what was reacted to", at("a1") == nil)
 	end)
 end
 

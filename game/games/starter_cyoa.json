@@ -52,9 +52,9 @@
     {
       "key": "p_found",
       "text": "TODO: A page that gives an item",
-      "story": "TODO: describe finding the key. It lands on the keepsake board because its tag's home zone says so. Note the destroy:hand opener — every page that deals new choices needs it, or old choices pile up.",
+      "story": "TODO: describe finding the key. It lands on the keepsake board because its tag's home zone says so. Note the purge:hand opener — every page that deals new choices needs it, or old choices pile up.",
       "play": {
-        "action": ["destroy:hand", "create:board:the_key:1", "create:hand:c_leave:1", "create:hand:c_gamble:1"]
+        "action": ["purge:hand", "create:board:the_key:1", "create:hand:c_leave:1", "create:hand:c_gamble:1"]
       }
     },
     {

@@ -113,7 +113,7 @@
       "text": "Pass",
       "tooltip": "Bide your time. Nothing happens this phase.",
       "tags": ["token", "slate"],
-      "play": { "action": ["destroy:self"] }
+      "play": { "action": ["purge:self"] }
     },
     {
       "key": "royal_decree",

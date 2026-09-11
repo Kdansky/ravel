@@ -171,7 +171,7 @@ function M.test_attachment_a_destroyed_host_sends_its_riders_home(check)
 		local home = fig.zone_id
 		zones.attach(fig.id, site.id)
 
-		zones.destroy_card(site.id)
+		zones.purge_card(site.id)
 		check("the figure survived", entity.get(fig.id) ~= nil and entity.get(fig.id).zone_id ~= nil)
 		check("and went back to the row it came from", entity.get(fig.id).zone_id == home)
 		check("standing on nothing", entity.get(fig.id).parent_id == nil)

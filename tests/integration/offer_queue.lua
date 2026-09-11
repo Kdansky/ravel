@@ -50,7 +50,7 @@ local GAME = [==[{
       "chosen": { "action": ["move:target:mine.bin", "stat_gain:kept@mine.player:1"] } },
     { "key": "greedy", "text": "Everybody discards, and the first takes the rest", "tags": ["immutable"],
       "abilities": [{ "key": "sweep", "text": "Discard", "action": ["show:mine.hand:optional"] }],
-      "chosen": { "action": ["move:target:mine.bin", "destroy:everywhere.chip"] } }
+      "chosen": { "action": ["move:target:mine.bin", "purge:everywhere.chip"] } }
   ],
   "setup": { "place": [{ "card": "sweeper", "zone": "rules" }] }
 }]==]

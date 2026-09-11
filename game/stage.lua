@@ -11,7 +11,7 @@
 -- **A step is a snapshot.** The rules push one every time something visible
 -- happens, and playing a step means putting that state on screen. Because each
 -- one is a real state and not a description of a difference, everything comes
--- along for free: numbers, flips, pile counts, hidden hands, a destroyed card
+-- along for free: numbers, flips, pile counts, hidden hands, a purged card
 -- that is still standing there to be watched going. There is no second account
 -- of the board to keep true.
 --
@@ -39,7 +39,7 @@ local M = {}
 -- What the board waits before taking the next step. A shuffle is one gesture
 -- however many cards it touched, and a beat of dead air after it is worse than
 -- letting the next thing follow straight on.
-local GAP = { move = 0.10, add = 0.10, destroy = 0.10, stat = 0.14, effect = 0.10 }
+local GAP = { move = 0.10, add = 0.10, purge = 0.10, stat = 0.14, effect = 0.10 }
 
 -- A cascade runs up to sixty-four phase transitions and an each_seat loop inside
 -- one of them can move the whole table. Past this the run stops being recorded

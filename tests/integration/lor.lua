@@ -91,7 +91,7 @@ local function fight(atk_key, blk_key, before)
 	flow.init("lor.json", 5)
 	for _, seat in ipairs({ "north", "south" }) do
 		local h = zone_of("hand", seat)
-		for i = #h.cards, 1, -1 do zones.destroy_card(h.cards[i]) end
+		for i = #h.cards, 1, -1 do zones.purge_card(h.cards[i]) end
 	end
 	local a = bench_put("north", atk_key, 1)
 	local b = blk_key and bench_put("south", blk_key, 1)
@@ -433,7 +433,7 @@ function M.test_lor_the_lanes_resolve_left_to_right(check)
 	flow.init("lor.json", 5)
 	for _, seat in ipairs({ "north", "south" }) do
 		local h = zone_of("hand", seat)
-		for i = #h.cards, 1, -1 do zones.destroy_card(h.cards[i]) end
+		for i = #h.cards, 1, -1 do zones.purge_card(h.cards[i]) end
 	end
 	-- Two attackers and two blockers, so there are two lanes to order.
 	local a1 = bench_put("north", "vanguard_lookout", 1)

@@ -1098,7 +1098,7 @@ def wizard_templates(w):
     # the second seat is offered seven wizards rather than eight including the
     # one already taken. The tag is the wizard's own key, which is what lets a
     # scope name one entry in the roster; nothing else wears it.
-    pick_action.append("destroy:roster." + w["key"])
+    pick_action.append("purge:roster." + w["key"])
     out.append({
         "key": "pick_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
         "tags": ["chooser", "no_undo", w["key"]],

@@ -387,7 +387,7 @@ end
 -- template's stats change: immediate dev feedback beats preserving damage.
 local function restamp(def_key, card_stats)
 	for e in entity.each("card") do
-		-- skip destroyed husks (no zone): they must stay stat-less
+		-- skip purged husks (no zone): they must stay stat-less
 		if e.def_key == def_key and e.zone_id then
 			e.stats, e.stat_max, e.stat_min = {}, {}, {}
 			for k, v in pairs(card_stats or {}) do M.attach_stat(e, k, v) end

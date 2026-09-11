@@ -120,7 +120,7 @@ end
 function M.test_zone_tag_scope_works_where_an_action_names_a_scope(check)
 	with_game(function(name)
 		flow.init(name, 3)
-		actions.run({ "destroy:mine.hand.gem" }, {})
+		actions.run({ "purge:mine.hand.gem" }, {})
 		check("the gems went", total("count:gem@mine.hand") == 0,
 			tostring(total("count:gem@mine.hand")))
 		check("and the brick stayed", total("count:junk@mine.hand") == 1)

@@ -136,7 +136,7 @@ def templates():
                     "stat_damage:score@mine.player:20",
                     "stat_gain:score@mine.player:sum:value@mine." + c + ":x:count:wager@mine." + c,
                     "stat_damage:score@mine.player:20:x:count:wager@mine." + c,
-                    "destroy:self",
+                    "purge:self",
                 ],
             },
         })
@@ -146,18 +146,18 @@ def templates():
             "tags": ["scoring", "token", look],
             "play": {
                 "needs": ["count:expedition@mine." + c + " >= 8"],
-                "action": ["stat_gain:score@mine.player:20", "destroy:self"],
+                "action": ["stat_gain:score@mine.player:20", "purge:self"],
             },
         })
 
     out.append({"key": "mode_local", "text": "Both sides, here",
                 "tooltip": "Hot-seat: take both players' turns on this machine.",
-                "tags": ["token"], "play": {"action": ["destroy:mode"]}})
+                "tags": ["token"], "play": {"action": ["purge:mode"]}})
     out.append({"key": "mode_online", "text": "With a friend, online",
                 "tooltip": "Sit as North and invite someone to play South. They do not "
                            "need this game — it travels with the invite.",
                 "tags": ["token"],
-                "play": {"action": ["destroy:mode", "net_seat:north", "net_invite"]}})
+                "play": {"action": ["purge:mode", "net_seat:north", "net_invite"]}})
     # The rulebook, as a card. "phases": [] means it works in no phase, so it can
     # never be played — it is a thing to read. "immutable" keeps it out of
     # targeting, so no stray effect can eat the instructions.
@@ -182,7 +182,7 @@ def templates():
         )})
     out.append({"key": "done_scoring", "text": "Done", "tooltip": "Finish tallying.",
                 "tags": ["token"],
-                "play": {"action": ["stat_gain:tallied@mine.player:1", "destroy:self", "next_phase"]}})
+                "play": {"action": ["stat_gain:tallied@mine.player:1", "purge:self", "next_phase"]}})
     for seat, other in (("north", "South"), ("south", "North")):
         out.append({"key": seat + "_wins", "text": seat.title() + " wins",
                     "story": seat.title() + " comes home with the better haul. "

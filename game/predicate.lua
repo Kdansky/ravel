@@ -107,8 +107,8 @@ local NULLARY = { not_self = true, count = true, exhausted = true, ready = true 
 -- "order" already spells it: "lowest:tier.enemy.patrol". They say what *order*
 -- the pool is in and not how many of it is named, which is what makes them fit
 -- beside the others rather than replace them — a consumer that takes one takes
--- the first, and one that takes four takes the first four, so "destroy the four
--- lowest tech units" is destroy's own count over an ordered pool.
+-- the first, and one that takes four takes the first four, so "purge the four
+-- lowest tech units" is purge's own count over an ordered pool.
 --
 -- Ties keep entity order, so a replay is a replay. A card with no such number
 -- reads nought and sorts to the front of "lowest", which is the one reading that
@@ -131,7 +131,7 @@ end
 
 -- A scope expression: [<quant>.][<owner>.]<zone-or-tag>. It is the part after
 -- "@" in a subject, and it also stands alone as an action's zone argument, so
--- "destroy:each.enemy.creature" and "hp@each.enemy.creature" read the same.
+-- "purge:each.enemy.creature" and "hp@each.enemy.creature" read the same.
 -- Leading words are taken while they are known, in either order; whatever is
 -- left is the name, so a tag really called "each" is still reachable as the
 -- last word. Pure — no game state — so it is testable on its own.

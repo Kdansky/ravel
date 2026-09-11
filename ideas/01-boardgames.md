@@ -48,7 +48,7 @@ on it — work today:
   { "key": "hop",
     "moves": [{ "patterns": ["hop_ne"], "fill": "empty",
                 "where": ["count:piece@back_sw == 1"] }],
-    "action": ["move_to:target", "destroy:back_sw"] }
+    "action": ["move_to:target", "purge:back_sw"] }
 ]
 ```
 
@@ -59,7 +59,7 @@ for `pattern_defs`, so `@back_sw` names whoever stands there), and **the anchor
 follows the piece** — `where` is asked with `anchor = sid`, so the pattern is
 read from the *destination*; then `move_to:target` runs first in the action, so
 `pattern_slots`' fallback to `c.slot_id` is the landing square by the time
-`destroy:back_sw` is read. The same pattern names the same square twice, for two
+`purge:back_sw` is read. The same pattern names the same square twice, for two
 different reasons.
 
 Castling through check is the asking half alone and needs nothing either — an

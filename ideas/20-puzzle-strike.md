@@ -17,7 +17,7 @@ within a commit.
 
 **Every broken gem goes back in the box** — shipped 2026-09-05. Nine sites, not
 six: the crash path, both combines, both upgrades, Gem Essence, Pilebunker, More
-Shiny. All of them said `move_target_to:void` and say `destroy:target` now, which
+Shiny. All of them said `move_target_to:void` and say `purge:target` now, which
 is the same removal plus the refund `destroy` has made since a destroyed
 component learned where it belongs. A 3-gem crashed is three 1-gems out of the
 bank and a 3-gem in, so the box nets two shallower rather than five — and the ante
@@ -32,7 +32,7 @@ out of the box to answer it.
 the things its research could not confirm; the answer, from somebody who has
 played it, is that **a trashed chip always goes back on its plate, and character
 chips cannot be trashed at all**. Eleven `move_target_to:void` became
-`destroy:target` and the eight chips that trash *themselves* became
+`purge:target` and the eight chips that trash *themselves* became
 `destroy_self` — `destroy` rather than a move into the bank because the engine
 decides where a thing belongs, which is what makes the two character chips whose
 own text trashes them safe: nothing stocks a character chip, so one is simply out

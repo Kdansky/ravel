@@ -19,7 +19,7 @@ Everything the two halves used to say by arithmetic the board now says by
 position: which card is exiled is the one beside the staff, and where a card sits
 is how long it has been on show.
 
-- The exile is `destroy:beside` and the step is `place:self:one_right`, both on
+- The exile is `purge:beside` and the step is `place:self:one_right`, both on
   the staff's own ability, run by `activate_zone:row:by_column:step` at round
   start. Naming the ability is what keeps the row's other cards out of it, since
   `activate_zone` reads neither `phases` nor `cost`.

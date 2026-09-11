@@ -616,7 +616,7 @@ def build(here):
             "noble": {
                 "abilities": [{"key": "check", "text": "Check", "action": noble_check()}],
                 "play": {"phases": ["noble_pick"], "needs": ["ok@self >= 1"],
-                         "action": ["stat_gain:score@mine.player:3", "destroy:self", "next_phase"]},
+                         "action": ["stat_gain:score@mine.player:3", "purge:self", "next_phase"]},
             },
         },
         "zones": zones(rows),

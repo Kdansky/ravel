@@ -108,7 +108,7 @@ where a scope expression is `[<quant>.][<owner>.]<zone-or-tag>`:
 ```
 hp@each.enemy.creature       every creature an opponent owns
 sum:value@mine.red           my red expedition's score
-destroy:each.enemy.creature  a board wipe that spares your own
+purge:each.enemy.creature  a board wipe that spares your own
 move_to:enemy.arena          a destination must be one zone, so this is theirs
 ```
 
@@ -407,7 +407,7 @@ anything is connected, which is exactly when you need them.
 So the panel is opened by a card and by nothing else. A solitaire game shows no
 networking widget and no code asks whether it should. `menu.json` carries *Join
 a friend* (`net_join`); Lost Cities opens by asking **Both sides, here** /
-**With a friend, online**, the second being `["destroy:mode", "net_seat:north",
+**With a friend, online**, the second being `["purge:mode", "net_seat:north",
 "net_invite"]`.
 
 **What could not move into cards:** the paste box. A 1.3 KB blob has to land
@@ -820,7 +820,7 @@ until a second game asks."* En passant was the second asker.
   "where": { "tagged:last_acted@behind": 1,
              "tagged:pawn@behind": 1,
              "rank@behind": { "equals": 4 } },
-  "action": ["move_to:target", "destroy:behind", "next_phase"] }
+  "action": ["move_to:target", "purge:behind", "next_phase"] }
 ```
 
 `tagged:` and `not_tagged:` came out of writing it: a yes/no about a scope,
@@ -854,7 +854,7 @@ be taught, one rule at a time, where not to believe it.
 
 ## En passant is its own ability
 
-It could not share the pawn's action list: `destroy:behind` after an ordinary
+It could not share the pawn's action list: `purge:behind` after an ordinary
 diagonal capture would destroy whatever stood there, including one's own pawn.
 As a second ability its `where` guarantees what `behind` holds, so the destroy
 needs no guard — and `usable_abilities` now skips an ability whose moves reach
@@ -1365,7 +1365,7 @@ neither a format word.
 
 **The wizards became cards in an offscreen `roster` zone**, and both pick phases
 are one action, `options:roster`, where each had listed all eight keys. Because
-`options:` deals **copies**, a pick can `destroy:roster.<wizard>` the real entry
+`options:` deals **copies**, a pick can `purge:roster.<wizard>` the real entry
 — so the second seat is offered the seven that are left and **a mirror match
 stopped being possible**. The scope `roster.derby` is `<zone>.<tag>`, already
 matched at `predicate.lua:337`; the tag is the wizard's own key.

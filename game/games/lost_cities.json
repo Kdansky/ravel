@@ -753,7 +753,7 @@
           "stat_damage:score@mine.player:20",
           "stat_gain:score@mine.player:sum:value@mine.red:x:count:wager@mine.red",
           "stat_damage:score@mine.player:20:x:count:wager@mine.red",
-          "destroy:self"
+          "purge:self"
         ]
       }
     },
@@ -764,7 +764,7 @@
       "tags": ["scoring", "token", "crimson"],
       "play": {
         "needs": ["count:expedition@mine.red >= 8"],
-        "action": ["stat_gain:score@mine.player:20", "destroy:self"]
+        "action": ["stat_gain:score@mine.player:20", "purge:self"]
       }
     },
     {
@@ -779,7 +779,7 @@
           "stat_damage:score@mine.player:20",
           "stat_gain:score@mine.player:sum:value@mine.green:x:count:wager@mine.green",
           "stat_damage:score@mine.player:20:x:count:wager@mine.green",
-          "destroy:self"
+          "purge:self"
         ]
       }
     },
@@ -790,7 +790,7 @@
       "tags": ["scoring", "token", "jade"],
       "play": {
         "needs": ["count:expedition@mine.green >= 8"],
-        "action": ["stat_gain:score@mine.player:20", "destroy:self"]
+        "action": ["stat_gain:score@mine.player:20", "purge:self"]
       }
     },
     {
@@ -805,7 +805,7 @@
           "stat_damage:score@mine.player:20",
           "stat_gain:score@mine.player:sum:value@mine.blue:x:count:wager@mine.blue",
           "stat_damage:score@mine.player:20:x:count:wager@mine.blue",
-          "destroy:self"
+          "purge:self"
         ]
       }
     },
@@ -816,7 +816,7 @@
       "tags": ["scoring", "token", "azure"],
       "play": {
         "needs": ["count:expedition@mine.blue >= 8"],
-        "action": ["stat_gain:score@mine.player:20", "destroy:self"]
+        "action": ["stat_gain:score@mine.player:20", "purge:self"]
       }
     },
     {
@@ -831,7 +831,7 @@
           "stat_damage:score@mine.player:20",
           "stat_gain:score@mine.player:sum:value@mine.white:x:count:wager@mine.white",
           "stat_damage:score@mine.player:20:x:count:wager@mine.white",
-          "destroy:self"
+          "purge:self"
         ]
       }
     },
@@ -842,7 +842,7 @@
       "tags": ["scoring", "token", "ivory"],
       "play": {
         "needs": ["count:expedition@mine.white >= 8"],
-        "action": ["stat_gain:score@mine.player:20", "destroy:self"]
+        "action": ["stat_gain:score@mine.player:20", "purge:self"]
       }
     },
     {
@@ -857,7 +857,7 @@
           "stat_damage:score@mine.player:20",
           "stat_gain:score@mine.player:sum:value@mine.yellow:x:count:wager@mine.yellow",
           "stat_damage:score@mine.player:20:x:count:wager@mine.yellow",
-          "destroy:self"
+          "purge:self"
         ]
       }
     },
@@ -868,7 +868,7 @@
       "tags": ["scoring", "token", "amber"],
       "play": {
         "needs": ["count:expedition@mine.yellow >= 8"],
-        "action": ["stat_gain:score@mine.player:20", "destroy:self"]
+        "action": ["stat_gain:score@mine.player:20", "purge:self"]
       }
     },
     {
@@ -876,14 +876,14 @@
       "text": "Both sides, here",
       "tooltip": "Hot-seat: take both players' turns on this machine.",
       "tags": ["token"],
-      "play": { "action": ["destroy:mode"] }
+      "play": { "action": ["purge:mode"] }
     },
     {
       "key": "mode_online",
       "text": "With a friend, online",
       "tooltip": "Sit as North and invite someone to play South. They do not need this game — it travels with the invite.",
       "tags": ["token"],
-      "play": { "action": ["destroy:mode", "net_seat:north", "net_invite"] }
+      "play": { "action": ["purge:mode", "net_seat:north", "net_invite"] }
     },
     {
       "key": "how_to_play",
@@ -897,7 +897,7 @@
       "text": "Done",
       "tooltip": "Finish tallying.",
       "tags": ["token"],
-      "play": { "action": ["stat_gain:tallied@mine.player:1", "destroy:self", "next_phase"] }
+      "play": { "action": ["stat_gain:tallied@mine.player:1", "purge:self", "next_phase"] }
     },
     {
       "key": "north_wins",

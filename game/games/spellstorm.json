@@ -1787,7 +1787,7 @@
           "draw_from:spellstorm_deck:mine.discard:0",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "destroy:roster.derby"
+          "purge:roster.derby"
         ]
       }
     },
@@ -1888,7 +1888,7 @@
           "draw_from:ice_pile:mine.discard:1",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "destroy:roster.eve"
+          "purge:roster.eve"
         ]
       }
     },
@@ -1971,7 +1971,7 @@
           "create:mine.deck:abra_newcurriciulum:1",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "destroy:roster.abra"
+          "purge:roster.abra"
         ]
       }
     },
@@ -2056,7 +2056,7 @@
           "create:mine.deck:croh_undertow:1",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "destroy:roster.croh"
+          "purge:roster.croh"
         ]
       }
     },
@@ -2143,7 +2143,7 @@
           "create:mine.deck:omar_shuriken:1",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "destroy:roster.omar"
+          "purge:roster.omar"
         ]
       }
     },
@@ -2223,7 +2223,7 @@
           "create:mine.deck:bunny_snowday:1",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "destroy:roster.bunny"
+          "purge:roster.bunny"
         ]
       }
     },
@@ -2311,7 +2311,7 @@
           "create:mine.sidecar:btn_potion_stop:1",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "destroy:roster.oren"
+          "purge:roster.oren"
         ]
       }
     },
@@ -2410,7 +2410,7 @@
           "stat_gain:energy@mine.player:2",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
-          "destroy:roster.may"
+          "purge:roster.may"
         ]
       }
     },

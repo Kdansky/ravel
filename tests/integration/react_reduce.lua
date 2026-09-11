@@ -44,7 +44,7 @@ local GAME = [==[{
     { "key": "recycler", "text": "Recycler", "tags": ["chip"],
       "reactions": [
         { "to": "strike", "where": ["tagged:attack@event"],
-          "action": ["destroy:any.mine.pebble"], "spent": "mine.discard" }
+          "action": ["purge:any.mine.pebble"], "spent": "mine.discard" }
       ] },
     { "key": "shield", "text": "Shield", "tags": ["chip"],
       "reactions": [

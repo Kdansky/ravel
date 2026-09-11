@@ -1,6 +1,6 @@
 -- Where a destroyed card goes.
 --
--- `destroy:` means "take this out of play", and for a component that is not the
+-- `purge:` means "take this out of play", and for a component that is not the
 -- same as leaving the game: a gem taken off a pile is still a gem the bank owns.
 -- Every game with a finite box therefore named the bank at every site that
 -- removed one — a destroy beside a `stat_gain:stock`, two statements that can
@@ -84,7 +84,7 @@ function M.test_a_destroyed_component_goes_back_in_its_box(check)
 		flow.init(name, 2)
 		actions.execute("take:bank.gem_2:pile:1", {})
 		check("one out of the box", stock("bank", "gem_2") == 0, stock("bank", "gem_2"))
-		actions.execute("destroy:pile.gem_2", {})
+		actions.execute("purge:pile.gem_2", {})
 		check("and one back in", stock("bank", "gem_2") == 1, stock("bank", "gem_2"))
 		check("with no card left over", #zones.find("pile").cards == 1)
 	end)
@@ -94,7 +94,7 @@ function M.test_a_card_no_box_stocks_stops_existing(check)
 	with_game(function(name)
 		flow.init(name, 2)
 		local rock = first_in("pile")
-		actions.execute("destroy:pile.rock", {})
+		actions.execute("purge:pile.rock", {})
 		check("the rock is gone", entity.get(rock.id).zone_id == nil)
 		check("and nothing grew to hold it", stock("bank", "gem_1") == 5, stock("bank", "gem_1"))
 	end)
@@ -104,7 +104,7 @@ function M.test_the_owners_own_box_is_asked_first(check)
 	with_game(function(name)
 		flow.init(name, 2)
 		local mine = first_in("hand", "one")
-		zones.destroy_card(mine.id)
+		zones.purge_card(mine.id)
 		check("it went home to its owner's crate", stock("crate", "gem_1", "one") == 3,
 			stock("crate", "gem_1", "one"))
 		check("not the other seat's", stock("crate", "gem_1", "two") == 2, stock("crate", "gem_1", "two"))
@@ -119,7 +119,7 @@ function M.test_a_card_nobody_owns_goes_to_the_shared_box(check)
 		-- Out of a seat's crate, into a zone with no owner: it comes back to the
 		-- bank, because the question asked is who owns it *now*.
 		local n = stock("bank", "gem_1")
-		actions.execute("destroy:pile.gem_1", {})
+		actions.execute("purge:pile.gem_1", {})
 		check("the shared box took it", stock("bank", "gem_1") == n + 1, stock("bank", "gem_1"))
 	end)
 end
@@ -128,7 +128,7 @@ function M.test_a_shelf_does_not_reclaim_itself(check)
 	with_game(function(name)
 		flow.init(name, 2)
 		local face = shelf("bank", "gem_1")
-		zones.destroy_card(face.id)
+		zones.purge_card(face.id)
 		check("the box lost the kind rather than getting deeper", shelf("bank", "gem_1") == nil)
 		check("and the shelf is off the table", entity.get(face.id).zone_id == nil)
 	end)
@@ -141,7 +141,7 @@ function M.test_a_stack_comes_back_as_deep_as_it_left(check)
 		-- card standing outside the box is worth every one of them.
 		local lent = first_in("hand", "one")
 		lent.stats.stock = 3
-		zones.destroy_card(lent.id)
+		zones.purge_card(lent.id)
 		check("all three went back", stock("crate", "gem_1", "one") == 5, stock("crate", "gem_1", "one"))
 	end)
 end

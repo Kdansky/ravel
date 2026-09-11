@@ -168,7 +168,7 @@ which.
 **They are two questions, and the engine already had a word for each.**
 
 - **Which cards come up** is a property of the *scope* — `<zone>.<tag>` narrows
-  it, the same word `destroy:mine.discard.wound` already uses. So
+  it, the same word `purge:mine.discard.wound` already uses. So
   `show:mine.hand.fire:optional` is the whole of "a Fire card from your hand".
 - **Which of them may be taken** stays `chosen.where`, because it can ask about
   the *player* — "at or below your Tier" is not a property of the card at all,

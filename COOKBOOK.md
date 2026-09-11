@@ -465,24 +465,24 @@ Same ownership rule as the bounce: `enemy.discard` when the card is theirs.
 ### Destroy the target.
 
 ```json
-"action": ["destroy:target"]
+"action": ["purge:target"]
 ```
 
 Trap: a destroyed card lands in no zone, so **`leaves` does not fire** and its stats are gone.
 If you want a removal something can answer, give it a zone and `move` there instead — a unit
 killed by an effect and a unit killed by damage must take the same road, or only one of them
-sets off the death triggers. `destroy:` is for what nobody may ask about: a token, a swept husk.
+sets off the death triggers. `purge:` is for what nobody may ask about: a token, a swept husk.
 
 ### Destroy this.
 
 ```json
-"action": ["destroy:self"]
+"action": ["purge:self"]
 ```
 
 ### Destroy the four lowest-tech patrollers.
 
 ```json
-"action": ["destroy:lowest:tech_level.enemy.patrol:4"]
+"action": ["purge:lowest:tech_level.enemy.patrol:4"]
 ```
 
 `lowest:`/`highest:` say what **order** a pool is in and never how many of it is taken; the

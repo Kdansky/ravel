@@ -109,7 +109,7 @@ documents moved, and three defaults come from a neighbour.
 ## Decided
 
 - **Fields, not tags**, for 06's reason.
-- **A destroyed component goes back in its box, and `destroy:` is the verb that
+- **A destroyed component goes back in its box, and `purge:` is the verb that
   does it.** A second verb would make every author choose between two words for
   one act, and the games where it changes behaviour are the games that wanted
   it. Two boxes stocking one kind takes the first that matches: a precedence

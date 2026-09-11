@@ -87,10 +87,10 @@ that one.
 | a guardian does not block digging | nothing in the dig asks about `guard`, so one ability serves both. The two used to differ by a line that raised a counter, and the counter is gone |
 | overcome one by paying a flat price | the guardian's own ability. It knows its price (`sum:g_arrow@self`) and asks who is standing under it — `count:digger@mine.attached_to.host_of.self >= 1`, *one of mine is on the site I am lying on*. No `exhaust`, so a figure spent digging can still fight later, which is the rulebook |
 | an archaeologist coming home from a guarded site earns a Fear card | literally that. `afraid` is a computed tag, `["count:guardian@attached_to.host_of.self >= 1"]` — *something is still lying on the site I am standing on* — and `cleanup` deals `count:afraid@mine.everywhere` before `move:each.digger:origin` sends the figures home |
-| discovery reveals a printed position | the position is a `pos_1`/`pos_2` marker card sitting in the `island` grid, tagged `level_1`/`level_2`. A figure is sent to it: `destroy:target` and then `draw_from:site_1_deck:island:1`, and the freed cell is the only one the grid has. Two abilities rather than one, because two decks are two things |
+| discovery reveals a printed position | the position is a `pos_1`/`pos_2` marker card sitting in the `island` grid, tagged `level_1`/`level_2`. A figure is sent to it: `purge:target` and then `draw_from:site_1_deck:island:1`, and the freed cell is the only one the grid has. Two abilities rather than one, because two decks are two things |
 | idols come only from discovery | `create:mine.idols:idol:1` in the same list, before the marker is destroyed |
 | slot an idol, free, once, for one of several effects | `"when": ["used@self == 0"]` and `options:idol_coin,idol_compass,idol_dig,idol_draw` |
-| the card row, split by the moon staff | one `grid: [7, 1]` zone with the staff standing in it as a card. Its own ability is `destroy:beside`, `place:self:one_right`, a `compact` of each side and two artifacts dealt at the near end — run by `activate_zone:row:by_column:step` at round start, which names the ability so that nothing else in the row is activated. Position on the shelf is how old a card is, so the exile is the rulebook's card rather than an arbitrary one |
+| the card row, split by the moon staff | one `grid: [7, 1]` zone with the staff standing in it as a card. Its own ability is `purge:beside`, `place:self:one_right`, a `compact` of each side and two artifacts dealt at the near end — run by `activate_zone:row:by_column:step` at round start, which names the ability so that nothing else in the row is activated. Position on the shelf is how old a card is, so the exile is the rulebook's card rather than an arbitrary one |
 | buying refills the row | the buy compacts both sides towards the staff and deals at `a1` and `g1`. Whichever end did not open refuses its own card, since a cell holds one — so one list serves both halves and nothing asks what was bought |
 | an item costs coins, an artifact costs compasses | one `for_sale` tag, and two price stats: a card costs what it prints, in the currency it prints. `coin_price` on the items, `compass_price` on the artifacts, each drawn with its own icon |
 | a bought card goes to the bottom of your deck | `move:self:mine.bag:bottom` |
@@ -168,7 +168,7 @@ inventing a number rather than diverging from one.
    tiles; the real game has 36 with boons as well, and the boons are still out
    (**§13.9** — that table is not in the rulebook either). The five sites that
    start face up are cleared in `setup`, which is the sense in which they are
-   known: `destroy:each.guardian` before the first round.
+   known: `purge:each.guardian` before the first round.
 5. ~~**Fear is counted, not tracked per figure.**~~ **Closed.** It is tracked per
    figure now, because there are figures: an archaeologist is a card standing on
    the site, `afraid` is the computed tag `["guard@host_of.self >= 1"]`, and
@@ -244,7 +244,7 @@ Neither of these was worked around with a new field — both are recorded here
 and nowhere else.
 
 **~~1. Dealing into a named cell.~~ Shipped 2026-09-07**, and the card row with
-it: one `grid: [7, 1]` zone, the moon staff a card standing in it, `destroy:beside`
+it: one `grid: [7, 1]` zone, the moon staff a card standing in it, `purge:beside`
 for the exile and `place:self:one_right` for the step. The word is a cell in the
 position argument every destination op already carried, so `draw_from:item_deck:row:1:g1`
 deals at the far end and a deal aimed at an occupied cell does nothing — which is

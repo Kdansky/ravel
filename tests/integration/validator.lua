@@ -35,14 +35,14 @@ local CASES = {
 	{ "a style named after an engine word", "redefines a word the engine already reads",
 		function(g) g.style_defs.immutable = { color = { 0.5, 0.5, 0.5 } } end },
 	{ "an everywhere scope for a tag nobody wears", "everywhere, but no card carries that tag",
-		function(g) g.card_defs.c_flee.on_play = { "destroy:everywhere.dragons" } end },
+		function(g) g.card_defs.c_flee.on_play = { "purge:everywhere.dragons" } end },
 	{ "a cost keyed on nothing measurable", "is not something the engine can measure",
 		function(g) g.card_defs.c_flee.cost = { ["@"] = 1 } end },
 	-- action arguments, the rest
 	{ "cards taken out of origin by take", "cannot take cards out of 'origin'",
 		function(g) g.card_defs.c_flee.on_play = { "take:origin:hand" } end },
-	{ "a destroy and a fill that are one move", "written as a death and a birth",
-		function(g) g.card_defs.c_flee.on_play = { "destroy:board.pearl:1", "create:board:pearl:1" } end },
+	{ "a purge and a create that are one move", "written as a death and a birth",
+		function(g) g.card_defs.c_flee.on_play = { "purge:board.pearl:1", "create:board:pearl:1" } end },
 	{ "a fill and a spend that are one take", "written as a birth and a payment",
 		function(g) g.card_defs.c_flee.on_play = { "stat_damage:stock@board.pearl:1", "create:board:pearl:1" } end },
 	-- abilities with nowhere to be used
@@ -168,12 +168,12 @@ local CASES = {
 		function(g) g.card_defs.pearl.leaves_needs = { "hp@self >= 1" } end },
 	{ "a leaves from a zone that is not there", 'comes "from"',
 		function(g) g.card_defs.pearl.leaves_from = "vault"
-			g.card_defs.pearl.on_leaves = { "destroy:self" } end },
+			g.card_defs.pearl.on_leaves = { "purge:self" } end },
 	{ "a leaves that says where and not what", "says where it comes from but does nothing",
 		function(g) g.card_defs.pearl.leaves_from = "hand" end },
 	{ "a leaves from and into one zone", 'and goes "into" the same zone, so it never fires',
 		function(g) g.card_defs.pearl.leaves_from = "hand"; g.card_defs.pearl.leaves_into = "hand"
-			g.card_defs.pearl.on_leaves = { "destroy:self" } end },
+			g.card_defs.pearl.on_leaves = { "purge:self" } end },
 	-- setup, players and text
 	{ "a setup placement into nowhere", "places into 'vault'",
 		function(g) g.setup.place[#g.setup.place + 1] = { card = "pearl", zone = "vault" } end },
@@ -215,13 +215,13 @@ local CASES = {
 		function(g) g.card_defs.c_flee.needs = { "aims:pounce == 0" } end },
 	{ "an aims at an ability that points at nothing", "aims at nothing",
 		function(g)
-			g.card_defs.c_flee.abilities = { { key = "pounce", text = "Pounce", action = { "destroy:self" } } }
+			g.card_defs.c_flee.abilities = { { key = "pounce", text = "Pounce", action = { "purge:self" } } }
 			g.card_defs.c_flee.needs = { "aims:pounce == 0" }
 		end },
 	{ "an aims given a scope", "so it takes no '@'",
 		function(g)
 			g.card_defs.c_flee.abilities = { { key = "pounce", text = "Pounce",
-				target = { type = "card", count = 1 }, action = { "destroy:self" } } }
+				target = { type = "card", count = 1 }, action = { "purge:self" } } }
 			g.card_defs.c_flee.needs = { "aims:pounce@self == 0" }
 		end },
 	{ "a card check for a missing template", "checks for the card 'excalibur'",
@@ -233,7 +233,7 @@ local CASES = {
 	{ "an art spec the engine can't draw", "isn't a shape the engine can draw",
 		function(g) g.card_defs.c_flee.asset = "hexagram:red" end },
 	{ "a leaves block pointed at no zone", "but no zone has that key",
-		function(g) g.card_defs.c_flee.leaves_into = "vault"; g.card_defs.c_flee.on_leaves = { "destroy:self" } end },
+		function(g) g.card_defs.c_flee.leaves_into = "vault"; g.card_defs.c_flee.on_leaves = { "purge:self" } end },
 	{ "a leaves block that says where and not what", "does nothing when it gets there",
 		function(g) g.card_defs.c_flee.leaves_into = "hand" end },
 	{ "a comparison against a bare word", "is a bare word",
@@ -308,11 +308,11 @@ local CASES = {
 	{ "a verb entry that isn't a map", 'should be written like { "key"',
 		function(g) g.verb_defs.poison = "stat_damage"; g.verb_list = { "poison" } end },
 	{ "a verb named after an engine action", "the engine already has an action by that name",
-		function(g) g.verb_defs.destroy = { key = "destroy", does = "stat_damage" }; g.verb_list = { "destroy" } end },
+		function(g) g.verb_defs.purge = { key = "purge", does = "stat_damage" }; g.verb_list = { "purge" } end },
 	{ "a verb standing for nothing", 'needs a "does"',
 		function(g) g.verb_defs.poison = { key = "poison" }; g.verb_list = { "poison" } end },
 	{ "a verb standing for an unwatchable action", "is not a verb an aura may watch",
-		function(g) g.verb_defs.poison = { key = "poison", does = "destroy" }; g.verb_list = { "poison" } end },
+		function(g) g.verb_defs.poison = { key = "poison", does = "purge" }; g.verb_list = { "poison" } end },
 	{ "a verb nothing performs", "no action performs it",
 		function(g) g.verb_defs.poison = { key = "poison", does = "stat_damage" }; g.verb_list = { "poison" } end },
 	{ "an aura watching the engine's own verb", "the engine's own verb and not the game's",
@@ -363,13 +363,13 @@ local CASES = {
 		end },
 	{ "a verb standing for an unwatchable action", "is not a verb an aura may watch",
 		function(g)
-			g.verb_defs.poison = { key = "poison", does = "destroy" }
+			g.verb_defs.poison = { key = "poison", does = "purge" }
 			g.verb_list = { "poison" }
 		end },
 	{ "a verb the engine already has", "the engine already has an action by that name",
 		function(g)
-			g.verb_defs.destroy = { key = "destroy", does = "stat_damage" }
-			g.verb_list = { "destroy" }
+			g.verb_defs.purge = { key = "purge", does = "stat_damage" }
+			g.verb_list = { "purge" }
 		end },
 	{ "a verb nothing performs", "no action performs it",
 		function(g)
@@ -493,7 +493,7 @@ local CASES = {
 			g.phase_by_key.story.pass_card = nil
 		end },
 	{ "a phase field that no longer exists", "the engine doesn't read",
-		function(g) g.phase_by_key.story.on_pick = { "destroy:hand" } end },
+		function(g) g.phase_by_key.story.on_pick = { "purge:hand" } end },
 	{ "routing that isn't a list", "next should be a list of routes",
 		function(g) g.phase_by_key.story.next = "story" end },
 	{ "routing on an overlay", "overlays pop back",
@@ -799,13 +799,13 @@ local CASES = {
 	-- reaction answering a verb nothing raises reads exactly like one that works
 	-- — and is checked as an ability besides, since that is what it is.
 	{ "a reaction to a verb nothing emits", "answers 'crash', but nothing in this game emits that",
-		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "crash", action = { "destroy:self" } } } end },
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "crash", action = { "purge:self" } } } end },
 	{ "a reaction answered from nowhere", 'is answered "from": \'pocket\'',
-		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", from = "pocket", action = { "destroy:self" } } } end },
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", from = "pocket", action = { "purge:self" } } } end },
 	{ "an unknown action inside a reaction", "'moove_to' is not an action",
 		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", action = { "moove_to:board" } } } end },
-	{ "a box paid back for a destroy that pays itself", "which now pays itself",
-		function(g) g.card_defs.c_flee.on_play = { "destroy:mine.hand:1", "stat_gain:stock@bank.gem_1:1" } end },
+	{ "a box paid back for a purge that pays itself", "which now pays itself",
+		function(g) g.card_defs.c_flee.on_play = { "purge:mine.hand:1", "stat_gain:stock@bank.gem_1:1" } end },
 	{ "a condition on an ability that names nothing", "uses the stat 'zeal'",
 		function(g)
 			g.card_defs.c_flee.abilities = { { key = "muster", action = { "next_phase" },
@@ -873,7 +873,7 @@ function M.test_validator_finds_a_verb_emitted_from_anywhere(check)
 	local g = declaration.parse("tower.json")
 	g.card_defs.c_flee.emits = { play = { "cast" } }
 	g.card_defs.c_flee.reactions = {
-		{ key = "r", to = "summon", action = { "destroy:self" } },
+		{ key = "r", to = "summon", action = { "purge:self" } },
 		{ key = "s", to = "cast", action = { "emit:summon" } },
 	}
 	local said = table.concat(validate.check(g), "\n")
@@ -1102,10 +1102,10 @@ function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
 			{ "key": "vault", "layout": "stack" }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem"], "abilities": [
-			{ "key": "a", "action": ["destroy:vualt.gem"] },
-			{ "key": "b", "action": ["destroy:vault.gme"] },
+			{ "key": "a", "action": ["purge:vualt.gem"] },
+			{ "key": "b", "action": ["purge:vault.gme"] },
 			{ "key": "c", "needs": ["count:gem@vualt.gem >= 1"], "action": ["next_phase"] },
-			{ "key": "d", "action": ["destroy:vault.gem"] }] }]
+			{ "key": "d", "action": ["purge:vault.gem"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_zone_tag_bad.json")

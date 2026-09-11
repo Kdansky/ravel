@@ -127,11 +127,11 @@
         { "key": "discover_1", "text": "Discover a Level I position", "phases": ["turn"],
           "cost": { "exhaust": 1, "main@mine.player": 1, "travel@mine.player": "toll@target" },
           "target": { "type": "card", "count": 1, "tags": ["level_1"], "zones": ["island"] },
-          "action": ["create:mine.idols:idol:1", "destroy:target", "draw_from:site_1_deck:island:1"] },
+          "action": ["create:mine.idols:idol:1", "purge:target", "draw_from:site_1_deck:island:1"] },
         { "key": "discover_2", "text": "Discover a Level II position", "phases": ["turn"],
           "cost": { "exhaust": 1, "main@mine.player": 1, "travel@mine.player": "toll@target" },
           "target": { "type": "card", "count": 1, "tags": ["level_2"], "zones": ["island"] },
-          "action": ["create:mine.idols:idol:1", "destroy:target", "draw_from:site_2_deck:island:1"] }
+          "action": ["create:mine.idols:idol:1", "purge:target", "draw_from:site_2_deck:island:1"] }
       ]
     },
     "guardian": {
@@ -141,7 +141,7 @@
           "needs": ["count:digger@mine.attached_to.host_of.self >= 1"],
           "cost": { "main@mine.player": 1, "arrowhead@mine.player": "sum:g_arrow@self",
                     "tablet@mine.player": "sum:g_tablet@self", "jewel@mine.player": "sum:g_jewel@self" },
-          "action": ["stat_gain:guardians@mine.player:1", "destroy:self"] }
+          "action": ["stat_gain:guardians@mine.player:1", "purge:self"] }
       ]
     },
     "assistant": {
@@ -243,7 +243,7 @@
 
   "phases": [
     { "key": "setup", "type": "automatic",
-      "actions": ["destroy:each.guardian",
+      "actions": ["purge:each.guardian",
                   "each_seat:create:mine.bag:funding:2",
                   "each_seat:create:mine.bag:exploration:2",
                   "each_seat:create:mine.bag:fear:2",
@@ -566,7 +566,7 @@
       "abilities": [
         { "key": "step", "text": "The staff steps", "merge": "this", "phases": ["round_start"],
           "needs": ["round_no@clock >= 2"],
-          "action": ["destroy:beside", "place:self:one_right",
+          "action": ["purge:beside", "place:self:one_right",
                      "compact:row.artifact:rightward", "compact:row.item:leftward",
                      "draw_from:artifact_deck:row:1:a1", "draw_from:artifact_deck:row:1:b1"] }
       ] },

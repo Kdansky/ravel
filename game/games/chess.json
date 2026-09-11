@@ -177,7 +177,7 @@
               ]
             }
           ],
-          "action": ["move_to:target", "destroy:behind", "stat_gain:moves_made@self:1", "next_phase"]
+          "action": ["move_to:target", "purge:behind", "stat_gain:moves_made@self:1", "next_phase"]
         }
       ]
     },

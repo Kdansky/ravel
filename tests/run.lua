@@ -184,8 +184,8 @@ check("victory returns to menu", declaration.G.title == "Ravel")
 flow.init("demo.json")
 eval("push_phase:path_choice")
 check("path options dealt from their deck", zone_count("offer") == 3 and zone_count("paths") == 0)
-eval("destroy:road")
-eval("destroy:hand")
+eval("purge:road")
+eval("purge:hand")
 check("no victory while the choice is open", phase.current().key == "path_choice")
 flow.play_card(zones.find("offer").cards[1], {})
 check("picked path lands in hand", zone_count("hand") == 1)
@@ -1060,7 +1060,7 @@ local bp = with_fixture([[{
     {
       "key": "sword",
       "onplay": [
-        "destroy:self"
+        "purge:self"
       ],
       "play": {
         "cost": {
@@ -1486,7 +1486,7 @@ check("the cost came out of her own pool, and the gain went to her",
 	mage.stats.mana == 2 and mage.stats.might == 2
 	and predicate.total("sum:might@party") == 11)
 
-zones.destroy_card(find_card("dwarf").id)
+zones.purge_card(find_card("dwarf").id)
 check("a character who dies takes her might with her",
 	predicate.total("sum:might@party") == 7)
 
@@ -1584,11 +1584,11 @@ check("each.enemy reached both of theirs and none of mine",
 	predicate.total("hp@enemy.creature") == 4 and predicate.total("hp@mine.creature") == 3)
 
 -- destroy: takes a scope expression now, and a bare zone key is one.
-eval("destroy:each.enemy.creature")
+eval("purge:each.enemy.creature")
 check("a board wipe spared my own",
 	#zones.find("arena", "enemy").cards == 0 and #north_arena.cards == 1)
-eval("destroy:commons")
-check("destroy:<zone> still means what it always did", zone_count("commons") == 0)
+eval("purge:commons")
+check("purge:<zone> still means what it always did", zone_count("commons") == 0)
 
 -- The play gate: a card in the other seat's zone is not yours to play.
 local mine  = cards.create("wolf", zones.find_id("hand"))
@@ -1802,7 +1802,7 @@ play_fixture([==[{
           "owner": "enemy",
           "count": 1
         },
-        "action": ["destroy:target"]
+        "action": ["purge:target"]
       }]
     }
   ]
@@ -2810,7 +2810,7 @@ board = zones.find("board")
 local king = { card_id = on("e1").id }
 check("a piece that has never moved satisfies the gate",
 	predicate.meets_all({ "moves_made@one_right == 0" }, king))
-zones.destroy_card(on("f1").id)
+zones.purge_card(on("f1").id)
 check("an empty square does not, though its absent stat would sum to zero",
 	predicate.meets_all({ "moves_made@one_right == 0" }, king) == false)
 check("...and no comparison against it succeeds, not just equality",

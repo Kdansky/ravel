@@ -178,7 +178,7 @@ from this two-page story:
       "key": "p_dark",
       "text": "Down",
       "story": "The stairs go further than the house is tall.",
-      "play": { "action": ["destroy:hand", "create:hand:c_away:1"] }
+      "play": { "action": ["purge:hand", "create:hand:c_away:1"] }
     },
     {
       "key": "e_away",
@@ -197,7 +197,7 @@ Two rules carry every story:
   (what the player is told) and `play.action` (what secretly happens — usually a
   `reveal:`). The tooltip reveals exactly as much as you write into it.
 - **Every page that deals new choices starts its `play.action` with
-  `destroy:hand`**, or the old choices pile up next to the new ones. A page
+  `purge:hand`**, or the old choices pile up next to the new ones. A page
   that keeps the hand (a locked door, a rebuff) uses `"play": { "action": [] }`.
 - **The one injected seat still needs `setup.place`.** It carries none of the
   story, but a player has to be able to find and hover their own card, so it
@@ -250,7 +250,7 @@ rulebook open alongside.
    on the last phase of the turn.
 9. **Scoring** is a phase whose `pass_card` list is one card per scoring rule,
    each gated by `needs` so it only appears when it applies, each ending in
-   `destroy:self`. Give the phase its own `zone` so leftover hand cards are not
+   `purge:self`. Give the phase its own `zone` so leftover hand cards are not
    still playable while tallying.
 
 ### Rulebook phrase → engine construct
@@ -270,7 +270,7 @@ rulebook open alongside.
 | "Only during your main phase" | `"play": { "phases": ["main"] }`, or an ability's own `phases` |
 | "Put it on the discard pile" | `"target": { "type": "zone", "zones": ["discard"] }` — point at the place, not at a card lying in it |
 | "Discard a card of your choice" | an `overlay` phase over the hand; the zone `applies` a tag whose `play.action` discards |
-| "Destroy all enemy creatures" | `destroy:each.enemy.creature` |
+| "Destroy all enemy creatures" | `purge:each.enemy.creature` |
 | "Choose an enemy creature" | `"target": { "tags": ["creature"], "owner": "enemy", "count": 1 }` |
 | "Roll / draw randomly" | `shuffle` then `reveal_top:<zone>` |
 | "The game ends when the deck is empty" | a route on `{ "when": "count@deck == 0" }` |
@@ -682,7 +682,7 @@ forced play needs an out, and the validator says so.
 `deck`, `draw` and a `pass_card`, ended by a router token:
 
 ```json
-"play": { "needs": ["plays >= 1"], "action": ["destroy:self", "next_phase"] }
+"play": { "needs": ["plays >= 1"], "action": ["purge:self", "next_phase"] }
 ```
 
 **A shop** (`splendor.json`). A `supply` zone whose `applies` tag carries the
@@ -1422,7 +1422,7 @@ disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
 | `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a card that carries its own bounds writes them by name — `{ "value": 4, "max": 4 }`, and `min` beside them — which are the same three words the `stats` entry uses. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
-| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by destroying n board cards with that tag). `needs` is a non-consuming gate, asked once before targeting opens and so blind to targets — see *`needs` and `where`*, which also carries the escape hatch. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
+| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by purging n board cards with that tag). `needs` is a non-consuming gate, asked once before targeting opens and so blind to targets — see *`needs` and `where`*, which also carries the escape hatch. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `abilities` | What the card can be used for, one entry each — `cost`, `target`, `phases`, `needs`, `compute`, `action`. A card that does one thing writes a list of one. **A `needs` asks and takes nothing**, which is the difference from a cost: a button reading "you must have bought at least one chip" is a question, and writing it as a cost would spend the purchase it was checking for. **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `reactions` | A list of subscriptions to another player's action — each with the verb it answers (`to`), a condition about the event (`where`), a condition about the reactor (`needs`), and the `cost`, `target` and `action` an ability has. `spent` says where the card lands once its answer is over. See *Reactions* |
 | `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
@@ -1786,7 +1786,7 @@ narrows.
 the first; one that takes four takes the first four:
 
 ```json
-"action": ["destroy:lowest:tier.enemy.patrol:4"]
+"action": ["purge:lowest:tier.enemy.patrol:4"]
 ```
 
 *Destroy the four lowest-tech patrollers* — which is `destroy`'s own count, over
@@ -2022,7 +2022,7 @@ widest first — whose, where, which:
 ```
 count:purple@enemy.hand    the purples in one opponent's hand
 sum:value@mine.hand.gem    what your gems in hand are worth
-destroy:mine.discard.wound every wound in your own discard pile
+purge:mine.discard.wound every wound in your own discard pile
 ```
 
 This is the search a bare tag refuses to do. A bare `count:gem` means the board,
@@ -2207,7 +2207,7 @@ anywhere itself:
 |---|---|
 | the rider moves | it detaches |
 | the host moves | the riders follow, still attached |
-| the host is destroyed, or goes into a supply | the riders detach and go to `origin` — nothing is carried off with it |
+| the host is purged, or goes into a supply | the riders detach and go to `origin` — nothing is carried off with it |
 
 So sending every figure home at the end of a round needs no word of its own,
 because `move` already takes a scope and already understands `origin`:
@@ -3536,7 +3536,7 @@ touch screen neither exists.
 ```json
 "play": {
   "target": { "type": "card", "zones": ["hand", "discard"], "count": 1 },
-  "action": ["copy:target:play:2", "destroy:target"]
+  "action": ["copy:target:play:2", "purge:target"]
 }
 ```
 
@@ -3885,13 +3885,13 @@ A tag hands the block over whole, and a card writing its own takes none of the
 tag's — the same rule `play` keeps, and for the same reason. So a card with its
 own `leaves` that still wants the announcement writes `emit:` into its own list.
 
-**`destroy:` does not fire it, and that is the point of the verb.** A destroyed
+**`purge:` does not fire it, and that is the point of the verb.** A destroyed
 card lands in no zone, so there is no `into` to name, and its stats are cleared
 along with it, so a rule asked to run afterwards would have nothing left to
 read. A component going home to its box is not an exception: what arrives there
 is the shelf's number going up, and a number was never anywhere to have a
 `leaves` asked about it. The rule is one sentence: **if you want a removal answered, give it a
-zone** — which is what naming one has always been for. `destroy:` stays the way
+zone** — which is what naming one has always been for. `purge:` stays the way
 to take something off the table that nobody may ask about, which is what a token
 vanishing and a swept husk both want.
 
@@ -4729,7 +4729,7 @@ what a player reads.
 | `draw_from:from:to:n` | Move n cards off the top. **A count it cannot meet is not an error**: it deals what there is and stops, whether the source ran dry or the destination filled up. So a number larger than the row can hold is how *fill it up* is written — `draw_from:market_deck:row:99` deals into the free cells from the left and stops when there are none |
 | `move_to:zone` | Move the acting card (uses a slot target when given); without a zone, its home tag decides |
 | `move_to:target` | Move the acting card into the **chosen target's** zone — how one card offers two destinations ("advance the expedition, or discard it") |
-| `move_to:target:<what>` | …and say what becomes of a piece already standing there: `destroy`, or the zone it goes to (a captured-pieces tray). Left out, an occupied square refuses the move. This is capture; with it, aiming at a *piece* means taking its square rather than joining its zone |
+| `move_to:target:<what>` | …and say what becomes of a piece already standing there: `purge`, or the zone it goes to (a captured-pieces tray). Left out, an occupied square refuses the move. This is capture; with it, aiming at a *piece* means taking its square rather than joining its zone |
 | `…:top` / `…:bottom` | **Which end of the destination a card lands on**, as a last argument to `move`, `take` and `draw_from`. Every zone is a list and the top of a pile is the end of it, so an arrival lands on top unless told otherwise — `bottom` is the word that buries a card, and `draw_from:bag:bag:1:bottom` puts the top card of a deck underneath it |
 | `…:<cell>` | **Which cell of the destination a card lands in**, in the same slot and on the same three ops — `draw_from:item_deck:market:1:g1`. A grid is a list and a set of squares both, so the argument that names an end names a square when there are squares to name, spelled the way every other square is (`a1`, `e4`). Say nothing and the arrival takes the first free cell by index, which is right for a hand and wrong for a row that fills from both ends. A cell that is taken, is off the grid, or belongs to a zone with no cells refuses the whole move rather than landing the card elsewhere |
 | `place:<who>:<where>` | Put every card the scope names on a square of the only board. `<where>` is a square by name (`"g1"`) or a **pattern pointing at one from the acting card** (`"one_left"`) — the second is how a rule works for both sides of a board, since a named square is only ever one player's. Refuses an occupied square |
@@ -4755,7 +4755,7 @@ what a player reads.
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
 | `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
-| `destroy:<scope>[:<n>]` / `destroy:self` | Remove cards from play entirely. A bare zone key is a scope, so `destroy:hand` is unchanged; `destroy:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`destroy:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **A component goes back in its box.** If any `status: "supply"` zone stocks the card's kind, the shelf's `stock` goes up by one instead of the card leaving the game — the owner's own box first, anybody's otherwise. So a finite bank is never named at the site that trashes a gem, and never has to be paid back by hand. Nothing stocks it: it stops existing, which is what happens to everything that is not a component. **Nothing is triggered by it**: a destroyed card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
+| `purge:<scope>[:<n>]` / `purge:self` | Remove cards from play entirely. A bare zone key is a scope, so `purge:hand` is unchanged; `purge:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`purge:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **A component goes back in its box.** If any `status: "supply"` zone stocks the card's kind, the shelf's `stock` goes up by one instead of the card leaving the game — the owner's own box first, anybody's otherwise. So a finite bank is never named at the site that trashes a gem, and never has to be paid back by hand. Nothing stocks it: it stops existing, which is what happens to everything that is not a component. **Nothing is triggered by it**: a purged card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
 | `emit:<verb>[:<action>]` | Announce that something happened, so anybody holding a reaction to that verb may answer it first. What follows the verb is the part that **waits**. Nothing answers it, or the game has no `stack` zone: it runs now. See *Reactions* |
 | `counterspell` | Written in a reaction: the event it answers does not happen. **It names no zone** — the stack holds records, not cards, so nothing moved and there is nothing to put back |
 | `set_priority:<scope>` / `clear_priority` | Whoever the scope names may act right now, without the turn moving. The response window does this for itself; write it only for an out-of-turn moment of your own |

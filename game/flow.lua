@@ -347,7 +347,7 @@ local function deal(ph)
 		for i = #to.cards, 1, -1 do
 			local cdef = cards.def(entity.get(to.cards[i]))
 			if cdef and cdef.tags_set and cdef.tags_set.token then
-				zones.destroy_card(to.cards[i])
+				zones.purge_card(to.cards[i])
 			end
 		end
 		local pcs = type(ph.pass_card) == "table" and ph.pass_card or { ph.pass_card }
@@ -358,7 +358,7 @@ local function deal(ph)
 end
 
 -- Discard a phase's remaining hand: unplayed cards go to the graveyard when
--- one exists (destroyed otherwise); tokens always just vanish. Fired by the
+-- one exists (purged otherwise); tokens always just vanish. Fired by the
 -- phase.on_leave hook for phases marked discard_hand.
 local function discard_hand(ph)
 	local grave = zones.find_id("graveyard")
@@ -373,9 +373,9 @@ local function discard_hand(ph)
 		local cid  = hand.cards[#hand.cards]
 		local cdef = cards.def(entity.get(cid))
 		if cdef and cdef.tags_set and cdef.tags_set.token then
-			zones.destroy_card(cid)
+			zones.purge_card(cid)
 		else
-			if grave then zones.move_top(hand.id, grave) else zones.destroy_card(cid) end
+			if grave then zones.move_top(hand.id, grave) else zones.purge_card(cid) end
 			n = n + 1
 		end
 	end
@@ -823,7 +823,7 @@ function M.can_afford(cost, ctx)
 end
 
 -- Pay a cost: stats are spent through their subject (so a scope and
--- quantifier are honoured), "sacrifice:<tag>" entries destroy board cards
+-- quantifier are honoured), "sacrifice:<tag>" entries purge board cards
 -- carrying the tag (oldest first — affordability was already checked).
 -- Keys are walked in sorted order, never pairs: clamping makes payment order
 -- observable, and a seeded replay has to pay identically.
@@ -851,7 +851,7 @@ local function pay(cost, ctx)
 				local victim = entity.get(ids[1])
 				local vdef   = cards.def(victim)
 				log.add("Sacrificed " .. (vdef and vdef.text or victim.def_key))
-				zones.destroy_card(victim.id)
+				zones.purge_card(victim.id)
 			end
 		end
 	end
@@ -968,7 +968,7 @@ local function clear_offer(oz, keep)
 		if home and entity.get(home) then
 			zones.move_card(cid, home)
 		elseif c then
-			zones.destroy_card(cid)
+			zones.purge_card(cid)
 		end
 	end
 	oz.asked_by, oz.dismissable, oz.asked_seat = nil, nil, nil
@@ -1102,7 +1102,7 @@ function M.play_card(card_id, targets)
 		if home and entity.get(home) then
 			zones.move_card(card_id, home)
 		else
-			zones.destroy_card(card_id)
+			zones.purge_card(card_id)
 		end
 	end
 	if tags.entity_has(c, "no_undo") then
@@ -1606,7 +1606,7 @@ local resolving = nil
 -- in the effect is the caster rather than whoever answered last.
 --
 -- "self" is the card that raised it: a record stands for something a card did,
--- and "destroy:self" in a deferred crash means the chip that crashed, not the
+-- and "purge:self" in a deferred crash means the chip that crashed, not the
 -- record standing in for it.
 --
 -- The record always goes, with no question about whether it moved itself —
@@ -1621,7 +1621,7 @@ local function resolve_top(top)
 		event = top.re_event, targets = top.re_targets, let = top.re_let })
 	resolving  = prev
 	send_spent(top.re_source, top.re_spent)
-	zones.destroy_card(top.id)
+	zones.purge_card(top.id)
 end
 
 -- counterspell — what this reaction answers does not happen: its record comes off
@@ -1636,7 +1636,7 @@ function M.counterspell()
 	local answered = resolving and resolving.re_answering and entity.get(resolving.re_answering)
 	if not answered then return end
 	send_spent(answered.re_source, answered.re_spent)
-	zones.destroy_card(answered.id)
+	zones.purge_card(answered.id)
 end
 
 -- What the window does when it reaches a forced reaction: "fire" on its own,
