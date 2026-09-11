@@ -383,6 +383,23 @@ function M.home_zone(def)
 	return home
 end
 
+-- The zone a card's tags send it to when it dies, or nil when none does.
+--
+-- Read the same way home_zone is, and ambiguous for the same reason: two tags
+-- naming different graves is a card with no settled answer, so it falls through
+-- to the zone and the seat rather than taking whichever was written first.
+function M.grave_zone(def)
+	local grave
+	for t in pairs(def.tags_set or {}) do
+		local td = declaration.G.tag_defs[t]
+		if td and td.grave then
+			if grave and grave ~= td.grave then return nil end
+			grave = td.grave
+		end
+	end
+	return grave
+end
+
 -- Overwrite instance stats with the template's card_stats. Used when a
 -- template's stats change: immediate dev feedback beats preserving damage.
 local function restamp(def_key, card_stats)

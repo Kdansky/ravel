@@ -709,22 +709,53 @@ end
 -- and burning rng on a choice that does not matter costs a reproducible game for
 -- nothing. Left out, the count is every one of them — except after "random",
 -- which has always meant one and still does.
-HANDLERS["purge"] = function(p, ctx)
+-- The cards a removal names, in the order it will take them. Shared by the two
+-- verbs because which cards go is the same question either way; where they end
+-- up is the only thing that differs.
+local function doomed(p, ctx)
 	local sc = predicate.parse_scope(p[2] or "")
-	if not sc then return end
-	local doomed = {}
+	if not sc then return {} end
+	local pool = {}
 	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
-		if e.kind == "card" and e.zone_id then doomed[#doomed + 1] = e.id end
+		if e.kind == "card" and e.zone_id then pool[#pool + 1] = e.id end
 	end
-	if not predicate.is_ordered(sc.quant) then table.sort(doomed) end
-	local n = p[3] and amount(p, 3, 0, ctx) or (sc.quant == "random" and 1 or #doomed)
-	if n > #doomed then n = #doomed end
+	if not predicate.is_ordered(sc.quant) then table.sort(pool) end
+	local n = p[3] and amount(p, 3, 0, ctx) or (sc.quant == "random" and 1 or #pool)
+	if n > #pool then n = #pool end
 	local taken = {}
 	for _ = 1, n do
-		local i = sc.quant == "random" and rng.int(#doomed) or 1
-		taken[#taken + 1] = table.remove(doomed, i)
+		local i = sc.quant == "random" and rng.int(#pool) or 1
+		taken[#taken + 1] = table.remove(pool, i)
 	end
-	for _, id in ipairs(taken) do zones.purge_card(id) end
+	return taken
+end
+
+HANDLERS["purge"] = function(p, ctx)
+	for _, id in ipairs(doomed(p, ctx)) do zones.purge_card(id) end
+end
+
+-- destroy:<scope>[:<n>]  — every card the scope names dies, which is a move into
+-- its grave and not a removal. The scope and the count read exactly as purge's.
+--
+-- **The difference is everything a game hangs off a death.** A destroyed card
+-- lands somewhere, so its "leaves" fires, whatever watches for the announcement
+-- answers, and the card is still there to be raised, counted or read. Which is
+-- what a card printing "destroy a unit" has always meant: in nearly every game
+-- the killed thing goes to a graveyard and the table reacts. `purge` is the
+-- other one — gone, and nobody may ask.
+--
+-- A card with nowhere to die says so rather than vanishing quietly. Silence
+-- here would be the very bug the two verbs were split to end.
+HANDLERS["destroy"] = function(p, ctx)
+	for _, id in ipairs(doomed(p, ctx)) do
+		local c = entity.get(id)
+		local grave = c and zones.grave_of(c)
+		if grave then
+			zones.move_card(id, grave.id)
+		else
+			content_error("destroy: " .. tostring(c and c.def_key) .. " has no grave to go to")
+		end
+	end
 end
 
 -- move:<scope>:<zone>  — every card the scope names goes to that zone.
@@ -1488,6 +1519,7 @@ local SPEC = {
 	load_game         = "gamefile",
 	open_game         = "",
 	purge             = "scope n?",
+	destroy           = "scope n?",
 	ready             = "scope",
 	exhaust           = "scope",
 	activate_zone     = "zone order? step?",

@@ -213,7 +213,7 @@ function M.test_status_an_unknown_standing_is_refused(check)
 	if not ok then error(G, 2) end
 	local found = false
 	for _, p in ipairs(G.parse_problems or {}) do
-		if p:find("none of board, exile, offer", 1, true) then found = true end
+		if p:find("none of board, exile, grave, offer, supply", 1, true) then found = true end
 	end
 	check("a standing the engine does not have is refused", found,
 		table.concat(G.parse_problems or {}, "; "))

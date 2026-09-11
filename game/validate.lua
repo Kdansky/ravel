@@ -135,7 +135,7 @@ local CARD_FIELDS = {
 	-- the chair. Every card has one for the same reason every card has a text.
 	name = true,
 	play = true, challenge = true, receive = true, round = true,
-	chosen = true, leaves = true,
+	chosen = true, leaves = true, grave = true,
 	-- Everything the card can be used for, one entry each. A card that does one
 	-- thing writes a list of one: there is no second spelling, so no two sets of
 	-- fields to keep in step.
@@ -176,6 +176,8 @@ local ZONE_FIELDS = {
 	layout = true, visibility = true, reach = true, use = true, status = true,
 	display = true, copies = true, grid = true, row = true,
 	contents = true, tooltip = true, tags = true, tags_set = true, refill_from = true,
+	-- where a card dying here goes, whatever kind of card it is
+	grave = true,
 	-- what clicking it does, written as the list a card writes
 	abilities = true,
 	injected = true, applies = true, accepts = true, on_receive = true, receive = true,
@@ -223,7 +225,7 @@ for _, moment in ipairs({ "play", "leaves" }) do
 	for _, internal in pairs(MOMENTS[moment]) do GRANTED_PLAY[internal] = true end
 end
 
-local TAG_FIELDS      = { zone = true, tooltip = true, play = true,
+local TAG_FIELDS      = { zone = true, grave = true, tooltip = true, play = true,
 	abilities = true, emits = true, leaves = true, on_leaves = true, leaves_into = true,
 	leaves_from = true, leaves_needs = true,
 	-- What a card wearing this will let be aimed at it. A ward is a keyword more
@@ -1939,8 +1941,13 @@ function M.check(G)
 			-- answering twice. A card writing its own is not a conflict at all:
 			-- it is one template opting out of the sentence the others share,
 			-- which is the whole point of there being a rule.
+			--
+			-- "zone" and "grave" are the third kind: not behaviour at all but a
+			-- lookup, where a card lives and where it dies. Both are answered
+			-- narrowest first, so a card naming its own is the rule working
+			-- rather than a contradiction.
 			for field in pairs(td) do
-				if field ~= "zone" and field ~= "abilities" and not GRANTED_PLAY[field] then
+				if field ~= "zone" and field ~= "grave" and field ~= "abilities" and not GRANTED_PLAY[field] then
 					for _, ck in ipairs(G.card_list) do
 						local cd = G.card_defs[ck]
 						if cd.tags_set and cd.tags_set[tag] and cd[field] ~= nil then
@@ -2806,6 +2813,10 @@ function M.check(G)
 		-- What a supply cannot also be. Its cards are a number, so anything that
 		-- reads an order or moves the card standing for the stock is asking a
 		-- question the zone has promised nobody would ask.
+		if def.grave ~= nil and not G.zone_defs[def.grave] then
+			warn("%s: dying cards here go to '%s', which is not a zone%s", where,
+				tostring(def.grave), suggest(tostring(def.grave), G.zone_defs))
+		end
 		if def.status == "supply" then
 			if def.reach ~= nil then
 				warn('%s: is a supply and also says reach "%s" — a stock has no order and no top, '

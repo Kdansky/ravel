@@ -200,7 +200,7 @@ local WHOSE = { mine = true, enemy = true, anyone = true }
 -- Default "exile", so a zone is inert until it says otherwise and a forgotten
 -- word fails closed. The two types that carry a standing of their own supply it,
 -- which is what keeps every game written before the field unchanged.
-M.STATUS = { board = true, exile = true, offer = true, supply = true }
+M.STATUS = { board = true, exile = true, offer = true, supply = true, grave = true }
 
 -- Seven questions a zone answers, where "type" answered all of them at once and
 -- a game could only have the five bundles somebody had thought of. Each field is
@@ -212,7 +212,7 @@ M.STATUS = { board = true, exile = true, offer = true, supply = true }
 --   visibility  who may read them: public, owner, secret. Rendering only
 --   reach       which of them exist to the rules: all, or only the top
 --   use         what may be done with one here: play, abilities, none
---   status      what standing they have: board, exile, offer
+--   status      what standing they have: board, exile, offer, supply, grave
 --   display     whether the zone is drawn at all: onscreen, offscreen
 --   copies      one zone, or one per seat
 --

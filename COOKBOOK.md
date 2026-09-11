@@ -465,19 +465,47 @@ Same ownership rule as the bounce: `enemy.discard` when the card is theirs.
 ### Destroy the target.
 
 ```json
-"action": ["purge:target"]
+"zones": [{ "key": "discard", "status": "grave", "copies": "per_seat" }],
+"action": ["destroy:target"]
 ```
 
-Trap: a destroyed card lands in no zone, so **`leaves` does not fire** and its stats are gone.
-If you want a removal something can answer, give it a zone and `move` there instead — a unit
-killed by an effect and a unit killed by damage must take the same road, or only one of them
-sets off the death triggers. `purge:` is for what nobody may ask about: a token, a swept husk.
+The card **dies**: it moves into its grave, its `leaves` fires, whatever watches for the
+announcement answers, and it is still lying there to be counted or raised. The seat is the
+*dying card's*, so one line kills either side's unit and files it correctly.
 
 ### Destroy this.
 
 ```json
-"action": ["purge:self"]
+"action": ["destroy:self"]
 ```
+
+### A dead hero goes somewhere other than the discard.
+
+```json
+"tags": { "hero": { "grave": "command" } }
+```
+
+Which grave is asked of five places, narrowest first: the card's own `grave`, the tags it
+wears, the zone it is standing in, its seat's `status: "grave"` zone, and a shared one. Two
+tags naming different graves settle nothing, and the question passes to the wider ones.
+
+### Everything that dies in the arena is swept into the pit.
+
+```json
+"zones": [{ "key": "arena", "status": "board", "grave": "pit" }]
+```
+
+### Remove a token from the game entirely.
+
+```json
+"action": ["purge:each.anyone.token"]
+```
+
+`purge` is the other verb: the card lands in no zone, **`leaves` does not fire**, and its stats
+go with it. A component whose kind a `status: "supply"` zone stocks goes back in that box and
+the stock ticks up. Reach for it only when nobody may ask — a token, a swept husk. A unit
+killed by an effect and a unit killed by damage must take the same road, or only one of them
+sets off the death triggers.
 
 ### Destroy the four lowest-tech patrollers.
 

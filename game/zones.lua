@@ -124,6 +124,7 @@ local function build(def, seat, pos)
 		reach      = def.reach,
 		use        = def.use,
 		status     = def.status,
+		grave      = def.grave,    -- where a card dying here goes, whatever it is
 		display    = def.display,
 		copies     = def.copies,
 		tags      = def.tags_set or {},
@@ -229,6 +230,45 @@ end
 -- choosing between them would be invented ahead of its customer, and the day one
 -- turns up the wrong gem going in the wrong box is a visible bug with an obvious
 -- fix.
+-- Where a card goes when it dies, or nil when the game has nowhere to put it.
+--
+-- **Five places may say, and they are asked narrowest first**: the card itself,
+-- the tags it wears, the zone it is standing in, the dying card's own seat, and
+-- whatever grave the table shares. A game with one graveyard says so once, as a
+-- zone's status, and never again. Codex needs three of the five, because a dead
+-- unit goes to the discard and a dead hero back to the command zone to wait.
+--
+-- The seat is the **dying card's**, never the active one. That is the whole
+-- reason this is not a zone key written at the site: "move:target:mine.discard"
+-- puts somebody else's unit in your discard, and every game with a graveyard was
+-- writing the owner out by hand and getting it wrong.
+function M.grave_of(card)
+	local def = cards.def(card)
+	local named = (def and def.grave) or (def and cards.grave_zone(def))
+	if not named then
+		local here = card.zone_id and entity.get(card.zone_id)
+		named = here and here.grave
+	end
+	local seat = tags.owner_of(card)
+	if named then
+		local seats = seat_map[named]
+		local id = seats and (seats[seat] or seats[M.active_seat()]) or key_map[named]
+		return id and entity.get(id)
+	end
+	-- A seat's own grave first, and only a **shared** one as the fallback. Another
+	-- player's discard is not a generic grave, and a card nobody owns has no
+	-- claim on one — taking the first that happened to be declared would be the
+	-- arbitrary winner this format refuses everywhere else.
+	local shared
+	for z in entity.each("zone") do
+		if z.status == "grave" then
+			if z.seat == seat then return z end
+			if z.seat == nil and not shared then shared = z end
+		end
+	end
+	return shared
+end
+
 function M.supply_of(def_key, seat)
 	local any
 	for z in entity.each("zone") do
