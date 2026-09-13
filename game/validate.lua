@@ -1456,6 +1456,17 @@ function M.check(G)
 				-- An action's stat argument is a full subject: it may carry a
 				-- scope, and a scoped one may read a stat only cards have.
 				subject_ok(where .. ": " .. op, a)
+			elseif t == "statkey" then
+				-- A bare stat key, not a subject: the op already says which
+				-- cards, so a scope here would be a second answer to a question
+				-- the first argument settled.
+				if tostring(a):find("@", 1, true) then
+					warn("%s: '%s' names the stat '%s' — the scope is the first argument, so this "
+						.. "is the number's name on its own", where, op, tostring(a))
+				elseif not stat_ok(a) then
+					warn("%s: '%s' names the stat '%s', which the game does not declare%s",
+						where, op, tostring(a), suggest(a, all_stats))
+				end
 			elseif t == "step" then
 				-- A step names abilities across every card and tag that answers
 				-- to it, so the only mistake the engine can catch is a word

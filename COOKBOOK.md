@@ -435,6 +435,19 @@ answer left.
 
 ## Cards moving
 
+### Put this back to its printed numbers.
+
+```json
+"action": ["reset:self", "move_to:mine.army"]
+```
+
+A hero coming back out of the command zone comes back at what it is printed with. Every
+stat the template declares, or `reset:self:hp` for one of them. A stat's own `start` folds
+into `card_stats` at load, so "every fighter begins at nought" restores through here without
+the card saying it again. The ceiling comes back too, so a card whose maximum was raised
+comes back down to its printed one — and a buff is untouched, because that belongs to a tag
+and leaves when the tag does.
+
 ### Put this into play.
 
 ```json

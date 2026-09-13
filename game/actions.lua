@@ -695,6 +695,40 @@ HANDLERS["activate_zone"] = function(p, ctx)
 	if M.on_act then M.on_act(nil, 0) end
 end
 
+-- reset:<scope>[:<stat>]  — put the numbers back to what the card is printed
+-- with. Every stat the template declares, or one of them named.
+--
+-- **A card is printed with its numbers and a game keeps changing them**, so
+-- "put it back" is a sentence every game with a returning card needs and none
+-- of them could say. Codex is eighteen copies of it: a hero comes back from the
+-- command zone, and its summon spelled out six `stat_set`s restoring values
+-- that sit in `card_stats` three lines above -- so giving heroes a new number
+-- meant eighteen edits, and the file said twice what the card says once.
+--
+-- The template is the one source, and `start` folds into `card_stats` at load
+-- (declaration.lua), so a stat that says "every fighter begins at nought"
+-- restores through here too without the card repeating it.
+--
+-- **The ceiling and the floor come back with the value**, cleared first rather
+-- than written over: a card whose maximum was raised is printed with the old one
+-- and must come back to it, and attach_stat only sets a bound that is declared.
+-- What it does not touch is what was never the card's: a buff is a tag's and
+-- leaves when the tag does, and being spent has its own word in `ready`.
+HANDLERS["reset"] = function(p, ctx)
+	local sc = predicate.parse_scope(p[2] or "")
+	if not sc then return end
+	local only = p[3]
+	for _, e in ipairs(predicate.entities_in_scope(sc.name, ctx, sc.owner, sc.quant)) do
+		local def = e.kind == "card" and declaration.G.card_defs[e.def_key]
+		for k, v in pairs((def and def.card_stats) or EMPTY) do
+			if only == nil or only == k then
+				e.stat_max[k], e.stat_min[k] = nil, nil
+				cards.attach_stat(e, k, v)
+			end
+		end
+	end
+end
+
 -- ready:<scope>  — un-spend the cards in scope. The counterpart to the "exhaust"
 -- cost, and the only way a game can decide *when* being spent wears off: until
 -- this existed the engine readied everything at the round wrap and no game could
@@ -1636,6 +1670,7 @@ local SPEC = {
 	open_game         = "",
 	purge             = "scope n?",
 	destroy           = "scope n?",
+	reset             = "scope statkey?",
 	ready             = "scope",
 	exhaust           = "scope",
 	activate_zone     = "zone order? step?",

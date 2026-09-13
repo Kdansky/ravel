@@ -4841,14 +4841,8 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:2",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
-            "stat_set:ready_since@self:1",
             "move_to:mine.army"
           ]
         },
@@ -5021,12 +5015,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:1",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -5161,12 +5150,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -5371,12 +5355,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -5545,12 +5524,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -5693,12 +5667,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:1",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army",
@@ -7455,12 +7424,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -7628,12 +7592,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -7842,12 +7801,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:1",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army",
@@ -14173,12 +14127,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -14295,12 +14244,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:1",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -14447,12 +14391,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:1",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -14711,12 +14650,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -14921,12 +14855,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:1",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -15072,12 +15001,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:4",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -15245,12 +15169,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
@@ -15420,12 +15339,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:1",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army",
@@ -15589,12 +15503,7 @@
             "hero_wait@mine.player == 0"
           ],
           "action": [
-            "stat_set:level@self:1",
-            "stat_set:ripe@self:0",
-            "stat_set:atk@self:2",
-            "stat_set:life@self:3",
-            "stat_set:armor@self:0",
-            "stat_set:guard@self:0",
+            "reset:self",
             "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
