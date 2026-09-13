@@ -2044,4 +2044,76 @@ function M.test_codex_a_killed_hero_goes_home_to_wait(check)
 		tostring(seat("south").stats.hero_wait))
 end
 
+-- The death column used to say every rule twice, once as "mine" and once as
+-- "theirs", because a rule read from the seat that is up and only one side's
+-- death was that seat's. `each_seat:` wraps the *action* rather than the zone,
+-- so the card keeps its place in the column and both sides are answered before
+-- the next rule starts — which is the whole reason the halves could go.
+function M.test_codex_the_death_column_answers_both_sides(check)
+	start("pick_zane", "pick_argagarg")
+	post("nautical_dog", "mine", 3).stats.hp = 0
+	post("nautical_dog", "enemy", 3).stats.hp = 0
+	post("nautical_dog", "mine", 4).stats.hp = 0
+	post("nautical_dog", "enemy", 4).stats.hp = 0
+	local gold_s, gold_n = seat("south").stats.gold, seat("north").stats.gold
+	local hand_s, hand_n = count_in("hand"), count_in("enemy.hand")
+
+	actions.execute("activate_zone:rules_death", {})
+	flow.settle()
+
+	check("the scavenger post paid its own side", seat("south").stats.gold == gold_s + 1,
+		tostring(seat("south").stats.gold - gold_s))
+	check("and paid the other side too", seat("north").stats.gold == gold_n + 1,
+		tostring(seat("north").stats.gold - gold_n))
+	check("the technician post drew for its own side", count_in("hand") == hand_s + 1,
+		tostring(count_in("hand") - hand_s))
+	check("and drew for the other side too", count_in("enemy.hand") == hand_n + 1,
+		tostring(count_in("enemy.hand") - hand_n))
+end
+
+-- Two conditions over one card, said as a tag on the card rather than as a
+-- "max:" over the scope: the halves went because a per-card question is one the
+-- count can ask, and "the highest level among my blood heroes is at most three"
+-- was only ever a way of saying "this one is".
+function M.test_codex_drakk_falls_low(check)
+	start("pick_drakk", "pick_argagarg")
+	local him = summon("drakk", "army")
+	him.stats.life, him.stats.level = 0, 2
+	local theirs = entity.get(entity.get(zones.find_id("base", "enemy")).cards[1])
+
+	actions.execute("activate_zone:rules_death", {})
+	flow.settle()
+	check("falling before level four cost them one", theirs.stats.integrity == 19,
+		tostring(theirs.stats.integrity))
+
+	start("pick_drakk", "pick_argagarg")
+	local grown = summon("drakk", "army")
+	grown.stats.life, grown.stats.level = 0, 4
+	theirs = entity.get(entity.get(zones.find_id("base", "enemy")).cards[1])
+
+	actions.execute("activate_zone:rules_death", {})
+	flow.settle()
+	check("falling at four cost them nothing", theirs.stats.integrity == 20,
+		tostring(theirs.stats.integrity))
+end
+
+-- The gold was always per claim and the draw was not, which no reading of the
+-- card supports. Folding the halves made the two agree.
+function M.test_codex_every_claim_is_paid(check)
+	start("pick_zane", "pick_argagarg")
+	for _ = 1, 2 do
+		local c = summon("nautical_dog", "army")
+		c.stats.hp, c.stats.insured = 0, 1
+	end
+	local gold, hand = seat("south").stats.gold, count_in("hand")
+
+	actions.execute("activate_zone:rules_death", {})
+	flow.settle()
+
+	check("both claims paid their price", seat("south").stats.gold == gold + 2,
+		tostring(seat("south").stats.gold - gold))
+	check("and both drew a card", count_in("hand") == hand + 2,
+		tostring(count_in("hand") - hand))
+end
+
 return M

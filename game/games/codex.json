@@ -928,6 +928,12 @@
         "life@self < 1"
       ]
     },
+    "fell_low": {
+      "needs": [
+        "life@self < 1",
+        "level@self <= 3"
+      ]
+    },
     "rubble": {
       "needs": [
         "integrity@self < 1"
@@ -3942,47 +3948,12 @@
       ],
       "abilities": [
         {
-          "key": "mine",
+          "key": "pays",
           "text": "Scavenger",
           "phases": [],
-          "needs": [
-            "count:dead@mine.patrol.at_scav >= 1"
-          ],
           "action": [
-            "stat_gain:gold@mine.player:1"
-          ]
-        },
-        {
-          "key": "theirs",
-          "text": "Scavenger",
-          "phases": [],
-          "needs": [
-            "count:dead@enemy.patrol.at_scav >= 1"
-          ],
-          "action": [
-            "stat_gain:gold@opponent:1"
-          ]
-        },
-        {
-          "key": "mine_h",
-          "text": "Scavenger",
-          "phases": [],
-          "needs": [
-            "count:fallen@mine.patrol.at_scav >= 1"
-          ],
-          "action": [
-            "stat_gain:gold@mine.player:1"
-          ]
-        },
-        {
-          "key": "theirs_h",
-          "text": "Scavenger",
-          "phases": [],
-          "needs": [
-            "count:fallen@enemy.patrol.at_scav >= 1"
-          ],
-          "action": [
-            "stat_gain:gold@opponent:1"
+            "each_seat:stat_gain:gold@mine.player:count:dead@mine.patrol.at_scav",
+            "each_seat:stat_gain:gold@mine.player:count:fallen@mine.patrol.at_scav"
           ]
         }
       ]
@@ -3995,47 +3966,12 @@
       ],
       "abilities": [
         {
-          "key": "mine",
+          "key": "draws",
           "text": "Technician",
           "phases": [],
-          "needs": [
-            "count:dead@mine.patrol.at_tech >= 1"
-          ],
           "action": [
-            "draw_from:mine.deck:mine.hand:1"
-          ]
-        },
-        {
-          "key": "theirs",
-          "text": "Technician",
-          "phases": [],
-          "needs": [
-            "count:dead@enemy.patrol.at_tech >= 1"
-          ],
-          "action": [
-            "draw_from:enemy.deck:enemy.hand:1"
-          ]
-        },
-        {
-          "key": "mine_h",
-          "text": "Technician",
-          "phases": [],
-          "needs": [
-            "count:fallen@mine.patrol.at_tech >= 1"
-          ],
-          "action": [
-            "draw_from:mine.deck:mine.hand:1"
-          ]
-        },
-        {
-          "key": "theirs_h",
-          "text": "Technician",
-          "phases": [],
-          "needs": [
-            "count:fallen@enemy.patrol.at_tech >= 1"
-          ],
-          "action": [
-            "draw_from:enemy.deck:enemy.hand:1"
+            "each_seat:draw_from:mine.deck:mine.hand:count:dead@mine.patrol.at_tech",
+            "each_seat:draw_from:mine.deck:mine.hand:count:fallen@mine.patrol.at_tech"
           ]
         }
       ]
@@ -4048,25 +3984,11 @@
       ],
       "abilities": [
         {
-          "key": "mine",
+          "key": "runes",
           "text": "Blood runes",
           "phases": [],
-          "needs": [
-            "count:bloodburn@mine.ongoing >= 1"
-          ],
           "action": [
-            "stat_gain:blood@mine.ongoing.bloodburn:count:dead@anyone.unit"
-          ]
-        },
-        {
-          "key": "theirs",
-          "text": "Blood runes",
-          "phases": [],
-          "needs": [
-            "count:bloodburn@enemy.ongoing >= 1"
-          ],
-          "action": [
-            "stat_gain:blood@enemy.ongoing.bloodburn:count:dead@anyone.unit"
+            "each_seat:stat_gain:blood@mine.ongoing.bloodburn:count:dead@anyone.unit"
           ]
         }
       ]
@@ -4112,27 +4034,11 @@
       ],
       "abilities": [
         {
-          "key": "mine",
+          "key": "falls",
           "text": "Drakk falls",
           "phases": [],
-          "needs": [
-            "count:fallen@mine.h_blood >= 1",
-            "max:level@mine.h_blood <= 3"
-          ],
           "action": [
-            "stat_damage:integrity@enemy.base:1"
-          ]
-        },
-        {
-          "key": "theirs",
-          "text": "Drakk falls",
-          "phases": [],
-          "needs": [
-            "count:fallen@enemy.h_blood >= 1",
-            "max:level@enemy.h_blood <= 3"
-          ],
-          "action": [
-            "stat_damage:integrity@mine.base:1"
+            "each_seat:stat_damage:integrity@enemy.base:count:fell_low@mine.h_blood"
           ]
         }
       ]
@@ -4171,25 +4077,11 @@
           ]
         },
         {
-          "key": "mine",
+          "key": "buried",
           "text": "Fallen hero",
           "phases": [],
-          "needs": [
-            "count:fallen@mine.hero >= 1"
-          ],
           "action": [
-            "move:mine.fallen:mine.command"
-          ]
-        },
-        {
-          "key": "theirs",
-          "text": "Fallen hero",
-          "phases": [],
-          "needs": [
-            "count:fallen@enemy.hero >= 1"
-          ],
-          "action": [
-            "move:enemy.fallen:enemy.command"
+            "each_seat:move:mine.fallen:mine.command"
           ]
         }
       ]
@@ -4222,27 +4114,12 @@
       ],
       "abilities": [
         {
-          "key": "mine",
+          "key": "falls",
           "text": "Broken tech",
           "phases": [],
-          "needs": [
-            "count:rubble@mine.tech >= 1"
-          ],
           "action": [
-            "stat_damage:integrity@mine.base:count:rubble@mine.tech:x:2",
-            "purge:mine.tech.rubble"
-          ]
-        },
-        {
-          "key": "theirs",
-          "text": "Broken tech",
-          "phases": [],
-          "needs": [
-            "count:rubble@enemy.tech >= 1"
-          ],
-          "action": [
-            "stat_damage:integrity@enemy.base:count:rubble@enemy.tech:x:2",
-            "purge:enemy.tech.rubble"
+            "each_seat:stat_damage:integrity@mine.base:count:rubble@mine.tech:x:2",
+            "each_seat:purge:mine.tech.rubble"
           ]
         }
       ]
@@ -4255,27 +4132,12 @@
       ],
       "abilities": [
         {
-          "key": "mine",
+          "key": "falls",
           "text": "Broken add-on",
           "phases": [],
-          "needs": [
-            "count:rubble@mine.addon >= 1"
-          ],
           "action": [
-            "stat_damage:integrity@mine.base:2",
-            "purge:mine.addon.rubble"
-          ]
-        },
-        {
-          "key": "theirs",
-          "text": "Broken add-on",
-          "phases": [],
-          "needs": [
-            "count:rubble@enemy.addon >= 1"
-          ],
-          "action": [
-            "stat_damage:integrity@enemy.base:2",
-            "purge:enemy.addon.rubble"
+            "each_seat:stat_damage:integrity@mine.base:count:rubble@mine.addon:x:2",
+            "each_seat:purge:mine.addon.rubble"
           ]
         }
       ]
@@ -19504,32 +19366,16 @@
       "tags": [
         "immutable"
       ],
-      "tooltip": "An insured unit dying pays its owner what it cost and draws them a card.",
+      "tooltip": "Every insured unit that dies pays its owner what it cost and draws them a card, so two claims in one death step pay twice and draw twice.",
       "abilities": [
         {
-          "key": "mine0",
+          "key": "pays",
           "text": "Insurance Agent",
           "phases": [],
-          "needs": [
-            "count:claimed@mine.unit >= 1"
-          ],
           "action": [
-            "stat_gain:gold@mine.player:sum:price@mine.claimed",
-            "draw_from:mine.deck:mine.hand:1",
-            "stat_set:insured@each.mine.claimed:0"
-          ]
-        },
-        {
-          "key": "enemy0",
-          "text": "Insurance Agent",
-          "phases": [],
-          "needs": [
-            "count:claimed@enemy.unit >= 1"
-          ],
-          "action": [
-            "stat_gain:gold@enemy.player:sum:price@enemy.claimed",
-            "draw_from:enemy.deck:enemy.hand:1",
-            "stat_set:insured@each.enemy.claimed:0"
+            "each_seat:stat_gain:gold@mine.player:sum:price@mine.claimed",
+            "each_seat:draw_from:mine.deck:mine.hand:count:claimed@mine.unit",
+            "each_seat:stat_set:insured@each.mine.claimed:0"
           ]
         }
       ]
@@ -19543,69 +19389,27 @@
       "tooltip": "The first death of a Justice Juggernaut heals it and leaves a crumbling rune instead. Said in three steps because a column recomputes its scope between them: mark, heal, then spend the mark — so the heal cannot see the death it has just undone.",
       "abilities": [
         {
-          "key": "mine0",
+          "key": "mark",
           "text": "Two Lives",
           "phases": [],
-          "needs": [
-            "count:reviving@mine.unit >= 1"
-          ],
           "action": [
-            "stat_set:lives@each.mine.reviving:2"
+            "each_seat:stat_set:lives@each.mine.reviving:2"
           ]
         },
         {
-          "key": "mine1",
+          "key": "heal",
           "text": "Two Lives",
           "phases": [],
-          "needs": [
-            "count:revived@mine.unit >= 1"
-          ],
           "action": [
-            "stat_gain:hp@each.mine.revived:9"
+            "each_seat:stat_gain:hp@each.mine.revived:9"
           ]
         },
         {
-          "key": "mine2",
+          "key": "spend",
           "text": "Two Lives",
           "phases": [],
-          "needs": [
-            "count:crumbled@mine.unit >= 1"
-          ],
           "action": [
-            "stat_set:lives@each.mine.crumbled:3"
-          ]
-        },
-        {
-          "key": "enemy0",
-          "text": "Two Lives",
-          "phases": [],
-          "needs": [
-            "count:reviving@enemy.unit >= 1"
-          ],
-          "action": [
-            "stat_set:lives@each.enemy.reviving:2"
-          ]
-        },
-        {
-          "key": "enemy1",
-          "text": "Two Lives",
-          "phases": [],
-          "needs": [
-            "count:revived@enemy.unit >= 1"
-          ],
-          "action": [
-            "stat_gain:hp@each.enemy.revived:9"
-          ]
-        },
-        {
-          "key": "enemy2",
-          "text": "Two Lives",
-          "phases": [],
-          "needs": [
-            "count:crumbled@enemy.unit >= 1"
-          ],
-          "action": [
-            "stat_set:lives@each.enemy.crumbled:3"
+            "each_seat:stat_set:lives@each.mine.crumbled:3"
           ]
         }
       ]
@@ -19619,27 +19423,12 @@
       "tooltip": "A Brave Knight that would die goes back to his owner's hand instead.",
       "abilities": [
         {
-          "key": "mine0",
+          "key": "rides_home",
           "text": "Brave Knight",
           "phases": [],
-          "needs": [
-            "count:returning@mine.unit >= 1"
-          ],
           "action": [
-            "move:mine.returning:mine.hand",
-            "stat_gain:hp@each.mine.hand:9"
-          ]
-        },
-        {
-          "key": "enemy0",
-          "text": "Brave Knight",
-          "phases": [],
-          "needs": [
-            "count:returning@enemy.unit >= 1"
-          ],
-          "action": [
-            "move:enemy.returning:enemy.hand",
-            "stat_gain:hp@each.enemy.hand:9"
+            "each_seat:move:mine.returning:mine.hand",
+            "each_seat:stat_gain:hp@each.mine.hand.returning:9"
           ]
         }
       ]

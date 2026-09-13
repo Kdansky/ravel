@@ -23,15 +23,59 @@ should have said so. The second kind is a word that is missing.
   reads oddly. No rewrite is offered for that one: the wrong number and the
   wrong scope look identical from here.
 
-- **17 mirrored `mine`/`theirs` ability pairs in Codex** — 34 of its 279
-  abilities, all on the rules cards: `r_scav`, `r_techie`, `r_heroes`,
-  `r_lives`, `r_insured`, `r_gang`, `r_drakk`, `r_tech_rubble`,
-  `r_addon_rubble`. AUTHORING already names this shape as the format fighting
-  back, and the answer it names is `each_seat:`, which Spellstorm uses on
-  exactly this kind of walk (`each_seat:activate_zone:weather_now:by_column:wx`).
-  `each_seat:activate_zone:rules_death` deletes the `theirs` half of all 17.
-  What changes is the order — one seat's whole rules, then the other's, rather
-  than interleaved — and for these rules that is not a difference.
+- ~~**17 mirrored `mine`/`theirs` ability pairs in Codex**~~ — **shipped, and
+  `each_seat:` goes round the *action*, not the zone.** The death column was 40
+  abilities and is 24; the file is 276 abilities and is 260.
+
+  Wrapping the zone — `each_seat:activate_zone:rules_death` — is the obvious
+  reading and it is wrong, because the column's order is load-bearing in two
+  places. `r_units` sweeps *both* sides' corpses, so one seat's whole pass would
+  clear the dead that the other seat's Bloodburn and Pirate-Gang Commander are
+  about to count; and the fallen-heroes boon asks "and theirs did not fall",
+  which must be read before either burial moves a corpse to its command zone.
+  Put the word inside the ability instead and the card keeps its place in the
+  column: both sides are answered before the next rule starts, which is exactly
+  the old interleaving.
+
+  **The gate has to go with the halves.** A `needs` is read from the seat that is
+  up, so it cannot be wrapped — so each folded rule says its condition as the
+  *amount* rather than as a gate. `stat_gain:gold@mine.player:1` behind
+  `count:dead@mine.patrol.at_scav >= 1` becomes
+  `each_seat:stat_gain:gold@mine.player:count:dead@mine.patrol.at_scav`, and
+  gaining nought is the same as not gaining. `move`, `purge`, `destroy` and
+  `stat_set` over an empty scope were already no-ops, so most of the rules lost
+  their `needs` outright.
+
+  Two wanted a card-shaped question where they had a scope-shaped one.
+  `count:fallen@mine.h_blood >= 1` *and* `max:level@mine.h_blood <= 3` is one
+  computed tag, `fell_low`, and the count then asks it per card — which is what
+  the pair of conditions meant, there being one blood hero. The Brave Knight's
+  heal aimed at the whole hand and now aims at `mine.hand.returning`: the tag
+  still holds on the card after the move, so the scope names the knight that
+  just came home rather than everything he came home to.
+
+  **It found a bug.** The Insurance Agent summed gold per claim
+  (`sum:price@mine.claimed`) but drew one card however many claims there were.
+  The fold made the two agree, so two insured units dying in one step now pay
+  twice and draw twice, which is what the card says.
+
+  **Three did not fold, and the reason is the same each time: a condition about
+  a card the amount cannot carry.** `r_gang` is gated on a *third* card standing
+  — the commander — so the damage cannot be the count of the dead alone.
+  `r_channel` (three pairs) asks whether the channel's owner still has that
+  hero, which the channel card has no way to ask about its own owner. The
+  fallen-heroes boon is three conditions across both sides, one of them a
+  negation, and `not_tagged:` is not a value.
+
+  **And two sweeps must stay two-sided, which is the finding worth keeping.**
+  `r_units` and `r_buildings` move and destroy cards, and a `leaves` moment is
+  read from the seat that is up: Crash Bomber's is `stat_damage:integrity@mine.base:1`
+  gated on `count:player@enemy.owner_of >= 1`, meaning *the killer's* base. Wrap
+  that sweep in `each_seat:` and the corpse leaves with its own owner up, so the
+  bomb goes off in nobody's face. Codex has four such departures
+  (`spell`, `blackhand_dozer`, `gorgon`, `crash_bomber`). So: **`each_seat:` is
+  safe around a rule that reads and writes numbers, and unsafe around one that
+  moves a card whose departure has a rule of its own.**
 
 - **95 `lvlN` abilities in Codex**, 34% of its abilities and 4.2% of the file.
   59 of them are identical modulo the number: pay 1 XP, `stat_gain:level@self:1`,
@@ -373,11 +417,9 @@ Which leaves one shape that fits: *check the board for pending deaths, now.* The
 section and reverted: a section is a claim that the game declares a new kind of
 thing, and this is a property of one zone.
 
-**Two things worth doing here that need no engine change at all.**
+**One thing left here that needs no engine change at all** — the mirror pairs
+went first, and are written up in §1; they were the bigger duplication.
 
-- **17 of the 34 rules-card abilities are `mine`/`theirs` mirror pairs**, so
-  `each_seat:activate_zone:rules_death` deletes half the column. That is the real
-  duplication, and it is bigger than the 46 one-liners.
 - **The `destroy` road may have a live bug.** `r_scav` reads
   `count:dead@mine.patrol.at_scav` — a *destroyed* patroller has already left the
   patrol, so the Scavenger pays nothing, where in Codex it pays however the unit
