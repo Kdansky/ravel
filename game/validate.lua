@@ -1805,7 +1805,7 @@ function M.check(G)
 				-- reads a number that has not been worked out yet — which is
 				-- zero, silently.
 				local v = predicate.parse_value(def.from)
-				for _, side in ipairs({ v and v.left, v and v.right }) do
+				for _, side in ipairs((v and v.terms) or {}) do
 					if G.compute_defs[side] and not seen[side] then
 						warn("%s: computes '%s', which is made of '%s' — list '%s' first",
 							where, name, side, side)
@@ -2397,14 +2397,14 @@ function M.check(G)
 			if not v then
 				warn("%s: %s", where, err)
 			else
-				-- A side naming another compute is legal and checked at the use
+				-- A term naming another compute is legal and checked at the use
 				-- site instead: whether it is *already worked out* depends on the
 				-- order the ability lists them in, which a declaration cannot see.
-				for _, side in ipairs({ v.left, v.right }) do
+				for _, side in ipairs(v.terms) do
 					if tonumber(side) == nil and not G.compute_defs[side] then subject_ok(where, side) end
-				end
-				if G.compute_defs[key] and (v.left == key or v.right == key) then
-					warn("%s: is made of itself", where)
+					if G.compute_defs[key] and side == key then
+						warn("%s: is made of itself", where)
+					end
 				end
 			end
 		end

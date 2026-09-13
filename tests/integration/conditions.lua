@@ -322,36 +322,58 @@ function M.test_conditions_the_smallest_of_nothing_is_absent(check)
 	end)
 end
 
--- A compute's `from`: the same subject grammar, one operator, and no
--- parentheses. Pure — a string in, a split out — so it is checked without a
--- game loaded, exactly as parse_condition is.
-function M.test_conditions_a_compute_splits_on_one_operator(check)
+-- A compute's `from`: arithmetic over numbers and subjects, with + - *,
+-- parentheses and the precedence every reader already has. Pure — a string in,
+-- a tree out — so it is checked without a game loaded, as parse_condition is.
+-- It held one operator and no brackets, and fifteen of Codex's twenty-five
+-- computes existed only as the brackets it would not write.
+function M.test_conditions_a_compute_is_an_arithmetic_expression(check)
 	local v = predicate.parse_value("0 - health@across")
-	check("a two-term expression splits into both sides and the operator",
-		v ~= nil and v.left == "0" and v.op == "-" and v.right == "health@across")
+	check("the terms come back in the order they were written",
+		v ~= nil and table.concat(v.terms, ",") == "0,health@across",
+		v and table.concat(v.terms, ","))
 
 	local one = predicate.parse_value("sum:power@self")
-	check("and a single term is a left with no operator",
-		one ~= nil and one.left == "sum:power@self" and one.op == nil)
+	check("and a single term is an expression too",
+		one ~= nil and table.concat(one.terms, ",") == "sum:power@self")
 
 	check("all three operators are known",
-		predicate.parse_value("a + b").op == "+"
-		and predicate.parse_value("a - b").op == "-"
-		and predicate.parse_value("a * b").op == "*")
+		predicate.value("6 + 2", {}) == 8
+		and predicate.value("6 - 2", {}) == 4
+		and predicate.value("6 * 2", {}) == 12)
 
-	-- No parentheses means no precedence to remember, which is only true while
-	-- there is one operator to apply it to.
-	local _, err = predicate.parse_value("hp - 1 - 1")
-	check("two operators are refused, and say what to do instead",
-		err ~= nil and err:find("one operator per compute", 1, true) ~= nil, tostring(err))
+	-- The one every reader has from school, which is the whole argument for
+	-- allowing brackets at all: there is no second rule to be taught.
+	check("times binds tighter than plus", predicate.value("2 + 3 * 4", {}) == 14,
+		predicate.value("2 + 3 * 4", {}))
+	check("and brackets say otherwise", predicate.value("(2 + 3) * 4", {}) == 20,
+		predicate.value("(2 + 3) * 4", {}))
+	check("minus associates left, so this is five and not nine",
+		predicate.value("10 - 3 - 2", {}) == 5, predicate.value("10 - 3 - 2", {}))
+	check("and nests", predicate.value("((1 + 2) * (3 + 4))", {}) == 21,
+		predicate.value("((1 + 2) * (3 + 4))", {}))
 
-	local _, err2 = predicate.parse_value("hp - ")
-	check("and so is an operator with nothing after it", err2 ~= nil, tostring(err2))
+	local _, err = predicate.parse_value("hp - ")
+	check("an operator with nothing after it says so",
+		err ~= nil and err:find("stops in the middle", 1, true) ~= nil, tostring(err))
+	local _, e2 = predicate.parse_value("(hp - 1")
+	check("so does a bracket never closed",
+		e2 ~= nil and e2:find("never closed", 1, true) ~= nil, tostring(e2))
+	local _, e3 = predicate.parse_value("hp - 1)")
+	check("and one closed that was never opened",
+		e3 ~= nil and e3:find("never opened", 1, true) ~= nil, tostring(e3))
+	local _, e4 = predicate.parse_value("+ 1")
+	check("and an operator with nothing in front of it",
+		e4 ~= nil and e4:find("nothing in front", 1, true) ~= nil, tostring(e4))
 
 	-- A hyphen inside a name is not an operator: the spaces are what say so,
 	-- which is the same discipline a condition keeps.
+	local name = predicate.parse_value("hp@each.enemy.creature")
 	check("spaces are what make an operator one",
-		predicate.parse_value("hp@each.enemy.creature").op == nil)
+		name ~= nil and #name.terms == 1, name and #name.terms)
+	local minus = predicate.parse_value("-1 + 2")
+	check("so a minus glued to a digit is a negative number",
+		minus ~= nil and minus.terms[1] == "-1", minus and minus.terms[1])
 end
 
 -- Bindings are read before a bare subject is judged absent, which is what lets

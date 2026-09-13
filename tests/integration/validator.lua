@@ -755,9 +755,12 @@ local CASES = {
 	{ "a compute made of a misspelled stat", "uses the stat 'helth'",
 		function(g) g.compute_list = { "spare" }
 			g.compute_defs = { spare = { key = "spare", from = "0 - helth@board" } } end },
-	{ "a compute with two operators in it", "one operator per compute",
+	{ "a compute whose brackets do not close", "never closed",
 		function(g) g.compute_list = { "spare" }
-			g.compute_defs = { spare = { key = "spare", from = "hp - 1 - 1" } } end },
+			g.compute_defs = { spare = { key = "spare", from = "(hp - 1" } } end },
+	{ "a compute ending on an operator", "stops in the middle",
+		function(g) g.compute_list = { "spare" }
+			g.compute_defs = { spare = { key = "spare", from = "hp -" } } end },
 	{ "a compute sharing a stat's key", "a stat already has that key",
 		function(g) g.compute_list = { "hp" }
 			g.compute_defs = { hp = { key = "hp", from = "hp - 1" } } end },

@@ -722,18 +722,32 @@ function M.total(subject, ctx)
 	return sum
 end
 
--- A `computes` entry's `from`: "<term>", or "<term> <op> <term>" with one of
--- + - *, spaces required around the operator. A term is a number or a subject.
+-- A `computes` entry's `from`: an arithmetic expression over numbers and
+-- subjects, with `+ - *`, parentheses, and the usual precedence — `*` binds
+-- tighter than `+` and `-`, and both associate left.
 --
--- **One operator, and no parentheses**, which is the same cap a condition keeps
--- for the same reason: with one there is no precedence to remember, and with two
--- there is a rule a reader has to be taught and cannot check. n-ary addition
--- already has a spelling — successive stat_gain lines onto one stat — so what is
--- missing here is subtraction into a value slot, and that is exactly one
--- operator.
+-- **It held one operator and no parentheses**, on the reasoning that with one
+-- there is no precedence to remember and with two there is a rule a reader has
+-- to be taught. What that cost is visible in Codex: fifteen of its twenty-five
+-- computes exist only as the parentheses it would not write, and the names admit
+-- it — `lead_ig1` and `rest_ig1` are *part one of a sum*, and the attack chain
+-- runs eight deep from `det` to `lead_hold`. AUTHORING's own rule is that two
+-- chained computes are the intended answer and four mean the rule wants a word;
+-- at eight, the word it wants is brackets.
 --
--- Pure grammar, so it splits without a game loaded and the validator reads one
--- at authoring time.
+-- The precedence is the one every reader already has from school, which is the
+-- whole of the argument for allowing it: this is arithmetic and nothing else —
+-- no comparison, no boolean, no call, no branch. A condition still holds its own
+-- line, and `or` is still two abilities.
+--
+-- **Spaces around a binary operator, as before.** They are what tell an operator
+-- from a hyphen inside a name and a minus sign on a literal, so `hp - 1` is a
+-- subtraction and `-1` is a number. The same discipline a condition keeps.
+--
+-- Pure grammar, so it parses without a game loaded and the validator reads one
+-- at authoring time. The result carries the tree and, beside it, the terms in
+-- the order they were written: every caller that checked "is each side a number
+-- or something measurable" wants the leaves and not the shape.
 local ARITH = {
 	["+"] = function(a, b) return a + b end,
 	["-"] = function(a, b) return a - b end,
@@ -742,20 +756,94 @@ local ARITH = {
 
 local split = {}
 
+-- Whitespace first, then parentheses peeled off the ends of what is left. So
+-- "(0 - watching) * 2" tokenises and "(0-watching)*2" is one term that fails the
+-- subject check — which is what the spaces rule already said about "a+b".
+local function tokens(s)
+	local out = {}
+	for chunk in s:gmatch("%S+") do
+		local body = chunk
+		while body:sub(1, 1) == "(" do
+			out[#out + 1] = "("
+			body = body:sub(2)
+		end
+		local tail = 0
+		while body:sub(-1) == ")" do
+			tail = tail + 1
+			body = body:sub(1, -2)
+		end
+		if body ~= "" then out[#out + 1] = body end
+		for _ = 1, tail do out[#out + 1] = ")" end
+	end
+	return out
+end
+
+-- Recursive descent, two levels deep, which is all three operators need.
+local function parse_expr(tk, i)
+	local node, err
+	node, i, err = nil, i, nil
+
+	local function factor(k)
+		local t = tk[k]
+		if t == nil then return nil, k, "the expression stops in the middle" end
+		if t == "(" then
+			local inner, nk, e = parse_expr(tk, k + 1)
+			if not inner then return nil, nk, e end
+			if tk[nk] ~= ")" then return nil, nk, "a bracket is opened and never closed" end
+			return inner, nk + 1
+		end
+		if t == ")" then return nil, k, "a bracket is closed that was never opened" end
+		if ARITH[t] then return nil, k, "'" .. t .. "' has nothing in front of it" end
+		local n = tonumber(t)
+		return n and { n = n } or { term = t }, k + 1
+	end
+
+	local function product(k)
+		local l, nk, e = factor(k)
+		if not l then return nil, nk, e end
+		while tk[nk] == "*" do
+			local r, rk, re = factor(nk + 1)
+			if not r then return nil, rk, re end
+			l, nk = { op = "*", l = l, r = r }, rk
+		end
+		return l, nk
+	end
+
+	node, i, err = product(i)
+	if not node then return nil, i, err end
+	while tk[i] == "+" or tk[i] == "-" do
+		local op = tk[i]
+		local r, rk, re = product(i + 1)
+		if not r then return nil, rk, re end
+		node, i = { op = op, l = node, r = r }, rk
+	end
+	return node, i
+end
+
+local function leaves(node, out)
+	if node.term then out[#out + 1] = node.term
+	elseif node.n then out[#out + 1] = tostring(node.n)
+	else
+		leaves(node.l, out)
+		leaves(node.r, out)
+	end
+	return out
+end
+
 function M.parse_value(s)
 	if type(s) ~= "string" or s:match("^%s*$") then return nil, "a compute needs a \"from\"" end
 	local hit = split[s]
 	if hit == nil then
-		local l, op, r = s:match("^%s*(.-)%s+([%+%-%*])%s+(.-)%s*$")
-		if not l then
-			hit = { left = s:match("^%s*(.-)%s*$") }
-		elseif r:find("[%+%-%*]%s") or r:match("^%s*$") then
-			hit = { err = "one operator per compute — say the rest in a second one" }
+		local tk = tokens(s)
+		local tree, at, err = parse_expr(tk, 1)
+		if not tree then
+			hit = { err = err or "that is not an expression the engine can read" }
+		elseif tk[at] ~= nil then
+			hit = { err = tk[at] == ")" and "a bracket is closed that was never opened"
+				or "'" .. tostring(tk[at]) .. "' comes after the expression has ended" }
 		else
-			hit = { left = l, op = op, right = r }
-		end
-		if not hit.err then
-			for _, side in ipairs({ hit.left, hit.right }) do
+			hit = { tree = tree, terms = leaves(tree, {}) }
+			for _, side in ipairs(hit.terms) do
 				if tonumber(side) == nil and not M.parse_subject(side) then
 					hit = { err = "'" .. side .. "' is not a number and not something the engine can measure" }
 					break
@@ -772,12 +860,16 @@ local function measure_term(s, ctx)
 	return tonumber(s) or M.total(s, ctx)
 end
 
+local function evaluate(node, ctx)
+	if node.n then return node.n end
+	if node.term then return measure_term(node.term, ctx) end
+	return ARITH[node.op](evaluate(node.l, ctx), evaluate(node.r, ctx))
+end
+
 function M.value(s, ctx)
 	local v = M.parse_value(s)
 	if not v then return 0 end
-	local n = measure_term(v.left, ctx)
-	if v.op then n = ARITH[v.op](n, measure_term(v.right, ctx)) end
-	return n
+	return evaluate(v.tree, ctx)
 end
 
 -- Work the named computes out and hand back a ctx carrying them. Evaluated in

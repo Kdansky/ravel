@@ -56,7 +56,7 @@
   "computes": [
     {
       "key": "unique name, which may never be a stat key: the amount slot reads a compute and every condition reads a stat, and one word cannot be both",
-      "from": "what the number is made of: \"<term>\", or \"<term> <op> <term>\" with one of + - * and spaces around it. A term is a number or a subject (\"0 - health@across\", \"cost_white@self - b_white@mine.player\"). One operator and no parentheses, so there is no precedence to remember — n-ary addition is already successive stat_gain lines onto one stat. A term may name another compute, which the ability using it must list first.",
+      "from": "what the number is made of: an arithmetic expression over numbers and subjects, with + - *, parentheses, and the precedence every reader already has — * binds tighter than + and -, and both associate left (\"0 - health@across\", \"(aims:strike_lead * sneak_ok) + lead_t0 + lead_un\"). **Spaces around a binary operator** are what tell one from a hyphen inside a name and a minus sign on a literal, so \"hp - 1\" is a subtraction and \"-1\" is a number. It held one operator and no brackets, and fifteen of Codex's twenty-five computes existed only as the brackets it would not write — lead_ig1 and rest_ig1 were *part one of a sum*, and the attack chain ran eight deep. Arithmetic and nothing else: no comparison, no boolean, no call, no branch, because a condition holds its own line and \"or\" is two abilities. A term may name another compute, which the ability using it must list first.",
       "tooltip": "prose saying what the number means. A compute is where a rule's arithmetic is written down once and given a name, so this is the sentence that would otherwise be a comment nobody can write in JSON."
     }
   ],

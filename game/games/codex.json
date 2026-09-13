@@ -1436,28 +1436,13 @@
   },
   "computes": [
     {
-      "key": "det",
-      "from": "count:detector@enemy.addon",
-      "tooltip": "Does the defender have a detector on their base."
-    },
-    {
-      "key": "unspent",
-      "from": "1 - sum:spotted@opponent",
-      "tooltip": "One while their tower has not yet spotted anything this turn."
-    },
-    {
       "key": "watching",
-      "from": "det * unspent",
+      "from": "count:detector@enemy.addon * (1 - sum:spotted@opponent)",
       "tooltip": "A detector that still has its one look left."
     },
     {
-      "key": "no_det",
-      "from": "1 - watching",
-      "tooltip": "One when nothing is watching — no detector, or its look is already spent — so sneaking works."
-    },
-    {
       "key": "sneak_ok",
-      "from": "sum:sneak@self * no_det",
+      "from": "sum:sneak@self * (1 - watching)",
       "tooltip": "One when this attacker may slip past patrollers unseen."
     },
     {
@@ -1481,18 +1466,8 @@
       "tooltip": "A squad leader too weak to hold this attacker."
     },
     {
-      "key": "lead_ig1",
-      "from": "lead_t0 + lead_un",
-      "tooltip": "Two of the three reasons a leader may be walked past."
-    },
-    {
-      "key": "lead_ig",
-      "from": "lead_ig1 + lead_wk",
-      "tooltip": "Every reason a leader may be walked past that is not about reaching it."
-    },
-    {
       "key": "lead_hold",
-      "from": "lead_pass + lead_ig",
+      "from": "lead_pass + lead_t0 + lead_un + lead_wk",
       "tooltip": "How many squad leaders this attacker is allowed to walk past."
     },
     {
@@ -1531,18 +1506,8 @@
       "tooltip": "Other patrollers too weak to hold this attacker."
     },
     {
-      "key": "rest_ig1",
-      "from": "rest_t0 + rest_un",
-      "tooltip": "Two of the three reasons the other posts may be walked past."
-    },
-    {
-      "key": "rest_ig",
-      "from": "rest_ig1 + rest_wk",
-      "tooltip": "Every reason the other posts may be walked past that is not about reaching them."
-    },
-    {
       "key": "rest_hold",
-      "from": "rest_pass + rest_ig",
+      "from": "rest_pass + rest_t0 + rest_un + rest_wk",
       "tooltip": "How many other patrollers this attacker is allowed to walk past."
     },
     {
@@ -1873,17 +1838,12 @@
             "exhaust": 1
           },
           "compute": [
-            "det",
-            "unspent",
             "watching",
-            "no_det",
             "sneak_ok",
             "lead_t0",
             "lead_pass",
             "lead_un",
             "lead_wk",
-            "lead_ig1",
-            "lead_ig",
             "lead_hold"
           ],
           "needs": [
@@ -1944,17 +1904,12 @@
             "exhaust": 1
           },
           "compute": [
-            "det",
-            "unspent",
             "watching",
-            "no_det",
             "sneak_ok",
             "lead_t0",
             "lead_pass",
             "lead_un",
             "lead_wk",
-            "lead_ig1",
-            "lead_ig",
             "lead_hold",
             "t0_rest",
             "rest_t0",
@@ -1963,8 +1918,6 @@
             "rest_un",
             "wk_rest",
             "rest_wk",
-            "rest_ig1",
-            "rest_ig",
             "rest_hold"
           ],
           "needs": [

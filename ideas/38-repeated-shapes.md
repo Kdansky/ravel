@@ -176,7 +176,7 @@ first pass missed, so the runtime accepted a zone word there while the validator
 refused it — which is how converting Codex found it. Both halves read
 `zone_words` now.
 
-### 3. No word for "in play, at its printed numbers"
+### 3. ~~No word for "in play, at its printed numbers"~~ — shipped
 
 Codex's 18 `summon` abilities are the same nine steps each, six of which are
 `stat_set` restoring a number `card_stats` already prints:
@@ -187,10 +187,25 @@ stat_set:life@self:3    stat_set:armor@self:0   stat_set:guard@self:0
 ```
 
 108 lines saying what the card says above them, because a hero can come back and
-its numbers have to be put back. `transform:<scope>:<card>` is the only verb
-that resets numbers today and it swaps identity to do it. A `reset:<scope>`
-restoring `card_stats` removes all 108, and stops "give heroes a new stat" from
-meaning eighteen edits.
+its numbers have to be put back.
+
+**`reset:<scope>[:<stat>]` shipped**, and the template needed no help: a stat's
+own `start` already folds into `card_stats` at load, so `armor` and `guard` and
+`ripe` restore without being written on every card that has them — three of the
+six lines. Each summon is now `reset:self` and the two or three lines that
+genuinely are the summon.
+
+The ceiling and the floor come back with the value, which is a real change of
+behaviour next to the `stat_set`s it replaces: those only ever moved the value,
+so a hero whose life maximum had been boosted used to come back carrying the
+boost. It is what "printed numbers" means, and the alternative is a word that
+puts most of them back.
+
+Checked by summoning all 29 heroes through the engine with every number they
+carry scrambled first: 882 numbers, 881 back at what the card prints. The one
+that is not is Prynn, whose summon sets `time:4` *after* the reset because she
+arrives with four fading runes and is printed with none — the line doing its
+job.
 
 ### 4. Every arrival and death is run by hand
 
@@ -239,15 +254,36 @@ by **1, not 4**, because a reaction answers a record once (`top.re_answered`).
 Reactions are a response window, not a trigger that fires per arrival — which is
 the right design for reactions and the wrong tool for this.
 
-### 5. `computes` has one operator, and Codex chains eight deep
+### 5. ~~`computes` has one operator, and Codex chains eight deep~~ — shipped
 
-**15 of Codex's 25 computes exist only as parentheses.** The names admit it:
-`lead_ig1` and `rest_ig1` are *part one of a sum*, and the attack chain runs
+**15 of Codex's 25 computes existed only as parentheses.** The names admitted
+it: `lead_ig1` and `rest_ig1` were *part one of a sum*, and the attack chain ran
 `det → unspent → watching → no_det → sneak_ok → lead_pass → lead_ig1 → lead_ig
 → lead_hold`. AUTHORING's own rule is that "two chained is the intended answer;
-four means the rule wants a word of its own". This is eight, and the word it
-wants is parentheses in `from` — or n-ary `+` and `*`, which is most of the same
-relief for less of the grammar.
+four means the rule wants a word of its own". At eight, the word it wanted was
+brackets.
+
+`from` is now an arithmetic expression: `+ - *`, parentheses, `*` binding
+tighter, both associating left. The school precedence precisely so there is no
+second rule to teach — and arithmetic only, no comparison, no boolean, no
+branch. Spaces around a binary operator stay, since they are what tell one from
+a hyphen in a name and a minus on a literal.
+
+Codex is 25 computes down to 18 and the chain three deep instead of eight. Seven
+went: the four whose tooltips said they were fragments of a sum, and `det`,
+`unspent` and `no_det`, each of which fed one parent that was the idea they were
+half of. `lead_hold` is now `lead_pass + lead_t0 + lead_un + lead_wk` and reads
+as the sentence it always was. What stayed are the names a reader would ask
+about — `t0_rest` really is *their tech 0 patrollers other than the squad
+leader*.
+
+Proved algebraically rather than eyeballed: the old chain and the new one
+evaluated over 4,000 random assignments of the fourteen leaf subjects, comparing
+`watching`, `sneak_ok`, `lead_pass`, `rest_pass`, `lead_hold` and `rest_hold` —
+24,000 comparisons, no disagreement.
+
+Division is still absent, and deliberately so for now: it is a new operator and
+a decision about rounding, not more of the same arithmetic.
 
 ### 6. A printed stat that steps
 

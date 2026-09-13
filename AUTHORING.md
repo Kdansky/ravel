@@ -3512,11 +3512,31 @@ a move rule. A **computed tag** may not, and neither may a **phase's** `actions`
 — both are asked without anyone acting, so there is no rule to have listed the
 names. A number those two need is a stat.
 
-`from` is `"<term>"`, or `"<term> <op> <term>"` with one of `+ - *` and spaces
-around it. A term is a number or a subject. **One operator and no parentheses**,
-so there is no precedence to remember. n-ary addition already has a spelling —
-successive `stat_gain` lines onto one stat — so what was missing was subtraction
-into a value slot, and that is exactly one operator.
+`from` is an arithmetic expression over numbers and subjects, with `+ - *`,
+parentheses, and the precedence every reader already has: `*` binds tighter than
+`+` and `-`, and both associate left. **Spaces around a binary operator** are
+what tell one from a hyphen inside a name and a minus sign on a literal, so
+`hp - 1` is a subtraction and `-1` is a number.
+
+```json
+"computes": [
+  { "key": "lead_hold", "from": "(aims:strike_lead * sneak_ok) + lead_t0 + lead_un + lead_wk",
+    "tooltip": "How many squad leaders this attacker is allowed to walk past." }
+]
+```
+
+It held **one operator and no parentheses**, on the reasoning that with one there
+is no precedence to remember. What that cost is visible in Codex: fifteen of its
+twenty-five computes existed only as the parentheses it would not write, and the
+names admitted it — `lead_ig1` and `rest_ig1` were *part one of a sum*, and the
+attack chain ran eight deep. This document's own rule is that two chained are the
+intended answer and four mean the rule wants a word of its own; at eight, the
+word it wanted was brackets.
+
+**Arithmetic and nothing else.** No comparison, no boolean, no call, no branch: a
+condition still holds its own line, a list of them still means *and*, and `or` is
+still two abilities. The precedence is the school one precisely so that there is
+no second rule for a reader to be taught.
 
 A term may name another compute, and then the ability using it must list that
 one **first**: they are worked out in the order the ability gives, each seeing
