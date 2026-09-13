@@ -1663,9 +1663,18 @@ function M.check(G)
 				warn("%s %s: looks for the tag '%s', but no card has it%s", where, field, t, suggest(t, known_tags))
 			end
 		end
+		-- An entry names a zone by its key or a word the zones wear, which is how
+		-- a game says what a class of places has in common instead of listing
+		-- them in every block: Codex's "anything in play" was six keys written
+		-- out in eight blocks, and a seventh board zone would have had to be
+		-- found in all of them.
 		for _, zk in ipairs(type(spec.zones) == "table" and spec.zones or {}) do
-			if not G.zone_defs[zk] then
-				warn("%s %s: searches zone '%s', but no zone has that key%s", where, field, zk, suggest(zk, G.zone_defs))
+			if not (G.zone_defs[zk] or zone_words[zk]) then
+				local places = {}
+				for k in pairs(G.zone_defs) do places[k] = true end
+				for k in pairs(zone_words) do places[k] = true end
+				warn("%s %s: searches '%s', which is neither a zone nor a word any zone wears%s",
+					where, field, zk, suggest(zk, places))
 			end
 		end
 		-- "count" is shorthand for both bounds, so writing it beside one of them

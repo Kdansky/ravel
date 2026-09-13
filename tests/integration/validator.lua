@@ -441,7 +441,7 @@ local CASES = {
 		function(g) g.zone_defs.board.applies = { "flurble" } end },
 	{ "a target looking for a missing tag", "looks for the tag 'dragons'",
 		function(g) g.card_defs.c_flee.target = { type = "card", max = 1, tags = { "dragons" } } end },
-	{ "a target searching a missing zone", "searches zone 'vault'",
+	{ "a target searching a missing zone", "searches 'vault', which is neither a zone nor a word",
 		function(g) g.card_defs.c_flee.target = { type = "card", max = 1, zones = { "vault" } } end },
 	{ "a bare move_to with no board at all", "no board zone to put it on",
 		function(g)

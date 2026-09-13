@@ -134,7 +134,7 @@ able to check a game without running it — so `declaration.G` is empty while it
 works. Reading it there answered for whatever happened to be running, which is
 why the `lor.json` case passed the first time and failed the second.
 
-### 2. `target.zones` matches a zone key, and Codex spells out six — engine half shipped
+### 2. ~~`target.zones` matches a zone key, and Codex spells out six~~ — shipped
 
 Codex has **97 target blocks, 58 of them distinct**, and most of the difference
 between them is which of six board zones they list. "Any card in play" is
@@ -148,19 +148,33 @@ targeting.lua:80 for slots). This turned out to be the same word as §1 rather
 than a second one, so it arrived with it: an entry in `zones` reads a zone tag,
 through the same `place_word` rule, and the two halves cannot drift.
 
-**What is left is Codex's own vocabulary.** The classes the 97 blocks actually
-name, counted:
+**Codex now names four classes**, and 72 of its 97 blocks say one word where
+they listed keys — 278 lines out of the file:
 
-| zones listed | blocks | what it is |
+| word | zones wearing it | blocks |
 |---|---|---|
-| `army`, `patrol` | 36 | where a fighter stands |
-| `patrol` | 14 | the patrol alone |
-| `army`, `patrol`, `command` | 13 | a fighter, a fallen hero included |
-| all six board zones | 8 | anything a spell may hit |
-| `base`, `tech`, `structures`, `addon` (+`patrol`) | 8 | buildings |
+| `fielded` | `army`, `patrol` | 36 |
+| `fighters` | `army`, `patrol`, `command` | 14 |
+| `in_play` | the six board zones | 8 |
+| `built` | `base`, `tech`, `structures`, `addon` | 8 (+4 as `built`, `patrol`) |
 
-Three or four words cover 79 of the 97, and naming them is Codex's decision
-rather than the engine's.
+The 25 blocks left name one zone, or a set with no word worth having
+(`fielded`, `ongoing`; `built`, `army` — their buildings or their army, which is
+`strike_army` having already passed the patrol).
+
+**Checked three ways, because 72 mechanical edits to a 470KB file is not
+something to eyeball.** Every block's zone list was resolved back through the
+tags actually written into the file and compared with the list it replaced: 97
+blocks, 97 identical, 72 of them rewritten. Then the same comparison through the
+engine's own matching (`zone_set[z.key] or zone_set[z.layout] or zone_tagged`)
+over every zone entity Codex builds, which is the predicate `find_targets`
+applies. Then the game played.
+
+**And the word was half-landed until this.** `check_target` validates
+`target.zones` against zone keys in a second place (validate.lua:1666) that the
+first pass missed, so the runtime accepted a zone word there while the validator
+refused it — which is how converting Codex found it. Both halves read
+`zone_words` now.
 
 ### 3. No word for "in play, at its printed numbers"
 

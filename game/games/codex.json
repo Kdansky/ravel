@@ -1978,13 +1978,7 @@
             "type": "card",
             "count": 1,
             "owner": "enemy",
-            "zones": [
-              "army",
-              "base",
-              "tech",
-              "structures",
-              "addon"
-            ],
+            "zones": ["built", "army"],
             "where": [
               "alt@target <= sum:aa@self",
               "bars_t0@target <= tech_level@self"
@@ -2777,6 +2771,7 @@
         1
       ],
       "status": "board",
+      "tags": ["in_play", "fielded", "fighters"],
       "use": "abilities",
       "copies": "per_seat",
       "applies": [
@@ -2803,6 +2798,7 @@
       "label": "Buildings",
       "layout": "row",
       "status": "board",
+      "tags": ["in_play", "built"],
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
@@ -2829,6 +2825,7 @@
         1
       ],
       "status": "board",
+      "tags": ["in_play", "built"],
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
@@ -2856,6 +2853,7 @@
         1
       ],
       "status": "board",
+      "tags": ["in_play", "built"],
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
@@ -2879,6 +2877,7 @@
       "label": "Your forces",
       "layout": "row",
       "status": "board",
+      "tags": ["in_play", "fielded", "fighters"],
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
@@ -2938,6 +2937,7 @@
         1
       ],
       "status": "board",
+      "tags": ["in_play", "built"],
       "use": "abilities",
       "copies": "per_seat",
       "pos": [
@@ -2962,6 +2962,7 @@
       "grid": [1, 3],
       "use": "abilities",
       "status": "exile",
+      "tags": ["fighters"],
       "copies": "per_seat",
       "pos": [
         [
@@ -5296,13 +5297,7 @@
             "type": "card",
             "count": 1,
             "owner": "anyone",
-            "zones": [
-              "base",
-              "tech",
-              "structures",
-              "addon",
-              "patrol"
-            ]
+            "zones": ["built", "patrol"]
           },
           "action": [
             "harm:hp@target:1",
@@ -5329,14 +5324,7 @@
             "type": "card",
             "count": 1,
             "owner": "anyone",
-            "zones": [
-              "army",
-              "base",
-              "tech",
-              "structures",
-              "addon",
-              "patrol"
-            ]
+            "zones": ["in_play"]
           },
           "action": [
             "harm:hp@target:3",
@@ -5811,10 +5799,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "stat_gain:atk@target:1",
@@ -5977,11 +5962,7 @@
             "tags": [
               "fighter"
             ],
-            "zones": [
-              "army",
-              "patrol",
-              "command"
-            ]
+            "zones": ["fighters"]
           },
           "action": [
             "exhaust:target",
@@ -6293,10 +6274,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ],
+            "zones": ["fielded"],
             "where": [
               "tech_level@target <= 2"
             ]
@@ -6415,10 +6393,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "activate_zone:rules_arrive",
@@ -6814,10 +6789,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ],
+            "zones": ["fielded"],
             "where": [
               "not_self@target"
             ]
@@ -6975,10 +6947,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "exhaust:target",
@@ -7028,11 +6997,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol",
-            "command"
-          ]
+          "zones": ["fighters"]
         },
         "action": [
           "stat_set:trained@target:2"
@@ -7075,12 +7040,7 @@
           "tags": [
             "building"
           ],
-          "zones": [
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ]
+          "zones": ["built"]
         },
         "action": [
           "harm:integrity@target:3",
@@ -7210,10 +7170,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "stat_set:unseen@target:1",
@@ -7449,10 +7406,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "move:target:mine.army",
@@ -8054,11 +8008,7 @@
             "tags": [
               "fighter"
             ],
-            "zones": [
-              "army",
-              "patrol",
-              "command"
-            ]
+            "zones": ["fighters"]
           },
           "action": [
             "stat_gain:atk@target:1",
@@ -8614,12 +8564,7 @@
             "tags": [
               "building"
             ],
-            "zones": [
-              "base",
-              "tech",
-              "structures",
-              "addon"
-            ]
+            "zones": ["built"]
           },
           "action": [
             "harm:integrity@target:6",
@@ -8740,10 +8685,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         }
       }
     },
@@ -8897,10 +8839,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:minus@target:1",
@@ -8965,11 +8904,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol",
-            "command"
-          ],
+          "zones": ["fighters"],
           "where": [
             "tech_level@target <= 2"
           ]
@@ -9133,10 +9068,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "stat_set:slot@target:0",
@@ -10011,11 +9943,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol",
-            "command"
-          ],
+          "zones": ["fighters"],
           "where": [
             "atk@target <= 4"
           ]
@@ -10739,10 +10667,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ],
+            "zones": ["fielded"],
             "where": [
               "tech_level@target <= 2"
             ]
@@ -10839,11 +10764,7 @@
           "tags": [
             "hero"
           ],
-          "zones": [
-            "command",
-            "army",
-            "patrol"
-          ]
+          "zones": ["fighters"]
         },
         "action": [
           "stat_damage:level@target:2"
@@ -10911,11 +10832,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol",
-            "command"
-          ]
+          "zones": ["fighters"]
         },
         "action": [
           "stat_set:ready_since@target:1"
@@ -11030,11 +10947,7 @@
             "tags": [
               "fighter"
             ],
-            "zones": [
-              "army",
-              "patrol",
-              "command"
-            ]
+            "zones": ["fighters"]
           },
           "action": [
             "ready:self",
@@ -11165,10 +11078,7 @@
           "tags": [
             "hero"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_set:slot@target:0",
@@ -11580,10 +11490,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "ready:target",
@@ -11647,11 +11554,7 @@
             "tags": [
               "fighter"
             ],
-            "zones": [
-              "army",
-              "patrol",
-              "command"
-            ]
+            "zones": ["fighters"]
           },
           "action": [
             "harm:hp@target:6",
@@ -12018,12 +11921,7 @@
           "type": "card",
           "count": 1,
           "owner": "mine",
-          "zones": [
-            "army",
-            "patrol",
-            "soon",
-            "ongoing"
-          ],
+          "zones": ["fielded", "soon", "ongoing"],
           "where": [
             "time@target >= 1"
           ]
@@ -12066,10 +11964,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:atk@target:1",
@@ -12322,11 +12217,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol",
-            "command"
-          ]
+          "zones": ["fighters"]
         },
         "action": [
           "stat_gain:minus@target:1",
@@ -12496,10 +12387,7 @@
           "tags": [
             "hero"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_set:slot@target:0",
@@ -12570,10 +12458,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:plus@target:1",
@@ -12641,11 +12526,7 @@
             "tags": [
               "fighter"
             ],
-            "zones": [
-              "army",
-              "patrol",
-              "command"
-            ],
+            "zones": ["fighters"],
             "where": [
               "plus@target == 0"
             ]
@@ -12816,10 +12697,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ],
+          "zones": ["fielded"],
           "where": [
             "tech_level@target == 0"
           ]
@@ -12894,10 +12772,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ],
+          "zones": ["fielded"],
           "where": [
             "tech_level@target >= 1",
             "tech_level@target <= 2"
@@ -13165,12 +13040,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "patrol",
-            "soon",
-            "ongoing"
-          ],
+          "zones": ["fielded", "soon", "ongoing"],
           "where": [
             "time@target >= 1"
           ]
@@ -13239,12 +13109,7 @@
             "type": "card",
             "count": 1,
             "owner": "mine",
-            "zones": [
-              "army",
-              "patrol",
-              "soon",
-              "ongoing"
-            ],
+            "zones": ["fielded", "soon", "ongoing"],
             "where": [
               "time@target >= 1"
             ]
@@ -13336,11 +13201,7 @@
             "tags": [
               "fighter"
             ],
-            "zones": [
-              "army",
-              "patrol",
-              "command"
-            ]
+            "zones": ["fighters"]
           },
           "action": [
             "harm:hp@target:1",
@@ -13433,14 +13294,7 @@
           "type": "card",
           "count": 1,
           "owner": "enemy",
-          "zones": [
-            "army",
-            "base",
-            "tech",
-            "structures",
-            "addon",
-            "patrol"
-          ]
+          "zones": ["in_play"]
         },
         "action": [
           "harm:hp@target:10",
@@ -13529,10 +13383,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ],
+          "zones": ["fielded"],
           "where": [
             "tech_level@target <= 2"
           ]
@@ -13580,10 +13431,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_set:unseen@target:1",
@@ -13651,11 +13499,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol",
-            "command"
-          ],
+          "zones": ["fighters"],
           "where": [
             "alt@target >= 1"
           ]
@@ -13853,10 +13697,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_set:time@self:3",
@@ -13952,10 +13793,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "harm:hp@target:4",
@@ -14193,12 +14031,7 @@
           "type": "card",
           "count": 1,
           "owner": "enemy",
-          "zones": [
-            "army",
-            "patrol",
-            "addon",
-            "ongoing"
-          ]
+          "zones": ["fielded", "addon", "ongoing"]
         }
       },
       "abilities": [
@@ -15041,11 +14874,7 @@
             "tags": [
               "fighter"
             ],
-            "zones": [
-              "army",
-              "patrol",
-              "command"
-            ]
+            "zones": ["fighters"]
           },
           "action": [
             "destroy:target",
@@ -16223,14 +16052,7 @@
             "type": "card",
             "count": 1,
             "owner": "anyone",
-            "zones": [
-              "army",
-              "base",
-              "tech",
-              "structures",
-              "addon",
-              "patrol"
-            ]
+            "zones": ["in_play"]
           },
           "action": [
             "harm:hp@target:1",
@@ -16355,14 +16177,7 @@
             "type": "card",
             "count": 1,
             "owner": "anyone",
-            "zones": [
-              "army",
-              "base",
-              "tech",
-              "structures",
-              "addon",
-              "patrol"
-            ]
+            "zones": ["in_play"]
           },
           "action": [
             "harm:hp@target:1",
@@ -16404,13 +16219,7 @@
           "type": "card",
           "count": 1,
           "owner": "enemy",
-          "zones": [
-            "base",
-            "tech",
-            "structures",
-            "addon",
-            "patrol"
-          ]
+          "zones": ["built", "patrol"]
         },
         "action": [
           "harm:hp@target:2",
@@ -16455,10 +16264,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:atk@target:1",
@@ -17275,10 +17081,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:atk@target:1",
@@ -17341,10 +17144,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ],
+          "zones": ["fielded"],
           "where": [
             "tech_level@target <= 2"
           ]
@@ -17476,13 +17276,7 @@
             "type": "card",
             "count": 1,
             "owner": "enemy",
-            "zones": [
-              "base",
-              "tech",
-              "structures",
-              "addon",
-              "patrol"
-            ]
+            "zones": ["built", "patrol"]
           },
           "action": [
             "harm:hp@target:2",
@@ -17534,12 +17328,7 @@
             "tags": [
               "building"
             ],
-            "zones": [
-              "base",
-              "tech",
-              "structures",
-              "addon"
-            ]
+            "zones": ["built"]
           },
           "action": [
             "harm:integrity@target:1",
@@ -17590,10 +17379,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "move_to",
@@ -17675,14 +17461,7 @@
             "type": "card",
             "count": 1,
             "owner": "anyone",
-            "zones": [
-              "army",
-              "base",
-              "tech",
-              "structures",
-              "addon",
-              "patrol"
-            ]
+            "zones": ["in_play"]
           },
           "action": [
             "stat_set:mark@target:1",
@@ -17829,13 +17608,7 @@
           "type": "card",
           "spread": 3,
           "owner": "enemy",
-          "zones": [
-            "base",
-            "tech",
-            "structures",
-            "addon",
-            "patrol"
-          ]
+          "zones": ["built", "patrol"]
         },
         "action": [
           "harm:hp@target:1",
@@ -17878,14 +17651,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "base",
-            "tech",
-            "structures",
-            "addon",
-            "patrol"
-          ]
+          "zones": ["in_play"]
         },
         "action": [
           "harm:hp@target:3",
@@ -17927,14 +17693,7 @@
           "type": "card",
           "count": 1,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "base",
-            "tech",
-            "structures",
-            "addon",
-            "patrol"
-          ]
+          "zones": ["in_play"]
         },
         "action": [
           "harm:hp@target:4",
@@ -17978,14 +17737,7 @@
           "type": "card",
           "spread": 5,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "base",
-            "tech",
-            "structures",
-            "addon",
-            "patrol"
-          ]
+          "zones": ["in_play"]
         },
         "action": [
           "harm:hp@target:1",
@@ -18162,10 +17914,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "stat_damage:plus@self:1",
@@ -18306,10 +18055,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ],
+          "zones": ["fielded"],
           "where": [
             "plus@target == 0"
           ]
@@ -18354,10 +18100,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:atk@target:2",
@@ -18530,10 +18273,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ],
+          "zones": ["fielded"],
           "where": [
             "tech_level@target <= 2",
             "tech_level@target >= 1"
@@ -18667,11 +18407,7 @@
           "min": 0,
           "max": 2,
           "owner": "anyone",
-          "zones": [
-            "army",
-            "ongoing",
-            "patrol"
-          ]
+          "zones": ["fielded", "ongoing"]
         },
         "action": [
           "move_to",
@@ -18823,10 +18559,7 @@
           "tags": [
             "h_balance"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:atk@target:3",
@@ -19460,12 +19193,7 @@
           "tags": [
             "building"
           ],
-          "zones": [
-            "base",
-            "tech",
-            "structures",
-            "addon"
-          ]
+          "zones": ["built"]
         },
         "action": [
           "move_to",
@@ -19514,10 +19242,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "stat_damage:plus@self:1",
@@ -19565,10 +19290,7 @@
             "tags": [
               "unit"
             ],
-            "zones": [
-              "army",
-              "patrol"
-            ]
+            "zones": ["fielded"]
           },
           "action": [
             "stat_gain:plus@target:3"
@@ -19728,10 +19450,7 @@
           "tags": [
             "fighter"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:atk@target:6",
@@ -19777,10 +19496,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "transform:target:squirrel"
@@ -19826,10 +19542,7 @@
           "tags": [
             "unit"
           ],
-          "zones": [
-            "army",
-            "patrol"
-          ]
+          "zones": ["fielded"]
         },
         "action": [
           "stat_gain:atk@target:2",
