@@ -1777,4 +1777,48 @@ function M.test_puzzle_strike_a_copied_chooser_asks_twice(check)
 		phase.current().key == "buy", phase.current().key)
 end
 
+-- **Double-take on a Double-take**, which is the recursion the copy limit was
+-- written for and the first thing anyone tries. It terminates, nothing is left
+-- open, and the outer chip does its whole job — but the two copies do nothing
+-- except end the phase, and that is worth pinning where it can be seen.
+--
+-- A copy carries no targets. `copy:target:play:2` runs the chosen chip's play
+-- list straight, and the copied Double-take's own "choose a chip" is a *target*
+-- on the play rather than an action in it — so the copy has nothing chosen,
+-- copies nothing, trashes nothing, and reaches its last clause with the first
+-- two undone. Thirty-two of the box's chips have a targeted play and every one
+-- of them is copied this way; the chip's own note says so.
+--
+-- The visible cost is the phase end firing three times from a phase that ends
+-- once. "End your action phase" is unconditional, so the second and third run
+-- the buy phase and the turn past their owner. **If a fix ever gives a copy its
+-- targets, this test should fail** — that is what it is for.
+function M.test_puzzle_strike_a_copied_double_take_has_nothing_to_choose(check)
+	opening(7)
+	local seat = zones.active_seat()
+	local other = seat == "south" and "north" or "south"
+	local inner = zones.add(zone_of("hand", seat), "double_take")
+	zones.add(zone_of("hand", seat), "versatile_style")
+	local outer = zones.add(zone_of("hand", seat), "double_take")
+	seat_card(seat).stats.acts = 9
+
+	check("aiming one at the other is a legal play", flow.play_card(outer.id, { inner.id }))
+	check("and it comes to rest rather than recurring", not phase.is_overlay(),
+		phase.current().key)
+	check("with no question left open", count_in("options") == 0, count_in("options"))
+	check("nor one waiting behind it", zones.find("options").pending == nil)
+	check("nor a list still waiting to finish", zones.find("options").after == nil)
+
+	check("the chip it chose was trashed", find_in("hand", "double_take", seat) == nil
+		and find_in("discard", "double_take", seat) == nil)
+	check("and only the chip actually played paid for itself",
+		seat_card(seat).stats.acts == 8, seat_card(seat).stats.acts)
+
+	-- The shortfall, stated as the thing you would notice at the table.
+	check("but the copies found nothing to choose, so nothing was played twice",
+		seat_card(seat).stats.bought == 0, seat_card(seat).stats.bought)
+	check("and their phase ends ran the turn past its own buy phase",
+		zones.active_seat() == other, tostring(zones.active_seat()))
+end
+
 return M

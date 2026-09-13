@@ -133,6 +133,18 @@ The list is short and the chips are many, which is the useful shape:
 - **A zone cannot grant *play* to what lies in it**, only abilities. — Iron
   Defense.
 - **Nothing writes a token onto somebody else's card.** — It's a Trap, Stunlock.
+- **A copy carries no targets, and a third of the box has a targeted play.**
+  `copy:target:play` runs a chip's play list straight, and "choose a chip",
+  "aim at a gem", "pick a pile" are all a `target` on the play rather than an
+  action in it — so the copy reaches the list with nothing chosen. 32 of the
+  chips are shaped that way, and the two that copy plays (**Double-take**,
+  **X Copy**) can reach any of them. Double-take on a Double-take is the case
+  that shows it whole: it terminates and trashes what it chose, and the two
+  copies do nothing but their last clause, whose "end your action phase" is
+  unconditional and runs the buy phase and the turn past their owner. Fixing it
+  means a copy asking the target question itself, which is a question asked with
+  no card in play to hang it on. — Double-take, X Copy, and Crash Gem behind
+  them (it is trashed without going off).
 - **Singles**: no choice of where a card lands (Repeated Jabs, Saving Grace), no
   deferred payment (Gems to Gemonade), nothing remembers the set a draw produced
   (Improvisation), nothing counts the actions a player has played (Combos Are
