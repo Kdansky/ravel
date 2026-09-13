@@ -192,25 +192,52 @@ that resets numbers today and it swaps identity to do it. A `reset:<scope>`
 restoring `card_stats` removes all 108, and stops "give heroes a new stat" from
 meaning eighteen edits.
 
-### 4. Every moment is run by hand
+### 4. Every arrival and death is run by hand
 
-`activate_zone:rules_death` appears 54 times in Codex and `rules_arrive` 49.
-Each one is the author remembering that damage can kill and that an arrival is
-watched. I checked all 104 action lists in the file that damage or destroy
-something: the discipline holds, there is no card that hurts and forgets. It
-holds by hand 103 times.
+`activate_zone:rules_death` appears 54 times in Codex and `rules_arrive` 45 on
+cards, each one the author remembering that damage can kill and that an arrival
+is watched. `rules_arrive` holds **two** rule cards between them — a +1/+1 rune
+on every Blooming Ancient, and a card drawn per Flagstone Garrison — so it is
+two rules and forty-five reminders.
 
-The rules zone itself is right — a column of immutable cards is a good place for
-rules that belong to the game rather than to a card, and COOKBOOK says so. What
-is missing is the game being able to say *when* it is walked. A top-level
-`moments` block naming a zone per moment keeps the idiom and drops the call
-sites.
+**And unlike the death rules, this one is already wrong.** 72 action lists put
+something into `army` or `patrol`; 28 do not run the arrive rules. Codex tries
+to say it once, on the four `techN` tags, whose `play` opens with the call — but
+a tag hands over `play` whole or not at all and a card's own wins outright
+(declaration.lua:1015), so any unit needing its own play action silently loses
+it. Confirmed at load: `bloodrage_ogre` gets the call, `spore_shambler` and
+`young_treant` do not, because both wanted a line of their own. Add every
+`create:mine.army:…` token — skeletons, ninjas, blue soldiers, wisps, squirrels
+— and Blooming Ancient sits there not runing. A handful of the 28 are correct:
+`final_showdown` creates into `enemy.army`, and the rule cards read `mine`.
 
-This is **not** the merge that declaration.lua:1015 refuses. That refusal is
-about handing a card half a moment — "the tag's action under the card's own
-cost, which reads as cleverness and debugs as neither" — and it is right. A
-game-level moment is a new moment with an owner of its own, not a card's block
-with something spliced into it.
+**The answer is the zone, not a global moments block** — which is what the first
+draft of this section proposed, and it was the wrong shape. A zone already has
+`receive`, and `receive` already sees every arrival: `fire_receive` is called
+from the move path (zones.lua:845) *and* the create path (zones.lua:909). Two
+declarations, on `army` and `patrol`, in place of forty-five reminders, and the
+28 misses close by construction because the zone cannot be forgotten.
+
+**What blocks it is one word, and it is not a big one.** `receive` runs its
+block with the *zone* as the acting card and the newcomer as `@target`
+(zones.lua:621). Blooming Ancient's rule is *"whenever **another** unit of yours
+arrives"*, and a rule about the other cards on the board has no way to leave the
+newcomer out: `each.mine.ancient` includes it, and `others` drops the asker,
+which here is the zone. That is exactly what Codex's ordering is a workaround
+for — all 45 call sites fire the rules *before* the move, so the arriving card
+is not yet in scope to catch its own trigger. So the word wanted is "every one
+of these except the one that just arrived", said inside a receive.
+
+**Routing it through `emit` and a mandatory reaction does not work**, and this
+is worth recording because it looks like it should. On a fixture: a zone whose
+`receive` is `emit:arrived`, and a watcher carrying `{ to: "arrived", forced:
+"mandatory", needs: ["not_self@event"] }`. Two things go wrong. The watcher runes
+itself, because the emit's subject is the zone rather than the arriving card, so
+`not_self@event` compares it to the zone and always answers yes. And the count
+is wrong: one play that arrives and then creates three tokens raises the watcher
+by **1, not 4**, because a reaction answers a record once (`top.re_answered`).
+Reactions are a response window, not a trigger that fires per arrival — which is
+the right design for reactions and the wrong tool for this.
 
 ### 5. `computes` has one operator, and Codex chains eight deep
 
