@@ -468,7 +468,7 @@ TEXT = {
                          "(Character chips can't be trashed.)", None, {}),
 
     "double_take": ("Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.",
-     "built: \"copy:target:play:2\" runs the chosen chip's play twice without playing the chip, and \"purge:target\" trashes it. Two things are short of the print. The pick is your hand alone \u2014 a discard is a stack, and a stack offers only the card on top of it. And a copy carries no targets, so a chip that waits to be aimed \u2014 a Crash Gem \u2014 is trashed without going off.",
+     "built: \"copy:target:play:2\" runs the chosen chip's play twice without playing the chip, and \"purge:target\" trashes it. Three things are short of the print. The pick is your hand alone \u2014 a discard is a stack, and a stack offers only the card on top of it. And a copy carries no targets, so a chip that waits to be aimed \u2014 a Crash Gem \u2014 is trashed without going off. The phase end is dropped when the copied chip asks a question. An action list does not wait for an answer \u2014 the menu goes up and the rest of the list runs on \u2014 so the \"next_phase\" here happens while the offer is open, where every phase move is refused.",
      {}),
     "bag_of_tricks": ("+1 brown action, piggy bank, +1 chip", None,
                       {"plus_act": 1, "plus_piggy": 1, "plus_draw": 1}),

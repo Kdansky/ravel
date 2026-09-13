@@ -833,6 +833,32 @@ HANDLERS["set_owner"] = function(p, ctx)
 	end
 end
 
+-- **One offer at a time, because there is one place to hold one.** A second ask
+-- while the first is still up used to tip its cards into the same pile — both
+-- hands lying there together and one seat picking out of the other's — so it is
+-- written down instead and asked when the first is answered.
+--
+-- What waits is the request, not the cards: the source is read again when it
+-- opens, against the board the first answer left. And the seat waits with it,
+-- because an offer is answered by whoever is up — which is the whole of why
+-- "each player discards one" needed this. The loop is long over by the time the
+-- overlay is on the table.
+--
+-- On the zone rather than on either verb, because the rule is the *place's*:
+-- there is one offer and one overlay over it, and what fills it — `show:`
+-- lending real cards, `options:` dealing fresh ones — is no business of whether
+-- a second question may be asked. Written for `show:` and not given to
+-- `options:`, which is how Double-take copying a chooser twice put six cards in
+-- one pile and left an overlay standing over an empty offer.
+local function queue_ask(zone_id, p, ctx)
+	local z = entity.get(zone_id)
+	if #z.cards == 0 then return false end
+	z.pending = z.pending or {}
+	z.pending[#z.pending + 1] = { seat = zones.active_seat(),
+		card = ctx and ctx.card_id or nil, action = table.concat(p, ":") }
+	return true
+end
+
 -- reveal:card_key  — conjure the card into the built-in page overlay. The
 -- player commits blind, then reads the result; the revealed card's own
 -- on_pick continues the story.
@@ -859,23 +885,7 @@ HANDLERS["show"] = function(p, ctx)
 		content_error("show: '" .. tostring(p[2]) .. "' is not a scope")
 		return
 	end
-	-- **One offer at a time, because there is one place to hold one.** A second
-	-- ask while the first is still up used to tip its cards into the same pile —
-	-- both hands lying there together and one seat picking out of the other's —
-	-- so it is written down instead and asked when the first is answered.
-	--
-	-- What waits is the request, not the cards: the scope is read again when it
-	-- opens, against the board the first answer left. And the seat waits with it,
-	-- because an offer is answered by whoever is up — which is the whole of why
-	-- "each player discards one" needed this. The loop is long over by the time
-	-- the overlay is on the table.
-	local z = entity.get(zone_id)
-	if #z.cards > 0 then
-		z.pending = z.pending or {}
-		z.pending[#z.pending + 1] = { seat = zones.active_seat(),
-			card = ctx and ctx.card_id or nil, action = table.concat(p, ":") }
-		return
-	end
+	if queue_ask(zone_id, p, ctx) then return end
 	-- Snapshot before moving, exactly as "move" does: the scope is recomputed
 	-- from live zones and a card that has already left would be counted twice.
 	local moving = {}
@@ -911,6 +921,7 @@ HANDLERS["show"] = function(p, ctx)
 		e.borrowed_from = e.zone_id
 		zones.move_card(id, zone_id)
 	end
+	local z = entity.get(zone_id)
 	z.asked_by    = ctx and ctx.card_id or nil
 	z.dismissable = p[3] == "optional" or nil
 	-- **The seat that asked is the seat that answers**, and it is written down
@@ -956,6 +967,7 @@ HANDLERS["options"] = function(p, ctx)
 		content_error("options: this game has no options zone")
 		return
 	end
+	if queue_ask(zone_id, p, ctx) then return end
 	local src, keys = p[2] or "", {}
 	local from = zones.find(src)
 	if from then

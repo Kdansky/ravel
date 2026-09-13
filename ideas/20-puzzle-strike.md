@@ -100,21 +100,6 @@ buttons too small (a card cannot fill its zone outside a grid), the stat readout
 printed over a gem pile, and the fifty-one-plate draft wanting a layout. All
 three are written up there.
 
-## Open — a copy that asks twice queues an offer nobody can answer
-
-**Double-take** — *"Choose a non-Puzzle chip in your hand or discard pile. Play
-it twice, trash it, then end your action phase."* — is `copy:target:play:2`, and
-when the chip it copies is itself a chooser the two plays open two `options:`
-offers. The first is answered; the second arrives empty, is not `optional`, and
-`dismiss_offer` refuses it, so the game sits in the offer phase for ever with
-`! next_phase: refused, an offer is open` as the last thing in the log. One
-engine-vs-engine game in sixty reaches it, and it reproduces in four lines:
-Double-take aimed at **Versatile Style**. The same shape is waiting behind X Copy
-and anything else that copies a play twice, so the fix belongs with the offer
-queue in [27](27-reactions-and-the-stack.md) rather than on the chip. Found
-during the graves pass and unrelated to it — the same script hangs identically on
-the commit before.
-
 ## The research verdict, and how it held
 
 The gap pass predicted **one** real structural gap — counter-crashing, a chip
@@ -146,6 +131,15 @@ The list is short and the chips are many, which is the useful shape:
 - **A zone cannot grant *play* to what lies in it**, only abilities. — Iron
   Defense.
 - **Nothing writes a token onto somebody else's card.** — It's a Trap, Stunlock.
+- **An action list cannot put a tail behind a question it just asked.** `show:`
+  and `options:` fill the offer, push the overlay and return, so the rest of the
+  list runs while the question is still on the table and the answer arrives long
+  after it has finished. `emit:<verb>:<tail>` is the one word that defers a tail,
+  and it waits on the reaction stack rather than on an offer; a question's tail
+  has one home, the asker's `chosen` block. Double-take — *"play it twice, trash
+  it, then end your action phase"* — cannot reach it, because the question is
+  Versatile Style's and not its own, so its `next_phase` is refused where it
+  stands. The chip's note says so. — Double-take.
 - **Singles**: no choice of where a card lands (Repeated Jabs, Saving Grace), no
   deferred payment (Gems to Gemonade), nothing remembers the set a draw produced
   (Improvisation), nothing counts the actions a player has played (Combos Are

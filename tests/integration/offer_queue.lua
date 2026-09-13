@@ -50,7 +50,9 @@ local GAME = [==[{
       "chosen": { "action": ["move:target:mine.bin", "stat_gain:kept@mine.player:1"] } },
     { "key": "greedy", "text": "Everybody discards, and the first takes the rest", "tags": ["immutable"],
       "abilities": [{ "key": "sweep", "text": "Discard", "action": ["show:mine.hand:optional"] }],
-      "chosen": { "action": ["move:target:mine.bin", "purge:everywhere.chip"] } }
+      "chosen": { "action": ["move:target:mine.bin", "purge:everywhere.chip"] } },
+    { "key": "more", "text": "One more chip", "play": { "action": ["create:mine.hand:chip:1"] } },
+    { "key": "fewer", "text": "One fewer chip", "play": { "action": ["purge:random.mine.hand"] } }
   ],
   "setup": { "place": [{ "card": "sweeper", "zone": "rules" }] }
 }]==]
@@ -194,6 +196,35 @@ function M.test_offer_queue_survives_the_wire(check)
 		answer()
 		check("the second seat is asked as if nothing had happened",
 			zones.active_seat() == "two", zones.active_seat())
+	end)
+end
+
+-- The other half of the same rule, and the half that was missing. `show:` lends
+-- real cards and `options:` deals fresh ones, and they fill the *same* offer
+-- through the same overlay -- so a second `options:` while one is up used to tip
+-- its entries into the pile the first question was still being asked from, and
+-- push a second overlay over them. One answer then cleared the whole zone and
+-- popped one overlay, leaving the other standing over an empty offer that
+-- nothing could dismiss. Puzzle Strike's Double-take found it: it plays a chosen
+-- chip twice, and the chip it chose was a chooser.
+function M.test_offer_queue_a_second_menu_waits_its_turn(check)
+	with_game(nil, function(name)
+		flow.init(name, 3)
+		actions.execute("options:more,fewer", {})
+		actions.execute("options:more,fewer", {})
+		check("the first question is on the table alone", #zones.find("options").cards == 2,
+			#zones.find("options").cards)
+		check("and the second is written down", #zones.find("options").pending == 1,
+			zones.find("options").pending and #zones.find("options").pending or "(none)")
+
+		answer()
+		check("answering it asks the second", #zones.find("options").cards == 2,
+			#zones.find("options").cards)
+		check("with nothing left waiting", zones.find("options").pending == nil)
+
+		answer()
+		check("and the last answer leaves no overlay standing", not phase.is_overlay(),
+			phase.current().key)
 	end)
 end
 

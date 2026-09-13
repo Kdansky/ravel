@@ -1746,4 +1746,30 @@ function M.test_puzzle_strike_picking_a_character_names_the_chair(check)
 		label.seat_text("north") == "Setsuki", label.seat_text("north"))
 end
 
+-- **Double-take copies a chooser, so one card asks the same question twice.**
+-- *"Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash
+-- it, then end your action phase."* Versatile Style is *"choose one: +1 action
+-- and piggy bank — or — +$2 — or — +2 chips"*, and playing it twice is two
+-- menus. There is one offer zone and one overlay over it, and only `show:` knew
+-- that: `options:` tipped its second three entries into the pile the first
+-- question was still being asked from and pushed a second overlay, so answering
+-- once cleared all six and popped one -- leaving an overlay standing over an
+-- empty offer with no way to dismiss it. One engine-vs-engine game in sixty hung
+-- there.
+function M.test_puzzle_strike_a_copied_chooser_asks_twice(check)
+	opening(7)
+	local seat = zones.active_seat()
+	local vs = zones.add(zone_of("hand", seat), "versatile_style")
+	local dt = zones.add(zone_of("hand", seat), "double_take")
+	seat_card(seat).stats.acts = 5
+
+	check("Double-take takes the chooser", flow.play_card(dt.id, { vs.id }))
+	check("and one menu is on the table, not two", count_in("options") == 3, count_in("options"))
+	flow.play_card(find_in("options", "vs_money").id, {})
+	check("answering it asks the copy's own question", count_in("options") == 3, count_in("options"))
+	flow.play_card(find_in("options", "vs_money").id, {})
+	check("both answers paid", seat_card(seat).stats.money == 4, seat_card(seat).stats.money)
+	check("and the turn is playable again", not phase.is_overlay(), phase.current().key)
+end
+
 return M

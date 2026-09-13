@@ -3767,6 +3767,11 @@ before them is answered.** Each is asked of the seat that asked it, so `mine`
 inside the offer and inside the `chosen` block is that player, not whoever
 happened to be up when the list ran.
 
+**The rule is the offer's, not `each_seat:`'s.** Any second question waits, from
+wherever it came: `show:` and `options:` fill the same offer through the same
+overlay, so a card that asks twice — or one that plays another card that asks —
+gets its questions one after the other in the order they were asked.
+
 What waits is the *request*, not the cards it would have shown. The scope is read
 again when the question opens, against the board the previous answer left — so
 "every player discards one" asked of a player whose hand somebody else has just
