@@ -13,11 +13,15 @@ should have said so. The second kind is a word that is missing.
 
 ## Already sayable
 
-- **`count:<tag>@self >= 1` — 79 times in Codex**, where `tagged:<tag>@self` is
-  the word for it (predicate.lua:653). Codex predates the word; Puzzle Strike
-  and Spellstorm use nothing else. Seven more are `count:<tag>@self == 0` for
-  `not_tagged:`. The validator knows both spellings and prefers neither, which
-  is how a game ends up with one of them 79 times.
+- ~~**`count:<tag>@self >= 1` — 79 times in Codex**~~ — **done.** All 79
+  rewritten to `tagged:`/`not_tagged:`, and `count:` always reads a tag where
+  `card:` reads a key, so the two words that are both a tag and a card key in
+  Codex (`skeleton`, `ninja`) mean exactly what they meant. The validator says
+  so now, which is the half that stops it recurring — and it reports the shapes
+  above nought separately, since a pool of one can never reach two and
+  `count:unit@self >= 2` is a condition that cannot hold rather than one that
+  reads oddly. No rewrite is offered for that one: the wrong number and the
+  wrong scope look identical from here.
 
 - **17 mirrored `mine`/`theirs` ability pairs in Codex** — 34 of its 279
   abilities, all on the rules cards: `r_scav`, `r_techie`, `r_heroes`,
@@ -38,10 +42,10 @@ should have said so. The second kind is a word that is missing.
   budget@mine.player` in Puzzle Strike). The other 36 also move `atk` and
   `life`, and those want a word (below).
 
-- **27 `ult_call` abilities in Spellstorm**, every one of them
-  `["emit:resolving"]`, on cards that all carry the `ult` tag. `cards.abilities`
-  gathers tag abilities (cards.lua:212) and `activate_zone` walks whatever that
-  returns, so one entry under `tags.ult.abilities` reaches all 27.
+- ~~**27 `ult_call` abilities in Spellstorm**~~ — **done.** One entry under
+  `tags.ult.abilities` reaches all 27: `cards.abilities` gathers tag abilities
+  (cards.lua:212) and `activate_zone` walks whatever that returns. 234 abilities
+  on cards became 207.
 
 - **Codex's combat macro, written out three times.** `strike_lead`,
   `strike_patrol` and `strike_army` each carry the same 25 steps, 11 of which
@@ -50,10 +54,12 @@ should have said so. The second kind is a word that is missing.
 
 ## Missing words, in the order worth building
 
-### 1. A scope names one place, and the place must be a zone key
+### 1. ~~A scope names one place, and the place must be a zone key~~ — shipped
 
-This is the one to build first, and answering *why Spellstorm has `ice_held`*
-is the whole argument.
+Answering *why Spellstorm has `ice_held`* was the whole argument, and it is
+below as written. What shipped is the fix it argues for, plus one thing the
+survey had not seen; both halves of the word landed together, since §2 turned
+out to be the same word in the other place rather than a second one.
 
 Spellstorm asks "an ICE of mine, wherever I keep it" — hand or discard, not
 deck, not battle, not void. A scope is `[quant.][owner.]<zone>.<tag>`
@@ -112,7 +118,23 @@ game that can say `board` two ways has a synonym, and the reason a tag may carry
 synonyms" (declaration.lua:1019). A game that wants the board as one place tags
 its board zones.
 
-### 2. `target.zones` matches a zone key, and Codex spells out six
+**What the survey had not seen: two kinds of word are never places.** A style is
+one — a zone and the cards lying in it are routinely given the style they share,
+which is how a game says they draw alike, and `lor.json` had exactly that
+(`nexus_plate` on the seat box and on both seat cards) on the first run. The
+other is a word the engine reads off a zone, and finding the list of those cost
+the real time: `stack` is how `flow` finds the response window (flow.lua:1531)
+and nothing had ever declared it, so removing it from Spellstorm as dead weight
+broke ten reaction tests. It is registered now and held to
+`zones.ENGINE_ZONE_TAGS` by a test, so the two lists cannot drift again.
+
+**And `place_word` takes the definitions rather than reading the live game.**
+The validator parses a file and checks what came out — that is the whole of being
+able to check a game without running it — so `declaration.G` is empty while it
+works. Reading it there answered for whatever happened to be running, which is
+why the `lor.json` case passed the first time and failed the second.
+
+### 2. `target.zones` matches a zone key, and Codex spells out six — engine half shipped
 
 Codex has **97 target blocks, 58 of them distinct**, and most of the difference
 between them is which of six board zones they list. "Any card in play" is
@@ -121,10 +143,24 @@ separate times; "their unit" is `["army", "patrol"]`, eleven times. Adding a
 board zone to Codex means editing 97 blocks, and the file gives no way to tell a
 block that means *the board* from one that happens to list those zones.
 
-The matching is `zone_set[z.layout] or zone_set[z.key]` (tags.lua:234, and
-targeting.lua:80 for slots). This is the same word as §1 in the other half of
-the format, and it should arrive at the same time: an entry in `zones` matches a
-zone tag too. Codex tags its six board zones and says `"zones": ["in_play"]`.
+The matching was `zone_set[z.layout] or zone_set[z.key]` (tags.lua:234, and
+targeting.lua:80 for slots). This turned out to be the same word as §1 rather
+than a second one, so it arrived with it: an entry in `zones` reads a zone tag,
+through the same `place_word` rule, and the two halves cannot drift.
+
+**What is left is Codex's own vocabulary.** The classes the 97 blocks actually
+name, counted:
+
+| zones listed | blocks | what it is |
+|---|---|---|
+| `army`, `patrol` | 36 | where a fighter stands |
+| `patrol` | 14 | the patrol alone |
+| `army`, `patrol`, `command` | 13 | a fighter, a fallen hero included |
+| all six board zones | 8 | anything a spell may hit |
+| `base`, `tech`, `structures`, `addon` (+`patrol`) | 8 | buildings |
+
+Three or four words cover 79 of the 97, and naming them is Codex's decision
+rather than the engine's.
 
 ### 3. No word for "in play, at its printed numbers"
 
