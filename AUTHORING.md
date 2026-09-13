@@ -64,7 +64,7 @@ and a line here names a section that exists:
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
-- **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
+- **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `answered` — the announcement itself · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
 
@@ -3227,7 +3227,7 @@ the other.
 | Field | Says |
 |---|---|
 | `to` | the verb answered — the only required one |
-| `where` | a condition about **the event**, read through `@event` |
+| `where` | a condition about **the event**, read through `@event` — and about what it is aimed at, through `@target` |
 | `needs` | a condition about **the reactor**, asked as their seat |
 | `from` | `hand` (played out of one), `board` (used where it lies), or **a zone by name** — a row of ongoing effects laid face up in front of a player is in play and is a *hand* as far as zone types go, so `"from": "ongoing"` is how it says so. Left out, the zone decides |
 | `whose` | `enemy` (somebody else's announcement — the default), `mine` (your own), or `anyone`. See below |
@@ -3247,6 +3247,32 @@ answer goes on the stack above what it answers, so it too can be answered.
 Records resolve last-in-first-out, and when the stack empties priority goes
 home. `counterspell`, written in a reaction's action, means the record it
 answered never happens.
+
+#### `answered` — the announcement itself
+
+A reaction can name the record it is answering, and `counterspell` is only one
+of the three things it can then say about it:
+
+| Says | Means |
+|---|---|
+| `counterspell` | it never happens |
+| `copy:answered` | it happens twice, **aimed as it already was** |
+| `redirect:answered:<who>` | it happens once, aimed somewhere else |
+
+`@event` is the card that was played; `answered` is the *announcement of playing
+it*, which is a different thing and the reason it is worth a word. A record went
+up carrying its targets, so copying one asks nothing and imagines nothing —
+unlike copying a card, where nobody has aimed the copy.
+
+**A redirect is legal by the announcement's own rule, not the redirector's.**
+What may be aimed at is the spec of the thing announced, asked of the board as it
+stands now, so no card can put a spell on something the spell could never have
+chosen. A redirect with nothing legal to offer changes nothing rather than half
+of it, and says so.
+
+`where` reads the aim too, through `@target` — which is what lets a reaction say
+*"a spell aimed at one of my other cards"* rather than answering every spell in
+the game.
 
 Nothing about this shows up in a game with no reactions to a verb. **A window
 opens only when somebody could actually answer**, so a game that emits `cast`
@@ -4802,6 +4828,7 @@ what a player reads.
 | `purge:<scope>[:<n>]` / `purge:self` | Remove cards from play entirely. A bare zone key is a scope, so `purge:hand` is unchanged; `purge:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`purge:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **A component goes back in its box.** If any `status: "supply"` zone stocks the card's kind, the shelf's `stock` goes up by one instead of the card leaving the game — the owner's own box first, anybody's otherwise. So a finite bank is never named at the site that trashes a gem, and never has to be paid back by hand. Nothing stocks it: it stops existing, which is what happens to everything that is not a component. **Nothing is triggered by it**: a purged card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
 | `emit:<verb>[:<action>]` | Announce that something happened, so anybody holding a reaction to that verb may answer it first. What follows the verb is the part that **waits**. Nothing answers it, or the game has no `stack` zone: it runs now. See *Reactions* |
 | `counterspell` | Written in a reaction: the event it answers does not happen. **It names no zone** — the stack holds records, not cards, so nothing moved and there is nothing to put back |
+| `redirect:<announcement>:<who>` | What was announced is aimed at somebody else. The effect is untouched; only the aim moves, which is the difference between taking a spell for one of your own and countering it. The first scope names the record — `answered` inside a reaction — and the second the new aim. **Legal by the announcement's own rule**, judged against the board as it stands, so a spell cannot be laundered onto something it could never have chosen; an illegal aim changes nothing and says so |
 | `set_priority:<scope>` / `clear_priority` | Whoever the scope names may act right now, without the turn moving. The response window does this for itself; write it only for an out-of-turn moment of your own |
 | `load_game:file` | Switch games (menu items, endings). `file` must be a bare `name.json` — no path, no `..` — and is refused otherwise |
 | `open_game` | Ask the player for a game file of *theirs* and play it — a file picker in the browser, a dropped file on the desktop. Nothing is uploaded and nothing is installed: the engine already runs a game handed to it as text, which is how a network invite carries its rules to somebody who has never seen the file, so this is only the asking. A build with no way to ask says nothing and does nothing |

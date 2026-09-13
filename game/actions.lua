@@ -1221,7 +1221,13 @@ HANDLERS["copy"] = function(p, ctx)
 			for _, id in ipairs(doing) do
 				local e = entity.get(id)
 				if e then log.add("Copied " .. ((cards.def(e) or {}).text or e.def_key)) end
-				if moment == "play" then
+				-- A record on the stack, not a card: an announcement waiting to be
+				-- answered. It went up carrying its targets, so this is the one copy
+				-- that needs nothing asked and nothing imagined — and the moment word
+				-- means nothing to it, since a record has one thing it does.
+				if e and e.re_action then
+					if M.on_copy_event then M.on_copy_event(id) end
+				elseif moment == "play" then
 					local todo = e and zones.todo_of(zones.active_seat())
 					if e and not todo then
 						content_error("copy: this game has no todo zone, so a copied play has nowhere to stand")
@@ -1438,6 +1444,36 @@ HANDLERS["counterspell"] = function(_, ctx)
 	if M.on_counter then M.on_counter(ctx) end
 end
 
+-- redirect:<announcement>:<who>  — what was announced is aimed at somebody else.
+-- The effect is untouched; only the aim moves, which is the difference between
+-- Jandra taking a spell for one of her own and a counter making it never happen.
+--
+-- The first scope names the record — `answered` inside a reaction — and the
+-- second says the new aim. What may be aimed at is judged by the *announcement's*
+-- own rule and against the board as it stands, so a card cannot put a spell on
+-- something the spell could never have chosen.
+HANDLERS["redirect"] = function(p, ctx)
+	local rec = predicate.parse_scope(p[2] or "")
+	local to  = predicate.parse_scope(p[3] or "")
+	if not (rec and to) then
+		content_error("redirect: needs an announcement and a new aim, as redirect:<what>:<who>")
+		return
+	end
+	local found
+	for _, e in ipairs(predicate.entities_in_scope(rec.name, ctx, rec.owner, rec.quant)) do
+		if e.re_action and not found then found = e end
+	end
+	if not found then
+		content_error("redirect: '" .. tostring(p[2]) .. "' names no announcement")
+		return
+	end
+	local ids = {}
+	for _, e in ipairs(predicate.entities_in_scope(to.name, ctx, to.owner, to.quant)) do
+		if e.kind == "card" then ids[#ids + 1] = e.id end
+	end
+	if M.on_redirect then M.on_redirect(found.id, ids) end
+end
+
 -- each_seat:<action>  — run one action once per seat, in seat order, with each
 -- seat up in turn and whoever was up put back afterwards.
 --
@@ -1598,6 +1634,7 @@ local SPEC = {
 	clear_priority    = "",
 	emit              = "any action?",
 	counterspell      = "",
+	redirect          = "scope scope",
 	each_seat         = "action",
 	save_game         = "save",
 	load_save         = "save",

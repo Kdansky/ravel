@@ -83,9 +83,13 @@ end
 --
 -- `strict` refuses a card that only *might* be somewhere it could answer from.
 -- Pass it wherever the answer is acted on rather than asked about.
-function M.matches(reaction, e, subject, strict)
+-- `aimed` is what the announcement is pointed at, and it arrives as @target in
+-- the condition. A reaction that answers "a spell aimed at one of my other
+-- cards" cannot be written without it, and it used to be an empty list here --
+-- so every such reaction read as answering everything.
+function M.matches(reaction, e, subject, strict, aimed)
 	if not placed(e, reaction, strict) then return false end
-	local ctx = { event = subject, card_id = e.id, targets = {} }
+	local ctx = { event = subject, card_id = e.id, targets = aimed or {} }
 	if reaction.where and not predicate.meets_all(reaction.where, ctx) then return false end
 	if reaction.needs then
 		local seat = predicate.seat_of(e)
@@ -106,7 +110,7 @@ end
 --
 --   verb     the event verb ("play", "crash", "summon", ...)
 --   subject  the event's subject, a list of card ids (read as @event)
-function M.responders(verb, subject, strict)
+function M.responders(verb, subject, strict, aimed)
 	-- Filter A: nothing, ever, answers this verb.
 	local answering = declaration.G.react_index[verb]
 	if not answering then return {} end
@@ -114,7 +118,7 @@ function M.responders(verb, subject, strict)
 	local out = {}
 	for e in entity.each("card") do
 		for _, hit in ipairs(answering[e.def_key] or EMPTY) do
-			if M.matches(hit.reaction, e, subject, strict) then
+			if M.matches(hit.reaction, e, subject, strict, aimed) then
 				out[#out + 1] = { seat = predicate.seat_of(e), card = e.id,
 					index = hit.index, reaction = hit.reaction }
 			end
@@ -147,8 +151,8 @@ end
 -- answers that seat's announcements at all (the same rule react_step enforces
 -- when it picks who is up), so a verb only shields answer does not put a card on
 -- the stack for a window that then finds nobody to open for.
-function M.anyone_answers(verb, subject, actor)
-	for _, r in ipairs(M.responders(verb, subject)) do
+function M.anyone_answers(verb, subject, actor, aimed)
+	for _, r in ipairs(M.responders(verb, subject, nil, aimed)) do
 		if M.answers_seat(r.reaction, r.seat, actor) then return true end
 	end
 	return false

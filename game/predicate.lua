@@ -305,6 +305,14 @@ function M.entities_in_scope(scope, ctx, owner, quant)
 		-- reaction's record rather than an actor.
 		local e = ctx and ctx.source and entity.get(ctx.source)
 		if e then out[1] = e end
+	elseif scope == "answered" then
+		-- The record a reaction is answering — the thing itself, not what it is
+		-- about. @event is the card that was played; this is the announcement of
+		-- playing it, standing on the stack with its targets still on it. That is
+		-- the difference that makes it worth a word: a record can be copied and
+		-- re-aimed, and a card cannot be either of those while it waits.
+		local e = ctx and ctx.answering and entity.get(ctx.answering)
+		if e then out[1] = e end
 	elseif scope == "target" then
 		for _, id in ipairs(ctx and ctx.targets or {}) do
 			local e = entity.get(id)

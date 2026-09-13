@@ -70,8 +70,14 @@ card, in its own tooltip.
   Guargum. `QUANTS` is `any / each / random / others`; a phase's `order` already
   spells `highest:<stat>`.
 
+- **Jandra, the Negator** is writable now: *"spells and abilities aimed at your
+  other cards hit Jandra instead"* is a mandatory reaction whose `where` reads
+  the aim through `@target` and whose action is `redirect:answered:self`. Both
+  halves shipped with the stack words; what is left is writing the card.
+
 - Single-customer, listed so they are not rediscovered: **Jail** (nothing can
-  redirect somebody else's play), **Reputable Newsman** (a choice is made among
+  redirect somebody else's *play* — a destination, not an aim, so the stack
+  words do not reach it), **Reputable Newsman** (a choice is made among
   cards, and a number is not one), **Censorship Council** (no card may put a
   condition on what another player may play), **Free Speech** (nothing takes a
   card's abilities away), **Building Inspector** (a cost is adjustable only

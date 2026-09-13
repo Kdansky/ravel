@@ -1580,6 +1580,11 @@ local function push_event(e)
 	c.re_event                = e.event or e.subject
 	c.re_targets, c.re_let    = e.targets or {}, e.let
 	c.re_source, c.re_spent   = e.source, e.spent
+	-- Which of the source's abilities this is, when it is one. Only a key, so it
+	-- costs a snapshot nothing — and it is the only way back to what the thing may
+	-- be aimed at, which "redirect" has to know. A play record needs none: its
+	-- spec is the source card's own.
+	c.re_ability              = e.ability
 	c.re_actor, c.re_passed   = zones.active_seat(), {}
 	-- Which cards have already answered this. The stack no longer holds the cards
 	-- played to it, so nothing takes a reaction out of the hand it came from and
@@ -1639,10 +1644,75 @@ local function resolve_top(top)
 	local prev = resolving
 	resolving  = top
 	actions.run(top.re_action, { card_id = top.re_source,
-		event = top.re_event, targets = top.re_targets, let = top.re_let })
+		event = top.re_event, targets = top.re_targets, let = top.re_let,
+		answering = top.re_answering })
 	resolving  = prev
 	send_spent(top.re_source, top.re_spent)
 	zones.purge_card(top.id)
+end
+
+-- Say it again, aimed as it already was. A record is the one thing a copy needs
+-- no help with: it went up carrying its targets, so there is nothing to ask and
+-- nothing to imagine — the same announcement, a second time.
+--
+-- What does not come with it is "spent". The card that announced it is spent
+-- once, however many times the announcement happens; the copy is spent nowhere,
+-- exactly as an imaginary card is. Nor does the actor: push_event stamps whoever
+-- is up, which during a reaction is the seat copying — the copy is theirs, the
+-- way a copied play belongs to the copier.
+function M.copy_event(record_id)
+	local top = entity.get(record_id)
+	if not (top and top.re_action) then return false end
+	return push_event { verb = top.re_verb, action = top.re_action,
+		subject = top.re_subject, event = top.re_event, targets = top.re_targets,
+		source = top.re_source, let = top.re_let } ~= nil
+end
+
+-- What a record may be aimed at: the spec whoever announced it was answering.
+-- A play record's is the source card's own; an ability record's is the ability
+-- it names, which is why the key rides along.
+local function aim_spec(top)
+	local src = top.re_source and entity.get(top.re_source)
+	local def = src and cards.def(src)
+	if not def then return nil end
+	if not top.re_ability then return def.play and def.play.target end
+	for _, a in ipairs(cards.abilities(src) or {}) do
+		if a.key == top.re_ability then return a.target end
+	end
+end
+
+-- Aim it somewhere else. The announcement stands and its effect is unchanged;
+-- only what it is pointed at moves, which is what "hits Jandra instead" means
+-- and what a counter would get wrong by removing the whole thing.
+--
+-- **Legal by the announcement's own rule, not the redirector's.** What may be
+-- aimed at is the spec of the thing announced, asked of the board as it stands
+-- now — so a card cannot launder a spell onto something the spell could never
+-- have chosen, and a redirect with nothing legal to offer changes nothing rather
+-- than half of it.
+function M.redirect(record_id, ids)
+	local top = entity.get(record_id)
+	if not (top and top.re_action) then return false end
+	local spec = aim_spec(top)
+	if not spec then
+		log.add("! redirect: nothing says what this announcement may be aimed at")
+		return false
+	end
+	local lo, hi = targeting.bounds(spec)
+	local pool, kept = targeting.candidates(top.re_source, spec), {}
+	for _, id in ipairs(ids) do
+		for _, ok in ipairs(pool) do
+			if ok == id then kept[#kept + 1] = id break end
+		end
+	end
+	if #kept < lo or #kept > hi then
+		log.add("! redirect: " .. #kept .. " of those may be aimed at, and it wants "
+			.. lo .. (hi ~= lo and (" to " .. hi) or ""))
+		return false
+	end
+	top.re_targets = kept
+	log.add("Redirected " .. ((cards.def(entity.get(top.re_source) or {}) or {}).text or "it"))
+	return true
 end
 
 -- counterspell — what this reaction answers does not happen: its record comes off
@@ -1672,7 +1742,7 @@ end
 -- spends the answer they had not been offered yet.
 local function forced_verdict(top, r)
 	local c = entity.get(r.card)
-	if not reactions.matches(r.reaction, c, top.re_subject, true) then return "no" end
+	if not reactions.matches(r.reaction, c, top.re_subject, true, top.re_targets) then return "no" end
 	if not M.can_afford(r.reaction.cost, { card_id = r.card }) then return "no" end
 	-- A forced reaction that has to be aimed is a question after all, so it is
 	-- offered like any other rather than the engine choosing a target.
@@ -1840,7 +1910,7 @@ function M.react_step()
 	-- is what makes "everyone passed" a state that arrives — one card, one
 	-- answer, per record — and it is what lets a reaction answer its own
 	-- controller without the two of them going back and forth forever.
-	local responders = reactions.responders(top.re_verb, top.re_subject)
+	local responders = reactions.responders(top.re_verb, top.re_subject, nil, top.re_targets)
 
 	-- **Every forced reaction, before any question.** A trigger is not the
 	-- seat's to decline, so passing does not silence it and a card standing
@@ -1917,7 +1987,7 @@ function M.defer_play(card_id, targets)
 	local c = entity.get(card_id)
 	if not (c and stack_zone()) then return false end
 	for _, verb in ipairs(cards.emits(c, "play")) do
-		if reactions.anyone_answers(verb, { card_id }, zones.active_seat()) then
+		if reactions.anyone_answers(verb, { card_id }, zones.active_seat(), targets) then
 			push_event { verb = verb, action = cards.behaviour(c, "on_play"),
 				subject = { card_id }, targets = targets, source = card_id,
 				spent = cards.behaviour(c, "spent") }
@@ -1934,7 +2004,7 @@ end
 -- and an "ability" from the board, and a reaction to one must not catch the other.
 function M.defer_activation(card_id, ability, ctx)
 	for _, verb in ipairs(cards.emits(entity.get(card_id), "activate")) do
-		if M.emit(verb, { card_id }, ability.action, card_id, ctx) then return true end
+		if M.emit(verb, { card_id }, ability.action, card_id, ctx, ability.key) then return true end
 	end
 	return false
 end
@@ -1951,10 +2021,10 @@ end
 -- The ctx rides along, because an action deferred is the same action: its targets
 -- were chosen before the window opened, and any compute it bound was worked out
 -- against the board as it stood then.
-function M.emit(verb, subject, action, source, ctx)
-	if not reactions.anyone_answers(verb, subject, zones.active_seat()) then return false end
+function M.emit(verb, subject, action, source, ctx, ability)
+	if not reactions.anyone_answers(verb, subject, zones.active_seat(), ctx and ctx.targets) then return false end
 	return push_event { verb = verb, action = action, subject = subject, source = source,
-		targets = ctx and ctx.targets, let = ctx and ctx.let } ~= nil
+		targets = ctx and ctx.targets, let = ctx and ctx.let, ability = ability } ~= nil
 end
 
 -- What is waiting to be answered, if anything. An input layer has to ask,
@@ -1984,7 +2054,7 @@ function M.usable_reactions()
 	-- own cards. The window may have opened on a card that only *might* be in
 	-- their hand — that is what keeps the prompt from being evidence — but
 	-- offering them one that is really in their bag would be a lie to their face.
-	for _, r in ipairs(reactions.responders(top.re_verb, top.re_subject, true)) do
+	for _, r in ipairs(reactions.responders(top.re_verb, top.re_subject, true, top.re_targets)) do
 		if r.seat == seat and reactions.answers_seat(r.reaction, seat, top.re_actor)
 			and not has_answered(top, r.card)
 			and M.can_afford(r.reaction.cost, { card_id = r.card }) then
@@ -2039,7 +2109,7 @@ function M.react(card_id, index, targets)
 	if predicate.seat_of(c) ~= seat or has_answered(top, card_id) then return false end
 	local r = cards.reactions(c)[index or 1]
 	if not r or not reactions.answers_seat(r, seat, top.re_actor) then return false end
-	if not reactions.matches(r, c, top.re_subject, true) then return false end
+	if not reactions.matches(r, c, top.re_subject, true, top.re_targets) then return false end
 	if not M.can_afford(r.cost, { card_id = card_id }) then return false end
 	checkpoint()
 	pay(r.cost, { card_id = card_id })
@@ -2070,6 +2140,8 @@ end
 -- require this file. The same for "emit", which needs the stack and the window.
 actions.on_seat_change = M.forget_history
 actions.on_emit = M.emit
+actions.on_copy_event = M.copy_event
+actions.on_redirect = M.redirect
 actions.on_counter = M.counterspell
 
 return M

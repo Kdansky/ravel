@@ -685,7 +685,7 @@ function M.check(G)
 	end
 
 	-- Everything a scope may name, for checking and for suggestions.
-	local scope_names = { target = true, event = true, source = true }
+	local scope_names = { target = true, event = true, source = true, answered = true }
 	for _, k in ipairs(RESERVED_SCOPES) do scope_names[k] = true end
 	for k in pairs(G.zone_defs) do scope_names[k] = true end
 	for k in pairs(known_tags) do scope_names[k] = true end
