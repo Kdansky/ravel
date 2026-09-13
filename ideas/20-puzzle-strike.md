@@ -100,6 +100,21 @@ buttons too small (a card cannot fill its zone outside a grid), the stat readout
 printed over a gem pile, and the fifty-one-plate draft wanting a layout. All
 three are written up there.
 
+## Open — a copy that asks twice queues an offer nobody can answer
+
+**Double-take** — *"Choose a non-Puzzle chip in your hand or discard pile. Play
+it twice, trash it, then end your action phase."* — is `copy:target:play:2`, and
+when the chip it copies is itself a chooser the two plays open two `options:`
+offers. The first is answered; the second arrives empty, is not `optional`, and
+`dismiss_offer` refuses it, so the game sits in the offer phase for ever with
+`! next_phase: refused, an offer is open` as the last thing in the log. One
+engine-vs-engine game in sixty reaches it, and it reproduces in four lines:
+Double-take aimed at **Versatile Style**. The same shape is waiting behind X Copy
+and anything else that copies a play twice, so the fix belongs with the offer
+queue in [27](27-reactions-and-the-stack.md) rather than on the chip. Found
+during the graves pass and unrelated to it — the same script hangs identically on
+the commit before.
+
 ## The research verdict, and how it held
 
 The gap pass predicted **one** real structural gap — counter-crashing, a chip

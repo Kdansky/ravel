@@ -115,6 +115,17 @@ ceiling" first. AUTHORING says so where the comparators are listed, because
 one — `ends_round` against `fired` — which is a real difference between routing
 somewhere and firing once.
 
+## What an empty pool answers, and why the three do not agree
+
+`max:` and `sum:` answer 0 over nothing; `min:` is absent. Deliberate and
+tested — *nothing adds to nothing, nothing is at most nothing* — while a zero
+minimum would sit below every real value and open a gate exactly when the thing
+it measures is not there. Six live conditions lean on it:
+`max:level@enemy.h_blood <= 3` means yes when they hold no Blood hero at all, and
+The Crew's four `max:v_<colour>@mine.hand <= min` say the same about a suit
+nobody holds. Worth re-reading only if a card ever wants the other answer, and
+then it wants a word rather than a change — the asymmetry is the design.
+
 ## What does not become an expression
 
 - **Costs.** A cost names the stat to subtract and by how much; `mana >= 3` says

@@ -108,6 +108,17 @@ wall of fifty-one.] Worth confirming against the screenshot harness before
 building anything: the draft may only look bad because the two draft buttons in
 the same row are 23px squares, which is the gap above and not this one.
 
+## Still open — the log says `{name}`
+
+A seat renamed by `set_name` reads correctly on its card, in its tooltip and on
+the ending banner, because `label.fill` runs when a string is *drawn*. A log line
+is not drawn from anything: `flow` writes `log.add("Played " .. def.text)` and the
+finished string keeps the template, so `tooltip.lua`'s event-log card prints
+`{name} +1 mana` and `— {name} to play —`. Filling it at write time would defeat
+the whole point of [27](27-reactions-and-the-stack.md)'s answer-when-drawn rule;
+filling it at read time needs the entity the line was about, which the log does
+not keep. Found by watching an engine-played Spellstorm seat.
+
 ## What shipped, and what each cost to find
 
 **Text, contrast and layout.** The text band is gone — a card was a picture plus

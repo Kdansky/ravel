@@ -189,3 +189,13 @@ copied.
 Puzzle Strike's bag and Spellstorm's four want no gate at all, and only Codex has
 a rule to write. Ranked on that rather than on difficulty. Needs consent before
 it is built.
+
+## Left: three games name a graveyard they could declare once
+
+Kingdom says `move_to:graveyard` on fifteen cards, Castle on five, The Road on
+eight, and each of the three has exactly one shared `graveyard` zone. Declaring
+it `status: "grave"` would make every one of them `destroy:self`, which is the
+sentence the card actually prints. Nothing is *wrong* today: a shared grave has
+no owner to guess, which is the whole reason the word exists, so this is a
+spelling the three games would gain rather than a bug they carry. Worth doing the
+next time one of them is opened for another reason.

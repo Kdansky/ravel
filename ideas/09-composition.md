@@ -83,3 +83,12 @@ Two consequences that fell out rather than being chosen:
    The layout and the phase list are the parts `include` answers; whether the
    rest is a module or a different game is unexamined, and a variant that
    validates but plays wrong is worse than none.]**
+
+2. **Two validator messages cannot be reached.** 300 of 302 `warn()` calls fire
+   under the suite now, measured by counting the lines a full run touches rather
+   than by matching prose. The two left are both in the action-argument walk and
+   both look like the *binder* rather than the check: `"cannot take cards out of
+   'origin'"` has a twin one loop above that does fire, and `"it should be 'top'
+   or 'bottom', or a count and then one"` wants an argument to land in an `n?`
+   slot where every spelling tried put it in `pos?` instead. Worth an hour on
+   `SPEC` argument binding rather than on the messages.
