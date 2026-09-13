@@ -975,8 +975,8 @@
     },
     "green_unit": {
       "needs": [
-        "count:green@self >= 1",
-        "count:unit@self >= 1"
+        "tagged:green@self",
+        "tagged:unit@self"
       ]
     },
     "veiled": {
@@ -986,14 +986,14 @@
     },
     "barked": {
       "needs": [
-        "count:bark@self >= 1",
+        "tagged:bark@self",
         "slot@self >= 1"
       ]
     },
     "ferned": {
       "needs": [
         "count@mine.self >= 1",
-        "count:unit@self >= 1",
+        "tagged:unit@self",
         "atk@self <= 3",
         "count:ferns@mine.ongoing >= 1"
       ]
@@ -1001,28 +1001,28 @@
     "mighty": {
       "needs": [
         "count@mine.self >= 1",
-        "count:fighter@self >= 1",
+        "tagged:fighter@self",
         "sum:might@mine.ongoing.might >= 5"
       ]
     },
     "drakked": {
       "needs": [
         "count@mine.self >= 1",
-        "count:unit@self >= 1",
+        "tagged:unit@self",
         "max:level@mine.h_blood >= 4"
       ]
     },
     "midori_air": {
       "needs": [
         "count@mine.self >= 1",
-        "count:h_balance@self >= 1",
+        "tagged:h_balance@self",
         "level@self >= 8"
       ]
     },
     "cala_guard": {
       "needs": [
         "count@enemy.self >= 1",
-        "count:unit@self >= 1",
+        "tagged:unit@self",
         "max:level@enemy.h_feral >= 3"
       ]
     },
@@ -1039,7 +1039,7 @@
     "rampaging": {
       "needs": [
         "rampage@self >= 1",
-        "count:overpower@self == 0"
+        "not_tagged:overpower@self"
       ]
     },
     "tok_unseen": {
@@ -1050,7 +1050,7 @@
     },
     "tiger_unseen": {
       "needs": [
-        "count:stalker@self >= 1",
+        "tagged:stalker@self",
         "slot@self == 0",
         "count@enemy.self >= 1",
         "count:h_feral@enemy.hero >= 1"
@@ -1067,24 +1067,24 @@
     },
     "t0_ok": {
       "needs": [
-        "count:tech0@self >= 1"
+        "tagged:tech0@self"
       ]
     },
     "t1_ok": {
       "needs": [
-        "count:tech1@self >= 1",
+        "tagged:tech1@self",
         "count:t1@mine.tech >= 1"
       ]
     },
     "t2_ok": {
       "needs": [
-        "count:tech2@self >= 1",
+        "tagged:tech2@self",
         "count:t2@mine.tech >= 1"
       ]
     },
     "t3_ok": {
       "needs": [
-        "count:tech3@self >= 1",
+        "tagged:tech3@self",
         "count:t3@mine.tech >= 1"
       ]
     },
@@ -1106,7 +1106,7 @@
     "runed": {
       "needs": [
         "plus@self >= 1",
-        "count:overpower@self == 0",
+        "not_tagged:overpower@self",
         "count:elm@mine.structures >= 1"
       ]
     },
@@ -1118,43 +1118,43 @@
     },
     "mimic_air": {
       "needs": [
-        "count:mimic@self >= 1",
+        "tagged:mimic@self",
         "sum:alt@others.anyone.fighter >= 1"
       ]
     },
     "mimic_haste": {
       "needs": [
-        "count:mimic@self >= 1",
+        "tagged:mimic@self",
         "count:haste@others.anyone.fighter >= 1"
       ]
     },
     "mimic_over": {
       "needs": [
-        "count:mimic@self >= 1",
+        "tagged:mimic@self",
         "count:overpower@others.anyone.fighter >= 1"
       ]
     },
     "mimic_ward": {
       "needs": [
-        "count:mimic@self >= 1",
+        "tagged:mimic@self",
         "count:untargetable@others.anyone.fighter >= 1"
       ]
     },
     "mimic_sneak": {
       "needs": [
-        "count:mimic@self >= 1",
+        "tagged:mimic@self",
         "sum:sneak@others.anyone.fighter >= 1"
       ]
     },
     "judged": {
       "needs": [
-        "count:unit@self >= 1",
+        "tagged:unit@self",
         "tech_level@self <= 2"
       ]
     },
     "bluecoat_lr": {
       "needs": [
-        "count:bluecoat@self >= 1",
+        "tagged:bluecoat@self",
         "atk@self == 1"
       ]
     },
@@ -1166,7 +1166,7 @@
     },
     "weak": {
       "needs": [
-        "count:fighter@self >= 1",
+        "tagged:fighter@self",
         "atk@self <= 2"
       ]
     },
@@ -1182,7 +1182,7 @@
     },
     "hammering": {
       "needs": [
-        "count:hammer@self >= 1",
+        "tagged:hammer@self",
         "count:building@across >= 1",
         "count:damaged@across >= 1"
       ]
@@ -1207,14 +1207,14 @@
     },
     "reviving": {
       "needs": [
-        "count:juggernaut@self >= 1",
+        "tagged:juggernaut@self",
         "hp@self < 1",
         "lives@self == 0"
       ]
     },
     "revived": {
       "needs": [
-        "count:juggernaut@self >= 1",
+        "tagged:juggernaut@self",
         "hp@self < 1",
         "lives@self == 2"
       ]
@@ -1227,7 +1227,7 @@
     },
     "crumbled": {
       "needs": [
-        "count:juggernaut@self >= 1",
+        "tagged:juggernaut@self",
         "hp@self >= 1",
         "lives@self == 2"
       ]
@@ -1258,7 +1258,7 @@
     },
     "skeletal": {
       "needs": [
-        "count:skeleton@self >= 1",
+        "tagged:skeleton@self",
         "count:archery@mine.structures >= 1"
       ]
     },
@@ -1269,8 +1269,8 @@
     },
     "abominated": {
       "needs": [
-        "count:unit@self >= 1",
-        "count:abom@self == 0",
+        "tagged:unit@self",
+        "not_tagged:abom@self",
         "count:abom@others.anyone.unit >= 1"
       ]
     },
@@ -1282,51 +1282,51 @@
     },
     "bonelorded": {
       "needs": [
-        "count:skeleton@self >= 1",
+        "tagged:skeleton@self",
         "count:bonelord@mine.unit >= 1"
       ]
     },
     "shadowed": {
       "needs": [
-        "count:black@self >= 1",
-        "count:unit@self >= 1",
+        "tagged:black@self",
+        "tagged:unit@self",
         "slot@self == 0",
         "count:shadowlord@mine.unit >= 1"
       ]
     },
     "safe_attacker": {
       "needs": [
-        "count:unit@self >= 1",
+        "tagged:unit@self",
         "attacking@self >= 1",
-        "count:tech2@self == 0",
-        "count:tech3@self == 0",
+        "not_tagged:tech2@self",
+        "not_tagged:tech3@self",
         "count:safely@mine.safely >= 1"
       ]
     },
     "parried": {
       "needs": [
-        "count:fighter@self >= 1",
+        "tagged:fighter@self",
         "count@mine.self >= 1",
         "count:mindparry@mine.unit >= 1"
       ]
     },
     "drilled": {
       "needs": [
-        "count:hero@self >= 1",
+        "tagged:hero@self",
         "count@mine.self >= 1",
         "count:dojo@mine.structures >= 1"
       ]
     },
     "monumented": {
       "needs": [
-        "count:hero@self >= 1",
+        "tagged:hero@self",
         "count@mine.self >= 1",
         "count:monument@mine.structures >= 1"
       ]
     },
     "denned": {
       "needs": [
-        "count:ninja@self >= 1",
+        "tagged:ninja@self",
         "slot@self == 0",
         "count@mine.self >= 1",
         "count:den@mine.structures >= 1"
@@ -1334,35 +1334,35 @@
     },
     "ninja_air": {
       "needs": [
-        "count:ninja@self >= 1",
+        "tagged:ninja@self",
         "count@mine.self >= 1",
         "count:headmistress@mine.unit >= 1"
       ]
     },
     "mythed": {
       "needs": [
-        "count:legendary@self >= 1",
+        "tagged:legendary@self",
         "count@mine.self >= 1",
         "count:myth@mine.ongoing >= 1"
       ]
     },
     "unmythed": {
       "needs": [
-        "count:legendary@self >= 1",
+        "tagged:legendary@self",
         "count@enemy.self >= 1",
         "count:myth@mine.ongoing >= 1"
       ]
     },
     "hurt_build": {
       "needs": [
-        "count:building@self >= 1",
+        "tagged:building@self",
         "integrity@self >= 1",
         "integrity@self < 4"
       ]
     },
     "faded": {
       "needs": [
-        "count:fading@self >= 1",
+        "tagged:fading@self",
         "time@self == 0",
         "slot@self >= 0"
       ]
@@ -1374,31 +1374,31 @@
     },
     "grounded": {
       "needs": [
-        "count:unit@self >= 1",
+        "tagged:unit@self",
         "slot@self >= 1",
         "alt@self == 0"
       ]
     },
     "nebulous": {
       "needs": [
-        "count:unit@self >= 1",
+        "tagged:unit@self",
         "slot@self == 0",
         "count@mine.self >= 1",
         "count:nebular@mine.unit >= 1",
-        "count:nebular@self == 0"
+        "not_tagged:nebular@self"
       ]
     },
     "rewound": {
       "needs": [
-        "count:unit@self >= 1",
+        "tagged:unit@self",
         "tech_level@self <= 2",
-        "count:token@self == 0"
+        "not_tagged:token@self"
       ]
     },
     "spent_now": {
       "needs": [
         "exhausted@self",
-        "count:fighter@self >= 1"
+        "tagged:fighter@self"
       ]
     }
   },
@@ -6197,7 +6197,7 @@
           "main"
         ],
         "needs": [
-          "count:t1_ok@self >= 1"
+          "tagged:t1_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -6238,7 +6238,7 @@
           "main"
         ],
         "needs": [
-          "count:t1_ok@self >= 1"
+          "tagged:t1_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -6402,7 +6402,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -8721,7 +8721,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -9003,7 +9003,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -9103,7 +9103,7 @@
           "main"
         ],
         "needs": [
-          "count:t3_ok@self >= 1"
+          "tagged:t3_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -9248,7 +9248,7 @@
           "main"
         ],
         "needs": [
-          "count:t0_ok@self >= 1"
+          "tagged:t0_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -9332,7 +9332,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -9961,7 +9961,7 @@
           "main"
         ],
         "needs": [
-          "count:t3_ok@self >= 1"
+          "tagged:t3_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -10078,7 +10078,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -10273,7 +10273,7 @@
           "main"
         ],
         "needs": [
-          "count:t3_ok@self >= 1"
+          "tagged:t3_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -10339,7 +10339,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -10383,7 +10383,7 @@
           "main"
         ],
         "needs": [
-          "count:t1_ok@self >= 1"
+          "tagged:t1_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -11100,7 +11100,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -11250,7 +11250,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -11292,7 +11292,7 @@
           "main"
         ],
         "needs": [
-          "count:t3_ok@self >= 1"
+          "tagged:t3_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -11395,7 +11395,7 @@
           "main"
         ],
         "needs": [
-          "count:t0_ok@self >= 1"
+          "tagged:t0_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -11620,7 +11620,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -11715,7 +11715,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -12002,7 +12002,7 @@
           "main"
         ],
         "needs": [
-          "count:t1_ok@self >= 1"
+          "tagged:t1_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -12206,7 +12206,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -12403,7 +12403,7 @@
           "main"
         ],
         "needs": [
-          "count:t0_ok@self >= 1"
+          "tagged:t0_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -12795,7 +12795,7 @@
           "main"
         ],
         "needs": [
-          "count:t1_ok@self >= 1"
+          "tagged:t1_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -12995,7 +12995,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -13068,7 +13068,7 @@
           "main"
         ],
         "needs": [
-          "count:t0_ok@self >= 1"
+          "tagged:t0_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -13306,7 +13306,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -14095,7 +14095,7 @@
           "main"
         ],
         "needs": [
-          "count:t2_ok@self >= 1"
+          "tagged:t2_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"
@@ -14177,7 +14177,7 @@
           "main"
         ],
         "needs": [
-          "count:t3_ok@self >= 1"
+          "tagged:t3_ok@self"
         ],
         "cost": {
           "gold@mine.player": "price@self"

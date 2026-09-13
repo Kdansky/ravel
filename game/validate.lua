@@ -970,6 +970,37 @@ function M.check(G)
 					or "")
 			return
 		end
+		-- **"@self" is one card, so counting it is asking whether it is one.**
+		-- "count:unit@self >= 1" is "tagged:unit@self" with the answer dressed as
+		-- a tally, and the pool it counts can only ever hold nought or one -- so
+		-- the shapes above nought ("count:unit@self >= 2") are conditions that
+		-- can never hold, and nothing distinguishes them from a typo. Codex was
+		-- written before "tagged:" existed and said it that way 79 times, which
+		-- is how a corpus ends up with two spellings for one question: neither
+		-- the validator nor the format preferred one.
+		-- No quantifier check: "self" is one entity, so parse_scope's default
+		-- ("any") is the only word that ever reaches here and it narrows nothing.
+		local ls = c.left.subject
+		if ls and ls.fn == "count" and ls.arg and ls.scope == "self" then
+			local want = (c.op == ">=" and c.right.n == 1 and "tagged")
+				or ((c.op == "==" or c.op == "<=") and c.right.n == 0 and "not_tagged")
+			if want then
+				warn('%s: "%s" counts one card, which is asking whether it is one — write '
+					.. '"%s:%s@self"', where, tostring(s), want, ls.arg)
+				return
+			end
+			-- And a pool of one can never reach two. Said separately because the
+			-- answer is not a rewrite: a condition that cannot hold is either the
+			-- wrong scope or the wrong number, and only the author knows which.
+			local n = c.right.n
+			if type(n) == "number" and n > 1
+				and (c.op == ">=" or c.op == ">" or c.op == "==") then
+				warn('%s: "%s" can never hold — "@self" is one card, so counting it never '
+					.. "reaches %s. Did you mean a wider scope, or \"tagged:%s@self\"?",
+					where, tostring(s), tostring(n), ls.arg)
+				return
+			end
+		end
 		if bound and bound[c.right.src] then
 			-- A compute, named where the ability bound it. Legitimate on either
 			-- side: it is a number with a name, and one comparison is two operands.

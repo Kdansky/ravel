@@ -1019,11 +1019,6 @@ def spell_template(c):
         "%s: the offers have to be the last thing its cast does" % c["key"]
 
     abil = []
-    # The [ULT] icon. A phase of its own walks the battle spots for this one
-    # ability, so only a card wearing the icon announces itself -- and it is the
-    # card that announces, not a rule about the round, because the window the
-    # player is shown says which card opened it.
-    if c["ult"]: abil.append(ability("ult_call", ["emit:resolving"], text="Ultimate"))
     # Kept even when it is empty, so the resolve phase's first pass always has
     # something to name.
     abil.append(ability("cast", does, text="Resolve"))
@@ -1869,6 +1864,16 @@ def build():
                     "needs": ["tier@mine.player >= tier_req@self"],
                     "action": ["move_to:mine.hand",
                                REFILL_CLOUD, "stat_gain:took@mine.player:1"]}]},
+            # The [ULT] icon, said once for the twenty-seven cards that carry
+            # it. A phase of its own walks the battle spots for this one
+            # ability, so only a card wearing the icon announces itself -- and
+            # it is the card that announces, not a rule about the round, because
+            # the window the player is shown says which card opened it. On the
+            # tag rather than on each card because "carries the icon" is what
+            # the tag already means, and a column walk reaches a tag's abilities
+            # exactly as it reaches a card's own.
+            "ult": {"abilities": [{"key": "ult_call", "text": "Ultimate",
+                                   "action": ["emit:resolving"]}]},
         },
         "zones": zones(),
         "phases": phases(),

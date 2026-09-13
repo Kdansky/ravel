@@ -189,7 +189,8 @@
           ]
         }
       ]
-    }
+    },
+    "ult": { "abilities": [{ "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] }] }
   },
   "zones": [
     {
@@ -695,7 +696,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:mana@mine.player:1"] },
         {
           "key": "cast2",
@@ -864,7 +864,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@opponent:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
@@ -879,7 +878,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1249,7 +1247,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1300,7 +1297,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1317,7 +1313,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.earth:optional"] }
       ],
@@ -1637,7 +1632,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1658,7 +1652,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1681,7 +1674,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1703,7 +1695,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1720,7 +1711,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1788,7 +1778,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1815,7 +1804,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1889,7 +1877,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1913,7 +1900,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1972,7 +1958,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -1993,7 +1978,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2057,7 +2041,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2084,7 +2067,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2144,7 +2126,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": [] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
       ],
@@ -2159,7 +2140,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2224,7 +2204,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2247,7 +2226,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": ["stat_gain:health@mine.player:2"] },
         {
           "key": "cast2",
@@ -2312,7 +2290,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": ["stat_damage:health@opponent:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
@@ -2335,7 +2312,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",
@@ -2411,7 +2387,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         { "key": "cast", "text": "Resolve", "action": [] },
         {
           "key": "cast2",
@@ -2435,7 +2410,6 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] },
         {
           "key": "cast",
           "text": "Resolve",

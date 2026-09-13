@@ -1090,6 +1090,37 @@ function M.test_validator_reads_fills_scope_form(check)
 		has_problem(said, "names the card 'thign'"), table.concat(said, "; "))
 end
 
+-- "@self" is one card, so counting it is asking whether it is one. Codex was
+-- written before "tagged:" existed and said it that way 79 times, which is how a
+-- corpus keeps two spellings for one question -- and the counts above nought
+-- cannot hold at all, so nothing tells them from a typo.
+function M.test_validator_counting_one_card_is_asking_about_it(check)
+	local path = "game/games/tmp_count_self.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+		"title": "Count self",
+		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
+		"phases": [{ "key": "turn", "type": "player_input" }],
+		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem", "red"], "abilities": [
+			{ "key": "a", "needs": ["count:gem@self >= 1"], "action": ["end_phase"] },
+			{ "key": "b", "needs": ["count:red@self == 0"], "action": ["end_phase"] },
+			{ "key": "c", "needs": ["count:gem@board >= 1"], "action": ["end_phase"] },
+			{ "key": "d", "needs": ["count:gem@self >= 2"], "action": ["end_phase"] }] }]
+	}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_count_self.json")
+	os.remove(path)
+	if not ok then error(G, 2) end
+	local said = table.concat(validate.check(G), "; ")
+	check("the positive form is sent to tagged:", said:find('write "tagged:gem@self"', 1, true), said)
+	check("and the nought form to its complement",
+		said:find('write "not_tagged:red@self"', 1, true), said)
+	check("a scope that is a pool is left alone",
+		not said:find("count:gem@board", 1, true), said)
+	check("and a count that can never hold is still reported as a count",
+		said:find("count:gem@self >= 2", 1, true), said)
+end
+
 -- "<zone>.<tag>" is two names, and both have to exist. The complaint says which
 -- half is wrong, because "no zone called that" is a sentence somebody can act on
 -- and "that is not a scope" is not.
