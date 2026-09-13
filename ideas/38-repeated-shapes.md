@@ -207,7 +207,7 @@ that is not is Prynn, whose summon sets `time:4` *after* the reset because she
 arrives with four fading runes and is printed with none — the line doing its
 job.
 
-### 4. Every arrival and death is run by hand
+### 4. ~~Every arrival and death is run by hand~~ — the arrival half shipped
 
 `activate_zone:rules_death` appears 54 times in Codex and `rules_arrive` 45 on
 cards, each one the author remembering that damage can kill and that an arrival
@@ -243,16 +243,60 @@ for — all 45 call sites fire the rules *before* the move, so the arriving card
 is not yet in scope to catch its own trigger. So the word wanted is "every one
 of these except the one that just arrived", said inside a receive.
 
-**Routing it through `emit` and a mandatory reaction does not work**, and this
-is worth recording because it looks like it should. On a fixture: a zone whose
-`receive` is `emit:arrived`, and a watcher carrying `{ to: "arrived", forced:
-"mandatory", needs: ["not_self@event"] }`. Two things go wrong. The watcher runes
-itself, because the emit's subject is the zone rather than the arriving card, so
-`not_self@event` compares it to the zone and always answers yes. And the count
-is wrong: one play that arrives and then creates three tokens raises the watcher
-by **1, not 4**, because a reaction answers a record once (`top.re_answered`).
-Reactions are a response window, not a trigger that fires per arrival — which is
-the right design for reactions and the wrong tool for this.
+**What shipped is `arrives` on the zone plus a reaction on the watcher**, and
+the route there ran through two wrong answers worth recording.
+
+The first was a global `moments` block, which was the wrong shape: the arrival
+belongs to the place it happens in, not to a table of hooks.
+
+The second was that `receive` already sees every arrival. It does not. I measured
+a zone `receive` firing once for a play that landed a card and created three
+tokens, and read that as "a reaction answers a record once". Both halves were
+wrong: **`create` never fires `receive` at all** — `zones.add` (zones.lua:315)
+does not call it, where `move_card` and `take` do — so there was only ever one
+emit to answer. Four separate emits do get four answers, measured. And that
+reframed the count: **22 of the 28 arrivals Codex was failing to announce are
+`create:` lines**, 13 are moves, so no receive-based design would have caught the
+majority of them.
+
+So the word is a new block rather than a mode on `receive`, because the two are
+different questions: `receive` fires on every landing in any zone, which is what
+a discard stamping its owner wants, and `arrives` fires only on a card coming
+*into play*.
+
+**The retrigger rule was already written, at the other end.** `leaves` fires only
+when `from.status == "board"` and `to.status ~= "board"` (zones.lua:585) — a unit
+walking between two board zones announces no departure. `arrives` is the mirror,
+and it has to be: Codex's whole combat is a move out to the `duel` zone and home
+again, and an arrival trigger without that rule would fire on every attack. A
+card lent to a question is covered by the same substitution `fire_leaves` already
+makes: `show:` writes `borrowed_from` before it moves the card (actions.lua:987),
+so the zone it counts as coming from is the one it was borrowed *from* and a
+round trip through an offer announces nothing.
+
+**Asked with the arriving card as `@self`**, where `receive` is asked with the
+zone. That is what lets `emit` name the newcomer as its subject and `others`
+leave it out of a pool — neither of which a zone-shaped context can say, and the
+reason the first attempt had the watcher runing itself.
+
+Codex now:
+
+```json
+"zones":  [{ "key": "army", "arrives": { "action": ["emit:arrived"] } }],
+"cards":  [{ "key": "blooming_ancient",
+  "reactions": [{ "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+                  "needs": ["not_self@event", "tagged:unit@event"],
+                  "action": ["stat_gain:plus@self:1"] }] }]
+```
+
+The rule is on the card that prints it. `rules_arrive`, both rule cards, both
+`setup.place` entries and **49** `activate_zone:rules_arrive` lines are gone, and
+the 28 misses close by construction because the engine fires the moment rather
+than the author remembering to.
+
+`rules_death` is the other half and is not done. It wants the same treatment from
+the other end, and `leaves` already has the timing — what it lacks is the same
+per-arrival announcement for a death that a game-wide rule can answer.
 
 ### 5. ~~`computes` has one operator, and Codex chains eight deep~~ — shipped
 

@@ -18,6 +18,8 @@ local actions = require("actions")
 local NESTED = {
 	target = true, route = true,
 	play = true, challenge = true, receive = true,
+	-- A zone's arrival block, documented beside "receive" in the zones entry.
+	arrives = true,
 	round = true, chosen = true, leaves = true,
 	-- An aura entry lives inside a tag, beside the behaviour blocks.
 	adjusts = true,

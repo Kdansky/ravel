@@ -183,6 +183,8 @@ local ZONE_FIELDS = {
 	-- what clicking it does, written as the list a card writes
 	abilities = true,
 	injected = true, applies = true, accepts = true, on_receive = true, receive = true,
+	-- what happens when a card comes into play here, as opposed to merely lands
+	arrives = true, arrives_needs = true, on_arrives = true,
 	asset = true,
 }
 local PHASE_FIELDS = {
@@ -362,6 +364,7 @@ M.FIELDS = {
 	play          = PLAY_FIELDS,
 	challenge     = CHALLENGE_FIELDS,
 	receive       = RECEIVE_FIELDS,
+	arrives       = RECEIVE_FIELDS,
 	round         = ROUND_FIELDS,
 	chosen        = CHOSEN_FIELDS,
 	leaves        = LEAVES_FIELDS,
@@ -382,7 +385,8 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, style = true,
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	compute = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_receive = true, on_round = true, on_chosen = true, chosen_where = true,
+	on_receive = true, on_arrives = true, arrives_needs = true,
+	on_round = true, on_chosen = true, chosen_where = true,
 	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true,
 	zone_list = true, auto_play = true, to_slot = true }
 
@@ -2892,6 +2896,16 @@ function M.check(G)
 		end
 		check_conditions(where .. " accepts", def.accepts)
 		check_list(where .. " receive action", def.on_receive)
+		-- The arrival block, asked with the arriving card as @self rather than
+		-- with the zone -- so a condition here is about the newcomer.
+		check_conditions(where .. " arrives needs", def.arrives_needs)
+		check_list(where .. " arrives action", def.on_arrives)
+		if def.on_arrives and def.status ~= "board" then
+			warn('%s: says "arrives", but its status is %s — a card can only come into play in a '
+				.. 'zone that *is* play, so nothing would ever fire it. "receive" is the word for '
+				.. 'anything landing here', where,
+				def.status and ("'" .. tostring(def.status) .. "'") or "not board")
+		end
 		-- What a supply cannot also be. Its cards are a number, so anything that
 		-- reads an order or moves the card standing for the stock is asking a
 		-- question the zone has promised nobody would ask.

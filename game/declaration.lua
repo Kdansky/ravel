@@ -34,6 +34,12 @@ local MOMENTS = {
 		action = "on_play", spent = "spent", compute = "compute" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
 	receive   = { needs = "accepts", action = "on_receive" },
+	-- The arrival counterpart to a card's "leaves", on the zone that receives.
+	-- Separate from "receive" and not a field on it: "receive" fires on every
+	-- landing in any zone -- which is what a discard stamping its owner wants
+	-- -- and this fires only when a card comes *into play*, which is what an
+	-- arrival trigger means. One word each rather than a mode on one word.
+	arrives   = { needs = "arrives_needs", action = "on_arrives" },
 	round     = { action = "on_round" },
 	chosen    = { where = "chosen_where", action = "on_chosen" },
 	-- A card on its way out, which is the moment a card game keeps most of its

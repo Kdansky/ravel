@@ -1693,7 +1693,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:ready_since@self:sum:rush@mine.player",
@@ -1713,7 +1712,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:ready_since@self:sum:rush@mine.player",
@@ -1736,7 +1734,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:ready_since@self:sum:rush@mine.player",
@@ -1759,7 +1756,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:ready_since@self:sum:rush@mine.player",
@@ -2609,12 +2605,6 @@
       "display": "offscreen"
     },
     {
-      "key": "rules_arrive",
-      "layout": "stack",
-      "visibility": "secret",
-      "display": "offscreen"
-    },
-    {
       "key": "rules_upkeep",
       "layout": "stack",
       "visibility": "secret",
@@ -2724,6 +2714,7 @@
         1
       ],
       "status": "board",
+      "arrives": { "action": ["emit:arrived"] },
       "tags": ["in_play", "fielded", "fighters"],
       "use": "abilities",
       "copies": "per_seat",
@@ -2830,6 +2821,7 @@
       "label": "Your forces",
       "layout": "row",
       "status": "board",
+      "arrives": { "action": ["emit:arrived"] },
       "tags": ["in_play", "fielded", "fighters"],
       "use": "abilities",
       "copies": "per_seat",
@@ -3363,10 +3355,6 @@
         "zone": "rules_death"
       },
       {
-        "card": "r_arrive",
-        "zone": "rules_arrive"
-      },
-      {
         "card": "r_channel",
         "zone": "rules_upkeep"
       },
@@ -3397,10 +3385,6 @@
       {
         "card": "r_lizzo",
         "zone": "rules_endturn"
-      },
-      {
-        "card": "r_blue_arrive",
-        "zone": "rules_arrive"
       },
       {
         "card": "r_time",
@@ -4411,27 +4395,6 @@
       ]
     },
     {
-      "key": "r_arrive",
-      "text": "Blooming Ancient",
-      "tags": [
-        "immutable"
-      ],
-      "tooltip": "Another unit of yours arriving puts a +1/+1 rune on every Blooming Ancient you have.",
-      "abilities": [
-        {
-          "key": "bloom",
-          "text": "Blooming Ancient",
-          "phases": [],
-          "needs": [
-            "count@mine.ancient >= 1"
-          ],
-          "action": [
-            "stat_gain:plus@each.mine.ancient:1"
-          ]
-        }
-      ]
-    },
-    {
       "key": "r_drums",
       "text": "War Drums",
       "tags": [
@@ -4795,7 +4758,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "move_to:mine.army"
           ]
         },
@@ -4969,7 +4931,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -5104,7 +5065,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -5309,7 +5269,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -5478,7 +5437,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -5621,7 +5579,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army",
             "create:mine.army:wisp:1"
@@ -6106,7 +6063,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "draw_from:mine.deck:mine.hand:1"
@@ -6147,7 +6103,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_damage:gold@opponent:1",
@@ -6318,7 +6273,6 @@
           "zones": ["fielded"]
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:insured@target:1"
@@ -6687,6 +6641,11 @@
         "generate_art"
       ],
       "tooltip": "Whenever you play a unit from your hand, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
+      "reactions": [
+        { "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+          "needs": ["not_self@event", "tagged:unit@event"],
+          "action": ["stat_gain:plus@self:1"] }
+      ],
       "card_stats": {
         "price": 3,
         "atk": 3,
@@ -6738,6 +6697,11 @@
         "generate_art"
       ],
       "tooltip": "Whenever you play a unit from your hand, draw a card.",
+      "reactions": [
+        { "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+          "needs": ["tagged:unit@event"],
+          "action": ["draw_from:mine.deck:mine.hand:1"] }
+      ],
       "card_stats": {
         "price": 3,
         "integrity": {
@@ -7378,7 +7342,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -7546,7 +7509,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -7755,7 +7717,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army",
             "create:mine.army:mirror:1"
@@ -8579,7 +8540,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:minus@target:1"
@@ -8951,7 +8911,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:time@self:7"
@@ -9093,7 +9052,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:time@self:3"
@@ -9177,7 +9135,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:focus@self:3"
@@ -9806,7 +9763,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "create:mine.army:daigo:1"
@@ -9919,7 +9875,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "create:mine.army:stinger:5"
@@ -10114,7 +10069,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "create:mine.army:ninja:4"
@@ -10180,7 +10134,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "purge:each.anyone.token",
@@ -11073,7 +11026,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:minus@each.enemy.unit:1"
@@ -11115,7 +11067,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:minus@each.enemy.fighter:1"
@@ -11531,7 +11482,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:time@self:3"
@@ -11818,7 +11768,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:time@target:1"
@@ -12014,7 +11963,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:time@self:2"
@@ -12207,7 +12155,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:javelin@self:1"
@@ -12589,7 +12536,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:slot@target:0",
@@ -12783,7 +12729,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "create:enemy.army:warlock:4"
@@ -12856,7 +12801,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "move:random.enemy.hand:enemy.discard"
@@ -13084,7 +13028,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:time@self:3"
@@ -13846,7 +13789,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_set:time@self:2"
@@ -13928,7 +13870,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "destroy:target"
@@ -14081,7 +14022,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -14198,7 +14138,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -14345,7 +14284,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -14604,7 +14542,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -14809,7 +14746,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -14955,7 +14891,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -15123,7 +15058,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -15293,7 +15227,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army",
             "stat_set:time@self:4"
@@ -15457,7 +15390,6 @@
           ],
           "action": [
             "reset:self",
-            "activate_zone:rules_arrive",
             "stat_set:ready_since@self:count:hasty@self",
             "move_to:mine.army"
           ]
@@ -16389,7 +16321,6 @@
           "gold@mine.player": "price@self"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:1",
           "stat_gain:ready_since@self:sum:rush@mine.player",
@@ -18142,7 +18073,6 @@
           ]
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:ready_since@self:sum:rush@mine.player",
@@ -18549,7 +18479,6 @@
           "gold@mine.player": "gigadon_price"
         },
         "action": [
-          "activate_zone:rules_arrive",
           "move_to",
           "stat_set:ready_since@self:count:hasty@self",
           "stat_gain:ready_since@self:sum:rush@mine.player",
@@ -19080,6 +19009,11 @@
         "generate_art"
       ],
       "tooltip": "Whenever another unit or hero of yours arrives, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
+      "reactions": [
+        { "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+          "needs": ["not_self@event", "tagged:unit@event"],
+          "action": ["stat_gain:plus@self:1"] }
+      ],
       "card_stats": {
         "price": 4,
         "atk": 2,
@@ -19565,38 +19499,6 @@
       }
     },
     {
-      "key": "r_blue_arrive",
-      "text": "Flagstone",
-      "tags": [
-        "immutable"
-      ],
-      "tooltip": "A unit of yours arriving draws a card for every Flagstone Garrison you have, and drills every Drill Sergeant.",
-      "abilities": [
-        {
-          "key": "garrison",
-          "text": "Flagstone Garrison",
-          "phases": [],
-          "needs": [
-            "count:garrison@mine.structures >= 1"
-          ],
-          "action": [
-            "draw_from:mine.deck:mine.hand:1"
-          ]
-        },
-        {
-          "key": "sergeant",
-          "text": "Drill Sergeant",
-          "phases": [],
-          "needs": [
-            "count@mine.sergeant >= 1"
-          ],
-          "action": [
-            "stat_gain:plus@each.mine.sergeant:1"
-          ]
-        }
-      ]
-    },
-    {
       "key": "r_insured",
       "text": "Insurance Agent",
       "tags": [
@@ -20014,7 +19916,6 @@
             "count:due@mine.soon >= 1"
           ],
           "action": [
-            "activate_zone:rules_arrive",
             "move:mine.soon.due:mine.army",
             "stat_set:ready_since@each.mine.army:1"
           ]

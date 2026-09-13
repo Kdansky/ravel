@@ -312,6 +312,11 @@ end
 -- a "contents" line of "gem_1:64", a "create:bank:gem_1:8", a rule returning a gem
 -- to the box. What a supply refuses is running out of room, since a number has
 -- no capacity.
+-- Forward declaration: `add` is up here with the rest of the list handling,
+-- and the arrival hook is down with `receive` and `leaves`, where the depth
+-- guard the three of them share is declared.
+local fire_arrives
+
 function M.add(z, def_key)
 	if not z then return nil end
 	if z.status == "supply" then
@@ -329,6 +334,12 @@ function M.add(z, def_key)
 	local e = cards.create(def_key, z.id)
 	M.auto_slot(e.id)
 	if M.on_change then M.on_change("add", e.id) end
+	-- Out of nowhere, so there is no zone it came from and nothing it could have
+	-- been in play as: a token created straight onto the board has arrived.
+	-- `receive` is deliberately not fired here and never was -- a shop restocking
+	-- its shelves is not a card being dealt to a player -- and the arrival is a
+	-- different question with a different answer.
+	fire_arrives(nil, z, e.id)
 	return e
 end
 
@@ -624,6 +635,49 @@ local function fire_receive(to, card_id)
 	if not ok then error(err, 0) end
 end
 
+-- **A card coming into play, as opposed to merely landing somewhere.** The
+-- arrival counterpart to a card's `leaves`, and it keeps the same rule that one
+-- keeps at the other end: `leaves` fires on the way *out of play* and a unit
+-- walking between two board zones fires nothing, so this fires on the way *in*
+-- and a unit walking back fires nothing either. Codex's whole combat is a move
+-- to the duel zone and home again, and an arrival trigger that answered it would
+-- fire on every attack.
+--
+-- **A card lent to a question comes home having arrived nowhere.** `from` is the
+-- zone it was borrowed *from* rather than the offer it sat in, which is the same
+-- substitution fire_leaves already makes and for the same reason: it left as
+-- this card standing here and it comes back as this card standing here.
+--
+-- Asked with the **arriving card** as @self, where `receive` is asked with the
+-- zone. They are different questions: `receive` is the place doing something
+-- about what landed in it, and this is a card's arrival being announced. It is
+-- also what lets `emit` name the newcomer as its subject and `others` leave it
+-- out of a pool, neither of which a zone-shaped context can say.
+--
+-- Fired from the move path and from `add`, because a token created straight into
+-- play has arrived every bit as much as one that walked in -- and 22 of the 28
+-- arrivals Codex was failing to announce were creates.
+fire_arrives = function(from, to, card_id)
+	if not (to and M.run_actions) then return end
+	if to.status ~= "board" then return end
+	if from and from.status == "board" then return end
+	local def = declaration.G.zone_defs[to.key]
+	if not (def and def.on_arrives) then return end
+	local ctx = { card_id = card_id, zone_id = to.id, targets = {} }
+	if not require("predicate").meets_all(def.arrives_needs, ctx) then return end
+	-- The same depth guard the other two keep, for the same reason.
+	if receiving >= 8 then
+		local msg = "! arrives: '" .. tostring(to.key) .. "' is moving cards round in a circle — stopped"
+		log.add(msg)
+		print(msg)
+		return
+	end
+	receiving = receiving + 1
+	local ok, err = pcall(M.run_actions, def.on_arrives, ctx)
+	receiving = receiving - 1
+	if not ok then error(err, 0) end
+end
+
 -- The top of a pile is the end of its list: move_top draws from there, and an
 -- arrival lands there. "where" is the one word that says otherwise — "bottom"
 -- puts the card under the pile, which is where a rule that buries something
@@ -842,7 +896,12 @@ function M.move_card(card_id, to_id, where)
 	-- way a square is not: a shelf that deals a guardian onto every site that
 	-- arrives must not deal one onto the guardian, and a hand that stamps what
 	-- lands in it has nothing to say about a token standing on one of its cards.
-	if not riding then fire_receive(to, card_id) end
+	if not riding then
+		fire_receive(to, card_id)
+		-- After the zone's own, as `receive` is after `leaves`: the place settles
+		-- what landed in it before the table is told a card has arrived.
+		fire_arrives(lent or from, to, card_id)
+	end
 	-- The riders follow, as moves of their own, so a hand they were lent from and
 	-- a departure trigger watching them both still fire. Each is riding into the
 	-- zone its host has just reached, so the link survives the trip without being

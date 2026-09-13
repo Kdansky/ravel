@@ -964,7 +964,41 @@ One line makes the whole class announce itself, and no unit knows it is being wa
 "zones": [{ "key": "shrine", "receive": { "action": ["stat_gain:faith@mine.player:1"] } }]
 ```
 
-The zone is `@self`, the newcomer is `@target`.
+The zone is `@self`, the newcomer is `@target`. Fires on **every** landing, which is what a
+discard stamping its owner wants — and not on a `create`, which conjures a card rather than
+sending one.
+
+### When a card comes into play here.
+
+```json
+"zones": [{ "key": "army", "arrives": { "action": ["emit:arrived"] } }]
+```
+
+The arrival counterpart to a card's `leaves`, keeping the same rule at the other end: `leaves`
+fires on the way *out of play* and a unit walking between two board zones fires nothing, so
+this fires on the way *in* and a unit walking back fires nothing either. Codex's combat is a
+move out to the duel zone and home again — an arrival trigger that answered that would fire on
+every attack. A card lent to a question comes home having arrived nowhere, because the zone it
+counts as coming from is the one it was **borrowed from**. A created token arrives too.
+
+The **arriving card** is `@self`, where `receive` is asked with the zone: `receive` is the
+place doing something about what landed in it, and this is a card's arrival being announced.
+Which is what lets `emit` name the newcomer and `others` leave it out of a pool.
+
+### When another unit arrives, put a rune on this.
+
+```json
+"zones": [{ "key": "army", "arrives": { "action": ["emit:arrived"] } }],
+"cards": [{ "key": "blooming_ancient", "tags": ["unit", "ancient"],
+  "reactions": [{ "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+                  "needs": ["not_self@event", "tagged:unit@event"],
+                  "action": ["stat_gain:plus@self:1"] }] }]
+```
+
+The rule lives on the card that prints it. `@self` is the watcher, `@event` is the card that
+just arrived, and *"another"* is `not_self@event`. A `mandatory` reaction is a triggered
+ability and not a question, so nobody is asked — and it fires once per watcher, which is what
+*"every Blooming Ancient you have"* means.
 
 ### Do this to every card in a column, in order.
 
