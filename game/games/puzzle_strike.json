@@ -309,6 +309,16 @@
       "pos": [[0.235, 0.83, 0.56, 0.995], [0.235, 0.005, 0.56, 0.17]]
     },
     {
+      "key": "todo",
+      "label": "Play these",
+      "status": "todo",
+      "layout": "row",
+      "visibility": "owner",
+      "copies": "per_seat",
+      "pos": "hand",
+      "tooltip": "A chip somebody copied. Play it as you would your own — it costs nothing and vanishes afterwards."
+    },
+    {
       "key": "bag",
       "label": "Bag",
       "layout": "stack",

@@ -200,7 +200,7 @@ local WHOSE = { mine = true, enemy = true, anyone = true }
 -- Default "exile", so a zone is inert until it says otherwise and a forgotten
 -- word fails closed. The two types that carry a standing of their own supply it,
 -- which is what keeps every game written before the field unchanged.
-M.STATUS = { board = true, exile = true, offer = true, supply = true, grave = true }
+M.STATUS = { board = true, exile = true, offer = true, supply = true, grave = true, todo = true }
 
 -- Seven questions a zone answers, where "type" answered all of them at once and
 -- a game could only have the five bundles somebody had thought of. Each field is

@@ -59,6 +59,27 @@ local function loose(def_key)
 	end
 end
 
+-- A copied play is an imaginary chip standing in the seat's todo, to be played
+-- like any other and aimed like any other. This is what an interface does when
+-- the player clicks it: take the first thing it may be aimed at, until nothing
+-- is owed.
+local function play_owed(limit)
+	for _ = 1, limit or 12 do
+		local z = zones.todo_of(zones.active_seat())
+		local id = z and z.cards[1]
+		if not id then return end
+		local def  = require("cards").def(entity.get(id))
+		local spec = def and def.play and def.play.target
+		local pool = spec and require("targeting").candidates(id, spec) or {}
+		flow.play_card(id, pool[1] and { pool[1] } or {})
+	end
+end
+
+local function owed()
+	local z = zones.todo_of(zones.active_seat())
+	return z and #z.cards or 0
+end
+
 local function seat_card(seat)
 	for e in entity.each("card") do if e.def_key == seat then return e end end
 end
@@ -214,6 +235,7 @@ function M.test_puzzle_strike_x_copy_plays_a_chip_twice(check)
 
 	seat_card("south").stats.act_brown = 1
 	check("X-Copy is played on the Draw Three in hand", flow.play_card(xc.id, { d3.id }))
+	play_owed()
 	-- Six chips arrive and X-Copy itself leaves for the table.
 	check("three chips came twice", count_in("hand", "south") == held + 5,
 		held .. " -> " .. count_in("hand", "south"))
@@ -833,6 +855,7 @@ function M.test_puzzle_strike_signature_move_plays_what_it_fetched(check)
 		table.concat(keys_in("options"), " "))
 	check("declining is an answer", flow.can_dismiss())
 	flow.play_card(find_in("options", "riposte").id, {})
+	play_owed()
 	check("the chip went off", me.stats.acts == acts + 1 and me.stats.piggy == piggy + 1,
 		me.stats.acts .. "/" .. me.stats.piggy)
 	check("and it lies on the table with the chip that fetched it",
@@ -1386,6 +1409,8 @@ function M.test_puzzle_strike_double_take_plays_a_chip_twice_and_trashes_it(chec
 	check("a Puzzle chip is not a legal pick",
 		not flow.play_card(dt.id, { zones.add(hand, "draw_three").id }))
 	check("Double-take is played on the Bag of Tricks", flow.play_card(dt.id, { bot.id }))
+	check("two imaginary Bags of Tricks are waiting", owed() == 2, owed())
+	play_owed()
 	-- Two of everything it gives, and the chip itself left the hand along with
 	-- the Puzzle chip the failed pick added.
 	check("it gave two piggy banks", seat_card("south").stats.piggy == 2,
@@ -1621,6 +1646,7 @@ function M.test_puzzle_strike_option_select_plays_a_chip_off_the_shelf(check)
 
 	local drawn = count_in("hand", "south")
 	flow.play_card(find_in("options", "draw_three").id, {})
+	play_owed()
 	check("the chip it copied did what it does", count_in("hand", "south") == drawn + 3,
 		count_in("hand", "south") .. " from " .. drawn)
 	check("nothing was gained: a copy is not a card",
@@ -1671,6 +1697,7 @@ function M.test_puzzle_strike_wartime_tactics_plays_what_it_can_afford(check)
 	local stock = find_in("options", "draw_three").stats.stock
 	local drawn = count_in("hand", "south")
 	flow.play_card(find_in("options", "draw_three").id, {})
+	play_owed()
 	check("one costing the same is played", count_in("hand", "south") > drawn,
 		count_in("hand", "south") .. " from " .. drawn)
 	check("and trashed rather than gained",
@@ -1746,16 +1773,10 @@ function M.test_puzzle_strike_picking_a_character_names_the_chair(check)
 		label.seat_text("north") == "Setsuki", label.seat_text("north"))
 end
 
--- **Double-take copies a chooser, so one card asks the same question twice.**
--- *"Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash
--- it, then end your action phase."* Versatile Style is *"choose one: +1 action
+-- **Double-take copies a chooser.** Versatile Style is *"choose one: +1 action
 -- and piggy bank — or — +$2 — or — +2 chips"*, and playing it twice is two
--- menus. There is one offer zone and one overlay over it, and only `show:` knew
--- that: `options:` tipped its second three entries into the pile the first
--- question was still being asked from and pushed a second overlay, so answering
--- once cleared all six and popped one -- leaving an overlay standing over an
--- empty offer with no way to dismiss it. One engine-vs-engine game in sixty hung
--- there.
+-- menus. Each imaginary chip carries its own, asked when that chip is played,
+-- so the two questions cannot land in one pile.
 function M.test_puzzle_strike_a_copied_chooser_asks_twice(check)
 	opening(7)
 	local seat = zones.active_seat()
@@ -1764,61 +1785,57 @@ function M.test_puzzle_strike_a_copied_chooser_asks_twice(check)
 	seat_card(seat).stats.acts = 5
 
 	check("Double-take takes the chooser", flow.play_card(dt.id, { vs.id }))
-	check("and one menu is on the table, not two", count_in("options") == 3, count_in("options"))
+	check("and hands over two imaginary copies of it", owed() == 2, owed())
+	check("with no menu open yet", count_in("options") == 0, count_in("options"))
+
+	flow.play_card(zone_of("todo", seat).cards[1], {})
+	check("playing one asks its question", count_in("options") == 3, count_in("options"))
 	flow.play_card(find_in("options", "vs_money").id, {})
-	check("answering it asks the copy's own question", count_in("options") == 3, count_in("options"))
+	check("and the other is still owed", owed() == 1, owed())
+
+	flow.play_card(zone_of("todo", seat).cards[1], {})
+	check("the second asks its own", count_in("options") == 3, count_in("options"))
 	flow.play_card(find_in("options", "vs_money").id, {})
+
 	check("both answers paid", seat_card(seat).stats.money == 4, seat_card(seat).stats.money)
-	check("and the turn is playable again", not phase.is_overlay(), phase.current().key)
-	-- "…trash it, then end your action phase". Both halves are behind two
-	-- questions, and the list waited for them rather than running under them.
+	check("nothing is owed", owed() == 0, owed())
 	check("the chip it copied was trashed", find_in("hand", "versatile_style", seat) == nil)
 	check("and the action phase ended, as the chip says",
-		phase.current().key == "buy", phase.current().key)
+		phase.current().key ~= "action", phase.current().key)
 end
 
--- **Double-take on a Double-take**, which is the recursion the copy limit was
--- written for and the first thing anyone tries. It terminates, nothing is left
--- open, and the outer chip does its whole job — but the two copies do nothing
--- except end the phase, and that is worth pinning where it can be seen.
---
--- A copy carries no targets. `copy:target:play:2` runs the chosen chip's play
--- list straight, and the copied Double-take's own "choose a chip" is a *target*
--- on the play rather than an action in it — so the copy has nothing chosen,
--- copies nothing, trashes nothing, and reaches its last clause with the first
--- two undone. Thirty-two of the box's chips have a targeted play and every one
--- of them is copied this way; the chip's own note says so.
---
--- The visible cost is the phase end firing three times from a phase that ends
--- once. "End your action phase" is unconditional, so the second and third run
--- the buy phase and the turn past their owner. **If a fix ever gives a copy its
--- targets, this test should fail** — that is what it is for.
-function M.test_puzzle_strike_a_copied_double_take_has_nothing_to_choose(check)
+-- **Double-take on a Double-take**, which is the first thing anyone tries and
+-- the case that says whether a copy is really a play. It is: each imaginary
+-- Double-take asks for its own chip, so two more are chosen and each of those
+-- is played twice — four plays — and three chips are trashed, the two picks and
+-- the Double-take that was copied.
+function M.test_puzzle_strike_a_copied_double_take_chooses_again(check)
 	opening(7)
 	local seat = zones.active_seat()
-	local other = seat == "south" and "north" or "south"
 	local inner = zones.add(zone_of("hand", seat), "double_take")
-	zones.add(zone_of("hand", seat), "versatile_style")
+	zones.add(zone_of("hand", seat), "bag_of_tricks")
+	zones.add(zone_of("hand", seat), "speed_of_the_fox")
 	local outer = zones.add(zone_of("hand", seat), "double_take")
 	seat_card(seat).stats.acts = 9
+	local piggy = seat_card(seat).stats.piggy or 0
 
 	check("aiming one at the other is a legal play", flow.play_card(outer.id, { inner.id }))
-	check("and it comes to rest rather than recurring", not phase.is_overlay(),
+	check("and hands over two imaginary Double-takes", owed() == 2, owed())
+
+	-- Each of them chooses for itself, and what it chooses it plays twice.
+	local first = zone_of("todo", seat).cards[1]
+	flow.play_card(first, { zones.add(zone_of("hand", seat), "bag_of_tricks").id })
+	check("choosing gives two imaginary copies of the chip it chose, beside the one left",
+		owed() == 3, owed())
+	play_owed()
+
+	check("it comes to rest rather than recurring", not phase.is_overlay(),
 		phase.current().key)
-	check("with no question left open", count_in("options") == 0, count_in("options"))
-	check("nor one waiting behind it", zones.find("options").pending == nil)
-	check("nor a list still waiting to finish", zones.find("options").after == nil)
-
-	check("the chip it chose was trashed", find_in("hand", "double_take", seat) == nil
-		and find_in("discard", "double_take", seat) == nil)
-	check("and only the chip actually played paid for itself",
-		seat_card(seat).stats.acts == 8, seat_card(seat).stats.acts)
-
-	-- The shortfall, stated as the thing you would notice at the table.
-	check("but the copies found nothing to choose, so nothing was played twice",
-		seat_card(seat).stats.bought == 0, seat_card(seat).stats.bought)
-	check("and their phase ends ran the turn past its own buy phase",
-		zones.active_seat() == other, tostring(zones.active_seat()))
+	check("with nothing owed", owed() == 0, owed())
+	check("the Bag of Tricks paid twice over", (seat_card(seat).stats.piggy or 0) >= piggy + 2,
+		seat_card(seat).stats.piggy)
+	check("and the Double-take it was aimed at was trashed",
+		entity.get(inner.id).zone_id == nil)
 end
 
 return M

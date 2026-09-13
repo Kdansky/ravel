@@ -269,6 +269,29 @@ function M.grave_of(card)
 	return shared
 end
 
+-- Where a card a seat *owes* is put. An offer is a question they must answer;
+-- this is a card they must play, and the same rule picks it: their own first,
+-- and a shared one only as the fallback.
+function M.todo_of(seat)
+	local shared
+	for z in entity.each("zone") do
+		if z.status == "todo" then
+			if z.seat == seat then return z end
+			if z.seat == nil and not shared then shared = z end
+		end
+	end
+	return shared
+end
+
+-- Anything anybody still owes. Read wherever an open offer is read, because the
+-- two say the same thing about whose game it is: something is outstanding and
+-- the turn may not move past it.
+function M.todo_pending()
+	for z in entity.each("zone") do
+		if z.status == "todo" and #z.cards > 0 then return z end
+	end
+end
+
 function M.supply_of(def_key, seat)
 	local any
 	for z in entity.each("zone") do
@@ -908,7 +931,10 @@ function M.purge_card(card_id)
 	local home = M.supply_of(c.def_key, tags.owner_of(c))
 	-- Never into itself. A shelf being destroyed is the box losing a kind, and
 	-- one that reclaimed itself would sit there for ever, one deeper each time.
-	if home and home.id ~= card_id then
+	--
+	-- And never a card that was imagined. It did not come out of the box, so
+	-- putting it back leaves the box one deeper every time something is copied.
+	if home and home.id ~= card_id and not c.imaginary then
 		-- A stack lent to a question comes back as deep as it left, the same
 		-- arithmetic a move into the box does.
 		home.stats.stock = (home.stats.stock or 0) + (tonumber(c.stats and c.stats.stock) or 1)

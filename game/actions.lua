@@ -540,17 +540,20 @@ end
 -- is left for this to catch is a phase move arriving from somewhere that did not
 -- ask: a reaction, a zone's arrival, a list already running under an offer.
 --
--- Only an *offer* counts. A page overlay deals its own cards and clears up after
--- itself, and reveals stack over one another by design.
-local function offer_open()
-	if not phase.is_overlay() then return false end
+-- Only an *offer* counts, and a card somebody still owes. A page overlay deals
+-- its own cards and clears up after itself, and reveals stack over one another
+-- by design.
+local function outstanding()
+	if zones.todo_pending() then return "a card is waiting to be played" end
+	if not phase.is_overlay() then return nil end
 	local z = zones.find(phase.current().zone or "")
-	return z ~= nil and z.status == "offer"
+	return z ~= nil and z.status == "offer" and "an offer is open" or nil
 end
 
 local function frozen(verb)
-	if not offer_open() then return false end
-	content_error(verb .. ": refused, an offer is open")
+	local why = outstanding()
+	if not why then return false end
+	content_error(verb .. ": refused, " .. why)
 	return true
 end
 
@@ -1166,9 +1169,21 @@ end
 -- nothing, which is not an error — a rule that says "copy the chosen chip" has
 -- no opinion about what the player chose.
 --
--- What it does not carry over is targets. The copy was not aimed by anybody, so
--- a copied action that says @target finds nothing; a card meant to be copied
--- should say what it acts on rather than wait to be pointed.
+-- **"play" makes the card, "activate" runs the list.** A play is a whole move —
+-- it is aimed, it may be refused, it says @self about itself — and running its
+-- action list straight got all three wrong: a copied Crash Gem went off at
+-- nothing because nobody had aimed it, and a copied "trash this" trashed the
+-- real chip. So a copied play is what it says at the table: an imaginary chip,
+-- out of thin air, in the player's hands to play like any other, and gone
+-- afterwards. It costs nothing, is spent nowhere, and its @self is itself.
+--
+-- Where it stands is the seat's "todo", and the game says which zone that is.
+-- Nothing moves while one is unplayed, so the list that made it waits — the
+-- same rule an open offer keeps, for the same reason.
+--
+-- "activate" is still the list, run in place. An ability is not a move: it is
+-- not aimed through the interface and there is nothing to create, so there is
+-- nothing for a card to be.
 local copying = 0
 
 HANDLERS["copy"] = function(p, ctx)
@@ -1207,8 +1222,22 @@ HANDLERS["copy"] = function(p, ctx)
 				local e = entity.get(id)
 				if e then log.add("Copied " .. ((cards.def(e) or {}).text or e.def_key)) end
 				if moment == "play" then
-					local list = e and cards.behaviour(e, "on_play")
-					if list then M.run(list, { card_id = id, targets = {} }) end
+					local todo = e and zones.todo_of(zones.active_seat())
+					if e and not todo then
+						content_error("copy: this game has no todo zone, so a copied play has nowhere to stand")
+					elseif (e.imaginary_depth or 0) >= 8 then
+						content_error("copy: a card is copying itself round in a circle — stopped")
+					elseif e then
+						local made = zones.add(todo, e.def_key)
+						if made then
+							-- A card that copies itself makes a card that copies itself. The
+							-- old bound was the call depth, and there is no call depth any
+							-- more: the chain is the player playing one imaginary card after
+							-- another, so the count rides on the cards.
+							made.imaginary, made.imaginary_depth = true, (e.imaginary_depth or 0) + 1
+							asked, last_ask = asked + 1, todo
+						end
+					end
 				elseif e then
 					-- Every ability whose "when" holds, in order -- the same thing
 					-- activate_zone does, and for the same reason: "resolve that card"
@@ -1613,6 +1642,9 @@ end
 -- while Double-take's "end your action phase" belongs after both menus it
 -- opened. What separates them is which question each tail is behind, so that is
 -- what it is filed under: the one the action just made, open or queued.
+-- `last_ask` is whatever the action just wrote its question on: the offer zone,
+-- one of the asks queued behind it, or the todo a card was minted into. The tail
+-- goes there, so it waits on the thing it is actually waiting for.
 local function park(list, from, ctx)
 	if not last_ask then return end
 	local rest = {}

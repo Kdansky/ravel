@@ -966,7 +966,7 @@ as their total, `{ "key": "defense", "subject": "sum:defense@standing" }`.
 | `visibility` | Who may read them, and **nothing else** — a card in play may be unreadable and a card nobody can touch may be plain to see. `public` (default), `owner` (the seat whose zone it is; a zone with no seat is nobody's secret and stays public), `secret` (nobody — backs out, and a stack's order is scrambled in the browser, because the order is the secret and the contents usually are not) |
 | `reach` | Which of the cards here exist as far as the rules go: `all`, or `top` — only the last one. A `stack` is `top` unless it says otherwise |
 | `use` | What may be done with a card lying here **at all** — the ceiling, which a phase's `zone` then narrows: playing needs both to agree. `play` (default), `abilities` (its own abilities work here — what a board means), `none` (a box you use rather than reach into, which is how a trash or an exile is made untouchable). A `secret` zone is `none` unless it says otherwise, which is what makes a deck a deck |
-| `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `grave` is where a card that dies lands (see `destroy:`), `supply` is a stock counted rather than kept (see *`supply` — a stock the engine counts for you*), and `exile` is everything else and is the default. A `grid` is `board` and an `options` zone is `offer` without saying so. See *What counts as in play* |
+| `status` | What standing a card lying here has **in the rules** — a different question from what the zone looks like. `board` is in play, `offer` is a card lent to a question, `todo` is a card somebody must play before anything else happens (see *Doing what another card does*), `grave` is where a card that dies lands (see `destroy:`), `supply` is a stock counted rather than kept (see *`supply` — a stock the engine counts for you*), and `exile` is everything else and is the default. A `grid` is `board` and an `options` zone is `offer` without saying so. See *What counts as in play* |
 | `display` | `onscreen` (default) or `offscreen` — not drawn, and nothing in it clickable. For offers, fate decks and rules pages. Not the same as `secret`, which is a zone you can see and cannot read |
 | `copies` | `one` (default) or `per_seat` — one zone each, and `pos` then takes one rect per seat |
 | `pos` | `[x1, y1, x2, y2]` fractions **of the board**, which is 0 to 1 in both directions — optional; each layout has a default spot (an `offscreen` zone defaults off the edge, giving dealt cards their fly-in). x 1.0 is where the board ends: past it is the engine's own column, and a zone reaching there is refused. See *The system column*. May instead be another zone's key — several zones on one rect, only one of them showing: see *A shelf* |
@@ -1940,6 +1940,8 @@ cost, a card's `round` block acting by itself, and a reaction answered
 | `board` | **In play.** Every rule above means these cards. A `grid` is this without saying so |
 | `offer` | A card lent to a question — nobody's while it is there, and gone when the question is answered. An `options` zone is this without saying so |
 | `supply` | **Stock.** A shop's shelves, a bank of tokens, the box a game deals from: visible and countable, but nobody's and not in play |
+| `todo` | **Owed.** A card somebody must play before the game goes on — an imaginary one a copy made. Not in play, and nothing moves while one is lying there |
+| `grave` | **Where the dead land.** What `destroy:` looks for, narrowest first: the card's, its tags', the zone it stands in, its seat's, the table's |
 | `exile` | Everything else, and the default: a deck, a discard, a bag, a trash |
 
 **Exile is not oblivion.** Naming a zone has always reached inside it, so
@@ -3541,10 +3543,34 @@ touch screen neither exists.
 }
 ```
 
-That is *Play it twice, then trash it* — one line, and the line says it. What is
-copied is the **effect**, not the card: nothing is created, nothing is spent, no
-cost is paid, and the copied card does not move. A verb that duplicated the card
-instead would leave a second one lying about for somebody to find.
+That is *Play it twice, then trash it* — one line, and the line says it.
+
+**A copied play makes a card; a copied ability runs a list.** The two moments are
+not the same kind of thing. Playing is a whole move: it is aimed, it may be
+refused, and it says `@self` about itself. So copying a play makes what the table
+makes — an **imaginary card**, out of thin air, standing in the player's `todo`
+for them to play like any other. It costs nothing, is spent nowhere, never goes
+back in the box, and stops existing once it has gone off.
+
+That is why a copied *Crash Gem* goes off at something: the player aims it, the
+same way they would aim the real one. Running the action list instead had nobody
+to aim it, and a copied *"trash this"* trashed the real card.
+
+**The game says where an imaginary card stands**, with a zone whose `status` is
+`todo` — usually a tenant on the hand, so it is not there at all until one
+exists:
+
+```json
+{ "key": "todo", "label": "Play these", "status": "todo",
+  "copies": "per_seat", "pos": "hand" }
+```
+
+**Nothing moves while one is unplayed.** The list that made it stops where it
+stands and picks up when the last one has been played — the same rule an open
+offer keeps, and the reason *"play it twice, trash it, then end your action
+phase"* ends the phase after the copies rather than before them. A copy nobody
+can aim at anything leaves by itself, since a card that must be played and
+cannot be is a lock rather than a rule.
 
 `copy:<scope>:activate` runs the card's **abilities** instead of its play, which
 is the same rule aimed at a card already on the board. Every one of them whose
@@ -3561,10 +3587,11 @@ moment except a resolution.
 
 Two things it does not do, both on purpose:
 
-- **It carries no targets.** Nobody aimed the copy, so a copied action that
-  waits to be pointed at something finds nothing. A card meant to be copied
-  should say what it acts on rather than wait to be told.
-- **It does not change whose turn it is.** The copied card is the one acting, so
+- **An ability carries no targets.** `activate` runs the list where it stands —
+  nothing aims an ability and there is nothing to create — so a copied ability
+  that waits to be pointed at something finds nothing. A `play` is aimed, since
+  it is a card being played.
+- **It does not change whose turn it is.** The imaginary card is the copier's, so
   its action reads `@self` as itself — but `mine` still means whoever is *up*.
   Copying an opponent's card gives *you* the benefit, which is what a card that
   copies wants and a trap for a card that meant to make them do something. For
@@ -4765,7 +4792,7 @@ what a player reads.
 | `show:<scope>[:optional]` | Put the **real** cards a scope names into the offer, face up, and open it — how one player reads another's hand. They go home when it closes. Choosing one runs the asking card's `chosen` block with the pick as `@target`, rather than playing it. The scope may say `random.`, and then one of them comes up rather than all: `show:random.enemy.hand` is the whole of "reveal a card from their hand" |
 | `transform:<scope>:<card>` | Replace each card in scope with a new one of that key, standing on the same square, in the same zone, belonging to the same player. Everything else is the new card's own |
 | `set_name:<scope>:<field>@<source-scope>` | Every card in scope takes the named field off one card in the source scope as its own "name". Written for a seat card whose `text` is `"{name}"`: once a wizard is chosen from an offer dealt with `options`, it is played and `set_name:mine.player:text@self` on its own `on_play` writes its text onto the seat picking it, and every `{owner}` or `{active}` label reads the new name from then on. The field is read the same way a label reads one — the live entity first, its card def second — so anything a caption could already say is something a name can be built from |
-| `copy:<scope>[:play\|activate[:<n>]]` | Every card the scope names **does what it does**, n times over, without being played and without moving. The card is not copied, its effects are: nothing is created, nothing is spent, no cost is paid, and it stays where it lies — which is what "play it twice, then trash it" means and what duplicating the card would get wrong. The moment picks which list to run, `play` (the default) or `activate` (every ability whose `when` holds, in order). The copied card is the one acting, so its action reads `@self` as itself — but `mine` still means whoever is *up*, so copying somebody else's card benefits the copier. Targets are not carried over: nobody aimed the copy |
+| `copy:<scope>[:play\|activate[:<n>]]` | Every card the scope names **does what it does**, n times over, and the real card is neither played nor moved. `play` (the default) hands the copier an **imaginary card** per copy, standing in their `todo` zone to be played and aimed like any other: free, spent nowhere, never returned to the box, and gone once it has gone off. Nothing moves while one is unplayed, so the rest of the list waits. `activate` instead runs every ability whose `when` holds, in order, where the card stands — an ability is not aimed and there is nothing to create. `@self` is the card acting; `mine` still means whoever is *up*, so copying somebody else's card benefits the copier. A game using `play` must declare a `status: "todo"` zone. See *Doing what another card does* |
 | `resolve_challenge` | Ask the card's `challenge`: run its `pass` or its `fail`. The condition is asked with the acting card and its targets in hand, so it may say `@self` and `@target` |
 | `effect:name` | Play a named visual effect on the acting card (headless: skipped) |
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |

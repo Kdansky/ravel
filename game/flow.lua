@@ -128,6 +128,13 @@ local function in_play_zone(c)
 	local cur = phase.current()
 	if not cur or not cur.zone_list then return true end
 	if not c then return false end
+	-- A card somebody owes is not part of the phase's furniture, so no phase
+	-- lists it. It is playable wherever its owner is acting, which is the whole
+	-- of what putting something in their hands means.
+	local tz = c.zone_id and entity.get(c.zone_id)
+	if tz and tz.status == "todo" and (tz.seat == nil or tz.seat == zones.active_seat()) then
+		return true
+	end
 	for _, key in ipairs(cur.zone_list) do
 		local z = zones.find(key)
 		if z and c.zone_id == z.id then return true end
@@ -478,7 +485,10 @@ function M.settle()
 		if rstate == "waiting" then return end
 		-- A question waiting to be asked holds up phases exactly as an unanswered
 		-- window does, and is settled in the same place for the same reason.
-		local asked = M.offer_step()
+		-- Before the questions, because a card owed holds those up too, and one
+		-- nobody can play would hold them up for ever.
+		local cleared = M.todo_step()
+		local asked = M.offer_step() or cleared
 		M.release_priority()
 		-- Outcomes wait until any open overlay (a pending choice) is closed.
 		if rstate ~= "resolved" and not asked and (phase.is_overlay() or not fire_end_condition()) then
@@ -910,7 +920,9 @@ function M.can_play(card_id)
 	-- the board says the arithmetic once and names it, and the name has to mean
 	-- the same number in the question and in the deed.
 	local ctx = predicate.bind(cards.behaviour(c, "compute"), { card_id = card_id })
-	if not M.can_afford(def.cost, ctx) then return false end
+	-- An imaginary card is not the card, it is the card happening again, and a
+	-- copy is free by definition — nobody paid for it twice at the table.
+	if not c.imaginary and not M.can_afford(def.cost, ctx) then return false end
 	if predicate.meets_all(def.needs, ctx) then return true end
 	-- A zone tagged "optional" holds buttons, not a hand: nothing in it ever has
 	-- to be played, so there is no soft-lock for the hatch below to break, and
@@ -1054,7 +1066,7 @@ function M.play_card(card_id, targets)
 	-- Whose price this is. A card played from a hand pays its own, and so does an
 	-- answer the offer minted; a borrowed chip and a card dealt out of a deck are
 	-- real game cards whose price is the price of playing them, not of taking them.
-	local charged = not overlay or c.minted == true
+	local charged = (not overlay or c.minted == true) and not c.imaginary
 	if asker and entity.get(asker) and not lent then targets = { asker } end
 	-- The targets are in, so a compute that measures them measures the right
 	-- ones: "deal damage equal to what you aimed at" is a number about the pair.
@@ -1110,6 +1122,10 @@ function M.play_card(card_id, targets)
 			zones.purge_card(card_id)
 		end
 	end
+	-- An imaginary card has done what it was made for. It never paid, so it is
+	-- not spent anywhere: it simply stops existing, which is the other half of
+	-- "create it out of thin air".
+	if c.imaginary and entity.get(card_id) then zones.purge_card(card_id) end
 	if tags.entity_has(c, "no_undo") then
 		history = {}
 		log.add("— no turning back —")
@@ -1718,6 +1734,34 @@ end
 -- What is stored is the action itself rather than the cards it would have moved,
 -- the same shape as the tail an `emit:` defers: the board has changed by now and
 -- the question is about the board as it stands.
+-- A card nobody can play is not an obligation, it is a lock. The offer keeps the
+-- same rule already — nothing to take is nothing to look at — and a todo needs it
+-- more, because a question can at least be declined and a card cannot.
+--
+-- All or nothing, and only when *none* of them can be played: with two owed and
+-- one playable, the other may well be waiting on what the first one does.
+function M.todo_step()
+	local z = zones.todo_pending()
+	if not z or phase.is_overlay() then return false end
+	for _, id in ipairs(z.cards) do
+		-- can_play does not ask whether there is anything to aim at — the
+		-- interface finds that out when it opens targeting and closes it again.
+		-- Here it is the difference between a card and a lock.
+		local def  = cards.def(entity.get(id))
+		local spec = def and def.play and def.play.target
+		local need = spec and targeting.bounds(spec) or 0
+		if M.can_play(id) and (need == 0 or #targeting.candidates(id, spec) >= need) then
+			return false
+		end
+	end
+	for _, id in ipairs({ unpack(z.cards) }) do
+		local e = entity.get(id)
+		log.add("Nothing to do with " .. ((e and cards.def(e) or {}).text or "a copy"))
+		zones.purge_card(id)
+	end
+	return true
+end
+
 function M.offer_step()
 	local z = zones.find("options")
 	if not z then return false end
@@ -1729,6 +1773,11 @@ function M.offer_step()
 		return false
 	end
 	if phase.is_overlay() then return false end
+	-- A card somebody owes holds everything up exactly as an unanswered question
+	-- does, and for the same reason: the list that put it in their hands is not
+	-- finished until they have played it.
+	local todo = zones.todo_pending()
+	if todo then return false end
 	-- What the question just answered was holding up: the rest of the list that
 	-- asked it. Before the queue, because a list that asked and then asked again
 	-- wrote its second question first — Abragail's second VOID comes before the
@@ -1743,6 +1792,16 @@ function M.offer_step()
 		actions.run(f.action, { card_id = f.card, targets = f.targets or {},
 			event = f.event, let = f.let })
 		return true
+	end
+	for tz in entity.each("zone") do
+		if tz.status == "todo" and tz.after then
+			local f = table.remove(tz.after, 1)
+			if #tz.after == 0 then tz.after = nil end
+			if f.seat then give_priority(f.seat) end
+			actions.run(f.action, { card_id = f.card, targets = f.targets or {},
+				event = f.event, let = f.let })
+			return true
+		end
 	end
 	if z.pending then
 		local ask = table.remove(z.pending, 1)

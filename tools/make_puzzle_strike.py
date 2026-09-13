@@ -796,6 +796,13 @@ def zones():
         {"key": "table", "label": "Played this turn", "layout": "row", "copies": "per_seat",
          "pos": rects["table"]},
         {"key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": rects["hand"]},
+        # Where a copy stands. X-Copy and Double-take say "play it twice", and
+        # what that makes is an imaginary chip: yours to play and aim like any
+        # other, free, spent nowhere, and gone once it has gone off. It is a
+        # tenant on the hand, so it is not there at all until one exists.
+        {"key": "todo", "label": "Play these", "status": "todo", "layout": "row",
+         "visibility": "owner", "copies": "per_seat", "pos": "hand",
+         "tooltip": "A chip somebody copied. Play it as you would your own — it costs nothing and vanishes afterwards."},
         # face_down rather than hidden: a bag you cannot see is a bag you cannot
         # count, and how many chips somebody has left to draw is public.
         # The two zones a chip is searched out of wear a tag saying so, and a

@@ -133,7 +133,13 @@ deal 1 damage to each opposing base' and you may play tech I or II Blood units
 for free."* **Cinderblast Dragon**: *"Flying, resist 2. Arrives or attacks: you
 may play a non-ultimate Fire spell from your hand or codex for free."* These
 three want a word on a tag that shifts what a *class of card* costs its owner,
-the way `pays_for` says one pool settles another. Cost adjusts can subtract now
+the way `pays_for` says one pool settles another. **Cinderblast Dragon may be
+reachable another way now**: a card put into the `todo` zone is played free by
+construction, so *"play a non-ultimate Fire spell from your hand or codex for
+free"* could be a fetch that mints rather than a cost that is adjusted. Worth
+trying before writing the word. The same trick is what **Jurisdiction** wants
+from the other end — a pick that then pays the price the picked card names is an
+ordinary play, if the pick is handed over to be played rather than resolved. Cost adjusts can subtract now
 (`resisted` is signed and `plan` clamps at free), which is the right shape and
 reaches none of them.
 
