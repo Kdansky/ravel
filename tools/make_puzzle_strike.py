@@ -805,7 +805,7 @@ def zones():
         {"key": "bag", "label": "Bag", "layout": "stack", "visibility": "secret", "copies": "per_seat",
          "pos": rects["bag"], "refill_from": "discard", "applies": ["in_bag"],
          "tooltip": "Your draw pile. The moment it runs out your discard goes back in and is shaken \u2014 mid-draw, mid-chip, wherever it happens."},
-        {"key": "discard", "label": "Discard", "layout": "stack", "copies": "per_seat",
+        {"key": "discard", "label": "Discard", "layout": "stack", "status": "grave", "copies": "per_seat",
          "applies": ["in_discard"], "pos": rects["discard"]},
         # Where an announcement waits. It holds records, never chips, so it sits
         # under the bank rather than beside either player: a crash that has been
@@ -1137,7 +1137,7 @@ def puzzle_cards():
         {"key": "knockdown", **shape("knockdown", "red"),
          "play": act(["stat_gain:act_purple@mine.player:1",
                       "set_priority:enemy.player", "show:mine.hand"]),
-         "chosen": {"action": ["move:target:mine.discard", "clear_priority"]}},
+         "chosen": {"action": ["destroy:target", "clear_priority"]}},
         {"key": "master_puzzler", **shape("master_puzzler", "brown"),
          # "Non-gem, non-Puzzle in the bank" is the three purples and Wound, and
          # the two not_tagged conditions are how the sentence is said.
@@ -1180,10 +1180,13 @@ def puzzle_cards():
                   "action": ["purge:target"], "spent": "mine.table"},
          "reactions": [{"to": "attack", "text": "+3 chips",
                         "action": ["draw_from:mine.bag:mine.hand:3"], "spent": "mine.discard"}]},
+        # Stealing, so the chip changes hands and has to be handed over: a chip
+        # is stamped with the seat it was minted for, and one that keeps their
+        # name would go back to their discard the next time it is thrown away.
         {"key": "stolen_purples", **shape("stolen_purples", "red"),
          "play": act(["show:enemy.hand:optional"]),
          "chosen": {"where": ["tagged:purple@target"],
-                    "action": ["move:target:mine.discard"]}},
+                    "action": ["set_owner:target:mine", "move:target:mine.discard"]}},
         {"key": "thinking_ahead", **shape("thinking_ahead", "blue"),
          "play": act(["stat_gain:money@mine.player:1"]),
          "reactions": [{"to": "attack", "text": "Become immune",
@@ -1386,7 +1389,7 @@ def character_chips():
          # it by accident.
          "reactions": [{"to": "crash", "needs": ANSWERABLE, "from": "board",
                         "action": ["purge:mine.gem_1:1",
-                                   "move_to:mine.discard", "transform:self:bubble_shield"]}]},
+                                   "destroy:self", "transform:self:bubble_shield"]}]},
         {"key": "protective_ward", "text": "Protective Ward", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:teal",
          "tooltip": "+1 blue action. Ongoing: nobody may combine without discarding a Puzzle chip first. The tax is not built; the action it gives back is.",
@@ -1712,7 +1715,7 @@ def character_chips():
          # Counted before the hand goes, because after it there is nothing left
          # to count. One line per seat is what each_seat is for.
          "play": act(["each_seat:stat_set:redraw@mine.player:count:chip@mine.hand",
-                      "each_seat:move:mine.hand:mine.discard",
+                      "each_seat:destroy:mine.hand",
                       "each_seat:draw_from:mine.bag:mine.hand:sum:redraw@mine.player",
                       "draw_from:mine.bag:mine.hand:1"])},
         {"key": "crash_potato", "text": "Crash Potato", "tags": ["chip", "character", "purple"],
@@ -1754,7 +1757,7 @@ def character_chips():
          "asset": "polygon:7:slate",
          "play": act(["stat_gain:act_brown@mine.player:1", "draw_from:mine.bag:mine.hand:2",
                       "set_priority:enemy.player", "show:mine.hand"]),
-         "chosen": {"action": ["move:target:mine.discard", "clear_priority"]}},
+         "chosen": {"action": ["destroy:target", "clear_priority"]}},
         # Gwen
         {"key": "acrobatics", "text": "Acrobatics", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:forest",
@@ -1764,7 +1767,7 @@ def character_chips():
          "asset": "polygon:7:forest",
          "play": act(["stat_gain:act_red@mine.player:1",
                       "draw_from:enemy.bag:enemy.hand:1", "show:enemy.hand"]),
-         "chosen": {"action": ["move:target:enemy.discard"]}},
+         "chosen": {"action": ["destroy:target"]}},
         {"key": "stunlock", "text": "Stunlock", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:forest",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1866,7 +1869,7 @@ def character_chips():
          "play": act(["stat_gain:act_brown@mine.player:1", "show:enemy.hand"]),
          "chosen": {"where": ["tagged:gem@target",
                               "sum:value@target >= max:value@options"],
-                    "action": ["move:target:enemy.discard"]}},
+                    "action": ["destroy:target"]}},
         {"key": "into_oblivion", "text": "Into Oblivion", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:maroon",
          # A bank plate is scenery — "immutable", so nothing may point at it.
@@ -1965,7 +1968,7 @@ def choice_cards():
                ["take:bank.gem_1:mine.gem_pile:1",
                 "clear_priority"]),
         choice("pp_discard", "Discard two chips",
-               ["move:mine.hand:mine.discard", "clear_priority"]),
+               ["destroy:mine.hand:2", "clear_priority"]),
     ]
 
 
@@ -2205,7 +2208,7 @@ def phases():
         # *after* the answer belongs to the next phase — here, discarding the
         # hand the chip was kept out of.
         {"key": "cleanup", "type": "automatic",
-         "actions": ["move:mine.table:mine.discard",
+         "actions": ["destroy:mine.table",
                      "stat_set:to_draw@mine.player:%d" % HAND,
                      "activate_zone:rules_height",
                      "activate_zone:rules_piggy",
@@ -2215,7 +2218,7 @@ def phases():
         # turn" means. It announces on the way out rather than on the way in,
         # because a chip that pays out then is owed it once the hand is redrawn.
         {"key": "cleanup_draw", "type": "automatic", "emits": {"end": "turn_end"},
-         "actions": ["move:mine.hand:mine.discard",
+         "actions": ["destroy:mine.hand",
                      "draw_from:mine.bag:mine.hand:sum:to_draw@mine.player"],
          "next": [{"when": "sum:value@mine.gem_pile >= %d" % LOSE_AT, "then": "defeat"},
                   {"then": "handover"}]},

@@ -2696,6 +2696,7 @@
     {
       "key": "codex",
       "layout": "stack",
+      "status": "supply",
       "visibility": "owner",
       "display": "offscreen",
       "copies": "per_seat",
@@ -3885,7 +3886,7 @@
             "count:attachment@mine.addon >= 1"
           ],
           "action": [
-            "destroy:mine.addon",
+            "purge:mine.addon",
             "stat_damage:integrity@mine.base:2"
           ]
         }
@@ -3914,7 +3915,7 @@
       ],
       "chosen": {
         "action": [
-          "move:target:mine.discard"
+          "take:target:mine.discard:1"
         ]
       }
     },
@@ -3947,7 +3948,7 @@
             "tech"
           ],
           "needs": [
-            "count:deck_card@mine.codex == 0"
+            "sum:stock@mine.codex == 0"
           ],
           "action": [
             "stat_set:teched@mine.player:0"
@@ -4353,8 +4354,8 @@
           "text": "Rubble",
           "phases": [],
           "action": [
-            "purge:mine.structures.rubble",
-            "purge:enemy.structures.rubble"
+            "destroy:mine.structures.rubble",
+            "destroy:enemy.structures.rubble"
           ]
         }
       ]
@@ -4580,8 +4581,9 @@
           "text": "Ephemeral",
           "phases": [],
           "action": [
-            "purge:mine.ephemeral",
-            "purge:mine.fading"
+            "destroy:mine.ephemeral",
+            "destroy:mine.fading",
+            "activate_zone:rules_death"
           ]
         }
       ]
@@ -5662,8 +5664,7 @@
           "tagged:tiger@target"
         ],
         "action": [
-          "move:target:mine.army",
-          "stat_set:ready_since@target:0"
+          "take:target:mine.army:1"
         ]
       }
     },
@@ -13908,8 +13909,7 @@
           "tech_level@target <= 2"
         ],
         "action": [
-          "move:target:mine.army",
-          "stat_set:ready_since@target:0"
+          "take:target:mine.army:1"
         ]
       }
     },
@@ -18719,8 +18719,7 @@
           "sum:price@target <= 5"
         ],
         "action": [
-          "move:target:mine.army",
-          "stat_set:ready_since@target:0"
+          "take:target:mine.army:1"
         ]
       }
     },
@@ -20428,7 +20427,7 @@
             "count:faded@mine.fading >= 1"
           ],
           "action": [
-            "purge:each.mine.faded",
+            "destroy:each.mine.faded",
             "activate_zone:rules_death"
           ]
         },

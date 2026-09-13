@@ -70,9 +70,9 @@ local function stage_battle(seat, def_key)
 	local e = find(def_key)
 	assert(e, "no " .. def_key .. " anywhere to stage")
 	zones.move_card(e.id, b.id)
-	-- A card reaches a battle spot by being played, which sets its owner along
-	-- the way. Moved by hand it keeps whoever last held it, and "enemy.battle"
-	-- would then not see it -- so hand it back to the zone it now lies in.
+	-- A starting card was dealt into a seat's deck and carries that seat, so one
+	-- lifted out of the wrong deck would still read as theirs and "enemy.battle"
+	-- would not see it. Hand it to the spot it is now standing in.
 	e.stats.owner = nil
 	return e
 end
@@ -1530,6 +1530,106 @@ function M.test_spellstorm_a_seat_sits_beside_its_own_wizard(check)
 		check("the chair is in it", keys[seat], seat)
 		check("and nobody else's is", not keys[seat == "seat_one" and "seat_two" or "seat_one"])
 	end
+end
+
+-- A card dies into the pile it is lying beside, and nothing writes down whose
+-- it is.
+--
+-- Cards cross the table in this game: Crossfire posts itself to the other
+-- player's discard, Lava Bat lifts one out of theirs, and Eve's Ultimate feeds
+-- them junk. Whoever a card started with, the side whose deck it is now in is
+-- the side who discards it -- so the discard is a `status: "grave"` and the
+-- Regroup, which throws away both hands in one line, says `destroy` and names
+-- no pile at all.
+function M.test_spellstorm_a_card_dies_in_the_pile_it_lives_in(check)
+	opening(7, "derby", "eve")
+	local one = zones.active_seat()
+	local two = one == "seat_one" and "seat_two" or "seat_one"
+	empty_hand(one)
+	empty_hand(two)
+
+	-- Played rather than placed, because being played is the only moment that
+	-- ever stamped an owner on a card, and the one this is about.
+	local cf = find("crossfire")
+	zones.move_card(cf.id, hand_of(one).id)
+	check("Crossfire is cast", flow.play_card(cf.id, {})
+		and entity.get(cf.id).zone_id == zone_of("commit", one).id)
+
+	-- Where its own rule puts it: their pile, on the way to their deck.
+	zones.move_card(cf.id, zone_of("discard", two).id)
+	zones.move_card(cf.id, hand_of(two).id)
+
+	local before = #zone_of("discard", one).cards
+	actions.execute("each_seat:destroy:mine.hand", {})
+	check("the hand they were holding it in is the hand it died out of",
+		entity.get(cf.id).zone_id == zone_of("discard", two).id,
+		entity.get(entity.get(cf.id).zone_id).key)
+	check("and it did not go home to the wizard who sent it",
+		#zone_of("discard", one).cards == before, #zone_of("discard", one).cards)
+end
+
+-- A card that has already left is not discarded on top of leaving.
+--
+-- Flame resolves another Fire card out of your hand and then discards it. An
+-- Essence resolving is an Essence VOIDing itself, so by the time the discard
+-- comes round the card is gone -- and it stayed gone only once the discard
+-- became a death. Written as a move it named a pile and got one, dragging the
+-- card back out of the VOID it had just printed its way into.
+function M.test_spellstorm_a_voided_card_is_not_discarded_afterwards(check)
+	opening(7, "derby", "eve")
+	local one = zones.active_seat()
+	local ess = find("fireessence")
+	zones.move_card(ess.id, hand_of(one).id)
+	ess.stats.owner = nil
+	local fl = stage_battle(one, "flame")
+	local pile = #zone_of("discard", one).cards
+
+	actions.execute("copy:target:activate", { card_id = fl.id, targets = { fl.id } })
+	check("Flame asks for a Fire card out of the hand",
+		phase.current().key == "options" and #zones.find("options").cards > 0)
+	flow.play_card(ess.id, {})
+	local landed = entity.get(entity.get(ess.id).zone_id)
+	check("the Essence resolved, which is the Essence VOIDing itself",
+		landed.key == "void", landed.key)
+	check("and the discard that followed left it there",
+		#zone_of("discard", one).cards == pile, #zone_of("discard", one).cards)
+end
+
+-- The other direction, and the one that needs a word: a card taken off them is
+-- yours from then on.
+--
+-- Everything gained from the Storm Cloud is nobody's until it lands, so the
+-- pile it lies in answers for it. A starting card is not -- it was dealt into a
+-- seat's deck and carries that seat -- so Lava Bat, which lifts a card out of
+-- their discard and puts it in yours, has to hand it over, or the next time you
+-- throw it away it goes home to them.
+function M.test_spellstorm_a_stolen_card_changes_hands(check)
+	opening(7, "derby", "eve")
+	local one = zones.active_seat()
+	local two = one == "seat_one" and "seat_two" or "seat_one"
+
+	local loot
+	for e in entity.each("card") do
+		if e.def_key == "magicdart" and e.zone_id == zone_of("deck", two).id then loot = e end
+	end
+	check("they were dealt a Magic Dart of their own", loot ~= nil)
+	zones.move_card(loot.id, zone_of("discard", two).id)
+
+	local lb = stage_battle(one, "lavabat")
+	actions.execute("copy:target:activate", { card_id = lb.id, targets = { lb.id } })
+	check("their discard comes up", phase.current().key == "options"
+		and #zones.find("options").cards > 0, phase.current().key)
+	flow.play_card(loot.id, {})
+	check("the card is in your discard now",
+		entity.get(loot.id).zone_id == zone_of("discard", one).id,
+		entity.get(entity.get(loot.id).zone_id).key)
+
+	-- And stays there once it is going round your deck.
+	zones.move_card(loot.id, hand_of(one).id)
+	actions.execute("destroy:mine.hand", {})
+	check("thrown away again, it comes back to you",
+		entity.get(loot.id).zone_id == zone_of("discard", one).id,
+		tostring(entity.get(entity.get(loot.id).zone_id).seat))
 end
 
 return M

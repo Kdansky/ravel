@@ -1678,6 +1678,58 @@ function M.test_puzzle_strike_wartime_tactics_plays_what_it_can_afford(check)
 		and find_in("bank", "draw_three").stats.stock == stock - 1)
 end
 
+-- A chip is discarded into the pile it belongs to, and no card says which.
+--
+-- Every chip is stamped with the seat it was minted for, so the pile is asked
+-- of the chip rather than written at the site -- which is what lets one line
+-- serve a rule that reaches across the table. Surgical Strike reads the other
+-- hand and throws a chip out of it; that chip is theirs and goes to their
+-- discard while it is your turn.
+function M.test_puzzle_strike_a_chip_is_discarded_into_its_owners_pile(check)
+	opening(7)
+	local seat = zones.active_seat()
+	local other = seat == "south" and "north" or "south"
+	local strike = zones.add(zone_of("hand", seat), "surgical_strike")
+	seat_card(seat).stats.act_red = 1
+
+	local before = count_in("discard", other)
+	check("their hand comes up", flow.play_card(strike.id, {}) and count_in("options") > 0,
+		count_in("options"))
+	local pick = entity.get(zones.find("options").cards[1])
+	flow.play_card(pick.id, {})
+	check("the chip they were holding is in their discard",
+		count_in("discard", other) == before + 1, count_in("discard", other))
+	check("and none of it landed in yours", find_in("discard", pick.def_key, seat) == nil)
+end
+
+-- The other direction: a chip that changes hands is handed over with it.
+--
+-- Stolen Purples takes a purple out of their hand and puts it in your discard,
+-- and from there it is yours -- it shuffles into your bag and you play it. So
+-- the theft says whose it is now, or the next cleanup would post it home to the
+-- player it was stolen from.
+function M.test_puzzle_strike_a_stolen_chip_changes_hands(check)
+	opening(7)
+	local seat = zones.active_seat()
+	local other = seat == "south" and "north" or "south"
+	local loot = zones.add(zone_of("hand", other), "one_true_style")
+	local thief = zones.add(zone_of("hand", seat), "stolen_purples")
+	seat_card(seat).stats.act_red = 1
+
+	check("their hand comes up", flow.play_card(thief.id, {}) and count_in("options") > 0)
+	flow.play_card(find_in("options", "one_true_style").id, {})
+	check("the purple is in your discard", find_in("discard", "one_true_style", seat) ~= nil)
+
+	-- And it stays yours once it is going round your bag: throwing it away is
+	-- the cleanup every turn does, and it has to come back to you.
+	zones.move_card(loot.id, zone_of("hand", seat).id)
+	actions.execute("destroy:mine.hand", {})
+	check("thrown away again, it comes back to you",
+		find_in("discard", "one_true_style", seat) ~= nil)
+	check("and not to the player it was taken from",
+		find_in("discard", "one_true_style", other) == nil)
+end
+
 -- South and North are where you sit; Jaina and Setsuki are who you are. The
 -- seat cards print "{name}" and start as the compass point, and the character's
 -- own play action writes its text over that — which is why the loss banner two

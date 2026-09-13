@@ -568,6 +568,10 @@ local function unhook(c)
 	end
 	c.zone_id = nil
 	c.stats   = {}
+	-- A card off the table is lent to nothing. move_card clears this on the way
+	-- out of an offer; a purge does not pass that way, and the husk would carry
+	-- a home it no longer has into every snapshot, save and sync.
+	c.borrowed_from = nil
 end
 
 -- **A card standing on another goes where it goes, and leaves when it leaves.**

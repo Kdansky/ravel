@@ -19,7 +19,7 @@ local json = require("json")
 
 local M = {}
 
-local GENERATED = { "lost_cities", "puzzle_strike", "splendor", "the_crew" }
+local GENERATED = { "lost_cities", "puzzle_strike", "spellstorm", "splendor", "the_crew" }
 
 local function read(path)
 	local f = io.open(path)

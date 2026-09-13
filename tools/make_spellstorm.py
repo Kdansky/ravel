@@ -67,7 +67,7 @@ GAIN_JUNK = lambda kind: ["activate_zone:rules:by_column:dry_take_%s" % kind,
 # it. Two cards is the line twice -- there is no count on a move, and doubling it
 # is exactly what the rule says. Being a move rather than a draw, it fires the
 # On Discard of whatever comes up, which is the point of it being a discard.
-DISCARD_RANDOM = lambda who: "move:random.%s.hand:%s.discard" % (who, who)
+DISCARD_RANDOM = lambda who: "destroy:random.%s.hand" % who
 
 # Offering the Storm Cloud. `show:` lends the real cards, so what comes back is
 # the card that was on the shelf rather than a copy of it; the `chosen` block on
@@ -188,7 +188,7 @@ SPELLS = [
          tooltip="Deal 1 damage, then resolve and discard a different Fire card from your hand.",
          flavour="You need *magic* water to put a magical flame out.",
          cast=[DMG(1), OFFER_HAND_OF(FIRE)],
-         chosen=["copy:target:activate", "move:target:mine.discard"]),
+         chosen=["copy:target:activate", "destroy:target"]),
     card("heartgem", "Heart Gem", FIRE, tier=1, ult=True,
          tooltip="Heal 3 and gain a CURSE. On discard: take 1 damage.",
          flavour="The Heart Gem has surfaced and disappeared many times throughout history, bringing a deadly curse each time.",
@@ -204,7 +204,12 @@ SPELLS = [
          flavour="Dangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm.",
          simplified="the printed card moves a Fire card between any two discards; here it is their discard to yours, any card",
          cast=[MANA] + GAIN_INIT + ["show:enemy.discard:optional"],
-         chosen=["move:target:mine.discard"]),
+         # Their card becomes yours, and saying so is the whole of it: a card
+         # dealt into a seat's deck is stamped with that seat, and one carrying
+         # their name would go home to their discard the next time you throw it
+         # away. Everything gained from the Storm Cloud is nobody's until it
+         # lands, so only the theft needs the word.
+         chosen=["set_owner:target:mine", "move:target:mine.discard"]),
     card("manafont", "Mana Font", FIRE, tier=1,
          tooltip="VOID a card in the Storm Cloud. If you did, gain 3 mana. On discard: take 1 damage and gain 1 mana.",
          flavour="While there are many theories, no one knows where the magic inside gems originally comes from.",
@@ -260,7 +265,7 @@ SPELLS = [
          flavour="Doctors throughout Omia have used Water Magic to heal the sick for generations.",
          simplified="the printed card discards up to 2 and heals 1 per Water discarded; here it is one card and a flat 1",
          cast=[DRAW, OFFER_HAND],
-         chosen=["move:target:mine.discard", HEAL(1)]),
+         chosen=["destroy:target", HEAL(1)]),
     card("leap", "Leap", WATER, tier=2,
          tooltip="Gain Initiative and heal 1. If your opponent revealed Fire, you may VOID a card from your hand.",
          flavour="Azure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe.",
@@ -297,7 +302,7 @@ SPELLS = [
     card("wave", "Wave", WATER, tier=2,
          tooltip="Gain 3 mana. Your opponent discards their hand and draws a new hand of 4 cards.",
          flavour="A wave does not ask what it washes away.",
-         cast=[MANA, MANA, MANA, "move:enemy.hand:enemy.discard",
+         cast=[MANA, MANA, MANA, "destroy:enemy.hand",
                "draw_from:enemy.deck:enemy.hand:4"]),
 
     # Earth
@@ -345,12 +350,12 @@ SPELLS = [
          flavour="Almost all Earth cards have discard effects.",
          simplified="the printed card looks at the top 2 and may put them back in order; here they are drawn and one may be discarded",
          cast=[POWER, "draw_from:mine.deck:mine.hand:2", OFFER_HAND],
-         chosen=["move:target:mine.discard"]),
+         chosen=["destroy:target"]),
     card("spiritcrystal", "Spirit Crystal", EARTH, tier=1,
          tooltip="Draw a card. Reveal a card from your hand, resolve it and then discard it. On discard: power up.",
          flavour="It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.",
          cast=[DRAW, OFFER_HAND_OF(EARTH)],
-         chosen=["copy:target:activate", "move:target:mine.discard"],
+         chosen=["copy:target:activate", "destroy:target"],
          disc=[POWER]),
     card("threepower", "Three Power", EARTH, tier=2,
          tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If anyone revealed Water, power up again. On discard: power up twice.",
@@ -397,7 +402,7 @@ DRAGONS = [
          cast=GAIN_INIT + [SHARD(1), OFFER_HAND],
          # A resolved card goes to the discard pile like any other, so the On
          # Discard it fires there is meant to fire.
-         chosen=["copy:target:activate", "move:target:mine.discard"]),
+         chosen=["copy:target:activate", "destroy:target"]),
     card("icedragon", "Ice Dragon", WATER, tier=4, kind="dragon", ult=True,
          tooltip="Heal 3. Gain a Storm Shard. Give an ICE.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
@@ -679,7 +684,7 @@ WIZARDS = [
                     tooltip="Discard a card from your hand to deal 2 damage.",
                     flavour="A hero to many, Omar is regarded by the powerful as an eco-terrorist.",
                     cast=[OFFER_HAND_OF(FIRE)],
-                    chosen=["move:target:mine.discard", DMG(2)]),
+                    chosen=["destroy:target", DMG(2)]),
                card("omar_shuriken", "Shuriken", WATER, kind="wizard_spell", ult=True,
                     tooltip="Gain Initiative and draw a card.",
                     flavour='"..."',
@@ -786,7 +791,7 @@ WIZARDS = [
                     simplified="the extra damage for discarding a Tier II card is not checked",
                     cast=["stat_gain:mana@mine.player:sum:energy@mine.player",
                           "stat_damage:energy@mine.player:2", OFFER_HAND],
-                    chosen=["move:target:mine.discard", DMG(1)]),
+                    chosen=["destroy:target", DMG(1)]),
            ]),
 ]
 
@@ -988,8 +993,14 @@ def spell_template(c):
     # A card that can be cast says so by carrying a play block; ICE, ASH and
     # CURSE carry none, which is the whole of "this can't be played" and needs
     # no rule anywhere else.
+    # No owner is written here. A card dealt into a seat's deck already carries
+    # that seat, and one gained from the Storm Cloud is nobody's -- so the pile
+    # it is lying in answers for it, which is what a card crossing the table
+    # needs: Crossfire posts itself to the other player's discard, and stamping
+    # it with the caster on the way out would send it home again the next time
+    # they threw it away.
     if c["kind"] != "junk":
-        t["play"] = {"action": ["set_owner:self:mine", "move_to:mine.commit"]}
+        t["play"] = {"action": ["move_to:mine.commit"]}
 
     # `tier_req` is what the Storm Cloud's take tests against your Tier.
     stats = {}
@@ -1375,7 +1386,7 @@ def zones():
          "copies": "per_seat", "tags": ["shuffle"], "refill_from": "discard",
          "tooltip": "Your draw deck. When you need a card and it is empty, your discard is shuffled into it.",
          "pos": [P(0.740, 0.795, 0.855, 0.995), P(0.740, 0.005, 0.855, 0.205)]},
-        {"key": "discard", "label": "Discard", "layout": "stack",
+        {"key": "discard", "label": "Discard", "layout": "stack", "status": "grave",
          "copies": "per_seat", "applies": ["in_discard"],
          "pos": [P(0.865, 0.795, 0.980, 0.995), P(0.865, 0.005, 0.980, 0.205)]},
         # Where a card waits face down, and where it stands once both are turned
@@ -1408,7 +1419,12 @@ def zones():
          "tooltip": "The Spellstorm Deck. When it runs out, the VOID is shuffled to become the new one.",
          "pos": P(0.620, 0.215, 0.740, 0.400),
          "contents": [c["key"] for c in SPELLS]},
-        {"key": "void", "label": "VOID", "layout": "stack", "use": "none",
+        # Its own grave, which is not a joke: a card that dies in the VOID is
+        # already where the dead go. The three Essences VOID themselves as they
+        # resolve, and the card that made one resolve -- Flame, Spirit Crystal,
+        # Wind Dragon -- then says to discard it. That is a card which has
+        # already left, and nothing should happen to it.
+        {"key": "void", "label": "VOID", "layout": "stack", "use": "none", "grave": "void",
          "tooltip": "Cards removed from the game. When the Spellstorm Deck runs out, this becomes the new one.",
          "pos": P(0.620, 0.410, 0.740, 0.595)},
 
@@ -1614,7 +1630,7 @@ def phases():
          "next": [{"then": "round_end"}]},
 
         {"key": "round_end", "type": "automatic",
-         "actions": ["each_seat:move:mine.battle:mine.discard",
+         "actions": ["each_seat:destroy:mine.battle",
                      "each_seat:activate_zone:rules:by_column:tier_up",
                      "each_seat:activate_zone:rules:by_column:tier_up",
                      "each_seat:activate_zone:rules:by_column:tier_gem"],
@@ -1625,12 +1641,12 @@ def phases():
         # in hand is a Blast Score, and each player gains one card.
         {"key": "regroup", "type": "automatic",
          "actions": ["move:weather_now:weather_discard",
-                     "each_seat:move:mine.hand.has_discard:mine.discard",
-                     "each_seat:move:mine.hand.junk:mine.discard",
+                     "each_seat:destroy:mine.hand.has_discard",
+                     "each_seat:destroy:mine.hand.junk",
                      "each_seat:activate_zone:rules:by_column:score",
                      "each_seat:activate_zone:rules:by_column:award_win",
                      "each_seat:activate_zone:rules:by_column:award_tie",
-                     "each_seat:move:mine.hand:mine.discard",
+                     "each_seat:destroy:mine.hand",
                      "each_seat:stat_set:took@mine.player:0"],
          "next": [{"then": "gain"}]},
 
@@ -1694,7 +1710,7 @@ def build():
         "asset": "cross:slate", "tags": ["immutable"],
         "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
         "abilities": [{"phases": ["play_card"],
-                     "action": ["move:mine.hand:mine.discard",
+                     "action": ["destroy:mine.hand",
                                 SELF_DMG(1),
                                 "draw_from:mine.deck:mine.hand:4"]}]})
     cards.append({
@@ -1844,7 +1860,7 @@ def build():
                     "key": "take", "text": "Gain this card", "merge": "this",
                     "phases": ["gain_card"],
                     "needs": ["tier@mine.player >= tier_req@self"],
-                    "action": ["set_owner:self:mine", "move_to:mine.hand",
+                    "action": ["move_to:mine.hand",
                                REFILL_CLOUD, "stat_gain:took@mine.player:1"]}]},
         },
         "zones": zones(),

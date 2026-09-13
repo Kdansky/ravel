@@ -207,6 +207,10 @@ function M.owner_of(e)
 	local i = e.stats and e.stats.owner
 	if i then return (G.seat_list or {})[i] end
 	local z = e.zone_id and entity.get(e.zone_id)
+	-- A card lent to an offer is still its owner's card. The offer belongs to
+	-- the table and has no seat, so the place it was lent from is what answers
+	-- — and "borrowed_from" is set only while it is standing there.
+	if e.borrowed_from then z = entity.get(e.borrowed_from) end
 	return z and z.seat
 end
 

@@ -39,6 +39,16 @@ local function count_in(zone_key)
 	return #((find_zone(zone_key) or {}).cards or {})
 end
 
+-- The codex is a box: twelve shelves two deep rather than twenty-four cards, so
+-- what a test asks it is the stock written on the shelves.
+local function stock_in(zone_key)
+	local n = 0
+	for _, cid in ipairs((find_zone(zone_key) or {}).cards or {}) do
+		n = n + ((entity.get(cid).stats or {}).stock or 0)
+	end
+	return n
+end
+
 local function use(card, key, targets)
 	for _, u in ipairs(flow.usable_abilities(card.id)) do
 		if u.rule.key == key then return flow.activate(card.id, targets or {}, u.index) end
@@ -96,7 +106,8 @@ function M.test_codex_setup(check)
 	check("south holds its ten starting cards", count_in("hand") + count_in("deck") == 10,
 		tostring(count_in("hand") + count_in("deck")))
 	check("and five of them are in hand", count_in("hand") == 5, tostring(count_in("hand")))
-	check("the codex is twenty-four cards", count_in("codex") == 24, tostring(count_in("codex")))
+	check("the codex is twelve kinds", count_in("codex") == 12, tostring(count_in("codex")))
+	check("two copies of each", stock_in("codex") == 24, tostring(stock_in("codex")))
 	check("the base stands at twenty", in_zone("base").stats.integrity == 20,
 		tostring(in_zone("base").stats.integrity))
 	check("the hero waits in the command zone", in_zone("command", "zane") ~= nil)
@@ -452,6 +463,23 @@ function M.test_codex_arrival(check)
 	check("next turn it can", offers(fresh, "strike_free"))
 end
 
+-- Ephemeral is a death, not a trash. Crashbarrow and Shoddy Glider are codex
+-- cards and Sanatorium lends units out of your hand, so all three have to land
+-- in the discard and cycle back; only a token leaves the game, and it leaves by
+-- the death sweep that already sweeps tokens rather than by a word of its own.
+function M.test_codex_ephemeral_dies(check)
+	start("pick_zane", "pick_argagarg")
+	summon("crashbarrow", "army")
+	summon("shark", "army")
+	summon("steam_tank", "army").stats.fleeting = 1
+	flow.activate(in_zone("controls", "end_turn").id, {})
+	flow.settle()
+	check("the ephemeral unit went to the discard", in_zone("discard", "crashbarrow") ~= nil)
+	check("and so did the one lent out of a hand", in_zone("discard", "steam_tank") ~= nil)
+	check("neither is still in play", count_in("army") == 0, tostring(count_in("army")))
+	check("the token left the game", in_zone("discard", "shark") == nil)
+end
+
 -- Discard the hand, draw that many plus two, stop at five. The cap is
 -- max(0, a - b) used once, which is the only arithmetic the grammar has.
 function M.test_codex_draw(check)
@@ -491,14 +519,79 @@ function M.test_codex_teching(check)
 	check("the tech phase came round", phase.current().key == "tech", phase.current().key)
 	check("with two picks owed", seat("south").stats.teched == 2, tostring(seat("south").stats.teched))
 
-	local before = count_in("codex")
+	local before = stock_in("codex")
 	flow.activate(in_zone("controls", "tech_button").id, {})
 	flow.settle()
 	local picked = entity.get(zones.find("options").cards[1])
 	flow.play_card(picked.id, {})
 	flow.settle()
-	check("a codex card left the codex", count_in("codex") == before - 1, tostring(count_in("codex")))
+	check("a codex card left the codex", stock_in("codex") == before - 1, tostring(stock_in("codex")))
 	check("and one pick is left", seat("south").stats.teched == 1, tostring(seat("south").stats.teched))
+end
+
+-- What the box buys. A shelf is spent by `take` and refilled by `purge`, so a
+-- trash — which is what the rulebook means and never the discard pile — needs no
+-- rule naming the codex at the site that does it. That is the whole of Rambasa
+-- Twin's "return this to your codex", and of a trashed worker going nowhere.
+function M.test_codex_a_trash_goes_home_to_the_box(check)
+	start("pick_zane", "pick_argagarg")
+	local function shelf(key)
+		local c = in_zone("codex", key)
+		return c and (c.stats or {}).stock or 0
+	end
+	check("Chameleon Lizzo starts two deep", shelf("chameleon_lizzo") == 2, tostring(shelf("chameleon_lizzo")))
+
+	actions.run({ "take:mine.codex.chameleon_lizzo:mine.army:1" }, {})
+	check("taking one spends the shelf", shelf("chameleon_lizzo") == 1, tostring(shelf("chameleon_lizzo")))
+	check("and a real card stands on the table", in_zone("army", "chameleon_lizzo") ~= nil)
+
+	actions.run({ "purge:mine.army.chameleon_lizzo" }, {})
+	check("trashing it puts it back on the shelf", shelf("chameleon_lizzo") == 2, tostring(shelf("chameleon_lizzo")))
+	check("and it is off the table", in_zone("army", "chameleon_lizzo") == nil)
+
+	-- A death is not a trash: it goes to the grave and stays out of the box.
+	actions.run({ "take:mine.codex.chameleon_lizzo:mine.army:1", "destroy:mine.army.chameleon_lizzo" }, {})
+	check("a death leaves the shelf spent", shelf("chameleon_lizzo") == 1, tostring(shelf("chameleon_lizzo")))
+	check("and the card in the discard", in_zone("discard", "chameleon_lizzo") ~= nil)
+end
+
+-- A building is a deck card, so rubble is a death and not a trash: Codex spells
+-- Dies as "put into your discard pile from play", and only workers and the
+-- tokens are trashed. A tech building is not a deck card and stays a trash.
+function M.test_codex_a_wrecked_building_is_discarded(check)
+	start("pick_drakk", "pick_argagarg")
+	local mine = summon("rickety_mine", "structures")
+	mine.stats.integrity = 0
+	actions.run({ "activate_zone:rules_death" }, {})
+	flow.settle()
+	check("the wreck went to its owner's discard", in_zone("discard", "rickety_mine") ~= nil)
+	check("and is off the table", count_in("structures") == 0, tostring(count_in("structures")))
+
+	seat("south").stats.workers = 6
+	use(in_zone("controls", "build_t1"), "raise")
+	flow.settle()
+	local tech = in_zone("site")
+	zones.move_card(tech.id, zones.find_id("tech", "mine"))
+	tech.stats.integrity = 0
+	actions.run({ "activate_zone:rules_death" }, {})
+	flow.settle()
+	check("a tech building leaves the game instead", in_zone("discard", "tech_1") == nil)
+	check("and costs the base two", in_zone("base").stats.integrity == 18,
+		tostring(in_zone("base").stats.integrity))
+end
+
+-- An add-on is a mini-card and never a deck card, so scrapping one is a trash
+-- and not a death — the same answer the rubble rule already gives it. Sent to a
+-- grave it would land in the discard and be drawn as if it were a spell.
+function M.test_codex_a_scrapped_addon_leaves_the_game(check)
+	start("pick_zane", "pick_argagarg")
+	require("cards").create("tower", zones.find_id("addon", "mine"))
+	flow.activate(in_zone("controls", "sacrifice_addon").id, {})
+	flow.settle()
+	check("the add-on is off the base", count_in("addon") == 0, tostring(count_in("addon")))
+	check("and did not land in the deck's discard", in_zone("discard", "tower") == nil)
+	check("scrapping costs the base two", in_zone("base").stats.integrity == 18,
+		tostring(in_zone("base").stats.integrity))
 end
 
 -- Nothing about this game is in the engine, so the file has to say it. These
@@ -661,7 +754,7 @@ function M.test_codex_search(check)
 	check("the search is offered at max level", offers(hero, "call_tiger"))
 	use(hero, "call_tiger")
 	flow.settle()
-	check("the whole codex comes up", count_in("options") == 24, tostring(count_in("options")))
+	check("the whole codex comes up", count_in("options") == 12, tostring(count_in("options")))
 
 	local tiger
 	for _, cid in ipairs(zones.find("options").cards) do
@@ -674,7 +767,7 @@ function M.test_codex_search(check)
 	flow.settle()
 	check("the tiger walked out of the codex onto the table",
 		in_zone("army", key) ~= nil, tostring(key))
-	check("and the rest went home", count_in("codex") == 23, tostring(count_in("codex")))
+	check("and the rest went home", stock_in("codex") == 23, tostring(stock_in("codex")))
 end
 
 function M.test_codex_options(check)
@@ -1215,7 +1308,7 @@ function M.test_codex_blue_deals(check)
 	start("pick_bigby", "pick_onimaru")
 	check("the blue starter is ten cards", count_in("hand") + count_in("deck") == 10,
 		tostring(count_in("hand") + count_in("deck")))
-	check("and the codex is twenty-four", count_in("codex") == 24, tostring(count_in("codex")))
+	check("and the codex is twenty-four", stock_in("codex") == 24, tostring(stock_in("codex")))
 	check("Bigby is in command", in_zone("command", "bigby") ~= nil)
 end
 

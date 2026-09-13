@@ -34,6 +34,7 @@ local GAME = [==[{
     { "key": "army", "status": "board", "layout": "row", "copies": "per_seat",
       "pos": [[0.20, 0.60, 0.80, 0.75], [0.20, 0.20, 0.80, 0.35]] },
     { "key": "pit", "status": "board", "layout": "row", "grave": "limbo", "pos": [0.20, 0.40, 0.80, 0.55] },
+    { "key": "hand", "layout": "row", "copies": "per_seat", "pos": [[0.20, 0.80, 0.80, 0.95], [0.20, 0.05, 0.80, 0.20]] },
     { "key": "discard", "status": "grave", "layout": "stack", "copies": "per_seat",
       "pos": [[0.84, 0.80, 0.98, 0.98], [0.84, 0.02, 0.98, 0.20]] },
     { "key": "command", "layout": "stack", "pos": [0.84, 0.42, 0.98, 0.58] },
@@ -109,6 +110,42 @@ function M.test_grave_a_card_dies_into_its_owners_grave(check)
 		actions.execute("destroy:enemy.army", {})
 		check("and dies into the other seat's discard", where(theirs) == "discard" and seat_of(theirs) == "south",
 			where(theirs) .. "/" .. tostring(seat_of(theirs)))
+	end)
+end
+
+-- **A card lent to an offer is still its owner's card.** `show:` moves the real
+-- card out of a hand so that somebody may read it, and the offer belongs to the
+-- table rather than to a seat -- so for the few steps a pick is standing there
+-- it has no zone to say whose it is, and a `chosen` block that kills it had
+-- nowhere to send it. The hand it was lent from is what answers.
+function M.test_grave_a_pick_dies_into_the_hand_it_was_lent_from(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local theirs = make("grunt", "hand", "enemy")
+		actions.execute("show:enemy.hand", {})
+		check("the grunt is standing in the offer", where(theirs) == "options", where(theirs))
+		actions.execute("destroy:target", { targets = { theirs.id } })
+		check("and dies into the discard of the hand it came out of",
+			where(theirs) == "discard" and seat_of(theirs) == "south",
+			where(theirs) .. "/" .. tostring(seat_of(theirs)))
+	end)
+end
+
+-- The other way out of an offer. Leaving one clears the loan, but a purge does
+-- not pass that way -- and a husk still pointing at a hand it is not in rides
+-- into every undo checkpoint, save and net sync, because all three are a deep
+-- copy of exactly that.
+function M.test_grave_a_purge_out_of_an_offer_forgets_the_loan(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local theirs = make("grunt", "hand", "enemy")
+		actions.execute("show:enemy.hand", {})
+		check("it was lent, and remembers the hand", entity.get(theirs.id).borrowed_from ~= nil)
+		actions.execute("purge:target", { targets = { theirs.id } })
+		check("purged, it is nowhere", where(theirs) == "nowhere", where(theirs))
+		check("and keeps no home it no longer has",
+			entity.get(theirs.id).borrowed_from == nil,
+			tostring(entity.get(theirs.id).borrowed_from))
 	end)
 end
 

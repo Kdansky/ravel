@@ -134,6 +134,30 @@ function M.test_docs_the_manual_lists_every_action(check)
 		table.concat(missing, ", ") .. " — a verb nobody can look up may as well not exist")
 end
 
+-- Same argument, pointed at the seven words a zone answers. `status` had listed
+-- three of its five for as long as there were five: a game with a graveyard had
+-- no way to find out that saying so was one field, and wrote the pile's name at
+-- every site instead.
+function M.test_docs_the_manual_lists_every_zone_word(check)
+	local text = read("AUTHORING.md")
+	local from = text:find("### Zones", 1, true)
+	local to   = text:find("### A shelf", from or 1, true)
+	check("it has a Zones section that ends", from ~= nil and to ~= nil)
+	local section = text:sub(from, to)
+
+	local missing = {}
+	for _, field in ipairs({ "LAYOUT", "VISIBILITY", "REACH", "USE", "STATUS", "DISPLAY", "COPIES" }) do
+		for word in pairs(declaration[field]) do
+			if not section:find("`" .. word .. "`", 1, true) then
+				missing[#missing + 1] = field:lower() .. " " .. word
+			end
+		end
+	end
+	table.sort(missing)
+	check("every word a zone field takes is in the manual's table", #missing == 0,
+		table.concat(missing, ", ") .. " — a word nobody can look up may as well not exist")
+end
+
 function M.test_docs_no_retired_word_is_still_on_offer(check)
 	-- Every shipped game, the schema they are held to, the generator that writes
 	-- one of them, and the manual's examples — everything a game is copied from.
