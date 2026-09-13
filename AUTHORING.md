@@ -63,7 +63,7 @@ and a line here names a section that exists:
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
 - **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
-- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · Nothing moves while an offer is open
+- **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
 - **Boards and pieces** — Pieces that move · Asking about the square you are considering · Moves with fixed destinations (castling) · Legality between two cards · Which end of a deck a card lands on · A cell, where the destination is a grid · Filling a row up · `origin` — back where it came from · `fan` — a stack you can read
 - **Outside the game itself** — Engine behaviors you get for free · Playing over a network · Offering it from your own game · Saving a game, and picking it up
@@ -595,9 +595,9 @@ closes. Reading an opponent's hand is the second one:
 "chosen": { "action": ["move:target:enemy.discard"] }
 ```
 
-**Anything that moves the phase, the seat or priority belongs in `chosen`,
-never beside the `show:`.** All three are frozen while an offer stands, and the
-change is refused where it is written. → *Nothing moves while an offer is open*
+**A list waits for the question it asked.** Everything written after a `show:`
+or an `options:` runs once the player has answered, so *"…then end your action
+phase"* goes where the card says it. → *A list waits for the question it asked*
 
 ### Boards and pieces
 
@@ -3782,41 +3782,51 @@ That is why a question asked of each seat needs no phase of its own. A question
 that has to happen *between* two other steps still does: see *An automatic phase
 can ask*.
 
-#### Nothing moves while an offer is open
+#### A list waits for the question it asked
 
-Notice where the `clear_priority` above sits: in `chosen`, not beside the
-`show:`. That is not a stylistic choice. **While an offer is open, the phase, the
-seat and priority are frozen**, and the seven actions that would move one of them
-are refused where they stand:
-
-`next_phase` · `push_phase` · `pop_phase` · `set_active_seat` · `set_priority` ·
-`clear_priority` · `each_seat`
-
-An offer was asked in a phase, of a seat, holding priority. Move any of the three
-and the answer lands somewhere the question never was — the cards the offer
-borrowed have nowhere to come home to, and the player is left staring at a
-chooser over a board that has moved on. This is not theoretical: it is how Puzzle
-Strike's whole eighteen-chip bank came to be stranded in an overlay nobody could
-reach.
-
-So this does not work, and the validator says so before you run it:
+**An action that asks a question is the last thing that happens in its list until
+the question is answered.** `show:` and `options:` put the offer on the table and
+the rest of the list waits with it; once the player has answered, it picks up
+where it left off. So a card that says *"…then end your action phase"* says it
+where it reads:
 
 ```json
 "play": { "action": ["show:bank:optional", "next_phase"] }
 ```
 
-And this does, because `chosen` runs **after** the offer has closed:
+The `next_phase` happens after the answer, not under it. Writing the tail in
+`chosen` instead still works and means something slightly different — `chosen`
+runs once **per pick**, and it knows what was picked (`@target`); the tail runs
+once, whatever was chosen, and knows nothing about it:
 
 ```json
 "play":   { "action": ["show:bank:optional"] },
-"chosen": { "action": ["create:mine.discard:@target:1", "next_phase"] }
+"chosen": { "action": ["create:mine.discard:@target:1"] }
 ```
 
-The refusal is deliberate rather than the engine tidying up for you. A rule that
-opens a question and then walks away from it has not decided what should happen
-to the question, and closing it on the rule's behalf would withdraw an answer the
-player was owed. Setting a seat or priority *before* the `show:` is fine — that
-is the setup for the offer, not a change made underneath it.
+**While the offer is open, the phase, the seat and priority are frozen**, and the
+seven actions that would move one of them are refused where they stand:
+
+`next_phase` · `push_phase` · `pop_phase` · `set_active_seat` · `set_priority` ·
+`clear_priority` · `each_seat`
+
+That is the reason the tail waits rather than running. An offer was asked in a
+phase, of a seat, holding priority; move any of the three and the answer lands
+somewhere the question never was — the cards the offer borrowed have nowhere to
+come home to, and the player is left staring at a chooser over a board that has
+moved on. This is not theoretical: it is how Puzzle Strike's whole eighteen-chip
+bank came to be stranded in an overlay nobody could reach. Setting a seat or
+priority *before* the `show:` is fine — that is the setup for the offer, not a
+change made underneath it.
+
+**Two questions from one list are answered in the order they were asked**, and
+anything written between them happens in between:
+
+```json
+"action": ["show:cloud:optional", "stat_gain:mana:1", "show:cloud:optional"]
+```
+
+asks, waits, pays the mana, then asks again.
 
 ### `leaves` — a card on its way out
 

@@ -1414,8 +1414,14 @@ def zones():
          "tooltip": "Five cards to gain from. You may only take one at or below your Tier. After any card leaves, another is drawn to replace it.",
          "pos": P(0.205, 0.005, 0.325, 0.995),
          "contents": ["fireessence", "wateressence", "earthessence"]},
+        # And the VOID is this deck's grave, for the same reason it is its own.
+        # "Resolve a card and then discard it" waits for the resolving to finish,
+        # and an Essence resolving VOIDs itself -- so by the time the discard
+        # lands the card may have been shuffled back into this deck, the VOID
+        # being where it refills from. Discarding it there puts it back in the
+        # VOID, which is where a storm card that leaves goes.
         {"key": "spellstorm_deck", "label": "Spellstorm", "layout": "stack",
-         "visibility": "secret", "tags": ["shuffle"], "refill_from": "void",
+         "visibility": "secret", "tags": ["shuffle"], "refill_from": "void", "grave": "void",
          "tooltip": "The Spellstorm Deck. When it runs out, the VOID is shuffled to become the new one.",
          "pos": P(0.620, 0.215, 0.740, 0.400),
          "contents": [c["key"] for c in SPELLS]},

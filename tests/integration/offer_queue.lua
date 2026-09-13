@@ -32,6 +32,7 @@ local GAME = [==[{
       "pos": [[0.05, 0.75, 0.9, 0.2], [0.05, 0.4, 0.9, 0.2], [0.05, 0.05, 0.9, 0.2]] },
     { "key": "bin", "layout": "stack", "copies": "per_seat", "display": "offscreen" },
     { "key": "rules", "layout": "stack", "display": "offscreen", "use": "none" },
+    { "key": "rules2", "layout": "stack", "display": "offscreen", "use": "none" },
     { "key": "options", "layout": "row", "status": "offer", "display": "offscreen" }
   ],
   "phases": [
@@ -52,9 +53,19 @@ local GAME = [==[{
       "abilities": [{ "key": "sweep", "text": "Discard", "action": ["show:mine.hand:optional"] }],
       "chosen": { "action": ["move:target:mine.bin", "purge:everywhere.chip"] } },
     { "key": "more", "text": "One more chip", "play": { "action": ["create:mine.hand:chip:1"] } },
-    { "key": "fewer", "text": "One fewer chip", "play": { "action": ["purge:random.mine.hand"] } }
+    { "key": "fewer", "text": "One fewer chip", "play": { "action": ["purge:random.mine.hand"] } },
+    { "key": "walker", "text": "Ask, then move on", "tags": ["immutable"],
+      "abilities": [{ "key": "sweep", "text": "Ask", "action": ["show:mine.hand:optional", "next_phase"] }],
+      "chosen": { "action": ["move:target:mine.bin"] } },
+    { "key": "looker", "text": "Look in the bin", "tags": ["immutable"],
+      "abilities": [{ "key": "look", "text": "Look", "action": ["show:mine.bin:optional"] }],
+      "chosen": { "action": ["move:target:mine.hand"] } },
+    { "key": "twice", "text": "Discard one, then look in the bin", "tags": ["immutable"],
+      "abilities": [{ "key": "sweep", "text": "Ask", "action": ["show:mine.hand:optional"] }],
+      "chosen": { "action": ["move:target:mine.bin", "activate_zone:rules2",
+                             "stat_gain:kept@mine.player:1"] } }
   ],
-  "setup": { "place": [{ "card": "sweeper", "zone": "rules" }] }
+  "setup": { "place": [{ "card": "sweeper", "zone": "rules" }, { "card": "looker", "zone": "rules2" }] }
 }]==]
 
 local PATH, FILE = "game/games/tmp_offer_queue.json", "tmp_offer_queue.json"
@@ -225,6 +236,77 @@ function M.test_offer_queue_a_second_menu_waits_its_turn(check)
 		answer()
 		check("and the last answer leaves no overlay standing", not phase.is_overlay(),
 			phase.current().key)
+	end)
+end
+
+-- **A list does not run in the background of its own question.** Everything
+-- after an ask used to run while the offer was still on the table, which is
+-- where a phase move is refused -- so "ask, then end the phase" quietly did half
+-- of what it said. The rest of the list waits with the question now.
+function M.test_offer_queue_the_rest_of_the_list_waits(check)
+	local text = GAME:gsub('"card": "sweeper"', '"card": "walker"')
+	with_game(text, function(name)
+		flow.init(name, 3)
+		deal()
+		actions.execute("next_phase", {})
+		flow.settle()
+		check("the question is on the table", phase.current().key == "options",
+			phase.current().key)
+		check("and the phase has not moved under it", #zones.find("options").pending == 2,
+			zones.find("options").pending and #zones.find("options").pending or "(none)")
+
+		answer(); answer(); answer()
+		check("all three seats answered, and each tail ran after its own question",
+			phase.current().key == "act", phase.current().key)
+	end)
+end
+
+-- The waiting list is data on the offer zone, exactly as the queue of questions
+-- beside it is -- a few strings and a few ids. That is the whole reason it is
+-- written this way rather than as a suspended call: undo, a save file and the
+-- other client are all a deep copy of the entities, and none of them can carry a
+-- Lua stack.
+function M.test_offer_queue_a_waiting_list_survives_the_wire(check)
+	local text = GAME:gsub('"card": "sweeper"', '"card": "walker"')
+	with_game(text, function(name)
+		flow.init(name, 3)
+		deal()
+		actions.execute("next_phase", {})
+		flow.settle()
+		check("a tail is waiting", zones.find("options").after ~= nil)
+
+		local ok, err = net.apply_full(json.decode(json.encode(net.snapshot())))
+		check("the state survives an encode/decode/apply", ok, err)
+		check("and the tail came with it", zones.find("options").after ~= nil)
+
+		answer(); answer(); answer()
+		check("and still runs on the other side", phase.current().key == "act",
+			phase.current().key)
+	end)
+end
+
+-- **A pick may ask a question of its own and then carry on.** A "chosen" block is
+-- an action list like any other, so the same rule reaches it: the second question
+-- goes up, and what was written after it runs when that one is answered. This is
+-- the shape five Codex cards want -- a fetch out of the codex that then pays a
+-- price or aims somewhere -- and it was written down as "a pick out of an offer
+-- resolves and stops, so nothing follows it".
+function M.test_offer_queue_a_pick_may_ask_and_then_carry_on(check)
+	local text = GAME:gsub('{ "card": "sweeper", "zone": "rules" }', '{ "card": "twice", "zone": "rules" }')
+	with_game(text, function(name)
+		flow.init(name, 3)
+		deal()
+		actions.execute("next_phase", {})
+		flow.settle()
+		answer()
+		check("the pick asked a question of its own rather than stopping",
+			#zones.find("options").cards > 0, #zones.find("options").cards)
+		check("and what was written after it has not run yet",
+			seat("one").stats.kept == 0, seat("one").stats.kept)
+
+		answer()
+		check("answering that one finishes the block", seat("one").stats.kept == 1,
+			seat("one").stats.kept)
 	end)
 end
 

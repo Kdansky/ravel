@@ -92,16 +92,23 @@ card, in its own tooltip.
 
 The codex is a `supply` now, so `show:mine.codex` answered by
 `take:target:<zone>:1` is the whole of fetching, and three cards do it — Warp
-Gate Disciple, Circle of Life, Calamandra's tiger. The five that cannot all fail
-at the same joint: a pick out of an offer resolves and stops, so nothing follows
-it. **Jurisdiction** wants the pick to pay a price the pick itself names;
-**Cinderblast Dragon** wants it to cost nothing; **Vandy** wants a discard as its
-price; **Feral Strike** and **Temporal Distortion** each want the pick to then
-aim somewhere. Listed as one because they are one — `chosen.action` running a
-second question is the word, not five rules columns. The sixth, **Rambasa
-Twin**, is the only one the box already answers: going back to the codex is
-`purge:self`, and what is still missing there is the death replacement it shares
-with four other cards.
+Gate Disciple, Circle of Life, Calamandra's tiger. Five more all failed at one
+joint: a pick out of an offer resolved and stopped, so nothing could follow it.
+
+**That joint is open.** An action list waits for the question it asked, and a
+`chosen` block is an action list — so a pick may now ask a second question and
+carry on afterwards (`tests/integration/offer_queue.lua`, *a pick may ask and
+then carry on*). Three of the five are a matter of writing the card now, and
+worth trying the next time Codex is opened: **Vandy**, whose price is a discard,
+and **Feral Strike** and **Temporal Distortion**, which each want the pick to
+then aim somewhere. The other two are not about ordering at all —
+**Jurisdiction** wants the pick to pay a price the *picked card* names, and
+**Cinderblast Dragon** wants it to cost nothing, which is the cost-adjust gap
+below.
+
+The sixth, **Rambasa Twin**, is the only one the box already answered: going back
+to the codex is `purge:self`, and what is still missing there is the death
+replacement it shares with four other cards.
 
 ## The tech offer is public, and the rulebook makes the hidden pick a rule
 

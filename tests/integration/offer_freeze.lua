@@ -5,10 +5,15 @@
 -- is still on the stack under a phase that has moved on, and Puzzle Strike's
 -- whole eighteen-chip bank sat in it, unreachable, for exactly one afternoon.
 --
--- So the change is refused, not performed quietly and not performed after
--- closing the offer on the rule's behalf — a list that walks away from a
--- question it asked has not decided what happens to it. The place to put the
--- change is "chosen", which runs once the offer has closed.
+-- **So the list waits.** It used to be refused where it stood, which was the
+-- safe half of the answer and not the whole of it: "then end your action phase"
+-- is a thing cards say, and a rule that drops it silently is a rule the file
+-- cannot express. An action that asks a question parks the rest of its list on
+-- the offer, and settle runs it once the question is answered — so the phase
+-- still does not move while the offer is open, and it does move afterwards.
+--
+-- The refusal stays underneath as a backstop for anything that reaches those
+-- verbs another way.
 
 local entity  = require("entity")
 local zones   = require("zones")
@@ -95,7 +100,7 @@ local function play(def_key)
 	return flow.play_card(c.id, {})
 end
 
-function M.test_offer_freeze_refuses_a_phase_change(check)
+function M.test_offer_freeze_the_phase_waits_for_the_answer(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		check("the vault filled", count_in("vault") == 3, count_in("vault"))
@@ -106,18 +111,23 @@ function M.test_offer_freeze_refuses_a_phase_change(check)
 			phase.current().key == "options", phase.current().key)
 		check("the vault is empty while they are lent out", count_in("vault") == 0)
 
-		-- The question still answerable is the point: the refusal leaves a live
-		-- offer, not a dead one.
 		local pick = entity.get(zones.find("options").cards[1])
 		flow.play_card(pick.id, {})
 		check("choosing sends every borrowed card home", count_in("vault") == 3,
 			count_in("vault"))
-		check("and the phase underneath comes back", phase.current().key == "act",
+		check("and now the rest of the list runs", phase.current().key == "rest",
 			phase.current().key)
 	end)
 end
 
-function M.test_offer_freeze_refuses_a_priority_change(check)
+-- The same for priority, and it is the half that shows the waiting is real:
+-- nothing hands the game over while the question the handover was written after
+-- is still being asked.
+--
+-- What happens to it *after* the answer is a different rule and not this one's:
+-- a handover made outside a response window is released as soon as the table is
+-- quiet, which is what release_priority is for.
+function M.test_offer_freeze_priority_waits_too(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local before = zones.active_seat()
@@ -185,18 +195,17 @@ function M.test_offer_freeze_an_offer_may_open_inside_a_chosen_block(check)
 	end, NESTED)
 end
 
-function M.test_offer_freeze_is_read_off_the_file_too(check)
+-- The validator used to call this a mistake and send the author to "chosen".
+-- Now that the list waits, writing the action where the card says it is the
+-- plain spelling, and warning about it would be telling the truth backwards.
+function M.test_offer_freeze_asking_and_then_acting_is_not_a_mistake(check)
 	with_game(function(name)
 		local G = declaration.parse(name)
 		local said = table.concat(validate.check(G), "; ")
-		check("the list that opens an offer and then leaves is named",
-			said:find("'show:vault' opens an offer and then 'next_phase'", 1, true), said)
-		check("so is the one that hands priority away",
-			said:find("and then 'set_priority'", 1, true), said)
-		check("and it says where the action belongs instead",
-			said:find("chosen", 1, true), said)
-		check("while the card that waited for the answer is left alone",
-			not said:find("'waiter'", 1, true), said)
+		check("no warning about ending the phase after an ask",
+			not said:find("next_phase", 1, true), said)
+		check("nor about handing priority over after one",
+			not said:find("set_priority", 1, true), said)
 	end)
 end
 

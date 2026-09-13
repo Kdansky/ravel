@@ -127,19 +127,12 @@ The list is short and the chips are many, which is the useful shape:
   events. — Combinatorics' second clause.
 - **No way to make an announcement unanswerable.** — Dragon Form.
 - **Nothing runs after an interjected phase closes**, so a rule cannot branch on
-  what the other player did in there. — Protective Ward.
+  what the other player did in there. — Protective Ward. (A list waits for an
+  *offer* it asked now; a pushed phase is not an offer, and the same treatment
+  would want a phase to know which list is waiting on it.)
 - **A zone cannot grant *play* to what lies in it**, only abilities. — Iron
   Defense.
 - **Nothing writes a token onto somebody else's card.** — It's a Trap, Stunlock.
-- **An action list cannot put a tail behind a question it just asked.** `show:`
-  and `options:` fill the offer, push the overlay and return, so the rest of the
-  list runs while the question is still on the table and the answer arrives long
-  after it has finished. `emit:<verb>:<tail>` is the one word that defers a tail,
-  and it waits on the reaction stack rather than on an offer; a question's tail
-  has one home, the asker's `chosen` block. Double-take — *"play it twice, trash
-  it, then end your action phase"* — cannot reach it, because the question is
-  Versatile Style's and not its own, so its `next_phase` is refused where it
-  stands. The chip's note says so. — Double-take.
 - **Singles**: no choice of where a card lands (Repeated Jabs, Saving Grace), no
   deferred payment (Gems to Gemonade), nothing remembers the set a draw produced
   (Improvisation), nothing counts the actions a player has played (Combos Are

@@ -532,9 +532,13 @@ end
 --
 -- Refused rather than closed on the rule's behalf. A list that opens an offer and
 -- then walks away has not said what should happen to it, and choosing for it would
--- withdraw a question the player was owed. Close it first and then change — which
--- is what a "chosen" list is, and where the three chips that hand priority to the
--- other seat put their clear_priority.
+-- withdraw a question the player was owed.
+--
+-- **A backstop now rather than the rule authors meet.** `run` parks the rest of a
+-- list that asked something, so the ordinary "ask, then end the phase" never
+-- reaches here — it happens after the answer, which is what the card meant. What
+-- is left for this to catch is a phase move arriving from somewhere that did not
+-- ask: a reaction, a zone's arrival, a list already running under an offer.
 --
 -- Only an *offer* counts. A page overlay deals its own cards and clears up after
 -- itself, and reveals stack over one another by design.
@@ -833,6 +837,12 @@ HANDLERS["set_owner"] = function(p, ctx)
 	end
 end
 
+-- How many questions have been asked, and what the last one was written on. Both
+-- are read by `run` below, in the breath after the action that set them, and by
+-- nothing else -- so they are module locals rather than fields, and it does not
+-- matter what they are when a save comes back.
+local asked, last_ask = 0, nil
+
 -- **One offer at a time, because there is one place to hold one.** A second ask
 -- while the first is still up used to tip its cards into the same pile — both
 -- hands lying there together and one seat picking out of the other's — so it is
@@ -856,6 +866,7 @@ local function queue_ask(zone_id, p, ctx)
 	z.pending = z.pending or {}
 	z.pending[#z.pending + 1] = { seat = zones.active_seat(),
 		card = ctx and ctx.card_id or nil, action = table.concat(p, ":") }
+	asked, last_ask = asked + 1, z.pending[#z.pending]
 	return true
 end
 
@@ -930,6 +941,7 @@ HANDLERS["show"] = function(p, ctx)
 	-- every remaining question to whoever asked first. Flow applies it once the
 	-- game has come to rest.
 	z.asked_seat  = zones.active_seat()
+	asked, last_ask = asked + 1, z
 	phase.push("options")
 end
 
@@ -1002,6 +1014,7 @@ HANDLERS["options"] = function(p, ctx)
 	-- otherwise. Written every time rather than left to whatever the last offer
 	-- set, which is how a mandatory choice inherited a stale permission.
 	z.dismissable = p[3] == "optional" or nil
+	asked, last_ask = asked + 1, z
 	phase.push("options")
 end
 
@@ -1583,9 +1596,42 @@ function M.execute(str, ctx)
 	end
 end
 
+-- **A list does not run in the background of its own question.** `show:` and
+-- `options:` put an overlay on the table and return, so everything written after
+-- them used to run under it -- Double-take's "then end your action phase" arrived
+-- while the offer it had just opened was still open, where every phase move is
+-- refused. The answer comes from a click, long after the list is over.
+--
+-- So the rest of the list waits with the question, as data on the offer zone: a
+-- few strings and a few ids, which is what undo, a save file and the other client
+-- already carry. `flow.offer_step` picks it up when the table is quiet.
+--
+-- **The tail waits on the question it asked, not on the table going quiet.** Two
+-- lists can be waiting at once and they do not want the same order. Abragail's
+-- New Curriculum asks twice about one shelf and then a third time for a
+-- different reason, and the second VOID belongs before that third question --
+-- while Double-take's "end your action phase" belongs after both menus it
+-- opened. What separates them is which question each tail is behind, so that is
+-- what it is filed under: the one the action just made, open or queued.
+local function park(list, from, ctx)
+	if not last_ask then return end
+	local rest = {}
+	for i = from, #list do rest[#rest + 1] = list[i] end
+	last_ask.after = last_ask.after or {}
+	local a = last_ask.after
+	a[#a + 1] = { action = rest, seat = zones.active_seat(),
+		card = ctx and ctx.card_id or nil, targets = ctx and ctx.targets or nil,
+		event = ctx and ctx.event or nil, let = ctx and ctx.let or nil }
+end
+
 function M.run(list, ctx)
-	for _, str in ipairs(list or {}) do
+	for i, str in ipairs(list or {}) do
+		local before = asked
 		M.execute(str, ctx)
+		if asked > before and i < #list then
+			park(list, i + 1, ctx)
+			return
+		end
 	end
 end
 

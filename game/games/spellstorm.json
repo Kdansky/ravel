@@ -279,6 +279,7 @@
       "visibility": "secret",
       "tags": ["shuffle"],
       "refill_from": "void",
+      "grave": "void",
       "tooltip": "The *Spellstorm Deck*. When it runs out, the *VOID* is shuffled to become the new one.",
       "pos": [0.62, 0.215, 0.74, 0.4],
       "contents": [

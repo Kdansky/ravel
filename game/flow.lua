@@ -1045,6 +1045,12 @@ function M.play_card(card_id, targets)
 	-- the offer *borrowed* carries nothing of ours — it is somebody's chip — so
 	-- it is the answer and the asker is the actor.
 	local lent    = overlay and c.borrowed_from ~= nil
+	-- Which loan this pick is. Held so the settling at the bottom can tell the
+	-- card *still lying in the offer* from one a later rule has lent back into it:
+	-- "discard a card, then look through your discard pile" fetches the very card
+	-- just discarded, and sending it home on the strength of standing in an offer
+	-- would empty the question that had just borrowed it.
+	local home    = c.borrowed_from
 	-- Whose price this is. A card played from a hand pays its own, and so does an
 	-- answer the offer minted; a borrowed chip and a card dealt out of a deck are
 	-- real game cards whose price is the price of playing them, not of taking them.
@@ -1097,8 +1103,7 @@ function M.play_card(card_id, targets)
 	-- somebody else's and goes home. Either way only if it is still lying there:
 	-- a rule that moved it somewhere has already answered this question.
 	local picked = entity.get(card_id)
-	if offer and picked and picked.zone_id == offer then
-		local home = picked.borrowed_from
+	if offer and picked and picked.zone_id == offer and picked.borrowed_from == home then
 		if home and entity.get(home) then
 			zones.move_card(card_id, home)
 		else
@@ -1699,7 +1704,7 @@ function M.release_priority()
 	local sz = stack_zone()
 	if sz and #sz.cards > 0 then return end
 	local oz = zones.find("options")
-	if oz and (oz.pending or #oz.cards > 0) then return end
+	if oz and (oz.pending or oz.after or #oz.cards > 0) then return end
 	give_priority(nil)
 end
 
@@ -1723,12 +1728,33 @@ function M.offer_step()
 		if z.asked_seat then give_priority(z.asked_seat) end
 		return false
 	end
-	if not z.pending or phase.is_overlay() then return false end
-	local ask = table.remove(z.pending, 1)
-	if #z.pending == 0 then z.pending = nil end
-	give_priority(ask.seat)
-	actions.run({ ask.action }, { card_id = ask.card, targets = {} })
-	return true
+	if phase.is_overlay() then return false end
+	-- What the question just answered was holding up: the rest of the list that
+	-- asked it. Before the queue, because a list that asked and then asked again
+	-- wrote its second question first — Abragail's second VOID comes before the
+	-- gain her next ability queued behind it.
+	--
+	-- One per call, because a tail may ask a question of its own, and settle has
+	-- to come back round for it.
+	if z.after then
+		local f = table.remove(z.after, 1)
+		if #z.after == 0 then z.after = nil end
+		if f.seat then give_priority(f.seat) end
+		actions.run(f.action, { card_id = f.card, targets = f.targets or {},
+			event = f.event, let = f.let })
+		return true
+	end
+	if z.pending then
+		local ask = table.remove(z.pending, 1)
+		if #z.pending == 0 then z.pending = nil end
+		-- The tail that was filed behind this one comes with it: it was waiting on
+		-- this question and this question is now the one on the table.
+		z.after = ask.after
+		give_priority(ask.seat)
+		actions.run({ ask.action }, { card_id = ask.card, targets = {} })
+		return true
+	end
+	return false
 end
 
 function M.react_step()

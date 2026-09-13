@@ -1770,6 +1770,11 @@ function M.test_puzzle_strike_a_copied_chooser_asks_twice(check)
 	flow.play_card(find_in("options", "vs_money").id, {})
 	check("both answers paid", seat_card(seat).stats.money == 4, seat_card(seat).stats.money)
 	check("and the turn is playable again", not phase.is_overlay(), phase.current().key)
+	-- "…trash it, then end your action phase". Both halves are behind two
+	-- questions, and the list waited for them rather than running under them.
+	check("the chip it copied was trashed", find_in("hand", "versatile_style", seat) == nil)
+	check("and the action phase ended, as the chip says",
+		phase.current().key == "buy", phase.current().key)
 end
 
 return M
