@@ -55,7 +55,7 @@ local GAME = [==[{
     { "key": "more", "text": "One more chip", "play": { "action": ["create:mine.hand:chip:1"] } },
     { "key": "fewer", "text": "One fewer chip", "play": { "action": ["purge:random.mine.hand"] } },
     { "key": "walker", "text": "Ask, then move on", "tags": ["immutable"],
-      "abilities": [{ "key": "sweep", "text": "Ask", "action": ["show:mine.hand:optional", "next_phase"] }],
+      "abilities": [{ "key": "sweep", "text": "Ask", "action": ["show:mine.hand:optional", "end_phase"] }],
       "chosen": { "action": ["move:target:mine.bin"] } },
     { "key": "looker", "text": "Look in the bin", "tags": ["immutable"],
       "abilities": [{ "key": "look", "text": "Look", "action": ["show:mine.bin:optional"] }],
@@ -109,7 +109,7 @@ function M.test_offer_queue_asks_each_seat_in_turn(check)
 	with_game(nil, function(name)
 		flow.init(name, 3)
 		deal()
-		actions.execute("next_phase", {})
+		actions.execute("end_phase", {})
 		flow.settle()
 
 		local asked = {}
@@ -148,7 +148,7 @@ function M.test_offer_queue_the_seat_that_asked_is_the_seat_that_answers(check)
 		local up = zones.active_seat()
 		check("somebody other than the first seat is up", up ~= was, up)
 
-		actions.execute("next_phase", {})
+		actions.execute("end_phase", {})
 		flow.settle()
 		local asked = {}
 		for _ = 1, 3 do
@@ -174,7 +174,7 @@ function M.test_offer_queue_a_waiting_question_reads_the_board_as_it_stands(chec
 	with_game(text, function(name)
 		flow.init(name, 3)
 		deal()
-		actions.execute("next_phase", {})
+		actions.execute("end_phase", {})
 		flow.settle()
 		check("seat one is asked", zones.active_seat() == "one", zones.active_seat())
 		answer()
@@ -194,7 +194,7 @@ function M.test_offer_queue_survives_the_wire(check)
 	with_game(nil, function(name)
 		flow.init(name, 3)
 		deal()
-		actions.execute("next_phase", {})
+		actions.execute("end_phase", {})
 		flow.settle()
 		check("two questions are waiting", #zones.find("options").pending == 2,
 			#zones.find("options").pending)
@@ -248,7 +248,7 @@ function M.test_offer_queue_the_rest_of_the_list_waits(check)
 	with_game(text, function(name)
 		flow.init(name, 3)
 		deal()
-		actions.execute("next_phase", {})
+		actions.execute("end_phase", {})
 		flow.settle()
 		check("the question is on the table", phase.current().key == "options",
 			phase.current().key)
@@ -271,7 +271,7 @@ function M.test_offer_queue_a_waiting_list_survives_the_wire(check)
 	with_game(text, function(name)
 		flow.init(name, 3)
 		deal()
-		actions.execute("next_phase", {})
+		actions.execute("end_phase", {})
 		flow.settle()
 		check("a tail is waiting", zones.find("options").after ~= nil)
 
@@ -296,7 +296,7 @@ function M.test_offer_queue_a_pick_may_ask_and_then_carry_on(check)
 	with_game(text, function(name)
 		flow.init(name, 3)
 		deal()
-		actions.execute("next_phase", {})
+		actions.execute("end_phase", {})
 		flow.settle()
 		answer()
 		check("the pick asked a question of its own rather than stopping",

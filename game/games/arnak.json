@@ -575,14 +575,14 @@
       "tooltip": "Hand the turn on. You have to take your one main action first — if there is nothing you want to do, pass instead.",
       "abilities": [
         { "key": "end", "text": "End turn", "phases": ["turn"], "needs": ["main@mine.player == 0"],
-          "action": ["next_phase"] }
+          "action": ["end_phase"] }
       ] },
 
     { "key": "pass_turn", "text": "Pass", "tags": ["immutable"], "asset": "square:maroon",
       "tooltip": "Pass for the rest of this round. You take no more turns until the next one begins.",
       "abilities": [
         { "key": "pass", "text": "Pass", "phases": ["turn"],
-          "action": ["stat_set:passed@mine.player:1", "next_phase"] }
+          "action": ["stat_set:passed@mine.player:1", "end_phase"] }
       ] },
 
     { "key": "win_south", "text": "win_south", "tags": ["immutable"],

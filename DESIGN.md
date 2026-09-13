@@ -285,7 +285,7 @@ enum value against being used as a field name for anything else.
 
 Phases are a stack, not a flat list. Current phase = top of stack.
 
-- `next_phase` — replace top with the next phase in the JSON sequence; at the end of the sequence, wrap to the first non-automatic phase. A wrap marks a completed **round**: every board card then runs its `turn.action` (cards at 0 hp are ruined and don't act).
+- `end_phase` — replace top with the next phase in the JSON sequence; at the end of the sequence, wrap to the first non-automatic phase. A wrap marks a completed **round**: every board card then runs its `turn.action` (cards at 0 hp are ruined and don't act).
 - `push_phase:key` — push a phase (opens overlay, modal, menu).
 - `pop_phase` — pop current phase (closes overlay, returns to previous).
 
@@ -301,7 +301,7 @@ Phase types: `automatic` (runs `actions`, advances immediately), `player_input`,
 ]
 ```
 
-**Free-play drafts** need no phase type: a `player_input` phase with `deck`, `draw` and a `pass_card` deals a hand you may play freely from; a Done/router token advances via `next_phase`. `pass_card` accepts a single key or an array (e.g. three "travel" routers that each set a destination stat the routing reads). Stale tokens are swept from the hand before each deal, so they never accumulate across phases.
+**Free-play drafts** need no phase type: a `player_input` phase with `deck`, `draw` and a `pass_card` deals a hand you may play freely from; a Done/router token advances via `end_phase`. `pass_card` accepts a single key or an array (e.g. three "travel" routers that each set a destination stat the routing reads). Stale tokens are swept from the hand before each deal, so they never accumulate across phases.
 
 A `draw_and_play` phase must declare a `"pass_card"`: that card is created into the hand with every deal, so a forced play always has an out — no hand can deadlock the game. The pass card is an ordinary card tagged `token` (tokens are destroyed instead of discarded when the hand is swept) whose play action is `["destroy_self"]`.
 
@@ -444,7 +444,7 @@ A `deck` or a `pile` draws one card and hit-tests one card, so the rules say the
 A tag definition may carry card behaviour — a home `zone`, a `tooltip`, the `play` block and the `abilities` a card itself has — and a zone may hand tags to whatever sits in it:
 
 ```json
-"tags":  { "takeable": { "abilities": [{ "action": ["move_to:hand", "next_phase"], "phases": ["draw"] }] } }
+"tags":  { "takeable": { "abilities": [{ "action": ["move_to:hand", "end_phase"], "phases": ["draw"] }] } }
 "zones": [ { "key": "red_discard", "type": "pile", "applies": ["takeable"] } ]
 ```
 

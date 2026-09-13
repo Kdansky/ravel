@@ -1160,7 +1160,7 @@ function M.parse(filename)
 			if G.phase_by_key[pd.key] then
 				pp[#pp + 1] = "two phases share the key '" .. pd.key
 					.. "' — the second silently replaces the first"
-			-- Overlays are push-only (modals): reachable via push_phase, never via next_phase.
+			-- Overlays are push-only (modals): reachable via push_phase, never via end_phase.
 			elseif pd.type ~= "overlay" then
 				G.phase_list[#G.phase_list + 1] = pd.key
 			end

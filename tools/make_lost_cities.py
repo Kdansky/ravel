@@ -182,7 +182,7 @@ def templates():
         )})
     out.append({"key": "done_scoring", "text": "Done", "tooltip": "Finish tallying.",
                 "tags": ["token"],
-                "play": {"action": ["stat_gain:tallied@mine.player:1", "purge:self", "next_phase"]}})
+                "play": {"action": ["stat_gain:tallied@mine.player:1", "purge:self", "end_phase"]}})
     for seat, other in (("north", "South"), ("south", "North")):
         out.append({"key": seat + "_wins", "text": seat.title() + " wins",
                     "story": seat.title() + " comes home with the better haul. "
@@ -199,7 +199,7 @@ def zones():
             # clickable cards, which is also why nothing has to hide the face
             # of the one you are about to draw.
             "abilities": [{"phases": ["draw"],
-                         "action": ["draw_from:deck:hand:1", "next_phase"]}],
+                         "action": ["draw_from:deck:hand:1", "end_phase"]}],
             "contents": ["%s_w%d" % (c, w) for c, _, _, _ in COLOURS for w in range(1, WAGERS + 1)]
                         + ["%s_%d" % (c, v) for c, _, _, _ in COLOURS for v in VALUES]},
            {"key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": HAND_POS},
@@ -289,7 +289,7 @@ TAG_DEFS = {
     } for c, _, _, _ in COLOURS},
     "takeable": {
         "abilities": [{
-            "action": ["move_to:hand", "next_phase"],
+            "action": ["move_to:hand", "end_phase"],
             "phases": ["draw"],
 
         }],

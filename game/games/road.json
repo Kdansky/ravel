@@ -104,7 +104,7 @@
       "tags": ["token", "moss"],
       "play": {
         "cost": { "supplies": 1 },
-        "action": ["stat_gain:distance:1", "purge:self", "next_phase"]
+        "action": ["stat_gain:distance:1", "purge:self", "end_phase"]
       }
     },
     {
@@ -112,7 +112,7 @@
       "text": "Hungry March",
       "tooltip": "March on empty bellies: a mile for 1 morale.",
       "tags": ["token", "rust"],
-      "play": { "action": ["stat_damage:morale:1", "stat_gain:distance:1", "purge:self", "next_phase"] }
+      "play": { "action": ["stat_damage:morale:1", "stat_gain:distance:1", "purge:self", "end_phase"] }
     },
     {
       "key": "outrider",

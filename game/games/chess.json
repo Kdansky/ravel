@@ -146,7 +146,7 @@
       "challenge": {
         "needs": ["rank@self == 8"],
         "pass": ["options:to_queen,to_rook,to_bishop,to_knight"],
-        "fail": ["next_phase"]
+        "fail": ["end_phase"]
       },
       "abilities": [
         {
@@ -177,7 +177,7 @@
               ]
             }
           ],
-          "action": ["move_to:target", "purge:behind", "stat_gain:moves_made@self:1", "next_phase"]
+          "action": ["move_to:target", "purge:behind", "stat_gain:moves_made@self:1", "end_phase"]
         }
       ]
     },
@@ -190,7 +190,7 @@
       "card_stats": { "rank": 0, "moves_made": 0 },
       "abilities": [{
         "moves": ["line_ortho"],
-        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
+        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "end_phase"]
       }]
     },
     {
@@ -202,7 +202,7 @@
       "card_stats": { "rank": 0, "moves_made": 0 },
       "abilities": [{
         "moves": ["knight_leap"],
-        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
+        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "end_phase"]
       }]
     },
     {
@@ -214,7 +214,7 @@
       "card_stats": { "rank": 0, "moves_made": 0 },
       "abilities": [{
         "moves": ["line_diag"],
-        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
+        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "end_phase"]
       }]
     },
     {
@@ -226,7 +226,7 @@
       "card_stats": { "rank": 0, "moves_made": 0 },
       "abilities": [{
         "moves": ["line_ortho", "line_diag"],
-        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
+        "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "end_phase"]
       }]
     },
     {
@@ -241,7 +241,7 @@
           "key": "move",
           "text": "Move",
           "moves": ["adjacent"],
-          "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "next_phase"]
+          "action": ["move_to:target:taken", "stat_gain:moves_made@self:1", "end_phase"]
         },
         {
           "key": "castle_k",
@@ -263,7 +263,7 @@
             "move_to:target",
             "place:one_right:one_left",
             "stat_gain:moves_made@self:1",
-            "next_phase"
+            "end_phase"
           ],
           "asset": "king"
         },
@@ -288,7 +288,7 @@
             "move_to:target",
             "place:two_left:one_right",
             "stat_gain:moves_made@self:1",
-            "next_phase"
+            "end_phase"
           ],
           "asset": "queen"
         }
@@ -307,7 +307,7 @@
       "asset": "queen",
       "tags": ["token"],
       "tooltip": "Promote the pawn to a queen.",
-      "play": { "action": ["transform:target:queen", "next_phase"] }
+      "play": { "action": ["transform:target:queen", "end_phase"] }
     },
     {
       "key": "to_rook",
@@ -315,7 +315,7 @@
       "asset": "rook",
       "tags": ["token"],
       "tooltip": "Promote the pawn to a rook.",
-      "play": { "action": ["transform:target:rook", "next_phase"] }
+      "play": { "action": ["transform:target:rook", "end_phase"] }
     },
     {
       "key": "to_bishop",
@@ -323,7 +323,7 @@
       "asset": "bishop",
       "tags": ["token"],
       "tooltip": "Promote the pawn to a bishop.",
-      "play": { "action": ["transform:target:bishop", "next_phase"] }
+      "play": { "action": ["transform:target:bishop", "end_phase"] }
     },
     {
       "key": "to_knight",
@@ -331,7 +331,7 @@
       "asset": "knight",
       "tags": ["token"],
       "tooltip": "Promote the pawn to a knight.",
-      "play": { "action": ["transform:target:knight", "next_phase"] }
+      "play": { "action": ["transform:target:knight", "end_phase"] }
     },
     {
       "key": "white_wins",

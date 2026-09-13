@@ -341,7 +341,7 @@ and `@event` read there exactly as they do anywhere else.
 
 **An open offer freezes whose game it is.** A question on the table was asked in
 a phase, of a seat, holding priority, and the three actions that would move one
-of those (`next_phase`/`push_phase`/`pop_phase`, `set_active_seat`,
+of those (`end_phase`/`push_phase`/`pop_phase`, `set_active_seat`,
 `set_priority`/`clear_priority`, plus `each_seat`, which moves the seat by hand)
 refuse while an offer-status zone is the current overlay's zone. `offer_open` in
 `actions.lua` is the whole test; `validate.lua` reads the same rule off the file,

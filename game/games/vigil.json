@@ -35,7 +35,7 @@
       "asset": "moonlit_night.jpg",
       "tooltip": "End the day. Your strength fades by one, your followers tithe, and the hours return to you.",
       "tags": ["verb"],
-      "abilities": [{ "action": ["next_phase"] }]
+      "abilities": [{ "action": ["end_phase"] }]
     },
     {
       "key": "work",

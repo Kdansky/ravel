@@ -133,10 +133,6 @@ The list is short and the chips are many, which is the useful shape:
 - **A zone cannot grant *play* to what lies in it**, only abilities. — Iron
   Defense.
 - **Nothing writes a token onto somebody else's card.** — It's a Trap, Stunlock.
-- **A phase end fires once per copy.** *"Then end your action phase"* is a bare
-  `next_phase`, which means *advance* and not *end that phase* — so a Double-take
-  copied twice ends the action phase, the buy phase and the turn. Wants the verb
-  to be able to name the phase it means. — Double-take.
 - **Singles**: no choice of where a card lands (Repeated Jabs, Saving Grace), no
   deferred payment (Gems to Gemonade), nothing remembers the set a draw produced
   (Improvisation), nothing counts the actions a player has played (Combos Are

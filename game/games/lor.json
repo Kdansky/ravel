@@ -326,7 +326,7 @@
       "play": {
         "cost": { "mana": 1 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -338,7 +338,7 @@
       "play": {
         "cost": { "mana": 1 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -350,7 +350,7 @@
       "play": {
         "cost": { "mana": 2 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -362,7 +362,7 @@
       "play": {
         "cost": { "mana": 2 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -374,7 +374,7 @@
       "play": {
         "cost": { "mana": 2 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -386,7 +386,7 @@
       "play": {
         "cost": { "mana": 3 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -398,7 +398,7 @@
       "play": {
         "cost": { "mana": 3 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -410,7 +410,7 @@
       "play": {
         "cost": { "mana": 4 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -422,7 +422,7 @@
       "play": {
         "cost": { "mana": 5 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -434,7 +434,7 @@
       "play": {
         "cost": { "mana": 6 },
         "target": { "type": "slot", "count": 1, "zones": ["bench"], "fill": "empty" },
-        "action": ["move_to:target", "next_phase"]
+        "action": ["move_to:target", "end_phase"]
       }
     },
     {
@@ -461,13 +461,13 @@
           "key": "pass",
           "text": "Pass",
           "phases": ["play"],
-          "action": ["stat_set:passed@self:1", "next_phase"]
+          "action": ["stat_set:passed@self:1", "end_phase"]
         },
         {
           "key": "done",
           "text": "Done",
           "phases": ["declare_attack", "declare_block"],
-          "action": ["next_phase"]
+          "action": ["end_phase"]
         }
       ]
     },
@@ -483,7 +483,7 @@
           "text": "Attack",
           "phases": ["play"],
           "cost": { "token": 1 },
-          "action": ["stat_set:attack_declared@mine.player:1", "next_phase"]
+          "action": ["stat_set:attack_declared@mine.player:1", "end_phase"]
         }
       ]
     }

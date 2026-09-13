@@ -2564,7 +2564,7 @@ do
 	flow.init("chess.json", 1)
 	board = zones.find("board")
 	local pawn = declaration.G.card_defs.pawn
-	pawn.abilities[1].action = { "move_to:target:taken", "resolve_challenge", "next_phase" }
+	pawn.abilities[1].action = { "move_to:target:taken", "resolve_challenge", "end_phase" }
 	pawn.requires = { ["rank@self"] = { at_least = 3 } }
 	pawn.on_pass, pawn.on_fail = { "stat_gain:moves_made@self:100" }, {}
 

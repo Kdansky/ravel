@@ -52,7 +52,7 @@
       }
     },
     "takeable": {
-      "abilities": [{ "action": ["move_to:hand", "next_phase"], "phases": ["draw"] }],
+      "abilities": [{ "action": ["move_to:hand", "end_phase"], "phases": ["draw"] }],
       "tooltip": "Take this card into your hand."
     }
   },
@@ -65,7 +65,7 @@
       "pos": [0.815, 0.306, 0.975, 0.524],
       "tags": ["shuffle"],
       "tooltip": "Take the top card. Ends your turn.",
-      "abilities": [{ "phases": ["draw"], "action": ["draw_from:deck:hand:1", "next_phase"] }],
+      "abilities": [{ "phases": ["draw"], "action": ["draw_from:deck:hand:1", "end_phase"] }],
       "contents": [
         "red_w1",
         "red_w2",
@@ -897,7 +897,7 @@
       "text": "Done",
       "tooltip": "Finish tallying.",
       "tags": ["token"],
-      "play": { "action": ["stat_gain:tallied@mine.player:1", "purge:self", "next_phase"] }
+      "play": { "action": ["stat_gain:tallied@mine.player:1", "purge:self", "end_phase"] }
     },
     {
       "key": "north_wins",

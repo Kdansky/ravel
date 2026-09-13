@@ -3605,7 +3605,7 @@
             "main"
           ],
           "action": [
-            "next_phase"
+            "end_phase"
           ]
         }
       ]

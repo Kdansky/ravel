@@ -557,8 +557,26 @@ local function frozen(verb)
 	return true
 end
 
-HANDLERS["next_phase"] = function()
-	if frozen("next_phase") then return end
+-- end_phase[:<phase>]  — this phase is over, so whatever comes next comes next.
+--
+-- **Naming the phase is how a card says which one it means**, and the reason the
+-- word is worth an argument: a card that prints "then end your action phase"
+-- means end *that* phase, and doing nothing if it has already ended. Bare, it
+-- means "end whatever is running", which is what a button says and what a card
+-- whose play is the whole move says.
+--
+-- Written as a card's own clause it made no difference until an action list
+-- could resume somewhere else. Now one can: a copied chip's list waits for the
+-- imaginary chips it made, and three copies of "end your action phase" all fall
+-- due together — so unnamed they end the action phase, the buy phase and the
+-- turn, and named they end the action phase once.
+HANDLERS["end_phase"] = function(p)
+	if frozen("end_phase") then return end
+	local want = p[2]
+	if want and want ~= "" then
+		local cur = phase.current()
+		if not cur or cur.key ~= want then return end
+	end
 	phase.next()
 end
 
@@ -1611,7 +1629,7 @@ local SPEC = {
 	net_join          = "",
 	net_seat          = "any",
 	resolve_challenge = "",
-	next_phase        = "",
+	end_phase         = "phase?",
 	push_phase        = "phase",
 	pop_phase         = "",
 	load_game         = "gamefile",

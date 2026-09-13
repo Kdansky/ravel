@@ -51,7 +51,7 @@ local function game(order, extra_dawn, stop)
     { "key": "one", "text": "One", "tags": ["seat_one"], "card_stats": { "gold": 0, "mark": 0, "lead": 0 } },
     { "key": "two", "text": "Two", "tags": ["seat_two"], "card_stats": { "gold": 0, "mark": 0, "lead": 0 } },
     { "key": "plan", "text": "Plan", "tags": ["plan"], "card_stats": { "tick": 0 } },
-    { "key": "pass", "text": "Pass", "play": { "action": ["next_phase"] } }
+    { "key": "pass", "text": "Pass", "play": { "action": ["end_phase"] } }
   ],
   "setup": { "place": [{ "card": "plan", "zone": "desk" }] }
 }]==]):format(order and ('"order": "' .. order .. '",') or "",

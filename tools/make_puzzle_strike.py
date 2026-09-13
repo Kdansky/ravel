@@ -468,7 +468,7 @@ TEXT = {
                          "(Character chips can't be trashed.)", None, {}),
 
     "double_take": ("Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.",
-     "built: \"copy:target:play:2\" runs the chosen chip's play twice without playing the chip, and \"purge:target\" trashes it. Two things are short of the print. The pick is your hand alone \u2014 a discard is a stack, and a stack offers only the card on top of it. And a copy carries no targets, so a chip that waits to be aimed \u2014 a Crash Gem \u2014 is trashed without going off.",
+     "built: \"copy:target:play:2\" hands you two imaginary copies of the chosen chip to play and aim as you would your own, and \"purge:target\" trashes it. One thing is short of the print: the pick is your hand alone \u2014 a discard is a stack, and a stack offers only the card on top of it.",
      {}),
     "bag_of_tricks": ("+1 brown action, piggy bank, +1 chip", None,
                       {"plus_act": 1, "plus_piggy": 1, "plus_draw": 1}),
@@ -1128,7 +1128,7 @@ def puzzle_cards():
          "chosen": {"action": ["move:target:mine.bag:top"]}},
         {"key": "combos_are_hard", **shape("combos_are_hard", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
-                  "action": ["purge:self", "next_phase"]}},
+                  "action": ["purge:self", "end_phase"]}},
         {"key": "gems_to_gemonade", **shape("gems_to_gemonade", "purple"),
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
          "reactions": [{"to": "crash", "text": "Negate the gems", "needs": ANSWERABLE,
@@ -1158,7 +1158,7 @@ def puzzle_cards():
                   "action": ["purge:self", "show:bank:optional"]},
          "chosen": {"where": ["not_tagged:gem@target", "not_tagged:puzzle@target"],
                     "action": ["create:mine.discard:@target:1",
-                               "stat_damage:stock@target:1", "next_phase"]}},
+                               "stat_damage:stock@target:1", "end_phase"]}},
         {"key": "mix_master", **shape("mix_master", "red"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(own_gems, count=2),
@@ -1479,7 +1479,7 @@ def character_chips():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": {"type": "card", "tags": ["chip"], "zones": ["hand"], "owner": "anyone",
                              "count": 1, "where": ["not_tagged:puzzle@target"]},
-                  "action": ["copy:target:play:2", "purge:target", "next_phase"],
+                  "action": ["copy:target:play:2", "purge:target", "end_phase:action"],
                   "spent": "mine.table"}},
         {"key": "bag_of_tricks", "text": "Bag of Tricks", "tags": ["chip", "character", "brown"],
          "asset": "polygon:7:amber",
@@ -2074,7 +2074,7 @@ def button_cards():
         {"key": "done_acting", "text": "Done acting", "tags": ["immutable"],
          "asset": "triangle:silver",
          "tooltip": "Finish your action phase and go on to buying. Any actions you have left are lost.",
-         "abilities": [{"phases": ["action"], "action": ["next_phase"]}]},
+         "abilities": [{"phases": ["action"], "action": ["end_phase"]}]},
         # The cost is the rule: you must buy at least one chip a turn, and the
         # counter is reset on the way into the next one, so spending it here
         # costs nothing that is not about to be thrown away.
@@ -2114,7 +2114,7 @@ def button_cards():
          # floor was reached and takes nothing away for asking — a cost would have
          # spent the one purchase it was checking for.
          "abilities": [{"phases": ["buy"], "needs": ["bought@mine.player >= 1"],
-                      "action": ["next_phase"]}]},
+                      "action": ["end_phase"]}]},
     ]
 
 

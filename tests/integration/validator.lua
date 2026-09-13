@@ -48,7 +48,7 @@ local CASES = {
 	-- abilities with nowhere to be used
 	{ "an ability in a game that allows none", 'no zone is tagged "activate"',
 		function(g) for _, z in pairs(g.zone_defs) do z.use = nil end
-			g.card_defs.pearl.abilities = { { key = "go", action = { "next_phase" } } } end },
+			g.card_defs.pearl.abilities = { { key = "go", action = { "end_phase" } } } end },
 	-- looks
 	{ "squares painted with something that is not a colour", "should be a colour or a filename",
 		function(g) g.pattern_defs.here = { absolute = true, zone = "board", squares = { "a1" } }
@@ -206,7 +206,7 @@ local CASES = {
 		function(g) g.card_defs.pearl.asset = "wobble:red" end },
 	-- a challenge that never decides
 	{ "a challenge with nothing to ask", 'a challenge with no "needs"',
-		function(g) g.card_defs.c_flee.challenge = { on_pass = { "next_phase" } } end },
+		function(g) g.card_defs.c_flee.challenge = { on_pass = { "end_phase" } } end },
 	-- condition subjects
 
 	{ "an unknown tag in a count", "counts the tag 'dragons'",
@@ -531,7 +531,7 @@ local CASES = {
 		function(g) g.zone_defs.hand.pos = { 0.60, 0.60, 0.97, 0.97 } end },
 	{ "an ability still written with when", 'says "when", which is now "needs"',
 		function(g) g.card_defs.c_flee.abilities = { { key = "a", when = { "gold >= 1" },
-			action = { "next_phase" } } } end },
+			action = { "end_phase" } } } end },
 	{ "a phase still written with ends_after", "ends_after is gone",
 		function(g) g.phase_by_key.story.ends_after = 2 end },
 	{ "a phase still typed draw_and_play", "draw_and_play is gone",
@@ -556,7 +556,7 @@ local CASES = {
 		function(g) g.tag_defs.keepsakes = { zone = "board" } end },
 	{ "a zone ability that tries to aim", "a zone's ability cannot aim",
 		function(g)
-			g.zone_defs.board.abilities = { { key = "poke", action = { "next_phase" },
+			g.zone_defs.board.abilities = { { key = "poke", action = { "end_phase" },
 				target = { type = "card", count = 1 } } }
 		end },
 	{ "count written beside a bound", "count already sets both",
@@ -808,7 +808,7 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "purge:mine.hand:1", "stat_gain:stock@bank.gem_1:1" } end },
 	{ "a condition on an ability that names nothing", "uses the stat 'zeal'",
 		function(g)
-			g.card_defs.c_flee.abilities = { { key = "muster", action = { "next_phase" },
+			g.card_defs.c_flee.abilities = { { key = "muster", action = { "end_phase" },
 				needs = { "zeal@self >= 1" } } }
 		end },
 	-- compact takes a direction, and the three ways a pattern is not one.
@@ -843,7 +843,7 @@ local CASES = {
 		function(g) g.phase_by_key.day = { key = "day", type = "turn", phases = { "intro", "intro" } } end },
 	{ "a turn that also does something itself", "a turn holds phases and nothing else",
 		function(g) g.phase_by_key.day =
-			{ key = "day", type = "turn", phases = { "intro" }, actions = { "next_phase" } } end },
+			{ key = "day", type = "turn", phases = { "intro" }, actions = { "end_phase" } } end },
 	{ "an order that is not a word here", "which is not a word here",
 		function(g) g.phase_by_key.day =
 			{ key = "day", type = "turn", seat = "each", order = "by_height", phases = { "intro" } } end },
@@ -903,7 +903,7 @@ function M.test_validator_catches_a_typo_inside_an_ability(check)
 		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "thing", "text": "Thing",
-			"abilities": [{ "key": "go", "assset": "circle:red", "action": ["next_phase"] }] }]
+			"abilities": [{ "key": "go", "assset": "circle:red", "action": ["end_phase"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_ability_typo.json")
@@ -974,7 +974,7 @@ function M.test_validator_refuses_a_merge_it_does_not_know(check)
 		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"cards": [{ "key": "thing", "text": "Thing",
-			"abilities": [{ "key": "go", "merge": "mine", "action": ["next_phase"] }] }]
+			"abilities": [{ "key": "go", "merge": "mine", "action": ["end_phase"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_merge_typo.json")
@@ -996,9 +996,9 @@ function M.test_validator_catches_two_abilities_claiming_merge_this(check)
 		"zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"tags": { "loud": { "abilities": [
-			{ "key": "shout", "merge": "this", "action": ["next_phase"] }] } },
+			{ "key": "shout", "merge": "this", "action": ["end_phase"] }] } },
 		"cards": [{ "key": "thing", "text": "Thing", "tags": ["loud"],
-			"abilities": [{ "key": "go", "merge": "this", "action": ["next_phase"] }] }]
+			"abilities": [{ "key": "go", "merge": "this", "action": ["end_phase"] }] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_merge_clash.json")
@@ -1020,9 +1020,9 @@ function M.test_validator_catches_a_zone_granting_two_merge_this(check)
 			"applies": ["shop", "vault"] }],
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"tags": {
-			"shop":  { "abilities": [{ "key": "buy",  "merge": "this", "action": ["next_phase"] }] },
-			"vault": { "abilities": [{ "key": "lock", "merge": "this", "action": ["next_phase"] }] } },
-		"cards": [{ "key": "thing", "text": "Thing", "action": ["next_phase"] }]
+			"shop":  { "abilities": [{ "key": "buy",  "merge": "this", "action": ["end_phase"] }] },
+			"vault": { "abilities": [{ "key": "lock", "merge": "this", "action": ["end_phase"] }] } },
+		"cards": [{ "key": "thing", "text": "Thing", "action": ["end_phase"] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_merge_zone.json")
@@ -1047,9 +1047,9 @@ function M.test_validator_names_both_abilities_of_one_applied_tag(check)
 		"phases": [{ "key": "turn", "type": "player_input" }],
 		"tags": {
 			"shop": { "abilities": [
-				{ "key": "buy",   "merge": "this", "action": ["next_phase"] },
-				{ "key": "steal", "merge": "this", "action": ["next_phase"] }] } },
-		"cards": [{ "key": "thing", "text": "Thing", "action": ["next_phase"] }]
+				{ "key": "buy",   "merge": "this", "action": ["end_phase"] },
+				{ "key": "steal", "merge": "this", "action": ["end_phase"] }] } },
+		"cards": [{ "key": "thing", "text": "Thing", "action": ["end_phase"] }]
 	}]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_merge_one_tag.json")
@@ -1104,7 +1104,7 @@ function M.test_validator_names_the_wrong_half_of_a_zone_tag_scope(check)
 		"cards": [{ "key": "thing", "text": "Thing", "tags": ["gem"], "abilities": [
 			{ "key": "a", "action": ["purge:vualt.gem"] },
 			{ "key": "b", "action": ["purge:vault.gme"] },
-			{ "key": "c", "needs": ["count:gem@vualt.gem >= 1"], "action": ["next_phase"] },
+			{ "key": "c", "needs": ["count:gem@vualt.gem >= 1"], "action": ["end_phase"] },
 			{ "key": "d", "action": ["purge:vault.gem"] }] }]
 	}]==])
 	f:close()

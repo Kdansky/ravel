@@ -34,7 +34,7 @@ The last row is the whole project.
 
 Real time becomes a tick. Concretely:
 
-- One **turn** = one `next_phase` through a two-phase loop: a `player_input`
+- One **turn** = one `end_phase` through a two-phase loop: a `player_input`
   phase where you place and take cards, and an `automatic` phase that advances
   every running verb by one tick. That is the existing round machinery
   (`flow.settle`'s round boundary, `game/flow.lua:186`) doing exactly what it
@@ -44,7 +44,7 @@ Real time becomes a tick. Concretely:
   with routing (`"next"` tables) picking which recipes are available. `round`
   is already a player stat, so "it is day 14" is free and displayable.
 - **A "wait" button** is a card tagged `token` with
-  `"play": { "action": ["destroy_self", "next_phase"] }`. No engine work — this is exactly
+  `"play": { "action": ["destroy_self", "end_phase"] }`. No engine work — this is exactly
   the pass-card pattern already used by `draw_and_play` phases.
 
 So the temporal model needs **no new engine code at all**. That is the pleasant

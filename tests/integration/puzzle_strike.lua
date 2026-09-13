@@ -336,7 +336,7 @@ function M.test_puzzle_strike_pandas_bargain_pays_at_the_end_of_the_turn(check)
 		find_in("ongoing", "pandas_bargain", "south") ~= nil)
 
 	-- Buy a Puzzle chip, which is what it is watching for.
-	actions.run({ "next_phase" }, {})
+	actions.run({ "end_phase" }, {})
 	seat_card("south").stats.money = 9
 	local held = count_in("hand", "south")
 	flow.activate(find_in("bank", "draw_three").id, {})
@@ -1836,6 +1836,11 @@ function M.test_puzzle_strike_a_copied_double_take_chooses_again(check)
 		seat_card(seat).stats.piggy)
 	check("and the Double-take it was aimed at was trashed",
 		entity.get(inner.id).zone_id == nil)
+	-- Three lists said "then end your action phase" and one phase ended. Unnamed
+	-- they would have ended the buy phase and the turn with it.
+	check("the action phase ended once, and the buy phase is the seat's own",
+		phase.current().key == "buy" and zones.active_seat() == seat,
+		phase.current().key .. "/" .. tostring(zones.active_seat()))
 end
 
 return M

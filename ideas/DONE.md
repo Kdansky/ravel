@@ -743,7 +743,7 @@ abilities on the king, and **everything it asks is relative**:
     "needs": { "moves_made@self": { "equals": 0 } },
     "where": { "tagged:rook@one_right": 1, "moves_made@one_right": { "equals": 0 },
                "not_tagged:piece@one_left": 1 } }],
-  "action": ["move_to:target", "place:one_right:one_left", "next_phase"] }
+  "action": ["move_to:target", "place:one_right:one_left", "end_phase"] }
 ```
 
 **Columns do not flip with facing** — only ranks do — so one set of patterns
@@ -820,7 +820,7 @@ until a second game asks."* En passant was the second asker.
   "where": { "tagged:last_acted@behind": 1,
              "tagged:pawn@behind": 1,
              "rank@behind": { "equals": 4 } },
-  "action": ["move_to:target", "purge:behind", "next_phase"] }
+  "action": ["move_to:target", "purge:behind", "end_phase"] }
 ```
 
 `tagged:` and `not_tagged:` came out of writing it: a yes/no about a scope,
@@ -1044,7 +1044,7 @@ The offer knows. `options` records the asking card on the zone, and flow plays
 the chosen card **with that card as its target**:
 
 ```json
-{ "key": "to_queen", "play": { "action": ["transform:target:queen", "next_phase"] } }
+{ "key": "to_queen", "play": { "action": ["transform:target:queen", "end_phase"] } }
 ```
 
 The stat and the computed tag are gone from chess. The choices also inherit the
@@ -1096,7 +1096,7 @@ question inside its own move:
               "stat_gain:moves_made@self:1", "resolve_challenge"] },
 "challenge": { "needs": { "rank@self": { "equals": 8 } },
                "pass":  ["stat_set:promotion@self:1", "push_phase:promote"],
-               "fail":  ["next_phase"] }
+               "fail":  ["end_phase"] }
 ```
 
 That makes promotion **mandatory and part of the move**, which is what it is. A
@@ -1207,7 +1207,7 @@ became references to **squares**, via absolute patterns:
 "needs":  { "count:rook@w_rook_h_home": { "equals": 1 },
             "moves_made@w_rook_h_home": { "equals": 0 } },
 "action": ["stat_gain:moves_made@w_king_home:1",
-           "place:w_king_home:7:8", "place:w_rook_h_home:6:8", "next_phase"]
+           "place:w_king_home:7:8", "place:w_rook_h_home:6:8", "end_phase"]
 ```
 
 `place` was **already** taking a scope rather than a card key, and a pattern

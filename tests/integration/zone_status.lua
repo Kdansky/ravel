@@ -49,7 +49,7 @@ local GAME = [==[{
   "cards": [
     { "key": "one", "text": "One", "tags": ["seat_one"], "card_stats": { "gold": 0, "seen": 0 } },
     { "key": "two", "text": "Two", "tags": ["seat_two"], "card_stats": { "gold": 0, "seen": 0 } },
-    { "key": "pass", "text": "Pass", "play": { "action": ["next_phase"] } },
+    { "key": "pass", "text": "Pass", "play": { "action": ["end_phase"] } },
     { "key": "lamp", "text": "Lamp", "tags": ["lit"],
       "round": { "action": ["stat_gain:gold@mine.player:1"] } },
     { "key": "bell", "text": "Bell", "tags": ["lit"],

@@ -152,7 +152,7 @@ def buying():
         "set_owner:self:mine",
         "move_to:mine.tableau",
         "stat_set:done@mine.player:1",
-        "next_phase",
+        "end_phase",
     ]
     return a
 
@@ -353,7 +353,7 @@ RESERVE_GOLD = [
     "stat_gain:t_total@mine.player:count:has_gold@supply.pile_gold",
     "stat_damage:stock@supply.pile_gold:count:has_gold@supply.pile_gold",
     "stat_set:done@mine.player:1",
-    "next_phase",
+    "end_phase",
 ]
 
 
@@ -372,7 +372,7 @@ def piles():
                             "stat_gain:t_total@mine.player:1",
                             "stat_gain:takes@mine.player:1",
                             "stat_damage:first_take@mine.player:1",
-                            "next_phase"]},
+                            "end_phase"]},
                 {"key": f"take2_{k}", "text": f"Take two {label.lower()}",
                  "phases": ["act"],
                  "needs": ["stock@self >= 4"],
@@ -381,12 +381,12 @@ def piles():
                  "action": [f"stat_gain:t_{k}@mine.player:2",
                             "stat_gain:t_total@mine.player:2",
                             "stat_set:done@mine.player:1",
-                            "next_phase"]},
+                            "end_phase"]},
                 {"key": f"back_{k}", "text": f"Put back a {label.lower()}",
                  "phases": ["discard"], "cost": {f"t_{k}@mine.player": 1},
                  "action": ["stat_gain:stock@self:1",
                             "stat_damage:t_total@mine.player:1",
-                            "next_phase"]},
+                            "end_phase"]},
             ],
         })
     out.append({
@@ -399,7 +399,7 @@ def piles():
              "phases": ["discard"], "cost": {"t_gold@mine.player": 1},
              "action": ["stat_gain:stock@self:1",
                         "stat_damage:t_total@mine.player:1",
-                        "next_phase"]},
+                        "end_phase"]},
         ],
     })
     return out
@@ -423,7 +423,7 @@ def buttons():
          "tooltip": "Stop after one or two tokens. Taking a third ends your turn on its own.",
          "tags": ["immutable"],
          "play": {"phases": ["act"], "needs": ["takes@mine.player >= 1"],
-                  "action": ["stat_set:done@mine.player:1", "next_phase"]}},
+                  "action": ["stat_set:done@mine.player:1", "end_phase"]}},
     ]
 
 
@@ -563,7 +563,7 @@ def phases():
          "next": [{"then": "over"}]},
         {"key": "drawn", "type": "automatic", "actions": ["reveal:a_draw"],
          "next": [{"then": "over"}]},
-        # Nothing calls next_phase from here, so the routing never runs and the
+        # Nothing calls end_phase from here, so the routing never runs and the
         # board stays readable behind the banner.
         {"key": "over", "type": "player_input", "label": "The game is over",
          "next": [{"then": "over"}]},
@@ -616,7 +616,7 @@ def build(here):
             "noble": {
                 "abilities": [{"key": "check", "text": "Check", "action": noble_check()}],
                 "play": {"phases": ["noble_pick"], "needs": ["ok@self >= 1"],
-                         "action": ["stat_gain:score@mine.player:3", "purge:self", "next_phase"]},
+                         "action": ["stat_gain:score@mine.player:3", "purge:self", "end_phase"]},
             },
         },
         "zones": zones(rows),

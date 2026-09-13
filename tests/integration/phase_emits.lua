@@ -46,7 +46,7 @@ local GAME = [==[{
   "cards": [
     { "key": "one", "text": "One", "tags": ["seat_one"], "card_stats": { "kept": 0, "woke": 0 } },
     { "key": "two", "text": "Two", "tags": ["seat_two"], "card_stats": { "kept": 0, "woke": 0 } },
-    { "key": "pass", "text": "Pass", "play": { "action": ["next_phase"] } },
+    { "key": "pass", "text": "Pass", "play": { "action": ["end_phase"] } },
     { "key": "stipend", "text": "Stipend", "tags": ["ongoing"],
       "reactions": [
         { "to": "dusk", "whose": "mine", "forced": "mandatory", "from": "board",

@@ -239,7 +239,7 @@ rulebook open alongside.
    tableau, or discard it" is one `target` spec listing both places plus
    `play.action: ["move_to:target"]`. A choice with no card attached ("pass",
    "draw from the deck") is a `pass_card` token whose `play.action` does the thing
-   and calls `next_phase`.
+   and calls `end_phase`.
 6. **Turn placement restrictions into `receive.needs`** on the destination, never
    into `needs` on the card — `needs` would make the card unplayable entirely,
    including the ways it *is* still legal.
@@ -682,7 +682,7 @@ forced play needs an out, and the validator says so.
 `deck`, `draw` and a `pass_card`, ended by a router token:
 
 ```json
-"play": { "needs": ["plays >= 1"], "action": ["purge:self", "next_phase"] }
+"play": { "needs": ["plays >= 1"], "action": ["purge:self", "end_phase"] }
 ```
 
 **A shop** (`splendor.json`). A `supply` zone whose `applies` tag carries the
@@ -1550,7 +1550,7 @@ sweeps the hand (`discard_hand` — the usual choice, so unpicked options don't
 pile up across turns).
 
 **How a phase ends is the phase's to say, and there are three ways.** A card
-whose actions say `next_phase`; nothing at all, so the player decides via a pass
+whose actions say `end_phase`; nothing at all, so the player decides via a pass
 card; or `ends_when`, a condition.
 
 `plays` is a stat the engine keeps for the seat that is up, reset when the turn
@@ -2525,7 +2525,7 @@ columns do not flip with facing, so the same rules serve both colours:
               "where": ["tagged:rook@one_right",
                         "moves_made@one_right == 0",
                         "not_tagged:piece@one_left"] }],
-  "action": ["move_to:target", "place:one_right:one_left", "next_phase"] }
+  "action": ["move_to:target", "place:one_right:one_left", "end_phase"] }
 ```
 
 `needs` asks about the king (it has not moved), `where` asks about the square it
@@ -2710,7 +2710,7 @@ standing on the far square* needs more than a list of names:
 
 ```json
 { "key": "queen", "abilities": [{ "moves": ["line_ortho", "line_diag"],
-    "action": ["move_to:target:taken", "next_phase"] }] },
+    "action": ["move_to:target:taken", "end_phase"] }] },
 { "key": "knight", "abilities": [{ "moves": ["knight_leap"], "action": [...] }] },
 { "key": "pawn", "abilities": [{ "action": [...], "moves": [
     { "patterns": ["pawn_step"], "fill": "empty" },
@@ -2817,7 +2817,7 @@ which is how chess declares it.
       ]
     }
   ],
-  "action": ["move_to:target", "place:one_right:one_left", "stat_gain:moves_made@self:1", "next_phase"]
+  "action": ["move_to:target", "place:one_right:one_left", "stat_gain:moves_made@self:1", "end_phase"]
 }
 ```
 
@@ -3491,7 +3491,7 @@ to build. That is one action:
 ```json
 "challenge": { "needs": ["rank@self == 8"],
                "pass":  ["options:to_queen,to_rook,to_bishop,to_knight"],
-               "fail":  ["next_phase"] }
+               "fail":  ["end_phase"] }
 ```
 
 `options` deals a card per choice into the **offer** — a zone of type `options`
@@ -3504,7 +3504,7 @@ promotion choice is one line and needs no marker stat to find the pawn again:
 
 ```json
 { "key": "to_queen", "text": "Queen", "asset": "queen",
-  "play": { "action": ["transform:target:queen", "next_phase"] } }
+  "play": { "action": ["transform:target:queen", "end_phase"] } }
 ```
 
 The choices also take the asker's **owner**, so a named asset with one picture
@@ -3844,10 +3844,10 @@ where it left off. So a card that says *"…then end your action phase"* says it
 where it reads:
 
 ```json
-"play": { "action": ["show:bank:optional", "next_phase"] }
+"play": { "action": ["show:bank:optional", "end_phase"] }
 ```
 
-The `next_phase` happens after the answer, not under it. Writing the tail in
+The `end_phase` happens after the answer, not under it. Writing the tail in
 `chosen` instead still works and means something slightly different — `chosen`
 runs once **per pick**, and it knows what was picked (`@target`); the tail runs
 once, whatever was chosen, and knows nothing about it:
@@ -3860,7 +3860,7 @@ once, whatever was chosen, and knows nothing about it:
 **While the offer is open, the phase, the seat and priority are frozen**, and the
 seven actions that would move one of them are refused where they stand:
 
-`next_phase` · `push_phase` · `pop_phase` · `set_active_seat` · `set_priority` ·
+`end_phase` · `push_phase` · `pop_phase` · `set_active_seat` · `set_priority` ·
 `clear_priority` · `each_seat`
 
 That is the reason the tail waits rather than running. An offer was asked in a
@@ -4706,7 +4706,7 @@ that charges no `exhaust` is available every turn.
 {
   "key": "pass_time",
   "text": "Let time pass",
-  "abilities": [{ "action": ["next_phase"] }]
+  "abilities": [{ "action": ["end_phase"] }]
 }
 
 "setup": { "place": [{ "card": "pass_time", "zone": "table", "at": ["a1"] }] }
@@ -4823,7 +4823,7 @@ what a player reads.
 | `effect:name` | Play a named visual effect on the acting card (headless: skipped) |
 | `reveal:card` | Conjure the card into the page overlay; playing it there continues the story |
 | `reveal_top:zone` | Turn over a zone's top card into the page overlay (shuffle secrets) |
-| `next_phase` / `push_phase:key` / `pop_phase` | Phase control |
+| `end_phase[:phase]` / `push_phase:key` / `pop_phase` | Phase control. Naming the phase on `end_phase` says *which* one is over, and does nothing if that is not the one running — which is what a card printing "then end your action phase" means, and what stops three copies of it ending three phases |
 | `destroy:<scope>[:<n>]` | **The cards die.** Each one moves into its grave, so its `leaves` fires, anything watching the announcement answers, and the card is still there afterwards to be counted or raised. The scope and the count read exactly as `purge`'s. **Which grave is asked of five places, narrowest first:** the card's own `grave`, the tags it wears, the zone it is standing in, a `status: "grave"` zone belonging to the *dying card's* seat, and a shared one. That the seat is the dying card's and not the active one is the whole point — `move:target:mine.discard` puts somebody else's unit in your discard, and every game with a graveyard was writing the owner out by hand. A card with nowhere to die is reported rather than quietly removed |
 | `purge:<scope>[:<n>]` / `purge:self` | Remove cards from play entirely. A bare zone key is a scope, so `purge:hand` is unchanged; `purge:each.enemy.creature` is a board wipe that spares your own. A count takes that many rather than all of them, in the ordinary amount grammar (`purge:mine.pile:sum:crashed@enemy.player`), and takes the earliest unless the scope says `random.`. **A component goes back in its box.** If any `status: "supply"` zone stocks the card's kind, the shelf's `stock` goes up by one instead of the card leaving the game — the owner's own box first, anybody's otherwise. So a finite bank is never named at the site that trashes a gem, and never has to be paid back by hand. Nothing stocks it: it stops existing, which is what happens to everything that is not a component. **Nothing is triggered by it**: a purged card lands in no zone, so there is no `into` for a `leaves` to name, and its stats are cleared, so a rule asked to run afterwards has nothing left to read. That is what the verb is *for* — removing something nobody may ask about. If you want a removal answered, give it a zone and `move` it there |
 | `emit:<verb>[:<action>]` | Announce that something happened, so anybody holding a reaction to that verb may answer it first. What follows the verb is the part that **waits**. Nothing answers it, or the game has no `stack` zone: it runs now. See *Reactions* |

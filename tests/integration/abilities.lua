@@ -169,8 +169,8 @@ function M.test_abilities_two_with_the_same_key_are_refused(check)
   "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
   "phases": [{ "key": "turn", "type": "player_input" }],
   "cards": [{ "key": "thing", "text": "Thing", "abilities": [
-    { "key": "go", "text": "One", "action": ["next_phase"] },
-    { "key": "go", "text": "Two", "action": ["next_phase"] }] }]
+    { "key": "go", "text": "One", "action": ["end_phase"] },
+    { "key": "go", "text": "Two", "action": ["end_phase"] }] }]
 }]==])
 	f:close()
 	local ok, G = pcall(declaration.parse, "tmp_same_key.json")
@@ -198,7 +198,7 @@ function M.test_abilities_the_engine_prefix_is_not_a_games_to_write(check)
   "title": "Reserved",
   "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
   "phases": [{ "key": "turn", "type": "player_input" }],
-  "end_conditions": [{ "when": "count@board == 0", "then": ["next_phase"], "ravel_fired": true }],
+  "end_conditions": [{ "when": "count@board == 0", "then": ["end_phase"], "ravel_fired": true }],
   "cards": [{ "key": "thing", "text": "Thing", "ravel_menu_for": { "card": "thing" } }]
 }]==])
 	f:close()

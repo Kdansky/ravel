@@ -500,7 +500,7 @@
       "tags": ["immutable"],
       "asset": "triangle:silver",
       "tooltip": "Finish your action phase and go on to buying. Any actions you have left are lost.",
-      "abilities": [{ "phases": ["action"], "action": ["next_phase"] }]
+      "abilities": [{ "phases": ["action"], "action": ["end_phase"] }]
     },
     {
       "key": "pick_chip",
@@ -543,7 +543,7 @@
       "tags": ["immutable"],
       "asset": "square:slate",
       "tooltip": "End your turn. You must have bought at least one chip — a Wound is free, and that is the point.",
-      "abilities": [{ "phases": ["buy"], "needs": ["bought@mine.player >= 1"], "action": ["next_phase"] }]
+      "abilities": [{ "phases": ["buy"], "needs": ["bought@mine.player >= 1"], "action": ["end_phase"] }]
     },
     {
       "key": "gem_1",
@@ -875,7 +875,7 @@
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
-        "action": ["purge:self", "next_phase"]
+        "action": ["purge:self", "end_phase"]
       },
       "tooltip": "If this is the only action you play this turn, gain any two different non-Puzzle chips from the bank, end your action phase, then trash this chip.\n\nDEV: it ends your action phase and trashes itself. \"The only action you play this turn\" cannot be asked — nothing counts the actions a player has played — so the two chips are not given.",
       "card_stats": { "price": 6 }
@@ -957,7 +957,7 @@
       },
       "chosen": {
         "where": ["not_tagged:gem@target", "not_tagged:puzzle@target"],
-        "action": ["create:mine.discard:@target:1", "stat_damage:stock@target:1", "next_phase"]
+        "action": ["create:mine.discard:@target:1", "stat_damage:stock@target:1", "end_phase"]
       },
       "tooltip": "Choose any number of different non-gem, non-Puzzle chips in the bank. Play them, gain them, then end your action phase.\n\nDEV: one chip is gained off the shelf, and it ends your action phase and trashes itself. Two things are short of the print. \"Any number of different\" is one, because an offer takes one answer. And they are gained rather than played: these four are the purples and Wound, whose plays resolve a challenge, and a challenge's pass is an ordinary action list that moves the card it belongs to — which would drag the shelf out of the bank. copy: promises not to move a card; it cannot promise that about what the card's own rules do once they are running.",
       "card_stats": { "price": 12 }
@@ -1875,7 +1875,7 @@
       "text": "Double-take",
       "tags": ["chip", "character", "brown"],
       "asset": "polygon:7:amber",
-      "tooltip": "Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.\n\nDEV: built: \"copy:target:play:2\" runs the chosen chip's play twice without playing the chip, and \"purge:target\" trashes it. Two things are short of the print. The pick is your hand alone — a discard is a stack, and a stack offers only the card on top of it. And a copy carries no targets, so a chip that waits to be aimed — a Crash Gem — is trashed without going off.",
+      "tooltip": "Choose a non-Puzzle chip in your hand or discard pile. Play it twice, trash it, then end your action phase.\n\nDEV: built: \"copy:target:play:2\" hands you two imaginary copies of the chosen chip to play and aim as you would your own, and \"purge:target\" trashes it. One thing is short of the print: the pick is your hand alone — a discard is a stack, and a stack offers only the card on top of it.",
       "play": {
         "phases": ["action"],
         "cost": { "act_brown@mine.player": 1 },
@@ -1887,7 +1887,7 @@
           "count": 1,
           "where": ["not_tagged:puzzle@target"]
         },
-        "action": ["copy:target:play:2", "purge:target", "next_phase"],
+        "action": ["copy:target:play:2", "purge:target", "end_phase:action"],
         "spent": "mine.table"
       }
     },

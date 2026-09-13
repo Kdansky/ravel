@@ -41,13 +41,13 @@ local GAME = [==[{
     { "key": "two", "text": "Two", "tags": ["seat_two"] },
     { "key": "gem", "text": "Gem", "tags": ["gem"] },
     { "key": "walker", "text": "Walker",
-      "play": { "phases": ["act"], "action": ["show:vault", "next_phase"], "spent": "void" } },
+      "play": { "phases": ["act"], "action": ["show:vault", "end_phase"], "spent": "void" } },
     { "key": "hander", "text": "Hander",
       "play": { "phases": ["act"], "action": ["show:vault", "set_priority:enemy.player"],
                 "spent": "void" } },
     { "key": "waiter", "text": "Waiter",
       "play": { "phases": ["act"], "action": ["show:vault"], "spent": "void" },
-      "chosen": { "action": ["next_phase"] } }
+      "chosen": { "action": ["end_phase"] } }
   ]
 }]==]
 
@@ -203,7 +203,7 @@ function M.test_offer_freeze_asking_and_then_acting_is_not_a_mistake(check)
 		local G = declaration.parse(name)
 		local said = table.concat(validate.check(G), "; ")
 		check("no warning about ending the phase after an ask",
-			not said:find("next_phase", 1, true), said)
+			not said:find("end_phase", 1, true), said)
 		check("nor about handing priority over after one",
 			not said:find("set_priority", 1, true), said)
 	end)
