@@ -464,6 +464,14 @@ function M.entities_in_scope(scope, ctx, owner, quant)
 		-- and the validator reads one with no game loaded. The zone comes first
 		-- because a place is the wider of the two, and a tag that happened to
 		-- name a zone would otherwise decide which reading a line got.
+		--
+		-- **And the place may be a word several zones wear.** A zone key names
+		-- one place, which is why "in my hand or my discard" had to be written
+		-- on the cards -- a tag on each zone, a union to or them, an and to put
+		-- the question back, and `everywhere` walked to find them. A zone tag
+		-- says which places count where that belongs, and the two-segment shape
+		-- is unchanged: "mine.held.ice" is the same sentence as "mine.hand.ice"
+		-- with a wider left word.
 		local place, kind = scope:match("^([%w_]+)%.([%w_]+)$")
 		-- "everywhere.<tag>" — the one place that is not a zone. A *subject* has
 		-- always been able to say this ("count:gem@mine.everywhere"); a scope
@@ -473,7 +481,7 @@ function M.entities_in_scope(scope, ctx, owner, quant)
 		-- A zone key reaches every instance of it — both arenas, not just the
 		-- active seat's. Narrowing to one is what the owner word is for, and a
 		-- set may be wide where a destination may not.
-		local instances = place ~= "everywhere" and zones.all_with_key(place or scope) or {}
+		local instances = place ~= "everywhere" and zones.all_named(place or scope) or {}
 		if place == "everywhere" then
 			for e in entity.each("card") do
 				if tags.entity_has(e, kind) then out[#out + 1] = e end

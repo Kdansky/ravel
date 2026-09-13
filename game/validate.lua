@@ -8,6 +8,7 @@
 
 local actions   = require("actions")
 local predicate = require("predicate")   -- parse_subject only: pure, no game state
+local zones     = require("zones")        -- place_word only: the one rule for what a zone's word means
 local rich      = require("richtext")     -- the two marks card prose may carry
 local label     = require("label")        -- the {name} a caption may carry
 
@@ -72,6 +73,7 @@ M.ENGINE_TAGS = {
 	refill_when_empty = { on = "zone", what = "recreates its contents when the last card leaves" },
 	optional          = { on = "zone", what = "nothing here ever has to be played, so a gated card stays gated" },
 	bare              = { on = "zone", what = "drawn without a frame or a fill, and its label centred in the rect rather than sat along the top: a zone that exists only to say something is the something" },
+	stack             = { on = "zone", what = "the response window: what has announced itself and is waiting to be answered, top card first. Every entry is a record of something announced, never a game card, so a counter removes a record and the card it was about never moved" },
 	event_log         = { on = "card", what = "this card is the event log: pointing at it shows what has happened, and clicking it says how much of it to show. The engine's own system column carries one" },
 	last_acted        = { on = "card", what = "the card a player most recently played or activated. Written by the engine, one at a time, and it lingers until the next thing a player does" },
 	-- phases
@@ -684,10 +686,48 @@ function M.check(G)
 		return all_stats[key] ~= nil
 	end
 
+	-- **The words zones wear**, which a scope's place half and a target spec's
+	-- "zones" both read: one word for what several places have in common, said
+	-- where the places are. Before it, "my hand or my discard" had to be written
+	-- on the cards -- a tag handed out by each zone, a union to or them, an and
+	-- to put the real question back -- and a spell that lands on anything in
+	-- play had to list every board zone in every block that cast it.
+	-- Read through zones.place_word, which is the same rule the runtime applies:
+	-- a word the engine reads off a zone is behaviour and a word naming a style
+	-- is a look, and neither names a class of places.
+	local zone_words = {}
+	for _, zd in pairs(G.zone_defs) do
+		for tag in pairs(zd.tags_set or {}) do
+			if zones.place_word(tag, G) then zone_words[tag] = true end
+		end
+	end
+
+	-- **A word may not be both a zone's name and a zone's tag.** The key is the
+	-- narrow reading and wins, so the tag half would silently reach nothing --
+	-- the same refusal a tag naming a zone already gets, for the same reason:
+	-- which reading a line got would be the order somebody typed.
+	do
+		local names = {}
+		for name in pairs(zone_words) do names[#names + 1] = name end
+		table.sort(names)
+		for _, name in ipairs(names) do
+			if G.zone_defs[name] then
+				warn("zone tag '%s' is also the name of a zone — a place named by its key is the "
+					.. "narrower reading and wins, so nothing would ever reach it as a tag; "
+					.. "rename one of them", name)
+			elseif known_tags[name] then
+				warn("'%s' is a tag on a zone and a tag on a card — \"@mine.%s\" would be the "
+					.. "places, never the cards, so the two readings cannot both be written; "
+					.. "rename one of them", name, name)
+			end
+		end
+	end
+
 	-- Everything a scope may name, for checking and for suggestions.
 	local scope_names = { target = true, event = true, source = true, answered = true }
 	for _, k in ipairs(RESERVED_SCOPES) do scope_names[k] = true end
 	for k in pairs(G.zone_defs) do scope_names[k] = true end
+	for k in pairs(zone_words) do scope_names[k] = true end
 	for k in pairs(known_tags) do scope_names[k] = true end
 	-- A pattern names a shape, and a shape answers "what is standing there" as
 	-- readily as "where may I go", so it is a scope too.
@@ -755,9 +795,16 @@ function M.check(G)
 			end
 			return true
 		end
-		if not G.zone_defs[place] then
-			warn("%s: %s '%s' looks in '%s', but no zone has that key%s",
-				where, what, expr, place, suggest(place, G.zone_defs))
+		-- A place is a zone by its key, or a word several zones wear -- "my hand
+		-- or my discard" said where the places are rather than on the cards
+		-- lying in them. Both are checked against the same half of the message,
+		-- since a typo in either is a place that is not there.
+		if not (G.zone_defs[place] or zone_words[place]) then
+			local places = {}
+			for k in pairs(G.zone_defs) do places[k] = true end
+			for k in pairs(zone_words) do places[k] = true end
+			warn("%s: %s '%s' looks in '%s', which is neither a zone nor a word any zone"
+				.. " wears%s", where, what, expr, place, suggest(place, places))
 		elseif not known_tags[kind] then
 			warn("%s: %s '%s' asks for '%s' in '%s', but no card carries that tag%s",
 				where, what, expr, kind, place, suggest(kind, known_tags))

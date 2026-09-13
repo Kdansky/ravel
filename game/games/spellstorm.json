@@ -160,13 +160,7 @@
   ],
   "computed_tags": {
     "has_init": { "needs": ["initiative@self >= 1"] },
-    "held": { "any_of": ["in_hand", "in_discard"] },
-    "curse_or_ice": { "any_of": ["curse", "ice"] },
-    "curse_or_ice_held": { "needs": ["tagged:curse_or_ice@self", "tagged:held@self"] },
-    "junk_held": { "needs": ["tagged:junk@self", "tagged:held@self"] },
-    "ice_held": { "needs": ["tagged:ice@self", "tagged:held@self"] },
-    "ash_held": { "needs": ["tagged:ash@self", "tagged:held@self"] },
-    "curse_held": { "needs": ["tagged:curse@self", "tagged:held@self"] }
+    "curse_or_ice": { "any_of": ["curse", "ice"] }
   },
   "styles": {
     "ember": { "color": [0.62, 0.2, 0.16], "hide": ["title"] },
@@ -213,7 +207,7 @@
       "layout": "row",
       "visibility": "owner",
       "copies": "per_seat",
-      "applies": ["in_hand"],
+      "tags": ["held"],
       "pos": [[0.335, 0.795, 0.73, 0.995], [0.335, 0.005, 0.73, 0.205]]
     },
     {
@@ -240,7 +234,7 @@
       "layout": "stack",
       "status": "grave",
       "copies": "per_seat",
-      "applies": ["in_discard"],
+      "tags": ["held"],
       "pos": [[0.865, 0.795, 0.98, 0.995], [0.865, 0.005, 0.98, 0.205]]
     },
     {
@@ -1163,11 +1157,7 @@
             "stat_set:initiative@opponent:0"
           ]
         },
-        {
-          "key": "cast_ask",
-          "text": "Resolve",
-          "action": ["show:mine.everywhere.ice_held:optional"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.held.ice:optional"] }
       ],
       "chosen": { "action": ["move:target:ice_pile"] }
     },
@@ -1398,11 +1388,7 @@
           "text": "Resolve",
           "action": ["stat_gain:mana@mine.player:1", "stat_damage:health@mine.player:1"]
         },
-        {
-          "key": "cast_ask",
-          "text": "Resolve",
-          "action": ["show:mine.everywhere.held:optional"]
-        }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.held:optional"] }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:mana@mine.player:1"] },
       "chosen": { "action": ["move:target:void"] }
@@ -1864,7 +1850,7 @@
           "action": [
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1",
-            "show:mine.everywhere.curse_or_ice_held:optional"
+            "show:mine.held.curse_or_ice:optional"
           ]
         }
       ],
@@ -2770,7 +2756,7 @@
         {
           "key": "wx",
           "text": "Weather",
-          "action": ["draw_from:mine.deck:mine.hand:1", "show:mine.everywhere.junk_held:optional"]
+          "action": ["draw_from:mine.deck:mine.hand:1", "show:mine.held.junk:optional"]
         }
       ],
       "chosen": {
@@ -3347,12 +3333,12 @@
         {
           "key": "dry_take_ash",
           "needs": ["count:junk@ash_pile <= 0"],
-          "action": ["move:random.mine.everywhere.ash_held:ash_pile", "stat_damage:power@mine.player:2"]
+          "action": ["move:random.mine.held.ash:ash_pile", "stat_damage:power@mine.player:2"]
         },
         {
           "key": "dry_give_ash",
           "needs": ["count:junk@ash_pile <= 0"],
-          "action": ["move:random.enemy.everywhere.ash_held:ash_pile", "stat_damage:power@opponent:2"]
+          "action": ["move:random.enemy.held.ash:ash_pile", "stat_damage:power@opponent:2"]
         }
       ]
     },
@@ -3366,18 +3352,12 @@
         {
           "key": "dry_take_curse",
           "needs": ["count:junk@curse_pile <= 0"],
-          "action": [
-            "move:random.mine.everywhere.curse_held:curse_pile",
-            "stat_damage:health@mine.player:1"
-          ]
+          "action": ["move:random.mine.held.curse:curse_pile", "stat_damage:health@mine.player:1"]
         },
         {
           "key": "dry_give_curse",
           "needs": ["count:junk@curse_pile <= 0"],
-          "action": [
-            "move:random.enemy.everywhere.curse_held:curse_pile",
-            "stat_damage:health@opponent:1"
-          ]
+          "action": ["move:random.enemy.held.curse:curse_pile", "stat_damage:health@opponent:1"]
         }
       ]
     },
@@ -3392,7 +3372,7 @@
           "key": "dry_take_ice",
           "needs": ["count:junk@ice_pile <= 0"],
           "action": [
-            "move:random.mine.everywhere.ice_held:ice_pile",
+            "move:random.mine.held.ice:ice_pile",
             "destroy:random.mine.hand",
             "destroy:random.mine.hand"
           ]
@@ -3401,7 +3381,7 @@
           "key": "dry_give_ice",
           "needs": ["count:junk@ice_pile <= 0"],
           "action": [
-            "move:random.enemy.everywhere.ice_held:ice_pile",
+            "move:random.enemy.held.ice:ice_pile",
             "destroy:random.enemy.hand",
             "destroy:random.enemy.hand"
           ]

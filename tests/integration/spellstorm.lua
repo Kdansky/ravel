@@ -1063,7 +1063,7 @@ function M.test_spellstorm_doom_bauble_offers_two_kinds_in_two_places(check)
 
 	-- The Ultimate's own line, run on its own: what is under test is the offer,
 	-- not the two cards it draws first.
-	actions.execute("show:mine.everywhere.curse_or_ice_held:optional",
+	actions.execute("show:mine.held.curse_or_ice:optional",
 		{ card_id = find("wiz_eve", "wizard").id, targets = {} })
 
 	local shown = {}

@@ -258,7 +258,7 @@ SPELLS = [
     card("iceflume", "Ice Flume", WATER, tier=2,
          tooltip="Give an ICE. You may VOID an ICE from your hand. Gain Initiative.",
          flavour='"Watch your step!" - Unknown',
-         cast=GIVE("ice") + GAIN_INIT + ["show:mine.everywhere.ice_held:optional"],
+         cast=GIVE("ice") + GAIN_INIT + ["show:mine.held.ice:optional"],
          chosen=["move:target:ice_pile"]),
     card("lapis", "Lapis", WATER, tier=1,
          tooltip="Draw a card. You may discard a card and heal 1.",
@@ -315,7 +315,7 @@ SPELLS = [
     card("bloodstone", "Bloodstone", EARTH, tier=1,
          tooltip="Gain 1 mana. Take 1 damage. You may VOID a card from your hand. On discard: gain 1 mana.",
          flavour='"It\'s best to leave gems that you find in the wild alone, unless you really know what you\'re doing." - Abragail',
-         cast=[MANA, SELF_DMG(1), "show:mine.everywhere.held:optional"],
+         cast=[MANA, SELF_DMG(1), "show:mine.held:optional"],
          chosen=["move:target:void"], disc=[MANA]),
     card("diamond", "Diamond", EARTH, tier=1,
          tooltip="If you hold 3 or more other cards, discard 3 of them and power up 3 times. On discard: power up.",
@@ -509,7 +509,7 @@ WEATHER = [
     # these run; the rest has already gone home.
     weather("soothingrain", "Soothing Rain",
             "Draw a card. You may VOID an ASH, CURSE or ICE from your hand or discard pile.",
-            wx=[DRAW, "show:mine.everywhere.junk_held:optional"],
+            wx=[DRAW, "show:mine.held.junk:optional"],
             chosen=["move:options.ice:ice_pile", "move:options.ash:ash_pile",
                     "move:options.curse:curse_pile"], copies=2),
     weather("tidalwave", "Tidal Wave",
@@ -604,7 +604,7 @@ WIZARDS = [
     wizard("eve", "Eve Williams", "Radical Activist", "Fire, Water", 14, 5, 5,
            "Doom Bauble",
            "Draw 2 cards. You may move a card from your discard to your opponent's discard.",
-           [DRAW, DRAW, "show:mine.everywhere.curse_or_ice_held:optional"],
+           [DRAW, DRAW, "show:mine.held.curse_or_ice:optional"],
            ult_chosen=["move:target:enemy.discard"],
            blurb="A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.",
            start=GIVE("ice") + GAIN_JUNK("ice"),
@@ -1189,7 +1189,7 @@ def rules_templates():
             ("ice",   [DISCARD_RANDOM("mine")] * 2, [DISCARD_RANDOM("enemy")] * 2)):
         # VOIDing one is a move back onto the pile, which is where a VOIDed junk
         # card goes -- so the pile refills by one and the penalty lands on top.
-        void = lambda who: "move:random.%s.everywhere.%s_held:%s_pile" % (who, kind, kind)
+        void = lambda who: "move:random.%s.held.%s:%s_pile" % (who, kind, kind)
         out.append(rules_card(
             "r_dry_" + kind, "The %s pile is empty" % kind.upper(),
             tip("When the %s pile is empty, whoever would have been given one VOIDs "
@@ -1373,7 +1373,7 @@ def zones():
         # Initiative" needs is a board that points at one of them by name.
         # "{owner}" is the seat this copy belongs to, read off the board.
         {"key": "hand", "label": "{owner}", "layout": "row", "visibility": "owner",
-         "copies": "per_seat", "applies": ["in_hand"],
+         "copies": "per_seat", "tags": ["held"],
          "pos": [P(0.335, 0.795, 0.730, 0.995), P(0.335, 0.005, 0.730, 0.205)]},
         # Whatever a wizard brings that nobody else has. Empty for seven of the
         # eight, and an empty row with no label draws nothing at all, so a board
@@ -1387,7 +1387,7 @@ def zones():
          "tooltip": "Your draw deck. When you need a card and it is empty, your discard is shuffled into it.",
          "pos": [P(0.740, 0.795, 0.855, 0.995), P(0.740, 0.005, 0.855, 0.205)]},
         {"key": "discard", "label": "Discard", "layout": "stack", "status": "grave",
-         "copies": "per_seat", "applies": ["in_discard"],
+         "copies": "per_seat", "tags": ["held"],
          "pos": [P(0.865, 0.795, 0.980, 0.995), P(0.865, 0.005, 0.980, 0.205)]},
         # Where a card waits face down, and where it stands once both are turned
         # over. Two zones rather than one because "who may read this" is a
@@ -1489,6 +1489,9 @@ def zones():
         # and only ever a card announcing the Ultimate icon. Offscreen because
         # the engine already says so across the top of the screen, naming the
         # card and offering the way out, and the board has no strip left.
+        # "stack" is the engine's own word for the response window, read off the
+        # zone rather than named in a setting -- so the tag is what makes this
+        # zone the one flow settles against.
         {"key": "stack", "layout": "stack", "display": "offscreen", "use": "none",
          "tags": ["stack"],
          "tooltip": "A card that has announced itself and is waiting to be answered."},
@@ -1831,18 +1834,16 @@ def build():
             {"key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"]},
         ],
         # A tag is what a card *is*, and these are the kinds the printed cards
-        # name that no single tag did. "held" is a union of two places, because a
-        # zone hands out a tag and a union may name those; the rest meet it in
-        # the middle, which is how an "and" of "or"s is written without nesting.
+        # name that no single tag did.
+        #
+        # "Wherever I am keeping it" used to live here, and it was five of these:
+        # the hand and the discard each handed out a tag, "held" was a union of
+        # the two, and then one "and" per kind put the real question back --
+        # over `everywhere`, which is every card in the game. "held" is a word
+        # both zones wear now, so a scope's place half says it: `mine.held.ice`.
         "computed_tags": {
             "has_init": {"needs": ["initiative@self >= 1"]},
-            "held": {"any_of": ["in_hand", "in_discard"]},
             "curse_or_ice": {"any_of": ["curse", "ice"]},
-            "curse_or_ice_held": {"needs": ["tagged:curse_or_ice@self", "tagged:held@self"]},
-            "junk_held": {"needs": ["tagged:junk@self", "tagged:held@self"]},
-            "ice_held": {"needs": ["tagged:ice@self", "tagged:held@self"]},
-            "ash_held": {"needs": ["tagged:ash@self", "tagged:held@self"]},
-            "curse_held": {"needs": ["tagged:curse@self", "tagged:held@self"]},
         },
         "styles": {
             "ember": {"color": [0.62, 0.20, 0.16], "hide": ["title"]},

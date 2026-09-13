@@ -399,6 +399,60 @@ function M.all_with_key(key)
 	return out
 end
 
+-- **The words the engine reads off a zone**, as opposed to the ones a game
+-- writes for itself. They are behaviour, not a class of place, so a scope's
+-- place half and a target spec's "zones" both step over them: "my gems in any
+-- shuffled zone" is a sentence nobody means, and the stack is reachable by its
+-- own key. The validator holds the prose for each (validate.M.ENGINE_TAGS) and a
+-- test holds the two lists to each other.
+M.ENGINE_ZONE_TAGS = {
+	shuffle = true, refill_when_empty = true, optional = true, bare = true,
+	stack = true,
+}
+
+-- **The places a word names**: one zone by its key, or every zone wearing it as
+-- a tag. A scope's place half and a target spec's "zones" both ask this, and
+-- neither could say more than one zone before -- so "an ICE of mine, in hand or
+-- discard" had to be two zone `applies`, a union to or them together, and an
+-- `and` to put the real question back, over a walk of every card in the game.
+-- Which places count is the zone's own business, and this is where it says so.
+--
+-- **The key wins outright.** A word that is both is the one ambiguity here, and
+-- the validator refuses it rather than letting the order somebody typed decide
+-- which reading a line gets -- as it already refuses a tag that names a zone.
+--
+-- **A style is a look and never a place.** The one word a zone and its cards are
+-- both routinely given is the style they share, which is how a game says they
+-- draw alike -- and reading that as a set of places would turn "the cards
+-- carrying this" into "the places wearing it" on a line nobody wrote.
+function M.all_named(word)
+	local out = M.all_with_key(word)
+	if #out > 0 then return out end
+	if M.place_word(word) == false then return out end
+	for z in entity.each("zone") do
+		if z.tags and z.tags[word] then out[#out + 1] = z end
+	end
+	-- Seat order, so a pool reads the same way whichever word reached it. Zone
+	-- entities are built seat by seat, so their ids already carry that order.
+	table.sort(out, function(a, b) return a.id < b.id end)
+	return out
+end
+
+-- Whether a word a zone wears names a class of places at all. False for the two
+-- kinds that mean something else wherever they appear: a word the engine reads
+-- off a zone is behaviour, and a word naming a style is a look -- and a zone and
+-- its cards sharing the style they draw with is how a game says they draw alike.
+--
+-- **The definitions are an argument, not a lookup.** The validator asks this
+-- with no game loaded -- it parses a file and checks what came out, which is the
+-- whole point of being able to check a game without running it -- so reading
+-- the live game here would answer for whatever was running instead.
+function M.place_word(word, G)
+	if M.ENGINE_ZONE_TAGS[word] then return false end
+	if ((G or declaration.G).style_defs or {})[word] then return false end
+	return true
+end
+
 -- Whether the player at the keyboard may look at this card.
 --
 -- One rule, deliberately: a card in a *hand* belongs to whoever that hand

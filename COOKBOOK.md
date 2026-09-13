@@ -790,6 +790,29 @@ something says so itself:
 "target": { "type": "card", "count": 1, "zones": ["patrol", "army"] }
 ```
 
+### Target a card lying anywhere on the board.
+
+```json
+"zones": [{ "key": "patrol", "tags": ["in_play"] }, { "key": "army", "tags": ["in_play"] }],
+"target": { "type": "card", "count": 1, "zones": ["in_play"] }
+```
+
+A `zones` entry names a zone key or a word the zones themselves wear, so the set a
+spell may land on is stated once instead of in every block that casts one — and a
+new board zone joins it by wearing the word rather than by being found in all of them.
+
+### My ICEs, wherever I am keeping them.
+
+```json
+"zones": [{ "key": "hand", "tags": ["held"] }, { "key": "discard", "tags": ["held"] }],
+"action": ["move:random.mine.held.ice:ice_pile"]
+```
+
+The left half of a scope is a zone key or a word several zones wear. "Hand or discard
+and not the deck" is a property of the places, so it is said on them — the alternative
+is a tag handed out by each zone, a union to or them, and an `and` to put the real
+question back.
+
 ### Target an empty square.
 
 ```json

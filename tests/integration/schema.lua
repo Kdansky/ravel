@@ -192,6 +192,26 @@ function M.test_schema_describes_every_reserved_tag(check)
 	end
 end
 
+-- The engine reads a handful of words off a zone, and two tables name them: the
+-- one the engine consults to know a word is not a place (zones.ENGINE_ZONE_TAGS)
+-- and the one that holds the prose (validate.ENGINE_TAGS). A word in one and not
+-- the other is either a place word that quietly stops being one or a documented
+-- word nothing reads, and both read as the game being wrong.
+function M.test_schema_zone_tags_the_engine_reads_are_one_list(check)
+	local zones = require("zones")
+	for name in pairs(zones.ENGINE_ZONE_TAGS) do
+		local e = validate.ENGINE_TAGS[name]
+		check("'" .. name .. "' is described", e ~= nil and e.on == "zone",
+			e and e.on or "not in ENGINE_TAGS")
+	end
+	for name, e in pairs(validate.ENGINE_TAGS) do
+		if e.on == "zone" then
+			check("'" .. name .. "' names no class of places",
+				zones.ENGINE_ZONE_TAGS[name] == true, "not in ENGINE_ZONE_TAGS")
+		end
+	end
+end
+
 function M.test_schema_describes_every_action(check)
 	local doc = schema()
 	local described = doc._actions

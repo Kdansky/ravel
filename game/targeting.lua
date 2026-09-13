@@ -78,6 +78,7 @@ local function find_slots(zone_set, fill)
 	for z in entity.each("zone") do
 		if z.layout == "grid" and z.slots then
 			local zone_ok = not zone_set or zone_set[z.key] or zone_set[z.layout]
+				or tags.zone_tagged(z, zone_set)
 			if zone_ok then
 				for _, slot_id in pairs(z.slots) do
 					local slot = entity.get(slot_id)
@@ -118,7 +119,8 @@ end
 local function find_zones(zone_set)
 	local res = {}
 	for z in entity.each("zone") do
-		if zone_set and zone_set[z.key] and z.display ~= "offscreen" then res[#res + 1] = z.id end
+		local named = zone_set and (zone_set[z.key] or tags.zone_tagged(z, zone_set))
+		if named and z.display ~= "offscreen" then res[#res + 1] = z.id end
 	end
 	return res
 end
