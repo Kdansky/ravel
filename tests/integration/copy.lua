@@ -57,6 +57,14 @@ local GAME = [==[{
     { "key": "echo", "text": "Echo",
       "play": { "target": { "type": "card", "zones": ["hand"], "count": 1 },
         "action": ["copy:target:play:2"], "spent": "mine.table" } },
+    { "key": "relay", "text": "Relay", "play": { "action": ["move_to:board"] },
+      "abilities": [{ "key": "go", "text": "Go",
+        "target": { "type": "card", "zones": ["hand"], "count": 1 },
+        "action": ["copy:target:play:2"] }] },
+    { "key": "chain", "text": "Chain", "play": { "action": ["move_to:board"] },
+      "abilities": [{ "key": "go", "text": "Go",
+        "target": { "type": "card", "zones": ["board"], "count": 1 },
+        "action": ["copy:target:activate"] }] },
     { "key": "crank", "text": "Crank",
       "play": { "action": ["copy:mine.board:activate"], "spent": "mine.table" } },
     { "key": "holder", "text": "Holder",
@@ -268,6 +276,50 @@ function M.test_copy_is_the_copied_card_acting_for_whoever_is_up(check)
 		check("and the card's owner did not", seat("two").stats.landed == 0, seat("two").stats.landed)
 		check("the copied card is still in its own hand",
 			count_in("hand", "torch") == 1, count_in("hand", "torch"))
+	end)
+end
+
+-- A copy is not fussy about who asked for it: an *ability* that copies a play
+-- hands over the same imaginary cards a play would.
+function M.test_copy_an_ability_may_copy_a_play(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local relay = give("one", "relay")
+		flow.play_card(relay.id, {})
+		local torch = give("one", "torch")
+
+		flow.activate(relay.id, { torch.id })
+		check("two imaginary torches are owed", owed() == 2, owed())
+		play_owed()
+		check("and playing them is the copied play running twice",
+			seat("one").stats.landed == 2, seat("one").stats.landed)
+	end)
+end
+
+-- **A copied ability is not aimed, and now it says so.** `activate` runs the
+-- list where the card stands — there is nothing to create and nothing aims it —
+-- so an ability that waits to be pointed at something would run at nothing and
+-- look like it had worked. It is reported instead.
+--
+-- That is the untouched half of the same hole a copied play used to have. It is
+-- reachable only by copying an ability that is itself aimed, which no shipped
+-- game does: 55 abilities across five games declare a target, and the one game
+-- that copies abilities has none of them.
+function M.test_copy_of_an_ability_that_must_be_aimed_says_so(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local chain = give("one", "chain")
+		flow.play_card(chain.id, {})
+		local relay = give("one", "relay")
+		flow.play_card(relay.id, {})
+		give("one", "torch")
+
+		flow.activate(chain.id, { relay.id })
+		check("nothing was owed, because nothing could be aimed", owed() == 0, owed())
+		check("nothing happened quietly", seat("one").stats.landed == 0,
+			seat("one").stats.landed)
+		local said = table.concat(require("log").tail(6), " | ")
+		check("and it named the card and the reason", said:find("must be aimed", 1, true), said)
 	end)
 end
 

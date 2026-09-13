@@ -3588,9 +3588,9 @@ moment except a resolution.
 Two things it does not do, both on purpose:
 
 - **An ability carries no targets.** `activate` runs the list where it stands —
-  nothing aims an ability and there is nothing to create — so a copied ability
-  that waits to be pointed at something finds nothing. A `play` is aimed, since
-  it is a card being played.
+  nothing aims an ability and there is nothing to create — so an ability that
+  waits to be pointed at something cannot be copied, and says so rather than
+  running at nothing. A `play` is aimed, since it is a card being played.
 - **It does not change whose turn it is.** The imaginary card is the copier's, so
   its action reads `@self` as itself — but `mine` still means whoever is *up*.
   Copying an opponent's card gives *you* the benefit, which is what a card that

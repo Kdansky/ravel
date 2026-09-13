@@ -1248,7 +1248,15 @@ HANDLERS["copy"] = function(p, ctx)
 					for _, a in ipairs(cards.abilities(e)) do
 						if type(a.action) == "table" then
 							local c = predicate.bind(a.compute, { card_id = id, targets = {} })
-							if predicate.meets_all(a.needs, c) then M.run(a.action, c) end
+							-- An ability is run where it stands, so nobody aims it. One that
+							-- waits to be aimed would run at nothing and look like it worked;
+							-- saying so is the difference between a gap and a silence.
+							if a.target then
+								content_error("copy: '" .. ((cards.def(e) or {}).text or e.def_key)
+									.. "' has an ability that must be aimed, and a copied ability is not aimed")
+							elseif predicate.meets_all(a.needs, c) then
+								M.run(a.action, c)
+							end
 						end
 					end
 				end

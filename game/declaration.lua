@@ -255,7 +255,11 @@ function M.normalise_zone(zd, pp)
 		end
 	end
 
-	zd.layout     = zd.layout or "stack"
+	-- A todo is every card in it at once: they all have to be played, and a stack
+	-- offers only the one on top, so a pile of two would be a queue nobody asked
+	-- for. Said here rather than left to the author, the way an offer is forced
+	-- offscreen — the standing implies the shape.
+	zd.layout     = zd.layout or (zd.status == "todo" and "row") or "stack"
 	zd.visibility = zd.visibility or "public"
 	-- Three defaults a neighbouring field supplies, so the common shapes stay
 	-- short: a stack is reached from the top, cards nobody can see cannot be
