@@ -615,8 +615,13 @@ def build(here):
             },
             "noble": {
                 "abilities": [{"key": "check", "text": "Check", "action": noble_check()}],
+                # The tile stays face up in front of you, as the printed game
+                # leaves it. Nothing prices a noble once it has visited, so
+                # clearing "ok" here is what stops noble_check finding it again:
+                # count:noble_ready asks the whole table, not just the row.
                 "play": {"phases": ["noble_pick"], "needs": ["ok@self >= 1"],
-                         "action": ["stat_gain:score@mine.player:3", "purge:self", "end_phase"]},
+                         "action": ["stat_gain:score@mine.player:3", "stat_set:ok@self:0",
+                                    "set_owner:self:mine", "move_to:mine.tableau", "end_phase"]},
             },
         },
         "zones": zones(rows),

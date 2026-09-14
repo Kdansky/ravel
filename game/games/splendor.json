@@ -433,7 +433,13 @@
       "play": {
         "phases": ["noble_pick"],
         "needs": ["ok@self >= 1"],
-        "action": ["stat_gain:score@mine.player:3", "purge:self", "end_phase"]
+        "action": [
+          "stat_gain:score@mine.player:3",
+          "stat_set:ok@self:0",
+          "set_owner:self:mine",
+          "move_to:mine.tableau",
+          "end_phase"
+        ]
       }
     }
   },

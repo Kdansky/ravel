@@ -227,6 +227,12 @@ function M.test_splendor_a_noble_visits(check)
 	check("and the noble is claimable", flow.play_card(noble.id, {}))
 	check("for three prestige, once", me.stats.score == 3
 		and #zones.find("nobles").cards == 2)
+	-- The tile stays face up in front of its owner, and stops qualifying: were
+	-- ok left at 1, noble_check would find it in the tableau and re-open the
+	-- pick every turn.
+	check("the tile sits in the visited seat's tableau",
+		entity.get(noble.zone_id).key == "tableau" and noble.stats.owner == 1)
+	check("and never qualifies again", noble.stats.ok == 0)
 	check("then the turn passes", zones.active_seat() == "south")
 end
 
