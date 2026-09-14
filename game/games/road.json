@@ -80,6 +80,7 @@
       "key": "graveyard",
       "label": "Left Behind",
       "layout": "stack",
+      "status": "grave",
       "pos": [0.82, 0.32, 1.0, 0.6]
     }
   ],
@@ -177,7 +178,7 @@
       "tooltip": "A hot meal and an old song. +2 morale.",
       "play": {
         "cost": { "supplies": 1 },
-        "action": ["effect:hearth_glow", "stat_gain:morale:2", "move_to:graveyard"]
+        "action": ["effect:hearth_glow", "stat_gain:morale:2", "destroy:self"]
       },
       "tags": ["moss"]
     },
@@ -186,7 +187,7 @@
       "text": "Forced March",
       "asset": "marching_column.jpg",
       "tooltip": "Two miles before moonrise, and everyone hates you. Costs 1 morale.",
-      "play": { "cost": { "morale": 1 }, "action": ["stat_gain:distance:2", "move_to:graveyard"] },
+      "play": { "cost": { "morale": 1 }, "action": ["stat_gain:distance:2", "destroy:self"] },
       "tags": ["rust"]
     },
     {
@@ -196,7 +197,7 @@
       "tooltip": "Strip a slain threat: clear it from the road, +2 supplies.",
       "play": {
         "target": { "type": "card", "min": 1, "max": 1, "tags": ["slain"], "zones": ["battlefield"] },
-        "action": ["move:target:graveyard", "stat_gain:supplies:2", "move_to:graveyard"]
+        "action": ["destroy:target", "stat_gain:supplies:2", "destroy:self"]
       },
       "tags": ["slate"]
     },
@@ -205,7 +206,7 @@
       "text": "Campfire Songs",
       "asset": "campfire_night.jpg",
       "tooltip": "The old verses: +1 morale for every unit still standing.",
-      "play": { "action": ["stat_gain:morale:count:unit", "move_to:graveyard"] },
+      "play": { "action": ["stat_gain:morale:count:unit", "destroy:self"] },
       "tags": ["moss"]
     },
     {
@@ -219,7 +220,7 @@
           "effect:wagon_blaze",
           "stat_gain:distance:3",
           "stat_gain:morale:1",
-          "move_to:graveyard"
+          "destroy:self"
         ]
       }
     },
@@ -268,7 +269,7 @@
       "card_stats": { "hp": { "value": 3, "max": 3 } },
       "challenge": {
         "needs": ["card:torch >= 1"],
-        "pass": ["move_to:graveyard", "stat_gain:distance:1", "stat_gain:morale:1"],
+        "pass": ["destroy:self", "stat_gain:distance:1", "stat_gain:morale:1"],
         "fail": ["stat_damage:morale:2"]
       },
       "abilities": [{ "action": ["resolve_challenge"], "cost": { "exhaust": 1 } }],
@@ -283,7 +284,7 @@
       "card_stats": { "hp": { "value": 3, "max": 3 } },
       "challenge": {
         "needs": ["supplies >= 3"],
-        "pass": ["move_to:graveyard", "stat_damage:supplies:2", "stat_gain:distance:2"],
+        "pass": ["destroy:self", "stat_damage:supplies:2", "stat_gain:distance:2"],
         "fail": ["stat_damage:morale:1"]
       },
       "abilities": [{ "action": ["resolve_challenge"], "cost": { "exhaust": 1 } }],

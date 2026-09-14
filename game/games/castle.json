@@ -88,7 +88,7 @@
           "tags": ["building"],
           "zones": ["board"]
         },
-        "action": ["stat_gain:hp@target:2", "move_to:graveyard"]
+        "action": ["stat_gain:hp@target:2", "destroy:self"]
       },
       "tags": ["one_shot"]
     },
@@ -97,7 +97,7 @@
       "text": "Mercenaries",
       "asset": "army_camp.jpg",
       "tooltip": "Hired swords. +3 defense.",
-      "play": { "cost": { "gold": 2 }, "action": ["stat_gain:defense:3", "move_to:graveyard"] },
+      "play": { "cost": { "gold": 2 }, "action": ["stat_gain:defense:3", "destroy:self"] },
       "tags": ["one_shot"]
     },
     {
@@ -105,7 +105,7 @@
       "text": "Architect",
       "asset": "stranger.png",
       "tooltip": "Commission a building: pick 1 of 3 from the build deck.",
-      "play": { "cost": { "gold": 1 }, "action": ["move_to:graveyard", "push_phase:draft"] },
+      "play": { "cost": { "gold": 1 }, "action": ["destroy:self", "push_phase:draft"] },
       "tags": ["one_shot"]
     },
     {
@@ -120,7 +120,7 @@
       "text": "Royal Decree",
       "asset": "crown_royal.jpg",
       "tooltip": "The court awaits your word. Choose one of three edicts.",
-      "play": { "cost": { "gold": 2 }, "action": ["move_to:graveyard", "push_phase:decree"] },
+      "play": { "cost": { "gold": 2 }, "action": ["destroy:self", "push_phase:decree"] },
       "tags": ["one_shot"]
     },
     {
@@ -239,7 +239,7 @@
       "tags": ["shuffle", "refill_when_empty"],
       "contents": ["bandit_raid:3", "drought:3", "merchant:2", "siege:2"]
     },
-    { "key": "graveyard", "label": "Discard", "layout": "stack", "pos": [0.77, 0.59, 0.83, 0.99] },
+    { "key": "graveyard", "label": "Discard", "layout": "stack", "status": "grave", "pos": [0.77, 0.59, 0.83, 0.99] },
     {
       "key": "offer",
       "layout": "row",
@@ -355,7 +355,7 @@
   ],
   "tags": {
     "challenge": {
-      "play": { "action": ["move_to:graveyard", "resolve_challenge"] }
+      "play": { "action": ["destroy:self", "resolve_challenge"] }
     },
     "draft_pick": {
       "play": { "action": ["move_to:hand", "move:offer:build_deck", "shuffle:build_deck"] }
