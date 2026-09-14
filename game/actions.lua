@@ -301,9 +301,20 @@ end
 
 -- Spend n of a subject: pooled scopes drain, "each" (and the unscoped form)
 -- takes the full amount from everyone designated.
-function M.spend(subject, n, ctx)
+--
+-- `id` is a card the payment named. A cost is planned card by card now — by the
+-- player where the scope said "select", by the planner where it did not — so
+-- whose coin is being spent is usually already settled, and drain's own order
+-- is the answer only when nobody said. One change_stat either way: taking five
+-- as five ones would fire a stat's triggers five times.
+function M.spend(subject, n, ctx, id)
 	local p = predicate.parse_subject(subject)
 	if not p then return end
+	if id then
+		local e = entity.get(id)
+		if e then change_stat(e, p.arg, -n, ctx) end
+		return
+	end
 	if p.scope and p.quant ~= "each" then return drain(p, n, ctx) end
 	for _, e in ipairs(designated(p, ctx)) do change_stat(e, p.arg, -n, ctx) end
 end

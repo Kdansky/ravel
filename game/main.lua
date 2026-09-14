@@ -72,9 +72,10 @@ local aiming_at = nil
 -- What confirming a targeting session does, by intent. flow.activate returns
 -- false on refusal, so this cannot be an and/or chain.
 local RESOLVE = {
-	play     = function(cid, targs) return flow.play_card(cid, targs) end,
-	activate = function(cid, targs) return flow.activate(cid, targs, aiming_at) end,
-	react    = function(cid, targs) return flow.react(cid, aiming_at, targs) end,
+	play           = function(cid, targs, pay) return flow.play_card(cid, targs, pay) end,
+	activate       = function(cid, targs, pay) return flow.activate(cid, targs, aiming_at, pay) end,
+	react          = function(cid, targs, pay) return flow.react(cid, aiming_at, targs, pay) end,
+	activate_zone  = function(zid, _, pay) return flow.activate_zone(zid, aiming_at, pay) end,
 }
 
 -- Give up on targeting without offering anything back. The plain version of
@@ -103,8 +104,20 @@ local function cancel_targeting()
 end
 
 local function confirm_targeting()
-	local cid, targs, kind = targeting.card_id, targeting.targets, targeting.kind
-	local resolve = RESOLVE[targeting.intent] or flow.play_card
+	local cid, kind, intent = targeting.card_id, targeting.kind, targeting.intent
+	-- The aim is in; the cost may still have more than one answer. Asking here
+	-- rather than inside flow, because collecting an answer is an interface's job
+	-- and judging one is flow's — which is what payment_legal is for.
+	local targs, plan
+	if targeting.stage == "pay" then
+		targs, plan = targeting.aimed, targeting.payment()
+	else
+		targs = targeting.targets
+		local ways = flow.intent_payments(intent, cid, targs, aiming_at)
+		if targeting.begin_payment(ways, cid, intent, targs) then return end
+		plan = ways[1]
+	end
+	local resolve = RESOLVE[intent] or flow.play_card
 	-- Capture hit locations now: resolving the play may move things around.
 	local hits = {}
 	if kind == "card" then
@@ -117,10 +130,29 @@ local function confirm_targeting()
 	end
 	targeting.clear()
 	render.set_selected(nil)
-	if resolve(cid, targs) then
+	if resolve(cid, targs, plan) then
 		for _, h in ipairs(hits) do fx.hit(h.x, h.y) end
 	end
 	aiming_at = nil
+end
+
+-- Using a place. It aims at nothing — there is no arrow to draw from a deck —
+-- but its ability may still cost something with more than one answer, and that
+-- is pointed at exactly as a card's is. The gate is activate_zone's own, so a
+-- deck that does two things still opens its chooser instead of picking one.
+local function use_zone(zid, index)
+	local usable, chosen = flow.usable_zone_abilities(zid), nil
+	for _, u in ipairs(usable) do
+		if index == nil or u.index == index then chosen = chosen or u end
+	end
+	if not chosen or (index == nil and #usable > 1) then return false end
+	local ways = flow.rule_payments(zid, chosen.rule)
+	aiming_at = chosen.index
+	if targeting.begin_payment(ways, zid, "activate_zone", {}) then
+		render.set_selected(nil)
+		return true
+	end
+	return flow.activate_zone(zid, index, ways[1])
 end
 
 -- Start targeting for a card's spec, or act at once when the spec asks for
@@ -138,7 +170,10 @@ local function begin_action(cid, spec, intent, ability_index)
 			if targeting.can_confirm() then confirm_targeting() else abandon_targeting() end
 		end
 	else
-		RESOLVE[intent](cid, {})
+		local ways = flow.intent_payments(intent, cid, {}, ability_index)
+		if not targeting.begin_payment(ways, cid, intent, {}) then
+			RESOLVE[intent](cid, {}, ways[1])
+		end
 	end
 end
 
@@ -216,12 +251,12 @@ local function primary_action(x, y)
 				begin_action(pick.source, pick.rule.target, "react", pick.index)
 			elseif src and src.kind == "zone" then
 				-- A place aims at nothing: there is no arrow to draw from a deck.
-				flow.activate_zone(pick.source, pick.index)
+				use_zone(pick.source, pick.index)
 			else
 				begin_action(pick.source, pick.rule.target, "activate", pick.index)
 			end
 		else
-			flow.play_card(cid, {})
+			begin_action(cid, nil, "play")
 		end
 		return
 	end
@@ -291,7 +326,7 @@ local function primary_action(x, y)
 	-- The same turn a card takes when it can do two things: the place stops being
 	-- the question and the chooser becomes it.
 	local zid = zones.zone_at(x, y)
-	if zid and not flow.activate_zone(zid) then flow.offer_zone_abilities(zid) end
+	if zid and not use_zone(zid) then flow.offer_zone_abilities(zid) end
 end
 
 function love.load()

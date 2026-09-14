@@ -60,6 +60,19 @@ local function targets_for(card_id, spec)
 	return out
 end
 
+-- One move per way of paying. Nearly every cost has a single answer and is one
+-- move as it always was; a sacrifice, or a pool the game said "select" over, is
+-- a real fork, and an engine seat should be able to take either side of it. A
+-- card being *chosen* out of an offer pays nothing at all, so an empty list is
+-- still one move.
+local function per_payment(moves, ways, make)
+	if #ways == 0 then
+		moves[#moves + 1] = make(nil)
+		return
+	end
+	for _, p in ipairs(ways) do moves[#moves + 1] = make(p) end
+end
+
 -- Every move available to whoever is up, as a list of closures. Calling one
 -- makes it; the list is stale the moment any of them is called.
 function M.legal()
@@ -73,7 +86,9 @@ function M.legal()
 			local id, idx = u.card, u.index
 			local targets = targets_for(id, u.rule.target)
 			if targets then
-				moves[#moves + 1] = function() flow.react(id, idx, targets) end
+				per_payment(moves, flow.rule_payments(id, u.rule, targets), function(pay)
+					return function() flow.react(id, idx, targets, pay) end
+				end)
 			end
 		end
 		moves[#moves + 1] = function() flow.pass_react() end
@@ -94,14 +109,18 @@ function M.legal()
 					or targets_for(e.id, cards.def(e).target)
 				if targets then
 					local id = e.id
-					moves[#moves + 1] = function() flow.play_card(id, targets) end
+					per_payment(moves, flow.play_payments(id, targets), function(pay)
+						return function() flow.play_card(id, targets, pay) end
+					end)
 				end
 			end
 			for _, u in ipairs(flow.usable_abilities(e.id)) do
 				local id, idx = e.id, u.index
 				local targets = targets_for(id, u.rule.target)
 				if targets then
-					moves[#moves + 1] = function() flow.activate(id, targets, idx) end
+					per_payment(moves, flow.rule_payments(id, u.rule, targets), function(pay)
+						return function() flow.activate(id, targets, idx, pay) end
+					end)
 				end
 			end
 		end
@@ -109,7 +128,9 @@ function M.legal()
 	for z in entity.each("zone") do
 		for _, u in ipairs(flow.usable_zone_abilities(z.id)) do
 			local id, idx = z.id, u.index
-			moves[#moves + 1] = function() flow.activate_zone(id, idx) end
+			per_payment(moves, flow.rule_payments(id, u.rule), function(pay)
+				return function() flow.activate_zone(id, idx, pay) end
+			end)
 		end
 	end
 	return moves

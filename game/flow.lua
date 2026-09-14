@@ -740,9 +740,20 @@ local function resisted(stat, ctx)
 	return more
 end
 
--- What is owed, and out of which pools, in the order they should be drained.
--- nil when some part of it cannot be paid.
-local function plan(cost, ctx)
+-- What is owed, and out of which pools. Nothing is spent here: a cost is
+-- decided in full before the first coin moves, which is the whole of what makes
+-- it different from an effect. An effect that cannot happen is skipped where it
+-- stands; a cost that cannot be paid has to stop the card being played at all,
+-- because there is no unwinding half a payment.
+--
+-- A plan is a list of steps, each naming what it spends and whose:
+--
+--   { subject, n }            owed exactly as written — "each", a measuring fn,
+--                             or a scope that waits on targets
+--   { subject, n, id, stat }  n of a pool, off that one card
+--   { sacrifice, n, ids }     those cards, purged
+--   { exhaust }               the asking card's own readiness
+local function demands_of(cost, ctx)
 	local demands = {}
 	for subject, n in pairs(cost or {}) do
 		if subject ~= "exhaust" and not subject:match("^sacrifice:") then
@@ -770,7 +781,8 @@ local function plan(cost, ctx)
 				for _, s in ipairs((declaration.G.pays_for_index or {})[stat_name(subject)] or {}) do
 					from[#from + 1] = same_scope(subject, s)
 				end
-				demands[#demands + 1] = { subject = subject, need = need, from = from }
+				demands[#demands + 1] = { subject = subject, need = need, from = from,
+					pick = p.quant == "select" }
 			end
 		end
 	end
@@ -781,88 +793,332 @@ local function plan(cost, ctx)
 		if na ~= nb then return na < nb end
 		return a.subject < b.subject
 	end)
-	local left, out = {}, {}
-	for _, d in ipairs(demands) do
-		local owed = d.need
-		if d.as_written then
-			if not predicate.awaits_targets(d.subject, ctx)
-				and not predicate.holds(d.subject .. " >= " .. tostring(owed), ctx) then
-				return nil
-			end
-			out[#out + 1] = { subject = d.subject, n = owed }
+	return demands
+end
+
+-- The cards a sacrifice may take. "self" is the card doing the asking, which a
+-- tag cannot name: a cost already reaches its own card for "exhaust" and had no
+-- way to say the same about spending itself, so a game gave one card a private
+-- tag and killed the wrong copy the moment there were two.
+local function sacrifice_pool(tag, ctx)
+	if tag == "self" then
+		local c = ctx and ctx.card_id and entity.get(ctx.card_id)
+		return c and { c.id } or {}
+	end
+	return tags.find_targets({ tag }, tags.IN_PLAY)
+end
+
+-- The parts of a cost that are not stats and so have no substitutes: a card
+-- spending itself, and a card spending somebody else. Decided with the rest so
+-- that affordability is one question — two that could disagree about one cost
+-- is how a card gets played and then cannot pay.
+-- Keys are walked in sorted order, never pairs: clamping makes payment order
+-- observable, and a seeded replay has to pay identically.
+local function extra_demands(cost, ctx)
+	local keys = {}
+	for k in pairs(cost or {}) do
+		if k == "exhaust" or tostring(k):match("^sacrifice:") then keys[#keys + 1] = k end
+	end
+	table.sort(keys)
+	local out = {}
+	for _, k in ipairs(keys) do
+		if k == "exhaust" then
+			-- Tapping, in the MTG sense: the card spends *itself* being ready. A
+			-- card already spent cannot pay it, which is the whole of "once per
+			-- round" — and saying it as a cost rather than as a consequence is
+			-- what lets one card have an ability that taps beside one that does not.
+			local c = ctx and ctx.card_id and entity.get(ctx.card_id)
+			if not c or c.exhausted then return nil end
+			out[#out + 1] = { exhaust = true }
 		else
-			for _, src in ipairs(d.from) do
-				if owed <= 0 then break end
-				if left[src] == nil then left[src] = predicate.total(src, ctx) end
-				local take = math.min(owed, left[src])
-				if take > 0 then
-					left[src] = left[src] - take
-					out[#out + 1] = { subject = src, n = take }
-					owed = owed - take
-				end
-			end
-			if owed > 0 then return nil end
+			local tag  = k:match("^sacrifice:(.+)$")
+			local need = tonumber(cost[k]) or 0
+			local pool = sacrifice_pool(tag, ctx)
+			if #pool < need then return nil end
+			out[#out + 1] = { sacrifice = tag, need = need, pool = pool }
 		end
 	end
 	return out
 end
 
--- The parts of a cost that are not stats and so have no substitutes: a card
--- spending itself, and a card spending somebody else.
-local function extras_afford(cost, ctx)
-	for subject, n in pairs(cost or {}) do
-		local tag = type(subject) == "string" and subject:match("^sacrifice:(.+)$")
-		-- Tapping, in the MTG sense: the card spends *itself* being ready. A
-		-- card already spent cannot pay it, which is the whole of "once per
-		-- round" — and saying it as a cost rather than as a consequence is what
-		-- lets one card have an ability that taps beside one that does not.
-		if subject == "exhaust" then
-			local c = ctx and ctx.card_id and entity.get(ctx.card_id)
-			if not c or c.exhausted then return false end
-		elseif tag then
-			if #tags.find_targets({ tag }, tags.IN_PLAY) < (tonumber(n) or 0) then
-				return false
+-- Which card pays how much, as multisets: two orders of the same picks are one
+-- answer, because payment is a subtraction and subtraction does not care what
+-- order it happens in. Taking as much as possible off the first source first is
+-- what puts the greedy plan — the one the engine has always paid — at the head
+-- of the list, so a budget of one returns exactly it.
+local function splits(sources, need, budget)
+	local out, pick = {}, {}
+	local function walk(i, left)
+		if #out >= budget then return end
+		if left == 0 then
+			local m = {}
+			for j, v in ipairs(pick) do m[j] = v end
+			out[#out + 1] = m
+			return
+		end
+		if i > #sources then return end
+		local s = sources[i]
+		for k = math.min(left, s.cap), 0, -1 do
+			if k > 0 then
+				pick[#pick + 1] = { subject = s.subject, id = s.id, stat = s.stat, n = k }
 			end
+			walk(i + 1, left - k)
+			if k > 0 then pick[#pick] = nil end
+			if #out >= budget then return end
 		end
 	end
-	return true
+	walk(1, need)
+	return out
+end
+
+-- Every way to take `need` cards out of a pool. Which ones die is a choice
+-- about *which*, never about how many of one, so a card is in an answer once or
+-- not at all — and the first answer is the earliest cards, which is what a
+-- sacrifice took before anybody was asked.
+local function combinations(pool, need, budget)
+	local out, pick = {}, {}
+	local function walk(i)
+		if #out >= budget then return end
+		if #pick == need then
+			local m = {}
+			for j, v in ipairs(pick) do m[j] = v end
+			out[#out + 1] = m
+			return
+		end
+		for j = i, #pool do
+			pick[#pick + 1] = pool[j]
+			walk(j + 1)
+			pick[#pick] = nil
+			if #out >= budget then return end
+		end
+	end
+	walk(1, need)
+	return out
+end
+
+-- **How many answers a question may have before it stops being one.** A human
+-- picks one card at a time and never sees this list; an engine seat wants all of
+-- it. A wide enough pool has more splits than anyone will look at, so the list
+-- stops — and because the greedy plan is always first, stopping early costs the
+-- choice, never the payment.
+local MAX_PLANS = 200
+
+-- Every complete way this cost can be settled, greedy first; empty when it
+-- cannot be settled at all. A part nobody has a choice about is in all of them
+-- unchanged, and only two things open out: a demand whose scope said "select",
+-- and a sacrifice, which is always the player's to make.
+--
+-- **The parts are walked in order, not multiplied.** Two of them may reach the
+-- same pile — a demand the player split and one the engine settled greedily —
+-- and a product of independently-enumerated answers would spend the same coin
+-- twice. So what is left is carried down the walk, keyed by stat and card
+-- because two scopes may name one card's one stat.
+local function plans(cost, ctx, budget)
+	budget = budget or MAX_PLANS
+	local extras = extra_demands(cost, ctx)
+	if not extras then return {} end
+	local rem = {}
+	local function left_on(stat, e)
+		local k = stat .. "#" .. e.id
+		if rem[k] == nil then rem[k] = tags.stat(e, stat) end
+		return rem[k]
+	end
+	-- Sorted by id, the order drain has always taken a pool in, so a plan nobody
+	-- chose names the very cards the engine would have taken by itself.
+	local function holders(src)
+		local p = predicate.parse_subject(src)
+		local ents = p and predicate.bearers(p, ctx) or {}
+		table.sort(ents, function(a, b) return a.id < b.id end)
+		return p, ents
+	end
+	-- The parts that are nobody's choice, settled first so that a split the
+	-- player is about to choose is offered what is actually still there.
+	local head, choices = {}, {}
+	for _, d in ipairs(demands_of(cost, ctx)) do
+		if d.as_written then
+			if not predicate.awaits_targets(d.subject, ctx)
+				and not predicate.holds(d.subject .. " >= " .. tostring(d.need), ctx) then
+				return {}
+			end
+			head[#head + 1] = { subject = d.subject, n = d.need }
+		elseif d.pick then
+			choices[#choices + 1] = d
+		else
+			local owed = d.need
+			for _, src in ipairs(d.from) do
+				local p, ents = holders(src)
+				for _, e in ipairs(ents) do
+					if owed <= 0 then break end
+					local take = math.min(owed, left_on(p.arg, e))
+					if take > 0 then
+						rem[p.arg .. "#" .. e.id] = left_on(p.arg, e) - take
+						head[#head + 1] = { subject = src, n = take, id = e.id, stat = p.arg }
+						owed = owed - take
+					end
+				end
+				if owed <= 0 then break end
+			end
+			if owed > 0 then return {} end
+		end
+	end
+	for _, e in ipairs(extras) do
+		if e.sacrifice then choices[#choices + 1] = e else head[#head + 1] = e end
+	end
+	local out, acc = {}, {}
+	local function walk(i)
+		if #out >= budget then return end
+		if i > #choices then
+			local one = {}
+			for _, step in ipairs(head) do one[#one + 1] = step end
+			for _, step in ipairs(acc) do one[#one + 1] = step end
+			out[#out + 1] = one
+			return
+		end
+		local part = choices[i]
+		if part.sacrifice then
+			for _, c in ipairs(combinations(part.pool, part.need, budget)) do
+				acc[#acc + 1] = { sacrifice = part.sacrifice, n = part.need, ids = c }
+				walk(i + 1)
+				acc[#acc] = nil
+				if #out >= budget then return end
+			end
+			return
+		end
+		local sources = {}
+		for _, src in ipairs(part.from) do
+			local p, ents = holders(src)
+			for _, e in ipairs(ents) do
+				local cap = left_on(p.arg, e)
+				if cap > 0 then
+					sources[#sources + 1] = { subject = src, id = e.id, stat = p.arg, cap = cap }
+				end
+			end
+		end
+		for _, way in ipairs(splits(sources, part.need, budget)) do
+			local n0 = #acc
+			for _, step in ipairs(way) do
+				acc[#acc + 1] = step
+				rem[step.stat .. "#" .. step.id] = rem[step.stat .. "#" .. step.id] - step.n
+			end
+			walk(i + 1)
+			for k = #acc, n0 + 1, -1 do
+				local step = acc[k]
+				rem[step.stat .. "#" .. step.id] = rem[step.stat .. "#" .. step.id] + step.n
+				acc[k] = nil
+			end
+			if #out >= budget then return end
+		end
+	end
+	walk(1)
+	return out
+end
+
+-- The one plan the engine would pay by itself: the head of the list, asked for
+-- on its own so that judging a card in hand — which happens for every card on
+-- every frame — never enumerates anything.
+local function plan(cost, ctx)
+	return plans(cost, ctx, 1)[1]
 end
 
 function M.can_afford(cost, ctx)
-	return extras_afford(cost, ctx) and plan(cost, ctx) ~= nil
+	return plan(cost, ctx) ~= nil
 end
 
--- Pay a cost: stats are spent through their subject (so a scope and
--- quantifier are honoured), "sacrifice:<tag>" entries purge board cards
--- carrying the tag (oldest first — affordability was already checked).
--- Keys are walked in sorted order, never pairs: clamping makes payment order
--- observable, and a seeded replay has to pay identically.
-local function pay(cost, ctx)
-	-- The same planner can_afford asked, so the two cannot disagree about which
-	-- pool settles which part.
-	for _, step in ipairs(plan(cost, ctx) or {}) do
-		actions.spend(step.subject, step.n, ctx)
+-- The ways a move may be paid for, for a caller that has to pick one: an engine
+-- seat weighing all of them, or an interface about to ask. The ctx is built
+-- exactly as the deed builds it, targets included — a cost measured off what was
+-- aimed at is a different cost per aim, and asking with a different ctx than the
+-- one that pays is how a question and its deed come apart.
+function M.play_payments(card_id, targets)
+	local c   = entity.get(card_id)
+	local def = c and cards.def(c)
+	if not def then return {} end
+	-- Through behaviour, like play_card's own: a zone may grant the compute the
+	-- price is worked out with.
+	return plans(def.cost, predicate.bind(cards.behaviour(c, "compute"),
+		{ card_id = card_id, targets = targets or {}, verb = def.target and def.target.verb }))
+end
+
+-- The same for an ability or a reaction, whose rule the caller already holds.
+-- `who` is the card or the zone it belongs to, since a zone's ability is asked
+-- about the place and not about anything standing in it.
+function M.rule_payments(who, rule, targets)
+	local e = entity.get(who)
+	if not (e and rule) then return {} end
+	local ctx = e.kind == "zone" and { zone_id = who }
+		or { card_id = who, targets = targets or {}, verb = rule.target and rule.target.verb }
+	return plans(rule.cost, predicate.bind(rule.compute, ctx))
+end
+
+-- The ways the move an interface is about to make may be paid for. `intent` is
+-- the word targeting already carries, so an interface asks with what it is
+-- holding instead of finding the rule a second time.
+function M.intent_payments(intent, card_id, targets, index)
+	if intent == "activate" then
+		for _, u in ipairs(M.usable_abilities(card_id)) do
+			if u.index == index then return M.rule_payments(card_id, u.rule, targets) end
+		end
+		return {}
+	elseif intent == "react" then
+		local c = entity.get(card_id)
+		local r = c and cards.reactions(c)[index or 1]
+		return r and M.rule_payments(card_id, r, targets) or {}
 	end
-	local subjects = {}
-	for k in pairs(cost or {}) do
-		if k == "exhaust" or k:match("^sacrifice:") then subjects[#subjects + 1] = k end
+	return M.play_payments(card_id, targets)
+end
+
+-- One step written down, so two payments can be compared without caring what
+-- order their steps arrived in.
+local function payment_key(step)
+	local ids = {}
+	for _, id in ipairs(step.ids or {}) do ids[#ids + 1] = tostring(id) end
+	table.sort(ids)
+	return table.concat({ step.exhaust and "exhaust" or "", step.sacrifice or "",
+		step.subject or "", tostring(step.n or ""), tostring(step.id or ""),
+		table.concat(ids, ",") }, ":")
+end
+
+local function payment_id(steps)
+	local keys = {}
+	for _, step in ipairs(steps) do keys[#keys + 1] = payment_key(step) end
+	table.sort(keys)
+	return table.concat(keys, "|")
+end
+
+-- Whether a payment that arrived from outside is one of the ways this cost may
+-- actually be settled. Flow is the single legality gate, and a payment comes in
+-- beside the targets — from an interface, a script, the network, an engine seat
+-- — so it is checked here rather than trusted, exactly as targets are.
+function M.payment_legal(cost, ctx, payment)
+	if payment == nil then return true end
+	local want = payment_id(payment)
+	for _, p in ipairs(plans(cost, ctx)) do
+		if payment_id(p) == want then return true end
 	end
-	table.sort(subjects)
-	for _, stat in ipairs(subjects) do
-		local n   = cost[stat]
-		local tag = stat:match("^sacrifice:(.+)$")
-		if stat == "exhaust" then
+	return false
+end
+
+-- Pay a cost: a pooled step spends n off the one card it names, a sacrifice
+-- purges the cards its step names, "exhaust" spends the asking card's readiness,
+-- and everything else is spent through its subject so a scope and quantifier are
+-- honoured. Every step was decided before any of them ran, so there is no
+-- half-paid cost to unwind.
+local function pay(cost, ctx, payment)
+	for _, step in ipairs(payment or plan(cost, ctx) or {}) do
+		if step.exhaust then
 			local c = ctx and ctx.card_id and entity.get(ctx.card_id)
 			if c then c.exhausted = true end
-		elseif tag then
-			for _ = 1, n do
-				local ids = tags.find_targets({ tag }, tags.IN_PLAY)
-				if #ids == 0 then break end
-				local victim = entity.get(ids[1])
-				local vdef   = cards.def(victim)
-				log.add("Sacrificed " .. (vdef and vdef.text or victim.def_key))
-				zones.purge_card(victim.id)
+		elseif step.sacrifice then
+			for _, id in ipairs(step.ids or {}) do
+				local victim = entity.get(id)
+				if victim then
+					local vdef = cards.def(victim)
+					log.add("Sacrificed " .. (vdef and vdef.text or victim.def_key))
+					zones.purge_card(id)
+				end
 			end
+		else
+			actions.spend(step.subject, step.n, ctx, step.id)
 		end
 	end
 end
@@ -1034,7 +1290,7 @@ function M.use_system_card(card_id)
 	return true
 end
 
-function M.play_card(card_id, targets)
+function M.play_card(card_id, targets, payment)
 	local c   = entity.get(card_id)
 	local def = c and cards.def(c)
 	if not def or not M.can_play(card_id) then return false end
@@ -1074,6 +1330,10 @@ function M.play_card(card_id, targets)
 		{ card_id = card_id, targets = targets or {}, verb = def.target and def.target.verb })
 	-- A cost the targets pay could not be judged before they were chosen.
 	if charged and not M.can_afford(def.cost, ctx) then return false end
+	-- A payment arrives beside the targets and is checked like them: an
+	-- interface collected it, but a script, the network or an engine seat may
+	-- have, and flow is the one gate all four come through.
+	if charged and not M.payment_legal(def.cost, ctx, payment) then return false end
 	checkpoint()
 	log.add((overlay and "Chose " or "Played ") .. (def.text or c.def_key))
 	local pl = player()
@@ -1081,7 +1341,7 @@ function M.play_card(card_id, targets)
 	-- belongs to the phase underneath it: counting a choice as a play would end
 	-- that phase early, since the count survives the pop.
 	if pl and not overlay then pl.stats.plays = (pl.stats.plays or 0) + 1 end
-	if charged then pay(def.cost, ctx) end
+	if charged then pay(def.cost, ctx, payment) end
 	-- A choice taken out of an offer is not a card acting, it is the card that
 	-- opened the offer still acting — so the mark stays where it was.
 	if not overlay then mark_acted(card_id) end
@@ -1348,7 +1608,7 @@ end
 -- card's rule rather than the engine's, and once a card may carry several
 -- abilities "activating exhausts it" has no answer to *which* ability did — only
 -- the one whose cost says so.
-function M.activate(card_id, targets, index)
+function M.activate(card_id, targets, index, payment)
 	if phase.is_overlay() then return false end   -- a pending choice locks other actions
 	-- Asked once and held: each call walks every ability through can_afford and
 	-- generates its moves, and this is the hot legality path — the renderer asks
@@ -1373,11 +1633,15 @@ function M.activate(card_id, targets, index)
 	local ctx = predicate.bind(a.compute,
 		{ card_id = card_id, targets = targets or {}, verb = a.target and a.target.verb })
 	if not M.can_afford(a.cost, ctx) then return false end
+	-- A payment arrives beside the targets and is checked like them: an
+	-- interface collected it, but a script, the network or an engine seat may
+	-- have, and flow is the one gate all four come through.
+	if not M.payment_legal(a.cost, ctx, payment) then return false end
 	checkpoint()
 	mark_acted(card_id)
 	log.add("Activated " .. (def.text or c.def_key)
 		.. (a.text and #usable > 1 and (" — " .. a.text) or ""))
-	pay(a.cost, ctx)
+	pay(a.cost, ctx, payment)
 	if not M.defer_activation(card_id, a, ctx) then
 		-- Unless using it was put up to be answered, in which case it happens when
 		-- the stack says so and not before.
@@ -1491,7 +1755,7 @@ end
 -- With several usable, `index` says which — the one the chooser resolved to,
 -- exactly as for a card, and for the same reason: no index and more than one to
 -- pick from is a caller that has not asked the player yet.
-function M.activate_zone(zone_id, index)
+function M.activate_zone(zone_id, index, payment)
 	if phase.is_overlay() then return false end   -- a pending choice locks other actions
 	local usable, chosen = M.usable_zone_abilities(zone_id), nil
 	for _, u in ipairs(usable) do
@@ -1501,6 +1765,10 @@ function M.activate_zone(zone_id, index)
 	local a   = chosen.rule
 	local z   = entity.get(zone_id)
 	local ctx = predicate.bind(a.compute, { zone_id = zone_id })
+	-- A payment arrives beside the targets and is checked like them: an
+	-- interface collected it, but a script, the network or an engine seat may
+	-- have, and flow is the one gate all four come through.
+	if not M.payment_legal(a.cost, ctx, payment) then return false end
 	checkpoint()
 	-- A zone is nothing card-shaped, so the last thing a player did was not to a
 	-- card and nothing carries the mark. Leaving a stale one would keep a window
@@ -1508,7 +1776,7 @@ function M.activate_zone(zone_id, index)
 	mark_acted(nil)
 	log.add("Used " .. (z.label or z.key)
 		.. (a.text and #usable > 1 and (" — " .. a.text) or ""))
-	pay(a.cost, ctx)
+	pay(a.cost, ctx, payment)
 	actions.run(a.action, ctx)
 	M.settle()
 	return true
@@ -2093,7 +2361,7 @@ end
 -- turn under priority. It goes on the stack above what it answers, so it too can
 -- be answered before it resolves — which is arbitrary depth, LOR and Magic both,
 -- for free.
-function M.react(card_id, index, targets)
+function M.react(card_id, index, targets, payment)
 	local z = stack_zone()
 	if not z then return false end
 	local top_id = z.cards[#z.cards]
@@ -2111,8 +2379,12 @@ function M.react(card_id, index, targets)
 	if not r or not reactions.answers_seat(r, seat, top.re_actor) then return false end
 	if not reactions.matches(r, c, top.re_subject, true, top.re_targets) then return false end
 	if not M.can_afford(r.cost, { card_id = card_id }) then return false end
+	-- A payment arrives beside the targets and is checked like them: an
+	-- interface collected it, but a script, the network or an engine seat may
+	-- have, and flow is the one gate all four come through.
+	if not M.payment_legal(r.cost, { card_id = card_id }, payment) then return false end
 	checkpoint()
-	pay(r.cost, { card_id = card_id })
+	pay(r.cost, { card_id = card_id }, payment)
 	log.add(((cards.def(c) or {}).text or c.def_key) .. " in response")
 	local rec = push_event { verb = "play", action = r.action, subject = { card_id },
 		event = top.re_subject, targets = targets, source = card_id, spent = r.spent }

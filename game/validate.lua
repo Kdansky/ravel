@@ -1040,6 +1040,52 @@ function M.check(G)
 		end
 	end
 
+	-- **The shape the payment planner can be trusted on.** Working out which pool
+	-- settles which part of a cost is a matching, and the engine solves it with
+	-- a greedy: most constrained demand first, own stat before any substitute.
+	-- That is exact when the substitution sets are *nested or disjoint* — one
+	-- pool being strictly more general than another, or the two having nothing
+	-- to do with each other, which is every real case (a wild token, generic
+	-- mana, a plain arrow). Two pools that overlap without nesting is where a
+	-- greedy can refuse a cost that was payable.
+	--
+	-- **Which is a fact about the cost, not about the stats.** A cost whose scope
+	-- says "select" has no greedy to get wrong: the player is asked, and the
+	-- overlap is the question rather than the bug. So the stats are worked out
+	-- once here and the complaint is made where it can be acted on — at the
+	-- price that would be settled badly, naming the card that prints it.
+	local ambiguous
+	local function ambiguous_stats()
+		if ambiguous then return ambiguous end
+		ambiguous = {}
+		local wild = {}
+		for _, key in ipairs(G.stat_defs_list or {}) do
+			local list = G.stat_defs[key].pays_for
+			if type(list) == "table" and #list > 0 then wild[#wild + 1] = key end
+		end
+		for i = 1, #wild do
+			for j = i + 1, #wild do
+				local a, b = {}, {}
+				for _, d in ipairs(G.stat_defs[wild[i]].pays_for) do a[d] = true end
+				for _, d in ipairs(G.stat_defs[wild[j]].pays_for) do b[d] = true end
+				local shared, only_a, only_b = false, false, false
+				for d in pairs(a) do
+					if b[d] then shared = true else only_a = true end
+				end
+				for d in pairs(b) do
+					if not a[d] then only_b = true end
+				end
+				if shared and only_a and only_b then
+					ambiguous[wild[i]], ambiguous[wild[j]] = true, true
+					for d in pairs(a) do
+						if b[d] then ambiguous[d] = true end
+					end
+				end
+			end
+		end
+		return ambiguous
+	end
+
 	-- A cost: a map of subject to number, and it stays one. A cost is what gets
 	-- *spent*, which is a subject and an amount — "mana >= 3" says what to check
 	-- and not what to take away, so the two never wanted the same shape.
@@ -1070,13 +1116,25 @@ function M.check(G)
 					warn("%s: exhaust is 1 — a card is either spent or it is not", where)
 				end
 			elseif sac then
-				if not known_tags[sac] then
+				-- "self" is the asking card, which is a scope word rather than a
+				-- tag: a cost could already spend its own readiness and had no way
+				-- to say the same about spending the card itself.
+				if sac ~= "self" and not known_tags[sac] then
 					warn("%s: sacrifices the tag '%s', but no card has it%s",
 						where, sac, suggest(sac, known_tags))
 				end
 			else
 				-- A cost's subjects may carry a scope, but not a measuring fn.
 				subject_ok(where, key, false)
+				local stat  = tostring(key):match("^([^@]+)")
+				local right = tostring(key):match("^[^@]+@(.+)$")
+				local sc    = right and predicate.parse_scope(right)
+				if ambiguous_stats()[stat] and not (sc and sc.quant == "select") then
+					warn("%s: spends '%s', which two substitutions reach in ways that do not nest —"
+						.. " settled greedily, a price that was payable can be refused. Write the"
+						.. " scope with \"select\" so the player picks, or make one of the two"
+						.. " pools the more general", where, stat)
+				end
 			end
 			if type(v) == "string" then
 				-- Measured rather than typed: the amount is read off the board when
@@ -1892,43 +1950,6 @@ function M.check(G)
 		if def.color ~= nil and not art.colour(def.color) then
 			warn("%s: '%s' is not a colour — a palette name, or #rrggbb",
 				where, tostring(def.color))
-		end
-	end
-
-	-- **The shape the payment planner can be trusted on.** Working out which pool
-	-- settles which part of a cost is a matching, and the engine solves it with
-	-- a greedy: most constrained demand first, own stat before any substitute.
-	-- That is exact when the substitution sets are *nested or disjoint* — one
-	-- pool being strictly more general than another, or the two having nothing
-	-- to do with each other, which is every real case (a wild token, generic
-	-- mana, a plain arrow). Two pools that overlap without nesting is where a
-	-- greedy can refuse a cost that was payable, so it is refused at the door
-	-- rather than paid wrongly at the table.
-	do
-		local wild = {}
-		for _, key in ipairs(G.stat_defs_list or {}) do
-			local list = G.stat_defs[key].pays_for
-			if type(list) == "table" and #list > 0 then wild[#wild + 1] = key end
-		end
-		for i = 1, #wild do
-			for j = i + 1, #wild do
-				local a, b = {}, {}
-				for _, d in ipairs(G.stat_defs[wild[i]].pays_for) do a[d] = true end
-				for _, d in ipairs(G.stat_defs[wild[j]].pays_for) do b[d] = true end
-				local shared, only_a, only_b = false, false, false
-				for d in pairs(a) do
-					if b[d] then shared = true else only_a = true end
-				end
-				for d in pairs(b) do
-					if not a[d] then only_b = true end
-				end
-				if shared and only_a and only_b then
-					warn("stats '%s' and '%s' both pay for some of the same things and each for "
-						.. "something the other does not — one has to be the more general of the "
-						.. "two, or they have to be about different things, or a cost they could "
-						.. "both settle has no order to settle it in", wild[i], wild[j])
-				end
-			end
 		end
 	end
 

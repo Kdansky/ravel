@@ -113,8 +113,15 @@ local NULLARY = { not_self = true, count = true, exhausted = true, ready = true 
 -- Ties keep entity order, so a replay is a replay. A card with no such number
 -- reads nought and sorts to the front of "lowest", which is the one reading that
 -- does not need a rule to remember.
+-- "select" is "random"'s opposite number: the engine picks arbitrarily, the
+-- player picks. It says nothing about how many the rule is about -- a pool is
+-- still the pool, and counting one reads exactly as counting "any" -- so it is
+-- inert everywhere except where something is *spent*. That is the whole of it:
+-- a cost settled out of several lands, or out of a stat and the wild that
+-- stands in for it, has an answer the engine cannot guess, and every other
+-- reading of the pool is unchanged.
 local QUANTS = { any = true, each = true, random = true, others = true,
-	lowest = true, highest = true }
+	lowest = true, highest = true, select = true }
 local ORDERED = { lowest = true, highest = true }
 local OWNERS = { mine = true, enemy = true, anyone = true }
 

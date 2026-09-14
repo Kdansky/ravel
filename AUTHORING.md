@@ -61,7 +61,7 @@ and a line here names a section that exists:
 
 - **What a file holds** — Top-level fields · One game out of several files · `comment` — the one field the engine will not read · `ravel_` — the fields that are the engine's · Stats · Zones · A shelf — several zones on one rect · The system column · Players · Setup · Card templates · Two marks in card text · A caption that reads the board · Named assets · Styles · Effects · What a name may repeat · Hardcoded conventions
 - **Whose turn it is** — Phases · A phase that leads back to itself · A turn's opening bookkeeping · A choice before the game · Every seat, once · A turn each · Two or more players · The player is a card · A stat says whose number it is
-- **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A place may be a word several zones wear · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
+- **Asking the board a question** — Conditions (one vocabulary everywhere) · `lowest:` and `highest:` — a pool in order · `aims:` — what an ability could point at · `spread` — an aim that spends points rather than cards · `needs` and `where` — asked once, or asked of each · `@everywhere` — every card, hands and decks included · `select` — a cost the player settles · `@owner_of` — the seat a card belongs to · `@attached_to` and `@host_of` — a card standing on another · `@reach` — wherever a set of pieces could move · `<zone>.<tag>` — one place, one kind · A place may be a word several zones wear · A pattern is also a scope · `across` and `beside` — pointing at the other cards · What counts as in play · `supply` — a stock the engine counts for you · Looking inside a deck · `last_acted` — the card a player touched last · `computes` — a number with a name · Computed tags
 - **What a card does** — Actions · A card that can do several things · Readiness — spent, given back, and asked about · `merge` — what an ability says to the others on its card · `needs` — an ability with an if in it · One `play`, however many cards have it · Tags with behaviour · `buffs` — a tag, or a counter, that changes a number · `verbs` and `adjusts` — a moment with a name, and something that answers it · `does: "target"` — naming the aim, so the target can answer it · Keywords: a tag that means something to the player · Every tag the engine reads · Board buttons · A card with nothing to run is not a move · `pays_for` — one thing spent as another · Doing what another card does · `leaves` — a card on its way out
 - **Making somebody choose** — Asking a question · A question that may go unanswered · Reading somebody else's hand · A second asker is a second answer · `chosen.where` — which of the revealed cards may be taken · An answer may have a price · Routing the pick by what it is · Only one of them: `random.` · Making *them* choose · `each_seat:` goes round the table from whoever is up · Asking every player, one at a time · A list waits for the question it asked
 - **Answering what somebody did** — Reactions — answering another player's action · What the player sees · `answered` — the announcement itself · `whose` — whose announcement it answers · `spent` — where a card lands however it ends · A phase announces itself · `emit:` — announcing something that is not a card being played · An automatic phase can ask, if the ask is the last thing it does · A mandatory reaction is how you ask somebody else a question · What it will not do yet
@@ -1424,7 +1424,7 @@ disk cache with no network at all.
 | `story` | Long-form prose, shown on the reveal page panel and in the detail view |
 | `tags` | Free vocabulary for targeting and counting, plus any style the card claims. The words the engine itself reads are in *Every tag the engine reads* |
 | `card_stats` | Per-instance stats stamped at creation. A number is a bare current value; a card that carries its own bounds writes them by name — `{ "value": 4, "max": 4 }`, and `min` beside them — which are the same three words the `stats` entry uses. `hp` shows a badge; 0 hp = ruined, skips `turn.action` |
-| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by purging n board cards with that tag). `needs` is a non-consuming gate, asked once before targeting opens and so blind to targets — see *`needs` and `where`*, which also carries the escape hatch. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
+| `play` | Playing the card. `cost` is spent (gates the card and dims it when unaffordable; `"sacrifice:<tag>": n` pays by purging n board cards with that tag, and **the player always chooses which** — `"sacrifice:self"` is the card spending itself, which no tag can name). `needs` is a non-consuming gate, asked once before targeting opens and so blind to targets — see *`needs` and `where`*, which also carries the escape hatch. `target` is click-to-target (below). `phases` is a phase key or list, and naming none means any — this is "cast only during your main phase". `action` is what happens |
 | `abilities` | What the card can be used for, one entry each — `cost`, `target`, `phases`, `needs`, `compute`, `action`. A card that does one thing writes a list of one. **A `needs` asks and takes nothing**, which is the difference from a cost: a button reading "you must have bought at least one chip" is a question, and writing it as a cost would spend the purchase it was checking for. **Being spent is a cost**: `"cost": { "exhaust": 1 }` makes it once-a-round, and an ability that does not charge it stays available, which is how a permanent button works ("pass the time"). A board card shows three states — ready, greyed "exhausted" (spent this round), greyed "can't yet" (cost or targets unavailable). `moves` says how a piece moves on a grid and writes the `target` for you (see *Pieces that move*) |
 | `reactions` | A list of subscriptions to another player's action — each with the verb it answers (`to`), a condition about the event (`where`), a condition about the reactor (`needs`), and the `cost`, `target` and `action` an ability has. `spent` says where the card lands once its answer is over. See *Reactions* |
 | `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
@@ -1784,7 +1784,7 @@ it did: an owner word may follow, then a zone or a tag, and `<zone>.<tag>` still
 narrows.
 
 **Order, never how many.** That is what lets them fit beside `any`, `each`,
-`random` and `others` rather than replace them. A consumer that takes one takes
+`random`, `select` and `others` rather than replace them. A consumer that takes one takes
 the first; one that takes four takes the first four:
 
 ```json
@@ -2164,6 +2164,7 @@ costs and effects:
 | `any` (default) | the pool reaches n | drains members until n is paid | lands on the first member |
 | `each` | **every** member reaches n | every member pays n | applies to every member |
 | `random` | as `any` | as `any` | lands on one member |
+| `select` | as `any` | **the player says which members pay** | as `any` |
 | `@target` | every chosen target reaches n | every target pays n | applies to every target |
 
 `each` over an empty scope is **false**, never vacuously true — otherwise
@@ -2171,6 +2172,43 @@ costs and effects:
 
 Costs may carry a scope but not a measuring function: `count:` and `sum:` count
 things rather than spend them, so they belong in `needs`, not `cost`.
+
+### `select` — a cost the player settles
+
+`random` is the engine picking arbitrarily; `select` is the player picking. It
+says nothing about how many the rule is about, so counting a `select` scope reads
+exactly as counting `any`, and it is inert everywhere except where something is
+actually **spent**.
+
+```json
+"play": { "cost": { "gold@select.mine.land": 5 } }
+```
+
+Without it, five gold comes off your lands in id order and nobody is asked. With
+it, the lands light up and you point at them until the five is covered — one
+click per coin, the same gesture as aiming. A pool with only one way to settle
+the price asks nothing, so `select` costs a game that has no real choice nothing
+at all.
+
+It reaches substitutions too. Where `pays_for` gives a price two pools that could
+both settle it, `select` is how the player says which:
+
+```json
+"stat_defs": [{ "key": "wild", "pays_for": ["red", "blue"] }],
+"play":      { "cost": { "red@select.mine.player": 1 } }
+```
+
+**And it is what makes an ambiguous substitution legal.** Two `pays_for` pools
+that overlap without nesting are refused at a price that does not say `select`,
+because the greedy settling it can refuse a cost that was payable. Said with
+`select`, the overlap is the question rather than the bug, and the checker allows
+it.
+
+A cost is decided in full before anything is spent — that is what separates it
+from an effect. An effect that cannot happen is skipped where it stands; a cost
+that cannot be paid stops the card being played at all, so there is never half a
+payment to unwind. What `select` changes is only *which* of the complete ways to
+pay is taken.
 
 ### `@owner_of` — the seat a card belongs to
 
@@ -5091,7 +5129,7 @@ aren't clickable unless they carry abilities of their own, which is how a deck i
 
 Reserved words that a zone or tag may never be named: `self`, `all`,
 `everywhere`, `reach` and `owner_of` (the engine answers for them in scopes),
-plus the quantifiers `any` / `each` / `random` and the owner words `mine` /
+plus the quantifiers `any` / `each` / `random` / `select` and the owner words `mine` /
 `enemy` / `anyone`, which are read as prefixes in a scope expression rather than
 as names. `player` is deliberately *not* reserved — it is an ordinary tag you
 put on a card.

@@ -14,6 +14,15 @@ M.spec     = nil   -- { min, max, tags, zone_set }
 M.targets  = {}
 M.eligible = {}
 
+-- **Paying is picking, so it is the same session.** Once the targets are in, a
+-- cost with more than one answer is settled by pointing at the cards that
+-- settle it — which is the gesture the player has just been making. A second
+-- stage of the aim rather than a question of its own, so the highlight, the
+-- cancel and the confirm all keep working and none of them needs a second word.
+M.stage    = "aim"   -- "aim" while the targets are being picked, "pay" while the cost is
+M.ways     = {}      -- the ways the cost may still be settled, narrowed by each pick
+M.aimed    = {}      -- the targets, held while M.targets is holding the payment picks
+
 -- What may already be standing on a slot for it to be offered. "empty" is the
 -- default, and was the only answer any game wanted until pieces started taking
 -- each other: capture is a move onto an occupied square, so the square has to be
@@ -278,6 +287,90 @@ function M.start(card_id, spec, intent)
 	M.spec     = { min = min, max = max, tags = spec.tags or {}, spread = spec.spread }
 	M.targets  = {}
 	M.eligible = M.candidates(card_id, spec)
+	M.stage, M.ways, M.aimed = "aim", {}, {}
+end
+
+-- What a plan takes off each card: a pooled step says how much, and a sacrifice
+-- names cards, where taking one is one.
+local function spend_of(plan)
+	local out = {}
+	for _, step in ipairs(plan or {}) do
+		if step.sacrifice then
+			for _, id in ipairs(step.ids or {}) do out[id] = (out[id] or 0) + 1 end
+		elseif step.id then
+			out[step.id] = (out[step.id] or 0) + step.n
+		end
+	end
+	return out
+end
+
+-- How many times this card has been named as paying.
+local function paid(id)
+	local n = 0
+	for _, tid in ipairs(M.targets) do
+		if tid == id then n = n + 1 end
+	end
+	return n
+end
+
+-- The cards still worth pointing at: those some remaining way spends more of
+-- than has been named so far.
+local function payable()
+	local out, seen = {}, {}
+	for _, plan in ipairs(M.ways) do
+		for id, n in pairs(spend_of(plan)) do
+			if n > paid(id) and not seen[id] then
+				seen[id], out[#out + 1] = true, id
+			end
+		end
+	end
+	table.sort(out)
+	return out
+end
+
+-- Move to the paying stage. The aim is stashed, because the picks about to be
+-- made go in the same list the render already lights up — a card being spent
+-- and a card being aimed at look the same to the player, and should.
+--
+-- False when there is nothing to ask: one way to pay, or a cost that names no
+-- card. The caller then commits as it always did.
+-- False when there is nothing to ask — one way to pay, or a cost that names no
+-- card — and the caller then commits as it always did. It opens the session
+-- itself rather than being stacked on an aim, because a move with nothing to
+-- target still has a cost to settle.
+function M.begin_payment(ways, card_id, intent, aim)
+	if #(ways or {}) < 2 then return false end
+	local owed = 0
+	for _, n in pairs(spend_of(ways[1])) do owed = owed + n end
+	if owed == 0 then return false end
+	M.card_id  = card_id
+	M.intent   = intent
+	M.stage, M.ways, M.aimed = "pay", ways, aim or {}
+	M.kind     = "card"
+	M.spec     = { min = owed, max = owed, tags = {}, spread = true }
+	M.targets  = {}
+	M.eligible = payable()
+	return true
+end
+
+-- The way the picks have settled on: one that spends exactly what was named and
+-- no more. nil while there is still something to say.
+function M.payment()
+	if M.stage ~= "pay" then return nil end
+	for _, plan in ipairs(M.ways) do
+		local ok = true
+		local spend = spend_of(plan)
+		for id, n in pairs(spend) do
+			if paid(id) ~= n then ok = false break end
+		end
+		if ok then
+			for _, tid in ipairs(M.targets) do
+				if (spend[tid] or 0) == 0 then ok = false break end
+			end
+		end
+		if ok then return plan end
+	end
+	return nil
 end
 
 -- What pointing at something means for the spec in play.
@@ -335,6 +428,21 @@ function M.add(id)
 	if not M.is_eligible(id) then return false end
 	if M.is_selected(id) and not (M.spec and M.spec.spread) then return false end
 	M.targets[#M.targets + 1] = id
+	-- A payment is not built up, it is what is left once everything it is not
+	-- has been ruled out: each pick drops every way that does not spend at least
+	-- that much off that card, and what may still be pointed at follows.
+	if M.stage == "pay" then
+		local kept = {}
+		for _, plan in ipairs(M.ways) do
+			local spend, ok = spend_of(plan), true
+			for _, tid in ipairs(M.targets) do
+				if (spend[tid] or 0) < paid(tid) then ok = false break end
+			end
+			if ok then kept[#kept + 1] = plan end
+		end
+		M.ways = kept
+		M.eligible = payable()
+	end
 	return true
 end
 
@@ -353,6 +461,9 @@ function M.clear()
 	M.spec     = nil
 	M.targets  = {}
 	M.eligible = {}
+	M.stage    = "aim"
+	M.ways     = {}
+	M.aimed    = {}
 end
 
 return M

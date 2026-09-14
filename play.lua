@@ -87,7 +87,7 @@ local function usable_places()
 	for z in entity.each("zone") do
 		if z.display ~= "offscreen" then
 			for _, u in ipairs(flow.usable_zone_abilities(z.id)) do
-				out[#out + 1] = { zone = z.id, index = u.index,
+				out[#out + 1] = { zone = z.id, index = u.index, rule = u.rule,
 					text = label.fill(z.label or z.key, z) .. (u.rule.text and (" — " .. u.rule.text) or "") }
 			end
 		end
@@ -231,6 +231,41 @@ local function prompt_targets(card_e, spec)
 	return ids
 end
 
+-- Which cards settle a cost that has more than one answer. The same shape as
+-- picking targets, because it is the same gesture: what may be pointed at, one
+-- pick at a time, until the price is covered.
+--
+-- Returns the plan to pay with, or false when the player backed out. nil is a
+-- real answer and means nobody had a choice to make.
+local function prompt_payment(ways, cid, intent, targs)
+	if not targeting.begin_payment(ways, cid, intent, targs) then return ways[1] end
+	local owed = targeting.spec.min
+	while targeting.payment() == nil do
+		local eligible = targeting.eligible
+		if #eligible == 0 then
+			targeting.clear()
+			print("Nothing left to pay with.")
+			return false
+		end
+		print("Pay " .. owed .. ", out of:")
+		for i, id in ipairs(eligible) do
+			local e = entity.get(id)
+			print("  [" .. i .. "] " .. (e.kind == "card" and card_line(e) or (e.label or e.key)))
+		end
+		io.write(string.format("pay (%d left, c=cancel)> ", owed - #targeting.targets))
+		local line = io.read("*l")
+		if not line or line == "c" then
+			targeting.clear()
+			return false
+		end
+		local id = eligible[tonumber(line) or -1]
+		if id then targeting.add(id) else print("No such option.") end
+	end
+	local plan = targeting.payment()
+	targeting.clear()
+	return plan
+end
+
 local function play_index(n)
 	local h   = hand_zone()
 	local cid = h and h.cards[n]
@@ -249,8 +284,12 @@ local function play_index(n)
 				targets = prompt_targets(entity.get(choice.source), spec)
 				if not targets then return end
 			end
-			local ok = choice.reaction and flow.react(choice.source, choice.index, targets)
-				or (not choice.reaction and flow.activate(choice.source, targets, choice.index))
+			local intent = choice.reaction and "react" or "activate"
+			local pay = prompt_payment(flow.intent_payments(intent, choice.source, targets, choice.index),
+				choice.source, intent, targets)
+			if pay == false then return end
+			local ok = choice.reaction and flow.react(choice.source, choice.index, targets, pay)
+				or (not choice.reaction and flow.activate(choice.source, targets, choice.index, pay))
 			if not ok then print(choice.reaction and "Can't answer with that." or "Can't use that ability.") end
 			return
 		end
@@ -273,7 +312,9 @@ local function play_index(n)
 		targets = prompt_targets(c, spec)
 		if not targets then return end
 	end
-	if not flow.play_card(cid, targets) then print("Can't play that.") end
+	local pay = prompt_payment(flow.play_payments(cid, targets), cid, "play", targets)
+	if pay == false then return end
+	if not flow.play_card(cid, targets, pay) then print("Can't play that.") end
 end
 
 -- Which grid holds the piece meant by "a <slot>". Every per-seat grid has the
@@ -320,7 +361,10 @@ local function activate_slot(idx)
 				targets = prompt_targets(entity.get(occ), pick.rule.target)
 				if not targets then return end
 			end
-			if not flow.activate(occ, targets, pick.index) then
+			local pay = prompt_payment(flow.rule_payments(occ, pick.rule, targets),
+				occ, "activate", targets)
+			if pay == false then return end
+			if not flow.activate(occ, targets, pick.index, pay) then
 				print("Can't use that ability.")
 			end
 			return
@@ -341,7 +385,10 @@ local function react_index(n)
 		targets = prompt_targets(entity.get(pick.card), pick.reaction.target)
 		if not targets then return end
 	end
-	if not flow.react(pick.card, pick.index, targets) then print("Can't answer with that.") end
+	local pay = prompt_payment(flow.rule_payments(pick.card, pick.reaction, targets),
+		pick.card, "react", targets)
+	if pay == false then return end
+	if not flow.react(pick.card, pick.index, targets, pay) then print("Can't answer with that.") end
 end
 
 local function inspect(n)
@@ -502,7 +549,12 @@ while true do
 		activate_slot(tonumber(rest))
 	elseif cmd == "z" and tonumber(rest) then
 		local u = usable_places()[tonumber(rest)]
-		if u then flow.activate_zone(u.zone, u.index) else print("No place [" .. rest .. "].") end
+		if u then
+			local pay = prompt_payment(flow.rule_payments(u.zone, u.rule), u.zone, "activate_zone", {})
+			if pay ~= false then flow.activate_zone(u.zone, u.index, pay) end
+		else
+			print("No place [" .. rest .. "].")
+		end
 	elseif cmd == "r" and tonumber(rest) then
 		react_index(tonumber(rest))
 	elseif cmd == "p" then

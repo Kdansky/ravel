@@ -787,7 +787,10 @@ local CASES = {
 	-- exact. Refused at the door rather than discovered at the table.
 	{ "a pays_for naming no stat", "pays_for names 'manna', which is not a stat",
 		function(g) g.stat_defs.hp.pays_for = { "manna" } end },
-	{ "two substitutions that overlap without nesting", "pay for some of the same things",
+	-- The complaint is made at the price, not at the stats, so the case has to
+	-- print one: a game that declares an ambiguous substitution and never spends
+	-- across it has nothing to settle badly.
+	{ "two substitutions that overlap without nesting", "in ways that do not nest",
 		function(g)
 			g.stat_defs.a = { key = "a" }
 			g.stat_defs.b = { key = "b" }
@@ -797,6 +800,8 @@ local CASES = {
 			for _, k in ipairs({ "a", "b", "c", "ab", "bc" }) do
 				g.stat_defs_list[#g.stat_defs_list + 1] = k
 			end
+			g.card_defs.pearl.abilities = { { key = "ability_1",
+				cost = { ["b@mine.player"] = 1 }, action = { "end_phase" } } }
 		end },
 	-- Reactions. The two halves of an event are written in different files, so a
 	-- reaction answering a verb nothing raises reads exactly like one that works

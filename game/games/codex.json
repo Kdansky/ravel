@@ -15630,7 +15630,6 @@
         "unit",
         "fighter",
         "pirate",
-        "bombaster",
         "flame",
         "fighter_face",
         "generate_art"
@@ -15651,7 +15650,7 @@
           ],
           "cost": {
             "gold@mine.player": 1,
-            "sacrifice:bombaster": 1
+            "sacrifice:self": 1
           },
           "target": {
             "verb": "cast",

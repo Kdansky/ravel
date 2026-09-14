@@ -649,6 +649,38 @@ ready at the round boundary.
 "play": { "cost": { "sacrifice:unit": 1 } }
 ```
 
+The player picks which unit — a sacrifice is always theirs to choose, and needs no word to say so.
+
+### Sacrifice this to use its ability.
+
+```json
+"abilities": [{ "cost": { "sacrifice:self": 1 }, "action": ["stat_damage:hp@target:2"] }]
+```
+
+`self` is the asking card, the one thing a tag cannot name. Written as a private tag the card wears
+alone, a second copy on the board kills the wrong one.
+
+### Pay 5 gold out of whichever lands you choose.
+
+```json
+"play": { "cost": { "gold@select.mine.land": 5 } }
+```
+
+Without `select` the five comes off the lands in a fixed order and nobody is asked. With it they
+light up and you point at them, one click per coin. A pool with one way to settle the price asks
+nothing either way.
+
+### Pay this with red or with a wild, as you like.
+
+```json
+"stats": [{ "key": "wild", "pays_for": ["red"] }],
+"play":  { "cost": { "red@select.mine.player": 1 } }
+```
+
+`select` also picks between the pools a `pays_for` offers, and is what lets two substitution pools
+overlap without nesting: the greedy that would settle such a price is what the checker refuses, and
+a price the player settles has no greedy to get wrong.
+
 ### It costs an action and two gold.
 
 ```json
