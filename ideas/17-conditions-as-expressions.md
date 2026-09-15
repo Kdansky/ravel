@@ -136,3 +136,49 @@ then it wants a word rather than a change — the asymmetry is the design.
 - **The quantifier.** `hp@each.follower >= 1` still means *of every follower*,
   and that word lives inside the subject. It is the one part of the grammar that
   is not arithmetic-shaped and it must not be lost in translation.
+
+## Open: the grammar is one string, and the string reads like code
+
+The track made a condition *one* spelling. It did not make it a readable one,
+and the corpus has idioms that no non-programmer would decode. The one that
+prompted this (2026-09-15):
+
+```
+"count@mine.self >= 1"
+```
+
+which means **"this card is mine"**. It is spelled as a set-membership test —
+take the scope `self`, filter it by owner, count what survives, compare to one —
+because a count is the only thing the grammar can compare. Eleven of these sat
+in Codex's computed tags as a guard, and the author has to read four concepts to
+recover a two-word sentence. `count@enemy.self >= 1` is the same sentence
+negated and reads no better.
+
+Related shapes worth collecting before deciding anything:
+
+- `count:<tag>@<scope> >= 1` for **"there is one"** — the most common condition
+  in the corpus by a wide margin, and "at least one exists" said as arithmetic.
+- `count@mine.self >= 1` / `count@enemy.self >= 1` for **ownership**.
+- `sum:<stat>@<scope>` where the scope holds exactly one card, which is a sum
+  over one thing because there is no word for "the".
+- `max:level@mine.h_feral >= 3` — honest arithmetic, and the one of these four
+  that is *right* to spell this way.
+
+[Assumption: the answer is a small number of named predicates that read as
+sentences, not a second grammar — something in the shape of `mine@self`,
+`any:<tag>@<scope>`, or a word in the subject slot — and it must desugar to what
+`meets_all` already evaluates so that nothing downstream learns a second
+vocabulary. Which words, and whether the old spellings stay legal beside them,
+is the whole decision.]
+
+The pull the other way is real and should be stated: track 17's win was
+*removing* spellings, and adding readable aliases beside the arithmetic ones
+puts two ways to say one thing back into the format — which the README's own
+lesson calls "a synonym with a schedule". So the honest version of this is a
+**replacement** with a migration, not an alias. That is what makes it more than
+an afternoon.
+
+**Why it matters:** the format is the product (`DESIGN.md`), and a game file is
+supposed to be readable without the engine source beside it. A condition that
+requires knowing how scopes, quantifiers and counts compose is the one place
+that promise currently breaks.

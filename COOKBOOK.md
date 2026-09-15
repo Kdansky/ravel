@@ -990,6 +990,25 @@ Only where a player *pointed*. A scope that names the card is not an aim, so `de
 answers nothing — which is why a ward stops a bolt and not a board wipe, and why the same blind
 spot is the right one here.
 
+### Opponents without a detector cannot aim at this; your own spells can.
+
+```json
+"tags": { "hidden": { "receive": {
+  "whose": "enemy", "needs": ["count:detector@mine.addon >= 1"] } } }
+```
+
+`whose` is the side the block is addressed to, in the word a reaction already uses: `"enemy"`
+answers an opponent's aim and nobody else's, `"mine"` its own side's, `"anyone"` is the default.
+Only write it for a ward that is one-sided in print — Codex's Invisible and Mindparry Monk are,
+its Untargetable and Illusion are not.
+
+It gates the whole block, `when` and `action` with `needs`, so a ward that refuses only an
+opponent also fires only on one.
+
+Trap: this cannot be a condition. `needs` is an **and**, and the rule is a detector *or* the
+aimer being its owner — so written inside `needs` it comes out as "your own spells need a
+detector too", which is a different card.
+
 ### Illusions die when a spell or an ability aims at them.
 
 ```json

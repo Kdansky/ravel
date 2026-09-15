@@ -62,7 +62,20 @@ function M.entity_has(e, tag)
         -- Required here rather than at the top of the file: predicate is built
         -- on tags, so naming it up there would be a cycle. By the time anything
         -- asks about a tag, both are loaded.
-        worn = require("predicate").meets_all(cd.needs, { card_id = e.id })
+        --
+        -- **Read as the card's own side.** Every other condition in the engine is
+        -- asked at a moment somebody owns -- a play, an ability, an answer -- so
+        -- "mine" means the seat that is acting. This one is asked at no moment at
+        -- all: the renderer drawing a number on the opponent's turn comes through
+        -- here, and so does every count of the board. Left ambient, "mine" would
+        -- name whoever happens to be up, which is a card reading *the other
+        -- player's* buildings for half the game. So the seat is held, as
+        -- zones.as_seat does for an answer -- the difference being that there is
+        -- nothing here to hold it *around*, so the read is what gets anchored.
+        local predicate = require("predicate")
+        require("zones").as_seat(predicate.seat_of(e), function()
+            worn = predicate.meets_all(cd.needs, { card_id = e.id })
+        end)
     end
     resolving[tag] = nil
     return worn
@@ -152,22 +165,29 @@ function M.shift(card_id, verb, stat, source_id)
     for _, entry in ipairs(list) do
         local ad = entry.adjust
         for _, holder in ipairs(M.find_targets({ entry.tag }, M.IN_PLAY)) do
-            -- "self" is the whole of a keyword and does not go the long way round
-            -- through a scope; anything else is read from the card holding the
-            -- aura, so an anthem says who it covers in the words a scope already
-            -- uses.
-            local covered = holder == card_id
-            if not covered and ad.covers ~= "self" then
-                local sc = predicate.parse_scope(ad.covers)
-                for _, c in ipairs(sc and predicate.entities_in_scope(sc.name,
-                    { card_id = holder }, sc.owner, sc.quant) or {}) do
-                    if c.id == card_id then covered = true; break end
+            -- Held as the aura's own side, for entity_has's reason: an aura is
+            -- read whenever anything asks what a number comes to, which is no
+            -- moment and so has no seat of its own. Around the whole body, so
+            -- that who it covers and whether it applies are both answered from
+            -- the card the aura is printed on.
+            require("zones").as_seat(predicate.seat_of(entity.get(holder)), function()
+                -- "self" is the whole of a keyword and does not go the long way round
+                -- through a scope; anything else is read from the card holding the
+                -- aura, so an anthem says who it covers in the words a scope already
+                -- uses.
+                local covered = holder == card_id
+                if not covered and ad.covers ~= "self" then
+                    local sc = predicate.parse_scope(ad.covers)
+                    for _, c in ipairs(sc and predicate.entities_in_scope(sc.name,
+                        { card_id = holder }, sc.owner, sc.quant) or {}) do
+                        if c.id == card_id then covered = true; break end
+                    end
                 end
-            end
-            local sub = { card_id = holder, targets = { card_id }, source = source_id }
-            if covered and entity.get(holder) and predicate.meets_all(ad.needs, sub) then
-                n = n + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
-            end
+                local sub = { card_id = holder, targets = { card_id }, source = source_id }
+                if covered and entity.get(holder) and predicate.meets_all(ad.needs, sub) then
+                    n = n + (tonumber(ad.by) or predicate.total(tostring(ad.by), sub))
+                end
+            end)
         end
     end
     return n

@@ -998,7 +998,6 @@
     },
     "ferned": {
       "needs": [
-        "count@mine.self >= 1",
         "tagged:unit@self",
         "atk@self <= 3",
         "count:ferns@mine.ongoing >= 1"
@@ -1006,30 +1005,26 @@
     },
     "mighty": {
       "needs": [
-        "count@mine.self >= 1",
         "tagged:fighter@self",
         "sum:might@mine.ongoing.might >= 5"
       ]
     },
     "drakked": {
       "needs": [
-        "count@mine.self >= 1",
         "tagged:unit@self",
         "max:level@mine.h_blood >= 4"
       ]
     },
     "midori_air": {
       "needs": [
-        "count@mine.self >= 1",
         "tagged:h_balance@self",
         "level@self >= 8"
       ]
     },
     "cala_guard": {
       "needs": [
-        "count@enemy.self >= 1",
         "tagged:unit@self",
-        "max:level@enemy.h_feral >= 3"
+        "max:level@mine.h_feral >= 3"
       ]
     },
     "showdown": {
@@ -1058,8 +1053,7 @@
       "needs": [
         "tagged:stalker@self",
         "slot@self == 0",
-        "count@enemy.self >= 1",
-        "count:h_feral@enemy.hero >= 1"
+        "count:h_feral@mine.hero >= 1"
       ]
     },
     "hidden": {
@@ -1312,21 +1306,18 @@
     "parried": {
       "needs": [
         "tagged:fighter@self",
-        "count@mine.self >= 1",
         "count:mindparry@mine.unit >= 1"
       ]
     },
     "drilled": {
       "needs": [
         "tagged:hero@self",
-        "count@mine.self >= 1",
         "count:dojo@mine.structures >= 1"
       ]
     },
     "monumented": {
       "needs": [
         "tagged:hero@self",
-        "count@mine.self >= 1",
         "count:monument@mine.structures >= 1"
       ]
     },
@@ -1334,29 +1325,25 @@
       "needs": [
         "tagged:ninja@self",
         "slot@self == 0",
-        "count@mine.self >= 1",
         "count:den@mine.structures >= 1"
       ]
     },
     "ninja_air": {
       "needs": [
         "tagged:ninja@self",
-        "count@mine.self >= 1",
         "count:headmistress@mine.unit >= 1"
       ]
     },
     "mythed": {
       "needs": [
         "tagged:legendary@self",
-        "count@mine.self >= 1",
         "count:myth@mine.ongoing >= 1"
       ]
     },
     "unmythed": {
       "needs": [
         "tagged:legendary@self",
-        "count@enemy.self >= 1",
-        "count:myth@mine.ongoing >= 1"
+        "count:myth@enemy.ongoing >= 1"
       ]
     },
     "hurt_build": {
@@ -1389,7 +1376,6 @@
       "needs": [
         "tagged:unit@self",
         "slot@self == 0",
-        "count@mine.self >= 1",
         "count:nebular@mine.unit >= 1",
         "not_tagged:nebular@self"
       ]
@@ -2215,7 +2201,7 @@
           "covers": "self",
           "by": 1,
           "needs": [
-            "count@enemy.self >= 1"
+            "count@enemy.source >= 1"
           ]
         }
       ]
@@ -2229,7 +2215,7 @@
           "covers": "self",
           "by": 1,
           "needs": [
-            "count@enemy.self >= 1"
+            "count@enemy.source >= 1"
           ]
         }
       ]
@@ -2243,7 +2229,7 @@
           "covers": "self",
           "by": 2,
           "needs": [
-            "count@enemy.self >= 1"
+            "count@enemy.source >= 1"
           ]
         }
       ]
@@ -2257,7 +2243,7 @@
           "covers": "self",
           "by": 1,
           "needs": [
-            "count@enemy.self >= 1"
+            "count@enemy.source >= 1"
           ]
         }
       ]
@@ -2271,7 +2257,7 @@
           "covers": "self",
           "by": 1,
           "needs": [
-            "count@enemy.self >= 1"
+            "count@enemy.source >= 1"
           ]
         }
       ]
@@ -2311,8 +2297,9 @@
       ]
     },
     "hidden": {
-      "tooltip": "Invisible — only a player with a detector may point at this, and it may not take a post and stay hidden.",
+      "tooltip": "Invisible — to an opponent without a detector this cannot be pointed at, and it may not take a post and stay hidden. Your own spells see it either way.",
       "receive": {
+        "whose": "enemy",
         "needs": [
           "count:detector@mine.addon >= 1"
         ]
@@ -2422,7 +2409,8 @@
           "covers": "each.anyone.fighter",
           "by": 1,
           "needs": [
-            "count@mine.self >= 1"
+            "count@mine.source >= 1",
+            "tagged:red@source"
           ]
         },
         {
@@ -2432,7 +2420,8 @@
           "covers": "each.anyone.hero",
           "by": 1,
           "needs": [
-            "count@mine.self >= 1"
+            "count@mine.source >= 1",
+            "tagged:red@source"
           ]
         },
         {
@@ -2442,7 +2431,8 @@
           "covers": "each.anyone.building",
           "by": 1,
           "needs": [
-            "count@mine.self >= 1"
+            "count@mine.source >= 1",
+            "tagged:red@source"
           ]
         }
       ]
@@ -2504,8 +2494,9 @@
       "tooltip": "Safe Attacking: +1 armor while it attacks."
     },
     "parried": {
-      "tooltip": "A Mindparry Monk stands: nothing may aim a spell at this.",
+      "tooltip": "A Mindparry Monk stands: no opponent may aim a spell at this.",
       "receive": {
+        "whose": "enemy",
         "needs": [
           "not_verb:cast"
         ]
@@ -2554,7 +2545,7 @@
           "covers": "self",
           "by": 1,
           "needs": [
-            "count@enemy.self >= 1",
+            "count@enemy.source >= 1",
             "slot@self == 0"
           ]
         }

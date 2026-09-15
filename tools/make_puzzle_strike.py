@@ -1086,7 +1086,7 @@ def puzzle_cards():
         {"key": "really_annoying", "text": "Really Annoying", "tags": ["chip", "trashable", "puzzle", "red"],
          "asset": "polygon:6:red",
          "play": act(gain_wound("enemy")),
-         "reactions": [{"to": "attack", "text": "Wound the attacker",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Wound the attacker",
                         "action": gain_wound("enemy"), "spent": "mine.discard"}]},
         {"key": "draw_three", "text": "Draw Three", "tags": ["chip", "trashable", "puzzle", "brown"],
          "asset": "polygon:6:tan",
@@ -1131,7 +1131,7 @@ def puzzle_cards():
                   "action": ["purge:self", "end_phase"]}},
         {"key": "gems_to_gemonade", **shape("gems_to_gemonade", "purple"),
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
-         "reactions": [{"to": "crash", "text": "Negate the gems", "needs": ANSWERABLE,
+         "reactions": [{"to": "crash", "whose": "enemy", "text": "Negate the gems", "needs": ANSWERABLE,
                         "action": ["purge:mine.gem_1:sum:crashed@opponent"],
                         "spent": "mine.discard"}]},
         {"key": "its_a_trap", **shape("its_a_trap", "brown"),
@@ -1185,7 +1185,7 @@ def puzzle_cards():
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "target": dict(hand_chip, tags=["trashable"]),
                   "action": ["purge:target"], "spent": "mine.table"},
-         "reactions": [{"to": "attack", "text": "+3 chips",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "+3 chips",
                         "action": ["draw_from:mine.bag:mine.hand:3"], "spent": "mine.discard"}]},
         # Stealing, so the chip changes hands and has to be handed over: a chip
         # is stamped with the seat it was minted for, and one that keeps their
@@ -1196,7 +1196,7 @@ def puzzle_cards():
                     "action": ["set_owner:target:mine", "move:target:mine.discard"]}},
         {"key": "thinking_ahead", **shape("thinking_ahead", "blue"),
          "play": act(["stat_gain:money@mine.player:1"]),
-         "reactions": [{"to": "attack", "text": "Become immune",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Become immune",
                         "action": ["purge:self", "counterspell"]}]},
         # "Up to 2 more" is money, and the piles price themselves. The borrowed
         # buy phase is what lets the shopping happen inside an action.
@@ -1228,7 +1228,7 @@ def puzzle_cards():
          "play": act(["stat_gain:act_blue@mine.player:1", "show:mine.bag:optional"]),
          "chosen": {"where": ["tagged:blue@target"],
                     "action": ["move:target:mine.hand"]},
-         "reactions": [{"to": "attack", "text": "Become immune",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Become immune",
                         "action": ["counterspell"], "spent": "mine.discard"}]},
         {"key": "button_mashing", **shape("button_mashing", "brown"),
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1253,7 +1253,7 @@ def puzzle_cards():
                   "spent": "mine.table"}},
         {"key": "ebb_or_flow", **shape("ebb_or_flow", "blue"),
          "play": act(["options:ef_trash,ef_ante"]),
-         "reactions": [{"to": "attack", "text": "Choose one",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Choose one",
                         "action": ["options:ef_trash,ef_ante"], "spent": "mine.discard"}]},
         {"key": "hundred_fist", **shape("hundred_fist", "brown"), "play": ongoing_play(),
          "reactions": [{"to": "attack", "whose": "mine", "from": "board",
@@ -1267,7 +1267,7 @@ def puzzle_cards():
          "play": act(["options:js_wound,js_trash"])},
         {"key": "money_for_nothing", **shape("money_for_nothing", "blue"),
          "play": act(["take:bank.gem_2:mine.hand:1"]),
-         "reactions": [{"to": "attack", "text": "Take a gem from the bank",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Take a gem from the bank",
                         "action": ["take:bank.gem_1:mine.hand:1"],
                         "spent": "mine.discard"}]},
         {"key": "now_or_later", **shape("now_or_later", "brown"),
@@ -1386,7 +1386,7 @@ def character_chips():
          "asset": "circle:cyan",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["move_to:mine.ongoing", "transform:self:bubble_shield_up"]},
-         "reactions": [{"to": "attack", "text": "Become immune",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Become immune",
                         "action": ["counterspell"], "spent": "mine.discard"}]},
         {"key": "bubble_shield_up", "text": "Bubble Shield", "tags": ["chip", "character", "blue"],
          "asset": "circle:cyan",
@@ -1394,7 +1394,7 @@ def character_chips():
          # without saying while that row was a "hand" as far as the engine was
          # concerned, and the default — a reaction played out of a hand — caught
          # it by accident.
-         "reactions": [{"to": "crash", "needs": ANSWERABLE, "from": "board",
+         "reactions": [{"to": "crash", "whose": "enemy", "needs": ANSWERABLE, "from": "board",
                         "action": ["purge:mine.gem_1:1",
                                    "destroy:self", "transform:self:bubble_shield"]}]},
         {"key": "protective_ward", "text": "Protective Ward", "tags": ["chip", "character", "brown"],
@@ -1428,7 +1428,7 @@ def character_chips():
          # "Main or Reaction" is two entries for one chip: the same crash,
          # answering a red chip instead of costing an action. `spent` is what
          # says where it lands, so the reaction drops the play's move_to.
-         "reactions": [{"to": "attack", "text": "Crash as a Double Crash Gem",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Crash as a Double Crash Gem",
                         "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
                                    "owner": "anyone", "min": 1, "max": 2},
                         "action": crash_action(2, 2)[:-1]
@@ -1449,7 +1449,7 @@ def character_chips():
         # The borrowed buy phase is what lets them spend it out of turn.
         {"key": "rigorous_training", "text": "Rigorous Training", "tags": ["chip", "character", "blue"],
          "asset": "circle:green",
-         "reactions": [{"to": "buy", "text": "Trash a chip and gain a better one",
+         "reactions": [{"to": "buy", "whose": "enemy", "text": "Trash a chip and gain a better one",
                         "where": ["tagged:purple@event"],
                         "target": {"type": "card", "zones": ["hand"], "owner": "mine", "count": 1,
                                    "where": ["not_tagged:purple@target"]},
@@ -1494,7 +1494,7 @@ def character_chips():
         {"key": "reversal", "text": "Reversal", "tags": ["chip", "character", "purple"],
          "asset": "circle:navy",
          "play": act(["draw_from:mine.bag:mine.hand:2"]),
-         "reactions": [{"to": "crash", "text": "Counter-crash", "needs": ANSWERABLE,
+         "reactions": [{"to": "crash", "whose": "enemy", "text": "Counter-crash", "needs": ANSWERABLE,
                         "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
                                    "owner": "mine", "count": 1},
                         "action": ["stat_set:crashed@mine.player:sum:value@target",
@@ -1528,7 +1528,7 @@ def character_chips():
         {"key": "stone_wall", "text": "Stone Wall", "tags": ["chip", "character", "purple"],
          "asset": "circle:ash",
          "play": act(["draw_from:mine.bag:mine.hand:1", "stat_gain:piggy@mine.player:1"]),
-         "reactions": [{"to": "crash", "text": "Send the gems back to the bank",
+         "reactions": [{"to": "crash", "whose": "enemy", "text": "Send the gems back to the bank",
                         "needs": ANSWERABLE,
                         "action": ["purge:mine.gem_1:sum:crashed@opponent"],
                         "spent": "mine.discard"}]},
@@ -1659,7 +1659,7 @@ def character_chips():
          # the window happens to be standing, `when` is read as the reactor's own
          # seat. "Their pile" is only a fixed thing to compare against in the
          # second, so a seat word in a `where` would mean whatever the moment did.
-         "reactions": [{"to": "buy", "forced": "mandatory", "from": "board",
+         "reactions": [{"to": "buy", "whose": "enemy", "forced": "mandatory", "from": "board",
                         "needs": ["sum:value@mine.gem_pile >= 3",
                                  "sum:price@event > sum:value@enemy.gem_pile"],
                         "action": ["counterspell"]},
@@ -1699,7 +1699,7 @@ def character_chips():
         {"key": "riposte", "text": "Riposte", "tags": ["chip", "character", "blue"],
          "asset": "circle:orange",
          "play": act(["stat_gain:acts@mine.player:1", "stat_gain:piggy@mine.player:1"]),
-         "reactions": [{"to": "attack", "text": "Take a chip back out of your discard",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Take a chip back out of your discard",
                         "action": ["show:mine.discard:optional"], "spent": "mine.discard"}],
          "chosen": {"action": ["move:target:mine.hand"]}},
         # Zane
@@ -1735,7 +1735,7 @@ def character_chips():
         {"key": "healing_touch", "text": "Healing Touch", "tags": ["chip", "character", "purple"],
          "asset": "circle:silver",
          "play": act(["stat_gain:acts@mine.player:1", "stat_gain:act_blue@mine.player:1"]),
-         "reactions": [{"to": "crash", "text": "Trim a gem off every pile",
+         "reactions": [{"to": "crash", "whose": "enemy", "text": "Trim a gem off every pile",
                         "action": ["purge:mine.gem_1:1", "purge:enemy.gem_1:1",
                                    "draw_from:mine.bag:mine.hand:1"],
                         "spent": "mine.discard"}]},
@@ -1749,7 +1749,7 @@ def character_chips():
                   "action": ["stat_gain:piggy@mine.player:1", "stat_gain:money@mine.player:1",
                              "each_seat:draw_from:mine.bag:mine.hand:1"],
                   "spent": "mine.bag"},
-         "reactions": [{"to": "attack", "text": "+2 chips",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "+2 chips",
                         "action": ["draw_from:mine.bag:mine.hand:2"], "spent": "mine.discard"}]},
         # Vendetta. No banner colour, like Option Select: the plain arrow pays.
         {"key": "shadow_plague", "text": "Shadow Plague", "tags": ["chip", "character"],
@@ -1820,7 +1820,7 @@ def character_chips():
         {"key": "always_in_control", "text": "Always in Control", "tags": ["chip", "character", "blue"],
          "asset": "circle:violet",
          "play": act(["stat_gain:piggy@mine.player:2"]),
-         "reactions": [{"to": "attack", "text": "Become immune",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Become immune",
                         "action": ["counterspell"], "spent": "mine.discard"}]},
         # Bal-Bas-Beta
         {"key": "rocket_punch", "text": "Rocket Punch", "tags": ["chip", "character", "purple"],
@@ -1831,11 +1831,11 @@ def character_chips():
                   "action": crash_action(1, 0), "spent": "mine.table"},
          # Two announcements, two entries. One reaction cannot answer both,
          # because a reaction names the one verb it is about.
-         "reactions": [{"to": "attack", "text": "Crash a 1-gem at them",
+         "reactions": [{"to": "attack", "whose": "enemy", "text": "Crash a 1-gem at them",
                         "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
                                    "owner": "anyone", "count": 1},
                         "action": crash_action(1, 0), "spent": "mine.discard"},
-                       {"to": "crash", "text": "Crash a 1-gem back", "needs": ANSWERABLE,
+                       {"to": "crash", "whose": "enemy", "text": "Crash a 1-gem back", "needs": ANSWERABLE,
                         "target": {"type": "card", "tags": ["gem_1"], "zones": ["gem_pile"],
                                    "owner": "anyone", "count": 1},
                         "action": crash_action(1, 0), "spent": "mine.discard"}]},

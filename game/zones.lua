@@ -627,7 +627,12 @@ local function fire_receive(to, card_id)
 	-- The same gate a card's write half takes, read the same way: the zone is
 	-- @self and the newcomer @target, so "only when a unit lands here" is one
 	-- condition rather than a rule every card that might land has to know.
-	if not require("predicate").meets_all(def.on_receive_needs,
+	local predicate = require("predicate")
+	-- "whose" gates the whole block here too, judged between the zone's seat and
+	-- the newcomer's owner: a pile that answers only what an opponent throws in.
+	if not predicate.answers_whose(def.receive_whose, predicate.seat_of(to),
+		predicate.seat_of(entity.get(card_id))) then return end
+	if not predicate.meets_all(def.on_receive_needs,
 		{ card_id = to.id, zone_id = to.id, targets = { card_id } }) then return end
 	if receiving >= 8 then
 		local msg = "! receive: '" .. tostring(to.key) .. "' is passing cards round in a circle — stopped"

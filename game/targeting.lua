@@ -267,14 +267,27 @@ function M.candidates(card_id, spec)
 		-- Through behaviour for a card, so a ward may be a keyword: its own
 		-- block, its zone's, its tags' and whatever it is wearing right now. A
 		-- zone wears no tags, so it answers for itself.
-		local list = e and (e.kind == "card" and require("cards").accepts(e)
-			or e.kind == "zone" and (declaration.G.zone_defs[e.key] or {}).accepts)
-		if not (list and #list > 0) then
-			kept[#kept + 1] = id
-		elseif predicate.meets_all(list, { card_id = id, zone_id = e.kind == "zone" and id or nil,
-			targets = { card_id }, verb = spec.verb }) then
-			kept[#kept + 1] = id
+		--
+		-- **A block that names a side is only asked of that side.** Codex's
+		-- Invisible is "to opponents without a detector" and Mindparry is
+		-- "opponents can't aim spells at your units": written into the condition
+		-- the sentence needs an "or" the grammar has not got, and every one-sided
+		-- ward would repeat it. Judged between the two cards rather than against
+		-- whoever is up, so a reaction aiming out of turn reads the same.
+		local zd = e and e.kind == "zone" and (declaration.G.zone_defs[e.key] or {})
+		local blocks = e and (e.kind == "card" and require("cards").accepts(e)
+			or zd and zd.accepts and #zd.accepts > 0
+			and { { whose = zd.receive_whose, needs = zd.accepts } }) or {}
+		local aimer, ok = predicate.seat_of(entity.get(card_id)), true
+		for _, block in ipairs(blocks) do
+			if predicate.answers_whose(block.whose, predicate.seat_of(e), aimer)
+				and not predicate.meets_all(block.needs, { card_id = id,
+					zone_id = e.kind == "zone" and id or nil,
+					targets = { card_id }, verb = spec.verb }) then
+				ok = false; break
+			end
 		end
+		if ok then kept[#kept + 1] = id end
 	end
 	return kept
 end

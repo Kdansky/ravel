@@ -4699,6 +4699,30 @@ aimed at. Leave `when` out and every aim is answered.
 A zone's `receive` takes the same third field, gating its arrival action the
 same way.
 
+**`whose` — the side the block is addressed to.** Some wards are printed at
+everybody and some at the other player, and that is a property of the ward
+rather than a clause inside it. Codex's Untargetable is *"can't be the target of
+spells or abilities"* — nobody named — while its Invisible is *"to opponents
+without a detector, this is untargetable"* and Mindparry Monk is *"opponents
+can't aim spells or abilities at your units or heroes"*. The second kind takes
+the word a reaction already uses, and the same three values:
+
+```json
+"tags": { "hidden": { "receive": {
+  "whose": "enemy", "needs": ["count:detector@mine.addon >= 1"] } } }
+```
+
+`"enemy"` answers an opponent's aim and nobody else's, `"mine"` its own side's,
+and **`"anyone"` is the default** — a block that names no side is about the aim
+and not about who made it, which is what Untargetable, Illusion and every zone
+mean, so the word is only written where a ward is one-sided.
+
+It gates the **whole block**: a block that does not answer this aimer neither
+refuses the aim nor acts on it, so `needs`, `when` and `action` all sit behind
+it. Written inside `needs` instead, Invisible would want a detector *or* the
+aimer being its owner — and a condition list is an *and*, so it could not be
+said at all.
+
 Which raises what the spell then does, and the answer is nothing, because **a
 target whose zone `status` changed since it was pointed at is no longer what was
 pointed at** and drops out of `@target`. The rest of the action still runs. Note

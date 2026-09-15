@@ -241,23 +241,28 @@ end
 -- It read only the card's own block until now, which is why "cannot be targeted
 -- by spells" had to be written on every card that has it rather than once on the
 -- keyword, and why nothing could ever grant it.
+-- **Blocks and not one flat condition list**, for the reason `on_receive` below
+-- gives about its own: each source brought its own side. Codex's Invisible is
+-- "to opponents without a detector" and its Untargetable is "can't be the target
+-- of spells or abilities" -- one card may wear both, and flattening them would
+-- hold every aim to both sides' gates or to neither.
 function M.accepts(card_entity)
 	local out = {}
-	local function take(list)
-		for _, c in ipairs(list or EMPTY) do out[#out + 1] = c end
+	local function take(d)
+		if d and d.accepts and #d.accepts > 0 then
+			out[#out + 1] = { whose = d.receive_whose, needs = d.accepts }
+		end
 	end
 	local def = M.def(card_entity)
-	take(def and def.accepts)
+	take(def)
 	local z = card_entity and card_entity.zone_id and entity.get(card_entity.zone_id)
-	for _, tag in ipairs(z and z.applies or EMPTY) do
-		take((declaration.G.tag_defs[tag] or EMPTY).accepts)
-	end
+	for _, tag in ipairs(z and z.applies or EMPTY) do take(declaration.G.tag_defs[tag]) end
 	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
-		take((declaration.G.tag_defs[tag] or EMPTY).accepts)
+		take(declaration.G.tag_defs[tag])
 	end
 	for tag in pairs(declaration.G.computed_tags or EMPTY) do
 		local td = declaration.G.tag_defs[tag]
-		if td and td.accepts and require("tags").entity_has(card_entity, tag) then take(td.accepts) end
+		if td and td.accepts and require("tags").entity_has(card_entity, tag) then take(td) end
 	end
 	return out
 end
@@ -279,7 +284,9 @@ end
 function M.on_receive(card_entity)
 	local out = {}
 	local function take(d)
-		if d and d.on_receive then out[#out + 1] = { needs = d.on_receive_needs, action = d.on_receive } end
+		if d and d.on_receive then
+			out[#out + 1] = { whose = d.receive_whose, needs = d.on_receive_needs, action = d.on_receive }
+		end
 	end
 	local def = M.def(card_entity)
 	take(def)

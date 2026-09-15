@@ -185,7 +185,7 @@
           "needs": [
             "conditions over the reacting card's own state — whether it can be afforded or is legal now. About the reactor, where \"where\" is about the event. The same word a play, a challenge and a zone's receive use, meaning the same thing wherever it sits: the gate on the thing whose block it is."
           ],
-          "whose": "whose announcement this may answer, in the words a scope already uses: \"enemy\" (somebody else's — the default, and what every reaction meant before this field existed), \"mine\" (your own, and only your own — Magic answering your own spell on the stack), or \"anyone\". A word rather than a flag because three readings do not fit in a yes or no. The seat that announced is asked first when it applies, since it is already holding priority. Nothing loops: one card answers one record once, and an answer is a new record with its own memory, so a chain gets longer rather than going round.",
+          "whose": "whose announcement this may answer, in the words a scope already uses: \"enemy\" (somebody else's, which is what a shield means), \"mine\" (your own, and only your own — Magic answering your own spell on the stack), or \"anyone\". Left out it is \"anyone\", the same default a ward's \"whose\" takes. A word rather than a flag because three readings do not fit in a yes or no. The seat that announced is asked first when it applies, since it is already holding priority. Nothing loops: one card answers one record once, and an answer is a new record with its own memory, so a chain gets longer rather than going round.",
           "forced": "\"optional\" (default: the controller is prompted and may decline) or \"mandatory\" (it fires on its own — Magic's mandatory triggered ability). Not a boolean, because \"you may\" and \"it must\" are both triggered abilities and the difference is the whole of what this says.",
           "from": "where answering happens from, which decides what it does: \"hand\" plays the reaction as a card (it goes on the stack and resolves), \"board\" activates or fires a card already in play (the card stays, its effect stacks), or **a zone by name** for the third shape — a row of ongoing effects laid face up in front of one player is in play and is a *hand* as far as a zone type goes, and guessing which face-up zones count as in play gets a discard pile wrong. Left out, the zone the card sits in decides.",
           "cost": {
@@ -223,6 +223,7 @@
         ]
       },
       "receive": {
+        "whose": "whose aim this whole block answers, in a reaction's own word and the same three a scope uses: \"enemy\" (an opponent's aim, and nobody else's), \"mine\" (its own side's), or \"anyone\" — **the default**, because a ward that names no side is about the aim and not about who made it, which is what Untargetable, Illusion and every zone mean. It gates both halves at once: a block that does not answer this aimer neither refuses the aim nor acts on it. Codex needs it twice and both are one-sided in print — Invisible is \"to opponents without a detector, this is untargetable\" and Mindparry is \"opponents can't aim spells or abilities at your units\". Written inside \"needs\" instead, each would want a detector *or* the aimer being its owner, and a condition list is an and.",
         "needs": [
           "conditions deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."
         ],
@@ -283,6 +284,7 @@
         "tags this zone hands to whatever lies in it, behaviour included. This is how a pile grants an ability no card knows about."
       ],
       "receive": {
+        "whose": "whose aim this whole block answers, in a reaction's own word and the same three a scope uses: \"enemy\" (an opponent's aim, and nobody else's), \"mine\" (its own side's), or \"anyone\" — **the default**, because a ward that names no side is about the aim and not about who made it, which is what Untargetable, Illusion and every zone mean. It gates both halves at once: a block that does not answer this aimer neither refuses the aim nor acts on it. Codex needs it twice and both are one-sided in print — Invisible is \"to opponents without a detector, this is untargetable\" and Mindparry is \"opponents can't aim spells or abilities at your units\". Written inside \"needs\" instead, each would want a detector *or* the aimer being its owner, and a condition list is an and.",
         "needs": [
           "conditions deciding whether a card being played may be sent here. Same shape as a card's accepts, asked of the zone."
         ],
@@ -395,6 +397,7 @@
         ]
       },
       "receive": {
+        "whose": "whose aim this whole block answers, in a reaction's own word and the same three a scope uses: \"enemy\" (an opponent's aim, and nobody else's), \"mine\" (its own side's), or \"anyone\" — **the default**, because a ward that names no side is about the aim and not about who made it, which is what Untargetable, Illusion and every zone mean. It gates both halves at once: a block that does not answer this aimer neither refuses the aim nor acts on it. Codex needs it twice and both are one-sided in print — Invisible is \"to opponents without a detector, this is untargetable\" and Mindparry is \"opponents can't aim spells or abilities at your units\". Written inside \"needs\" instead, each would want a detector *or* the aimer being its owner, and a condition list is an and.",
         "needs": [
           "conditions a card wearing this tag holds anything aiming at it to, asked once per candidate with the wearer as @self and the aiming card as @target. A ward is a keyword far more often than it is one card - \"cannot be the target of spells\" is [\"not_verb:cast\"] said once here instead of on every card that has the word, and said here it can also be *granted*, since a computed tag may carry it. Several wards are several gates: the lists from the card, its zone's applies, its own tags and the tags it is wearing are gathered into one, and a condition list is an and."
         ],

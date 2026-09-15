@@ -61,26 +61,26 @@ local GAME = [==[{
       "abilities": [{ "action": ["stat_gain:landed@mine.player:1"] }] },
     { "key": "flame_counter", "text": "Flame Counter", "tags": ["counter"],
       "reactions": [
-        { "to": "cast", "where": ["tagged:fireball@event"], "action": ["counterspell"] }
+        { "to": "cast", "whose": "enemy", "where": ["tagged:fireball@event"], "action": ["counterspell"] }
       ] },
     { "key": "crash_counter", "text": "Crash Counter", "tags": ["counter"],
       "reactions": [
-        { "to": "crash", "where": ["tagged:gem@event"], "action": ["counterspell"] }
+        { "to": "crash", "whose": "enemy", "where": ["tagged:gem@event"], "action": ["counterspell"] }
       ] },
     { "key": "prism", "text": "Prism", "tags": ["counter"],
       "reactions": [
-        { "to": "cast", "key": "deny", "text": "Deny it", "action": ["counterspell"] },
-        { "to": "cast", "key": "profit", "text": "Take one instead",
+        { "to": "cast", "whose": "enemy", "key": "deny", "text": "Deny it", "action": ["counterspell"] },
+        { "to": "cast", "whose": "enemy", "key": "profit", "text": "Take one instead",
           "action": ["stat_gain:landed@mine.player:1"] }
       ] },
     { "key": "ward", "text": "Ward", "tags": ["counter"],
       "reactions": [
-        { "to": "cast", "forced": "mandatory", "where": ["tagged:fireball@event"],
+        { "to": "cast", "whose": "enemy", "forced": "mandatory", "where": ["tagged:fireball@event"],
           "action": ["counterspell"], "spent": "mine.table" }
       ] },
     { "key": "silence", "text": "Silence", "tags": ["counter"],
       "reactions": [
-        { "to": "ability", "action": ["counterspell"] }
+        { "to": "ability", "whose": "enemy", "action": ["counterspell"] }
       ] }
   ]
 }]==]

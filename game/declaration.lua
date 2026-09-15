@@ -33,12 +33,20 @@ local MOMENTS = {
 	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
 		action = "on_play", spent = "spent", compute = "compute" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
-	-- Three fields because the block has two gates and they gate different things.
-	-- "needs" is whether the aim may be made at all, asked of every candidate
-	-- before a player may point; "when" is whether the card answers the aim that
-	-- was. An Illusion is targetable by everything and dies only to some of it,
-	-- so one list could not have said both.
-	receive   = { needs = "accepts", when = "on_receive_needs", action = "on_receive" },
+	-- Three gates and a side. "needs" is whether the aim may be made at all,
+	-- asked of every candidate before a player may point; "when" is whether the
+	-- card answers the aim that was. An Illusion is targetable by everything and
+	-- dies only to some of it, so one list could not have said both.
+	--
+	-- "whose" is the side, in a reaction's own word, and it gates the whole block
+	-- rather than either half: Codex writes Invisible as "to *opponents* without a
+	-- detector" and Mindparry as "*opponents* can't aim spells at your units", so
+	-- the one-sidedness is a property of the ward and not a clause inside it.
+	-- Written as a condition it would be repeated in every one-sided ward and got
+	-- wrong once. Default "anyone", since Untargetable, Illusion and every zone's
+	-- accepts are about the aim and not about who made it.
+	receive   = { needs = "accepts", when = "on_receive_needs", action = "on_receive",
+		whose = "receive_whose" },
 	-- The arrival counterpart to a card's "leaves", on the zone that receives.
 	-- Separate from "receive" and not a field on it: "receive" fires on every
 	-- landing in any zone -- which is what a discard stamping its owner wants
@@ -168,9 +176,11 @@ end
 -- is in play and is a hand as far as a zone type is concerned.
 --
 -- "whose" says whose announcement it may answer, in the words a scope already
--- uses: "enemy" (somebody else's, the default and what a shield means), "mine"
--- (your own, which is Magic answering your own spell on the stack), or "anyone".
--- A word rather than a flag, because three readings do not fit in a yes or no.
+-- uses: "enemy" (somebody else's, which is what a shield means), "mine" (your
+-- own, which is Magic answering your own spell on the stack), or "anyone" --
+-- the default, here and on a ward, because a block that names no side is about
+-- the act and not about who made it. A word rather than a flag, because three
+-- readings do not fit in a yes or no.
 --
 -- Normalised here, the last place the authored entry exists, exactly as
 -- abilities_of is and for the same reason: a typo inside one is caught now, since
@@ -317,9 +327,7 @@ local function reactions_of(def, pp, where)
 				pp[#pp + 1] = ("%s reaction %d: forced \"%s\" is neither \"optional\" nor \"mandatory\"")
 					:format(where, i, tostring(r.forced))
 			end
-			-- Somebody else's, which is what a shield is for and what every
-			-- reaction meant before this field existed.
-			local whose = r.whose or "enemy"
+			local whose = r.whose or "anyone"
 			if not WHOSE[whose] then
 				pp[#pp + 1] = ("%s reaction %d: whose \"%s\" is none of \"mine\", \"enemy\", \"anyone\"")
 					:format(where, i, tostring(r.whose))

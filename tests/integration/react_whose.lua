@@ -7,8 +7,9 @@
 --
 -- Three readings, so a word rather than a flag, and the words are the ones a
 -- scope already uses — "enemy", "mine", "anyone" — meaning here what they mean
--- there: whose, judged from the card asking. "enemy" is the default, so every
--- reaction written before the field existed answers exactly what it did.
+-- there: whose, judged from the card asking. **"anyone" is the default**, here
+-- and on a ward, because a block that names no side is about the act and not
+-- about who made it; a shield says "enemy" out loud, which is what a shield is.
 --
 -- What keeps it from running away is not the seat check. It is that **one card
 -- answers one record once**: the answer is a new record with its own memory, so
@@ -47,7 +48,8 @@ local GAME = [==[{
       "play": { "action": ["stat_gain:landed@mine.player:1"], "spent": "mine.table" } },
     { "key": "shield", "text": "Shield", "tags": ["counter"],
       "reactions": [
-        { "to": "cast", "text": "Deny it", "action": ["counterspell"], "spent": "mine.table" }
+        { "to": "cast", "whose": "enemy", "text": "Deny it", "action": ["counterspell"],
+          "spent": "mine.table" }
       ] },
     { "key": "twin", "text": "Twin", "tags": ["counter"],
       "reactions": [
@@ -58,6 +60,11 @@ local GAME = [==[{
       "reactions": [
         { "to": "cast", "whose": "anyone", "text": "Meddle",
           "action": ["stat_gain:landed@mine.player:1"], "spent": "mine.table" }
+      ] },
+    { "key": "plain", "text": "Plain", "tags": ["counter"],
+      "reactions": [
+        { "to": "cast", "text": "Either side", "action": ["stat_gain:landed@mine.player:1"],
+          "spent": "mine.table" }
       ] },
     { "key": "siren", "text": "Siren", "tags": ["noise"],
       "play": { "action": ["emit:play"], "spent": "mine.table" } },
@@ -109,21 +116,21 @@ local function stack_count()
 	return #(zones.find("stack") or { cards = {} }).cards
 end
 
--- The default, stated so it stays true: no word means somebody else's, which is
--- what every reaction meant before the field existed.
-function M.test_whose_defaults_to_the_other_seat(check)
+-- The default, stated so it stays true: no word means anyone's, so a reaction
+-- that names no side answers the caster's own announcement as readily as the
+-- other seat's. Saying nothing is saying nothing about who acted.
+function M.test_whose_defaults_to_anyone(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local bolt = give("one", "bolt")
-		give("one", "shield")
-		give("two", "shield")
+		local own  = give("one", "plain")
+		give("two", "plain")
 
 		flow.play_card(bolt.id, {})
 		check("a window opened", stack_count() == 1, stack_count())
-		check("and it is the other seat holding it", zones.active_seat() == "two",
+		check("the caster answers first, holding priority", zones.active_seat() == "one",
 			zones.active_seat())
-		check("their shield is on offer", #flow.usable_reactions() == 1,
-			#flow.usable_reactions())
+		check("and their own is on offer in it", flow.can_react(own.id))
 	end)
 end
 

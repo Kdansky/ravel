@@ -278,14 +278,21 @@ local function fire_aimed(targets, source, verb)
 			-- stealth asks "count:detector@mine.addon", meaning the detector belongs to
 			-- whoever is pointing. It is checked in targeting.lua and never reaches here.
 			--
-			-- The gather stays outside too: a computed keyword deciding whether this card
-			-- wears it is asked the same way everywhere, and reading it one way here would
-			-- be a second rule for computes rather than the one they are still owed.
+			-- The gather stays outside, and needs to: a computed keyword is read as the
+			-- card's own side wherever it is asked (tags.entity_has holds that seat
+			-- itself), so holding it again here would say the same thing twice.
+			--
+			-- **"whose" gates the whole block**, this half with the other: a ward that
+			-- answers only an opponent's aim must not fire on its owner's either.
+			local aimer = predicate.seat_of(entity.get(source))
 			if #blocks > 0 then
 				zones.as_seat(predicate.seat_of(e), function()
 					for _, block in ipairs(blocks) do
 						local ctx = { card_id = id, targets = { source }, verb = verb }
-						if predicate.meets_all(block.needs, ctx) then actions.run(block.action, ctx) end
+						if predicate.answers_whose(block.whose, predicate.seat_of(e), aimer)
+							and predicate.meets_all(block.needs, ctx) then
+							actions.run(block.action, ctx)
+						end
 					end
 				end)
 			end

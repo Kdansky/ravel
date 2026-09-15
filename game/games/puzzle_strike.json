@@ -734,6 +734,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "Wound the attacker",
           "action": ["take:bank.wound:enemy.discard:1"],
           "spent": "mine.discard"
@@ -894,6 +895,7 @@
       "reactions": [
         {
           "to": "crash",
+          "whose": "enemy",
           "text": "Negate the gems",
           "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
           "action": ["purge:mine.gem_1:sum:crashed@opponent"],
@@ -1054,6 +1056,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "+3 chips",
           "action": ["draw_from:mine.bag:mine.hand:3"],
           "spent": "mine.discard"
@@ -1091,7 +1094,14 @@
         "action": ["stat_gain:money@mine.player:1"],
         "spent": "mine.table"
       },
-      "reactions": [{ "to": "attack", "text": "Become immune", "action": ["purge:self", "counterspell"] }],
+      "reactions": [
+        {
+          "to": "attack",
+          "whose": "enemy",
+          "text": "Become immune",
+          "action": ["purge:self", "counterspell"]
+        }
+      ],
       "tooltip": "Main: +$1. You may put any chips you buy this turn on top of your bag. Reaction: Trash this chip to become immune to a red chip.\n\nDEV: the gem power and the immunity are built. Redirecting what you buy onto your bag is answerable now, but the event names the *plate*, not the chip it dealt into your discard, so there is nothing to move.",
       "card_stats": { "plus_pow": 1, "react": 1, "price": 2 }
     },
@@ -1170,6 +1180,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "Become immune",
           "action": ["counterspell"],
           "spent": "mine.discard"
@@ -1272,6 +1283,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "Choose one",
           "action": ["options:ef_trash,ef_ante"],
           "spent": "mine.discard"
@@ -1359,6 +1371,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "Take a gem from the bank",
           "action": ["take:bank.gem_1:mine.hand:1"],
           "spent": "mine.discard"
@@ -1675,6 +1688,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "Become immune",
           "action": ["counterspell"],
           "spent": "mine.discard"
@@ -1691,6 +1705,7 @@
       "reactions": [
         {
           "to": "crash",
+          "whose": "enemy",
           "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
           "from": "board",
           "action": ["purge:mine.gem_1:1", "destroy:self", "transform:self:bubble_shield"]
@@ -1779,6 +1794,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "Crash as a Double Crash Gem",
           "target": {
             "type": "card",
@@ -1825,6 +1841,7 @@
       "reactions": [
         {
           "to": "buy",
+          "whose": "enemy",
           "text": "Trash a chip and gain a better one",
           "where": ["tagged:purple@event"],
           "target": {
@@ -1937,6 +1954,7 @@
       "reactions": [
         {
           "to": "crash",
+          "whose": "enemy",
           "text": "Counter-crash",
           "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
           "target": {
@@ -2007,6 +2025,7 @@
       "reactions": [
         {
           "to": "crash",
+          "whose": "enemy",
           "text": "Send the gems back to the bank",
           "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
           "action": ["purge:mine.gem_1:sum:crashed@opponent"],
@@ -2261,6 +2280,7 @@
       "reactions": [
         {
           "to": "buy",
+          "whose": "enemy",
           "forced": "mandatory",
           "from": "board",
           "needs": ["sum:value@mine.gem_pile >= 3", "sum:price@event > sum:value@enemy.gem_pile"],
@@ -2358,6 +2378,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "Take a chip back out of your discard",
           "action": ["show:mine.discard:optional"],
           "spent": "mine.discard"
@@ -2455,6 +2476,7 @@
       "reactions": [
         {
           "to": "crash",
+          "whose": "enemy",
           "text": "Trim a gem off every pile",
           "action": ["purge:mine.gem_1:1", "purge:enemy.gem_1:1", "draw_from:mine.bag:mine.hand:1"],
           "spent": "mine.discard"
@@ -2499,6 +2521,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "+2 chips",
           "action": ["draw_from:mine.bag:mine.hand:2"],
           "spent": "mine.discard"
@@ -2718,6 +2741,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "Become immune",
           "action": ["counterspell"],
           "spent": "mine.discard"
@@ -2754,6 +2778,7 @@
       "reactions": [
         {
           "to": "attack",
+          "whose": "enemy",
           "text": "Crash a 1-gem at them",
           "target": {
             "type": "card",
@@ -2774,6 +2799,7 @@
         },
         {
           "to": "crash",
+          "whose": "enemy",
           "text": "Crash a 1-gem back",
           "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
           "target": {

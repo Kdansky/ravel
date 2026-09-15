@@ -138,10 +138,7 @@ end
 -- readings, and it is *these* words because a scope already uses them to mean
 -- the same thing: whose, judged from the card asking.
 function M.answers_seat(reaction, seat, actor)
-	local whose = reaction.whose or "enemy"
-	if whose == "anyone" then return true end
-	if whose == "mine" then return seat == actor end
-	return seat ~= actor
+	return require("predicate").answers_whose(reaction.whose, seat, actor)
 end
 
 -- Whether opening a window for this event is worth it at all. The scheduler asks

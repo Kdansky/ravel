@@ -206,6 +206,21 @@ function M.seat_of(e)
 	return M.owner_of(e)
 end
 
+-- **Whose act a block answers**, as an owner word compared between two seats
+-- rather than against whoever is up. A reaction has asked this since it had
+-- "whose" -- whose announcement may I answer -- and a ward asks the same
+-- question about an aim: Codex's Invisible is "to *opponents* without a
+-- detector", and Mindparry is "*opponents* can't aim spells at your units". One
+-- question, so one function and one closed set of words.
+--
+-- "anyone" is the default everywhere, and the word is only written where a block
+-- is one-sided. A nil on either side is nobody, which no seat equals.
+function M.answers_whose(whose, seat, actor)
+	if whose == nil or whose == "anyone" then return true end
+	if whose == "mine" then return seat ~= nil and seat == actor end
+	return seat ~= actor
+end
+
 -- **What each target was standing in when it was pointed at.** A card that moves
 -- between the pick and the resolution may or may not still be the thing the
 -- player aimed at, and the zone it sits in cannot settle that: Codex's whole

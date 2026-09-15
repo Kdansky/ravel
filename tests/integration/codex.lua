@@ -1978,6 +1978,54 @@ function M.test_codex_invisible_is_a_ward_with_a_condition(check)
 	check("and a tower sees it anyway", aimable().stalking_tiger == true)
 end
 
+-- **The ward is one-sided, and the word says so.** Codex prints Invisible as "to
+-- opponents without a detector, this is untargetable", and Sirlin's ruling is
+-- explicit that you may point at your own invisible things with no detector at
+-- all. Written as a condition that would need an "or" the grammar has not got —
+-- a detector, *or* the aimer is its owner — so the side is "whose" on the block.
+--
+-- It was carried before by "count@enemy.self" inside the computed tag, which
+-- worked only because a tag was read as whoever was up; anchored to the card's
+-- own owner that sentence names nobody, and the rule had to move to the ward.
+function M.test_codex_invisible_does_not_hide_from_its_owner(check)
+	local targeting = require("targeting")
+	start("pick_calamandra", "pick_argagarg")
+	take_the_field("calamandra")
+	local tiger = summon("stalking_tiger", "mine.army")
+	local dart  = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local spec  = require("cards").def(entity.get(dart.id)).target
+	local function mine_aimable()
+		for _, id in ipairs(targeting.candidates(dart.id, spec)) do
+			if id == tiger.id then return true end
+		end
+		return false
+	end
+
+	check("it is hiding", tags.entity_has(entity.get(tiger.id), "hidden"))
+	check("and its own side may point at it with no detector", mine_aimable())
+end
+
+-- Mindparry Monk prints "Opponents can't aim spells or abilities at your units
+-- or heroes", and the ward said "nothing may aim a spell at this" — so it
+-- refused its own side and let the other through, which is the card backwards.
+function M.test_codex_mindparry_stops_the_opponent_and_not_its_own_side(check)
+	local targeting = require("targeting")
+	start("pick_grave", "pick_argagarg")
+	local cub  = summon("tiger_cub", "mine.army")
+	summon("mindparry_monk", "mine.army")
+	local dart = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local spec = require("cards").def(entity.get(dart.id)).target
+	local function aimable_by_mine()
+		for _, id in ipairs(targeting.candidates(dart.id, spec)) do
+			if id == cub.id then return true end
+		end
+		return false
+	end
+
+	check("the Monk parries it", tags.entity_has(entity.get(cub.id), "parried"))
+	check("and its own side may still aim a spell at it", aimable_by_mine())
+end
+
 -- "Put up to two units from your hand into play if you have tech buildings of
 -- the same tech level as them" is four questions with one answer, which is what
 -- a union of computed tags is for: each tier asks its own, "buildable" says any.
