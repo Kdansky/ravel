@@ -78,6 +78,18 @@ OFFER_CLOUD = "show:storm_cloud:optional"
 # nothing qualifies still does not open, so "must" cannot ask the impossible.
 MUST_GAIN   = "show:storm_cloud"
 OFFER_HAND  = "show:mine.hand:optional"
+# "From your hand or discard" is one place, because `held` is a word both
+# zones wear: a scope's place half says it without a union anywhere.
+OFFER_HELD  = "show:mine.held:optional"
+
+# "Wizard Spell Cards can never be VOIDed for any reason" -- the rulebook says it
+# twice, and the tag was on all sixteen of them with nothing reading it. Said on
+# the asker rather than on the card because the offer is where the rule bites:
+# `chosen.where` is what gates a pick, the same word Puzzle Strike protects its
+# Puzzle chips with. Only the six offers that void out of a player's own cards
+# need it -- nothing in the Storm Cloud is a Wizard Spell Card, and the junk
+# piles are junk.
+VOIDABLE = ["not_tagged:no_void@target"]
 
 # The same two, narrowed to one kind of card. `<zone>.<tag>` is the engine's word
 # for one place and one kind, and an element is a tag on every card, so "gain a
@@ -211,16 +223,28 @@ SPELLS = [
          # lands, so only the theft needs the word.
          chosen=["set_owner:target:mine", "move:target:mine.discard"]),
     card("manafont", "Mana Font", FIRE, tier=1,
-         tooltip="VOID a card in the Storm Cloud. If you did, gain 3 mana. On discard: take 1 damage and gain 1 mana.",
+         tooltip="VOID a Water card in the Storm Cloud. If you did, gain 3 mana. On discard: take 1 damage and gain 1 mana.",
          flavour="While there are many theories, no one knows where the magic inside gems originally comes from.",
          cast=[OFFER_CLOUD_OF(WATER)],
          chosen=["move:target:void", REFILL_CLOUD, MANA, MANA, MANA],
          disc=[SELF_DMG(1), MANA]),
+    # The one card in the box that waives a cost, and it needed no word for
+    # waiving one: a cost is a map of what is owed, and the Ultimate is owed
+    # two different ways. The wizard answers "resolving" twice -- once for
+    # mana, once for the pass this card hands out -- and the player picks which
+    # answer to give. Obsidian does its own announcing, because the [ULT] icon's
+    # phase runs before a card resolves and the pass does not exist yet then.
     card("obsidian", "Obsidian", FIRE, tier=2,
-         tooltip="Take 1 damage and lose 2 mana. If you did, you may use your Ultimate without paying its mana cost.",
+         tooltip="Take 1 damage and lose 2 mana. If you did, you may cast your Ultimate here without paying its mana cost.",
          flavour='"Whenever I close my eyes, I see my twisted reflection in that black mirrored gem." - Unknown',
-         simplified="the free Ultimate is not granted -- there is no way to waive a cost; the damage and mana loss happen",
-         cast=[SELF_DMG(1), "stat_damage:mana@mine.player:2"]),
+         cast=[SELF_DMG(1)],
+         # "If you did" is asked before the mana goes, which is the only moment
+         # that can tell two mana from none.
+         cast2=("mana@mine.player >= 2",
+                ["stat_damage:mana@mine.player:2",
+                 "stat_gain:ult_free@mine.player:1", "emit:resolving"]),
+         # And if there were not two, the mana still goes, whatever there was.
+         cast3=("ult_free@mine.player <= 0", ["stat_damage:mana@mine.player:2"])),
     card("rapidfire", "Rapid Fire", FIRE, tier=2,
          tooltip="Draw a card. If you have Initiative, deal 2 damage and you may redraw this to your hand.",
          flavour="When going for a fire-based strategy, it's important to keep the pressure on.",
@@ -256,7 +280,7 @@ SPELLS = [
          flavour="The Azure Order was focused on water magic until the 1970s, when ice magic suddenly became far more popular.",
          cast=[HEAL(1), "stat_damage:power@mine.player:1"] + GIVE("ice")),
     card("iceflume", "Ice Flume", WATER, tier=2,
-         tooltip="Give an ICE. You may VOID an ICE from your hand. Gain Initiative.",
+         tooltip="Give an ICE. You may VOID an ICE from your hand or discard. Gain Initiative.",
          flavour='"Watch your step!" - Unknown',
          cast=GIVE("ice") + GAIN_INIT + ["show:mine.held.ice:optional"],
          chosen=["move:target:ice_pile"]),
@@ -267,11 +291,11 @@ SPELLS = [
          cast=[DRAW, OFFER_HAND],
          chosen=["destroy:target", HEAL(1)]),
     card("leap", "Leap", WATER, tier=2,
-         tooltip="Gain Initiative and heal 1. If your opponent revealed Fire, you may VOID a card from your hand.",
+         tooltip="Gain Initiative and heal 1. If your opponent revealed Fire, you may VOID a card from your hand or discard.",
          flavour="Azure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe.",
          cast=GAIN_INIT + [HEAL(1)],
-         cast2=("count:fire@enemy.battle >= 1", [OFFER_HAND]),
-         chosen=["move:target:void"]),
+         cast2=("count:fire@enemy.battle >= 1", [OFFER_HELD]),
+         chosen=["move:target:void"], chosen_where=VOIDABLE),
     card("moonstone", "Moonstone", WATER, tier=3,
          tooltip="Heal 4. On discard: heal 2.",
          flavour="The rare and beautiful Moonstone is one of the most coveted in all of Omia.",
@@ -295,10 +319,10 @@ SPELLS = [
          flavour='"TWO sapphires?! Wow, thanks!" - Someone\'s son',
          cast=[DRAW, HEAL(2)]),
     card("ultimate", "Ultimate", WATER, tier=1, ult=True,
-         tooltip="You may VOID a card from your hand. If you did, gain 3 mana.",
+         tooltip="You may VOID an Earth card from your hand. If you did, gain 3 mana.",
          flavour='"He just needs a little splash, is all he needs." - The Splashmaster',
          cast=[OFFER_HAND_OF(EARTH)],
-         chosen=["move:target:void", MANA, MANA, MANA]),
+         chosen=["move:target:void", MANA, MANA, MANA], chosen_where=VOIDABLE),
     card("wave", "Wave", WATER, tier=2,
          tooltip="Gain 3 mana. Your opponent discards their hand and draws a new hand of 4 cards.",
          flavour="A wave does not ask what it washes away.",
@@ -313,10 +337,10 @@ SPELLS = [
          flavour="The Business Demons considered drilling operations at the Spellstorm, but it was deemed too costly.",
          cast=[POWER, MUST_GAIN, MUST_GAIN], chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER]),
     card("bloodstone", "Bloodstone", EARTH, tier=1,
-         tooltip="Gain 1 mana. Take 1 damage. You may VOID a card from your hand. On discard: gain 1 mana.",
+         tooltip="Gain 1 mana. Take 1 damage. You may VOID a card from your hand or discard. On discard: gain 1 mana.",
          flavour='"It\'s best to leave gems that you find in the wild alone, unless you really know what you\'re doing." - Abragail',
-         cast=[MANA, SELF_DMG(1), "show:mine.held:optional"],
-         chosen=["move:target:void"], disc=[MANA]),
+         cast=[MANA, SELF_DMG(1), OFFER_HELD],
+         chosen=["move:target:void"], chosen_where=VOIDABLE, disc=[MANA]),
     card("diamond", "Diamond", EARTH, tier=1,
          tooltip="If you hold 3 or more other cards, discard 3 of them and power up 3 times. On discard: power up.",
          flavour='"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years." - Azura Spellstorm Scholar',
@@ -344,7 +368,8 @@ SPELLS = [
          tooltip="You may VOID a card from your hand; if you do, power up. On discard: power up.",
          flavour='"That there spellstorm water\'s FULL-a gold, I tell ya!" - Prospector',
          simplified="the printed card voids up to 2; here it is one",
-         cast=[OFFER_HAND], chosen=["move:target:void", POWER], disc=[POWER]),
+         cast=[OFFER_HAND], chosen=["move:target:void", POWER],
+         chosen_where=VOIDABLE, disc=[POWER]),
     card("sift", "Sift", EARTH, tier=1,
          tooltip="Power up. Draw 2 cards, then you may discard one of them.",
          flavour="Almost all Earth cards have discard effects.",
@@ -352,7 +377,7 @@ SPELLS = [
          cast=[POWER, "draw_from:mine.deck:mine.hand:2", OFFER_HAND],
          chosen=["destroy:target"]),
     card("spiritcrystal", "Spirit Crystal", EARTH, tier=1,
-         tooltip="Draw a card. Reveal a card from your hand, resolve it and then discard it. On discard: power up.",
+         tooltip="Draw a card. Reveal an Earth card from your hand, resolve it and then discard it. On discard: power up.",
          flavour="It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.",
          cast=[DRAW, OFFER_HAND_OF(EARTH)],
          chosen=["copy:target:activate", "destroy:target"],
@@ -544,19 +569,76 @@ SWAPS = [(a, b) for a in (FIRE, EARTH, WATER) for b in (FIRE, EARTH, WATER) if a
 OFFER_SWAP = "options:" + ",".join("pour_%s_%s" % (a, b) for a, b in SWAPS) + ":optional"
 
 
+# **"A or B" is an offer of two, and the two are cards.** `options:` deals one
+# entry per branch, each carrying what that branch does -- and, since a dealt
+# entry's own `needs` is read, each carrying whether it is on the table at all.
+# A branch that asks a question of its own asks it from the entry, whose `chosen`
+# answers it: the asker is the card standing in the offer, not the card that
+# dealt it.
+# "If you still have 2 Energy Tokens" is asked after the branch has spent what it
+# spends, so it cannot live on the card: an offer written into a cast is split out
+# to run last, which is what keeps every other rider here from reading a hand that
+# has been lent to a question. An if lives in an ability, and the branches call it.
+BREACH = "activate_zone:rules:by_column:breach"
+
+
+def choice_templates():
+    def entry(key, text, tooltip, action, needs=None, chosen=None, where=None):
+        t = {"key": key, "text": text, "tags": ["immutable"], "asset": "auto",
+             "tooltip": tooltip, "play": {"action": list(action)}}
+        if needs: t["play"]["needs"] = list(needs)
+        if chosen:
+            t["chosen"] = {"action": list(chosen)}
+            if where: t["chosen"]["where"] = list(where)
+        return t
+
+    return [
+        # Omar's Hidden Movement: "return a card from your discard to your hand
+        # OR draw". It did both for a long time, which is a different card.
+        entry("omar_recall", "Take a card back",
+              "Return a card from your discard to your hand.",
+              ["show:mine.discard:optional"],
+              needs=["count:spell@mine.discard >= 1"],
+              chosen=["move:target:mine.hand"]),
+        entry("omar_draw", "Draw instead", "Draw a card.", [DRAW]),
+
+        # May's Void Traveler: "a non-Wizard card from your hand, or any card in
+        # the VOID". Only the VOID half was built.
+        entry("may_hand", "From your hand",
+              "Resolve a non-Wizard card from your hand, then put it on the bottom of the Spellstorm Deck.",
+              ["show:mine.hand:optional"],
+              needs=["count:spell@mine.hand >= 1"],
+              chosen=["move:target:spellstorm_deck:bottom", "copy:target:activate"],
+              where=["not_tagged:wizard_spell@target"]),
+        entry("may_void", "From the VOID",
+              "Resolve a card in the VOID, then put it on the bottom of the Spellstorm Deck.",
+              ["show:void:optional"],
+              needs=["count:spell@void >= 1"],
+              chosen=["move:target:spellstorm_deck:bottom", "copy:target:activate"]),
+
+        # May's Data Breach: "lose 1 or 2 Energy Tokens, and power up that many
+        # times". The card read the 2 as a gate rather than as a choice.
+        entry("may_lose1", "Lose 1 Energy", "Lose 1 Energy Token and power up.",
+              ["stat_damage:energy@mine.player:1", POWER, BREACH],
+              needs=["energy@mine.player >= 1"]),
+        entry("may_lose2", "Lose 2 Energy", "Lose 2 Energy Tokens and power up twice.",
+              ["stat_damage:energy@mine.player:2", POWER, POWER, BREACH],
+              needs=["energy@mine.player >= 2"]),
+    ]
+
+
 def swap_templates():
-    # The pouring is an ability rather than the play itself, because a beaker
-    # with less than two in it cannot pour two -- and an ability's `when` is read
-    # where an offered card's `needs` is not. So an entry that cannot be poured
-    # is offered and does nothing, which the card says on its face.
+    # A beaker with less than two in it cannot pour two, and the entry says so
+    # itself: a dealt option's own `needs` gates whether it may be picked, so a
+    # pour there is no room for is offered greyed out rather than offered and
+    # then doing nothing.
     return [{"key": "pour_%s_%s" % (a, b), "text": "%s down, %s up" % (a.title(), b.title()),
              "tags": ["immutable"], "asset": "auto",
              "tooltip": "Lower your %s beaker by 2 to raise your %s beaker by 2. "
-                        "Nothing happens if %s is below 2." % (a.title(), b.title(), a.title()),
-             "play": {"action": ["activate_zone:options:by_column:pour"]},
-             "abilities": [ability("pour", ["stat_damage:%s_el@mine.player:2" % a,
-                                            "stat_gain:%s_el@mine.player:2" % b],
-                                   when=["%s_el@mine.player >= 2" % a])]}
+                        "Needs 2 in the %s beaker." % (a.title(), b.title(), a.title()),
+             "play": {"needs": ["%s_el@mine.player >= 2" % a],
+                      "action": ["stat_damage:%s_el@mine.player:2" % a,
+                                 "stat_gain:%s_el@mine.player:2" % b]}}
             for a, b in SWAPS]
 
 
@@ -570,11 +652,12 @@ def swap_templates():
 
 def wizard(key, name, epithet, elements, health, rating, ult_cost, ult_name,
            ult_tooltip, ult_action, spells, start=(), ult_chosen=None,
-           passive=None, simplified=None, blurb=""):
+           ult_chosen_where=None, passive=None, simplified=None, blurb=""):
     return dict(key=key, name=name, epithet=epithet, elements=elements,
                 health=health, rating=rating, ult_cost=ult_cost,
                 ult_name=ult_name, ult_tooltip=ult_tooltip,
                 ult_action=list(ult_action), ult_chosen=ult_chosen,
+                ult_chosen_where=ult_chosen_where,
                 passive=passive, spells=spells, start=list(start),
                 simplified=simplified, blurb=blurb)
 
@@ -586,7 +669,7 @@ WIZARDS = [
            [DMG(2), MANA],
            simplified="the printed Ultimate gives 2 mana only at an odd number of health; there is no parity test, so it always gives 1",
            blurb="An ex-Business Demon intern who loves to encourage others. Strong early, and gains power passively. A good all-rounder.",
-           start=["draw_from:spellstorm_deck:mine.discard:0"],
+           start=["move:storm_cloud.earth_essence:mine.discard", REFILL_CLOUD],
            spells=[
                card("derby_coffee", "Coffee Run", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If you gained an Earth card, gain Initiative.",
@@ -603,7 +686,7 @@ WIZARDS = [
 
     wizard("eve", "Eve Williams", "Radical Activist", "Fire, Water", 14, 5, 5,
            "Doom Bauble",
-           "Draw 2 cards. You may move a card from your discard to your opponent's discard.",
+           "Draw 2 cards. You may move a CURSE or an ICE from your hand or discard to your opponent's discard.",
            [DRAW, DRAW, "show:mine.held.curse_or_ice:optional"],
            ult_chosen=["move:target:enemy.discard"],
            blurb="A radical activist who loves to blow things up. Aggressive, and can really mess up her opponent's deck.",
@@ -624,12 +707,21 @@ WIZARDS = [
 
     wizard("abra", "Abragail", "Professor of Magical Chemistry", "Water, Earth", 16, 7, 4,
            "Level Up!",
-           "Add a Research Token to your journal. At the start of each battle, every researched power activates.",
-           ["stat_gain:research@mine.player:1"],
+           "Put one of your six Research Tokens on any empty space of your journal. Every"
+           " researched space fires at the start of each battle.",
+           ["show:rules.jspace:optional"],
+           # The eight spaces are already cards, sitting in the rules zone, so the
+           # offer lends the real ones rather than dealing copies of them: the
+           # player picks the space itself. `where` carries both halves of "an
+           # empty space, while she has tokens left" -- neither is a property of
+           # the card alone, which is what `chosen.where` is for.
+           ult_chosen=["stat_set:researched@target:1",
+                       "stat_gain:research@mine.player:1"],
+           ult_chosen_where=["researched@target <= 0", "research@mine.player <= 5"],
            blurb="A professor at Azura Academy who levels up her magic as the game goes on. Great for players who like to plan.",
            spells=[
                card("abra_deepgems", "Deep Gems", WATER, kind="wizard_spell", ult=True,
-                    tooltip="Draw a card and gain 1 mana. You may lose 1 Power Token to resolve and then VOID a card from the Storm Cloud.",
+                    tooltip="Draw a card and gain 1 mana. You may lose 1 Power Token to resolve and then VOID a Water card from the Storm Cloud.",
                     flavour="The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep.",
                     simplified="the Power Token is not spent",
                     cast=[DRAW, MANA, OFFER_CLOUD_OF(WATER)],
@@ -674,14 +766,13 @@ WIZARDS = [
 
     wizard("omar", "Omar Evans", "Ninja and Eco-Terrorist", "Fire, Water", 10, 1, 4,
            "Hidden Movement",
-           "Return a card from your discard to your hand, and draw a card.",
-           [DRAW, "show:mine.discard:optional"],
-           ult_chosen=["move:target:mine.hand"],
+           "Return a card from your discard to your hand, or draw a card.",
+           ["options:omar_recall,omar_draw:optional"],
            simplified="Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine",
            blurb="A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.",
            spells=[
                card("omar_beetle", "Beetle Buster", FIRE, kind="wizard_spell", ult=True,
-                    tooltip="Discard a card from your hand to deal 2 damage.",
+                    tooltip="Discard a Fire card from your hand to deal 2 damage.",
                     flavour="A hero to many, Omar is regarded by the powerful as an eco-terrorist.",
                     cast=[OFFER_HAND_OF(FIRE)],
                     chosen=["destroy:target", DMG(2)]),
@@ -694,10 +785,11 @@ WIZARDS = [
 
     wizard("bunny", "Bunny Wizard", "Healer of Bunny Island", "Water, Earth", 8, 2, 5,
            "Cast a Magic Trick!",
-           "Reveal a card from your hand, resolve it twice and VOID it. All players heal 1.",
+           "Reveal a non-Wizard card from your hand, resolve it twice and VOID it. All players heal 1.",
            ["show:mine.hand:optional"],
            ult_chosen=["copy:target:activate:2", "move:target:void",
                        HEAL(1), "stat_gain:health@opponent:1"],
+           ult_chosen_where=VOIDABLE,
            simplified="Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires",
            blurb="A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.",
            spells=[
@@ -762,10 +854,8 @@ WIZARDS = [
 
     wizard("may", "May Danaris", "Hacker", "Fire, Earth", 12, 4, 6,
            "Void Traveler",
-           "Gain 3 Energy Tokens. You may resolve a card from the VOID, then put it on the bottom of the Spellstorm Deck.",
-           ["stat_gain:energy@mine.player:3", "show:void:optional"],
-           ult_chosen=["copy:target:activate",
-                       "move:target:spellstorm_deck:bottom"],
+           "Gain 3 Energy Tokens. You may resolve a non-Wizard card from your hand or any card in the VOID, then put it on the bottom of the Spellstorm Deck.",
+           ["stat_gain:energy@mine.player:3", "options:may_hand,may_void:optional"],
            # Dangerous Download: at the end of a round she may spend an Energy
            # and a mana to resolve the opponent's revealed Tier II card. A thing
            # a player may do, at a cost, at a moment -- which is a reaction, and
@@ -778,13 +868,13 @@ WIZARDS = [
            blurb="A hacker who used to work for Central Intelligence. She can play cards from the VOID, and is good for players who like to feel like they're cheating.",
            start=["stat_gain:energy@mine.player:2"],
            spells=[
+               # Two "if"s the card was reading as one. The Energy spent is a
+               # choice of two, and "if you still have 2" is asked *after* it --
+               # so losing two is what usually costs you the second half.
                card("may_data", "Data Breach", EARTH, kind="wizard_spell", ult=True,
-                    tooltip="Lose 2 Energy Tokens to power up twice and make your opponent discard a card.",
+                    tooltip="Lose 1 or 2 Energy Tokens to power up that many times. If you still hold 2 Energy, your opponent reveals their hand and you choose what they discard.",
                     flavour='"Yes! I\'m in. Now let\'s see what these idiots have planned next..."',
-                    simplified="the choice of losing 1 or 2 Energy is not offered",
-                    cast2=("energy@mine.player >= 2",
-                           ["stat_damage:energy@mine.player:2", POWER, POWER,
-                            DISCARD_RANDOM("enemy")])),
+                    cast=["options:may_lose1,may_lose2:optional"]),
                card("may_starshot", "Star Shot", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Discard a card to deal 1 damage. Gain 1 mana for each Energy Token you have, then lose 2 Energy.",
                     flavour='"Hey, YOU! Eat this!"',
@@ -801,20 +891,22 @@ WIZARDS = [
 # -- an ask is the last thing an action list can do, and three asks in one list
 # is three overlays on one table.
 JOURNAL = [
-    (1, [MANA], None),
-    (2, [OFFER_HAND], {"action": ["move:target:void"]}),
-    (3, [MANA], None),
-    (4, ["show:mine.discard:optional"],
-        {"where": ["tagged:junk@target"],
-         "action": ["move:target:enemy.discard"]}),
-    (5, [POWER], None),
-    (6, [OFFER_CLOUD], {"action": TAKE_TO_HAND, "where": GAIN_TIER}),
-    (7, [POWER], None),
-    (8, [DRAW], None),
+    (1, "Gain 1 mana.", [MANA], None),
+    (2, "You may VOID a card from your hand.",
+        [OFFER_HAND], {"where": VOIDABLE, "action": ["move:target:void"]}),
+    (3, "Gain 1 mana.", [MANA], None),
+    (4, "Move an ICE, ASH or CURSE from your discard to your opponent's.",
+        ["show:mine.discard.junk:optional"],
+        {"action": ["move:target:enemy.discard"]}),
+    (5, "Power up.", [POWER], None),
+    (6, "You may gain a card from the Storm Cloud at or below your Tier.",
+        [OFFER_CLOUD], {"action": TAKE_TO_HAND, "where": GAIN_TIER}),
+    (7, "Power up.", [POWER], None),
+    (8, "Draw a card.", [DRAW], None),
 ]
 
 # The spaces that ask, in order, which is both the steps and the phases.
-JOURNAL_ASKS = [n for n, _, ch in JOURNAL if ch]
+JOURNAL_ASKS = [n for n, _, _, ch in JOURNAL if ch]
 
 # Oren's potion deck. Each potion costs a number of one Element off the Chemistry
 # Board and does nothing if the beaker is too low, which is a condition and so an
@@ -1070,9 +1162,20 @@ def wizard_templates(w):
     #
     # "whose": "mine" is the whole of "your own card": the announcement is made
     # by whichever seat is resolving, and only that seat's wizard may answer it.
+    # **Exactly one of these is ever payable, and that is the point.** A click on
+    # a card means the one answer it offers; a card offering two is unreachable,
+    # so the paid one steps aside while a pass is in hand rather than standing
+    # beside it. Nothing is lost by that -- free is the better of the two every
+    # time, and the card that hands out the pass says the Ultimate is free.
     ult = {"to": "resolving", "whose": "mine", "in": "wizard",
+           "needs": ["ult_free@mine.player <= 0"],
            "cost": {"mana@mine.player": w["ult_cost"]},
            "action": list(w["ult_action"])}
+    # The same Ultimate, owed differently: Obsidian hands out a one-shot pass and
+    # this is what spends it.
+    ult_free = {"to": "resolving", "whose": "mine", "in": "wizard",
+                "cost": {"ult_free@mine.player": 1},
+                "action": list(w["ult_action"])}
     char = {
         "key": "wiz_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
         "tags": ["wizard_card", w["key"]],
@@ -1081,9 +1184,12 @@ def wizard_templates(w):
                        % (w["epithet"], w["blurb"], w["ult_cost"], w["ult_name"],
                           w["ult_tooltip"], w["health"], w["rating"]),
                        simplified=w["simplified"]),
-        "reactions": [ult] + ([w["passive"]] if w["passive"] else []),
+        "reactions": [ult, ult_free] + ([w["passive"]] if w["passive"] else []),
     }
-    if w["ult_chosen"]: char["chosen"] = {"action": list(w["ult_chosen"])}
+    if w["ult_chosen"]:
+        char["chosen"] = {"action": list(w["ult_chosen"])}
+        if w["ult_chosen_where"]:
+            char["chosen"]["where"] = list(w["ult_chosen_where"])
     out.append(char)
 
     pick_action = [
@@ -1116,11 +1222,12 @@ def wizard_templates(w):
     return out
 
 
-def rules_card(key, text, tooltip, abilities, chosen=None):
+def rules_card(key, text, tooltip, abilities, chosen=None, tags=(), stats=None):
     """A rule with nowhere else to live: a card in an offscreen zone that a
     phase walks. Its `when` is the if the action grammar has no room for."""
-    t = {"key": key, "text": text, "tags": ["immutable"], "tooltip": tooltip,
-         "asset": "auto", "abilities": abilities}
+    t = {"key": key, "text": text, "tags": ["immutable"] + list(tags),
+         "tooltip": tooltip, "asset": "auto", "abilities": abilities}
+    if stats: t["card_stats"] = dict(stats)
     # A rule that asks is the card doing the asking, so the answer comes back to
     # it -- which is why a space that asks needs a rules card to itself.
     if chosen: t["chosen"] = dict(chosen)
@@ -1225,15 +1332,15 @@ def rules_templates():
     # Abragail's journal: every researched space fires at battle start. The
     # three that ask a question run under their own step so a phase can open
     # them one at a time.
-    for n, acts, chosen in JOURNAL:
+    for n, what, acts, chosen in JOURNAL:
         out.append(rules_card(
-            "r_journal_%d" % n, "Abragail's Journal, space %d" % n,
-            tip("At the start of each battle, Abragail activates every power she has researched.",
-                simplified="a Research Token goes on the next space rather than one you choose, so the journal fills in order"),
+            "r_journal_%d" % n, "Space %d - %s" % (n, what.rstrip(".")),
+            tip("%s\n\nSpace %d of Abragail's Research Journal. Put a Research Token here"
+                " with her Ultimate and it fires at the start of every battle from then on."
+                % (what, n)),
             [ability("jr%d" % n if chosen else "bstart", acts,
-                     when=["count:abra@mine.wizard >= 1",
-                           "research@mine.player >= %d" % n])],
-            chosen=chosen))
+                     when=["count:abra@mine.wizard >= 1", "researched@self >= 1"])],
+            chosen=chosen, tags=["jspace"], stats={"researched": 0}))
 
     # A third TOXIC ends the Ultimate whatever the player wanted, and costs one
     # of each junk card on the way out.
@@ -1243,6 +1350,15 @@ def rules_templates():
         [ability("potion_toxic",
                  GAIN_JUNK("ash") + GAIN_JUNK("curse") + GAIN_JUNK("ice") + POTION_END,
                  when=["toxic@mine.player >= 3"])]))
+
+    # The second half of May's *Data Breach*, here rather than on the card
+    # because it is an if asked after the player has answered a question -- and
+    # an offer written into a cast runs last, after every rider.
+    out.append(rules_card(
+        "r_breach", "Data Breach",
+        "If May still holds 2 Energy after paying, her opponent reveals their hand and she chooses what they discard.",
+        [ability("breach", ["show:enemy.hand"], when=["energy@mine.player >= 2"])],
+        chosen={"action": ["destroy:target"]}))
 
     # Croh gains DOOM Tokens only from failure states -- having none, or an
     # empty CURSE pile -- which is the trap his whole design is built around.
@@ -1271,6 +1387,16 @@ def rules_templates():
         "r_round_over", "The round is over",
         "The end of a round, said out loud so that a rule which happens then has something to answer.",
         [ability("round_close", ["emit:round_over"])]))
+
+    # Abragail's BATTLE START. The `bstart` column is already walked once per
+    # seat at the top of every battle, so a wizard power that happens then is a
+    # rules card and its `when` is which wizard is sitting there -- the same
+    # sentence Croh's below, and the same one her journal spaces say with a
+    # Research Token counted as well.
+    out.append(rules_card(
+        "r_research", "Did Her Research",
+        "At the start of each battle, Abragail powers up.",
+        [ability("bstart", [POWER], when=["count:abra@mine.wizard >= 1"])]))
 
     # Croh cannot heal: his healing becomes a CURSE for the other seat. This is
     # the closest the engine gets to a passive -- it is a battle-start sweep
@@ -1635,6 +1761,9 @@ def phases():
 
         {"key": "round_end", "type": "automatic",
          "actions": ["each_seat:destroy:mine.battle",
+                     # An unspent pass does not keep. It is offered while the
+                     # card that gave it is resolving and goes out with the round.
+                     "each_seat:stat_set:ult_free@mine.player:0",
                      "each_seat:activate_zone:rules:by_column:tier_up",
                      "each_seat:activate_zone:rules:by_column:tier_up",
                      "each_seat:activate_zone:rules:by_column:tier_gem"],
@@ -1686,6 +1815,7 @@ def build():
         cards.append(weather_template(w))
     cards += potion_templates()
     cards += swap_templates()
+    cards += choice_templates()
     cards += rules_templates()
 
     # Top-up: three abilities' worth of "draw if you are short", because a
@@ -1820,6 +1950,10 @@ def build():
              "on": ["player"], "start": 0},
             {"key": "toxic", "min": 0, "max": 9, "tags": ["hidden"],
              "on": ["player"], "start": 0},
+            # Obsidian's pass. A one-shot, like Oren's doubled potion, and it
+            # is spent by being a cost rather than by anything checking it.
+            {"key": "ult_free", "min": 0, "max": 1, "tags": ["hidden"],
+             "on": ["player"], "start": 0},
             {"key": "doubled", "min": 0, "max": 1, "tags": ["hidden"],
              "on": ["player"], "start": 0},
             {"key": "battle_round", "min": 0, "max": 9, "tags": ["hidden"],
@@ -1827,6 +1961,8 @@ def build():
             # Read off the card on the shelf rather than the player: what it
             # costs in Tier to take it.
             {"key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"]},
+            # A Research Token, read off the journal space it sits on.
+            {"key": "researched", "min": 0, "max": 1, "tags": ["hidden"]},
         ],
         # A tag is what a card *is*, and these are the kinds the printed cards
         # name that no single tag did.
@@ -1839,6 +1975,10 @@ def build():
         "computed_tags": {
             "has_init": {"needs": ["initiative@self >= 1"]},
             "curse_or_ice": {"any_of": ["curse", "ice"]},
+            # One card in the box, and no tag of its own says so: an element and
+            # the word "essence" name it between them, and a list of conditions
+            # already means and. Derby's opening takes the real card off the shelf.
+            "earth_essence": {"needs": ["tagged:earth@self", "tagged:essence@self"]},
         },
         "styles": {
             "ember": {"color": [0.62, 0.20, 0.16], "hide": ["title"]},

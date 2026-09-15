@@ -15,6 +15,7 @@ local zones   = require("zones")
 local phase   = require("phase")
 local flow    = require("flow")
 local actions = require("actions")
+local predicate = require("predicate")
 
 local M = {}
 
@@ -88,6 +89,16 @@ local function become(seat)
 		actions.execute("set_active_seat:enemy.player", {})
 	end
 	assert(zones.active_seat() == seat, "cannot make " .. seat .. " the active seat")
+end
+
+-- A Research Token on every journal space. The token is a flag on the space
+-- itself now, not a threshold on a counter, so lighting one is naming it.
+local function research(...)
+	local which = { ... }
+	if #which == 0 then for n = 1, 8 do which[n] = n end end
+	for _, n in ipairs(which) do
+		find("r_journal_" .. n).stats.researched = 1
+	end
 end
 
 local function empty_hand(seat)
@@ -718,7 +729,7 @@ end
 function M.test_spellstorm_the_journal_asks_one_question_at_a_time(check)
 	-- One journal is enough to ask with, and two seats cannot both be Abragail.
 	opening(3, "abra", "eve")
-	for _, k in ipairs({ "seat_one", "seat_two" }) do seat_card(k).stats.research = 8 end
+	research()
 
 	actions.execute("each_seat:activate_zone:rules:by_column:bstart", {})
 	check("the silent spaces fire in the battle-start sweep and ask nothing",
@@ -1630,6 +1641,510 @@ function M.test_spellstorm_a_stolen_card_changes_hands(check)
 	check("thrown away again, it comes back to you",
 		entity.get(loot.id).zone_id == zone_of("discard", one).id,
 		tostring(entity.get(entity.get(loot.id).zone_id).seat))
+end
+
+
+-- Three rules the game could not say when it was written, said now with words
+-- the engine grew afterwards. Each was a to-do in the generator that outlived
+-- the reason for it, which is the failure mode a gap list has: a sentence the
+-- format could not carry stays written down long after it can.
+
+
+-- Derby's *Distributor Connection*: "Gain Earth Essence into your discard."
+--
+-- There is one Earth Essence in the box and setup puts it on the shelf, so the
+-- opening takes the real card and the shelf refills behind it -- which is the
+-- whole effect, and why this is a move and not a fresh copy. It was a draw of
+-- nought cards for a long time, from before a tag could name one card.
+function M.test_spellstorm_derby_opens_by_taking_the_earth_essence(check)
+	opening(1, "derby", "eve")
+	local ess = find("earthessence")
+	check("the Earth Essence is in Derby's discard",
+		ess.zone_id == zone_of("discard", "seat_one").id,
+		entity.get(ess.zone_id).key)
+	check("and the shelf was refilled behind it",
+		#zones.find("storm_cloud").cards == 5, #zones.find("storm_cloud").cards)
+	-- "(do not trigger its discard effect)" comes free: On Discard is a `leaves`
+	-- answering a hand, and this card never was in one.
+	check("nobody powered up on the way", predicate.total("power@mine.player", {}) == 0)
+
+	-- Nobody else's opening moves it, which is what makes it his.
+	opening(1, "eve", "abra")
+	check("another table leaves it on the shelf",
+		entity.get(find("earthessence").zone_id).key == "storm_cloud")
+end
+
+
+-- Leap: "you may VOID a card from your hand or discard."
+--
+-- Two places and one scope, which had nowhere to be written until `held` became
+-- a word both zones wear. Bloodstone and Ice Flume were given it; Leap was
+-- missed and went on asking about the hand alone.
+function M.test_spellstorm_leap_reaches_the_discard_as_well(check)
+	opening(3, "derby", "eve")
+	local one = zones.active_seat()
+	local two = one == "seat_one" and "seat_two" or "seat_one"
+	-- The rider only fires against a revealed Fire card.
+	stage_battle(two, "fireball")
+	empty_hand(one)
+	for _, id in ipairs({ unpack(zone_of("discard", one).cards) }) do
+		zones.move_card(id, zone_of("deck", one).id)
+	end
+	zones.move_card(find("arctite").id, hand_of(one).id)
+	zones.move_card(find("moonstone").id, zone_of("discard", one).id)
+
+	local leap = stage_battle(one, "leap")
+	actions.execute("copy:target:activate", { card_id = leap.id, targets = { leap.id } })
+	local up = {}
+	for _, id in ipairs(zones.find("options").cards) do up[entity.get(id).def_key] = true end
+	check("the card in hand comes up", up.arctite)
+	check("and so does the one in the discard", up.moonstone)
+
+	flow.play_card(find("moonstone").id, {})
+	check("VOIDing it takes it out of the discard",
+		entity.get(find("moonstone").id).zone_id == zones.find_id("void"),
+		entity.get(entity.get(find("moonstone").id).zone_id).key)
+end
+
+
+-- Oren's *Unstable Formula*: six ways to pour one beaker into another, and a
+-- beaker holding less than two cannot pour two.
+--
+-- The rule belongs on the entry, and for a while it could not live there: an
+-- offer answered "yes" for anything lying in it, so the gate went into an
+-- ability and a pour with nothing behind it was offered, picked, and did
+-- nothing. A dealt entry is a line the asker wrote, so its own `needs` is the
+-- gate on taking it.
+function M.test_spellstorm_a_pour_needs_something_in_the_beaker(check)
+	opening(3, "oren", "eve")
+	become("seat_one")
+	actions.execute("stat_set:fire_el@mine.player:3", {})
+	actions.execute("stat_set:earth_el@mine.player:1", {})
+	actions.execute("stat_set:water_el@mine.player:0", {})
+
+	local uf = stage_battle("seat_one", "oren_unstable")
+	actions.execute("copy:target:activate", { card_id = uf.id, targets = { uf.id } })
+	local can = {}
+	for _, id in ipairs(zones.find("options").cards) do
+		can[entity.get(id).def_key] = flow.can_play(id)
+	end
+	check("a beaker holding 3 may pour 2", can.pour_fire_earth == true)
+	check("one holding 1 may not", can.pour_earth_fire == false)
+	check("and an empty one may not", can.pour_water_fire == false)
+
+	-- And the pick is the pour: picking it used to spend the choice and run an
+	-- ability that might decline to do anything.
+	for _, id in ipairs({ unpack(zones.find("options").cards) }) do
+		if entity.get(id).def_key == "pour_fire_earth" then flow.play_card(id, {}) end
+	end
+	check("Fire came down by 2", predicate.total("fire_el@mine.player", {}) == 1,
+		predicate.total("fire_el@mine.player", {}))
+	check("and Earth went up by 2", predicate.total("earth_el@mine.player", {}) == 3,
+		predicate.total("earth_el@mine.player", {}))
+end
+
+
+-- Obsidian: "Take 1 damage and lose 2 mana. If you did, you may cast your
+-- Ultimate here without paying its mana cost."
+--
+-- The one waived cost in the box, and it wanted no word for waiving one. A cost
+-- is a map of what is owed, and this Ultimate is owed two ways: the wizard
+-- answers the same announcement twice, once out of mana and once out of the
+-- one-shot pass this card hands out, and the player gives whichever answer they
+-- can. Obsidian does its own announcing, because the [ULT] icon's phase runs
+-- before a card resolves and the pass does not exist yet then.
+function M.test_spellstorm_obsidian_pays_for_an_ultimate_that_mana_could_not(check)
+	opening(7, "derby", "eve")
+	seat_card("seat_one").stats.initiative = 1
+	seat_card("seat_two").stats.initiative = 0
+	-- Three mana: two for Obsidian, and nowhere near Derby's six.
+	seat_card("seat_one").stats.mana = 3
+	stage_battle("seat_one", "obsidian")
+	stage_battle("seat_two", "block")
+	local hurt = seat_card("seat_two").stats.health
+
+	phase.push("duel")
+	flow.settle()
+	check("the card took its two mana", seat_card("seat_one").stats.mana == 1,
+		tostring(seat_card("seat_one").stats.mana))
+	check("and handed out the pass", seat_card("seat_one").stats.ult_free == 1)
+	check("a card with no icon still opened a window",
+		flow.pending_event() ~= nil and flow.pending_event().re_verb == "resolving")
+
+	local answers = flow.usable_reactions()
+	check("one answer, and it is not the one that wants six mana",
+		#answers == 1 and answers[1].index == 2,
+		#answers .. " answer(s)")
+
+	flow.react(answers[1].card, answers[1].index, {})
+	phase.pop()
+	flow.settle()
+	check("the Ultimate fired", seat_card("seat_two").stats.health == hurt - 2,
+		("%d, was %d"):format(seat_card("seat_two").stats.health, hurt))
+	check("and cost no mana -- the 2 it gave back is all that moved",
+		seat_card("seat_one").stats.mana == 2, tostring(seat_card("seat_one").stats.mana))
+	check("the pass is spent", seat_card("seat_one").stats.ult_free == 0)
+end
+
+
+-- And with the mana as well as the pass there is still one answer, because a
+-- card offering two is a card a click cannot reach: the paid Ultimate steps
+-- aside while a pass is in hand rather than standing beside it.
+function M.test_spellstorm_a_free_ultimate_is_the_only_one_offered(check)
+	opening(7, "derby", "eve")
+	seat_card("seat_one").stats.initiative = 1
+	seat_card("seat_two").stats.initiative = 0
+	seat_card("seat_one").stats.mana = 9
+	stage_battle("seat_one", "obsidian")
+	stage_battle("seat_two", "block")
+
+	phase.push("duel")
+	flow.settle()
+	check("he can afford either", seat_card("seat_one").stats.mana == 7
+		and seat_card("seat_one").stats.ult_free == 1)
+	local answers = flow.usable_reactions()
+	check("and is offered one", #answers == 1, #answers .. " answer(s)")
+	check("which a bare click can reach",
+		flow.sole_reaction(answers[1].card) ~= nil)
+	check("it is the free one", answers[1].index == 2)
+end
+
+
+-- With two mana it is a waiver; with one it is a card that hurts you. "If you
+-- did" is asked before the mana goes, which is the only moment that can tell
+-- two mana from none.
+function M.test_spellstorm_obsidian_gives_nothing_away_when_it_cannot_charge(check)
+	opening(7, "derby", "eve")
+	seat_card("seat_one").stats.initiative = 1
+	seat_card("seat_two").stats.initiative = 0
+	seat_card("seat_one").stats.mana = 1
+	stage_battle("seat_one", "obsidian")
+	stage_battle("seat_two", "block")
+
+	phase.push("duel")
+	flow.settle()
+	check("the mana it could take, it took", seat_card("seat_one").stats.mana == 0,
+		tostring(seat_card("seat_one").stats.mana))
+	check("no pass", seat_card("seat_one").stats.ult_free == 0)
+	check("and no window", flow.pending_event() == nil)
+end
+
+
+-- An unspent pass does not keep. It is offered while the card that gave it is
+-- resolving, and goes out with the round.
+function M.test_spellstorm_an_unspent_free_ultimate_expires(check)
+	opening(7, "derby", "eve")
+	become("seat_one")
+	actions.execute("stat_set:ult_free@mine.player:1", {})
+	phase.push("round_end")
+	flow.settle()
+	check("the round took it back", seat_card("seat_one").stats.ult_free == 0,
+		tostring(seat_card("seat_one").stats.ult_free))
+end
+
+
+-- "Wizard Spell Cards can never be VOIDed for any reason" -- printed twice in
+-- the rulebook, and `no_void` sat on all sixteen of them with nothing reading
+-- it. The rule bites where the pick is made, so it is a `chosen.where` on the
+-- six offers that void out of a player's own cards; nothing in the Storm Cloud
+-- is a Wizard Spell Card and the junk piles are junk.
+function M.test_spellstorm_a_wizard_spell_card_cannot_be_voided(check)
+	opening(3, "derby", "eve")
+	become("seat_one")
+	empty_hand("seat_one")
+	local h = hand_of("seat_one")
+	-- Coffee Run is Derby's, and Earth -- so it answers every scope these cards
+	-- narrow by, and only the rule keeps it out.
+	zones.move_card(find("derby_coffee").id, h.id)
+	zones.move_card(find("twopower").id, h.id)
+
+	for _, key in ipairs({ "bloodstone", "shatter", "ultimate" }) do
+		local c = find(key)
+		zones.move_card(c.id, h.id)
+		actions.execute("copy:target:activate", { card_id = c.id, targets = { c.id } })
+		check(key .. " offers the ordinary card", flow.can_play(find("twopower").id))
+		check(key .. " will not take the Wizard Spell Card",
+			not flow.can_play(find("derby_coffee").id))
+		while phase.current().key == "options" and flow.dismiss_offer() do end
+		zones.move_card(c.id, zone_of("discard", "seat_one").id)
+	end
+
+end
+
+
+-- The same rule at the two askers that are not spell cards: Abragail's journal
+-- space 2, which asks through a rules card, and Bunny's Ultimate, whose printed
+-- text says "reveal a non-Wizard card" and means this.
+function M.test_spellstorm_the_journal_and_bunny_will_not_void_a_wizard_card(check)
+	opening(3, "abra", "bunny")
+	become("seat_one")
+	empty_hand("seat_one")
+	zones.move_card(find("abra_newcurriciulum").id, hand_of("seat_one").id)
+	zones.move_card(find("twopower").id, hand_of("seat_one").id)
+
+	research(2)
+	actions.execute("activate_zone:rules:by_column:jr2", {})
+	check("the journal's voiding space asks", phase.current().key == "options",
+		phase.current().key)
+	check("the ordinary card may go", flow.can_play(find("twopower").id))
+	check("her own spell card may not",
+		not flow.can_play(find("abra_newcurriciulum").id))
+	while phase.current().key == "options" and flow.dismiss_offer() do end
+
+	become("seat_two")
+	empty_hand("seat_two")
+	zones.move_card(find("bunny_snowday").id, hand_of("seat_two").id)
+	zones.move_card(find("moonstone").id, hand_of("seat_two").id)
+	actions.execute("show:mine.hand:optional", { card_id = find("wiz_bunny").id })
+	check("Bunny's Ultimate asks", phase.current().key == "options",
+		phase.current().key)
+	check("and offers the ordinary card", flow.can_play(find("moonstone").id))
+	check("but not the one it could never VOID",
+		not flow.can_play(find("bunny_snowday").id))
+end
+
+
+-- Abragail's BATTLE START, *Did Her Research*: a Power Token at the top of every
+-- battle. It was simply missing -- not a shape the engine refused, and nothing
+-- about it wants the `todo` zone, which is for an imaginary card somebody must
+-- play and aim. The `bstart` column is walked once per seat at the start of
+-- every battle and a wizard power that happens then is a rules card whose `when`
+-- is which wizard is sitting there.
+function M.test_spellstorm_abragail_powers_up_at_every_battle_start(check)
+	opening(3, "abra", "eve")
+	check("she starts the first battle a token up",
+		seat_card("seat_one").stats.power == 1,
+		tostring(seat_card("seat_one").stats.power))
+	check("and nobody else does", seat_card("seat_two").stats.power == 0,
+		tostring(seat_card("seat_two").stats.power))
+
+	-- Every battle, not once a game.
+	phase.push("battle_start")
+	flow.settle()
+	check("the next battle adds another", seat_card("seat_one").stats.power == 2,
+		tostring(seat_card("seat_one").stats.power))
+	check("and still nobody else", seat_card("seat_two").stats.power == 0)
+end
+
+
+-- Three cards that print "A **or** B" and did both, or only one.
+--
+-- An "or" is an offer of two, and the two are cards: `options:` deals an entry
+-- per branch, each carrying what that branch does and -- since a dealt entry's
+-- own `needs` is read -- whether it is on the table at all. A branch that asks a
+-- question of its own asks it from the entry, whose `chosen` answers it, because
+-- the asker is the card standing in the offer and not the card that dealt it.
+
+local function offered(key)
+	for _, id in ipairs(zones.find("options").cards) do
+		if entity.get(id).def_key == key then return id end
+	end
+end
+
+-- The four passes the resolve phase makes over a battle spot, in its order.
+local function resolve_battle()
+	for _, col in ipairs({ "cast", "cast2", "cast3", "cast_ask" }) do
+		actions.execute("activate_zone:mine.battle:by_column:" .. col, {})
+	end
+end
+
+local function take(key)
+	local id = offered(key)
+	assert(id, "nothing called " .. key .. " is in the offer")
+	flow.play_card(id, {})
+end
+
+
+-- Omar's *Hidden Movement*: "return a card from your discard to your hand **or**
+-- draw". It drew and then offered the return, which is a different card.
+function M.test_spellstorm_omars_ultimate_is_one_of_two(check)
+	opening(3, "omar", "eve")
+	become("seat_one")
+	local held = #hand_of("seat_one").cards
+	zones.move_card(find("moonstone").id, zone_of("discard", "seat_one").id)
+	actions.execute("options:omar_recall,omar_draw:optional",
+		{ card_id = find("wiz_omar").id })
+	check("both branches are on the table",
+		flow.can_play(offered("omar_recall")) and flow.can_play(offered("omar_draw")))
+
+	take("omar_recall")
+	check("picking the return opens the discard", phase.current().key == "options"
+		and offered("moonstone") ~= nil, phase.current().key)
+	take("moonstone")
+	check("the card comes back to hand",
+		entity.get(find("moonstone").id).zone_id == hand_of("seat_one").id,
+		entity.get(entity.get(find("moonstone").id).zone_id).key)
+	check("and that is all it did -- one card richer, not two",
+		#hand_of("seat_one").cards == held + 1,
+		("%d, was %d"):format(#hand_of("seat_one").cards, held))
+end
+
+
+-- With nothing in the discard there is nothing to return, and the branch says so
+-- itself rather than opening an offer with no answer in it.
+function M.test_spellstorm_a_branch_with_nothing_behind_it_is_not_offered(check)
+	opening(3, "omar", "eve")
+	become("seat_one")
+	for _, id in ipairs({ unpack(zone_of("discard", "seat_one").cards) }) do
+		zones.move_card(id, zone_of("deck", "seat_one").id)
+	end
+	actions.execute("options:omar_recall,omar_draw:optional",
+		{ card_id = find("wiz_omar").id })
+	check("the return is refused", not flow.can_play(offered("omar_recall")))
+	check("the draw is not", flow.can_play(offered("omar_draw")))
+end
+
+
+-- May's *Void Traveler*: "a non-Wizard card from your hand **or** any card in
+-- the VOID". Only the VOID half was built, and the non-Wizard rule with it.
+function M.test_spellstorm_may_may_travel_from_either_place(check)
+	opening(3, "may", "eve")
+	become("seat_one")
+	empty_hand("seat_one")
+	actions.execute("options:may_hand,may_void:optional", { card_id = find("wiz_may").id })
+	check("an empty hand and an empty VOID offer nothing",
+		not flow.can_play(offered("may_hand"))
+		and not flow.can_play(offered("may_void")))
+	while phase.current().key == "options" and flow.dismiss_offer() do end
+
+	zones.move_card(find("may_starshot").id, hand_of("seat_one").id)
+	zones.move_card(find("twopower").id, hand_of("seat_one").id)
+	actions.execute("options:may_hand,may_void:optional", { card_id = find("wiz_may").id })
+	check("cards in hand open that half", flow.can_play(offered("may_hand")))
+	check("the VOID is still empty", not flow.can_play(offered("may_void")))
+
+	take("may_hand")
+	check("the ordinary card may be resolved", flow.can_play(offered("twopower")))
+	check("her own spell card may not -- it is the non-Wizard rule",
+		not flow.can_play(offered("may_starshot")))
+	take("twopower")
+	check("and the card it resolved goes under the Spellstorm Deck",
+		entity.get(find("twopower").id).zone_id == zones.find_id("spellstorm_deck"),
+		entity.get(entity.get(find("twopower").id).zone_id).key)
+end
+
+
+-- May's *Data Breach*: "lose 1 **or** 2 Energy Tokens, and power up that many
+-- times. If you still have 2 Energy Tokens, ..." The card read the 2 as the gate
+-- on paying rather than as a choice, which put both ifs on the same number.
+function M.test_spellstorm_data_breach_asks_how_much_to_spend(check)
+	opening(3, "may", "eve")
+	become("seat_one")
+	actions.execute("stat_set:energy@mine.player:3", {})
+	local db = stage_battle("seat_one", "may_data")
+	local theirs = #hand_of("seat_two").cards
+
+	resolve_battle()
+	check("both prices are offered at 3 Energy",
+		flow.can_play(offered("may_lose1")) and flow.can_play(offered("may_lose2")))
+
+	-- Spending one leaves two, which is what buys the second half.
+	take("may_lose1")
+	check("one Energy went", seat_card("seat_one").stats.energy == 2,
+		tostring(seat_card("seat_one").stats.energy))
+	check("and one Power came", seat_card("seat_one").stats.power == 1,
+		tostring(seat_card("seat_one").stats.power))
+	check("their hand is open to her", phase.current().key == "options"
+		and #zones.find("options").cards == theirs, phase.current().key)
+	flow.play_card(zones.find("options").cards[1], {})
+	check("and she picked what they lost",
+		#hand_of("seat_two").cards == theirs - 1,
+		("%d, was %d"):format(#hand_of("seat_two").cards, theirs))
+end
+
+
+-- The other branch, and the trade the card is made of: spending two leaves one,
+-- so the powering up is all you get.
+function M.test_spellstorm_spending_two_energy_buys_no_breach(check)
+	opening(3, "may", "eve")
+	become("seat_one")
+	actions.execute("stat_set:energy@mine.player:3", {})
+	local db = stage_battle("seat_one", "may_data")
+	local theirs = #hand_of("seat_two").cards
+
+	resolve_battle()
+	take("may_lose2")
+	check("two Energy went", seat_card("seat_one").stats.energy == 1,
+		tostring(seat_card("seat_one").stats.energy))
+	check("and two Power came", seat_card("seat_one").stats.power == 2,
+		tostring(seat_card("seat_one").stats.power))
+	check("their hand stays their own", phase.current().key ~= "options",
+		phase.current().key)
+	check("and they keep every card",
+		#hand_of("seat_two").cards == theirs)
+end
+
+
+-- Abragail's journal: eight spaces, six tokens, and *which six* is the whole of
+-- her. It was one counter doing two jobs -- how many tokens she had spent, and
+-- which spaces were lit, through `research >= n` -- so the spaces were forced
+-- into a fixed order and spaces 7 and 8 were unreachable by a number that stops
+-- at six. Split in two: `research` is the budget, and a token is a flag on the
+-- space it sits on.
+function M.test_spellstorm_a_research_token_goes_where_she_puts_it(check)
+	opening(3, "abra", "eve")
+	become("seat_one")
+	local function level_up()
+		actions.execute("show:rules.jspace:optional", { card_id = find("wiz_abra").id })
+	end
+	local function space(n)
+		for _, id in ipairs(zones.find("options").cards) do
+			if entity.get(id).def_key == "r_journal_" .. n then return id end
+		end
+	end
+
+	level_up()
+	check("all eight spaces come up", #zones.find("options").cards == 8,
+		#zones.find("options").cards)
+	check("including the two a counter could never reach",
+		flow.can_play(space(7)) and flow.can_play(space(8)))
+
+	-- The first token goes on the last space, which is the thing the counter
+	-- made impossible.
+	flow.play_card(space(8), {})
+	check("the token sits on the space she chose",
+		find("r_journal_8").stats.researched == 1)
+	check("and on no other", find("r_journal_1").stats.researched == 0)
+	check("one of the six is spent", seat_card("seat_one").stats.research == 1,
+		tostring(seat_card("seat_one").stats.research))
+
+	level_up()
+	check("a space already researched is not offered again",
+		not flow.can_play(space(8)))
+	check("the empty ones still are", flow.can_play(space(1)))
+	while phase.current().key == "options" and flow.dismiss_offer() do end
+
+	-- And it fires, alone, at the top of a battle.
+	local held = #hand_of("seat_one").cards
+	actions.execute("activate_zone:rules:by_column:bstart", {})
+	check("space 8 draws her a card", #hand_of("seat_one").cards == held + 1,
+		("%d, was %d"):format(#hand_of("seat_one").cards, held))
+end
+
+
+-- Six tokens never fill eight slots, which is the shape of the printed journal
+-- and the reason the Ultimate is the cheapest in the game.
+function M.test_spellstorm_the_journal_runs_out_of_tokens_before_spaces(check)
+	opening(3, "abra", "eve")
+	become("seat_one")
+	local function level_up()
+		actions.execute("show:rules.jspace:optional", { card_id = find("wiz_abra").id })
+	end
+	for _, n in ipairs({ 1, 2, 3, 4, 5, 6 }) do
+		level_up()
+		for _, id in ipairs({ unpack(zones.find("options").cards) }) do
+			if entity.get(id).def_key == "r_journal_" .. n then flow.play_card(id, {}) end
+		end
+	end
+	check("six tokens are spent", seat_card("seat_one").stats.research == 6,
+		tostring(seat_card("seat_one").stats.research))
+
+	level_up()
+	check("and the seventh Ultimate has nowhere to put one",
+		phase.current().key ~= "options", phase.current().key)
+	check("so two spaces stay dark",
+		find("r_journal_7").stats.researched == 0
+		and find("r_journal_8").stats.researched == 0)
 end
 
 return M

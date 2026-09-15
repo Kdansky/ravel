@@ -158,12 +158,32 @@ states that grant them. What each still rounds off is below.
   choosing.
 - **Sift** draws 2 and lets you discard one, rather than looking at the top 2 and
   putting them back in order.
-- **Obsidian** takes the damage and the mana but does not grant a free Ultimate —
-  there is no way to waive a cost.
-- **The Research Journal fills in order.** The printed Ultimate puts a Research
-  Token *on a space of your choice*; here it is a count, so the eight spaces come
-  on 1, 2, 3… in order. All eight work, including the three that ask a question,
-  which get a phase each — an offer is one at a time.
+- **~~Obsidian does not grant a free Ultimate~~** — done, and no word was needed
+  for waiving a cost. A cost is a map of what is owed, so owing it differently is
+  **answering the same announcement twice**: the wizard carries two reactions to
+  `resolving`, one costing mana and one costing the one-shot pass Obsidian hands
+  out. Exactly one is ever payable, because a bare click means the single answer
+  a card offers and a card offering two is unreachable — so the paid one steps
+  aside with a `needs` while a pass is in hand. Obsidian also does its own
+  announcing, which it had never done: the `[ULT]` icon's phase runs *before* a
+  card resolves, and the pass does not exist yet then.
+- **~~The Research Journal fills in order~~** — done, and the counter was hiding
+  a worse fault than the one it owned up to. **One number was answering two
+  questions**: how many of her six tokens were spent, and which spaces were lit,
+  through `research >= n`. So the spaces could not disagree with the order, and a
+  threshold of seven was unreachable by a number that stops at six — spaces 7
+  (`[POWER]`) and 8 (`[DRAW]`) were generated, carried a tooltip saying they fire
+  at battle start, and could never be switched on by anything.
+
+  Split in two and both go: `research` is the budget alone, and a token is a
+  flag on the space it sits on. **The eight spaces were already cards**, sitting
+  in the rules zone, so the Ultimate lends the real ones rather than dealing
+  copies — `show:rules.jspace` — and the player picks the space itself off a row
+  of eight, which is what the printed journal looks like. One new stat
+  (`researched`, read off the card, exactly Splendor's `reserved@target`), one
+  new tag, no new cards. `chosen.where` carries both halves of "an empty space,
+  while she has tokens left", neither of which is a property of the card alone.
+  Each space now prints what it does, because a choice between eight has to.
 - **Oren is exact but for one corner.** *I Think I Just Drank Gasoline* doubles
   the next potion — the one card in the game that reaches forward to the next,
   which it does with a flag it sets and the next potion spends. *Dragon Elixir*
@@ -177,6 +197,59 @@ states that grant them. What each still rounds off is below.
   says so on its face.
 - **Omar's Shuriken** takes Initiative instead of "this card ALWAYS goes first".
   Resolution order is the Initiative Tracker and nothing else, which is close.
+- **~~Five cards that understated their own code~~** — done. Mana Font and Deep
+  Gems said "a card in the Storm Cloud" and were already `storm_cloud.water`;
+  *Ultimate* and Spirit Crystal said "a card from your hand" and were already
+  `mine.hand.earth`; Beetle Buster said "a card" and was already
+  `mine.hand.fire`. **The engine was right and the card was lying**, which is the
+  harder half of this to notice: a rule that is too strict shows up the first
+  time somebody tries the move, and a rule the text forgot to mention never does.
+  Journal space 4 got the other half of the same treatment — it showed the whole
+  discard and let you take only junk, where `mine.discard.junk` shows only what
+  may be taken, the sentence Soothing Rain already said.
+- **~~Three Ultimates that print "A or B"~~** — done, and the shape is worth
+  keeping: **an "or" is an offer of two, and the two are cards.** `options:`
+  deals an entry per branch, each carrying what that branch does and — since a
+  dealt entry's own `needs` is read — whether it is on the table at all, so
+  *return a card from your discard* is simply not offered when the discard is
+  empty. A branch that asks a question of its own asks it from the entry, whose
+  `chosen` answers it: the asker is the card standing in the offer, not the card
+  that dealt it. Omar's *Hidden Movement* did both halves; May's *Void Traveler*
+  offered only the VOID; May's *Data Breach* read "lose 1 or 2" as a gate on
+  losing 2 rather than as a choice, which put both of its ifs on one number.
+- **~~Abragail never did her research~~** — done. Her BATTLE START, one
+  `[POWER]` at the top of every battle, was simply missing: not a shape the
+  engine refused, and nothing about it wants the `todo` zone, which is for an
+  imaginary card somebody must play and aim. The `bstart` column is already
+  walked once per seat at the start of every battle, so a wizard power that
+  happens then is a rules card whose `when` is which wizard is sitting there —
+  the same sentence Croh's *Accursed* says, and the one her journal spaces say
+  with a Research Token counted as well.
+- **~~A Wizard Spell Card can be VOIDed~~** — done, and it was never an engine
+  gap: `no_void` sat on all sixteen of them with nothing reading it, which is a
+  tag that protects nothing. **The rule lives on the asker**, because that is
+  where the two ways of asking are gated — a `target` spec narrows by `tags`,
+  an offer gates its pick with `chosen.where`. Puzzle Strike had solved the same
+  shape twice over for its Puzzle chips and the cookbook had neither spelling;
+  it does now. Six sites here, all offers: Bloodstone, Shatter, *Ultimate*,
+  Leap, journal space 2 and Bunny's Ultimate — nothing in the Storm Cloud is a
+  Wizard Spell Card and the junk piles are junk. Bunny's "reveal a **non-Wizard**
+  card" is the same rule and came with it.
+
+  **VOID is not `purge:` here.** It is a zone: the Spellstorm Deck reshuffles
+  from it when it runs out and May resolves cards out of it, so voiding is
+  `move:target:void` and the card is still in the game. The one `purge:` in
+  Spellstorm takes a wizard off the roster after somebody picks them.
+- **~~Leap voids from your hand only~~** — done. "From your hand or discard" is
+  one place and always was, once `held` became a word both zones wear. Bloodstone
+  and Ice Flume were given it and Leap was missed, which is the same staleness as
+  the entry above wearing different clothes.
+- **~~Derby gains nothing at game start~~** — done. *Distributor Connection* was
+  `draw_from:spellstorm_deck:mine.discard:0`, a draw of nought cards, written
+  before a tag could name one card. There is one Earth Essence in the box and
+  setup puts it on the shelf, so the opening takes the real card and the shelf
+  refills behind it. "(Do not trigger its discard effect)" comes free: On Discard
+  is a `leaves` answering a hand, and this card never was in one.
 - **Glittering Dust only draws.** "Earth cards do nothing when resolved but heal
   2" replaces every card of an Element for the round, which is a continuous
   effect. It is the last weather card that does not do what it says; *Energy
@@ -226,19 +299,31 @@ Worth weighing against `todo.md` rather than working around again:
    from `cards.behaviour`. So a zone can say *what* playing a card there does but
    not *whether* you may. Both of this game's gates moved to abilities, whose
    `when` **is** read (`flow.lua:997`). Worth making the two agree.
-2. **No parity, modulo or division.** Derby's Ultimate ("if you have an odd number
+2. **An offer opened from inside a `copy:` is swept.** An `options:` entry whose
+   own action asks a question works when the round resolves the card, and loses
+   the question when another card resolves it — Spirit Crystal on May's *Data
+   Breach* powers her up and never opens the opponent's hand. The A3 fix put the
+   offer's leftovers home before a `chosen` ran; an entry's **play** action is
+   the same nesting through the other door. One ordering rule, and the card is
+   right in the ninety per cent of cases where nobody copies it.
+3. **`copy:<scope>:activate` has no cursor, so nothing may follow it** if the
+   copied card asks. *Resolve it, then put it on the bottom of the deck* ran the
+   move while the question was still open and lost its target — which had been
+   true of *Void Traveler* since it was written and nobody had noticed. Said in
+   the other order it works, and that is the whole fix here, but a card whose
+   follow-on **must** come after would have nowhere to put it.
+4. **No parity, modulo or division.** Derby's Ultimate ("if you have an odd number
    of health") has no expression at all.
-3. **An offer cannot be narrowed by a condition on the offered cards** the way a
+5. **An offer cannot be narrowed by a condition on the offered cards** the way a
    `target` spec can with `where`. `chosen.where` exists and gates what may be
    *taken*, but the cards still all show, and it cannot be written per-offer.
-4. **An `options:` entry's own `needs` is not read.** `flow.can_play` answers
-   `pickable()` for anything lying in an offer, and `pickable` only asks the
-   *asker's* `chosen.where` — which the schema says does not cover a dealt entry,
-   since "narrowing a list you wrote is writing a shorter list". So an entry that
-   carries its own rule has nowhere to put it, and Oren's pours put theirs in an
-   ability. One line in `pickable`: a dealt entry falls through to its `needs`.
-   The same fault as 1, in the other half of the offer.
-5. **A `chosen` action cannot ask what it was handed.** `move_target_to:` names
+4. ~~**An `options:` entry's own `needs` is not read.**~~ It is —
+   `flow.lua:112` gives a minted card its own `cost` and `needs`, and
+   `AUTHORING.md` has said so under *An answer may have a price* for as long.
+   Oren's pours kept the ability workaround anyway, with a comment claiming the
+   engine refused what it had stopped refusing. **This is the failure mode a gap
+   list has**: a sentence the format could not carry outlives the reason for it.
+6. **A `chosen` action cannot ask what it was handed.** `move_target_to:` names
    one destination, and a rule whose destination depends on the pick has to name
    the offer zone and move by tag — three lines, two of which find nothing (see
    *Soothing Rain*, and AUTHORING §*Routing the pick by what it is*). The word it

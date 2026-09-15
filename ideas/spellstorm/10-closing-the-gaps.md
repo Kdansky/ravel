@@ -258,16 +258,31 @@ closed on purpose. Division has no customer here at all.
 
 **Size:** small. Do not generalise it.
 
-### D4. Obsidian does not grant a free Ultimate
+### D4. Obsidian does not grant a free Ultimate — done, and `pays_for` was the wrong answer
 
-**What it costs.** "there is no way to waive a cost."
+`pays_for` has since landed, and this entry's proposal — a one-shot `ult_free`
+stat that stands in for mana — turns out **not** to be Obsidian. A cost drains
+its own stat before any substitute, so a player holding the mana pays the mana
+and the waiver does nothing; and a cost written `select:` to let the player
+choose the pool offers every split of six between the two, which is a question
+nobody asked.
 
-**Proposal — a stat that pays.** [20](../20-puzzle-strike.md)'s `pays_for`
-already proposes a stat that stands in for another when a cost is checked; a
-one-shot `ult_free` stat that `pays_for` mana is Obsidian exactly. Ties to
-[25](../25-derived-stats.md).
+**What it got instead: two ways to owe the same thing.** Nothing waives a cost
+because nothing has to — a cost is a map of what is owed, and owing it
+differently is answering the same announcement twice. The wizard carries two
+reactions to `resolving`, one costing mana and one costing the pass. No new word,
+and `ult_free` is an ordinary stat spent by being a cost.
 
-**Size:** small once `pays_for` lands; nothing to do before then.
+**The trap, and it is a real one.** `flow.sole_reaction` returns nothing when a
+card offers two usable answers, and nothing yet asks which — so a wizard who
+could afford both would have been unable to use their Ultimate at all. The paid
+reaction carries `needs: ["ult_free@mine.player <= 0"]` and steps aside. Free is
+the better of the two every time, so nothing is lost by choosing for the player.
+
+**And Obsidian had a second miss nobody had recorded**: it never opened a window.
+The `[ULT]` icon's phase runs before a card resolves, so a pass granted *by* the
+resolution cannot be spent in it — Obsidian announces `resolving` itself, from
+the same step that grants the pass.
 
 ### D5. Omar's Shuriken "ALWAYS goes first"
 
@@ -426,7 +441,16 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 |---|---|---|---|
 | 1 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
 | 2 | C3, D2, D3 | small each | one card or three apiece |
-| 3 | **An offered card's own `needs`** | one line | `pickable` answers for every card in an offer and only asks the asker's `chosen.where`; a dealt entry should fall through to its `needs`. Oren's pours want it, and it is the same fault as F-the-zone-granted-play in the other half of the offer |
-| 4 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
-| — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1 | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, and the narrowed offers |
+| 3 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
+| — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1, **D4** | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, the narrowed offers, and Obsidian's free Ultimate |
+
+**Three entries came off this list without anybody closing them**, which is twice
+this document has had to say so. An offered entry's own `needs` was read all
+along (`flow.lua:112`, and `AUTHORING.md` under *An answer may have a price*);
+Leap's "hand or discard" was buildable the moment `held` became a word both zones
+wear; and Derby's opening was a draw of nought cards from before `create:` and
+before a tag could name one card. **A gap list has to be re-read against the
+engine, not kept** — a sentence the format could not carry outlives the reason
+for it, and the comment in the generator goes on asserting the old limit long
+after somebody lifted it.
 | — | B1's Glittering Dust, C4, F1, F5 | large or niche | **not recommended**, and each says why above |

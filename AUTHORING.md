@@ -3815,7 +3815,8 @@ qualify can be clicked; the rest are shown and dimmed.
 
 A card the offer **dealt** is what runs when it is taken, so the `cost` and the
 `needs` written on it are the cost and the gate of that answer. No word beside
-`cost`: an option is a card, and a card has always said what it costs.
+`cost`: an option is a card, and a card has always said what it costs, and a card
+has always said when it may be played.
 
 ```json
 { "key": "one_beast", "text": "A Beast",
@@ -3861,7 +3862,8 @@ Two things fall out of it, both on purpose:
   entirely — the same rule as an empty hand being nothing to look at.
 - **Only borrowed cards are asked.** An entry `options:` dealt is a line you
   wrote from your own list, and narrowing a list you wrote is writing a shorter
-  list.
+  list. It carries its own `needs` and `cost` instead, both read as it is
+  offered. → *An answer may have a price*
 
 #### Only one of them: `random.`
 

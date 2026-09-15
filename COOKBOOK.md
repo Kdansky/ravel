@@ -520,6 +520,27 @@ the stock ticks up. Reach for it only when nobody may ask — a token, a swept h
 killed by an effect and a unit killed by damage must take the same road, or only one of them
 sets off the death triggers.
 
+### This card can never be trashed, by anything.
+
+```json
+"target": { "type": "card", "zones": ["hand"], "tags": ["trashable"] }
+```
+
+```json
+"chosen": { "where": ["not_tagged:puzzle@target"], "action": ["purge:target"] }
+```
+
+**The rule lives on the asker, not on the card**, because the two ways of asking are gated in
+different places: a `target` spec narrows its pool by `tags`, and an offer gates its pick with
+`chosen.where`. A tag nothing reads protects nothing — write the word on the cards, then say it
+at every site that removes one.
+
+Say it positively where you can (`trashable` on the few kinds that may go) and negatively where
+the exceptions are fewer (`not_tagged:` on the one kind that may not); Puzzle Strike does both,
+for chips and for Puzzle chips. If the offer should not even show the card, narrow the **scope**
+instead — `show:mine.hand.trashable` — and keep `where` for what it alone can ask: a fact about
+the *player* rather than about the card.
+
 ### Destroy the four lowest-tech patrollers.
 
 ```json
@@ -1157,6 +1178,24 @@ idiom for upkeep, arrival and death rules that belong to the *game* rather than 
 `to` is the announcement, `whose` says whose action it answers (`mine`, `enemy`, `anyone`),
 `from` is where the answering card must be lying, and `@event` is the card it is about.
 
+### A card that lets you use your Ultimate without paying for it.
+
+```json
+"reactions": [{ "to": "resolving", "whose": "mine", "in": "wizard",
+                "needs": ["free_use@mine.player <= 0"],
+                "cost": { "mana@mine.player": 6 }, "action": ["damage:hp@enemy.player:2"] },
+              { "to": "resolving", "whose": "mine", "in": "wizard",
+                "cost": { "free_use@mine.player": 1 }, "action": ["damage:hp@enemy.player:2"] }]
+```
+
+Nothing waives a cost, and nothing needs to: a cost is a map of what is owed, and owing it
+differently is answering the same announcement twice. The card that grants the free use hands
+out one point of a stat and the second reaction spends it.
+
+**Keep one of the two payable at a time.** A bare click means the single answer a card offers,
+so the paid one steps aside with a `needs` rather than standing beside the free one — a card
+offering two answers is a card no click can reach.
+
 ### Announce that this card was played.
 
 ```json
@@ -1196,6 +1235,61 @@ owner, so the chosen card can act back on whoever asked:
 ```json
 { "key": "opt_gold", "text": "Gain 2", "play": { "action": ["stat_gain:gold:2"] } }
 ```
+
+### One of the choices is only there if you own a Farm.
+
+```json
+{ "key": "opt_raid", "text": "Raid", "tags": ["immutable"],
+  "play": { "needs": ["count:farm@mine.army >= 1"],
+            "action": ["stat_gain:gold@mine.player:3"] } }
+```
+
+A dealt entry's `needs` is read as it is offered, the same way its `cost` is (*Boost 3*, above): an
+entry you may not take comes up and refuses the click. Put the gate here rather than in an ability
+the entry runs — an ability that declines to fire has already spent the player's choice. It is not
+`chosen.where`, which answers the other question: what may be taken out of a `show:`, where the
+cards are somebody else's and carry nothing of yours.
+
+### Return a card from your discard, **or** draw a card.
+
+```json
+"action": ["options:opt_recall,opt_draw:optional"]
+```
+
+```json
+{ "key": "opt_recall", "text": "Take a card back", "tags": ["immutable"],
+  "play": { "needs": ["count:card@mine.discard >= 1"],
+            "action": ["show:mine.discard:optional"] },
+  "chosen": { "action": ["move:target:mine.hand"] } },
+{ "key": "opt_draw", "text": "Draw instead", "tags": ["immutable"],
+  "play": { "action": ["draw_from:mine.deck:mine.hand:1"] } }
+```
+
+**An "or" is an offer of two, and the two are cards.** Each entry carries what its branch does,
+and its `needs` says whether that branch is on the table at all — *return a card* is simply
+refused when the discard is empty, so the player is never offered a branch with nothing behind it.
+
+**A branch may ask a question of its own.** The second offer belongs to the *entry*, so the
+entry's `chosen` answers it — the asker is the card standing in the offer, not the card that
+dealt it. One caveat: nothing may follow that question inside the same branch, because an action
+list has no cursor. Write *"resolve it, then bury it"* as the move and then the resolve.
+
+### Put a marker on one of these eight spaces, and it stays there.
+
+```json
+"action": ["show:rules.jspace:optional"],
+"chosen": { "where": ["researched@target <= 0", "tokens@mine.player <= 5"],
+            "action": ["stat_set:researched@target:1", "stat_gain:tokens@mine.player:1"] }
+```
+
+**The board is already cards**, so lend the real ones rather than dealing copies of them: the
+player picks the space itself and the mark stays on it. A 0-or-1 stat declared on the card is the
+marker, and `where` asks both halves of *"an empty space, while you have markers left"* — one
+about the card, one about the player, which is the pair only `where` can ask together.
+
+**Do not spell this as one counter.** `marks >= n` per space reads as the same rule and is not:
+one number then answers both "how many" and "which of them", so the spaces can never disagree
+with their own order, and any space past the counter's ceiling can never light at all.
 
 ### Choose one of the cards in that row.
 
