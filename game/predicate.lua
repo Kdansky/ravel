@@ -206,6 +206,27 @@ function M.seat_of(e)
 	return M.owner_of(e)
 end
 
+-- **What each target was standing in when it was pointed at.** A card that moves
+-- between the pick and the resolution may or may not still be the thing the
+-- player aimed at, and the zone it sits in cannot settle that: Codex's whole
+-- combat is army → duel and home again, so a bolt keyed to the zone would fizzle
+-- every time the defender moved. The *standing* is what changes when the thing
+-- stops being aimable — board → grave, board → exile — and stays put through
+-- every move that is only the board rearranging itself.
+--
+-- An array beside the targets rather than a map keyed on them: a record waits on
+-- the stack across a save and a card id used as a key comes back a string.
+-- "gone" is for a card that is already nowhere, which never equals a standing.
+function M.standing(ids)
+	local out = {}
+	for i, id in ipairs(ids or {}) do
+		local e = entity.get(id)
+		local z = e and e.zone_id and entity.get(e.zone_id)
+		out[i] = z and z.status or "gone"
+	end
+	return out
+end
+
 local function owned_by(e, owner, active)
 	if owner == nil or owner == "anyone" then return true end
 	local seat = M.seat_of(e)
@@ -321,9 +342,20 @@ function M.entities_in_scope(scope, ctx, owner, quant)
 		local e = ctx and ctx.answering and entity.get(ctx.answering)
 		if e then out[1] = e end
 	elseif scope == "target" then
-		for _, id in ipairs(ctx and ctx.targets or {}) do
+		-- A target whose standing has changed since it was aimed at is no longer
+		-- what was pointed at, so it drops out and the rest of the action still
+		-- runs. That is what makes an Illusion dying of being targeted leave the
+		-- spell with nothing to hit instead of chasing the corpse into the
+		-- discard, and it answers the older case the same way: a reaction that
+		-- kills a target does not hand the spell a body. Unpinned targets — an
+		-- arrival, a choice out of an offer — are not aims and are left alone.
+		local aimed = ctx and ctx.aimed
+		for i, id in ipairs(ctx and ctx.targets or {}) do
 			local e = entity.get(id)
-			if e then out[#out + 1] = e end
+			local z = e and e.zone_id and entity.get(e.zone_id)
+			if e and (not aimed or aimed[i] == nil or aimed[i] == (z and z.status or "gone")) then
+				out[#out + 1] = e
+			end
 		end
 	elseif scope == "event" then
 		-- The subject of the event a reaction is answering: the card that was

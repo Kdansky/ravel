@@ -41,18 +41,27 @@ Blue is in and playable — Bigby, Onimaru and Sirus all win games against red a
 green. What it could not say, worst first. The full rule for each card is on the
 card, in its own tooltip.
 
-- **An aim has no answering moment, so an Illusion cannot die of being pointed
-  at.** *"Illusions die when they are targeted by spells or abilities"* is the
-  whole of the Truth spec: **Spectral Aven, Hound, Flagbearer, Roc, Tiger**,
-  **Reteller of Truths**, **Liberty Gryphon**, and the three cards that hand the
-  word out — **Dreamscape**, **Hallucination**, **Macciatus** (who takes it
-  away). `receive.needs` already reads an aim and answers yes or no; what is
-  missing is the *write* half. A zone has both (`accepts` and `on_receive`); a
-  card and a tag have only the first. `receive: { needs: [...], action: [...] }`,
-  run on each chosen target once the aim resolves, is the same word finished —
-  and it would also give **Guardian of the Gates** its disable-on-damage and
-  **Spectral Flagbearer** half of its compulsion. Ten cards, and the customer
-  [30](30-things-that-are-true.md)'s open question 4 was waiting for.
+- ~~An aim has no answering moment, so an Illusion cannot die of being pointed
+  at.~~ **Built.** `receive` carries three fields now — `needs` gates the aim,
+  `when` gates the answer, `action` is the answer — and the Truth spec is one
+  line on a tag: `"illusion": { "receive": { "when": ["verb:cast"],
+  "action": ["destroy:self"] } }`. The eight cards that wear it lost their NOT
+  MODELLED notes. `when` had to exist because `needs` settles the wrong
+  question: an Illusion is targetable by everything and dies only to some of it,
+  and Codex aims 3 times with `attack` as well as 91 with `cast`.
+
+  Still open, and each its own word rather than this one:
+
+  - **Macciatus** — *"Your Illusions get +1/+1 and no longer die when a spell or
+    ability aims at them."* The exception has to be asked from the Illusion's
+    side, and `mine`/`enemy` are read against whoever is up rather than against
+    the card being asked about, so there is no way to say *your*. Wants an owner
+    scope anchored on `@self`.
+  - **Dreamscape** and **Hallucination** — *"All tech 0, I and II units are
+    Illusions"* and *"Up to two tech 0, I or II units are Illusions this turn"*.
+    Handing a tag out, which nothing does; the dying they would hand out is in.
+  - **Guardian of the Gates** and **Spectral Flagbearer**'s compulsion, both of
+    which the word now reaches and neither of which is written yet.
 
 - **A card cannot become another card and come back.** `transform` destroys and
   creates, keeping no memory of what it replaced. **Manufactured Truth** and

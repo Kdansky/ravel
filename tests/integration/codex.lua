@@ -2162,4 +2162,41 @@ function M.test_codex_the_sacrifice_pays_and_opens_the_codex(check)
 		tostring(count_in("options")))
 end
 
+-- The Truth spec, whose whole keyword is one line on a tag now. An Illusion is
+-- targetable by everything and dies only to what *aims* at it with a spell or an
+-- ability, which is why the write half needed a "when" of its own: "needs" would
+-- have refused the aim instead of answering it, and Codex aims with "attack" too.
+function M.test_codex_an_illusion_dies_of_being_aimed_at(check)
+	start("pick_jaina", "pick_argagarg")
+	local hero  = in_zone("command", "jaina")
+	local spell = require("cards").create("fire_dart", zones.find_id("hand", "mine"))
+	local aven  = summon("spectral_aven", "enemy.army")
+
+	use(hero, "summon")
+	flow.settle()
+	seat("south").stats.gold = 9
+	flow.play_card(spell.id, { aven.id })
+	flow.settle()
+	check("the aven died of the aim", entity.get(aven.id).zone_id ~= zones.find_id("army", "enemy"))
+	-- Not of the three damage: it has 2 hp and a corpse at nought would read the
+	-- same, so the untouched stat is what says which of the two killed it.
+	check("and not of the dart", entity.get(aven.id).stats.hp == 2,
+		tostring(entity.get(aven.id).stats.hp))
+end
+
+-- And being attacked is not being aimed at, which is the half the keyword would
+-- have got wrong if the write half answered every aim: Codex's combat is a
+-- target spec too.
+function M.test_codex_an_illusion_survives_being_attacked(check)
+	start("pick_jaina", "pick_argagarg")
+	local tiger = summon("spectral_tiger", "enemy.army")   -- 5/5
+	local cub   = summon("tiger_cub", "army")              -- 2/2
+	use(cub, "strike_free", { tiger.id })
+	flow.settle()
+	check("the tiger is still on the board", entity.get(tiger.id).zone_id == zones.find_id("army", "enemy"),
+		tostring(entity.get(tiger.id).zone_id))
+	check("and took the fight rather than the keyword",
+		entity.get(tiger.id).stats.hp == 3, tostring(entity.get(tiger.id).stats.hp))
+end
+
 return M

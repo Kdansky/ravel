@@ -262,6 +262,45 @@ function M.accepts(card_entity)
 	return out
 end
 
+-- **What a card does about having been aimed at**, gathered from the same four
+-- places as `accepts` above, because the two are one word's two halves: `accepts`
+-- answers whether the aim may be made and this answers the aim that was. A zone
+-- has had both since it had either; a card and a tag had only the first, which
+-- is why an Illusion could refuse to be pointed at and could not die of it.
+--
+-- **Blocks and not one flat action list**, because each source brought its own
+-- `when`: "dies to a spell" and "disabled by anything" are two keywords one card
+-- may wear at once, and flattening them would run both gates or neither.
+--
+-- Unlike `accepts` the order is load-bearing — these are actions and they run in
+-- sequence — so it is the order a reader would guess: the card's own block, then
+-- what its zone lends it, then its printed keywords, then what it is wearing
+-- right now.
+function M.on_receive(card_entity)
+	local out = {}
+	local function take(d)
+		if d and d.on_receive then out[#out + 1] = { needs = d.on_receive_needs, action = d.on_receive } end
+	end
+	local def = M.def(card_entity)
+	take(def)
+	local z = card_entity and card_entity.zone_id and entity.get(card_entity.zone_id)
+	for _, tag in ipairs(z and z.applies or EMPTY) do take(declaration.G.tag_defs[tag]) end
+	for _, tag in ipairs(type(def) == "table" and type(def.tags) == "table" and def.tags or EMPTY) do
+		take(declaration.G.tag_defs[tag])
+	end
+	-- Sorted, unlike the gather above it: a list of conditions is an and and the
+	-- order says nothing, while two computed keywords that both act would run in
+	-- whatever order pairs felt like and a replay would not match itself.
+	local worn = {}
+	for tag in pairs(declaration.G.computed_tags or EMPTY) do
+		local td = declaration.G.tag_defs[tag]
+		if td and td.on_receive and require("tags").entity_has(card_entity, tag) then worn[#worn + 1] = tag end
+	end
+	table.sort(worn)
+	for _, tag in ipairs(worn) do take(declaration.G.tag_defs[tag]) end
+	return out
+end
+
 -- Every reaction a card carries, in the order it is asked. Its own, written on
 -- the card, come first; tag-granted and zone-applied reactions are a later
 -- refinement (a keyword that reacts, a zone that makes what lies in it react).

@@ -33,7 +33,12 @@ local MOMENTS = {
 	play      = { cost = "cost", needs = "needs", target = "target", phases = "phases",
 		action = "on_play", spent = "spent", compute = "compute" },
 	challenge = { needs = "requires", pass = "on_pass", fail = "on_fail" },
-	receive   = { needs = "accepts", action = "on_receive" },
+	-- Three fields because the block has two gates and they gate different things.
+	-- "needs" is whether the aim may be made at all, asked of every candidate
+	-- before a player may point; "when" is whether the card answers the aim that
+	-- was. An Illusion is targetable by everything and dies only to some of it,
+	-- so one list could not have said both.
+	receive   = { needs = "accepts", when = "on_receive_needs", action = "on_receive" },
 	-- The arrival counterpart to a card's "leaves", on the zone that receives.
 	-- Separate from "receive" and not a field on it: "receive" fires on every
 	-- landing in any zone -- which is what a discard stamping its owner wants

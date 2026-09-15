@@ -2283,6 +2283,7 @@
         ]
       }
     },
+    "illusion": { "receive": { "when": ["verb:cast"], "action": ["destroy:self"] } },
     "mimic_ward": {
       "tooltip": "Untargetable, copied from somebody else who has it.",
       "receive": {
@@ -5765,7 +5766,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying. Illusion: dies when a spell or an ability aims at it. NOT MODELLED: the dying.",
+      "tooltip": "Flying. Illusion: dies when a spell or an ability aims at it.",
       "card_stats": {
         "price": 2,
         "atk": 2,
@@ -6860,7 +6861,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Illusion. A spell or ability that could aim at a flagbearer must aim at one. NOT MODELLED: the compulsion, and the dying.",
+      "tooltip": "Illusion. A spell or ability that could aim at a flagbearer must aim at one. NOT MODELLED: the compulsion.",
       "card_stats": {
         "price": 1,
         "atk": 2,
@@ -6885,7 +6886,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Illusion: dies when a spell or an ability aims at it. NOT MODELLED: the dying.",
+      "tooltip": "Illusion: dies when a spell or an ability aims at it.",
       "card_stats": {
         "price": 1,
         "atk": 3,
@@ -6955,7 +6956,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Legendary. Your Illusions get +1/+1 and no longer die when a spell or ability aims at them.",
+      "tooltip": "Legendary. Your Illusions get +1/+1 and no longer die when a spell or ability aims at them. NOT MODELLED: both halves. The protection wants an owner scope anchored on the Illusion \u2014 \"mine\" is read against whoever is up, not against the card being asked about.",
       "card_stats": {
         "price": 2,
         "atk": 3,
@@ -7006,7 +7007,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying. Illusion: dies when a spell or an ability aims at it. NOT MODELLED: the dying.",
+      "tooltip": "Flying. Illusion: dies when a spell or an ability aims at it.",
       "card_stats": {
         "price": 4,
         "atk": 4,
@@ -7033,7 +7034,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Illusion: dies when a spell or an ability aims at it. NOT MODELLED: the dying.",
+      "tooltip": "Illusion: dies when a spell or an ability aims at it.",
       "card_stats": {
         "price": 3,
         "atk": 5,
@@ -7060,7 +7061,7 @@
         "fighter_face",
         "generate_art"
       ],
-      "tooltip": "Flying, haste. Unstoppable, unattackable and untargetable while you control another Illusion. NOT MODELLED: the unattackable and unstoppable halves, and the dying.",
+      "tooltip": "Flying, haste. Unstoppable, unattackable and untargetable while you control another Illusion. NOT MODELLED: the unattackable and unstoppable halves.",
       "card_stats": {
         "price": 3,
         "atk": 5,
@@ -7086,7 +7087,7 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Channelled ongoing spell. All tech 0, I and II units are Illusions. NOT MODELLED: the dying, which is what being an Illusion is.",
+      "tooltip": "Channelled ongoing spell. All tech 0, I and II units are Illusions. NOT MODELLED: handing the word out. The dying itself is in.",
       "card_stats": {
         "price": 3
       }
@@ -7122,7 +7123,7 @@
         "spell_face",
         "generate_art"
       ],
-      "tooltip": "Up to two tech 0, I or II units are Illusions this turn. NOT MODELLED: the dying, which is what being an Illusion is.",
+      "tooltip": "Up to two tech 0, I or II units are Illusions this turn. NOT MODELLED: handing the word out, and taking it back at end of turn. The dying itself is in.",
       "card_stats": {
         "price": 2
       }

@@ -226,8 +226,11 @@
         "needs": [
           "conditions deciding whether the card being played may be sent to THIS card, with itself as @self and the arriving card as @target. Same shape again; asked of the destination."
         ],
+        "when": [
+          "conditions gating the action below -- whether this card answers the aim that was made, where \"needs\" above is whether the aim may be made at all. They are different questions and a card often wants opposite answers: an Illusion is targetable by everything, so its \"needs\" refuses nothing, and it dies only to a spell, so its \"when\" is [\"verb:cast\"]. One list could not have said both. Read the same way round, @self the card aimed at and @target the card aiming, and the aim's own verb is in scope so \"verb:\"/\"not_verb:\" ask what kind of aim this is."
+        ],
         "action": [
-          "action strings run when a card lands here, with this card as @self and the newcomer as @target. What the destination does about an arrival, said once by the destination rather than by every card that might arrive."
+          "action strings run when something aims at this card, with this card as @self and the aiming card as @target. \"needs\" is whether the aim may be made and this is what the card does about the aim that was, which is how \"dies when a spell or an ability aims at it\" is said. Run once per chosen target, after the cost is settled and BEFORE the aiming card acts, so what it changes is what the aim then lands on -- and a target whose zone status changed since it was pointed at drops out of @target, which is what leaves the spell nothing to hit rather than a corpse in a discard pile. Fires only where a player pointed, never where a scope named, exactly as \"needs\" is asked only there."
         ]
       },
       "round": {
@@ -282,6 +285,9 @@
       "receive": {
         "needs": [
           "conditions deciding whether a card being played may be sent here. Same shape as a card's accepts, asked of the zone."
+        ],
+        "when": [
+          "conditions gating the action below -- whether the zone answers this landing, where \"needs\" is whether the landing is allowed at all. The zone is @self and the newcomer @target, so \"only when a unit lands here\" is one condition instead of a rule every card that might land has to know."
         ],
         "action": [
           "action strings run when a card lands in this zone, with the zone as @self and the newcomer as @target. A discard pile anybody may take from says \"set_owner:target:none\" here, rather than every card that might be thrown into it saying it."
@@ -391,6 +397,12 @@
       "receive": {
         "needs": [
           "conditions a card wearing this tag holds anything aiming at it to, asked once per candidate with the wearer as @self and the aiming card as @target. A ward is a keyword far more often than it is one card - \"cannot be the target of spells\" is [\"not_verb:cast\"] said once here instead of on every card that has the word, and said here it can also be *granted*, since a computed tag may carry it. Several wards are several gates: the lists from the card, its zone's applies, its own tags and the tags it is wearing are gathered into one, and a condition list is an and."
+        ],
+        "when": [
+          "conditions gating the action below, exactly as on a card: whether a wearer answers the aim that was, where \"needs\" is whether the aim may be made. \"Illusions die when a spell or an ability aims at them\" is [\"verb:cast\"] here, said once for every card that wears the word."
+        ],
+        "action": [
+          "the other half, and a keyword just as often: action strings run when something aims at a card wearing this tag, read the same way round. \"Illusions die when a spell or an ability aims at them\" is [\"destroy:self\"] said once here. Gathered from the same four places as the needs, but ordered rather than anded - these are actions and they run in sequence - so it is the card's own block, then its zone's, then its printed tags', then what it is wearing right now, computed keywords in sorted order so a replay matches itself."
         ]
       },
       "abilities": [

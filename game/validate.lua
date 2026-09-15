@@ -154,7 +154,8 @@ local CARD_FIELDS = {
 	compute = true,
 	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true,
 	requires = true, on_pass = true, on_fail = true,
-	accepts = true, on_receive = true, on_round = true, on_chosen = true, chosen_where = true,
+	accepts = true, on_receive = true, on_receive_needs = true, on_round = true, on_chosen = true,
+	chosen_where = true,
 	auto_play = true, to_slot = true, tags_set = true, injected = true,
 	style = true,
 	-- Written by the engine onto the menu entry it generates for each ability of
@@ -164,7 +165,11 @@ local CARD_FIELDS = {
 local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
 	action = true, spent = true, compute = true }
-local RECEIVE_FIELDS   = { needs = true, action = true }
+-- "when" gates the action and "needs" gates the aim, which are different
+-- questions: a card may be targetable by everything and answer only some of it.
+local RECEIVE_FIELDS   = { needs = true, when = true, action = true }
+-- Arrival has one gate, because there is nothing for a second one to tell apart.
+local ARRIVES_FIELDS   = { needs = true, action = true }
 local ROUND_FIELDS     = { action = true }
 -- What a card does when somebody picks out of the offer it opened with `show:`.
 -- The pick is the target; the card that asked is the one acting.
@@ -182,7 +187,7 @@ local ZONE_FIELDS = {
 	grave = true,
 	-- what clicking it does, written as the list a card writes
 	abilities = true,
-	injected = true, applies = true, accepts = true, on_receive = true, receive = true,
+	injected = true, applies = true, accepts = true, on_receive = true, on_receive_needs = true, receive = true,
 	-- what happens when a card comes into play here, as opposed to merely lands
 	arrives = true, arrives_needs = true, on_arrives = true,
 	asset = true,
@@ -234,7 +239,7 @@ local TAG_FIELDS      = { zone = true, grave = true, tooltip = true, play = true
 	leaves_from = true, leaves_needs = true,
 	-- What a card wearing this will let be aimed at it. A ward is a keyword more
 	-- often than it is a card, which is the whole reason it may be written here.
-	receive = true, accepts = true, on_receive = true,
+	receive = true, accepts = true, on_receive = true, on_receive_needs = true,
 	-- derived from the blocks, as on a card
 	on_play = true, cost = true, needs = true, target = true, phases = true, spent = true,
 	compute = true, buffs = true, adjusts = true }
@@ -364,7 +369,7 @@ M.FIELDS = {
 	play          = PLAY_FIELDS,
 	challenge     = CHALLENGE_FIELDS,
 	receive       = RECEIVE_FIELDS,
-	arrives       = RECEIVE_FIELDS,
+	arrives       = ARRIVES_FIELDS,
 	round         = ROUND_FIELDS,
 	chosen        = CHOSEN_FIELDS,
 	leaves        = LEAVES_FIELDS,
@@ -385,7 +390,7 @@ M.DERIVED = { tags_set = true, injected = true, move_rules = true, style = true,
 	cost = true, needs = true, target = true, phases = true, on_play = true, spent = true,
 	compute = true,
 	requires = true, on_pass = true, on_fail = true, accepts = true,
-	on_receive = true, on_arrives = true, arrives_needs = true,
+	on_receive = true, on_receive_needs = true, on_arrives = true, arrives_needs = true,
 	on_round = true, on_chosen = true, chosen_where = true,
 	on_leaves = true, leaves_into = true, leaves_from = true, leaves_needs = true,
 	zone_list = true, auto_play = true, to_slot = true }
@@ -2024,6 +2029,13 @@ function M.check(G)
 					where, tostring(td.zone), suggest(td.zone, G.zone_defs))
 			end
 			check_phases(where, td.phases)
+			-- The ward and its answer, checked here as they are on a card. A tag
+			-- is where both of them are usually written -- a ward is a keyword far
+			-- more often than it is one card -- so leaving them out meant the
+			-- common spelling was the unchecked one.
+			check_conditions(where .. " accepts", td.accepts)
+			check_conditions(where .. " receive when", td.on_receive_needs)
+			check_list(where .. " receive action", td.on_receive)
 			for i, ab in ipairs(td.abilities or {}) do
 				check_ability(("%s ability %d ('%s')"):format(where, i, tostring(ab.key)), ab)
 			end
@@ -2616,9 +2628,11 @@ function M.check(G)
 		check_cost(where .. " cost", def.cost, nil, played)
 		check_conditions(where .. " needs", def.needs, played)
 		check_conditions(where .. " requires", def.requires)
-		-- "accepts" is asked of this card about the one arriving, so @self is
-		-- this card and @target the newcomer. "on_receive" answers the same way.
+		-- "accepts" is asked of this card about whatever is aiming at it or
+		-- arriving on it, so @self is this card and @target the other one.
+		-- "on_receive" is what it does about the aim that was, read the same way.
 		check_conditions(where .. " accepts", def.accepts)
+		check_conditions(where .. " receive when", def.on_receive_needs)
 		check_list(where .. " receive action", def.on_receive)
 		check_phases(where, def.phases)
 		-- card_stats declare new per-card stats, so only their values are checked.
@@ -2916,6 +2930,7 @@ function M.check(G)
 			warn('%s: contents should be a list like ["sword:3", "trap"]', where)
 		end
 		check_conditions(where .. " accepts", def.accepts)
+		check_conditions(where .. " receive when", def.on_receive_needs)
 		check_list(where .. " receive action", def.on_receive)
 		-- The arrival block, asked with the arriving card as @self rather than
 		-- with the zone -- so a condition here is about the newcomer.

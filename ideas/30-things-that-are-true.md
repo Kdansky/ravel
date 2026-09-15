@@ -380,8 +380,9 @@ acting seat's side. A game wanting everyone to pay writes no needs.
 3. ~~The preview~~ — answered: the printed price in hand, the surcharge at the
    pick, and the resisting card face up on the board in between. A range in the
    cost row stays available if it ever reads as a trap in play.
-4. **Whether a tag may carry `receive`.** It cannot today: `TAG_FIELDS` has no
-   `accepts`, and `targeting.candidates` reads it straight off the card def
-   rather than through `cards.behaviour`. Codex's ward is therefore written on
-   its two untargetable cards rather than once on the `untargetable` tag, which
-   is right for two and would not be for twenty.
+4. ~~Whether a tag may carry `receive`~~ — answered twice over. A tag carries
+   both halves now: `accepts` is gathered by `cards.accepts` and the write half
+   by `cards.on_receive`, each from the card's own block, its zone's `applies`,
+   its printed tags and its computed tags. **What the write half still cannot
+   say is which kind of aim it answers**, which is what keeps Codex's Illusions
+   unbuilt — see [37](37-codex.md), ranking row 65.

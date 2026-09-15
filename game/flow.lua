@@ -232,6 +232,50 @@ local function targets_legal(card_id, spec, targets)
 	return true
 end
 
+-- How deep an aim is allowed to answer an aim. A card that kills whatever points
+-- at it, pointed at by another of the same, is a circle — and the same latch
+-- zones.fire_receive keeps, for the same reason.
+local aiming = 0
+
+-- **Each card answers having been pointed at**, once the aim is settled and
+-- before the aiming card does anything. That order is the rule and not an
+-- implementation detail: an Illusion dies *of being targeted*, so it is gone by
+-- the time the spell would hit it, which is what leaves the spell with nothing
+-- to resolve against. @self is the card that was aimed at and @target the card
+-- doing the aiming, exactly as "accepts" is asked a moment earlier — the two are
+-- one word's read half and write half and they see the same pair.
+--
+-- **"when" is the gate, and it is not "needs".** The two settle different
+-- questions and a card wants opposite answers from them: an Illusion is
+-- targetable by everything, so its "needs" refuses nothing, and it dies only to
+-- a spell, so its "when" asks the verb. One list could not have said both. The
+-- aim's verb rides in the ctx, so "verb:cast" reads what the target spec
+-- declared rather than anything about the card that is aiming.
+--
+-- Only where a player actually pointed. An aim is what "accepts" gates, so this
+-- gates with it: a scope that names a card is not an aim, which is why hexproof
+-- stops a bolt and not a board wipe, and why an Illusion survives one too.
+local function fire_aimed(targets, source, verb)
+	if aiming >= 8 then
+		local msg = "! aimed: cards are answering each other's aims in a circle — stopped"
+		log.add(msg)
+		print(msg)
+		return
+	end
+	aiming = aiming + 1
+	local ok, err = pcall(function()
+		for _, id in ipairs(targets or {}) do
+			local e = entity.get(id)
+			for _, block in ipairs(e and cards.on_receive(e) or {}) do
+				local ctx = { card_id = id, targets = { source }, verb = verb }
+				if predicate.meets_all(block.needs, ctx) then actions.run(block.action, ctx) end
+			end
+		end
+	end)
+	aiming = aiming - 1
+	if not ok then error(err, 0) end
+end
+
 -- Where a card goes once its play is over, said by the play block rather than by
 -- the action list. **However it ends**: resolved, or countered before it ever
 -- ran. An MTG sorcery goes to the graveyard either way, and a Puzzle Strike chip
@@ -1342,9 +1386,16 @@ function M.play_card(card_id, targets, payment)
 	local charged = (not overlay or c.minted == true) and not c.imaginary
 	if asker and entity.get(asker) and not lent then targets = { asker } end
 	-- The targets are in, so a compute that measures them measures the right
-	-- ones: "deal damage equal to what you aimed at" is a number about the pair.
+	-- ones: "deal damage equal to what you aimed at" is a number about the pair,
+	-- and it is bound here so it reads them as they were pointed at rather than
+	-- as whatever answering the aim leaves behind.
+	--
+	-- An aim is pinned only where a player pointed — a choice out of an offer
+	-- swaps the targets for the asker two lines up and is not one.
+	local aimed = (not overlay) and def.target and predicate.standing(targets) or nil
 	local ctx = predicate.bind(cards.behaviour(c, "compute"),
-		{ card_id = card_id, targets = targets or {}, verb = def.target and def.target.verb })
+		{ card_id = card_id, targets = targets or {}, aimed = aimed,
+			verb = def.target and def.target.verb })
 	-- A cost the targets pay could not be judged before they were chosen.
 	if charged and not M.can_afford(def.cost, ctx) then return false end
 	-- A payment arrives beside the targets and is checked like them: an
@@ -1379,9 +1430,13 @@ function M.play_card(card_id, targets, payment)
 	-- Through behaviour, so a zone can grant what playing a card lying in it
 	-- does — which is how one offer deals a card the game has other plans for.
 	local lender = lent and asker and entity.get(asker)
+	-- Before the card acts and before the announcement goes up, because being
+	-- pointed at is what the aimed-at card is answering and the announcement is
+	-- already the pointing: an Illusion dies to a spell that is then countered.
+	if aimed then fire_aimed(targets, card_id, def.target.verb) end
 	if lender then
 		actions.run(cards.behaviour(lender, "on_chosen"), { card_id = asker, targets = { card_id } })
-	elseif not M.defer_play(card_id, targets) then
+	elseif not M.defer_play(card_id, targets, aimed) then
 		-- Unless the play was put up to be answered, in which case it happens when
 		-- the stack says so and not before — and the spending goes with it.
 		actions.run(cards.behaviour(c, "on_play"), ctx)
@@ -1647,8 +1702,10 @@ function M.activate(card_id, targets, index, payment)
 	local lo, hi = targeting.bounds(a.target)
 	if #(targets or {}) < lo or #(targets or {}) > hi then return false end
 	if not targets_legal(card_id, a.target, targets) then return false end
+	local aimed = a.target and predicate.standing(targets) or nil
 	local ctx = predicate.bind(a.compute,
-		{ card_id = card_id, targets = targets or {}, verb = a.target and a.target.verb })
+		{ card_id = card_id, targets = targets or {}, aimed = aimed,
+			verb = a.target and a.target.verb })
 	if not M.can_afford(a.cost, ctx) then return false end
 	-- A payment arrives beside the targets and is checked like them: an
 	-- interface collected it, but a script, the network or an engine seat may
@@ -1659,6 +1716,7 @@ function M.activate(card_id, targets, index, payment)
 	log.add("Activated " .. (def.text or c.def_key)
 		.. (a.text and #usable > 1 and (" — " .. a.text) or ""))
 	pay(a.cost, ctx, payment)
+	if aimed then fire_aimed(targets, card_id, a.target.verb) end
 	if not M.defer_activation(card_id, a, ctx) then
 		-- Unless using it was put up to be answered, in which case it happens when
 		-- the stack says so and not before.
@@ -1864,6 +1922,11 @@ local function push_event(e)
 	c.re_subject              = e.subject
 	c.re_event                = e.event or e.subject
 	c.re_targets, c.re_let    = e.targets or {}, e.let
+	-- The standing each target had when it was aimed at, so a record that waits
+	-- while the board changes resolves against what is still what was pointed at.
+	-- Taken here when the caller has none, which is every announcement that *is*
+	-- the aim; a play pins before answering the aim and hands its own down.
+	c.re_aimed                = e.aimed or predicate.standing(c.re_targets)
 	c.re_source, c.re_spent   = e.source, e.spent
 	-- Which of the source's abilities this is, when it is one. Only a key, so it
 	-- costs a snapshot nothing — and it is the only way back to what the thing may
@@ -1929,8 +1992,8 @@ local function resolve_top(top)
 	local prev = resolving
 	resolving  = top
 	actions.run(top.re_action, { card_id = top.re_source,
-		event = top.re_event, targets = top.re_targets, let = top.re_let,
-		answering = top.re_answering })
+		event = top.re_event, targets = top.re_targets, aimed = top.re_aimed,
+		let = top.re_let, answering = top.re_answering })
 	resolving  = prev
 	send_spent(top.re_source, top.re_spent)
 	zones.purge_card(top.id)
@@ -1950,7 +2013,7 @@ function M.copy_event(record_id)
 	if not (top and top.re_action) then return false end
 	return push_event { verb = top.re_verb, action = top.re_action,
 		subject = top.re_subject, event = top.re_event, targets = top.re_targets,
-		source = top.re_source, let = top.re_let } ~= nil
+		aimed = top.re_aimed, source = top.re_source, let = top.re_let } ~= nil
 end
 
 -- What a record may be aimed at: the spec whoever announced it was answering.
@@ -1996,6 +2059,10 @@ function M.redirect(record_id, ids)
 		return false
 	end
 	top.re_targets = kept
+	-- Re-pinned, not carried: a redirect re-ran the candidate walk, so these are
+	-- cards that may be aimed at *now* and the standing they have now is the one
+	-- the aim was made against.
+	top.re_aimed   = predicate.standing(kept)
 	log.add("Redirected " .. ((cards.def(entity.get(top.re_source) or {}) or {}).text or "it"))
 	return true
 end
@@ -2268,13 +2335,13 @@ end
 -- play it always was, which is every card in every game that emits nothing, and
 -- the caster is not counted: answering your own spell here would open a window
 -- react_step then finds nobody to hold.
-function M.defer_play(card_id, targets)
+function M.defer_play(card_id, targets, aimed)
 	local c = entity.get(card_id)
 	if not (c and stack_zone()) then return false end
 	for _, verb in ipairs(cards.emits(c, "play")) do
 		if reactions.anyone_answers(verb, { card_id }, zones.active_seat(), targets) then
 			push_event { verb = verb, action = cards.behaviour(c, "on_play"),
-				subject = { card_id }, targets = targets, source = card_id,
+				subject = { card_id }, targets = targets, aimed = aimed, source = card_id,
 				spent = cards.behaviour(c, "spent") }
 			return true
 		end
@@ -2309,7 +2376,8 @@ end
 function M.emit(verb, subject, action, source, ctx, ability)
 	if not reactions.anyone_answers(verb, subject, zones.active_seat(), ctx and ctx.targets) then return false end
 	return push_event { verb = verb, action = action, subject = subject, source = source,
-		targets = ctx and ctx.targets, let = ctx and ctx.let, ability = ability } ~= nil
+		targets = ctx and ctx.targets, aimed = ctx and ctx.aimed,
+		let = ctx and ctx.let, ability = ability } ~= nil
 end
 
 -- What is waiting to be answered, if anything. An input layer has to ask,

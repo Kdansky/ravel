@@ -1430,7 +1430,7 @@ disk cache with no network at all.
 | `emits` | What playing or activating this card **announces**, so a reaction may answer it: `{ "play": "cast" }`. Beside the moments rather than inside them, because a tag granting a `play` block grants it whole — written on a tag, one line makes every spell in the game answerable |
 | `play.spent` | Where the card goes once its play is over, **however it ends** — resolved, or countered before it ever ran. Opt-in; without it the action list is answerable for its own card |
 | `challenge` | **Not a moment — a named test.** `needs` is the condition, `pass` and `fail` the action lists it chooses between, and any action list reaches it by running `resolve_challenge`. That is why it sits beside the moments rather than inside one: kingdom's crises are resolved when *played*, and if they fail they stay on the board to be *activated* later — one challenge, asked from two moments. Written inside `play` it would have to be written twice. One block because the three fields only ever work together. **Its condition sees the card asking it** — `@self` is that card and `@target` whatever it was aimed at — which is how chess's pawn asks "did this move end on my eighth rank" |
-| `receive` | `needs`: whether **this** card may be the destination of the card being played, with itself as `@self` and the arriving card as `@target` (see *Legality between two cards*). `action`: what happens when one lands, read the same way. Zones take the same block |
+| `receive` | `needs`: whether **this** card may be aimed at, or be the destination of the card being played, with itself as `@self` and the aiming card as `@target` (see *Legality between two cards*). `action`: what this card does about the aim that was made, read the same way round — run once per chosen target, after the cost and **before** the aiming card acts, which is what lets *"dies when a spell aims at it"* leave the spell nothing to land on. `when`: which aims the action answers, since `needs` cannot serve — it refuses the aim outright, where an Illusion is targetable by everything and dies only to some of it. Fires only where a player **pointed**, never where a scope named. A zone takes the same block, where the halves are about a card *arriving* rather than an aim |
 | `round` | `action`: run at each round boundary while the card is on a grid and not ruined |
 | `leaves` | `action`: run when this card **leaves**, with `@self` as the departing card. `from` says which departure — leaving play by default, out of a `status: board` zone into one that is not; name a zone and it is leaving that zone, which is how "when you discard this" is said. `into` names the zone it landed in, and is what tells death from exile from bounce (see *`leaves` — a card on its way out*) |
 | `chosen` | `action`: run when somebody picks a card out of the offer **this** card opened with `show:`, with the pick as `@target` and this card as `@self`. The reverse of an `options:` offer, where the entry carries the rule and the asker is what it is about — here the entry is somebody else's property and carries nothing of ours |
@@ -4670,6 +4670,50 @@ same shape as every other borrowed keyword.
 They take no `@`: an aim is not a card and has nowhere to be. And an aim whose
 game never named it answers no to `verb:` and yes to `not_verb:` — being
 interfered with is opted into here as everywhere else.
+
+**"Dies when a spell or an ability aims at it."** That is the *other* half of the
+same word. `needs` settles whether the aim may be made; `action` is what the card
+does about the aim that was, read the same way round — `@self` the card aimed at,
+`@target` the card aiming — and gathered from the same four places, so it may be
+a keyword as easily as a card:
+
+```json
+"tags": { "illusion": { "receive": { "when": ["verb:cast"], "action": ["destroy:self"] } } }
+```
+
+It runs once per chosen target, after the cost is settled and **before** the
+aiming card acts. That order is the rule and not an implementation detail: an
+Illusion dies *of being targeted*, so it is gone by the time the spell would land.
+
+**`when` is the gate, and it is deliberately not `needs`.** The two settle
+different questions and this card wants opposite answers from them: an Illusion
+is targetable by everything, so its `needs` refuses nothing, and it dies only to
+a spell, so its `when` asks the verb. One list could not have said both — a
+`needs` of `["verb:cast"]` would have made the card unaimable by anything *but*
+a spell, which is a different card. The aim's own verb is in scope here as it is
+there, so `verb:`/`not_verb:` read what the target spec declared: Codex aims 91
+times with `cast` and 3 times with `attack`, and being attacked is not being
+aimed at. Leave `when` out and every aim is answered.
+
+A zone's `receive` takes the same third field, gating its arrival action the
+same way.
+
+Which raises what the spell then does, and the answer is nothing, because **a
+target whose zone `status` changed since it was pointed at is no longer what was
+pointed at** and drops out of `@target`. The rest of the action still runs. Note
+`status` rather than the zone itself: a unit that walks army → duel and home again
+never stopped being the thing the bolt was thrown at, and both of those are the
+board — what changes when a card stops being aimable is its *standing*, board →
+grave or board → exile. Without the rule a bounce would haul the corpse back out
+of the discard, since `destroy` is a move into the grave and not a removal.
+
+The same rule answers an older question the same way: a reaction that kills a
+target does not hand the spell a body either.
+
+And the write half inherits the read half's blind spot on purpose. It fires only
+where a player **pointed**, never where a scope named — so a ward stops a bolt and
+not a board wipe, and an Illusion survives one too, which is the real rule in
+every game that has the keyword.
 
 **Resist.** The same verb, watched by an `adjusts` whose `stat` is what the
 aimer *pays*:

@@ -974,6 +974,40 @@ Several conditions are ANDed; several wards are several gates.
 Trap: splitting a comparison into two conditions makes it an **and**, which is a different rule.
 `["bars_t0@target >= 1", "tech_level@self >= 1"]` stops a tech-0 unit attacking *anything*.
 
+### This is disabled when a spell or ability aims at it.
+
+```json
+"receive": { "action": ["stat_set:ready@self:0"] }
+```
+
+`receive`'s other half. `needs` is whether the aim may be made; `action` is what this card does
+about the aim that was — asked the same way round, `@self` the card aimed at and `@target` the
+card aiming. It runs once per chosen target, after the cost is settled and **before** the aiming
+card acts, so what it changes is what the aim then lands on. Add `when` to answer only some aims;
+with none, every aim is answered.
+
+Only where a player *pointed*. A scope that names the card is not an aim, so `destroy:each.unit`
+answers nothing — which is why a ward stops a bolt and not a board wipe, and why the same blind
+spot is the right one here.
+
+### Illusions die when a spell or an ability aims at them.
+
+```json
+"tags": { "illusion": { "receive": { "when": ["verb:cast"], "action": ["destroy:self"] } } }
+```
+
+A keyword rather than a card, so the eight cards that have it carry the word and not the rule.
+
+`when` is the gate, and it is **not** `needs`: `needs` settles whether the aim may be made and
+`when` whether the card answers the aim that was. An Illusion wants opposite answers from them —
+targetable by everything, killed only by a spell — so one list could not have said both. The
+aim's own verb is in scope, which is why being attacked is not being aimed at.
+
+The aiming spell then lands on nothing: a target whose zone **status** changed since it was
+pointed at drops out of `@target`, so a bounce does not haul the corpse out of the discard.
+Status and not zone, deliberately — a unit walking army → duel and home again is still what the
+bolt was thrown at, because both are the board.
+
 ### This card may only be played onto a matching pile.
 
 ```json
@@ -1037,6 +1071,16 @@ One line makes the whole class announce itself, and no unit knows it is being wa
 The zone is `@self`, the newcomer is `@target`. Fires on **every** landing, which is what a
 discard stamping its owner wants — and not on a `create`, which conjures a card rather than
 sending one.
+
+### When a *unit* lands here, do this.
+
+```json
+"zones": [{ "key": "shrine", "receive": { "when": ["tagged:unit@target"],
+                                          "action": ["stat_gain:faith@mine.player:1"] } }]
+```
+
+`when` gates the action; `needs` beside it gates the landing itself. Say it in `needs` and the
+card cannot be sent here at all, which is a different rule.
 
 ### When a card comes into play here.
 

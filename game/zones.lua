@@ -618,6 +618,11 @@ end
 local function fire_receive(to, card_id)
 	local def = to and declaration.G.zone_defs[to.key]
 	if not (def and def.on_receive and M.run_actions) then return end
+	-- The same gate a card's write half takes, read the same way: the zone is
+	-- @self and the newcomer @target, so "only when a unit lands here" is one
+	-- condition rather than a rule every card that might land has to know.
+	if not require("predicate").meets_all(def.on_receive_needs,
+		{ card_id = to.id, zone_id = to.id, targets = { card_id } }) then return end
 	if receiving >= 8 then
 		local msg = "! receive: '" .. tostring(to.key) .. "' is passing cards round in a circle — stopped"
 		log.add(msg)

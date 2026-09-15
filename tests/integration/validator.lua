@@ -871,6 +871,12 @@ local CASES = {
 		function(g) g.card_defs.c_flee.on_play = { "move:hand:board:1:f1" } end },
 	{ "a cell named on a zone that has no cells", "has no cells to name",
 		function(g) g.card_defs.c_flee.on_play = { "move:board:hand:1:a1" } end },
+	-- The write half's gate. Checked as conditions like every other "needs", so a
+	-- typo in the word that decides whether an Illusion dies is caught at load.
+	{ "a nonsense condition in receive.when", "is not something the engine can measure",
+		function(g) g.card_defs.pearl.on_receive_needs = { "@ >= 1" } end },
+	{ "a nonsense condition in a tag's receive.when", "is not something the engine can measure",
+		function(g) g.tag_defs.treasure = { on_receive_needs = { "@ >= 1" } } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once
