@@ -32,9 +32,15 @@ end
 -- Every consumer of "mine" — subjects, zone lookups, ownership — asks
 -- active_seat, so one override answers for all of them at once.
 --
--- **Reads only.** An action run inside this would act as the wrong seat, which
--- is why it is scoped and restored even when the body raises: the alternative is
--- an engine that quietly stays somebody else for the rest of the session.
+-- **Scoped and restored even when the body raises**: the alternative is an engine
+-- that quietly stays somebody else for the rest of the session.
+--
+-- Mostly reads, but an action may run inside it where the acting seat is the
+-- point rather than an accident -- a spent card going home to its owner's table
+-- however its play ended, a card answering an aim as the side that was aimed at.
+-- Both are cases where "whoever is up" is the wrong player to be, so the seat has
+-- to be said. It is not a handover: priority is game state that drops undo, this
+-- is a lens held over one call.
 local as_if = nil
 
 function M.as_seat(seat, fn)

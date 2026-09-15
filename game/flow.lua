@@ -266,9 +266,28 @@ local function fire_aimed(targets, source, verb)
 	local ok, err = pcall(function()
 		for _, id in ipairs(targets or {}) do
 			local e = entity.get(id)
-			for _, block in ipairs(e and cards.on_receive(e) or {}) do
-				local ctx = { card_id = id, targets = { source }, verb = verb }
-				if predicate.meets_all(block.needs, ctx) then actions.run(block.action, ctx) end
+			local blocks = e and cards.on_receive(e) or {}
+			-- **Answered as the card's own owner**, which is the half of the aim that is
+			-- about the receiver. "mine" everywhere else means whoever is up, and that is
+			-- right for an imperative; this is not one. Macciatus is "*your* Illusions no
+			-- longer die when a spell aims at them", and asked from the aimer's side it
+			-- answers about the wrong seat. An unowned card gets nil, which is no override.
+			--
+			-- Only "when" and "action". "needs" -- receive's other half, "accepts" -- gates
+			-- whether the aim may be made at all and is honestly about the *aimer*: Codex's
+			-- stealth asks "count:detector@mine.addon", meaning the detector belongs to
+			-- whoever is pointing. It is checked in targeting.lua and never reaches here.
+			--
+			-- The gather stays outside too: a computed keyword deciding whether this card
+			-- wears it is asked the same way everywhere, and reading it one way here would
+			-- be a second rule for computes rather than the one they are still owed.
+			if #blocks > 0 then
+				zones.as_seat(predicate.seat_of(e), function()
+					for _, block in ipairs(blocks) do
+						local ctx = { card_id = id, targets = { source }, verb = verb }
+						if predicate.meets_all(block.needs, ctx) then actions.run(block.action, ctx) end
+					end
+				end)
 			end
 		end
 	end)

@@ -23,6 +23,7 @@ local entity = require("entity")
 local flow   = require("flow")
 local zones  = require("zones")
 local cards  = require("cards")
+local actions = require("actions")
 
 local M = {}
 
@@ -211,6 +212,98 @@ function M.test_aimed_a_zone_gates_its_arrival_action(check)
 			tostring(seat.stats.faith))
 		zones.move_card(find("grunt").id, zones.find_id("shrine"))
 		check("a unit is", seat.stats.faith == 1, tostring(seat.stats.faith))
+	end)
+end
+
+-- Two seats and one shared board, for the half of `receive` that is about the
+-- card rather than about the aim. The shield is on the *player*, so the only
+-- thing separating a right answer from a wrong one is which seat "mine" means.
+local SEATED = [==[{
+  "title": "Aimed at, seated",
+  "players": [{ "card": "one" }, { "card": "two" }],
+  "stats": [
+    { "key": "hp", "on": ["unit"], "start": 3, "min": 0, "max": 3 },
+    { "key": "shield", "on": ["player"], "start": 0, "min": 0, "max": 9 }
+  ],
+  "verbs": [{ "key": "cast", "does": "target", "tooltip": "A spell picking what it lands on." }],
+  "tags": {
+    "illusion": { "tooltip": "Illusion — dies to a spell, unless its own controller is shielded.",
+      "receive": { "when": ["verb:cast", "sum:shield@mine.player == 0"], "action": ["destroy:self"] } }
+  },
+  "zones": [
+    { "key": "seats", "status": "board", "layout": "row", "pos": [0.05, 0.05, 0.95, 0.20] },
+    { "key": "hand", "layout": "row", "pos": [0.20, 0.80, 0.50, 0.95] },
+    { "key": "field", "status": "board", "layout": "row", "pos": [0.20, 0.40, 0.50, 0.55] },
+    { "key": "discard", "status": "grave", "layout": "stack", "pos": [0.60, 0.80, 0.70, 0.95] }
+  ],
+  "phases": [
+    { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }
+  ],
+  "cards": [
+    { "key": "one", "text": "One" },
+    { "key": "two", "text": "Two" },
+    { "key": "mirror", "text": "Mirror", "tags": ["unit", "illusion"] },
+    { "key": "bolt", "text": "Bolt", "tags": ["spell"],
+      "play": { "target": { "verb": "cast", "type": "card", "tags": ["unit"], "count": 1 },
+        "action": ["stat_damage:hp@target:1"] } }
+  ],
+  "setup": {
+    "place": [
+      { "card": "one", "zone": "seats" }, { "card": "two", "zone": "seats" },
+      { "card": "mirror", "owner": "one", "zone": "field" },
+      { "card": "bolt", "zone": "hand" }, { "card": "bolt", "zone": "hand" }
+    ]
+  }
+}]==]
+
+local function with_seated(fn)
+	local path = "game/games/tmp_aimed_seated.json"
+	local f = assert(io.open(path, "w"))
+	f:write(SEATED)
+	f:close()
+	local ok, err = pcall(fn, "tmp_aimed_seated.json")
+	os.remove(path)
+	if not ok then error(err, 0) end
+end
+
+-- **"mine" in an answer is the card that is answering.** Everywhere else it means
+-- whoever is up, which is right for an imperative -- a game file tells the active
+-- player to draw and to pay -- and wrong here, because being pointed at is not
+-- something the receiver chose to do. Macciatus is "*your* Illusions no longer
+-- die when a spell aims at them": read from the aimer's side it protects the
+-- wrong player's board, and the two answers differ on every aim across the table.
+function M.test_aimed_the_answer_reads_as_the_card_that_answers(check)
+	with_seated(function(name)
+		flow.init(name, 3)
+		local mirror = find("mirror")
+		actions.execute("set_active_seat:target", { targets = { find("two").id } })
+		actions.execute("stat_set:shield@target:1", { targets = { find("one").id } })
+		check("the other seat is up", zones.active_seat() == "two", tostring(zones.active_seat()))
+		check("and only the illusion's owner is shielded",
+			find("one").stats.shield == 1 and find("two").stats.shield == 0,
+			find("one").stats.shield .. "/" .. find("two").stats.shield)
+
+		flow.play_card(find("bolt").id, { mirror.id })
+		check("the illusion's own shield saved it", zone_of("mirror") == "field", zone_of("mirror"))
+		check("and it took the spell like any unit", mirror.stats.hp == 2, tostring(mirror.stats.hp))
+	end)
+end
+
+-- The other half of the same question, because a rule that always says no is not
+-- reading anything. The shield that matters is the owner's, so dropping it kills
+-- the Illusion while the aimer's own shield is untouched and still nought.
+function M.test_aimed_the_owners_shield_is_the_one_that_counts(check)
+	with_seated(function(name)
+		flow.init(name, 3)
+		actions.execute("set_active_seat:target", { targets = { find("two").id } })
+		actions.execute("stat_set:shield@target:0", { targets = { find("one").id } })
+		actions.execute("stat_set:shield@target:1", { targets = { find("two").id } })
+		check("the owner is bare and the aimer is the shielded one",
+			find("one").stats.shield == 0 and find("two").stats.shield == 1,
+			find("one").stats.shield .. "/" .. find("two").stats.shield)
+
+		flow.play_card(find("bolt").id, { find("mirror").id })
+		check("so the illusion dies of the aim", zone_of("mirror") == "discard", zone_of("mirror"))
 	end)
 end
 

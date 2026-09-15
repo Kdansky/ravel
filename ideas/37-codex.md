@@ -53,10 +53,16 @@ card, in its own tooltip.
   Still open, and each its own word rather than this one:
 
   - **Macciatus** — *"Your Illusions get +1/+1 and no longer die when a spell or
-    ability aims at them."* The exception has to be asked from the Illusion's
-    side, and `mine`/`enemy` are read against whoever is up rather than against
-    the card being asked about, so there is no way to say *your*. Wants an owner
-    scope anchored on `@self`.
+    ability aims at them."* The **dying** half is writable now: `receive`'s
+    `when` and `action` run as the aimed-at card's own owner, so `mine` inside
+    them is the Illusion's controller and the exception can be a condition on
+    the keyword. It wanted no word — `zones.as_seat` already held the seat over
+    a call, and `give_priority` would have been wrong for it, being game state
+    that drops undo.
+
+    The **+1/+1** half is still stuck, and on the wider question: a `buffs` or
+    `adjusts` block is asked ambiently, about a card, at no moment and with
+    nobody acting, so there is no seat to hold. See README §67.
   - **Dreamscape** and **Hallucination** — *"All tech 0, I and II units are
     Illusions"* and *"Up to two tech 0, I or II units are Illusions this turn"*.
     Handing a tag out, which nothing does; the dying they would hand out is in.
