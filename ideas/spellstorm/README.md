@@ -19,6 +19,7 @@ Win by collecting 8 Storm Shards or by reducing every opponent to 0 health.
 | `08-boards.md` | Battle Board, Spellstorm Board, Stat Board, tokens |
 | `09-engine-gaps.md` | The ravel implementation: every place it departs from the printed game, and why |
 | `10-closing-the-gaps.md` | What each of those departures would cost to close, and what it would be called |
+| `11-the-words-that-are-missing.md` | The short list the other two point at: every word the format still lacks, with the printed rule, the closest thing built, and where the two part company |
 
 ## Images
 

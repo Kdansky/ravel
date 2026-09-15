@@ -292,7 +292,9 @@ game's worth of machinery on top of this one. His cards are all transcribed in
 
 ## Engine words this game wanted and did not find
 
-Worth weighing against `todo.md` rather than working around again:
+**Written out in full in `11-the-words-that-are-missing.md`** — the printed rule, the
+closest thing built, and the exact place the two part company, one entry per word.
+What follows is the index.
 
 1. **A `needs` on a `play` block that a zone hands out is not read.**
    `flow.can_play` asks `def.needs` — the card's own — while the action list comes
