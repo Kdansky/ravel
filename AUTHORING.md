@@ -1935,7 +1935,7 @@ the validator refuses a file where they do.
 A pile of rules mean *in play* and none of them say which zones those are:
 `count:<tag>`, `card:<key>`, `tagged:`, a bare tag scope, `sacrifice:<tag>` as a
 cost, a card's `round` block acting by itself, and a reaction answered
-`"from": "board"`. The zone answers for all of them at once, with `status`:
+`"in": "board"`. The zone answers for all of them at once, with `status`:
 
 | `status` | Means |
 |---|---|
@@ -3313,7 +3313,7 @@ the other.
 | `to` | the verb answered — the only required one |
 | `where` | a condition about **the event**, read through `@event` — and about what it is aimed at, through `@target` |
 | `needs` | a condition about **the reactor**, asked as their seat |
-| `from` | `hand` (played out of one), `board` (used where it lies), or **a zone by name** — a row of ongoing effects laid face up in front of a player is in play and is a *hand* as far as zone types go, so `"from": "ongoing"` is how it says so. Left out, the zone decides |
+| `in` | where the card has to be to answer: `hand` (played out of one), `board` (used where it lies), or **a zone by name** — a row of ongoing effects laid face up in front of a player is in play and is a *hand* as far as zone types go, so `"in": "ongoing"` is how it says so. Left out, the zone decides. Not a departure — the card answers *while it is there* — which is why it is not `from`, a word `leaves` owns |
 | `whose` | `enemy` (somebody else's announcement — the default), `mine` (your own), or `anyone`. See below |
 | `forced` | `optional` (the player is asked, the default) or `mandatory` (it fires on its own) |
 | `cost`, `target`, `action`, `text` | exactly as on an ability |
@@ -3437,7 +3437,7 @@ means everywhere else — which is how *"at the end of **your** turn"* is writte
 
 ```json
 "reactions": [
-  { "to": "turn_end", "whose": "mine", "forced": "mandatory", "from": "board",
+  { "to": "turn_end", "whose": "mine", "forced": "mandatory", "in": "board",
     "action": ["draw_from:mine.bag:mine.hand:1"] }
 ]
 ```
@@ -3498,7 +3498,7 @@ An action list cannot wait for another player. A reaction can, because the engin
 already stopped to ask them:
 
 ```json
-{ "to": "hex", "from": "board", "forced": "mandatory",
+{ "to": "hex", "in": "board", "forced": "mandatory",
   "action": ["options:take_a_wound,discard_two"] }
 ```
 
@@ -3529,7 +3529,7 @@ the top level, like a stat, because that is what it is minus the storing:
 
 ```json
 "computes": [
-  { "key": "overkill", "from": "0 - health@across",
+  { "key": "overkill", "value": "0 - health@across",
     "tooltip": "How far past death the unit across this one was struck." }
 ]
 ```
@@ -3560,7 +3560,7 @@ what tell one from a hyphen inside a name and a minus sign on a literal, so
 
 ```json
 "computes": [
-  { "key": "lead_hold", "from": "(aims:strike_lead * sneak_ok) + lead_t0 + lead_un + lead_wk",
+  { "key": "lead_hold", "value": "(aims:strike_lead * sneak_ok) + lead_t0 + lead_un + lead_wk",
     "tooltip": "How many squad leaders this attacker is allowed to walk past." }
 ]
 ```
@@ -4050,7 +4050,7 @@ line makes every unit's death answerable and no unit knows it is being watched:
 ```
 
 ```json
-"reactions": [{ "to": "died", "whose": "anyone", "forced": "mandatory", "from": "board",
+"reactions": [{ "to": "died", "whose": "anyone", "forced": "mandatory", "in": "board",
                 "action": ["stat_damage:hp@enemy.hero:1"] }]
 ```
 

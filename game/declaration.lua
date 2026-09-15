@@ -169,11 +169,13 @@ end
 -- action — plus the three things that make it a reaction: the verb it answers
 -- ("to"), a condition over the event's subject ("where", read through @event),
 -- and whether the controller is prompted ("forced": "optional") or it fires on
--- its own ("forced": "mandatory", Magic's mandatory triggered ability). "from"
--- says where the card acts from — a played reaction out of a hand, an activation
--- or a static effect on the board — which decides what answering it does. It
--- takes "hand", "board", or a zone by name, for the row of ongoing effects that
--- is in play and is a hand as far as a zone type is concerned.
+-- its own ("forced": "mandatory", Magic's mandatory triggered ability). "in"
+-- says where the card has to be to answer — a reaction played out of a hand, an
+-- activation or a static effect on the board. It takes "hand", "board", or a
+-- zone by name, for the row of ongoing effects that is in play and is a hand as
+-- far as a zone type is concerned. It was "from" until 2026-09-15, which read as
+-- a departure and was a third meaning for a word "leaves" already owns; the card
+-- does not come from there, it answers while it is there.
 --
 -- "whose" says whose announcement it may answer, in the words a scope already
 -- uses: "enemy" (somebody else's, which is what a shield means), "mine" (your
@@ -188,7 +190,7 @@ end
 -- "where" is about the event and "needs" is about the reactor, which is the one
 -- distinction worth two words: the subject differs, so the conditions do.
 local REACTION_FIELDS = { key = true, text = true, tooltip = true, to = true,
-	where = true, needs = true, forced = true, from = true, whose = true,
+	where = true, needs = true, forced = true, ["in"] = true, whose = true,
 	cost = true, target = true, action = true, moves = true, compute = true, spent = true }
 local FORCED = { optional = true, mandatory = true }
 -- The owner words a scope already takes, meaning here what they mean there:
@@ -198,7 +200,7 @@ local WHOSE = { mine = true, enemy = true, anyone = true }
 -- What standing a card in this zone has in the rules, which is a different
 -- question from what the zone looks like. "board" is in play: the tag scopes,
 -- count:, card:, sacrifice: and on_round all mean it, and so does a reaction
--- answered "from": "board". "offer" is a card lent to a question — nobody's
+-- answered "in": "board". "offer" is a card lent to a question — nobody's
 -- while it is there, and gone once the question is answered. "exile" is
 -- everything else: a deck, a discard, a bag, a trash. Cards there are still
 -- *nameable*, because naming a zone has always reached it; what they are not is
@@ -313,7 +315,14 @@ local function reactions_of(def, pp, where)
 			pp[#pp + 1] = where .. ": reaction " .. i .. " should be an object"
 		else
 			for k in pairs(r) do
-				if not REACTION_FIELDS[k] then
+				-- Said by name rather than left to the generic line, because "from"
+				-- is still a word here -- it means a departure, on "leaves" -- so a
+				-- reader who writes it has a reason and needs telling which one.
+				if k == "from" then
+					pp[#pp + 1] = ("%s reaction %d: \"from\" is now \"in\" — the card does not come from there,"
+						.. " it answers while it is there, and \"from\" means a departure")
+						:format(where, i)
+				elseif not REACTION_FIELDS[k] then
 					pp[#pp + 1] = ("%s reaction %d: has a field '%s' the engine doesn't read")
 						:format(where, i, tostring(k))
 				end
@@ -340,7 +349,7 @@ local function reactions_of(def, pp, where)
 				target = { type = "slot", count = 1, moves = rules }
 			end
 			out[#out + 1] = { key = r.key or ("reaction_" .. i), text = r.text, tooltip = r.tooltip,
-				to = r.to, where = r.where, needs = r.needs, forced = forced, from = r.from,
+				to = r.to, where = r.where, needs = r.needs, forced = forced, ["in"] = r["in"],
 				whose = whose,
 				cost = r.cost, target = target, action = r.action,
 				moves = rules, compute = r.compute, spent = r.spent }

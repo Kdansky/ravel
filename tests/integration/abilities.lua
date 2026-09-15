@@ -466,7 +466,7 @@ function M.test_abilities_a_play_may_compute(check)
   "players": [{ "card": "me" }],
   "stats": [{ "key": "gold", "label": "Gold", "subject": "gold@mine.player" },
     { "key": "score", "label": "Score", "subject": "score@mine.player" }],
-  "computes": [{ "key": "swing", "from": "gold@mine.player - 1" }],
+  "computes": [{ "key": "swing", "value": "gold@mine.player - 1" }],
   "zones": [{ "key": "hand", "layout": "row" }],
   "phases": [{ "key": "turn", "type": "player_input", "zone": "hand" }],
   "cards": [{ "key": "me", "text": "Me", "card_stats": { "gold": 4, "score": 0 } },

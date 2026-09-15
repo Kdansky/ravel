@@ -152,7 +152,7 @@ function M.test_every_seat_loops_inside_a_deferred_list(check)
 			.. '    { "key": "siren", "text": "Siren",\n'
 			.. '      "play": { "action": ["emit:alarm:each_seat:stat_gain:held@mine.player:1"] } },\n'
 			.. '    { "key": "watch", "text": "Watch", "reactions": [\n'
-			.. '      { "to": "alarm", "whose": "anyone", "forced": "mandatory", "from": "hand",\n'
+			.. '      { "to": "alarm", "whose": "anyone", "forced": "mandatory", "in": "hand",\n'
 			.. '        "action": ["stat_gain:score@mine.player:1"] }] }')
 	with_game(text, function(name)
 		flow.init(name, 3)

@@ -5,7 +5,7 @@
 -- and Puzzle Strike lays its ongoing chips in a face-up row, unbounded, in front
 -- of one player. That row is in play by every rule of the game and a `hand` by
 -- every rule of the engine, so a chip on it could not be counted, could not be
--- sacrificed, was never asked to act, and no reaction could answer "from" it.
+-- sacrificed, was never asked to act, and no reaction could answer "in" it.
 --
 -- Three standings, because there turned out to be three: "board" is in play,
 -- "offer" is a card lent to a question — nobody's while it is there — and
@@ -54,7 +54,7 @@ local GAME = [==[{
       "round": { "action": ["stat_gain:gold@mine.player:1"] } },
     { "key": "bell", "text": "Bell", "tags": ["lit"],
       "reactions": [
-        { "to": "ring", "whose": "anyone", "forced": "mandatory", "from": "board",
+        { "to": "ring", "whose": "anyone", "forced": "mandatory", "in": "board",
           "action": ["stat_gain:seen@mine.player:1"] }
       ] },
     { "key": "ringer", "text": "Ringer", "play": { "action": ["emit:ring"], "spent": "mine.trash" } },
@@ -150,7 +150,7 @@ function M.test_status_on_round_fires_where_cards_are_in_play(check)
 end
 
 -- The reaction half, which is where this was first paid for: four Puzzle Strike
--- chips were unplayable because "from": "board" meant "on a grid".
+-- chips were unplayable because "in": "board" meant "on a grid".
 function M.test_status_a_reaction_answers_from_a_row_in_play(check)
 	with_game(function(name)
 		flow.init(name, 5)

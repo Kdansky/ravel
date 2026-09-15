@@ -41,16 +41,9 @@ Blue is in and playable — Bigby, Onimaru and Sirus all win games against red a
 green. What it could not say, worst first. The full rule for each card is on the
 card, in its own tooltip.
 
-- ~~An aim has no answering moment, so an Illusion cannot die of being pointed
-  at.~~ **Built.** `receive` carries three fields now — `needs` gates the aim,
-  `when` gates the answer, `action` is the answer — and the Truth spec is one
-  line on a tag: `"illusion": { "receive": { "when": ["verb:cast"],
-  "action": ["destroy:self"] } }`. The eight cards that wear it lost their NOT
-  MODELLED notes. `when` had to exist because `needs` settles the wrong
-  question: an Illusion is targetable by everything and dies only to some of it,
-  and Codex aims 3 times with `attack` as well as 91 with `cast`.
-
-  Still open, and each its own word rather than this one:
+- **The Truth spec's remainder.** An Illusion dies of being aimed at, which
+  `receive`'s `when` and `action` say on the tag. What is left wants its own
+  word each:
 
   - **Macciatus** — *"Your Illusions get +1/+1 and no longer die when a spell or
     ability aims at them."* The **dying** half is writable now: `receive`'s

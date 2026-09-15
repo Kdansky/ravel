@@ -35,12 +35,12 @@ local GAME = [==[{
     { "key": "flame_counter", "text": "Flame Counter", "tags": ["counter"],
       "reactions": [
         { "to": "play", "where": ["tagged:fireball@event"],
-          "needs": ["mana@mine.player >= 1"], "from": "board",
+          "needs": ["mana@mine.player >= 1"], "in": "board",
           "action": ["purge:event"] }
       ] },
     { "key": "summon_counter", "text": "Summon Counter", "tags": ["counter"],
       "reactions": [
-        { "to": "summon", "where": ["tagged:creature@event"], "from": "board",
+        { "to": "summon", "where": ["tagged:creature@event"], "in": "board",
           "action": ["purge:event"] }
       ] }
   ],
@@ -122,21 +122,21 @@ end
 -- one player is in play, and is a *hand* as far as a zone type goes. Guessing
 -- which face-up zones count as in play gets a discard pile wrong, so the game
 -- names the zone the way it names one everywhere else.
-function M.test_react_match_from_may_name_a_zone(check)
+function M.test_react_match_in_may_name_a_zone(check)
 	with_game(function(name)
 		flow.init(name, 3)
 		local c = at("c1")
-		-- Its reaction is answered from the board, and the bin is not one.
+		-- Its reaction is answered "in" the board, and the bin is not one.
 		actions.execute("move:target:bin", { targets = { c.id } })
 		check("in the bin it does not answer",
 			#reactions.responders("play", { at("a1").id }) == 0)
 
 		-- The same card, the same zone, with the reaction naming that zone.
 		local def = require("declaration").G.card_defs[c.def_key]
-		def.reactions[1].from = "bin"
+		def.reactions[1]["in"] = "bin"
 		check("and once the reaction names the bin, it does",
 			#reactions.responders("play", { at("a1").id }) == 1)
-		def.reactions[1].from = "board"
+		def.reactions[1]["in"] = "board"
 	end)
 end
 
@@ -150,7 +150,7 @@ function M.test_react_match_when_gates_the_reactor(check)
 	end)
 end
 
--- Filter B, the plain half: a reaction answered "from" the board is no answer
+-- Filter B, the plain half: a reaction answered "in" the board is no answer
 -- once the card has left the board. (A reaction in a graveyard is spent.)
 function M.test_react_match_filter_b_needs_the_card_where_it_acts(check)
 	with_game(function(name)
@@ -159,6 +159,29 @@ function M.test_react_match_filter_b_needs_the_card_where_it_acts(check)
 		actions.execute("move:target:bin", { targets = { at("c1").id } })
 		check("in the bin it does not", #reactions.responders("play", { at("a1").id }) == 0)
 	end)
+end
+
+-- "from" is still a word the format has -- a departure, on "leaves" -- so a
+-- reaction that says it is a reader carrying one meaning to another, and gets
+-- told which one rather than the generic "the engine doesn't read this".
+function M.test_react_match_the_old_spelling_is_refused_by_name(check)
+	local declaration = require("declaration")
+	local path = "game/games/tmp_react_from.json"
+	local f = assert(io.open(path, "w"))
+	f:write([==[{
+  "title": "From",
+  "zones": [{ "key": "board", "layout": "grid", "use": "abilities", "grid": [2, 2] }],
+  "phases": [{ "key": "turn", "type": "player_input" }],
+  "cards": [{ "key": "thing", "text": "Thing",
+    "reactions": [{ "to": "play", "from": "board", "action": ["purge:self"] }] }]
+}]==])
+	f:close()
+	local ok, G = pcall(declaration.parse, "tmp_react_from.json")
+	os.remove(path)
+	check("it parses", ok, tostring(G))
+	if not ok then return end
+	local said = table.concat(G.parse_problems or {}, "; ")
+	check('the reaction is told "from" is now "in"', said:find('"from" is now "in"', 1, true), said)
 end
 
 return M

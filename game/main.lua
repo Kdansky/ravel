@@ -293,7 +293,7 @@ local function primary_action(x, y)
 		-- click means — ahead of playing and of activating both, because the card
 		-- is being offered for exactly this and only now. Its own zone has no say:
 		-- a reaction is answered from a hand, from the board, or from wherever the
-		-- card happens to lie, and "from" already decided which.
+		-- card happens to lie, and "in" already decided which.
 		local answer = flow.sole_reaction(cid)
 		if answer then
 			begin_action(cid, answer.rule.target, "react", answer.index)

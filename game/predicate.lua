@@ -940,7 +940,7 @@ function M.bind(names, ctx)
 	for k, v in pairs((ctx or {}).let or {}) do out.let[k] = v end
 	for _, name in ipairs(names) do
 		local def = declaration.G.compute_defs[name]
-		if def then out.let[name] = M.value(def.from, out) end
+		if def then out.let[name] = M.value(def.value, out) end
 	end
 	return out
 end

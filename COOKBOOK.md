@@ -125,7 +125,7 @@ The key still names what cards spend; `subject` only changes what the row *reads
 ### A number with a name, worked out where it is used and stored nowhere.
 
 ```json
-"computes": [{ "key": "overkill", "from": "0 - health@across" }],
+"computes": [{ "key": "overkill", "value": "0 - health@across" }],
 "abilities": [{ "compute": ["overkill"], "needs": ["overkill >= 1"],
                 "action": ["stat_gain:spill@self:overkill"] }]
 ```
@@ -1069,7 +1069,7 @@ so it reads the world the action will run in.
 
 ```json
 "tags": { "unit": { "leaves": { "into": "discard", "action": ["emit:died"] } } },
-"reactions": [{ "to": "died", "whose": "anyone", "forced": "mandatory", "from": "board",
+"reactions": [{ "to": "died", "whose": "anyone", "forced": "mandatory", "in": "board",
                 "action": ["damage:hp@enemy.hero:1"] }]
 ```
 
@@ -1123,7 +1123,7 @@ Which is what lets `emit` name the newcomer and `others` leave it out of a pool.
 ```json
 "zones": [{ "key": "army", "arrives": { "action": ["emit:arrived"] } }],
 "cards": [{ "key": "blooming_ancient", "tags": ["unit", "ancient"],
-  "reactions": [{ "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+  "reactions": [{ "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
                   "needs": ["not_self@event", "tagged:unit@event"],
                   "action": ["stat_gain:plus@self:1"] }] }]
 ```
@@ -1149,7 +1149,7 @@ idiom for upkeep, arrival and death rules that belong to the *game* rather than 
 ### When they attack, you may pay 2 to answer.
 
 ```json
-"reactions": [{ "to": "attack", "whose": "enemy", "from": "hand",
+"reactions": [{ "to": "attack", "whose": "enemy", "in": "hand",
                 "cost": { "mana@mine.player": 2 },
                 "action": ["damage:hp@event:2"] }]
 ```
@@ -1169,7 +1169,7 @@ something that is not a card being played at all.
 ### They must answer this — it is not optional.
 
 ```json
-"reactions": [{ "to": "crash", "whose": "enemy", "forced": "mandatory", "from": "mine.bag" }]
+"reactions": [{ "to": "crash", "whose": "enemy", "forced": "mandatory", "in": "mine.bag" }]
 ```
 
 A mandatory reaction is how you ask somebody *else* a question.

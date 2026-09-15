@@ -37,37 +37,58 @@ what made `@white` stop meaning both the seat card and its pieces.
 - **Reserving more words** — every reserved word is one an author cannot use
   for the obvious thing.
 
-## Open: a *field* name means one thing too
+## A *field* name means one thing too
 
-The shipped rule is about **keys** — what a game file names. It says nothing
-about **fields**, what the format names, and `from` has grown three unrelated
-meanings there:
+**Shipped 2026-09-15.** The rule above is about **keys**; this half is about
+**fields**, and `from` had grown three unrelated meanings:
 
-| where | what `from` means |
-|---|---|
-| `computes[].from` | the arithmetic expression the number is made of (`SCHEMA.json:59`) |
-| `reactions[].from` | where answering happens — `"hand"`, `"board"`, or a zone by name (`SCHEMA.json:190`) |
-| `leaves.from` | which departure is meant — a zone by name (`SCHEMA.json:243`) |
+| where | was | is |
+|---|---|---|
+| `computes[].from` | the arithmetic the number is made of | **`value`** |
+| `reactions[].from` | where the card has to be to answer | **`in`** |
+| `leaves.from` | which departure is meant | `from`, unchanged |
 
-Two of the three mean a place and one means an expression, so a reader who has
-learned one is actively misled by the next. Raised 2026-09-15 while looking for
-a word for a ward's side: `from` was the obvious name and had to be refused,
-which is how the collision surfaced at all.
+`from` keeps the departure, which is the only one of the three that is actually
+a *from*. A compute is a number, so it says `value` — the same word a stat's own
+entry uses for the same question, one as a literal and one as an expression. A
+reaction says `in` because the card does not come from there: it answers *while
+it is there*, and the old spelling had readers looking for a movement that never
+happens. `in` is a Lua keyword, so the engine writes `reaction["in"]` once and
+binds it to a local; `ROUTE_FIELDS` already carried `["then"]` for the same
+reason.
 
-[Assumption: the fix is renaming two of the three, not the format learning a
-per-section lookup. Which two, and to what, is the decision — `computes[].from`
-is the odd one out semantically but has the most sites, while the two "place"
-readings are closest to each other and so are the pair most likely to be
-confused with *each other*.]
+Both old spellings are **refused by name** rather than left to the generic
+"the engine doesn't read this" — `from` is still a word the format has, so a
+reader who writes it has a reason and needs telling which one. No aliases: two
+ways to say one thing is the synonym-with-a-schedule the README warns about.
 
-Worth a sweep for the same shape in other field names before renaming anything:
-this was found by accident, so there is no reason to think it is the only one.
-The check is cheap and mechanical — every field name the engine reads, grouped
-by what it holds — and it is the kind of thing that only gets harder as more
-games are written against the current spellings.
+## What it cost to find out
 
-**Why it matters beyond tidiness:** one name for two logics is where bugs come
-from. The format has been bitten by exactly this before — `gain` inferred its
-zone from tags and silently dropped the card in the hand when two tags
-disagreed, and it was found by asking what the *longer* spelling did differently
-(README, "The verbs grew them too, and a synonym hides a bug").
+**The sweep that was supposed to catch this missed `at`.** The first pass listed
+every field name used under more than one parent — which is the shape of the bug
+— and `at` was invisible to it, because `setup.place[].at` was the only parent it
+had. `at` was proposed, accepted, and applied across the engine and five game
+files before the collision surfaced. Worse than a near-miss: `place` writes
+`zone` and `at` side by side, where `at` explicitly means *not the zone, the
+square inside it*, so a zone under `at` would have contradicted the one block
+where both words appear together.
+
+`source` was proposed next and is worse still — `@source` is a scope meaning
+*the card that is acting*, in twelve live conditions. A place-word it is not.
+
+The lesson is the check, not the word: **a name-collision sweep has to compare a
+candidate against every name in use, not only against names that already
+collide.** A word is free or it isn't; whether its current owner has company
+says nothing about that.
+
+Nothing else collided. `where` reads conditions on *the thing the block judges*
+(a target candidate, a move's square, a revealed card, a reaction's event) and
+`needs` reads conditions on *the card itself*, consistently in all four places;
+`type`, `fill`, `seat`, `zone`, `owner`, `spent` and `then` each mean one thing
+in every parent they appear in.
+
+## Refused
+
+- **Aliases beside the new spelling**, with the old one deprecated on a
+  schedule. Two ways to say one thing is what this whole track exists to stop.
+- **`at`**, and **`source`** — both taken. See above.

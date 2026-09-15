@@ -54,16 +54,20 @@ local function placed(e, reaction, strict)
 	-- anywhere else, it is simply not a card anybody is holding, and letting it
 	-- into the list opened windows for shields nobody owned.
 	if z.status == "supply" then return false end
-	if reaction.from == "board" then
+	-- Bracketed because "in" is a Lua keyword. The word is the author's, and it
+	-- says the card answers *while it is in* somewhere — not that it came from
+	-- there, which is what "from" said until 2026-09-15 and why it moved.
+	local want = reaction["in"]
+	if want == "board" then
 		if z.status == "board" then return true end
-	elseif reaction.from and reaction.from ~= "hand" then
+	elseif want and want ~= "hand" then
 		-- **A zone by name.** "board" is every grid and "hand" is every hand,
 		-- which covers the two shapes a game usually has and not the third: a
 		-- row of ongoing effects laid face up in front of one player is in play,
 		-- and it is a *hand* as far as the engine's zone types go. Guessing which
 		-- face-up zones count as in play gets a discard pile wrong, so the game
 		-- says which zone it means, the way it names a zone everywhere else.
-		if z.key == reaction.from then return true end
+		if z.key == want then return true end
 	elseif z.visibility == "owner" then
 		return true
 	end
@@ -129,10 +133,9 @@ end
 
 -- Whose announcement this reaction may answer, asked of one candidate.
 --
--- "enemy" is the default and is what every reaction meant before the word
--- existed: somebody else's action, which is what a shield answers. "mine" is
+-- "enemy" is somebody else's action, which is what a shield answers. "mine" is
 -- the other half Magic has always had — a spell of your own on the stack, and
--- an instant of your own answering it — and "anyone" is both.
+-- an instant of your own answering it — and "anyone", the default, is both.
 --
 -- It is a word in a closed set rather than a flag because there are three
 -- readings, and it is *these* words because a scope already uses them to mean

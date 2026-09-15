@@ -379,7 +379,7 @@ end
 function M.test_lor_a_compute_is_bound_only_where_it_is_named(check)
 	flow.init("lor.json", 5)
 	local def = declaration.G.compute_defs.overkill
-	check("overkill is declared once, with prose", def ~= nil and def.from == "0 - health@across"
+	check("overkill is declared once, with prose", def ~= nil and def.value == "0 - health@across"
 		and type(def.tooltip) == "string")
 	check("and it is nobody's stat", declaration.G.stat_defs.overkill == nil)
 

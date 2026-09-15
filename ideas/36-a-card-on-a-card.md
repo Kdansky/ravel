@@ -108,46 +108,23 @@ collapse into one, since the only thing separating them was the counter. Cleanup
 counts `afraid` — the computed tag `["guard@host_of.self >= 1"]` — and then
 `move:each.digger:origin` sends the figures back to their own squares.
 
-## Order
+## What it decided
 
-1. ~~Attachment survives — zones.lua, and an attached card holds no slot.~~
-   **done.** `zones.attach` owns the invariant, `detach`/`release` are wired into
-   `move_card` and `destroy_card`, and `auto_slot` skips a rider.
-2. ~~The two scopes.~~ **done**, beside `owner_of` in `entities_in_scope`, with
-   `RELATION_SCOPES` in validate.lua so a typo inside the prefix is still caught
-   as a typo in an ordinary scope.
-3. ~~Drawing a child on its host.~~ **done**, as a pass over whatever the layout
-   worked out, so no layout knows attachment exists. The count badge went with
-   it — it was standing in for a card that never drew, and the card draws now.
-4. ~~Arnak: the rules rewrite.~~ **done.** `tests/integration/arnak.lua` now
-   asserts that the space is taken because somebody is standing on it, that only
-   the figure standing there may fight the guardian, and that Fear is counted off
-   the figures.
-5. ~~**Dealing a card onto a card.**~~ **done, and it was not a word.** A
-   destination is already a scope expression — `zone_id` parses it and merely
-   happens to look it up as a zone — so one that resolves to a card names a host
-   and the arrival stands on it. `draw_from`, `fill`, `move` and `take` all
-   gained it at once; `move_to` was left out, since it already reads a target
-   specially. Nothing has to say which is meant, because the checker already
-   refuses a game that names a zone and a tag the same thing.
-6. ~~**The guardian deck.**~~ **done.** A guardian is a card with its own price,
-   dealt by the island's own `receive` — `draw_from:guard_deck:target:1` — and
-   `overcome` is the guardian's ability, asking `count:digger@mine.attached_to.host_of.self >= 1`.
-   Two prefix scopes composing is what makes that one line.
+**Dealing a card onto a card needed no word.** A destination is already a scope
+expression — `zone_id` parses it and merely happens to look it up as a zone — so
+one that resolves to a card names a host and the arrival stands on it.
+`draw_from`, `fill`, `move` and `take` all gained it at once; `move_to` was left
+out, since it already reads a target specially. Nothing has to say which is
+meant, because the checker already refuses a game that names a zone and a tag
+the same thing.
 
-**One thing a rider taught the engine along the way:** a rider's arrival is not
-the zone's business. `receive` does not fire for it — a shelf dealing a guardian
-onto every site that lands must not deal one onto the guardian — which is the
-same rule as taking no square, said about arrivals.
-
-Step 4 is also where
-[21](21-lost-ruins-of-arnak.md)'s remaining flag — that `predicate` cannot read
-a card's own exhaustion back as a condition — stops mattering, because nothing
-is asking about exhaustion any more.
+**A rider's arrival is not the zone's business.** `receive` does not fire for it
+— a shelf dealing a guardian onto every site that lands must not deal one onto
+the guardian — which is the same rule as taking no square, said about arrivals.
 
 ## What this supersedes
 
-[arnak](arnak/design.md)'s **who spent a card's exhaust** — the `spender` stamp,
-ranked as item 33. It was the cheap answer to the same question and it stays
-correct; it is struck because a figure standing on the site answers it without a
-number, a stamp to wipe, or a cleanup line that must not be forgotten.
+[arnak](arnak/design.md)'s **who spent a card's exhaust** — the `spender` stamp.
+It was the cheap answer to the same question and it stays correct; it lost
+because a figure standing on the site answers it without a number, a stamp to
+wipe, or a cleanup line that must not be forgotten.

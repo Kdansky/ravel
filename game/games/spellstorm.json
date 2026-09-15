@@ -1742,7 +1742,7 @@
         {
           "to": "resolving",
           "whose": "mine",
-          "from": "wizard",
+          "in": "wizard",
           "cost": { "mana@mine.player": 6 },
           "action": ["stat_damage:health@opponent:2", "stat_gain:mana@mine.player:1"]
         }
@@ -1833,7 +1833,7 @@
         {
           "to": "resolving",
           "whose": "mine",
-          "from": "wizard",
+          "in": "wizard",
           "cost": { "mana@mine.player": 5 },
           "action": [
             "draw_from:mine.deck:mine.hand:1",
@@ -1923,7 +1923,7 @@
         {
           "to": "resolving",
           "whose": "mine",
-          "from": "wizard",
+          "in": "wizard",
           "cost": { "mana@mine.player": 4 },
           "action": ["stat_gain:research@mine.player:1"]
         }
@@ -2003,7 +2003,7 @@
         {
           "to": "resolving",
           "whose": "mine",
-          "from": "wizard",
+          "in": "wizard",
           "cost": { "mana@mine.player": 6 },
           "action": [
             "draw_from:mine.discard:mine.hand:sum:doom@mine.player",
@@ -2090,7 +2090,7 @@
         {
           "to": "resolving",
           "whose": "mine",
-          "from": "wizard",
+          "in": "wizard",
           "cost": { "mana@mine.player": 4 },
           "action": ["draw_from:mine.deck:mine.hand:1", "show:mine.discard:optional"]
         }
@@ -2161,7 +2161,7 @@
         {
           "to": "resolving",
           "whose": "mine",
-          "from": "wizard",
+          "in": "wizard",
           "cost": { "mana@mine.player": 5 },
           "action": ["show:mine.hand:optional"]
         }
@@ -2245,7 +2245,7 @@
         {
           "to": "resolving",
           "whose": "mine",
-          "from": "wizard",
+          "in": "wizard",
           "cost": { "mana@mine.player": 5 },
           "action": [
             "move:potion_discard:potion_deck",
@@ -2342,14 +2342,14 @@
         {
           "to": "resolving",
           "whose": "mine",
-          "from": "wizard",
+          "in": "wizard",
           "cost": { "mana@mine.player": 6 },
           "action": ["stat_gain:energy@mine.player:3", "show:void:optional"]
         },
         {
           "to": "round_over",
           "whose": "mine",
-          "from": "wizard",
+          "in": "wizard",
           "cost": { "energy@mine.player": 1, "mana@mine.player": 1 },
           "needs": ["tier_req@enemy.battle == 2"],
           "action": ["copy:enemy.battle:activate"]

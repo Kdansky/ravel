@@ -377,12 +377,3 @@ acting seat's side. A game wanting everyone to pay writes no needs.
    widening and want their own evidence.
 2. **Whether `emits` may name a declared verb**, or the two vocabularies stay
    apart. See above.
-3. ~~The preview~~ — answered: the printed price in hand, the surcharge at the
-   pick, and the resisting card face up on the board in between. A range in the
-   cost row stays available if it ever reads as a trap in play.
-4. ~~Whether a tag may carry `receive`~~ — answered twice over. A tag carries
-   both halves now: `accepts` is gathered by `cards.accepts` and the write half
-   by `cards.on_receive`, each from the card's own block, its zone's `applies`,
-   its printed tags and its computed tags. **What the write half still cannot
-   say is which kind of aim it answers**, which is what keeps Codex's Illusions
-   unbuilt — see [37](37-codex.md), ranking row 65.

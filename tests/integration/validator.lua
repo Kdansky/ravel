@@ -750,28 +750,28 @@ local CASES = {
 		function(g) g.card_defs.c_flee.card_stats = { hp = { value = 4, ceiling = 6 } } end },
 	-- A compute is a name for a number, so the mistakes are about the name and
 	-- about what it is made of.
-	{ "a compute with nothing to make it from", 'needs a "from"',
+	{ "a compute with nothing to make it from", 'needs a "value"',
 		function(g) g.compute_list = { "spare" }; g.compute_defs = { spare = { key = "spare" } } end },
 	{ "a compute made of a misspelled stat", "uses the stat 'helth'",
 		function(g) g.compute_list = { "spare" }
-			g.compute_defs = { spare = { key = "spare", from = "0 - helth@board" } } end },
+			g.compute_defs = { spare = { key = "spare", value = "0 - helth@board" } } end },
 	{ "a compute whose brackets do not close", "never closed",
 		function(g) g.compute_list = { "spare" }
-			g.compute_defs = { spare = { key = "spare", from = "(hp - 1" } } end },
+			g.compute_defs = { spare = { key = "spare", value = "(hp - 1" } } end },
 	{ "a compute ending on an operator", "stops in the middle",
 		function(g) g.compute_list = { "spare" }
-			g.compute_defs = { spare = { key = "spare", from = "hp -" } } end },
+			g.compute_defs = { spare = { key = "spare", value = "hp -" } } end },
 	{ "a compute sharing a stat's key", "a stat already has that key",
 		function(g) g.compute_list = { "hp" }
-			g.compute_defs = { hp = { key = "hp", from = "hp - 1" } } end },
+			g.compute_defs = { hp = { key = "hp", value = "hp - 1" } } end },
 	{ "an ability computing something undeclared", "the game declares no such compute",
 		function(g) g.card_defs.c_flee.abilities = { { key = "a", compute = { "spare" },
 			action = { "stat_gain:hp:1" } } } end },
 	{ "computes listed out of order", "list 'base' first",
 		function(g)
 			g.compute_list = { "base", "spare" }
-			g.compute_defs = { base = { key = "base", from = "hp" },
-				spare = { key = "spare", from = "base - 1" } }
+			g.compute_defs = { base = { key = "base", value = "hp" },
+				spare = { key = "spare", value = "base - 1" } }
 			g.card_defs.c_flee.abilities = { { key = "a", compute = { "spare", "base" },
 				action = { "stat_gain:hp:1" } } }
 		end },
@@ -808,8 +808,8 @@ local CASES = {
 	-- — and is checked as an ability besides, since that is what it is.
 	{ "a reaction to a verb nothing emits", "answers 'crash', but nothing in this game emits that",
 		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "crash", action = { "purge:self" } } } end },
-	{ "a reaction answered from nowhere", 'is answered "from": \'pocket\'',
-		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", from = "pocket", action = { "purge:self" } } } end },
+	{ "a reaction answered from nowhere", 'is answered "in": \'pocket\'',
+		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", ["in"] = "pocket", action = { "purge:self" } } } end },
 	{ "an unknown action inside a reaction", "'moove_to' is not an action",
 		function(g) g.card_defs.c_flee.reactions = { { key = "r", to = "play", action = { "moove_to:board" } } } end },
 	{ "a box paid back for a purge that pays itself", "which now pays itself",
@@ -877,6 +877,12 @@ local CASES = {
 		function(g) g.card_defs.pearl.on_receive_needs = { "@ >= 1" } end },
 	{ "a nonsense condition in a tag's receive.when", "is not something the engine can measure",
 		function(g) g.tag_defs.treasure = { on_receive_needs = { "@ >= 1" } } end },
+	-- "from" still means a departure on "leaves", so writing it on a compute is a
+	-- reader carrying one meaning to another and needs telling which one, not the
+	-- generic "the engine doesn't read this".
+	{ "a compute still spelled \"from\"", '"from" is now "value"',
+		function(g) g.compute_list = { "spare" }
+			g.compute_defs = { spare = { key = "spare", from = "hp - 1" } } end },
 }
 
 -- The verb check runs last for a reason: what a game emits is only known once
@@ -1216,7 +1222,7 @@ function M.test_validator_reads_a_compute_on_either_side(check)
 	f:write([==[{
 		"title": "Compute operands",
 		"stats": [{ "key": "gold", "min": 0 }],
-		"computes": [{ "key": "spare", "from": "gold - 2" }],
+		"computes": [{ "key": "spare", "value": "gold - 2" }],
 		"zones": [
 			{ "key": "board", "layout": "grid", "grid": [1, 1], "use": "abilities" },
 			{ "key": "hand", "layout": "row" }],

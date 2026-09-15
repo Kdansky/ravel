@@ -59,7 +59,7 @@ something that does not come through a mouse could reach it.
 
 | | What it does | What it costs |
 |---|---|---|
-| ~~Random~~ | picks uniformly from `legal()` | **shipped** |
+| **Random** | picks uniformly from `legal()` | shipped |
 | **Greedy** | picks the move that most improves a number the game names | a way for a game file to say which number, and to score a move without committing to it |
 | **Searching** | looks ahead | undo already exists, and a search is undo used in anger |
 

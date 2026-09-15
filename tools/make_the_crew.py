@@ -60,9 +60,9 @@ SCRATCH = ["suit", "value", "trump", "contend", "gap"]
 # both, and the trump pass runs second, so it wins by overwriting.
 
 COMPUTES = [
-    {"key": "trump_rank", "from": "value@self + 100",
+    {"key": "trump_rank", "value": "value@self + 100",
      "tooltip": "What a rocket is worth in the running: above every colour card however low it is."},
-    {"key": "behind", "from": "max:contend@trick - contend@self",
+    {"key": "behind", "value": "max:contend@trick - contend@self",
      "tooltip": "How far short of the trick's best this card falls. Zero for exactly one card."},
 ]
 

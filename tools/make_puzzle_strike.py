@@ -1176,7 +1176,7 @@ def puzzle_cards():
          "abilities": [{"key": "upkeep", "text": "Secret Move",
                         "action": ["stat_gain:piggy@mine.player:1"]}],
          # It watches its *own* controller, which is what "whose": "mine" is for.
-         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
                         "where": ["tagged:purple@event"],
                         "action": [], "spent": "mine.discard"}],
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
@@ -1256,7 +1256,7 @@ def puzzle_cards():
          "reactions": [{"to": "attack", "whose": "enemy", "text": "Choose one",
                         "action": ["options:ef_trash,ef_ante"], "spent": "mine.discard"}]},
         {"key": "hundred_fist", **shape("hundred_fist", "brown"), "play": ongoing_play(),
-         "reactions": [{"to": "attack", "whose": "mine", "from": "board",
+         "reactions": [{"to": "attack", "whose": "mine", "in": "board",
                         "text": "Crash a gem of your own",
                         "target": {"type": "card", "tags": ["gem"], "zones": ["gem_pile"],
                                    "owner": "mine", "count": 1},
@@ -1394,7 +1394,7 @@ def character_chips():
          # without saying while that row was a "hand" as far as the engine was
          # concerned, and the default — a reaction played out of a hand — caught
          # it by accident.
-         "reactions": [{"to": "crash", "whose": "enemy", "needs": ANSWERABLE, "from": "board",
+         "reactions": [{"to": "crash", "whose": "enemy", "needs": ANSWERABLE, "in": "board",
                         "action": ["purge:mine.gem_1:1",
                                    "destroy:self", "transform:self:bubble_shield"]}]},
         {"key": "protective_ward", "text": "Protective Ward", "tags": ["chip", "character", "brown"],
@@ -1659,11 +1659,11 @@ def character_chips():
          # the window happens to be standing, `when` is read as the reactor's own
          # seat. "Their pile" is only a fixed thing to compare against in the
          # second, so a seat word in a `where` would mean whatever the moment did.
-         "reactions": [{"to": "buy", "whose": "enemy", "forced": "mandatory", "from": "board",
+         "reactions": [{"to": "buy", "whose": "enemy", "forced": "mandatory", "in": "board",
                         "needs": ["sum:value@mine.gem_pile >= 3",
                                  "sum:price@event > sum:value@enemy.gem_pile"],
                         "action": ["counterspell"]},
-                       {"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+                       {"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
                         "where": ["tagged:purple@event"],
                         "action": [], "spent": "mine.discard"}]},
         {"key": "patriot_mirror", "text": "Patriot Mirror", "tags": ["chip", "character", "brown"],
@@ -1784,7 +1784,7 @@ def character_chips():
          "asset": "polygon:7:brown",
          "play": {"phases": ["action"], "cost": {"acts@mine.player": 1},
                   "action": ["stat_gain:act_brown@mine.player:1"], "spent": "mine.ongoing"},
-         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
                         "where": ["tagged:purple@event"],
                         "action": [], "spent": "mine.discard"}]},
         {"key": "beast_unleashed", "text": "Beast Unleashed", "tags": ["chip", "character", "brown"],
@@ -1859,10 +1859,10 @@ def character_chips():
          "play": ongoing(),
          # Two reactions is how a card says "or": conditions written on one are
          # read together, and these two are alternatives.
-         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
                         "where": ["tagged:purple@event"],
                         "action": [], "spent": "mine.discard"},
-                       {"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+                       {"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
                         "where": ["sum:price@event >= 6"],
                         "action": [], "spent": "mine.discard"}]},
         # Menelker
@@ -1902,10 +1902,10 @@ def character_chips():
          # and the turn ending is when it pays. A stat carries the answer from one
          # to the other, because an event knows what it is and not what came before.
          "play": ongoing(),
-         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "from": "board",
+         "reactions": [{"to": "buy", "whose": "mine", "forced": "mandatory", "in": "board",
                         "where": ["tagged:puzzle@event"],
                         "action": ["stat_set:owed@mine.player:1"]},
-                       {"to": "turn_end", "whose": "mine", "forced": "mandatory", "from": "board",
+                       {"to": "turn_end", "whose": "mine", "forced": "mandatory", "in": "board",
                         "needs": ["owed@mine.player >= 1"],
                         "action": ["draw_from:mine.bag:mine.hand:1",
                                    "stat_set:owed@mine.player:0"]}]},
@@ -2253,7 +2253,7 @@ def build():
         # The bank holds ten Puzzle chips; "the rest" is however many of them
         # nobody drafted. Never negative — you cannot pick an eleventh — so the
         # subtraction wants no floor and needs nothing stored.
-        "computes": [{"key": "to_pick", "from": "%d - count:puzzle@bank" % len(DEFAULT_BANK),
+        "computes": [{"key": "to_pick", "value": "%d - count:puzzle@bank" % len(DEFAULT_BANK),
                       "tooltip": "How many Puzzle chips the bank is still short of a game."}],
         # A stack nobody can buy from any more is what drives the ante up, and
         # it is the plate's own number read as a word.

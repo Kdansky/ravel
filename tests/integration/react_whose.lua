@@ -70,17 +70,17 @@ local GAME = [==[{
       "play": { "action": ["emit:play"], "spent": "mine.table" } },
     { "key": "echo", "text": "Echo", "tags": ["engine"],
       "reactions": [
-        { "to": "play", "whose": "anyone", "forced": "mandatory", "from": "board",
+        { "to": "play", "whose": "anyone", "forced": "mandatory", "in": "board",
           "action": ["stat_gain:landed@mine.player:1"] }
       ] },
     { "key": "bell", "text": "Bell", "tags": ["engine"],
       "reactions": [
-        { "to": "cast", "whose": "anyone", "forced": "mandatory", "from": "board",
+        { "to": "cast", "whose": "anyone", "forced": "mandatory", "in": "board",
           "action": ["stat_gain:landed@mine.player:1"] }
       ] },
     { "key": "chime", "text": "Chime", "tags": ["engine"],
       "reactions": [
-        { "to": "cast", "whose": "anyone", "forced": "mandatory", "from": "board",
+        { "to": "cast", "whose": "anyone", "forced": "mandatory", "in": "board",
           "action": ["stat_gain:landed@mine.player:1"] }
       ] }
   ]

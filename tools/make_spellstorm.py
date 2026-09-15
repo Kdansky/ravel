@@ -771,7 +771,7 @@ WIZARDS = [
            # a player may do, at a cost, at a moment -- which is a reaction, and
            # the moment is the round saying it is over. The cards are still in
            # the battle spots when it does; `round_end` sweeps them a phase later.
-           passive={"to": "round_over", "whose": "mine", "from": "wizard",
+           passive={"to": "round_over", "whose": "mine", "in": "wizard",
                     "cost": {"energy@mine.player": 1, "mana@mine.player": 1},
                     "needs": ["tier_req@enemy.battle == 2"],
                     "action": ["copy:enemy.battle:activate"]},
@@ -1070,7 +1070,7 @@ def wizard_templates(w):
     #
     # "whose": "mine" is the whole of "your own card": the announcement is made
     # by whichever seat is resolving, and only that seat's wizard may answer it.
-    ult = {"to": "resolving", "whose": "mine", "from": "wizard",
+    ult = {"to": "resolving", "whose": "mine", "in": "wizard",
            "cost": {"mana@mine.player": w["ult_cost"]},
            "action": list(w["ult_action"])}
     char = {

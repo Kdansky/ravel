@@ -215,26 +215,12 @@ step, keeps half of his flagged.
 
 ## Open
 
-- ~~Resist N~~ — **shipped with [30](30-things-that-are-true.md)** (2026-09-08).
-  It was never a step in a fight: it is a surcharge on whoever aims, so it lives
-  in `flow.plan` as an `adjusts` keyed to the `cast` verb, and the lookout post
-  is a computed tag over `slot@self == 5`.
 - **Overpower's spill.** `clear` still zeroes a `spill` stat that nothing reads
   — there is no `spill` step, so overkill stops at the card it killed. The
   drafted step needs an attacker's excess to reach *another attackable thing*,
   which is a second victim chosen after the first is dead, and nothing in the
   walk picks a card mid-step. [Assumption: this is why it was left out; the
   file records the step in the design table and never in the game.]
-- ~~Sparkshot and Zane's shove want adjacency~~ — **done** (2026-09-01). The
-  five patrol zones are one `grid: [5, 1]`, and a `beside` pattern answers
-  sparkshot: the row is asked *before* the defender leaves it, and each
-  patroller reads whether the marked card is next to it. A gap breaks adjacency
-  for free, which is the rulebook's own wording. What fell out with it: five
-  `go_*` abilities became one `go_patrol` that targets a square, the five
-  compute triples became one family, five `activate_zone` lines per walk became
-  one, and `origin` was found to be losing the *square* on any grid wider than
-  one cell — a tech building could come home from a fight in the wrong column.
-  Zane's shove still needs a card and a square chosen together, and an ability
-  takes one kind of target.
+
 - **Keyword grants** — Wandering Mimic, Blooming Elm, Ferocity, Drakk. These are
   continuous effects, and they wait on that word rather than on this one.

@@ -48,13 +48,13 @@ local GAME = [==[{
       "play": { "target": { "type": "card", "tags": ["unit"], "zones": ["board"], "owner": "anyone", "count": 1 },
         "action": ["stat_damage:hp@target:1"], "spent": "mine.table" } },
     { "key": "echo", "text": "Echo", "tags": ["unit"],
-      "reactions": [{ "to": "cast", "whose": "enemy", "from": "board", "key": "again", "text": "Again",
+      "reactions": [{ "to": "cast", "whose": "enemy", "in": "board", "key": "again", "text": "Again",
         "action": ["copy:answered"] }] },
     { "key": "jandra", "text": "Jandra", "tags": ["unit"],
-      "reactions": [{ "to": "cast", "whose": "enemy", "from": "board", "key": "take_it", "text": "Take it",
+      "reactions": [{ "to": "cast", "whose": "enemy", "in": "board", "key": "take_it", "text": "Take it",
         "where": ["not_self@target"], "action": ["redirect:answered:self"] }] },
     { "key": "crook", "text": "Crook", "tags": ["unit"],
-      "reactions": [{ "to": "cast", "whose": "enemy", "from": "board", "key": "shove", "text": "Shove",
+      "reactions": [{ "to": "cast", "whose": "enemy", "in": "board", "key": "shove", "text": "Shove",
         "action": ["redirect:answered:stone"] }] }
   ]
 }]==]

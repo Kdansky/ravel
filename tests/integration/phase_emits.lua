@@ -49,17 +49,17 @@ local GAME = [==[{
     { "key": "pass", "text": "Pass", "play": { "action": ["end_phase"] } },
     { "key": "stipend", "text": "Stipend", "tags": ["ongoing"],
       "reactions": [
-        { "to": "dusk", "whose": "mine", "forced": "mandatory", "from": "board",
+        { "to": "dusk", "whose": "mine", "forced": "mandatory", "in": "board",
           "action": ["stat_gain:kept@mine.player:1"] }
       ] },
     { "key": "rooster", "text": "Rooster", "tags": ["ongoing"],
       "reactions": [
-        { "to": "dawn", "whose": "mine", "forced": "mandatory", "from": "board",
+        { "to": "dawn", "whose": "mine", "forced": "mandatory", "in": "board",
           "action": ["stat_gain:woke@mine.player:1"] }
       ] },
     { "key": "vulture", "text": "Vulture", "tags": ["ongoing"],
       "reactions": [
-        { "to": "dusk", "forced": "mandatory", "from": "board",
+        { "to": "dusk", "forced": "mandatory", "in": "board",
           "action": ["stat_gain:kept@mine.player:1"] }
       ] }
   ]

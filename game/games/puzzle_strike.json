@@ -158,7 +158,7 @@
   "computes": [
     {
       "key": "to_pick",
-      "from": "10 - count:puzzle@bank",
+      "value": "10 - count:puzzle@bank",
       "tooltip": "How many Puzzle chips the bank is still short of a game."
     }
   ],
@@ -1020,7 +1020,7 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "board",
+          "in": "board",
           "where": ["tagged:purple@event"],
           "action": [],
           "spent": "mine.discard"
@@ -1307,7 +1307,7 @@
         {
           "to": "attack",
           "whose": "mine",
-          "from": "board",
+          "in": "board",
           "text": "Crash a gem of your own",
           "target": {
             "type": "card",
@@ -1707,7 +1707,7 @@
           "to": "crash",
           "whose": "enemy",
           "needs": ["crashed@opponent >= 1", "broke@opponent <= 3"],
-          "from": "board",
+          "in": "board",
           "action": ["purge:mine.gem_1:1", "destroy:self", "transform:self:bubble_shield"]
         }
       ],
@@ -2282,7 +2282,7 @@
           "to": "buy",
           "whose": "enemy",
           "forced": "mandatory",
-          "from": "board",
+          "in": "board",
           "needs": ["sum:value@mine.gem_pile >= 3", "sum:price@event > sum:value@enemy.gem_pile"],
           "action": ["counterspell"]
         },
@@ -2290,7 +2290,7 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "board",
+          "in": "board",
           "where": ["tagged:purple@event"],
           "action": [],
           "spent": "mine.discard"
@@ -2646,7 +2646,7 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "board",
+          "in": "board",
           "where": ["tagged:purple@event"],
           "action": [],
           "spent": "mine.discard"
@@ -2874,7 +2874,7 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "board",
+          "in": "board",
           "where": ["tagged:purple@event"],
           "action": [],
           "spent": "mine.discard"
@@ -2883,7 +2883,7 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "board",
+          "in": "board",
           "where": ["sum:price@event >= 6"],
           "action": [],
           "spent": "mine.discard"
@@ -2971,7 +2971,7 @@
           "to": "buy",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "board",
+          "in": "board",
           "where": ["tagged:puzzle@event"],
           "action": ["stat_set:owed@mine.player:1"]
         },
@@ -2979,7 +2979,7 @@
           "to": "turn_end",
           "whose": "mine",
           "forced": "mandatory",
-          "from": "board",
+          "in": "board",
           "needs": ["owed@mine.player >= 1"],
           "action": ["draw_from:mine.bag:mine.hand:1", "stat_set:owed@mine.player:0"]
         }

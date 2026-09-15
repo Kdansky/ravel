@@ -55,7 +55,7 @@ local GAME = [==[{
     { "key": "ancient", "text": "Ancient", "tags": ["unit", "ancient"],
       "play": { "phases": ["main"], "action": ["move_to:mine.army"] },
       "reactions": [
-        { "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+        { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
           "needs": ["not_self@event", "tagged:unit@event"],
           "action": ["stat_gain:plus@self:1"] } ] }
   ],

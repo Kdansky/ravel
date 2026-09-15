@@ -162,7 +162,7 @@ local CARD_FIELDS = {
 	-- a card that has several. Never authored: a game names abilities, not the
 	-- cards that stand for them in a chooser.
 }
-local COMPUTE_FIELDS  = { key = true, from = true, tooltip = true }
+local COMPUTE_FIELDS  = { key = true, value = true, tooltip = true }
 local PLAY_FIELDS      = { cost = true, needs = true, target = true, phases = true,
 	action = true, spent = true, compute = true }
 -- "when" gates the action and "needs" gates the aim, which are different
@@ -1880,7 +1880,7 @@ function M.check(G)
 				-- Each compute sees the ones before it, so a list out of order
 				-- reads a number that has not been worked out yet — which is
 				-- zero, silently.
-				local v = predicate.parse_value(def.from)
+				local v = predicate.parse_value(def.value)
 				for _, side in ipairs((v and v.terms) or {}) do
 					if G.compute_defs[side] and not seen[side] then
 						warn("%s: computes '%s', which is made of '%s' — list '%s' first",
@@ -2438,10 +2438,16 @@ function M.check(G)
 		if G.stat_defs[key] then
 			warn("%s: a stat already has that key — one name, one number", where)
 		end
-		if def.from == nil then
-			warn('%s: needs a "from" saying what it is made of, like "0 - health@across"', where)
+		-- Named rather than left to check_fields, because "from" is still a word
+		-- the format has -- a departure, on "leaves" -- so a reader who writes it
+		-- here has a reason and needs telling which one.
+		if def.from ~= nil then
+			warn('%s: "from" is now "value" — a compute is a number, and "from" means a departure', where)
+		end
+		if def.value == nil then
+			warn('%s: needs a "value" saying what it is made of, like "0 - health@across"', where)
 		else
-			local v, err = predicate.parse_value(def.from)
+			local v, err = predicate.parse_value(def.value)
 			if not v then
 				warn("%s: %s", where, err)
 			else
@@ -3426,11 +3432,11 @@ function M.check(G)
 			-- "hand" and "board" are the two shapes a game usually has; a zone by
 			-- name is the third, for a row of ongoing effects that is in play and
 			-- is a hand as far as a zone type goes. Anything else is a typo.
-			if r.from ~= nil and r.from ~= "hand" and r.from ~= "board"
-				and not G.zone_defs[r.from] then
-				warn('%s: is answered "from": \'%s\', which is neither "hand" (played out of one), '
+			local rin = r["in"]
+			if rin ~= nil and rin ~= "hand" and rin ~= "board" and not G.zone_defs[rin] then
+				warn('%s: is answered "in": \'%s\', which is neither "hand" (played out of one), '
 					.. '"board" (used where it lies), nor a zone this game declares%s',
-					rw, tostring(r.from), suggest(r.from, G.zone_defs))
+					rw, tostring(rin), suggest(rin, G.zone_defs))
 			end
 			reacting[#reacting + 1] = { where = rw, to = r.to }
 		end

@@ -36,7 +36,7 @@
   "computes": [
     {
       "key": "overkill",
-      "from": "0 - health@across",
+      "value": "0 - health@across",
       "tooltip": "How far past death the unit across this one was struck. Health has no floor, so a blocker carries its own overkill as a negative number."
     }
   ],

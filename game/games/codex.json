@@ -1429,92 +1429,92 @@
   "computes": [
     {
       "key": "watching",
-      "from": "count:detector@enemy.addon * (1 - sum:spotted@opponent)",
+      "value": "count:detector@enemy.addon * (1 - sum:spotted@opponent)",
       "tooltip": "A detector that still has its one look left."
     },
     {
       "key": "sneak_ok",
-      "from": "sum:sneak@self * (1 - watching)",
+      "value": "sum:sneak@self * (1 - watching)",
       "tooltip": "One when this attacker may slip past patrollers unseen."
     },
     {
       "key": "lead_t0",
-      "from": "count:tech0@enemy.patrol.at_lead * count:ignores_t0@self",
+      "value": "count:tech0@enemy.patrol.at_lead * count:ignores_t0@self",
       "tooltip": "A tech 0 squad leader that cannot stop this attacker."
     },
     {
       "key": "lead_pass",
-      "from": "aims:strike_lead * sneak_ok",
+      "value": "aims:strike_lead * sneak_ok",
       "tooltip": "A squad leader this attacker could reach but slips past unseen."
     },
     {
       "key": "lead_un",
-      "from": "count:at_lead@enemy.patrol * count:unstoppable@self",
+      "value": "count:at_lead@enemy.patrol * count:unstoppable@self",
       "tooltip": "A squad leader that stops nobody, because this attacker ignores posts."
     },
     {
       "key": "lead_wk",
-      "from": "count:weak@enemy.patrol.at_lead * count:ignores_weak@self",
+      "value": "count:weak@enemy.patrol.at_lead * count:ignores_weak@self",
       "tooltip": "A squad leader too weak to hold this attacker."
     },
     {
       "key": "lead_hold",
-      "from": "lead_pass + lead_t0 + lead_un + lead_wk",
+      "value": "lead_pass + lead_t0 + lead_un + lead_wk",
       "tooltip": "How many squad leaders this attacker is allowed to walk past."
     },
     {
       "key": "t0_rest",
-      "from": "count:tech0@enemy.patrol - count:tech0@enemy.patrol.at_lead",
+      "value": "count:tech0@enemy.patrol - count:tech0@enemy.patrol.at_lead",
       "tooltip": "Their tech 0 patrollers other than the squad leader."
     },
     {
       "key": "rest_t0",
-      "from": "t0_rest * count:ignores_t0@self",
+      "value": "t0_rest * count:ignores_t0@self",
       "tooltip": "Tech 0 patrollers that cannot stop this attacker."
     },
     {
       "key": "rest_pass",
-      "from": "aims:strike_patrol * sneak_ok",
+      "value": "aims:strike_patrol * sneak_ok",
       "tooltip": "The other patrollers this attacker could reach but slips past unseen."
     },
     {
       "key": "pat_rest",
-      "from": "count:fighter@enemy.patrol - count:at_lead@enemy.patrol",
+      "value": "count:fighter@enemy.patrol - count:at_lead@enemy.patrol",
       "tooltip": "Their patrollers other than the squad leader."
     },
     {
       "key": "rest_un",
-      "from": "pat_rest * count:unstoppable@self",
+      "value": "pat_rest * count:unstoppable@self",
       "tooltip": "Other posts that stop nobody, because this attacker ignores posts."
     },
     {
       "key": "wk_rest",
-      "from": "count:weak@enemy.patrol - count:weak@enemy.patrol.at_lead",
+      "value": "count:weak@enemy.patrol - count:weak@enemy.patrol.at_lead",
       "tooltip": "Their weak patrollers other than the squad leader."
     },
     {
       "key": "rest_wk",
-      "from": "wk_rest * count:ignores_weak@self",
+      "value": "wk_rest * count:ignores_weak@self",
       "tooltip": "Other patrollers too weak to hold this attacker."
     },
     {
       "key": "rest_hold",
-      "from": "rest_pass + rest_t0 + rest_un + rest_wk",
+      "value": "rest_pass + rest_t0 + rest_un + rest_wk",
       "tooltip": "How many other patrollers this attacker is allowed to walk past."
     },
     {
       "key": "gigadon_price",
-      "from": "9 - count:green@mine.unit",
+      "value": "9 - count:green@mine.unit",
       "tooltip": "What Gigadon comes to: nine, less one for every green unit already standing."
     },
     {
       "key": "lr_them",
-      "from": "count:ranged@across * sum:attacking@across",
+      "value": "count:ranged@across * sum:attacking@across",
       "tooltip": "One when the card across this one is attacking with long-range."
     },
     {
       "key": "lr_block",
-      "from": "lr_them - count:ranged@self",
+      "value": "lr_them - count:ranged@self",
       "tooltip": "One when long-range keeps this card from striking back."
     }
   ],
@@ -6508,7 +6508,7 @@
       ],
       "tooltip": "Whenever you play a unit from your hand, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
       "reactions": [
-        { "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+        { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
           "needs": ["not_self@event", "tagged:unit@event"],
           "action": ["stat_gain:plus@self:1"] }
       ],
@@ -6564,7 +6564,7 @@
       ],
       "tooltip": "Whenever you play a unit from your hand, draw a card.",
       "reactions": [
-        { "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+        { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
           "needs": ["tagged:unit@event"],
           "action": ["draw_from:mine.deck:mine.hand:1"] }
       ],
@@ -16575,7 +16575,7 @@
           "to": "died",
           "whose": "anyone",
           "forced": "mandatory",
-          "from": "board",
+          "in": "board",
           "action": [
             "stat_damage:integrity@enemy.base:count:player@mine.owner_of",
             "stat_damage:integrity@mine.base:count:player@enemy.owner_of"
@@ -18846,7 +18846,7 @@
       ],
       "tooltip": "Whenever another unit or hero of yours arrives, put a +1/+1 rune on this. Remove a +1/+1 rune: put a +1/+1 rune on another unit.",
       "reactions": [
-        { "to": "arrived", "whose": "mine", "forced": "mandatory", "from": "board",
+        { "to": "arrived", "whose": "mine", "forced": "mandatory", "in": "board",
           "needs": ["not_self@event", "tagged:unit@event"],
           "action": ["stat_gain:plus@self:1"] }
       ],
