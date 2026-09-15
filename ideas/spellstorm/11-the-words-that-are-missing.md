@@ -282,25 +282,39 @@ and the note on the card is honest. Listed so that nobody proposes
 
 ## What is *not* on this page
 
-Several `[Simplified: …]` notes still in the game look like engine gaps and are
-probably content work — the words arrived while the cards stood still, which is
-the failure this whole document exists to catch. Worth re-reading against the
-engine before anybody writes a word for them:
+**Six notes came off the cards when this section was checked**, and every one was
+content work: the words had arrived while the cards stood still, which is the
+failure this whole document exists to catch. They are listed here because the
+shapes are reusable, not because anything is left to do.
 
 - **Coffee Run** ("if you gained an `[EARTH]` card") and **Star Shot** ("if it
-  was Tier II") both want to read what was just picked, which Potion Gun already
-  does with `count:<tag>@options`.
-- **Croh's Ultimate** ("redraw a card of your choice from your discard **OR**
-  `[DRAW]`") is an or, and an or is an offer of two.
-- **Rapid Fire** ("you **may** redraw this") is a one-entry optional offer, the
-  shape Puzzle Strike's *Boost 3* has used all along.
-- **Wind Dragon** ("resolve up to two cards") is two `show:` lines on one card,
-  which is how *Amber* gains twice.
-- **The empty-pile VOIDs** ("which ICE is VOIDed is not offered") were written
-  before the offer queue landed, and the reason given — that a battle-start sweep
-  runs for both seats and an offer is one at a time — is exactly what A2 fixed.
+  was Tier II") read the card just picked, which is the only one still lying in
+  the offer while a `chosen` list runs — `count:earth@options` and
+  `sum:tier_req@options`, the reading Potion Gun took its Element from. Counted
+  *before* the move, since a card in hand is no longer in the offer.
+- **Croh's Ultimate** ("for each DOOM Token, redraw a card of your choice **OR**
+  `[DRAW]`") is not one or but *N* of them, and a number of questions worked out
+  from a stat has no spelling at all — an action list is written once and a stat
+  is read as it runs. One rules card per token he might hold, each gated on
+  holding that many, and the Ultimate walks the column.
+- **Rapid Fire** ("you **may** redraw this") is a one-entry offer with a No
+  button, the shape Puzzle Strike's *Boost 3* has used all along. A cost is one
+  map settled in full, so a part you may decline is always an offer.
+- **Wind Dragon** and **Shatter** ("up to two") are two `show:` lines on one
+  card, which is how *Amber* gains twice. The per-card rider rides on the
+  answer, so it counts itself.
+- **The empty-pile VOIDs** were the interesting one. *Which* ICE looks
+  immaterial — every ICE is the same card — and is not: one in your hand costs a
+  Blast Score and one in your discard costs a draw. The holder is asked, and
+  when the junk was being *given* the holder is the other player, which is the
+  whole of `set_priority`: from inside that window, `mine` is theirs.
 
 Two that really do need something, and are cheap to state: **Omar's Shuriken**
 ("this card ALWAYS goes first") wants a card-level override read by
 `set_active_seat:has_init`, and **Deep Gems** ("you may lose 1 Power Token" as
 the price of the rest) wants a cost on a chosen action.
+
+**And one thing the checking turned up**: a second question asked from inside a
+`copy:` is swept, exactly as entry 8 describes — Wind Dragon loses its second
+offer when another card resolves it, the same way *Data Breach* loses its second
+half. Two customers for one ordering rule now.

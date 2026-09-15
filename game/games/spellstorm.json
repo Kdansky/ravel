@@ -1003,7 +1003,7 @@
       "text": "Rapid Fire",
       "asset": "ss_rapidfire.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "*Draw a card*. If you have *Initiative*, deal *2 damage* and you may redraw this to your hand.\n\n_When going for a fire-based strategy, it's important to keep the pressure on._\n\n_[Simplified: returning the card to hand is not optional; if you have Initiative it always comes back]_",
+      "tooltip": "*Draw a card*. If you have *Initiative*, deal *2 damage* and you may redraw this to your hand.\n\n_When going for a fire-based strategy, it's important to keep the pressure on._",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
@@ -1012,7 +1012,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_damage:health@opponent:2", "move_to:mine.hand"]
+          "action": ["stat_damage:health@opponent:2", "options:rf_back:optional"]
         }
       ]
     },
@@ -1509,12 +1509,16 @@
       "text": "Shatter",
       "asset": "ss_shatter.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "You may *VOID* a card from your hand; if you do, *power up*. On discard: *power up*.\n\n_\"That there spellstorm water's FULL-a gold, I tell ya!\" - Prospector_\n\n_[Simplified: the printed card voids up to 2; here it is one]_",
+      "tooltip": "You may *VOID* up to *2 cards* from your hand, and *power up* for each. On discard: *power up*.\n\n_\"That there spellstorm water's FULL-a gold, I tell ya!\" - Prospector_",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 2 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": [] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.hand:optional", "show:mine.hand:optional"]
+        }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
       "chosen": {
@@ -1668,7 +1672,7 @@
       "text": "Wind Dragon",
       "asset": "ss_winddragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon", "ult"],
-      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._\n\n_[Simplified: the printed card resolves up to two cards; here it is one]_",
+      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1681,7 +1685,11 @@
             "stat_gain:shards@mine.player:1"
           ]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.hand:optional", "show:mine.hand:optional"]
+        }
       ],
       "chosen": { "action": ["copy:target:activate", "destroy:target"] }
     },
@@ -1803,7 +1811,7 @@
       "text": "Coffee Run",
       "asset": "ss_derby_coffee.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. If you gained an *Earth* card, gain *Initiative*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"This is gonna be the best coffee run of all time!\"_\n\n_[Simplified: Initiative is granted for any gained card, not only an Earth one]_",
+      "tooltip": "*Power up twice* and you may gain a card from the *Storm Cloud* at or below your *Tier*. If you gained an *Earth* card, gain *Initiative*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"This is gonna be the best coffee run of all time!\"_",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1816,10 +1824,9 @@
       ],
       "chosen": {
         "action": [
+          "activate_zone:rules:by_column:coffee",
           "move:target:mine.hand",
-          "draw_from:spellstorm_deck:storm_cloud:1",
-          "stat_set:initiative@mine.player:1",
-          "stat_set:initiative@opponent:0"
+          "draw_from:spellstorm_deck:storm_cloud:1"
         ],
         "where": ["tier@mine.player >= tier_req@target"]
       }
@@ -2051,7 +2058,7 @@
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
       "tags": ["wizard_card", "croh"],
-      "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: Redraw one card from your discard for each *DOOM Token* you have, then gain a *DOOM Token*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 20*, *Initiative rating 8*.\n\n_[Simplified: the printed Ultimate lets you take any card from your discard, or draw instead; here the redraw is off the top of the discard]_",
+      "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: For each *DOOM Token* you have, take a card of your choice from your discard or draw one. If you have none, gain a *DOOM Token*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 20*, *Initiative rating 8*.",
       "reactions": [
         {
           "to": "resolving",
@@ -2060,7 +2067,7 @@
           "needs": ["ult_free@mine.player <= 0"],
           "cost": { "mana@mine.player": 6 },
           "action": [
-            "draw_from:mine.discard:mine.hand:sum:doom@mine.player",
+            "activate_zone:rules:by_column:croh_redraw",
             "activate_zone:rules:by_column:croh_doom"
           ]
         },
@@ -2070,7 +2077,7 @@
           "in": "wizard",
           "cost": { "ult_free@mine.player": 1 },
           "action": [
-            "draw_from:mine.discard:mine.hand:sum:doom@mine.player",
+            "activate_zone:rules:by_column:croh_redraw",
             "activate_zone:rules:by_column:croh_doom"
           ]
         }
@@ -2500,7 +2507,7 @@
       "text": "Star Shot",
       "asset": "ss_may_starshot.jpg",
       "tags": ["fire", "ember", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "*Discard a card* to deal *1 damage*. Gain *1 mana* for each *Energy* Token you have, then lose *2 Energy*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Hey, YOU! Eat this!\"_\n\n_[Simplified: the extra damage for discarding a Tier II card is not checked]_",
+      "tooltip": "*Discard a card* to deal *1 damage*. Gain *1 mana* for each *Energy* Token you have, then lose *2 Energy*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Hey, YOU! Eat this!\"_",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2514,7 +2521,13 @@
         },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
-      "chosen": { "action": ["destroy:target", "stat_damage:health@opponent:1"] }
+      "chosen": {
+        "action": [
+          "activate_zone:rules:by_column:starshot",
+          "destroy:target",
+          "stat_damage:health@opponent:1"
+        ]
+      }
     },
     {
       "key": "nice_breeze",
@@ -3294,6 +3307,31 @@
       "play": { "action": ["draw_from:mine.deck:mine.hand:1"] }
     },
     {
+      "key": "croh_take",
+      "text": "Take a card back",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Return a card of your choice from your discard to your hand.",
+      "play": { "action": ["show:mine.discard:optional"], "needs": ["count:spell@mine.discard >= 1"] },
+      "chosen": { "action": ["move:target:mine.hand"] }
+    },
+    {
+      "key": "croh_draw",
+      "text": "Draw instead",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "*Draw a card*.",
+      "play": { "action": ["draw_from:mine.deck:mine.hand:1"] }
+    },
+    {
+      "key": "rf_back",
+      "text": "Take Rapid Fire back",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Return Rapid *Fire* to your hand.",
+      "play": { "action": ["move:target:mine.hand"] }
+    },
+    {
       "key": "may_hand",
       "text": "From your hand",
       "tags": ["immutable"],
@@ -3440,66 +3478,66 @@
       "key": "r_dry_ash",
       "text": "The ASH pile is empty",
       "tags": ["immutable"],
-      "tooltip": "When the *ASH* pile is empty, whoever would have been given one VOIDs a *ASH* from their hand or discard and takes the penalty instead.\n\n_[Simplified: which ASH is VOIDed is not offered; the engine takes one]_",
+      "tooltip": "When the *ASH* pile is empty, whoever would have been given one VOIDs a *ASH* of their choosing from their hand or discard and takes the penalty instead.",
       "asset": "auto",
       "abilities": [
         {
           "key": "dry_take_ash",
           "needs": ["count:junk@ash_pile <= 0"],
-          "action": ["move:random.mine.held.ash:ash_pile", "stat_damage:power@mine.player:2"]
+          "action": ["stat_damage:power@mine.player:2", "show:mine.held.ash"]
         },
         {
           "key": "dry_give_ash",
           "needs": ["count:junk@ash_pile <= 0"],
-          "action": ["move:random.enemy.held.ash:ash_pile", "stat_damage:power@opponent:2"]
+          "action": ["stat_damage:power@opponent:2", "set_priority:enemy.player", "show:mine.held.ash"]
         }
-      ]
+      ],
+      "chosen": { "action": ["move:target:ash_pile"] }
     },
     {
       "key": "r_dry_curse",
       "text": "The CURSE pile is empty",
       "tags": ["immutable"],
-      "tooltip": "When the *CURSE* pile is empty, whoever would have been given one VOIDs a *CURSE* from their hand or discard and takes the penalty instead.\n\n_[Simplified: which CURSE is VOIDed is not offered; the engine takes one]_",
+      "tooltip": "When the *CURSE* pile is empty, whoever would have been given one VOIDs a *CURSE* of their choosing from their hand or discard and takes the penalty instead.",
       "asset": "auto",
       "abilities": [
         {
           "key": "dry_take_curse",
           "needs": ["count:junk@curse_pile <= 0"],
-          "action": ["move:random.mine.held.curse:curse_pile", "stat_damage:health@mine.player:1"]
+          "action": ["stat_damage:health@mine.player:1", "show:mine.held.curse"]
         },
         {
           "key": "dry_give_curse",
           "needs": ["count:junk@curse_pile <= 0"],
-          "action": ["move:random.enemy.held.curse:curse_pile", "stat_damage:health@opponent:1"]
+          "action": ["stat_damage:health@opponent:1", "set_priority:enemy.player", "show:mine.held.curse"]
         }
-      ]
+      ],
+      "chosen": { "action": ["move:target:curse_pile"] }
     },
     {
       "key": "r_dry_ice",
       "text": "The ICE pile is empty",
       "tags": ["immutable"],
-      "tooltip": "When the *ICE* pile is empty, whoever would have been given one VOIDs a *ICE* from their hand or discard and takes the penalty instead.\n\n_[Simplified: which ICE is VOIDed is not offered; the engine takes one]_",
+      "tooltip": "When the *ICE* pile is empty, whoever would have been given one VOIDs a *ICE* of their choosing from their hand or discard and takes the penalty instead.",
       "asset": "auto",
       "abilities": [
         {
           "key": "dry_take_ice",
           "needs": ["count:junk@ice_pile <= 0"],
-          "action": [
-            "move:random.mine.held.ice:ice_pile",
-            "destroy:random.mine.hand",
-            "destroy:random.mine.hand"
-          ]
+          "action": ["destroy:random.mine.hand", "destroy:random.mine.hand", "show:mine.held.ice"]
         },
         {
           "key": "dry_give_ice",
           "needs": ["count:junk@ice_pile <= 0"],
           "action": [
-            "move:random.enemy.held.ice:ice_pile",
             "destroy:random.enemy.hand",
-            "destroy:random.enemy.hand"
+            "destroy:random.enemy.hand",
+            "set_priority:enemy.player",
+            "show:mine.held.ice"
           ]
         }
-      ]
+      ],
+      "chosen": { "action": ["move:target:ice_pile"] }
     },
     {
       "key": "r_dry_dragon",
@@ -3695,6 +3733,90 @@
       "asset": "auto",
       "abilities": [{ "key": "breach", "needs": ["energy@mine.player >= 2"], "action": ["show:enemy.hand"] }],
       "chosen": { "action": ["destroy:target"] }
+    },
+    {
+      "key": "r_coffee",
+      "text": "Coffee Run",
+      "tags": ["immutable"],
+      "tooltip": "Derby gains *Initiative* only if the card he gained was an *Earth* card.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "coffee",
+          "needs": ["count:earth@options >= 1"],
+          "action": ["stat_set:initiative@mine.player:1", "stat_set:initiative@opponent:0"]
+        }
+      ]
+    },
+    {
+      "key": "r_starshot",
+      "text": "Star Shot",
+      "tags": ["immutable"],
+      "tooltip": "May deals *1 more damage* if the card she discarded was *Tier II*.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "starshot",
+          "needs": ["sum:tier_req@options == 2"],
+          "action": ["stat_damage:health@opponent:1"]
+        }
+      ]
+    },
+    {
+      "key": "r_croh_redraw_1",
+      "text": "DOOM Token 1",
+      "tags": ["immutable"],
+      "tooltip": "With 1 or more *DOOM Tokens*, Croh takes a card from his discard or draws.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "croh_redraw",
+          "needs": ["doom@mine.player >= 1"],
+          "action": ["options:croh_take,croh_draw:optional"]
+        }
+      ]
+    },
+    {
+      "key": "r_croh_redraw_2",
+      "text": "DOOM Token 2",
+      "tags": ["immutable"],
+      "tooltip": "With 2 or more *DOOM Tokens*, Croh takes a card from his discard or draws.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "croh_redraw",
+          "needs": ["doom@mine.player >= 2"],
+          "action": ["options:croh_take,croh_draw:optional"]
+        }
+      ]
+    },
+    {
+      "key": "r_croh_redraw_3",
+      "text": "DOOM Token 3",
+      "tags": ["immutable"],
+      "tooltip": "With 3 or more *DOOM Tokens*, Croh takes a card from his discard or draws.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "croh_redraw",
+          "needs": ["doom@mine.player >= 3"],
+          "action": ["options:croh_take,croh_draw:optional"]
+        }
+      ]
+    },
+    {
+      "key": "r_croh_redraw_4",
+      "text": "DOOM Token 4",
+      "tags": ["immutable"],
+      "tooltip": "With 4 or more *DOOM Tokens*, Croh takes a card from his discard or draws.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "croh_redraw",
+          "needs": ["doom@mine.player >= 4"],
+          "action": ["options:croh_take,croh_draw:optional"]
+        }
+      ]
     },
     {
       "key": "r_doom",
@@ -3909,6 +4031,12 @@
       { "card": "r_journal_8", "zone": "rules" },
       { "card": "r_potion", "zone": "rules" },
       { "card": "r_breach", "zone": "rules" },
+      { "card": "r_coffee", "zone": "rules" },
+      { "card": "r_starshot", "zone": "rules" },
+      { "card": "r_croh_redraw_1", "zone": "rules" },
+      { "card": "r_croh_redraw_2", "zone": "rules" },
+      { "card": "r_croh_redraw_3", "zone": "rules" },
+      { "card": "r_croh_redraw_4", "zone": "rules" },
       { "card": "r_doom", "zone": "rules" },
       { "card": "r_curriculum", "zone": "rules" },
       { "card": "r_round_over", "zone": "rules" },

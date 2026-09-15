@@ -248,8 +248,7 @@ SPELLS = [
     card("rapidfire", "Rapid Fire", FIRE, tier=2,
          tooltip="Draw a card. If you have Initiative, deal 2 damage and you may redraw this to your hand.",
          flavour="When going for a fire-based strategy, it's important to keep the pressure on.",
-         simplified="returning the card to hand is not optional; if you have Initiative it always comes back",
-         cast=[DRAW], cast2=(HAS_INIT, [DMG(2), "move_to:mine.hand"])),
+         cast=[DRAW], cast2=(HAS_INIT, [DMG(2), "options:rf_back:optional"])),
     card("ruby", "Ruby", FIRE, tier=1,
          tooltip="Discard the top 3 cards of your deck and deal 1 damage.",
          flavour="The popular trend of ruby-adorned garments was blamed for the Great Royal Ball Fire of 1976.",
@@ -365,10 +364,9 @@ SPELLS = [
          cast=["stat_damage:power@opponent:2"] + GIVE("ash") + [OFFER_CLOUD],
          chosen=TAKE_TO_HAND, chosen_where=GAIN_TIER, disc=[POWER]),
     card("shatter", "Shatter", EARTH, tier=2,
-         tooltip="You may VOID a card from your hand; if you do, power up. On discard: power up.",
+         tooltip="You may VOID up to 2 cards from your hand, and power up for each. On discard: power up.",
          flavour='"That there spellstorm water\'s FULL-a gold, I tell ya!" - Prospector',
-         simplified="the printed card voids up to 2; here it is one",
-         cast=[OFFER_HAND], chosen=["move:target:void", POWER],
+         cast=[OFFER_HAND, OFFER_HAND], chosen=["move:target:void", POWER],
          chosen_where=VOIDABLE, disc=[POWER]),
     card("sift", "Sift", EARTH, tier=1,
          tooltip="Power up. Draw 2 cards, then you may discard one of them.",
@@ -423,8 +421,7 @@ DRAGONS = [
     card("winddragon", "Wind Dragon", FIRE, tier=4, kind="dragon", ult=True,
          tooltip="Gain Initiative. Gain a Storm Shard. You may resolve a card from your hand.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
-         simplified="the printed card resolves up to two cards; here it is one",
-         cast=GAIN_INIT + [SHARD(1), OFFER_HAND],
+         cast=GAIN_INIT + [SHARD(1), OFFER_HAND, OFFER_HAND],
          # A resolved card goes to the discard pile like any other, so the On
          # Discard it fires there is meant to fire.
          chosen=["copy:target:activate", "destroy:target"]),
@@ -602,6 +599,22 @@ def choice_templates():
               chosen=["move:target:mine.hand"]),
         entry("omar_draw", "Draw instead", "Draw a card.", [DRAW]),
 
+        # Croh's DOOOOOOOOOM!, one token's worth: "a card of your choice from
+        # your discard, OR draw". The choice is per token, so the Ultimate asks
+        # it as many times as he has tokens -- four rules cards, one per token,
+        # each gated on holding that many.
+        entry("croh_take", "Take a card back",
+              "Return a card of your choice from your discard to your hand.",
+              ["show:mine.discard:optional"],
+              needs=["count:spell@mine.discard >= 1"],
+              chosen=["move:target:mine.hand"]),
+        entry("croh_draw", "Draw instead", "Draw a card.", [DRAW]),
+
+        # Rapid Fire's "you may redraw this". A cost is one map settled in full,
+        # so a part you may decline is an offer -- of one, with a No button.
+        entry("rf_back", "Take Rapid Fire back",
+              "Return Rapid Fire to your hand.", ["move:target:mine.hand"]),
+
         # May's Void Traveler: "a non-Wizard card from your hand, or any card in
         # the VOID". Only the VOID half was built.
         entry("may_hand", "From your hand",
@@ -674,9 +687,9 @@ WIZARDS = [
                card("derby_coffee", "Coffee Run", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up twice and you may gain a card from the Storm Cloud at or below your Tier. If you gained an Earth card, gain Initiative.",
                     flavour='"This is gonna be the best coffee run of all time!"',
-                    simplified="Initiative is granted for any gained card, not only an Earth one",
                     cast=[POWER, POWER, OFFER_CLOUD],
-                    chosen=TAKE_TO_HAND + GAIN_INIT, chosen_where=GAIN_TIER),
+                    chosen=["activate_zone:rules:by_column:coffee"] + TAKE_TO_HAND,
+                    chosen_where=GAIN_TIER),
                card("derby_reckless", "Reckless Charge", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Gain 1 mana and power up. Deal 1 damage. Gain an ASH. If you have Initiative, deal 1 more damage.",
                     flavour='"I know we can do it if we work together!"',
@@ -743,10 +756,10 @@ WIZARDS = [
 
     wizard("croh", "Croh Vosh", "Undead Lich", "Fire, Water", 20, 8, 6,
            "DOOOOOOOOOM!",
-           "Redraw one card from your discard for each DOOM Token you have, then gain a DOOM Token.",
-           ["draw_from:mine.discard:mine.hand:sum:doom@mine.player",
+           "For each DOOM Token you have, take a card of your choice from your discard"
+           " or draw one. If you have none, gain a DOOM Token.",
+           ["activate_zone:rules:by_column:croh_redraw",
             "activate_zone:rules:by_column:croh_doom"],
-           simplified="the printed Ultimate lets you take any card from your discard, or draw instead; here the redraw is off the top of the discard",
            blurb="An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead.",
            spells=[
                card("croh_sinking", "Sinking Strike", FIRE, kind="wizard_spell", ult=True,
@@ -878,10 +891,10 @@ WIZARDS = [
                card("may_starshot", "Star Shot", FIRE, kind="wizard_spell", ult=True,
                     tooltip="Discard a card to deal 1 damage. Gain 1 mana for each Energy Token you have, then lose 2 Energy.",
                     flavour='"Hey, YOU! Eat this!"',
-                    simplified="the extra damage for discarding a Tier II card is not checked",
                     cast=["stat_gain:mana@mine.player:sum:energy@mine.player",
                           "stat_damage:energy@mine.player:2", OFFER_HAND],
-                    chosen=["destroy:target", DMG(1)]),
+                    chosen=["activate_zone:rules:by_column:starshot",
+                            "destroy:target", DMG(1)]),
            ]),
 ]
 
@@ -1291,18 +1304,22 @@ def rules_templates():
             ("ice",   [DISCARD_RANDOM("mine")] * 2, [DISCARD_RANDOM("enemy")] * 2)):
         # VOIDing one is a move back onto the pile, which is where a VOIDed junk
         # card goes -- so the pile refills by one and the penalty lands on top.
-        void = lambda who: "move:random.%s.held.%s:%s_pile" % (who, kind, kind)
+        # Which one is VOIDed is the holder's choice, and it is a real one: every
+        # ICE is the same card, but one in your hand costs a Blast Score and one
+        # in your discard costs a draw. So the holder is asked -- and when the
+        # junk was being *given*, the holder is the other player, which is what
+        # `set_priority` is for: from inside that window `mine` is theirs.
+        ask = "show:mine.held.%s" % kind
         out.append(rules_card(
             "r_dry_" + kind, "The %s pile is empty" % kind.upper(),
             tip("When the %s pile is empty, whoever would have been given one VOIDs "
-                "a %s from their hand or discard and takes the penalty instead."
-                % (kind.upper(), kind.upper()),
-                simplified="which %s is VOIDed is not offered; the engine takes one"
-                           % kind.upper()),
-            [ability("dry_take_" + kind, [void("mine")] + take,
+                "a %s of their choosing from their hand or discard and takes the "
+                "penalty instead." % (kind.upper(), kind.upper())),
+            [ability("dry_take_" + kind, take + [ask],
                      when=["count:junk@%s_pile <= 0" % kind]),
-             ability("dry_give_" + kind, [void("enemy")] + give,
-                     when=["count:junk@%s_pile <= 0" % kind])]))
+             ability("dry_give_" + kind, give + ["set_priority:enemy.player", ask],
+                     when=["count:junk@%s_pile <= 0" % kind])],
+            chosen={"action": ["move:target:%s_pile" % kind]}))
 
     # The Dragon pile is the one whose empty rule is a reward rather than a
     # penalty, because a Dragon is what you were owed.
@@ -1359,6 +1376,28 @@ def rules_templates():
         "If May still holds 2 Energy after paying, her opponent reveals their hand and she chooses what they discard.",
         [ability("breach", ["show:enemy.hand"], when=["energy@mine.player >= 2"])],
         chosen={"action": ["destroy:target"]}))
+
+    # Coffee Run's Initiative and Star Shot's extra damage both ask about the
+    # card the player just chose, which is still lying in the offer while the
+    # `chosen` list runs -- the same reading Potion Gun takes its Element from.
+    out.append(rules_card(
+        "r_coffee", "Coffee Run",
+        "Derby gains Initiative only if the card he gained was an Earth card.",
+        [ability("coffee", GAIN_INIT, when=["count:earth@options >= 1"])]))
+    out.append(rules_card(
+        "r_starshot", "Star Shot",
+        "May deals 1 more damage if the card she discarded was Tier II.",
+        [ability("starshot", [DMG(1)], when=["sum:tier_req@options == 2"])]))
+
+    # One card per DOOM Token he might hold, so the Ultimate asks exactly as many
+    # times as he has. A number of questions worked out from a stat has no other
+    # spelling: an action list is written once and a stat is read at run time.
+    for n in range(1, 5):
+        out.append(rules_card(
+            "r_croh_redraw_%d" % n, "DOOM Token %d" % n,
+            "With %d or more DOOM Tokens, Croh takes a card from his discard or draws." % n,
+            [ability("croh_redraw", ["options:croh_take,croh_draw:optional"],
+                     when=["doom@mine.player >= %d" % n])]))
 
     # Croh gains DOOM Tokens only from failure states -- having none, or an
     # empty CURSE pile -- which is the trap his whole design is built around.

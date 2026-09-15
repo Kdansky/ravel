@@ -712,13 +712,27 @@ function M.test_spellstorm_rapid_fire_comes_back(check)
 	check("without Initiative it stays where it fell",
 		entity.get(rf.id).zone_id == zone_of("battle", one).id)
 
+	-- With Initiative the redraw is offered rather than taken: "you *may*
+	-- redraw this" is a part of the card you may decline, and a cost is one map
+	-- settled in full, so the only way to say it is an offer of one.
 	actions.execute("stat_set:initiative@mine.player:1", {})
 	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = rf.id, targets = {} })
-	check("with it, the card is back in the hand",
-		entity.get(rf.id).zone_id == hand_of(one).id)
+	check("with it, the card asks", phase.current().key == "options"
+		and #zones.find("options").cards == 1, phase.current().key)
+	flow.play_card(zones.find("options").cards[1], {})
+	check("and taking the offer puts it back in the hand",
+		entity.get(rf.id).zone_id == hand_of(one).id,
+		entity.get(entity.get(rf.id).zone_id).key)
 	actions.execute("each_seat:move:mine.battle:mine.discard", {})
 	check("so the sweep at the end of the round never sees it",
 		entity.get(rf.id).zone_id == hand_of(one).id)
+
+	-- And declined, it is left standing to be swept like any other card.
+	local rf2 = stage_battle(one, "rapidfire")
+	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = rf2.id, targets = {} })
+	check("declining leaves it in the battle spot", flow.dismiss_offer()
+		and entity.get(rf2.id).zone_id == zone_of("battle", one).id,
+		entity.get(entity.get(rf2.id).zone_id).key)
 end
 
 
@@ -2145,6 +2159,153 @@ function M.test_spellstorm_the_journal_runs_out_of_tokens_before_spaces(check)
 	check("so two spaces stay dark",
 		find("r_journal_7").stats.researched == 0
 		and find("r_journal_8").stats.researched == 0)
+end
+
+
+-- Six simplifications that were content work, not engine work.
+--
+-- Each was written down as a limit and each was reachable with words that had
+-- arrived since -- which is the whole failure this corpus keeps tripping over: a
+-- sentence the format could not carry outlives the reason for it, and the note
+-- goes on asserting a limit somebody lifted.
+
+
+-- Coffee Run: "`[GAIN]`. If you gained an `[EARTH]` card, gain `[INIT]`." The
+-- rider asks about the card just chosen, which is the only card still lying in
+-- the offer while a `chosen` list runs -- the reading Potion Gun takes its
+-- Element from. Counted before the move, since a card in hand is not in the
+-- offer to be counted.
+function M.test_spellstorm_coffee_run_reads_what_was_gained(check)
+	for _, case in ipairs({ { "twopower", 1 }, { "fireball", 0 } }) do
+		local pick, want = case[1], case[2]
+		opening(3, "derby", "eve")
+		become("seat_one")
+		seat_card("seat_one").stats.initiative = 0
+		seat_card("seat_two").stats.initiative = 1
+		local sc = zones.find("storm_cloud")
+		for _, id in ipairs({ unpack(sc.cards) }) do
+			zones.move_card(id, zones.find_id("spellstorm_deck"))
+		end
+		zones.move_card(find(pick).id, sc.id)
+
+		local cr = stage_battle("seat_one", "derby_coffee")
+		actions.execute("copy:target:activate", { card_id = cr.id, targets = { cr.id } })
+		flow.play_card(find(pick, "options").id, {})
+		check(("gaining %s leaves Initiative at %d"):format(pick, want),
+			seat_card("seat_one").stats.initiative == want,
+			tostring(seat_card("seat_one").stats.initiative))
+		check("and the card is in hand either way",
+			entity.get(find(pick).zone_id).key == "hand")
+	end
+end
+
+
+-- Star Shot: "Discard a card to deal 1 damage. If it was Tier II, deal 1 more."
+-- The same reading, of a number rather than a tag.
+function M.test_spellstorm_star_shot_reads_the_tier_it_discarded(check)
+	for _, case in ipairs({ { "obsidian", 2 }, { "fireball", 1 } }) do
+		local pick, want = case[1], case[2]
+		opening(3, "may", "eve")
+		become("seat_one")
+		empty_hand("seat_one")
+		zones.move_card(find(pick).id, hand_of("seat_one").id)
+		local hp = seat_card("seat_two").stats.health
+
+		local ss = stage_battle("seat_one", "may_starshot")
+		actions.execute("copy:target:activate", { card_id = ss.id, targets = { ss.id } })
+		flow.play_card(find(pick, "options").id, {})
+		check(("discarding %s deals %d"):format(pick, want),
+			hp - seat_card("seat_two").stats.health == want,
+			tostring(hp - seat_card("seat_two").stats.health))
+	end
+end
+
+
+-- Wind Dragon: "You may resolve up to two cards from your hand." Two `show:`
+-- lines on one card are two questions, both answered by the one `chosen` -- the
+-- idiom Amber gains twice with. Driven through the resolve columns, because a
+-- second question asked from inside a `copy:` is swept (see 09).
+function M.test_spellstorm_wind_dragon_resolves_two(check)
+	opening(3, "derby", "eve")
+	become("seat_one")
+	empty_hand("seat_one")
+	for _, k in ipairs({ "fireball", "moonstone", "twopower" }) do
+		zones.move_card(find(k).id, hand_of("seat_one").id)
+	end
+	stage_battle("seat_one", "winddragon")
+	for _, col in ipairs({ "cast", "cast2", "cast3", "cast_ask" }) do
+		actions.execute("activate_zone:mine.battle:by_column:" .. col, {})
+	end
+	check("it asks once", phase.current().key == "options"
+		and #zones.find("options").cards == 3, phase.current().key)
+	flow.play_card(find("fireball", "options").id, {})
+	check("and again", phase.current().key == "options"
+		and #zones.find("options").cards == 2, phase.current().key)
+	flow.play_card(find("moonstone", "options").id, {})
+	check("both resolved and both went to the discard",
+		entity.get(find("fireball").zone_id).key == "discard"
+		and entity.get(find("moonstone").zone_id).key == "discard")
+end
+
+
+-- Croh's DOOOOOOOOOM!: "For each DOOM Token you have, you may redraw a card of
+-- your choice from your discard to your hand OR `[DRAW]`."
+--
+-- A number of questions worked out from a stat, which has no other spelling: an
+-- action list is written once and a stat is read as it runs. One rules card per
+-- token he might hold, each gated on holding that many.
+function M.test_spellstorm_croh_asks_once_per_doom_token(check)
+	opening(3, "croh", "eve")
+	become("seat_one")
+	seat_card("seat_one").stats.doom = 3
+	empty_hand("seat_one")
+	-- A deck to draw from, so a draw is a draw and the discard is not swept
+	-- into it halfway through.
+	for _, id in ipairs({ unpack(zone_of("discard", "seat_one").cards) }) do
+		zones.move_card(id, zone_of("deck", "seat_one").id)
+	end
+	local deck = #zone_of("deck", "seat_one").cards
+
+	actions.execute("activate_zone:rules:by_column:croh_redraw", {})
+	local asked = 0
+	for _ = 1, 6 do
+		if phase.current().key ~= "options" then break end
+		asked = asked + 1
+		flow.play_card(find("croh_draw", "options").id, {})
+	end
+	check("three tokens, three questions", asked == 3, asked)
+	check("and three cards drawn", #hand_of("seat_one").cards == 3,
+		#hand_of("seat_one").cards)
+	check("off the deck", #zone_of("deck", "seat_one").cards == deck - 3)
+end
+
+
+-- An empty supply pile: "whoever would have been given one VOIDs a card of that
+-- kind from their hand or discard and takes the penalty instead."
+--
+-- Every ICE is the same card, so *which* one looks immaterial -- and is not:
+-- one in your hand costs a Blast Score and one in your discard costs a draw. So
+-- the holder is asked, and when the junk was being *given*, the holder is the
+-- other player. `set_priority` is the whole of that: from inside the window,
+-- `mine` is theirs.
+function M.test_spellstorm_a_dry_pile_asks_the_player_it_bites(check)
+	opening(3, "eve", "croh")
+	become("seat_one")
+	local pile = zones.find("curse_pile")
+	local held = { unpack(pile.cards) }
+	zones.move_card(held[1], hand_of("seat_two").id)
+	zones.move_card(held[2], zone_of("discard", "seat_two").id)
+	for i = 3, #held do zones.move_card(held[i], zones.find_id("void")) end
+	check("the pile is empty", #pile.cards == 0)
+
+	actions.execute("activate_zone:rules:by_column:dry_give_curse", {})
+	check("the offer went to the player being given the CURSE",
+		zones.active_seat() == "seat_two", tostring(zones.active_seat()))
+	check("and holds both of theirs, hand and discard",
+		#zones.find("options").cards == 2, #zones.find("options").cards)
+
+	flow.play_card(zones.find("options").cards[1], {})
+	check("the card they chose goes back on the pile", #pile.cards == 1, #pile.cards)
 end
 
 return M
