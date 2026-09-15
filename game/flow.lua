@@ -800,12 +800,29 @@ end
 -- tag cannot name: a cost already reaches its own card for "exhaust" and had no
 -- way to say the same about spending itself, so a game gave one card a private
 -- tag and killed the wrong copy the moment there were two.
+--
+-- **Nothing with a foreign owner.** Giving something up is the whole meaning of
+-- the word, so no tag can widen the pool to the other side of the table:
+-- "sacrifice a unit" names no owner because there is only one it could have
+-- meant. Doom Grasp offered the opponent's units as well as yours, and a cost
+-- that takes from the other player is a reward.
+--
+-- Said as a refusal rather than as "mine", because a card on a common board
+-- belongs to nobody and is still yours to spend — the tower's relics and the
+-- road's outriders sit in seatless zones. Whose turn it is comes from
+-- active_seat, what "mine" and every other cost read, so a sacrifice paid inside
+-- a response window comes off whoever is answering.
 local function sacrifice_pool(tag, ctx)
 	if tag == "self" then
 		local c = ctx and ctx.card_id and entity.get(ctx.card_id)
 		return c and { c.id } or {}
 	end
-	return tags.find_targets({ tag }, tags.IN_PLAY)
+	local mine, out = zones.active_seat(), {}
+	for _, id in ipairs(tags.find_targets({ tag }, tags.IN_PLAY)) do
+		local owner = tags.owner_of(entity.get(id))
+		if owner == nil or owner == mine then out[#out + 1] = id end
+	end
+	return out
 end
 
 -- The parts of a cost that are not stats and so have no substitutes: a card

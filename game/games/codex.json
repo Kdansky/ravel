@@ -4406,6 +4406,18 @@
       }
     },
     {
+      "key": "col_give",
+      "text": "Sacrifice a green unit",
+      "tags": ["immutable"],
+      "asset": "star:6:forest",
+      "tooltip": "Sacrifice a green unit and put a green unit costing 5 or less from your codex into play.",
+      "play": { "cost": { "sacrifice:green_unit": 1 }, "action": ["show:mine.codex"] },
+      "chosen": {
+        "where": ["tagged:unit@target", "sum:price@target <= 5"],
+        "action": ["take:target:mine.army:1"]
+      }
+    },
+    {
       "key": "wisp",
       "text": "Wisp",
       "tags": [
@@ -18072,44 +18084,15 @@
     {
       "key": "circle_of_life",
       "text": "Circle of Life",
-      "tags": [
-        "deck_card",
-        "green",
-        "balance",
-        "spell",
-        "summon",
-        "arcane",
-        "generate_art"
-      ],
-      "tooltip": "Sacrifice a green unit. If you do, put a green unit costing 5 or less from your codex into play. NOT MODELLED: that the new unit is one tech higher.",
-      "card_stats": {
-        "price": 3
-      },
+      "tags": ["deck_card", "green", "balance", "spell", "summon", "arcane", "generate_art"],
+      "tooltip": "Sacrifice a green unit. If you do, put a green unit costing 5 or less from your codex into play. NOT MODELLED: that the new unit is one tech higher.\n\nDEV: the sacrifice is an offer, so the spell casts with nothing to give and fizzles — which is what \"if you do\" means. The offer carries a No button because a single unpayable entry would otherwise have no answer, so a player may also decline a sacrifice they could make; that is strictly worse and nobody will.",
+      "card_stats": { "price": 3 },
       "play": {
-        "phases": [
-          "main"
-        ],
-        "needs": [
-          "count:hero@mine.hero >= 1",
-          "count:h_balance@mine.hero >= 1"
-        ],
-        "cost": {
-          "gold@mine.player": "price@self",
-          "sacrifice:green_unit": 1
-        },
-        "action": [
-          "show:mine.codex"
-        ],
+        "phases": ["main"],
+        "needs": ["count:hero@mine.hero >= 1", "count:h_balance@mine.hero >= 1"],
+        "cost": { "gold@mine.player": "price@self" },
+        "action": ["options:col_give:optional"],
         "spent": "mine.discard"
-      },
-      "chosen": {
-        "where": [
-          "tagged:unit@target",
-          "sum:price@target <= 5"
-        ],
-        "action": [
-          "take:target:mine.army:1"
-        ]
       }
     },
     {

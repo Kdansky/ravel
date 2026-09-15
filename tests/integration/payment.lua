@@ -35,7 +35,8 @@ local GAME = [==[{
     { "key": "field", "status": "board", "layout": "row", "copies": "per_seat", "pos": [[0.20, 0.58, 0.80, 0.72], [0.20, 0.08, 0.80, 0.22]] },
     { "key": "army", "status": "board", "use": "abilities", "layout": "row", "copies": "per_seat", "pos": [[0.20, 0.42, 0.80, 0.56], [0.20, 0.24, 0.80, 0.38]] },
     { "key": "hand", "layout": "row", "copies": "per_seat", "pos": [[0.20, 0.80, 0.80, 0.95], [0.20, 0.05, 0.80, 0.20]] },
-    { "key": "discard", "status": "grave", "layout": "stack", "copies": "per_seat", "pos": [[0.84, 0.80, 0.98, 0.98], [0.84, 0.02, 0.98, 0.20]] }
+    { "key": "discard", "status": "grave", "layout": "stack", "copies": "per_seat", "pos": [[0.84, 0.80, 0.98, 0.98], [0.84, 0.02, 0.98, 0.20]] },
+    { "key": "commons", "status": "board", "layout": "row", "pos": [0.84, 0.40, 0.98, 0.60] }
   ],
   "phases": [
     { "key": "act", "type": "player_input", "zone": "hand", "next": [{ "then": "act" }] }
@@ -297,5 +298,42 @@ function M.test_payment_select_makes_an_ambiguous_substitution_legal(check)
 			said("blue@select.mine.player"):find("do not nest", 1, true) == nil)
 	end)
 end
+
+-- **A sacrifice never reaches across the table.** The pool was every in-play
+-- card wearing the tag, whoever owned it, so Codex's "Sacrifice a unit to
+-- destroy a unit" offered the opponent's army as well as your own — a cost that
+-- takes from the other player is a reward. A tag names a kind and never a side,
+-- so the refusal has to live in the pool.
+function M.test_payment_a_sacrifice_cannot_take_the_other_seat(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local theirs = make("soldier", "army", "enemy")
+		local rite   = make("rite", "hand")
+		check("their unit is no way to pay", #flow.play_payments(rite.id, {}) == 0)
+		check("so the card is not playable", flow.can_play(rite.id) == false)
+		local mine = make("soldier", "army")
+		local ways = flow.play_payments(rite.id, {})
+		check("one unit of my own is one way", #ways == 1, tostring(#ways))
+		check("and it is mine", ways[1][1].ids[1] == mine.id)
+		check("it was played", flow.play_card(rite.id, {}, ways[1]) == true)
+		check("mine died", entity.get(mine.id).zone_id == nil)
+		check("and theirs is standing", entity.get(theirs.id).zone_id ~= nil)
+	end)
+end
+
+-- A card on a board nobody owns is nobody's, and still yours to spend: the rule
+-- is "no foreign owner", not "mine". Said as "mine" it emptied the pool for
+-- every shared-board game at once — the tower's relics, the road's outriders.
+function M.test_payment_a_sacrifice_may_take_an_unowned_card(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		local common = make("soldier", "commons")
+		local rite   = make("rite", "hand")
+		local ways   = flow.play_payments(rite.id, {})
+		check("a unit belonging to nobody is a way to pay", #ways == 1, tostring(#ways))
+		check("and it is the one on the common board", ways[1][1].ids[1] == common.id)
+	end)
+end
+
 
 return M

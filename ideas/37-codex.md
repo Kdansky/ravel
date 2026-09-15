@@ -15,13 +15,6 @@ the top of it is not what that survey guessed.
 
 ## What the whole box wants
 
-- **"Sacrifice a unit. If you do…" — the half a cost cannot say.** Choosing the
-  victim shipped (`select`, and a sacrifice that always asks), and so did
-  *"Sacrifice this →"* as `sacrifice:self`. What is left is the conditional: a
-  cost that cannot be paid stops the card being played, where the box casts the
-  spell and fizzles only the consequence. That makes it an effect with a gate
-  rather than a cost, and it wants a word.
-
 - **Forecast — 7 cards, the whole of purple's Future spec.** *"Starts off in the
   future, not in play. Put three time runes on this and remove one each upkeep.
   When you remove the last, it arrives."* A zone that is not in play, a counter

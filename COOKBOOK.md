@@ -649,7 +649,9 @@ ready at the round boundary.
 "play": { "cost": { "sacrifice:unit": 1 } }
 ```
 
-The player picks which unit — a sacrifice is always theirs to choose, and needs no word to say so.
+The player picks which unit — a sacrifice is always theirs to choose, and needs no word to say so. A
+tag names a kind and never a side, so the pool refuses anything with a foreign owner: you may spend
+your own and whatever stands on a board nobody owns, never theirs.
 
 ### Sacrifice this to use its ability.
 
@@ -659,6 +661,42 @@ The player picks which unit — a sacrifice is always theirs to choose, and need
 
 `self` is the asking card, the one thing a tag cannot name. Written as a private tag the card wears
 alone, a second copy on the board kills the wrong one.
+
+### Boost 3: pay 3 more and trash one of their workers.
+
+```json
+"play":  { "cost": { "gold@mine.player": "price@self" },
+           "action": ["move_to", "options:mr_boost:optional"] },
+"cards": [{ "key": "mr_boost", "text": "Boost 3", "tags": ["immutable"],
+            "tooltip": "Pay 3 more and trash one of their workers.",
+            "play": { "cost": { "gold@mine.player": 3 },
+                      "action": ["stat_damage:workers@opponent:1", "purge:enemy.workers:1"] } }]
+```
+
+**The extra is a card.** A cost is one map settled in full, so it cannot hold a part you may decline
+— but an offer can, and the offered card carries a cost of its own. `options:` deals it, choosing it
+plays it, and `flow.can_play` gates it like anything else: unaffordable, it is dimmed and cannot be
+taken. `optional` is what puts the No button there. Nothing new is needed for a choice between
+several boosts either — Murkwood Allies offers three, of which one costs four more.
+
+### Sacrifice a unit. If you do, draw a card.
+
+```json
+"play":  { "cost": { "gold@mine.player": 2 }, "action": ["options:rite_give:optional"],
+           "spent": "mine.discard" },
+"cards": [{ "key": "rite_give", "text": "Sacrifice a unit", "tags": ["immutable"],
+            "play": { "cost": { "sacrifice:unit": 1 },
+                      "action": ["draw_from:mine.deck:mine.hand:1"] } }]
+```
+
+The same shape, and the reason to reach for it: **"if you do" is not a cost.** Written as one the
+card stops being playable when the board has nothing to give, where the rules cast the spell and
+fizzle only the consequence. As an offer the spell always casts, and the giving is a question asked
+afterwards that may have no answer. `optional` is not decoration here — a lone unpayable entry with
+no way out is an offer that never closes.
+
+A rules card opening an offer of its own is fine: `show:` runs the **asker's** `chosen`, and the
+asker is the card standing in the offer, not the spell that dealt it.
 
 ### Pay 5 gold out of whichever lands you choose.
 

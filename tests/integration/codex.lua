@@ -2116,4 +2116,50 @@ function M.test_codex_every_claim_is_paid(check)
 		tostring(count_in("hand") - hand))
 end
 
+-- **"If you do" is not a cost.** Circle of Life read as one, so a board with no
+-- green unit made the spell unplayable, where the box casts it and fizzles only
+-- the consequence. The sacrifice is an offer now — the same shape Marauder's
+-- Boost 3 already uses, a rules card whose own cost decides whether it may be
+-- taken — so the spell always casts and the giving is a question asked after.
+function M.test_codex_a_sacrifice_you_cannot_make_still_casts(check)
+	start("pick_midori", "pick_argagarg")
+	summon("midori", "army")
+	actions.run({ "create:mine.hand:circle_of_life:1" }, {})
+	local spell = in_zone("hand", "circle_of_life")
+
+	check("with nothing to give, the spell is still playable", flow.can_play(spell.id) == true)
+	local gold = seat("south").stats.gold
+	flow.play_card(spell.id, {})
+	flow.settle()
+	check("it went to the discard", in_zone("discard", "circle_of_life") ~= nil)
+	check("and it was paid for", seat("south").stats.gold == gold - 3,
+		tostring(seat("south").stats.gold - gold))
+	local ask = in_zone("options", "col_give")
+	check("the giving was asked", ask ~= nil)
+	check("but cannot be taken", flow.can_play(ask.id) == false)
+	check("and the question has a way out", zones.find("options").dismissable == true)
+end
+
+-- The other half: with a unit to give, the offer is payable, the sacrifice asks
+-- as a sacrifice always does, and the codex opens off the rules card rather than
+-- off the spell — "show:" runs the asker's own "chosen", and the asker is the
+-- card standing in the offer.
+function M.test_codex_the_sacrifice_pays_and_opens_the_codex(check)
+	start("pick_midori", "pick_argagarg")
+	summon("midori", "army")
+	local victim = summon("wisp", "army")
+	actions.run({ "create:mine.hand:circle_of_life:1" }, {})
+
+	flow.play_card(in_zone("hand", "circle_of_life").id, {})
+	flow.settle()
+	local ask = in_zone("options", "col_give")
+	check("the giving is payable now", flow.can_play(ask.id) == true)
+	flow.play_card(ask.id, {})
+	flow.settle()
+	check("the green unit was given up", entity.get(victim.id).zone_id == nil)
+	check("the rules card is gone with it", in_zone("options", "col_give") == nil)
+	check("and the codex is standing in the offer", count_in("options") > 0,
+		tostring(count_in("options")))
+end
+
 return M
