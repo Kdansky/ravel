@@ -1238,6 +1238,34 @@ offering two answers is a card no click can reach.
 `{ "activate": "<name>" }` is the same for an ability. `emit:<name>` in an action list announces
 something that is not a card being played at all.
 
+### A rule of the game announces itself, and the rest of it waits.
+
+```json
+"abilities": [{ "key": "check", "when": ["count:fire@mine.battle >= 1"],
+                "action": ["emit:countered:draw_from:mine.deck:mine.hand:1"] }]
+```
+
+`emit:<verb>:<action>` announces the moment and hands the rest over — the draw happens once the
+window closes unanswered. Write the draw as the *next line* instead and it lands before anybody
+has answered, because an action list runs to completion and nothing pauses one. This is how a
+moment that is nobody's card — countering, scoring, a phase turning over — becomes something a
+held card can reply to.
+
+### A card laid face down that answers a trigger later.
+
+```json
+"zones": [{ "key": "traps", "copies": "per_seat", "visibility": "owner", "use": "abilities" }],
+"cards": [{ "key": "trap_mud", "card_stats": { "sprung": 0 },
+  "reactions": [{ "to": "countered", "whose": "mine", "in": "traps",
+                  "needs": ["sprung@self <= 0"],
+                  "action": ["stat_set:sprung@self:1", "stat_damage:health@opponent:1"] }] }]
+```
+
+Face down is a **place**, not a state: a per-seat zone with `visibility: "owner"` is a card only
+its holder can read. `in` names where it answers from, so the same card is inert on its pile and
+live once laid — nothing has to say "armed". A stat is what stops it firing twice; clearing it is
+the swap's job, not the trap's.
+
 ### They must answer this — it is not optional.
 
 ```json

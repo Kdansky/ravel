@@ -158,22 +158,26 @@ effects engine.
 **Size:** `instead` is small. The wasted-heal scope is small. Glittering Dust is
 large and not recommended.
 
-### B2. Omar's Traps (09, components table)
+### B2. Omar's Traps (09, components table) — two of three done
 
-**What it costs.** Three cards not implemented: played face down, revealed at a
+**What it cost.** Three cards not implemented: played face down, revealed at a
 trigger of the player's choosing.
 
-**Proposal — half of it already shipped.** The face-down half is the `commit`
-zone: a per-seat zone with `visibility: "owner"` is exactly a trap that is
-placed and unreadable. The missing half is a reaction to something that is not a
-card being played — "when an opponent is dealing damage to you". Since
-`adjusts` already watches `stat_damage`, the cheapest route is to let the damage
-path `emit:` a verb, and a trap is then an ordinary reaction with
-`from: "traps"`.
+**Both halves had already shipped, for *Mud Trap* and *Ice Bomb*.** The face-down
+half is the `commit` zone: a per-seat zone with `visibility: "owner"` is exactly a
+trap that is placed and unreadable. And their trigger is not the damage path at
+all — it is **countering**, which was already a rules card firing in the showdown.
+One `emit:countered` there and each is an ordinary reaction with `in: "traps"`,
+the same shape as the Ultimate answering `resolving`. *Ice Bomb* announces
+`resolving` of its own, and the Ultimate answers it from inside the window the
+counter opened, which is a reaction window nested in a reaction window and works.
 
-**Size:** medium — and cheaper than it was. A1 shipped the half they shared: a
-window *does* open from inside an automatic step and holds it. What is left is
-the verb itself, emitted from the damage path rather than from a card.
+*Dodge!* is the one left, and this entry had the hard half wrong: see `11` §2. The
+trigger is two lines in the generator (`emit` takes a held action, so a hit can
+announce itself and then land). What is missing is a budget an aura can **spend**
+as it is used.
+
+**Size:** what is left is small once the shape is chosen; the choice is the work.
 
 ---
 
@@ -462,7 +466,7 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 | | Item | Size | Why here |
 |---|---|---|---|
 | 1 | C3, D2, D3 | small each | one card or three apiece |
-| 2 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
+| 2 | B2 rest — **a budget an aura can spend** | small | *Dodge!*, and every "prevent the next N damage" in any game |
 | — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1, D4, **B1** | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, the narrowed offers, Obsidian's free Ultimate, Croh's *Accursed* and both of Bunny's stitches |
 
 **B1 is closed but for *Glittering Dust*,** which stays where it was: rewriting

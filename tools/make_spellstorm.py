@@ -645,6 +645,33 @@ def choice_templates():
     ]
 
 
+def trap_templates():
+    """Omar's Traps: a card held face down that answers a moment of its own."""
+    def trap(key, name, tooltip, element, action):
+        return {
+            "key": key, "text": name, "asset": "auto", "tags": ["trap"],
+            "tooltip": tooltip,
+            "card_stats": {"sprung": 0},
+            # A Trap is revealed *by its holder*, after the trigger, or not at
+            # all -- so it is a reaction and not a rule about countering. `in`
+            # names the zone it answers from, which is what makes a Trap that
+            # has been swapped back onto its pile inert without saying so.
+            "reactions": [{
+                "to": "countered", "whose": "mine", "in": "traps",
+                "needs": ["sprung@self <= 0", "count:%s@mine.battle >= 1" % element],
+                "action": ["stat_set:sprung@self:1"] + list(action)}],
+        }
+
+    return [
+        trap("trap_mud", "Mud Trap",
+             "Reveal when you counter with a Fire card: deal 1 damage, gain 1 mana and gain Initiative.",
+             FIRE, [DMG(1), MANA] + GAIN_INIT),
+        trap("trap_ice", "Ice Bomb",
+             "Reveal when you counter with a Water card: give an ICE, gain 1 mana, and you may cast your Ultimate.",
+             WATER, GIVE("ice") + [MANA, "emit:resolving"]),
+    ]
+
+
 def swap_templates():
     # A beaker with less than two in it cannot pour two, and the entry says so
     # itself: a dealt option's own `needs` gates whether it may be picked, so a
@@ -787,9 +814,18 @@ WIZARDS = [
 
     wizard("omar", "Omar Evans", "Ninja and Eco-Terrorist", "Fire, Water", 10, 1, 4,
            "Hidden Movement",
-           "Return a card from your discard to your hand, or draw a card.",
-           ["options:omar_recall,omar_draw:optional"],
-           simplified="Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine",
+           "Return a card from your discard to your hand, or draw a card. Then arm a Trap, face down, replacing whatever was armed.",
+           ["options:omar_recall,omar_draw:optional", "show:trap_pile"],
+           # The swap out happens on the pick and not before it, so the Trap
+           # coming off is not among the ones offered -- which is the whole of
+           # "you can't play the same Trap twice in a row", said by the order
+           # rather than by a rule remembering what was last armed.
+           ult_chosen=["stat_set:sprung@mine.traps:0",
+                       "move:mine.traps:trap_pile",
+                       "move:target:mine.traps"],
+           start=["create:trap_pile:trap_mud:1",
+                  "create:trap_pile:trap_ice:1"],
+           simplified="Dodge! is not implemented -- negating the first 2 points of damage is a budget that has to be spent as it is used, and nothing can spend what an aura reads",
            blurb="A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.",
            spells=[
                card("omar_beetle", "Beetle Buster", FIRE, kind="wizard_spell", ult=True,
@@ -1266,7 +1302,11 @@ def rules_templates():
             "r_ctr_" + a, "%s beats %s" % (a.title(), b.title()),
             "Countering: %s beats %s. Countering the opponent draws you a card."
             % (a.title(), b.title()),
-            [ability("check", [DRAW],
+            # Countering is announced, so a card held for it can answer. The
+            # draw is the emit's held action rather than the line after it: an
+            # action list runs to completion, so anything written beside an emit
+            # would happen before the answer arrived.
+            [ability("check", ["emit:countered:" + DRAW],
                      when=["count:%s@mine.battle >= 1" % a,
                            "count:%s@enemy.battle >= 1" % b])]))
 
@@ -1562,6 +1602,19 @@ def zones():
         {"key": "commit", "label": "Face down", "layout": "grid", "grid": [1, 1],
          "copies": "per_seat", "visibility": "owner", "pos": "battle",
          "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played."},
+        # Omar's armed Trap, face down: the same shape as `commit`, and for the
+        # same reason -- who may read a card is a property of the place. A row
+        # rather than a grid so that seven of the eight wizards, who have no
+        # Traps, get no empty box drawn on their board.
+        {"key": "traps", "layout": "row", "copies": "per_seat", "visibility": "owner",
+         "use": "abilities",
+         "tooltip": "Your armed Trap, face down. Only you may read it. Reveal it when its trigger happens; it is spent until your Ultimate swaps it.",
+         "pos": [P(0.745, 0.605, 0.860, 0.785), P(0.745, 0.215, 0.860, 0.395)]},
+        # The Traps not in use -- "a nearby face-down pile". Offscreen, because
+        # the only thing that ever looks in it is the offer his Ultimate opens,
+        # and shared, because only one of the two seats can be Omar.
+        {"key": "trap_pile", "layout": "stack", "visibility": "secret",
+         "display": "offscreen"},
 
         # Shared.
         # Its own column, full height, between the wizards and the hands. Five
@@ -1855,6 +1908,7 @@ def build():
     cards += potion_templates()
     cards += swap_templates()
     cards += choice_templates()
+    cards += trap_templates()
     cards += rules_templates()
 
     # Top-up: three abilities' worth of "draw if you are short", because a
@@ -2002,6 +2056,9 @@ def build():
             {"key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"]},
             # A Research Token, read off the journal space it sits on.
             {"key": "researched", "min": 0, "max": 1, "tags": ["hidden"]},
+            # A Trap that has been revealed. It stays where it lies and does
+            # nothing more until the Ultimate swaps it out.
+            {"key": "sprung", "min": 0, "max": 1, "tags": ["hidden"]},
         ],
         # A tag is what a card *is*, and these are the kinds the printed cards
         # name that no single tag did.

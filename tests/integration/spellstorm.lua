@@ -2380,4 +2380,112 @@ function M.test_spellstorm_bunny_heals_past_his_start_and_draws_the_rest(check)
 end
 
 
+-- **Omar's Traps.** *"Kept face-down on his character card; revealed at will
+-- after the trigger event, then left face up and inactive until swapped by the
+-- next Ultimate."*
+--
+-- > **Mud Trap** — You may reveal this if you COUNTER with a `[FIRE]` card.
+-- > Deal 1 damage. `[MANA]`, gain `[INIT]`.
+--
+-- The note said a trap was unreachable because "an opponent is dealing damage to
+-- you" is not a moment the engine announces. True of *Dodge!*, and not of these
+-- two: they trigger on **countering**, which is already a rules card that fires
+-- in the showdown. One `emit:countered` there and a trap is an ordinary
+-- reaction — the same shape as the Ultimate answering `resolving`.
+--
+-- The draw is the emit's *held* action, not the line beside it: an action list
+-- runs to completion, so a draw written after the announcement would land before
+-- anybody had answered it.
+function M.test_spellstorm_a_trap_answers_the_counter_it_was_laid_for(check)
+	opening(3, "omar", "eve")
+	become("seat_one")
+	local mud = find("trap_mud")
+	check("his traps start on the pile", entity.get(mud.zone_id).key == "trap_pile",
+		entity.get(mud.zone_id).key)
+	zones.move_card(mud.id, zone_of("traps", "seat_one").id)
+
+	-- Fire beats Earth, which is the counter this trap is laid for.
+	stage_battle("seat_one", "fireball")
+	stage_battle("seat_two", "twopower")
+	local them, me = seat_card("seat_two"), seat_card("seat_one")
+	local hp, mana, hand = them.stats.health, me.stats.mana, #hand_of("seat_one").cards
+
+	actions.execute("activate_zone:rules:by_column:check", {})
+	check("countering announced itself", #flow.usable_reactions() == 1,
+		#flow.usable_reactions())
+	check("and the draw is still waiting behind the window",
+		#hand_of("seat_one").cards == hand, #hand_of("seat_one").cards)
+
+	flow.react(mud.id, 1, {})
+	check("the trap dealt its damage", them.stats.health == hp - 1, them.stats.health)
+	check("and paid its mana", me.stats.mana == mana + 1, me.stats.mana)
+	check("and took the Initiative", me.stats.initiative == 1, me.stats.initiative)
+	check("the counter's own draw came after", #hand_of("seat_one").cards == hand + 1,
+		#hand_of("seat_one").cards)
+	check("and the trap is spent where it lies",
+		mud.stats.sprung == 1 and entity.get(mud.zone_id).key == "traps",
+		entity.get(mud.zone_id).key)
+
+	-- Spent is spent: the same counter next round finds nothing to answer it.
+	actions.execute("activate_zone:rules:by_column:check", {})
+	check("it does not answer twice", #flow.usable_reactions() == 0,
+		#flow.usable_reactions())
+end
+
+-- *Ice Bomb* is the same shape with a different counter and a rider that matters:
+-- it carries the Ultimate icon, so revealing it is a second chance to cast. A
+-- reaction that announces a moment of its own, answered from inside the window
+-- the first one opened.
+function M.test_spellstorm_a_trap_may_open_the_ultimate_window(check)
+	opening(3, "omar", "eve")
+	become("seat_one")
+	local ice = find("trap_ice")
+	zones.move_card(ice.id, zone_of("traps", "seat_one").id)
+	-- Water beats Fire.
+	stage_battle("seat_one", "lapis")
+	stage_battle("seat_two", "fireball")
+	local junk = #zone_of("discard", "seat_two").cards
+	seat_card("seat_one").stats.mana = 9
+
+	actions.execute("activate_zone:rules:by_column:check", {})
+	check("the bomb is on offer", #flow.usable_reactions() == 1, #flow.usable_reactions())
+	flow.react(ice.id, 1, {})
+	check("it gave an ICE", #zone_of("discard", "seat_two").cards == junk + 1,
+		#zone_of("discard", "seat_two").cards)
+	check("and its own icon opened the Ultimate behind it",
+		#flow.usable_reactions() == 1, #flow.usable_reactions())
+end
+
+-- The other half: a trap is laid by the Ultimate, and the one coming off is not
+-- among the ones offered. That order *is* "you can't play the same Trap twice in
+-- a row" — the swap happens on the pick, so the offer was built before it.
+function M.test_spellstorm_the_ultimate_swaps_the_trap_that_is_armed(check)
+	opening(3, "omar", "eve")
+	become("seat_one")
+	local armed = zone_of("traps", "seat_one")
+	local ice = find("trap_ice")
+	zones.move_card(ice.id, armed.id)
+	ice.stats.sprung = 1
+
+	-- The offer his Ultimate opens, asked by the card that owns the answer.
+	local omar = find("wiz_omar")
+	actions.execute("show:trap_pile", { card_id = omar.id })
+	local offered = {}
+	for _, id in ipairs(zones.find("options").cards) do
+		offered[entity.get(id).def_key] = true
+	end
+	check("only the trap that is not armed is offered",
+		offered.trap_mud and not offered.trap_ice,
+		tostring(offered.trap_mud) .. "/" .. tostring(offered.trap_ice))
+
+	flow.play_card(find("trap_mud", "options").id, {})
+	check("the new trap is armed", entity.get(find("trap_mud").zone_id).key == "traps",
+		entity.get(find("trap_mud").zone_id).key)
+	check("the old one went back to the pile",
+		entity.get(ice.zone_id).key == "trap_pile", entity.get(ice.zone_id).key)
+	check("and is no longer spent, so it may be laid again later",
+		ice.stats.sprung == 0, ice.stats.sprung)
+end
+
+
 return M

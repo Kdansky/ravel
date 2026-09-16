@@ -158,7 +158,8 @@
       "start": 0
     },
     { "key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"] },
-    { "key": "researched", "min": 0, "max": 1, "tags": ["hidden"] }
+    { "key": "researched", "min": 0, "max": 1, "tags": ["hidden"] },
+    { "key": "sprung", "min": 0, "max": 1, "tags": ["hidden"] }
   ],
   "computed_tags": {
     "has_init": { "needs": ["initiative@self >= 1"] },
@@ -293,6 +294,16 @@
       "pos": "battle",
       "tooltip": "Your card for this round, face down. Only you may read it. It turns over when both players have played."
     },
+    {
+      "key": "traps",
+      "layout": "row",
+      "copies": "per_seat",
+      "visibility": "owner",
+      "use": "abilities",
+      "tooltip": "Your armed Trap, face down. Only you may read it. Reveal it when its trigger happens; it is spent until your *Ultimate* swaps it.",
+      "pos": [[0.745, 0.605, 0.86, 0.785], [0.745, 0.215, 0.86, 0.395]]
+    },
+    { "key": "trap_pile", "layout": "stack", "visibility": "secret", "display": "offscreen" },
     {
       "key": "storm_cloud",
       "use": "abilities",
@@ -2190,7 +2201,7 @@
       "text": "Omar Evans",
       "asset": "ss_omar.jpg",
       "tags": ["wizard_card", "omar"],
-      "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, or *draw a card*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 10*, *Initiative rating 1*.\n\n_[Simplified: Omar's three Trap cards are not implemented -- a face-down card revealed at a trigger of the player's choosing has no expression in the engine]_",
+      "tooltip": "Ninja and Eco-Terrorist. A ninja and wanted eco-terrorist. Low health, but he acts first in every matchup and Shuriken always resolves before anything else.\n\n*Ultimate* (*4 mana*) - Hidden Movement: Return a card from your discard to your hand, or *draw a card*. Then arm a Trap, face down, replacing whatever was armed.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 10*, *Initiative rating 1*.\n\n_[Simplified: Dodge! is not implemented -- negating the first 2 points of damage is a budget that has to be spent as it is used, and nothing can spend what an aura reads]_",
       "reactions": [
         {
           "to": "resolving",
@@ -2198,16 +2209,19 @@
           "in": "wizard",
           "needs": ["ult_free@mine.player <= 0"],
           "cost": { "mana@mine.player": 4 },
-          "action": ["options:omar_recall,omar_draw:optional"]
+          "action": ["options:omar_recall,omar_draw:optional", "show:trap_pile"]
         },
         {
           "to": "resolving",
           "whose": "mine",
           "in": "wizard",
           "cost": { "ult_free@mine.player": 1 },
-          "action": ["options:omar_recall,omar_draw:optional"]
+          "action": ["options:omar_recall,omar_draw:optional", "show:trap_pile"]
         }
-      ]
+      ],
+      "chosen": {
+        "action": ["stat_set:sprung@mine.traps:0", "move:mine.traps:trap_pile", "move:target:mine.traps"]
+      }
     },
     {
       "key": "pick_omar",
@@ -2223,6 +2237,8 @@
           "create:mine.wizard:wiz_omar:1",
           "create:mine.deck:omar_beetle:1",
           "create:mine.deck:omar_shuriken:1",
+          "create:trap_pile:trap_mud:1",
+          "create:trap_pile:trap_ice:1",
           "set_name:mine.player:text@self",
           "stat_gain:picked@mine.player:1",
           "purge:roster.omar"
@@ -3418,6 +3434,52 @@
       }
     },
     {
+      "key": "trap_mud",
+      "text": "Mud Trap",
+      "asset": "auto",
+      "tags": ["trap"],
+      "tooltip": "Reveal when you counter with a *Fire* card: deal *1 damage*, gain *1 mana* and gain *Initiative*.",
+      "card_stats": { "sprung": 0 },
+      "reactions": [
+        {
+          "to": "countered",
+          "whose": "mine",
+          "in": "traps",
+          "needs": ["sprung@self <= 0", "count:fire@mine.battle >= 1"],
+          "action": [
+            "stat_set:sprung@self:1",
+            "stat_damage:health@opponent:1",
+            "stat_gain:mana@mine.player:1",
+            "stat_set:initiative@mine.player:1",
+            "stat_set:initiative@opponent:0"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "trap_ice",
+      "text": "Ice Bomb",
+      "asset": "auto",
+      "tags": ["trap"],
+      "tooltip": "Reveal when you counter with a *Water* card: give an *ICE*, gain *1 mana*, and you may cast your *Ultimate*.",
+      "card_stats": { "sprung": 0 },
+      "reactions": [
+        {
+          "to": "countered",
+          "whose": "mine",
+          "in": "traps",
+          "needs": ["sprung@self <= 0", "count:water@mine.battle >= 1"],
+          "action": [
+            "stat_set:sprung@self:1",
+            "activate_zone:rules:by_column:dry_give_ice",
+            "draw_from:ice_pile:enemy.discard:1",
+            "stat_gain:mana@mine.player:1",
+            "emit:resolving"
+          ]
+        }
+      ]
+    },
+    {
       "key": "r_ctr_fire",
       "text": "Fire beats Earth",
       "tags": ["immutable"],
@@ -3427,7 +3489,7 @@
         {
           "key": "check",
           "needs": ["count:fire@mine.battle >= 1", "count:earth@enemy.battle >= 1"],
-          "action": ["draw_from:mine.deck:mine.hand:1"]
+          "action": ["emit:countered:draw_from:mine.deck:mine.hand:1"]
         }
       ]
     },
@@ -3441,7 +3503,7 @@
         {
           "key": "check",
           "needs": ["count:earth@mine.battle >= 1", "count:water@enemy.battle >= 1"],
-          "action": ["draw_from:mine.deck:mine.hand:1"]
+          "action": ["emit:countered:draw_from:mine.deck:mine.hand:1"]
         }
       ]
     },
@@ -3455,7 +3517,7 @@
         {
           "key": "check",
           "needs": ["count:water@mine.battle >= 1", "count:fire@enemy.battle >= 1"],
-          "action": ["draw_from:mine.deck:mine.hand:1"]
+          "action": ["emit:countered:draw_from:mine.deck:mine.hand:1"]
         }
       ]
     },

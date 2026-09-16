@@ -84,41 +84,51 @@ not done.
 
 ---
 
-## 2. A verb the damage path announces — Omar's *Dodge!*
+## 2. A budget an aura can spend — Omar's *Dodge!*
 
 **Omar Evans, Trap — Dodge!** *"You may reveal this when an opponent is dealing
 damage to you. The first 2 points of damage you take this round are negated."*
 
-**What is built.** Nothing. The three Traps are the one wizard component with no
-implementation, and Omar carries a `[Simplified: …]` note saying so.
+**Two of the three traps are done, and neither needed a word.** *Mud Trap* and
+*Ice Bomb* trigger on **countering**, which was already a rules card firing in the
+showdown. One `emit:countered` on it and each trap is an ordinary reaction with
+`in: "traps"` — the same shape as the Ultimate answering `resolving`. The counter's
+own draw is the emit's *held* action, because an action list runs to completion and
+a draw written beside the announcement would land before anyone had answered it.
+The face-down half was shipped too: a per-seat zone with `visibility: "owner"` **is**
+a card placed and unreadable, which is what `commit` already was. *Ice Bomb* even
+announces `resolving` of its own, and the Ultimate answers it from inside the
+window the counter opened.
 
-**What is missing, and it is less than the note claims.** A reaction answers a
-verb, and a verb is announced by a card being played or by an `emit:` in an
-action list. "An opponent is dealing damage to you" is neither — nothing in the
-damage path says anything out loud, so there is no announcement for a trap to
-answer.
+**This page was wrong about which half was hard.** It said the trigger had nowhere
+to live, because nothing in the damage path speaks. That is true of the engine and
+beside the point — a game makes its own moments, and `emit` takes a held action, so
+`emit:damaging:stat_damage:health@opponent:2` announces the hit and lets it land
+afterwards. Every damage in the box comes out of two lambdas in the generator, so
+that trigger is two lines and no engine word at all.
 
-**Two of the three traps need no word at all.** *Mud Trap* and *Ice Bomb* trigger
-on **countering**, and countering is already a rules card whose ability fires in
-the showdown:
+**What is actually missing is the effect.** "The first 2 points of damage you take
+this round are negated" is a budget that is *spent as it is used*, and three words
+come close and fail the same way:
 
-```python
-ability("check", [DRAW], when=["count:%s@mine.battle >= 1" % a,
-                               "count:%s@enemy.battle >= 1" % b])
-```
+- **`adjusts.by`** can reduce by a measure — `"by": "-min:dodge@mine.player"` — but
+  cannot spend the counter it read, and `by` is read more than once per change, so
+  a read with a side effect would be a disaster.
+- **`adjusts.instead`** can cancel and re-deal, but the remainder is
+  `amount - dodge`, and the amount grammar has multiplication and nothing else. No
+  subtraction; `min:` is a minimum over a subject's bearers, not of two numbers.
+  Dealing `amount` and healing `dodge` back is wrong twice over — it overheals when
+  the hit is smaller than the budget, and healing is a declared moment now, so it
+  would hand Croh a CURSE.
+- **`counterspell`** in the reaction negates the *whole* hit, which is right only
+  when it is two points or fewer.
 
-An `emit:countered` on that ability is one line, and both traps become ordinary
-reactions with `in: "traps"`. The face-down half already shipped for another
-reason: a per-seat zone with `visibility: "owner"` **is** a trap that is placed
-and unreadable, which is what the `commit` zone is.
+So the word is either arithmetic in the amount grammar, or a way for an `adjusts` to
+spend what it read. The second is smaller, and it is what every *prevent the next N
+damage* shield in any game wants — which is the decision this entry always meant,
+mislabelled as being about the trigger.
 
-And *Dodge!*'s **effect** is expressible today — "the first 2 points of damage
-are negated" is `adjusts` with a `by`, which is the word a shield already uses.
-It is only the trigger that has nowhere to live.
-
-**Size:** small for two traps, medium for the third, and the third is the one
-that wants a decision — whether the damage path announces itself is a question
-about every game in the corpus, not about Omar.
+**Size:** small once the shape is chosen; the choice is the work.
 
 ---
 

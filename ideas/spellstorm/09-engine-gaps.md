@@ -138,7 +138,7 @@ and a phase's own action list are the only automatic hooks.
 
 | Component | Wizard | Why |
 |---|---|---|
-| 3 **Trap** cards | Omar Evans | A card played face down and revealed at a trigger *of the player's choosing* is a reaction to an arbitrary game event. Reactions answer a named verb emitted by a card being played; "when an opponent is dealing damage to you" is not one. |
+| 1 of 3 **Trap** cards | Omar Evans | *Mud Trap* and *Ice Bomb* are **done**: they trigger on countering, which was already a rules card, so one `emit:countered` made each an ordinary reaction answering from a face-down per-seat zone. *Dodge!* is left, and not for the reason this table gave — see `11` §2. Its trigger is two lines; what is missing is a budget an aura can spend as it is used. |
 
 Traps are the only one left. The **Chemistry Board** is three stats and the
 potions are paid out of them; the **Potion Deck**'s push-your-luck is a phase the
