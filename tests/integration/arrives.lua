@@ -24,7 +24,7 @@ local GAME = [==[{
   "players": [{ "card": "one" }, { "card": "two" }],
   "stats": [
     { "key": "seen", "label": "Seen", "subject": "seen@mine.player", "min": 0, "max": 40, "on": ["player"], "start": 0 },
-    { "key": "plus", "min": 0, "max": 40, "on": ["unit"], "start": 0, "tags": ["hidden"] }
+    { "key": "plus", "min": 0, "max": 40, "on": ["unit"], "start": 0, "display": "offscreen" }
   ],
   "zones": [
     { "key": "army", "layout": "row", "status": "board", "use": "abilities", "copies": "per_seat",

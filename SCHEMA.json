@@ -33,8 +33,9 @@
       ],
       "buffs": "what one point of this counter is worth, as { \"<stat>\": <number> } — read on every stat read exactly as a tag's \"buffs\" is, and summed with them. A tag is a carrier that only ever holds one; this is the same carrier holding more, so a \"+1/+1 rune\" is a stat saying { \"atk\": 1, \"hp\": 1 } and three of them read +3/+3. Written any other way the count and the bonus are two facts that have to be kept in step by hand — a rune put on with a stat_gain and paid for with three more, where nothing takes the three back off, which is why moving or removing one could not be said at all. The counter is read raw off the card rather than through its own buffs, so a counter cannot decide its own size; buffing itself is refused. The amount is a plain number, as everywhere else: anything worked out belongs in a compute.",
       "number": "false when the badge is the shape alone, for a stat that is a fact rather than a quantity: a banner meaning \"this is an attack\" wears no number, and the 1 that carries it would be noise on the card. The mirror of icon \"none\", which is a number with no shape.",
+      "display": "whether a card's panel and the end-of-game summary list this stat: \"onscreen\" (default), \"offscreen\" — never, while cards still read and change it — or \"nonzero\", only while it is not 0, for a number that means nothing until something uses it. Badges are the style's business and ignore it.",
       "tags": [
-        "a list of words; the engine knows hidden (keep it out of the HUD while cards may still read and change it)"
+        "a list of words, the game's own: the engine reads none of them on a stat"
       ]
     }
   ],
@@ -531,7 +532,6 @@
     "_on_cards": "event_log (this card is the event log: pointing at it shows what has happened, and clicking it says how much of it to show — the engine's own system column carries one), generate_art (with no asset, draws a shape derived from its key rather than a bare colour), last_acted (the card a player most recently played or activated. Written by the engine, one at a time, and it lingers until the next thing a player does — which is how a rule asks whether something happened *just now*), immutable (scenery: nothing may target it and its template can never be edited), no_undo (playing or picking it clears the undo stack — the choice is final), player (this card is a seat. Stamped by the engine from the players section, not written by hand), token (vanishes when a hand is swept, instead of joining the discard)",
     "_on_zones": "bare (drawn without a frame or a fill, and its label centred in the rect rather than sat along the top: a zone that exists only to say something is the something), optional (nothing here ever has to be played, so a gated card stays gated), refill_when_empty (recreates its contents when the last card leaves), shuffle (shuffled when its contents are created, and on every refill), stack (the response window: what has announced itself and is waiting to be answered, top card first. Every entry is a record of something announced, never a game card, so a counter removes a record and the card it was about never moved)",
     "_reserved": "A zone or tag may never be named self or all, nor any of the quantifiers any, each and random, nor the owner words mine, enemy and anyone. player is deliberately not reserved: it is an ordinary tag a game puts on one card.",
-    "_on_phases": "discard_hand (leaving it discards the unplayed hand; tokens vanish)",
-    "_on_stats": "hidden (kept out of the HUD, while cards may still read and change it)"
+    "_on_phases": "discard_hand (leaving it discards the unplayed hand; tokens vanish)"
   }
 }

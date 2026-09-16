@@ -97,14 +97,13 @@ local function blocks(c, def)
 	-- declared a label, so one card does not call it "hp" while the bar calls it
 	-- "Health".
 	for _, key in ipairs(declaration.G.stat_defs_list or {}) do
-		local v = c.stats and c.stats[key]
-		if v and key:sub(-4) ~= "_max" and not BOOKKEEPING[key] then
+		-- What the rules will read, buffs and all. The panel is the place a
+		-- player checks a number they doubt, so it is the last place that may
+		-- show the printed one.
+		local v = c.stats and c.stats[key] and tags.stat(c, key)
+		if v and key:sub(-4) ~= "_max" and not BOOKKEEPING[key] and declaration.stat_shown(key, v) then
 			local sd  = declaration.G.stat_defs[key]
 			local max = c.stats[key .. "_max"]
-			-- What the rules will read, buffs and all. The panel is the place a
-			-- player checks a number they doubt, so it is the last place that
-			-- may show the printed one.
-			v = tags.stat(c, key)
 			rows[#rows + 1] = { sd and sd.label or key, max and (v .. "/" .. max) or tostring(v) }
 		end
 	end

@@ -63,9 +63,7 @@
       "color": "gold",
       "min": 0,
       "max": 20,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "tech_level",
@@ -78,9 +76,7 @@
         "hero"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "bars_t0",
@@ -91,9 +87,7 @@
         "building"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "atk",
@@ -105,9 +99,7 @@
       "on": [
         "fighter"
       ],
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "hp",
@@ -119,9 +111,7 @@
       "on": [
         "unit"
       ],
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "life",
@@ -133,9 +123,7 @@
       "on": [
         "hero"
       ],
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "integrity",
@@ -147,9 +135,7 @@
       "on": [
         "building"
       ],
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "level",
@@ -162,9 +148,7 @@
         "hero"
       ],
       "start": 1,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "armor",
@@ -177,9 +161,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "guard",
@@ -189,9 +171,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "alt",
@@ -202,9 +182,7 @@
         "building"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "aa",
@@ -214,9 +192,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "sneak",
@@ -226,9 +202,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "spotted",
@@ -238,9 +212,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "ready_since",
@@ -250,9 +222,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "incoming",
@@ -263,9 +233,7 @@
         "building"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "back",
@@ -276,9 +244,7 @@
         "building"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "raw",
@@ -289,9 +255,7 @@
         "building"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "power",
@@ -302,9 +266,7 @@
         "building"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "spill",
@@ -315,9 +277,7 @@
         "building"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "left",
@@ -328,9 +288,7 @@
         "building"
       ],
       "start": 99,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "attacking",
@@ -341,9 +299,7 @@
         "building"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "col",
@@ -353,9 +309,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "mark",
@@ -365,9 +319,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "sparking",
@@ -377,9 +329,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "slot",
@@ -389,9 +339,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "rage",
@@ -401,9 +349,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "fought",
@@ -413,9 +359,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "ripe",
@@ -425,9 +369,7 @@
         "hero"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "picked",
@@ -437,9 +379,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "hired",
@@ -449,9 +389,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "teched",
@@ -461,9 +399,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "to_draw",
@@ -473,9 +409,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "over",
@@ -485,9 +419,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "hero_wait",
@@ -497,9 +429,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "t1_ever",
@@ -509,9 +439,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "t2_ever",
@@ -521,9 +449,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "t3_ever",
@@ -533,9 +459,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "extra",
@@ -545,9 +469,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "spells",
@@ -557,9 +479,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "rush",
@@ -569,9 +489,7 @@
         "player"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "lent",
@@ -581,9 +499,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "plate",
@@ -593,9 +509,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "veil",
@@ -605,9 +519,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "bleeds",
@@ -617,9 +529,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "taken",
@@ -629,9 +539,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "romp",
@@ -641,9 +549,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "rampage",
@@ -653,9 +559,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "pierce",
@@ -665,9 +569,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "unseen",
@@ -677,9 +579,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "feather",
@@ -689,9 +589,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ],
+      "display": "offscreen",
       "buffs": {
         "alt": 1
       }
@@ -704,9 +602,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "plus",
@@ -750,9 +646,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "focus",
@@ -789,9 +683,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "corpse",
@@ -813,9 +705,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "blood",
@@ -849,9 +739,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "lives",
@@ -861,9 +749,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "homing",
@@ -873,9 +759,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "trained",
@@ -885,9 +769,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "warring",
@@ -897,9 +779,7 @@
         "fighter"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     },
     {
       "key": "disabled",
@@ -912,9 +792,7 @@
         "ongoing_spell"
       ],
       "start": 0,
-      "tags": [
-        "hidden"
-      ]
+      "display": "offscreen"
     }
   ],
   "computed_tags": {

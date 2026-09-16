@@ -2192,80 +2192,80 @@ def build():
              "on": ["player"], "start": 0},
             {"key": "shards", "label": "Storm Shards", "icon": "diamond",
              "color": "violet", "min": 0, "max": 8,
-             "subject": "shards@mine.player", "on": ["player"], "start": 0},
+             "subject": "shards@mine.player", "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "mana", "label": "Mana", "icon": "orb", "color": "magenta",
              "min": 0, "max": 40, "subject": "mana@mine.player",
              "on": ["player"], "start": 2},
             {"key": "power", "label": "Power", "icon": "coin", "color": "gold",
              "min": 0, "max": 12, "subject": "power@mine.player",
-             "on": ["player"], "start": 0},
+             "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "tier", "label": "Tier", "icon": "banner", "color": "amber",
              "min": 1, "max": 4, "subject": "tier@mine.player",
              "on": ["player"], "start": 1},
             {"key": "initiative", "label": "Initiative", "icon": "arrow",
              "color": "yellow", "min": 0, "max": 1,
-             "subject": "initiative@mine.player", "on": ["player"], "start": 0},
+             "subject": "initiative@mine.player", "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "doom", "label": "Doom", "icon": "fist", "color": "indigo",
              "min": 0, "max": 4, "subject": "doom@mine.player",
-             "on": ["player"], "start": 0},
+             "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "energy", "label": "Energy", "icon": "shield", "color": "teal",
              "min": 0, "max": 3, "subject": "energy@mine.player",
-             "on": ["player"], "start": 0},
+             "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "research", "label": "Research", "icon": "leaf",
              "color": "olive", "min": 0, "max": 6,
-             "subject": "research@mine.player", "on": ["player"], "start": 0},
+             "subject": "research@mine.player", "on": ["player"], "start": 0, "display": "nonzero"},
             # Oren's Chemistry Board: three beakers, 0 to 6, that his potions
             # are paid out of and that go back to 3 when his Ultimate ends.
             {"key": "fire_el", "label": "Fire", "icon": "pot", "color": "orange",
              "min": 0, "max": 6, "subject": "fire_el@mine.player",
-             "on": ["player"], "start": 0},
+             "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "earth_el", "label": "Earth", "icon": "pot", "color": "brown",
              "min": 0, "max": 6, "subject": "earth_el@mine.player",
-             "on": ["player"], "start": 0},
+             "on": ["player"], "start": 0, "display": "nonzero"},
             {"key": "water_el", "label": "Water", "icon": "pot", "color": "cyan",
              "min": 0, "max": 6, "subject": "water_el@mine.player",
-             "on": ["player"], "start": 0},
+             "on": ["player"], "start": 0, "display": "nonzero"},
 
             # Working numbers. Hidden, floored at zero -- the floor is what makes
             # the Blast Score subtraction clamp instead of going negative.
-            {"key": "blast", "min": 0, "max": 99, "tags": ["hidden"],
+            {"key": "blast", "min": 0, "max": 99, "display": "offscreen",
              "on": ["player"], "start": 0},
-            {"key": "ice_pen", "min": 0, "max": 99, "tags": ["hidden"],
+            {"key": "ice_pen", "min": 0, "max": 99, "display": "offscreen",
              "on": ["player"], "start": 0},
-            {"key": "init_rating", "min": 0, "max": 99, "tags": ["hidden"],
+            {"key": "init_rating", "min": 0, "max": 99, "display": "offscreen",
              "on": ["player"], "start": 0},
             # Which seat resolves first. The Initiative Tracker is worth one and
             # a revealed Shuriken is worth more than the Tracker can ever be, so
             # one number holds both the ordinary rule and the card that breaks it.
-            {"key": "lead", "min": 0, "max": 99, "tags": ["hidden"],
+            {"key": "lead", "min": 0, "max": 99, "display": "offscreen",
              "on": ["player"], "start": 0},
-            {"key": "picked", "min": 0, "max": 9, "tags": ["hidden"],
+            {"key": "picked", "min": 0, "max": 9, "display": "offscreen",
              "on": ["player"], "start": 0},
-            {"key": "took", "min": 0, "max": 9, "tags": ["hidden"],
+            {"key": "took", "min": 0, "max": 9, "display": "offscreen",
              "on": ["player"], "start": 0},
-            {"key": "toxic", "min": 0, "max": 9, "tags": ["hidden"],
+            {"key": "toxic", "min": 0, "max": 9, "display": "offscreen",
              "on": ["player"], "start": 0},
             # Obsidian's pass. A one-shot, like Oren's doubled potion, and it
             # is spent by being a cost rather than by anything checking it.
-            {"key": "ult_free", "min": 0, "max": 1, "tags": ["hidden"],
+            {"key": "ult_free", "min": 0, "max": 1, "display": "offscreen",
              "on": ["player"], "start": 0},
-            {"key": "doubled", "min": 0, "max": 1, "tags": ["hidden"],
+            {"key": "doubled", "min": 0, "max": 1, "display": "offscreen",
              "on": ["player"], "start": 0},
-            {"key": "battle_round", "min": 0, "max": 9, "tags": ["hidden"],
+            {"key": "battle_round", "min": 0, "max": 9, "display": "offscreen",
              "on": ["plan"], "start": 0},
             # Read off the card on the shelf rather than the player: what it
             # costs in Tier to take it.
-            {"key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"]},
+            {"key": "tier_req", "min": 0, "max": 9, "display": "offscreen"},
             # A Research Token, read off the journal space it sits on.
-            {"key": "researched", "min": 0, "max": 1, "tags": ["hidden"]},
+            {"key": "researched", "min": 0, "max": 1, "display": "offscreen"},
             # A Trap that has been revealed. It stays where it lies and does
             # nothing more until the Ultimate swaps it out.
-            {"key": "sprung", "min": 0, "max": 1, "tags": ["hidden"]},
+            {"key": "sprung", "min": 0, "max": 1, "display": "offscreen"},
             # What is left of Omar's Dodge!, written on the Trap that set it.
-            {"key": "guard", "min": 0, "max": 2, "tags": ["hidden"]},
+            {"key": "guard", "min": 0, "max": 2, "display": "offscreen"},
             # What a card standing for a choice is worth, written onto it before
             # the question opens so that the card can say the number out loud.
-            {"key": "counted", "min": 0, "max": 9, "tags": ["hidden"]},
+            {"key": "counted", "min": 0, "max": 9, "display": "offscreen"},
         ],
         # A tag is what a card *is*, and these are the kinds the printed cards
         # name that no single tag did.

@@ -29,8 +29,8 @@ local GAME = [==[{
   "title": "Phase Loop",
   "players": [{ "card": "north" }, { "card": "south" }],
   "stats": [
-    { "key": "opened", "min": 0, "max": 99, "tags": ["hidden"], "on": ["side"], "start": 0 },
-    { "key": "rounds", "min": 0, "max": 99, "tags": ["hidden"], "on": ["side"], "start": 0 }
+    { "key": "opened", "min": 0, "max": 99, "display": "offscreen", "on": ["side"], "start": 0 },
+    { "key": "rounds", "min": 0, "max": 99, "display": "offscreen", "on": ["side"], "start": 0 }
   ],
   "zones": [
     { "key": "hand", "layout": "row", "pos": [0.22, 0.80, 0.60, 0.95] },

@@ -100,12 +100,12 @@
       "on": ["player"],
       "start": 0
     },
-    { "key": "stock", "icon": "none", "min": 0, "max": 99, "tags": ["hidden"] },
+    { "key": "stock", "icon": "none", "min": 0, "max": 99, "display": "offscreen" },
     {
       "key": "buyable",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -113,7 +113,7 @@
       "key": "due_black",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -121,7 +121,7 @@
       "key": "due_blue",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -129,7 +129,7 @@
       "key": "due_green",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -137,7 +137,7 @@
       "key": "due_red",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -145,7 +145,7 @@
       "key": "due_white",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -153,16 +153,16 @@
       "key": "gold_due",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
-    { "key": "ok", "min": 0, "max": 99, "tags": ["hidden"], "on": ["noble"], "start": 0 },
+    { "key": "ok", "min": 0, "max": 99, "display": "offscreen", "on": ["noble"], "start": 0 },
     {
       "key": "reserved",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -170,7 +170,7 @@
       "key": "short",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development", "noble"],
       "start": 0
     },
@@ -178,7 +178,7 @@
       "key": "spent",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -187,7 +187,7 @@
       "icon": "banner",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development", "noble"],
       "start": 0
     },
@@ -197,7 +197,7 @@
       "color": "grey",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -207,7 +207,7 @@
       "color": "blue",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -217,7 +217,7 @@
       "color": "green",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -227,7 +227,7 @@
       "color": "red",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -237,7 +237,7 @@
       "color": "silver",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["development"],
       "start": 0
     },
@@ -247,7 +247,7 @@
       "color": "grey",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["noble"],
       "start": 0
     },
@@ -257,7 +257,7 @@
       "color": "blue",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["noble"],
       "start": 0
     },
@@ -267,7 +267,7 @@
       "color": "green",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["noble"],
       "start": 0
     },
@@ -277,7 +277,7 @@
       "color": "red",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["noble"],
       "start": 0
     },
@@ -287,38 +287,108 @@
       "color": "silver",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["noble"],
       "start": 0
     },
-    { "key": "tier", "min": 0, "max": 99, "tags": ["hidden"], "on": ["development"] },
-    { "key": "b_black", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "b_blue", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "b_green", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "b_red", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "b_white", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "bought", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "done", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "ending", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "tier", "min": 0, "max": 99, "display": "offscreen", "on": ["development"] },
+    {
+      "key": "b_black",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "b_blue",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "b_green",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "b_red",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "b_white",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "bought",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    { "key": "done", "min": 0, "max": 99, "display": "offscreen", "on": ["player"], "start": 0 },
+    {
+      "key": "ending",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
     {
       "key": "first_take",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["player"],
       "start": 1
     },
-    { "key": "opens", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    {
+      "key": "opens",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
     {
       "key": "reserve_slots",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["player"],
       "start": 3
     },
-    { "key": "t_total", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "takes", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 }
+    {
+      "key": "t_total",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "takes",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    }
   ],
   "computed_tags": { "noble_ready": { "needs": ["ok@self >= 1"] }, "has_gold": { "needs": ["stock@self >= 1"] } },
   "tags": {

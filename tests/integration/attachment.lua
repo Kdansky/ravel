@@ -22,8 +22,8 @@ local GAME = [==[{
   "title": "Attachment",
   "players": [{ "card": "south" }, { "card": "north" }],
   "stats": [
-    { "key": "side", "min": 0, "max": 9, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "guard", "min": 0, "max": 1, "on": ["site"], "start": 0, "tags": ["hidden"] }
+    { "key": "side", "min": 0, "max": 9, "on": ["player"], "start": 0, "display": "offscreen" },
+    { "key": "guard", "min": 0, "max": 1, "on": ["site"], "start": 0, "display": "offscreen" }
   ],
   "zones": [
     { "key": "island", "layout": "grid", "use": "abilities", "grid": [3, 1], "pos": [0.05, 0.05, 0.80, 0.30] },

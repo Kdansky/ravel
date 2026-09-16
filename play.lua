@@ -112,8 +112,9 @@ local function show()
 	local stats = {}
 	for _, key in ipairs(G.stat_defs_list) do
 		local def = G.stat_defs[key]
-		if not (def and def.hidden) then
-			stats[#stats + 1] = label.fill(def.label or key, def) .. ": " .. predicate.total(def.subject or key)
+		local v = predicate.total(def.subject or key)
+		if declaration.stat_shown(key, v) then
+			stats[#stats + 1] = label.fill(def.label or key, def) .. ": " .. v
 		end
 	end
 	if #stats > 0 then print(table.concat(stats, "   ")) end

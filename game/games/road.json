@@ -1,7 +1,7 @@
 {
   "title": "The Long Road",
   "stats": [
-    { "key": "hp", "icon": "heart", "min": 0, "tags": ["hidden"] },
+    { "key": "hp", "icon": "heart", "min": 0, "display": "offscreen" },
     { "key": "round", "label": "Day" },
     { "key": "morale", "label": "Morale", "icon": "banner", "min": 0, "max": 10 },
     { "key": "supplies", "label": "Supplies", "min": 0 },

@@ -11,32 +11,32 @@
     { "key": "glass", "label": "Glass", "icon": "pot", "color": "orange", "min": 0, "max": 6, "on": ["player"], "start": 0, "subject": "glass@mine.player" },
     { "key": "note", "label": "Notes", "icon": "shield", "color": "brown", "min": 0, "max": 6, "on": ["player"], "start": 0, "subject": "note@mine.player" },
 
-    { "key": "score", "min": -99, "max": 999, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "passed", "min": 0, "max": 1, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "guardians", "min": 0, "max": 9, "on": ["player"], "start": 0, "tags": ["hidden"] },
+    { "key": "score", "min": -99, "max": 999, "on": ["player"], "start": 0, "display": "offscreen" },
+    { "key": "passed", "min": 0, "max": 1, "on": ["player"], "start": 0, "display": "offscreen" },
+    { "key": "guardians", "min": 0, "max": 9, "on": ["player"], "start": 0, "display": "offscreen" },
 
-    { "key": "coin_price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"] },
-    { "key": "compass_price", "min": 0, "max": 20, "icon": "orb", "color": "cyan", "tags": ["hidden"] },
-    { "key": "trek", "min": 0, "max": 4, "icon": "arrow", "color": "teal", "tags": ["hidden"] },
-    { "key": "points", "min": 0, "max": 9, "icon": "banner", "color": "gold", "tags": ["hidden"] },
-    { "key": "toll", "min": 0, "max": 9, "icon": "arrow", "color": "crimson", "tags": ["hidden"] },
-    { "key": "used", "min": 0, "max": 1, "on": ["idol"], "start": 0, "tags": ["hidden"] },
+    { "key": "coin_price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "display": "offscreen" },
+    { "key": "compass_price", "min": 0, "max": 20, "icon": "orb", "color": "cyan", "display": "offscreen" },
+    { "key": "trek", "min": 0, "max": 4, "icon": "arrow", "color": "teal", "display": "offscreen" },
+    { "key": "points", "min": 0, "max": 9, "icon": "banner", "color": "gold", "display": "offscreen" },
+    { "key": "toll", "min": 0, "max": 9, "icon": "arrow", "color": "crimson", "display": "offscreen" },
+    { "key": "used", "min": 0, "max": 1, "on": ["idol"], "start": 0, "display": "offscreen" },
 
-    { "key": "y_coin", "min": 0, "max": 9, "icon": "coin", "color": "gold", "tags": ["hidden"] },
-    { "key": "y_compass", "min": 0, "max": 9, "icon": "orb", "color": "cyan", "tags": ["hidden"] },
-    { "key": "y_tablet", "min": 0, "max": 9, "icon": "leaf", "color": "sand", "tags": ["hidden"] },
-    { "key": "y_arrow", "min": 0, "max": 9, "icon": "blade", "color": "silver", "tags": ["hidden"] },
-    { "key": "y_jewel", "min": 0, "max": 9, "icon": "diamond", "color": "violet", "tags": ["hidden"] },
-    { "key": "y_travel", "min": 0, "max": 9, "icon": "arrow", "color": "amber", "tags": ["hidden"] },
-    { "key": "y_draw", "min": 0, "max": 9, "icon": "card", "color": "white", "tags": ["hidden"] },
-    { "key": "y_idol", "min": 0, "max": 9, "icon": "heart", "color": "gold", "tags": ["hidden"] },
+    { "key": "y_coin", "min": 0, "max": 9, "icon": "coin", "color": "gold", "display": "offscreen" },
+    { "key": "y_compass", "min": 0, "max": 9, "icon": "orb", "color": "cyan", "display": "offscreen" },
+    { "key": "y_tablet", "min": 0, "max": 9, "icon": "leaf", "color": "sand", "display": "offscreen" },
+    { "key": "y_arrow", "min": 0, "max": 9, "icon": "blade", "color": "silver", "display": "offscreen" },
+    { "key": "y_jewel", "min": 0, "max": 9, "icon": "diamond", "color": "violet", "display": "offscreen" },
+    { "key": "y_travel", "min": 0, "max": 9, "icon": "arrow", "color": "amber", "display": "offscreen" },
+    { "key": "y_draw", "min": 0, "max": 9, "icon": "card", "color": "white", "display": "offscreen" },
+    { "key": "y_idol", "min": 0, "max": 9, "icon": "heart", "color": "gold", "display": "offscreen" },
 
-    { "key": "g_arrow", "min": 0, "max": 9, "on": ["guardian"], "start": 0, "tags": ["hidden"] },
-    { "key": "g_tablet", "min": 0, "max": 9, "on": ["guardian"], "start": 0, "tags": ["hidden"] },
-    { "key": "g_jewel", "min": 0, "max": 9, "on": ["guardian"], "start": 0, "tags": ["hidden"] },
+    { "key": "g_arrow", "min": 0, "max": 9, "on": ["guardian"], "start": 0, "display": "offscreen" },
+    { "key": "g_tablet", "min": 0, "max": 9, "on": ["guardian"], "start": 0, "display": "offscreen" },
+    { "key": "g_jewel", "min": 0, "max": 9, "on": ["guardian"], "start": 0, "display": "offscreen" },
 
     { "key": "round_no", "label": "Round", "icon": "none", "min": 0, "max": 9, "subject": "sum:round_no@clock" },
-    { "key": "temple_taken", "min": 0, "max": 1, "tags": ["hidden"] }
+    { "key": "temple_taken", "min": 0, "max": 1, "display": "offscreen" }
   ],
 
   "patterns": {

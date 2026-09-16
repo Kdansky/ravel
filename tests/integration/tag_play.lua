@@ -23,7 +23,7 @@ local M = {}
 local GAME = [==[{
   "title": "Tag Play",
   "players": [{ "card": "one" }],
-  "stats": [{ "key": "purse", "min": 0, "max": 99, "tags": ["hidden"] }],
+  "stats": [{ "key": "purse", "min": 0, "max": 99, "display": "offscreen" }],
   "zones": [
     { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": [[0.02, 0.80, 0.60, 0.95]] },
     { "key": "table", "layout": "grid", "grid": [6, 1], "pos": [0.02, 0.30, 0.98, 0.50] },

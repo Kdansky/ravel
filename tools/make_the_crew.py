@@ -422,14 +422,14 @@ def build():
              "subject": "tricks_won@mine.player", "on": ["player"], "start": 0},
             {"key": "todo", "label": "Your tasks", "min": 0, "max": 99,
              "subject": "count:task@mine.tasks"},
-            {"key": "led", "min": 0, "max": 99, "tags": ["hidden"]},
-            {"key": "want", "min": 0, "max": 99, "tags": ["hidden"]},
-            {"key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"],
+            {"key": "led", "min": 0, "max": 99, "display": "offscreen"},
+            {"key": "want", "min": 0, "max": 99, "display": "offscreen"},
+            {"key": "has_r4", "min": 0, "max": 99, "display": "offscreen",
              "on": ["player"], "start": 0},
             # Whose number each of these is, said once instead of on every card.
             # A task starts unclaimed; a playing card says its own suit and value
             # and starts the trick arithmetic at zero.
-            {"key": "hit", "min": 0, "max": 99, "tags": ["hidden"], "on": ["task"], "start": 0},
+            {"key": "hit", "min": 0, "max": 99, "display": "offscreen", "on": ["task"], "start": 0},
             # One thing may be said per player per mission, which is a fact about
             # being a player rather than about being north.
             {"key": "radio", "label": "Radio", "icon": "banner", "min": 0, "max": 1,
@@ -438,11 +438,11 @@ def build():
         # is what lets max: and min: over a hand answer "my highest pink". Every
         # card of the colour must say it, so the stat says so and the validator
         # holds the generator to it.
-        ] + [{"key": f"v_{s[0]}", "min": 0, "max": 99, "tags": ["hidden"], "on": [s[0]]}
+        ] + [{"key": f"v_{s[0]}", "min": 0, "max": 99, "display": "offscreen", "on": [s[0]]}
              for s in SUITS]
-        + [{"key": k, "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"]}
+        + [{"key": k, "min": 0, "max": 999, "display": "offscreen", "on": ["play_card"]}
            for k in ("suit", "value")]
-        + [{"key": k, "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0}
+        + [{"key": k, "min": 0, "max": 999, "display": "offscreen", "on": ["play_card"], "start": 0}
            for k in SCRATCH if k not in ("suit", "value")],
         "computes": COMPUTES,
         "computed_tags": {

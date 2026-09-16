@@ -2,7 +2,7 @@
   "title": "Coronation",
   "assets": { "archmage_tower": { "src": "https://i.imgur.com/0vnj0kx.jpeg", "max": 4092 } },
   "stats": [
-    { "key": "hp", "icon": "heart", "min": 0, "tags": ["hidden"] },
+    { "key": "hp", "icon": "heart", "min": 0, "display": "offscreen" },
     { "key": "round", "label": "Round" },
     { "key": "progress", "label": "Progress", "min": 0 },
     { "key": "stability", "label": "Stability", "min": 0, "max": 10 },
@@ -10,7 +10,7 @@
     { "key": "food", "label": "Food", "icon": "leaf", "min": 0 },
     { "key": "might", "label": "Might", "min": 0 },
     { "key": "mana", "label": "Mana", "min": 0 },
-    { "key": "destination", "tags": ["hidden"] }
+    { "key": "destination", "display": "offscreen" }
   ],
   "effects": {
     "blessing": { "base": "sparkle" },

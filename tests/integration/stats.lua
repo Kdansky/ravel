@@ -20,7 +20,7 @@ local M = {}
 local GAME = [==[{
   "title": "Bounds",
   "stats": [
-    { "key": "grit", "min": 0, "max": 9, "tags": ["hidden"] }
+    { "key": "grit", "min": 0, "max": 9, "display": "offscreen" }
   ],
   "computed_tags": {
   },
@@ -201,9 +201,9 @@ end
 local GRANTED = [==[{
   "title": "Granted",
   "stats": [
-    { "key": "wear", "min": 0, "max": 9, "tags": ["hidden"], "on": ["tool"], "start": 0 },
-    { "key": "heat", "min": 0, "max": 9, "tags": ["hidden"], "on": ["hot"], "start": 3 },
-    { "key": "edge", "min": 0, "max": 9, "tags": ["hidden"], "on": ["tool"] }
+    { "key": "wear", "min": 0, "max": 9, "display": "offscreen", "on": ["tool"], "start": 0 },
+    { "key": "heat", "min": 0, "max": 9, "display": "offscreen", "on": ["hot"], "start": 3 },
+    { "key": "edge", "min": 0, "max": 9, "display": "offscreen", "on": ["tool"] }
   ],
   "zones": [
     { "key": "board", "layout": "grid", "grid": [6, 1], "pos": [0.1, 0.3, 0.9, 0.6] },
@@ -283,6 +283,39 @@ function M.test_stats_a_stat_may_require_rather_than_grant(check)
 		local problems = table.concat(validate.check(declaration.parse(name)), "\n")
 		check("a start with nobody to start is refused",
 			problems:find("says where it starts but not whose it is") ~= nil, problems)
+	end)
+end
+
+-- A helper number that means nothing until something uses it is noise at zero
+-- and a fact after, so it is listed only while it is not 0. One field with
+-- three answers, since never and only-while-nonzero cannot both be true.
+function M.test_stats_display_nonzero_lists_a_stat_once_it_moves(check)
+	local text = GRANTED:gsub('"stats": %[', '"stats": [\n    { "key": "doom", "on": ["player"], "start": 0, "display": "nonzero" },'
+		.. '\n    { "key": "gold", "on": ["player"], "start": 0 },', 1)
+	local function listed(word)
+		return table.concat(flow.summary(), " "):find(word) ~= nil
+	end
+	with_granted(text, function(name)
+		flow.init(name, 3)
+		check("the file is clean", #validate.check(declaration.parse(name)) == 0,
+			table.concat(validate.check(declaration.parse(name)), "\n"))
+		check("a plain stat at zero is listed", listed("gold 0"))
+		check("a nonzero one at zero is not", not listed("doom"))
+		check("an offscreen one never is", not listed("wear"))
+		actions.execute("stat_gain:doom@each.player:1", {})
+		check("and once it moves it is", listed("doom 1"), table.concat(flow.summary(), " "))
+	end)
+
+	local tagged = GRANTED:gsub('"display": "offscreen", "on": %["tool"%], "start": 0', '"tags": ["hidden"], "on": ["tool"], "start": 0')
+	with_granted(tagged, function(name)
+		local problems = table.concat(validate.check(declaration.parse(name)), "\n")
+		check("the hidden tag names the field that does it", problems:find('write "display": "offscreen"', 1, true) ~= nil, problems)
+	end)
+
+	local typo = GRANTED:gsub('"display": "offscreen", "on": %["tool"%], "start": 0', '"display": "zero", "on": ["tool"], "start": 0')
+	with_granted(typo, function(name)
+		local problems = table.concat(validate.check(declaration.parse(name)), "\n")
+		check("a display the engine lacks is refused", problems:find("none of nonzero, offscreen, onscreen", 1, true) ~= nil, problems)
 	end)
 end
 

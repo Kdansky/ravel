@@ -222,28 +222,28 @@ def stats():
     # and the diamond it fell back to is the silhouette of a gem it is not.
     hidden = {"stock": {"icon": "none"}}
     for k, extra in sorted(hidden.items()):
-        out.append({"key": k, **extra, "min": 0, "max": 99, "tags": ["hidden"]})
+        out.append({"key": k, **extra, "min": 0, "max": 99, "display": "offscreen"})
     for k in sorted(scratch):
         # Prestige is the number the game is won on, so on a card it wears the
         # same banner the seat's own score does rather than the anonymous
         # diamond every undeclared stat falls back to.
         icon = {"icon": "banner"} if k == "vp" else {}
-        out.append({"key": k, **icon, "min": 0, "max": 99, "tags": ["hidden"],
+        out.append({"key": k, **icon, "min": 0, "max": 99, "display": "offscreen",
                     "on": scratch[k], "start": 0})
     look = {}
     for k, _, _, _, icon, tint in GEMS:
         look[f"cost_{k}"] = (icon, tint)
         look[f"n_{k}"] = (icon, tint)
     for k in sorted(printed):
-        # A printed cost wears the gem that pays it. "hidden" keeps a stat out
-        # of the HUD; what a card shows on its face is the style's business, so
-        # the two do not argue.
+        # A printed cost wears the gem that pays it. "offscreen" keeps a stat
+        # out of the panel; what a card shows on its face is the style's
+        # business, so the two do not argue.
         gem = look.get(k)
         art = {"icon": gem[0], "color": gem[1]} if gem else {}
-        out.append({"key": k, **art, "min": 0, "max": 99, "tags": ["hidden"],
+        out.append({"key": k, **art, "min": 0, "max": 99, "display": "offscreen",
                     "on": printed[k], **({} if k == "tier" else {"start": 0})})
     for k in sorted(seat_start):
-        out.append({"key": k, "min": 0, "max": 99, "tags": ["hidden"],
+        out.append({"key": k, "min": 0, "max": 99, "display": "offscreen",
                     "on": ["player"], "start": seat_start[k]})
     return out
 

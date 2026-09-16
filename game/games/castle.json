@@ -2,7 +2,7 @@
   "title": "Castle Lord",
   "effects": { "festival_lights": { "base": "sparkle", "count": 1.6 } },
   "stats": [
-    { "key": "hp", "icon": "heart", "min": 0, "tags": ["hidden"] },
+    { "key": "hp", "icon": "heart", "min": 0, "display": "offscreen" },
     { "key": "round", "label": "Round" },
     { "key": "gold", "label": "Gold", "icon": "coin", "min": 0, "max": 999 },
     { "key": "morale", "label": "Morale", "icon": "banner", "min": 0, "max": 10 },

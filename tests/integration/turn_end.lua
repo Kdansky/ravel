@@ -25,7 +25,7 @@ local GAME = [==[{
   "players": [{ "card": "one" }],
   "stats": [
     { "key": "pot", "label": "Pot", "min": 0, "max": 99 },
-    { "key": "purse", "min": 0, "max": 99, "tags": ["hidden"] }
+    { "key": "purse", "min": 0, "max": 99, "display": "offscreen" }
   ],
   "zones": [
     { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat", "pos": [[0.02, 0.80, 0.60, 0.95]] },

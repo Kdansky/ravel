@@ -841,7 +841,7 @@ def stats():
     def player(key, label, icon, colour=None, hidden=False, start=0, mx=99):
         s = {"key": key, "min": 0, "max": mx, "on": ["player"], "start": start}
         if hidden:
-            s["tags"] = ["hidden"]
+            s["display"] = "offscreen"
         else:
             s["label"] = label
             s["icon"] = icon
@@ -899,22 +899,22 @@ def stats():
         # symbols and a colour, and reads at arm's length; a paragraph of
         # English in a 40-pixel band does not. The paragraph stays in the
         # tooltip, where the exact words belong.
-        {"key": "value", "min": 0, "max": 4, "icon": "diamond", "color": "green", "tags": ["hidden"]},
-        {"key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"]},
-        {"key": "stock", "min": 0, "max": 9999, "icon": "card", "tags": ["hidden"]},
+        {"key": "value", "min": 0, "max": 4, "icon": "diamond", "color": "green", "display": "offscreen"},
+        {"key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "display": "offscreen"},
+        {"key": "stock", "min": 0, "max": 9999, "icon": "card", "display": "offscreen"},
         # Sale Prices leaves this behind and cleanup takes it away. The discount
         # itself is not written anywhere: a tag holds it open, so the printed
         # price is never touched and there is nothing to restore.
-        {"key": "on_sale", "min": 0, "max": 1, "on": ["chip"], "start": 0, "tags": ["hidden"]},
-        {"key": "plus_act", "min": 0, "max": 9, "icon": "arrow", "tags": ["hidden"]},
-        {"key": "plus_piggy", "min": 0, "max": 9, "icon": "pot", "color": "pink", "number": False, "tags": ["hidden"]},
-        {"key": "plus_draw", "min": 0, "max": 9, "icon": "card", "tags": ["hidden"]},
-        {"key": "plus_pow", "min": 0, "max": 9, "icon": "coin", "color": "green", "tags": ["hidden"]},
+        {"key": "on_sale", "min": 0, "max": 1, "on": ["chip"], "start": 0, "display": "offscreen"},
+        {"key": "plus_act", "min": 0, "max": 9, "icon": "arrow", "display": "offscreen"},
+        {"key": "plus_piggy", "min": 0, "max": 9, "icon": "pot", "color": "pink", "number": False, "display": "offscreen"},
+        {"key": "plus_draw", "min": 0, "max": 9, "icon": "card", "display": "offscreen"},
+        {"key": "plus_pow", "min": 0, "max": 9, "icon": "coin", "color": "green", "display": "offscreen"},
         # A banner shape, not a quantity: the chip either has a reaction half or
         # it does not, and "shield 1" would be a number about nothing.
-        {"key": "react", "min": 0, "max": 1, "icon": "shield", "number": False, "tags": ["hidden"]},
-        {"key": "hits", "min": 0, "max": 1, "icon": "fist", "number": False, "tags": ["hidden"]},
-        {"key": "panic", "min": 0, "max": 9, "tags": ["hidden"]},
+        {"key": "react", "min": 0, "max": 1, "icon": "shield", "number": False, "display": "offscreen"},
+        {"key": "hits", "min": 0, "max": 1, "icon": "fist", "number": False, "display": "offscreen"},
+        {"key": "panic", "min": 0, "max": 9, "display": "offscreen"},
         # How many Puzzle chips the bank is still short. Floored at zero, which
         # is what makes "ten less however many are already there" one subtraction
         # rather than a branch.

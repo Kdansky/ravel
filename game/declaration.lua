@@ -249,6 +249,15 @@ M.REACH      = { all = true, top = true }
 M.USE        = { play = true, abilities = true, none = true }
 M.DISPLAY    = { onscreen = true, offscreen = true }
 M.COPIES     = { one = true, per_seat = true }
+-- A stat's display has a third answer a zone's has not: a helper number that
+-- means nothing until it is used is noise at zero and a fact after.
+M.STAT_DISPLAY = { onscreen = true, offscreen = true, nonzero = true }
+
+-- Whether a stat's row is shown while it reads v. An undeclared stat has no say.
+function M.stat_shown(key, v)
+	local d = M.G.stat_defs[key] and M.G.stat_defs[key].display
+	return d ~= "offscreen" and not (d == "nonzero" and v == 0)
+end
 
 local ZONE_WORDS = {
 	{ "layout",     "LAYOUT" },
@@ -1156,6 +1165,14 @@ function M.parse(filename)
 				G.stat_defs_list[#G.stat_defs_list + 1] = sd.key
 			end
 			sd.tags_set = tag_set(sd.tags)
+			if sd.tags_set.hidden then
+				pp[#pp + 1] = "stat '" .. sd.key .. "': the tag \"hidden\" does nothing on a stat — write \"display\": \"offscreen\""
+			end
+			if sd.display ~= nil and not M.STAT_DISPLAY[sd.display] then
+				pp[#pp + 1] = "stat '" .. sd.key .. "': \"display\" is '" .. tostring(sd.display)
+					.. "', which is none of nonzero, offscreen, onscreen"
+				sd.display = nil
+			end
 			if type(sd.on) == "string" then sd.on = { sd.on } end
 			G.stat_defs[sd.key] = sd
 		end

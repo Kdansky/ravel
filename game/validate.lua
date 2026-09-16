@@ -56,7 +56,7 @@ local SUPPLY_STATS = { stock = true }
 -- **These names are reserved.** A game may not define a style, a tag with
 -- behaviour, or a computed tag under one of them: the engine reads the word off
 -- the entity and would obey both meanings at once. It costs a game the ability
--- to colour, say, everything `hidden` by naming a style after it — worth it, to
+-- to colour, say, every `token` by naming a style after it — worth it, to
 -- make "this word already means something" impossible to write by accident.
 --
 -- `on` is what carries it. Anything not listed is the game's own vocabulary and
@@ -79,10 +79,6 @@ M.ENGINE_TAGS = {
 	-- phases
 	discard_hand = { on = "phase", what = "leaving it discards the unplayed hand; tokens vanish" },
 }
--- One word means two things, on two different kinds, and always has: a hidden
--- zone is not drawn, a hidden stat is not in the HUD. Listed apart rather than
--- given a second entry, since the table is keyed by the word.
-M.ENGINE_TAGS_ALSO_ON_STATS = { hidden = "kept out of the HUD, while cards may still read and change it" }
 
 -- Names conditions answer for themselves, so a zone or tag may not take one.
 -- "self" is the acting card, "all" is every entity, "everywhere" is every card
@@ -217,7 +213,9 @@ local STAT_FIELDS     = { key = true, label = true, min = true, max = true, subj
 	buffs = true,
 	-- false when the badge is the shape alone. A banner meaning "this is an
 	-- attack" has no quantity, and the 1 carrying it is noise on the card.
-	number = true }
+	number = true,
+	-- Whether its row is shown: onscreen, offscreen, or only while nonzero.
+	display = true }
 -- A tag def is a mixin: it may carry a home zone, and the card behaviour a zone
 -- hands to whatever sits in it ("applies"). Kept to the fields a granted rule
 -- can honestly mean — nothing that would have to be re-derived as state moves.

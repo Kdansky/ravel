@@ -169,10 +169,6 @@ function M.test_schema_describes_every_reserved_tag(check)
 		by[e.on] = by[e.on] or {}
 		by[e.on][name] = true
 	end
-	for name in pairs(validate.ENGINE_TAGS_ALSO_ON_STATS) do
-		by.stat = by.stat or {}
-		by.stat[name] = true
-	end
 	for kind, names in pairs(by) do
 		local text = doc["_on_" .. kind .. "s"]
 		check("the document lists the " .. kind .. " tags", type(text) == "string")
@@ -187,7 +183,7 @@ function M.test_schema_describes_every_reserved_tag(check)
 		if kind then
 			for word in text:gmatch("([a-z_]+) %(") do
 				check("'" .. word .. "' is a tag the engine reads",
-					validate.ENGINE_TAGS[word] ~= nil or validate.ENGINE_TAGS_ALSO_ON_STATS[word] ~= nil,
+					validate.ENGINE_TAGS[word] ~= nil,
 					"listed under _on_" .. kind .. "s")
 			end
 		end

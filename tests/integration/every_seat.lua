@@ -27,9 +27,9 @@ local GAME = [==[{
   "title": "Every Seat",
   "players": [{ "card": "north" }, { "card": "east" }, { "card": "south" }],
   "stats": [
-    { "key": "purse", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 3 },
-    { "key": "score", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "held", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 }
+    { "key": "purse", "min": 0, "max": 99, "display": "offscreen", "on": ["player"], "start": 3 },
+    { "key": "score", "min": 0, "max": 99, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "held", "min": 0, "max": 99, "display": "offscreen", "on": ["player"], "start": 0 }
   ],
   "zones": [
     { "key": "hand", "layout": "row", "visibility": "owner", "copies": "per_seat",

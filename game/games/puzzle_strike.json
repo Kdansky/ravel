@@ -88,29 +88,99 @@
       "subject": "piggy@mine.player",
       "color": "pink"
     },
-    { "key": "budget", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "bought", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "to_draw", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "crashed", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "broke", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "sent", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "combined", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "extra", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "picked", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "owed", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
-    { "key": "redraw", "min": 0, "max": 99, "on": ["player"], "start": 0, "tags": ["hidden"] },
+    {
+      "key": "budget",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "bought",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "to_draw",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "crashed",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "broke",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    { "key": "sent", "min": 0, "max": 99, "on": ["player"], "start": 0, "display": "offscreen" },
+    {
+      "key": "combined",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "extra",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    {
+      "key": "picked",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
+    { "key": "owed", "min": 0, "max": 99, "on": ["player"], "start": 0, "display": "offscreen" },
+    {
+      "key": "redraw",
+      "min": 0,
+      "max": 99,
+      "on": ["player"],
+      "start": 0,
+      "display": "offscreen"
+    },
     {
       "key": "value",
       "min": 0,
       "max": 4,
       "icon": "diamond",
       "color": "green",
-      "tags": ["hidden"]
+      "display": "offscreen"
     },
-    { "key": "price", "min": 0, "max": 20, "icon": "coin", "color": "gold", "tags": ["hidden"] },
-    { "key": "stock", "min": 0, "max": 9999, "icon": "card", "tags": ["hidden"] },
-    { "key": "on_sale", "min": 0, "max": 1, "on": ["chip"], "start": 0, "tags": ["hidden"] },
-    { "key": "plus_act", "min": 0, "max": 9, "icon": "arrow", "tags": ["hidden"] },
+    {
+      "key": "price",
+      "min": 0,
+      "max": 20,
+      "icon": "coin",
+      "color": "gold",
+      "display": "offscreen"
+    },
+    { "key": "stock", "min": 0, "max": 9999, "icon": "card", "display": "offscreen" },
+    { "key": "on_sale", "min": 0, "max": 1, "on": ["chip"], "start": 0, "display": "offscreen" },
+    { "key": "plus_act", "min": 0, "max": 9, "icon": "arrow", "display": "offscreen" },
     {
       "key": "plus_piggy",
       "min": 0,
@@ -118,16 +188,16 @@
       "icon": "pot",
       "color": "pink",
       "number": false,
-      "tags": ["hidden"]
+      "display": "offscreen"
     },
-    { "key": "plus_draw", "min": 0, "max": 9, "icon": "card", "tags": ["hidden"] },
+    { "key": "plus_draw", "min": 0, "max": 9, "icon": "card", "display": "offscreen" },
     {
       "key": "plus_pow",
       "min": 0,
       "max": 9,
       "icon": "coin",
       "color": "green",
-      "tags": ["hidden"]
+      "display": "offscreen"
     },
     {
       "key": "react",
@@ -135,10 +205,17 @@
       "max": 1,
       "icon": "shield",
       "number": false,
-      "tags": ["hidden"]
+      "display": "offscreen"
     },
-    { "key": "hits", "min": 0, "max": 1, "icon": "fist", "number": false, "tags": ["hidden"] },
-    { "key": "panic", "min": 0, "max": 9, "tags": ["hidden"] }
+    {
+      "key": "hits",
+      "min": 0,
+      "max": 1,
+      "icon": "fist",
+      "number": false,
+      "display": "offscreen"
+    },
+    { "key": "panic", "min": 0, "max": 9, "display": "offscreen" }
   ],
   "styles": {
     "brown": { "color": [0.42, 0.33, 0.24] },

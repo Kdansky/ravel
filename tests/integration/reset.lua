@@ -16,9 +16,9 @@ local GAME = [==[{
   "title": "Reset",
   "players": [{ "card": "one" }],
   "stats": [
-    { "key": "hp", "label": "Life", "min": 0, "max": 9, "on": ["unit"], "tags": ["hidden"] },
-    { "key": "atk", "label": "Attack", "min": 0, "max": 9, "on": ["unit"], "tags": ["hidden"] },
-    { "key": "armor", "min": 0, "max": 9, "on": ["unit"], "start": 0, "tags": ["hidden"] },
+    { "key": "hp", "label": "Life", "min": 0, "max": 9, "on": ["unit"], "display": "offscreen" },
+    { "key": "atk", "label": "Attack", "min": 0, "max": 9, "on": ["unit"], "display": "offscreen" },
+    { "key": "armor", "min": 0, "max": 9, "on": ["unit"], "start": 0, "display": "offscreen" },
     { "key": "score", "label": "Score", "subject": "score@mine.player", "min": 0, "max": 9, "on": ["player"], "start": 0 }
   ],
   "zones": [

@@ -91,7 +91,7 @@ local RETIRED = {
 	-- A zone's shape and its rules are seven fields now, not one word and a
 	-- handful of tags overriding it. Only the words that went entirely are
 	-- listed: "per_seat" and "page" are values on the new fields, "activate" is
-	-- still a zone's own ability block and "hidden" is still a stat tag, so the
+	-- still a zone's own ability block and "hidden" is still a game's own tag, so the
 	-- word turning up is not evidence of the old meaning.
 	{ "face_up", '"visibility": "public"' },
 	{ "face_down", '"visibility": "secret"' },

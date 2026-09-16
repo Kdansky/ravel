@@ -113,8 +113,8 @@ and a line here names a section that exists:
 
 The recipe, in order:
 
-1. **Stats** — the numbers of your game. Declared stats show in the HUD (add
-   `"tags": ["hidden"]` to keep one internal). Starting values go in the seat's
+1. **Stats** — the numbers of your game. Declared stats show in a seat's panel (add
+   `"display": "offscreen"` to keep one internal). Starting values go in the seat's
    `stats` under `players`.
 2. **Zones** — where cards live. `pos` is window fractions `[x1, y1, x2, y2]`;
    positions off-screen (negative y) make cards fly in from outside. Decks own
@@ -570,7 +570,7 @@ asks of the pool, and a pool of stats is a total.
 action list runs, and holds the one arithmetic operator a cost has no room for.
 → *`computes` — a number with a name*
 
-**A working number the player should not see.** Declare it `"tags": ["hidden"]`
+**A working number the player should not see.** Declare it `"display": "offscreen"`
 with `"min": 0`. The floor is what gives you `max(0, a - b)`, and that single
 piece of arithmetic is how a five-way check collapses into one comparison.
 → *Actions*, under **Numeric slots**
@@ -949,9 +949,14 @@ bound at all.
 **Reserved:** `round` (starts 1, +1 per round boundary) and `plays` (per-hand
 play counter) are engine-managed — declare them only to display them.
 
-A stat a game keeps on its *cards* rather than its players still wants an entry
-here, `display: "offscreen"`: that is where its bounds and its icon are said, without
-it becoming a row in the HUD.
+`display` says whether the stat is listed — in a card's panel and in the summary
+at the end of the game. `onscreen` is the default. `offscreen` never lists it,
+while cards still read and change it: a working number, or a stat a game keeps
+on its *cards* rather than its players, which still wants an entry here because
+that is where its bounds and its icon are said. `nonzero` lists it only while it
+is not 0 — a Doom track or a beaker only one wizard uses is noise until it moves,
+and a fact after. Badges on a card face are the style's to choose, and ignore it
+(see `hide: ["zero_badges"]`).
 
 `subject` overrides what the HUD row *reads* while the key still names what
 cards spend: castle's defense lives on the buildings that provide it and shows
@@ -3062,9 +3067,9 @@ the exact words stay in the tooltip:
 
 ```json
 "stats": [
-  { "key": "act",  "icon": "arrow",  "tags": ["hidden"] },
-  { "key": "draw", "icon": "card",   "tags": ["hidden"] },
-  { "key": "react", "icon": "shield", "number": false, "tags": ["hidden"] }
+  { "key": "act", "icon": "arrow", "display": "offscreen" },
+  { "key": "draw", "icon": "card", "display": "offscreen" },
+  { "key": "react", "icon": "shield", "number": false, "display": "offscreen" }
 ],
 "styles": { "chip": { "badges": ["act", "draw", "react"], "hide": ["zero_badges"] } },
 "cards": [
@@ -4219,12 +4224,11 @@ twenty are the exceptions — the words the engine itself looks for:
 | `shuffle` | zone | shuffled when its contents are created, and on every refill |
 | `stack` | zone | announcements wait here to be answered — see *Reactions*. A game with no such zone has no response window |
 | `discard_hand` | phase | leaving it discards the unplayed hand; tokens vanish |
-| `hidden` | stat | kept out of the HUD, while cards may still read and change it |
 
 **They are reserved.** A style, a tag with behaviour, or a computed tag may not
 be named after one: the engine reads the word off the entity, so two meanings
 would both apply with nothing to say which wins. The cost is real and accepted —
-you cannot name a style `hidden` to colour everything that is — and it buys the
+you cannot name a style `token` to colour everything that is — and it buys the
 guarantee that a word already meaning something cannot be quietly given a second
 job.
 
@@ -4244,7 +4248,7 @@ once instead, beside its own floor and ceiling:
 
 ```json
 "stats": [
-  { "key": "contend", "min": 0, "max": 999, "tags": ["hidden"],
+  { "key": "contend", "min": 0, "max": 999, "display": "offscreen",
     "on": ["play_card"], "start": 0 },
   { "key": "hp", "min": 0, "on": ["creature"] }
 ]
@@ -5038,7 +5042,7 @@ stat_damage:short@self:sum:t_red@mine.player    what the tokens cannot cover
 
 A yes/no comes out the same way: `max(0, 1 + have - need)` is 1 exactly when
 `have >= need`, so **a condition can read one number** where an `and` across
-five would be needed. Declare the working numbers as `hidden` stats with
+five would be needed. Declare the working numbers as `offscreen` stats with
 `"min": 0` — the floor is what makes it work, and hiding them keeps the HUD to
 what a player reads.
 

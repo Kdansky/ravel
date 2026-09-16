@@ -18,7 +18,14 @@
       "on": ["player"],
       "start": 0
     },
-    { "key": "tallied", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 }
+    {
+      "key": "tallied",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    }
   ],
   "tags": {
     "red_dest": {

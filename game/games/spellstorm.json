@@ -22,7 +22,8 @@
       "max": 8,
       "subject": "shards@mine.player",
       "on": ["player"],
-      "start": 0
+      "start": 0,
+      "display": "nonzero"
     },
     {
       "key": "mana",
@@ -44,7 +45,8 @@
       "max": 12,
       "subject": "power@mine.player",
       "on": ["player"],
-      "start": 0
+      "start": 0,
+      "display": "nonzero"
     },
     {
       "key": "tier",
@@ -66,7 +68,8 @@
       "max": 1,
       "subject": "initiative@mine.player",
       "on": ["player"],
-      "start": 0
+      "start": 0,
+      "display": "nonzero"
     },
     {
       "key": "doom",
@@ -77,7 +80,8 @@
       "max": 4,
       "subject": "doom@mine.player",
       "on": ["player"],
-      "start": 0
+      "start": 0,
+      "display": "nonzero"
     },
     {
       "key": "energy",
@@ -88,7 +92,8 @@
       "max": 3,
       "subject": "energy@mine.player",
       "on": ["player"],
-      "start": 0
+      "start": 0,
+      "display": "nonzero"
     },
     {
       "key": "research",
@@ -99,7 +104,8 @@
       "max": 6,
       "subject": "research@mine.player",
       "on": ["player"],
-      "start": 0
+      "start": 0,
+      "display": "nonzero"
     },
     {
       "key": "fire_el",
@@ -110,7 +116,8 @@
       "max": 6,
       "subject": "fire_el@mine.player",
       "on": ["player"],
-      "start": 0
+      "start": 0,
+      "display": "nonzero"
     },
     {
       "key": "earth_el",
@@ -121,7 +128,8 @@
       "max": 6,
       "subject": "earth_el@mine.player",
       "on": ["player"],
-      "start": 0
+      "start": 0,
+      "display": "nonzero"
     },
     {
       "key": "water_el",
@@ -132,37 +140,73 @@
       "max": 6,
       "subject": "water_el@mine.player",
       "on": ["player"],
+      "start": 0,
+      "display": "nonzero"
+    },
+    {
+      "key": "blast",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
       "start": 0
     },
-    { "key": "blast", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "ice_pen", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    {
+      "key": "ice_pen",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
     {
       "key": "init_rating",
       "min": 0,
       "max": 99,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["player"],
       "start": 0
     },
-    { "key": "lead", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "picked", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "took", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "toxic", "min": 0, "max": 9, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "ult_free", "min": 0, "max": 1, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "doubled", "min": 0, "max": 1, "tags": ["hidden"], "on": ["player"], "start": 0 },
+    { "key": "lead", "min": 0, "max": 99, "display": "offscreen", "on": ["player"], "start": 0 },
+    {
+      "key": "picked",
+      "min": 0,
+      "max": 9,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    { "key": "took", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    { "key": "toxic", "min": 0, "max": 9, "display": "offscreen", "on": ["player"], "start": 0 },
+    {
+      "key": "ult_free",
+      "min": 0,
+      "max": 1,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    {
+      "key": "doubled",
+      "min": 0,
+      "max": 1,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
     {
       "key": "battle_round",
       "min": 0,
       "max": 9,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["plan"],
       "start": 0
     },
-    { "key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"] },
-    { "key": "researched", "min": 0, "max": 1, "tags": ["hidden"] },
-    { "key": "sprung", "min": 0, "max": 1, "tags": ["hidden"] },
-    { "key": "guard", "min": 0, "max": 2, "tags": ["hidden"] },
-    { "key": "counted", "min": 0, "max": 9, "tags": ["hidden"] }
+    { "key": "tier_req", "min": 0, "max": 9, "display": "offscreen" },
+    { "key": "researched", "min": 0, "max": 1, "display": "offscreen" },
+    { "key": "sprung", "min": 0, "max": 1, "display": "offscreen" },
+    { "key": "guard", "min": 0, "max": 2, "display": "offscreen" },
+    { "key": "counted", "min": 0, "max": 9, "display": "offscreen" }
   ],
   "computed_tags": {
     "has_init": { "needs": ["initiative@self >= 1"] },

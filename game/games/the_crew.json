@@ -20,10 +20,17 @@
       "max": 99,
       "subject": "count:task@mine.tasks"
     },
-    { "key": "led", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "want", "min": 0, "max": 99, "tags": ["hidden"] },
-    { "key": "has_r4", "min": 0, "max": 99, "tags": ["hidden"], "on": ["player"], "start": 0 },
-    { "key": "hit", "min": 0, "max": 99, "tags": ["hidden"], "on": ["task"], "start": 0 },
+    { "key": "led", "min": 0, "max": 99, "display": "offscreen" },
+    { "key": "want", "min": 0, "max": 99, "display": "offscreen" },
+    {
+      "key": "has_r4",
+      "min": 0,
+      "max": 99,
+      "display": "offscreen",
+      "on": ["player"],
+      "start": 0
+    },
+    { "key": "hit", "min": 0, "max": 99, "display": "offscreen", "on": ["task"], "start": 0 },
     {
       "key": "radio",
       "label": "Radio",
@@ -34,17 +41,17 @@
       "on": ["player"],
       "start": 1
     },
-    { "key": "v_pink", "min": 0, "max": 99, "tags": ["hidden"], "on": ["pink"] },
-    { "key": "v_blue", "min": 0, "max": 99, "tags": ["hidden"], "on": ["blue"] },
-    { "key": "v_green", "min": 0, "max": 99, "tags": ["hidden"], "on": ["green"] },
-    { "key": "v_yellow", "min": 0, "max": 99, "tags": ["hidden"], "on": ["yellow"] },
-    { "key": "suit", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"] },
-    { "key": "value", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"] },
+    { "key": "v_pink", "min": 0, "max": 99, "display": "offscreen", "on": ["pink"] },
+    { "key": "v_blue", "min": 0, "max": 99, "display": "offscreen", "on": ["blue"] },
+    { "key": "v_green", "min": 0, "max": 99, "display": "offscreen", "on": ["green"] },
+    { "key": "v_yellow", "min": 0, "max": 99, "display": "offscreen", "on": ["yellow"] },
+    { "key": "suit", "min": 0, "max": 999, "display": "offscreen", "on": ["play_card"] },
+    { "key": "value", "min": 0, "max": 999, "display": "offscreen", "on": ["play_card"] },
     {
       "key": "trump",
       "min": 0,
       "max": 999,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["play_card"],
       "start": 0
     },
@@ -52,11 +59,18 @@
       "key": "contend",
       "min": 0,
       "max": 999,
-      "tags": ["hidden"],
+      "display": "offscreen",
       "on": ["play_card"],
       "start": 0
     },
-    { "key": "gap", "min": 0, "max": 999, "tags": ["hidden"], "on": ["play_card"], "start": 0 }
+    {
+      "key": "gap",
+      "min": 0,
+      "max": 999,
+      "display": "offscreen",
+      "on": ["play_card"],
+      "start": 0
+    }
   ],
   "computes": [
     {

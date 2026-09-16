@@ -18,9 +18,9 @@
       "max": 10,
       "subject": "mana@mine.player"
     },
-    { "key": "power", "icon": "blade", "tags": ["hidden"] },
-    { "key": "health", "icon": "heart", "tags": ["hidden"] },
-    { "key": "incoming", "min": 0, "on": ["unit"], "start": 0, "tags": ["hidden"] }
+    { "key": "power", "icon": "blade", "display": "offscreen" },
+    { "key": "health", "icon": "heart", "display": "offscreen" },
+    { "key": "incoming", "min": 0, "on": ["unit"], "start": 0, "display": "offscreen" }
   ],
   "verbs": [
     {

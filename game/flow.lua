@@ -1819,8 +1819,9 @@ function M.summary()
 	zones.as_seat(zones.watching(), function()
 		for _, key in ipairs(G.stat_defs_list or {}) do
 			local def = G.stat_defs[key]
-			if not (def and def.hidden) then
-				out[#out + 1] = (def and def.label or key) .. " " .. predicate.total(def and def.subject or key)
+			local v = predicate.total(def and def.subject or key)
+			if declaration.stat_shown(key, v) then
+				out[#out + 1] = (def and def.label or key) .. " " .. v
 			end
 		end
 	end)

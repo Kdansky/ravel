@@ -365,7 +365,7 @@ def build():
         "stats": [
             {"key": "score", "label": "Your score", "subject": "score@mine.player",
              "on": ["player"], "start": 0},
-            {"key": "tallied", "min": 0, "max": 99, "tags": ["hidden"],
+            {"key": "tallied", "min": 0, "max": 99, "display": "offscreen",
              "on": ["player"], "start": 0},
         ],
         "tags": TAG_DEFS,
