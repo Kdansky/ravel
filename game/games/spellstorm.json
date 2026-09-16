@@ -1003,7 +1003,11 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["hit:health@opponent:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.fire:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:others.mine.hand.fire:optional"]
+        }
       ],
       "chosen": { "action": ["copy:target:activate", "destroy:target"] }
     },
@@ -1711,7 +1715,11 @@
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand.earth:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:others.mine.hand.earth:optional"]
+        }
       ],
       "leaves": { "from": "hand", "into": "discard", "action": ["power_up:power@mine.player:1"] },
       "chosen": { "action": ["copy:target:activate", "destroy:target"] }
@@ -1829,7 +1837,7 @@
       "text": "Wind Dragon",
       "asset": "ss_winddragon.jpg",
       "tags": ["fire", "ember", "spell", "dragon", "ult"],
-      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve a card from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
+      "tooltip": "Gain *Initiative*. Gain a *Storm Shard*. You may resolve up to two cards from your hand.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The elusive Storm Dragons were considered to be cryptids until very recently._",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 4 },
       "abilities": [
@@ -1845,7 +1853,7 @@
         {
           "key": "cast_ask",
           "text": "Resolve",
-          "action": ["show:mine.hand:optional", "show:mine.hand:optional"]
+          "action": ["show:others.mine.hand:optional", "show:others.mine.hand:optional"]
         }
       ],
       "chosen": { "action": ["copy:target:activate", "destroy:target"] }

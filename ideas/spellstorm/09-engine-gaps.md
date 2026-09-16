@@ -321,7 +321,7 @@ What follows is the index.
    from `cards.behaviour`. So a zone can say *what* playing a card there does but
    not *whether* you may. Both of this game's gates moved to abilities, whose
    `when` **is** read (`flow.lua:997`). Worth making the two agree.
-2. **An offer opened from inside a `copy:` is swept.** An `options:` entry whose
+2. ~~**An offer opened from inside a `copy:` is swept.**~~ Closed — see `11` §8. An `options:` entry whose
    own action asks a question works when the round resolves the card, and loses
    the question when another card resolves it — Spirit Crystal on May's *Data
    Breach* powers her up and never opens the opponent's hand. The A3 fix put the

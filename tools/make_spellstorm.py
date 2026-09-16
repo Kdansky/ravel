@@ -131,6 +131,11 @@ VOIDABLE = ["not_tagged:no_void@target"]
 # finds none simply does nothing, which is what the printed card says.
 OFFER_CLOUD_OF = lambda kind: "show:storm_cloud.%s:optional" % kind
 OFFER_HAND_OF  = lambda kind: "show:mine.hand.%s:optional" % kind
+# A card that resolves another from your hand is itself still there when a card
+# resolves *it* from your hand, so it would offer itself: Wind Dragon under Flame
+# took three Storm Shards. `others.` is the hand with the asking card left out.
+RESOLVE_FROM_HAND = "show:others.mine.hand:optional"
+RESOLVE_FROM_HAND_OF = lambda kind: "show:others.mine.hand.%s:optional" % kind
 REFILL_CLOUD = "draw_from:spellstorm_deck:storm_cloud:1"
 TAKE_TO_HAND = ["move:target:mine.hand", REFILL_CLOUD]
 
@@ -228,7 +233,7 @@ SPELLS = [
     card("flame", "Flame", FIRE, tier=1, ult=True,
          tooltip="Deal 1 damage, then resolve and discard a different Fire card from your hand.",
          flavour="You need *magic* water to put a magical flame out.",
-         cast=[DMG(1), OFFER_HAND_OF(FIRE)],
+         cast=[DMG(1), RESOLVE_FROM_HAND_OF(FIRE)],
          chosen=["copy:target:activate", "destroy:target"]),
     card("heartgem", "Heart Gem", FIRE, tier=1, ult=True,
          tooltip="Heal 3 and gain a CURSE. On discard: take 1 damage.",
@@ -423,7 +428,7 @@ SPELLS = [
     card("spiritcrystal", "Spirit Crystal", EARTH, tier=1,
          tooltip="Draw a card. Reveal an Earth card from your hand, resolve it and then discard it. On discard: power up.",
          flavour="It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.",
-         cast=[DRAW, OFFER_HAND_OF(EARTH)],
+         cast=[DRAW, RESOLVE_FROM_HAND_OF(EARTH)],
          chosen=["copy:target:activate", "destroy:target"],
          disc=[POWER]),
     card("threepower", "Three Power", EARTH, tier=2,
@@ -465,9 +470,9 @@ DRAGONS = [
          flavour="No Dragon is more feared than the destructive and terrible Fire Dragon.",
          cast=[DMG(4), MANA, MANA]),
     card("winddragon", "Wind Dragon", FIRE, tier=4, kind="dragon", ult=True,
-         tooltip="Gain Initiative. Gain a Storm Shard. You may resolve a card from your hand.",
+         tooltip="Gain Initiative. Gain a Storm Shard. You may resolve up to two cards from your hand.",
          flavour="The elusive Storm Dragons were considered to be cryptids until very recently.",
-         cast=GAIN_INIT + [SHARD(1), OFFER_HAND, OFFER_HAND],
+         cast=GAIN_INIT + [SHARD(1), RESOLVE_FROM_HAND, RESOLVE_FROM_HAND],
          # A resolved card goes to the discard pile like any other, so the On
          # Discard it fires there is meant to fire.
          chosen=["copy:target:activate", "destroy:target"]),

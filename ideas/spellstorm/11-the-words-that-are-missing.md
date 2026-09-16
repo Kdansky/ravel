@@ -382,11 +382,21 @@ two halves of one sentence are read from different places.
 
 ---
 
-## 8. An offer opened inside a `copy:` is swept
+## 8. ~~An offer opened inside a `copy:` is swept~~ — **closed, by nobody**
 
 **May Danaris, *Data Breach*.** *"Lose 1 or 2 Energy Tokens. If you did,
 `[POWER]` that many times. If you still have 2 Energy Tokens, chosen opponent
 reveals their hand and they discard a card of your choice."*
+
+**Re-read against the engine, both customers work.** Spirit Crystal resolving
+Data Breach opens the opponent's hand; Wind Dragon resolved by Flame asks both of
+its questions. Something since fixed the ordering and this entry went on saying
+otherwise — the failure the top of this page warns about. What the check did find
+was worse and simpler: a card resolved out of your hand is still in it while it
+asks, so Wind Dragon under Flame offered *itself* and took three Storm Shards.
+`show:others.mine.hand` on Wind Dragon, Flame and Spirit Crystal.
+
+The original entry, for the shape:
 
 **What is built.** The whole card, and it is right when the round resolves it.
 The branches are an offer of two; the entry that is picked spends the Energy and

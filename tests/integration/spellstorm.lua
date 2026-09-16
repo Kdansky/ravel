@@ -412,6 +412,30 @@ function M.test_spellstorm_the_track_moves_as_the_token_lands(check)
 		tostring(#hand_of("seat_one").cards - before))
 end
 
+-- A card resolved out of your hand is still in it while it asks, so Wind Dragon
+-- under Flame offered itself twice and took three Storm Shards. `others.` leaves
+-- the asking card out of the hand it offers.
+function M.test_spellstorm_a_card_resolved_from_hand_does_not_offer_itself(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	local flame = stage_battle(one, "flame")
+	local wd = find("winddragon")
+	zones.move_card(wd.id, hand_of(one).id)
+	wd.stats.owner = nil
+
+	actions.execute("copy:target:activate", { card_id = flame.id, targets = { flame.id } })
+	for _, id in ipairs(zones.find("options").cards) do
+		if entity.get(id).def_key == "winddragon" then flow.play_card(id, {}) break end
+	end
+	for _ = 1, 4 do if flow.pending_event() then flow.pass_react() end end
+	check("Wind Dragon asks", phase.current().key == "options", phase.current().key)
+	local offered = false
+	for _, id in ipairs(zones.find("options").cards) do
+		if entity.get(id).def_key == "winddragon" then offered = true end
+	end
+	check("and does not offer itself", not offered)
+end
+
 function M.test_spellstorm_the_shelf_is_gated_by_tier(check)
 	opening(5, "derby", "eve")
 	actions.execute("set_active_seat:seat_one", {})
