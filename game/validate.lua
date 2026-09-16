@@ -254,7 +254,8 @@ local RETIRED       = { activate = true, ends_after = true, zone_empty = true,
 	at_least = true, equals = true, all_of = true }
 
 local VERB_FIELDS   = { key = true, does = true, tooltip = true }
-local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, needs = true, by = true }
+local ADJUST_FIELDS = { key = true, verb = true, stat = true, covers = true, needs = true, by = true,
+	instead = true }
 -- Stats the engine writes on a card for itself. A game declaring one gets it
 -- overwritten and no error — which is the shape of bug that costs an afternoon,
 -- because the number is right in the file and wrong in the game.
@@ -3498,6 +3499,10 @@ function M.check(G)
 				elseif not G.verb_defs[ad.verb] then
 					warn("%s: watches '%s', but no verb is declared by that name%s",
 						where, tostring(ad.verb), suggest(ad.verb, G.verb_defs))
+				elseif ad.instead ~= nil and G.verb_defs[ad.verb].does == "target" then
+					warn("%s: watches '%s', which is an aim and not a change — there is nothing for an "
+						.. '"instead" to happen in place of. What an aura says about pointing at a card '
+						.. 'is what it costs, which is "by"', where, tostring(ad.verb))
 				end
 				if ad.stat == nil then
 					warn('%s: needs a "stat" saying which number it changes', where)
@@ -3516,11 +3521,19 @@ function M.check(G)
 					end
 				end
 				check_conditions(where .. " needs", ad.needs)
-				if ad.by == nil then
-					warn('%s: needs a "by" saying how much it shifts what lands', where)
-				elseif tonumber(ad.by) == nil then
+				-- The two things an aura can say about a verb, and it says one of
+				-- them. A change that does not happen has no size, so writing both
+				-- is two answers to one question rather than a shift and a rider.
+				if ad.by == nil and ad.instead == nil then
+					warn('%s: needs a "by" saying how much it shifts what lands, or an "instead" '
+						.. "saying what happens in the change's place", where)
+				elseif ad.by ~= nil and ad.instead ~= nil then
+					warn('%s: says both "by" and "instead" — a change that is replaced never lands, '
+						.. "so there is no number left for a shift to be about", where)
+				elseif ad.by ~= nil and tonumber(ad.by) == nil then
 					subject_ok(where .. " by", tostring(ad.by))
 				end
+				check_list(where .. " instead", ad.instead)
 			end
 		end
 	end

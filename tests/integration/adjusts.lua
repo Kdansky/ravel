@@ -43,6 +43,23 @@ local GAME = [==[{
     },
     "blessed": {
       "adjusts": [{ "key": "bless", "verb": "mend", "stat": "hp", "covers": "self", "by": 1 }]
+    },
+    "accursed": {
+      "tooltip": "Accursed — never heals, and keeps a tally of what it turned down.",
+      "adjusts": [{ "key": "curse", "verb": "mend", "stat": "hp", "covers": "self",
+        "instead": ["stat_gain:tally@target:1"] }]
+    },
+    "greedy": {
+      "adjusts": [{ "key": "greed", "verb": "mend", "stat": "hp", "covers": "each.unit",
+        "instead": ["stat_gain:tally@self:1"] }]
+    },
+    "recoiling": {
+      "adjusts": [{ "key": "recoil", "verb": "damage", "stat": "hp", "covers": "self",
+        "instead": ["mend:hp@target:1", "stat_gain:tally@target:1"] }]
+    },
+    "rebounding": {
+      "adjusts": [{ "key": "rebound", "verb": "mend", "stat": "hp", "covers": "self",
+        "instead": ["damage:hp@target:1"] }]
     }
   },
   "zones": [
@@ -61,6 +78,9 @@ local GAME = [==[{
     { "key": "banner", "text": "Banner", "tags": ["unit", "anthem"] },
     { "key": "plane", "text": "Plane", "tags": ["plane"] },
     { "key": "witch", "text": "Witch", "tags": ["unit", "witch"] },
+    { "key": "cursed", "text": "Cursed", "tags": ["unit", "accursed"] },
+    { "key": "miser", "text": "Miser", "tags": ["unit", "greedy"] },
+    { "key": "mirror", "text": "Mirror", "tags": ["unit", "recoiling", "rebounding"] },
     { "key": "sword", "text": "Sword",
       "play": { "target": { "type": "card", "tags": ["unit"], "count": 1 }, "action": ["damage:hp@target:3"] } },
     { "key": "venom", "text": "Venom",
@@ -73,6 +93,7 @@ local GAME = [==[{
       { "card": "grunt", "zone": "field" }, { "card": "knight", "zone": "field" },
       { "card": "saint", "zone": "field" }, { "card": "shrouded", "zone": "field" },
       { "card": "plane", "zone": "field" }, { "card": "witch", "zone": "field" },
+      { "card": "cursed", "zone": "field" },
       { "card": "sword", "zone": "hand" }, { "card": "venom", "zone": "hand" },
       { "card": "salve", "zone": "hand" }
     ]
@@ -215,5 +236,56 @@ function M.test_adjusts_the_sum_is_signed_and_unclamped(check)
 			shift("saint", "mend", "hp") == 1, tostring(shift("saint", "mend", "hp")))
 	end)
 end
+
+-- **The change that does not happen.** `by` says what a verb lands for; this says
+-- it does not land at all and something else happens. Croh Vosh's Accursed is the
+-- whole of it — "whenever you would normally heal damage, ignore all healing and
+-- give 1 CURSE instead" — and no shift reaches it, because the printed rule is
+-- not "heal less" but "do this other thing rather than that one".
+function M.test_adjusts_instead_replaces_the_change(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		hit("damage", "cursed", 4)
+		check("it takes damage like anything else", find("cursed").stats.hp == 6,
+			tostring(find("cursed").stats.hp))
+		hit("mend", "cursed", 3)
+		check("and the healing never lands", find("cursed").stats.hp == 6,
+			tostring(find("cursed").stats.hp))
+		check("the rider ran in its place", find("cursed").stats.tally == 1,
+			tostring(find("cursed").stats.tally))
+	end)
+end
+
+-- @self is the aura and @target the card that would have changed, which is what
+-- lets the word say who gives the curse: whoever the rule is printed on, not
+-- whoever was doing the healing.
+function M.test_adjusts_instead_runs_as_the_aura(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		require("cards").create("miser", zones.find_id("field"))
+		hit("damage", "grunt", 4)
+		hit("mend", "grunt", 2)
+		check("the grunt is not healed", find("grunt").stats.hp == 6,
+			tostring(find("grunt").stats.hp))
+		check("and the aura took the rider, not the card it covered",
+			find("miser").stats.tally == 1 and find("grunt").stats.tally == 0,
+			find("miser").stats.tally .. "/" .. find("grunt").stats.tally)
+	end)
+end
+
+-- Two auras that each replace the other's verb hand one change back and forth for
+-- ever. A file that does it is a bug rather than a game, so the chain is cut
+-- rather than diagnosed: after two hundred substitutions the change the last aura
+-- would have refused is allowed to land, and the stack survives.
+function M.test_adjusts_instead_does_not_go_round_for_ever(check)
+	with_game(function(name)
+		flow.init(name, 3)
+		require("cards").create("mirror", zones.find_id("field"))
+		hit("damage", "mirror", 1)
+		check("it came back at all", find("mirror").stats.tally > 50,
+			tostring(find("mirror").stats.tally))
+	end)
+end
+
 
 return M

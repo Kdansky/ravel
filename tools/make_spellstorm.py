@@ -36,7 +36,12 @@ import guard
 MANA  = "stat_gain:mana@mine.player:1"
 POWER = "stat_gain:power@mine.player:1"
 DRAW  = "draw_from:mine.deck:mine.hand:1"
-HEAL  = lambda n: "stat_gain:health@mine.player:%d" % n
+# **Healing is a moment with a name**, and the only one this game declares. The
+# engine's own stat_gain is deliberately unwatchable, so a rule that answers
+# healing -- Croh's Accursed -- needs the game to have said that healing is a
+# thing that happens, as against a number going up. Every heal in the box goes
+# through this verb, including the one Bunny hands his opponent.
+HEAL  = lambda n: "heal:health@mine.player:%d" % n
 DMG   = lambda n: "stat_damage:health@opponent:%d" % n
 SELF_DMG = lambda n: "stat_damage:health@mine.player:%d" % n
 SHARD = lambda n: "stat_gain:shards@mine.player:%d" % n
@@ -149,7 +154,7 @@ BASIC = [
     card("block", "Block", WATER, kind="basic",
          tooltip="Gain Initiative. Heal 1 for every Fire card revealed this round.",
          flavour='"He just needs a little splash, is all he needs." - The Splashmaster',
-         cast=GAIN_INIT + ["stat_gain:health@mine.player:count:fire@battle"]),
+         cast=GAIN_INIT + ["heal:health@mine.player:count:fire@battle"]),
     card("powergem", "Power Gem", EARTH, kind="basic",
          tooltip="Power up. You may gain a card from the Storm Cloud at or below your Tier; if you do, it goes to your discard. On discard: power up.",
          flavour="The golden gems of the Spell Storm take time to develop their power.",
@@ -665,14 +670,15 @@ def swap_templates():
 
 def wizard(key, name, epithet, elements, health, rating, ult_cost, ult_name,
            ult_tooltip, ult_action, spells, start=(), ult_chosen=None,
-           ult_chosen_where=None, passive=None, simplified=None, blurb=""):
+           ult_chosen_where=None, passive=None, keywords=(), simplified=None,
+           blurb=""):
     return dict(key=key, name=name, epithet=epithet, elements=elements,
                 health=health, rating=rating, ult_cost=ult_cost,
                 ult_name=ult_name, ult_tooltip=ult_tooltip,
                 ult_action=list(ult_action), ult_chosen=ult_chosen,
                 ult_chosen_where=ult_chosen_where,
-                passive=passive, spells=spells, start=list(start),
-                simplified=simplified, blurb=blurb)
+                passive=passive, keywords=list(keywords), spells=spells,
+                start=list(start), simplified=simplified, blurb=blurb)
 
 
 WIZARDS = [
@@ -760,6 +766,7 @@ WIZARDS = [
            " or draw one. If you have none, gain a DOOM Token.",
            ["activate_zone:rules:by_column:croh_redraw",
             "activate_zone:rules:by_column:croh_doom"],
+           keywords=["accursed"],
            blurb="An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a CURSE for his opponent instead.",
            spells=[
                card("croh_sinking", "Sinking Strike", FIRE, kind="wizard_spell", ult=True,
@@ -801,7 +808,7 @@ WIZARDS = [
            "Reveal a non-Wizard card from your hand, resolve it twice and VOID it. All players heal 1.",
            ["show:mine.hand:optional"],
            ult_chosen=["copy:target:activate:2", "move:target:void",
-                       HEAL(1), "stat_gain:health@opponent:1"],
+                       HEAL(1), "heal:health@opponent:1"],
            ult_chosen_where=VOIDABLE,
            simplified="Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires",
            blurb="A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.",
@@ -1191,7 +1198,7 @@ def wizard_templates(w):
                 "action": list(w["ult_action"])}
     char = {
         "key": "wiz_" + w["key"], "text": w["name"], "asset": WIZ_ART[w["key"]],
-        "tags": ["wizard_card", w["key"]],
+        "tags": ["wizard_card", w["key"]] + w["keywords"],
         "tooltip": tip("%s. %s\n\nUltimate (%d mana) - %s: %s\n\nCast it while one of your own cards"
                        " carrying the Ultimate icon resolves.\n\nStarting health %d, Initiative rating %d."
                        % (w["epithet"], w["blurb"], w["ult_cost"], w["ult_name"],
@@ -1437,14 +1444,6 @@ def rules_templates():
         "At the start of each battle, Abragail powers up.",
         [ability("bstart", [POWER], when=["count:abra@mine.wizard >= 1"])]))
 
-    # Croh cannot heal: his healing becomes a CURSE for the other seat. This is
-    # the closest the engine gets to a passive -- it is a battle-start sweep
-    # rather than a rule that intercepts every heal.
-    out.append(rules_card(
-        "r_accursed", "Accursed",
-        "Croh Vosh can never heal. Approximated: at the start of each battle he gives a CURSE instead of whatever healing he did.",
-        [ability("bstart", GIVE("curse"),
-                 when=["count:croh@mine.wizard >= 1"])]))
     return out
 
 
@@ -1519,7 +1518,7 @@ def zones():
         # Labelled with the seat rather than "Wizard": before the pick the box is
         # the only thing that says which chair this is, and after it the wizard's
         # own name is what the chair took.
-        {"key": "wizard", "label": "{owner}", "layout": "grid", "grid": [2, 1],
+        {"key": "wizard", "label": "{owner}", "status": "board", "layout": "grid", "grid": [2, 1],
          "copies": "per_seat", "use": "abilities",
          "pos": [P(0.005, 0.795, 0.195, 0.995), P(0.005, 0.005, 0.195, 0.205)]},
         # Named so the box stays on screen when the hand is empty -- which it is
@@ -2019,6 +2018,8 @@ def build():
             # already means and. Derby's opening takes the real card off the shelf.
             "earth_essence": {"needs": ["tagged:earth@self", "tagged:essence@self"]},
         },
+        "verbs": [{"key": "heal", "does": "stat_gain",
+                   "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."}],
         "styles": {
             "ember": {"color": [0.62, 0.20, 0.16], "hide": ["title"]},
             "tide":  {"color": [0.16, 0.36, 0.58], "hide": ["title"]},
@@ -2053,6 +2054,16 @@ def build():
             # exactly as it reaches a card's own.
             "ult": {"abilities": [{"key": "ult_call", "text": "Ultimate",
                                    "action": ["emit:resolving"]}]},
+            # Croh's passive, printed on Croh's card. `instead` is what says the
+            # healing does not happen at all -- no shift reaches "do this other
+            # thing rather than that one" -- and the list runs as the aura's own
+            # side, so the CURSE goes from the cursed player to the other seat
+            # whoever was doing the healing. `covers` reads the seat card from
+            # Croh's, which is where the health it guards actually lives.
+            "accursed": {
+                "adjusts": [{"key": "curse", "verb": "heal", "stat": "health",
+                             "covers": "mine.player",
+                             "instead": GIVE("curse")}]},
         },
         "zones": zones(),
         "phases": phases(),

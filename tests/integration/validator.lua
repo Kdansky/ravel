@@ -331,6 +331,20 @@ local CASES = {
 			{ key = "a", verb = "poison", stat = "hp", covers = "each.wombat", by = -1 } } end },
 	{ "an aura that says nothing about how much", 'needs a "by"',
 		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "poison", stat = "hp", covers = "self" } } end },
+	{ "an aura that says both what it shifts and what happens instead", 'says both "by" and "instead"',
+		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "poison", stat = "hp", covers = "self",
+			by = -1, instead = { "stat_gain:hp@target:1" } } } end },
+	{ "an aura replacing an aim, which is a price and not a change", "which is an aim and not a change",
+		function(g)
+			g.verb_defs.cast = { key = "cast", does = "target" }
+			g.verb_list      = { "cast" }
+			g.card_defs.c_flee.target   = { type = "card", count = 1, verb = "cast" }
+			g.tag_defs.keepsake.adjusts = { { key = "a", verb = "cast", stat = "hp", covers = "self",
+				instead = { "stat_gain:hp@target:1" } } }
+		end },
+	{ "an instead that does something no action can", "is not an action",
+		function(g) g.tag_defs.keepsake.adjusts = { { key = "a", verb = "poison", stat = "hp", covers = "self",
+			instead = { "wombat:hp@target:1" } } } end },
 	-- verbs that name a kind of aim, and the wards that read them
 	{ "an aim nothing declares", 'which no "verbs" entry declares',
 		function(g) g.card_defs.c_flee.target = { type = "card", count = 1, verb = "cast" } end },

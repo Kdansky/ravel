@@ -111,11 +111,14 @@ The engine word this needed is `leaves.from`, which names which departure a
 The engine has no continuous effects and no triggered abilities — `turn.action`
 and a phase's own action list are the only automatic hooks.
 
-- **Croh Vosh — *Accursed*** ("whenever you would heal, give a CURSE instead")
-  would have to intercept every heal in the game. Approximated as a battle-start
-  sweep: he gives one CURSE at the start of each battle, and he *can* still heal.
-  His DOOM Tokens are exact — one only when he holds none, and one from *Sinking
-  Strike* for a CURSE pile he has already emptied.
+- ~~**Croh Vosh — *Accursed***~~ **Done** (`adjusts.instead`). The aura is printed
+  on his card and covers his seat: every heal aimed at him is dropped where it
+  stands and the CURSE goes the other way. It needed the game to say that healing
+  *is* a moment — the engine's own `stat_gain` is unwatchable on purpose — so
+  Spellstorm declares one verb, `heal`, and every heal in the box goes through it,
+  including the one Bunny hands his opponent. His DOOM Tokens were already exact —
+  one only when he holds none, and one from *Sinking Strike* for a CURSE pile he
+  has already emptied.
 - **Bunny Wizard — *Double Stitch* / *Triple Stitch!*** ("heal past your starting
   health to 10; draw for each point of wasted healing"). His ceiling is simply 10
   from the start, so the overheal draw never fires.

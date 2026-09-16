@@ -108,25 +108,33 @@ rider and an ask, and its rider reads the battle spots — which is not a reason
 
 ### B1. No continuous effects (09 §4: Croh, Bunny; Glittering Dust)
 
-**What it costs.** Croh's *Accursed* ("whenever you would heal, give a CURSE
-instead") is approximated as a battle-start sweep. Bunny's overheal draw never
+**What it cost.** Croh's *Accursed* ("whenever you would heal, give a CURSE
+instead") was approximated as a battle-start sweep. Bunny's overheal draw never
 fires. The weather card *Glittering Dust* ("Earth cards do nothing but heal 2")
 is not implemented.
 
-**Proposal — `adjusts` already is this word, one field short.** A tag may carry
-`adjusts` with `verb`, `stat`, `covers`, `when` and `by` — a live hook that
-changes a stat change as it happens. What it cannot do is run an action
-*instead* of the change. Add `instead: [ … ]`:
+**~~Proposal~~ Shipped — `adjusts` was this word, one field short.** A tag may
+carry `adjusts` with `verb`, `stat`, `covers`, `needs` and `by` — a live hook that
+changes a stat change as it happens. What it could not do is run an action
+*instead* of the change, and `instead: [ … ]` is that field:
 
 ```json
 "accursed": { "adjusts": [
-  { "verb": "heal", "stat": "health@mine.player",
-    "instead": ["move:curse_pile:enemy.discard"] } ] }
+  { "key": "curse", "verb": "heal", "stat": "health", "covers": "mine.player",
+    "instead": ["…", "draw_from:curse_pile:enemy.discard:1"] } ] }
 ```
 
-Croh becomes exact. Bunny needs one thing more — *how much* healing was wasted —
-which is the clamp `adjusts` already computes and does not report; expose it as
-a scope (`@adjusted`) and *Double Stitch* is exact too.
+Croh is exact. Two things the proposal did not say and the build found. The list
+runs as **the aura's own side**, with the aura as `@self` and the card that would
+have changed as `@target` — otherwise the CURSE would come from whoever was doing
+the healing, which is the wrong seat every time somebody else heals him. And a
+chain that leads back to itself (two auras each replacing the other's verb) is cut
+after 200 substitutions rather than diagnosed; a file that does it is a bug and
+not a game, and running out of stack is the one outcome worth ruling out.
+
+Bunny still needs one thing more — *how much* healing was wasted — which is the
+clamp `adjusts` computes and does not report; expose it as a scope (`@adjusted`)
+and *Triple Stitch!* is exact too.
 
 *Glittering Dust* is the harder half: rewriting what another card's whole action
 list does is not a stat hook, and nothing short of a real replacement layer
@@ -439,10 +447,10 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 
 | | Item | Size | Why here |
 |---|---|---|---|
-| 1 | B1 — **`adjusts.instead`** | small | Croh exact, Bunny exact |
-| 2 | C3, D2, D3 | small each | one card or three apiece |
-| 3 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
-| — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1, **D4** | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, the narrowed offers, and Obsidian's free Ultimate |
+| 1 | C3, D2, D3 | small each | one card or three apiece |
+| 2 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
+| 3 | B1 rest — **`@adjusted`** | small | the clamp `adjusts` already computes; Bunny's *Triple Stitch!* is the only customer |
+| — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1, D4, **B1 `instead`** | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, the narrowed offers, Obsidian's free Ultimate, and Croh's *Accursed* |
 
 **Three entries came off this list without anybody closing them**, which is twice
 this document has had to say so. An offered entry's own `needs` was read all

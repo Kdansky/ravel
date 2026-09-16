@@ -165,6 +165,13 @@
     "curse_or_ice": { "any_of": ["curse", "ice"] },
     "earth_essence": { "needs": ["tagged:earth@self", "tagged:essence@self"] }
   },
+  "verbs": [
+    {
+      "key": "heal",
+      "does": "stat_gain",
+      "tooltip": "Healing. Named as a moment of its own so that a rule can answer it - the engine's own stat_gain is unwatchable on purpose."
+    }
+  ],
   "styles": {
     "ember": { "color": [0.62, 0.2, 0.16], "hide": ["title"] },
     "tide": { "color": [0.16, 0.36, 0.58], "hide": ["title"] },
@@ -193,12 +200,27 @@
         }
       ]
     },
-    "ult": { "abilities": [{ "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] }] }
+    "ult": { "abilities": [{ "key": "ult_call", "text": "Ultimate", "action": ["emit:resolving"] }] },
+    "accursed": {
+      "adjusts": [
+        {
+          "key": "curse",
+          "verb": "heal",
+          "stat": "health",
+          "covers": "mine.player",
+          "instead": [
+            "activate_zone:rules:by_column:dry_give_curse",
+            "draw_from:curse_pile:enemy.discard:1"
+          ]
+        }
+      ]
+    }
   },
   "zones": [
     {
       "key": "wizard",
       "label": "{owner}",
+      "status": "board",
       "layout": "grid",
       "grid": [2, 1],
       "copies": "per_seat",
@@ -724,7 +746,7 @@
           "action": [
             "stat_set:initiative@mine.player:1",
             "stat_set:initiative@opponent:0",
-            "stat_gain:health@mine.player:count:fire@battle"
+            "heal:health@mine.player:count:fire@battle"
           ]
         }
       ]
@@ -886,7 +908,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_gain:health@mine.player:3",
+            "heal:health@mine.player:3",
             "activate_zone:rules:by_column:dry_take_curse",
             "draw_from:curse_pile:mine.discard:1"
           ]
@@ -1124,7 +1146,7 @@
           "action": [
             "draw_from:mine.deck:mine.hand:1",
             "draw_from:mine.deck:mine.hand:1",
-            "stat_gain:health@mine.player:2",
+            "heal:health@mine.player:2",
             "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1"
           ]
@@ -1144,7 +1166,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_gain:health@mine.player:1",
+            "heal:health@mine.player:1",
             "stat_damage:power@mine.player:1",
             "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1"
@@ -1187,7 +1209,7 @@
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
         { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
       ],
-      "chosen": { "action": ["destroy:target", "stat_gain:health@mine.player:1"] }
+      "chosen": { "action": ["destroy:target", "heal:health@mine.player:1"] }
     },
     {
       "key": "leap",
@@ -1204,7 +1226,7 @@
           "action": [
             "stat_set:initiative@mine.player:1",
             "stat_set:initiative@opponent:0",
-            "stat_gain:health@mine.player:1"
+            "heal:health@mine.player:1"
           ]
         },
         {
@@ -1224,8 +1246,8 @@
       "tooltip": "*Heal 4*. On discard: *heal 2*.\n\n_The rare and beautiful Moonstone is one of the most coveted in all of Omia._",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 3 },
-      "abilities": [{ "key": "cast", "text": "Resolve", "action": ["stat_gain:health@mine.player:4"] }],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:health@mine.player:2"] }
+      "abilities": [{ "key": "cast", "text": "Resolve", "action": ["heal:health@mine.player:4"] }],
+      "leaves": { "from": "hand", "into": "discard", "action": ["heal:health@mine.player:2"] }
     },
     {
       "key": "reflect",
@@ -1243,7 +1265,7 @@
             "draw_from:mine.deck:mine.hand:1",
             "stat_set:initiative@mine.player:1",
             "stat_set:initiative@opponent:0",
-            "stat_gain:health@mine.player:1"
+            "heal:health@mine.player:1"
           ]
         },
         {
@@ -1268,7 +1290,7 @@
           "text": "Resolve",
           "action": [
             "draw_from:mine.deck:mine.hand:1",
-            "stat_gain:health@mine.player:1",
+            "heal:health@mine.player:1",
             "activate_zone:rules:by_column:dry_take_ash",
             "draw_from:ash_pile:mine.discard:1"
           ]
@@ -1289,7 +1311,7 @@
           "key": "cast2",
           "text": "Resolve",
           "needs": ["initiative@mine.player >= 1"],
-          "action": ["stat_gain:health@mine.player:1"]
+          "action": ["heal:health@mine.player:1"]
         },
         {
           "key": "cast3",
@@ -1316,7 +1338,7 @@
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:mine.deck:mine.hand:1", "stat_gain:health@mine.player:2"]
+          "action": ["draw_from:mine.deck:mine.hand:1", "heal:health@mine.player:2"]
         }
       ]
     },
@@ -1706,7 +1728,7 @@
           "key": "cast",
           "text": "Resolve",
           "action": [
-            "stat_gain:health@mine.player:3",
+            "heal:health@mine.player:3",
             "stat_gain:shards@mine.player:1",
             "activate_zone:rules:by_column:dry_give_ice",
             "draw_from:ice_pile:enemy.discard:1"
@@ -2057,7 +2079,7 @@
       "key": "wiz_croh",
       "text": "Croh Vosh",
       "asset": "ss_croh.jpg",
-      "tags": ["wizard_card", "croh"],
+      "tags": ["wizard_card", "croh", "accursed"],
       "tooltip": "Undead Lich. An undead Lich back from a thousand-year slumber. Enormous health, but he cannot heal -- healing becomes a *CURSE* for his opponent instead.\n\n*Ultimate* (*6 mana*) - DOOOOOOOOOM!: For each *DOOM Token* you have, take a card of your choice from your discard or draw one. If you have none, gain a *DOOM Token*.\n\nCast it while one of your own cards carrying the *Ultimate* icon resolves.\n\nStarting *health 20*, *Initiative rating 8*.",
       "reactions": [
         {
@@ -2256,8 +2278,8 @@
         "action": [
           "copy:target:activate:2",
           "move:target:void",
-          "stat_gain:health@mine.player:1",
-          "stat_gain:health@opponent:1"
+          "heal:health@mine.player:1",
+          "heal:health@opponent:1"
         ],
         "where": ["not_tagged:no_void@target"]
       }
@@ -2313,7 +2335,7 @@
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
-        { "key": "cast", "text": "Resolve", "action": ["stat_gain:health@mine.player:2"] },
+        { "key": "cast", "text": "Resolve", "action": ["heal:health@mine.player:2"] },
         {
           "key": "cast2",
           "text": "Resolve",
@@ -3214,12 +3236,12 @@
         {
           "key": "sip",
           "needs": ["water_el@mine.player >= 4"],
-          "action": ["stat_damage:water_el@mine.player:4", "stat_gain:health@mine.player:2"]
+          "action": ["stat_damage:water_el@mine.player:4", "heal:health@mine.player:2"]
         },
         {
           "key": "again",
           "needs": ["water_el@mine.player >= 4", "doubled@mine.player >= 1"],
-          "action": ["stat_gain:health@mine.player:2", "stat_set:doubled@mine.player:0"]
+          "action": ["heal:health@mine.player:2", "stat_set:doubled@mine.player:0"]
         }
       ]
     },
@@ -3869,23 +3891,6 @@
       ]
     },
     {
-      "key": "r_accursed",
-      "text": "Accursed",
-      "tags": ["immutable"],
-      "tooltip": "Croh Vosh can never heal. Approximated: at the start of each battle he gives a *CURSE* instead of whatever healing he did.",
-      "asset": "auto",
-      "abilities": [
-        {
-          "key": "bstart",
-          "needs": ["count:croh@mine.wizard >= 1"],
-          "action": [
-            "activate_zone:rules:by_column:dry_give_curse",
-            "draw_from:curse_pile:enemy.discard:1"
-          ]
-        }
-      ]
-    },
-    {
       "key": "r_topup",
       "text": "Battle Start",
       "tags": ["immutable"],
@@ -4041,7 +4046,6 @@
       { "card": "r_curriculum", "zone": "rules" },
       { "card": "r_round_over", "zone": "rules" },
       { "card": "r_research", "zone": "rules" },
-      { "card": "r_accursed", "zone": "rules" },
       { "card": "r_topup", "zone": "rules" }
     ]
   }

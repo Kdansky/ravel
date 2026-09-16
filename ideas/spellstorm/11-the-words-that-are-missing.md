@@ -14,40 +14,53 @@ engine cannot say is a claim about the engine, and claims go stale.
 
 ---
 
-## 1. A stat change that runs an action instead — `adjusts.instead`
+## 1. ~~A stat change that runs an action instead~~ — `adjusts.instead` — **done**
 
 **Croh Vosh, PASSIVE — Accursed.** *"Whenever you would normally heal damage,
 ignore all healing and give 1 CURSE instead."*
 
-**What is built.** A battle-start sweep on a rules card:
+**What was built before.** A battle-start sweep on a rules card: he gave one
+CURSE at the top of each battle whether or not anybody had tried to heal him, and
+he could still heal. Two departures from one sentence.
 
-```python
-rules_card("r_accursed", "Accursed", …,
-    [ability("bstart", GIVE("curse"), when=["count:croh@mine.wizard >= 1"])])
-```
-
-He gives one CURSE at the top of each battle, and he *can* still heal.
-
-**What is missing.** `adjusts` is already a live hook on a stat change — it
-carries `verb`, `stat`, `covers`, `needs` and `by`, and `by` shifts the number
-that lands. What it cannot do is run an action *in place of* the change. The
-printed rule is not "heal less"; it is "do this other thing rather than that
-one", and no amount of `by` reaches it.
+**What it is now.** An aura printed on his own card:
 
 ```json
 "accursed": { "adjusts": [
-  { "verb": "heal", "stat": "health@mine.player",
-    "instead": ["move:curse_pile:enemy.discard"] } ] }
+  { "key": "curse", "verb": "heal", "stat": "health", "covers": "mine.player",
+    "instead": ["activate_zone:rules:by_column:dry_give_curse",
+                "draw_from:curse_pile:enemy.discard:1"] } ] }
 ```
 
-**Size:** small. It is one field on a hook that already fires at the right
-moment, against the right stat, for the right seat.
+`by` says what a verb lands for; `instead` says it does not land at all and this
+happens in its place. The printed rule was never "heal less", so no shift reached
+it.
 
-**The same word, a second customer.** Bunny Wizard's **Triple Stitch!** —
-*"If you heal when already at 10 health, `[DRAW]` for each point of wasted
-healing."* His ceiling is 10 from the start, so the overheal never exists to be
-counted. `adjusts` already computes that clamp and throws it away; exposing it as
-a scope (`@adjusted`, say) and Bunny is exact. His other passive, **Double
+**What the word needed from the game.** Healing had to *be* a moment. The engine's
+own `stat_gain` is unwatchable on purpose — that rule is the whole of what makes
+interference something a game opts into — so Spellstorm now declares one verb,
+`heal`, and every heal in the box goes through it, including the one Bunny hands
+his opponent. The `wizard` zone also gained `"status": "board"`, because an aura is
+only read while its card is in play and the game had no board zone at all.
+
+**Two things the note did not say, and the build found.**
+
+The list runs as **the aura's own side**, with the aura as `@self` and the card
+that would have changed as `@target`. Anything else gets the seat wrong the moment
+somebody *else* heals Croh — Bunny's Ultimate heals both players — and the CURSE
+would come from the healer rather than from the cursed.
+
+And a chain that leads back to itself has to terminate. Two auras each replacing
+the other's verb would hand one change back and forth for ever, so the chain is
+cut after 200 substitutions and the change the last aura would have refused is
+allowed to land. A file that does it is a bug rather than a game; running out of
+stack is the one outcome worth ruling out.
+
+**The same hook, a second customer — still open.** Bunny Wizard's **Triple
+Stitch!** — *"If you heal when already at 10 health, `[DRAW]` for each point of
+wasted healing."* His ceiling is 10 from the start, so the overheal never exists to
+be counted. `adjusts` already computes that clamp and throws it away; exposing it
+as a scope (`@adjusted`, say) and Bunny is exact. His other passive, **Double
 Stitch** — *"You can heal beyond your starting health, to a maximum of 10"* —
 needs nothing, and is the reason his seat gets `stat_boost:health@mine.player`
 before its `stat_set`.

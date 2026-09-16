@@ -4606,6 +4606,9 @@ The fields:
 ```
 
 - **`by`** — how much, in the ordinary amount grammar.
+- **`instead`** — an action list that happens in the change's place. One of `by`
+  and `instead`, never both: a change that is replaced never lands, so there is
+  no number left for a shift to be about.
 
 Four rules keep it predictable:
 
@@ -4618,6 +4621,36 @@ it is asked before the change              "1 less while damaged" reads the hp n
 
 And an aura only works while its card is in play, which is what a tag scope has
 always meant. A shield in a deck shields nothing.
+
+**`instead` — the change that does not happen.** `by` says what a verb lands for.
+Some rules are not about the size at all:
+
+> *Accursed. Whenever you would normally heal damage, ignore all healing and give
+> 1 CURSE instead.*
+
+That is not healing less, and no `by` reaches it. `instead` drops the change where
+it stands and runs an action list in its place:
+
+```json
+"tags": { "accursed": { "adjusts": [
+  { "key": "curse", "verb": "mend", "stat": "health", "covers": "self",
+    "instead": ["move:curse_pile:enemy.discard"] }] } }
+```
+
+It runs as **the aura's own side**, with the aura as `@self` and the card that
+would have changed as `@target` — so who gives the curse is whoever the word is
+printed on, and not whoever was doing the healing. Every watching aura speaks and
+the change is cancelled once, so two of them replacing one heal is two riders and
+no heal.
+
+Only a verb that changes a stat can be answered this way. An aim — a verb that
+`does: "target"` — is a price rather than a change, and has nothing for an
+`instead` to happen in place of.
+
+A chain that leads back to itself is cut rather than diagnosed: two auras each
+replacing the other's verb would hand one change back and forth for ever, so after
+two hundred substitutions the change the last aura would have refused is allowed
+to land. A file that does it is a bug rather than a game.
 
 ### `does: "target"` — naming the aim, so the target can answer it
 

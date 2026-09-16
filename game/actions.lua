@@ -235,8 +235,38 @@ local function adjusted(e, key, verb, delta, ctx)
 	return sign * math.max(0, size + shift)
 end
 
+-- How far a stat change may be diverted before the engine stops asking. Two auras
+-- that each replace the other's verb would hand the change back and forth for
+-- ever, and a file that does it is a bug rather than a game — so the chain is cut
+-- rather than diagnosed, and the change the last aura would have refused lands.
+local INSTEAD_LIMIT = 200
+local instead_depth = 0
+
+-- **A verb that does something else entirely.** `adjusted` above changes what a
+-- verb lands for; this is the aura that says it does not land at all. The change
+-- is dropped where it stands and the aura's own action list runs in its place, as
+-- the aura's side, with the card that would have changed as @target.
+--
+-- Every aura watching speaks: two of them replacing one heal is two curses and
+-- one heal that never happened, because "instead" is about the change and the
+-- change is only cancelled once.
+local function replaced(e, key, delta, ctx, verb)
+	local swaps = tags.instead(e.id, verb, key, ctx and ctx.card_id)
+	if #swaps == 0 or instead_depth >= INSTEAD_LIMIT then return false end
+	instead_depth = instead_depth + 1
+	for _, s in ipairs(swaps) do
+		zones.as_seat(s.seat, function() M.run(s.action, s.ctx) end)
+	end
+	instead_depth = instead_depth - 1
+	return true
+end
+
 local function change_stat(e, key, delta, ctx, verb)
 	if not e or not e.stats then return end
+	-- Asked before `adjusted`, and for the same reason it is: an aura speaks about
+	-- the change the action said, not about what another aura has already made of
+	-- it. A change of nothing is nothing to replace.
+	if delta ~= 0 and replaced(e, key, delta, ctx, verb) then return end
 	-- Arithmetic on what the stat *is*, storage of what was left after the tags
 	-- had their say. A card is damaged for what it reads, so the clamp has to
 	-- see the buffed number; what goes back on the card is that number without

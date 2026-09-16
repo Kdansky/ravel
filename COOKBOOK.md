@@ -179,6 +179,20 @@ Both run `stat_damage`; the aura names one of them. That is the whole mechanism 
 `@source` is who is doing it — the one thing no other scope names. `@self` is the card holding
 the aura, `@target` the card being hit.
 
+### Whenever you would heal, give the opponent a curse instead.
+
+```json
+"tags": { "accursed": { "adjusts": [
+  { "key": "curse", "verb": "mend", "stat": "health", "covers": "self",
+    "instead": ["move:curse_pile:enemy.discard"] }] } }
+```
+
+`by` shifts what a verb lands for; `instead` says it does not land at all and this happens in
+its place. One of the two, never both. The list runs as the **aura's** side — `@self` is the
+card the word is printed on, `@target` the card that would have changed — so the curse comes
+from the cursed player and not from whoever was doing the healing. Only a verb that changes a
+stat can be answered this way; an aim (`does: "target"`) is a price, not a change.
+
 ### This spell costs 1 more for each of their heroes in play.
 
 ```json

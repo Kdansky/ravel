@@ -2308,4 +2308,45 @@ function M.test_spellstorm_a_dry_pile_asks_the_player_it_bites(check)
 	check("the card they chose goes back on the pile", #pile.cards == 1, #pile.cards)
 end
 
+-- **Accursed.** *"Whenever you would normally heal damage, ignore all healing and
+-- give 1 CURSE instead."*
+--
+-- The healing does not arrive smaller, it does not arrive at all — so no `by`
+-- reaches it, and `adjusts.instead` is the word that does. What it needed from
+-- the game was for healing to *be* a moment: the engine's own stat_gain is
+-- unwatchable on purpose, so every heal in the box goes through a declared verb
+-- and this is the one rule that answers it.
+--
+-- It was a battle-start sweep before — one CURSE at the top of each battle,
+-- whether anyone had tried to heal him or not, and he could still heal.
+function M.test_spellstorm_croh_never_heals_and_the_curse_goes_the_other_way(check)
+	opening(3, "croh", "eve")
+	become("seat_one")
+	local croh = seat_card("seat_one")
+	local their_discard = zone_of("discard", "seat_two")
+	actions.execute("stat_damage:health@mine.player:5", {})
+	local hurt, junk = croh.stats.health, #their_discard.cards
+
+	actions.execute("heal:health@mine.player:3", {})
+	check("the healing never lands", croh.stats.health == hurt, croh.stats.health)
+	check("and a CURSE went to the other seat instead",
+		#their_discard.cards == junk + 1, #their_discard.cards)
+	check("which is a CURSE and not whatever was on top",
+		entity.get(their_discard.cards[#their_discard.cards]).def_key == "curse",
+		entity.get(their_discard.cards[#their_discard.cards]).def_key)
+
+	-- The aura is printed on Croh's card and covers his seat, so the other
+	-- wizard heals the way everybody else does.
+	become("seat_two")
+	local eve = seat_card("seat_two")
+	actions.execute("stat_damage:health@mine.player:5", {})
+	local eve_hurt, his_discard = eve.stats.health, #zone_of("discard", "seat_one").cards
+	actions.execute("heal:health@mine.player:3", {})
+	check("Eve heals in full", eve.stats.health == eve_hurt + 3, eve.stats.health)
+	check("and gave nobody anything",
+		#zone_of("discard", "seat_one").cards == his_discard,
+		#zone_of("discard", "seat_one").cards)
+end
+
+
 return M
