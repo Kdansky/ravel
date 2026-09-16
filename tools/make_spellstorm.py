@@ -2131,7 +2131,9 @@ def build():
         "key": "btn_unplayable", "text": "Unplayable hand",
         "asset": "cross:slate", "tags": ["immutable"],
         "tooltip": "If your hand is nothing but ICE, ASH and CURSE, use this: discard them all with their effects, take 1 damage, and draw a new hand of 4.",
+        # Read each time it is pressed, so a new hand of junk may press it again.
         "abilities": [{"phases": ["play_card"],
+                     "needs": ["count@mine.hand >= 1", "count:playable@mine.hand <= 0"],
                      "action": ["destroy:mine.hand",
                                 SELF_DMG(1),
                                 "draw_from:mine.deck:mine.hand:4"]}]})
@@ -2276,6 +2278,8 @@ def build():
         "computed_tags": {
             "has_init": {"needs": ["initiative@self >= 1"]},
             "curse_or_ice": {"any_of": ["curse", "ice"]},
+            # ICE, ASH and CURSE are the cards with no play, and they are the junk.
+            "playable": {"needs": ["not_tagged:junk@self"]},
             # One card in the box, and no tag of its own says so: an element and
             # the word "essence" name it between them, and a list of conditions
             # already means and. Derby's opening takes the real card off the shelf.

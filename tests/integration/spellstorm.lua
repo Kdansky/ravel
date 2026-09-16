@@ -436,6 +436,31 @@ function M.test_spellstorm_a_card_resolved_from_hand_does_not_offer_itself(check
 	check("and does not offer itself", not offered)
 end
 
+-- "If your hand is entirely cards that can't be played": the button did not ask,
+-- so any hand could be thrown in for a new one at the price of 1 damage.
+function M.test_spellstorm_only_a_hand_of_junk_is_unplayable(check)
+	opening(5, "derby", "eve")
+	local one = zones.active_seat()
+	while phase.current().key ~= "play_card" do
+		if flow.pending_event() then flow.pass_react() elseif not flow.dismiss_offer() then break end
+	end
+	check("play has begun", phase.current().key == "play_card", phase.current().key)
+	local btn
+	for e in entity.each("card") do if e.def_key == "btn_unplayable" and e.zone_id then btn = e.id end end
+
+	check("a hand with a spell in it is playable", not flow.can_activate(btn))
+	empty_hand(one)
+	check("and so is no hand at all, which has nothing to throw in", not flow.can_activate(btn))
+
+	for _, k in ipairs({ "ice", "ash" }) do zones.move_card(find(k).id, hand_of(one).id) end
+	check("a hand of junk is not", flow.can_activate(btn))
+	-- Stamped with nobody, or the first Magic Dart found may still be the other seat's.
+	local dart = find("magicdart")
+	zones.move_card(dart.id, hand_of(one).id)
+	dart.stats.owner = nil
+	check("until a spell joins it", not flow.can_activate(btn))
+end
+
 function M.test_spellstorm_the_shelf_is_gated_by_tier(check)
 	opening(5, "derby", "eve")
 	actions.execute("set_active_seat:seat_one", {})

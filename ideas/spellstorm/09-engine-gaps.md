@@ -278,12 +278,9 @@ states that grant them. What each still rounds off is below.
   every "starting with the player who has Initiative" fell back to whoever was
   up. The printed game does not say how to break that tie, so the tracker goes to
   the player who is up as the game begins.
-- **An empty pile VOIDs a card, but not one you choose.** The Spellstorm Board
-  prints an alternative for each pile that has run out: get rid of one of that
-  junk card you are holding, and take a penalty. Both halves happen; which ICE,
-  ASH or CURSE goes back on the pile is the engine's pick rather than yours,
-  because a battle-start sweep runs for both seats and an offer is one at a time.
-  The Dragon pile's rule has no VOID in it and is exact.
+- **~~An empty pile VOIDs a card, but not one you choose~~** — done. The holder
+  is asked, and when the junk was being given the holder is the other player,
+  which is what `set_priority` is for. See `11`, *What is not on this page*.
 - **~~The Tier check runs between rounds~~** — done. It was not only late: a card
   that powers up and then gains judged the gain against the old Tier. Gaining
   Power is a declared verb, `power_up`, and every wizard card carries the
@@ -291,8 +288,11 @@ states that grant them. What each still rounds off is below.
   Power stays a plain `stat_damage`, since nothing happens when the track goes down.
 - **The Unplayable Hand rule is a button, not automatic.** When your hand is
   nothing but ICE, ASH and CURSE, press *Unplayable hand* on the board: it
-  discards them with their effects, takes 1 damage, and draws 4. The engine has
-  no way to notice the state on its own.
+  discards them with their effects, takes 1 damage, and draws 4. The button asks
+  first — it was a free mulligan for 1 damage until it did. "A card without a tag"
+  is a computed tag, `playable` from `not_tagged:junk@self`, so the rule is
+  `count@mine.hand >= 1` and `count:playable@mine.hand <= 0`. What is
+  left is that nobody presses it for you.
 - **Card counts are per design, not per print run.** The Spellstorm Deck holds one
   of each non-basic spell; the real box has duplicates whose counts the print
   files do not record. Starting decks are exact: 2 Magic Dart, 2 Block, 2 Power
