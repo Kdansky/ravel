@@ -2488,4 +2488,80 @@ function M.test_spellstorm_the_ultimate_swaps_the_trap_that_is_armed(check)
 end
 
 
+-- **Buddy System.** *"Tier I players `[POWER]`. You `[POWER]` `[MANA]`. You may
+-- resolve a different revealed `[EARTH]` card."*
+--
+-- The last clause was the note on the card, and it was reachable: "revealed" is
+-- the battle spots, which `battle` already names across both seats, and "a
+-- different one" is `others.` — the pool with the asking card taken out of it. So
+-- the card cannot offer itself and nothing has to say which card is meant.
+function M.test_spellstorm_buddy_system_offers_the_other_earth_card(check)
+	opening(3, "bunny", "eve")
+	become("seat_one")
+	local buddy = stage_battle("seat_one", "bunny_buddy")
+
+	-- The element is read, not assumed. Buddy System is itself Earth and is the
+	-- only Earth card revealed, so `others.` leaves nothing and nothing is asked.
+	stage_battle("seat_two", "fireball")
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = buddy.id })
+	check("a Fire card opposite is no offer at all", phase.current().key ~= "options",
+		phase.current().key)
+
+	stage_battle("seat_two", "twopower")
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = buddy.id })
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = buddy.id })
+	check("an Earth card opposite is", phase.current().key == "options",
+		phase.current().key)
+
+	local offered = {}
+	for _, id in ipairs(zones.find("options").cards) do
+		offered[entity.get(id).def_key] = true
+	end
+	check("the other seat's revealed Earth card is on offer", offered.twopower,
+		tostring(offered.twopower))
+	check("and it does not offer itself", not offered.bunny_buddy,
+		tostring(offered.bunny_buddy))
+
+	local power = seat_card("seat_one").stats.power
+	flow.play_card(find("twopower", "options").id, {})
+	check("taking it resolves that card", seat_card("seat_one").stats.power > power,
+		seat_card("seat_one").stats.power)
+end
+
+
+-- **Deep Gems.** *"`[DRAW]` `[MANA]`. You may lose 1 Power Token to resolve and
+-- then VOID a Water card from the Storm Cloud."*
+--
+-- The token was never spent. `chosen` has no `cost` — the two things it carries
+-- are `where` and `action` — so the price is said with both: the gate is the
+-- `where` and the payment is the first thing the answer does. Declining owes
+-- nothing, which the optional offer already said.
+--
+-- And the gate does better than refuse the pick: an offer where nothing may be
+-- taken does not open, so with no Power Token he is not asked at all.
+function M.test_spellstorm_deep_gems_charges_for_the_answer(check)
+	opening(3, "abra", "eve")
+	become("seat_one")
+	local gems = stage_battle("seat_one", "abra_deepgems")
+	local me = seat_card("seat_one")
+	me.stats.power = 0
+
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = gems.id })
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = gems.id })
+	check("with nothing to pay with, nothing is asked",
+		phase.current().key ~= "options", phase.current().key)
+	check("though the Water card is sitting there",
+		find("wateressence", "storm_cloud") ~= nil)
+
+	me.stats.power = 3
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = gems.id })
+	check("with a token, he is", phase.current().key == "options", phase.current().key)
+	flow.play_card(find("wateressence", "options").id, {})
+	check("taking it costs the token", me.stats.power == 2, me.stats.power)
+	check("and the card went to the VOID",
+		entity.get(find("wateressence").zone_id).key == "void",
+		entity.get(find("wateressence").zone_id).key)
+end
+
+
 return M

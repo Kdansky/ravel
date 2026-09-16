@@ -2059,7 +2059,7 @@
       "text": "Deep Gems",
       "asset": "ss_abra_deepgems.jpg",
       "tags": ["water", "tide", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a *Water* card from the *Storm Cloud*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._\n\n_[Simplified: the Power Token is not spent]_",
+      "tooltip": "*Draw a card* and gain *1 mana*. You may lose *1 Power Token* to resolve and then *VOID* a *Water* card from the *Storm Cloud*.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep._",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2071,7 +2071,13 @@
         { "key": "cast_ask", "text": "Resolve", "action": ["show:storm_cloud.water:optional"] }
       ],
       "chosen": {
-        "action": ["move:target:void", "copy:target:activate", "draw_from:spellstorm_deck:storm_cloud:1"]
+        "action": [
+          "stat_damage:power@mine.player:1",
+          "move:target:void",
+          "copy:target:activate",
+          "draw_from:spellstorm_deck:storm_cloud:1"
+        ],
+        "where": ["power@mine.player >= 1"]
       }
     },
     {
@@ -2337,7 +2343,7 @@
       "text": "Buddy System",
       "asset": "ss_bunny_buddy.jpg",
       "tags": ["earth", "loam", "spell", "wizard_spell", "no_void", "ult"],
-      "tooltip": "*Power up* and gain *1 mana*. If your opponent is *Tier I*, they *power up* too.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Bunny is wondering if it would be okay to hold your hand.\" - Bunny's Handler_\n\n_[Simplified: resolving a different revealed Earth card is not offered]_",
+      "tooltip": "*Power up* and gain *1 mana*. If your opponent is *Tier I*, they *power up* too. You may resolve a different revealed *Earth* card.\n\nCarries the *Ultimate* icon: you may cast your *Ultimate* as this resolves.\n\n_\"Bunny is wondering if it would be okay to hold your hand.\" - Bunny's Handler_",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -2351,8 +2357,14 @@
           "text": "Resolve",
           "needs": ["tier@opponent <= 1"],
           "action": ["stat_gain:power@opponent:1"]
+        },
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:others.battle.earth:optional"]
         }
-      ]
+      ],
+      "chosen": { "action": ["copy:target:activate"] }
     },
     {
       "key": "bunny_snowday",

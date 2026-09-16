@@ -179,6 +179,29 @@ Both run `stat_damage`; the aura names one of them. That is the whole mechanism 
 `@source` is who is doing it — the one thing no other scope names. `@self` is the card holding
 the aura, `@target` the card being hit.
 
+### You may resolve a different one of the revealed cards.
+
+```json
+"action": ["show:others.battle.earth:optional"],
+"chosen": { "action": ["copy:target:activate"] }
+```
+
+`others.` is the pool with the asking card taken out of it, so a card saying "a **different** one"
+never offers itself and nothing has to name which card is meant. A per-seat zone written without
+an owner — `battle` — reaches every seat's copy, which is what "revealed" means here.
+
+### You may pay 1 gold to take one of these.
+
+```json
+"chosen": { "where": ["gold@mine.player >= 1"],
+            "action": ["stat_damage:gold@mine.player:1", "move:target:mine.hand"] }
+```
+
+A `chosen` block has no `cost` — it carries `where` and `action`, and the two say a price between
+them: the gate refuses a pick you cannot afford, and the payment is the first thing the answer
+does. Declining owes nothing, which `:optional` already said. An offer where **no** candidate
+passes its `where` does not open at all, so a player with nothing to pay with is not asked.
+
 ### Whenever you would heal, give the opponent a curse instead.
 
 ```json

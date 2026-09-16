@@ -349,10 +349,22 @@ shapes are reusable, not because anything is left to do.
   when the junk was being *given* the holder is the other player, which is the
   whole of `set_priority`: from inside that window, `mine` is theirs.
 
-Two that really do need something, and are cheap to state: **Omar's Shuriken**
+**Deep Gems is done, and did not want a new field.** "You may lose 1 Power Token"
+is a price on the answer, and `chosen` carries only `where` and `action` — so the
+gate is the `where` and the payment is the first thing the answer does. Declining
+owes nothing, which the optional offer already said. Better than the note hoped,
+too: an offer where nothing may be taken does not open, so with no token he is not
+asked at all.
+
+**Buddy System is done as well.** "You may resolve a *different* revealed
+`[EARTH]` card" is `show:others.battle.earth:optional` — `battle` names the
+revealed cards across both seats and `others.` is the pool with the asking card
+taken out of it, so the card cannot offer itself and nothing has to name which
+card is meant.
+
+One that really does need something, and is cheap to state: **Omar's Shuriken**
 ("this card ALWAYS goes first") wants a card-level override read by
-`set_active_seat:has_init`, and **Deep Gems** ("you may lose 1 Power Token" as
-the price of the rest) wants a cost on a chosen action.
+`set_active_seat:has_init`.
 
 **And one thing the checking turned up**: a second question asked from inside a
 `copy:` is swept, exactly as entry 8 describes — Wind Dragon loses its second

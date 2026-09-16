@@ -770,9 +770,15 @@ WIZARDS = [
                card("abra_deepgems", "Deep Gems", WATER, kind="wizard_spell", ult=True,
                     tooltip="Draw a card and gain 1 mana. You may lose 1 Power Token to resolve and then VOID a Water card from the Storm Cloud.",
                     flavour="The Water Kingdom's dominance was possible, in part, due to their ability to dredge resources from the deep.",
-                    simplified="the Power Token is not spent",
+                    # "You *may* lose a Power Token to ..." is a price on the
+                    # answer, and `chosen` has no cost -- so the gate is the
+                    # `where` and the payment is the first thing the answer does.
+                    # Nothing is owed for declining, which the optional offer
+                    # already says.
                     cast=[DRAW, MANA, OFFER_CLOUD_OF(WATER)],
-                    chosen=["move:target:void", "copy:target:activate", REFILL_CLOUD]),
+                    chosen=["stat_damage:power@mine.player:1",
+                            "move:target:void", "copy:target:activate", REFILL_CLOUD],
+                    chosen_where=["power@mine.player >= 1"]),
                # Three questions about one shelf, and two different things to do
                # with the answer -- which one `chosen` block cannot say. So the
                # VOIDs are asked by the rule that is about VOIDing: a card that
@@ -850,13 +856,16 @@ WIZARDS = [
            max_health=10, keywords=["overhealing"],
            blurb="A stuffie from Bunny Island who heals fast and often helps his opponent along the way. He is the only wizard who can heal past his starting health, and what will not fit he draws instead. A good choice if you like to play nice.",
            spells=[
+               # "A *different* revealed Earth card" is `others.`, which is the
+               # pool with the asking card taken out of it -- so the card cannot
+               # offer itself and nothing has to say which card is meant.
                card("bunny_buddy", "Buddy System", EARTH, kind="wizard_spell", ult=True,
-                    tooltip="Power up and gain 1 mana. If your opponent is Tier I, they power up too.",
+                    tooltip="Power up and gain 1 mana. If your opponent is Tier I, they power up too. You may resolve a different revealed Earth card.",
                     flavour='"Bunny is wondering if it would be okay to hold your hand." - Bunny\'s Handler',
-                    simplified="resolving a different revealed Earth card is not offered",
-                    cast=[POWER, MANA],
+                    cast=[POWER, MANA, "show:others.battle.earth:optional"],
                     cast2=("tier@opponent <= 1",
-                           ["stat_gain:power@opponent:1"])),
+                           ["stat_gain:power@opponent:1"]),
+                    chosen=["copy:target:activate"]),
                card("bunny_snowday", "Snow Day", WATER, kind="wizard_spell", ult=True,
                     tooltip="Heal 2. Give an ICE to your opponent if they have none in their discard.",
                     flavour="The Stuffies are a species of stuffed animals that have been brought to life by powerful Star magic.",
