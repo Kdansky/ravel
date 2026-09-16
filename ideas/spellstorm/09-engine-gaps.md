@@ -160,12 +160,19 @@ states that grant them. What each still rounds off is below.
   card itself, and each owns what happens to its own pick. Not a counter telling
   the questions apart: nothing runs on a decline, so the first "up to" somebody
   passes on would put every question after it out of step.
-- **Ruby** deals a flat 1 damage. "1 damage per Fire card discarded" needs to
-  count what was *just* discarded, and nothing names that set.
-- **Diamond** discards the first three cards in hand rather than three of your
-  choosing.
-- **Sift** draws 2 and lets you discard one, rather than looking at the top 2 and
-  putting them back in order.
+- **~~Ruby deals a flat 1 damage~~** — done, and what was missing was a *name*
+  for the three cards just discarded, not a way to look backwards. They go to
+  `sifting` instead of straight to the discard, so `count:fire@sifting` is the
+  damage and the "or VOID one of them" half is a card minted into that same zone:
+  one question holding all four, and the branch is which card came back.
+- **~~Diamond discards the first three in hand~~** — done, and no count on an
+  offer was needed. An offer with no `:optional` cannot be walked away from, so
+  three in a row *are* "exactly three". The gate reads the hand once, before any
+  of them opens, so the hand emptying under the questions does not shut them.
+- **~~Sift draws 2 and discards 1~~** — done by `sifting`, built for Ruby. The
+  two go there, the pick moves back to the deck **last**, and a deck takes a card
+  on top — so the card named is the one drawn next. Leaving the order alone is
+  naming the card already on top, so the question needs no way out.
 - **~~Obsidian does not grant a free Ultimate~~** — done, and no word was needed
   for waiving a cost. A cost is a map of what is owed, so owing it differently is
   **answering the same announcement twice**: the wizard carries two reactions to

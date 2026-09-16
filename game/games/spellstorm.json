@@ -1483,7 +1483,7 @@
       "text": "Diamond",
       "asset": "ss_diamond.jpg",
       "tags": ["earth", "loam", "spell", "has_discard"],
-      "tooltip": "If you hold 3 or more other cards, discard 3 of them and *power up 3 times*. On discard: *power up*.\n\n_\"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years.\" - Azura Spellstorm Scholar_\n\n_[Simplified: the three discarded cards are the first three in hand rather than your choice]_",
+      "tooltip": "If you hold 3 or more other cards, discard 3 of them and *power up 3 times*. On discard: *power up*.\n\n_\"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years.\" - Azura Spellstorm Scholar_",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -1493,14 +1493,17 @@
           "text": "Resolve",
           "needs": ["count:spell@mine.hand >= 3"],
           "action": [
-            "draw_from:mine.hand:mine.discard:3",
             "stat_gain:power@mine.player:1",
             "stat_gain:power@mine.player:1",
-            "stat_gain:power@mine.player:1"
+            "stat_gain:power@mine.player:1",
+            "show:mine.hand",
+            "show:mine.hand",
+            "show:mine.hand"
           ]
         }
       ],
-      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] }
+      "leaves": { "from": "hand", "into": "discard", "action": ["stat_gain:power@mine.player:1"] },
+      "chosen": { "action": ["move:target:mine.discard"] }
     },
     {
       "key": "meteorite",
@@ -1604,18 +1607,18 @@
       "text": "Sift",
       "asset": "ss_sift.jpg",
       "tags": ["earth", "loam", "spell"],
-      "tooltip": "*Power up*. Draw *2 cards*, then you may discard one of them.\n\n_Almost all Earth cards have discard effects._\n\n_[Simplified: the printed card looks at the top 2 and may put them back in order; here they are drawn and one may be discarded]_",
+      "tooltip": "*Power up*. Look at the top *2 cards* of your deck and put them back in any order: the one you pick is the one you draw next.\n\n_Almost all Earth cards have discard effects._",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["stat_gain:power@mine.player:1", "draw_from:mine.deck:mine.hand:2"]
+          "action": ["stat_gain:power@mine.player:1", "draw_from:mine.deck:sifting:2"]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:sifting"] }
       ],
-      "chosen": { "action": ["destroy:target"] }
+      "chosen": { "action": ["move:sifting:mine.deck", "move:target:mine.deck"] }
     },
     {
       "key": "spiritcrystal",

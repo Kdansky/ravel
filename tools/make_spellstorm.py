@@ -83,6 +83,9 @@ OFFER_CLOUD = "show:storm_cloud:optional"
 # nothing qualifies still does not open, so "must" cannot ask the impossible.
 MUST_GAIN   = "show:storm_cloud"
 OFFER_HAND  = "show:mine.hand:optional"
+# The same question with no way out, which is how a card says "discard exactly
+# N": N of these, one after the other. The offer queue holds them.
+HAND_PICK   = "show:mine.hand"
 # "From your hand or discard" is one place, because `held` is a word both
 # zones wear: a scope's place half says it without a union anywhere.
 OFFER_HELD  = "show:mine.held:optional"
@@ -353,12 +356,17 @@ SPELLS = [
          flavour='"It\'s best to leave gems that you find in the wild alone, unless you really know what you\'re doing." - Abragail',
          cast=[MANA, SELF_DMG(1), OFFER_HELD],
          chosen=["move:target:void"], chosen_where=VOIDABLE, disc=[MANA]),
+    # Three questions, each of which has to be answered. `chosen` is one block
+    # per card, so an offer cannot carry its own count -- but it does not need
+    # one: three mandatory offers in a row *are* "discard exactly 3", and the
+    # gate is read once, before the first of them opens, so the hand emptying
+    # under the questions cannot close the ones that are still queued.
     card("diamond", "Diamond", EARTH, tier=1,
          tooltip="If you hold 3 or more other cards, discard 3 of them and power up 3 times. On discard: power up.",
          flavour='"Learned more spells in 1 day at the Spellstorm, than I had in the past 3 years." - Azura Spellstorm Scholar',
-         simplified="the three discarded cards are the first three in hand rather than your choice",
          cast2=("count:spell@mine.hand >= 3",
-                ["draw_from:mine.hand:mine.discard:3", POWER, POWER, POWER]),
+                [POWER, POWER, POWER, HAND_PICK, HAND_PICK, HAND_PICK]),
+         chosen=["move:target:mine.discard"],
          disc=[POWER]),
     card("meteorite", "Meteorite", EARTH, tier=1,
          tooltip="Take 1 damage. You may resolve any card in the Storm Cloud regardless of tier, then VOID it. On discard: take 1 damage.",
@@ -381,12 +389,16 @@ SPELLS = [
          flavour='"That there spellstorm water\'s FULL-a gold, I tell ya!" - Prospector',
          cast=[OFFER_HAND, OFFER_HAND], chosen=["move:target:void", POWER],
          chosen_where=VOIDABLE, disc=[POWER]),
+    # Looking at cards without holding them is what `sifting` is for. The pick
+    # goes back last and a deck takes a card on top, so the card you name is the
+    # one you draw next and the other sits under it -- which is the whole of "in
+    # any order" for two cards. Leaving them alone is choosing the one that was
+    # already on top, so the question needs no way out.
     card("sift", "Sift", EARTH, tier=1,
-         tooltip="Power up. Draw 2 cards, then you may discard one of them.",
+         tooltip="Power up. Look at the top 2 cards of your deck and put them back in any order: the one you pick is the one you draw next.",
          flavour="Almost all Earth cards have discard effects.",
-         simplified="the printed card looks at the top 2 and may put them back in order; here they are drawn and one may be discarded",
-         cast=[POWER, "draw_from:mine.deck:mine.hand:2", OFFER_HAND],
-         chosen=["destroy:target"]),
+         cast=[POWER, "draw_from:mine.deck:sifting:2", "show:sifting"],
+         chosen=["move:sifting:mine.deck", "move:target:mine.deck"]),
     card("spiritcrystal", "Spirit Crystal", EARTH, tier=1,
          tooltip="Draw a card. Reveal an Earth card from your hand, resolve it and then discard it. On discard: power up.",
          flavour="It's said that Earth magic is the oldest form of magic, which is why so many stones are imbued with powers.",
@@ -1211,8 +1223,11 @@ def spell_template(c):
     # first is answered. What is not allowed is doing something in between.
     asks = [a for a in c["cast"] if a.startswith("show:") or a.startswith("options:")]
     does = [a for a in c["cast"] if a not in asks]
-    assert c["cast"][len(c["cast"]) - len(asks):] == asks, \
-        "%s: the offers have to be the last thing its cast does" % c["key"]
+    for col in ("cast", "cast2", "cast3"):
+        steps = c[col] if col == "cast" else (c[col][1] if c[col] else [])
+        tail = [a for a in steps if a.startswith("show:") or a.startswith("options:")]
+        assert steps[len(steps) - len(tail):] == tail, \
+            "%s: the offers have to be the last thing its %s does" % (c["key"], col)
 
     abil = []
     # Kept even when it is empty, so the resolve phase's first pass always has

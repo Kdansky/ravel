@@ -2647,6 +2647,112 @@ function M.test_spellstorm_ruby_voids_the_card_you_take_instead(check)
 end
 
 
+-- **Diamond.** *"If you hold 3 or more other cards, discard 3 of them and
+-- `[POWER]` `[POWER]` `[POWER]`."*
+--
+-- "Exactly 3, and you pick them" looked like it wanted a number on an offer, and
+-- an offer has no word for one: `chosen` says which cards may be taken and never
+-- how many. It does not need one. Three offers with no way out *are* a count,
+-- and the queue holds them one at a time.
+--
+-- The gate is the part that could have gone wrong. It reads the hand, and the
+-- hand empties under the very questions it gated — but an ability's `when` is
+-- read once, before its action list runs, so all three are queued while the hand
+-- is still whole and the third does not close behind the second.
+function M.test_spellstorm_diamond_discards_three_of_your_choosing(check)
+	opening(3, "eve", "abra")
+	become("seat_one")
+	local diamond = stage_battle("seat_one", "diamond")
+	local hand = zone_of("hand", "seat_one")
+	for _, id in ipairs({ unpack(hand.cards) }) do zones.move_card(id, zones.find_id("void")) end
+	for _, key in ipairs({ "fireball", "twopower", "swampsilt", "sift" }) do
+		require("cards").create(key, hand.id)
+	end
+
+	local me = seat_card("seat_one")
+	local power, disc = me.stats.power, #zone_of("discard", "seat_one").cards
+	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = diamond.id })
+	check("holding four, it asks", phase.current().key == "options", phase.current().key)
+	check("it powered up three times", me.stats.power == power + 3, me.stats.power)
+
+	for _, key in ipairs({ "fireball", "twopower", "sift" }) do
+		check("and asks again for " .. key, phase.current().key == "options", phase.current().key)
+		flow.play_card(find(key, "options").id, {})
+	end
+	check("three questions, three answers, and it stops asking",
+		phase.current().key ~= "options", phase.current().key)
+	check("the three named cards went to the discard",
+		#zone_of("discard", "seat_one").cards == disc + 3,
+		#zone_of("discard", "seat_one").cards)
+	check("and the one not named is still held",
+		#hand.cards == 1 and require("cards").def(entity.get(hand.cards[1])).key == "swampsilt",
+		#hand.cards)
+end
+
+-- Holding two, the gate is shut and nothing is asked — not three offers that
+-- find nothing, and not two offers and a stuck question.
+function M.test_spellstorm_diamond_asks_nothing_when_you_hold_too_few(check)
+	opening(3, "eve", "abra")
+	become("seat_one")
+	local diamond = stage_battle("seat_one", "diamond")
+	local hand = zone_of("hand", "seat_one")
+	for _, id in ipairs({ unpack(hand.cards) }) do zones.move_card(id, zones.find_id("void")) end
+	for _, key in ipairs({ "fireball", "twopower" }) do require("cards").create(key, hand.id) end
+
+	local me = seat_card("seat_one")
+	local power = me.stats.power
+	actions.execute("activate_zone:mine.battle:by_column:cast2", { card_id = diamond.id })
+	check("it asks nothing", phase.current().key ~= "options", phase.current().key)
+	check("no power came of it", me.stats.power == power, me.stats.power)
+	check("and the hand is untouched", #hand.cards == 2, #hand.cards)
+end
+
+
+-- **Sift.** *"`[POWER]`. Look at the top 2 cards of your deck and put them back
+-- in any order."*
+--
+-- Looking at a card is not holding it, and the difference has a zone now: the
+-- two go to `sifting`, which is off-screen until an offer borrows it. The pick
+-- goes back to the deck *last*, and a deck takes a card on top, so the card you
+-- name is the one you draw next.
+--
+-- Leaving the order alone is naming the card that was already on top, so the
+-- question wants no way out — "may" and "must" are the same question here.
+function M.test_spellstorm_sift_names_the_card_you_draw_next(check)
+	opening(3, "eve", "abra")
+	become("seat_one")
+	local sift = stage_battle("seat_one", "sift")
+	local deck = zone_of("deck", "seat_one")
+	for _, id in ipairs({ unpack(deck.cards) }) do zones.move_card(id, zones.find_id("void")) end
+	for _, key in ipairs({ "swampsilt", "twopower", "fireball" }) do
+		zones.move_card(require("cards").create(key, deck.id).id, deck.id)
+	end
+
+	local me = seat_card("seat_one")
+	local power, held = me.stats.power, #zone_of("hand", "seat_one").cards
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = sift.id })
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = sift.id })
+	check("it powered up", me.stats.power == power + 1, me.stats.power)
+	check("and asks about two cards", phase.current().key == "options" and
+		#zones.find("options").cards == 2, #zones.find("options").cards)
+
+	-- `fireball` is on top and `twopower` under it; naming the lower one turns
+	-- them over.
+	flow.play_card(find("twopower", "options").id, {})
+	check("nothing was drawn", #zone_of("hand", "seat_one").cards == held,
+		#zone_of("hand", "seat_one").cards)
+	check("both went back to the deck", #deck.cards == 3, #deck.cards)
+	check("the card named is on top",
+		require("cards").def(entity.get(deck.cards[#deck.cards])).key == "twopower",
+		require("cards").def(entity.get(deck.cards[#deck.cards])).key)
+	check("the other is under it",
+		require("cards").def(entity.get(deck.cards[#deck.cards - 1])).key == "fireball",
+		require("cards").def(entity.get(deck.cards[#deck.cards - 1])).key)
+	check("and the sifting zone is empty again",
+		#zones.find("sifting").cards == 0, #zones.find("sifting").cards)
+end
+
+
 -- **Lava Bat.** *"`[MANA]`. You may move a non-Wizard `[FIRE]` card from any
 -- discard to any other discard. Gain `[INIT]`."*
 --

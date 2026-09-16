@@ -210,27 +210,48 @@ put it.
 
 ---
 
-## 5. A number on an offer — `chosen.count`
+## 5. ~~A number on an offer~~ — `chosen.count` — **not needed**
 
-**Diamond.** *"Discard exactly 3 cards. If you did, `[POWER]` `[POWER]`
-`[POWER]`."*
+**Diamond.** *"If you hold 3 or more other cards, discard 3 of them and
+`[POWER]` `[POWER]` `[POWER]`."* — and **Sift**, *"`[POWER]`. Look at the top 2
+cards of your deck and put them back in any order."*
 
-**What is built.**
+Both were filed here as wanting a count on an offer. Neither did.
+
+**Diamond.** An offer with no `:optional` cannot be walked away from, so three of
+them in a row *are* "exactly three":
 
 ```python
 cast2=("count:spell@mine.hand >= 3",
-       ["draw_from:mine.hand:mine.discard:3", POWER, POWER, POWER])
+       [POWER, POWER, POWER, HAND_PICK, HAND_PICK, HAND_PICK]),
+chosen=["move:target:mine.discard"]
 ```
 
-The count is right and the choice is not: the three that go are the first three
-in hand.
+The one thing that looked like it would break does not. The gate reads the hand
+and the hand empties under the very questions it gated — but an ability's `when`
+is read once, before its action list runs, so all three questions are queued
+while the hand is still whole and the third cannot close behind the second.
 
-**What is missing.** An offer closes on one pick. `chosen` has `where` for which
-cards may be taken and no word for how many — the machinery to stay open exists
-(`ends_when` on the `options` phase does it), but nothing says a number.
+What a count would have bought is a *maximum* — "discard **up to** 3" — which no
+card in this box says. `chosen` is one block per card, so it would also have had
+to say which of several offers the number was about. Left unwritten.
 
-**Size:** small–medium. It wants `where` beside it or it will offer cards it
-should not.
+**Sift.** The missing thing here was never a number either; it was a name for
+cards you are *looking at*. `sifting` is that name, built for Ruby:
+
+```python
+cast=[POWER, "draw_from:mine.deck:sifting:2", "show:sifting"],
+chosen=["move:sifting:mine.deck", "move:target:mine.deck"]
+```
+
+The pick goes back **last** and a deck takes a card on top, so the card named is
+the one drawn next and the other lands under it. Leaving the order alone is
+naming the card that was already on top, so "you may" and "you must" are the same
+question and it needs no way out. The printed rule is on the card now, and the
+`[Simplified]` note is gone.
+
+That is a fourth entry off this list with nothing added to the engine, and the
+second closed by a zone built for a different card.
 
 ---
 

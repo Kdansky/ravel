@@ -237,19 +237,41 @@ card has one `chosen` block — so **a second asker is a second answer**, each
 owning what happens to its own pick, the same idiom the journal's asking
 spaces use.
 
-### C3. Diamond discards the first three rather than three of your choosing
+### C3. Diamond discards the first three rather than three of your choosing — done, and the count was not needed
 
-**Proposal — a count on the offer.** `chosen.count: 3`, and the overlay closes
-when three are taken rather than one. The offer already knows how to stay open
-(`ends_when` on the `options` phase does it); what it lacks is a number.
+**What was proposed:** `chosen.count: 3`, with the overlay staying open until
+three were taken.
 
-**Size:** small–medium. Wants C1's `where` beside it or it will offer cards it
-should not.
+**What it is:** three offers, none of them `:optional`. An offer with no way out
+already means "you will answer this", so three of them in a row *are* a count,
+and the queue holds the second and third until the first is answered.
 
-### C4. Sift looks at 2 and puts them back in order
+The proposal's own worry — that a count wants `where` beside it or it offers
+cards it should not — dissolves with it: each question is an ordinary offer and
+`chosen.where` gates all three the way it gates one.
 
-**Proposal — none recommended.** An ordering interface is a new input surface
-for one card in the box. Sift stays as it is: draw 2, discard 1.
+The one thing that could have broken does not. Diamond's gate reads the hand and
+the hand empties under the very questions it gated, but an ability's `when` is
+read once, before its action list runs, so all three are queued while the hand is
+still whole.
+
+What a count would still buy is a **maximum** — "discard up to 3" — which no card
+in this box says, and which would also have to name *which* offer the number is
+about, since `chosen` is one block per card. Not written.
+
+### C4. Sift looks at 2 and puts them back in order — done by a zone built for Ruby
+
+**What was proposed:** nothing. An ordering interface was judged too much surface
+for one card.
+
+**What it is:** no interface at all. `sifting` — the off-screen zone Ruby needed
+for "the three cards just discarded" — is equally a name for "cards you are
+looking at". The two go there, the pick goes back to the deck **last**, and a
+deck takes a card on top, so the card named is the one drawn next.
+
+Ordering two cards is naming one of them, and leaving them alone is naming the
+one already on top. So the question needs no way out, and "in any order" is fully
+said.
 
 ---
 
@@ -264,16 +286,21 @@ it down, so six cards discarded the top of a hand for want of a sentence in
 **The lesson is about the docs, not the engine.** A word the engine knows and
 the reference does not is a word the game cannot use.
 
-### D2. Ruby counts what was just discarded
+### D2. Ruby counts what was just discarded — done, and `@moved` was the wrong word
 
-**What it costs.** "1 damage per Fire card discarded" is a flat 1.
+**What was proposed:** `@moved`, a scope naming what the previous step touched,
+on the grounds that Lapis and Diamond wanted it too — three cards for one word.
 
-**Proposal — a scope naming what the previous step moved.** Reactions already
-have `@event` for "the thing this is about"; an action list wants the same for
-"what the step before me touched" — `@moved`, say. Lapis and Diamond want it
-too, which is three cards for one word.
+**What it is:** a zone. The three cards go to `sifting` rather than straight to
+the discard, and `count:fire@sifting` is the damage. A set of cards a later step
+is about does not want a backward-looking scope; it wants a **name**, and a zone
+is what a name is in this engine.
 
-**Size:** medium.
+The group of three turned out to be one. Lapis wanted the two cards it had just
+drawn, which its own offer already holds, and Diamond wanted a count on an offer
+that three mandatory offers say better. `@moved` would have been a second
+spelling for `sifting` with a shorter reach and no way to show the player what
+was in it.
 
 ### D3. No parity, modulo or division (Derby's Ultimate)
 

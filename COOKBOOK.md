@@ -1442,6 +1442,35 @@ walked away from; one the player opened by clicking a card always can.
 "chosen": { "action": ["move:target:mine.discard"] }
 ```
 
+### Discard exactly three cards of your choice.
+
+```json
+"abilities": [{ "key": "cast", "when": ["count:spell@mine.hand >= 3"],
+                "action": ["show:mine.hand", "show:mine.hand", "show:mine.hand"] }],
+"chosen": { "action": ["move:target:mine.discard"] }
+```
+
+An offer has no count — `chosen.where` says which cards may be taken and never how many. It does
+not need one: an offer with no `:optional` cannot be walked away from, so three of them in a row
+*are* "exactly three", and the queue holds the second and third until the first is answered.
+
+The gate is read once, when the ability starts, so the hand emptying under the questions cannot
+shut the ones already queued.
+
+### Look at the top two cards and put them back in any order.
+
+```json
+"action": ["draw_from:mine.deck:sifting:2", "show:sifting"],
+"chosen": { "action": ["move:sifting:mine.deck", "move:target:mine.deck"] }
+```
+
+Looking at a card is not holding it, so the cards go to an off-screen zone of their own rather than
+to a hand. The pick moves back **last** and a deck takes a card on top, so the card named is the one
+drawn next and the other lands under it.
+
+Leaving the order alone is naming the card that was already on top, so "you may reorder" and "put
+one on top" are the same question and it needs no way out.
+
 ### Only some of the revealed cards may be taken.
 
 ```json
