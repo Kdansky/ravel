@@ -219,14 +219,8 @@ SPELLS = [
     card("lavabat", "Lava Bat", FIRE, tier=1,
          tooltip="Gain 1 mana. You may move a card from your opponent's discard to your own. Gain Initiative.",
          flavour="Dangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm.",
-         simplified="the printed card moves a Fire card between any two discards; here it is their discard to yours, any card",
-         cast=[MANA] + GAIN_INIT + ["show:enemy.discard:optional"],
-         # Their card becomes yours, and saying so is the whole of it: a card
-         # dealt into a seat's deck is stamped with that seat, and one carrying
-         # their name would go home to their discard the next time you throw it
-         # away. Everything gained from the Storm Cloud is nobody's until it
-         # lands, so only the theft needs the word.
-         chosen=["set_owner:target:mine", "move:target:mine.discard"]),
+         cast=[MANA] + GAIN_INIT + ["options:bat_take,bat_give:optional"],
+         ),
     card("manafont", "Mana Font", FIRE, tier=1,
          tooltip="VOID a Water card in the Storm Cloud. If you did, gain 3 mana. On discard: take 1 damage and gain 1 mana.",
          flavour="While there are many theories, no one knows where the magic inside gems originally comes from.",
@@ -254,11 +248,23 @@ SPELLS = [
          tooltip="Draw a card. If you have Initiative, deal 2 damage and you may redraw this to your hand.",
          flavour="When going for a fire-based strategy, it's important to keep the pressure on.",
          cast=[DRAW], cast2=(HAS_INIT, [DMG(2), "options:rf_back:optional"])),
+    # **A choice shown beside the cards it is about.** The three go to a zone
+    # of their own rather than straight to the discard, which gives the set a
+    # name to be counted and shown by -- and the other half of the "or" is a
+    # card minted into that same zone, so one question holds all four and the
+    # player reads the three before deciding. The minted card says what it is
+    # worth in its own text: a card's text is filled like any label, so
+    # "{stats.counted}" is the number written onto it a step earlier.
     card("ruby", "Ruby", FIRE, tier=1,
-         tooltip="Discard the top 3 cards of your deck and deal 1 damage.",
+         tooltip="Discard the top 3 cards of your deck. Then either deal 1 damage per Fire card among them, or VOID one of them.",
          flavour="The popular trend of ruby-adorned garments was blamed for the Great Royal Ball Fire of 1976.",
-         simplified="the printed card deals 1 damage per Fire discarded, or voids one instead; there is no way to count what was just discarded, so it deals a flat 1",
-         cast=["draw_from:mine.deck:mine.discard:3", DMG(1)]),
+         cast=["draw_from:mine.deck:sifting:3",
+               "create:sifting:ruby_burn:1",
+               "stat_set:counted@sifting.burn:count:fire@sifting",
+               "show:sifting"],
+         chosen=["activate_zone:rules:by_column:ruby_pick",
+                 "purge:options.burn", "purge:sifting.burn",
+                 "move:sifting:mine.discard"]),
     card("shockwave", "Shockwave", FIRE, tier=2,
          tooltip="Your opponent loses 2 Power Tokens and discards a card. You gain Initiative. Deal 1 damage.",
          flavour='The 1981 hit song "Shockwave" is often credited with creating the Bonepunk genre.',
@@ -288,12 +294,14 @@ SPELLS = [
          flavour='"Watch your step!" - Unknown',
          cast=GIVE("ice") + GAIN_INIT + ["show:mine.held.ice:optional"],
          chosen=["move:target:ice_pile"]),
+    # "Up to 2" is the question asked twice, and "1 for each Water" rides on
+    # the answer: the rule is asked while the card picked is still lying in the
+    # offer, which is the only moment it can be counted.
     card("lapis", "Lapis", WATER, tier=1,
-         tooltip="Draw a card. You may discard a card and heal 1.",
+         tooltip="Draw a card. You may discard up to 2 cards, and heal 1 for each Water card discarded.",
          flavour="Doctors throughout Omia have used Water Magic to heal the sick for generations.",
-         simplified="the printed card discards up to 2 and heals 1 per Water discarded; here it is one card and a flat 1",
-         cast=[DRAW, OFFER_HAND],
-         chosen=["destroy:target", HEAL(1)]),
+         cast=[DRAW, OFFER_HAND, OFFER_HAND],
+         chosen=["activate_zone:rules:by_column:lapis_heal", "destroy:target"]),
     card("leap", "Leap", WATER, tier=2,
          tooltip="Gain Initiative and heal 1. If your opponent revealed Fire, you may VOID a card from your hand or discard.",
          flavour="Azure wizards historically specialized in Water Gems, but they have since taken others from throughout the globe.",
@@ -585,9 +593,11 @@ BREACH = "activate_zone:rules:by_column:breach"
 
 
 def choice_templates():
-    def entry(key, text, tooltip, action, needs=None, chosen=None, where=None):
-        t = {"key": key, "text": text, "tags": ["immutable"], "asset": "auto",
-             "tooltip": tooltip, "play": {"action": list(action)}}
+    def entry(key, text, tooltip, action, needs=None, chosen=None, where=None,
+              stats=None, tags=()):
+        t = {"key": key, "text": text, "tags": ["immutable"] + list(tags),
+             "asset": "auto", "tooltip": tooltip, "play": {"action": list(action)}}
+        if stats: t["card_stats"] = dict(stats)
         if needs: t["play"]["needs"] = list(needs)
         if chosen:
             t["chosen"] = {"action": list(chosen)}
@@ -633,6 +643,40 @@ def choice_templates():
               ["show:void:optional"],
               needs=["count:spell@void >= 1"],
               chosen=["move:target:spellstorm_deck:bottom", "copy:target:activate"]),
+
+        # Lava Bat: "from any discard to any other discard", which with two
+        # players is two directions and so two entries. The card that moves
+        # changes hands as well as places -- a card dealt into a seat's deck is
+        # stamped with that seat, and one carrying the old name would go home to
+        # the wrong discard the next time it was thrown away.
+        entry("bat_take", "Take one of theirs",
+              "Move a non-Wizard Fire card from your opponent's discard to yours.",
+              ["show:enemy.discard.fire:optional"],
+              needs=["count:fire@enemy.discard >= 1"],
+              chosen=["set_owner:target:mine", "move:target:mine.discard"],
+              where=["not_tagged:wizard_spell@target"]),
+        entry("bat_give", "Give one of yours",
+              "Move a non-Wizard Fire card from your discard to your opponent's.",
+              ["show:mine.discard.fire:optional"],
+              needs=["count:fire@mine.discard >= 1"],
+              # `set_owner` says "mine" or "none" and has no word for the other
+              # seat, so the other seat is made the one acting for two lines --
+              # the same flip the empty piles use, where `mine` is theirs from
+              # inside the window.
+              chosen=["set_priority:enemy.player",
+                      "set_owner:target:mine", "move:target:mine.discard",
+                      "clear_priority"],
+              where=["not_tagged:wizard_spell@target"]),
+
+        # Ruby's "OR", standing in the same question as the three cards it is
+        # an alternative to. It is picked like any of them, and the rule that
+        # runs afterwards tells it apart by the tag it wears. `{stats.counted}`
+        # is the damage, written onto it before the question opened -- a card's
+        # text is filled like any other label, so the choice says what it is
+        # worth rather than making the player count Fire icons.
+        entry("ruby_burn", "Deal {stats.counted} damage",
+              "Deal 1 damage for each Fire card among the three. Take one of the cards beside this instead to VOID that card.",
+              [], stats={"counted": 0}, tags=["burn"]),
 
         # May's Data Breach: "lose 1 or 2 Energy Tokens, and power up that many
         # times". The card read the 2 as a gate rather than as a choice.
@@ -1319,6 +1363,28 @@ def rules_templates():
                      when=["count:%s@mine.battle >= 1" % a,
                            "count:%s@enemy.battle >= 1" % b])]))
 
+    out.append(rules_card(
+        "r_lapis", "Lapis",
+        "Lapis heals 1 for each Water card you discard to it.",
+        [ability("lapis_heal", [HEAL(1)], when=["count:water@options >= 1"])]))
+
+    # Ruby's two branches, told apart by which card came back in the offer.
+    # A pick leaves the offer holding exactly the card that was taken -- the
+    # rest go home before the chosen actions run -- so "@options" here is the
+    # answer and not the question.
+    # One card per branch, because a card may not wear the same ability key
+    # twice -- the same reason countering is three cards rather than one.
+    out.append(rules_card(
+        "r_ruby_burn", "Ruby: the flame",
+        "Ruby: taking the flame deals 1 damage for each Fire card among the three.",
+        [ability("ruby_pick", ["stat_damage:health@opponent:sum:counted@options"],
+                 when=["count:burn@options >= 1"])]))
+    out.append(rules_card(
+        "r_ruby_void", "Ruby: the card",
+        "Ruby: taking one of the three VOIDs it.",
+        [ability("ruby_pick", ["move:options:void"],
+                 when=["count:burn@options <= 0"])]))
+
     # Blast Scoring. Your Blast Score is what you still hold once the discard
     # effects have gone; a single highest takes two Shards, a tie takes one each.
     out.append(rules_card(
@@ -1717,6 +1783,12 @@ def zones():
         {"key": "stack", "layout": "stack", "display": "offscreen", "use": "none",
          "tags": ["stack"],
          "tooltip": "A card that has announced itself and is waiting to be answered."},
+        # Where cards wait while the player is being asked about them. A set
+        # that moves without anybody picking it has no name -- so it is given
+        # one, and a zone is how. Offscreen because the question borrows the
+        # cards into the offer, which is where they are read.
+        {"key": "sifting", "layout": "stack", "display": "offscreen", "use": "none",
+         "tooltip": "Cards you are looking at, until the question about them is answered."},
         {"key": "quiet", "layout": "stack", "display": "offscreen", "use": "none",
          "status": "exile",
          "comment": "Empty except for the instant between the two halves of a discard that must not be heard. Riot is the only card that uses it, and it puts them here and takes them away again in consecutive steps.",
@@ -2068,6 +2140,9 @@ def build():
             # A Trap that has been revealed. It stays where it lies and does
             # nothing more until the Ultimate swaps it out.
             {"key": "sprung", "min": 0, "max": 1, "tags": ["hidden"]},
+            # What a card standing for a choice is worth, written onto it before
+            # the question opens so that the card can say the number out loud.
+            {"key": "counted", "min": 0, "max": 9, "tags": ["hidden"]},
         ],
         # A tag is what a card *is*, and these are the kinds the printed cards
         # name that no single tag did.

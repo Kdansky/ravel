@@ -159,7 +159,8 @@
     },
     { "key": "tier_req", "min": 0, "max": 9, "tags": ["hidden"] },
     { "key": "researched", "min": 0, "max": 1, "tags": ["hidden"] },
-    { "key": "sprung", "min": 0, "max": 1, "tags": ["hidden"] }
+    { "key": "sprung", "min": 0, "max": 1, "tags": ["hidden"] },
+    { "key": "counted", "min": 0, "max": 9, "tags": ["hidden"] }
   ],
   "computed_tags": {
     "has_init": { "needs": ["initiative@self >= 1"] },
@@ -506,6 +507,13 @@
       "use": "none",
       "tags": ["stack"],
       "tooltip": "A card that has announced itself and is waiting to be answered."
+    },
+    {
+      "key": "sifting",
+      "layout": "stack",
+      "display": "offscreen",
+      "use": "none",
+      "tooltip": "Cards you are looking at, until the question about them is answered."
     },
     {
       "key": "quiet",
@@ -971,7 +979,7 @@
       "text": "Lava Bat",
       "asset": "ss_lavabat.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Gain *1 mana*. You may move a card from your opponent's discard to your own. Gain *Initiative*.\n\n_Dangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm._\n\n_[Simplified: the printed card moves a Fire card between any two discards; here it is their discard to yours, any card]_",
+      "tooltip": "Gain *1 mana*. You may move a card from your opponent's discard to your own. Gain *Initiative*.\n\n_Dangerous flaming bats have been known to fly out of the volcanic activity of the Spellstorm._",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
@@ -984,9 +992,12 @@
             "stat_set:initiative@opponent:0"
           ]
         },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:enemy.discard:optional"] }
-      ],
-      "chosen": { "action": ["set_owner:target:mine", "move:target:mine.discard"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["options:bat_take,bat_give:optional"]
+        }
+      ]
     },
     {
       "key": "manafont",
@@ -1066,16 +1077,29 @@
       "text": "Ruby",
       "asset": "ss_ruby.jpg",
       "tags": ["fire", "ember", "spell"],
-      "tooltip": "Discard the top *3 cards* of your deck and deal *1 damage*.\n\n_The popular trend of ruby-adorned garments was blamed for the Great Royal Ball Fire of 1976._\n\n_[Simplified: the printed card deals 1 damage per Fire discarded, or voids one instead; there is no way to count what was just discarded, so it deals a flat 1]_",
+      "tooltip": "Discard the top *3 cards* of your deck. Then either deal *1 damage* per *Fire* card among them, or *VOID* one of them.\n\n_The popular trend of ruby-adorned garments was blamed for the Great Royal Ball Fire of 1976._",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         {
           "key": "cast",
           "text": "Resolve",
-          "action": ["draw_from:mine.deck:mine.discard:3", "stat_damage:health@opponent:1"]
-        }
-      ]
+          "action": [
+            "draw_from:mine.deck:sifting:3",
+            "create:sifting:ruby_burn:1",
+            "stat_set:counted@sifting.burn:count:fire@sifting"
+          ]
+        },
+        { "key": "cast_ask", "text": "Resolve", "action": ["show:sifting"] }
+      ],
+      "chosen": {
+        "action": [
+          "activate_zone:rules:by_column:ruby_pick",
+          "purge:options.burn",
+          "purge:sifting.burn",
+          "move:sifting:mine.discard"
+        ]
+      }
     },
     {
       "key": "shockwave",
@@ -1225,14 +1249,18 @@
       "text": "Lapis",
       "asset": "ss_lapis.jpg",
       "tags": ["water", "tide", "spell"],
-      "tooltip": "*Draw a card*. You may *discard a card* and *heal 1*.\n\n_Doctors throughout Omia have used Water Magic to heal the sick for generations._\n\n_[Simplified: the printed card discards up to 2 and heals 1 per Water discarded; here it is one card and a flat 1]_",
+      "tooltip": "*Draw a card*. You may discard up to *2 cards*, and *heal 1* for each *Water* card discarded.\n\n_Doctors throughout Omia have used Water Magic to heal the sick for generations._",
       "play": { "action": ["move_to:mine.commit"] },
       "card_stats": { "tier_req": 1 },
       "abilities": [
         { "key": "cast", "text": "Resolve", "action": ["draw_from:mine.deck:mine.hand:1"] },
-        { "key": "cast_ask", "text": "Resolve", "action": ["show:mine.hand:optional"] }
+        {
+          "key": "cast_ask",
+          "text": "Resolve",
+          "action": ["show:mine.hand:optional", "show:mine.hand:optional"]
+        }
       ],
-      "chosen": { "action": ["destroy:target", "heal:health@mine.player:1"] }
+      "chosen": { "action": ["activate_zone:rules:by_column:lapis_heal", "destroy:target"] }
     },
     {
       "key": "leap",
@@ -3415,6 +3443,50 @@
       "chosen": { "action": ["move:target:spellstorm_deck:bottom", "copy:target:activate"] }
     },
     {
+      "key": "bat_take",
+      "text": "Take one of theirs",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Move a non-Wizard *Fire* card from your opponent's discard to yours.",
+      "play": {
+        "action": ["show:enemy.discard.fire:optional"],
+        "needs": ["count:fire@enemy.discard >= 1"]
+      },
+      "chosen": {
+        "action": ["set_owner:target:mine", "move:target:mine.discard"],
+        "where": ["not_tagged:wizard_spell@target"]
+      }
+    },
+    {
+      "key": "bat_give",
+      "text": "Give one of yours",
+      "tags": ["immutable"],
+      "asset": "auto",
+      "tooltip": "Move a non-Wizard *Fire* card from your discard to your opponent's.",
+      "play": {
+        "action": ["show:mine.discard.fire:optional"],
+        "needs": ["count:fire@mine.discard >= 1"]
+      },
+      "chosen": {
+        "action": [
+          "set_priority:enemy.player",
+          "set_owner:target:mine",
+          "move:target:mine.discard",
+          "clear_priority"
+        ],
+        "where": ["not_tagged:wizard_spell@target"]
+      }
+    },
+    {
+      "key": "ruby_burn",
+      "text": "Deal {stats.counted} damage",
+      "tags": ["immutable", "burn"],
+      "asset": "auto",
+      "tooltip": "Deal *1 damage* for each *Fire* card among the three. Take one of the cards beside this instead to *VOID* that card.",
+      "play": { "action": [] },
+      "card_stats": { "counted": 0 }
+    },
+    {
       "key": "may_lose1",
       "text": "Lose 1 Energy",
       "tags": ["immutable"],
@@ -3530,6 +3602,48 @@
           "key": "check",
           "needs": ["count:water@mine.battle >= 1", "count:fire@enemy.battle >= 1"],
           "action": ["emit:countered:draw_from:mine.deck:mine.hand:1"]
+        }
+      ]
+    },
+    {
+      "key": "r_lapis",
+      "text": "Lapis",
+      "tags": ["immutable"],
+      "tooltip": "Lapis *heals 1* for each *Water* card you discard to it.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "lapis_heal",
+          "needs": ["count:water@options >= 1"],
+          "action": ["heal:health@mine.player:1"]
+        }
+      ]
+    },
+    {
+      "key": "r_ruby_burn",
+      "text": "Ruby: the flame",
+      "tags": ["immutable"],
+      "tooltip": "Ruby: taking the flame deals *1 damage* for each *Fire* card among the three.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "ruby_pick",
+          "needs": ["count:burn@options >= 1"],
+          "action": ["stat_damage:health@opponent:sum:counted@options"]
+        }
+      ]
+    },
+    {
+      "key": "r_ruby_void",
+      "text": "Ruby: the card",
+      "tags": ["immutable"],
+      "tooltip": "Ruby: taking one of the three VOIDs it.",
+      "asset": "auto",
+      "abilities": [
+        {
+          "key": "ruby_pick",
+          "needs": ["count:burn@options <= 0"],
+          "action": ["move:options:void"]
         }
       ]
     },
@@ -4105,6 +4219,9 @@
       { "card": "r_ctr_fire", "zone": "rules" },
       { "card": "r_ctr_earth", "zone": "rules" },
       { "card": "r_ctr_water", "zone": "rules" },
+      { "card": "r_lapis", "zone": "rules" },
+      { "card": "r_ruby_burn", "zone": "rules" },
+      { "card": "r_ruby_void", "zone": "rules" },
       { "card": "r_blast", "zone": "rules" },
       { "card": "r_tier", "zone": "rules" },
       { "card": "r_dry_ash", "zone": "rules" },

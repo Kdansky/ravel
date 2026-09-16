@@ -153,29 +153,56 @@ customer here at all.
 
 ---
 
-## 4. What the last step touched — `@moved`
+## 4. ~~What the last step touched~~ — a zone is the name — **done**
 
 **Ruby.** *"Discard the top 3 cards of your deck. Deal 1 damage per `[FIRE]` card
 discarded OR you may VOID one of the discarded cards."*
 
-**What is built.** `["draw_from:mine.deck:mine.discard:3", DMG(1)]` — the three
-cards go, and the damage is a flat 1.
+**What this page claimed.** That nothing names the set a previous step moved, and
+that three cards wanted a word — `@moved` — for it.
 
-**Lapis.** *"`[DRAW]`. You may discard up to 2 cards. Heal 1 for each `[WATER]`
-discarded."* Built as `[DRAW, OFFER_HAND]` with `["destroy:target", HEAL(1)]` —
-one card, and a flat 1.
+**Two of the three were never about that.** *Lapis* ("you may discard up to 2
+cards, heal 1 for each `[WATER]` discarded") asks, and the count rides on the
+answer: a pick leaves the offer holding exactly the card taken, so a rule asked
+from `chosen`, before the discard, counts what was just chosen. That is Coffee
+Run, shipped. *Lava Bat* ("move a non-Wizard `[FIRE]` card from any discard to any
+other") was never counting anything — the direction is two entries and the filter
+is a scope plus a `where`.
 
-**What is missing.** Nothing names the set a previous step moved. A reaction has
-`@event` for "the thing this is about" and an action list has no equivalent for
-"what the step before me touched", so a rider that counts what was just discarded
-has nothing to count.
+**And Ruby wanted a zone, not a word.** A set that moves without anybody picking
+it has no name, so give it one: the three go to `sifting` instead of straight to
+the discard, and `count:fire@sifting` is the damage.
 
-**Where the line is.** This is *not* the same as reading what the player picked.
-Potion Gun already does that — `count:fire@options` counts the pick while it is
-still lying in the offer, which is what makes its Element reading exact. The gap
-is only the steps that move cards without asking.
+**The interesting half is the question.** "Deal damage OR VOID one of them" wants
+the player to *read the three* before deciding, which an offer of two entries does
+not show. So the other half of the "or" is minted **into the same zone**:
 
-**Size:** medium, and three cards want it.
+```python
+cast=["draw_from:mine.deck:sifting:3",
+      "create:sifting:ruby_burn:1",
+      "stat_set:counted@sifting.burn:count:fire@sifting",
+      "show:sifting"]
+```
+
+One question, four cards — three real and one standing for the alternative — and
+the branch is which came back. Two things make it work, and neither is new:
+
+- **`@options` inside `chosen` is the answer, not the question.** `flow.lua:1453`
+  sends the rest of the offer home before the chosen actions run, keeping only the
+  picked card. So `count:burn@options` says which branch was taken.
+- **A card's text is filled like any label.** `"Deal {stats.counted} damage"` on
+  the minted card reads the number written onto it a step earlier, so the choice
+  says what it is worth instead of making the player count Fire icons.
+
+**Two small gaps this turned up, neither blocking.** `set_owner` says `mine` or
+`none` and has no word for the other seat, so Lava Bat's give direction flips
+priority for two lines — the idiom the empty piles already use, and it works, but
+`enemy` is the obvious missing spelling. And **the prompt above an offer cannot be
+written per question**: `render.lua:1890` prints the overlay phase's `label`
+through `label.fill`, and `draw_zone` prints the offer zone's — but both are one
+string for every question in the game, and no action can write either. So what a
+choice means has to live on the cards in it, which is where this game has always
+put it.
 
 ---
 

@@ -1642,7 +1642,12 @@ function M.test_spellstorm_a_stolen_card_changes_hands(check)
 
 	local lb = stage_battle(one, "lavabat")
 	actions.execute("copy:target:activate", { card_id = lb.id, targets = { lb.id } })
-	check("their discard comes up", phase.current().key == "options"
+	-- "From any discard to any other discard" is two directions, so the card
+	-- asks which way round before it asks which card.
+	check("the two directions come up", phase.current().key == "options"
+		and #zones.find("options").cards == 2, #zones.find("options").cards)
+	flow.play_card(find("bat_take", "options").id, {})
+	check("then their discard comes up", phase.current().key == "options"
 		and #zones.find("options").cards > 0, phase.current().key)
 	flow.play_card(loot.id, {})
 	check("the card is in your discard now",
@@ -2561,6 +2566,158 @@ function M.test_spellstorm_deep_gems_charges_for_the_answer(check)
 	check("and the card went to the VOID",
 		entity.get(find("wateressence").zone_id).key == "void",
 		entity.get(find("wateressence").zone_id).key)
+end
+
+
+-- **Ruby.** *"Discard the top 3 cards of your deck. Deal 1 damage per `[FIRE]`
+-- card discarded OR you may VOID one of the discarded cards."*
+--
+-- Nothing named the three cards, because nothing had picked them — so they are
+-- given a zone of their own instead of going straight to the discard, and a zone
+-- is a name. The other half of the "or" is a card minted into that same zone, so
+-- **one question holds all four**: the player reads the three before deciding,
+-- and the branch is which card came back.
+--
+-- That works because a pick leaves the offer holding exactly the card taken —
+-- `flow.lua` sends the rest home before the chosen actions run — so `@options`
+-- inside `chosen` is the answer and not the question.
+--
+-- The minted card says what it is worth in its own text. A card's text is filled
+-- like any label, so `{stats.counted}` is a number written onto it a step before
+-- the question opened.
+function M.test_spellstorm_ruby_asks_beside_the_cards_it_is_about(check)
+	opening(3, "eve", "abra")
+	become("seat_one")
+	local ruby = stage_battle("seat_one", "ruby")
+	local deck = zone_of("deck", "seat_one")
+	for _, id in ipairs({ unpack(deck.cards) }) do zones.move_card(id, zones.find_id("void")) end
+	for _, key in ipairs({ "fireball", "twopower", "swampsilt" }) do
+		zones.move_card(require("cards").create(key, deck.id).id, deck.id)
+	end
+
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = ruby.id })
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = ruby.id })
+	check("it asks", phase.current().key == "options", phase.current().key)
+	check("and the question holds the three cards and the other choice",
+		#zones.find("options").cards == 4, #zones.find("options").cards)
+
+	local burn = find("ruby_burn", "options")
+	check("the flame counted the Fire among them", burn.stats.counted == 2,
+		burn.stats.counted)
+	check("and says so in its own text",
+		require("label").fill(require("cards").def(burn).text, burn) == "Deal 2 damage",
+		require("label").fill(require("cards").def(burn).text, burn))
+
+	local them = seat_card("seat_two")
+	local hp, disc = them.stats.health, #zone_of("discard", "seat_one").cards
+	flow.play_card(burn.id, {})
+	check("taking it deals that much", them.stats.health == hp - 2, them.stats.health)
+	check("the three go to the discard", #zone_of("discard", "seat_one").cards == disc + 3,
+		#zone_of("discard", "seat_one").cards)
+	check("and the flame is gone", find("ruby_burn") == nil)
+end
+
+-- The other branch: take one of the three and it is VOIDed, and no damage is
+-- dealt. Same question, same cards — only the answer differs.
+function M.test_spellstorm_ruby_voids_the_card_you_take_instead(check)
+	opening(3, "eve", "abra")
+	become("seat_one")
+	local ruby = stage_battle("seat_one", "ruby")
+	local deck = zone_of("deck", "seat_one")
+	for _, id in ipairs({ unpack(deck.cards) }) do zones.move_card(id, zones.find_id("void")) end
+	for _, key in ipairs({ "fireball", "twopower", "swampsilt" }) do
+		zones.move_card(require("cards").create(key, deck.id).id, deck.id)
+	end
+
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = ruby.id })
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = ruby.id })
+	local them = seat_card("seat_two")
+	local hp, disc = them.stats.health, #zone_of("discard", "seat_one").cards
+	local picked = find("twopower", "options")
+	flow.play_card(picked.id, {})
+	check("no damage was dealt", them.stats.health == hp, them.stats.health)
+	check("the card taken is VOIDed", entity.get(picked.zone_id).key == "void",
+		entity.get(picked.zone_id).key)
+	check("the other two go to the discard",
+		#zone_of("discard", "seat_one").cards == disc + 2,
+		#zone_of("discard", "seat_one").cards)
+	check("and the flame is gone", find("ruby_burn") == nil)
+	check("leaving nothing behind in the sifting zone",
+		#zones.find("sifting").cards == 0, #zones.find("sifting").cards)
+end
+
+
+-- **Lava Bat.** *"`[MANA]`. You may move a non-Wizard `[FIRE]` card from any
+-- discard to any other discard. Gain `[INIT]`."*
+--
+-- It only went one way, and took any card. Both halves were ordinary: the
+-- direction is two entries, and the filter is the scope plus a `where`. The give
+-- direction needs the card to change hands, and `set_owner` says "mine" or
+-- "none" and has no word for the other seat — so the other seat is made the one
+-- acting for two lines, which is the flip the empty piles already use.
+function M.test_spellstorm_lava_bat_can_give_as_well_as_take(check)
+	opening(7, "derby", "eve")
+	local one = zones.active_seat()
+	local two = one == "seat_one" and "seat_two" or "seat_one"
+
+	local mine
+	for e in entity.each("card") do
+		local z = entity.get(e.zone_id)
+		if e.def_key == "magicdart" and z and z.seat == one then mine = e end
+	end
+	check("they started with a Magic Dart of their own", mine ~= nil)
+	zones.move_card(mine.id, zone_of("discard", one).id)
+
+	local lb = stage_battle(one, "lavabat")
+	actions.execute("copy:target:activate", { card_id = lb.id, targets = { lb.id } })
+	flow.play_card(find("bat_give", "options").id, {})
+	check("your own Fire discard comes up", phase.current().key == "options",
+		phase.current().key)
+	flow.play_card(mine.id, {})
+	check("the card is in their discard now",
+		entity.get(mine.id).zone_id == zone_of("discard", two).id,
+		entity.get(entity.get(mine.id).zone_id).key)
+	check("and you are up again", zones.active_seat() == one, zones.active_seat())
+
+	-- And it is theirs now: thrown away from their hand, it goes home to them.
+	zones.move_card(mine.id, hand_of(two).id)
+	become(two)
+	actions.execute("destroy:mine.hand", {})
+	check("thrown away again, it stays with them",
+		entity.get(mine.id).zone_id == zone_of("discard", two).id,
+		entity.get(entity.get(mine.id).zone_id).key)
+end
+
+-- **Lapis.** *"`[DRAW]`. You may discard up to 2 cards. Heal 1 for each `[WATER]`
+-- discarded."*
+--
+-- "Up to 2" is the question asked twice, the shape Wind Dragon uses. "1 for each
+-- Water" rides on the answer: the rule is asked while the card picked is still
+-- lying in the offer, which is the one moment it can be counted — and it is
+-- asked before the discard, because a card in the discard is no longer in the
+-- offer.
+function M.test_spellstorm_lapis_heals_for_what_you_actually_discarded(check)
+	opening(3, "eve", "abra")
+	become("seat_one")
+	local lapis = stage_battle("seat_one", "lapis")
+	empty_hand("seat_one")
+	local hand = hand_of("seat_one")
+	for _, key in ipairs({ "lapis", "fireball" }) do
+		zones.move_card(require("cards").create(key, hand.id).id, hand.id)
+	end
+	local me = seat_card("seat_one")
+	me.stats.health = 5
+
+	actions.execute("activate_zone:mine.battle:by_column:cast", { card_id = lapis.id })
+	actions.execute("activate_zone:mine.battle:by_column:cast_ask", { card_id = lapis.id })
+	check("it asks", phase.current().key == "options", phase.current().key)
+
+	flow.play_card(find("fireball", "options").id, {})
+	check("a Fire card heals nothing", me.stats.health == 5, me.stats.health)
+	check("and it asks again, because it was up to two",
+		phase.current().key == "options", phase.current().key)
+	flow.play_card(find("lapis", "options").id, {})
+	check("a Water card heals one", me.stats.health == 6, me.stats.health)
 end
 
 

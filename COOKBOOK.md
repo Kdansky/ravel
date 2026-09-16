@@ -190,6 +190,39 @@ the aura, `@target` the card being hit.
 never offers itself and nothing has to name which card is meant. A per-seat zone written without
 an owner — `battle` — reaches every seat's copy, which is what "revealed" means here.
 
+### Deal damage for each Fire among these three, or VOID one of them.
+
+```json
+"action": ["draw_from:mine.deck:sifting:3",
+           "create:sifting:ruby_burn:1",
+           "stat_set:counted@sifting.burn:count:fire@sifting",
+           "show:sifting"],
+"chosen": { "action": ["activate_zone:rules:by_column:pick", "purge:options.burn",
+                       "purge:sifting.burn", "move:sifting:mine.discard"] }
+```
+
+Two ideas. **A zone is how a set of cards gets a name** — cards that move without anybody
+picking them cannot be counted or shown, so send them somewhere of their own instead of straight
+to the discard. And **the other half of an "or" can be minted into that same zone**, so one
+question holds the real cards *and* the alternative and the player reads them before deciding.
+
+The branch is read with `count:<tag>@options` from a rules card called first in `chosen`: a pick
+leaves the offer holding exactly the card taken — the rest go home before the chosen actions run
+— so `@options` there is the answer, not the question. Clean the minted card off both paths
+(`options` if it was picked, the staging zone if it was not).
+
+### A choice that says what it is worth.
+
+```json
+{ "key": "ruby_burn", "text": "Deal {stats.counted} damage", "card_stats": { "counted": 0 } }
+```
+
+A card's `text` and `tooltip` are filled like any label, so a minted choice can read a number
+written onto it a step earlier — `stat_set:counted@<zone>.<tag>:count:fire@<zone>` — instead of
+making the player work it out. This is the only per-question prose an offer has: the prompt above
+it is the overlay phase's `label` and the caption on it is the offer zone's, and both are one
+string for every question in the game.
+
 ### You may pay 1 gold to take one of these.
 
 ```json
