@@ -119,9 +119,14 @@ and a phase's own action list are the only automatic hooks.
   including the one Bunny hands his opponent. His DOOM Tokens were already exact —
   one only when he holds none, and one from *Sinking Strike* for a CURSE pile he
   has already emptied.
-- **Bunny Wizard — *Double Stitch* / *Triple Stitch!*** ("heal past your starting
-  health to 10; draw for each point of wasted healing"). His ceiling is simply 10
-  from the start, so the overheal draw never fires.
+- ~~**Bunny Wizard — *Double Stitch* / *Triple Stitch!***~~ **Done.** This note
+  was wrong twice over: his ceiling was not 10 from the start, it was 8 like every
+  other wizard's, because the seat's boost was worked out from printed health and
+  nothing made him the exception. So *Double Stitch* was missing too. It is one
+  number now — a ceiling of his own — and *Triple Stitch!* is the same hook Croh
+  uses, gated on `health@mine.player >= 10` and drawing `amount`, which is how big
+  the heal it cancelled was. At the ceiling every point is wasted, so replacing the
+  whole heal with a draw apiece *is* the printed rule.
 - **May Danaris — *Dangerous Download*** is done, and was never a passive. "At
   the end of a round, May may lose 1 Energy and 1 mana; if she did, she may
   resolve another player's revealed Tier II card" is a thing a player may do, at

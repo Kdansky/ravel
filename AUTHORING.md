@@ -4598,7 +4598,8 @@ The fields:
 - **`covers`** — who it is about, as a scope read from the card holding it.
   `"self"` is a keyword; `"each.mine.unit"` is an anthem that covers a side.
 - **`when`** — conditions, in the one grammar. `@self` holds the aura, `@target`
-  is being acted on, and **`@source`** is doing it:
+  is being acted on, **`@source`** is doing it, and **`amount`** is how big the
+  change is:
 
 ```json
 { "key": "ward", "verb": "damage", "stat": "hp", "covers": "self", "by": -2,
@@ -4642,6 +4643,26 @@ would have changed as `@target` — so who gives the curse is whoever the word i
 printed on, and not whoever was doing the healing. Every watching aura speaks and
 the change is cancelled once, so two of them replacing one heal is two riders and
 no heal.
+
+**`amount` — how big the change was.** Bound inside the hook and nowhere else, in
+the `needs` and in the list alike, and always as a player reads it: `"3 damage"`
+is 3, never the negative the engine carries. It is what lets a replacement be
+*worth* something:
+
+> *Triple Stitch! If you heal when already at 10 health, `[DRAW]` for each point
+> of wasted healing.*
+
+```json
+"tags": { "overhealing": { "adjusts": [
+  { "key": "spare", "verb": "heal", "stat": "health", "covers": "mine.player",
+    "needs": ["health@mine.player >= 10"],
+    "instead": ["draw_from:mine.deck:mine.hand:amount"] }] } }
+```
+
+At the ceiling every point of healing is wasted, so replacing the whole heal with
+a draw apiece *is* the rule. It is not bound where a **cost** is judged — a price
+has no size yet at the moment it is worked out — so `amount` in a resist's `needs`
+reads as nothing.
 
 Only a verb that changes a stat can be answered this way. An aim — a verb that
 `does: "target"` — is a price rather than a change, and has nothing for an

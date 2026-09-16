@@ -132,9 +132,23 @@ chain that leads back to itself (two auras each replacing the other's verb) is c
 after 200 substitutions rather than diagnosed; a file that does it is a bug and
 not a game, and running out of stack is the one outcome worth ruling out.
 
-Bunny still needs one thing more — *how much* healing was wasted — which is the
-clamp `adjusts` computes and does not report; expose it as a scope (`@adjusted`)
-and *Triple Stitch!* is exact too.
+Bunny needed one thing more — *how much* healing was refused — and the answer was
+not the clamp after all. His rule is conditioned on being **already at 10**, and
+there every point of a heal is wasted, so the number wanted is simply how big the
+change was. That is `amount`, bound in the hook's `needs` and in its `instead`
+alike, and both his passives are exact:
+
+```json
+"overhealing": { "adjusts": [
+  { "key": "spare", "verb": "heal", "stat": "health", "covers": "mine.player",
+    "needs": ["health@mine.player >= 10"],
+    "instead": ["draw_from:mine.deck:mine.hand:amount"] } ] }
+```
+
+*Double Stitch* turned out not to be free either. The note said his ceiling was
+already 10; it was 8, like everybody's, because the seat's boost was worked out
+from printed health and nothing made him the exception. A ceiling of his own is
+one number in the roster.
 
 *Glittering Dust* is the harder half: rewriting what another card's whole action
 list does is not a stat hook, and nothing short of a real replacement layer
@@ -449,8 +463,11 @@ the blocker the empty-pile note claimed. And `mine.discard.ash` names a zone
 |---|---|---|---|
 | 1 | C3, D2, D3 | small each | one card or three apiece |
 | 2 | B2 — **Omar's Traps** | medium | now cheaper: A1 proved the window, and a trap is a reaction to a verb the damage path would emit |
-| 3 | B1 rest — **`@adjusted`** | small | the clamp `adjusts` already computes; Bunny's *Triple Stitch!* is the only customer |
-| — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1, D4, **B1 `instead`** | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, the narrowed offers, Obsidian's free Ultimate, and Croh's *Accursed* |
+| — | A1, A2, A3, C2, F2, E, D1, G1, G2, C1, D4, **B1** | ~~various~~ | **done.** The Ultimates, the offer queue, the copy, the journal, the potion loop, the doubled gains, May's download, Oren's four, the weather, the five that were not gaps, the random discards, Riot's silence, the tag unions, the narrowed offers, Obsidian's free Ultimate, Croh's *Accursed* and both of Bunny's stitches |
+
+**B1 is closed but for *Glittering Dust*,** which stays where it was: rewriting
+what another card's whole action list does is not a stat hook, and one weather
+card is not worth an effects engine.
 
 **Three entries came off this list without anybody closing them**, which is twice
 this document has had to say so. An offered entry's own `needs` was read all

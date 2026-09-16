@@ -2349,4 +2349,35 @@ function M.test_spellstorm_croh_never_heals_and_the_curse_goes_the_other_way(che
 end
 
 
+-- **Double Stitch.** *"You can heal beyond your starting health, to a maximum of
+-- 10 health."* **Triple Stitch!** *"If you heal when already at 10 health,
+-- [DRAW] for each point of wasted healing."*
+--
+-- The note on his card claimed the first was free — that his ceiling was 10 from
+-- the start and only the overheal draw was missing. It was not: every wizard's
+-- ceiling was their printed health, so Bunny stopped at 8 like everybody else and
+-- neither passive existed. A ceiling of his own is one number; the draw is the
+-- aura, and what it needed was the size of the heal it was cancelling.
+function M.test_spellstorm_bunny_heals_past_his_start_and_draws_the_rest(check)
+	opening(3, "bunny", "eve")
+	become("seat_one")
+	local bunny = seat_card("seat_one")
+	check("he starts at 8", bunny.stats.health == 8, bunny.stats.health)
+
+	actions.execute("heal:health@mine.player:1", {})
+	check("and heals past it, which nobody else may", bunny.stats.health == 9,
+		bunny.stats.health)
+	actions.execute("heal:health@mine.player:5", {})
+	check("up to ten and no further", bunny.stats.health == 10, bunny.stats.health)
+
+	local hand, deck = #hand_of("seat_one").cards, #zone_of("deck", "seat_one").cards
+	actions.execute("heal:health@mine.player:3", {})
+	check("at the ceiling the healing is dropped", bunny.stats.health == 10,
+		bunny.stats.health)
+	check("and drawn instead, a card for every wasted point",
+		#hand_of("seat_one").cards == hand + 3, #hand_of("seat_one").cards)
+	check("off his own deck", #zone_of("deck", "seat_one").cards == deck - 3)
+end
+
+
 return M

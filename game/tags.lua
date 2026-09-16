@@ -153,7 +153,14 @@ end
 -- the aura says the number comes to, `instead` collects what it says happens in
 -- the change's place — and walking it twice was how the pair drifted apart the
 -- last time there were two copies of it.
-local function watching(card_id, verb, stat, source_id, fn)
+--
+-- `n` is how big the change is, as a player reads it: "3 damage" is 3, never the
+-- negative the engine carries. Bound as `amount`, so an aura can ask about the
+-- size of what it is watching and hand it on — *draw for each point of wasted
+-- healing* is one number, and there is nowhere else for it to come from. A cost
+-- has no size at the moment it is judged, so resist passes nothing and the name
+-- is simply not bound there.
+local function watching(card_id, verb, stat, source_id, n, fn)
     local list = verb and declaration.G.adjust_index[verb .. ":" .. stat]
     if not list or not card_id then return end
     local predicate = require("predicate")
@@ -179,7 +186,8 @@ local function watching(card_id, verb, stat, source_id, fn)
                         if c.id == card_id then covered = true; break end
                     end
                 end
-                local sub = { card_id = holder, targets = { card_id }, source = source_id }
+                local sub = { card_id = holder, targets = { card_id }, source = source_id,
+                    let = n and { amount = n } or nil }
                 if covered and entity.get(holder) and predicate.meets_all(ad.needs, sub) then
                     fn(ad, sub, seat)
                 end
@@ -197,9 +205,9 @@ end
 -- through `actions.adjusted` and a cost through `flow.resisted`, walking the same
 -- index the same way, and the pair had already drifted far enough that one built
 -- a set of covered cards and the other a boolean.
-function M.shift(card_id, verb, stat, source_id)
+function M.shift(card_id, verb, stat, source_id, size)
     local n = 0
-    watching(card_id, verb, stat, source_id, function(ad, sub)
+    watching(card_id, verb, stat, source_id, size, function(ad, sub)
         -- An aura that answers with an `instead` is not saying a size, and has
         -- nothing to add to a total it was never about.
         if ad.by ~= nil then
@@ -219,9 +227,9 @@ end
 -- One entry per aura that spoke, each with the action list, the context it was
 -- judged in — the aura as @self, the card that would have changed as @target —
 -- and the side to run it as, which is the holder's for `watching`'s reason.
-function M.instead(card_id, verb, stat, source_id)
+function M.instead(card_id, verb, stat, source_id, size)
     local out = {}
-    watching(card_id, verb, stat, source_id, function(ad, sub, seat)
+    watching(card_id, verb, stat, source_id, size, function(ad, sub, seat)
         if ad.instead then out[#out + 1] = { action = ad.instead, ctx = sub, seat = seat } end
     end)
     return out

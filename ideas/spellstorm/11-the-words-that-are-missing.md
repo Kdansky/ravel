@@ -56,14 +56,31 @@ cut after 200 substitutions and the change the last aura would have refused is
 allowed to land. A file that does it is a bug rather than a game; running out of
 stack is the one outcome worth ruling out.
 
-**The same hook, a second customer — still open.** Bunny Wizard's **Triple
-Stitch!** — *"If you heal when already at 10 health, `[DRAW]` for each point of
-wasted healing."* His ceiling is 10 from the start, so the overheal never exists to
-be counted. `adjusts` already computes that clamp and throws it away; exposing it
-as a scope (`@adjusted`, say) and Bunny is exact. His other passive, **Double
-Stitch** — *"You can heal beyond your starting health, to a maximum of 10"* —
-needs nothing, and is the reason his seat gets `stat_boost:health@mine.player`
-before its `stat_set`.
+**The same hook, a second customer — also done, and not as written here.**
+Bunny Wizard's **Triple Stitch!** — *"If you heal when already at 10 health,
+`[DRAW]` for each point of wasted healing."*
+
+This page said the number wanted was the clamp `adjusts` computes and throws away,
+to be exposed as a scope. It was not. His rule is conditioned on being **already at
+10**, and there every point of a heal is wasted — so the number is simply how big
+the change was, and there is no clamp to report. That is `amount`, bound in the
+hook's `needs` and in its `instead` alike, always as a player reads it: "3 damage"
+is 3, never the negative the engine carries.
+
+```json
+"overhealing": { "adjusts": [
+  { "key": "spare", "verb": "heal", "stat": "health", "covers": "mine.player",
+    "needs": ["health@mine.player >= 10"],
+    "instead": ["draw_from:mine.deck:mine.hand:amount"] } ] }
+```
+
+And this page said his other passive, **Double Stitch** — *"You can heal beyond
+your starting health, to a maximum of 10"* — needed nothing, because his ceiling
+was 10 from the start. **It was 8.** Every wizard's ceiling was worked out from
+printed health and nothing made him the exception, so neither passive existed. A
+ceiling of his own is one number in the roster; the claim that it was already
+there is the third time a note on this page has asserted something the engine had
+not done.
 
 ---
 

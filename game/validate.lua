@@ -1308,8 +1308,13 @@ function M.check(G)
 		return tags_read, stats_read
 	end
 
+	-- Names an action list is handed by where it sits, as against ones a compute
+	-- binds. There is one: `amount`, the size of the change an `adjusts` watches,
+	-- which exists inside that hook and nowhere else — so it is switched on while
+	-- the hook's own lists are walked and a typo stays a typo everywhere else.
+	local bound = {}
 	local function amount_ok(a)
-		return tonumber(a) ~= nil or AMOUNT_FNS[a] or (G.compute_defs or {})[a] ~= nil
+		return tonumber(a) ~= nil or AMOUNT_FNS[a] or (G.compute_defs or {})[a] ~= nil or bound[a]
 	end
 
 	-- Every word an ability is keyed to, gathered once: a step is answered by
@@ -3520,6 +3525,7 @@ function M.check(G)
 							where, tostring(ad.covers), suggest(named or ad.covers, scope_names))
 					end
 				end
+				bound.amount = true
 				check_conditions(where .. " needs", ad.needs)
 				-- The two things an aura can say about a verb, and it says one of
 				-- them. A change that does not happen has no size, so writing both
@@ -3534,6 +3540,7 @@ function M.check(G)
 					subject_ok(where .. " by", tostring(ad.by))
 				end
 				check_list(where .. " instead", ad.instead)
+				bound.amount = nil
 			end
 		end
 	end

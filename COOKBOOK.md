@@ -193,6 +193,25 @@ card the word is printed on, `@target` the card that would have changed — so t
 from the cursed player and not from whoever was doing the healing. Only a verb that changes a
 stat can be answered this way; an aim (`does: "target"`) is a price, not a change.
 
+Two auras replacing one heal is two curses and no heal: each speaks, and the change is only
+cancelled once. A chain that leads back to itself — two auras each replacing the other's verb —
+is cut after 200 substitutions and the change is allowed to land, rather than running out of
+stack.
+
+### Draw a card for each point of healing you wasted.
+
+```json
+"tags": { "overhealing": { "adjusts": [
+  { "key": "spare", "verb": "heal", "stat": "health", "covers": "mine.player",
+    "needs": ["health@mine.player >= 10"],
+    "instead": ["draw_from:mine.deck:mine.hand:amount"] }] } }
+```
+
+`amount` is how big the change was, as a player reads it — "3 damage" is 3, never the negative
+the engine carries. It stands in the `needs` and in the list alike, and it is what lets a
+replacement be worth what it replaced. Bound inside this hook and nowhere else; a resist's
+`needs` cannot read it, because a price has no size yet when it is worked out.
+
 ### This spell costs 1 more for each of their heroes in play.
 
 ```json

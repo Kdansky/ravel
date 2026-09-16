@@ -47,11 +47,11 @@ local GAME = [==[{
     "accursed": {
       "tooltip": "Accursed — never heals, and keeps a tally of what it turned down.",
       "adjusts": [{ "key": "curse", "verb": "mend", "stat": "hp", "covers": "self",
-        "instead": ["stat_gain:tally@target:1"] }]
+        "instead": ["stat_gain:tally@target:amount"] }]
     },
     "greedy": {
       "adjusts": [{ "key": "greed", "verb": "mend", "stat": "hp", "covers": "each.unit",
-        "instead": ["stat_gain:tally@self:1"] }]
+        "needs": ["amount >= 2"], "instead": ["stat_gain:tally@self:1"] }]
     },
     "recoiling": {
       "adjusts": [{ "key": "recoil", "verb": "damage", "stat": "hp", "covers": "self",
@@ -251,8 +251,11 @@ function M.test_adjusts_instead_replaces_the_change(check)
 		hit("mend", "cursed", 3)
 		check("and the healing never lands", find("cursed").stats.hp == 6,
 			tostring(find("cursed").stats.hp))
-		check("the rider ran in its place", find("cursed").stats.tally == 1,
-			tostring(find("cursed").stats.tally))
+		-- `amount` is how big the change was, as a player reads it. Three healing
+		-- refused is three of whatever happens instead, and there is nowhere else
+		-- for that number to come from.
+		check("the rider ran in its place, and knew how much it replaced",
+			find("cursed").stats.tally == 3, tostring(find("cursed").stats.tally))
 	end)
 end
 
@@ -270,6 +273,13 @@ function M.test_adjusts_instead_runs_as_the_aura(check)
 		check("and the aura took the rider, not the card it covered",
 			find("miser").stats.tally == 1 and find("grunt").stats.tally == 0,
 			find("miser").stats.tally .. "/" .. find("grunt").stats.tally)
+
+		-- The same name in the gate: this one only answers a heal of two or more.
+		hit("mend", "grunt", 1)
+		check("a change too small to interest it goes through", find("grunt").stats.hp == 7,
+			tostring(find("grunt").stats.hp))
+		check("and the aura stayed quiet", find("miser").stats.tally == 1,
+			tostring(find("miser").stats.tally))
 	end)
 end
 

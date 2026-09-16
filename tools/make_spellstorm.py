@@ -670,14 +670,15 @@ def swap_templates():
 
 def wizard(key, name, epithet, elements, health, rating, ult_cost, ult_name,
            ult_tooltip, ult_action, spells, start=(), ult_chosen=None,
-           ult_chosen_where=None, passive=None, keywords=(), simplified=None,
-           blurb=""):
+           ult_chosen_where=None, passive=None, keywords=(), max_health=None,
+           simplified=None, blurb=""):
     return dict(key=key, name=name, epithet=epithet, elements=elements,
                 health=health, rating=rating, ult_cost=ult_cost,
                 ult_name=ult_name, ult_tooltip=ult_tooltip,
                 ult_action=list(ult_action), ult_chosen=ult_chosen,
                 ult_chosen_where=ult_chosen_where,
                 passive=passive, keywords=list(keywords), spells=spells,
+                max_health=max_health or health,
                 start=list(start), simplified=simplified, blurb=blurb)
 
 
@@ -810,8 +811,8 @@ WIZARDS = [
            ult_chosen=["copy:target:activate:2", "move:target:void",
                        HEAL(1), "heal:health@opponent:1"],
            ult_chosen_where=VOIDABLE,
-           simplified="Bunny's Double Stitch heals past his starting health to 10, so his ceiling is 10 from the start and the overheal draw of Triple Stitch never fires",
-           blurb="A stuffie from Bunny Island who heals fast and often helps his opponent along the way. A good choice if you like to play nice.",
+           max_health=10, keywords=["overhealing"],
+           blurb="A stuffie from Bunny Island who heals fast and often helps his opponent along the way. He is the only wizard who can heal past his starting health, and what will not fit he draws instead. A good choice if you like to play nice.",
            spells=[
                card("bunny_buddy", "Buddy System", EARTH, kind="wizard_spell", ult=True,
                     tooltip="Power up and gain 1 mana. If your opponent is Tier I, they power up too.",
@@ -1213,7 +1214,7 @@ def wizard_templates(w):
     out.append(char)
 
     pick_action = [
-        "stat_boost:health@mine.player:%d" % (w["health"] - 1),
+        "stat_boost:health@mine.player:%d" % (w["max_health"] - 1),
         "stat_set:health@mine.player:%d" % w["health"],
         "stat_set:init_rating@mine.player:%d" % w["rating"],
         "create:mine.wizard:wiz_%s:1" % w["key"],
@@ -2060,6 +2061,17 @@ def build():
             # side, so the CURSE goes from the cursed player to the other seat
             # whoever was doing the healing. `covers` reads the seat card from
             # Croh's, which is where the health it guards actually lives.
+            # Triple Stitch! -- the other end of the same hook. At his ceiling
+            # every point of healing is wasted, so replacing the whole heal with
+            # a draw apiece *is* the printed rule, and `amount` is the size of
+            # the heal that would have landed. Below the ceiling it says nothing,
+            # which is the card too: the condition is "already at 10", not "some
+            # of it was wasted".
+            "overhealing": {
+                "adjusts": [{"key": "spare", "verb": "heal", "stat": "health",
+                             "covers": "mine.player",
+                             "needs": ["health@mine.player >= 10"],
+                             "instead": ["draw_from:mine.deck:mine.hand:amount"]}]},
             "accursed": {
                 "adjusts": [{"key": "curse", "verb": "heal", "stat": "health",
                              "covers": "mine.player",

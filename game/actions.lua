@@ -226,7 +226,7 @@ end
 -- while damaged" reads the hp this damage has not yet come off.
 local function adjusted(e, key, verb, delta, ctx)
 	if delta == 0 then return delta end
-	local shift = tags.shift(e.id, verb, key, ctx and ctx.card_id)
+	local shift = tags.shift(e.id, verb, key, ctx and ctx.card_id, math.abs(delta))
 	if shift == 0 then return delta end
 	-- The clamp is this caller's, not the sum's: a delta may not turn harm into
 	-- help, so it is the *size* that is held at nought and the sign that is put
@@ -251,7 +251,7 @@ local instead_depth = 0
 -- one heal that never happened, because "instead" is about the change and the
 -- change is only cancelled once.
 local function replaced(e, key, delta, ctx, verb)
-	local swaps = tags.instead(e.id, verb, key, ctx and ctx.card_id)
+	local swaps = tags.instead(e.id, verb, key, ctx and ctx.card_id, math.abs(delta))
 	if #swaps == 0 or instead_depth >= INSTEAD_LIMIT then return false end
 	instead_depth = instead_depth + 1
 	for _, s in ipairs(swaps) do
